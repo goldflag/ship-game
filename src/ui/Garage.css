@@ -310,3 +310,10 @@
   .port-inspector-intro { margin:6px 0 9px; }
 }
 @media(max-height:640px) and (min-width:601px) { .port-inspection-active .garage-classic-details { top:115px; max-height:calc(100% - 145px); width:265px; } }
+
+.port-volume-search { display: grid; gap: 6px; margin: 12px 0; color: var(--port-muted); font-size: 12px; }
+.port-volume-search input { min-height: 42px; min-width: 0; padding: 8px 10px; color: var(--port-text); background: #172c38; border: 1px solid var(--port-line); border-radius: 2px; font: inherit; }
+.port-volume-search input:focus-visible { outline: 2px solid var(--port-accent); outline-offset: 2px; }
+.port-volume-detail small { display: block; max-width: 34ch; margin-top: 6px; color: var(--port-muted); line-height: 1.4; }
+
+.garage-classic-identity a.garage-schematic-button { display: inline-flex; margin-left: 14px; text-decoration: none; }

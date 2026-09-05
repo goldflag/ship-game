@@ -11,6 +11,9 @@ bun run ship:compile my-ship      # Validate JSON and compile into .build/ships/
 bun run ship:build my-ship        # Build Blender source, export, validate, then publish locally
 bun run ship:check my-ship        # Detect stale definitions/models and verify the exported GLB
 bun run ship:review my-ship       # Render five repeatable orthographic review views
+bun run ship:reference bismarck  # Refresh isolated game-model raster reference pack
+bun run ship:compare bismarck    # Rebuild measurements, matched sheets, local page and ZIP
+bun run ship:independence bismarck # Full build with raw reference cache unavailable
 bun run ship:thumbnail my-ship    # Bake the port card image from the validated runtime GLB
 bun test
 bun run build                    # Checks published presets, types and production bundle
@@ -33,11 +36,13 @@ assets/
     blueprint.json                Editable placement, hull parameters and gameplay volumes
     build.py                      Per-ship original Blender recipe
     README.md                     Configuration, evidence and modeling limitations
+    modeling-spec.json            Optional reviewed dimensions, evidence and comparison parameters
     references/sources.json       Source provenance and what each reference supports
     references/                   Reference-only images; never shipped as game textures
     reports/                      Export validation and unresolved accuracy discrepancies
     generated/source.blend        Current generated, editable Blender source
     generated/review/              Fixed-camera review images
+    generated/comparison/          Matched views, historical overlays, sections, page and ZIP
     baseline/                     Preserved original files when migrating an existing ship
 scripts/ships/
   pipeline.ts                     Compilation, hashing, staging and GLB validation
@@ -45,13 +50,15 @@ scripts/ships/
   starter.py                      Minimal original hull recipe for new ships
   export.py                       Common batching, material bake and coordinate conversion
   review.py                       Repeatable inspection cameras
+scripts/reference/                Isolated acquisition/capture and raster-only review stages
+public/ship-reference/<ship-id>/   Portable comparison page and standalone download pack
 public/models/<ship-id>.glb        Runtime visual model
 public/models/<ship-id>.json       Compiled ship definition and content hash
 src/ships/blueprint.ts             Versioned source/compiled types and input validation
 src/simulation/                    Renderer-free weapons, movement and damage
 ```
 
-Our generated/source and runtime files are deliberately retained with their recipes. `.build/`, Blender backups and caches are ignored. The Bismarck baseline is preserved in this repository, so the build no longer relies on `/Users/bill/models`. Large future fleets may need a separate versioned binary store; the current assets remain small enough to inspect locally.
+Our generated/source and runtime files are deliberately retained with their recipes. `.build/`, Blender backups and caches are ignored. The Bismarck baseline is preserved in this repository, so the build no longer relies on `/Users/bill/models`. Large future fleets may need a separate versioned binary store; the high-resolution reference packs are larger than runtime models and include standalone review copies.
 
 ## Author a ship with an assistant and Blender MCP
 
@@ -72,7 +79,11 @@ Prefer dated plans and documented dimensions for historical features. Record ref
 
 For GameModels3D browser access, retain permitted comparison views and camera/configuration notes. For reference files available for this use, inspect them in a separate reference scene with documented scale and alignment. Do not trace their topology, retopologize/shrinkwrap from them, bake their textures, or include their meshes in our runtime assets. Reference art remains credited reference material. Resolve discrepancies against the source register; two matching game models are not automatically independent confirmation.
 
-For Bismarck, GameModels3D comparison is still pending access to a specific reference and configuration. No competitor ship model was inspected or copied during this implementation. The stored orthographic source images and dimensional basis came from the existing reconstruction.
+Bismarck now uses WoWS Bismarck ’41 `pgsb708`, with source/version recorded in `references/gamemodels3d/manifest.json`. `ship:reference` is the only stage that reads the raw game geometry under ignored `.build/reference-cache/`. It creates a disposable Blender scene, neutral captures, a contact sheet and a browsable index. Its single global registration preserves game-model proportions and leaves its load datum unverified. No game vertices, UVs, textures, offsets or attachment transforms enter the production recipe.
+
+For ships with `modeling-spec.json`, `ship:build` also runs `ship:compare`: independently measure the actual exported GLB, render it through the same camera plan, register preserved historical rasters with one uniform scale, and generate sheets, overlays, sections, JSON measurements, a local HTML page and ZIP. The page is served at `/ship-reference/<ship-id>/` and works directly from an extracted review ZIP. The ZIP includes an authoring snapshot; rebuilding still uses this repository's shared pipeline. `ship:check` hashes the model, definition, source, specification, reference images and review recipes, then checks every retained and published output. This makes stale comparisons a build failure.
+
+`ship:independence` runs the full asset build with the raw cache moved away, restores it afterward and records the model hash. A Python audit hook additionally rejects raw model/cache paths, the preserved Bismarck baseline and authoring network connections; it records local authoring reads. The production recipe uses the blueprint, original component catalog and original geometry code only. This is an input-boundary check, not a general native-code sandbox. See [reference-stage setup and reuse](../scripts/reference/README.md) for Python/Pillow prerequisites and per-vessel parameters.
 
 ## Coordinate and component contract
 
@@ -112,9 +123,11 @@ All per-ship materials that need special handling must have an export path. The 
 
 Moving main and secondary mounts share the same implementation. Their armor, traverse/elevation rates and limits, reload, ammunition, muzzle velocity, penetration budget, damage, and recoil come from the part catalog. Magazine connections can disable a mount. Aiming uses the same gravity as shell flight, includes ship velocity, checks the actual muzzle and mount limits, and tests obstruction against the modeled superstructure and other gunhouses. Firing readiness is independent of reticle alignment or reachability: loaded, functional guns fire along their current barrel poses while traversing or at their aiming limits, provided the actual firing path is clear. Obstruction proxies are coarse and need refinement against the visual ship for narrow clearances.
 
-The first damage model uses ordered intersections with axis-aligned armor volumes in ship space and oriented moving gunhouse volumes, an approximate AP penetration budget, ricochet/stopping, module health, magazine events, and hull integrity. It does not implement empirical penetration tables, different armor materials, AP fuzes, HE blast/spall, crew, or arbitrary mesh fracture. Turret protection is currently a uniform thickness approximation.
+Armor supports optional convex planar `plate` surfaces within the version 1 blueprint, with thickness, material, exterior-breach flag and optional mount ID. Plate vertices use ship coordinates for fixed protection and yaw-local coordinates for moving turret protection. The compiler validates planarity, convexity, bounds and mount links. Legacy box armor remains supported for other presets.
 
-Compartments contain water volume, breaches and pumps. Connections conserve transferred water. Added water changes a simplified draft/list/trim model; integrity loss or exhausted reserve buoyancy initiates sinking. Hull mass, waterplane area, reserve buoyancy and handling are explicitly calibrated values. They are not yet derived from arbitrary edited geometry or component weights. The boxes are gameplay volumes, not certified watertight historical hull subdivisions.
+Bismarck uses spatially separated belt/backing/support, upper belt, decks, turtleback, bulkheads, barbettes and gunhouse plates. CPU collisions, sight picking, probes and inspection all use the same plate surfaces; mounted plates follow CPU yaw. A plate consumes resistance once per crossing, including coplanar seams and tick boundaries. Teak contributes no invented steel-equivalent resistance. KC, Wh, Ww and structural steel are identified but do not yet have distinct empirical penetration curves. Ricochet, AP budgets, module health, magazine events and flooding remain game approximations; AP fuzes, HE blast/spall, crew and mesh fracture are absent. Other presets retain their earlier uniform gunhouse protection.
+
+Compartments contain water volume, breaches and pumps. Connections conserve transferred water. Added water changes a simplified draft/list/trim model; integrity loss or exhausted reserve buoyancy initiates sinking. Hull mass, waterplane area, reserve buoyancy and handling are explicitly calibrated values. They are not yet derived from arbitrary edited geometry or component weights. Internal boxes are inspectable envelopes, not certified historical watertight subdivisions. Bismarck’s 39 spaces follow researched machinery order and ammunition stacking; exact boundaries and their capacities remain estimated. No arbitrary open inter-room flooding connections are asserted.
 
 The sea used for gameplay is a flat Y=0 surface. GPU waves render the sea and animate buoys, while combat ship poses remain authoritative CPU values. For smooth motion at arbitrary display rates, the browser interpolates hull and joint transforms between the last two fixed ticks, presenting ships one tick (16.7 ms) behind simulation time. The camera, wake and inspection geometry follow those same sampled ship poses; firing and hit resolution continue to use the current authoritative tick. Pause holds the interpolation fraction, and resets/port teleports clear pose history. GPU wave samples never alter these poses. A future shared CPU wave model can add synchronized heave and wave-driven roll/pitch. Ship contact/collision response, target AI, networking, and a shipbuilding UI are not implemented here.
 
@@ -128,6 +141,6 @@ Port inspection uses the same renderer through `ShipInspection` and the same dat
 
 ## What is editable now, and what comes next
 
-Hull station tables, component placements, equipment, armor and internal layout can be changed in JSON and rebuilt. The Bismarck recipe still has ship-specific superstructure, fittings and underwater details; it is not a generic in-game hull editor. Large hull changes require adjusting those structures and validating module/compartment placement.
+Hull station tables, component placements, polygonal superstructure tiers, equipment, physical armor plates and internal layout can be changed in JSON and rebuilt. The Bismarck recipe still has ship-specific superstructure, fittings and underwater details; it is not a generic in-game hull editor. Large hull changes require adjusting those structures and validating module/compartment placement.
 
 The schema gives future editor code a durable authoring boundary. Full construction still requires a hull editor, derived mass/displacement and compartment generation, attachment/clearance rules, undo/redo, persistence migrations and competitive validation. Render-only Blender refinements will not automatically become meaningful construction parameters. Preserve the versioned blueprint rather than trying to reconstruct design intent from the GLB.

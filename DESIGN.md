@@ -173,3 +173,7 @@ G opens gunnery and releases the cursor for aim selection, trial-target conditio
 - **Don't** replace fine borders and restrained rounding with an unrelated component style.
 - **Don't** present uniform combat volumes as historically verified armor plates or hull subdivisions.
 - **Don't** invent live ammunition, consumables or combat telemetry to fill the weapon bar.
+
+### Standalone reference review
+
+The offline reference review uses bundled Barlow (body/controls) and Barlow Condensed (headings), with original SIL OFL notices. Its long-form evidence tables use 16 px body text, 14 px captions and 25–46 px headings, so they remain readable outside the compact game HUD. Navy surfaces and brass links extend the port styling; neutral paper behind comparison renders preserves visual evidence. On narrow screens the comparison pair stacks and tables scroll within their own region. These report sizes intentionally differ from the compact instrument labels.

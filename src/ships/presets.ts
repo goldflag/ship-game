@@ -10,3 +10,6 @@ export function shipPreset(id: string | null): ShipDefinition & { contentHash: s
   return (id && Object.hasOwn(shipPresets, id) ? shipPresets[id as keyof typeof shipPresets] : bismarck) as ShipDefinition & { contentHash: string };
 }
 export const selectedShip = shipPreset(typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('ship'));
+
+/** Published authoring evidence is optional preset metadata, independent of combat. */
+export const shipReviewUrls: Partial<Record<string, string>> = { bismarck: '/ship-reference/bismarck/' };

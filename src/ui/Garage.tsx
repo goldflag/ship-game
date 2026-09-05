@@ -7,7 +7,7 @@ import type { Game } from '../game/Game';
 import { shipModel, shipIdentity } from '../game/shipModel';
 import { useShip } from './ShipContext';
 import type { ShipDefinition } from '../ships/blueprint';
-import { shipPresets } from '../ships/presets';
+import { shipPresets, shipReviewUrls } from '../ships/presets';
 import type { InspectionMode } from '../ships/inspection';
 import { ModelViewControls, PortInspection } from './PortInspection';
 
@@ -123,11 +123,11 @@ function PortLayout({ state }: { state: GarageState }) {
       <ResourceWallet credits={state.credits}/>
       <button className="garage-settings" aria-label="Port settings" disabled={!state.ready} onClick={state.settings}><Icon name="compass" size={20}/></button>
     </header>
-    <section className="garage-classic-identity"><h1>{selectedShip.name.toUpperCase()}</h1><div><span>VIII</span><span>{SHIP_MODEL.type}</span><span>{SHIP_MODEL.nation} · {SHIP_MODEL.year}</span></div><p className="garage-ready"><i/> {state.ready ? 'READY TO SAIL' : 'PREPARING SHIP'}</p><button className="garage-schematic-button" onClick={state.schematic} disabled={!state.ready} aria-haspopup="dialog"><Icon name="schematic" size={16}/>Create schematic</button></section>
+    <section className="garage-classic-identity"><h1>{selectedShip.name.toUpperCase()}</h1><div><span>VIII</span><span>{SHIP_MODEL.type}</span><span>{SHIP_MODEL.nation} · {SHIP_MODEL.year}</span></div><p className="garage-ready"><i/> {state.ready ? 'READY TO SAIL' : 'PREPARING SHIP'}</p><button className="garage-schematic-button" onClick={state.schematic} disabled={!state.ready} aria-haspopup="dialog"><Icon name="schematic" size={16}/>Create schematic</button>{shipReviewUrls[selectedShip.id] && <a className="garage-schematic-button" href={shipReviewUrls[selectedShip.id]} target="_blank" rel="noreferrer">Reference review</a>}</section>
     <div className="garage-classic-left"><button className="garage-commander-link" onClick={()=>state.setSection('commander')}><Commander/><Glyph name="chevron" size={16}/></button><section className="garage-daily-orders"><div><Glyph name="wreath" size={22}/><h2>Daily orders</h2></div><strong>A captain’s first command</strong><p>Get underway and put your ship through her paces.</p><div><span>Sea trials completed</span><b>0 / 1</b></div><i/><small><Glyph name="credits" size={13}/> 25,000 credits</small></section></div>
     <aside className="garage-classic-details" data-section={state.section}>
       <ModelViewControls mode={state.inspection} onChange={state.inspect} ready={state.ready}/>
-      {state.inspection === 'exterior' ? <SideContent state={state}/> : <PortInspection definition={selectedShip} mode={state.inspection} selectedId={state.selectedVolume} onSelect={state.selectVolume}/>}
+      {state.inspection === 'exterior' ? <SideContent state={state}/> : <PortInspection key={`${selectedShip.id}:${state.inspection}`} definition={selectedShip} mode={state.inspection} selectedId={state.selectedVolume} onSelect={state.selectVolume}/>}
     </aside>
     <span className="garage-orbit-hint"><Icon name="camera" size={15}/> Drag to inspect · Scroll to zoom</span>
     <FleetCarousel state={state}/>
