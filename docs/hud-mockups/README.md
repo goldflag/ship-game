@@ -2,27 +2,21 @@
 
 Question: which HUD makes this game feel like a familiar naval combat game while keeping the ship and ocean central?
 
-Run `bun run dev` and open [the interactive comparison](http://localhost:5173/?variant=A). Use the bottom switcher or left/right arrows. These are development-only, throwaway mockups over the existing live Bismarck scene. The normal `/` route keeps the sea-trial interface.
+The owner selected **A — Fleet action**, with instruments about 15% smaller and a live FPS counter at the upper right. Run `bun run dev` and open [the game](http://localhost:5173/). The prototype switcher and losing variants have been removed; the screenshots below preserve the original comparison.
 
 | Study | Direction | Main tradeoff |
 | --- | --- | --- |
-| [A — Fleet action](http://localhost:5173/?variant=A) | World of Warships-inspired arrangement: ship health and engine at lower left, ammunition and consumables below the sight, minimap at lower right, team scores above. | Strongest familiarity; more permanently visible combat information. |
-| [B — Gunnery station](http://localhost:5173/?variant=B) | War Thunder-inspired attention to range, individual guns, crew and compartment damage. Three instrument stations separate handling, weapons and the tactical picture. | More information to master and more ocean covered by panels. |
-| [C — Open sea](http://localhost:5173/?variant=C) | A quieter interpretation of the same combat language. Compact ship status, reduced weapon strip, smaller circular chart, readiness next to the sight. | Best view of the ship; less tactical detail available at a glance. |
+| [A — Fleet action](a-fleet-action.png) | World of Warships-inspired arrangement: ship health and engine at lower left, ammunition and consumables below the sight, minimap at lower right, team scores above. | Strongest familiarity; more permanently visible combat information. |
+| [B — Gunnery station](b-gunnery-station.png) | War Thunder-inspired attention to range, individual guns, crew and compartment damage. Three instrument stations separate handling, weapons and the tactical picture. | More information to master and more ocean covered by panels. |
+| [C — Open sea](c-open-sea.png) | A quieter interpretation of the same combat language. Compact ship status, reduced weapon strip, smaller circular chart, readiness next to the sight. | Best view of the ship; less tactical detail available at a glance. |
 
 Recommendation: A is the strongest starting point for the stated preference for familiarity. C's lighter ammunition strip could be incorporated after choosing a direction. B is useful if compartment damage and manual gunnery become central mechanics.
 
-## Try the combat states
+## Implementation
 
-- Click Cruising to preview fire damage and reduced health; click again to reset.
-- Click ammunition or press 1 / 2 to select HE / AP.
-- Click Fire salvo or press Enter with focus on the scene to preview a 12-second reload.
-- Press R / T or click the repair controls to restore the sample ship state.
-- Click × or press the backtick key to hide the review controls. Press backtick again to restore them.
-- Add `&clean` to a variant URL to start with the instruments at the screen edges and the review controls hidden.
-- The scene retains its existing camera and sailing controls. Navigation numbers in the mockups stay illustrative.
+`src/ui/FleetHud.tsx` and `FleetHud.css` implement the selected visual layout. The ship widget is 251 px wide (was 295), the weapon strip 421 px (was 495), the map 202 px (was 238), and the sight 459 px (was 540). Instruments sit at the screen edges and keep text readable rather than scaling the entire viewport.
 
-All health, speeds, bearings, reload durations, crew counts, combat contacts, gun statuses, scores and map geography are sample data. Target markers do not track real enemy models. The prototype demonstrates presentation and local UI states; it does not add enemies, shooting, collision or damage simulation. Mobile previews scale the desktop composition for comparison; these are desktop combat HUD concepts, not a finished touch interface.
+Speed, engine order, rudder, heading, ship bearing, distance, chart position/trail/buoys, camera mode and FPS come from the game. Engine buttons, camera controls, map zoom, pause/settings, fullscreen, HUD visibility and touch steering remain functional. Combat is not implemented yet, so weapon slots are secured and sample enemies, scores, health values, damage counters, capture zones and reload timers are omitted from the live HUD.
 
 ## Reference research
 
@@ -36,7 +30,7 @@ Reviewed September 4, 2026. The references inform familiar placement and visual 
 
 ## Decision
 
-Pending the owner's visual comparison. No replacement of the durable game design system has been chosen. Once a direction is selected, capture the choice here, implement it against actual simulation/combat data, then remove the losing variants and prototype switcher.
+Selected: A — Fleet action. Preserve its familiar corner arrangement and reduce the primary instruments by about 15%. Keep the archived screenshots as design references for future combat states; B, C and the review switcher are retired.
 
 ## Captured previews
 
@@ -45,3 +39,7 @@ Pending the owner's visual comparison. No replacement of the durable game design
 - [C — Open sea](c-open-sea.png)
 
 Validation: production build and TypeScript passed; all three desktop variants rendered without horizontal overflow; HE selection updated the selected slot and loaded-ammunition label; firing started the countdown and disabled repeat fire; incoming damage changed health and the fire warning; repair restored health. The landscape comparison controls were checked at 844 × 390 and the desktop views at 1600 × 900.
+
+## Live HUD validation
+
+The production build and TypeScript checks pass. Browser checks verified the live FPS counter, engine orders and changing speed, starboard rudder, map zoom and its limits, camera cycling, pause/resume, help, and hiding/restoring the HUD. The desktop and small-screen layouts were checked at 1600 × 900, 844 × 390 and 390 × 844. The narrow-screen weapon/camera overlap was corrected. [Current desktop HUD](fleet-action-live.png).
