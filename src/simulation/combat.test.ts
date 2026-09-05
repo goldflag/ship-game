@@ -70,18 +70,21 @@ test('ballistic aim reaches its target under the flight integrator gravity', () 
 test('armor resolves before internal damage, and a surface/module is only charged once per shell', () => {
   const def = definition(), sim = new CombatSimulation(def);
   Object.assign(sim.target.motion, { x: 0, z: 0 });
+  const from: Vec3 = [-100, def.modules[0].center[1], def.modules[0].center[2]], to: Vec3 = [100, from[1], from[2]];
   const low = round(1);
-  expect(hitShip(low, [-100, .5, -21], [100, .5, -21], sim.target, def, () => {})).toBe(true);
+  expect(hitShip(low, from, to, sim.target, def, () => {})).toBe(true);
   expect(sim.target.damage.modules[0].hp).toBe(def.modules[0].hp);
   const shell = round();
-  hitShip(shell, [-100, .5, -21], [100, .5, -21], sim.target, def, () => {});
+  hitShip(shell, from, to, sim.target, def, () => {});
   const hp = sim.target.damage.modules[0].hp;
   expect(hp).toBeLessThan(def.modules[0].hp);
-  hitShip(shell, [-100, .5, -21], [100, .5, -21], sim.target, def, () => {});
+  hitShip(shell, from, to, sim.target, def, () => {});
   expect(sim.target.damage.modules[0].hp).toBe(hp);
 });
 test('flood connections conserve water with pumps/leaks disabled and list follows the flooded side', () => {
-  const def = definition(); def.compartments.forEach(c => c.pumpM3PerSecond = 0);
+  const def = definition();
+  def.connections = [{ fromId:def.compartments[0].id, toId:def.compartments[2].id, areaM2:.05 }]; // Explicit damaged connection fixture.
+  def.compartments.forEach(c => c.pumpM3PerSecond = 0);
   const sim = new CombatSimulation(def);
   sim.target.damage.compartments[0].waterM3 = 500;
   for (let i = 0; i < 600; i++) updateFlooding(sim.target, def, 1 / 60);
@@ -98,7 +101,8 @@ test('aimed salvos obey reloads and ammunition while damaging the target', () =>
   const shots = sim.events.filter(e => e.kind === 'shot');
   expect(shots.length).toBe(8);
   expect(sim.player.mounts.slice(0, 4).every(m => m.ammo === 238)).toBe(true);
-  expect(sim.target.damage.modules[0].hp).toBeLessThan(140);
+  expect(sim.target.damage.modules.find(m => m.id === 'engine-port')!.hp).toBe(140);
+  expect(sim.events.some(e => e.kind === 'stopped' && e.message.includes('Turtleback'))).toBe(true);
   expect(sim.target.damage.integrity).toBeLessThan(1000);
   expect(sim.target.damage.compartments.some(c => c.breachAreaM2 > 0)).toBe(true);
   for (let i = 0; i < 200; i++) sim.step(stop, { aim: [NaN, 0, 0], fire: true, battery: 'main' });
