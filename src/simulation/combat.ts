@@ -11,6 +11,10 @@ export interface CombatTelemetry {
   targetPower: number; targetSteering: number; targetSunk: boolean; targetUnderway: boolean;
   mounts: { id: string; name: string; status: string; reload: number; ammo: number }[];
   modules: { id: string; name: string; condition: number }[]; message: string;
+  playerIntegrity: number;
+  playerWater: number;
+  targetPosition: { x: number; z: number; heading: number };
+  batteries: { battery: Battery; ammo: number; ready: number; total: number; reload: number }[];
 }
 export class CombatSimulation {
   readonly player: Combatant;
@@ -128,6 +132,15 @@ export class CombatSimulation {
       targetIntegrity: this.target.damage.integrity / 1000, targetWater: this.target.damage.compartments.reduce((n, c) => n + c.waterM3, 0),
       targetPower: systemHealth(this.target, this.definition, 'engine'), targetSteering: systemHealth(this.target, this.definition, 'steering'), targetSunk: this.target.damage.sunk, targetUnderway: this.targetUnderway,
       mounts, modules: this.definition.modules.map((m, i) => ({ id: m.id, name: m.name, condition: this.target.damage.modules[i].hp / m.hp })),
+      playerIntegrity: this.player.damage.integrity / 1000,
+      playerWater: this.player.damage.compartments.reduce((n, c) => n + c.waterM3, 0),
+      targetPosition: { x: this.target.motion.x, z: this.target.motion.z, heading: this.target.motion.heading },
+      batteries: (['main', 'secondary'] as Battery[]).map(battery => {
+        const states = this.definition.mounts.filter(m => m.battery === battery).map(m => this.player.mounts.find(s => s.id === m.id)!);
+        const reloading = states.filter(m => m.reload > 0);
+        return { battery, ammo: states.reduce((n, m) => n + m.ammo, 0), ready: states.filter(m => m.status === 'ready').length, total: states.length,
+          reload: reloading.length ? Math.min(...reloading.map(m => m.reload)) : 0 };
+      }),
       message: significant?.message ?? 'Aim at the target, wait for guns to train, then fire.',
     };
   }
