@@ -2,10 +2,11 @@ import { useId, useState } from 'react';
 import { BUOYS } from '../game/Game';
 import type { Telemetry } from '../game/types';
 import { Icon } from './Icons';
+import { bindingLabel, type Keybindings } from '../game/keybindings';
 
 const CHART_RANGES = [1000, 2000, 4000, 8000];
 
-export function NavigationChart({ data, onResize }: { data: Telemetry; onResize(direction: number): void }) {
+export function NavigationChart({ data, onResize, bindings }: { data: Telemetry; bindings: Keybindings; onResize(direction: number): void }) {
   const clipId = useId();
   const [zoom, setZoom] = useState(1);
   const radius = CHART_RANGES[zoom];
@@ -27,6 +28,6 @@ export function NavigationChart({ data, onResize }: { data: Telemetry; onResize(
     </svg>
     <span className="chart-orientation">NORTH UP</span>
     <button className="chart-range-button" title="Change chart range" aria-label={`Change chart range · Current radius ${radius / 1000} kilometers`} onClick={event => { setZoom(value => (value + 1) % CHART_RANGES.length); event.currentTarget.blur(); }}>{radius / 1000} km <Icon name="chevron" size={10}/></button>
-    <div className="chart-controls"><span>SIZE</span><button aria-label="Decrease minimap size · Minus" title="Smaller map · −" disabled={(data.chartSize ?? 2) === 0} onClick={event => { onResize(-1); event.currentTarget.blur(); }}><Icon name="minus" size={12}/></button><button aria-label="Increase minimap size · Plus" title="Larger map · +" disabled={(data.chartSize ?? 2) === 4} onClick={event => { onResize(1); event.currentTarget.blur(); }}><Icon name="plus" size={12}/></button></div>
+    <div className="chart-controls"><span>SIZE</span><button aria-label={`Decrease minimap size · ${bindingLabel(bindings, 'chartSmaller')}`} title={`Smaller map · ${bindingLabel(bindings, 'chartSmaller')}`}  disabled={(data.chartSize ?? 2) === 0} onClick={event => { onResize(-1); event.currentTarget.blur(); }}><Icon name="minus" size={12}/></button><button aria-label={`Increase minimap size · ${bindingLabel(bindings, 'chartLarger')}`} title={`Larger map · ${bindingLabel(bindings, 'chartLarger')}`}  disabled={(data.chartSize ?? 2) === 4} onClick={event => { onResize(1); event.currentTarget.blur(); }}><Icon name="plus" size={12}/></button></div>
   </div>;
 }

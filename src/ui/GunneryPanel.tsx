@@ -2,14 +2,15 @@ import type { Game } from '../game/Game';
 import type { Telemetry } from '../game/types';
 import type { Battery } from '../ships/blueprint';
 import { Icon } from './Icons';
+import { bindingLabel, type Keybindings } from '../game/keybindings';
 
-export function GunneryPanel({ data, game, expanded, onExpand }: { data: Telemetry; game: Game | null; expanded: boolean; onExpand(expanded: boolean): void }) {
+export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bindings: Keybindings; data: Telemetry; game: Game | null; expanded: boolean; onExpand(expanded: boolean): void }) {
   const c = data.combat;
   if (!c) return null;
   return <section className="gunnery" aria-label="Gunnery and trial target">
     <div className="gunnery-heading">
       <button className="gunnery-toggle" aria-expanded={expanded} aria-controls="gunnery-details" onClick={() => onExpand(!expanded)}><span className="gunnery-title">Gunnery <Icon name="chevron" size={15} style={{ transform: expanded ? 'rotate(180deg)' : undefined }}/></span><span>{c.ready}/{c.total} ready</span></button>
-      <button className="fire-button" disabled={c.ready === 0} onClick={e => { game?.fire(); e.currentTarget.blur(); }} title="Fire ready guns · Hold Q for repeated salvos">Fire <kbd>Q</kbd></button>
+      <button className="fire-button" disabled={c.ready === 0} onClick={e => { game?.fire(); e.currentTarget.blur(); }} title={`Fire ready guns · Hold ${bindingLabel(bindings, 'fire')} for repeated salvos`}>Fire <kbd>{bindingLabel(bindings, 'fire')}</kbd></button>
     </div>
     {expanded && <><div id="gunnery-details" className="gunnery-details">
       <div className="battery-selector" role="group" aria-label="Battery selection">
@@ -34,7 +35,7 @@ export function GunneryPanel({ data, game, expanded, onExpand }: { data: Telemet
       <p className="damage-message" role="status">{c.message}</p>
       <label className="target-underway"><input type="checkbox" checked={c.targetUnderway} disabled={c.targetSunk} onChange={e => { if (game) game.simulation.targetUnderway = e.target.checked; }}/> Target underway</label>
       {data.inspecting && <div className="module-conditions" aria-label="Internal module condition">{c.modules.map(m => <div key={m.id}><span>{m.name}</span><strong>{m.condition <= 0 ? 'Disabled' : `${Math.round(m.condition * 100)}%`}</strong></div>)}<p>Amber outlines: armor · Pale outlines: compartments · Blue: floodwater</p></div>}
-      <p className="gunnery-help">Mouse aims the center sight. Hold left mouse or Q to fire. Shift opens binoculars; scroll adjusts magnification. Selecting a module tracks it until you move the mouse to aim again.</p>
+      <p className="gunnery-help">Mouse aims the center sight. Hold left mouse or {bindingLabel(bindings, 'fire')} to fire. Shift opens binoculars; scroll adjusts magnification. Selecting a module tracks it until you move the mouse to aim again.</p>
     </div><div className="target-actions">
       <button aria-pressed={!!data.inspecting} onClick={() => { game?.inspectTarget(); if (window.innerWidth <= 760) onExpand(false); }}>{data.inspecting ? 'Return to ship' : 'Inspect target'}</button>
       <button onClick={() => game?.resetTarget()}>Reset target</button>

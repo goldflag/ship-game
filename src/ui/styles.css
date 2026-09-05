@@ -52,14 +52,12 @@ kbd { font-family: inherit; font-weight: 400; font-size: 10px; border: 1px solid
 .primary-button:hover { background: #efd5a0; }
 .secondary-button { background: transparent; border: 1px solid var(--line); }
 .secondary-button:hover { background: #d7e6e710; }
-.settings-heading { margin: 29px 0 15px; padding-top: 24px; border-top: 1px solid var(--line); font-size: 10px; font-weight: 500; letter-spacing: .11em; color: var(--accent); }
 .setting-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 9px 0; }
 .setting-row select { background: #0e2530; color: #e1e9e9; border: 1px solid var(--line); padding: 8px 10px; width: 142px; border-radius: 3px; }
 .restart-button { margin-top: 15px; font-size: 12px; }
 .settings-note { font-size: 11px; line-height: 1.6; color: var(--muted); margin: 12px 0 23px; }
 .menu-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 11px; color: #c4d4d7; }
 .menu-controls kbd { margin-right: 5px; }
-.renderer-status { display: flex; justify-content: space-between; margin-top: 26px; padding-top: 17px; border-top: 1px solid var(--line); font-size: 9px; letter-spacing: .1em; color: #adbec4; }
 @media (max-width: 760px) { .loading-screen { padding: 28px; } }
 @media (max-width: 480px) { .loading-bottom { font-size: 8px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
@@ -138,3 +136,14 @@ kbd { font-family: inherit; font-weight: 400; font-size: 10px; border: 1px solid
   .gunnery-details { max-height: calc(100dvh - 270px); }
   .camera-controls { bottom: 275px; }
 }
+
+.menu-action { margin-top: 12px; }
+.close-game-button { margin-top: 24px; color: #f3b4a7; }
+.pause-menu .menu-controls { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
+.pause-menu-covered { visibility: hidden; }
+.pause-menu-covered::backdrop { visibility: visible; }
+.game-exit { min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px; text-align: center; }
+.game-exit > svg { color: var(--accent); }
+.game-exit h1 { font: 500 42px/1.1 'Barlow Condensed', sans-serif; margin: 24px 0 12px; }
+.game-exit p { max-width: 360px; margin: 0 0 28px; color: var(--muted); line-height: 1.6; }
+.game-exit .primary-button { max-width: 280px; }
