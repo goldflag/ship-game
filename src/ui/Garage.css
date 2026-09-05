@@ -91,6 +91,7 @@
 .garage-ship-cards>button>strong { position:relative; font:500 19px/1.2 'Barlow Condensed',sans-serif; margin-top:auto; z-index:1; }
 .garage-ship-cards>button>small { font-size:8px; margin-top:5px; color:#abbdc6; }
 .garage-ship-cards .garage-ship-profile { position:absolute; width:150px; height:39px; right:7px; top:20px; opacity:.55; }
+.garage-ship-thumbnail { position:absolute; width:calc(100% - 14px); height:43px; right:7px; top:21px; object-fit:contain; pointer-events:none; }
 .garage-ship-cards>.garage-ship-selected { border-color:var(--port-accent); color:#eef1de; background:#243d43eb; }
 .garage-ship-cards>.garage-ship-selected>small,.garage-ship-cards>.garage-ship-selected>div svg { color:var(--port-ready); }
 .garage-ship-cards>.garage-ship-selected .garage-ship-profile { color:#e3d8b7; opacity:.85; }
@@ -259,6 +260,7 @@
   .garage-classic-details { top:90px; max-height:calc(100% - 225px); }
   .garage-fleet-carousel { bottom:30px; }
   .garage-ship-cards>button { height:78px; }
+  .garage-ship-thumbnail { top:17px; height:30px; }
   .garage-ship-cards .garage-ship-profile { opacity:.35; }
   .garage-fleet-caption { padding-bottom:7px; margin-bottom:8px; }
 }
