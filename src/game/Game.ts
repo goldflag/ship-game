@@ -13,6 +13,7 @@ import type { InspectionMode } from '../ships/inspection';
 import { selectedShip } from '../ships/presets';
 import { InputController } from './InputController';
 import { CameraRig } from './CameraRig';
+import { sightAim } from './aiming';
 import { createHarborBackdrop, type HarborBackdrop } from './HarborBackdrop';
 import { ShipWake } from './ShipWake';
 import type { GameCallbacks, GameSettings } from './types';
@@ -41,7 +42,10 @@ export class Game {
   battery: Battery = 'main';
   aimModule: string;
   inspecting = false;
-  private aimOverride?: Vec3;
+  private manualAim = true;
+  private currentAim: Vec3 = [650, .5, -550];
+  chartSize = 2;
+  gunneryOpen = false;
   private water?: WaterSystem;
   private sky?: SkySystem;
   private shipWake?: ShipWake;
@@ -77,21 +81,18 @@ export class Game {
     this.renderer.domElement.setAttribute('aria-label', `${this.definition.name} ocean scene. Drag to orbit; scroll to zoom.`);
     this.renderer.domElement.tabIndex = 0;
     this.host.appendChild(this.renderer.domElement);
-    this.rig = new CameraRig(this.camera, this.renderer.domElement, this.definition.viewpoints?.bridge);
+    this.rig = new CameraRig(this.camera, this.renderer.domElement, this.definition.viewpoints?.bridge, {
+      pause: () => this.setPaused(true), aim: () => { this.manualAim = true; }, optics: () => this.toggleBinoculars(),
+    });
     this.input = new InputController({
       pause: () => { if (!this.inPort) this.setPaused(!this.paused); },
-      camera: () => this.rig.cycle(), recenter: () => this.rig.recenter(),
+      camera: () => this.cycleCamera(), recenter: () => this.recenter(),
       hud: () => { if (!this.inPort) callbacks.hud(); }, fullscreen: () => this.fullscreen(),
+      optics: () => this.toggleBinoculars(), battery: battery => { this.battery = battery; },
+      cursor: released => { if (released) this.rig.releasePointer(); else if (!document.querySelector('dialog[open]')) this.rig.capturePointer(); },
+      chartSize: direction => this.resizeChart(direction), gunnery: () => this.setGunneryOpen(!this.gunneryOpen),
     });
     this.input.setEnabled(false);
-    this.renderer.domElement.addEventListener('dblclick', event => {
-      if (this.paused || this.inPort) return;
-      const rect = this.renderer.domElement.getBoundingClientRect();
-      const ray = new THREE.Raycaster();
-      ray.setFromCamera(new THREE.Vector2((event.clientX - rect.left) / rect.width * 2 - 1, 1 - (event.clientY - rect.top) / rect.height * 2), this.camera);
-      const point = ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), -.5), new THREE.Vector3());
-      if (point && point.distanceTo(this.ship.position) < 30000) this.aimOverride = point.toArray();
-    }, { signal: this.abort.signal });
     this.observer = new ResizeObserver(() => { this.resizePending = true; });
     this.observer.observe(host);
     document.addEventListener('visibilitychange', () => {
@@ -252,7 +253,9 @@ export class Game {
       this.definition = definition; this.simulation = simulation;
       this.loadedModel = model; this.playerView = player; this.targetView = target;
       this.articulationOriginal = undefined;
-      this.battery = 'main'; this.aimOverride = undefined; this.inspecting = false;
+      this.battery = 'main'; this.manualAim = true; this.inspecting = false;
+      this.gunneryOpen = false;
+      this.currentAim = simulation.aimAt(undefined, this.battery);
       this.aimModule = definition.modules.find(m => m.kind === 'engine')?.id ?? '';
       this.rig.setBridge(definition.viewpoints?.bridge);
       this.renderer.domElement.setAttribute('aria-label', `${definition.name} ocean scene. Drag to orbit; scroll to zoom.`);
@@ -289,15 +292,17 @@ export class Game {
     const dt = this.paused ? 0 : realDt;
     try {
       if (this.resizePending) this.resize();
-      const aim = this.aimOverride ?? this.simulation.aimAt(this.aimModule, this.battery);
-      if (!this.inPort) this.simulation.advance(dt, this.input.sample(), { aim, fire: this.input.firing, battery: this.battery });
       const state = this.simulation.ship;
+      const focus = this.inspecting ? this.simulation.target.motion : state;
+      this.rig.update(focus, focus.y, realDt);
+      const aim = this.manualAim ? this.inspecting ? this.currentAim : this.readSightAim() : this.simulation.aimAt(this.aimModule, this.battery);
+      this.currentAim = aim;
+      if (!this.inPort) this.simulation.advance(dt, this.input.sample(), { aim, fire: this.input.firing || this.rig.firing, battery: this.battery });
       this.playerView!.update(); this.targetView!.update();
       this.ship.position.copy(this.playerView!.root.position);
       this.ship.quaternion.copy(this.playerView!.root.quaternion);
       this.effects.update(this.simulation, dt);
-      const focus = this.inspecting ? this.simulation.target.motion : state;
-      this.rig.update(focus, focus.y, realDt);
+      this.playerView!.root.visible = !this.rig.binoculars;
       this.harbor?.update(dt, this.camera);
       this.shipWake!.update(state, dt);
       this.sky!.update(dt);
@@ -316,8 +321,10 @@ export class Game {
       if (time - this.hudTime > 100) {
         this.hudTime = time;
         this.callbacks.telemetry({ ship: { ...state }, order: this.input.order, camera: this.rig.mode,
+          binoculars: this.rig.binoculars, magnification: this.rig.magnification, pointerLocked: this.rig.pointerLocked,
+          viewBearing: this.rig.bearing, chartSize: this.chartSize, gunneryOpen: this.gunneryOpen,
           fps: Math.round(this.fps), backend: this.water!.backend, trail: [...this.trail],
-          combat: this.simulation.telemetry(this.battery, aim), inspecting: this.inspecting, aimModule: this.aimOverride ? 'point' : this.aimModule,
+          combat: this.simulation.telemetry(this.battery, aim), inspecting: this.inspecting, aimModule: this.manualAim ? 'point' : this.aimModule,
           aimMarker: this.projectAim(aim) });
       }
       this.scheduleFrame();
@@ -336,7 +343,28 @@ export class Game {
     this.sky?.resize(width, height);
     this.resizePending = false;
   }
-  setPaused(paused: boolean): void { this.paused = paused; this.input.setEnabled(!paused && !this.inPort && !!this.water); this.callbacks.pause(paused); }
+  setPaused(paused: boolean): void {
+    this.paused = paused;
+    this.input.setEnabled(!paused && !this.inPort && !!this.water);
+    this.rig.setEnabled(!paused);
+    this.callbacks.pause(paused);
+  }
+  capturePointer(): void { this.rig.capturePointer(); }
+  resizeChart(direction: number): void { this.chartSize = THREE.MathUtils.clamp(this.chartSize + direction, 0, 4); }
+  setGunneryOpen(open: boolean): void {
+    this.gunneryOpen = open;
+    if (open) this.rig.releasePointer();
+    else if (!this.inspecting) this.rig.capturePointer();
+  }
+  toggleBinoculars(): void {
+    if (this.paused || this.inPort || this.inspecting) return;
+    this.rig.toggleBinoculars(this.manualAim ? this.readSightAim() : this.currentAim, this.simulation.ship);
+  }
+  private readSightAim(): Vec3 {
+    return sightAim(this.camera.position.toArray(), this.camera.getWorldDirection(new THREE.Vector3()).toArray(), {
+      pose: this.simulation.target.motion, armor: this.definition.armor,
+    });
+  }
   setInPort(inPort: boolean): void {
     if (this.articulationOriginal) this.restoreArticulation();
     if (!inPort && this.switchingShip) return;
@@ -350,7 +378,8 @@ export class Game {
     if (this.harbor) this.harbor.visible = inPort;
     if (this.targetView) this.targetView.root.visible = !inPort;
     this.inspecting = false; this.targetView?.inspect(false); this.playerView?.inspect(false);
-    this.aimOverride = undefined;
+    this.manualAim = true;
+    this.gunneryOpen = false;
     this.updateSeaState();
     this.updatePortLighting();
     this.input.setOrder(1); this.input.setRudder(0);
@@ -365,14 +394,25 @@ export class Game {
       this.trail = [{ x: 0, z: 0 }];
     }
     this.setPaused(false);
+    if (leavingPort) {
+      this.currentAim = this.simulation.aimAt(this.aimModule, this.battery);
+      this.rig.aimAt(this.currentAim, this.simulation.ship);
+      this.rig.capturePointer();
+    }
+    this.renderer.domElement.setAttribute('aria-label', `${this.definition.name} ocean scene. ${inPort ? 'Drag to orbit; scroll to zoom.' : 'Click to capture mouse. Mouse to aim; left mouse to fire; Shift for binoculars; Control for cursor; Escape to pause.'}`);
   }
   fire(): void { if (!this.paused && !this.inPort && this.playerView) this.simulation.requestFire(); }
   setPortInspection(mode: InspectionMode, selectedId?: string): void {
     if (this.inPort) this.playerView?.setInspection(mode, selectedId);
   }
-  selectAim(moduleId: string): void { this.aimOverride = undefined; this.aimModule = moduleId; }
-  inspectTarget(): void { this.inspecting = !this.inspecting; this.targetView?.inspect(this.inspecting); this.rig.recenter(); }
-  resetTarget(): void { if (!this.paused) { this.simulation.resetTarget(); this.aimOverride = undefined; } }
+  selectAim(moduleId: string): void { this.manualAim = moduleId === 'point'; this.aimModule = moduleId; }
+  inspectTarget(): void {
+    this.inspecting = !this.inspecting;
+    this.targetView?.inspect(this.inspecting);
+    this.rig.setInspecting(this.inspecting);
+    if (!this.inspecting) this.rig.aimAt(this.currentAim, this.simulation.ship);
+  }
+  resetTarget(): void { if (!this.paused) this.simulation.resetTarget(); }
   private restoreArticulation(): void {
     if (this.articulationOriginal) {
       this.simulation.player.mounts.forEach((m, i) => Object.assign(m, this.articulationOriginal![i]));
@@ -399,12 +439,13 @@ export class Game {
   }
   diagnostics() {
     return { shipId: this.definition.id, contentHash: this.definition.contentHash, backend: this.water?.backend,
-      camera: { mode: this.rig.mode, position: this.camera.position.toArray(),
+      camera: { mode: this.rig.mode, binoculars: this.rig.binoculars, magnification: this.rig.magnification, fov: this.camera.fov,
+        pointerLocked: this.rig.pointerLocked, position: this.camera.position.toArray(), aim: this.currentAim, manualAim: this.manualAim,
         projectionMatrix: this.camera.projectionMatrix.toArray(), matrixWorldInverse: this.camera.matrixWorldInverse.toArray() },
       tick: this.simulation.tick, paused: this.paused, fps: this.fps, inspecting: this.inspecting, inPort: this.inPort,
       portInspection: this.playerView?.inspection.mode, selectedVolume: this.playerView?.inspection.selectedId,
       maxMuzzleErrorM: Math.max(0, ...this.playerView?.muzzleErrors() ?? [], ...this.targetView?.muzzleErrors() ?? []),
-      combat: this.simulation.telemetry(this.battery, this.aimOverride ?? this.simulation.aimAt(this.aimModule, this.battery)),
+      combat: this.simulation.telemetry(this.battery, this.currentAim),
       events: this.simulation.events.slice(-20) };
   }
   private projectAim(aim: Vec3): { x: number; y: number; visible: boolean } {
