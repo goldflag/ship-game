@@ -5,11 +5,50 @@ import { compileShip, type Vec3 } from '../ships/blueprint';
 import { CombatSimulation } from './combat';
 import { hitShip, updateFlooding, type Shell } from './damage';
 import { length, localToWorld, segmentBox, sub, worldToLocal } from './geometry';
-import { GRAVITY, solveBallistic } from './weapons';
+import { GRAVITY, shotDirection, solveBallistic } from './weapons';
+import { FIXED_DT } from './ship';
 
 const definition = () => compileShip(blueprint, catalog);
 const stop = { throttle: 0, rudder: 0 };
 const round = (penetrationMm = 1000): Shell => ({ id: 1, ownerId: 'player', position: [-100, .5, -21], velocity: [820, 0, 0], age: 0, penetrationMm, damage: 70, caliberM: .38, visited: [] });
+
+for (const aim of [[1800, 0, 0], [0, 0, 1800], [1800, 1000, 0], [40000, 0, 0]] as Vec3[]) {
+  test(`loaded guns fire at their current bearing before reaching reticle ${aim}`, () => {
+    const def = definition(), sim = new CombatSimulation(def);
+    const mount = def.mounts[0], state = sim.player.mounts[0];
+    sim.step(stop, { aim, fire: false, battery: 'main' });
+    expect(Math.abs(state.train)).toBeLessThan(.01);
+    expect(state.status).toBe('ready');
+    const telemetry = sim.telemetry('main', aim);
+    expect(telemetry.ready).toBeGreaterThan(0);
+    expect(telemetry.batteries[0].ready).toBe(telemetry.ready);
+    const ammo = state.ammo;
+    sim.requestFire();
+    sim.step(stop, { aim, fire: false, battery: 'main' });
+    expect(state.ammo).toBe(ammo - 2);
+    expect(state.reload).toBe(mount.weapon.reloadSeconds);
+    expect(state.recoil).toBe(1);
+    expect(sim.events.filter(e => e.message === `${mount.name} fired`)).toHaveLength(2);
+    const direction = shotDirection(mount, state, sim.ship);
+    const shell = sim.shells[0];
+    direction.forEach((n, axis) => expect(shell.velocity[axis]).toBeCloseTo(n * mount.weapon.muzzleSpeed - (axis === 1 ? GRAVITY * FIXED_DT : 0), 6));
+    expect(shell.velocity[2]).toBeLessThan(-800);
+    sim.step(stop, { aim, fire: true, battery: 'main' });
+    expect(state.ammo).toBe(ammo - 2);
+  });
+}
+
+test('firing during traverse still respects obstructions, empty guns and disabled guns', () => {
+  const def = definition(), sim = new CombatSimulation(def);
+  // A wall across the bow blocks Anton while the reticle is to starboard.
+  def.obstructions.push({ id: 'test-bow-wall', center: [0, 10, -120], size: [100, 30, 2] });
+  sim.player.mounts[1].ammo = 0;
+  sim.player.mounts[2].hp = 0;
+  const before = sim.player.mounts.map(m => m.ammo);
+  sim.step(stop, { aim: [1800, 0, 0], fire: true, battery: 'main' });
+  expect(sim.player.mounts.slice(0, 3).map(m => m.status)).toEqual(['blocked', 'empty', 'disabled']);
+  expect(sim.player.mounts.slice(0, 3).map(m => m.ammo)).toEqual(before.slice(0, 3));
+});
 
 test('pose conversions preserve arbitrary points under heading, list and trim', () => {
   const pose = { x: 134, y: -4, z: -721, heading: 2.3, roll: -.31, pitch: .17 };
@@ -51,10 +90,11 @@ test('flood connections conserve water with pumps/leaks disabled and list follow
   expect(sim.target.motion.roll).toBeGreaterThan(0);
   expect(sim.target.motion.y).toBeLessThan(0);
 });
-test('guns obey arcs, reloads and ammunition while actual salvos damage the target', () => {
+test('aimed salvos obey reloads and ammunition while damaging the target', () => {
   const sim = new CombatSimulation(definition());
   const aim = sim.aimAt('engine-port');
-  for (let i = 0; i < 1500; i++) sim.step(stop, { aim, fire: true, battery: 'main' });
+  for (let i = 0; i < 3600; i++) sim.step(stop, { aim, fire: false, battery: 'main' });
+  for (let i = 0; i < 600; i++) sim.step(stop, { aim, fire: true, battery: 'main' });
   const shots = sim.events.filter(e => e.kind === 'shot');
   expect(shots.length).toBe(8);
   expect(sim.player.mounts.slice(0, 4).every(m => m.ammo === 238)).toBe(true);
