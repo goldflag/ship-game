@@ -1,0 +1,53 @@
+{
+  "before": {
+    "tick": 522,
+    "phase": "off",
+    "hidden": false,
+    "visibility": "visible",
+    "labels": [
+      "1, 2 \u00b7 On aim",
+      "3, 4 \u00b7 Turning \u00b7 Aft"
+    ]
+  },
+  "fired": {
+    "tick": 528,
+    "phase": "off",
+    "hidden": false,
+    "visibility": "visible",
+    "labels": [
+      "1, 2 \u00b7 On aim \u00b7 20s",
+      "3, 4 \u00b7 Turning \u00b7 20s \u00b7 Aft"
+    ]
+  },
+  "binocular": {
+    "tick": 534,
+    "phase": "off",
+    "hidden": false,
+    "visibility": "visible",
+    "labels": [
+      "1, 2 \u00b7 On aim \u00b7 20s",
+      "3, 4 \u00b7 Turning \u00b7 20s \u00b7 Aft"
+    ],
+    "binoculars": true
+  },
+  "hudHidden": {
+    "tick": 546,
+    "phase": "off",
+    "hidden": false,
+    "visibility": "hidden",
+    "labels": [
+      "1, 2 \u00b7 On aim \u00b7 20s",
+      "3, 4 \u00b7 Turning \u00b7 20s \u00b7 Aft"
+    ]
+  },
+  "restored": {
+    "tick": 552,
+    "phase": "off",
+    "hidden": false,
+    "visibility": "visible",
+    "labels": [
+      "1, 2 \u00b7 On aim \u00b7 20s",
+      "3, 4 \u00b7 Turning \u00b7 20s \u00b7 Aft"
+    ]
+  }
+}
