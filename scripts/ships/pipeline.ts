@@ -7,7 +7,7 @@ import { barrelIds, compileShip, type ShipDefinition } from '../../src/ships/blu
 
 const root = resolve(import.meta.dir, '../..');
 const [action = 'check', shipId = 'bismarck'] = process.argv.slice(2);
-if (!['build', 'check', 'compile', 'review'].includes(action) || !/^[a-z][a-z0-9-]{0,63}$/.test(shipId)) throw new Error('Usage: bun scripts/ships/pipeline.ts build|check|compile|review <ship-id>');
+if (!['build', 'check', 'compile', 'review', 'thumbnail'].includes(action) || !/^[a-z][a-z0-9-]{0,63}$/.test(shipId)) throw new Error('Usage: bun scripts/ships/pipeline.ts build|check|compile|review|thumbnail <ship-id>');
 const sourceDir = join(root, 'assets/ships', shipId);
 const stage = join(root, '.build/ships', shipId);
 const catalog = JSON.parse(await readFile(join(root, 'assets/parts/guns.json'), 'utf8'));
@@ -19,6 +19,34 @@ const recipe = await Promise.all(['src/ships/blueprint.ts', ...pythonRecipes, `a
 const contentHash = createHash('sha256').update(JSON.stringify([definition, ...recipe])).digest('hex');
 const published = { ...definition, contentHash };
 const outputDir = join(root, 'public/models');
+// Presentation recipes have their own hash; changing a thumbnail does not change ship geometry.
+const thumbnailRecipe = join(root, 'assets/ships/thumbnail.py');
+const thumbnailRecipeHash = createHash('sha256').update(await readFile(thumbnailRecipe)).digest('hex');
+const thumbnailDir = join(sourceDir, 'generated/thumbnail');
+const thumbnailOutput = join(outputDir, `${shipId}-thumbnail.png`);
+
+async function bakeThumbnail() {
+  await runBlender(thumbnailRecipe);
+  if (createHash('sha256').update(await readFile(thumbnailRecipe)).digest('hex') !== thumbnailRecipeHash) throw new Error('Thumbnail recipe changed during rendering. Re-run ship:thumbnail.');
+  const bytes = await readFile(join(stage, 'thumbnail.png'));
+  const report = {
+    contentHash, recipeHash: thumbnailRecipeHash,
+    imageHash: createHash('sha256').update(bytes).digest('hex'),
+    ...JSON.parse(await readFile(join(stage, 'thumbnail-camera.json'), 'utf8')),
+  };
+  await mkdir(thumbnailDir, { recursive: true });
+  await writeFile(join(thumbnailDir, 'render.json.tmp'), JSON.stringify(report, null, 2) + '\n');
+  await writeFile(thumbnailOutput + '.tmp', bytes);
+  await rename(thumbnailOutput + '.tmp', thumbnailOutput);
+  await rename(join(thumbnailDir, 'render.json.tmp'), join(thumbnailDir, 'render.json'));
+  console.log(`Baked port thumbnail: ${thumbnailOutput}`);
+}
+
+async function checkThumbnail() {
+  const report = JSON.parse(await readFile(join(thumbnailDir, 'render.json'), 'utf8'));
+  const imageHash = createHash('sha256').update(await readFile(thumbnailOutput)).digest('hex');
+  if (report.contentHash !== contentHash || report.recipeHash !== thumbnailRecipeHash || report.imageHash !== imageHash) throw new Error(`Thumbnail is stale. Run bun run ship:thumbnail ${shipId}`);
+}
 
 interface GltfNode { name?: string; mesh?: number; children?: number[]; matrix?: number[]; translation?: number[]; rotation?: number[]; scale?: number[]; extras?: Record<string, unknown>; }
 interface Gltf {
@@ -114,6 +142,7 @@ if (action === 'check') {
   const current = JSON.parse(await readFile(join(outputDir, `${shipId}.json`), 'utf8'));
   if (JSON.stringify(current) !== JSON.stringify(published)) throw new Error('Compiled definition is stale. Run bun run ship:build ' + shipId);
   const report = inspectGlb(await readFile(join(outputDir, `${shipId}.glb`)), definition);
+  await checkThumbnail();
   console.log(JSON.stringify(report, null, 2));
 } else {
   await mkdir(resolve(stage, '..'), { recursive: true });
@@ -125,6 +154,11 @@ if (action === 'check') {
   await writeFile(join(stage, 'definition.json'), JSON.stringify(published, null, 2) + '\n');
   if (action === 'compile') {
     console.log(`Validated blueprint and compiled ${join(stage, 'definition.json')}`);
+  } else if (action === 'thumbnail') {
+    const bytes = await readFile(join(outputDir, `${shipId}.glb`));
+    inspectGlb(bytes, definition);
+    await writeFile(join(stage, 'model.glb'), bytes);
+    await bakeThumbnail();
   } else if (action === 'review') {
     await copyFile(join(sourceDir, 'generated/source.blend'), join(stage, 'source.blend'));
     await runBlender(join(root, 'scripts/ships/review.py'));
@@ -146,6 +180,7 @@ if (action === 'check') {
   for (const [, to] of products) await rename(to + '.tmp', to);
   await mkdir(join(sourceDir, 'reports'), { recursive: true });
   await writeFile(join(sourceDir, 'reports/export.json'), JSON.stringify(report, null, 2) + '\n');
+  await bakeThumbnail();
   console.log(JSON.stringify(report, null, 2));
   }
   } finally { await rm(lock, { recursive: true, force: true }); }
