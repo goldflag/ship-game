@@ -27,7 +27,7 @@ export function PortInspection({ definition, mode, selectedId, onSelect }: { def
   </button>;
   return <section className="port-inspector" aria-label={mode === 'armor' ? 'Ship armor model' : 'Ship internal modules'}>
     <div className="port-inspection-scroll">
-    <div className="port-inspector-heading"><h2>{mode === 'armor' ? 'Armor model' : 'Internal layout'}</h2><span>{entries.length} {mode === 'armor' ? 'volumes' : 'spaces'}</span></div>
+    <div className="port-inspector-heading"><h2>{mode === 'armor' ? 'Armor model' : 'Internal layout'}</h2><span>{entries.length} {mode === 'armor' ? 'surfaces' : 'spaces'}</span></div>
     <p className="port-inspector-intro">{mode === 'armor' ? 'Hover a plate for details. Select a row to isolate it.' : 'Provisional layout. Select a module or compartment to isolate it.'}</p>
     {mode === 'armor' && <div className="port-armor-legend">
       <div className="port-armor-legend-labels"><span>Green · thinner</span><span>Red · thicker</span></div>

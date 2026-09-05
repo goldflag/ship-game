@@ -3,7 +3,8 @@ import { hullContains } from './hull';
 import { equipmentCondition, type EquipmentCondition } from './machinery';
 import { createShipState, FIXED_DT, stepShip, type HelmCommand } from './ship';
 import { add, clamp, localToWorld, scale, segmentBox, sub, worldToLocal } from './geometry';
-import { createMountState, GRAVITY, muzzleWorld, shotDirection, updateMount } from './weapons';
+import { createMountState, muzzleWorld, shotDirection, solveBallistic, updateMount } from './weapons';
+import { ballisticStep, dispersedDirection, travelFactor } from './ballistics';
 import { deployment, MAX_TEAM_SHIPS, type BattleFleet, type BattleResult, type FleetActor, type Team } from './battle';
 import { botAim, botGunRange, botHelm, botTarget, clearFiringLane, shipVelocity } from './bots';
 import { createDamage, hitShip, systemHealth, updateFlooding, type BallisticEffectData, type DamageEvent, type Shell, type ImpactRecord, type DefeatCause } from './damage';
@@ -42,8 +43,10 @@ export class CombatSimulation {
   private shellSequence = 0;
   private eventSequence = 0;
   private fireQueued = false;
+  private dispersionSequence = 0;
   /** Without a fleet, create an idle gunnery fixture for port and isolated asset tests. */
-  constructor(readonly definition: ShipDefinition, fleet?: BattleFleet) {
+  constructor(readonly definition: ShipDefinition, fleet?: BattleFleet, readonly seed = 0x6e617661) {
+    if (!Number.isInteger(seed) || seed < 0 || seed > 0xffffffff) throw new Error('Battle seed must be an unsigned 32-bit integer');
     this.isBattle = !!fleet;
     if (fleet && (!fleet.enemies.length || fleet.enemies.length > MAX_TEAM_SHIPS || fleet.friendlyBots.length >= MAX_TEAM_SHIPS)) throw new Error('Choose one to five ships per team.');
     this.player = this.createActor('player', definition, 'friendly', 'player');
@@ -81,6 +84,7 @@ export class CombatSimulation {
     return target;
   }
   private clearCombat(): void {
+    this.dispersionSequence = 0;
     this.targetUnderway = false; this.shells.length = 0;
     this.events.length = 0; this.shellHistory.length = 0; this.fireQueued = false;
   }
@@ -96,8 +100,15 @@ export class CombatSimulation {
   aimAt(moduleId?: string, battery: Battery = 'main'): Vec3 {
     const m = this.target.definition.modules.find(m => m.id === moduleId);
     const aim = localToWorld(m ? [m.center[0], .5, m.center[2]] : [0, .5, 0], this.target.motion);
-    const speed = this.definition.mounts.find(m => m.battery === battery)?.weapon.muzzleSpeed ?? 820;
-    const time = Math.hypot(aim[0] - this.ship.x, aim[2] - this.ship.z) / speed;
+    const weapon = this.definition.mounts.find(m => m.battery === battery)?.weapon;
+    const speed = weapon?.muzzleSpeed ?? 820, drag = weapon?.ballistics?.dragPerSecond ?? 0;
+    const from: Vec3 = [this.ship.x, this.ship.y + 8, this.ship.z];
+    let time = Math.hypot(aim[0] - this.ship.x, aim[2] - this.ship.z) / speed;
+    for (let i = 0; i < 3; i++) {
+      const solution = solveBallistic(from, sub(add(aim, scale(shipVelocity(this.target), time)), scale(shipVelocity(this.player), travelFactor(time, drag))), speed, drag);
+      if (!solution) break;
+      time = solution.time;
+    }
     return add(aim, scale(shipVelocity(this.target), time));
   }
   requestFire(): void { this.fireQueued = true; }
@@ -171,8 +182,9 @@ export class CombatSimulation {
           state.reload = m.weapon.reloadSeconds; state.ammo -= barrelCount; state.recoil = 1; state.status = 'reloading';
           for (let barrel = 0; barrel < barrelCount; barrel++) {
             const position = muzzleWorld(m, state, barrel, actor.motion);
-            const velocity = add(scale(shotDirection(m, state, actor.motion), m.weapon.muzzleSpeed), shipVelocity(actor));
-            this.shells.push({ id: ++this.shellSequence, ownerId: actor.motion.id, position, velocity, age: 0, penetrationMm: m.weapon.penetrationMm, damage: m.weapon.damage, caliberM: m.weapon.caliberM, visited: [] });
+            const direction = dispersedDirection(shotDirection(m, state, actor.motion), m.weapon.ballistics?.dispersionRad ?? 0, this.seed, this.dispersionSequence++);
+            const velocity = add(scale(direction, m.weapon.muzzleSpeed), shipVelocity(actor));
+            this.shells.push({ id: ++this.shellSequence, ownerId: actor.motion.id, position, velocity, age: 0, penetrationMm: m.weapon.penetrationMm, damage: m.weapon.damage, caliberM: m.weapon.caliberM, visited: [], dragPerSecond: m.weapon.ballistics?.dragPerSecond ?? 0 });
             this.emit({ kind: 'shot', position: [...position], shipId: actor.motion.id, message: `${m.name} fired`,
               shell: { id: this.shellSequence, caliberM: m.weapon.caliberM, velocity: [...velocity] } });
           }
@@ -183,13 +195,19 @@ export class CombatSimulation {
     for (let i = this.shells.length - 1; i >= 0; i--) {
       const shell = this.shells[i];
       const from: Vec3 = [...shell.position];
-      // Constant-acceleration integration preserves the analytical aim solution.
-      const to = add(from, add(scale(shell.velocity, FIXED_DT), [0, -.5 * GRAVITY * FIXED_DT * FIXED_DT, 0]));
-      shell.velocity[1] -= GRAVITY * FIXED_DT; shell.age += FIXED_DT;
+      const flight = ballisticStep(from, shell.velocity, FIXED_DT, shell.dragPerSecond ?? 0), to = flight.position;
+      shell.velocity = flight.velocity; shell.age += FIXED_DT;
       let ended = false;
       // Bound each swept segment to the first sea contact, so submerged modules can't
       // be hit by shells that already splashed down outside the hull.
       const insideHull = (point: Vec3) => this.actors.some(actor => actor.motion.id !== shell.ownerId && hullContains(actor.definition.hull, worldToLocal(point, actor.motion)));
+      // An underwater shell outside a hull has already entered the sea. This
+      // also prevents a long swept segment from re-entering a submerged hull.
+      if (from[1] <= 0 && !insideHull(from)) {
+        const history = this.history(shell.id);
+        history.outcome = history.impacts.length ? 'passed-through' : 'splash';
+        this.shells.splice(i, 1); continue;
+      }
       const seaPoint = from[1] > 0 && to[1] <= 0 ? add(from, scale(sub(to, from), from[1] / (from[1] - to[1]))) : to;
       const crossingSea = from[1] > 0 && to[1] <= 0 && !insideHull(seaPoint);
       const end = crossingSea ? add(from, scale(sub(to, from), from[1] / (from[1] - to[1]))) : to;
@@ -208,8 +226,8 @@ export class CombatSimulation {
         ended = true;
       }
       shell.position = to;
-      if (!ended && shell.age > 60) this.history(shell.id).outcome = 'expired';
-      if (ended || shell.age > 60) this.shells.splice(i, 1);
+      if (!ended && shell.age > 180) this.history(shell.id).outcome = 'expired';
+      if (ended || shell.age > 180) this.shells.splice(i, 1);
     }
     this.pruneHistory();
     for (const actor of this.actors) {

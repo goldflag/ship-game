@@ -28,6 +28,7 @@ export interface Combatant { motion: ShipState; mounts: MountState[]; damage: Da
 export interface Shell {
   id: number; ownerId: string; position: Vec3; velocity: Vec3; age: number;
   penetrationMm: number; damage: number; caliberM: number; visited: string[];
+  dragPerSecond?: number;
 }
 /** Serializable evidence for render-side effects; never feeds back into damage. */
 export interface BallisticEffectData {
