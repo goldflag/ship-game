@@ -1,4 +1,5 @@
-import type { Armor, ShipDefinition, Vec3 } from './blueprint';
+import type { Armor, AuthoredSurface, ShipDefinition, Vec3 } from './blueprint';
+import { structuralSurfaces } from '../simulation/structure';
 
 export type InspectionMode = 'exterior' | 'armor' | 'internals';
 export type InspectionKind = 'armor' | 'engine' | 'magazine' | 'steering' | 'compartment';
@@ -14,6 +15,7 @@ export const ARMOR_COLOR_STOPS = [
 export interface InspectionEntry {
   id: string; name: string; kind: InspectionKind; center: Vec3; size: Vec3;
   plate?: Armor['plate']; provenance?: Armor['provenance']; anchor?: Vec3;
+  surface?: AuthoredSurface;
   thicknessMm?: number; capacityM3?: number; hp?: number;
   mountIndex?: number; moduleIndex?: number; compartmentIndex?: number; bearingDeg?: number;
 }
@@ -38,6 +40,8 @@ export function inspectionColor(entry: InspectionEntry): string {
 /** The port lists and renders the same volumes used by hit and flooding simulation. */
 export function inspectionEntries(def: ShipDefinition): InspectionEntry[] {
   return [
+    ...structuralSurfaces(def).map(s=>({id:`structure:${s.id}`,name:s.name,kind:'armor' as const,center:s.center,size:s.size,surface:s,thicknessMm:s.thicknessMm,
+      provenance:{sourceId:'original-structure',basis:'estimated' as const,note:def.structuralPlating!.note}})),
     ...def.armor.map(a => {
       const mountIndex = def.mounts.findIndex(m => m.id === a.plate?.mountId);
       return { id: `armor:${a.id}`, name:a.name, kind:'armor' as const, center:a.center, size:a.size, thicknessMm:a.thicknessMm, plate:a.plate, provenance:a.provenance,

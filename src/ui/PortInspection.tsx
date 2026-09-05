@@ -29,12 +29,12 @@ export function PortInspection({ definition, mode, selectedId, onSelect }: { def
     <label className="port-volume-search">Find armor or space<input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Belt, boiler, Anton…" /></label>
     <div className="port-volume-list" aria-label={mode === 'armor' ? 'Armor volumes' : 'Modules and compartments'}>
       {filtered.map(entry => <button key={entry.id} aria-pressed={selectedId === entry.id} onClick={() => onSelect(selectedId === entry.id ? undefined : entry.id)}>
-        <i aria-hidden="true" style={{ background: inspectionColor(entry) }}/><span>{entry.name}<small>{entry.kind === 'armor' ? entry.plate ? `${entry.plate.material} plate · ${entry.provenance?.basis ?? 'approximate'}` : entry.mountIndex === undefined ? 'Hull armor' : 'Gunhouse armor' : entry.kind === 'engine' ? 'Machinery' : entry.kind === 'steering' ? 'Steering gear' : entry.kind === 'magazine' ? 'Magazine' : 'Compartment'}</small></span>
+        <i aria-hidden="true" style={{ background: inspectionColor(entry) }}/><span>{entry.name}<small>{entry.surface ? 'Structural steel · estimated' : entry.kind === 'armor' ? entry.plate ? `${entry.plate.material} plate · ${entry.provenance?.basis ?? 'approximate'}` : entry.mountIndex === undefined ? 'Hull armor' : 'Gunhouse armor' : entry.kind === 'engine' ? 'Machinery' : entry.kind === 'steering' ? 'Steering gear' : entry.kind === 'magazine' ? 'Magazine' : 'Compartment'}</small></span>
         <strong>{entry.thicknessMm !== undefined ? `${entry.thicknessMm} mm` : entry.capacityM3 !== undefined ? `${Math.round(entry.capacityM3).toLocaleString()} m³` : `${entry.hp} HP`}</strong>
       </button>)}
     </div>
     {filtered.length === 0 && <p role="status" className="port-inspection-note">No matching entries. Try a shorter name or clear the search.</p>}
-    <p className="port-inspection-note">{mode === 'armor' ? 'Provisional armor layout. Opaque plates hide the layers behind them; isolate a row to inspect an inner layer.' : 'Outlines show compartments; blue fill shows floodwater.'}</p>
+    <p className="port-inspection-note">{mode === 'armor' ? 'Hull and deckhouse plating also registers hits. Opaque surfaces hide inner layers; isolate a row to inspect them.' : 'Outlines show compartments; blue fill shows floodwater.'}</p>
     </div>
     {selected && <div className="port-volume-detail" role="status"><div><strong>{selected.name}</strong><span>{selected.size.map(n => n.toFixed(1)).join(' × ')} m</span>{selected.provenance && <small>{selected.provenance.note}</small>}</div><button onClick={() => onSelect(undefined)}>Clear selection</button></div>}
   </section>;

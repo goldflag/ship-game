@@ -1,0 +1,335 @@
+{
+  "diagnostics": {
+    "audio": {
+      "failed": [],
+      "inPort": true,
+      "loaded": 13,
+      "paused": false,
+      "played": 1,
+      "settings": {
+        "effects": 0.8,
+        "interface": 0.65,
+        "master": 0.65,
+        "muted": false
+      },
+      "state": "running",
+      "total": 13,
+      "voices": 1
+    },
+    "backend": "webgpu",
+    "camera": {
+      "aim": [
+        161.2330863996562,
+        0.5,
+        -74.14968039371982
+      ],
+      "binoculars": false,
+      "fov": 52.00000000000001,
+      "magnification": 1,
+      "manualAim": true,
+      "matrixWorldInverse": [
+        0.5293819591663346,
+        -0.17438196865528452,
+        0.8302684326873572,
+        0,
+        -4.163336342344336e-17,
+        0.9786474275905909,
+        0.2055461322193129,
+        0,
+        -0.8483836050450368,
+        -0.10881241417332231,
+        0.5180782925510006,
+        0,
+        -148.2612603260462,
+        19.558413571123413,
+        -526.5654240702835,
+        1.0000000000000002
+      ],
+      "mode": "Chase",
+      "pointerLocked": false,
+      "position": [
+        519.0881204723669,
+        89.09269514893623,
+        149.1478914928684
+      ],
+      "projectionMatrix": [
+        1.633751346060547,
+        0,
+        0,
+        0,
+        0,
+        2.050303841579296,
+        0,
+        0,
+        0,
+        0,
+        -1.000050002500125,
+        -1,
+        0,
+        0,
+        -3.000150007500375,
+        0
+      ]
+    },
+    "combat": {
+      "batteries": [
+        {
+          "ammo": 960,
+          "battery": "main",
+          "ready": 4,
+          "reload": 0,
+          "total": 4
+        },
+        {
+          "ammo": 1800,
+          "battery": "secondary",
+          "ready": 6,
+          "reload": 0,
+          "total": 6
+        }
+      ],
+      "battery": "main",
+      "battle": false,
+      "contacts": [
+        {
+          "controller": "player",
+          "heading": 0,
+          "id": "player",
+          "integrity": 1,
+          "name": "Bismarck",
+          "shipId": "bismarck",
+          "sunk": false,
+          "team": "friendly",
+          "x": 240,
+          "z": 0
+        },
+        {
+          "controller": "idle",
+          "heading": 0,
+          "id": "target",
+          "integrity": 1,
+          "name": "Bismarck",
+          "shipId": "bismarck",
+          "sunk": false,
+          "team": "enemy",
+          "x": 650,
+          "z": -550
+        }
+      ],
+      "message": "Fire loaded guns at any time. Shells follow the barrels\u2019 current aim.",
+      "modules": [
+        {
+          "condition": 1,
+          "id": "boiler-aft-port-equipment",
+          "name": "Aft port boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "condition": 1,
+          "id": "boiler-aft-center-equipment",
+          "name": "Aft center boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "condition": 1,
+          "id": "boiler-aft-starboard-equipment",
+          "name": "Aft starboard boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "condition": 1,
+          "id": "boiler-forward-port-equipment",
+          "name": "Forward port boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "condition": 1,
+          "id": "boiler-forward-center-equipment",
+          "name": "Forward center boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "condition": 1,
+          "id": "boiler-forward-starboard-equipment",
+          "name": "Forward starboard boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "condition": 1,
+          "id": "engine-port",
+          "name": "Port turbine room"
+        },
+        {
+          "condition": 1,
+          "id": "engine-starboard",
+          "name": "Starboard turbine room"
+        },
+        {
+          "condition": 1,
+          "id": "engine-center",
+          "name": "Center turbine room"
+        },
+        {
+          "condition": 1,
+          "id": "anton-magazine",
+          "name": "Anton propellant magazines"
+        },
+        {
+          "condition": 1,
+          "id": "bruno-magazine",
+          "name": "Bruno propellant magazines"
+        },
+        {
+          "condition": 1,
+          "id": "caesar-magazine",
+          "name": "C\u00e4sar propellant magazines"
+        },
+        {
+          "condition": 1,
+          "id": "dora-magazine",
+          "name": "Dora propellant magazines"
+        },
+        {
+          "condition": 1,
+          "id": "steering",
+          "name": "Steering gear room"
+        },
+        {
+          "condition": 1,
+          "id": "shaft-port-equipment",
+          "name": "Port shaft passage"
+        },
+        {
+          "condition": 1,
+          "id": "shaft-center-equipment",
+          "name": "Center shaft passage"
+        },
+        {
+          "condition": 1,
+          "id": "shaft-starboard-equipment",
+          "name": "Starboard shaft passage"
+        }
+      ],
+      "mounts": [
+        {
+          "ammo": 240,
+          "id": "anton",
+          "name": "Anton",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 240,
+          "id": "bruno",
+          "name": "Bruno",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 240,
+          "id": "caesar",
+          "name": "C\u00e4sar",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 240,
+          "id": "dora",
+          "name": "Dora",
+          "reload": 0,
+          "status": "ready"
+        }
+      ],
+      "playerIntegrity": 1,
+      "playerSunk": false,
+      "playerWater": 0,
+      "range": 108.1776399290298,
+      "ready": 4,
+      "result": "active",
+      "targetId": "target",
+      "targetIntegrity": 1,
+      "targetName": "Bismarck",
+      "targetPosition": {
+        "heading": 0,
+        "x": 650,
+        "z": -550
+      },
+      "targetPower": 1,
+      "targetRange": 686.0029154456998,
+      "targetSteering": 1,
+      "targetSunk": false,
+      "targetUnderway": false,
+      "targetWater": 0,
+      "total": 4
+    },
+    "contentHash": "45b7cc0110d0262b177a0e3aeb4df43d0682de8b52f1cc4f18cd5ab0fcddc9a5",
+    "effects": {
+      "flashes": 0,
+      "foam": 0,
+      "particleCapacity": 2272,
+      "shells": 0,
+      "smoke": 0,
+      "spray": 0
+    },
+    "events": [],
+    "fleet": [
+      {
+        "ammo": 2760,
+        "controller": "player",
+        "definitionId": "bismarck",
+        "id": "player",
+        "integrity": 1000,
+        "motion": {
+          "distance": 0,
+          "heading": 0,
+          "id": "player",
+          "pitch": 0,
+          "roll": 0,
+          "rudder": 0,
+          "speed": 0,
+          "tick": 0,
+          "x": 240,
+          "y": 0,
+          "yawRate": 0,
+          "z": 0
+        },
+        "team": "friendly"
+      },
+      {
+        "ammo": 2760,
+        "controller": "idle",
+        "definitionId": "bismarck",
+        "id": "target",
+        "integrity": 1000,
+        "motion": {
+          "distance": 0,
+          "heading": 0,
+          "id": "target",
+          "pitch": 0,
+          "roll": 0,
+          "rudder": 0,
+          "speed": 0,
+          "tick": 0,
+          "x": 650,
+          "y": 0,
+          "yawRate": 0,
+          "z": -550
+        },
+        "team": "enemy"
+      }
+    ],
+    "fps": 16.879742968641995,
+    "inPort": true,
+    "inspecting": false,
+    "maxMuzzleErrorM": 0.002160556698349966,
+    "paused": false,
+    "portInspection": "armor",
+    "renderedShips": [
+      {
+        "id": "player",
+        "visible": true
+      },
+      {
+        "id": "target",
+        "visible": false
+      }
+    ],
+    "shipId": "bismarck",
+    "tick": 0
+  },
+  "text": "Armor model\n394 volumes\n\nHover a plate for details. Select a row to isolate it.\n\nGreen \u00b7 thinner\nRed \u00b7 thicker\n0 mm\n200 mm\n400+ mm\nTeak backing is gray.\nFind armor or space\nHull shell \u00b7 bow to stern\nStructural steel \u00b7 estimated\n20 mm\nForward battery deckhouse\nStructural steel \u00b7 estimated\n8 mm\nForward shelter deckhouse\nStructural steel \u00b7 estimated\n8 mm\nLower bridge deckhouse\nStructural steel \u00b7 estimated\n8 mm\nNavigation bridge wings\nStructural steel \u00b7 estimated\n8 mm\nNavigation wheelhouse\nStructural steel \u00b7 estimated\n8 mm\nAdmiral bridge platform\nStructural steel \u00b7 estimated\n8 mm\nForetower enclosed support\nStructural steel \u00b7 estimated\n8 mm\nSignal and searchlight gallery\nStructural steel \u00b7 estimated\n8 mm\nFore 20 mm platform\nStructural steel \u00b7 estimated\n8 mm\nForetop observation gallery\nStructural steel \u00b7 estimated\n8 mm\nForetop observation house\nStructural steel \u00b7 estimated\n8 mm\nUpper fire-control platform\nStructural steel \u00b7 estimated\n8 mm\nArmored conning tower platform\nStructural steel \u00b7 estimated\n8 mm\nFunnel uptake and fan house\nStructural steel \u00b7 estimated\n8 mm\nSingle aircraft hangar port\nStructural steel \u00b7 estimated\n8 mm\nSingle aircraft hangar starboard\nStructural steel \u00b7 estimated\n8 mm\nDouble aircraft hangar\nStructural steel \u00b7 estimated\n8 mm\nAft battery deckhouse\nStructural steel \u00b7 estimated\n8 mm\nAft fire-control deckhouse\nStructural steel \u00b7 estimated\n8 mm\nAft director gallery\nStructural steel \u00b7 estimated\n8 mm\nAft director support\nStructural steel \u00b7 estimated\n8 mm\nFunnel jacket\nStructural steel \u00b7 estimated\n8 mm\nPort Main Belt 0\nKC plate \u00b7 estimated\n320 mm\nPort Teak Backing 0\nteak plate \u00b7 estimated\n50 mm\nPort Belt Support 0\nsteel plate \u00b7 estimated\n20 mm\nPort Upper Belt 0\nKC plate \u00b7 estimated\n145 mm\nPort Torpedo Bulkhead 0\nWw plate \u00b7 estimated\n45 mm\nPort Splinter Bulkhead 0\nWh plate \u00b7 estimated\n30 mm\nPort Turtleback 0\nWh plate \u00b7 estimated\n120 mm\nPort Main Belt 1\nKC plate \u00b7 estimated\n320 mm\nPort Teak Backing 1\nteak plate \u00b7 estimated\n50 mm\nPort Belt Support 1\nsteel plate \u00b7 estimated\n20 mm\nPort Upper Belt 1\nKC plate \u00b7 estimated\n145 mm\nPort Torpedo Bulkhead 1\nWw plate \u00b7 estimated\n45 mm\nPort Splinter Bulkhead 1\nWh plate \u00b7 estimated\n30 mm\nPort Turtleback 1\nWh plate \u00b7 estimated\n120 mm\nPort Main Belt 2\nKC plate \u00b7 estimated\n320 mm\nPort Teak Backing 2\nteak plate \u00b7 estimated\n50 mm\nPort Belt Support 2\nsteel plate \u00b7 estimated\n20 mm\nPort Upper Belt 2\nKC plate \u00b7 estimated\n145 mm\nPort Torpedo Bulkhead 2\nWw plate \u00b7 estimated\n45 mm\nPort Splinter Bulkhead 2\nWh plate \u00b7 estimated\n30 mm\nPort Turtleback 2\nWh plate \u00b7 estimated\n110 mm\nPort Main Belt 3\nKC plate \u00b7 estimated\n320 mm\nPort Teak Backing 3\nteak plate \u00b7 estimated\n50 mm\nPort Belt Support 3\nsteel plate \u00b7 estimated\n20 mm\nPort Upper Belt 3\nKC plate \u00b7 estimated\n145 mm\nPort Torpedo Bulkhead 3\nWw plate \u00b7 estimated\n45 mm\nPort Splinter Bulkhead 3\nWh plate \u00b7 estimated\n30 mm\nPort Turtleback 3\nWh plate \u00b7 estimated\n120 mm\nPort Main Belt 4\nKC plate \u00b7 estimated\n320 mm\nPort Teak Backing 4\nteak plate \u00b7 estimated\n50 mm\nPort Belt Support 4\nsteel plate \u00b7 estimated\n20 mm\nPort Upper Belt 4\nKC plate \u00b7 estimated\n145 mm\nPort Torpedo Bulkhead 4\nWw plate \u00b7 estimated\n45 mm\nPort Splinter Bulkhead 4\nWh plate \u00b7 estimated\n30 mm\nPort Turtleback 4\nWh plate \u00b7 estimated\n120 mm\nPort Main Belt 5\nKC plate \u00b7 estimated\n320 mm\nPort Teak Backing 5\nteak plate \u00b7 estimated\n50 mm\nPort Belt Support 5\nsteel plate \u00b7 estimated\n20 mm\nPort Upper Belt 5\nKC plate \u00b7 estimated\n120 mm\nPort Torpedo Bulkhead 5\nWw plate \u00b7 estimated\n45 mm\nPort Splinter Bulkhead 5\nWh plate \u00b7 estimated\n30 mm\nPort Turtleback 5\nWh plate \u00b7 estimated\n120 mm\nPort Bow Plating\nWh plate \u00b7 estimated\n60 mm\nPort Stern Plating\nWh plate \u00b7 estimated\n80 mm\nStarboard Main Belt 0\nKC plate \u00b7 estimated\n320 mm\nStarboard Teak Backing 0\nteak plate \u00b7 estimated\n50 mm\nStarboard Belt Support 0\nsteel plate \u00b7 estimated\n20 mm\nStarboard Upper Belt 0\nKC plate \u00b7 estimated\n145 mm\nStarboard Torpedo Bulkhead 0\nWw plate \u00b7 estimated\n45 mm\nStarboard Splinter Bulkhead 0\nWh plate \u00b7 estimated\n30 mm\nStarboard Turtleback 0\nWh plate \u00b7 estimated\n120 mm\nStarboard Main Belt 1\nKC plate \u00b7 estimated\n320 mm\nStarboard Teak Backing 1\nteak plate \u00b7 estimated\n50 mm\nStarboard Belt Support 1\nsteel plate \u00b7 estimated\n20 mm\nStarboard Upper Belt 1\nKC plate \u00b7 estimated\n145 mm\nStarboard Torpedo Bulkhead 1\nWw plate \u00b7 estimated\n45 mm\nStarboard Splinter Bulkhead 1\nWh plate \u00b7 estimated\n30 mm\nStarboard Turtleback 1\nWh plate \u00b7 estimated\n120 mm\nStarboard Main Belt 2\nKC plate \u00b7 estimated\n320 mm\nStarboard Teak Backing 2\nteak plate \u00b7 estimated\n50 mm\nStarboard Belt Support 2\nsteel plate \u00b7 estimated\n20 mm\nStarboard Upper Belt 2\nKC plate \u00b7 estimated\n145 mm\nStarboard Torpedo Bulkhead 2\nWw plate \u00b7 estimated\n45 mm\nStarboard Splinter Bulkhead 2\nWh plate \u00b7 estimated\n30 mm\nStarboard Turtleback 2\nWh plate \u00b7 estimated\n110 mm\nStarboard Main Belt 3\nKC plate \u00b7 estimated\n320 mm\nStarboard Teak Backing 3\nteak plate \u00b7 estimated\n50 mm\nStarboard Belt Support 3\nsteel plate \u00b7 estimated\n20 mm\nStarboard Upper Belt 3\nKC plate \u00b7 estimated\n145 mm\nStarboard Torpedo Bulkhead 3\nWw plate \u00b7 estimated\n45 mm\nStarboard Splinter Bulkhead 3\nWh plate \u00b7 estimated\n30 mm\nStarboard Turtleback 3\nWh plate \u00b7 estimated\n120 mm\nStarboard Main Belt 4\nKC plate \u00b7 estimated\n320 mm\nStarboard Teak Backing 4\nteak plate \u00b7 estimated\n50 mm\nStarboard Belt Support 4\nsteel plate \u00b7 estimated\n20 mm\nStarboard Upper Belt 4\nKC plate \u00b7 estimated\n145 mm\nStarboard Torpedo Bulkhead 4\nWw plate \u00b7 estimated\n45 mm\nStarboard Splinter Bulkhead 4\nWh plate \u00b7 estimated\n30 mm\nStarboard Turtleback 4\nWh plate \u00b7 estimated\n120 mm\nStarboard Main Belt 5\nKC plate \u00b7 estimated\n320 mm\nStarboard Teak Backing 5\nteak plate \u00b7 estimated\n50 mm\nStarboard Belt Support 5\nsteel plate \u00b7 estimated\n20 mm\nStarboard Upper Belt 5\nKC plate \u00b7 estimated\n120 mm\nStarboard Torpedo Bulkhead 5\nWw plate \u00b7 estimated\n45 mm\nStarboard Splinter Bulkhead 5\nWh plate \u00b7 estimated\n30 mm\nStarboard Turtleback 5\nWh plate \u00b7 estimated\n120 mm\nStarboard Bow Plating\nWh plate \u00b7 estimated\n60 mm\nStarboard Stern Plating\nWh plate \u00b7 estimated\n80 mm\nUpper Deck 0\nWh plate \u00b7 estimated\n50 mm\nBattery Deck 0\nsteel plate \u00b7 estimated\n12 mm\nArmor Deck 0\nWh plate \u00b7 estimated\n100 mm\nUpper Deck 1\nWh plate \u00b7 estimated\n50 mm\nBattery Deck 1\nsteel plate \u00b7 estimated\n12 mm\nArmor Deck 1\nWh plate \u00b7 estimated\n100 mm\nUpper Deck 2\nWh plate \u00b7 estimated\n50 mm\nBattery Deck 2\nsteel plate \u00b7 estimated\n12 mm\nArmor Deck 2\nWh plate \u00b7 estimated\n80 mm\nUpper Deck 3\nWh plate \u00b7 estimated\n50 mm\nBattery Deck 3\nsteel plate \u00b7 estimated\n12 mm\nArmor Deck 3\nWh plate \u00b7 estimated\n100 mm\nUpper Deck 4\nWh plate \u00b7 estimated\n50 mm\nBattery Deck 4\nsteel plate \u00b7 estimated\n12 mm\nArmor Deck 4\nWh plate \u00b7 estimated\n100 mm\nUpper Deck 5\nWh plate \u00b7 estimated\n50 mm\nBattery Deck 5\nsteel plate \u00b7 estimated\n12 mm\nArmor Deck 5\nWh plate \u00b7 estimated\n100 mm\nForward Transverse 0\nKC plate \u00b7 estimated\n180 mm\nForward Transverse 1\nKC plate \u00b7 estimated\n220 mm\nForward Transverse 2\nKC plate \u00b7 estimated\n145 mm\nAft Transverse 0\nKC plate \u00b7 estimated\n180 mm\nAft Transverse 1\nKC plate \u00b7 estimated\n220 mm\nAft Transverse 2\nKC plate \u00b7 estimated\n145 mm\nSteering Deck\nWh plate \u00b7 estimated\n110 mm\nAnton Barbette Lower 0\nKC plate \u00b7 estimated\n220 mm\nAnton Barbette Lower 1\nKC plate \u00b7 estimated\n220 mm\nAnton Barbette Lower 2\nKC plate \u00b7 estimated\n220 mm\nAnton Barbette Lower 3\nKC plate \u00b7 estimated\n220 mm\nAnton Barbette Lower 4\nKC plate \u00b7 estimated\n220 mm\nAnton Barbette Lower 5\nKC plate \u00b7 estimated\n220 mm\nAnton Barbette Lower 6\nKC plate \u00b7 estimated\n220 mm\nAnton Barbette Lower 7\nKC plate \u00b7 estimated\n220 mm\nAnton Barbette Upper 0\nKC plate \u00b7 estimated\n340 mm\nAnton Barbette Upper 1\nKC plate \u00b7 estimated\n340 mm\nAnton Barbette Upper 2\nKC plate \u00b7 estimated\n340 mm\nAnton Barbette Upper 3\nKC plate \u00b7 estimated\n340 mm\nAnton Barbette Upper 4\nKC plate \u00b7 estimated\n340 mm\nAnton Barbette Upper 5\nKC plate \u00b7 estimated\n340 mm\nAnton Barbette Upper 6\nKC plate \u00b7 estimated\n340 mm\nAnton Barbette Upper 7\nKC plate \u00b7 estimated\n340 mm\nBruno Barbette Lower 0\nKC plate \u00b7 estimated\n220 mm\nBruno Barbette Lower 1\nKC plate \u00b7 estimated\n220 mm\nBruno Barbette Lower 2\nKC plate \u00b7 estimated\n220 mm\nBruno Barbette Lower 3\nKC plate \u00b7 estimated\n220 mm\nBruno Barbette Lower 4\nKC plate \u00b7 estimated\n220 mm\nBruno Barbette Lower 5\nKC plate \u00b7 estimated\n220 mm\nBruno Barbette Lower 6\nKC plate \u00b7 estimated\n220 mm\nBruno Barbette Lower 7\nKC plate \u00b7 estimated\n220 mm\nBruno Barbette Upper 0\nKC plate \u00b7 estimated\n340 mm\nBruno Barbette Upper 1\nKC plate \u00b7 estimated\n340 mm\nBruno Barbette Upper 2\nKC plate \u00b7 estimated\n340 mm\nBruno Barbette Upper 3\nKC plate \u00b7 estimated\n340 mm\nBruno Barbette Upper 4\nKC plate \u00b7 estimated\n340 mm\nBruno Barbette Upper 5\nKC plate \u00b7 estimated\n340 mm\nBruno Barbette Upper 6\nKC plate \u00b7 estimated\n340 mm\nBruno Barbette Upper 7\nKC plate \u00b7 estimated\n340 mm\nCaesar Barbette Lower 0\nKC plate \u00b7 estimated\n220 mm\nCaesar Barbette Lower 1\nKC plate \u00b7 estimated\n220 mm\nCaesar Barbette Lower 2\nKC plate \u00b7 estimated\n220 mm\nCaesar Barbette Lower 3\nKC plate \u00b7 estimated\n220 mm\nCaesar Barbette Lower 4\nKC plate \u00b7 estimated\n220 mm\nCaesar Barbette Lower 5\nKC plate \u00b7 estimated\n220 mm\nCaesar Barbette Lower 6\nKC plate \u00b7 estimated\n220 mm\nCaesar Barbette Lower 7\nKC plate \u00b7 estimated\n220 mm\nCaesar Barbette Upper 0\nKC plate \u00b7 estimated\n340 mm\nCaesar Barbette Upper 1\nKC plate \u00b7 estimated\n340 mm\nCaesar Barbette Upper 2\nKC plate \u00b7 estimated\n340 mm\nCaesar Barbette Upper 3\nKC plate \u00b7 estimated\n340 mm\nCaesar Barbette Upper 4\nKC plate \u00b7 estimated\n340 mm\nCaesar Barbette Upper 5\nKC plate \u00b7 estimated\n340 mm\nCaesar Barbette Upper 6\nKC plate \u00b7 estimated\n340 mm\nCaesar Barbette Upper 7\nKC plate \u00b7 estimated\n340 mm\nDora Barbette Lower 0\nKC plate \u00b7 estimated\n220 mm\nDora Barbette Lower 1\nKC plate \u00b7 estimated\n220 mm\nDora Barbette Lower 2\nKC plate \u00b7 estimated\n220 mm\nDora Barbette Lower 3\nKC plate \u00b7 estimated\n220 mm\nDora Barbette Lower 4\nKC plate \u00b7 estimated\n220 mm\nDora Barbette Lower 5\nKC plate \u00b7 estimated\n220 mm\nDora Barbette Lower 6\nKC plate \u00b7 estimated\n220 mm\nDora Barbette Lower 7\nKC plate \u00b7 estimated\n220 mm\nDora Barbette Upper 0\nKC plate \u00b7 estimated\n340 mm\nDora Barbette Upper 1\nKC plate \u00b7 estimated\n340 mm\nDora Barbette Upper 2\nKC plate \u00b7 estimated\n340 mm\nDora Barbette Upper 3\nKC plate \u00b7 estimated\n340 mm\nDora Barbette Upper 4\nKC plate \u00b7 estimated\n340 mm\nDora Barbette Upper 5\nKC plate \u00b7 estimated\n340 mm\nDora Barbette Upper 6\nKC plate \u00b7 estimated\n340 mm\nDora Barbette Upper 7\nKC plate \u00b7 estimated\n340 mm\nPort Lower Plating 0\nsteel plate \u00b7 estimated\n20 mm\nPort Lower Plating 1\nsteel plate \u00b7 estimated\n20 mm\nPort Lower Plating 2\nsteel plate \u00b7 estimated\n20 mm\nPort Lower Plating 3\nsteel plate \u00b7 estimated\n20 mm\nPort Lower Plating 4\nsteel plate \u00b7 estimated\n20 mm\nPort Lower Plating 5\nsteel plate \u00b7 estimated\n20 mm\nStarboard Lower Plating 0\nsteel plate \u00b7 estimated\n20 mm\nStarboard Lower Plating 1\nsteel plate \u00b7 estimated\n20 mm\nStarboard Lower Plating 2\nsteel plate \u00b7 estimated\n20 mm\nStarboard Lower Plating 3\nsteel plate \u00b7 estimated\n20 mm\nStarboard Lower Plating 4\nsteel plate \u00b7 estimated\n20 mm\nStarboard Lower Plating 5\nsteel plate \u00b7 estimated\n20 mm\nAnton \u00b7 side 0 a\nKC plate \u00b7 estimated\n220 mm\nAnton \u00b7 side 0 b\nKC plate \u00b7 estimated\n220 mm\nAnton \u00b7 side 1 a\nKC plate \u00b7 estimated\n220 mm\nAnton \u00b7 side 1 b\nKC plate \u00b7 estimated\n220 mm\nAnton \u00b7 side 2 a\nKC plate \u00b7 estimated\n220 mm\nAnton \u00b7 side 2 b\nKC plate \u00b7 estimated\n220 mm\nAnton \u00b7 side 3 a\nKC plate \u00b7 estimated\n360 mm\nAnton \u00b7 side 3 b\nKC plate \u00b7 estimated\n360 mm\nAnton \u00b7 side 4 a\nKC plate \u00b7 estimated\n220 mm\nAnton \u00b7 side 4 b\nKC plate \u00b7 estimated\n220 mm\nAnton \u00b7 side 5 a\nKC plate \u00b7 estimated\n220 mm\nAnton \u00b7 side 5 b\nKC plate \u00b7 estimated\n220 mm\nAnton \u00b7 side 6 a\nKC plate \u00b7 estimated\n220 mm\nAnton \u00b7 side 6 b\nKC plate \u00b7 estimated\n220 mm\nAnton \u00b7 side 7 a\nKC plate \u00b7 estimated\n320 mm\nAnton \u00b7 side 7 b\nKC plate \u00b7 estimated\n320 mm\nAnton \u00b7 slope 0 a\nKC plate \u00b7 estimated\n180 mm\nAnton \u00b7 slope 0 b\nKC plate \u00b7 estimated\n180 mm\nAnton \u00b7 slope 1 a\nKC plate \u00b7 estimated\n150 mm\nAnton \u00b7 slope 1 b\nKC plate \u00b7 estimated\n150 mm\nAnton \u00b7 slope 2 a\nKC plate \u00b7 estimated\n180 mm\nAnton \u00b7 slope 2 b\nKC plate \u00b7 estimated\n180 mm\nAnton \u00b7 slope 3 a\nKC plate \u00b7 estimated\n180 mm\nAnton \u00b7 slope 3 b\nKC plate \u00b7 estimated\n180 mm\nAnton \u00b7 slope 4 a\nKC plate \u00b7 estimated\n180 mm\nAnton \u00b7 slope 4 b\nKC plate \u00b7 estimated\n180 mm\nAnton \u00b7 slope 5 a\nKC plate \u00b7 estimated\n150 mm\nAnton \u00b7 slope 5 b\nKC plate \u00b7 estimated\n150 mm\nAnton \u00b7 slope 6 a\nKC plate \u00b7 estimated\n180 mm\nAnton \u00b7 slope 6 b\nKC plate \u00b7 estimated\n180 mm\nAnton \u00b7 slope 7 a\nKC plate \u00b7 estimated\n180 mm\nAnton \u00b7 slope 7 b\nKC plate \u00b7 estimated\n180 mm\nAnton \u00b7 roof 1\nKC plate \u00b7 estimated\n130 mm\nAnton \u00b7 roof 2\nKC plate \u00b7 estimated\n130 mm\nAnton \u00b7 roof 3\nKC plate \u00b7 estimated\n130 mm\nAnton \u00b7 roof 4\nKC plate \u00b7 estimated\n130 mm\nAnton \u00b7 roof 5\nKC plate \u00b7 estimated\n130 mm\nAnton \u00b7 roof 6\nKC plate \u00b7 estimated\n130 mm\nAnton \u00b7 floor 1\nsteel plate \u00b7 estimated\n50 mm\nAnton \u00b7 floor 2\nsteel plate \u00b7 estimated\n50 mm\nAnton \u00b7 floor 3\nsteel plate \u00b7 estimated\n50 mm\nAnton \u00b7 floor 4\nsteel plate \u00b7 estimated\n50 mm\nAnton \u00b7 floor 5\nsteel plate \u00b7 estimated\n50 mm\nAnton \u00b7 floor 6\nsteel plate \u00b7 estimated\n50 mm\nBruno \u00b7 side 0 a\nKC plate \u00b7 estimated\n220 mm\nBruno \u00b7 side 0 b\nKC plate \u00b7 estimated\n220 mm\nBruno \u00b7 side 1 a\nKC plate \u00b7 estimated\n220 mm\nBruno \u00b7 side 1 b\nKC plate \u00b7 estimated\n220 mm\nBruno \u00b7 side 2 a\nKC plate \u00b7 estimated\n220 mm\nBruno \u00b7 side 2 b\nKC plate \u00b7 estimated\n220 mm\nBruno \u00b7 side 3 a\nKC plate \u00b7 estimated\n360 mm\nBruno \u00b7 side 3 b\nKC plate \u00b7 estimated\n360 mm\nBruno \u00b7 side 4 a\nKC plate \u00b7 estimated\n220 mm\nBruno \u00b7 side 4 b\nKC plate \u00b7 estimated\n220 mm\nBruno \u00b7 side 5 a\nKC plate \u00b7 estimated\n220 mm\nBruno \u00b7 side 5 b\nKC plate \u00b7 estimated\n220 mm\nBruno \u00b7 side 6 a\nKC plate \u00b7 estimated\n220 mm\nBruno \u00b7 side 6 b\nKC plate \u00b7 estimated\n220 mm\nBruno \u00b7 side 7 a\nKC plate \u00b7 estimated\n320 mm\nBruno \u00b7 side 7 b\nKC plate \u00b7 estimated\n320 mm\nBruno \u00b7 slope 0 a\nKC plate \u00b7 estimated\n180 mm\nBruno \u00b7 slope 0 b\nKC plate \u00b7 estimated\n180 mm\nBruno \u00b7 slope 1 a\nKC plate \u00b7 estimated\n150 mm\nBruno \u00b7 slope 1 b\nKC plate \u00b7 estimated\n150 mm\nBruno \u00b7 slope 2 a\nKC plate \u00b7 estimated\n180 mm\nBruno \u00b7 slope 2 b\nKC plate \u00b7 estimated\n180 mm\nBruno \u00b7 slope 3 a\nKC plate \u00b7 estimated\n180 mm\nBruno \u00b7 slope 3 b\nKC plate \u00b7 estimated\n180 mm\nBruno \u00b7 slope 4 a\nKC plate \u00b7 estimated\n180 mm\nBruno \u00b7 slope 4 b\nKC plate \u00b7 estimated\n180 mm\nBruno \u00b7 slope 5 a\nKC plate \u00b7 estimated\n150 mm\nBruno \u00b7 slope 5 b\nKC plate \u00b7 estimated\n150 mm\nBruno \u00b7 slope 6 a\nKC plate \u00b7 estimated\n180 mm\nBruno \u00b7 slope 6 b\nKC plate \u00b7 estimated\n180 mm\nBruno \u00b7 slope 7 a\nKC plate \u00b7 estimated\n180 mm\nBruno \u00b7 slope 7 b\nKC plate \u00b7 estimated\n180 mm\nBruno \u00b7 roof 1\nKC plate \u00b7 estimated\n130 mm\nBruno \u00b7 roof 2\nKC plate \u00b7 estimated\n130 mm\nBruno \u00b7 roof 3\nKC plate \u00b7 estimated\n130 mm\nBruno \u00b7 roof 4\nKC plate \u00b7 estimated\n130 mm\nBruno \u00b7 roof 5\nKC plate \u00b7 estimated\n130 mm\nBruno \u00b7 roof 6\nKC plate \u00b7 estimated\n130 mm\nBruno \u00b7 floor 1\nsteel plate \u00b7 estimated\n50 mm\nBruno \u00b7 floor 2\nsteel plate \u00b7 estimated\n50 mm\nBruno \u00b7 floor 3\nsteel plate \u00b7 estimated\n50 mm\nBruno \u00b7 floor 4\nsteel plate \u00b7 estimated\n50 mm\nBruno \u00b7 floor 5\nsteel plate \u00b7 estimated\n50 mm\nBruno \u00b7 floor 6\nsteel plate \u00b7 estimated\n50 mm\nC\u00e4sar \u00b7 side 0 a\nKC plate \u00b7 estimated\n220 mm\nC\u00e4sar \u00b7 side 0 b\nKC plate \u00b7 estimated\n220 mm\nC\u00e4sar \u00b7 side 1 a\nKC plate \u00b7 estimated\n220 mm\nC\u00e4sar \u00b7 side 1 b\nKC plate \u00b7 estimated\n220 mm\nC\u00e4sar \u00b7 side 2 a\nKC plate \u00b7 estimated\n220 mm\nC\u00e4sar \u00b7 side 2 b\nKC plate \u00b7 estimated\n220 mm\nC\u00e4sar \u00b7 side 3 a\nKC plate \u00b7 estimated\n360 mm\nC\u00e4sar \u00b7 side 3 b\nKC plate \u00b7 estimated\n360 mm\nC\u00e4sar \u00b7 side 4 a\nKC plate \u00b7 estimated\n220 mm\nC\u00e4sar \u00b7 side 4 b\nKC plate \u00b7 estimated\n220 mm\nC\u00e4sar \u00b7 side 5 a\nKC plate \u00b7 estimated\n220 mm\nC\u00e4sar \u00b7 side 5 b\nKC plate \u00b7 estimated\n220 mm\nC\u00e4sar \u00b7 side 6 a\nKC plate \u00b7 estimated\n220 mm\nC\u00e4sar \u00b7 side 6 b\nKC plate \u00b7 estimated\n220 mm\nC\u00e4sar \u00b7 side 7 a\nKC plate \u00b7 estimated\n320 mm\nC\u00e4sar \u00b7 side 7 b\nKC plate \u00b7 estimated\n320 mm\nC\u00e4sar \u00b7 slope 0 a\nKC plate \u00b7 estimated\n180 mm\nC\u00e4sar \u00b7 slope 0 b\nKC plate \u00b7 estimated\n180 mm\nC\u00e4sar \u00b7 slope 1 a\nKC plate \u00b7 estimated\n150 mm\nC\u00e4sar \u00b7 slope 1 b\nKC plate \u00b7 estimated\n150 mm\nC\u00e4sar \u00b7 slope 2 a\nKC plate \u00b7 estimated\n180 mm\nC\u00e4sar \u00b7 slope 2 b\nKC plate \u00b7 estimated\n180 mm\nC\u00e4sar \u00b7 slope 3 a\nKC plate \u00b7 estimated\n180 mm\nC\u00e4sar \u00b7 slope 3 b\nKC plate \u00b7 estimated\n180 mm\nC\u00e4sar \u00b7 slope 4 a\nKC plate \u00b7 estimated\n180 mm\nC\u00e4sar \u00b7 slope 4 b\nKC plate \u00b7 estimated\n180 mm\nC\u00e4sar \u00b7 slope 5 a\nKC plate \u00b7 estimated\n150 mm\nC\u00e4sar \u00b7 slope 5 b\nKC plate \u00b7 estimated\n150 mm\nC\u00e4sar \u00b7 slope 6 a\nKC plate \u00b7 estimated\n180 mm\nC\u00e4sar \u00b7 slope 6 b\nKC plate \u00b7 estimated\n180 mm\nC\u00e4sar \u00b7 slope 7 a\nKC plate \u00b7 estimated\n180 mm\nC\u00e4sar \u00b7 slope 7 b\nKC plate \u00b7 estimated\n180 mm\nC\u00e4sar \u00b7 roof 1\nKC plate \u00b7 estimated\n130 mm\nC\u00e4sar \u00b7 roof 2\nKC plate \u00b7 estimated\n130 mm\nC\u00e4sar \u00b7 roof 3\nKC plate \u00b7 estimated\n130 mm\nC\u00e4sar \u00b7 roof 4\nKC plate \u00b7 estimated\n130 mm\nC\u00e4sar \u00b7 roof 5\nKC plate \u00b7 estimated\n130 mm\nC\u00e4sar \u00b7 roof 6\nKC plate \u00b7 estimated\n130 mm\nC\u00e4sar \u00b7 floor 1\nsteel plate \u00b7 estimated\n50 mm\nC\u00e4sar \u00b7 floor 2\nsteel plate \u00b7 estimated\n50 mm\nC\u00e4sar \u00b7 floor 3\nsteel plate \u00b7 estimated\n50 mm\nC\u00e4sar \u00b7 floor 4\nsteel plate \u00b7 estimated\n50 mm\nC\u00e4sar \u00b7 floor 5\nsteel plate \u00b7 estimated\n50 mm\nC\u00e4sar \u00b7 floor 6\nsteel plate \u00b7 estimated\n50 mm\nDora \u00b7 side 0 a\nKC plate \u00b7 estimated\n220 mm\nDora \u00b7 side 0 b\nKC plate \u00b7 estimated\n220 mm\nDora \u00b7 side 1 a\nKC plate \u00b7 estimated\n220 mm\nDora \u00b7 side 1 b\nKC plate \u00b7 estimated\n220 mm\nDora \u00b7 side 2 a\nKC plate \u00b7 estimated\n220 mm\nDora \u00b7 side 2 b\nKC plate \u00b7 estimated\n220 mm\nDora \u00b7 side 3 a\nKC plate \u00b7 estimated\n360 mm\nDora \u00b7 side 3 b\nKC plate \u00b7 estimated\n360 mm\nDora \u00b7 side 4 a\nKC plate \u00b7 estimated\n220 mm\nDora \u00b7 side 4 b\nKC plate \u00b7 estimated\n220 mm\nDora \u00b7 side 5 a\nKC plate \u00b7 estimated\n220 mm\nDora \u00b7 side 5 b\nKC plate \u00b7 estimated\n220 mm\nDora \u00b7 side 6 a\nKC plate \u00b7 estimated\n220 mm\nDora \u00b7 side 6 b\nKC plate \u00b7 estimated\n220 mm\nDora \u00b7 side 7 a\nKC plate \u00b7 estimated\n320 mm\nDora \u00b7 side 7 b\nKC plate \u00b7 estimated\n320 mm\nDora \u00b7 slope 0 a\nKC plate \u00b7 estimated\n180 mm\nDora \u00b7 slope 0 b\nKC plate \u00b7 estimated\n180 mm\nDora \u00b7 slope 1 a\nKC plate \u00b7 estimated\n150 mm\nDora \u00b7 slope 1 b\nKC plate \u00b7 estimated\n150 mm\nDora \u00b7 slope 2 a\nKC plate \u00b7 estimated\n180 mm\nDora \u00b7 slope 2 b\nKC plate \u00b7 estimated\n180 mm\nDora \u00b7 slope 3 a\nKC plate \u00b7 estimated\n180 mm\nDora \u00b7 slope 3 b\nKC plate \u00b7 estimated\n180 mm\nDora \u00b7 slope 4 a\nKC plate \u00b7 estimated\n180 mm\nDora \u00b7 slope 4 b\nKC plate \u00b7 estimated\n180 mm\nDora \u00b7 slope 5 a\nKC plate \u00b7 estimated\n150 mm\nDora \u00b7 slope 5 b\nKC plate \u00b7 estimated\n150 mm\nDora \u00b7 slope 6 a\nKC plate \u00b7 estimated\n180 mm\nDora \u00b7 slope 6 b\nKC plate \u00b7 estimated\n180 mm\nDora \u00b7 slope 7 a\nKC plate \u00b7 estimated\n180 mm\nDora \u00b7 slope 7 b\nKC plate \u00b7 estimated\n180 mm\nDora \u00b7 roof 1\nKC plate \u00b7 estimated\n130 mm\nDora \u00b7 roof 2\nKC plate \u00b7 estimated\n130 mm\nDora \u00b7 roof 3\nKC plate \u00b7 estimated\n130 mm\nDora \u00b7 roof 4\nKC plate \u00b7 estimated\n130 mm\nDora \u00b7 roof 5\nKC plate \u00b7 estimated\n130 mm\nDora \u00b7 roof 6\nKC plate \u00b7 estimated\n130 mm\nDora \u00b7 floor 1\nsteel plate \u00b7 estimated\n50 mm\nDora \u00b7 floor 2\nsteel plate \u00b7 estimated\n50 mm\nDora \u00b7 floor 3\nsteel plate \u00b7 estimated\n50 mm\nDora \u00b7 floor 4\nsteel plate \u00b7 estimated\n50 mm\nDora \u00b7 floor 5\nsteel plate \u00b7 estimated\n50 mm\nDora \u00b7 floor 6\nsteel plate \u00b7 estimated\n50 mm\nStarboard Secondary 1\nGunhouse armor\n80 mm\nStarboard Secondary 2\nGunhouse armor\n80 mm\nStarboard Secondary 3\nGunhouse armor\n80 mm\nPort Secondary 1\nGunhouse armor\n80 mm\nPort Secondary 2\nGunhouse armor\n80 mm\nPort Secondary 3\nGunhouse armor\n80 mm\n\nHull and deckhouse plating also registers hits. Opaque surfaces hide inner layers; isolate a row to inspect them."
+}

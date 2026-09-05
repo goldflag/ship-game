@@ -1,0 +1,275 @@
+{
+  "diagnostics": {
+    "audio": {
+      "failed": [],
+      "inPort": true,
+      "loaded": 13,
+      "paused": false,
+      "played": 141,
+      "settings": {
+        "effects": 0.8,
+        "interface": 0.65,
+        "master": 0.65,
+        "muted": false
+      },
+      "state": "running",
+      "total": 13,
+      "voices": 0
+    },
+    "backend": "webgpu",
+    "camera": {
+      "aim": [
+        285.9305612884835,
+        0.5,
+        -96.01364709685407
+      ],
+      "binoculars": false,
+      "fov": 52.00000000000001,
+      "magnification": 1,
+      "manualAim": true,
+      "matrixWorldInverse": [
+        0.9928029992215089,
+        0.03451621512050589,
+        -0.1146770928761778,
+        0,
+        -6.938893903907228e-18,
+        0.9575659969179198,
+        0.28821408977805096,
+        0,
+        0.1197589442871661,
+        -0.28613981274954625,
+        0.950674393692645,
+        0,
+        -235.278746205983,
+        -34.58870688601849,
+        -262.61173654836256,
+        1
+      ],
+      "mode": "Chase",
+      "pointerLocked": false,
+      "position": [
+        204.66376563146315,
+        108.80937220573163,
+        267.9377815669095
+      ],
+      "projectionMatrix": [
+        1.633751346060547,
+        0,
+        0,
+        0,
+        0,
+        2.050303841579296,
+        0,
+        0,
+        0,
+        0,
+        -1.000050002500125,
+        -1,
+        0,
+        0,
+        -3.000150007500375,
+        0
+      ]
+    },
+    "combat": {
+      "batteries": [
+        {
+          "ammo": 960,
+          "battery": "main",
+          "ready": 4,
+          "reload": 0,
+          "total": 4
+        },
+        {
+          "ammo": 1800,
+          "battery": "secondary",
+          "ready": 6,
+          "reload": 0,
+          "total": 6
+        }
+      ],
+      "battery": "main",
+      "battle": true,
+      "contacts": [
+        {
+          "controller": "player",
+          "heading": 0,
+          "id": "player",
+          "integrity": 1,
+          "name": "Bismarck",
+          "shipId": "bismarck",
+          "sunk": false,
+          "team": "friendly",
+          "x": 240,
+          "z": 0
+        },
+        {
+          "controller": "bot",
+          "heading": 4.71238898038469,
+          "id": "enemy-1",
+          "integrity": 1,
+          "name": "USS Baltimore",
+          "shipId": "baltimore",
+          "sunk": false,
+          "team": "enemy",
+          "x": 0,
+          "z": -5000
+        }
+      ],
+      "message": "Fire loaded guns at any time. Shells follow the barrels\u2019 current aim.",
+      "modules": [
+        {
+          "condition": 1,
+          "id": "magazine-forward",
+          "name": "Forward 8-inch magazines"
+        },
+        {
+          "condition": 1,
+          "id": "engine-forward",
+          "name": "Forward engine room"
+        },
+        {
+          "condition": 1,
+          "id": "engine-aft",
+          "name": "After engine room"
+        },
+        {
+          "condition": 1,
+          "id": "magazine-aft",
+          "name": "After 8-inch magazine"
+        },
+        {
+          "condition": 1,
+          "id": "steering",
+          "name": "Steering gear"
+        }
+      ],
+      "mounts": [
+        {
+          "ammo": 240,
+          "id": "anton",
+          "name": "Anton",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 240,
+          "id": "bruno",
+          "name": "Bruno",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 240,
+          "id": "caesar",
+          "name": "C\u00e4sar",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 240,
+          "id": "dora",
+          "name": "Dora",
+          "reload": 0,
+          "status": "ready"
+        }
+      ],
+      "playerIntegrity": 1,
+      "playerSunk": false,
+      "playerWater": 0,
+      "range": 106.43419041414451,
+      "ready": 4,
+      "result": "active",
+      "targetId": "enemy-1",
+      "targetIntegrity": 1,
+      "targetName": "USS Baltimore",
+      "targetPosition": {
+        "heading": 4.71238898038469,
+        "x": 0,
+        "z": -5000
+      },
+      "targetPower": 1,
+      "targetRange": 5005.756686056565,
+      "targetSteering": 1,
+      "targetSunk": false,
+      "targetUnderway": false,
+      "targetWater": 0,
+      "total": 4
+    },
+    "contentHash": "45b7cc0110d0262b177a0e3aeb4df43d0682de8b52f1cc4f18cd5ab0fcddc9a5",
+    "effects": {
+      "flashes": 0,
+      "foam": 0,
+      "particleCapacity": 2272,
+      "shells": 0,
+      "smoke": 0,
+      "spray": 0
+    },
+    "events": [],
+    "fleet": [
+      {
+        "ammo": 2760,
+        "controller": "player",
+        "definitionId": "bismarck",
+        "id": "player",
+        "integrity": 1000,
+        "motion": {
+          "distance": 0,
+          "heading": 0,
+          "id": "player",
+          "pitch": 0,
+          "roll": 0,
+          "rudder": 0,
+          "speed": 0,
+          "tick": 0,
+          "x": 240,
+          "y": 0,
+          "yawRate": 0,
+          "z": 0
+        },
+        "team": "friendly"
+      },
+      {
+        "ammo": 5670,
+        "controller": "bot",
+        "definitionId": "baltimore",
+        "id": "enemy-1",
+        "integrity": 1000,
+        "motion": {
+          "distance": 0,
+          "heading": 4.71238898038469,
+          "id": "enemy-1",
+          "pitch": 0,
+          "roll": 0,
+          "rudder": 0,
+          "speed": 0,
+          "tick": 0,
+          "x": 0,
+          "y": 0,
+          "yawRate": 0,
+          "z": -5000
+        },
+        "team": "enemy"
+      }
+    ],
+    "fps": 19.095850094710986,
+    "inPort": true,
+    "inspecting": false,
+    "maxMuzzleErrorM": 0.002160556698321549,
+    "paused": false,
+    "portInspection": "exterior",
+    "renderedShips": [
+      {
+        "id": "player",
+        "visible": true
+      },
+      {
+        "id": "enemy-1",
+        "visible": false
+      }
+    ],
+    "shipId": "bismarck",
+    "tick": 0
+  },
+  "text": "FLEET COMMAND\nPort\nEquipment\nCommander\nFleet\nCUSTOM BATTLE\n2,450,000\n12,400\nCAPTAIN 08\nBISMARCK\nVIII\nBattleship\nGermany \u00b7 1941\n\nREADY FOR BATTLE\n\nCreate schematicReference review\nOTTO REIMANN\nCommander \u00b7 Level 8\n2 skill points available\nDaily orders\nA captain\u2019s first command\n\nGet underway and put your ship through her paces.\n\nBattles completed\n0 / 1\n25,000 credits\nExterior\nArmor\nInternals\nShip characteristics\nVIII\nSurvivability\n84\nArtillery\n90\nAir defense\n58\nManeuverability\n32\nConcealment\n43\nMain battery\n8 \u00d7 380 mm\nLength\n250.5 m\nTop speed\n30.0 kn\nConfigure ship\nBattleship\nBismarck\nIN PORT\nBattleship\nYamato\nAVAILABLE\nHeavy cruiser\nUSS Baltimore\nAVAILABLE\nAircraft carrier\nUSS Enterprise (CV-6)\nAVAILABLE\n19 FPS"
+}

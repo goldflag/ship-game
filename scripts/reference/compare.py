@@ -147,10 +147,13 @@ body=f'''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewpo
 (out/'index.html').write_text(body)
 shutil.copyfile(refs/'gamemodels3d/index.html',out/'reference/index.html')
 shutil.copyfile(ROOT/'public/models'/(ship+'.glb'),out/(ship+'.glb'))
-# Complete standalone review archive with independent authoring inputs and GLB.
+# Standalone review with original inputs and all page dependencies. The generated
+# Blender scene and unlinked authored overview remain in assets, avoiding another
+# copy of rebuildable/convenience outputs in the portable archive.
 archive=out/(ship+'-review.zip')
-with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED,compresslevel=6) as z:
+with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as z:
  for p in sorted(out.rglob('*')):
-  if p.is_file() and p!=archive and p.name!='build.json':z.write(p,p.relative_to(out))
- for path,name in [(source/'build.py','authoring/build.py'),(source/'generated/source.blend','authoring/source.blend'),(ROOT/'assets/parts/guns.json','authoring/guns.json')]:z.write(path,name)
+  if p.is_file() and p!=archive and p.name not in ['build.json','authored-contact-sheet.png']:z.write(p,p.relative_to(out))
+ for path,name in [(source/'build.py','authoring/build.py'),(ROOT/'assets/parts/guns.json','authoring/guns.json')]:z.write(path,name)
+ z.writestr('authoring/README.txt','The editable blueprint is ../blueprint.json. Original build.py and guns.json are retained here. Rebuild with the repository shared ship pipeline; the generated Blender scene remains at assets/ships/'+ship+'/generated/source.blend. All interactive review views and their downloads are included.\n')
 print('COMPARISON PACK',len(views),'views;',archive.stat().st_size,'bytes',flush=True)

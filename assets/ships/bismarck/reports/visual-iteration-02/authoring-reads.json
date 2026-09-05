@@ -1,0 +1,10 @@
+{
+  "contentHash": "dc419a66c00f247f07a02634e136d6688aea9866303ec69f218f706437169606",
+  "paths": [
+    ".build/ships/bismarck/authoring-reads.json",
+    ".build/ships/bismarck/definition.json",
+    "assets/ships/bismarck/build.py",
+    "scripts/ships/__pycache__/blender_components.cpython-313.pyc"
+  ],
+  "scope": "Python audit events during the full cache-unavailable build; native Blender internals are not claimed audited"
+}

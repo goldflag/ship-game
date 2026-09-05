@@ -1,0 +1,45 @@
+{
+  "contentHash": "dc419a66c00f247f07a02634e136d6688aea9866303ec69f218f706437169606",
+  "reviewDate": "2026-09-05",
+  "backend": "webgpu",
+  "portViews": {
+    "exterior": "visually inspected at overview and closer distance",
+    "simulationFrozenInPort": true,
+    "images": [
+      "exterior.png",
+      "close-exterior.png"
+    ]
+  },
+  "articulation": {
+    "positive": {
+      "trainFraction": 1,
+      "elevationFraction": 1,
+      "recoilFraction": 1,
+      "visuallyInspected": true,
+      "image": "articulation-positive.png"
+    },
+    "negative": {
+      "trainFraction": -1,
+      "elevationFraction": 0,
+      "recoilFraction": 0,
+      "visuallyInspected": true,
+      "image": "articulation-negative.png"
+    },
+    "maximumObservedMuzzleErrorM": 0.002165962012911933
+  },
+  "launch": {
+    "underwayTick": 222,
+    "underwayInPort": false,
+    "returnedTick": 0,
+    "returnedInPort": true,
+    "image": "underway.png"
+  },
+  "captureMethods": {
+    "exterior.png": "full browser screenshot",
+    "articulation-positive.png": "full browser screenshot",
+    "close-exterior.png": "direct WebGPU canvas toDataURL through Orca browser evaluation; separate HTML HUD excluded",
+    "articulation-negative.png": "direct WebGPU canvas toDataURL through Orca browser evaluation; separate HTML HUD excluded",
+    "underway.png": "direct WebGPU canvas toDataURL through Orca browser evaluation; separate HTML HUD excluded"
+  },
+  "limits": "Snapshot frame rates depend on hardware and active tab state; these are visual/runtime checks, not a controlled performance benchmark. Some browser screenshots timed out while the tab lost visibility. Only successful images are retained."
+}

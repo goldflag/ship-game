@@ -1,6 +1,7 @@
 import type { ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { ShipState } from './ship';
 import { plateHit, samePlateSeam } from './protection';
+import { EXTERIOR_PLATING_REPLACEMENT_M, structuralHits, type StructuralSurface } from './structure';
 import type { MountState } from './weapons';
 import { add, clamp, contains, length, localToWorld, normalize, radians, rotate, segmentBox, sub, worldToLocal } from './geometry';
 
@@ -34,7 +35,7 @@ export function systemHealth(actor: Combatant, def: ShipDefinition, kind: 'engin
 export function hitShip(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor: Combatant, def: ShipDefinition, emit: (e: DamageEvent) => void): boolean {
   const from = worldToLocal(fromWorld, actor.motion), to = worldToLocal(toWorld, actor.motion);
   const direction = normalize(sub(to, from));
-  type Hit = { t: number; key: string; kind: 'armor' | 'module' | 'mount'; index: number; point: Vec3; normal: Vec3; onEdge?: boolean };
+  type Hit = { t: number; key: string; kind: 'armor' | 'module' | 'mount' | 'structure'; index: number; point: Vec3; normal: Vec3; onEdge?: boolean; surface?: StructuralSurface };
   const hits: Hit[] = [];
   def.armor.forEach((a, index) => {
     if (a.plate) {
@@ -69,18 +70,47 @@ export function hitShip(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor: Com
     const key = `${actor.motion.id}:mount:${m.id}`;
     if (hit && !shell.visited.includes(key)) hits.push({ ...hit, point: localToWorld(hit.point, mountPose), normal: rotate(hit.normal, mountPose), key, kind: 'mount', index });
   });
+  for (const hit of structuralHits(from,to,def)) {
+    const key=`${actor.motion.id}:structure:${hit.surface.id}:${hit.triangle}`;
+    if (!shell.visited.includes(key)) hits.push({...hit,key,kind:'structure',index:hit.triangle});
+  }
   hits.sort((a, b) => a.t - b.t || Number(b.kind === 'armor') - Number(a.kind === 'armor') || (a.kind==='armor' && b.kind==='armor' ? def.armor[b.index].thicknessMm-def.armor[a.index].thicknessMm : 0) || a.key.localeCompare(b.key));
   const crossedPlateEdges: Hit[] = [];
+  const crossedStructure: Hit[] = [];
+  const breach=(point:Vec3)=>{
+    if(point[1]>=3-1e-6)return;
+    const candidates=def.compartments.map((c,i)=>({i,distance:Math.hypot(...point.map((v,j)=>Math.max(0,Math.abs(v-c.center[j])-c.size[j]/2)))})).sort((a,b)=>a.distance-b.distance);
+    if(!candidates[0])return;
+    const c=actor.damage.compartments[candidates[0].i];
+    c.breachAreaM2=Math.min(4,c.breachAreaM2+shell.caliberM*shell.caliberM);
+    c.breachHeight=Math.min(c.breachHeight,point[1]-shell.caliberM*2);
+  };
   for (const hit of hits) {
     shell.visited.push(hit.key);
     const position = localToWorld(hit.point, actor.motion);
     const report = (kind: DamageEvent['kind'], message: string, detonation = false) => emit({
       kind, position, message, shipId: actor.motion.id,
       shell: { id: shell.id, caliberM: shell.caliberM, velocity: [...shell.velocity] },
-      ...(hit.kind === 'mount' || (hit.kind === 'armor' && kind !== 'module') ? { normal: rotate(hit.normal, actor.motion) } : {}),
+      ...(hit.kind === 'mount' || hit.kind === 'structure' || (hit.kind === 'armor' && kind !== 'module') ? { normal: rotate(hit.normal, actor.motion) } : {}),
       ...(detonation ? { detonation: true } : {}),
     });
-    if (hit.kind === 'armor') {
+    if (hit.kind === 'structure') {
+      // Adjacent triangles describe one sheet. Keep both IDs visited at seams.
+      if(crossedStructure.some(p=>p.surface===hit.surface&&length(sub(p.point,hit.point))<1e-5))continue;
+      crossedStructure.push(hit);
+      // A nearby exterior armor face replaces ordinary shell plating there.
+      if(hit.surface!.hull&&hits.some(p=>p.kind==='armor'&&def.armor[p.index].plate?.exterior&&length(sub(p.point,hit.point))<EXTERIOR_PLATING_REPLACEMENT_M))continue;
+      const cosine=Math.abs(direction.reduce((n,v,i)=>n+v*hit.normal[i],0));
+      const resistance=hit.surface!.thicknessMm/Math.max(.05,cosine);
+      if(shell.penetrationMm<resistance){report('stopped',`Stopped by ${hit.surface!.name} plating`);return true;}
+      shell.penetrationMm-=resistance;
+      report('penetration',`Penetrated ${hit.surface!.name} plating`);
+      const damageKey=`${actor.motion.id}:structure:${hit.surface!.id}:damage`;
+      if(!shell.visited.includes(damageKey)){
+        shell.visited.push(damageKey);actor.damage.integrity=Math.max(0,actor.damage.integrity-shell.damage*.1);
+      }
+      if(hit.surface!.hull)breach(hit.point);
+    } else if (hit.kind === 'armor') {
       const a = def.armor[hit.index];
       if (a.plate && hit.onEdge) {
         if (crossedPlateEdges.some(previous=>def.armor[previous.index].plate?.material===a.plate!.material && samePlateSeam(previous,hit))) continue;

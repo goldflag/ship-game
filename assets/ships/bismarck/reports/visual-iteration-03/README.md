@@ -1,0 +1,11 @@
+# Third iteration: bow, main gunhouses and structural hit coverage
+
+This iteration follows the user's review of the [second exterior pass](../visual-iteration-02/README.md). The final model hash and before/after crop settings are in [manifest.json](manifest.json); [validation](../validation.md) records build, runtime and simulation checks.
+
+- [Bow profile comparison](bow-flare-before-after-reference.png): curved upper stem, nearly vertical lower forefoot, rounded lower junction and revised sheer replace the straight wedge. Fore/aft waterline endpoints move together to preserve the documented 241.55 m waterline length. Exact historical body offsets and drawing load datum remain unresolved.
+- [Anton comparison](anton-before-after-reference.png) and [Bruno comparison](bruno-before-after-reference.png): original 44-facet enclosures have a longer rear overhang, narrower lower sides, sloping shoulders and a planar octagonal roof. The 14.15 × 8.7 × 3.65 m component envelope is an authored reconstruction. Roof seams, side optical covers, rear hoods, ladders and pleated blast bags remain independently authored fittings.
+- The complete hull and 22 major structures participate in CPU swept hits and sight aiming, and appear in Armor inspection. The blueprint supplies the same hull sections and structural surfaces to rendering and collision. Provisional ordinary-steel thicknesses are 20 mm for hull and 8 mm for superstructure; these are gameplay estimates. Nearby exterior armor replaces nominal hull plating instead of charging both.
+
+Comparison images use identical crops and uniform resizing of actual fixed-camera renders; no retouching, component fitting or source geometry transfer occurs. The previous blueprint and source renders are preserved here. `make-comparisons.py` reproduces the collages. The one-time authoring record is [`authoring/corrective-03.py`](../../authoring/corrective-03.py); the current blueprint and component catalog remain durable production inputs.
+
+See the [discrepancy register](../discrepancies.md) for open historical questions and collision approximations. The original baseline is preserved, and the final complete build passed with raw game reference geometry unavailable.
