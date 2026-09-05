@@ -93,6 +93,9 @@ export class ShipInspection {
       if (entry.mountIndex !== undefined) group.rotation.y = -(radians(entry.bearingDeg!) + actor.mounts[entry.mountIndex].train);
       if (water && entry.compartmentIndex !== undefined) {
         const fraction = actor.damage.compartments[entry.compartmentIndex].waterM3 / entry.capacityM3!;
+        // Combat emphasizes consequences; the complete dry layout stays
+        // available in the port's Internals view and through selection.
+        if (this.mode === 'all' && !selected && fraction <= .0001) group.visible = false;
         water.visible = fraction > .0001; water.scale.y = Math.max(.001, fraction);
         water.position.y = -entry.size[1] / 2 + entry.size[1] * fraction / 2;
       }
