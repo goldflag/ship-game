@@ -6,6 +6,7 @@ import { WaterSystem, getPresetParams } from '../../vendor/threejs-water-pro/bui
 import { SkySystem, PRESETS as SKY_PRESETS } from '../../vendor/threejs-sky-pro/build/index.js';
 import { CombatSimulation } from '../simulation/combat';
 import { ShipView } from './ShipView';
+import { disposeObjects } from './disposeObjects';
 import { CombatEffects } from './CombatEffects';
 import type { Battery, Vec3 } from '../ships/blueprint';
 import type { InspectionMode } from '../ships/inspection';
@@ -24,21 +25,22 @@ export const BUOYS = [
 export type ArticulationPreview = { trainFraction: number; elevationFraction: number; recoilFraction: number };
 
 export class Game {
-  readonly definition = selectedShip;
-  readonly simulation = new CombatSimulation(this.definition);
+  definition: typeof selectedShip;
+  simulation: CombatSimulation;
   readonly input: InputController;
   private renderer: THREE.WebGPURenderer;
   private scene = new THREE.Scene();
   private ambientLight = new THREE.HemisphereLight('#dcebf2', '#65757e', .65);
   private camera = new THREE.PerspectiveCamera(52, 1, 0.5, 60000);
   private rig: CameraRig;
+  // Stable motion anchor for the wake and sunlight, independent of the loaded hull.
   private ship = new THREE.Group();
   private playerView?: ShipView;
   private targetView?: ShipView;
   private loadedModel?: THREE.Group;
   private effects = new CombatEffects();
   battery: Battery = 'main';
-  aimModule = this.definition.modules.find(m => m.kind === 'engine')?.id ?? '';
+  aimModule: string;
   inspecting = false;
   private manualAim = true;
   private currentAim: Vec3 = [650, .5, -550];
@@ -54,6 +56,7 @@ export class Game {
   private resizePending = true;
   private observer: ResizeObserver;
   private disposed = false;
+  private switchingShip = false;
   private paused = false;
   private inPort = false;
   private harbor?: HarborBackdrop;
@@ -67,7 +70,10 @@ export class Game {
   private frameTask?: Promise<void>;
   private articulationOriginal?: CombatSimulation['player']['mounts'];
 
-  constructor(private host: HTMLElement, private settings: GameSettings, private callbacks: GameCallbacks) {
+  constructor(private host: HTMLElement, private settings: GameSettings, private callbacks: GameCallbacks, definition = selectedShip) {
+    this.definition = definition;
+    this.simulation = new CombatSimulation(definition);
+    this.aimModule = definition.modules.find(m => m.kind === 'engine')?.id ?? '';
     this.renderer = new THREE.WebGPURenderer({ antialias: true, powerPreference: 'high-performance' });
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1;
@@ -115,11 +121,11 @@ export class Game {
     this.loadedModel = gltf.scene;
     this.assertActive();
     if (gltf.scene.userData.definitionHash !== this.definition.contentHash) throw new Error('The ship model and definition have different versions. Rebuild the ship assets and reload.');
-    this.playerView = new ShipView(gltf.scene, this.definition, this.simulation.player);
+    this.playerView = new ShipView(gltf.scene.clone(true), this.definition, this.simulation.player);
     this.targetView = new ShipView(gltf.scene.clone(true), this.definition, this.simulation.target);
-    this.ship = this.playerView.root;
+    this.ship.position.copy(this.playerView.root.position);
     this.targetView.root.visible = !this.inPort;
-    this.scene.add(this.ship, this.targetView.root, this.effects.root);
+    this.scene.add(this.playerView.root, this.targetView.root, this.effects.root);
     this.scene.add(this.ambientLight);
 
     this.callbacks.progress('Building the Atlantic', 0.37);
@@ -217,6 +223,47 @@ export class Game {
     this.scheduleFrame();
   }
 
+  /** Replace only ship-owned resources; the harbor, ocean, renderer and camera stay alive. */
+  async switchShip(definition: typeof selectedShip): Promise<void> {
+    if (this.disposed || !this.inPort || !this.playerView || this.switchingShip) throw new Error('Ship switching requires an idle, loaded port.');
+    if (definition.id === this.definition.id) return;
+    this.switchingShip = true;
+    let model: THREE.Group | undefined;
+    let player: ShipView | undefined;
+    let target: ShipView | undefined;
+    let playerModel: THREE.Group | undefined;
+    let targetModel: THREE.Group | undefined;
+    try {
+      model = (await new GLTFLoader().loadAsync(definition.modelUrl)).scene;
+      this.assertActive();
+      if (!this.inPort) throw new Error('Return to port before switching ships.');
+      if (model.userData.definitionHash !== definition.contentHash) throw new Error('The ship model and definition have different versions. Rebuild the ship assets and reload.');
+      const simulation = new CombatSimulation(definition);
+      Object.assign(simulation.ship, this.simulation.ship);
+      playerModel = model.clone(true); targetModel = model.clone(true);
+      player = new ShipView(playerModel, definition, simulation.player);
+      target = new ShipView(targetModel, definition, simulation.target);
+      target.root.visible = false;
+      const previous = [this.loadedModel, this.playerView.root, this.targetView?.root];
+      // Commit synchronously after loading and validating both actors. Keep the old ship on failure.
+      this.playerView.root.removeFromParent(); this.targetView?.root.removeFromParent();
+      this.scene.add(player.root, target.root);
+      this.definition = definition; this.simulation = simulation;
+      this.loadedModel = model; this.playerView = player; this.targetView = target;
+      this.articulationOriginal = undefined;
+      this.battery = 'main'; this.manualAim = true; this.inspecting = false;
+      this.gunneryOpen = false;
+      this.currentAim = simulation.aimAt(undefined, this.battery);
+      this.aimModule = definition.modules.find(m => m.kind === 'engine')?.id ?? '';
+      this.rig.setBridge(definition.viewpoints?.bridge);
+      this.renderer.domElement.setAttribute('aria-label', `${definition.name} ocean scene. Drag to orbit; scroll to zoom.`);
+      disposeObjects(...previous);
+    } catch (error) {
+      disposeObjects(model, playerModel, targetModel, player?.root, target?.root);
+      throw error;
+    } finally { this.switchingShip = false; }
+  }
+
   private addBuoy(buoy: typeof BUOYS[number]): void {
     const group = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.01, 0.01), new THREE.MeshBasicMaterial({ visible: false }));
     const paint = new THREE.MeshStandardMaterial({ color: buoy.color, roughness: 0.65 });
@@ -249,7 +296,10 @@ export class Game {
       const aim = this.manualAim ? this.inspecting ? this.currentAim : this.readSightAim() : this.simulation.aimAt(this.aimModule, this.battery);
       this.currentAim = aim;
       if (!this.inPort) this.simulation.advance(dt, this.input.sample(), { aim, fire: this.input.firing || this.rig.firing, battery: this.battery });
-      this.playerView!.update(); this.targetView!.update(); this.effects.update(this.simulation, dt);
+      this.playerView!.update(); this.targetView!.update();
+      this.ship.position.copy(this.playerView!.root.position);
+      this.ship.quaternion.copy(this.playerView!.root.quaternion);
+      this.effects.update(this.simulation, dt);
       this.playerView!.root.visible = !this.rig.binoculars;
       this.harbor?.update(dt, this.camera);
       this.shipWake!.update(state, dt);
@@ -315,6 +365,7 @@ export class Game {
   }
   setInPort(inPort: boolean): void {
     if (this.articulationOriginal) this.restoreArticulation();
+    if (!inPort && this.switchingShip) return;
     const leavingPort = this.inPort && !inPort;
     this.inPort = inPort;
     // The garage camera stays at least 90 m from its target. A suitable near

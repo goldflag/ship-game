@@ -9,7 +9,7 @@ bun run dev
 
 Open http://localhost:5173. Current Chrome or Edge with hardware acceleration is recommended. WebGPU is selected by Three.js when available; its WebGL2 backend is the compatibility fallback. The pause menu reports the actual backend. Initial startup compiles the ocean and cloud shaders, which can take a moment.
 
-You start in port with the Bismarck moored. Drag to inspect the ship, then choose **Set sail** to enter the playable sea trial. **Return to port** in the pause menu ends the current trial. The selected [Fleet harbor garage](docs/garage-mockups/README.md) uses compact panels and a transparent top bar. The fleet carousel lists the registered ship presets: Bismarck, Yamato, Baltimore, and Enterprise. Select a card to reload the port with that ship for inspection and sailing. Currency, refits, and commanders are illustrative, with temporary state only.
+You start in port with the Bismarck moored. Drag to inspect the ship, then choose **Set sail** to enter the playable sea trial. **Return to port** in the pause menu ends the current trial. The selected [Fleet harbor garage](docs/garage-mockups/README.md) uses compact panels and a transparent top bar. The fleet carousel lists the registered ship presets: Bismarck, Yamato, Baltimore, and Enterprise. Select a card to switch ships in place for inspection and sailing; the harbor stays loaded and your camera position, angle, and zoom are preserved. Currency, refits, and commanders are illustrative, with temporary state only.
 
 Each ship's carousel card uses a baked image of its actual model. `bun run ship:thumbnail <ship-id>` regenerates it with local Blender; `ship:build` also refreshes it.
 

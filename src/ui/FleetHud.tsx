@@ -5,12 +5,13 @@ import { ENGINE_LABELS, KNOTS_PER_MPS } from '../simulation/ship';
 import { Icon } from './Icons';
 import { NavigationChart } from './NavigationChart';
 import { GunneryPanel } from './GunneryPanel';
-import { selectedShip } from '../ships/presets';
+import { useShip } from './ShipContext';
 import './FleetHud.css';
 
 interface FleetHudProps { data: Telemetry; game: Game | null; visible: boolean; }
 
 function ShipBearing({ data }: { data: Telemetry }) {
+  const selectedShip = useShip();
   const degrees = data.ship.heading * 180 / Math.PI;
   const mounts = selectedShip.mounts.filter(m => m.battery === (data.combat?.battery ?? 'main'));
   return <div className="fleet-bearing" aria-label={`Ship heading ${Math.round(degrees) % 360} degrees`}>
@@ -71,6 +72,7 @@ function BinocularGlyph() {
 }
 
 function ActiveArmament({ data, game }: FleetHudProps) {
+  const selectedShip = useShip();
   const combat = data.combat;
   if (!combat) return null;
   const caliber = (battery: 'main' | 'secondary') => Math.round((selectedShip.mounts.find(m => m.battery === battery)?.weapon.caliberM ?? 0) * 1000);
@@ -102,6 +104,7 @@ function ActiveArmament({ data, game }: FleetHudProps) {
 }
 
 export function FleetHud({ data, game, visible }: FleetHudProps) {
+  const selectedShip = useShip();
   const degrees = ((data.viewBearing ?? data.ship.heading) * 180 / Math.PI + 360) % 360;
   const speed = Math.abs(data.ship.speed * KNOTS_PER_MPS).toFixed(1);
   const rudder = Math.round(data.ship.rudder * 35);
