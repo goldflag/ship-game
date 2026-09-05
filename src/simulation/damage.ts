@@ -2,7 +2,7 @@ import type { ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { ShipState } from './ship';
 import { plateHit, samePlateSeam } from './protection';
 import type { MountState } from './weapons';
-import { add, clamp, contains, length, localToWorld, normalize, radians, segmentBox, sub, worldToLocal } from './geometry';
+import { add, clamp, contains, length, localToWorld, normalize, radians, rotate, segmentBox, sub, worldToLocal } from './geometry';
 
 export interface CompartmentState { id: string; waterM3: number; breachAreaM2: number; breachHeight: number; }
 export interface DamageState {
@@ -14,7 +14,13 @@ export interface Shell {
   id: number; ownerId: string; position: Vec3; velocity: Vec3; age: number;
   penetrationMm: number; damage: number; caliberM: number; visited: string[];
 }
-export interface DamageEvent { kind: 'penetration' | 'ricochet' | 'stopped' | 'module' | 'sunk'; position: Vec3; message: string; shipId: string; }
+/** Serializable evidence for render-side effects; never feeds back into damage. */
+export interface BallisticEffectData {
+  shell?: Pick<Shell, 'id' | 'caliberM' | 'velocity'>;
+  normal?: Vec3;
+  detonation?: boolean;
+}
+export interface DamageEvent extends BallisticEffectData { kind: 'penetration' | 'ricochet' | 'stopped' | 'module' | 'sunk'; position: Vec3; message: string; shipId: string; }
 export function createDamage(def: ShipDefinition): DamageState {
   return { integrity: 1000, modules: def.modules.map(m => ({ id: m.id, hp: m.hp, detonated: false })), compartments: def.compartments.map(c => ({ id: c.id, waterM3: 0, breachAreaM2: 0, breachHeight: 0 })), sunk: false };
 }
@@ -61,14 +67,19 @@ export function hitShip(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor: Com
     const a = worldToLocal(from, mountPose), b = worldToLocal(to, mountPose), w = m.weapon;
     const hit = segmentBox(a, b, { center: [0, w.gunhouseSize[2] / 2, 0], size: [w.gunhouseSize[1], w.gunhouseSize[2], w.gunhouseSize[0]] });
     const key = `${actor.motion.id}:mount:${m.id}`;
-    if (hit && !shell.visited.includes(key)) hits.push({ ...hit, point: localToWorld(hit.point, mountPose), key, kind: 'mount', index });
+    if (hit && !shell.visited.includes(key)) hits.push({ ...hit, point: localToWorld(hit.point, mountPose), normal: rotate(hit.normal, mountPose), key, kind: 'mount', index });
   });
   hits.sort((a, b) => a.t - b.t || Number(b.kind === 'armor') - Number(a.kind === 'armor') || (a.kind==='armor' && b.kind==='armor' ? def.armor[b.index].thicknessMm-def.armor[a.index].thicknessMm : 0) || a.key.localeCompare(b.key));
   const crossedPlateEdges: Hit[] = [];
   for (const hit of hits) {
     shell.visited.push(hit.key);
     const position = localToWorld(hit.point, actor.motion);
-    const report = (kind: DamageEvent['kind'], message: string) => emit({ kind, position, message, shipId: actor.motion.id });
+    const report = (kind: DamageEvent['kind'], message: string, detonation = false) => emit({
+      kind, position, message, shipId: actor.motion.id,
+      shell: { id: shell.id, caliberM: shell.caliberM, velocity: [...shell.velocity] },
+      ...(hit.kind === 'mount' || (hit.kind === 'armor' && kind !== 'module') ? { normal: rotate(hit.normal, actor.motion) } : {}),
+      ...(detonation ? { detonation: true } : {}),
+    });
     if (hit.kind === 'armor') {
       const a = def.armor[hit.index];
       if (a.plate && hit.onEdge) {
@@ -109,7 +120,7 @@ export function hitShip(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor: Com
         actor.damage.integrity = Math.max(0, actor.damage.integrity - 450);
         const c = actor.damage.compartments.find(c => c.id === m.compartmentId)!;
         c.breachAreaM2 = Math.min(4, c.breachAreaM2 + 2); c.breachHeight = m.center[1];
-        report('module', `${m.name} detonation`);
+        report('module', `${m.name} detonation`, true);
       }
       shell.penetrationMm = Math.max(0, shell.penetrationMm - 50);
       if (shell.penetrationMm === 0) return true;
