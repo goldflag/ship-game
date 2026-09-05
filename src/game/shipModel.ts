@@ -6,7 +6,10 @@ const identities: Record<string, { type: string; nation: string }> = {
   baltimore: { type: 'Heavy cruiser', nation: 'United States' },
   'enterprise-cv6': { type: 'Aircraft carrier', nation: 'United States' },
 };
-const identity = identities[selectedShip.id] ?? { type: 'Ship', nation: '' };
+export function shipIdentity(id: string) {
+  return identities[id] ?? { type: 'Ship', nation: '' };
+}
+const identity = shipIdentity(selectedShip.id);
 const year = selectedShip.configuration.match(/19\d{2}/)?.[0] ?? '';
 
 // The port, sea trial and schematic all use the selected compiled asset.

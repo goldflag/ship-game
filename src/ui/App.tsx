@@ -79,6 +79,11 @@ export function App() {
     game.current?.setInPort(true);
     setPhase('garage');
   };
+  const resume = () => {
+    dialog.current?.close();
+    game.current?.setPaused(false);
+    if (phase === 'sailing') game.current?.capturePointer();
+  };
 
   const applySettings = () => {
     try { localStorage.setItem('bismarck-settings', JSON.stringify(draft)); } catch { /* Storage is optional. */ }
@@ -100,10 +105,10 @@ export function App() {
       </div><div className="loading-bottom"><span>SINGLEPLAYER · OPEN OCEAN</span><span>{selectedShip.name.toUpperCase()} / {selectedShip.configuration.match(/19\d{2}/)?.[0]}</span></div>
     </section>}
 
-    <dialog ref={dialog} className="pause-menu" onCancel={e => { e.preventDefault(); game.current?.setPaused(false); }}>
-      <div className="menu-heading"><h2>{phase === 'garage' ? 'Port settings.' : 'At your command.'}</h2><button className="icon-button" aria-label={phase === 'garage' ? 'Close port settings' : 'Resume sailing'} onClick={() => game.current?.setPaused(false)}><Icon name="close"/></button></div>
+    <dialog ref={dialog} className="pause-menu" onCancel={e => { e.preventDefault(); resume(); }}>
+      <div className="menu-heading"><h2>{phase === 'garage' ? 'Port settings.' : 'At your command.'}</h2><button className="icon-button" aria-label={phase === 'garage' ? 'Close port settings' : 'Resume sailing'} onClick={resume}><Icon name="close"/></button></div>
       <p className="menu-description">{phase === 'garage' ? 'Prepare the sea conditions for your next voyage.' : 'Sea trial paused. Your engine order is held.'}</p>
-      <button autoFocus className="primary-button" onClick={() => game.current?.setPaused(false)}>{phase === 'garage' ? 'Back to port' : 'Resume sailing'} <Icon name={phase === 'garage' ? 'anchor' : 'play'} size={18}/></button>
+      <button autoFocus className="primary-button" onClick={resume}>{phase === 'garage' ? 'Back to port' : 'Resume sailing'} <Icon name={phase === 'garage' ? 'anchor' : 'play'} size={18}/></button>
       {phase === 'sailing' && <button className="secondary-button restart-button" onClick={returnToPort}>Return to port <Icon name="anchor" size={18}/></button>}
       <div className="settings-heading">SEA TRIAL SETTINGS</div>
       <label className="setting-row">Ocean detail<select value={draft.quality} onChange={e => setDraft({ ...draft, quality: e.target.value as GameSettings['quality'] })}><option value="medium">Medium</option><option value="high">High</option><option value="ultra">Ultra</option></select></label>
@@ -111,7 +116,7 @@ export function App() {
       <label className="setting-row">Sea conditions<select value={draft.sea} onChange={e => setDraft({ ...draft, sea: e.target.value as GameSettings['sea'] })}><option>Fair</option><option>Atlantic</option><option>Heavy</option></select></label>
       <button className="secondary-button restart-button" onClick={applySettings}>Apply & reload port <Icon name="arrow" size={17}/></button>
       <p className="settings-note">Reloads the scene in port. Lower detail or render scale can improve performance.</p>
-      {phase === 'sailing' && <div className="menu-controls"><span><kbd>C</kbd> Change camera</span><span><kbd>R</kbd> Recenter view</span><span><kbd>H</kbd> Hide instruments</span><span><kbd>F</kbd> Fullscreen</span></div>}
+      {phase === 'sailing' && <div className="menu-controls"><span>Mouse · Aim</span><span>Left mouse / Q · Fire</span><span><kbd>Shift</kbd> Binoculars</span><span>Scroll · Zoom</span><span><kbd>Ctrl</kbd> Hold for cursor</span><span><kbd>1</kbd><kbd>2</kbd> Batteries</span><span><kbd>W</kbd><kbd>S</kbd> Engine order</span><span><kbd>A</kbd><kbd>D</kbd> Rudder</span><span><kbd>−</kbd><kbd>+</kbd> Map size</span><span><kbd>G</kbd> Gunnery & damage</span><span><kbd>C</kbd> Camera</span><span><kbd>R</kbd> Recenter</span><span><kbd>H</kbd> Instruments</span><span><kbd>F</kbd> Fullscreen</span></div>}
       <div className="renderer-status"><span>{data.backend.toUpperCase()} RENDERER</span><span>{data.fps} FPS</span></div>
     </dialog>
   </main>;
