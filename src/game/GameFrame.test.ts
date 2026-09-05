@@ -9,6 +9,7 @@ import { CameraRig } from './CameraRig';
 import { ShellFollow } from './ShellFollow';
 import { Game } from './Game';
 import { ShipView } from './ShipView';
+import { HullDamageFeedback } from './HullDamageFeedback';
 import type { GunAimPoint } from './gunAim';
 
 const globals = ['window', 'document'] as const;
@@ -43,6 +44,7 @@ async function frameHarness() {
     definition: simulation.definition, simulation, playerView, targetView, fleetViews: [playerView, targetView], camera, rig, ship: new Group(), shellFollow: new ShellFollow(),
     renderer: { domElement: { setAttribute() {} } }, manualAim: false,
     shipLabels: { update() {} },
+    playerDamageFeedback: new HullDamageFeedback(),
     gunAim: { update(points: GunAimPoint[], _camera: PerspectiveCamera, visible: boolean) { gunAimFrames.push({ points, visible }); } },
     lastTime: 0, hudTime: Infinity, lastTrailTick: 0, trail: [], fps: 60, battery: 'main',
     paused: false, inPort: false, inspecting: false,

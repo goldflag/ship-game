@@ -63,20 +63,22 @@ export class CombatEffects {
   setWind(speed: number): void { this.wind.set(speed * .28, 0, speed * .11); }
   setSun(direction: THREE.Vector3): void { this.sun.value.copy(direction); }
 
-  update(sim: CombatSimulation, dt: number, camera: THREE.Camera): void {
+  update(sim: CombatSimulation, dt: number, camera: THREE.Camera, hidePlayerSmoke = false): void {
     // Advance before emitting: a slow frame still gets one visible muzzle flash.
     for (const item of this.lights) {
       item.age += dt;
       item.light.intensity = item.age < item.duration ? item.power * Math.exp(-item.age / item.duration * 5) : 0;
     }
-    this.pools.forEach(pool => pool.update(dt, camera, this.wind));
+    const updatePool = (pool: EffectParticlePool, elapsed: number) => pool.update(elapsed, camera, this.wind,
+      hidePlayerSmoke && pool === this.smoke ? sim.player.motion.id : undefined);
+    this.pools.forEach(pool => updatePool(pool, dt));
     let emitted = false;
     for (const event of sim.events) {
       if (event.sequence <= this.sequence) continue;
       this.sequence = event.sequence;
       this.emit(event); emitted = true;
     }
-    if (emitted) this.pools.forEach(pool => pool.update(0, camera, this.wind));
+    if (emitted) this.pools.forEach(pool => updatePool(pool, 0));
     this.updateShells(sim, camera);
   }
 
@@ -117,9 +119,9 @@ export class CombatEffects {
     this.across.crossVectors(this.direction, UP).normalize();
     if (this.across.lengthSq() < .01) this.across.set(1, 0, 0);
     this.vertical.crossVectors(this.across, this.direction).normalize();
-    if (event.kind === 'shot') this.muzzle(scale, random);
+    if (event.kind === 'shot') this.muzzle(scale, random, event.shipId);
     else if (event.kind === 'splash') this.splash(scale, random);
-    else if (event.detonation) this.detonation(scale, random);
+    else if (event.detonation) this.detonation(scale, random, event.shipId);
     else if (event.normal) this.impact(event, scale, random);
     // Internal damage and sinking are state changes, not external fireballs.
   }
@@ -130,7 +132,7 @@ export class CombatEffects {
     item.light.intensity = power;
   }
 
-  private muzzle(scale: number, random: () => number): void {
+  private muzzle(scale: number, random: () => number, sourceId: string): void {
     const size = Math.pow(scale, .8);
     this.illuminate(28000 * size * size, .75);
     // Short white ignition sits inside the much larger, longer-lived hot gas volume.
@@ -145,7 +147,7 @@ export class CombatEffects {
     // The same evolving 3D density field cools from fire into propellant smoke.
     // Few overlapping volumes avoid a stack of identical flat cotton-ball sprites.
     for (let i = 0; i < 3; i++) {
-      const p = this.smoke.emit(this.position), angle = random() * Math.PI * 2;
+      const p = this.smoke.emit(this.position, sourceId), angle = random() * Math.PI * 2;
       const spread = random() * 6 * size;
       p.position.addScaledVector(this.direction, (4 + i * 10) * size)
         .addScaledVector(this.across, Math.cos(angle) * spread)
@@ -230,7 +232,7 @@ export class CombatEffects {
       p.color.copy(WARM).multiplyScalar(1.7); p.waterline = true;
     }
     for (let i = 0; i < 9; i++) {
-      const p = this.smoke.emit(this.position);
+      const p = this.smoke.emit(this.position, event.shipId);
       p.velocity.copy(this.normal).multiplyScalar((2 + random() * 10) * size);
       p.velocity.y += 1 + random() * 3;
       p.size = (1.5 + random() * 3) * size; p.growth = 1.3 * size;
@@ -239,7 +241,7 @@ export class CombatEffects {
     }
   }
 
-  private detonation(scale: number, random: () => number): void {
+  private detonation(scale: number, random: () => number, sourceId: string): void {
     this.position.y = Math.max(this.position.y, 2);
     this.illuminate(150000 * scale);
     for (let i = 0; i < 18; i++) {
@@ -249,7 +251,7 @@ export class CombatEffects {
       p.color.set('#ffad51'); p.opacity = .8;
     }
     for (let i = 0; i < 32; i++) {
-      const p = this.smoke.emit(this.position);
+      const p = this.smoke.emit(this.position, sourceId);
       p.velocity.set((random() - .5) * 17, 6 + random() * 21, (random() - .5) * 17);
       p.size = 6 + random() * 7; p.growth = 2; p.life = 8 + random() * 4;
       p.drag = .6; p.wind = .7; p.gravity = -.5; p.opacity = .8;
