@@ -26,6 +26,8 @@ Two wake generators sit 112 m forward and aft of the origin; their current confi
 
 The demo's image-based sky is replaced by Sky Pro's animated clouds and atmosphere. That changes what the water reflects even if its material settings stay the same. Cloud reflections are baked at width 384 with 16 cloud march steps and 8 skipped frames. The game uses ACES tone mapping and neutral exposure; it does not add the demo's optional bloom or film grain.
 
+Water Pro's `scene.fogNode` owns distance fog, including transparent effects and the ocean's sky-color blend. The final composition uses Water Pro's output directly, without Sky Pro's additional `applyTo` fog pass: that pass reads opaque depth behind transparent smoke and can erase it at the ocean horizon. Sky Pro still supplies the sky, clouds, lighting and reflections. See the [horizon regression review](../assets/effects/naval/reports/validation.md#horizon-smoke-cutoff-2026-09-05).
+
 ## Ship wake
 
 `src/game/ShipWake.ts` combines Water Pro's wave displacement with the foam history in `src/game/WakeFoam.ts`. Both are sampled by the actual water material, so foam follows the ocean's displacement, lighting and bubble texture. There is no floating decal or flat plane above the sea.
