@@ -25,6 +25,8 @@ Open http://localhost:5173. Current Chrome or Edge with hardware acceleration is
 
 The throttle stays where you set it. Going from ahead to astern takes time. Handling is tuned for a battleship feel rather than an engineering-accurate maneuvering model. Four navigational buoys provide nearby reference points; they are markers, not collision obstacles. The chart follows your ship and displays its trail. Changing settings restarts the sea trial. Losing browser focus pauses singleplayer.
 
+See [Ocean configuration](docs/ocean-configuration.md) for the water/sky settings, differences from the supplied Black Flag preset, and the reasoning behind the initial look.
+
 ## Architecture
 
 - `src/simulation/ship.ts`: plain serializable state and commands; fixed 60 Hz movement. No browser, React, Three.js, or GPU dependency.
