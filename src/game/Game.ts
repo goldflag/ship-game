@@ -18,6 +18,7 @@ import { selectedShip, shipPreset, shipPresets } from '../ships/presets';
 import { validateBattleSetup, type BattleSetup } from '../simulation/battle';
 import { InputController } from './InputController';
 import { CameraRig } from './CameraRig';
+import { ShellFollow } from './ShellFollow';
 import { sightAim } from './aiming';
 import { createHarborBackdrop, type HarborBackdrop } from './HarborBackdrop';
 import { ShipWake } from './ShipWake';
@@ -38,6 +39,7 @@ export class Game {
   private ambientLight = new THREE.HemisphereLight('#dcebf2', '#65757e', .65);
   private camera = new THREE.PerspectiveCamera(52, 1, 0.5, 60000);
   private rig: CameraRig;
+  private shellFollow = new ShellFollow();
   // Stable motion anchor for the wake and sunlight, independent of the loaded hull.
   private ship = new THREE.Group();
   private playerView?: ShipView;
@@ -103,6 +105,7 @@ export class Game {
       optics: () => this.toggleBinoculars(), battery: battery => { this.battery = battery; },
       cursor: released => { if (released) this.rig.releasePointer(); else if (!document.querySelector('dialog[open]')) this.rig.capturePointer(); },
       chartSize: direction => this.resizeChart(direction), gunnery: () => this.setGunneryOpen(!this.gunneryOpen),
+      shellFollow: () => this.toggleShellFollow(),
     });
     this.input.setEnabled(false);
     this.observer = new ResizeObserver(() => { this.resizePending = true; });
@@ -348,7 +351,7 @@ export class Game {
       // Apply mouse aim before sampling the sight; follow the new rendered pose
       // after stepping, with camera damping applied only once per frame.
       this.rig.update(focus, focus.y, 0);
-      const aim = this.manualAim ? this.inspecting ? this.currentAim : this.readSightAim() : this.simulation.aimAt(this.aimModule, this.battery);
+      const aim = this.manualAim ? this.inspecting || this.shellFollow.view ? this.currentAim : this.readSightAim() : this.simulation.aimAt(this.aimModule, this.battery);
       this.currentAim = aim;
       if (!this.inPort) this.simulation.advance(dt, this.input.sample(), { aim, fire: this.input.firing || this.rig.firing, battery: this.battery }, () => {
         this.fleetViews.forEach(view => view.capturePreviousPose());
@@ -357,6 +360,8 @@ export class Game {
       this.fleetViews.forEach(view => view.update(alpha));
       this.ship.position.copy(this.playerView!.root.position);
       this.ship.quaternion.copy(this.playerView!.root.quaternion);
+      this.shellFollow.update(this.simulation.shells, this.simulation.events, state.id, dt);
+      this.rig.setShellView(this.shellFollow.view);
       this.rig.update(focus, focus.y, realDt);
       this.armorHover?.update(this.inPort && !this.paused && !this.switchingShip ? this.playerView?.inspection : undefined);
       this.effects.update(this.simulation, dt, this.camera);
@@ -384,6 +389,7 @@ export class Game {
         this.callbacks.telemetry({ ship: { ...state }, order: this.input.order, camera: this.rig.mode,
           binoculars: this.rig.binoculars, magnification: this.rig.magnification, pointerLocked: this.rig.pointerLocked,
           viewBearing: this.rig.bearing, chartSize: this.chartSize, gunneryOpen: this.gunneryOpen,
+          shellFollow: this.shellFollow.phase,
           fps: Math.round(this.fps), backend: this.water!.backend, trail: [...this.trail],
           combat: this.simulation.telemetry(this.battery, aim), inspecting: this.inspecting, aimModule: this.manualAim ? 'point' : this.aimModule,
           aimMarker: this.projectAim(aim) });
@@ -430,11 +436,12 @@ export class Game {
   resizeChart(direction: number): void { this.chartSize = THREE.MathUtils.clamp(this.chartSize + direction, 0, 4); }
   setGunneryOpen(open: boolean): void {
     this.gunneryOpen = open;
-    if (open) this.rig.releasePointer();
+    if (open) { this.stopShellFollow(); this.rig.releasePointer(); }
     else if (!this.inspecting) this.rig.capturePointer();
   }
   toggleBinoculars(): void {
     if (this.paused || this.inPort || this.inspecting) return;
+    if (this.shellFollow.view) { this.stopShellFollow(); return; }
     this.rig.toggleBinoculars(this.manualAim ? this.readSightAim() : this.currentAim, this.simulation.ship);
   }
   private readSightAim(): Vec3 {
@@ -445,6 +452,7 @@ export class Game {
     this.armorHover?.clear();
     if (this.articulationOriginal) this.restoreArticulation();
     if (!inPort && this.switchingShip) return;
+    this.stopShellFollow();
     const leavingPort = this.inPort && !inPort;
     this.inPort = inPort;
     // The garage camera stays at least 90 m from its target. A suitable near
@@ -485,6 +493,18 @@ export class Game {
     this.renderer.domElement.setAttribute('aria-label', `${this.definition.name} ocean scene. ${inPort ? 'Drag to orbit; scroll to zoom.' : 'Click to capture mouse. Mouse to aim; left mouse to fire; Shift for binoculars; Control for cursor; Escape to pause.'}`);
   }
   fire(): void { if (!this.paused && !this.inPort && this.playerView) this.simulation.requestFire(); }
+  toggleShellFollow(): void {
+    if (this.paused || this.inPort || this.inspecting) return;
+    if (this.shellFollow.enabled) { this.stopShellFollow(); return; }
+    this.shellFollow.setEnabled(true);
+    this.gunneryOpen = false;
+  }
+  private stopShellFollow(): void {
+    this.shellFollow.setEnabled(false);
+    this.rig.setShellView();
+    const focus = (this.inspecting ? this.targetView : this.playerView)?.motion;
+    if (focus) this.rig.update(focus, focus.y, 0, true);
+  }
   setPortInspection(mode: InspectionMode, selectedId?: string): void {
     this.armorHover?.clear();
     if (this.inPort) this.playerView?.setInspection(mode, selectedId);
@@ -492,8 +512,9 @@ export class Game {
   subscribeArmorHover(listener: (hover: ArmorHoverInfo | null) => void): () => void {
     return this.armorHover.subscribe(listener);
   }
-  selectAim(moduleId: string): void { this.manualAim = moduleId === 'point'; this.aimModule = moduleId; }
+  selectAim(moduleId: string): void { this.stopShellFollow(); this.manualAim = moduleId === 'point'; this.aimModule = moduleId; }
   inspectTarget(): void {
+    this.stopShellFollow();
     this.inspecting = !this.inspecting;
     this.targetView?.inspect(this.inspecting);
     this.rig.setInspecting(this.inspecting);
@@ -501,6 +522,7 @@ export class Game {
   }
   selectTarget(id: string): void {
     if (!this.simulation.selectTarget(id)) return;
+    this.stopShellFollow();
     this.targetView?.inspect(false);
     this.targetView = this.fleetViews.find(view => view.actor === this.simulation.target);
     this.targetView?.inspect(this.inspecting);
@@ -535,6 +557,7 @@ export class Game {
   diagnostics() {
     return { shipId: this.definition.id, contentHash: this.definition.contentHash, backend: this.water?.backend,
       camera: { mode: this.rig.mode, binoculars: this.rig.binoculars, magnification: this.rig.magnification, fov: this.camera.fov,
+        shellFollow: this.shellFollow.phase, followedShellId: this.shellFollow.shellId,
         pointerLocked: this.rig.pointerLocked, position: this.camera.position.toArray(), aim: this.currentAim, manualAim: this.manualAim,
         projectionMatrix: this.camera.projectionMatrix.toArray(), matrixWorldInverse: this.camera.matrixWorldInverse.toArray() },
       tick: this.simulation.tick, paused: this.paused, fps: this.fps, inspecting: this.inspecting, inPort: this.inPort,
@@ -582,8 +605,8 @@ export class Game {
       this.water.fog.skyBlendDistance = this.inPort ? 2600 : 10000;
     }
   }
-  cycleCamera(): void { this.rig.cycle(); }
-  recenter(): void { this.rig.recenter(); }
+  cycleCamera(): void { this.stopShellFollow(); this.rig.cycle(); }
+  recenter(): void { this.stopShellFollow(); this.rig.recenter(); }
   fullscreen(): void {
     const action = document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.();
     action?.catch(() => { /* Browsers may decline fullscreen; sailing remains available. */ });
