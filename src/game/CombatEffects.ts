@@ -49,6 +49,7 @@ export class CombatEffects {
   constructor() {
     this.root.name = 'Combat effects';
     this.projectiles.name = 'Shell bodies'; this.streaks.name = 'Shell streaks';
+    this.streaks.material.forceSinglePass = true;
     this.smoke.mesh.name = 'Propellant and impact volumes';
     this.spouts.mesh.name = 'Aerated water volumes';
     this.spray.mesh.name = 'Water droplets and mist';

@@ -1,0 +1,230 @@
+{
+  "baselineCommit": "2b9da7431dbe024084b47a82a286c5bb13d61dbd",
+  "checks": {
+    "horizon": {
+      "checkedRows": 38,
+      "height": 1080,
+      "minimumContrast": 0.09835807381300275,
+      "width": 1920
+    },
+    "volume": {
+      "backend": "webgpu",
+      "frames": [
+        {
+          "draws": 1,
+          "view": "outside",
+          "visiblePixels": 15102
+        },
+        {
+          "draws": 2,
+          "view": "behind opaque surface",
+          "visiblePixels": 0
+        },
+        {
+          "draws": 1,
+          "view": "reverse oblique",
+          "visiblePixels": 15656
+        },
+        {
+          "draws": 1,
+          "view": "inside",
+          "visiblePixels": 65536
+        },
+        {
+          "draws": 1,
+          "view": "reset",
+          "visiblePixels": 0
+        }
+      ]
+    },
+    "baselineDrawBudget": {
+      "backend": "webgpu",
+      "expectedDraws": 1,
+      "actualDraws": 2,
+      "visiblePixels": 15102,
+      "result": "failed as expected with original material"
+    },
+    "webglDepthLimitation": {
+      "baselineVisiblePixelsBehindBlocker": 15102,
+      "optimizedVisiblePixelsBehindBlocker": 15102,
+      "expectedVisiblePixels": 0,
+      "status": "pre-existing, unresolved"
+    }
+  },
+  "date": "2026-09-05",
+  "method": "Alternating before/after shaders on identical CPU-fired particle buffers; GPU timestamp queries; six warmup pairs; isolated smoke target at game MSAA. Background GPU workloads remain active.",
+  "results": [
+    {
+      "antialiasSamples": 4,
+      "canvas": [
+        1920,
+        1080
+      ],
+      "effects": {
+        "flashes": 8,
+        "foam": 8,
+        "particleCapacity": 2272,
+        "shells": 8,
+        "smoke": 24,
+        "spray": 0
+      },
+      "gpuMs": {
+        "after": {
+          "median": 1.507328,
+          "p90": 7.405568
+        },
+        "before": {
+          "median": 1.6384,
+          "p90": 6.488064
+        }
+      },
+      "pixels": {
+        "changedByMoreThanTwo": 0,
+        "covered": 70971,
+        "maxChannelDelta": 1,
+        "meanChannelDelta": 3.616898148148148e-07
+      },
+      "samples": 60,
+      "scene": "broadside",
+      "time": 0.2
+    },
+    {
+      "antialiasSamples": 4,
+      "canvas": [
+        1920,
+        1080
+      ],
+      "effects": {
+        "flashes": 0,
+        "foam": 0,
+        "particleCapacity": 2272,
+        "shells": 0,
+        "smoke": 24,
+        "spray": 1220
+      },
+      "gpuMs": {
+        "after": {
+          "median": 2.097152,
+          "p90": 7.340032
+        },
+        "before": {
+          "median": 2.424832,
+          "p90": 7.20896
+        }
+      },
+      "pixels": {
+        "changedByMoreThanTwo": 0,
+        "covered": 296895,
+        "maxChannelDelta": 1,
+        "meanChannelDelta": 9.645061728395062e-07
+      },
+      "samples": 60,
+      "scene": "smoke",
+      "time": 2.5
+    },
+    {
+      "antialiasSamples": 4,
+      "canvas": [
+        1920,
+        1080
+      ],
+      "effects": {
+        "flashes": 0,
+        "foam": 0,
+        "particleCapacity": 2272,
+        "shells": 0,
+        "smoke": 24,
+        "spray": 0
+      },
+      "gpuMs": {
+        "after": {
+          "median": 2.490368,
+          "p90": 8.978432
+        },
+        "before": {
+          "median": 3.080192,
+          "p90": 8.323072
+        }
+      },
+      "pixels": {
+        "changedByMoreThanTwo": 0,
+        "covered": 356495,
+        "maxChannelDelta": 1,
+        "meanChannelDelta": 7.233796296296296e-07
+      },
+      "samples": 60,
+      "scene": "smoke",
+      "time": 8
+    },
+    {
+      "antialiasSamples": 4,
+      "canvas": [
+        1920,
+        1080
+      ],
+      "effects": {
+        "flashes": 0,
+        "foam": 0,
+        "particleCapacity": 2272,
+        "shells": 0,
+        "smoke": 24,
+        "spray": 1220
+      },
+      "gpuMs": {
+        "after": {
+          "median": 1.572864,
+          "p90": 6.22592
+        },
+        "before": {
+          "median": 1.96608,
+          "p90": 6.5536
+        }
+      },
+      "pixels": {
+        "changedByMoreThanTwo": 0,
+        "covered": 39440,
+        "maxChannelDelta": 1,
+        "meanChannelDelta": 1.2056327160493827e-07
+      },
+      "samples": 60,
+      "scene": "horizon",
+      "time": 2.5
+    },
+    {
+      "antialiasSamples": 4,
+      "canvas": [
+        1920,
+        1080
+      ],
+      "effects": {
+        "flashes": 0,
+        "foam": 0,
+        "particleCapacity": 2272,
+        "shells": 0,
+        "smoke": 24,
+        "spray": 1220
+      },
+      "gpuMs": {
+        "after": {
+          "median": 8.192,
+          "p90": 14.286848
+        },
+        "before": {
+          "median": 11.272192,
+          "p90": 16.580608
+        }
+      },
+      "pixels": {
+        "changedByMoreThanTwo": 0,
+        "covered": 2073600,
+        "maxChannelDelta": 1,
+        "meanChannelDelta": 2.652391975308642e-06
+      },
+      "samples": 60,
+      "scene": "inside",
+      "time": 2.5
+    }
+  ],
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.7871.47 Safari/537.36",
+  "optimizedShaderSha256": "2f11311bf1e8b23e5e3ab4f4c3e5bb1726984d9f5cf5d5bd3da811ecff191430"
+}

@@ -98,6 +98,7 @@ export class EffectParticlePool {
     geometry.setAttribute('effectOpacity', this.alpha);
     const material = volumeMaterial ?? new THREE.MeshBasicNodeMaterial({ map, transparent: true, depthWrite: false,
       side: THREE.DoubleSide, blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending });
+    material.forceSinglePass = true;
     // The map already contributes its alpha through materialColor.
     material.opacityNode = attribute('effectOpacity', 'float');
     if (volumeMaterial) {
