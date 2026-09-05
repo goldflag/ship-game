@@ -11,7 +11,7 @@ const aim: [number, number, number] = [1800, 0, 0];
 test('Baltimore trains three triple turrets, fires nine distinct shells, and holds during reload', () => {
   const sim = new CombatSimulation(definition);
   const mounts = sim.player.mounts.filter(m => m.id.startsWith('main-'));
-  for (let i = 0; i < 3600 && mounts.some(m => m.status !== 'ready'); i++) {
+  for (let i = 0; i < 3600; i++) {
     sim.step(helm, { aim, fire: false, battery: 'main' });
   }
   expect(mounts.map(m => m.status)).toEqual(['ready', 'ready', 'ready']);
