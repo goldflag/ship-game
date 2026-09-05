@@ -31,6 +31,15 @@ test('a sea sight points at the CPU waterline and horizon aim stays finite and b
   }
 });
 
+test('manual fleet aiming chooses the closest hull even when a different enemy is selected', () => {
+  const armor = [{ id: 'hull', name: 'Hull', center: [0, 8, 0] as Vec3, size: [36, 16, 250] as Vec3, thicknessMm: 100 }];
+  const near = { pose: { ...createShipState('near'), z: -2000 }, armor };
+  const far = { pose: { ...createShipState('far'), z: -5000 }, armor };
+  const origin: Vec3 = [0, 10, 0], direction: Vec3 = [0, 0, -1];
+  expect(sightAim(origin, direction, [far, near])).toEqual(sightAim(origin, direction, near));
+  expect(sightAim(origin, direction, [near, far])[2]).toBe(-1875);
+});
+
 function withCamera(check: (rig: CameraRig, camera: PerspectiveCamera) => void) {
   const savedWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
   const savedDocument = Object.getOwnPropertyDescriptor(globalThis, 'document');

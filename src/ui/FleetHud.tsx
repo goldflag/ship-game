@@ -98,7 +98,7 @@ function ActiveArmament({ data, game, bindings }: FleetHudProps) {
       </button>)}
       <button className="fleet-weapon-slot fleet-utility-slot" aria-label="Toggle binocular aiming · Shift" aria-pressed={!!data.binoculars} onClick={event => { game?.toggleBinoculars(); event.currentTarget.blur(); }}><span className="fleet-slot-label">BINOCULARS</span><BinocularGlyph/><strong className="fleet-slot-value">{data.binoculars ? `${data.magnification}×` : ''}</strong><kbd>SHIFT</kbd></button>
       <button className="fleet-weapon-slot" aria-label={`Gunnery and target damage · ${bindingLabel(bindings, 'gunnery')}`} aria-expanded={!!data.gunneryOpen} onClick={event => { game?.setGunneryOpen(!data.gunneryOpen); event.currentTarget.blur(); }}><span className="fleet-slot-label">GUNNERY</span><Icon name="target" size={39}/><kbd>{bindingLabel(bindings, 'gunnery')}</kbd></button>
-      <button className="fleet-weapon-slot fleet-fire-slot" aria-label={`Fire ready guns · Left mouse or ${bindingLabel(bindings, 'fire')}`} disabled={!combat.ready} onClick={event => { game?.fire(); event.currentTarget.blur(); }}><span className="fleet-slot-label">FIRE</span><Icon name="turret" size={39}/><kbd>{bindingLabel(bindings, 'fire')} / LMB</kbd></button>
+      <button className="fleet-weapon-slot fleet-fire-slot" aria-label={`Fire ready guns · Left mouse or ${bindingLabel(bindings, 'fire')}`} disabled={!combat.ready || combat.playerSunk} onClick={event => { game?.fire(); event.currentTarget.blur(); }}><span className="fleet-slot-label">FIRE</span><Icon name="turret" size={39}/><kbd>{bindingLabel(bindings, 'fire')} / LMB</kbd></button>
     </div>
     <div className="fleet-control-hint"><span><kbd>CTRL</kbd> Cursor</span><span><kbd>SHIFT</kbd> Aim</span><span><kbd>ESC</kbd> Menu</span></div>
   </section>;
@@ -119,6 +119,12 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
   return <div className={`fleet-hud ${visible ? '' : 'fleet-hud-hidden'} ${data.binoculars ? 'fleet-in-optics' : ''}`} inert={!visible} style={{ '--map-factor': mapSize / 400 } as CSSProperties}>
     <div className="fleet-edge-shade" aria-hidden="true"/>
     <BearingTape degrees={degrees}/>
+    {data.combat?.battle && <section className="fleet-battle" aria-label="Battle status">
+      <h2>{data.combat.result === 'active' ? 'Custom battle' : data.combat.result === 'victory' ? 'Victory' : data.combat.result === 'defeat' ? 'Defeat' : 'Draw'}</h2>
+      <p><span>Friendly <strong>{data.combat.contacts.filter(c => c.team === 'friendly' && !c.sunk).length}</strong></span><span>Enemy <strong>{data.combat.contacts.filter(c => c.team === 'enemy' && !c.sunk).length}</strong></span></p>
+      <label>Target<select aria-label="Enemy target" value={data.combat.targetId} onChange={event => game?.selectTarget(event.target.value)}>{data.combat.contacts.filter(c => c.team === 'enemy').map((contact, index) => <option key={contact.id} value={contact.id}>{index + 1}. {contact.name} · {contact.sunk ? 'Sinking' : `${Math.round(contact.integrity * 100)}%`}</option>)}</select></label>
+      <small>{data.combat.result !== 'active' ? 'Battle ended · Esc to return to port' : data.combat.playerSunk ? 'Your ship is sinking. Friendly bots are still fighting.' : `${(data.combat.targetRange / 1000).toFixed(2)} km · Hold Ctrl to select a target`}</small>
+    </section>}
     <div className="fleet-top-actions"><span className="fleet-fps" aria-label={`${data.fps} frames per second`}><strong>{data.fps || '—'}</strong> FPS</span><button className="icon-button" aria-label="Pause and settings" title="Pause · Esc" onClick={() => game?.setPaused(true)}><Icon name="pause" size={17}/></button></div>
 
     {!data.inspecting && <div className={`fleet-sight ${data.binoculars ? 'fleet-sight-optics' : 'fleet-sight-chase'}`} aria-hidden="true">
