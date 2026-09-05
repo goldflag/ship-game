@@ -9,6 +9,7 @@ import { ShipView } from './ShipView';
 import { ShipLabels } from './ShipLabels';
 import { disposeObjects } from './disposeObjects';
 import { CombatEffects } from './CombatEffects';
+import type { GameAudio } from './GameAudio';
 import type { Battery, Vec3 } from '../ships/blueprint';
 import type { InspectionMode } from '../ships/inspection';
 import { selectedShip, shipPreset, shipPresets } from '../ships/presets';
@@ -75,7 +76,7 @@ export class Game {
   private frameTask?: Promise<void>;
   private articulationOriginal?: CombatSimulation['player']['mounts'];
 
-  constructor(private host: HTMLElement, private settings: GameSettings, private callbacks: GameCallbacks, definition = selectedShip) {
+  constructor(private host: HTMLElement, private settings: GameSettings, private callbacks: GameCallbacks, definition = selectedShip, readonly audio?: GameAudio) {
     this.definition = definition;
     this.simulation = new CombatSimulation(definition);
     this.aimModule = definition.modules.find(m => m.kind === 'engine')?.id ?? '';
@@ -283,6 +284,7 @@ export class Game {
       this.fleetViews.forEach(view => view.root.removeFromParent());
       this.scene.add(...views.map(view => view.root));
       this.definition = definition; this.simulation = simulation;
+      this.audio?.reset(simulation);
       this.fleetModels = [...models.values()]; this.loadedModel = models.get(definition.id);
       this.fleetViews = views; this.playerView = views[0];
       this.targetView = views.find(view => view.actor === simulation.target);
@@ -343,6 +345,8 @@ export class Game {
       this.ship.quaternion.copy(this.playerView!.root.quaternion);
       this.rig.update(focus, focus.y, realDt);
       this.effects.update(this.simulation, dt, this.camera);
+      this.audio?.update(this.simulation, this.input.order, this.battery,
+        this.camera.position.toArray(), new THREE.Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0).toArray());
       this.playerView!.root.visible = !this.rig.binoculars;
       this.harbor?.update(dt, this.camera);
       this.shipWake!.update(this.playerView!.motion, dt, this.simulation.events);
@@ -388,6 +392,7 @@ export class Game {
   }
   setPaused(paused: boolean): void {
     this.paused = paused;
+    this.audio?.setScene(this.inPort, paused);
     this.input.setEnabled(!paused && !this.inPort && !!this.water);
     this.rig.setEnabled(!paused);
     this.callbacks.pause(paused);
@@ -428,6 +433,7 @@ export class Game {
     this.input.setOrder(1); this.input.setRudder(0);
     if (inPort) {
       this.simulation.reset();
+      this.audio?.reset(this.simulation);
       this.targetView = this.fleetViews.find(view => view.actor === this.simulation.target);
       this.effects.reset();
       this.simulation.ship.x = 240; this.simulation.ship.z = 0; this.simulation.ship.heading = 0;
@@ -441,6 +447,7 @@ export class Game {
     this.fleetViews.forEach(view => view.snap());
     this.setPaused(false);
     if (leavingPort) {
+      this.audio?.departure();
       this.currentAim = this.simulation.aimAt(this.aimModule, this.battery);
       this.rig.aimAt(this.currentAim, this.simulation.ship);
       this.rig.capturePointer();
@@ -498,6 +505,7 @@ export class Game {
         projectionMatrix: this.camera.projectionMatrix.toArray(), matrixWorldInverse: this.camera.matrixWorldInverse.toArray() },
       tick: this.simulation.tick, paused: this.paused, fps: this.fps, inspecting: this.inspecting, inPort: this.inPort,
       effects: this.effects.diagnostics(),
+      audio: this.audio?.diagnostics(),
       portInspection: this.playerView?.inspection.mode, selectedVolume: this.playerView?.inspection.selectedId,
       maxMuzzleErrorM: Math.max(0, ...this.fleetViews.flatMap(view => view.muzzleErrors())),
       combat: this.simulation.telemetry(this.battery, this.currentAim),
@@ -549,6 +557,7 @@ export class Game {
 
   async dispose(): Promise<void> {
     this.disposed = true;
+    this.audio?.dispose();
     cancelAnimationFrame(this.raf);
     this.abort.abort(); this.observer.disconnect(); this.input.dispose(); this.rig.dispose();
     this.shipLabels.dispose();
