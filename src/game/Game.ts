@@ -155,14 +155,12 @@ export class Game {
     this.assertActive();
     await this.sky.applyPreset(SKY_PRESETS.partlyCloudy);
     this.assertActive();
-    // A high daytime sun, at Sky Pro's nominal daytime intensity. Keep
-    // exposure neutral; fix the illumination rather than lifting black levels.
-    this.sky.sun.setFromAngles(48, 235);
-    this.sky.sun.peakIntensity = 6.6;
+    // Shared cloud shape; updatePortLighting supplies each scene's daylight.
+    // Keep exposure neutral so the hull retains its daylight contrast.
     this.sky.godRays.enabled = false;
-    this.sky.clouds.shape.coverage.value = 0.64;
     this.sky.clouds.shape.altitude.value = 1700;
-    this.sky.clouds.shape.thickness.value = 3200;
+    this.sky.clouds.shape.thickness.value = 2400;
+    this.sky.clouds.shape.horizonCoverageAmount.value = 0.06;
     // Cloud volumes use their own ambient fill, independently of scene lights.
     // Soften the extra base darkening and lift the preset's near-black bounce.
     this.sky.clouds.lighting.baseShadowStrength.value = 0.2;
@@ -371,12 +369,16 @@ export class Game {
   private updatePortLighting(): void {
     if(!this.sky)return;
     this.sky.sun.setFromAngles(this.inPort ? 36 : 48, this.inPort ? 58 : 235);
-    this.sky.sun.peakIntensity=this.inPort ? 3.8 : 6.6;
-    this.sky.clouds.shape.coverage.value=this.inPort ? .48 : .64;
+    this.sky.sun.peakIntensity=this.inPort ? 5 : 6.6;
+    this.sky.clouds.shape.coverage.value=this.inPort ? .38 : .4;
     this.ambientLight.intensity = this.inPort ? 1.1 : .65;
-    this.sky.atmosphere.turbidity.value = this.inPort ? 3.2 : 1;
-    this.sky.atmosphere.rayleigh.value = this.inPort ? .9 : .41;
-    this.sky.atmosphere.mieScatteringStrength.value = this.inPort ? .65 : .19;
+    // Broader aerosol scattering and diffuse fill soften the dark blue dome,
+    // especially when looking away from the port sun toward the hills.
+    this.sky.atmosphere.turbidity.value = this.inPort ? 3.2 : 2.2;
+    this.sky.atmosphere.rayleigh.value = this.inPort ? .42 : .38;
+    this.sky.atmosphere.mieScatteringStrength.value = this.inPort ? 1.2 : .5;
+    this.sky.atmosphere.mieDirectionalG.value = this.inPort ? .6 : .72;
+    this.sky.atmosphere.skyMultipleScattering.value = this.inPort ? 1.4 : 1;
     // Water Pro owns scene.fogNode, including the water/sky horizon blend.
     // Its live uniforms must change with the scene; THREE.Fog is overridden.
     if (this.water) {

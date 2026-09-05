@@ -52,7 +52,24 @@ The corrected setup uses sun elevation 48°, sun intensity 6.6, environment ligh
 
 The cloud undersides remained too dark after the first daylight pass. Sky Pro's cloud volumes use their own lighting calculation; increasing the scene's hemisphere light does not illuminate them. The inherited `partlyCloudy` preset supplies ambient intensity 0.7 and very dark ground-bounce albedo (approximately 0.0091, 0.0152, 0.0185 in linear RGB), while the game still applied base-shadow strength 0.60.
 
-The current cloud lighting uses base-shadow strength **0.20**, ambient intensity **1.10**, and ground-bounce albedo **(0.09, 0.105, 0.12)** in linear RGB. This is an artistic fill adjustment for brighter daylight cloud bases, not a measured ocean reflectance. It retains a cool gray underside and brighter sunlit edges. Sun intensity, exposure, cloud shape, and coverage stay as configured above. The water reflects the brighter cloud lighting through the existing SkyProvider. The change was checked in the WebGPU scene with the same camera, including the normal sailing view.
+The current cloud lighting uses base-shadow strength **0.20**, ambient intensity **1.10**, and ground-bounce albedo **(0.09, 0.105, 0.12)** in linear RGB. This is an artistic fill adjustment for brighter daylight cloud bases, not a measured ocean reflectance. It retains a cool gray underside and brighter sunlit edges. The water reflects the brighter cloud lighting through the existing SkyProvider. The change was checked in the WebGPU scene with the same camera, including the normal sailing view.
+
+## Softer daylight and scattered clouds
+
+The port sky still read as dark slate blue. The current tuning reduces molecular blue scattering, broadens aerosol scattering, and increases diffuse sky fill. Port sun intensity rises from 3.8 to 5; the sea keeps its 6.6 intensity. Exposure remains 1. These are visual settings, not a calibrated atmosphere.
+
+| Sky parameter | Port before → after | Sea before → after |
+| --- | --- | --- |
+| Rayleigh | 0.9 → 0.42 | 0.41 → 0.38 |
+| Turbidity | 3.2 → 3.2 | 1 → 2.2 |
+| Mie scattering strength | 0.65 → 1.2 | 0.19 → 0.5 |
+| Mie directional G | 0.8 → 0.6 | 0.8 → 0.72 |
+| Sky multiple scattering | 0.66 → 1.4 | 0.66 → 1 |
+| Cloud coverage control | 0.48 → 0.38 | 0.64 → 0.40 |
+
+Both scenes use cloud thickness 2,400 m (previously 3,200 m), altitude 1,700 m, and horizon coverage boost 0.06 (previously 0.12). Coverage is a nonlinear shape control, not a percentage of visible sky. Cloud fill, water material, sun direction, and harbor fog retain their existing settings. Scene transitions restore all scene-specific sky parameters.
+
+The [before/after review](../assets/reviews/sky-daylight/index.html) contains unedited 1,600 × 900 WebGPU canvas captures from the actual Game renderer. Each pair shares its camera and frozen animation time; the review notes describe the capture setup.
 
 ## Repeating arc correction
 
