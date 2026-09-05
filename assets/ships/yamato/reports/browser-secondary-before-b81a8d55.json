@@ -1,0 +1,11 @@
+{
+  "id": "d97e510c-bf3d-459a-aef4-b77b65ba3887",
+  "ok": false,
+  "error": {
+    "code": "browser_eval_error",
+    "message": "Error: {\"battery\":\"secondary\",\"range\":842.1320282189779,\"ready\":1,\"total\":2,\"targetIntegrity\":0.802,\"targetWater\":75.3846191073724,\"targetPower\":0,\"targetSteering\":1,\"targetSunk\":false,\"targetUnderway\":false,\"mounts\":[{\"id\":\"secondary-forward\",\"name\":\"Forward 15.5 cm\",\"status\":\"ready\",\"reload\":0,\"ammo\":450},{\"id\":\"secondary-aft\",\"name\":\"Aft 15.5 cm\",\"status\":\"blocked\",\"reload\":0,\"ammo\":450}],\"modules\":[{\"id\":\"engine-port\",\"name\":\"Port turbines\",\"condition\":0},{\"id\":\"engine-starboard\",\"name\":\"Starboard turbines\",\"condition\":0},{\"id\":\"steering\",\"name\":\"Steering machinery\",\"condition\":1},{\"id\":\"magazine-1\",\"name\":\"No. 1 magazine\",\"condition\":1},{\"id\":\"magazine-2\",\"name\":\"No. 2 magazine\",\"condition\":1},{\"id\":\"magazine-3\",\"name\":\"No. 3 magazine\",\"condition\":1},{\"id\":\"magazine-secondary-forward\",\"name\":\"Forward secondary magazine\",\"condition\":1},{\"id\":\"magazine-secondary-aft\",\"name\":\"Aft secondary magazine\",\"condition\":1}],\"message\":\"Stopped by Citadel protection (uniform proxy)\"}\n    at <anonymous>:1:183\n    at <anonymous>:1:306"
+  },
+  "_meta": {
+    "runtimeId": "2f732b12-3daa-41b6-8932-e67fcd4ace2b"
+  }
+}

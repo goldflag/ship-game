@@ -19,13 +19,13 @@ function basis(eye: THREE.Vector3, up = new THREE.Vector3(0, 1, 0)) {
   return { right, up: new THREE.Vector3().crossVectors(right, forward), forward };
 }
 
-// The unrotated GLB is bow +X, up +Y, starboard +Z. Bow stays right in side and deck views.
+// Compiled GLBs use bow -Z, up +Y, starboard +X. Bow stays right in side and deck views.
 export const VIEW_BASES = {
-  side: basis(new THREE.Vector3(0, 0, 1)),
-  plan: basis(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, -1)),
-  front: basis(new THREE.Vector3(1, 0, 0)),
-  rear: basis(new THREE.Vector3(-1, 0, 0)),
-  hero: basis(new THREE.Vector3(1, 0.65, 1.8)),
+  side: basis(new THREE.Vector3(1, 0, 0)),
+  plan: basis(new THREE.Vector3(0, 1, 0), new THREE.Vector3(-1, 0, 0)),
+  front: basis(new THREE.Vector3(0, 0, -1)),
+  rear: basis(new THREE.Vector3(0, 0, 1)),
+  hero: basis(new THREE.Vector3(1.8, 0.65, -1)),
 };
 
 function measureShip(model: THREE.Object3D): Record<View, Span> {
@@ -72,7 +72,7 @@ function paintSheet(ctx: CanvasRenderingContext2D, choices: DrawingChoices, span
   ctx.beginPath(); ctx.moveTo(1230, 40); ctx.lineTo(1230, 860); ctx.stroke();
 
   text(SHIP_MODEL.name.toUpperCase(), 1260, 115, 55, theme.ink, true);
-  text('Battleship · Germany · 1941', 1260, 149, 17, theme.muted);
+  text(SHIP_MODEL.description, 1260, 149, 17, theme.muted);
   rule(1260, 176, 1530);
   text('Ship schematic', 1260, 215, 28, theme.accent, true);
   text('Full hull and deck arrangement', 1260, 249, 17, theme.muted);
@@ -109,7 +109,7 @@ function paintSheet(ctx: CanvasRenderingContext2D, choices: DrawingChoices, span
     text('Three-quarter model view.', 1260, 691, 17, theme.muted);
   }
   rule(1260, 798, 1530);
-  text('BISMARCK / SEA TRIALS', 1260, 833, 22, theme.accent, true);
+  text(`${SHIP_MODEL.name.toUpperCase()} / SEA TRIALS`, 1260, 833, 22, theme.accent, true);
   text('Model reference · not a construction drawing', 65, 886, 14, theme.muted);
 }
 

@@ -6,11 +6,16 @@
   "packageManager": "bun@1.3.3",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "tsc --noEmit && vite build",
+    "build": "bun run ship:check bismarck && bun run ship:check yamato && bun run ship:check baltimore && bun run ship:check enterprise-cv6 && tsc --noEmit && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "typecheck": "tsc --noEmit",
-    "test": "bun test src",
-    "export:ship": "/Applications/Blender.app/Contents/MacOS/Blender --background --python scripts/export-bismarck.py"
+    "test": "bun test src/simulation src/ships src/game/ShipView.test.ts src/schematic",
+    "export:ship": "bun run ship:build bismarck",
+    "ship:build": "bun scripts/ships/pipeline.ts build",
+    "ship:check": "bun scripts/ships/pipeline.ts check",
+    "ship:compile": "bun scripts/ships/pipeline.ts compile",
+    "ship:review": "bun scripts/ships/pipeline.ts review",
+    "ship:new": "bun scripts/ships/new.ts"
   },
   "dependencies": {
     "@fontsource/barlow": "^5.2.8",

@@ -1,0 +1,337 @@
+{
+  "schemaVersion": 1,
+  "status": "Class comparison; not Baltimore-specific historical certification",
+  "sources": [
+    "quincy-docking-1946",
+    "canberra-sections-1953"
+  ],
+  "framePitchM": 1.2192,
+  "assumedFrame0StationM": 203.2762,
+  "notes": [
+    "Quincy frame 82.5 and 115 docking sections show a rounded, nearly flat floor and vertical sides above the bilge.",
+    "Quincy has a nearly flat forward keel with a short rounded forefoot; the earlier Baltimore model incorrectly rose over about 30 m.",
+    "Canberra scan contains missile-conversion annotations. Only the original hull/deck outlines are used as class comparisons.",
+    "Section blends and stem/transom waterline endpoint stations remain authored estimates."
+  ],
+  "quincy82_5Trace": {
+    "inspectionCrop": "quincy-sections-inspection.jpg",
+    "centerPixel": [
+      835,
+      499
+    ],
+    "thirdDeckY": 88,
+    "waterline22FtY": 165,
+    "shellPixels": [
+      [
+        835,
+        499
+      ],
+      [
+        890,
+        499
+      ],
+      [
+        948,
+        495
+      ],
+      [
+        1000,
+        489
+      ],
+      [
+        1055,
+        480
+      ],
+      [
+        1110,
+        470
+      ],
+      [
+        1167,
+        454
+      ],
+      [
+        1220,
+        427
+      ],
+      [
+        1260,
+        386
+      ],
+      [
+        1298,
+        343
+      ],
+      [
+        1329,
+        289
+      ],
+      [
+        1350,
+        241
+      ],
+      [
+        1358,
+        88
+      ]
+    ],
+    "originalCropRectangle": [
+      29100,
+      2100,
+      39200,
+      8200
+    ],
+    "inspectionWidthPixels": 2048
+  },
+  "previousDeckHeights": [
+    [
+      0,
+      6.55
+    ],
+    [
+      10,
+      6.2
+    ],
+    [
+      25,
+      5.85
+    ],
+    [
+      40,
+      5.55
+    ],
+    [
+      60,
+      5.2
+    ],
+    [
+      80,
+      5.08
+    ],
+    [
+      100,
+      5.1
+    ],
+    [
+      120,
+      5.12
+    ],
+    [
+      140,
+      5.2
+    ],
+    [
+      157,
+      5.4
+    ],
+    [
+      170,
+      5.9
+    ],
+    [
+      180,
+      6.7
+    ],
+    [
+      190,
+      7.65
+    ],
+    [
+      200,
+      8.85
+    ],
+    [
+      205.2574,
+      9.7
+    ]
+  ],
+  "previousKeelHeights": [
+    [
+      0,
+      -0.8
+    ],
+    [
+      5,
+      -2.8
+    ],
+    [
+      12,
+      -5.25
+    ],
+    [
+      22,
+      -6.85
+    ],
+    [
+      35,
+      -7.366
+    ],
+    [
+      170,
+      -7.366
+    ],
+    [
+      185,
+      -6.85
+    ],
+    [
+      195,
+      -5.25
+    ],
+    [
+      201,
+      -2.4
+    ],
+    [
+      202.3872,
+      0
+    ],
+    [
+      203,
+      0.2
+    ],
+    [
+      204,
+      4.6
+    ],
+    [
+      205.2574,
+      9.7
+    ]
+  ],
+  "authoredSectionLevelsAboveKeelM": [
+    0,
+    0,
+    0.08,
+    0.3,
+    0.75,
+    1.5,
+    2.5,
+    3.7,
+    5.3,
+    7.366,
+    8.28,
+    11,
+    13.332625
+  ],
+  "authoredWidthFractions": {
+    "midship": [
+      0,
+      0.1,
+      0.216,
+      0.36,
+      0.59,
+      0.74,
+      0.835,
+      0.917,
+      0.997,
+      1,
+      1,
+      1,
+      1
+    ],
+    "afterbody": [
+      0,
+      0.1,
+      0.15,
+      0.24,
+      0.38,
+      0.56,
+      0.72,
+      0.87,
+      0.99,
+      1,
+      1,
+      1,
+      1
+    ],
+    "forebody": [
+      0,
+      0.005,
+      0.025,
+      0.05,
+      0.12,
+      0.24,
+      0.4,
+      0.55,
+      0.7,
+      0.84,
+      0.91,
+      0.96,
+      1
+    ]
+  },
+  "mainDeckAboveSelectedWaterlineM": 5.965825000000002,
+  "newKeelHeights": [
+    [
+      0,
+      -1.8
+    ],
+    [
+      7,
+      -2.3
+    ],
+    [
+      13,
+      -3.2
+    ],
+    [
+      22,
+      -4.5
+    ],
+    [
+      28,
+      -5.3
+    ],
+    [
+      32,
+      -7.366
+    ],
+    [
+      195,
+      -7.366
+    ],
+    [
+      200,
+      -7.366
+    ],
+    [
+      201.1,
+      -7.366
+    ],
+    [
+      201.4,
+      -6.7
+    ],
+    [
+      201.7,
+      -4.8
+    ],
+    [
+      202.0,
+      -2.3
+    ],
+    [
+      202.3872,
+      0
+    ],
+    [
+      204,
+      4.6
+    ],
+    [
+      205.2574,
+      9.96
+    ]
+  ],
+  "underwaterFittings": {
+    "outerShaftLateralM": 7.5438,
+    "innerShaftLateralM": 3.6576,
+    "outerPropellerXM": -71.5,
+    "innerPropellerXM": -87.4,
+    "rudderStockXM": -91.99,
+    "rudderBottomChordM": 6.4008,
+    "projectionBelowKeelM": 0.530225,
+    "status": "Lateral offsets, chord and projection transcribed from Quincy drawing; longitudinal centers and blade envelope measured approximately. Not Baltimore-specific as-built proof."
+  }
+}

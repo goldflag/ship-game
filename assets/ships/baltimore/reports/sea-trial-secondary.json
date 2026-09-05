@@ -1,0 +1,338 @@
+{
+  "shipId": "baltimore",
+  "contentHash": "6e13dafe1805949ec1e74a52804c78704e5364b3e6eb3a473c2687619e055594",
+  "backend": "webgpu",
+  "tick": 8438,
+  "paused": false,
+  "fps": 33.19199964917247,
+  "inspecting": true,
+  "inPort": false,
+  "portInspection": "exterior",
+  "maxMuzzleErrorM": 0.0013184576263571028,
+  "combat": {
+    "battery": "secondary",
+    "range": 857.9627031520658,
+    "ready": 0,
+    "total": 6,
+    "targetIntegrity": 0.8272000000000003,
+    "targetWater": 0,
+    "targetPower": 1,
+    "targetSteering": 1,
+    "targetSunk": false,
+    "targetUnderway": false,
+    "mounts": [
+      {
+        "id": "secondary-51",
+        "name": "Mount 51 \u00b7 5-inch",
+        "status": "reloading",
+        "reload": 1.666666666666675,
+        "ammo": 718
+      },
+      {
+        "id": "secondary-52",
+        "name": "Mount 52 \u00b7 5-inch",
+        "status": "reloading",
+        "reload": 1.666666666666675,
+        "ammo": 718
+      },
+      {
+        "id": "secondary-53",
+        "name": "Mount 53 \u00b7 5-inch",
+        "status": "reloading",
+        "reload": 1.666666666666675,
+        "ammo": 718
+      },
+      {
+        "id": "secondary-54",
+        "name": "Mount 54 \u00b7 5-inch",
+        "status": "reloading",
+        "reload": 1.666666666666675,
+        "ammo": 718
+      },
+      {
+        "id": "secondary-55",
+        "name": "Mount 55 \u00b7 5-inch",
+        "status": "reloading",
+        "reload": 1.666666666666675,
+        "ammo": 718
+      },
+      {
+        "id": "secondary-56",
+        "name": "Mount 56 \u00b7 5-inch",
+        "status": "reloading",
+        "reload": 1.666666666666675,
+        "ammo": 718
+      }
+    ],
+    "modules": [
+      {
+        "id": "magazine-forward",
+        "name": "Forward 8-inch magazines",
+        "condition": 1
+      },
+      {
+        "id": "engine-forward",
+        "name": "Forward engine room",
+        "condition": 1
+      },
+      {
+        "id": "engine-aft",
+        "name": "After engine room",
+        "condition": 1
+      },
+      {
+        "id": "magazine-aft",
+        "name": "After 8-inch magazine",
+        "condition": 1
+      },
+      {
+        "id": "steering",
+        "name": "Steering gear",
+        "condition": 1
+      }
+    ],
+    "message": "Stopped by Port belt"
+  },
+  "events": [
+    {
+      "kind": "penetration",
+      "position": [
+        639.205,
+        0.7310181410486143,
+        -549.3423766094304
+      ],
+      "message": "Penetrated Outer plating \u00b7 gameplay envelope",
+      "shipId": "target",
+      "sequence": 53,
+      "tick": 8360
+    },
+    {
+      "kind": "stopped",
+      "position": [
+        640.7238,
+        0.7003035516506197,
+        -550.6844723068269
+      ],
+      "message": "Stopped by Port belt",
+      "shipId": "target",
+      "sequence": 54,
+      "tick": 8360
+    },
+    {
+      "kind": "penetration",
+      "position": [
+        639.205,
+        0.7197937857116099,
+        -550.4609408392176
+      ],
+      "message": "Penetrated Outer plating \u00b7 gameplay envelope",
+      "shipId": "target",
+      "sequence": 55,
+      "tick": 8360
+    },
+    {
+      "kind": "stopped",
+      "position": [
+        640.7238,
+        0.6890791963136155,
+        -551.8030365366142
+      ],
+      "message": "Stopped by Port belt",
+      "shipId": "target",
+      "sequence": 56,
+      "tick": 8360
+    },
+    {
+      "kind": "penetration",
+      "position": [
+        639.205,
+        0.7301740773284926,
+        -549.4438309198455
+      ],
+      "message": "Penetrated Outer plating \u00b7 gameplay envelope",
+      "shipId": "target",
+      "sequence": 57,
+      "tick": 8360
+    },
+    {
+      "kind": "stopped",
+      "position": [
+        640.7238,
+        0.6994573966481279,
+        -550.7723486536462
+      ],
+      "message": "Stopped by Port belt",
+      "shipId": "target",
+      "sequence": 58,
+      "tick": 8360
+    },
+    {
+      "kind": "penetration",
+      "position": [
+        639.205,
+        0.7190131536612387,
+        -550.5574473687274
+      ],
+      "message": "Penetrated Outer plating \u00b7 gameplay envelope",
+      "shipId": "target",
+      "sequence": 59,
+      "tick": 8360
+    },
+    {
+      "kind": "stopped",
+      "position": [
+        640.7238,
+        0.688296472980874,
+        -551.885965102528
+      ],
+      "message": "Stopped by Port belt",
+      "shipId": "target",
+      "sequence": 60,
+      "tick": 8360
+    },
+    {
+      "kind": "penetration",
+      "position": [
+        639.205,
+        0.7284289685847279,
+        -549.5574512600293
+      ],
+      "message": "Penetrated Outer plating \u00b7 gameplay envelope",
+      "shipId": "target",
+      "sequence": 61,
+      "tick": 8361
+    },
+    {
+      "kind": "stopped",
+      "position": [
+        640.7238,
+        0.697966832079426,
+        -550.8707582676816
+      ],
+      "message": "Stopped by Port belt",
+      "shipId": "target",
+      "sequence": 62,
+      "tick": 8361
+    },
+    {
+      "kind": "penetration",
+      "position": [
+        639.205,
+        0.7174328653191537,
+        -550.6655588967586
+      ],
+      "message": "Penetrated Outer plating \u00b7 gameplay envelope",
+      "shipId": "target",
+      "sequence": 63,
+      "tick": 8361
+    },
+    {
+      "kind": "stopped",
+      "position": [
+        640.7238,
+        0.6869707288138518,
+        -551.9788659044108
+      ],
+      "message": "Stopped by Port belt",
+      "shipId": "target",
+      "sequence": 64,
+      "tick": 8361
+    },
+    {
+      "kind": "penetration",
+      "position": [
+        639.205,
+        0.7277421960940829,
+        -549.6566704290802
+      ],
+      "message": "Penetrated Outer plating \u00b7 gameplay envelope",
+      "shipId": "target",
+      "sequence": 65,
+      "tick": 8361
+    },
+    {
+      "kind": "stopped",
+      "position": [
+        640.7238,
+        0.697278387170978,
+        -550.956690658884
+      ],
+      "message": "Stopped by Port belt",
+      "shipId": "target",
+      "sequence": 66,
+      "tick": 8361
+    },
+    {
+      "kind": "penetration",
+      "position": [
+        639.205,
+        0.7168095611958581,
+        -550.759995798834
+      ],
+      "message": "Penetrated Outer plating \u00b7 gameplay envelope",
+      "shipId": "target",
+      "sequence": 67,
+      "tick": 8361
+    },
+    {
+      "kind": "stopped",
+      "position": [
+        640.7238,
+        0.6863457522727533,
+        -552.0600160286378
+      ],
+      "message": "Stopped by Port belt",
+      "shipId": "target",
+      "sequence": 68,
+      "tick": 8361
+    },
+    {
+      "kind": "penetration",
+      "position": [
+        639.205,
+        0.7720506938948104,
+        -548.8653280941919
+      ],
+      "message": "Penetrated Outer plating \u00b7 gameplay envelope",
+      "shipId": "target",
+      "sequence": 69,
+      "tick": 8362
+    },
+    {
+      "kind": "stopped",
+      "position": [
+        640.7238,
+        0.7359360028667316,
+        -550.2712190741039
+      ],
+      "message": "Stopped by Port belt",
+      "shipId": "target",
+      "sequence": 70,
+      "tick": 8362
+    },
+    {
+      "kind": "penetration",
+      "position": [
+        639.205,
+        0.7585114554385252,
+        -550.0075104502577
+      ],
+      "message": "Penetrated Outer plating \u00b7 gameplay envelope",
+      "shipId": "target",
+      "sequence": 71,
+      "tick": 8362
+    },
+    {
+      "kind": "stopped",
+      "position": [
+        640.7238,
+        0.7223967644104463,
+        -551.4134014301698
+      ],
+      "message": "Stopped by Port belt",
+      "shipId": "target",
+      "sequence": 72,
+      "tick": 8362
+    }
+  ]
+}

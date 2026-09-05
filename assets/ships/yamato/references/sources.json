@@ -1,0 +1,187 @@
+{
+  "configuration": "Yamato, intended 7 April 1945 exterior fit",
+  "waterline": "10.4 m trial draft datum, not a claim about the exact displacement at sinking",
+  "retrieved": "2026-09-05",
+  "sources": [
+    {
+      "id": "kure-museum-data",
+      "title": "Yamato Museum: Yamato in numbers",
+      "url": "https://yamato-museum.com/yamato-data/",
+      "authority": "Kure Maritime Museum",
+      "supports": [
+        "263 m overall length",
+        "38.9 m maximum breadth in data summary",
+        "three triple 46 cm main turrets",
+        "nine main guns",
+        "5 m propeller diameter"
+      ],
+      "status": "Read museum specification page including its summary table; 38.9 m breadth independently cross-checked on 2026-09-05. Does not prove hull lines or fitting positions."
+    },
+    {
+      "id": "usntmj-o45",
+      "title": "U.S. Naval Technical Mission to Japan, O-45(N), Japanese 18-inch Gun Mounts, February 1946",
+      "url": "https://www.fischer-tropsch.org/primary_documents/gvt_reports/USNAVY/USNTMJ%20Reports/USNTMJ-200F-0384-0445%20Report%20O-45%20N.pdf",
+      "localFile": "usntmj-o-45.pdf",
+      "authority": "U.S. Navy primary investigation with recovered drawings and Japanese personnel interviews",
+      "rights": "U.S. government report; public domain",
+      "supports": [
+        "Printed p.16: 46 cm caliber, 780 m/s AP muzzle velocity, 1460 kg projectile",
+        "Printed p.17: 3.50 m bore spacing, 13.050 m external roller path, 4.40 m roller-to-gun-axis height, 3.250 m rotation-axis-to-trunnion offset, 1.430 m recoil, 15 m rangefinder",
+        "Printed p.20: original turret section",
+        "PDF pp.25-26: original forward magazine plans and turret frame stations"
+      ],
+      "limitations": [
+        "Mount weight is reported as 2510 metric tons; other publications give different definitions of mounting weight",
+        "Figure 7 reports 46 triple 25 mm mounts for Yamato; it cannot establish the intended final 52-triple inventory",
+        "Individual values and illustrations have to be reconciled; an official report is not error-free"
+      ]
+    },
+    {
+      "id": "usntmj-s013",
+      "title": "U.S. Naval Technical Mission to Japan S-01-3: Surface Warship Hull Design",
+      "url": "https://www.fischer-tropsch.org/primary_documents/gvt_reports/USNAVY/USNTMJ%20Reports/USNTMJ-200G-0085-0145%20Report%20S-01-3.pdf",
+      "localFile": "usntmj-s-01-3.pdf",
+      "authority": "U.S. Navy primary investigation",
+      "rights": "U.S. government report; public domain",
+      "supports": [
+        "Printed p.42: trial draft 10.4 m; trial waterline length 256 m; trial displacement 69935 metric tons; depth 19 m; design speed 27 knots",
+        "Appendix lists original drawings transferred to the Navy"
+      ],
+      "limitations": [
+        "Printed p.42 gives 259 m overall length, 39 m extreme beam and incorrectly describes the main caliber as 45 cm; these conflict with later museum data",
+        "The scan includes the drawing register, not the original full set of hull lines",
+        "Do not treat its 259 m overall length as Yamato's accepted 263 m overall length"
+      ]
+    },
+    {
+      "id": "usntmj-o47",
+      "title": "U.S. Naval Technical Mission to Japan O-47(N)-1: Mounts Under 18 Inches",
+      "url": "https://www.fischer-tropsch.org/primary_documents/gvt_reports/USNAVY/USNTMJ%20Reports/USNTMJ-200F-0446-0523%20Report%20O-47%20N-1.pdf",
+      "localFile": "usntmj-o-47-1.pdf",
+      "authority": "U.S. Navy primary investigation",
+      "rights": "U.S. government report; public domain",
+      "status": "Inspected printed pp.14,16,18,20. The 15.5 cm row gives 6 degrees/second train, 55 degrees maximum elevation, 55.87 kg AP shell and five rounds/minute.",
+      "limitations": [
+        "Mount weights and armor are variant-dependent; exact secondary gunhouse dimensions still missing."
+      ]
+    },
+    {
+      "id": "alexpl-1945",
+      "title": "Yamato1945.png, original plan/profile reconstruction by Alexpl",
+      "url": "https://commons.wikimedia.org/wiki/File:Yamato1945.png",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/0/08/Yamato1945.png",
+      "localFile": "yamato-1945-alexpl.png",
+      "author": "Alexpl",
+      "version": "28 March 2015 revision, 4177 x 2026 pixels",
+      "rights": "CC BY-SA 3.0 / GFDL; unchanged reference image, attribution retained here",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "supports": [
+        "Qualitative comparison of intended 7 April 1945 exterior configuration",
+        "Provisional relative silhouette and equipment placement measurements"
+      ],
+      "limitations": [
+        "This is a modern secondary reconstruction, not an original shipyard drawing",
+        "It cites Kure Museum publications, Chihaya, Skulski and other sources; those works have not all been inspected here",
+        "Raster-derived positions cannot prove historical accuracy; separate bow/stern views and original offsets remain required",
+        "No pixels are used as game textures and no competitor geometry is imported"
+      ]
+    },
+    {
+      "id": "tamiya-principal-dimensions",
+      "url": "https://cdn.simba-dickie-group.de/downloads/300078030/300078030_Yamato.pdf",
+      "authority": "Tamiya original model instruction publication",
+      "supports": [
+        "Cross-check of published 263 m overall length, 256 m waterline length and 38.9 m extreme beam"
+      ],
+      "status": "Inspected Japanese principal-characteristics table on PDF p.2 (2013 instruction sheet).",
+      "localFile": "tamiya-yamato.pdf",
+      "limitations": [
+        "Model manufacturer secondary reconstruction; not an original shipyard drawing",
+        "Table gives a different AA count and trial displacement from other references; not used for final-fit AA inventory"
+      ]
+    },
+    {
+      "id": "nara-plans-excerpt",
+      "url": "https://www.avions-bateaux.com/uploads/attachment/produit/produit_3318_f8013c5fd9d789c619201504cba3e58d.pdf",
+      "authority": "Publisher preview reproducing NARA general arrangement drawings",
+      "status": "Web PDF opened. Direct local download failed; plan pages not yet measured."
+    },
+    {
+      "id": "usntmj-s062",
+      "title": "USNTMJ S-06-2, Reports of Damage to Japanese Ships, Article 2, January 1946",
+      "url": "https://www.fischer-tropsch.org/primary_documents/gvt_reports/USNAVY/USNTMJ%20Reports/USNTMJ-200H-0745-0786%20Report%20S-06-2.pdf",
+      "localFile": "usntmj-s-06-2.pdf",
+      "authority": "U.S. Navy primary investigation",
+      "rights": "U.S. government report; public domain",
+      "supports": [
+        "Printed p.10: 263 m overall length, 256 m waterline length, 36.9 m waterline beam, 10.4 m trial draft",
+        "Plate III: profile and subdivision with frame numbers; bulb shape; main/secondary arrangement",
+        "Plate IV: schematic transverse section of sister ship Musashi, explicitly a class comparison"
+      ],
+      "limitations": [
+        "Extreme beam listed as 38.8 m versus 38.9 m in Tamiya table; 0.1 m disagreement remains unresolved",
+        "Damage sketches are not a complete lines/offsets plan; do not certify exact hull surface from them"
+      ]
+    },
+    {
+      "id": "museum-exterior-details",
+      "title": "Yamato Museum educational detail series",
+      "url": "https://yamatomuseum.securesite.jp/annex/?page_id=517",
+      "authority": "Kure Maritime Museum, original photographs of its reconstructed 1:10 model",
+      "localFiles": [
+        "museum-bridge.jpg",
+        "museum-bulb.jpg",
+        "museum-propellers-stern.png",
+        "museum-rudders.png",
+        "museum-searchlights.jpg",
+        "museum-forward-turrets.jpg",
+        "museum-aft-turret.jpg"
+      ],
+      "supports": [
+        "Bridge levels, optics, two Type 21 arrays, rounded AA blast shields",
+        "Bulb outline and tandem rudder silhouettes",
+        "Four outward-turning propellers, 5 m diameter",
+        "Six searchlights, three per side; 150 cm reflector diameter; rounded galleries and cradles",
+        "Continuous navigation glazing, open air-defence platform and supported gallery outlines; dimensional interpretation remains provisional"
+      ],
+      "relatedUrls": [
+        "https://yamatomuseum.securesite.jp/annex/?page_id=550",
+        "https://yamatomuseum.securesite.jp/annex/?page_id=719",
+        "https://yamatomuseum.securesite.jp/annex/?page_id=698",
+        "https://yamatomuseum.securesite.jp/annex/?page_id=540"
+      ],
+      "rights": "Museum copyrighted photographs retained only as credited research references, not runtime textures",
+      "limitations": [
+        "Photographs show the museum reconstruction, not the real ship",
+        "Perspective photographs cannot establish every dimension"
+      ]
+    },
+    {
+      "id": "museum-drawing-limitations",
+      "title": "Yamato Museum: original drawings and reconstructed navigation bridge",
+      "url": "https://yamato-museum.com/note/post_14/",
+      "authority": "Kure Maritime Museum director",
+      "supports": [
+        "Museum reports conflicting dated bridge plans and explicitly says its reconstruction is not 100 percent",
+        "Museum educational sheet reports that most original plans were destroyed; surviving 1999 discoveries chiefly concern bridge structures"
+      ],
+      "relatedUrls": [
+        "https://yamatomuseum.securesite.jp/et/?page_id=1142"
+      ]
+    },
+    {
+      "id": "kure-original-drawings-2017",
+      "title": "Kure City bulletin, November 2017, printed p.8: original Yamato construction drawings",
+      "url": "https://www.city.kure.lg.jp/uploaded/attachment/46523.pdf",
+      "localFile": "kure-original-drawings-2017.pdf",
+      "authority": "Kure City / Yamato Museum",
+      "status": "Inspected PDF p.5. Reproduces a perspective photograph of the original aft-bridge drawing. Photograph is cropped and lacks legible measurement coverage for a full dimensional audit.",
+      "supports": [
+        "Surviving originals include aft-bridge structures and are held by the museum"
+      ],
+      "limitations": [
+        "Photograph is not a measurable reproduction of the complete drawing; not used to claim exact bridge dimensions."
+      ]
+    }
+  ]
+}
