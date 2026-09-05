@@ -1,14 +1,14 @@
 {
-  "contentHash": "89cd923afa1be4f2f9ad74f3065035b1af7e2ef8106728ee6a3dd2bf0f65604a",
+  "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
   "hullBounds": [
     [
-      -18.000001907348633,
+      -18,
       -9.329999923706055,
       -125.25
     ],
     [
       18,
-      8.800000190734863,
+      8.350000381469727,
       125.25
     ]
   ],
@@ -17,7 +17,7 @@
       "id": "anton",
       "measuredPivot": [
         0.000005288628017297015,
-        6.800000190734863,
+        6.75,
         -70.05000305175781
       ],
       "barrels": 2,
@@ -27,7 +27,7 @@
       "id": "bruno",
       "measuredPivot": [
         0.00000391456615034258,
-        10.699999809265137,
+        10.550000190734863,
         -51.849998474121094
       ],
       "barrels": 2,
@@ -37,7 +37,7 @@
       "id": "caesar",
       "measuredPivot": [
         -0.0000043902032302867156,
-        10.600000381469727,
+        10.550000190734863,
         58.150001525878906
       ],
       "barrels": 2,
@@ -47,7 +47,7 @@
       "id": "dora",
       "measuredPivot": [
         -0.000005764264642493799,
-        6.400000095367432,
+        6.349999904632568,
         76.3499984741211
       ],
       "barrels": 2,
@@ -56,9 +56,9 @@
     {
       "id": "starboard-secondary-1",
       "measuredPivot": [
-        9.60000228881836,
+        9.650001525878906,
         6.150000095367432,
-        -27
+        -27.200000762939453
       ],
       "barrels": 2,
       "articulationChecks": 6
@@ -66,9 +66,9 @@
     {
       "id": "starboard-secondary-2",
       "measuredPivot": [
-        14.100001335144043,
-        6.150000095367432,
-        -8.09999942779541
+        14.05000114440918,
+        6,
+        -7.999999046325684
       ],
       "barrels": 2,
       "articulationChecks": 6
@@ -76,9 +76,9 @@
     {
       "id": "starboard-secondary-3",
       "measuredPivot": [
-        13.999998092651367,
-        6.150000095367432,
-        24.400001525878906
+        13.89999771118164,
+        6,
+        24.000001907348633
       ],
       "barrels": 2,
       "articulationChecks": 6
@@ -86,9 +86,9 @@
     {
       "id": "port-secondary-1",
       "measuredPivot": [
-        -9.599998474121094,
+        -9.64999771118164,
         6.150000095367432,
-        -27
+        -27.200000762939453
       ],
       "barrels": 2,
       "articulationChecks": 6
@@ -96,9 +96,9 @@
     {
       "id": "port-secondary-2",
       "measuredPivot": [
-        -14.09999942779541,
-        6.150000095367432,
-        -8.100001335144043
+        -14.049999237060547,
+        6,
+        -8.000000953674316
       ],
       "barrels": 2,
       "articulationChecks": 6
@@ -106,18 +106,18 @@
     {
       "id": "port-secondary-3",
       "measuredPivot": [
-        -14.000001907348633,
-        6.150000095367432,
-        24.39999771118164
+        -13.900001525878906,
+        6,
+        23.999998092651367
       ],
       "barrels": 2,
       "articulationChecks": 6
     }
   ],
-  "meshes": 50,
-  "primitives": 148,
-  "triangles": 164322,
-  "bytes": 7303000,
+  "meshes": 64,
+  "primitives": 147,
+  "triangles": 59194,
+  "bytes": 1425652,
   "result": "passed",
   "historicalAccuracy": "not certified; see reference register and discrepancy report"
 }

@@ -46,8 +46,9 @@ async function port() {
   canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY: -170 }));
   rig.update(simulation.ship, 0, 0, true);
   const game = Object.assign(Object.create(Game.prototype), {
-    definition, simulation, playerView, targetView, fleetViews: [playerView, targetView], fleetModels: [loaded], effects: { reset() {} }, loadedModel: loaded, scene, harbor, camera, rig,
+    definition, simulation, playerView, targetView, fleetViews: [playerView, targetView], fleetModels: [loaded], loadedModel: loaded, scene, harbor, camera, rig,
     currentAim: [650, .5, -550], manualAim: true,
+    effects: { reset() {}, diagnostics() { return {}; } },
     ship: new Group(), inPort: true, disposed: false, switchingShip: false,
     renderer: { domElement: { setAttribute() {} } },
   }) as Game;
