@@ -22,9 +22,25 @@ Base water colors remain the Black Flag colors: `waterColor #224659`, `transmiss
 
 Fair mode uses amplitude 0.35, wind 5, wavelength 65 m. Heavy uses amplitude 1.4, wind 16, wavelength 100 m. All three currently share the same daylight/cloud setup; they change the sea, not the weather system.
 
-Two wake generators sit 112 m forward and aft of the origin: bow depth/radius 2.8/11 m, stern 2.2/14 m. Wake foam strength is 1.25 and persistence 0.995. Buoyancy samples a 190 × 28 m footprint with 1.8 s smoothing and 0.45 rotation influence. These values were chosen for visually stable battleship motion, not hydrodynamic accuracy.
+Two wake generators sit 112 m forward and aft of the origin; their current configuration is described under **Ship wake** below. Buoyancy samples a 190 × 28 m footprint with 1.8 s smoothing and 0.45 rotation influence. These values were chosen for visually stable battleship motion, not hydrodynamic accuracy.
 
 The demo's image-based sky is replaced by Sky Pro's animated clouds and atmosphere. That changes what the water reflects even if its material settings stay the same. Cloud reflections are baked at width 384 with 16 cloud march steps and 8 skipped frames. The game uses ACES tone mapping and neutral exposure; it does not add the demo's optional bloom or film grain.
+
+## Ship wake
+
+`src/game/ShipWake.ts` combines Water Pro's wave displacement with the foam history in `src/game/WakeFoam.ts`. Both are sampled by the actual water material, so foam follows the ocean's displacement, lighting and bubble texture. There is no floating decal or flat plane above the sea.
+
+The displacement field covers **1,536 × 1,536 m**, centered on the ship through a dedicated downward-facing anchor camera. Moving the viewing camera cannot discard or reposition the existing trail. The selected quality's cell count stays unchanged (Medium 256², High 512², Ultra 1024²); the smaller extent improves spatial detail over the previous 2,048 m field without increasing the solve cost.
+
+The bow radius is **10 m** and the stern radius is **14 m**, with full-speed displacement depths of **0.32 m** and **0.18 m**. Depth scales with squared speed, and the emitters switch off below 0.1 m/s. Friction is **0.065**, allowing the disturbance to spread outward; native foam strength is limited to **1.2** and the breaking threshold is **0.09**. The native foam uses `exp(-dt / 9)` decay. These are visual tuning values rather than a calibrated hydrodynamic model.
+
+Foam history records a position, heading, speed and birth time every **3 m** of travel. Three stern streams merge and widen with age, while bow-shoulder foam moves sideways from the recorded course. Old samples keep their original heading through turns. Coverage decays over **23 seconds**, with a smooth cutoff at **55 seconds**, and slow world-space turbulence breaks up the outline. The water material's foam texture dissolves the remaining patches. Emission follows motion and reverses its trailing end when sailing astern.
+
+The foam coverage texture updates at most **20 times per second**, at 256² on Medium and 512² on High/Ultra. Overlapping samples use maximum coverage rather than additive buildup. Distance-based samples and interpolated birth times keep density consistent across rendering frame rates. Stopping leaves existing foam to spread and fade; returning to port clears both foam and displacement.
+
+Pausing switches the ocean to fixed-step mode with zero elapsed time, allowing rendering without stepping its wake integrators. This avoids Water Pro's host-clock `update(0)` continuing to extrapolate wake heights and decay foam while paused. Unpausing restores the host clock.
+
+The dev-only `/scripts/diagnostics/ship-wake.html` page runs the actual Game frame loop with controlled input and clock, then reads the native WebGPU wake buffers and foam coverage texture. It checks no wake at rest, foam 150 m behind the stern, widening with age, bounded displacement, retention through turns and camera orbit, exact field preservation while paused, fading after stopping, and clearing on return to port. Results are exposed as `window.wakeDiagnostic`; `?quality=medium` or `?quality=ultra` select the other field resolutions. Private buffer inspection is specific to Water Pro 3.5.1. The field currently follows the single player; a fleet implementation will need to choose shared field coverage for the ships in view.
 
 ## Daylight correction
 

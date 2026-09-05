@@ -39,6 +39,7 @@ The Fleet action HUD uses compact naval combat instruments: live ship handling a
 - `src/game/InputController.ts`: converts local keyboard and touch input into helm commands.
 - `src/game/Game.ts`: scene, Pro package integration, lifecycle, and a serialized asynchronous render loop. GPU buoyancy is a visual transform, separate from authoritative X/Z movement.
 - `src/game/CameraRig.ts`: camera behavior, independent of simulation.
+- `src/game/ShipWake.ts`, `WakeFoam.ts`: spreading bow/stern waves and a widening foam trail that follows the ship's historical course, breaks into patches, and fades with age.
 - `src/ui/`: React instruments and settings. Telemetry updates at 10 Hz; React does not drive animation frames.
 - `vendor/`: supplied Pro runtime bundles, declarations, data, and their license files. These are proprietary dependencies; their original license terms remain in force.
 - `public/models/bismarck.glb`: exported ship, approximately 7 MB. Collection boundaries and materials are retained; static fittings are batched. Blender's procedural teak is baked into an embedded repeating texture.
