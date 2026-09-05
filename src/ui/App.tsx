@@ -7,6 +7,8 @@ import { FleetHud } from './FleetHud';
 import { Garage } from './Garage';
 import { selectedShip as initialShip, shipPreset } from '../ships/presets';
 import { ShipContext } from './ShipContext';
+import { bindingLabel, KEYBINDING_STORAGE_KEY, loadKeybindings, type Keybindings } from '../game/keybindings';
+import { SettingsDialog } from './SettingsDialog';
 
 const INITIAL_TELEMETRY: Telemetry = { ship: createShipState(), order: 1, camera: 'Chase', fps: 0, backend: 'webgpu', trail: [] };
 function loadSettings(): GameSettings {
@@ -30,7 +32,10 @@ export function App() {
   const game = useRef<Game | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const [settings, setSettings] = useState(loadSettings);
-  const [draft, setDraft] = useState(settings);
+  const [bindings, setBindings] = useState(loadKeybindings);
+  const bindingsRef = useRef(bindings);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [closed, setClosed] = useState(false);
   const [generation, setGeneration] = useState(0);
   const [data, setData] = useState(INITIAL_TELEMETRY);
   const [loading, setLoading] = useState({ label: 'Preparing your sea trial', progress: 0 });
@@ -41,9 +46,10 @@ export function App() {
   const [phase, setPhase] = useState<'garage' | 'sailing'>('garage');
 
   useEffect(() => {
+    if (closed) return;
     let active = true;
     setSwitching(false); setSwitchError(''); switchPending.current = false;
-    setReady(false); setError(''); setPaused(false); setData(INITIAL_TELEMETRY); setPhase('garage');
+    setReady(false); setError(''); setPaused(false); setSettingsOpen(false); setData(INITIAL_TELEMETRY); setPhase('garage');
     const session = new Game(host.current!, settings, {
       progress: (label, progress) => active && setLoading({ label, progress }),
       ready: () => active && setReady(true),
@@ -52,6 +58,7 @@ export function App() {
       hud: () => active && setHud(value => !value),
       error: message => active && setError(message),
     }, selectedRef.current);
+    session.input.setBindings(bindingsRef.current);
     game.current = session;
     session.setInPort(true);
     const reviewWindow = window as unknown as {
@@ -68,12 +75,12 @@ export function App() {
       if (import.meta.env.DEV) { delete reviewWindow.shipTrialDiagnostics; delete reviewWindow.shipTrialArticulation; }
       void session.dispose();
     };
-  }, [generation, settings]);
+  }, [generation, settings, closed]);
 
   useEffect(() => {
-    if (paused && ready && !error) dialog.current?.showModal();
+    if (paused && ready && !error && !closed) dialog.current?.showModal();
     else dialog.current?.close();
-  }, [paused, ready, error]);
+  }, [paused, ready, error, closed]);
 
   const launch = () => {
     if (!ready || switchPending.current) return;
@@ -113,18 +120,41 @@ export function App() {
     }
   };
 
-  const applySettings = () => {
+  const applySettings = (draft: GameSettings) => {
+    setSettingsOpen(false);
     try { localStorage.setItem('bismarck-settings', JSON.stringify(draft)); } catch { /* Storage is optional. */ }
     if (JSON.stringify(settings) === JSON.stringify(draft)) setGeneration(value => value + 1);
     else setSettings({ ...draft });
   };
 
+  const changeBindings = (next: Keybindings): boolean => {
+    bindingsRef.current = next;
+    setBindings(next);
+    game.current?.input.setBindings(next);
+    try { localStorage.setItem(KEYBINDING_STORAGE_KEY, JSON.stringify(next)); return true; }
+    catch { return false; }
+  };
+  const closeGame = () => {
+    game.current?.setPaused(true);
+    setSettingsOpen(false);
+    setClosed(true);
+    // Browsers may refuse to close a tab they did not open. The closed state
+    // still unmounts the session and releases its renderer and input listeners.
+    try { window.close(); } catch { /* The exit screen remains available. */ }
+  };
+
+  if (closed) return <main className="game-exit">
+    <Icon name="anchor" size={36}/><h1>Game closed</h1>
+    <p>You can close this tab. Your settings and keybindings are kept in this browser.</p>
+    <button className="primary-button" onClick={() => window.location.reload()}>Launch game <Icon name="play" size={18}/></button>
+  </main>;
+
   return <ShipContext value={selectedShip}><main className="game-shell">
     <div ref={host} className="ocean-viewport" />
     {phase === 'garage' && !error && <Garage key={selectedShip.id} switching={switching} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} progress={loading.progress} fps={data.fps} onLaunch={launch} onSettings={() => game.current?.setPaused(true)}/>}
-    {phase === 'sailing' && ready && !error && <FleetHud data={data} game={game.current} visible={hud}/>}
+    {phase === 'sailing' && ready && !error && <FleetHud data={data} game={game.current} visible={hud} bindings={bindings}/>}
 
-    {phase === 'sailing' && ready && !hud && <button className="restore-hud" onClick={() => setHud(true)}>Show instruments <kbd>H</kbd></button>}
+    {phase === 'sailing' && ready && !hud && <button className="restore-hud" onClick={() => setHud(true)}>Show instruments <kbd>{bindingLabel(bindings, 'hud')}</kbd></button>}
 
     {((!ready && phase === 'sailing') || error) && <section className="loading-screen" aria-live="polite">
       <div className="loading-brand"><Icon name="anchor" size={36}/><span>SEA TRIALS</span></div>
@@ -133,19 +163,20 @@ export function App() {
       </div><div className="loading-bottom"><span>SINGLEPLAYER · OPEN OCEAN</span><span>{selectedShip.name.toUpperCase()} / {selectedShip.configuration.match(/19\d{2}/)?.[0]}</span></div>
     </section>}
 
-    <dialog ref={dialog} className="pause-menu" onCancel={e => { e.preventDefault(); resume(); }}>
-      <div className="menu-heading"><h2>{phase === 'garage' ? 'Port settings.' : 'At your command.'}</h2><button className="icon-button" aria-label={phase === 'garage' ? 'Close port settings' : 'Resume sailing'} onClick={resume}><Icon name="close"/></button></div>
+    <dialog ref={dialog} className={`pause-menu ${settingsOpen ? 'pause-menu-covered' : ''}`} aria-labelledby="pause-title" onCancel={e => { e.preventDefault(); resume(); }}>
+      <div className="menu-heading"><h2 id="pause-title">{phase === 'garage' ? 'In port.' : 'At your command.'}</h2><button className="icon-button" aria-label={phase === 'garage' ? 'Close menu' : 'Resume sailing'} onClick={resume}><Icon name="close"/></button></div>
       <p className="menu-description">{phase === 'garage' ? 'Prepare the sea conditions for your next voyage.' : 'Sea trial paused. Your engine order is held.'}</p>
       <button autoFocus className="primary-button" onClick={resume}>{phase === 'garage' ? 'Back to port' : 'Resume sailing'} <Icon name={phase === 'garage' ? 'anchor' : 'play'} size={18}/></button>
       {phase === 'sailing' && <button className="secondary-button restart-button" onClick={returnToPort}>Return to port <Icon name="anchor" size={18}/></button>}
-      <div className="settings-heading">SEA TRIAL SETTINGS</div>
-      <label className="setting-row">Ocean detail<select value={draft.quality} onChange={e => setDraft({ ...draft, quality: e.target.value as GameSettings['quality'] })}><option value="medium">Medium</option><option value="high">High</option><option value="ultra">Ultra</option></select></label>
-      <label className="setting-row">Render scale<select value={draft.resolution} onChange={e => setDraft({ ...draft, resolution: Number(e.target.value) })}><option value={0.65}>65%</option><option value={0.8}>80%</option><option value={1}>100%</option></select></label>
-      <label className="setting-row">Sea conditions<select value={draft.sea} onChange={e => setDraft({ ...draft, sea: e.target.value as GameSettings['sea'] })}><option>Fair</option><option>Atlantic</option><option>Heavy</option></select></label>
-      <button className="secondary-button restart-button" onClick={applySettings}>Apply & reload port <Icon name="arrow" size={17}/></button>
-      <p className="settings-note">Reloads the scene in port. Lower detail or render scale can improve performance.</p>
-      {phase === 'sailing' && <div className="menu-controls"><span>Mouse · Aim</span><span>Left mouse / Q · Fire</span><span><kbd>Shift</kbd> Binoculars</span><span>Scroll · Zoom</span><span><kbd>Ctrl</kbd> Hold for cursor</span><span><kbd>1</kbd><kbd>2</kbd> Batteries</span><span><kbd>W</kbd><kbd>S</kbd> Engine order</span><span><kbd>A</kbd><kbd>D</kbd> Rudder</span><span><kbd>−</kbd><kbd>+</kbd> Map size</span><span><kbd>G</kbd> Gunnery & damage</span><span><kbd>C</kbd> Camera</span><span><kbd>R</kbd> Recenter</span><span><kbd>H</kbd> Instruments</span><span><kbd>F</kbd> Fullscreen</span></div>}
-      <div className="renderer-status"><span>{data.backend.toUpperCase()} RENDERER</span><span>{data.fps} FPS</span></div>
+      <button className="secondary-button menu-action" onClick={() => setSettingsOpen(true)}>Settings <Icon name="settings" size={18}/></button>
+      <button className="secondary-button menu-action close-game-button" onClick={closeGame}>Close game <Icon name="power" size={18}/></button>
+      {phase === 'sailing' && <div className="menu-controls">
+        <span><kbd>{bindingLabel(bindings, 'camera')}</kbd> Change camera</span>
+        <span><kbd>{bindingLabel(bindings, 'recenter')}</kbd> Recenter view</span>
+        <span><kbd>{bindingLabel(bindings, 'hud')}</kbd> Hide instruments</span>
+        <span><kbd>{bindingLabel(bindings, 'fullscreen')}</kbd> Fullscreen</span>
+      </div>}
     </dialog>
+    {settingsOpen && paused && ready && !error && <SettingsDialog settings={settings} bindings={bindings} onBindingsChange={changeBindings} onApply={applySettings} onClose={() => setSettingsOpen(false)}/>}
   </main></ShipContext>;
 }
