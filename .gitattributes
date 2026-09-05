@@ -1,0 +1,8 @@
+# Keep original source assets and references binary in diffs and merges.
+*.blend binary
+*.glb binary
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
