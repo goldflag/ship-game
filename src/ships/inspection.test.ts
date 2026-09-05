@@ -3,6 +3,7 @@ import { shipPreset, shipPresets } from './presets';
 import { entriesForMode, inspectionEntries } from './inspection';
 import { ShipInspection } from '../game/ShipInspection';
 import { CombatSimulation } from '../simulation/combat';
+import { Group, Mesh, Raycaster, Vector3 } from 'three/webgpu';
 
 test('inspection lists exactly the armor, mounts, modules and compartments used by each ship', () => {
   for (const id of Object.keys(shipPresets)) {
@@ -48,4 +49,48 @@ test('returning to port resets both actors, ammunition, damage and shells while 
   expect(sim.player).toBe(player); expect(sim.target).toBe(target);
   expect(sim.player).toEqual(fresh.player); expect(sim.target).toEqual(fresh.target);
   expect(sim.shells).toEqual([]); expect(sim.events).toEqual([]); expect(sim.tick).toBe(0);
+});
+
+test('armor picking follows the ship transform, finds the nearest layer and excludes hidden plates', () => {
+  const def = shipPreset('bismarck'), sim = new CombatSimulation(def), view = new ShipInspection(def);
+  const ship = new Group(); ship.position.set(120, 4, -80); ship.rotation.y = .7; ship.add(view.root);
+  view.setMode('armor'); view.update(sim.player); ship.updateMatrixWorld(true);
+  const origin = ship.localToWorld(new Vector3(-40, 0, 0)), destination = ship.localToWorld(new Vector3(0, 0, 0));
+  const ray = new Raycaster(origin, destination.sub(origin).normalize());
+  expect(view.pickArmor(ray)?.id).toBe('armor:port-main-belt-2');
+  view.setMode('armor', 'armor:port-belt-support-2'); view.update(sim.player);
+  expect(view.pickArmor(ray)?.id).toBe('armor:port-belt-support-2');
+  view.setMode('internals'); view.update(sim.player);
+  expect(view.pickArmor(ray)).toBeUndefined();
+  view.setMode('exterior');
+  expect(view.pickArmor(ray)).toBeUndefined();
+});
+
+test('hover highlights and outlines only its opaque plate, then clears without changing selection or combat', () => {
+  const def = shipPreset('bismarck'), sim = new CombatSimulation(def), view = new ShipInspection(def);
+  const before = JSON.stringify(sim.player), id = 'armor:port-main-belt-2';
+  view.setMode('armor'); view.update(sim.player);
+  const group = view.root.children.find(c => c.userData.inspectionId === id)!;
+  const fill = group.children[0] as Mesh;
+  const material = fill.material as import('three/webgpu').MeshBasicMaterial;
+  const color = material.color.clone();
+  const outlinedArmor = () => view.root.children.filter(c => c.visible && c.children[1].visible).map(c => c.userData.inspectionId);
+  expect(outlinedArmor()).toEqual([]);
+  view.setHovered(id); view.update(sim.player);
+  expect(view.hoveredId).toBe(id);
+  expect(view.selectedId).toBeUndefined();
+  expect(material.opacity).toBe(1);
+  expect(material.transparent).toBe(false);
+  expect(material.depthTest && material.depthWrite).toBe(true);
+  expect(outlinedArmor()).toEqual([id]);
+  expect(material.color.equals(color)).toBe(false);
+  view.setHovered('armor:port-belt-support-2'); view.update(sim.player);
+  expect(outlinedArmor()).toEqual(['armor:port-belt-support-2']);
+  view.setHovered(undefined);
+  expect(outlinedArmor()).toEqual([]);
+  expect(material.color.equals(color)).toBe(true);
+  view.setHovered(id); view.setMode('internals'); view.update(sim.player);
+  expect(view.hoveredId).toBeUndefined();
+  expect(group.children[1].visible).toBe(false);
+  expect(JSON.stringify(sim.player)).toBe(before);
 });
