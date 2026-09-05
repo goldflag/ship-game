@@ -121,7 +121,7 @@ Armor and Internals reuse the right detail surface, hiding the commander/orders,
 
 ## Elevation & Depth
 
-Translucent maritime surfaces, fine borders and edge shading provide separation from the live scene. Soft text shadows maintain contrast over water; diffuse shadows lift the pause dialog and primary port action. Inspection fades the actual exterior model. Port armor uses opaque plates with their own depth buffer, so near plates hide deeper layers while remaining visible through the hull and sea. Internals and combat inspection retain translucent volumes so submerged spaces remain inspectable.
+Translucent maritime surfaces, fine borders and edge shading provide separation from the live scene. Soft text shadows maintain contrast over water; diffuse shadows lift the pause dialog and primary port action. Inspection fades the actual exterior model. Port armor uses opaque plates with their own depth buffer, so near plates hide deeper layers while remaining visible through the hull and sea. A neutral upper-left light follows the inspection camera, with ambient fill keeping shaded faces readable. Shading preserves thickness hues and crisp plate edges without harbor exposure or glare. Internals and combat inspection retain translucent volumes so submerged spaces remain inspectable.
 
 ## Shapes
 
