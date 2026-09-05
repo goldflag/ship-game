@@ -14,6 +14,7 @@ import { SettingsDialog } from './SettingsDialog';
 import { GameAudio } from '../game/GameAudio';
 import { AUDIO_STORAGE_KEY, loadAudioSettings, type AudioSettings } from '../game/audio';
 import './ShipLabels.css';
+import './GunAimIndicators.css';
 
 const INITIAL_TELEMETRY: Telemetry = { ship: createShipState(), order: 1, camera: 'Chase', fps: 0, backend: 'webgpu', trail: [] };
 function loadSettings(): GameSettings {
