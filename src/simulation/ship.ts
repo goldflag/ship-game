@@ -20,6 +20,8 @@ export interface ShipState {
   pitch: number;
   heading: number;
   speed: number;
+  /** Sideways velocity toward starboard, in m/s (for contact impulses). */
+  swaySpeed: number;
   rudder: number;
   yawRate: number;
   distance: number;
@@ -37,7 +39,12 @@ export const BISMARCK = {
 } as const;
 
 export function createShipState(id = 'player'): ShipState {
-  return { id, tick: 0, x: 0, y: 0, z: 0, roll: 0, pitch: 0, heading: 0, speed: 0, rudder: 0, yawRate: 0, distance: 0 };
+  return { id, tick: 0, x: 0, y: 0, z: 0, roll: 0, pitch: 0, heading: 0, speed: 0, swaySpeed: 0, rudder: 0, yawRate: 0, distance: 0 };
+}
+
+export function motionVelocity(state: ShipState): import('../ships/blueprint').Vec3 {
+  const sin = Math.sin(state.heading), cos = Math.cos(state.heading);
+  return [sin * state.speed + cos * state.swaySpeed, 0, -cos * state.speed + sin * state.swaySpeed];
 }
 
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
@@ -58,9 +65,12 @@ export function stepShip(state: ShipState, command: HelmCommand, handling: impor
   const targetYaw = state.rudder * handling.maxYawRate * authority;
   state.yawRate += (targetYaw - state.yawRate) * (1 - Math.exp(-FIXED_DT / 2.4));
   state.heading = (state.heading + state.yawRate * FIXED_DT + Math.PI * 2) % (Math.PI * 2);
-  state.x += Math.sin(state.heading) * state.speed * FIXED_DT;
-  state.z -= Math.cos(state.heading) * state.speed * FIXED_DT;
-  state.distance += Math.abs(state.speed) * FIXED_DT;
+  // Water resistance settles sideways motion after a collision.
+  state.swaySpeed *= Math.exp(-FIXED_DT / 4);
+  const velocity = motionVelocity(state);
+  state.x += velocity[0] * FIXED_DT;
+  state.z += velocity[2] * FIXED_DT;
+  state.distance += Math.hypot(state.speed, state.swaySpeed) * FIXED_DT;
   state.tick++;
 }
 
