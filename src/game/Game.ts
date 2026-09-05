@@ -477,11 +477,11 @@ export class Game {
     this.effects.setSun(this.sky.sun.direction.value);
     this.sky.clouds.shape.coverage.value=this.inPort ? .38 : .4;
     this.ambientLight.intensity = this.inPort ? 1.1 : .65;
-    // Broader aerosol scattering and diffuse fill soften the dark blue dome,
-    // especially when looking away from the port sun toward the hills.
+    // Diffuse fill softens the dark blue dome toward the hills. Keep the port's
+    // forward sun haze restrained so it cannot wash out the sky and reflections.
     this.sky.atmosphere.turbidity.value = this.inPort ? 3.2 : 2.2;
     this.sky.atmosphere.rayleigh.value = this.inPort ? .42 : .38;
-    this.sky.atmosphere.mieScatteringStrength.value = this.inPort ? 1.2 : .5;
+    this.sky.atmosphere.mieScatteringStrength.value = this.inPort ? .25 : .5;
     this.sky.atmosphere.mieDirectionalG.value = this.inPort ? .6 : .72;
     this.sky.atmosphere.skyMultipleScattering.value = this.inPort ? 1.4 : 1;
     // Water Pro owns scene.fogNode, including the water/sky horizon blend.
