@@ -38,7 +38,6 @@ export function App() {
   const [bindings, setBindings] = useState(loadKeybindings);
   const bindingsRef = useRef(bindings);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [closed, setClosed] = useState(false);
   const [generation, setGeneration] = useState(0);
   const [data, setData] = useState(INITIAL_TELEMETRY);
   const [loading, setLoading] = useState({ label: 'Preparing the harbor', progress: 0 });
@@ -54,7 +53,6 @@ export function App() {
   const [phase, setPhase] = useState<'garage' | 'sailing'>('garage');
 
   useEffect(() => {
-    if (closed) return;
     let active = true;
     setBattleSetupOpen(false); setBattleLoading(false); battlePending.current = false;
     setSwitching(false); setSwitchError(''); switchPending.current = false;
@@ -84,12 +82,12 @@ export function App() {
       if (import.meta.env.DEV) { delete reviewWindow.shipTrialDiagnostics; delete reviewWindow.shipTrialArticulation; }
       void session.dispose();
     };
-  }, [generation, settings, closed]);
+  }, [generation, settings]);
 
   useEffect(() => {
-    if (paused && ready && !error && !closed) dialog.current?.showModal();
+    if (paused && ready && !error) dialog.current?.showModal();
     else dialog.current?.close();
-  }, [paused, ready, error, closed]);
+  }, [paused, ready, error]);
 
   // Let React unmount the setup dialog before the scene takes focus for aiming.
   useEffect(() => { if (phase === 'sailing') game.current?.setInPort(false); }, [phase]);
@@ -164,19 +162,8 @@ export function App() {
     catch { return false; }
   };
   const closeGame = () => {
-    game.current?.setPaused(true);
-    setSettingsOpen(false);
-    setClosed(true);
-    // Browsers may refuse to close a tab they did not open. The closed state
-    // still unmounts the session and releases its renderer and input listeners.
-    try { window.close(); } catch { /* The exit screen remains available. */ }
+    window.close();
   };
-
-  if (closed) return <main className="game-exit">
-    <Icon name="anchor" size={36}/><h1>Game closed</h1>
-    <p>You can close this tab. Your settings and keybindings are kept in this browser.</p>
-    <button className="primary-button" onClick={() => window.location.reload()}>Launch game <Icon name="play" size={18}/></button>
-  </main>;
 
   return <ShipContext value={selectedShip}><main className="game-shell">
     <div ref={host} className="ocean-viewport" data-ship-labels={phase === 'sailing' && hud && ready && !error} />
