@@ -65,5 +65,5 @@ Mobile screenshot verification remains unavailable because Orca's CDP screenshot
 At the user's request, labels now show only the ship name, HP bar and current HP number, without a surrounding box or team/slot text. The player's ship has no overhead label. Bot labels stay at their projected ship positions and may overlap each other or the HUD; the earlier avoidance behavior and review above are historical.
 
 - [Controlled browser check](labels-direct-browser-check.json): the real label renderer omits the player and keeps both bot labels visible at identical screen coordinates.
-- `bun test --timeout 20000`: 122 passed, zero failed, 6,322 assertions across 23 files.
+- `bun test --timeout 20000`: 122 passed, zero failed, 6,326 assertions across 23 files after incorporating the latest port updates from master.
 - `bun run build`: passed, including ship definition checks and TypeScript.
