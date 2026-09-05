@@ -31,7 +31,8 @@ export async function checkCombatEffects(forceWebGL = false) {
       let visible = 0;
       // Count occupied grid cells; row order differs between GPU backends.
       for (let y = 16; y < 512; y += 32) for (let x = 16; x < 512; x += 32) {
-        if (pixels[(y * 512 + x) * 4] > 20) visible++;
+        // The target stores linear color; dark steel is only about 18/255 red.
+        if (pixels[(y * 512 + x) * 4] > 1) visible++;
       }
       frames.push({ shells: count, visible });
       if (visible !== count) throw new Error(`Expected ${count} visible shells, got ${visible}: ${JSON.stringify(frames)}`);
