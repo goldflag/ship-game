@@ -17,6 +17,7 @@ colors:
   fleet-text: "#f0f5f3"
   fleet-muted: "#c1d0d4"
   fleet-line: "#c9dce04a"
+  fleet-damage-gold: "#e8c56c"
 typography:
   body:
     fontFamily: "Barlow, sans-serif"
@@ -106,11 +107,11 @@ Barlow supplies controls and explanatory text; Barlow Condensed supplies ship id
 
 ## Layout
 
-Fleet action keeps ship status and handling at lower left (240 px wide), armament at bottom center (340 px wide), a view-bearing tape at top center, and a fixed sight at the exact viewport center. The compact helm uses a 156 px bearing dial; armament uses 64 px weapon slots and 30 px readiness rings. The standard instrument insets use the Fleet edge and bottom spacing tokens. The upper-left scene stays clear of mission text. The quiet FPS counter sits beside pause/settings at upper right; gunnery details open below it and scroll within the available height.
+Fleet action keeps ship status and handling at lower left (240 px wide), armament at bottom center (340 px wide), a view-bearing tape at top center, and a fixed sight at the exact viewport center. The compact helm uses a 156 px bearing dial; armament uses 64 px weapon slots and 30 px readiness rings. The standard instrument insets use the Fleet edge and bottom spacing tokens. The upper-left scene stays clear of mission text. The quiet FPS counter sits beside pause/settings at upper right; the Damage / Frags reading sits below these controls. Gunnery details open beneath the score at 108 px from the top (100 px at widths up to 600 px, or 88 px in short landscape) and scroll within the available height.
 
 The translucent square minimap sits flush with the bottom and right viewport edges. Its five nominal desktop sizes are 240, 280, 320, 360 and 400 px, with 320 px selected initially. Available space sets the largest size to the minimum of 400 px, 31 vw and 68 vh; every size applies its own proportional factor (60%, 70%, 80%, 90% or 100%) to that limit. This keeps all five steps distinct when the viewport constrains the map. The map has no camera toolbar above it.
 
-At widths up to 1150 px, Fleet action narrows the handling and armament groups to 208 and 296 px and reduces side insets to 18 px. Between 601 and 900 px, they narrow to 180 and 260 px with 12 px side and 14 px bottom insets. At 600 px and below, the armament group is at most 310 px wide and moves below the top compass (100 px from the top), leaving the central sight clear; the handling group remains at lower left with a 100 px bearing dial, and map sizes step from 30 to 50 vw. Short landscape viewports (620 px high or less, wider than 600 px) hide the mount-reload row, battery heading and extra command hint, reduce weapon slots to 48 px high with 38 px ammunition illustrations, retain weapon keycaps and bottom clearance, and move gunnery details upward; gun marks remain in the helm compass and full mount status remains available through G.
+At widths up to 1150 px, Fleet action narrows the handling and armament groups to 208 and 296 px and reduces side insets to 18 px. Between 601 and 900 px, they narrow to 180 and 260 px with 12 px side and 14 px bottom insets. At 600 px and below, the armament group is at most 310 px wide and moves below the top compass (100 px from the top), leaving the central sight clear; the handling group remains at lower left with a 100 px bearing dial, and map sizes step from 30 to 50 vw. Short landscape viewports (620 px high or less, wider than 600 px) hide the mount-reload row and battery heading, reduce weapon slots to 48 px high with 38 px ammunition illustrations, retain weapon keycaps and bottom clearance, and move gunnery details upward; gun marks remain in the helm compass and full mount status remains available through G.
 
 Fleet harbor keeps the fleet carousel below the ship, commander and orders on the left, characteristics on the right, and Set sail centered horizontally in the viewport within the transparent top bar. Its instruments are approximately 15% smaller than garage study A. The ship and illustrative 3D harbor remain visible. The comparison switcher and alternate garage layouts have been removed.
 
@@ -156,7 +157,13 @@ Hovering a visible armor plate lightens it, adds a white outline and opens a com
 
 The armament group shows circular reload progress and readiness for each selected-battery mount, with mount numbers, remaining seconds or a ready-gun mark. Its heading pairs caliber and battery name with a ready/total count. The five slots contain main AP, secondary AP, binoculars, gunnery and fire. Ammunition illustrations are independently authored SVG assets, and both battery shell totals come from live simulation telemetry. Keyboard 1/2 selects main or secondary AP; Q or left mouse fires ready guns. Fire is disabled when no selected guns are ready.
 
-G opens gunnery and releases the cursor for aim selection, trial-target condition, flooding, inspection and reset. Keep inspection exit controls reachable when details collapse. Future match scores and other unimplemented combat features may reference the archived study A screenshots in `docs/hud-mockups`, but must not appear as live telemetry. Do not fill spare weapon slots with unsupported ammunition or consumables.
+G opens gunnery and releases the cursor for aim selection, trial-target condition, flooding, inspection and reset. Keep inspection exit controls reachable when details collapse. Only implemented combat features appear as live telemetry. Do not fill spare weapon slots with unsupported ammunition or consumables.
+
+### Hull damage feedback and score
+
+Damage gold marks actual hull HP lost beside overhead ship labels and in the vacated section of their bars. Hits within 0.35 seconds combine into one salvo number; the segment holds for one second after the latest hit and fades over 0.6 seconds. Simulation time freezes these cues during pause. The player's lower-left hull instrument uses the same gold segment and a numeric “Hull hit” notice above it, accompanied by a translucent red perimeter cue with a clear center. Feedback uses opacity only, without camera shake or movement.
+
+The compact Damage / Frags reading sits below the upper-right pause control. Damage counts enemy hull HP actually removed; frags count enemy sinkings credited to the last hostile hull or breach damage, including delayed flooding. Both reset with the battle. The bottom armament ends with its weapon keycaps: the Follow shells row and Ctrl/Shift/Esc hint strip are removed. T remains the configurable shell-follow shortcut. Binocular mode hides smoke emitted at the player's ship, including already active smoke, while it continues aging; other ships' smoke remains visible.
 
 ## Do's and Don'ts
 
