@@ -11,6 +11,7 @@ import { bindingLabel, KEYBINDING_STORAGE_KEY, loadKeybindings, type Keybindings
 import { BattleSetupDialog } from './BattleSetupDialog';
 import type { BattleSetup } from '../simulation/battle';
 import { SettingsDialog } from './SettingsDialog';
+import './ShipLabels.css';
 
 const INITIAL_TELEMETRY: Telemetry = { ship: createShipState(), order: 1, camera: 'Chase', fps: 0, backend: 'webgpu', trail: [] };
 function loadSettings(): GameSettings {
@@ -178,7 +179,7 @@ export function App() {
   </main>;
 
   return <ShipContext value={selectedShip}><main className="game-shell">
-    <div ref={host} className="ocean-viewport" />
+    <div ref={host} className="ocean-viewport" data-ship-labels={phase === 'sailing' && hud && ready && !error} />
     {phase === 'garage' && !error && <Garage key={selectedShip.id} switching={switching} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} progress={loading.progress} fps={data.fps} onLaunch={openBattleSetup} onSettings={() => game.current?.setPaused(true)}/>}
     {battleSetupOpen && <BattleSetupDialog setup={battleSetup} onChange={setBattleSetup} onLaunch={launch} onClose={() => setBattleSetupOpen(false)} loading={battleLoading} error={battleError}/>}
     {phase === 'sailing' && ready && !error && <FleetHud data={data} game={game.current} visible={hud} bindings={bindings}/>}
