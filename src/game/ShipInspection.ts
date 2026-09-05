@@ -21,7 +21,7 @@ export class ShipInspection {
       group.position.fromArray(entry.anchor ?? entry.center); group.userData.inspectionId = entry.id;
       const color = inspectionColor(entry);
       const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color, transparent: true, depthWrite: false, depthTest: false, side:THREE.DoubleSide, toneMapped: entry.kind !== 'armor' }));
-      const outline = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color, transparent: true, depthWrite: false, depthTest: false, toneMapped: entry.kind !== 'armor' }));
+      const outline = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color, transparent: true, depthWrite: false, depthTest: entry.kind === 'armor', toneMapped: entry.kind !== 'armor' }));
       fill.renderOrder = 100; outline.renderOrder = 102;
       group.add(fill, outline); this.root.add(group);
       let water: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial> | undefined;
@@ -45,6 +45,10 @@ export class ShipInspection {
         fill.material.transparent = !opaqueArmor;
         fill.material.depthTest = opaqueArmor;
         fill.material.depthWrite = opaqueArmor;
+        // Keep the hover edge clear of its own surface while other plates still occlude it.
+        fill.material.polygonOffset = opaqueArmor;
+        fill.material.polygonOffsetFactor = 1;
+        fill.material.polygonOffsetUnits = 1;
         fill.material.needsUpdate = true;
       }
     });
@@ -60,8 +64,11 @@ export class ShipInspection {
   setHovered(id?: string): void {
     if (id === this.hoveredId) return;
     this.hoveredId = this.mode === 'armor' && (!this.selectedId || this.selectedId === id) && this.entries.some(e => e.kind === 'armor' && e.id === id) ? id : undefined;
-    this.volumes.forEach(({ entry, color, fill }) => {
+    this.volumes.forEach(({ entry, color, fill, outline }) => {
       if (entry.kind !== 'armor') return;
+      outline.visible = entry.id === this.hoveredId;
+      outline.material.color.copy(this.hoverColor);
+      outline.material.opacity = 1;
       fill.material.color.set(color);
       if (entry.id === this.hoveredId) fill.material.color.lerp(this.hoverColor, .3);
     });
@@ -71,8 +78,9 @@ export class ShipInspection {
     this.volumes.forEach(({ entry, color, group, fill, outline, water }) => {
       group.visible = (this.mode === 'all' || (this.mode === 'armor' ? entry.kind === 'armor' : entry.kind !== 'armor')) && (!this.selectedId || entry.id === this.selectedId);
       const selected = entry.id === this.selectedId, dim = this.selectedId && !selected;
-      outline.material.color.set(selected && entry.kind !== 'armor' ? '#fff3c9' : color);
-      outline.material.opacity = dim ? .18 : selected ? 1 : entry.kind === 'armor' ? .9 : .65;
+      if (entry.kind === 'armor') outline.visible = entry.id === this.hoveredId;
+      outline.material.color.set(entry.kind === 'armor' ? this.hoverColor : selected ? '#fff3c9' : color);
+      outline.material.opacity = entry.kind === 'armor' ? 1 : dim ? .18 : selected ? 1 : .65;
       fill.material.opacity = entry.kind === 'armor' && this.mode === 'armor' ? 1 : dim ? .025 : selected ? .4 : entry.kind === 'compartment' ? .015 : entry.kind === 'armor' ? .1 : .4;
       fill.material.color.set(color);
       if (entry.id === this.hoveredId) fill.material.color.lerp(this.hoverColor, .3);

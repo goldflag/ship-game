@@ -92,7 +92,7 @@ Brass identifies port actions and selected model views. The inherited gunnery pa
 
 ### Secondary
 
-Mint identifies heading, hull integrity, rudder position, ready mounts and selected battery or binocular controls in Fleet action, and readiness in port. The active engine order uses an ivory fill with dark lettering and a pointing marker. Inspection swatches match their 3D volumes: armor uses a fixed thickness scale from green (0 mm) through yellow (200 mm) to red (400 mm and above), with gray teak backing; machinery is green, magazines salmon, steering lavender and compartments pale blue. A labeled thickness legend accompanies the armor list. Port armor is fully opaque without edge lines, selection retains its thickness color, and hover lightens only the plate under the pointer. Blue fill represents floodwater.
+Mint identifies heading, hull integrity, rudder position, ready mounts and selected battery or binocular controls in Fleet action, and readiness in port. The active engine order uses an ivory fill with dark lettering and a pointing marker. Inspection swatches match their 3D volumes: armor uses a fixed thickness scale from green (0 mm) through yellow (200 mm) to red (400 mm and above), with gray teak backing; machinery is green, magazines salmon, steering lavender and compartments pale blue. A labeled thickness legend accompanies the armor list. Port armor is fully opaque, selection retains its thickness color, and hover lightens and outlines only the plate under the pointer. Blue fill represents floodwater.
 
 ### Neutral
 
@@ -150,7 +150,7 @@ Exterior, Armor and Internals form a labeled three-button group. Armor lists hul
 
 Selecting a row isolates its volume against the ghost exterior. The row combines a category swatch, name, type and thickness, HP or capacity; selection also exposes dimensions and Clear selection in a pinned footer. Selecting the same row again or clearing restores all volumes in that mode. Rows are at least 48 px high; mobile view controls and Clear selection provide at least 44 px height. Exterior restores the normal ship view, and Set sail remains available.
 
-Hovering a visible armor plate lightens it and opens a compact maritime tooltip with name, thickness, material, dimensions and recorded basis. The tooltip stays inside the viewport and does not intercept the pointer. Dragging, moving onto controls, pausing or leaving armor mode clears the highlight. Hidden layers can be isolated from the list before hovering; hover never changes selection or combat.
+Hovering a visible armor plate lightens it, adds a white outline and opens a compact maritime tooltip with name, thickness, material, dimensions and recorded basis. The tooltip stays inside the viewport and does not intercept the pointer. Dragging, moving onto controls, pausing or leaving armor mode clears the highlight. Hidden layers can be isolated from the list before hovering; hover never changes selection or combat.
 
 ### Live gunnery
 
