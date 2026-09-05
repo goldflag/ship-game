@@ -9,6 +9,8 @@ import { ShipView } from './ShipView';
 import { ArmorOverlay } from './ArmorOverlay';
 import { ArmorHover, type ArmorHoverInfo } from './ArmorHover';
 import { ShipLabels } from './ShipLabels';
+import { HullDamageFeedback } from './HullDamageFeedback';
+import { FIXED_DT } from '../simulation/ship';
 import { GunAimIndicators } from './GunAimIndicators';
 import { gunAimPoints } from './gunAim';
 import { disposeObjects } from './disposeObjects';
@@ -49,6 +51,7 @@ export class Game {
   private fleetViews: ShipView[] = [];
   private fleetModels: THREE.Group[] = [];
   private shipLabels: ShipLabels;
+  private playerDamageFeedback = new HullDamageFeedback();
   private gunAim: GunAimIndicators;
   private loadedModel?: THREE.Group;
   private effects = new CombatEffects();
@@ -370,7 +373,7 @@ export class Game {
       const showGunAim = !this.inPort && !this.inspecting && !this.shellFollow.view && !this.simulation.player.damage.sunk;
       this.gunAim.update(showGunAim ? gunAimPoints(this.simulation.player, this.definition, this.battery, aim) : [], this.camera, showGunAim);
       this.armorHover?.update(this.inPort && !this.paused && !this.switchingShip ? this.playerView?.inspection : undefined);
-      this.effects.update(this.simulation, dt, this.camera);
+      this.effects.update(this.simulation, dt, this.camera, this.rig.binoculars && !this.shellFollow.view);
       this.audio?.update(this.simulation, this.input.order, this.battery,
         this.camera.position.toArray(), new THREE.Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0).toArray());
       this.playerView!.root.visible = !this.rig.binoculars;
@@ -383,7 +386,9 @@ export class Game {
       await this.water!.update(dt);
       if (this.disposed) return;
       this.renderFrame();
-      this.shipLabels.update(this.camera);
+      const combatTime = this.simulation.tick * FIXED_DT;
+      this.shipLabels.update(this.camera, combatTime);
+      const playerDamage = this.playerDamageFeedback.update(this.simulation.player.damage.integrity, combatTime);
       this.fps += (1 / realDt - this.fps) * 0.04;
       if (state.tick - this.lastTrailTick >= 120) {
         this.trail.push({ x: state.x, z: state.z });
@@ -396,6 +401,7 @@ export class Game {
           binoculars: this.rig.binoculars, magnification: this.rig.magnification, pointerLocked: this.rig.pointerLocked,
           viewBearing: this.rig.bearing, chartSize: this.chartSize, gunneryOpen: this.gunneryOpen,
           shellFollow: this.shellFollow.phase,
+          playerDamage,
           fps: Math.round(this.fps), backend: this.water!.backend, trail: [...this.trail],
           combat: this.simulation.telemetry(this.battery, aim), inspecting: this.inspecting, aimModule: this.manualAim ? 'point' : this.aimModule,
           aimMarker: this.projectAim(aim) });

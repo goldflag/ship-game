@@ -47,6 +47,7 @@ export function effectTexture(kind: 'smoke' | 'flash' | 'foam'): THREE.DataTextu
 }
 
 export interface EffectParticle {
+  sourceId?: string;
   position: THREE.Vector3;
   velocity: THREE.Vector3;
   color: THREE.Color;
@@ -123,7 +124,7 @@ export class EffectParticlePool {
       wind: 0, angle: 0, spin: 0, stretch: 1, fadeIn: 0, align: 'billboard', waterline: false, distance: 0 }));
   }
 
-  emit(position: THREE.Vector3): EffectParticle {
+  emit(position: THREE.Vector3, sourceId?: string): EffectParticle {
     const p = this.particles[this.cursor++ % this.capacity];
     p.position.copy(position); p.velocity.set(0, 0, 0); p.color.setRGB(1, 1, 1);
     p.age = 0; p.life = 1; p.size = 1; p.growth = 0; p.opacity = 1;
@@ -131,10 +132,11 @@ export class EffectParticlePool {
     p.seed = (this.cursor * .61803398875 % 1) * 100;
     p.drag = 0; p.gravity = 0; p.wind = 0; p.angle = 0; p.spin = 0;
     p.stretch = 1; p.fadeIn = 0; p.align = 'billboard'; p.waterline = false;
+    p.sourceId = sourceId;
     return p;
   }
 
-  update(dt: number, camera: THREE.Camera, wind: THREE.Vector3): void {
+  update(dt: number, camera: THREE.Camera, wind: THREE.Vector3, hiddenSourceId?: string): void {
     this.active.length = 0;
     this.cameraInverse.copy(camera.quaternion).invert();
     for (const p of this.particles) {
@@ -157,6 +159,8 @@ export class EffectParticlePool {
         p.angle += p.spin * step;
         if (p.waterline && p.position.y < .2 && previousAge >= 0) { p.age = p.life; continue; }
       }
+      // Hidden smoke still ages and drifts, so leaving optics restores its current state.
+      if (hiddenSourceId !== undefined && p.sourceId === hiddenSourceId) continue;
       p.distance = p.position.distanceToSquared(camera.position);
       this.active.push(p);
     }
