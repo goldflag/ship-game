@@ -56,6 +56,8 @@ Gunfire uses caliber-scaled ignition and large fireballs that cool over roughly 
 
 ## Architecture
 
+Sound uses an [original ElevenLabs-generated naval set](assets/audio/naval/README.md): mechanical UI clicks, engine telegraph and reload cues, a departure horn, caliber-based gunfire, armor hits, ricochets, splashes and magazine explosions. Click or press a key to enable browser audio. **Esc → Settings → Sound** adjusts master, effects and interface levels or mutes everything; changes apply immediately and persist without restarting the battle. Pause stops combat tails; background tabs are silent. `bun run audio:build` rebuilds the processed assets locally from the retained originals and prompts.
+
 - `src/ships/blueprint.ts`: validated, versioned JSON blueprints and compiled ship definitions.
 - `assets/`: original Blender sources, reusable gun recipes, references, source registers and generated review images.
 - `scripts/ships/`: portable build, export, independent GLB validation, starter and review commands.

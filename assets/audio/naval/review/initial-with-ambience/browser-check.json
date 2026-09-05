@@ -1,0 +1,110 @@
+{
+  "before": {
+    "failed": [],
+    "inPort": true,
+    "loaded": 17,
+    "loops": 4,
+    "paused": true,
+    "played": 1,
+    "settings": {
+      "ambience": 0.55,
+      "effects": 0.8,
+      "interface": 0.65,
+      "master": 0.42,
+      "muted": true
+    },
+    "state": "suspended",
+    "total": 17,
+    "voices": 0
+  },
+  "blurred": "suspended",
+  "departure": {
+    "failed": [],
+    "inPort": false,
+    "loaded": 17,
+    "loops": 4,
+    "paused": false,
+    "played": 5,
+    "settings": {
+      "ambience": 0.55,
+      "effects": 0.8,
+      "interface": 0.65,
+      "master": 0.65,
+      "muted": false
+    },
+    "state": "running",
+    "total": 17,
+    "voices": 1
+  },
+  "paused": {
+    "failed": [],
+    "inPort": false,
+    "loaded": 17,
+    "loops": 4,
+    "paused": true,
+    "played": 10,
+    "settings": {
+      "ambience": 0.55,
+      "effects": 0.8,
+      "interface": 0.65,
+      "master": 0.65,
+      "muted": false
+    },
+    "state": "running",
+    "total": 17,
+    "voices": 0
+  },
+  "port": {
+    "audio": {
+      "failed": [],
+      "inPort": true,
+      "loaded": 17,
+      "loops": 4,
+      "paused": false,
+      "played": 11,
+      "settings": {
+        "ambience": 0.55,
+        "effects": 0.8,
+        "interface": 0.65,
+        "master": 0.65,
+        "muted": false
+      },
+      "state": "running",
+      "total": 17,
+      "voices": 1
+    },
+    "tick": 0
+  },
+  "refocused": "running",
+  "sailing": {
+    "audio": {
+      "failed": [],
+      "inPort": false,
+      "loaded": 17,
+      "loops": 4,
+      "paused": false,
+      "played": 10,
+      "settings": {
+        "ambience": 0.55,
+        "effects": 0.8,
+        "interface": 0.65,
+        "master": 0.65,
+        "muted": false
+      },
+      "state": "running",
+      "total": 17,
+      "voices": 4
+    },
+    "events": [
+      "shot",
+      "shot",
+      "shot",
+      "shot",
+      "shot",
+      "shot",
+      "shot",
+      "shot"
+    ],
+    "tick": 68
+  }
+}

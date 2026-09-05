@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "provider": "ElevenLabs",
+  "tool": "mcp__elevenlabs__text_to_sound_effects",
+  "output_format": "mp3_44100_128",
+  "direction": "Original generated naval game sound design; artistic approximations, not historical recordings.",
+  "clips": [
+    {
+      "id": "ui-click",
+      "duration_seconds": 0.5,
+      "loop": false,
+      "prompt": "A single crisp tactile click of a brass toggle on a 1940s naval instrument panel. Small dry metallic tick with a soft mechanical body, very short decay, immediate onset, isolated. No voice, music, hiss or multiple clicks."
+    },
+    {
+      "id": "ui-confirm",
+      "duration_seconds": 0.7,
+      "loop": false,
+      "prompt": "One satisfying engagement of a substantial brass naval console switch: a firm mechanical clack followed by a tiny warm bell ping. Immediate onset, brief clean decay, isolated user interface confirmation. No voice or music."
+    },
+    {
+      "id": "ui-back",
+      "duration_seconds": 0.5,
+      "loop": false,
+      "prompt": "One soft low wooden and metal latch closing on a vintage naval instrument panel, a muted tactile clunk. Immediate onset, very short tail, isolated menu close sound. No voices or music."
+    },
+    {
+      "id": "telegraph",
+      "duration_seconds": 1.2,
+      "loop": false,
+      "prompt": "A ship engine order telegraph lever moved one notch: short brass ratchet clack then one clear small mechanical bell ding decaying naturally. Close dry recording, immediate onset, no voices, music or ambience."
+    },
+    {
+      "id": "ship-horn",
+      "duration_seconds": 3.5,
+      "loop": false,
+      "prompt": "One deep resonant steam horn blast from a large WWII battleship leaving harbor. Powerful warm low chord, a single sustained blast with breathy attack and natural decay over water. Isolated horn, no voices, music or other traffic."
+    },
+    {
+      "id": "harbor",
+      "duration_seconds": 5,
+      "loop": true,
+      "prompt": "Seamlessly looping quiet naval harbor atmosphere from a moored ship deck: gentle water lapping stone quays, distant diffuse seabirds, faint dock machinery and subtle mooring rope creaks. Calm airy natural stereo background, steady texture without foreground calls. No speech, music or horns.",
+      "publish": false,
+      "disposition": "Archived original; excluded from the game at the owner\u2019s request."
+    },
+    {
+      "id": "ocean",
+      "duration_seconds": 5,
+      "loop": true,
+      "prompt": "Seamless loop of open North Atlantic water heard beside a large steel ship: broad rolling swells, close foamy water rushing along the hull, soft fizz and deep watery wash. Continuous natural stereo ambience, steady level with no dramatic single wave. No voices, music, birds or engines.",
+      "publish": false,
+      "disposition": "Archived original; excluded from the game at the owner\u2019s request."
+    },
+    {
+      "id": "wind",
+      "duration_seconds": 5,
+      "loop": true,
+      "prompt": "Seamlessly looping steady sea wind across a battleship deck, soft airy rushing with a faint low singing through distant rigging. Natural wide background texture, no microphone buffeting, no loud gusts, no voices, music, waves or engines.",
+      "publish": false,
+      "disposition": "Archived original; excluded from the game at the owner\u2019s request."
+    },
+    {
+      "id": "engine",
+      "duration_seconds": 5,
+      "loop": true,
+      "prompt": "Seamless steady loop of large ship steam turbines heard through a steel battleship deck: subdued low machinery hum, deep propeller rhythm and soft mechanical vibration. Smooth continuous engine bed, consistent pitch, no starts, stops, bells, voices or music.",
+      "publish": false,
+      "disposition": "Archived original; excluded from the game at the owner\u2019s request."
+    },
+    {
+      "id": "main-gun-a",
+      "duration_seconds": 4,
+      "loop": false,
+      "prompt": "One enormous WWII battleship 380mm naval cannon firing outdoors over open water. Immediate concussive crack and massive deep chesty boom, brief gritty propellant roar, rolling low thunder decay fading naturally. One single discharge, isolated, no shell impact, no voices, music or repeated shots."
+    },
+    {
+      "id": "main-gun-b",
+      "duration_seconds": 4,
+      "loop": false,
+      "prompt": "A single very heavy 460mm battleship naval gun discharge over the sea. Instant sharp pressure crack into a huge resonant low explosion, dense short blast of expanding gas and long receding thunder tail. One shot only, clean isolation, no music, speech or subsequent impact."
+    },
+    {
+      "id": "secondary-gun",
+      "duration_seconds": 2.5,
+      "loop": false,
+      "prompt": "One 127 to 155mm naval deck cannon firing. Fast sharp metallic explosive crack, punchy mid-low boom with a short open-air reverberating tail. Smaller and tighter than a battleship main gun. Immediate single shot, no automatic burst, shell landing, voice or music."
+    },
+    {
+      "id": "armor-hit",
+      "duration_seconds": 2.5,
+      "loop": false,
+      "prompt": "A single heavy armor piercing naval shell slamming into thick battleship steel armor. Instant forceful metallic crash with a deep punch, tearing steel grit, brief ringing fragments and hollow hull resonance decaying cleanly. Isolated impact, no preceding gunshot, voices or music."
+    },
+    {
+      "id": "ricochet",
+      "duration_seconds": 1.7,
+      "loop": false,
+      "prompt": "One large naval shell ricocheting off thick steel armor: immediate bright hard metallic clang followed by a brief descending whine of a deflected heavy projectile and a few tiny ringing fragments. Isolated single impact, no voices, music or preceding gunshot."
+    },
+    {
+      "id": "splash",
+      "duration_seconds": 3.5,
+      "loop": false,
+      "prompt": "One heavy naval artillery shell plunging into deep seawater. Immediate dense watery thump, towering explosive splash and broad foamy spray falling back with a natural rushing water tail. Single isolated water impact, no gunshot, voices or music."
+    },
+    {
+      "id": "magazine-explosion",
+      "duration_seconds": 5,
+      "loop": false,
+      "prompt": "One catastrophic ammunition magazine explosion inside a steel battleship: immediate huge deep blast, layered secondary crackles within the same blast, tearing metal and heavy debris falling through a long rumbling decay. Powerful cinematic physical sound, no voices, music or sirens."
+    },
+    {
+      "id": "reload",
+      "duration_seconds": 1.2,
+      "loop": false,
+      "prompt": "One heavy naval gun breech locking shut: a short hydraulic mechanical slide into a solid metallic ka-chunk with a restrained high latch click. Immediate action and quick clean decay, isolated readiness cue. No firing, voices or music."
+    }
+  ]
+}
