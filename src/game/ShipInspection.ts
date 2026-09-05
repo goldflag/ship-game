@@ -10,20 +10,20 @@ export class ShipInspection {
   readonly entries: InspectionEntry[];
   mode: InspectionMode | 'all' = 'exterior';
   selectedId?: string;
-  private volumes: { entry: InspectionEntry; group: THREE.Group; fill: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial>; outline: THREE.LineSegments<THREE.EdgesGeometry, THREE.LineBasicMaterial>; water?: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial> }[];
+  private volumes: { entry: InspectionEntry; group: THREE.Group; fill: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>; outline: THREE.LineSegments<THREE.EdgesGeometry, THREE.LineBasicMaterial>; water?: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial> }[];
   constructor(private definition: ShipDefinition) {
     this.entries = inspectionEntries(definition);
     this.root.name = 'Ship inspection'; this.root.visible = false;
     this.volumes = this.entries.map(entry => {
-      const geometry = new THREE.BoxGeometry(...entry.size), group = new THREE.Group();
-      group.position.fromArray(entry.center); group.userData.inspectionId = entry.id;
-      const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: INSPECTION_COLORS[entry.kind], transparent: true, depthWrite: false, depthTest: false }));
+      const geometry = entry.plate ? plateGeometry(entry) : new THREE.BoxGeometry(...entry.size), group = new THREE.Group();
+      group.position.fromArray(entry.anchor ?? entry.center); group.userData.inspectionId = entry.id;
+      const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: INSPECTION_COLORS[entry.kind], transparent: true, depthWrite: false, depthTest: false, side:THREE.DoubleSide }));
       const outline = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color: INSPECTION_COLORS[entry.kind], transparent: true, depthWrite: false, depthTest: false }));
       fill.renderOrder = 100; outline.renderOrder = 102;
       group.add(fill, outline); this.root.add(group);
       let water: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial> | undefined;
       if (entry.compartmentIndex !== undefined) {
-        water = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: '#519fc0', transparent: true, opacity: .45, depthWrite: false, depthTest: false }));
+        water = new THREE.Mesh(geometry as THREE.BoxGeometry, new THREE.MeshBasicMaterial({ color: '#519fc0', transparent: true, opacity: .45, depthWrite: false, depthTest: false }));
         water.renderOrder = 101; water.visible = false; group.add(water);
       }
       return { entry, group, fill, outline, water };
@@ -55,4 +55,16 @@ export class ShipInspection {
       }
     });
   }
+}
+
+/** Physical thickness for inspection; CPU intersection uses the same plate's mid-surface. */
+function plateGeometry(entry: InspectionEntry): THREE.BufferGeometry {
+  const points = entry.plate!.vertices.map(p => new THREE.Vector3().fromArray(p));
+  const normal = new THREE.Vector3().subVectors(points[1], points[0]).cross(new THREE.Vector3().subVectors(points[2], points[0])).normalize().multiplyScalar(entry.thicknessMm! / 2000);
+  const center = entry.anchor ? new THREE.Vector3() : new THREE.Vector3().fromArray(entry.center);
+  const vertices = [-1,1].flatMap(sign => points.flatMap(p => p.clone().addScaledVector(normal, sign).sub(center).toArray()));
+  const n=points.length, indices:number[]=[];
+  for (let i=1;i<n-1;i++) indices.push(0,i+1,i,n,n+i,n+i+1);
+  for (let i=0;i<n;i++) { const j=(i+1)%n; indices.push(i,j,n+j,i,n+j,n+i); }
+  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));geometry.setIndex(indices);geometry.computeVertexNormals();return geometry;
 }

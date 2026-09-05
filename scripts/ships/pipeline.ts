@@ -127,9 +127,34 @@ function inspectGlb(bytes: Buffer, def: ShipDefinition) {
   return { contentHash, hullBounds: bounds.map(b => b.toArray()), mounts, meshes: gltf.meshes.length, primitives: gltf.meshes.reduce((n, m) => n + m.primitives.length, 0), triangles, bytes: bytes.length, result: 'passed', historicalAccuracy: 'not certified; see reference register and discrepancy report' };
 }
 
+async function runEvidence(action: 'compare' | 'check') {
+  if (!existsSync(join(sourceDir, 'modeling-spec.json'))) return;
+  const child = Bun.spawn(['bun', join(root, 'scripts/reference/pipeline.ts'), action, shipId], { cwd: root, stdout: 'pipe', stderr: 'pipe' });
+  const [out, err, code] = await Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text(), child.exited]);
+  if (action === 'compare') await writeFile(join(stage, 'evidence.log'), out + err);
+  if (code) throw new Error(`Ship evidence failed:\n${out}${err}`);
+  console.log(out.trim());
+}
+
 async function runBlender(script: string, extraEnv: Record<string, string> = {}) {
   const executable = process.env.BLENDER_BIN ?? (existsSync('/Applications/Blender.app/Contents/MacOS/Blender') ? '/Applications/Blender.app/Contents/MacOS/Blender' : 'blender');
-  const child = Bun.spawn([executable, '--background', '--factory-startup', '--python-exit-code', '1', '--python', script], {
+  // Original authoring recipes cannot read the reference cache, raw game model formats or baseline scenes.
+  // This audit supplements the full cache-unavailable rebuild; it does not inspect native Blender internals.
+  const expression = `import sys, os, json, runpy
+reads=set()
+def audit(event,args):
+ if event=='socket.connect': raise RuntimeError('Network access is not an authoring dependency')
+ if event=='open' and isinstance(args[0],(str,bytes)):
+  p=os.path.realpath(os.fsdecode(args[0]))
+  if '/reference-cache' in p or p.endswith(('.model','.geometry')) or '/bismarck/baseline/' in p:
+   raise RuntimeError('Reference/baseline geometry is forbidden in original authoring: '+p)
+  if p.startswith(${JSON.stringify(root)}): reads.add(os.path.relpath(p,${JSON.stringify(root)}))
+sys.addaudithook(audit)
+runpy.run_path(${JSON.stringify(script)},run_name='__main__')
+with open(${JSON.stringify(join(stage, 'authoring-reads.json'))},'w') as f: json.dump(sorted(reads),f,indent=2)
+`;
+  const pythonArgs = script === join(sourceDir, 'build.py') ? ['--python-expr', expression] : ['--python', script];
+  const child = Bun.spawn([executable, '--background', '--factory-startup', '--python-exit-code', '1', ...pythonArgs], {
     cwd: root, env: { ...process.env, SHIP_OUTPUT: stage, SHIP_DEFINITION: join(stage, 'definition.json'), BISMARCK_SKIP_RENDER: '1', ...extraEnv }, stdout: 'pipe', stderr: 'pipe',
   });
   const [stdout, stderr, code] = await Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text(), child.exited]);
@@ -143,6 +168,7 @@ if (action === 'check') {
   if (JSON.stringify(current) !== JSON.stringify(published)) throw new Error('Compiled definition is stale. Run bun run ship:build ' + shipId);
   const report = inspectGlb(await readFile(join(outputDir, `${shipId}.glb`)), definition);
   await checkThumbnail();
+  await runEvidence('check');
   console.log(JSON.stringify(report, null, 2));
 } else {
   await mkdir(resolve(stage, '..'), { recursive: true });
@@ -181,6 +207,7 @@ if (action === 'check') {
   await mkdir(join(sourceDir, 'reports'), { recursive: true });
   await writeFile(join(sourceDir, 'reports/export.json'), JSON.stringify(report, null, 2) + '\n');
   await bakeThumbnail();
+  await runEvidence('compare');
   console.log(JSON.stringify(report, null, 2));
   }
   } finally { await rm(lock, { recursive: true, force: true }); }
