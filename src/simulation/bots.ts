@@ -1,10 +1,10 @@
 import type { Vec3 } from '../ships/blueprint';
 import type { FleetActor } from './battle';
-import type { HelmCommand } from './ship';
+import { motionVelocity, type HelmCommand } from './ship';
 import { add, clamp, localToWorld, scale, sub, wrapAngle } from './geometry';
 import { muzzleWorld, solveBallistic, type MountDefinition, type MountState } from './weapons';
 
-export const shipVelocity = (actor: FleetActor): Vec3 => [Math.sin(actor.motion.heading) * actor.motion.speed, 0, -Math.cos(actor.motion.heading) * actor.motion.speed];
+export const shipVelocity = (actor: FleetActor): Vec3 => motionVelocity(actor.motion);
 /** Provisional bot engagement limits, in meters; small AA fittings wait for close range. */
 export const botGunRange = (mount: MountDefinition): number => mount.weapon.caliberM >= .2 ? 18000 : mount.weapon.caliberM >= .1 ? 8000 : mount.weapon.caliberM >= .03 ? 3500 : 1800;
 const distance = (a: FleetActor, b: FleetActor) => Math.hypot(a.motion.x - b.motion.x, a.motion.z - b.motion.z);
