@@ -1,0 +1,664 @@
+{
+  "backend": "webgpu",
+  "camera": {
+    "matrixWorldInverse": [
+      0.4984711242580825,
+      0.17305410666862311,
+      -0.8494579533125862,
+      0,
+      4.163336342344337e-17,
+      0.9798728539827088,
+      0.1996226190284578,
+      0,
+      0.8669063030575355,
+      -0.09950611133445829,
+      0.48843832315473684,
+      0,
+      170.13036197504144,
+      -177.04263562710793,
+      593.5162719795039,
+      0.9999999999999999
+    ],
+    "mode": "Chase",
+    "position": [
+      450,
+      55,
+      -455
+    ],
+    "projectionMatrix": [
+      1.153295910888354,
+      0,
+      0,
+      0,
+      0,
+      2.050303841579296,
+      0,
+      0,
+      0,
+      0,
+      -1.0000083334027783,
+      -1,
+      0,
+      0,
+      -0.5000041667013891,
+      0
+    ]
+  },
+  "capture": {
+    "fps": 30,
+    "frames": 150,
+    "mode": "fixed simulation timestamps",
+    "offscreenBuoyReadbacks": false,
+    "renderSeconds": 29.04640000000596,
+    "seconds": 5
+  },
+  "combat": {
+    "battery": "main",
+    "message": "Stopped by Armored citadel",
+    "modules": [
+      {
+        "condition": 0,
+        "id": "engine-port",
+        "name": "Port machinery"
+      },
+      {
+        "condition": 0,
+        "id": "engine-starboard",
+        "name": "Starboard machinery"
+      },
+      {
+        "condition": 1,
+        "id": "steering",
+        "name": "Steering gear"
+      },
+      {
+        "condition": 1,
+        "id": "anton-magazine",
+        "name": "Anton magazine"
+      },
+      {
+        "condition": 1,
+        "id": "bruno-magazine",
+        "name": "Bruno magazine"
+      },
+      {
+        "condition": 1,
+        "id": "caesar-magazine",
+        "name": "C\u00e4sar magazine"
+      },
+      {
+        "condition": 1,
+        "id": "dora-magazine",
+        "name": "Dora magazine"
+      }
+    ],
+    "mounts": [
+      {
+        "ammo": 238,
+        "id": "anton",
+        "name": "Anton",
+        "reload": 15.51666666666687,
+        "status": "reloading"
+      },
+      {
+        "ammo": 238,
+        "id": "bruno",
+        "name": "Bruno",
+        "reload": 15.51666666666687,
+        "status": "reloading"
+      },
+      {
+        "ammo": 238,
+        "id": "caesar",
+        "name": "C\u00e4sar",
+        "reload": 15.51666666666687,
+        "status": "reloading"
+      },
+      {
+        "ammo": 238,
+        "id": "dora",
+        "name": "Dora",
+        "reload": 15.51666666666687,
+        "status": "reloading"
+      }
+    ],
+    "range": 859.9360441335157,
+    "ready": 0,
+    "targetIntegrity": 0.776,
+    "targetPower": 0,
+    "targetSteering": 1,
+    "targetSunk": false,
+    "targetUnderway": false,
+    "targetWater": 4.354013949113292,
+    "total": 4
+  },
+  "contentHash": "89cd923afa1be4f2f9ad74f3065035b1af7e2ef8106728ee6a3dd2bf0f65604a",
+  "effects": {
+    "flashes": 0,
+    "foam": 0,
+    "particleCapacity": 2272,
+    "shells": 0,
+    "smoke": 56,
+    "spray": 0
+  },
+  "events": [
+    {
+      "kind": "penetration",
+      "message": "Penetrated Hull plating",
+      "normal": [
+        -0.9999999999998423,
+        -5.615379828912076e-07,
+        3.783608207060103e-14
+      ],
+      "position": [
+        631.9999995562549,
+        0.7902245439337297,
+        -562.1598906735734
+      ],
+      "sequence": 17,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 3,
+        "velocity": [
+          639.1486694450895,
+          -16.942173821666646,
+          -513.6494441640715
+        ]
+      },
+      "shipId": "target",
+      "tick": 2192
+    },
+    {
+      "kind": "penetration",
+      "message": "Penetrated Armored citadel",
+      "normal": [
+        -0.9999999999998423,
+        -5.615379828912076e-07,
+        3.783608207060103e-14
+      ],
+      "position": [
+        632.4999995636615,
+        0.7770347925680089,
+        -562.5617138145171
+      ],
+      "sequence": 18,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 3,
+        "velocity": [
+          639.1486694450895,
+          -16.942173821666646,
+          -513.6494441640715
+        ]
+      },
+      "shipId": "target",
+      "tick": 2192
+    },
+    {
+      "kind": "module",
+      "message": "Starboard machinery damaged",
+      "position": [
+        651.9999997957001,
+        0.3638198773419504,
+        -573.233287723699
+      ],
+      "sequence": 19,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 2,
+        "velocity": [
+          648.0109942262309,
+          -13.227090174600804,
+          -502.4628650317688
+        ]
+      },
+      "shipId": "target",
+      "tick": 2192
+    },
+    {
+      "kind": "module",
+      "message": "Starboard machinery disabled",
+      "position": [
+        651.9999995737297,
+        0.32280462504110824,
+        -573.4219192852679
+      ],
+      "sequence": 20,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 4,
+        "velocity": [
+          639.1486694450895,
+          -17.105673821666645,
+          -513.6494441640715
+        ]
+      },
+      "shipId": "target",
+      "tick": 2193
+    },
+    {
+      "kind": "stopped",
+      "message": "Stopped by Armored citadel",
+      "normal": [
+        0.9999999999978397,
+        2.0785834616303216e-06,
+        -5.184464733974972e-13
+      ],
+      "position": [
+        667.4999999059745,
+        0.04524021566818578,
+        -585.2518715637784
+      ],
+      "sequence": 21,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 2,
+        "velocity": [
+          648.0109942262309,
+          -13.554090174600805,
+          -502.4628650317688
+        ]
+      },
+      "shipId": "target",
+      "tick": 2194
+    },
+    {
+      "kind": "stopped",
+      "message": "Stopped by Armored citadel",
+      "normal": [
+        0.9999999999978397,
+        2.0785834616303216e-06,
+        -5.184464733974972e-13
+      ],
+      "position": [
+        667.500000005273,
+        -0.0025331909282721365,
+        -589.9971162613164
+      ],
+      "sequence": 22,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 1,
+        "velocity": [
+          648.0109942262309,
+          -13.554090174600805,
+          -502.4628650317688
+        ]
+      },
+      "shipId": "target",
+      "tick": 2194
+    },
+    {
+      "kind": "stopped",
+      "message": "Stopped by Armored citadel",
+      "normal": [
+        0.9999999999959787,
+        2.8359729929109665e-06,
+        -9.65107657251527e-13
+      ],
+      "position": [
+        667.5000002648801,
+        -0.09339369894757789,
+        -585.8784370254431
+      ],
+      "sequence": 23,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 4,
+        "velocity": [
+          639.1486694450895,
+          -17.432673821666643,
+          -513.6494441640715
+        ]
+      },
+      "shipId": "target",
+      "tick": 2195
+    },
+    {
+      "kind": "stopped",
+      "message": "Stopped by Armored citadel",
+      "normal": [
+        0.9999999999959787,
+        2.8359729929109665e-06,
+        -9.65107657251527e-13
+      ],
+      "position": [
+        667.5000004457279,
+        -0.1571645444506614,
+        -590.6893339727874
+      ],
+      "sequence": 24,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 3,
+        "velocity": [
+          639.1486694450895,
+          -17.432673821666643,
+          -513.6494441640715
+        ]
+      },
+      "shipId": "target",
+      "tick": 2195
+    },
+    {
+      "kind": "penetration",
+      "message": "Penetrated Hull plating",
+      "normal": [
+        -0.999999999993546,
+        -3.5927539608178323e-06,
+        1.5489169462076098e-12
+      ],
+      "position": [
+        631.9999968544165,
+        0.8754930490804844,
+        -555.0458889399911
+      ],
+      "sequence": 25,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 6,
+        "velocity": [
+          587.2848736205326,
+          -16.081171702725193,
+          -572.2438824934526
+        ]
+      },
+      "shipId": "target",
+      "tick": 2196
+    },
+    {
+      "kind": "penetration",
+      "message": "Penetrated Hull plating",
+      "normal": [
+        -0.9999999999901064,
+        -4.448286488669393e-06,
+        2.374432847307503e-12
+      ],
+      "position": [
+        631.999996484227,
+        0.790313368712673,
+        -554.6607072914871
+      ],
+      "sequence": 26,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 8,
+        "velocity": [
+          579.0625754817964,
+          -12.214600873261846,
+          -580.5888985099278
+        ]
+      },
+      "shipId": "target",
+      "tick": 2197
+    },
+    {
+      "kind": "penetration",
+      "message": "Penetrated Armored citadel",
+      "normal": [
+        -0.9999999999901064,
+        -4.448286488669393e-06,
+        2.374432847307503e-12
+      ],
+      "position": [
+        632.4999965308324,
+        0.7798370812457469,
+        -555.1620252640256
+      ],
+      "sequence": 27,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 8,
+        "velocity": [
+          579.0625754817964,
+          -12.214600873261846,
+          -580.5888985099278
+        ]
+      },
+      "shipId": "target",
+      "tick": 2197
+    },
+    {
+      "kind": "penetration",
+      "message": "Penetrated Armored citadel",
+      "normal": [
+        -0.9999999999901064,
+        -4.448286488669393e-06,
+        2.374432847307503e-12
+      ],
+      "position": [
+        632.4999961665171,
+        0.8617370192636531,
+        -555.5330827371624
+      ],
+      "sequence": 28,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 6,
+        "velocity": [
+          587.2848736205326,
+          -16.244671702725192,
+          -572.2438824934526
+        ]
+      },
+      "shipId": "target",
+      "tick": 2197
+    },
+    {
+      "kind": "penetration",
+      "message": "Penetrated Hull plating",
+      "normal": [
+        -0.9999999999901064,
+        -4.448286488669393e-06,
+        2.374432847307503e-12
+      ],
+      "position": [
+        631.999996425675,
+        0.8034732011620934,
+        -560.2817182332518
+      ],
+      "sequence": 29,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 5,
+        "velocity": [
+          587.2848736205326,
+          -16.244671702725192,
+          -572.2438824934526
+        ]
+      },
+      "shipId": "target",
+      "tick": 2197
+    },
+    {
+      "kind": "penetration",
+      "message": "Penetrated Armored citadel",
+      "normal": [
+        -0.9999999999901064,
+        -4.448286488669393e-06,
+        2.374432847307503e-12
+      ],
+      "position": [
+        632.4999964868904,
+        0.7897124826355608,
+        -560.7689127603524
+      ],
+      "sequence": 30,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 5,
+        "velocity": [
+          587.2848736205326,
+          -16.244671702725192,
+          -572.2438824934526
+        ]
+      },
+      "shipId": "target",
+      "tick": 2197
+    },
+    {
+      "kind": "penetration",
+      "message": "Penetrated Hull plating",
+      "normal": [
+        -0.9999999999831823,
+        -5.799605095692021e-06,
+        4.036198285631147e-12
+      ],
+      "position": [
+        631.9999957416663,
+        0.734173562953975,
+        -559.9710013626135
+      ],
+      "sequence": 31,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 7,
+        "velocity": [
+          579.0625754817964,
+          -12.378100873261847,
+          -580.5888985099278
+        ]
+      },
+      "shipId": "target",
+      "tick": 2198
+    },
+    {
+      "kind": "penetration",
+      "message": "Penetrated Armored citadel",
+      "normal": [
+        -0.9999999999831823,
+        -5.799605095692021e-06,
+        4.036198285631147e-12
+      ],
+      "position": [
+        632.4999958032498,
+        0.723556098703643,
+        -560.4723193501698
+      ],
+      "sequence": 32,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 7,
+        "velocity": [
+          579.0625754817964,
+          -12.378100873261847,
+          -580.5888985099278
+        ]
+      },
+      "shipId": "target",
+      "tick": 2198
+    },
+    {
+      "kind": "stopped",
+      "message": "Stopped by Armored citadel",
+      "normal": [
+        0.9999999999604339,
+        8.895630752465493e-06,
+        -9.49578125745154e-12
+      ],
+      "position": [
+        667.5000010213505,
+        -0.11479887274234814,
+        -589.6367001893648
+      ],
+      "sequence": 33,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 6,
+        "velocity": [
+          587.2848736205326,
+          -16.73517170272519,
+          -572.2438824934526
+        ]
+      },
+      "shipId": "target",
+      "tick": 2200
+    },
+    {
+      "kind": "stopped",
+      "message": "Stopped by Armored citadel",
+      "normal": [
+        0.9999999999604339,
+        8.895630752465493e-06,
+        -9.49578125745154e-12
+      ],
+      "position": [
+        667.5000016814481,
+        -0.18900916461756354,
+        -594.8725305435783
+      ],
+      "sequence": 34,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 5,
+        "velocity": [
+          587.2848736205326,
+          -16.73517170272519,
+          -572.2438824934526
+        ]
+      },
+      "shipId": "target",
+      "tick": 2200
+    },
+    {
+      "kind": "stopped",
+      "message": "Stopped by Armored citadel",
+      "normal": [
+        0.9999999999454852,
+        1.0441723041366033e-05,
+        -1.3083441915738909e-11
+      ],
+      "position": [
+        667.4999997525078,
+        0.02372020948403006,
+        -590.2542833009209
+      ],
+      "sequence": 35,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 8,
+        "velocity": [
+          579.0625754817964,
+          -12.86860087326185,
+          -580.5888985099278
+        ]
+      },
+      "shipId": "target",
+      "tick": 2201
+    },
+    {
+      "kind": "stopped",
+      "message": "Stopped by Armored citadel",
+      "normal": [
+        0.9999999999454852,
+        1.0441723041366033e-05,
+        -1.3083441915738909e-11
+      ],
+      "position": [
+        667.5000003646443,
+        -0.03491052505971106,
+        -595.5645787303151
+      ],
+      "sequence": 36,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 7,
+        "velocity": [
+          579.0625754817964,
+          -12.86860087326185,
+          -580.5888985099278
+        ]
+      },
+      "shipId": "target",
+      "tick": 2201
+    }
+  ],
+  "fps": 30.147929620329133,
+  "inPort": false,
+  "inspecting": false,
+  "maxMuzzleErrorM": 0.002111462932947762,
+  "paused": false,
+  "portInspection": "exterior",
+  "shipId": "bismarck",
+  "tick": 2404
+}

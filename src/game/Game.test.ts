@@ -48,6 +48,7 @@ async function port() {
   const game = Object.assign(Object.create(Game.prototype), {
     definition, simulation, playerView, targetView, loadedModel: loaded, scene, harbor, camera, rig,
     currentAim: [650, .5, -550], manualAim: true,
+    effects: { diagnostics() { return {}; } },
     ship: new Group(), inPort: true, disposed: false, switchingShip: false,
     renderer: { domElement: { setAttribute() {} } },
   }) as Game;
