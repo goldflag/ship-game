@@ -1,0 +1,9 @@
+assets/ships/*/references/** filter=lfs diff=lfs merge=lfs -text
+assets/ships/*/reports/** filter=lfs diff=lfs merge=lfs -text
+assets/ships/*/baseline/** filter=lfs diff=lfs merge=lfs -text
+assets/reviews/** filter=lfs diff=lfs merge=lfs -text
+assets/aircraft/reports/** filter=lfs diff=lfs merge=lfs -text
+assets/maps/review/** filter=lfs diff=lfs merge=lfs -text
+assets/effects/*/review/** filter=lfs diff=lfs merge=lfs -text
+assets/effects/*/reports/** filter=lfs diff=lfs merge=lfs -text
+assets/effects/*/references/** filter=lfs diff=lfs merge=lfs -text
