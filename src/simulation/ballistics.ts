@@ -42,6 +42,19 @@ function random(seed: number): number {
   x = Math.imul(x ^ (x >>> 16), 0x21f0aaad); x = Math.imul(x ^ (x >>> 15), 0x735a2d97);
   return ((x ^ (x >>> 15)) >>> 0) / 4294967296;
 }
+/** Independent seeded muzzle-velocity error adds range spread without moving the
+ * gun's nominal firing solution. Calibration is a fractional standard deviation. */
+export function dispersedSpeed(speed: number, sigmaFraction: number, seed: number, shot: number): number {
+  if (sigmaFraction === 0) return speed;
+  const first = seed ^ Math.imul(shot + 1, 0x9e3779b9) ^ 0x4cf5ad43;
+  const normal = Math.sqrt(-2 * Math.log(Math.max(1e-12, random(first)))) * Math.cos(2 * Math.PI * random(first ^ 0x7f4a7c15));
+  return speed * (1 + Math.max(-3, Math.min(3, normal)) * sigmaFraction);
+}
+/** Provisional velocity exponent on the carried penetration budget. Resistance
+ * paid at a plate is not refunded later; the residual budget follows flight speed.
+ * This is not a historical penetration equation or a shell-deformation model. */
+export const velocityPenetration = (budgetMm: number, beforeSpeed: number, afterSpeed: number): number =>
+  beforeSpeed > 1e-8 ? budgetMm * (afterSpeed / beforeSpeed) ** 1.4 : 0;
 /** Per-shot seeded Gaussian angular error, bounded to three standard deviations.
  * Stateless: unrelated render frames, telemetry and sound cannot consume RNG. */
 export function dispersedDirection(direction: Vec3, spreadRad: number, seed: number, shot: number): Vec3 {

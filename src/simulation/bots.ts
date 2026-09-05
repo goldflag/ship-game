@@ -6,7 +6,8 @@ import { muzzleWorld, solveBallistic, type MountDefinition, type MountState } fr
 import { travelFactor } from './ballistics';
 
 export const shipVelocity = (actor: FleetActor): Vec3 => [Math.sin(actor.motion.heading) * actor.motion.speed, 0, -Math.cos(actor.motion.heading) * actor.motion.speed];
-/** Provisional bot engagement limits, in meters; small AA fittings wait for close range. */
+/** Provisional bot engagement limits, in meters; small AA fittings wait for close
+ * range. Out-of-range mounts hold their train and acquire when entering range. */
 export const botGunRange = (mount: MountDefinition): number => mount.weapon.caliberM >= .2 ? 18000 : mount.weapon.caliberM >= .1 ? 8000 : mount.weapon.caliberM >= .03 ? 3500 : 1800;
 const distance = (a: FleetActor, b: FleetActor) => Math.hypot(a.motion.x - b.motion.x, a.motion.z - b.motion.z);
 
@@ -47,13 +48,15 @@ export function botAim(actor: FleetActor, target: FleetActor, mount: MountDefini
   point[1] = Math.max(.5, point[1]);
   const from = muzzleWorld(mount, state, 0, actor.motion);
   const velocity = shipVelocity(target), inherited = shipVelocity(actor);
-  let time = Math.hypot(point[0] - from[0], point[2] - from[2]) / mount.weapon.muzzleSpeed;
-  for (let i = 0; i < 3; i++) {
+  const cache = state.leadCache && Math.hypot(...sub(point, state.leadCache.point)) < 10 ? state.leadCache : undefined;
+  let time = cache?.time ?? Math.hypot(point[0] - from[0], point[2] - from[2]) / mount.weapon.muzzleSpeed;
+  for (let i = 0; i < (cache ? 1 : 3); i++) {
     const drag = mount.weapon.ballistics?.dragPerSecond ?? 0;
     const solution = solveBallistic(from, sub(add(point, scale(velocity, time)), scale(inherited, travelFactor(time, drag))), mount.weapon.muzzleSpeed, drag);
-    if (!solution) break;
+    if (!solution) { state.leadCache = undefined; return add(point, scale(velocity, time)); }
     time = solution.time;
   }
+  state.leadCache = { time, point: [...point] };
   return add(point, scale(velocity, time));
 }
 

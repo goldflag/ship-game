@@ -41,7 +41,11 @@ export function plateResponse(thicknessMm: number, material: string, cosine: num
   if (material === 'teak') return { resistanceMm: 0, ricochet: false };
   const ratio = caliberM > 0 ? thicknessMm / (caliberM * 1000) : 1;
   const cutoff = .02 + .18 * clamp((ratio - .05) / .15, 0, 1);
-  return { resistanceMm: thicknessMm / Math.max(.04, Math.abs(cosine)), ricochet: Math.abs(cosine) < cutoff };
+  // Relative resistance factors and thin-sheet tearing cap are game calibration,
+  // not measured material strengths. A thin sheet is limited to 10x thickness.
+  const factor = material === 'KC' ? 1.1 : material === 'Ww' ? .9 : 1;
+  const grazingFloor = .1 - .06 * clamp((ratio - .1) / .1, 0, 1);
+  return { resistanceMm: factor * thicknessMm / Math.max(grazingFloor, Math.abs(cosine)), ricochet: Math.abs(cosine) < cutoff };
 }
 /** Read-only probe used by validation and local inspection artifacts. */
 export function protectionTrace(from: Vec3, to: Vec3, def: ShipDefinition, trains=def.mounts.map(() => 0), caliberM = 0) {
