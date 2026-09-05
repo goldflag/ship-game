@@ -2,6 +2,7 @@ import * as THREE from 'three/webgpu';
 import type { ShipDefinition } from '../ships/blueprint';
 import { inspectionColor, inspectionEntries, type InspectionMode, type InspectionEntry } from '../ships/inspection';
 import type { Combatant } from '../simulation/damage';
+import { equipmentCondition } from '../simulation/machinery';
 import { radians } from '../simulation/geometry';
 
 /** Shared port and combat X-ray geometry. No simulation state is changed by inspection. */
@@ -87,6 +88,7 @@ export class ShipInspection {
       if (entry.moduleIndex !== undefined) {
         const condition = actor.damage.modules[entry.moduleIndex].hp / this.definition.modules[entry.moduleIndex].hp;
         if (condition < 1) fill.material.color.set(condition <= 0 ? '#d36b4f' : '#dfbd83');
+        if (equipmentCondition(actor, this.definition, this.definition.modules[entry.moduleIndex]).reason === 'flooded') fill.material.color.set('#519fc0');
       }
       if (entry.mountIndex !== undefined) group.rotation.y = -(radians(entry.bearingDeg!) + actor.mounts[entry.mountIndex].train);
       if (water && entry.compartmentIndex !== undefined) {

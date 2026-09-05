@@ -23,3 +23,14 @@ Configuration: USS Baltimore CA-68, October 1943 exterior, normalized to the doc
 The first pipeline export briefly used the restored starter recipe during another operation's stash/merge integration. Hash `f4ada9e1d1f80d078919bd50c6f3668eb25a9f9d561c223a448693791f700a8a` is **not** evidence for the authored Baltimore exterior. The original recipe was recovered from this task's own tool history; subsequent builds must supersede that export.
 
 Current dimensional study: `references/class-hull-study.json`. The high-resolution Canberra sheet visibly contains missile-conversion and helicopter-platform changes, and the Baltimore bridge sheet has later 3-inch/50 and radar annotations. Their archive entry dates are not blanket configuration certification.
+
+
+## 2026-09-05 — provisional flooding and machinery extension
+
+The versioned blueprint now records machinery dependencies, immersion thresholds, hull-side flood regions and additional outer spaces authored by `assets/ships/author-flood-spaces.ts`. New room boxes fit the reconstructed hull and exclude retained room envelopes; these tests do not establish historical subdivision. The strips, 72% floodable volume, pump rates, closed partition locations and nominal 5 mm unmeasured partitions are gameplay estimates. Existing physical protection is reused where it crosses a boundary; no initial open connection is asserted. Side coverage currently spans roughly -6 to +3 m, leaving end, upper-deck and deeper-bottom mapping incomplete. Exact steam routing, machinery vulnerability, free-surface stability and full damaged-hull flotation remain unresolved. See the damage-realism implementation record for validation and review status.
+
+### Step 2 review corrections — 2026-09-05
+
+Two retained combined-drive envelopes represent the cruiser machinery plant with equal provisional power shares; individual boilers and shafts remain aggregated. Original equipment and room IDs are retained, including Enterprise’s legacy engine-port ID for forward boilers.
+
+70 rooms, 118 exterior mapping regions, 164 closed boundaries (0 linked to existing plates; 159 estimated 5 mm partitions). Wing spaces now extend to neighboring retained room envelopes; the prior 2 m strip cap disconnected Yamato’s interior. Small centreline end pockets are conservative hull-inscribed flood volumes, not historical end-compartment plans. Their mapping regions approximate the surrounding end shell; full end volume, upper-deck and deep-bottom coverage remain required before replacing the sinking fallback.

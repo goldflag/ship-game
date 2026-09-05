@@ -5,6 +5,18 @@
 <rect x="330.0" y="430.0" width="240" height="48.0" fill="#aa927e" fill-opacity=".28" stroke="#74847c" stroke-width=".7"><title>Anton propellant magazines</title></rect>
 <rect x="330.0" y="482.0" width="240" height="50.0" fill="#9fbbad" fill-opacity=".28" stroke="#74847c" stroke-width=".7"><title>Anton shell rooms</title></rect>
 <rect x="365.0" y="316.0" width="170.0" height="64.0" fill="#9fbbad" fill-opacity=".28" stroke="#74847c" stroke-width=".7"><title>Anton handling space</title></rect>
+<rect x="258.20979671478267" y="490.3" width="70.59020328521731" height="29.4" fill="#9fbbad" fill-opacity=".28" stroke="#74847c" stroke-width=".7"><title>Port outer space 3.1 · estimated</title></rect>
+<rect x="571.1999999999999" y="490.3" width="70.59020328521731" height="29.4" fill="#9fbbad" fill-opacity=".28" stroke="#74847c" stroke-width=".7"><title>Starboard outer space 3.1 · estimated</title></rect>
+<rect x="252.83982114791868" y="460.3" width="75.96017885208133" height="29.4" fill="#9fbbad" fill-opacity=".28" stroke="#74847c" stroke-width=".7"><title>Port outer space 3.2 · estimated</title></rect>
+<rect x="571.1999999999999" y="460.3" width="75.96017885208133" height="29.4" fill="#9fbbad" fill-opacity=".28" stroke="#74847c" stroke-width=".7"><title>Starboard outer space 3.2 · estimated</title></rect>
+<rect x="252.0344717979431" y="430.3" width="76.76552820205691" height="29.4" fill="#9fbbad" fill-opacity=".28" stroke="#74847c" stroke-width=".7"><title>Port outer space 3.3 · estimated</title></rect>
+<rect x="571.1999999999999" y="430.3" width="76.76552820205691" height="29.4" fill="#9fbbad" fill-opacity=".28" stroke="#74847c" stroke-width=".7"><title>Starboard outer space 3.3 · estimated</title></rect>
+<rect x="251.22914390563963" y="400.3" width="40" height="29.4" fill="#9fbbad" fill-opacity=".28" stroke="#74847c" stroke-width=".7"><title>Port outer space 3.4 · estimated</title></rect>
+<rect x="608.7708560943604" y="400.3" width="40" height="29.4" fill="#9fbbad" fill-opacity=".28" stroke="#74847c" stroke-width=".7"><title>Starboard outer space 3.4 · estimated</title></rect>
+<rect x="250.42379455566405" y="370.3" width="113.37620544433597" height="29.4" fill="#9fbbad" fill-opacity=".28" stroke="#74847c" stroke-width=".7"><title>Port outer space 3.5 · estimated</title></rect>
+<rect x="536.1999999999999" y="370.3" width="113.37620544433597" height="29.4" fill="#9fbbad" fill-opacity=".28" stroke="#74847c" stroke-width=".7"><title>Starboard outer space 3.5 · estimated</title></rect>
+<rect x="242.218981552124" y="340.3" width="121.581018447876" height="29.4" fill="#9fbbad" fill-opacity=".28" stroke="#74847c" stroke-width=".7"><title>Port outer space 3.6 · estimated</title></rect>
+<rect x="536.1999999999999" y="340.3" width="121.581018447876" height="29.4" fill="#9fbbad" fill-opacity=".28" stroke="#74847c" stroke-width=".7"><title>Starboard outer space 3.6 · estimated</title></rect>
 <line x1="195.10002375000002" y1="430.0" x2="195.10002375000002" y2="334.0" stroke="#9b5a27" stroke-width="6.4"><title>Port Main Belt 5 · 320 mm</title></line>
 <line x1="198.80002375000004" y1="430.0" x2="198.80002375000004" y2="334.0" stroke="#ba9560" stroke-width="1.0"><title>Port Teak Backing 5 · 50 mm</title></line>
 <line x1="199.56002375000003" y1="430.0" x2="199.56002375000003" y2="334.0" stroke="#666d70" stroke-width="0.7"><title>Port Belt Support 5 · 20 mm</title></line>

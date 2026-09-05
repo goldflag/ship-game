@@ -1,5 +1,6 @@
 import type { Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { hullContains } from './hull';
+import { equipmentCondition, type EquipmentCondition } from './machinery';
 import { createShipState, FIXED_DT, stepShip, type HelmCommand } from './ship';
 import { add, clamp, localToWorld, scale, segmentBox, sub, worldToLocal } from './geometry';
 import { createMountState, GRAVITY, muzzleWorld, shotDirection, updateMount } from './weapons';
@@ -17,7 +18,7 @@ export interface CombatTelemetry {
   battle: boolean; result: BattleResult; playerSunk: boolean;
   targetPower: number; targetSteering: number; targetSunk: boolean; targetUnderway: boolean;
   mounts: { id: string; name: string; status: string; reload: number; ammo: number }[];
-  modules: { id: string; name: string; condition: number }[]; message: string;
+  modules: ({ id: string; name: string; condition: number } & EquipmentCondition)[]; message: string;
   playerIntegrity: number;
   playerWater: number;
   targetDefeatCause?: DefeatCause;
@@ -159,7 +160,7 @@ export class CombatSimulation {
       const laneClear = target && clearFiringLane(actor, target, this.actors);
       def.mounts.forEach((m, i) => {
         const state = actor.mounts[i];
-        if (m.magazineId && actor.damage.modules.find(module => module.id === m.magazineId)?.hp === 0) { state.status = 'disabled'; return; }
+        if (m.magazineId && equipmentCondition(actor, def, def.modules.find(module => module.id === m.magazineId)!).availability === 0) { state.status = 'disabled'; return; }
         if (actor === this.player && !aimValid) { state.status = 'out-of-arc'; return; }
         const aim = actor === this.player ? intent.aim : target ? botAim(actor, target, m, state) : localToWorld([0, .5, -5000], actor.motion);
         const aligned = updateMount(m, state, def, actor.motion, aim, FIXED_DT, shipVelocity(actor));
@@ -237,7 +238,7 @@ export class CombatSimulation {
         targetId: actor.targetId, x: actor.motion.x, z: actor.motion.z, heading: actor.motion.heading, integrity: actor.damage.integrity / 1000, sunk: actor.damage.sunk })),
       targetIntegrity: this.target.damage.integrity / 1000, targetWater: this.target.damage.compartments.reduce((n, c) => n + c.waterM3, 0),
       targetPower: systemHealth(this.target, this.target.definition, 'engine'), targetSteering: systemHealth(this.target, this.target.definition, 'steering'), targetSunk: this.target.damage.sunk, targetUnderway: this.targetUnderway,
-      mounts, modules: this.target.definition.modules.map((m, i) => ({ id: m.id, name: m.name, condition: this.target.damage.modules[i].hp / m.hp })),
+      mounts, modules: this.target.definition.modules.map((m, i) => ({ id: m.id, name: m.name, condition: this.target.damage.modules[i].hp / m.hp, ...equipmentCondition(this.target, this.target.definition, m) })),
       playerIntegrity: this.player.damage.integrity / 1000,
       playerWater: this.player.damage.compartments.reduce((n, c) => n + c.waterM3, 0),
       targetDefeatCause: this.target.damage.defeatCause,

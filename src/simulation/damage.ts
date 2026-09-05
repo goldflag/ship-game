@@ -1,4 +1,4 @@
-import type { ShipDefinition, Vec3 } from '../ships/blueprint';
+import type { FloodConnection, ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { ShipState } from './ship';
 import { plateHit, samePlateSeam } from './protection';
 import type { MountState } from './weapons';
@@ -6,19 +6,23 @@ import { add, clamp, contains, length, localToWorld, normalize, radians, rotate,
 
 export interface Breach { position: Vec3; areaM2: number; radiusM: number; shellId: number; }
 export interface CompartmentState { id: string; waterM3: number; breachAreaM2: number; breaches: Breach[]; }
+export interface ConnectionState { id: string; state: 'open' | 'closed' | 'damaged'; damageAreaM2: number; fromIndex: number; toIndex: number; }
+export const connectionId = (c: FloodConnection) => c.id ?? `${c.fromId}:${c.toId}`;
 export type DefeatCause = 'structural-fallback' | 'flooding' | 'magazine';
 export interface ImpactRecord {
   shellId: number; shipId: string; targetId: string; targetName: string;
   /** Position is ship-local; DamageEvent.position is world-space. */
-  kind: 'armor' | 'module' | 'mount'; position: Vec3;
+  kind: 'armor' | 'module' | 'mount' | 'boundary'; position: Vec3;
   thicknessMm?: number; material?: string; obliquityDeg?: number; resistanceMm?: number;
   penetrationBeforeMm: number; penetrationAfterMm: number;
   outcome: 'penetrated' | 'ricochet' | 'stopped' | 'damaged' | 'destroyed' | 'detonation' | 'backing';
   damage?: number; compartmentId?: string; breachAreaM2?: number; terminal?: boolean;
+  connectionIds?: string[];
+  breachAssignments?: { compartmentId: string; areaM2: number; position: Vec3 }[];
 }
 export interface DamageState {
   integrity: number; modules: { id: string; hp: number; detonated: boolean }[];
-  compartments: CompartmentState[]; sunk: boolean; defeatCause?: DefeatCause;
+  compartments: CompartmentState[]; connections: ConnectionState[]; sunk: boolean; defeatCause?: DefeatCause;
 }
 export interface Combatant { motion: ShipState; mounts: MountState[]; damage: DamageState; }
 export interface Shell {
@@ -33,12 +37,12 @@ export interface BallisticEffectData {
 }
 export interface DamageEvent extends BallisticEffectData { kind: 'penetration' | 'ricochet' | 'stopped' | 'module' | 'sunk'; position: Vec3; message: string; shipId: string; impact?: ImpactRecord; defeatCause?: DefeatCause; }
 export function createDamage(def: ShipDefinition): DamageState {
-  return { integrity: 1000, modules: def.modules.map(m => ({ id: m.id, hp: m.hp, detonated: false })), compartments: def.compartments.map(c => ({ id: c.id, waterM3: 0, breachAreaM2: 0, breaches: [] })), sunk: false };
+  return { integrity: 1000, modules: def.modules.map(m => ({ id: m.id, hp: m.hp, detonated: false })), compartments: def.compartments.map(c => ({ id: c.id, waterM3: 0, breachAreaM2: 0, breaches: [] })), connections: def.connections.map(c => ({ id: connectionId(c), state: c.state ?? 'open', damageAreaM2: c.state === 'damaged' ? c.areaM2 : 0, fromIndex: def.compartments.findIndex(r => r.id === c.fromId), toIndex: def.compartments.findIndex(r => r.id === c.toId) })), sunk: false };
 }
-export function addBreach(state: CompartmentState, position: Vec3, areaM2: number, shellId: number): number {
+export function addBreach(state: CompartmentState, position: Vec3, areaM2: number, shellId: number, apertureRadiusM = Math.sqrt(areaM2 / Math.PI)): number {
   const added = Math.max(0, Math.min(areaM2, 4 - state.breachAreaM2));
   if (added > 0) {
-    const radiusM = Math.sqrt(added / Math.PI);
+    const radiusM = apertureRadiusM;
     // Keep separate openings exact until a space accumulates 64. Dense repeated
     // hits merge locally; saturated spaces use the closest cluster, with height
     // weighted strongly to preserve waterline behavior. This bounds fleet cost.
@@ -60,9 +64,31 @@ function structuralDamage(state: DamageState, amount: number, cause: DefeatCause
   state.integrity = Math.max(0, before - amount);
   if (before > 0 && state.integrity === 0) state.defeatCause = cause;
 }
-export function systemHealth(actor: Combatant, def: ShipDefinition, kind: 'engine' | 'steering'): number {
-  const modules = def.modules.filter(m => m.kind === kind);
-  return actor.damage.sunk ? 0 : modules.length ? modules.reduce((n, m) => n + (actor.damage.modules.find(s => s.id === m.id)!.hp / m.hp), 0) / modules.length : 1;
+export { systemHealth } from './machinery';
+
+/** Split the same strip approximation used by inflow at authored room heights.
+ * An opening across a watertight deck can reach the room below its center. */
+function exteriorBreaches(actor: Combatant, def: ShipDefinition, point: Vec3, normal: Vec3, shell: Shell): NonNullable<ImpactRecord['breachAssignments']> {
+  const area = shell.caliberM ** 2, radius = Math.sqrt(area / Math.PI), bottom = point[1] - radius, top = point[1] + radius;
+  if (!def.floodRegions) {
+    const room = def.compartments.map((c, i) => ({ i, distance: Math.hypot(...point.map((n, axis) => Math.max(0, Math.abs(n - c.center[axis]) - c.size[axis] / 2))) })).sort((a, b) => a.distance - b.distance)[0];
+    if (!room) return [];
+    const c = actor.damage.compartments[room.i];
+    return [{ compartmentId: c.id, areaM2: addBreach(c, point, area, shell.id), position: [...point] }];
+  }
+  const regions = def.floodRegions.filter(r => (!r.face || (r.face === 'bow' || r.face === 'stern'
+    ? (r.face === 'bow' ? point[2] < 0 : point[2] >= 0)
+    : Math.abs(normal[0]) > .5 && (r.face === 'port' ? point[0] < 0 : point[0] >= 0))) && [0, 2].every(axis => Math.abs(point[axis] - r.center[axis]) <= r.size[axis] / 2));
+  const cuts = [...new Set([bottom, top, ...regions.flatMap(r => [r.center[1] - r.size[1] / 2, r.center[1] + r.size[1] / 2]).filter(y => y > bottom && y < top)])].sort((a, b) => a - b);
+  const result: NonNullable<ImpactRecord['breachAssignments']> = [];
+  for (let i = 1; i < cuts.length; i++) {
+    const position: Vec3 = [point[0], (cuts[i - 1] + cuts[i]) / 2, point[2]];
+    const region = regions.find(r => contains(r, position));
+    if (!region) continue;
+    const c = actor.damage.compartments.find(c => c.id === region.compartmentId)!;
+    result.push({ compartmentId: c.id, areaM2: addBreach(c, position, area * (cuts[i] - cuts[i - 1]) / (2 * radius), shell.id, (cuts[i] - cuts[i - 1]) / 2), position });
+  }
+  return result;
 }
 
 /** An explicit gameplay approximation: AP penetration budget through ordered plate/box surfaces.
@@ -70,7 +96,7 @@ export function systemHealth(actor: Combatant, def: ShipDefinition, kind: 'engin
 export function hitShip(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor: Combatant, def: ShipDefinition, emit: (e: DamageEvent) => void): boolean {
   const from = worldToLocal(fromWorld, actor.motion), to = worldToLocal(toWorld, actor.motion);
   const direction = normalize(sub(to, from));
-  type Hit = { t: number; key: string; kind: 'armor' | 'module' | 'mount'; index: number; point: Vec3; normal: Vec3; onEdge?: boolean };
+  type Hit = { t: number; key: string; kind: ImpactRecord['kind']; index: number; point: Vec3; normal: Vec3; onEdge?: boolean };
   const hits: Hit[] = [];
   def.armor.forEach((a, index) => {
     if (a.plate) {
@@ -96,6 +122,11 @@ export function hitShip(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor: Com
     const key = `${actor.motion.id}:module:${m.id}`, hit = segmentBox(from, to, m);
     if (hit && !shell.visited.includes(key)) hits.push({ ...hit, key, kind: 'module', index });
   });
+  def.connections.forEach((c, index) => {
+    if (!c.bounds || c.thicknessMm === undefined || actor.damage.connections[index].state === 'open') return;
+    const key = `${actor.motion.id}:boundary:${connectionId(c)}`, hit = segmentBox(from, to, c.bounds);
+    if (hit && !shell.visited.includes(key)) hits.push({ ...hit, key, kind: 'boundary', index });
+  });
   def.mounts.forEach((m, index) => {
     if (def.armor.some(a => a.plate?.mountId === m.id)) return;
     const yaw = radians(m.bearingDeg) + actor.mounts[index].train;
@@ -110,7 +141,8 @@ export function hitShip(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor: Com
   for (const hit of hits) {
     shell.visited.push(hit.key);
     const position = localToWorld(hit.point, actor.motion);
-    const target = hit.kind === 'armor' ? def.armor[hit.index] : hit.kind === 'module' ? def.modules[hit.index] : def.mounts[hit.index];
+    const boundary = def.connections[hit.index];
+    const target = hit.kind === 'armor' ? def.armor[hit.index] : hit.kind === 'module' ? def.modules[hit.index] : hit.kind === 'mount' ? def.mounts[hit.index] : { id: connectionId(boundary), name: `Watertight boundary ${connectionId(boundary)}` };
     const evidence: ImpactRecord = { shellId: shell.id, shipId: actor.motion.id, targetId: target.id, targetName: target.name, kind: hit.kind, position: [...hit.point], penetrationBeforeMm: shell.penetrationMm, penetrationAfterMm: shell.penetrationMm, outcome: 'damaged' };
     const report = (kind: DamageEvent['kind'], message: string, detonation = false) => emit({
       kind, position, message, shipId: actor.motion.id,
@@ -122,7 +154,7 @@ export function hitShip(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor: Com
     if (hit.kind === 'armor') {
       const a = def.armor[hit.index];
       if (a.plate && hit.onEdge) {
-        if (crossedPlateEdges.some(previous=>def.armor[previous.index].plate?.material===a.plate!.material && samePlateSeam(previous,hit))) continue;
+        if (crossedPlateEdges.some(previous=>def.armor[previous.index].plate?.material===a.plate!.material && samePlateSeam(previous,hit, !!a.plate!.surfaceId && a.plate!.surfaceId === def.armor[previous.index].plate?.surfaceId))) continue;
         crossedPlateEdges.push(hit);
       }
       const cosine = Math.abs(direction.reduce((sum, n, i) => sum + n * hit.normal[i], 0));
@@ -133,6 +165,12 @@ export function hitShip(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor: Com
       if (shell.penetrationMm < resistance) { evidence.outcome = 'stopped'; evidence.terminal = true; report('stopped', `Stopped by ${a.name}`); return true; }
       shell.penetrationMm -= resistance;
       evidence.outcome = 'penetrated';
+      def.connections.forEach((connection, i) => {
+        if (connection.armorId !== a.id || (connection.bounds && !contains(connection.bounds, hit.point))) return;
+        const state = actor.damage.connections[i];
+        state.state = 'damaged'; state.damageAreaM2 = Math.min(connection.areaM2, state.damageAreaM2 + shell.caliberM ** 2);
+        (evidence.connectionIds ??= []).push(state.id);
+      });
       if (a.plate?.mountId) {
         const mountIndex = def.mounts.findIndex(m => m.id === a.plate!.mountId);
         const mount = actor.mounts[mountIndex];
@@ -141,16 +179,12 @@ export function hitShip(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor: Com
         report('penetration', `Penetrated ${a.name} · ${def.mounts[mountIndex].name} ${mount.hp === 0 ? 'disabled' : 'damaged'}`);
         return true;
       }
-      if (a.plate?.exterior || hit.key.endsWith(':entry')) {
+      if (a.plate?.exterior || a.exterior || (a.exterior === undefined && !a.plate && hit.key.endsWith(':entry'))) {
         evidence.damage = Math.min(actor.damage.integrity, shell.damage * .2);
         structuralDamage(actor.damage, shell.damage * .2, 'structural-fallback');
-        // Assign a breach to the closest modeled space. Breach extent is a tunable blast approximation.
-        const candidates = def.compartments.map((c, i) => ({ c, i, distance: length(sub(c.center, hit.point)) })).sort((a, b) => a.distance - b.distance);
-        if (candidates[0]) {
-          const c = actor.damage.compartments[candidates[0].i];
-          evidence.compartmentId = c.id;
-          evidence.breachAreaM2 = addBreach(c, hit.point, shell.caliberM * shell.caliberM, shell.id);
-        }
+        evidence.breachAssignments = exteriorBreaches(actor, def, hit.point, hit.normal, shell);
+        evidence.compartmentId = evidence.breachAssignments[0]?.compartmentId;
+        evidence.breachAreaM2 = evidence.breachAssignments.reduce((n, b) => n + b.areaM2, 0);
       }
       report('penetration', `Penetrated ${a.name}`);
     } else if (hit.kind === 'module') {
@@ -171,6 +205,15 @@ export function hitShip(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor: Com
         report('module', `${m.name} detonation`, true);
       }
       if (shell.penetrationMm === 0) return true;
+    } else if (hit.kind === 'boundary') {
+      const state = actor.damage.connections[hit.index];
+      const resistance = boundary.thicknessMm! / Math.max(.2, Math.abs(direction.reduce((n, v, i) => n + v * hit.normal[i], 0)));
+      Object.assign(evidence, { thicknessMm: boundary.thicknessMm, material: 'steel', resistanceMm: resistance, connectionIds: [state.id] });
+      if (shell.penetrationMm < resistance) { evidence.outcome = 'stopped'; evidence.terminal = true; report('stopped', `Stopped by ${target.name}`); return true; }
+      shell.penetrationMm -= resistance;
+      state.state = 'damaged'; state.damageAreaM2 = Math.min(boundary.areaM2, state.damageAreaM2 + shell.caliberM ** 2);
+      evidence.outcome = 'penetrated'; evidence.breachAreaM2 = state.damageAreaM2;
+      report('penetration', `Breached ${target.name}`);
     } else {
       const m = def.mounts[hit.index], state = actor.mounts[hit.index];
       Object.assign(evidence, { thicknessMm: m.weapon.armorMm, material: 'steel', resistanceMm: m.weapon.armorMm, terminal: true });
@@ -202,11 +245,18 @@ export function updateFlooding(actor: Combatant, def: ShipDefinition, dt: number
     state.waterM3 = clamp(state.waterM3 + (inflow - c.pumpM3PerSecond) * dt, 0, c.capacityM3);
   });
   // Sequential, stable connection order; each transfer conserves water and respects capacity.
-  def.connections.forEach(connection => {
-    const ai = def.compartments.findIndex(c => c.id === connection.fromId), bi = def.compartments.findIndex(c => c.id === connection.toId);
+  def.connections.forEach((connection, i) => {
+    const state = damage.connections[i];
+    if (state.state === 'closed') return;
+    const ai = state.fromIndex, bi = state.toIndex;
     const a = damage.compartments[ai], b = damage.compartments[bi], ac = def.compartments[ai], bc = def.compartments[bi];
-    const difference = a.waterM3 / ac.capacityM3 - b.waterM3 / bc.capacityM3;
-    const requested = connection.areaM2 * Math.sqrt(2 * 9.81 * Math.abs(difference) * Math.min(ac.size[1], bc.size[1])) * dt;
+    const portalY = connection.position ? localToWorld(connection.position, actor.motion)[1] : -Infinity;
+    const level = (room: typeof ac, water: number) => localToWorld([room.center[0], room.center[1] - room.size[1] / 2 + water / room.capacityM3 * room.size[1], room.center[2]], actor.motion)[1];
+    const ay = level(ac, a.waterM3), by = level(bc, b.waterM3);
+    const difference = connection.position ? Math.max(0, ay - portalY) - Math.max(0, by - portalY) : ay - by;
+    const area = state.state === 'damaged' ? state.damageAreaM2 : connection.areaM2;
+    const equalization = Math.abs(difference) / (ac.size[1] / ac.capacityM3 + bc.size[1] / bc.capacityM3);
+    const requested = Math.min(equalization, .6 * area * Math.sqrt(2 * 9.81 * Math.abs(difference)) * dt);
     const amount = difference > 0 ? Math.min(requested, a.waterM3, bc.capacityM3 - b.waterM3) : -Math.min(requested, b.waterM3, ac.capacityM3 - a.waterM3);
     a.waterM3 -= amount; b.waterM3 += amount;
   });

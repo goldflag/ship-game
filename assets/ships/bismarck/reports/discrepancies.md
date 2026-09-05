@@ -16,3 +16,16 @@ Reviewed fit: **24 May 1941**, displayed at **9.33 m standard draft**. Revision 
 | Combat and buoyancy | CPU plate intersections share geometry with sight picking/probes/inspection, train with turrets, and avoid duplicate resistance at seams/tick boundaries. Only exterior penetrations introduce sea breaches. | AP budgets, module damage, nearby-room breach assignment, pumps, waterplane area and reserve buoyancy are game calibration. No open inter-room connection is assumed. No empirical AP fuzes, spall, HE, full hydrostatics or crew model is claimed. |
 
 Further geometric work should start with the missing original body/arrangement evidence, then refine hull sections and major footprints. Do not force the original ship to match a competing game mesh or hide differences with per-feature registration.
+
+
+## 2026-09-05 — provisional flooding and machinery extension
+
+The versioned blueprint now records machinery dependencies, immersion thresholds, hull-side flood regions and additional outer spaces authored by `assets/ships/author-flood-spaces.ts`. New room boxes fit the reconstructed hull and exclude retained room envelopes; these tests do not establish historical subdivision. The strips, 72% floodable volume, pump rates, closed partition locations and nominal 5 mm unmeasured partitions are gameplay estimates. Existing physical protection is reused where it crosses a boundary; no initial open connection is asserted. Side coverage currently spans roughly -6 to +3 m, leaving end, upper-deck and deeper-bottom mapping incomplete. Exact steam routing, machinery vulnerability, free-surface stability and full damaged-hull flotation remain unresolved. See the damage-realism implementation record for validation and review status.
+
+### Step 2 review corrections — 2026-09-05
+
+Three turbine/shaft groups share a six-room boiler pool. Equal shaft shares, steam routing and immersion thresholds are provisional gameplay calibration. Original equipment and room IDs are retained, including Enterprise’s legacy engine-port ID for forward boilers.
+
+161 rooms, 138 exterior mapping regions, 360 closed boundaries (4 linked to existing plates; 356 estimated 5 mm partitions). Wing spaces now extend to neighboring retained room envelopes; the prior 2 m strip cap disconnected Yamato’s interior. Small centreline end pockets are conservative hull-inscribed flood volumes, not historical end-compartment plans. Their mapping regions approximate the surrounding end shell; full end volume, upper-deck and deep-bottom coverage remain required before replacing the sinking fallback.
+
+The original author-end-plating.ts recipe adds 466 triangles following the hull end loft, closing exposed portions beyond/below the old end armor envelopes. Uniform 20 mm steel is an estimate. Shared surface IDs prevent a centreline chine hit charging both joined triangles. Existing protection IDs remain intact.

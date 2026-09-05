@@ -33,3 +33,14 @@ The museum director's [bridge reconstruction account](https://yamato-museum.com/
 ## Visual review, build b81a8d55e9fd
 
 Profile, plan, quarter, bow and stern inspected. Corrected rear turret roof AA attachment, forefoot faceting, waterline width/length, unsupported stern AA, closed boat bays, screw diameter, rudder outline and single radar array. Bridge galleries, navigation glazing, conning tower, curved funnel uptake, six searchlight stations and rounded boat-bay ends have since been revised from museum references. Remaining visible discrepancies include simplified secondary gunhouses, AA shields, aft director, stern machinery and fittings, plus unverified positions and profiles across the model. Those are open historical/modeling work, not passed items.
+
+
+## 2026-09-05 — provisional flooding and machinery extension
+
+The versioned blueprint now records machinery dependencies, immersion thresholds, hull-side flood regions and additional outer spaces authored by `assets/ships/author-flood-spaces.ts`. New room boxes fit the reconstructed hull and exclude retained room envelopes; these tests do not establish historical subdivision. The strips, 72% floodable volume, pump rates, closed partition locations and nominal 5 mm unmeasured partitions are gameplay estimates. Existing physical protection is reused where it crosses a boundary; no initial open connection is asserted. Side coverage currently spans roughly -6 to +3 m, leaving end, upper-deck and deeper-bottom mapping incomplete. Exact steam routing, machinery vulnerability, free-surface stability and full damaged-hull flotation remain unresolved. See the damage-realism implementation record for validation and review status.
+
+### Step 2 review corrections — 2026-09-05
+
+Two retained combined-drive envelopes stand in for the boiler/turbine/shaft plant, with equal provisional power shares. This is not a recovered steam-routing plan. Original equipment and room IDs are retained, including Enterprise’s legacy engine-port ID for forward boilers.
+
+164 rooms, 162 exterior mapping regions, 365 closed boundaries (0 linked to existing plates; 358 estimated 5 mm partitions). Wing spaces now extend to neighboring retained room envelopes; the prior 2 m strip cap disconnected Yamato’s interior. Small centreline end pockets are conservative hull-inscribed flood volumes, not historical end-compartment plans. Their mapping regions approximate the surrounding end shell; full end volume, upper-deck and deep-bottom coverage remain required before replacing the sinking fallback.

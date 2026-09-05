@@ -20,8 +20,8 @@ export function segmentPlate(from: Vec3, to: Vec3, vertices: Vec3[]) {
   return { t: Math.max(0, Math.min(1,t)), point, normal, onEdge };
 }
 /** Neighboring coplanar polygons share a seam, not a second physical armor layer. */
-export function samePlateSeam(a: { point:Vec3; normal:Vec3; onEdge?:boolean }, b: { point:Vec3; normal:Vec3; onEdge?:boolean }) {
-  return a.onEdge && b.onEdge && Math.abs(dot(a.normal,b.normal)) > 1-1e-8 && a.point.every((n,i)=>Math.abs(n-b.point[i]) < 1e-6);
+export function samePlateSeam(a: { point:Vec3; normal:Vec3; onEdge?:boolean }, b: { point:Vec3; normal:Vec3; onEdge?:boolean }, joinedSurface = false) {
+  return a.onEdge && b.onEdge && (joinedSurface || Math.abs(dot(a.normal,b.normal)) > 1-1e-8) && a.point.every((n,i)=>Math.abs(n-b.point[i]) < 1e-6);
 }
 export function plateHit(from: Vec3, to: Vec3, armor: Armor, def: ShipDefinition, trains: number[]) {
   if (!armor.plate) return null;
@@ -39,7 +39,7 @@ export function protectionTrace(from: Vec3, to: Vec3, def: ShipDefinition, train
     const hit=plateHit(from,to,a,def,trains);
     if (!hit) return [];
     const cosine=Math.abs(dot(direction,hit.normal));
-    return [{ id:a.id, name:a.name, ...hit, thicknessMm:a.thicknessMm, material:a.plate!.material, resistanceMm:a.plate!.material==='teak' ? 0 : a.thicknessMm/Math.max(.2,cosine), ricochet:cosine<.2 }];
+    return [{ id:a.id, name:a.name, ...hit, surfaceId:a.plate!.surfaceId, thicknessMm:a.thicknessMm, material:a.plate!.material, resistanceMm:a.plate!.material==='teak' ? 0 : a.thicknessMm/Math.max(.2,cosine), ricochet:cosine<.2 }];
   }).sort((a,b)=>a.t-b.t || b.resistanceMm-a.resistanceMm || a.id.localeCompare(b.id));
-  return hits.filter((hit,i)=>!hits.slice(0,i).some(previous=>previous.material===hit.material && samePlateSeam(previous,hit)));
+  return hits.filter((hit,i)=>!hits.slice(0,i).some(previous=>previous.material===hit.material && samePlateSeam(previous,hit, !!hit.surfaceId && hit.surfaceId === previous.surfaceId)));
 }

@@ -1,0 +1,1385 @@
+{
+  "diagnostics": {
+    "audio": {
+      "failed": [],
+      "inPort": false,
+      "loaded": 13,
+      "paused": false,
+      "played": 4,
+      "settings": {
+        "effects": 0.8,
+        "interface": 0.65,
+        "master": 0.65,
+        "muted": false
+      },
+      "state": "running",
+      "total": 13,
+      "voices": 3
+    },
+    "backend": "webgpu",
+    "camera": {
+      "aim": [
+        -0.49910674719178816,
+        0.7023605741899388,
+        -4983.081763962829
+      ],
+      "binoculars": false,
+      "fov": 52.00000000000001,
+      "magnification": 1,
+      "manualAim": true,
+      "matrixWorldInverse": [
+        0.9996099254333005,
+        -0.0008094055002878179,
+        0.027916694610346182,
+        0,
+        -2.168404344971009e-19,
+        0.9995799503660316,
+        0.028981422087980397,
+        0,
+        -0.02792842593543768,
+        -0.028970117172317095,
+        0.9991900396500112,
+        0,
+        -114.64808302076729,
+        -164.785475149991,
+        1868.2013173691914,
+        1
+      ],
+      "mode": "Chase",
+      "pointerLocked": false,
+      "position": [
+        62.31597780186396,
+        110.57312614747339,
+        -1874.6639433950022
+      ],
+      "projectionMatrix": [
+        1.633751346060547,
+        0,
+        0,
+        0,
+        0,
+        2.050303841579296,
+        0,
+        0,
+        0,
+        0,
+        -1.0000083334027783,
+        -1,
+        0,
+        0,
+        -0.5000041667013891,
+        0
+      ]
+    },
+    "combat": {
+      "batteries": [
+        {
+          "ammo": 960,
+          "battery": "main",
+          "ready": 4,
+          "reload": 0,
+          "total": 4
+        },
+        {
+          "ammo": 1800,
+          "battery": "secondary",
+          "ready": 3,
+          "reload": 0,
+          "total": 6
+        }
+      ],
+      "battery": "main",
+      "battle": true,
+      "contacts": [
+        {
+          "controller": "player",
+          "heading": 1.5707963267948966,
+          "id": "player",
+          "integrity": 1,
+          "name": "Bismarck",
+          "shipId": "bismarck",
+          "sunk": false,
+          "team": "friendly",
+          "x": 0,
+          "z": 0
+        },
+        {
+          "controller": "bot",
+          "heading": 4.712388976271686,
+          "id": "enemy-1",
+          "integrity": 0.9995999999999999,
+          "name": "Bismarck",
+          "shipId": "bismarck",
+          "sunk": false,
+          "targetId": "player",
+          "team": "enemy",
+          "x": -0.0038,
+          "z": -4999.999999999993
+        }
+      ],
+      "message": "Bismarck · Penetrated Starboard Lower Plating 2",
+      "modules": [
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-aft-port-equipment",
+          "name": "Aft port boiler room · two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-aft-center-equipment",
+          "name": "Aft center boiler room · two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-aft-starboard-equipment",
+          "name": "Aft starboard boiler room · two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 0,
+          "condition": 0.9928571428571429,
+          "id": "boiler-forward-port-equipment",
+          "name": "Forward port boiler room · two Wagner boilers",
+          "reason": "flooded"
+        },
+        {
+          "availability": 0.9928571428571429,
+          "condition": 0.9928571428571429,
+          "id": "boiler-forward-center-equipment",
+          "name": "Forward center boiler room · two Wagner boilers",
+          "reason": "damaged"
+        },
+        {
+          "availability": 0,
+          "condition": 0.9928571428571429,
+          "id": "boiler-forward-starboard-equipment",
+          "name": "Forward starboard boiler room · two Wagner boilers",
+          "reason": "flooded"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "engine-port",
+          "name": "Port turbine room",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "engine-starboard",
+          "name": "Starboard turbine room",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "engine-center",
+          "name": "Center turbine room",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "anton-magazine",
+          "name": "Anton propellant magazines",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "bruno-magazine",
+          "name": "Bruno propellant magazines",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "caesar-magazine",
+          "name": "Cäsar propellant magazines",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "dora-magazine",
+          "name": "Dora propellant magazines",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "steering",
+          "name": "Steering gear room",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "shaft-port-equipment",
+          "name": "Port shaft passage",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "shaft-center-equipment",
+          "name": "Center shaft passage",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "shaft-starboard-equipment",
+          "name": "Starboard shaft passage",
+          "reason": "operational"
+        }
+      ],
+      "mounts": [
+        {
+          "ammo": 240,
+          "id": "anton",
+          "name": "Anton",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 240,
+          "id": "bruno",
+          "name": "Bruno",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 240,
+          "id": "caesar",
+          "name": "Cäsar",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 240,
+          "id": "dora",
+          "name": "Dora",
+          "reload": 0,
+          "status": "ready"
+        }
+      ],
+      "playerIntegrity": 1,
+      "playerSunk": false,
+      "playerWater": 0,
+      "range": 4983.081788958159,
+      "ready": 4,
+      "result": "active",
+      "shellHistory": [
+        {
+          "impacts": [
+            {
+              "breachAreaM2": 0.14439999999999995,
+              "breachAssignments": [
+                {
+                  "areaM2": 0.14439999999999995,
+                  "compartmentId": "flood-strip-port-5-2",
+                  "position": [
+                    -16.457304682434227,
+                    -2,
+                    -21
+                  ]
+                }
+              ],
+              "compartmentId": "flood-strip-port-5-2",
+              "damage": 0.2,
+              "kind": "armor",
+              "material": "steel",
+              "obliquityDeg": 10.163956176618717,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 9979.68113223465,
+              "penetrationBeforeMm": 10000,
+              "position": [
+                -16.457304682434227,
+                -2,
+                -21
+              ],
+              "resistanceMm": 20.3188677653501,
+              "shellId": 900001,
+              "shipId": "enemy-1",
+              "targetId": "port-lower-plating-2",
+              "targetName": "Port Lower Plating 2",
+              "thicknessMm": 20
+            },
+            {
+              "breachAreaM2": 0.1444,
+              "connectionIds": [
+                "partition-d975fbbf0408"
+              ],
+              "kind": "boundary",
+              "material": "steel",
+              "outcome": "penetrated",
+              "penetrationAfterMm": 9974.68113223465,
+              "penetrationBeforeMm": 9979.68113223465,
+              "position": [
+                -15.725000000000001,
+                -2,
+                -21
+              ],
+              "resistanceMm": 5,
+              "shellId": 900001,
+              "shipId": "enemy-1",
+              "targetId": "partition-d975fbbf0408",
+              "targetName": "Watertight boundary partition-d975fbbf0408",
+              "thicknessMm": 5
+            },
+            {
+              "breachAreaM2": 0.1444,
+              "connectionIds": [
+                "partition-68234d6a6243"
+              ],
+              "kind": "boundary",
+              "material": "steel",
+              "outcome": "penetrated",
+              "penetrationAfterMm": 9969.68113223465,
+              "penetrationBeforeMm": 9974.68113223465,
+              "position": [
+                -14.415,
+                -2,
+                -21
+              ],
+              "resistanceMm": 5,
+              "shellId": 900001,
+              "shipId": "enemy-1",
+              "targetId": "partition-68234d6a6243",
+              "targetName": "Watertight boundary partition-68234d6a6243",
+              "thicknessMm": 5
+            },
+            {
+              "breachAreaM2": 0.1444,
+              "connectionIds": [
+                "partition-ae83172175f1"
+              ],
+              "kind": "boundary",
+              "material": "steel",
+              "outcome": "penetrated",
+              "penetrationAfterMm": 9964.68113223465,
+              "penetrationBeforeMm": 9969.68113223465,
+              "position": [
+                -12.915,
+                -2,
+                -21
+              ],
+              "resistanceMm": 5,
+              "shellId": 900001,
+              "shipId": "enemy-1",
+              "targetId": "partition-ae83172175f1",
+              "targetName": "Watertight boundary partition-ae83172175f1",
+              "thicknessMm": 5
+            },
+            {
+              "kind": "armor",
+              "material": "Ww",
+              "obliquityDeg": 0.19927553158771152,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 9919.680860060174,
+              "penetrationBeforeMm": 9964.68113223465,
+              "position": [
+                -11.446927323943662,
+                -2,
+                -21
+              ],
+              "resistanceMm": 45.00027217447564,
+              "shellId": 900001,
+              "shipId": "enemy-1",
+              "targetId": "port-torpedo-bulkhead-2",
+              "targetName": "Port Torpedo Bulkhead 2",
+              "thicknessMm": 45
+            },
+            {
+              "compartmentId": "boiler-forward-port",
+              "damage": 1,
+              "kind": "module",
+              "outcome": "damaged",
+              "penetrationAfterMm": 9869.680860060174,
+              "penetrationBeforeMm": 9919.680860060174,
+              "position": [
+                -10.870000000000001,
+                -2,
+                -21
+              ],
+              "shellId": 900001,
+              "shipId": "enemy-1",
+              "targetId": "boiler-forward-port-equipment",
+              "targetName": "Forward port boiler room · two Wagner boilers",
+              "terminal": false
+            },
+            {
+              "breachAreaM2": 0.1444,
+              "connectionIds": [
+                "partition-456de649116a"
+              ],
+              "kind": "boundary",
+              "material": "steel",
+              "outcome": "penetrated",
+              "penetrationAfterMm": 9864.680860060174,
+              "penetrationBeforeMm": 9869.680860060174,
+              "position": [
+                -4.539999999999999,
+                -2,
+                -21
+              ],
+              "resistanceMm": 5,
+              "shellId": 900001,
+              "shipId": "enemy-1",
+              "targetId": "partition-456de649116a",
+              "targetName": "Watertight boundary partition-456de649116a",
+              "thicknessMm": 5
+            },
+            {
+              "compartmentId": "boiler-forward-center",
+              "damage": 1,
+              "kind": "module",
+              "outcome": "damaged",
+              "penetrationAfterMm": 9814.680860060174,
+              "penetrationBeforeMm": 9864.680860060174,
+              "position": [
+                -2.870000000000001,
+                -2,
+                -21
+              ],
+              "shellId": 900001,
+              "shipId": "enemy-1",
+              "targetId": "boiler-forward-center-equipment",
+              "targetName": "Forward center boiler room · two Wagner boilers",
+              "terminal": false
+            },
+            {
+              "breachAreaM2": 0.1444,
+              "connectionIds": [
+                "partition-601d9287584b"
+              ],
+              "kind": "boundary",
+              "material": "steel",
+              "outcome": "penetrated",
+              "penetrationAfterMm": 9809.680860060174,
+              "penetrationBeforeMm": 9814.680860060174,
+              "position": [
+                3.460000000000001,
+                -2,
+                -21.000000000000004
+              ],
+              "resistanceMm": 5,
+              "shellId": 900001,
+              "shipId": "enemy-1",
+              "targetId": "partition-601d9287584b",
+              "targetName": "Watertight boundary partition-601d9287584b",
+              "thicknessMm": 5
+            },
+            {
+              "compartmentId": "boiler-forward-starboard",
+              "damage": 1,
+              "kind": "module",
+              "outcome": "damaged",
+              "penetrationAfterMm": 9759.680860060174,
+              "penetrationBeforeMm": 9809.680860060174,
+              "position": [
+                5.130000000000003,
+                -2,
+                -21.000000000000004
+              ],
+              "shellId": 900001,
+              "shipId": "enemy-1",
+              "targetId": "boiler-forward-starboard-equipment",
+              "targetName": "Forward starboard boiler room · two Wagner boilers",
+              "terminal": false
+            },
+            {
+              "kind": "armor",
+              "material": "Ww",
+              "obliquityDeg": 0.19927553158771152,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 9714.6805878857,
+              "penetrationBeforeMm": 9759.680860060174,
+              "position": [
+                11.446927323943655,
+                -2,
+                -21.000000000000004
+              ],
+              "resistanceMm": 45.00027217447564,
+              "shellId": 900001,
+              "shipId": "enemy-1",
+              "targetId": "starboard-torpedo-bulkhead-2",
+              "targetName": "Starboard Torpedo Bulkhead 2",
+              "thicknessMm": 45
+            },
+            {
+              "breachAreaM2": 0.1444,
+              "connectionIds": [
+                "partition-dbb419456508"
+              ],
+              "kind": "boundary",
+              "material": "steel",
+              "outcome": "penetrated",
+              "penetrationAfterMm": 9709.6805878857,
+              "penetrationBeforeMm": 9714.6805878857,
+              "position": [
+                11.46,
+                -2,
+                -21.000000000000004
+              ],
+              "resistanceMm": 5,
+              "shellId": 900001,
+              "shipId": "enemy-1",
+              "targetId": "partition-dbb419456508",
+              "targetName": "Watertight boundary partition-dbb419456508",
+              "thicknessMm": 5
+            },
+            {
+              "breachAreaM2": 0.1444,
+              "connectionIds": [
+                "partition-c30d89d4d01b"
+              ],
+              "kind": "boundary",
+              "material": "steel",
+              "outcome": "penetrated",
+              "penetrationAfterMm": 9704.6805878857,
+              "penetrationBeforeMm": 9709.6805878857,
+              "position": [
+                14.085,
+                -2,
+                -21.000000000000004
+              ],
+              "resistanceMm": 5,
+              "shellId": 900001,
+              "shipId": "enemy-1",
+              "targetId": "partition-c30d89d4d01b",
+              "targetName": "Watertight boundary partition-c30d89d4d01b",
+              "thicknessMm": 5
+            },
+            {
+              "breachAreaM2": 0.1444,
+              "connectionIds": [
+                "partition-3a48d203292a"
+              ],
+              "kind": "boundary",
+              "material": "steel",
+              "outcome": "penetrated",
+              "penetrationAfterMm": 9699.6805878857,
+              "penetrationBeforeMm": 9704.6805878857,
+              "position": [
+                15.585,
+                -2,
+                -21.000000000000004
+              ],
+              "resistanceMm": 5,
+              "shellId": 900001,
+              "shipId": "enemy-1",
+              "targetId": "partition-3a48d203292a",
+              "targetName": "Watertight boundary partition-3a48d203292a",
+              "thicknessMm": 5
+            },
+            {
+              "breachAreaM2": 0.14439999999999995,
+              "breachAssignments": [
+                {
+                  "areaM2": 0.14439999999999995,
+                  "compartmentId": "flood-strip-starboard-5-2",
+                  "position": [
+                    16.45730468243424,
+                    -2,
+                    -21.000000000000004
+                  ]
+                }
+              ],
+              "compartmentId": "flood-strip-starboard-5-2",
+              "damage": 0.2,
+              "kind": "armor",
+              "material": "steel",
+              "obliquityDeg": 10.163956176618717,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 9679.361720120349,
+              "penetrationBeforeMm": 9699.6805878857,
+              "position": [
+                16.45730468243424,
+                -2,
+                -21.000000000000004
+              ],
+              "resistanceMm": 20.3188677653501,
+              "shellId": 900001,
+              "shipId": "enemy-1",
+              "targetId": "starboard-lower-plating-2",
+              "targetName": "Starboard Lower Plating 2",
+              "thicknessMm": 20
+            }
+          ],
+          "outcome": "passed-through",
+          "ownerId": "player",
+          "shellId": 900001,
+          "tick": 9
+        }
+      ],
+      "targetId": "enemy-1",
+      "targetIntegrity": 0.9995999999999999,
+      "targetName": "Bismarck",
+      "targetPosition": {
+        "heading": 4.712388976271686,
+        "x": -0.0038,
+        "z": -4999.999999999993
+      },
+      "targetPower": 0.6654761904761904,
+      "targetRange": 5000.000000001436,
+      "targetSteering": 1,
+      "targetSunk": false,
+      "targetUnderway": false,
+      "targetWater": 441.86671947073745,
+      "total": 4
+    },
+    "contentHash": "26da869b9a40a31e59fba9c4abbe7f2d235bc3b3a3b81202094aa9066fc4917b",
+    "effects": {
+      "flashes": 92,
+      "foam": 0,
+      "particleCapacity": 2272,
+      "shells": 0,
+      "smoke": 36,
+      "spray": 0
+    },
+    "events": [
+      {
+        "impact": {
+          "breachAreaM2": 0.14439999999999995,
+          "breachAssignments": [
+            {
+              "areaM2": 0.14439999999999995,
+              "compartmentId": "flood-strip-port-5-2",
+              "position": [
+                -16.457304682434227,
+                -2,
+                -21
+              ]
+            }
+          ],
+          "compartmentId": "flood-strip-port-5-2",
+          "damage": 0.2,
+          "kind": "armor",
+          "material": "steel",
+          "obliquityDeg": 10.163956176618717,
+          "outcome": "penetrated",
+          "penetrationAfterMm": 9979.68113223465,
+          "penetrationBeforeMm": 10000,
+          "position": [
+            -16.457304682434227,
+            -2,
+            -21
+          ],
+          "resistanceMm": 20.3188677653501,
+          "shellId": 900001,
+          "shipId": "enemy-1",
+          "targetId": "port-lower-plating-2",
+          "targetName": "Port Lower Plating 2",
+          "thicknessMm": 20
+        },
+        "kind": "penetration",
+        "message": "Penetrated Port Lower Plating 2",
+        "normal": [
+          -0.00342344277858012,
+          -0.17643235350400374,
+          0.984306814299576
+        ],
+        "position": [
+          -21.003799932311047,
+          -2,
+          -4983.5426952311855
+        ],
+        "sequence": 1,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 900001,
+          "velocity": [
+            -0.0000033726628766809577,
+            0,
+            -820
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 9
+      },
+      {
+        "impact": {
+          "breachAreaM2": 0.1444,
+          "connectionIds": [
+            "partition-d975fbbf0408"
+          ],
+          "kind": "boundary",
+          "material": "steel",
+          "outcome": "penetrated",
+          "penetrationAfterMm": 9974.68113223465,
+          "penetrationBeforeMm": 9979.68113223465,
+          "position": [
+            -15.725000000000001,
+            -2,
+            -21
+          ],
+          "resistanceMm": 5,
+          "shellId": 900001,
+          "shipId": "enemy-1",
+          "targetId": "partition-d975fbbf0408",
+          "targetName": "Watertight boundary partition-d975fbbf0408",
+          "thicknessMm": 5
+        },
+        "kind": "penetration",
+        "message": "Breached Watertight boundary partition-d975fbbf0408",
+        "position": [
+          -21.00379993532302,
+          -2,
+          -4984.2749999136195
+        ],
+        "sequence": 2,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 900001,
+          "velocity": [
+            -0.0000033726628766809577,
+            0,
+            -820
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 9
+      },
+      {
+        "impact": {
+          "breachAreaM2": 0.1444,
+          "connectionIds": [
+            "partition-68234d6a6243"
+          ],
+          "kind": "boundary",
+          "material": "steel",
+          "outcome": "penetrated",
+          "penetrationAfterMm": 9969.68113223465,
+          "penetrationBeforeMm": 9974.68113223465,
+          "position": [
+            -14.415,
+            -2,
+            -21
+          ],
+          "resistanceMm": 5,
+          "shellId": 900001,
+          "shipId": "enemy-1",
+          "targetId": "partition-68234d6a6243",
+          "targetName": "Watertight boundary partition-68234d6a6243",
+          "thicknessMm": 5
+        },
+        "kind": "penetration",
+        "message": "Breached Watertight boundary partition-68234d6a6243",
+        "position": [
+          -21.003799940711055,
+          -2,
+          -4985.58499991362
+        ],
+        "sequence": 3,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 900001,
+          "velocity": [
+            -0.0000033726628766809577,
+            0,
+            -820
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 9
+      },
+      {
+        "impact": {
+          "breachAreaM2": 0.1444,
+          "connectionIds": [
+            "partition-ae83172175f1"
+          ],
+          "kind": "boundary",
+          "material": "steel",
+          "outcome": "penetrated",
+          "penetrationAfterMm": 9964.68113223465,
+          "penetrationBeforeMm": 9969.68113223465,
+          "position": [
+            -12.915,
+            -2,
+            -21
+          ],
+          "resistanceMm": 5,
+          "shellId": 900001,
+          "shipId": "enemy-1",
+          "targetId": "partition-ae83172175f1",
+          "targetName": "Watertight boundary partition-ae83172175f1",
+          "thicknessMm": 5
+        },
+        "kind": "penetration",
+        "message": "Breached Watertight boundary partition-ae83172175f1",
+        "position": [
+          -21.00379994688056,
+          -2,
+          -4987.08499991362
+        ],
+        "sequence": 4,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 900001,
+          "velocity": [
+            -0.0000033726628766809577,
+            0,
+            -820
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 9
+      },
+      {
+        "impact": {
+          "kind": "armor",
+          "material": "Ww",
+          "obliquityDeg": 0.19927553158771152,
+          "outcome": "penetrated",
+          "penetrationAfterMm": 9919.680860060174,
+          "penetrationBeforeMm": 9964.68113223465,
+          "position": [
+            -11.446927323943662,
+            -2,
+            -21
+          ],
+          "resistanceMm": 45.00027217447564,
+          "shellId": 900001,
+          "shipId": "enemy-1",
+          "targetId": "port-torpedo-bulkhead-2",
+          "targetName": "Port Torpedo Bulkhead 2",
+          "thicknessMm": 45
+        },
+        "kind": "penetration",
+        "message": "Penetrated Port Torpedo Bulkhead 2",
+        "normal": [
+          0.0034780030199295627,
+          0,
+          -0.999993951729206
+        ],
+        "position": [
+          -21.003799952918747,
+          -2,
+          -4988.553072589676
+        ],
+        "sequence": 5,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 900001,
+          "velocity": [
+            -0.0000033726628766809577,
+            0,
+            -820
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 9
+      },
+      {
+        "impact": {
+          "compartmentId": "boiler-forward-port",
+          "damage": 1,
+          "kind": "module",
+          "outcome": "damaged",
+          "penetrationAfterMm": 9869.680860060174,
+          "penetrationBeforeMm": 9919.680860060174,
+          "position": [
+            -10.870000000000001,
+            -2,
+            -21
+          ],
+          "shellId": 900001,
+          "shipId": "enemy-1",
+          "targetId": "boiler-forward-port-equipment",
+          "targetName": "Forward port boiler room · two Wagner boilers",
+          "terminal": false
+        },
+        "kind": "module",
+        "message": "Forward port boiler room · two Wagner boilers damaged",
+        "position": [
+          -21.00379995529165,
+          -2,
+          -4989.12999991362
+        ],
+        "sequence": 6,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 900001,
+          "velocity": [
+            -0.0000033726628766809577,
+            0,
+            -820
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 9
+      },
+      {
+        "impact": {
+          "breachAreaM2": 0.1444,
+          "connectionIds": [
+            "partition-456de649116a"
+          ],
+          "kind": "boundary",
+          "material": "steel",
+          "outcome": "penetrated",
+          "penetrationAfterMm": 9864.680860060174,
+          "penetrationBeforeMm": 9869.680860060174,
+          "position": [
+            -4.539999999999999,
+            -2,
+            -21
+          ],
+          "resistanceMm": 5,
+          "shellId": 900001,
+          "shipId": "enemy-1",
+          "targetId": "partition-456de649116a",
+          "targetName": "Watertight boundary partition-456de649116a",
+          "thicknessMm": 5
+        },
+        "kind": "penetration",
+        "message": "Breached Watertight boundary partition-456de649116a",
+        "position": [
+          -21.003799981326964,
+          -2,
+          -4995.45999991362
+        ],
+        "sequence": 7,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 900001,
+          "velocity": [
+            -0.0000033726628766809577,
+            0,
+            -820
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 9
+      },
+      {
+        "impact": {
+          "compartmentId": "boiler-forward-center",
+          "damage": 1,
+          "kind": "module",
+          "outcome": "damaged",
+          "penetrationAfterMm": 9814.680860060174,
+          "penetrationBeforeMm": 9864.680860060174,
+          "position": [
+            -2.870000000000001,
+            -2,
+            -21
+          ],
+          "shellId": 900001,
+          "shipId": "enemy-1",
+          "targetId": "boiler-forward-center-equipment",
+          "targetName": "Forward center boiler room · two Wagner boilers",
+          "terminal": false
+        },
+        "kind": "module",
+        "message": "Forward center boiler room · two Wagner boilers damaged",
+        "position": [
+          -21.003799988195677,
+          -2,
+          -4997.12999991362
+        ],
+        "sequence": 8,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 900001,
+          "velocity": [
+            -0.0000033726628766809577,
+            0,
+            -820
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 9
+      },
+      {
+        "impact": {
+          "breachAreaM2": 0.1444,
+          "connectionIds": [
+            "partition-601d9287584b"
+          ],
+          "kind": "boundary",
+          "material": "steel",
+          "outcome": "penetrated",
+          "penetrationAfterMm": 9809.680860060174,
+          "penetrationBeforeMm": 9814.680860060174,
+          "position": [
+            3.460000000000001,
+            -2,
+            -21.000000000000004
+          ],
+          "resistanceMm": 5,
+          "shellId": 900001,
+          "shipId": "enemy-1",
+          "targetId": "partition-601d9287584b",
+          "targetName": "Watertight boundary partition-601d9287584b",
+          "thicknessMm": 5
+        },
+        "kind": "penetration",
+        "message": "Breached Watertight boundary partition-601d9287584b",
+        "position": [
+          -21.003800014230993,
+          -2,
+          -5003.45999991362
+        ],
+        "sequence": 9,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 900001,
+          "velocity": [
+            -0.0000033726628766809577,
+            0,
+            -820
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 9
+      },
+      {
+        "impact": {
+          "compartmentId": "boiler-forward-starboard",
+          "damage": 1,
+          "kind": "module",
+          "outcome": "damaged",
+          "penetrationAfterMm": 9759.680860060174,
+          "penetrationBeforeMm": 9809.680860060174,
+          "position": [
+            5.130000000000003,
+            -2,
+            -21.000000000000004
+          ],
+          "shellId": 900001,
+          "shipId": "enemy-1",
+          "targetId": "boiler-forward-starboard-equipment",
+          "targetName": "Forward starboard boiler room · two Wagner boilers",
+          "terminal": false
+        },
+        "kind": "module",
+        "message": "Forward starboard boiler room · two Wagner boilers damaged",
+        "position": [
+          -21.00380002109971,
+          -2,
+          -5005.12999991362
+        ],
+        "sequence": 10,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 900001,
+          "velocity": [
+            -0.0000033726628766809577,
+            0,
+            -820
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 9
+      },
+      {
+        "impact": {
+          "kind": "armor",
+          "material": "Ww",
+          "obliquityDeg": 0.19927553158771152,
+          "outcome": "penetrated",
+          "penetrationAfterMm": 9714.6805878857,
+          "penetrationBeforeMm": 9759.680860060174,
+          "position": [
+            11.446927323943655,
+            -2,
+            -21.000000000000004
+          ],
+          "resistanceMm": 45.00027217447564,
+          "shellId": 900001,
+          "shipId": "enemy-1",
+          "targetId": "starboard-torpedo-bulkhead-2",
+          "targetName": "Starboard Torpedo Bulkhead 2",
+          "thicknessMm": 45
+        },
+        "kind": "penetration",
+        "message": "Penetrated Starboard Torpedo Bulkhead 2",
+        "normal": [
+          -0.0034780112458867194,
+          0,
+          -0.999993951700596
+        ],
+        "position": [
+          -21.003800047081253,
+          -2,
+          -5011.446927237564
+        ],
+        "sequence": 11,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 900001,
+          "velocity": [
+            -0.0000033726628766809577,
+            0,
+            -820
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 9
+      },
+      {
+        "impact": {
+          "breachAreaM2": 0.1444,
+          "connectionIds": [
+            "partition-dbb419456508"
+          ],
+          "kind": "boundary",
+          "material": "steel",
+          "outcome": "penetrated",
+          "penetrationAfterMm": 9709.6805878857,
+          "penetrationBeforeMm": 9714.6805878857,
+          "position": [
+            11.46,
+            -2,
+            -21.000000000000004
+          ],
+          "resistanceMm": 5,
+          "shellId": 900001,
+          "shipId": "enemy-1",
+          "targetId": "partition-dbb419456508",
+          "targetName": "Watertight boundary partition-dbb419456508",
+          "thicknessMm": 5
+        },
+        "kind": "penetration",
+        "message": "Breached Watertight boundary partition-dbb419456508",
+        "position": [
+          -21.003800047135023,
+          -2,
+          -5011.45999991362
+        ],
+        "sequence": 12,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 900001,
+          "velocity": [
+            -0.0000033726628766809577,
+            0,
+            -820
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 9
+      },
+      {
+        "impact": {
+          "breachAreaM2": 0.1444,
+          "connectionIds": [
+            "partition-c30d89d4d01b"
+          ],
+          "kind": "boundary",
+          "material": "steel",
+          "outcome": "penetrated",
+          "penetrationAfterMm": 9704.6805878857,
+          "penetrationBeforeMm": 9709.6805878857,
+          "position": [
+            14.085,
+            -2,
+            -21.000000000000004
+          ],
+          "resistanceMm": 5,
+          "shellId": 900001,
+          "shipId": "enemy-1",
+          "targetId": "partition-c30d89d4d01b",
+          "targetName": "Watertight boundary partition-c30d89d4d01b",
+          "thicknessMm": 5
+        },
+        "kind": "penetration",
+        "message": "Breached Watertight boundary partition-c30d89d4d01b",
+        "position": [
+          -21.003800057931656,
+          -2,
+          -5014.08499991362
+        ],
+        "sequence": 13,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 900001,
+          "velocity": [
+            -0.0000033726628766809577,
+            0,
+            -820
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 9
+      },
+      {
+        "impact": {
+          "breachAreaM2": 0.1444,
+          "connectionIds": [
+            "partition-3a48d203292a"
+          ],
+          "kind": "boundary",
+          "material": "steel",
+          "outcome": "penetrated",
+          "penetrationAfterMm": 9699.6805878857,
+          "penetrationBeforeMm": 9704.6805878857,
+          "position": [
+            15.585,
+            -2,
+            -21.000000000000004
+          ],
+          "resistanceMm": 5,
+          "shellId": 900001,
+          "shipId": "enemy-1",
+          "targetId": "partition-3a48d203292a",
+          "targetName": "Watertight boundary partition-3a48d203292a",
+          "thicknessMm": 5
+        },
+        "kind": "penetration",
+        "message": "Breached Watertight boundary partition-3a48d203292a",
+        "position": [
+          -21.00380006410116,
+          -2,
+          -5015.58499991362
+        ],
+        "sequence": 14,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 900001,
+          "velocity": [
+            -0.0000033726628766809577,
+            0,
+            -820
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 9
+      },
+      {
+        "impact": {
+          "breachAreaM2": 0.14439999999999995,
+          "breachAssignments": [
+            {
+              "areaM2": 0.14439999999999995,
+              "compartmentId": "flood-strip-starboard-5-2",
+              "position": [
+                16.45730468243424,
+                -2,
+                -21.000000000000004
+              ]
+            }
+          ],
+          "compartmentId": "flood-strip-starboard-5-2",
+          "damage": 0.2,
+          "kind": "armor",
+          "material": "steel",
+          "obliquityDeg": 10.163956176618717,
+          "outcome": "penetrated",
+          "penetrationAfterMm": 9679.361720120349,
+          "penetrationBeforeMm": 9699.6805878857,
+          "position": [
+            16.45730468243424,
+            -2,
+            -21.000000000000004
+          ],
+          "resistanceMm": 20.3188677653501,
+          "shellId": 900001,
+          "shipId": "enemy-1",
+          "targetId": "starboard-lower-plating-2",
+          "targetName": "Starboard Lower Plating 2",
+          "thicknessMm": 20
+        },
+        "kind": "penetration",
+        "message": "Penetrated Starboard Lower Plating 2",
+        "normal": [
+          0.0034234508754947763,
+          0.17643235350400374,
+          0.9843068142714148
+        ],
+        "position": [
+          -21.003800067688953,
+          -2,
+          -5016.457304596054
+        ],
+        "sequence": 15,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 900001,
+          "velocity": [
+            -0.0000033726628766809577,
+            0,
+            -820
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 9
+      }
+    ],
+    "fleet": [
+      {
+        "ammo": 2760,
+        "controller": "player",
+        "definitionId": "bismarck",
+        "id": "player",
+        "integrity": 1000,
+        "motion": {
+          "distance": 0,
+          "heading": 1.5707963267948966,
+          "id": "player",
+          "pitch": 0,
+          "roll": 0,
+          "rudder": 0,
+          "speed": 0,
+          "tick": 9,
+          "x": 0,
+          "y": 0,
+          "yawRate": 0,
+          "z": 0
+        },
+        "team": "friendly"
+      },
+      {
+        "ammo": 2760,
+        "controller": "bot",
+        "definitionId": "bismarck",
+        "id": "enemy-1",
+        "integrity": 999.5999999999999,
+        "motion": {
+          "distance": 0.0038,
+          "heading": 4.712388976271686,
+          "id": "enemy-1",
+          "pitch": -0.0047680809979015176,
+          "roll": 1.3103970185474017e-18,
+          "rudder": -0.063,
+          "speed": 0.04666666666666667,
+          "tick": 9,
+          "x": -0.0038,
+          "y": -0.07698026471615635,
+          "yawRate": -8.59773202010838e-8,
+          "z": -4999.999999999993
+        },
+        "targetId": "player",
+        "team": "enemy"
+      }
+    ],
+    "fps": 18.796040258240176,
+    "inPort": false,
+    "inspecting": true,
+    "maxMuzzleErrorM": 0.002160647855547755,
+    "paused": true,
+    "portInspection": "exterior",
+    "renderedShips": [
+      {
+        "id": "player",
+        "visible": true
+      },
+      {
+        "id": "enemy-1",
+        "visible": true
+      }
+    ],
+    "shipId": "bismarck",
+    "tick": 9
+  },
+  "fixture": "600 s flooding only, 380 mm / 10000 mm penetration / 1 damage through-shot, pumps off"
+}
