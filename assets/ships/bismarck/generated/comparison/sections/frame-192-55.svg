@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 720" role="img" aria-label="Authored hull, armor and room section">
+<rect width="900" height="720" fill="#f2f0e9"/>
+<text x="24" y="38" font-family="sans-serif" font-size="23" fill="#243845">Frame 192.55 · reconstructed hull / protection / spaces</text>
+<polygon points="450.00,586.60 596.17,586.60 659.22,564.21 690.84,511.96 694.51,400.00 712.60,322.41 713.92,274.86 186.08,274.86 187.40,322.41 205.49,400.00 209.16,511.96 240.78,564.21 303.83,586.60 450.00,586.60" fill="#e3e2dc" stroke="#526772" stroke-width="2"/>
+<rect x="330.0" y="430.0" width="240" height="48.0" fill="#aa927e" fill-opacity=".28" stroke="#74847c" stroke-width=".7"><title>Anton propellant magazines</title></rect>
+<rect x="330.0" y="482.0" width="240" height="50.0" fill="#9fbbad" fill-opacity=".28" stroke="#74847c" stroke-width=".7"><title>Anton shell rooms</title></rect>
+<rect x="365.0" y="316.0" width="170.0" height="64.0" fill="#9fbbad" fill-opacity=".28" stroke="#74847c" stroke-width=".7"><title>Anton handling space</title></rect>
+<line x1="195.10002375000002" y1="430.0" x2="195.10002375000002" y2="334.0" stroke="#9b5a27" stroke-width="6.4"><title>Port Main Belt 5 · 320 mm</title></line>
+<line x1="198.80002375000004" y1="430.0" x2="198.80002375000004" y2="334.0" stroke="#ba9560" stroke-width="1.0"><title>Port Teak Backing 5 · 50 mm</title></line>
+<line x1="199.56002375000003" y1="430.0" x2="199.56002375000003" y2="334.0" stroke="#666d70" stroke-width="0.7"><title>Port Belt Support 5 · 20 mm</title></line>
+<line x1="195.10002375000002" y1="334.0" x2="195.10002375000002" y2="286.6" stroke="#9b5a27" stroke-width="2.4"><title>Port Upper Belt 5 · 120 mm</title></line>
+<line x1="265.10002375" y1="552.0" x2="265.10002375" y2="426.4" stroke="#45876a" stroke-width="0.8999999999999999"><title>Port Torpedo Bulkhead 5 · 45 mm</title></line>
+<line x1="265.10002375" y1="380.6" x2="265.10002375" y2="286.6" stroke="#307ca2" stroke-width="0.7"><title>Port Splinter Bulkhead 5 · 30 mm</title></line>
+<line x1="202.10002375000002" y1="426.4" x2="265.10002375" y2="380.6" stroke="#307ca2" stroke-width="2.4"><title>Port Turtleback 5 · 120 mm</title></line>
+<line x1="704.89997625" y1="430.0" x2="704.89997625" y2="334.0" stroke="#9b5a27" stroke-width="6.4"><title>Starboard Main Belt 5 · 320 mm</title></line>
+<line x1="701.19997625" y1="430.0" x2="701.19997625" y2="334.0" stroke="#ba9560" stroke-width="1.0"><title>Starboard Teak Backing 5 · 50 mm</title></line>
+<line x1="700.43997625" y1="430.0" x2="700.43997625" y2="334.0" stroke="#666d70" stroke-width="0.7"><title>Starboard Belt Support 5 · 20 mm</title></line>
+<line x1="704.89997625" y1="334.0" x2="704.89997625" y2="286.6" stroke="#9b5a27" stroke-width="2.4"><title>Starboard Upper Belt 5 · 120 mm</title></line>
+<line x1="634.89997625" y1="552.0" x2="634.89997625" y2="426.4" stroke="#45876a" stroke-width="0.8999999999999999"><title>Starboard Torpedo Bulkhead 5 · 45 mm</title></line>
+<line x1="634.89997625" y1="380.6" x2="634.89997625" y2="286.6" stroke="#307ca2" stroke-width="0.7"><title>Starboard Splinter Bulkhead 5 · 30 mm</title></line>
+<line x1="697.89997625" y1="426.4" x2="634.89997625" y2="380.6" stroke="#307ca2" stroke-width="2.4"><title>Starboard Turtleback 5 · 120 mm</title></line>
+<line x1="704.89997625" y1="286.6" x2="195.10002375000002" y2="286.6" stroke="#307ca2" stroke-width="1.0"><title>Upper Deck 5 · 50 mm</title></line>
+<line x1="704.89997625" y1="334.6" x2="195.10002375000002" y2="334.6" stroke="#666d70" stroke-width="0.7"><title>Battery Deck 5 · 12 mm</title></line>
+<line x1="634.89997625" y1="380.6" x2="265.10002375" y2="380.6" stroke="#307ca2" stroke-width="2.0"><title>Armor Deck 5 · 100 mm</title></line>
+<line x1="351.0000000000001" y1="380.6" x2="351.0000000000001" y2="286.6" stroke="#9b5a27" stroke-width="4.4"><title>Anton Barbette Lower 4 · 220 mm</title></line>
+<line x1="548.9999999999999" y1="380.6" x2="548.9999999999999" y2="286.6" stroke="#9b5a27" stroke-width="4.4"><title>Anton Barbette Lower 7 · 220 mm</title></line>
+<line x1="351.0000000000001" y1="286.6" x2="351.0000000000001" y2="260.0" stroke="#9b5a27" stroke-width="6.800000000000001"><title>Anton Barbette Upper 4 · 340 mm</title></line>
+<line x1="548.9999999999999" y1="286.6" x2="548.9999999999999" y2="260.0" stroke="#9b5a27" stroke-width="6.800000000000001"><title>Anton Barbette Upper 7 · 340 mm</title></line>
+<line x1="201.10002375000005" y1="430.0" x2="220.10002375000002" y2="536.0" stroke="#666d70" stroke-width="0.7"><title>Port Lower Plating 5 · 20 mm</title></line>
+<line x1="698.89997625" y1="430.0" x2="679.89997625" y2="536.0" stroke="#666d70" stroke-width="0.7"><title>Starboard Lower Plating 5 · 20 mm</title></line>
+<path d="M40 400H860" stroke="#3a6c8e" stroke-dasharray="8 5"/>
+<text x="40" y="391" font-family="sans-serif" font-size="15">Y = 0 · standard waterline</text>
+<text x="24" y="645" font-family="sans-serif" font-size="16">Keel Y = -9.33 m · 20 px/m · plate thickness drawn to scale (minimum 0.7 px)</text>
+<text x="24" y="674" font-family="sans-serif" font-size="16">Brown KC · blue Wh · green Ww · gray structure · tan teak. Room envelopes are estimated.</text>
+</svg>

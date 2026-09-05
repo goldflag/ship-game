@@ -1,5 +1,6 @@
 import type { ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { ShipState } from './ship';
+import { plateHit, samePlateSeam } from './protection';
 import type { MountState } from './weapons';
 import { add, clamp, contains, length, localToWorld, normalize, radians, segmentBox, sub, worldToLocal } from './geometry';
 
@@ -22,14 +23,20 @@ export function systemHealth(actor: Combatant, def: ShipDefinition, kind: 'engin
   return actor.damage.sunk ? 0 : modules.length ? modules.reduce((n, m) => n + (actor.damage.modules.find(s => s.id === m.id)!.hp / m.hp), 0) / modules.length : 1;
 }
 
-/** An explicit gameplay approximation: AP penetration budget through ordered box surfaces.
+/** An explicit gameplay approximation: AP penetration budget through ordered plate/box surfaces.
  * No historical claim, fuze simulation, or fragment simulation. */
 export function hitShip(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor: Combatant, def: ShipDefinition, emit: (e: DamageEvent) => void): boolean {
   const from = worldToLocal(fromWorld, actor.motion), to = worldToLocal(toWorld, actor.motion);
   const direction = normalize(sub(to, from));
-  type Hit = { t: number; key: string; kind: 'armor' | 'module' | 'mount'; index: number; point: Vec3; normal: Vec3 };
+  type Hit = { t: number; key: string; kind: 'armor' | 'module' | 'mount'; index: number; point: Vec3; normal: Vec3; onEdge?: boolean };
   const hits: Hit[] = [];
   def.armor.forEach((a, index) => {
+    if (a.plate) {
+      const key = `${actor.motion.id}:armor:${a.id}:plate`;
+      const hit = plateHit(from, to, a, def, actor.mounts.map(m => m.train));
+      if (hit && !shell.visited.includes(key)) hits.push({ ...hit, key, kind:'armor', index });
+      return;
+    }
     const hit = segmentBox(from, to, a);
     if (!hit) return;
     const entryKey = `${actor.motion.id}:armor:${a.id}:entry`;
@@ -48,6 +55,7 @@ export function hitShip(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor: Com
     if (hit && !shell.visited.includes(key)) hits.push({ ...hit, key, kind: 'module', index });
   });
   def.mounts.forEach((m, index) => {
+    if (def.armor.some(a => a.plate?.mountId === m.id)) return;
     const yaw = radians(m.bearingDeg) + actor.mounts[index].train;
     const mountPose = { x: m.position[0], y: m.position[1], z: m.position[2], heading: yaw, roll: 0, pitch: 0 };
     const a = worldToLocal(from, mountPose), b = worldToLocal(to, mountPose), w = m.weapon;
@@ -55,20 +63,33 @@ export function hitShip(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor: Com
     const key = `${actor.motion.id}:mount:${m.id}`;
     if (hit && !shell.visited.includes(key)) hits.push({ ...hit, point: localToWorld(hit.point, mountPose), key, kind: 'mount', index });
   });
-  hits.sort((a, b) => a.t - b.t || Number(b.kind === 'armor') - Number(a.kind === 'armor') || a.key.localeCompare(b.key));
+  hits.sort((a, b) => a.t - b.t || Number(b.kind === 'armor') - Number(a.kind === 'armor') || (a.kind==='armor' && b.kind==='armor' ? def.armor[b.index].thicknessMm-def.armor[a.index].thicknessMm : 0) || a.key.localeCompare(b.key));
+  const crossedPlateEdges: Hit[] = [];
   for (const hit of hits) {
     shell.visited.push(hit.key);
     const position = localToWorld(hit.point, actor.motion);
     const report = (kind: DamageEvent['kind'], message: string) => emit({ kind, position, message, shipId: actor.motion.id });
     if (hit.kind === 'armor') {
       const a = def.armor[hit.index];
+      if (a.plate && hit.onEdge) {
+        if (crossedPlateEdges.some(previous=>def.armor[previous.index].plate?.material===a.plate!.material && samePlateSeam(previous,hit))) continue;
+        crossedPlateEdges.push(hit);
+      }
+      if (a.plate?.material === 'teak') continue; // Backing has no invented steel equivalence.
       const cosine = Math.abs(direction.reduce((sum, n, i) => sum + n * hit.normal[i], 0));
       if (cosine < .2) { report('ricochet', `Ricochet · ${a.name}`); return true; }
       const resistance = a.thicknessMm / Math.max(.2, cosine);
       if (shell.penetrationMm < resistance) { report('stopped', `Stopped by ${a.name}`); return true; }
       shell.penetrationMm -= resistance;
       report('penetration', `Penetrated ${a.name}`);
-      if (hit.key.endsWith(':entry')) {
+      if (a.plate?.mountId) {
+        const mountIndex = def.mounts.findIndex(m => m.id === a.plate!.mountId);
+        const mount = actor.mounts[mountIndex];
+        mount.hp = Math.max(0, mount.hp - shell.damage);
+        report('module', `${def.mounts[mountIndex].name} ${mount.hp === 0 ? 'disabled' : 'damaged'}`);
+        return true;
+      }
+      if (a.plate?.exterior || hit.key.endsWith(':entry')) {
         actor.damage.integrity = Math.max(0, actor.damage.integrity - shell.damage * .2);
         // Assign a breach to the closest modeled space. Breach extent is a tunable blast approximation.
         const candidates = def.compartments.map((c, i) => ({ c, i, distance: length(sub(c.center, hit.point)) })).sort((a, b) => a.distance - b.distance);

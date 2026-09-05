@@ -1,0 +1,697 @@
+{
+  "schemaVersion": 1,
+  "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+  "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476",
+  "specRevision": "independent-1941-01",
+  "dimensions": [
+    {
+      "id": "overall-length",
+      "metric": "hull.length",
+      "target": 250.5,
+      "tolerance": 0.03,
+      "units": "m",
+      "sourceId": "kb-dimensions",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.15,
+      "measured": 250.5,
+      "deviation": 0,
+      "passed": true
+    },
+    {
+      "id": "maximum-beam",
+      "metric": "hull.beam",
+      "target": 36,
+      "tolerance": 0.03,
+      "units": "m",
+      "sourceId": "kb-dimensions",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.1,
+      "measured": 36,
+      "deviation": 0,
+      "passed": true
+    },
+    {
+      "id": "standard-draft",
+      "metric": "hull.draft",
+      "target": 9.33,
+      "tolerance": 0.03,
+      "units": "m",
+      "sourceId": "kb-dimensions",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.1,
+      "measured": 9.329999923706055,
+      "deviation": -7.629394538355427e-8,
+      "passed": true
+    },
+    {
+      "id": "waterline-length",
+      "metric": "hull.waterlineLength",
+      "target": 241.55,
+      "tolerance": 0.12,
+      "units": "m",
+      "sourceId": "kb-dimensions",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.2,
+      "measured": 241.5500030517578,
+      "deviation": 0.0000030517578011313162,
+      "passed": true
+    },
+    {
+      "id": "waterline-beam",
+      "metric": "hull.waterlineBeam",
+      "target": 36,
+      "tolerance": 0.1,
+      "units": "m",
+      "sourceId": "kb-dimensions",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.2,
+      "measured": 36,
+      "deviation": 0,
+      "passed": true
+    },
+    {
+      "id": "midship-depth",
+      "metric": "hull.midshipDepth",
+      "target": 15,
+      "tolerance": 0.08,
+      "units": "m",
+      "sourceId": "kb-dimensions",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.15,
+      "measured": 15,
+      "deviation": 0,
+      "passed": true
+    }
+  ],
+  "geometry": {
+    "triangles": 806,
+    "degenerate": 0,
+    "nonManifoldEdges": 0,
+    "watertight": true
+  },
+  "spaces": [
+    {
+      "id": "boiler-aft-port",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "boiler-aft-center",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "boiler-aft-starboard",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "boiler-forward-port",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "boiler-forward-center",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "boiler-forward-starboard",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "turbine-port",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "turbine-starboard",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "turbine-center",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "anton-propellant",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "anton-shell-room",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "anton-handling",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "bruno-propellant",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "bruno-shell-room",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "bruno-handling",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "caesar-propellant",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "caesar-shell-room",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "caesar-handling",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "dora-propellant",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "dora-shell-room",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "dora-handling",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "steering-room",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "shaft-port",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "shaft-center",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "shaft-starboard",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "fuel-port-90",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "void-port-90",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "fuel-starboard-90",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "void-starboard-90",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "fuel-port-120",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "void-port-120",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "fuel-starboard-120",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "void-starboard-120",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "fuel-port-150",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "void-port-150",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "fuel-starboard-150",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "void-starboard-150",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "auxiliary-xii",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "forward-void",
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    }
+  ],
+  "probes": [
+    {
+      "id": "broadside",
+      "from": [
+        -30,
+        0,
+        0
+      ],
+      "to": [
+        0,
+        0,
+        0
+      ],
+      "layers": [
+        {
+          "id": "port-main-belt-2",
+          "name": "Port Main Belt 2",
+          "t": 0.4360011361502347,
+          "point": [
+            -16.91996591549296,
+            0,
+            0
+          ],
+          "normal": [
+            0.9999939517149008,
+            0,
+            0.0034780071329081155
+          ],
+          "onEdge": false,
+          "thicknessMm": 320,
+          "material": "KC",
+          "resistanceMm": 320.001935462938,
+          "ricochet": false
+        },
+        {
+          "id": "port-teak-backing-2",
+          "name": "Port Teak Backing 2",
+          "t": 0.4421678028169014,
+          "point": [
+            -16.734965915492957,
+            0,
+            0
+          ],
+          "normal": [
+            0.9999939517149008,
+            0,
+            0.0034780071329081653
+          ],
+          "onEdge": false,
+          "thicknessMm": 50,
+          "material": "teak",
+          "resistanceMm": 0,
+          "ricochet": false
+        },
+        {
+          "id": "port-belt-support-2",
+          "name": "Port Belt Support 2",
+          "t": 0.4434344694835681,
+          "point": [
+            -16.69696591549296,
+            0,
+            0
+          ],
+          "normal": [
+            0.9999939517149008,
+            0,
+            0.0034780071329081653
+          ],
+          "onEdge": false,
+          "thicknessMm": 20,
+          "material": "steel",
+          "resistanceMm": 20.000120966433624,
+          "ricochet": false
+        },
+        {
+          "id": "port-turtleback-2",
+          "name": "Port Turtleback 2",
+          "t": 0.5446983705024909,
+          "point": [
+            -13.659048884925273,
+            0,
+            0
+          ],
+          "normal": [
+            0.41298709910347703,
+            -0.9107357425644365,
+            0.0014363807641212963
+          ],
+          "onEdge": false,
+          "thicknessMm": 110,
+          "material": "Wh",
+          "resistanceMm": 266.35214571784644,
+          "ricochet": false
+        }
+      ]
+    },
+    {
+      "id": "plunging",
+      "from": [
+        0,
+        15,
+        0
+      ],
+      "to": [
+        0,
+        -5,
+        0
+      ],
+      "layers": [
+        {
+          "id": "upper-deck-2",
+          "name": "Upper Deck 2",
+          "t": 0.4665,
+          "point": [
+            0,
+            5.67,
+            0
+          ],
+          "normal": [
+            0,
+            1,
+            0
+          ],
+          "onEdge": false,
+          "thicknessMm": 50,
+          "material": "Wh",
+          "resistanceMm": 50,
+          "ricochet": false
+        },
+        {
+          "id": "battery-deck-2",
+          "name": "Battery Deck 2",
+          "t": 0.5865,
+          "point": [
+            0,
+            3.2699999999999996,
+            0
+          ],
+          "normal": [
+            0,
+            1,
+            0
+          ],
+          "onEdge": false,
+          "thicknessMm": 12,
+          "material": "steel",
+          "resistanceMm": 12,
+          "ricochet": false
+        },
+        {
+          "id": "armor-deck-2",
+          "name": "Armor Deck 2",
+          "t": 0.7015,
+          "point": [
+            0,
+            0.9699999999999989,
+            0
+          ],
+          "normal": [
+            0,
+            1,
+            0
+          ],
+          "onEdge": false,
+          "thicknessMm": 80,
+          "material": "Wh",
+          "resistanceMm": 80,
+          "ricochet": false
+        }
+      ]
+    },
+    {
+      "id": "underwater",
+      "from": [
+        -30,
+        -3.45,
+        0
+      ],
+      "to": [
+        0,
+        -3.45,
+        0
+      ],
+      "layers": [
+        {
+          "id": "port-lower-plating-2",
+          "name": "Port Lower Plating 2",
+          "t": 0.45765207954646114,
+          "point": [
+            -16.270437613606166,
+            -3.45,
+            0
+          ],
+          "normal": [
+            -0.9843068142854954,
+            -0.17643235350400374,
+            -0.003423446827037448
+          ],
+          "onEdge": false,
+          "thicknessMm": 20,
+          "material": "steel",
+          "resistanceMm": 20.3188677653501,
+          "ricochet": false
+        },
+        {
+          "id": "port-torpedo-bulkhead-2",
+          "name": "Port Torpedo Bulkhead 2",
+          "t": 0.6160011361502348,
+          "point": [
+            -11.519965915492957,
+            -3.45,
+            0
+          ],
+          "normal": [
+            0.9999939517149008,
+            0,
+            0.0034780071329081406
+          ],
+          "onEdge": false,
+          "thicknessMm": 45,
+          "material": "Ww",
+          "resistanceMm": 45.000272174475654,
+          "ricochet": false
+        }
+      ]
+    }
+  ],
+  "landmarks": [
+    {
+      "id": "anton-axis",
+      "runtime": [
+        0,
+        8.65,
+        -70.05
+      ],
+      "sourceId": "kb-plan-24may",
+      "basis": "estimated",
+      "toleranceM": 0.8,
+      "measured": [
+        0.000005288628017297015,
+        8.649999618530273,
+        -70.05000305175781
+      ],
+      "deviationM": [
+        0.000005288628017297015,
+        -3.8146972691777137e-7,
+        -0.000003051757815342171
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "bruno-axis",
+      "runtime": [
+        0,
+        12.45,
+        -51.85
+      ],
+      "sourceId": "kb-plan-24may",
+      "basis": "estimated",
+      "toleranceM": 0.8,
+      "measured": [
+        0.00000391456615034258,
+        12.449999809265137,
+        -51.849998474121094
+      ],
+      "deviationM": [
+        0.00000391456615034258,
+        -1.9073486257070726e-7,
+        0.0000015258789076710855
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "caesar-axis",
+      "runtime": [
+        0,
+        12.45,
+        58.15
+      ],
+      "sourceId": "kb-plan-24may",
+      "basis": "estimated",
+      "toleranceM": 0.8,
+      "measured": [
+        -0.0000043902032302867156,
+        12.449999809265137,
+        58.150001525878906
+      ],
+      "deviationM": [
+        -0.0000043902032302867156,
+        -1.9073486257070726e-7,
+        0.0000015258789076710855
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "dora-axis",
+      "runtime": [
+        0,
+        8.25,
+        76.35
+      ],
+      "sourceId": "kb-plan-24may",
+      "basis": "estimated",
+      "toleranceM": 0.8,
+      "measured": [
+        -0.000005764264642493799,
+        8.25,
+        76.3499984741211
+      ],
+      "deviationM": [
+        -0.000005764264642493799,
+        0,
+        -0.0000015258789005656581
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "funnel-cap",
+      "runtime": [
+        0,
+        23.5,
+        2
+      ],
+      "sourceId": "kb-plan-24may",
+      "basis": "plan-measured",
+      "toleranceM": 1.5,
+      "measured": [
+        0,
+        23.5,
+        2
+      ],
+      "deviationM": [
+        0,
+        0,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "mainmast-top",
+      "runtime": [
+        0,
+        48.5,
+        23.9
+      ],
+      "sourceId": "kb-plan-24may",
+      "basis": "estimated",
+      "toleranceM": 2,
+      "measured": [
+        0,
+        48.5,
+        23.899999618530273
+      ],
+      "deviationM": [
+        0,
+        0,
+        -3.8146972514141453e-7
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    }
+  ],
+  "passed": true,
+  "historicalAccuracy": "Not certified. Tolerances validate authored targets; source uncertainty and discrepancies remain separate."
+}
