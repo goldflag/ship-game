@@ -615,7 +615,6 @@ function PortLayout({ state }: { state: GarageState }) {
 interface Props {
   game: Game | null;
   ready: boolean;
-  progress: number;
   switching: boolean;
   switchError: string;
   onSelectShip: (id: string) => void;
@@ -627,7 +626,6 @@ interface Props {
 export function Garage({
   game,
   ready,
-  progress,
   fps,
   onLaunch,
   onSettings,
@@ -713,21 +711,6 @@ export function Garage({
       {(switching || switchError) && (
         <div className="garage-loading" role={switchError ? "alert" : "status"}>
           <span>{switchError || "Preparing ship…"}</span>
-        </div>
-      )}
-      {!ready && (
-        <div className="garage-loading" role="status">
-          <span>Preparing the harbor</span>
-          <strong>{Math.round(progress * 100)}%</strong>
-          <i
-            role="progressbar"
-            aria-label="Preparing harbor"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={Math.round(progress * 100)}
-          >
-            <b style={{ width: `${progress * 100}%` }} />
-          </i>
         </div>
       )}
       <div
