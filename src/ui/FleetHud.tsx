@@ -76,6 +76,8 @@ function ActiveArmament({ data, game, bindings }: FleetHudProps) {
   const selectedShip = useShip();
   const combat = data.combat;
   if (!combat) return null;
+  const following = data.shellFollow === 'flight' || data.shellFollow === 'impact';
+  const followEnabled = !!data.shellFollow && data.shellFollow !== 'off';
   const caliber = (battery: 'main' | 'secondary') => Math.round((selectedShip.mounts.find(m => m.battery === battery)?.weapon.caliberM ?? 0) * 1000);
   return <section className="fleet-armament" aria-label="Weapons and gunnery">
     <div className="fleet-turrets" aria-label="Battery mount readiness">{combat.mounts.map((mount, i) => {
@@ -100,6 +102,9 @@ function ActiveArmament({ data, game, bindings }: FleetHudProps) {
       <button className="fleet-weapon-slot" aria-label={`Gunnery and target damage · ${bindingLabel(bindings, 'gunnery')}`} aria-expanded={!!data.gunneryOpen} onClick={event => { game?.setGunneryOpen(!data.gunneryOpen); event.currentTarget.blur(); }}><span className="fleet-slot-label">GUNNERY</span><Icon name="target" size={39}/><kbd>{bindingLabel(bindings, 'gunnery')}</kbd></button>
       <button className="fleet-weapon-slot fleet-fire-slot" aria-label={`Fire ready guns · Left mouse or ${bindingLabel(bindings, 'fire')}`} disabled={!combat.ready || combat.playerSunk} onClick={event => { game?.fire(); event.currentTarget.blur(); }}><span className="fleet-slot-label">FIRE</span><Icon name="turret" size={39}/><kbd>{bindingLabel(bindings, 'fire')} / LMB</kbd></button>
     </div>
+    <button className="fleet-shell-follow" aria-label={`Follow shells · ${bindingLabel(bindings, 'shellFollow')}`} aria-pressed={followEnabled} disabled={!!data.inspecting || (combat.playerSunk && !followEnabled)} title="Follow a shell from your salvo, then return to your ship. Toggle off to return early." onClick={event => { game?.toggleShellFollow(); event.currentTarget.blur(); }}>
+      <span>Follow shells <kbd>{bindingLabel(bindings, 'shellFollow')}</kbd></span><strong>{following ? 'Return to ship' : followEnabled ? 'On · fire to follow' : 'Off'}</strong>
+    </button>
     <div className="fleet-control-hint"><span><kbd>CTRL</kbd> Cursor</span><span><kbd>SHIFT</kbd> Aim</span><span><kbd>ESC</kbd> Menu</span></div>
   </section>;
 }
@@ -115,6 +120,7 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
   };
   const releaseRudder = () => game?.input.setRudder(0);
   const mapSize = [240, 280, 320, 360, 400][data.chartSize ?? 2];
+  const following = data.shellFollow === 'flight' || data.shellFollow === 'impact';
 
   return <div className={`fleet-hud ${visible ? '' : 'fleet-hud-hidden'} ${data.binoculars ? 'fleet-in-optics' : ''}`} inert={!visible} style={{ '--map-factor': mapSize / 400 } as CSSProperties}>
     <div className="fleet-edge-shade" aria-hidden="true"/>
@@ -127,14 +133,15 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
     </section>}
     <div className="fleet-top-actions"><span className="fleet-fps" aria-label={`${data.fps} frames per second`}><strong>{data.fps || '—'}</strong> FPS</span><button className="icon-button" aria-label="Pause and settings" title="Pause · Esc" onClick={() => game?.setPaused(true)}><Icon name="pause" size={17}/></button></div>
 
-    {!data.inspecting && <div className={`fleet-sight ${data.binoculars ? 'fleet-sight-optics' : 'fleet-sight-chase'}`} aria-hidden="true">
+    {following && <div className="fleet-shell-status" role="status"><strong>{data.shellFollow === 'impact' ? 'Shell impact' : 'Following shell'}</strong><span>{data.shellFollow === 'impact' ? 'Returning to ship…' : `${bindingLabel(bindings, 'shellFollow')} to return to ship`}</span></div>}
+    {!data.inspecting && !following && <div className={`fleet-sight ${data.binoculars ? 'fleet-sight-optics' : 'fleet-sight-chase'}`} aria-hidden="true">
       {data.binoculars ? <><svg viewBox="0 0 540 80" fill="none"><path d="M10 40h238m44 0h238M270 15v14m0 22v14" stroke="currentColor"/>
         {Array.from({ length: 21 }, (_, i) => i === 10 ? null : <g key={i}><path d={`M${20 + i * 25} 40v${i % 2 === 0 ? 9 : 5}`} stroke="currentColor"/>{i % 2 === 0 && <text x={20 + i * 25} y="65" fill="currentColor" textAnchor="middle" fontSize="10">{Math.abs(i - 10)}</text>}</g>)}
         <circle cx="270" cy="40" r="5" stroke="currentColor"/><circle cx="270" cy="40" r="1.5" fill="currentColor"/></svg>
         <div className="fleet-scope-readout"><strong>{((data.combat?.range ?? 0) / 1000).toFixed(2)} <small>km</small></strong><span>{data.magnification}× <small>SCROLL TO ZOOM</small></span></div></> :
         <svg viewBox="0 0 44 44" fill="none"><path d="M3 22h9m20 0h9M22 3v9m0 20v9" stroke="currentColor"/><circle cx="22" cy="22" r="5" stroke="currentColor"/><circle cx="22" cy="22" r="1" fill="currentColor"/></svg>}
     </div>}
-    {!data.pointerLocked && !data.inspecting && !data.gunneryOpen && <button className="fleet-capture-hint" onClick={() => game?.capturePointer()}>Click sea to aim <span>Hold Ctrl for cursor</span></button>}
+    {!data.pointerLocked && !data.inspecting && !data.gunneryOpen && !following && <button className="fleet-capture-hint" onClick={() => game?.capturePointer()}>Click sea to aim <span>Hold Ctrl for cursor</span></button>}
 
     <section className="fleet-ship" aria-label="Ship condition and helm">
       <svg className="fleet-ship-silhouette" viewBox="0 0 180 34" fill="currentColor" aria-hidden="true"><path d="m3 24 8 8h151l14-10-27 2v-5h-17v-6h-12V9h-8V4h-2v5h-8v7H85V9H73V5h-2v4H60v9H42v5H27v-5H15v6Zm35-7h20v2H38Zm94-5h25v2h-25Z"/></svg>
