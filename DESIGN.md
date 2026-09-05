@@ -14,6 +14,9 @@ colors:
   port-accent: "#e5bf80"
   port-ready: "#94d9bf"
   fleet-active: "#86e4c5"
+  fleet-text: "#f0f5f3"
+  fleet-muted: "#c1d0d4"
+  fleet-line: "#c9dce04a"
 typography:
   body:
     fontFamily: "Barlow, sans-serif"
@@ -26,6 +29,10 @@ typography:
 rounded:
   control: "3px"
   instrument: "2px"
+  slot: "1px"
+spacing:
+  fleet-edge: "24px"
+  fleet-bottom: "20px"
 components:
   fire-button:
     backgroundColor: "{colors.accent}"
@@ -48,6 +55,14 @@ components:
     padding: "8px 3px"
   port-model-view-selected:
     textColor: "{colors.port-accent}"
+  fleet-weapon-slot:
+    backgroundColor: "#10222d80"
+    textColor: "#d4e2df"
+    rounded: "{rounded.slot}"
+    padding: "9px 2px 3px"
+    height: "79px"
+  fleet-weapon-slot-selected:
+    backgroundColor: "#204a486b"
 ---
 
 # Design System: Bismarck Sea Trials
@@ -56,7 +71,7 @@ components:
 
 **Creative North Star: "Fleet harbor / Fleet action"**
 
-The owner-selected Fleet harbor and Fleet action studies remain the visual authority. The ship and sea fill the viewport; compact naval instruments frame the scene. Port inspection extends this system with readable model views and selection details.
+The owner-selected Fleet harbor and Fleet action studies remain the visual authority. Fleet action extends that direction with the selected World of Warships / War Thunder reference for centered mouse aiming, binocular sights and edge-mounted handling and weapon instruments. The ship and sea fill the viewport; compact naval instruments frame the scene. Port inspection extends this system with readable model views and selection details.
 
 Navigation, battery readiness, firing, target damage and flooding are live in the singleplayer gunnery trial. FPS uses smoothed renderer telemetry. Port freezes combat; currency, commander skills, research, orders and refits remain explicitly labeled progression previews. Inspection shows provisional combat volumes, not historically approved plate-by-plate construction.
 
@@ -65,6 +80,7 @@ Navigation, battery readiness, firing, target damage and flooding are live in th
 - Full-screen ship and sea, framed by compact instruments.
 - Ivory and blue-gray text, brass commands, mint readiness.
 - Fine borders, restrained rounding, inspectable state.
+- Centered aiming with a numbered scale only in binocular view.
 
 ## Colors
 
@@ -76,21 +92,25 @@ Brass identifies port actions and selected model views. The inherited gunnery pa
 
 ### Secondary
 
-Mint identifies heading, active engine orders and ready mounts in Fleet action, and readiness in port. Inspection category swatches match their 3D volumes: brass armor, green machinery, salmon magazines, lavender steering and pale blue compartments. Blue fill represents floodwater.
+Mint identifies heading, hull integrity, rudder position, ready mounts and selected battery or binocular controls in Fleet action, and readiness in port. The active engine order uses an ivory fill with dark lettering and a pointing marker. Inspection category swatches match their 3D volumes: brass armor, green machinery, salmon magazines, lavender steering and pale blue compartments. Blue fill represents floodwater.
 
 ### Neutral
 
-Ivory carries primary text; muted blue-gray carries supporting readings. Maritime surfaces and translucent lines separate controls from the scene.
+Ivory carries primary text; muted blue-gray carries supporting readings. Fleet action uses its own text, muted and line tokens over maritime surfaces. Translucent lines separate controls from the scene while the minimap preserves the sea beneath it.
 
 **The Command Accent Rule.** Use brass for port commands and selected model views, and mint for Fleet action readiness and navigation. Pair color with written labels or numeric readings.
 
 ## Typography
 
-Barlow supplies controls and explanatory text; Barlow Condensed supplies ship identity, headings and numerical instruments. The hierarchy stays compact: port headings use 20 px condensed type, inspection entries use 12 px text, and supporting labels and controls use 10–11 px. Tabular numerals stabilize changing instrument readings. Preserve readable labels by reducing panel footprints and spacing.
+Barlow supplies controls and explanatory text; Barlow Condensed supplies ship identity, headings and numerical instruments. The hierarchy stays compact: port headings use 20 px condensed type, inspection entries use 12 px text, and supporting labels and controls use 10–11 px. Fleet action leads with speed (31 px), ship identity (22 px) and condition, bearing and ammunition readings (19–22 px); its secondary readings and control labels use compact Barlow or condensed type. Tabular numerals stabilize changing instrument readings. Preserve readable labels by reducing panel footprints and spacing.
 
 ## Layout
 
-Fleet action keeps ship status and handling at lower left, armament at bottom center, the local chart at lower right, and a fine central sight. The main instruments are about 15% smaller than HUD study A, with 28 px side margins and 36 px bottom clearance on desktop. Gunnery details open at upper right and scroll within their available space; the FPS counter stays quiet beside pause/settings.
+Fleet action keeps ship status and handling at lower left (292 px wide), armament at bottom center (410 px wide), a view-bearing tape at top center, and a fixed sight at the exact viewport center. The standard instrument insets use the Fleet edge and bottom spacing tokens. The upper-left scene stays clear of mission text. The quiet FPS counter sits beside pause/settings at upper right; gunnery details open below it and scroll within the available height.
+
+The translucent square minimap sits flush with the bottom and right viewport edges. Its five nominal desktop sizes are 240, 280, 320, 360 and 400 px, with 320 px selected initially. Available space sets the largest size to the minimum of 400 px, 31 vw and 68 vh; every size applies its own proportional factor (60%, 70%, 80%, 90% or 100%) to that limit. This keeps all five steps distinct when the viewport constrains the map. The map has no camera toolbar above it.
+
+At widths up to 1150 px, Fleet action narrows the handling and armament groups to 250 and 350 px and reduces side insets to 18 px. Between 601 and 900 px, they narrow to 210 and 300 px with 12 px side and 14 px bottom insets. At 600 px and below, the armament group moves below the top compass (100 px from the top), leaving the central sight clear; the handling group remains at lower left, and map sizes step from 30 to 50 vw. Short landscape viewports (620 px high or less, wider than 600 px) hide the mount-reload row, battery heading and extra command hint, reduce weapon slots to 54 px high with 43 px ammunition illustrations, retain weapon keycaps and bottom clearance, and move gunnery details upward; gun marks remain in the helm compass and full mount status remains available through G.
 
 Fleet harbor keeps the fleet carousel below the ship, commander and orders on the left, characteristics on the right, and Set sail centered horizontally in the viewport within the transparent top bar. Its instruments are approximately 15% smaller than garage study A. The ship and illustrative 3D harbor remain visible. The comparison switcher and alternate garage layouts have been removed.
 
@@ -104,13 +124,25 @@ Translucent maritime surfaces, fine borders and edge shading provide separation 
 
 ## Shapes
 
-Controls use restrained corners: 2 px on port and Fleet action instruments, 3 px on inherited gunnery controls. Model-view buttons and volume rows have square edges and fine dividing rules. Circular forms belong to bearings and status marks.
+Controls use restrained corners: 2 px on port instruments and the mouse-capture prompt, 1 px on Fleet action weapon slots and chart controls, and 3 px on inherited gunnery controls. Model-view buttons and volume rows have square edges and fine dividing rules. Circular forms belong to bearings, per-mount reload progress and aiming marks.
 
 ## Components
 
 ### Commands and navigation
 
-Set sail is a solid brass command. Secondary actions use transparent or maritime fills and fine borders. Selected model views use a brass underline; selected Fleet action battery controls use mint borders and labels. Buttons expose visible focus rings. Engine orders, camera, chart zoom, pause, fullscreen and HUD visibility remain functional. The native pause dialog contains focus; hidden instruments are inert. Reduced-motion preference removes interface transitions and the port entrance animation.
+Set sail is a solid brass command. Secondary actions use transparent or maritime fills and fine borders. Selected model views use a brass underline; selected Fleet action battery controls use mint borders and keycaps. Buttons expose visible focus rings; Fleet action uses a mint 2 px outline with 3 px offset. Engine orders, camera, chart range, pause, fullscreen and HUD visibility remain functional. The native pause dialog contains focus; hidden instruments are inert. Reduced-motion preference removes interface transitions and the port entrance animation.
+
+### Sailing aim and binoculars
+
+Mouse movement aims through the centered sailing sight while the cursor is captured. Shift or right mouse toggles binocular view. The numbered horizontal aiming scale appears only in binocular view, alongside range and magnification. Scrolling in binoculars selects 2×, 4×, 6×, 8× or 12× magnification; ordinary scrolling changes camera distance. Hold Ctrl to release the cursor for HUD controls, then release it to resume captured aim. A visible prompt offers capture when the cursor is free. Esc pauses or resumes through the pause dialog. Camera cycling and recentering remain keyboard actions (C and R).
+
+### Ship condition and helm
+
+The lower-left group combines the ship silhouette and name, live structure HP out of 1,000 and its integrity bar, a circular compass with ship heading, camera bearing and selected-battery gun marks, speed in knots, a vertical engine telegraph and the rudder indicator. Structure HP is derived from simulation integrity; it is not a historical durability claim. The selected engine order has an ivory pointer and fill; W/S step the order, Space stops, and A/D steer. Flooding appears with its measured volume when present. Coarse pointers expose hold-to-steer controls.
+
+### Navigation minimap
+
+The north-up chart follows the ship and shows its heading, camera view cone, course trail, trial target and marker buoys. NORTH UP is a static orientation label. The kilometer readout cycles the radius through 1, 2, 4 and 8 km, starting at 2 km. Separate −/+ buttons and keyboard shortcuts adjust the five map sizes; endpoint buttons disable at the smallest and largest sizes. Range and physical map size remain independent.
 
 ### Port inspection
 
@@ -120,7 +152,9 @@ Selecting a row isolates its volume against the ghost exterior. The row combines
 
 ### Live gunnery
 
-Main and secondary batteries, mount readiness and Fire salvo are live controls. Fire is disabled when no selected guns are ready. Gunnery exposes aim selection, trial-target condition, flooding, inspection and reset. Keep inspection exit controls reachable when details collapse. Future match scores and other unimplemented combat features may reference the archived study A screenshots in `docs/hud-mockups`, but must not appear as live telemetry.
+The armament group shows circular reload progress and readiness for each selected-battery mount, with mount numbers, remaining seconds or a ready-gun mark. Its heading pairs caliber and battery name with a ready/total count. The five slots contain main AP, secondary AP, binoculars, gunnery and fire. Ammunition illustrations are independently authored SVG assets, and both battery shell totals come from live simulation telemetry. Keyboard 1/2 selects main or secondary AP; Q or left mouse fires ready guns. Fire is disabled when no selected guns are ready.
+
+G opens gunnery and releases the cursor for aim selection, trial-target condition, flooding, inspection and reset. Keep inspection exit controls reachable when details collapse. Future match scores and other unimplemented combat features may reference the archived study A screenshots in `docs/hud-mockups`, but must not appear as live telemetry. Do not fill spare weapon slots with unsupported ammunition or consumables.
 
 ## Do's and Don'ts
 
@@ -130,9 +164,12 @@ Main and secondary batteries, mount readiness and Fire salvo are live controls. 
 - **Do** pair readiness and damage colors with labels or numeric readings.
 - **Do** keep inspection modes, selected details and exit controls reachable while lists scroll.
 - **Do** label provisional inspection geometry and progression previews honestly.
+- **Do** keep the sailing sight centered and reserve the numbered aiming scale for binoculars.
+- **Do** preserve five distinct minimap size steps at every responsive breakpoint, independently of chart range.
 
 ### Don't:
 
 - **Don't** surround the scene with a dashboard page.
 - **Don't** replace fine borders and restrained rounding with an unrelated component style.
 - **Don't** present uniform combat volumes as historically verified armor plates or hull subdivisions.
+- **Don't** invent live ammunition, consumables or combat telemetry to fill the weapon bar.

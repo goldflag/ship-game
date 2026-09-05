@@ -21,7 +21,7 @@ export function GunneryPanel({ data, game, expanded, onExpand }: { data: Telemet
         <small title="Shells remaining">{m.ammo}</small>
       </div>)}</div>
       <label className="aim-select">Aim at <select value={data.aimModule ?? ''} onChange={e => game?.selectAim(e.target.value)}>
-        {data.aimModule === 'point' && <option value="point">Selected sea position</option>}
+        <option value="point">Center sight · Manual</option>
         <option value="">Target waterline</option>
         {c.modules.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
       </select></label>
@@ -34,7 +34,7 @@ export function GunneryPanel({ data, game, expanded, onExpand }: { data: Telemet
       <p className="damage-message" role="status">{c.message}</p>
       <label className="target-underway"><input type="checkbox" checked={c.targetUnderway} disabled={c.targetSunk} onChange={e => { if (game) game.simulation.targetUnderway = e.target.checked; }}/> Target underway</label>
       {data.inspecting && <div className="module-conditions" aria-label="Internal module condition">{c.modules.map(m => <div key={m.id}><span>{m.name}</span><strong>{m.condition <= 0 ? 'Disabled' : `${Math.round(m.condition * 100)}%`}</strong></div>)}<p>Amber outlines: armor · Pale outlines: compartments · Blue: floodwater</p></div>}
-      <p className="gunnery-help">Hold Q to fire as guns become ready. Double-click the sea to aim freely.</p>
+      <p className="gunnery-help">Mouse aims the center sight. Hold left mouse or Q to fire. Shift opens binoculars; scroll adjusts magnification. Selecting a module tracks it until you move the mouse to aim again.</p>
     </div><div className="target-actions">
       <button aria-pressed={!!data.inspecting} onClick={() => { game?.inspectTarget(); if (window.innerWidth <= 760) onExpand(false); }}>{data.inspecting ? 'Return to ship' : 'Inspect target'}</button>
       <button onClick={() => game?.resetTarget()}>Reset target</button>
