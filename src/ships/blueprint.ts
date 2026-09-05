@@ -9,6 +9,8 @@ export interface GunPart {
   elevationMinDeg: number; elevationMaxDeg: number; elevationRateDeg: number;
   reloadSeconds: number; muzzleSpeed: number; projectileMassKg: number;
   penetrationMm: number; damage: number; recoilM: number; ammoPerBarrel: number; armorMm: number;
+  /** Optional calibrated flight model; omitted v1 parts retain vacuum/no spread. */
+  ballistics?: { dragPerSecond: number; dispersionRad: number; basis: string };
   /** Omitted in original v1 twin parts. Spacing is between adjacent barrel axes. */
   barrelCount?: 1 | 2 | 3 | 4;
   mountingStyle?: 'enclosed' | 'open-pedestal' | 'open-quad' | 'oerlikon';
@@ -212,6 +214,12 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     numeric(p.elevationMaxDeg, `${p.id}.elevationMaxDeg`, 0, 85);
     if ((p.muzzleForward as number) <= (p.trunnionForward as number)) fail(String(p.id), 'muzzle must be forward of the trunnion');
     if (!Number.isInteger(p.ammoPerBarrel)) fail(String(p.id), 'ammunition must be an integer');
+    if (p.ballistics !== undefined) {
+      const flight = record(p.ballistics, `${p.id}.ballistics`);
+      numeric(flight.dragPerSecond, 'ballistics.dragPerSecond', 0, .5);
+      numeric(flight.dispersionRad, 'ballistics.dispersionRad', 0, .02);
+      text(flight.basis, 'ballistics.basis');
+    }
     if (p.barrelCount !== undefined) literal(p.barrelCount, [1, 2, 3, 4], `${p.id}.barrelCount`);
     if (p.mountingStyle !== undefined) literal(p.mountingStyle, ['enclosed', 'open-pedestal', 'open-quad', 'oerlikon'], `${p.id}.mountingStyle`);
     for (const k of ['barrelBaseRadius', 'rangefinderWidth', 'gunhouseBaseHeight', 'rollerRadius']) if (p[k] !== undefined) numeric(p[k], `${p.id}.${k}`, .001, 100);

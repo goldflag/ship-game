@@ -1,7 +1,8 @@
 import type { ShipDefinition, Vec3 } from '../ships/blueprint';
 import { barrelIds, barrelOffset } from '../ships/blueprint';
 import { add, clamp, length, localToWorld, normalize, radians, rotate, segmentBox, sub, wrapAngle, worldToLocal, type Pose } from './geometry';
-export const GRAVITY = 9.81;
+import { GRAVITY, solveDragArc, travelFactor } from './ballistics';
+export { GRAVITY } from './ballistics';
 export type MountDefinition = ShipDefinition['mounts'][number];
 export interface MountState { id: string; train: number; elevation: number; reload: number; ammo: number; hp: number; recoil: number; status: 'ready' | 'reloading' | 'blocked' | 'out-of-arc' | 'empty' | 'disabled'; }
 export const createMountState = (m: MountDefinition): MountState => ({ id: m.id, train: 0, elevation: radians(1), reload: 0, ammo: m.weapon.ammoPerBarrel * (m.weapon.barrelCount ?? 2), hp: 100, recoil: 0, status: 'ready' });
@@ -17,9 +18,10 @@ export function shotDirection(m: MountDefinition, state: MountState, pose: Pose)
   return rotate([Math.sin(bearing) * Math.cos(state.elevation), Math.sin(state.elevation), -Math.cos(bearing) * Math.cos(state.elevation)], pose);
 }
 /** Low ballistic arc. Same gravity and speed as projectile integration. */
-export function solveBallistic(from: Vec3, target: Vec3, speed: number): { direction: Vec3; time: number } | null {
+export function solveBallistic(from: Vec3, target: Vec3, speed: number, dragPerSecond = 0): { direction: Vec3; time: number } | null {
   const delta = sub(target, from), range = Math.hypot(delta[0], delta[2]);
   if (range < 1 || range > 30000 || !target.every(Number.isFinite)) return null;
+  if (dragPerSecond > 1e-8) return solveDragArc(from, target, speed, dragPerSecond);
   const v2 = speed * speed;
   const discriminant = v2 * v2 - GRAVITY * (GRAVITY * range * range + 2 * delta[1] * v2);
   if (discriminant < 0) return null;
@@ -38,8 +40,9 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
   let flightTime = length(sub(aim, [pose.x, pose.y, pose.z])) / m.weapon.muzzleSpeed;
   for (let i = 0; i < 3; i++) {
     const midpoint = localToWorld(muzzleLocal(m, { train: desiredTrain, elevation: desiredElevation }, 0), pose);
-    const relativeAim = sub(aim, inheritedVelocity.map(n => n * flightTime) as Vec3);
-    const solution = solveBallistic(midpoint, relativeAim, m.weapon.muzzleSpeed);
+    const drag = m.weapon.ballistics?.dragPerSecond ?? 0;
+    const relativeAim = sub(aim, inheritedVelocity.map(n => n * travelFactor(flightTime, drag)) as Vec3);
+    const solution = solveBallistic(midpoint, relativeAim, m.weapon.muzzleSpeed, drag);
     if (!solution) { reachable = false; desiredTrain = state.train; desiredElevation = state.elevation; break; }
     flightTime = solution.time;
     const direction = normalize(sub(worldToLocal(add([pose.x, pose.y, pose.z], solution.direction), pose), [0, 0, 0]));

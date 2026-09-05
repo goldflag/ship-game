@@ -34,6 +34,24 @@ test('fully above-water penetrations stay dry until their actual opening is subm
   updateFlooding(actor, def, 1);
   expect(actor.damage.compartments.reduce((n, c) => n + c.waterM3, 0)).toBeGreaterThan(0);
 });
+test('an opening centered on a room boundary splits its area and floods only the submerged half', () => {
+  const { def, actor } = fixture(), events: DamageEvent[] = [];
+  hitShip(shell([-30, 0, -21], [820, 0, 0]), [-30, 0, -21], [-12, 0, -21], actor, def, e => events.push(e));
+  const split = events.find(e => e.impact?.breachAssignments?.length === 2)!.impact!.breachAssignments!;
+  expect(split.reduce((n, b) => n + b.areaM2, 0)).toBeCloseTo(.38 ** 2, 9);
+  updateFlooding(actor, def, 1);
+  for (const opening of split) {
+    const water = actor.damage.compartments.find(c => c.id === opening.compartmentId)!.waterM3;
+    if (opening.position[1] < 0) expect(water).toBeGreaterThan(0); else expect(water).toBe(0);
+  }
+});
+test('shells already underwater outside a hull cannot enter a submerged module on the next tick', () => {
+  const { sim, actor } = fixture(), before = structuredClone(actor.damage);
+  sim.shells.push(shell([-20, -1, -21], [1000, 0, 0]));
+  sim.step({ throttle: 0, rudder: 0 }, quiet);
+  expect(sim.shells).toHaveLength(0);
+  expect(actor.damage).toEqual(before);
+});
 test('below-water penetrations admit water and preserve the port breach location under list', () => {
   const { def, actor } = fixture();
   hitShip(shell([-30, -2, -21], [820, 0, 0]), [-30, -2, -21], [-12, -2, -21], actor, def, () => {});
