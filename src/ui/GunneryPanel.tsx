@@ -47,7 +47,7 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
           </li>)}</ol>
         </details>)}
       </details>
-      {data.inspecting && <div className="module-conditions" aria-label="Internal module condition">{c.modules.map(m => <div key={m.id}><span>{m.name}</span><strong>{m.reason === 'flooded' ? 'Flooded · offline' : m.reason === 'destroyed' ? 'Destroyed' : `${Math.round(m.availability * 100)}% available`}</strong></div>)}<p>Flooded equipment can recover when drained. Destroyed equipment stays offline.</p><p>Amber outlines: armor · Pale outlines: compartments · Blue: floodwater</p></div>}
+      {data.inspecting && <div className="module-conditions" aria-label="Internal module condition">{c.modules.map(m => <div key={m.id}><span>{m.name}</span><strong>{m.reason === 'flooded' ? 'Flooded · offline' : m.reason === 'destroyed' ? 'Destroyed' : `${Math.round(m.availability * 100)}% available`}</strong></div>)}<p>Flooded equipment can recover when drained. Destroyed equipment stays offline.</p><p>Amber: armor · Pale outlines: flooded spaces · Blue: floodwater. The full dry layout is available in port.</p></div>}
       <p className="gunnery-help">Mouse aims the center sight. Hold left mouse or {bindingLabel(bindings, 'fire')} to fire. Shift opens binoculars; scroll adjusts magnification. Selecting a module tracks it until you move the mouse to aim again.</p>
     </div><div className="target-actions">
       <button aria-pressed={!!data.inspecting} onClick={() => { game?.inspectTarget(); if (window.innerWidth <= 760) onExpand(false); }}>{data.inspecting ? 'Return to ship' : 'Inspect target'}</button>

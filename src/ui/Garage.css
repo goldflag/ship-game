@@ -283,9 +283,11 @@
 .port-armor-tooltip dd { display:flex; align-items:center; gap:7px; margin:0; text-align:right; }
 .port-armor-tooltip dd i { width:7px; height:7px; border-radius:1px; flex-shrink:0; }
 .port-volume-list { display:flex; flex-direction:column; }
-.port-volume-list>button { display:flex; align-items:center; gap:9px; width:100%; min-height:48px; padding:8px 5px; text-align:left; background:transparent; border:0; border-bottom:1px solid #c9dce027; border-radius:0; }
-.port-volume-list>button:hover { background:#d0e4db12; }
-.port-volume-list>button[aria-pressed=true] { background:#e5bf801c; }
+.port-volume-list button { display:flex; align-items:center; gap:9px; width:100%; min-height:48px; padding:8px 5px; text-align:left; background:transparent; border:0; border-bottom:1px solid #c9dce027; border-radius:0; }
+.port-volume-list button:hover { background:#d0e4db12; }
+.port-volume-list button[aria-pressed=true] { background:#e5bf801c; }
+.port-volume-group summary { cursor:pointer; padding:12px 5px; font-size:12px; border-bottom:1px solid #c9dce027; }
+.port-volume-group[open] { border-left:1px solid #c9dce027; padding-left:8px; }
 .port-volume-list i { width:7px; height:7px; flex-shrink:0; border-radius:1px; }
 .port-volume-list span { font-size:12px; line-height:1.3; flex:1; }
 .port-volume-list small { display:block; font-size:10px; color:#c8d8db; margin-top:3px; }

@@ -62,3 +62,13 @@ The expanded HUD fit at 1137×906 (290×763 panel) and 390×844 (366×702 panel)
 | Yamato | `4492aa7150c51fd433345ad66d50267393cd3424ab2672cdd1489039e41d3104` |
 | Baltimore | `89ea6e7c084dfcfeb416157d98abdc4c8f343251c7777565168140c8b9ddaf78` |
 | Enterprise | `2a0001f3871bb338fdaae8103e458f03f7a23624ceaf79a6ee43842f5be32c1a` |
+
+## Step 3a — complete, Fable accepted
+
+Thin-plate response now varies the grazing deflection threshold with thickness/caliber ratio. It is a calibrated game approximation; thin plates still consume an oblique penetration budget, and heavy protection remains effective. A shared response function serves combat and caliber-aware probes. A conservative bounds pre-test avoids full polygon work for irrelevant plates; mount transforms and compiler bounds tolerance are retained. Per-hit train values are sampled once.
+
+The port inspector groups 466 joined end surfaces under one expandable entry, retaining individual selection. Combat inspection draws wet compartments and equipment; the complete dry layout remains available in port. Live checks verified the collapsed group, selection of armor:end-closure-0, no horizontal overflow, and a controlled flooding replay with eight visible wet rooms out of 161. The updated [inspection canvas](browser/step3a-flooding-inspection.png) was captured after a frozen frame and GPU completion.
+
+Fable accepted with no blockers ([review](fable-step3a-review.md), task task_7def53d4fb98 / dispatch ctx_72ceee6160ed). His 2.23 million random segment/plate comparisons, including articulated plates, found no differences from direct polygon intersection. Fleet cost fell from 2.0–2.2 ms/tick to 1.27–1.34 on his loaded host; the coordinator measured 0.85–0.95. Stock Bismarck outcomes remained unchanged. Final validation: **144 tests passed**, all four ship checks and production build passed; comparison evidence was regenerated because the pipeline hashes protection and geometry source. The 90-second functional fleet test now has a 20-second host timeout after isolated runs passed at 2.7 seconds but loaded full runs crossed five seconds; this is separate from the recorded performance probes.
+
+Next-slice decisions: calibrate grazing thin-plate resistance alongside velocity effects; identify the shell caliber explicitly in reference probes; clarify surface versus group counts. The reviewer’s examples are calibration prompts, not historical penetration evidence. Drag, dispersion, velocity/material effects and fuzes remain pending.

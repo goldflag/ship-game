@@ -15,7 +15,16 @@ export function PortInspection({ definition, mode, selectedId, onSelect }: { def
   const [query, setQuery] = useState('');
   const entries = entriesForMode(inspectionEntries(definition), mode);
   const filtered = entries.filter(entry => entry.name.toLowerCase().includes(query.trim().toLowerCase()));
+  const groups = new Map<string, typeof entries>();
+  for (const entry of filtered) {
+    const key = entry.plate?.surfaceId ? `surface:${entry.plate.surfaceId}` : entry.id;
+    const group = groups.get(key) ?? []; group.push(entry); groups.set(key, group);
+  }
   const selected = entries.find(entry => entry.id === selectedId);
+  const row = (entry: typeof entries[number], label = entry.name) => <button key={entry.id} aria-pressed={selectedId === entry.id} onClick={() => onSelect(selectedId === entry.id ? undefined : entry.id)}>
+    <i aria-hidden="true" style={{ background: inspectionColor(entry) }}/><span>{label}<small>{entry.kind === 'armor' ? entry.plate ? `${entry.plate.material} plate · ${entry.provenance?.basis ?? 'approximate'}` : entry.mountIndex === undefined ? 'Hull armor' : 'Gunhouse armor' : entry.kind === 'engine' ? 'Machinery' : entry.kind === 'steering' ? 'Steering gear' : entry.kind === 'magazine' ? 'Magazine' : 'Compartment'}</small></span>
+    <strong>{entry.thicknessMm !== undefined ? `${entry.thicknessMm} mm` : entry.capacityM3 !== undefined ? `${Math.round(entry.capacityM3).toLocaleString()} m³` : `${entry.hp} HP`}</strong>
+  </button>;
   return <section className="port-inspector" aria-label={mode === 'armor' ? 'Ship armor model' : 'Ship internal modules'}>
     <div className="port-inspection-scroll">
     <div className="port-inspector-heading"><h2>{mode === 'armor' ? 'Armor model' : 'Internal layout'}</h2><span>{entries.length} {mode === 'armor' ? 'volumes' : 'spaces'}</span></div>
@@ -28,10 +37,10 @@ export function PortInspection({ definition, mode, selectedId, onSelect }: { def
     </div>}
     <label className="port-volume-search">Find armor or space<input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Belt, boiler, Anton…" /></label>
     <div className="port-volume-list" aria-label={mode === 'armor' ? 'Armor volumes' : 'Modules and compartments'}>
-      {filtered.map(entry => <button key={entry.id} aria-pressed={selectedId === entry.id} onClick={() => onSelect(selectedId === entry.id ? undefined : entry.id)}>
-        <i aria-hidden="true" style={{ background: inspectionColor(entry) }}/><span>{entry.name}<small>{entry.kind === 'armor' ? entry.plate ? `${entry.plate.material} plate · ${entry.provenance?.basis ?? 'approximate'}` : entry.mountIndex === undefined ? 'Hull armor' : 'Gunhouse armor' : entry.kind === 'engine' ? 'Machinery' : entry.kind === 'steering' ? 'Steering gear' : entry.kind === 'magazine' ? 'Magazine' : 'Compartment'}</small></span>
-        <strong>{entry.thicknessMm !== undefined ? `${entry.thicknessMm} mm` : entry.capacityM3 !== undefined ? `${Math.round(entry.capacityM3).toLocaleString()} m³` : `${entry.hp} HP`}</strong>
-      </button>)}
+      {[...groups].map(([key, group]) => group.length === 1 ? row(group[0]) : <details className="port-volume-group" key={key} open={group.some(e => e.id === selectedId) || undefined}>
+        <summary>{group[0].name}<small>{group.length} joined surfaces · Expand to isolate a plate</small></summary>
+        {group.map((entry, i) => row(entry, `Surface ${i + 1}`))}
+      </details>)}
     </div>
     {filtered.length === 0 && <p role="status" className="port-inspection-note">No matching entries. Try a shorter name or clear the search.</p>}
     <p className="port-inspection-note">{mode === 'armor' ? 'Provisional armor layout. Opaque plates hide the layers behind them; isolate a row to inspect an inner layer.' : 'Outlines show compartments; blue fill shows floodwater.'}</p>
