@@ -2,7 +2,7 @@ import * as THREE from 'three/webgpu';
 import type { ShipDefinition } from '../ships/blueprint';
 import { barrelIds } from '../ships/blueprint';
 import type { Combatant } from '../simulation/damage';
-import { radians } from '../simulation/geometry';
+import { radians, wrapAngle } from '../simulation/geometry';
 import { muzzleWorld, shotDirection } from '../simulation/weapons';
 import { ShipInspection } from './ShipInspection';
 import type { InspectionMode } from '../ships/inspection';
@@ -11,11 +11,21 @@ import type { InspectionMode } from '../ships/inspection';
 export class ShipView {
   readonly root = new THREE.Group();
   readonly inspection: ShipInspection;
+  readonly motion: Combatant['motion'];
+  private previousMotion: Combatant['motion'];
+  private motionSource: Combatant['motion'];
+  private previousMounts: Combatant['mounts'];
+  private renderedMounts: Combatant['mounts'];
   get internals() { return this.inspection.root; }
   private bindings: { yaw: THREE.Object3D; elevation: THREE.Object3D[]; recoil: THREE.Object3D[]; muzzles: THREE.Object3D[] }[];
   private surfaces: { material: THREE.MeshStandardMaterial; opacity: number; transparent: boolean; depthWrite: boolean }[] = [];
   private inspecting = false;
   constructor(model: THREE.Group, readonly definition: ShipDefinition, readonly actor: Combatant) {
+    this.motionSource = actor.motion;
+    this.motion = { ...actor.motion };
+    this.previousMotion = { ...actor.motion };
+    this.previousMounts = actor.mounts.map(m => ({ ...m }));
+    this.renderedMounts = actor.mounts.map(m => ({ ...m }));
     this.root.name = actor.motion.id;
     this.inspection = new ShipInspection(definition);
     const nodes = new Map<string, THREE.Object3D>();
@@ -50,20 +60,44 @@ export class ShipView {
         material.depthWrite = enabled ? false : depthWrite; material.needsUpdate = true;
       });
     }
-    this.inspection.update(this.actor);
+    this.updateInspection();
   }
-  /** Read-only development check against the actual loaded scene graph, including recoil. */
+  /** Read-only check of the loaded joints against the CPU poses sampled for this frame. */
   muzzleErrors(): number[] {
     this.root.updateMatrixWorld(true);
     return this.bindings.flatMap((binding, i) => binding.muzzles.map((node, barrel) => {
-      const m = this.definition.mounts[i], state = this.actor.mounts[i];
-      const expected = new THREE.Vector3(...muzzleWorld(m, state, barrel, this.actor.motion));
-      expected.addScaledVector(new THREE.Vector3(...shotDirection(m, state, this.actor.motion)), -state.recoil * m.weapon.recoilM);
+      const m = this.definition.mounts[i], state = this.renderedMounts[i];
+      const expected = new THREE.Vector3(...muzzleWorld(m, state, barrel, this.motion));
+      expected.addScaledVector(new THREE.Vector3(...shotDirection(m, state, this.motion)), -state.recoil * m.weapon.recoilM);
       return node.getWorldPosition(new THREE.Vector3()).distanceTo(expected);
     }));
   }
-  update(): void {
-    const { motion, mounts } = this.actor;
+  /** Capture before every fixed tick, including all ticks in a catch-up frame. */
+  capturePreviousPose(): void {
+    this.motionSource = this.actor.motion;
+    Object.assign(this.previousMotion, this.actor.motion);
+    this.previousMounts.forEach((m, i) => Object.assign(m, this.actor.mounts[i]));
+  }
+  /** Teleports and port transitions must not interpolate across the old voyage. */
+  snap(): void { this.capturePreviousPose(); this.update(); }
+  update(alpha = 1): void {
+    if (this.motionSource !== this.actor.motion) this.capturePreviousPose();
+    const t = THREE.MathUtils.clamp(alpha, 0, 1);
+    const current = this.actor.motion, previous = this.previousMotion;
+    const motion = this.motion, mounts = this.renderedMounts;
+    Object.assign(motion, current);
+    for (const key of ['x', 'y', 'z', 'roll', 'pitch', 'speed'] as const) {
+      motion[key] = THREE.MathUtils.lerp(previous[key], current[key], t);
+    }
+    motion.heading = previous.heading + wrapAngle(current.heading - previous.heading) * t;
+    mounts.forEach((m, i) => {
+      const currentMount = this.actor.mounts[i], previousMount = this.previousMounts[i];
+      Object.assign(m, currentMount);
+      // Mount train is a bounded interval; wrapping would cross forbidden arcs.
+      for (const key of ['train', 'elevation', 'recoil'] as const) {
+        m[key] = THREE.MathUtils.lerp(previousMount[key], currentMount[key], t);
+      }
+    });
     this.root.position.set(motion.x, motion.y, motion.z);
     this.root.rotation.set(motion.pitch, -motion.heading, motion.roll, 'YXZ');
     this.bindings.forEach((b, i) => {
@@ -73,6 +107,9 @@ export class ShipView {
       b.elevation.forEach(n => { n.rotation.set(mounts[i].elevation, 0, 0); });
       b.recoil.forEach(n => { n.position.z = mounts[i].recoil * this.definition.mounts[i].weapon.recoilM; });
     });
-    this.inspection.update(this.actor);
+    this.updateInspection();
+  }
+  private updateInspection(): void {
+    this.inspection.update({ ...this.actor, motion: this.motion, mounts: this.renderedMounts });
   }
 }
