@@ -291,18 +291,23 @@ export class Game {
     try {
       if (this.resizePending) this.resize();
       const state = this.simulation.ship;
-      const focus = this.inspecting ? this.simulation.target.motion : state;
-      this.rig.update(focus, focus.y, realDt);
+      const focus = (this.inspecting ? this.targetView! : this.playerView!).motion;
+      // Apply mouse aim before sampling the sight; follow the new rendered pose
+      // after stepping, with camera damping applied only once per frame.
+      this.rig.update(focus, focus.y, 0);
       const aim = this.manualAim ? this.inspecting ? this.currentAim : this.readSightAim() : this.simulation.aimAt(this.aimModule, this.battery);
       this.currentAim = aim;
-      if (!this.inPort) this.simulation.advance(dt, this.input.sample(), { aim, fire: this.input.firing || this.rig.firing, battery: this.battery });
-      this.playerView!.update(); this.targetView!.update();
+      if (!this.inPort) this.simulation.advance(dt, this.input.sample(), { aim, fire: this.input.firing || this.rig.firing, battery: this.battery }, () => {
+        this.playerView!.capturePreviousPose(); this.targetView!.capturePreviousPose();
+      });
+      const alpha = this.inPort ? 1 : this.simulation.interpolationAlpha;
+      this.playerView!.update(alpha); this.targetView!.update(alpha); this.effects.update(this.simulation, dt);
       this.ship.position.copy(this.playerView!.root.position);
       this.ship.quaternion.copy(this.playerView!.root.quaternion);
-      this.effects.update(this.simulation, dt);
+      this.rig.update(focus, focus.y, realDt);
       this.playerView!.root.visible = !this.rig.binoculars;
       this.harbor?.update(dt, this.camera);
-      this.shipWake!.update(state, dt);
+      this.shipWake!.update(this.playerView!.motion, dt);
       this.sky!.update(dt);
       // Fixed-step mode with zero delta renders without stepping the wake's
       // leapfrog/foam integrators. Host-clock update(0) would still step them.
@@ -391,6 +396,7 @@ export class Game {
       this.simulation.ship.x = 0;
       this.trail = [{ x: 0, z: 0 }];
     }
+    this.playerView?.snap(); this.targetView?.snap();
     this.setPaused(false);
     if (leavingPort) {
       this.currentAim = this.simulation.aimAt(this.aimModule, this.battery);
