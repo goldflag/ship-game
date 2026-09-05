@@ -1,4 +1,5 @@
 import * as THREE from 'three/webgpu';
+import { materialColor, mix, normalFlat, uniform, vec3 } from 'three/tsl';
 import type { ShipDefinition } from '../ships/blueprint';
 import { inspectionColor, inspectionEntries, type InspectionMode, type InspectionEntry } from '../ships/inspection';
 import type { Combatant } from '../simulation/damage';
@@ -13,15 +14,23 @@ export class ShipInspection {
   selectedId?: string;
   hoveredId?: string;
   private hoverColor = new THREE.Color('#ffffff');
-  private volumes: { entry: InspectionEntry; color: string; group: THREE.Group; fill: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>; outline: THREE.LineSegments<THREE.EdgesGeometry, THREE.LineBasicMaterial>; water?: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial> }[];
+  private armorShading = uniform(0);
+  private volumes: { entry: InspectionEntry; color: string; group: THREE.Group; fill: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial | THREE.MeshBasicNodeMaterial>; outline: THREE.LineSegments<THREE.EdgesGeometry, THREE.LineBasicMaterial>; water?: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial> }[];
   constructor(private definition: ShipDefinition) {
     this.entries = inspectionEntries(definition);
     this.root.name = 'Ship inspection'; this.root.visible = false;
+    // A neutral upper-left inspection light follows the camera, independent of
+    // harbor exposure. Face normals keep plate edges crisp, including back faces.
+    const shade = normalFlat.dot(vec3(-.55, .8, .7).normalize()).max(0).mul(.68).add(.32);
+    const armorColor = materialColor.mul(mix(1, shade, this.armorShading));
     this.volumes = this.entries.map(entry => {
       const geometry = entry.surface ? surfaceGeometry(entry, definition) : entry.plate ? plateGeometry(entry) : new THREE.BoxGeometry(...entry.size), group = new THREE.Group();
       group.position.fromArray(entry.anchor ?? entry.center); group.userData.inspectionId = entry.id;
       const color = inspectionColor(entry);
-      const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color, transparent: true, depthWrite: false, depthTest: false, side:THREE.DoubleSide, toneMapped: entry.kind !== 'armor' }));
+      const Material = entry.kind === 'armor' ? THREE.MeshBasicNodeMaterial : THREE.MeshBasicMaterial;
+      const material = new Material({ color, transparent: true, depthWrite: false, depthTest: false, side:THREE.DoubleSide, toneMapped: entry.kind !== 'armor' });
+      if (material instanceof THREE.MeshBasicNodeMaterial) material.colorNode = armorColor;
+      const fill = new THREE.Mesh(geometry, material);
       const outline = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color, transparent: true, depthWrite: false, depthTest: entry.kind === 'armor', toneMapped: entry.kind !== 'armor' }));
       fill.renderOrder = 100; outline.renderOrder = 102;
       group.add(fill, outline); this.root.add(group);
@@ -39,6 +48,7 @@ export class ShipInspection {
     this.root.visible = mode !== 'exterior';
     this.setHovered(undefined);
     const opaqueArmor = mode === 'armor';
+    this.armorShading.value = opaqueArmor ? 1 : 0;
     this.volumes.forEach(({ entry, fill, outline }) => {
       if (entry.kind !== 'armor') return;
       outline.visible = false;
