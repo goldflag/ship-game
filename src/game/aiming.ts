@@ -1,10 +1,11 @@
+import { plateHit, segmentPlate } from '../simulation/protection';
 import type { ShipDefinition, Vec3 } from '../ships/blueprint';
 import { add, localToWorld, normalize, scale, segmentBox, worldToLocal, type Pose } from '../simulation/geometry';
 
 const MAX_AIM_DISTANCE = 30000;
 
 /** CPU geometry only: the rendered ocean never chooses a gameplay aim point. */
-type AimTarget = { pose: Pose; armor: ShipDefinition['armor'] };
+type AimTarget = { pose: Pose; armor: ShipDefinition['armor']; definition?: ShipDefinition; trains?: number[] };
 export function sightAim(origin: Vec3, direction: Vec3, target?: AimTarget | AimTarget[]): Vec3 {
   const ray = normalize(direction);
   const seaDistance = ray[1] < -1e-6 ? (.5 - origin[1]) / ray[1] : Infinity;
@@ -14,7 +15,9 @@ export function sightAim(origin: Vec3, direction: Vec3, target?: AimTarget | Aim
   const hits = targets.flatMap(candidate => {
     const from = worldToLocal(origin, candidate.pose), to = worldToLocal(end, candidate.pose);
     return candidate.armor.flatMap(volume => {
-      const hit = segmentBox(from, to, volume);
+      const hit = !volume.plate ? segmentBox(from, to, volume)
+        : candidate.definition ? plateHit(from, to, volume, candidate.definition, candidate.trains ?? candidate.definition.mounts.map(() => 0))
+        : volume.plate.mountId ? null : segmentPlate(from, to, volume.plate.vertices);
       return hit ? [{ t: hit.t, point: localToWorld(hit.point, candidate.pose) }] : [];
     });
   }).sort((a, b) => a.t - b.t);

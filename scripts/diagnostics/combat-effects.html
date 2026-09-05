@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Naval effects · runtime review</title>
+<style>
+  html,body{margin:0;background:#132d38;color:#edf1ec;font:16px sans-serif}#scene{width:1280px;height:720px}
+  #status{position:fixed;left:24px;bottom:24px;padding:12px;background:#132d38}canvas{display:block}
+</style>
+<div id="scene"></div><output id="status">Preparing the review renderer…</output>
+<script type="module">
+import { Game } from '/src/game/Game.ts';
+
+// A development-only capture surface. Uses the actual Game, CPU simulation,
+// ship joints, ocean, sky and effects; no review hooks ship in the production UI.
+const status = document.querySelector('#status');
+let ready;
+const loaded = new Promise(resolve => ready = resolve);
+const game = new Game(document.querySelector('#scene'), { quality:'medium', sea:'Fair', resolution:1 }, {
+  progress: label => status.textContent = label, ready,
+  telemetry: () => {}, pause: () => {}, hud: () => {},
+  error: message => { status.textContent = message; window.reviewError = message; },
+});
+game.start();
+await loaded;
+game.setInPort(false); game.setPaused(true);
+let recording = false;
+const setPaused = game.setPaused.bind(game);
+// Recording continues if the owner moves focus to the editor. Normal game focus
+// behavior is unchanged; this override only exists in the isolated capture page.
+game.setPaused = value => { if (!recording || !value) setPaused(value); };
+game.rig.update = () => {}; // Fixed, repeatable review cameras, local to this page.
+const stop = { throttle:0, rudder:0 };
+let aim, battery, elapsed = 0;
+
+function prepare(scene = 'broadside', secondary = false) {
+  game.setPaused(true); game.simulation.reset(); game.effects.reset(); game.shipWake.reset();
+  battery = secondary ? 'secondary' : 'main';
+  game.battery = battery;
+  const target = game.simulation.target.motion;
+  aim = scene === 'armor' ? game.simulation.aimAt('engine-port', battery)
+    : scene === 'splash' ? [330, .5, -35] : [850, .5, 0];
+  game.manualAim = true; game.currentAim = aim; game.readSightAim = () => aim;
+  const sim = game.simulation;
+  sim.eventSequence = 0; sim.shellSequence = 0; // Repeatable visual seed in this isolated review.
+  // Train normally through the CPU mount rules. No synthetic shot or impact events.
+  for (let i = 0; i < 2100; i++) sim.step(stop, { aim, battery, fire:false });
+  game.camera.position.set(...(scene === 'splash' ? [480, 64, 125]
+    : scene === 'smoke' ? [145, 58, -150]
+    : scene === 'armor' ? [target.x - 200, 55, target.z + 95] : [210, 82, 155]));
+  game.camera.lookAt(...(scene === 'splash' ? [325, 13, -35]
+    : scene === 'smoke' ? [45, 18, -55]
+    : scene === 'armor' ? [target.x, 8, target.z - 20] : [0, 15, -6]));
+  game.camera.updateMatrixWorld();
+  game.playerView.snap(); game.targetView.snap();
+  elapsed = 0;
+  status.hidden = true;
+  return game.diagnostics();
+}
+
+function advance(seconds) {
+  const frames = Math.round(seconds * 60);
+  for (let i = 0; i < frames; i++) {
+    game.simulation.step(stop, { aim, battery, fire:elapsed === 0 });
+    game.effects.update(game.simulation, 1 / 60, game.camera);
+    game.shipWake.update(game.simulation.ship, 1 / 60, game.simulation.events);
+    elapsed += 1 / 60;
+  }
+  game.playerView.snap(); game.targetView.snap();
+  return game.diagnostics();
+}
+
+const nextFrame = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+window.review = {
+  game, prepare, advance,
+  async still(scene, time, secondary = false) {
+    prepare(scene, secondary); advance(time); await nextFrame(); return game.diagnostics();
+  },
+  async capture() { await nextFrame(); return game.renderer.domElement.toDataURL('image/png'); },
+  async record(scene, duration = 8, secondary = false) {
+    prepare(scene, secondary);
+    await nextFrame();
+    const fps = 30, frameCount = Math.round(duration * fps);
+    const canvas = game.renderer.domElement, chunks = [];
+    const schedule = game.scheduleFrame.bind(game);
+    game.scheduleFrame = () => {};
+    cancelAnimationFrame(game.raf); await game.frameTask; cancelAnimationFrame(game.raf);
+    window.reviewVideo = null; window.reviewRecordingResult = null;
+    window.reviewCaptureProgress = 0;
+    // Encode each actual renderer frame with an explicit simulation timestamp.
+    // This remains smooth even when Electron throttles a hidden preview window.
+    const encoder = new VideoEncoder({
+      output(chunk) {
+        const bytes = new Uint8Array(chunk.byteLength); chunk.copyTo(bytes);
+        chunks.push({bytes, timestamp:chunk.timestamp});
+      },
+      error(error) { window.reviewError = error.message; },
+    });
+    encoder.configure({codec:'vp09.00.10.08',width:canvas.width,height:canvas.height,
+      bitrate:6000000,framerate:fps,latencyMode:'quality'});
+    const updateWater = game.water.update.bind(game.water);
+    game.water.update = dt => { game.water.deterministic = true; return updateWater(dt); };
+    // These fixed, above-water views contain no navigation buoys. Their GPU
+    // readback can stall an unfocused preview; keep their hidden poses frozen
+    // during recording while the ocean, wake and combat continue normally.
+    const updateBuoyancy = game.water.buoyancy.update.bind(game.water.buoyancy);
+    game.water.buoyancy.update = async () => {};
+    recording = true; game.setPaused(false);
+    const started = performance.now(); game.lastTime = started;
+    const yieldFrame = () => new Promise(resolve => {
+      const channel = new MessageChannel();
+      channel.port1.onmessage = () => { channel.port1.close(); channel.port2.close(); resolve(); };
+      channel.port2.postMessage(null);
+    });
+    const render = async () => {
+      try {
+        for (let i = 0; i < frameCount; i++) {
+          if (i === 15) game.fire();
+          await game.frame(started + (i + 1) * 1000 / fps);
+          if (window.reviewError) throw new Error(window.reviewError);
+          const frame = new VideoFrame(canvas, {timestamp:Math.round(i * 1000000 / fps),duration:Math.round(1000000 / fps)});
+          encoder.encode(frame, {keyFrame:i % fps === 0}); frame.close();
+          if (encoder.encodeQueueSize > 4) await encoder.flush();
+          window.reviewCaptureProgress = (i + 1) / frameCount;
+          await yieldFrame(); // Let browser automation and codec callbacks run between frames.
+        }
+        await encoder.flush();
+        // IVF is a tiny lossless wrapper for the encoded VP9 packets. The capture
+        // script remuxes these packets to WebM without transcoding or changing time.
+        const header = new ArrayBuffer(32), view = new DataView(header);
+        new Uint8Array(header).set([68,75,73,70,0,0,32,0,86,80,57,48]);
+        view.setUint16(12,canvas.width,true); view.setUint16(14,canvas.height,true);
+        view.setUint32(16,1000000,true); view.setUint32(20,1,true);
+        view.setUint32(24,chunks.length,true);
+        const parts = [header];
+        for (const chunk of chunks) {
+          const packet = new ArrayBuffer(12), packetView = new DataView(packet);
+          packetView.setUint32(0,chunk.bytes.length,true);
+          packetView.setBigUint64(4,BigInt(chunk.timestamp),true);
+          parts.push(packet,chunk.bytes);
+        }
+        window.reviewRecordingResult = {...game.diagnostics(),capture:{frames:chunks.length,seconds:duration,fps,
+          renderSeconds:(performance.now()-started)/1000,mode:'fixed simulation timestamps',offscreenBuoyReadbacks:false}};
+        const reader = new FileReader();
+        reader.onload = () => window.reviewVideo = reader.result;
+        reader.readAsDataURL(new Blob(parts,{type:'video/x-ivf'}));
+      } catch(error) { window.reviewError = error.message; }
+      finally {
+        encoder.close(); recording = false; game.setPaused(true);
+        game.water.update = updateWater;
+        game.water.buoyancy.update = updateBuoyancy;
+        game.lastTime = performance.now(); game.scheduleFrame = schedule; schedule();
+      }
+    };
+    render();
+    return {recording:true,scene,duration,fps};
+
+  },
+};
+prepare();
+window.reviewReady = true;
+</script>
+</html>

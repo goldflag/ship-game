@@ -333,13 +333,14 @@ export class Game {
         this.fleetViews.forEach(view => view.capturePreviousPose());
       });
       const alpha = this.inPort ? 1 : this.simulation.interpolationAlpha;
-      this.fleetViews.forEach(view => view.update(alpha)); this.effects.update(this.simulation, dt);
+      this.fleetViews.forEach(view => view.update(alpha));
       this.ship.position.copy(this.playerView!.root.position);
       this.ship.quaternion.copy(this.playerView!.root.quaternion);
       this.rig.update(focus, focus.y, realDt);
+      this.effects.update(this.simulation, dt, this.camera);
       this.playerView!.root.visible = !this.rig.binoculars;
       this.harbor?.update(dt, this.camera);
-      this.shipWake!.update(this.playerView!.motion, dt);
+      this.shipWake!.update(this.playerView!.motion, dt, this.simulation.events);
       this.sky!.update(dt);
       // Fixed-step mode with zero delta renders without stepping the wake's
       // leapfrog/foam integrators. Host-clock update(0) would still step them.
@@ -397,7 +398,7 @@ export class Game {
   }
   private readSightAim(): Vec3 {
     return sightAim(this.camera.position.toArray(), this.camera.getWorldDirection(new THREE.Vector3()).toArray(),
-      this.simulation.actors.filter(actor => actor !== this.simulation.player && actor.motion.y > -40).map(actor => ({ pose: actor.motion, armor: actor.definition.armor })));
+      this.simulation.actors.filter(actor => actor !== this.simulation.player && actor.motion.y > -40).map(actor => ({ pose: actor.motion, armor: actor.definition.armor, definition: actor.definition, trains: actor.mounts.map(m => m.train) })));
   }
   setInPort(inPort: boolean): void {
     if (this.articulationOriginal) this.restoreArticulation();
@@ -489,6 +490,7 @@ export class Game {
         pointerLocked: this.rig.pointerLocked, position: this.camera.position.toArray(), aim: this.currentAim, manualAim: this.manualAim,
         projectionMatrix: this.camera.projectionMatrix.toArray(), matrixWorldInverse: this.camera.matrixWorldInverse.toArray() },
       tick: this.simulation.tick, paused: this.paused, fps: this.fps, inspecting: this.inspecting, inPort: this.inPort,
+      effects: this.effects.diagnostics(),
       portInspection: this.playerView?.inspection.mode, selectedVolume: this.playerView?.inspection.selectedId,
       maxMuzzleErrorM: Math.max(0, ...this.fleetViews.flatMap(view => view.muzzleErrors())),
       combat: this.simulation.telemetry(this.battery, this.currentAim),
@@ -505,11 +507,13 @@ export class Game {
     // Breakwaters shelter the anchorage. Sailing restores the selected sea conditions.
     this.water.waves.amplitude.value = this.inPort ? .18 : this.settings.sea === 'Fair' ? .35 : this.settings.sea === 'Heavy' ? 1.4 : .75;
     this.water.waves.windSpeed.value = this.inPort ? 4 : this.settings.sea === 'Fair' ? 5 : this.settings.sea === 'Heavy' ? 16 : 9;
+    this.effects.setWind(this.water.waves.windSpeed.value);
   }
   private updatePortLighting(): void {
     if(!this.sky)return;
     this.sky.sun.setFromAngles(this.inPort ? 36 : 48, this.inPort ? 58 : 235);
     this.sky.sun.peakIntensity=this.inPort ? 5 : 6.6;
+    this.effects.setSun(this.sky.sun.direction.value);
     this.sky.clouds.shape.coverage.value=this.inPort ? .38 : .4;
     this.ambientLight.intensity = this.inPort ? 1.1 : .65;
     // Broader aerosol scattering and diffuse fill soften the dark blue dome,
@@ -546,6 +550,7 @@ export class Game {
     this.finalFrame?.renderTarget?.dispose();
     this.scenePass?.dispose();
     this.shipWake?.dispose();
+    this.effects.dispose();
     this.water?.dispose();
     this.sky?.dispose();
     const geometries = new Set<THREE.BufferGeometry>();

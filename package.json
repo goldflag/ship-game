@@ -16,7 +16,10 @@
     "ship:compile": "bun scripts/ships/pipeline.ts compile",
     "ship:review": "bun scripts/ships/pipeline.ts review",
     "ship:thumbnail": "bun scripts/ships/pipeline.ts thumbnail",
-    "ship:new": "bun scripts/ships/new.ts"
+    "ship:new": "bun scripts/ships/new.ts",
+    "ship:reference": "bun scripts/reference/pipeline.ts reference",
+    "ship:compare": "bun scripts/reference/pipeline.ts compare",
+    "ship:independence": "bun scripts/reference/pipeline.ts independence"
   },
   "dependencies": {
     "@fontsource/barlow": "^5.2.8",

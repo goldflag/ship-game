@@ -77,3 +77,9 @@ test('turning the ship does not pull the sight off its world bearing', () => wit
   rig.update(ship, ship.y, 1 / 60);
   expect(camera.getWorldDirection(new Vector3()).distanceTo(direction)).toBeLessThan(1e-8);
 }));
+
+test('the sight intersects a sloped physical plate rather than its bounding box', () => {
+  const pose=createShipState('target');
+  const point=sightAim([-20,5,0],[1,0,0],{pose,armor:[{id:'slope',name:'Slope',center:[5,5,0],size:[10,10,10],thicknessMm:100,plate:{material:'Wh',vertices:[[0,0,-5],[10,10,-5],[10,10,5],[0,0,5]]}}]});
+  expect(point).toEqual([5,5,0]);
+});
