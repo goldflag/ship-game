@@ -9,17 +9,21 @@ web
 TypeScript, React, Three.js WebGPU, Bun, Vite. Local Three.js Water Pro 3.5.1 and Sky Pro 2.2.0.
 
 ## Users
-The owner wants to drive their existing Bismarck model in singleplayer in a desktop browser.
+The owner wants to inspect and command the existing ship presets in singleplayer fleet battles in a desktop browser.
 
 ## Product Purpose
-A playable naval game foundation. The current scope includes free sailing, a singleplayer gunnery/damage trial, and a reproducible original ship asset pipeline. Future scope includes multiplayer combat and player-built ships.
+A playable naval game foundation. The current scope includes port inspection, sailing and gunnery in custom singleplayer fleet battles, and a reproducible original ship asset pipeline. Future scope includes multiplayer combat and player-built ships.
 
 ## Capabilities and Constraints
-Render the supplied ship on the supplied water and sky. Keep the simulation independent of React, rendering, and local input so future controllers can provide bot or network commands. Main and secondary guns, approximate armor/module damage and compartment flooding are implemented in the trial. Networking and an in-game ship editor remain future work.
+Render the existing authored ship models on the supplied water and sky. CPU simulation owns movement, gun poses, firing, hits, module damage, flooding and sinking independently of React, rendering and local input. GPU ocean samples remain visual-only. Historical presets and future player-built ships share one versioned blueprint/definition format.
 
-Start in a home-port garage before sailing. The selected Fleet harbor layout lets the player inspect Bismarck and choose Set sail; returning to port resets the sea trial. Currency, commander skills, research, daily orders and refits are authorized mock content, clearly labeled as progression previews and kept in memory.
+Start in the Fleet harbor garage. Custom battle replaces Set sail and the sea trial: choose the player's ship, zero to four friendly bots and one to five enemy bots. Bismarck, Yamato, Baltimore and Enterprise can occupy any slot, including duplicates. Start battle deploys two parallel formation lines 5 km apart, with 650 m between adjacent ships. Return to port resets every ship, ammunition, shells and flooding. Fleet selections are retained during the page session. Currency, commander skills, research, daily orders and refits remain authorized mock content, clearly labeled as progression previews and kept in memory.
+
+Team-aware bots select living opponents, navigate, lead targets and fire main and secondary guns within caliber-based engagement ranges. They avoid friendly firing lanes and steer away from nearby ships; shells can still hit allied hulls. The battle HUD shows surviving fleet counts, enemy target selection, target range and hull condition, and victory, defeat or draw. Friendly bots keep fighting if the player sinks. The chart distinguishes friendly and enemy contacts and marks the selected enemy. Target damage inspection uses each ship's own definition, including in mixed fleets.
 
 The port offers Exterior, Armor and Internals views for the loaded ship preset. The inspection list and 3D volumes share the combat definition, including gunhouse armor and flooding compartments. Selecting a space isolates it and shows its dimensions. Layouts remain provisional gameplay data, and inspection does not change the ship or advance combat.
+
+Bot tactics, firing ranges and approximate armor/module damage are provisional gameplay tuning. Enterprise fights with its authored guns; aircraft operations and physical ship-to-ship collision response are not implemented. Networking and an in-game ship editor remain future work.
 
 ## Evidence on Hand
 `assets/ships/bismarck/baseline/Bismarck_1941.blend`, model README and dimensions; licensed Pro packages in Downloads. Model is 250.5 meters long, bow +X, waterline Z=0 in Blender.

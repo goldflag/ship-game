@@ -46,7 +46,7 @@ async function port() {
   canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY: -170 }));
   rig.update(simulation.ship, 0, 0, true);
   const game = Object.assign(Object.create(Game.prototype), {
-    definition, simulation, playerView, targetView, loadedModel: loaded, scene, harbor, camera, rig,
+    definition, simulation, playerView, targetView, fleetViews: [playerView, targetView], fleetModels: [loaded], effects: { reset() {} }, loadedModel: loaded, scene, harbor, camera, rig,
     currentAim: [650, .5, -550], manualAim: true,
     ship: new Group(), inPort: true, disposed: false, switchingShip: false,
     renderer: { domElement: { setAttribute() {} } },
@@ -115,5 +115,43 @@ test('a second request cannot replace an in-flight switch; disposed games never 
     await expect(switching).rejects.toThrow('Game disposed');
     expect(game.definition.id).toBe('bismarck');
     expect(scene.children).toContain(playerView.root);
+  } finally { loader.mockRestore(); rig.dispose(); }
+});
+
+test('battle loading binds each mixed fleet hull and selected target to its own exported joints', async () => {
+  const { game, scene, harbor, rig } = await port();
+  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => model(String(url).split('/').pop()!.replace('.glb', '')));
+  try {
+    await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck', 'bismarck'], enemies: ['yamato', 'enterprise-cv6'] });
+    expect(loader).toHaveBeenCalledTimes(4);
+    expect(scene.children).toContain(harbor);
+    expect(scene.children).toHaveLength(6);
+    expect(game.simulation.actors).toHaveLength(5);
+    const diagnostics = game.diagnostics();
+    expect(diagnostics.maxMuzzleErrorM).toBeLessThan(.025);
+    expect(diagnostics.renderedShips.filter(ship => ship.visible).map(ship => ship.id)).toEqual(['player']);
+    game.selectTarget('enemy-2');
+    expect(game.diagnostics().combat.targetName).toBe(shipPreset('enterprise-cv6').name);
+    // Returning to an ordinary port ship drops all old battle actors and bindings.
+    await game.switchShip(shipPreset('bismarck'));
+    expect(scene.children).toHaveLength(3);
+    expect(game.simulation.isBattle).toBe(false);
+  } finally { loader.mockRestore(); rig.dispose(); }
+});
+
+test('one failed fleet asset leaves the port intact and the same battle can be retried', async () => {
+  const { game, scene, playerView, rig } = await port();
+  const setup = { playerShipId: 'baltimore', friendlyBots: ['bismarck'], enemies: ['yamato', 'enterprise-cv6'] };
+  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => {
+    if (String(url).includes('enterprise')) throw new Error('Fleet asset unavailable');
+    return model(String(url).split('/').pop()!.replace('.glb', ''));
+  });
+  try {
+    await expect(game.prepareBattle(setup)).rejects.toThrow('Fleet asset unavailable');
+    expect(scene.children).toContain(playerView.root);
+    expect(game.definition.id).toBe('bismarck');
+    loader.mockImplementation(async url => model(String(url).split('/').pop()!.replace('.glb', '')));
+    await game.prepareBattle(setup);
+    expect(game.simulation.actors).toHaveLength(4);
   } finally { loader.mockRestore(); rig.dispose(); }
 });
