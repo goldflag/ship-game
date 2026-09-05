@@ -265,7 +265,7 @@ export class Game {
     this.switchingShip = true;
     try {
       const definition = shipPreset(setup.playerShipId);
-      const simulation = new CombatSimulation(definition, { friendlyBots: setup.friendlyBots.map(shipPreset), enemies: setup.enemies.map(shipPreset) });
+      const simulation = new CombatSimulation(definition, { friendlyBots: setup.friendlyBots.map(shipPreset), enemies: setup.enemies.map(shipPreset), spawnDistance: setup.spawnDistance });
       await this.replaceFleet(simulation, definition);
     } finally { this.switchingShip = false; }
   }

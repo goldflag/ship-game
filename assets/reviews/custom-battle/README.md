@@ -67,3 +67,21 @@ At the user's request, labels now show only the ship name, HP bar and current HP
 - [Controlled browser check](labels-direct-browser-check.json): the real label renderer omits the player and keeps both bot labels visible at identical screen coordinates.
 - `bun test --timeout 20000`: 122 passed, zero failed, 6,326 assertions across 23 files after incorporating the latest port updates from master.
 - `bun run build`: passed, including ship definition checks and TypeScript.
+
+## Configurable spawn distance and facing
+
+Custom battle now offers a Spawn distance slider from 1–20 km in 0.5 km steps, defaulting to 5 km. The setting stays with the fleet selection during the page session and passes through model loading into the CPU simulation. Reset restores the selected separation. Friendly bows face north toward the opposing line; enemy bows face south toward the friendly line. Adjacent ships remain 650 m apart.
+
+- `bun test --timeout 20000`: 134 passed, zero failed, 9,685 assertions across 23 files.
+- `bun run build`: passed all four ship checks, TypeScript and the production bundle.
+- Added coverage for minimum, intermediate and maximum separation; physical bow direction using the shared pose transform; fleet clearance; reset restoration; invalid distance rejection; and forwarding a 7.5 km setup through actual fleet/model loading.
+- Browser verification is incomplete: the Orca browser connection closed before the setup could be inspected (`runtime_unavailable`). No new desktop/mobile screenshots or in-game visual checks are claimed. Earlier screenshots in this directory show the previous controls.
+- The design detector reported only advisory palette/type documentation mismatches; the addition reuses the existing naval tokens and control text sizes.
+
+Independent finish review: **Pass within the source-review scope.** No changes requested.
+
+| Severity | Finding |
+| --- | --- |
+| — | No material functional, accessibility, or design-fit defects found. |
+
+Rendered layout and assistive-technology behavior remain unverified because browser access was unavailable.

@@ -9,7 +9,7 @@ import { selectedShip as initialShip, shipPreset } from '../ships/presets';
 import { ShipContext } from './ShipContext';
 import { bindingLabel, KEYBINDING_STORAGE_KEY, loadKeybindings, type Keybindings } from '../game/keybindings';
 import { BattleSetupDialog } from './BattleSetupDialog';
-import type { BattleSetup } from '../simulation/battle';
+import { BATTLE_SPAWN_DISTANCE, type BattleSetup } from '../simulation/battle';
 import { SettingsDialog } from './SettingsDialog';
 import { GameAudio } from '../game/GameAudio';
 import { AUDIO_STORAGE_KEY, loadAudioSettings, type AudioSettings } from '../game/audio';
@@ -50,7 +50,7 @@ export function App() {
   const [error, setError] = useState('');
   const [hud, setHud] = useState(true);
   const [battleSetupOpen, setBattleSetupOpen] = useState(false);
-  const [battleSetup, setBattleSetup] = useState<BattleSetup>({ playerShipId: initialShip.id, friendlyBots: [], enemies: ['bismarck'] });
+  const [battleSetup, setBattleSetup] = useState<BattleSetup>({ playerShipId: initialShip.id, friendlyBots: [], enemies: ['bismarck'], spawnDistance: BATTLE_SPAWN_DISTANCE });
   const [battleLoading, setBattleLoading] = useState(false);
   const [battleError, setBattleError] = useState('');
   const battlePending = useRef(false);

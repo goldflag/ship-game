@@ -2,7 +2,7 @@ import type { Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { createShipState, FIXED_DT, stepShip, type HelmCommand } from './ship';
 import { add, clamp, contains, localToWorld, scale, segmentBox, sub, worldToLocal } from './geometry';
 import { createMountState, GRAVITY, muzzleWorld, shotDirection, updateMount } from './weapons';
-import { deployment, MAX_TEAM_SHIPS, type BattleFleet, type BattleResult, type FleetActor, type Team } from './battle';
+import { BATTLE_SPAWN_DISTANCE, deployment, MAX_TEAM_SHIPS, validateSpawnDistance, type BattleFleet, type BattleResult, type FleetActor, type Team } from './battle';
 import { botAim, botGunRange, botHelm, botTarget, clearFiringLane, shipVelocity } from './bots';
 import { createDamage, hitShip, systemHealth, updateFlooding, type BallisticEffectData, type DamageEvent, type Shell } from './damage';
 import { resolveShipCollisions } from './collisions';
@@ -27,6 +27,7 @@ export class CombatSimulation {
   target: FleetActor;
   readonly actors: FleetActor[];
   readonly isBattle: boolean;
+  readonly spawnDistance: number;
   result: BattleResult = 'active';
   readonly shells: Shell[] = [];
   readonly events: CombatEvent[] = [];
@@ -39,13 +40,15 @@ export class CombatSimulation {
   /** Without a fleet, create an idle gunnery fixture for port and isolated asset tests. */
   constructor(readonly definition: ShipDefinition, fleet?: BattleFleet) {
     this.isBattle = !!fleet;
+    this.spawnDistance = fleet?.spawnDistance ?? BATTLE_SPAWN_DISTANCE;
+    validateSpawnDistance(this.spawnDistance);
     if (fleet && (!fleet.enemies.length || fleet.enemies.length > MAX_TEAM_SHIPS || fleet.friendlyBots.length >= MAX_TEAM_SHIPS)) throw new Error('Choose one to five ships per team.');
     this.player = this.createActor('player', definition, 'friendly', 'player');
     this.actors = [this.player];
     if (fleet) {
       fleet.friendlyBots.forEach((def, i) => this.actors.push(this.createActor(`friendly-${i + 1}`, def, 'friendly', 'bot')));
       fleet.enemies.forEach((def, i) => this.actors.push(this.createActor(`enemy-${i + 1}`, def, 'enemy', 'bot')));
-      for (const team of ['friendly', 'enemy'] as const) this.actors.filter(actor => actor.team === team).forEach((actor, i) => Object.assign(actor.motion, deployment(i, team)));
+      for (const team of ['friendly', 'enemy'] as const) this.actors.filter(actor => actor.team === team).forEach((actor, i) => Object.assign(actor.motion, deployment(i, team, this.spawnDistance)));
       this.target = this.actors.find(actor => actor.team === 'enemy')!;
     } else {
       this.target = this.createTarget();
@@ -60,7 +63,7 @@ export class CombatSimulation {
     for (const team of ['friendly', 'enemy'] as const) this.actors.filter(actor => actor.team === team).forEach((actor, i) => {
       Object.assign(actor, this.createActor(actor.motion.id, actor.definition, actor.team, actor.controller));
       delete actor.targetId;
-      if (this.isBattle) Object.assign(actor.motion, deployment(i, team));
+      if (this.isBattle) Object.assign(actor.motion, deployment(i, team, this.spawnDistance));
     });
     this.target = this.actors.find(actor => actor.team === 'enemy')!;
     if (!this.isBattle) Object.assign(this.target, this.createTarget());
