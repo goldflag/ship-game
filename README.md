@@ -27,6 +27,10 @@ The throttle stays where you set it. Going from ahead to astern takes time. Hand
 
 See [Ocean configuration](docs/ocean-configuration.md) for the water/sky settings, differences from the supplied Black Flag preset, and the reasoning behind the initial look.
 
+## HUD
+
+The Fleet action HUD uses compact naval combat instruments: live ship handling at lower left, secured armament below the sight, a local chart at lower right, and a live FPS counter beside pause/settings. The main instruments are about 15% smaller than the selected design mockup. Chart +/− buttons change its radius; Controls opens the sailing shortcuts. Combat controls remain secured until weapons and damage systems are implemented.
+
 ## Architecture
 
 - `src/simulation/ship.ts`: plain serializable state and commands; fixed 60 Hz movement. No browser, React, Three.js, or GPU dependency.
