@@ -66,7 +66,7 @@ test('armor picking follows the ship transform, finds the nearest layer and excl
   expect(view.pickArmor(ray)).toBeUndefined();
 });
 
-test('hover highlights an opaque plate without selecting it or changing combat, then restores its color', () => {
+test('hover highlights and outlines only its opaque plate, then clears without changing selection or combat', () => {
   const def = shipPreset('bismarck'), sim = new CombatSimulation(def), view = new ShipInspection(def);
   const before = JSON.stringify(sim.player), id = 'armor:port-main-belt-2';
   view.setMode('armor'); view.update(sim.player);
@@ -74,17 +74,23 @@ test('hover highlights an opaque plate without selecting it or changing combat, 
   const fill = group.children[0] as Mesh;
   const material = fill.material as import('three/webgpu').MeshBasicMaterial;
   const color = material.color.clone();
+  const outlinedArmor = () => view.root.children.filter(c => c.visible && c.children[1].visible).map(c => c.userData.inspectionId);
+  expect(outlinedArmor()).toEqual([]);
   view.setHovered(id); view.update(sim.player);
   expect(view.hoveredId).toBe(id);
   expect(view.selectedId).toBeUndefined();
   expect(material.opacity).toBe(1);
   expect(material.transparent).toBe(false);
   expect(material.depthTest && material.depthWrite).toBe(true);
-  expect(group.children[1].visible).toBe(false);
+  expect(outlinedArmor()).toEqual([id]);
   expect(material.color.equals(color)).toBe(false);
+  view.setHovered('armor:port-belt-support-2'); view.update(sim.player);
+  expect(outlinedArmor()).toEqual(['armor:port-belt-support-2']);
   view.setHovered(undefined);
+  expect(outlinedArmor()).toEqual([]);
   expect(material.color.equals(color)).toBe(true);
   view.setHovered(id); view.setMode('internals'); view.update(sim.player);
   expect(view.hoveredId).toBeUndefined();
+  expect(group.children[1].visible).toBe(false);
   expect(JSON.stringify(sim.player)).toBe(before);
 });
