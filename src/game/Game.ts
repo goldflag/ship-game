@@ -11,6 +11,8 @@ import { ArmorHover, type ArmorHoverInfo } from './ArmorHover';
 import { ShipLabels } from './ShipLabels';
 import { HullDamageFeedback } from './HullDamageFeedback';
 import { FIXED_DT } from '../simulation/ship';
+import { GunAimIndicators } from './GunAimIndicators';
+import { gunAimPoints } from './gunAim';
 import { disposeObjects } from './disposeObjects';
 import { CombatEffects } from './CombatEffects';
 import type { GameAudio } from './GameAudio';
@@ -50,6 +52,7 @@ export class Game {
   private fleetModels: THREE.Group[] = [];
   private shipLabels: ShipLabels;
   private playerDamageFeedback = new HullDamageFeedback();
+  private gunAim: GunAimIndicators;
   private loadedModel?: THREE.Group;
   private effects = new CombatEffects();
   battery: Battery = 'main';
@@ -97,6 +100,7 @@ export class Game {
     this.renderer.domElement.tabIndex = 0;
     this.host.appendChild(this.renderer.domElement);
     this.shipLabels = new ShipLabels(this.host);
+    this.gunAim = new GunAimIndicators(this.host);
     this.rig = new CameraRig(this.camera, this.renderer.domElement, this.definition.viewpoints?.bridge, {
       pause: () => this.setPaused(true), aim: () => { this.manualAim = true; }, optics: () => this.toggleBinoculars(),
     });
@@ -366,6 +370,8 @@ export class Game {
       this.shellFollow.update(this.simulation.shells, this.simulation.events, state.id, dt);
       this.rig.setShellView(this.shellFollow.view);
       this.rig.update(focus, focus.y, realDt);
+      const showGunAim = !this.inPort && !this.inspecting && !this.shellFollow.view && !this.simulation.player.damage.sunk;
+      this.gunAim.update(showGunAim ? gunAimPoints(this.simulation.player, this.definition, this.battery, aim) : [], this.camera, showGunAim);
       this.armorHover?.update(this.inPort && !this.paused && !this.switchingShip ? this.playerView?.inspection : undefined);
       this.effects.update(this.simulation, dt, this.camera, this.rig.binoculars && !this.shellFollow.view);
       this.audio?.update(this.simulation, this.input.order, this.battery,
@@ -414,6 +420,7 @@ export class Game {
     this.camera.updateProjectionMatrix();
     this.water?.resize(width, height);
     this.shipLabels.resize(width, height);
+    this.gunAim.resize(width, height);
     this.sky?.resize(width, height);
     this.resizePending = false;
   }
@@ -625,6 +632,7 @@ export class Game {
     this.abort.abort(); this.observer.disconnect(); this.input.dispose(); this.rig.dispose();
     this.armorHover.dispose();
     this.shipLabels.dispose();
+    this.gunAim.dispose();
     await this.initialization;
     await this.frameTask;
     this.pipeline?.dispose();
