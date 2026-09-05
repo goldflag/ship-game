@@ -196,7 +196,10 @@ export class Game {
     sunlight.shadow.mapSize.set(shadowSize, shadowSize);
     Object.assign(sunlight.shadow.camera, { left: -380, right: 380, top: 380, bottom: -380, near: 1, far: 1800 });
     sunlight.shadow.camera.updateProjectionMatrix();
-    sunlight.shadow.normalBias = 0.1;
+    // Keep the receiver offset proportional to a shadow texel in world meters.
+    // A fixed 10 cm offset leaves diagonal self-shadow bands on broad hulls at
+    // Medium's 1024px resolution; finer maps need proportionally less offset.
+    sunlight.shadow.normalBias = 0.75 * (sunlight.shadow.camera.right - sunlight.shadow.camera.left) / shadowSize;
     this.scene.add(sunlight.target);
     this.water.lighting.addSunSyncListener(() => {
       sunlight.target.position.copy(this.ship.position);
@@ -562,11 +565,11 @@ export class Game {
     this.effects.setSun(this.sky.sun.direction.value);
     this.sky.clouds.shape.coverage.value=this.inPort ? .38 : .4;
     this.ambientLight.intensity = this.inPort ? 1.1 : .65;
-    // Broader aerosol scattering and diffuse fill soften the dark blue dome,
-    // especially when looking away from the port sun toward the hills.
+    // Diffuse fill softens the dark blue dome toward the hills. Keep the port's
+    // forward sun haze restrained so it cannot wash out the sky and reflections.
     this.sky.atmosphere.turbidity.value = this.inPort ? 3.2 : 2.2;
     this.sky.atmosphere.rayleigh.value = this.inPort ? .42 : .38;
-    this.sky.atmosphere.mieScatteringStrength.value = this.inPort ? 1.2 : .5;
+    this.sky.atmosphere.mieScatteringStrength.value = this.inPort ? .25 : .5;
     this.sky.atmosphere.mieDirectionalG.value = this.inPort ? .6 : .72;
     this.sky.atmosphere.skyMultipleScattering.value = this.inPort ? 1.4 : 1;
     // Water Pro owns scene.fogNode, including the water/sky horizon blend.

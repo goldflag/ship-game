@@ -73,6 +73,12 @@ Both scenes use cloud thickness 2,400 m (previously 3,200 m), altitude 1,700 m, 
 
 The [before/after review](../assets/reviews/sky-daylight/index.html) contains unedited 1,600 × 900 WebGPU canvas captures from the actual Game renderer. Each pair shares its camera and frozen animation time; the review notes describe the capture setup.
 
+## Port sun glare correction
+
+The broader aerosol scattering above made the sun-facing port view pale and washed out, including its water reflections. A fixed-camera comparison isolated the forward sun haze: reducing only port `mieScatteringStrength` from **1.2 to 0.25** restored visible clouds and water color. The sea remains at **0.5**. Sun intensity, exposure, diffuse sky fill, cloud settings, fog and water materials retain their previous values, keeping the shaded hull readable and the normal harbor view close to the accepted daylight direction.
+
+The [port glare review](../assets/reviews/port-glare/README.md) records matching sun-facing and normal-port captures from the actual WebGPU renderer. Review both directions when changing atmospheric scattering; the normal port camera faces away from the sun and missed this regression.
+
 ## Repeating arc correction
 
 The initial game used the deterministic wave seed `1941`. Water Pro 3.5.1 constructs its random-hash input as `float(cellIndex) + randomSeed * 100000`. At approximately 194,100,000, float32 values are spaced 16 units apart. The 65,536 cells in a 256² cascade therefore collapse to only 4,097 distinct hash inputs. Neighboring Fourier components acquire identical random phases, creating organized bands and curved wave packets. The periodic FFT tiles repeat those packets across the ocean; zooming out exposes the pattern.
