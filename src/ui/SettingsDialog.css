@@ -26,6 +26,12 @@
 .keybinding-fixed > span:last-child { color: var(--muted); font-size: 11px; }
 .settings-footer { padding-top: 18px; margin-top: 18px; border-top: 1px solid var(--line); flex-shrink: 0; }
 .settings-dialog .settings-note { font-size: 12px; }
+.audio-mute input { width: 20px; height: 20px; accent-color: var(--accent); }
+.audio-setting { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 3px 12px; padding: 12px 0 4px; border-bottom: 1px solid var(--line); font-size: 14px; }
+.audio-setting output { color: var(--accent); font-variant-numeric: tabular-nums; }
+.audio-setting input { grid-column: 1 / -1; width: 100%; min-width: 0; height: 32px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.audio-previews { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.audio-previews button { flex: 1; min-height: 44px; }
 @media (max-width: 480px) {
   .pause-menu.settings-dialog { padding: 18px; }
   .keybinding-columns, .keybinding-row { grid-template-columns: minmax(0, 1fr) repeat(2, 76px); gap: 6px; }

@@ -1,16 +1,21 @@
 import * as THREE from 'three/webgpu';
-import { pass, renderOutput, rtt, vec4 } from 'three/tsl';
+import { mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
 import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { WaterSystem, getPresetParams } from '../../vendor/threejs-water-pro/build/index.js';
 import { SkySystem, PRESETS as SKY_PRESETS } from '../../vendor/threejs-sky-pro/build/index.js';
 import { CombatSimulation } from '../simulation/combat';
 import { ShipView } from './ShipView';
+import { ArmorOverlay } from './ArmorOverlay';
+import { ArmorHover, type ArmorHoverInfo } from './ArmorHover';
+import { ShipLabels } from './ShipLabels';
 import { disposeObjects } from './disposeObjects';
 import { CombatEffects } from './CombatEffects';
+import type { GameAudio } from './GameAudio';
 import type { Battery, Vec3 } from '../ships/blueprint';
 import type { InspectionMode } from '../ships/inspection';
-import { selectedShip } from '../ships/presets';
+import { selectedShip, shipPreset, shipPresets } from '../ships/presets';
+import { validateBattleSetup, type BattleSetup } from '../simulation/battle';
 import { InputController } from './InputController';
 import { CameraRig } from './CameraRig';
 import { sightAim } from './aiming';
@@ -37,6 +42,9 @@ export class Game {
   private ship = new THREE.Group();
   private playerView?: ShipView;
   private targetView?: ShipView;
+  private fleetViews: ShipView[] = [];
+  private fleetModels: THREE.Group[] = [];
+  private shipLabels: ShipLabels;
   private loadedModel?: THREE.Group;
   private effects = new CombatEffects();
   battery: Battery = 'main';
@@ -52,6 +60,8 @@ export class Game {
   private pipeline?: THREE.RenderPipeline;
   private scenePass?: ReturnType<typeof pass>;
   private finalFrame?: ReturnType<typeof rtt>;
+  private armorOverlay?: ArmorOverlay;
+  private armorHover: ArmorHover;
   private abort = new AbortController();
   private resizePending = true;
   private observer: ResizeObserver;
@@ -70,7 +80,7 @@ export class Game {
   private frameTask?: Promise<void>;
   private articulationOriginal?: CombatSimulation['player']['mounts'];
 
-  constructor(private host: HTMLElement, private settings: GameSettings, private callbacks: GameCallbacks, definition = selectedShip) {
+  constructor(private host: HTMLElement, private settings: GameSettings, private callbacks: GameCallbacks, definition = selectedShip, readonly audio?: GameAudio) {
     this.definition = definition;
     this.simulation = new CombatSimulation(definition);
     this.aimModule = definition.modules.find(m => m.kind === 'engine')?.id ?? '';
@@ -81,9 +91,11 @@ export class Game {
     this.renderer.domElement.setAttribute('aria-label', `${this.definition.name} ocean scene. Drag to orbit; scroll to zoom.`);
     this.renderer.domElement.tabIndex = 0;
     this.host.appendChild(this.renderer.domElement);
+    this.shipLabels = new ShipLabels(this.host);
     this.rig = new CameraRig(this.camera, this.renderer.domElement, this.definition.viewpoints?.bridge, {
       pause: () => this.setPaused(true), aim: () => { this.manualAim = true; }, optics: () => this.toggleBinoculars(),
     });
+    this.armorHover = new ArmorHover(this.renderer.domElement, this.camera);
     this.input = new InputController({
       pause: () => { if (!this.inPort) this.setPaused(!this.paused); },
       camera: () => this.cycleCamera(), recenter: () => this.recenter(),
@@ -123,6 +135,9 @@ export class Game {
     if (gltf.scene.userData.definitionHash !== this.definition.contentHash) throw new Error('The ship model and definition have different versions. Rebuild the ship assets and reload.');
     this.playerView = new ShipView(gltf.scene.clone(true), this.definition, this.simulation.player);
     this.targetView = new ShipView(gltf.scene.clone(true), this.definition, this.simulation.target);
+    this.fleetViews = [this.playerView, this.targetView];
+    this.fleetModels = [gltf.scene];
+    this.shipLabels.setFleet(this.fleetViews, this.simulation.actors);
     this.ship.position.copy(this.playerView.root.position);
     this.targetView.root.visible = !this.inPort;
     this.scene.add(this.playerView.root, this.targetView.root, this.effects.root);
@@ -210,7 +225,10 @@ export class Game {
     const waterColor = this.water.postProcessing.buildNode(this.scenePass, sceneColor);
     const output = vec4(this.sky.applyTo(waterColor, this.scenePass));
     // FXAA detects edges in display space, after tone mapping and sRGB conversion.
-    this.finalFrame = rtt(renderOutput(vec4(output.rgb.mul(this.sky.atmosphere.exposure), output.a), THREE.ACESFilmicToneMapping, THREE.SRGBColorSpace));
+    const sceneDisplay = renderOutput(vec4(output.rgb.mul(this.sky.atmosphere.exposure), output.a), THREE.ACESFilmicToneMapping, THREE.SRGBColorSpace);
+    this.armorOverlay = new ArmorOverlay();
+    const armorDisplay = renderOutput(this.armorOverlay.color, THREE.NoToneMapping, THREE.SRGBColorSpace);
+    this.finalFrame = rtt(vec4(mix(sceneDisplay.rgb, armorDisplay.rgb, armorDisplay.a.mul(this.armorOverlay.enabled)), sceneDisplay.a));
     this.pipeline = new THREE.RenderPipeline(this.renderer, fxaa(this.finalFrame));
     this.pipeline.outputColorTransform = false;
     await this.renderer.compileAsync(this.scene, this.camera);
@@ -231,40 +249,70 @@ export class Game {
     if (this.disposed || !this.inPort || !this.playerView || this.switchingShip) throw new Error('Ship switching requires an idle, loaded port.');
     if (definition.id === this.definition.id) return;
     this.switchingShip = true;
-    let model: THREE.Group | undefined;
-    let player: ShipView | undefined;
-    let target: ShipView | undefined;
-    let playerModel: THREE.Group | undefined;
-    let targetModel: THREE.Group | undefined;
     try {
-      model = (await new GLTFLoader().loadAsync(definition.modelUrl)).scene;
-      this.assertActive();
-      if (!this.inPort) throw new Error('Return to port before switching ships.');
-      if (model.userData.definitionHash !== definition.contentHash) throw new Error('The ship model and definition have different versions. Rebuild the ship assets and reload.');
       const simulation = new CombatSimulation(definition);
       Object.assign(simulation.ship, this.simulation.ship);
-      playerModel = model.clone(true); targetModel = model.clone(true);
-      player = new ShipView(playerModel, definition, simulation.player);
-      target = new ShipView(targetModel, definition, simulation.target);
-      target.root.visible = false;
-      const previous = [this.loadedModel, this.playerView.root, this.targetView?.root];
-      // Commit synchronously after loading and validating both actors. Keep the old ship on failure.
-      this.playerView.root.removeFromParent(); this.targetView?.root.removeFromParent();
-      this.scene.add(player.root, target.root);
+      await this.replaceFleet(simulation, definition);
+    } finally { this.switchingShip = false; }
+  }
+
+  /** Load and validate the complete fleet before replacing the current port scene. */
+  async prepareBattle(setup: BattleSetup): Promise<void> {
+    if (this.disposed || !this.inPort || !this.playerView || this.switchingShip) throw new Error('Battle setup requires an idle, loaded port.');
+    validateBattleSetup(setup, Object.keys(shipPresets));
+    this.switchingShip = true;
+    try {
+      const definition = shipPreset(setup.playerShipId);
+      const simulation = new CombatSimulation(definition, { friendlyBots: setup.friendlyBots.map(shipPreset), enemies: setup.enemies.map(shipPreset) });
+      await this.replaceFleet(simulation, definition);
+    } finally { this.switchingShip = false; }
+  }
+
+  private async replaceFleet(simulation: CombatSimulation, definition: typeof selectedShip): Promise<void> {
+    this.armorHover?.clear();
+    const definitions = [...new Map(simulation.actors.map(actor => [actor.definition.id, actor.definition])).values()];
+    const models = new Map<string, THREE.Group>();
+    const views: ShipView[] = [];
+    const clones: THREE.Group[] = [];
+    try {
+      const loads = await Promise.allSettled(definitions.map(async def => {
+        const model = (await new GLTFLoader().loadAsync(def.modelUrl)).scene;
+        models.set(def.id, model);
+        const hash = 'contentHash' in def ? def.contentHash : undefined;
+        if (!hash || model.userData.definitionHash !== hash) throw new Error('The ship model and definition have different versions. Rebuild the ship assets and reload.');
+      }));
+      const failure = loads.find(result => result.status === 'rejected');
+      if (failure?.status === 'rejected') throw failure.reason;
+      this.assertActive();
+      if (!this.inPort) throw new Error('Return to port before changing fleets.');
+      for (const actor of simulation.actors) {
+        const clone = models.get(actor.definition.id)!.clone(true);
+        clones.push(clone);
+        const view = new ShipView(clone, actor.definition, actor);
+        view.root.visible = actor === simulation.player;
+        views.push(view);
+      }
+      const previous = [...this.fleetModels, ...this.fleetViews.map(view => view.root)];
+      this.fleetViews.forEach(view => view.root.removeFromParent());
+      this.scene.add(...views.map(view => view.root));
       this.definition = definition; this.simulation = simulation;
-      this.loadedModel = model; this.playerView = player; this.targetView = target;
+      this.audio?.reset(simulation);
+      this.fleetModels = [...models.values()]; this.loadedModel = models.get(definition.id);
+      this.fleetViews = views; this.playerView = views[0];
+      this.targetView = views.find(view => view.actor === simulation.target);
+      this.shipLabels.setFleet(views, simulation.actors);
       this.articulationOriginal = undefined;
       this.battery = 'main'; this.manualAim = true; this.inspecting = false;
-      this.gunneryOpen = false;
+      this.gunneryOpen = false; this.effects.reset();
       this.currentAim = simulation.aimAt(undefined, this.battery);
-      this.aimModule = definition.modules.find(m => m.kind === 'engine')?.id ?? '';
+      this.aimModule = simulation.target.definition.modules.find(m => m.kind === 'engine')?.id ?? '';
       this.rig.setBridge(definition.viewpoints?.bridge);
       this.renderer.domElement.setAttribute('aria-label', `${definition.name} ocean scene. Drag to orbit; scroll to zoom.`);
       disposeObjects(...previous);
     } catch (error) {
-      disposeObjects(model, playerModel, targetModel, player?.root, target?.root);
+      disposeObjects(...models.values(), ...clones, ...views.map(view => view.root));
       throw error;
-    } finally { this.switchingShip = false; }
+    }
   }
 
   private addBuoy(buoy: typeof BUOYS[number]): void {
@@ -301,14 +349,17 @@ export class Game {
       const aim = this.manualAim ? this.inspecting ? this.currentAim : this.readSightAim() : this.simulation.aimAt(this.aimModule, this.battery);
       this.currentAim = aim;
       if (!this.inPort) this.simulation.advance(dt, this.input.sample(), { aim, fire: this.input.firing || this.rig.firing, battery: this.battery }, () => {
-        this.playerView!.capturePreviousPose(); this.targetView!.capturePreviousPose();
+        this.fleetViews.forEach(view => view.capturePreviousPose());
       });
       const alpha = this.inPort ? 1 : this.simulation.interpolationAlpha;
-      this.playerView!.update(alpha); this.targetView!.update(alpha);
+      this.fleetViews.forEach(view => view.update(alpha));
       this.ship.position.copy(this.playerView!.root.position);
       this.ship.quaternion.copy(this.playerView!.root.quaternion);
       this.rig.update(focus, focus.y, realDt);
+      this.armorHover?.update(this.inPort && !this.paused && !this.switchingShip ? this.playerView?.inspection : undefined);
       this.effects.update(this.simulation, dt, this.camera);
+      this.audio?.update(this.simulation, this.input.order, this.battery,
+        this.camera.position.toArray(), new THREE.Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0).toArray());
       this.playerView!.root.visible = !this.rig.binoculars;
       this.harbor?.update(dt, this.camera);
       this.shipWake!.update(this.playerView!.motion, dt, this.simulation.events);
@@ -318,7 +369,8 @@ export class Game {
       this.water!.deterministic = this.paused;
       await this.water!.update(dt);
       if (this.disposed) return;
-      this.pipeline!.render();
+      this.renderFrame();
+      this.shipLabels.update(this.camera);
       this.fps += (1 / realDt - this.fps) * 0.04;
       if (state.tick - this.lastTrailTick >= 120) {
         this.trail.push({ x: state.x, z: state.z });
@@ -347,11 +399,27 @@ export class Game {
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     this.water?.resize(width, height);
+    this.shipLabels.resize(width, height);
     this.sky?.resize(width, height);
     this.resizePending = false;
   }
+  private renderFrame(): void {
+    const inspection = this.inPort ? this.playerView?.inspection : undefined;
+    if (!this.armorOverlay || inspection?.mode !== 'armor' || !inspection.root.visible) {
+      if (this.armorOverlay) this.armorOverlay.enabled.value = 0;
+      this.pipeline!.render();
+      return;
+    }
+    this.armorOverlay.render(this.renderer, this.camera, inspection.root);
+    // Keep the opaque armor out of the ocean/sky pass; composite it once afterward.
+    inspection.root.visible = false;
+    try { this.pipeline!.render(); }
+    finally { inspection.root.visible = true; }
+  }
   setPaused(paused: boolean): void {
+    if (paused) this.armorHover?.clear();
     this.paused = paused;
+    this.audio?.setScene(this.inPort, paused);
     this.input.setEnabled(!paused && !this.inPort && !!this.water);
     this.rig.setEnabled(!paused);
     this.callbacks.pause(paused);
@@ -368,11 +436,11 @@ export class Game {
     this.rig.toggleBinoculars(this.manualAim ? this.readSightAim() : this.currentAim, this.simulation.ship);
   }
   private readSightAim(): Vec3 {
-    return sightAim(this.camera.position.toArray(), this.camera.getWorldDirection(new THREE.Vector3()).toArray(), {
-      pose: this.simulation.target.motion, armor: this.definition.armor, definition:this.definition, trains:this.simulation.target.mounts.map(m => m.train),
-    });
+    return sightAim(this.camera.position.toArray(), this.camera.getWorldDirection(new THREE.Vector3()).toArray(),
+      this.simulation.actors.filter(actor => actor !== this.simulation.player && actor.motion.y > -40).map(actor => ({ pose: actor.motion, armor: actor.definition.armor, definition: actor.definition, trains: actor.mounts.map(m => m.train) })));
   }
   setInPort(inPort: boolean): void {
+    this.armorHover?.clear();
     if (this.articulationOriginal) this.restoreArticulation();
     if (!inPort && this.switchingShip) return;
     const leavingPort = this.inPort && !inPort;
@@ -383,8 +451,9 @@ export class Game {
     this.camera.updateProjectionMatrix();
     this.rig.setInPort(inPort);
     if (this.harbor) this.harbor.visible = inPort;
-    if (this.targetView) this.targetView.root.visible = !inPort;
+    this.fleetViews.forEach(view => { view.root.visible = view === this.playerView || !inPort; view.inspect(false); });
     this.inspecting = false; this.targetView?.inspect(false); this.playerView?.inspect(false);
+    this.rig.setInspecting(false);
     this.manualAim = true;
     this.gunneryOpen = false;
     this.updateSeaState();
@@ -392,8 +461,10 @@ export class Game {
     this.input.setOrder(1); this.input.setRudder(0);
     if (inPort) {
       this.simulation.reset();
+      this.audio?.reset(this.simulation);
+      this.targetView = this.fleetViews.find(view => view.actor === this.simulation.target);
       this.effects.reset();
-      this.simulation.ship.x = 240;
+      this.simulation.ship.x = 240; this.simulation.ship.z = 0; this.simulation.ship.heading = 0;
       this.shipWake?.reset();
       this.trail = [{ x: this.simulation.ship.x, z: 0 }]; this.lastTrailTick = 0;
     }
@@ -401,9 +472,10 @@ export class Game {
       this.simulation.ship.x = 0;
       this.trail = [{ x: 0, z: 0 }];
     }
-    this.playerView?.snap(); this.targetView?.snap();
+    this.fleetViews.forEach(view => view.snap());
     this.setPaused(false);
     if (leavingPort) {
+      this.audio?.departure();
       this.currentAim = this.simulation.aimAt(this.aimModule, this.battery);
       this.rig.aimAt(this.currentAim, this.simulation.ship);
       this.rig.capturePointer();
@@ -412,7 +484,11 @@ export class Game {
   }
   fire(): void { if (!this.paused && !this.inPort && this.playerView) this.simulation.requestFire(); }
   setPortInspection(mode: InspectionMode, selectedId?: string): void {
+    this.armorHover?.clear();
     if (this.inPort) this.playerView?.setInspection(mode, selectedId);
+  }
+  subscribeArmorHover(listener: (hover: ArmorHoverInfo | null) => void): () => void {
+    return this.armorHover.subscribe(listener);
   }
   selectAim(moduleId: string): void { this.manualAim = moduleId === 'point'; this.aimModule = moduleId; }
   inspectTarget(): void {
@@ -421,10 +497,14 @@ export class Game {
     this.rig.setInspecting(this.inspecting);
     if (!this.inspecting) this.rig.aimAt(this.currentAim, this.simulation.ship);
   }
-  resetTarget(): void {
-    if (!this.paused) {
-      this.simulation.resetTarget(); this.effects.reset(); this.shipWake?.resetImpacts();
-    }
+  selectTarget(id: string): void {
+    if (!this.simulation.selectTarget(id)) return;
+    this.targetView?.inspect(false);
+    this.targetView = this.fleetViews.find(view => view.actor === this.simulation.target);
+    this.targetView?.inspect(this.inspecting);
+    this.aimModule = ''; this.manualAim = false;
+    this.currentAim = this.simulation.aimAt('', this.battery);
+    if (!this.inspecting) this.rig.aimAt(this.currentAim, this.simulation.ship);
   }
   private restoreArticulation(): void {
     if (this.articulationOriginal) {
@@ -457,9 +537,12 @@ export class Game {
         projectionMatrix: this.camera.projectionMatrix.toArray(), matrixWorldInverse: this.camera.matrixWorldInverse.toArray() },
       tick: this.simulation.tick, paused: this.paused, fps: this.fps, inspecting: this.inspecting, inPort: this.inPort,
       effects: this.effects.diagnostics(),
-      portInspection: this.playerView?.inspection.mode, selectedVolume: this.playerView?.inspection.selectedId,
-      maxMuzzleErrorM: Math.max(0, ...this.playerView?.muzzleErrors() ?? [], ...this.targetView?.muzzleErrors() ?? []),
+      audio: this.audio?.diagnostics(),
+      portInspection: this.playerView?.inspection.mode, selectedVolume: this.playerView?.inspection.selectedId, hoveredArmor: this.playerView?.inspection.hoveredId,
+      maxMuzzleErrorM: Math.max(0, ...this.fleetViews.flatMap(view => view.muzzleErrors())),
       combat: this.simulation.telemetry(this.battery, this.currentAim),
+      fleet: this.simulation.actors.map(actor => ({ id: actor.motion.id, definitionId: actor.definition.id, team: actor.team, controller: actor.controller, targetId: actor.targetId, motion: { ...actor.motion }, ammo: actor.mounts.reduce((n, m) => n + m.ammo, 0), integrity: actor.damage.integrity })),
+      renderedShips: this.fleetViews.map(view => ({ id: view.actor.motion.id, visible: view.root.visible })),
       events: this.simulation.events.slice(-20) };
   }
   private projectAim(aim: Vec3): { x: number; y: number; visible: boolean } {
@@ -506,13 +589,17 @@ export class Game {
 
   async dispose(): Promise<void> {
     this.disposed = true;
+    this.audio?.dispose();
     cancelAnimationFrame(this.raf);
     this.abort.abort(); this.observer.disconnect(); this.input.dispose(); this.rig.dispose();
+    this.armorHover.dispose();
+    this.shipLabels.dispose();
     await this.initialization;
     await this.frameTask;
     this.pipeline?.dispose();
     this.finalFrame?.renderTarget?.dispose();
     this.scenePass?.dispose();
+    this.armorOverlay?.dispose();
     this.shipWake?.dispose();
     this.effects.dispose();
     this.water?.dispose();
@@ -528,7 +615,7 @@ export class Game {
       }
     });
     // A model loaded after unmount may not have reached scene.add yet.
-    (this.loadedModel ?? this.ship).traverse(object => {
+    for (const model of new Set([...this.fleetModels, this.loadedModel ?? this.ship])) model.traverse(object => {
       if (object instanceof THREE.Mesh) {
         geometries.add(object.geometry);
         for (const material of Array.isArray(object.material) ? object.material : [object.material]) materials.add(material);

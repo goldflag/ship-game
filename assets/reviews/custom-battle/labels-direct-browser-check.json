@@ -1,0 +1,19 @@
+{
+  "fixture": "Two bots at the same projected position, using the real label renderer",
+  "playerLabelPresent": false,
+  "labels": [
+    {
+      "id": "friendly-1",
+      "text": "USS Baltimore1000 HP",
+      "hidden": false,
+      "position": "translate(500px, 392.62px)"
+    },
+    {
+      "id": "enemy-1",
+      "text": "USS Baltimore1000 HP",
+      "hidden": false,
+      "position": "translate(500px, 392.62px)"
+    }
+  ],
+  "overlapAllowed": true
+}
