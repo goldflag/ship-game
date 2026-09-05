@@ -1,0 +1,78 @@
+{
+  "before": {
+    "tick": 12171,
+    "mounts": [
+      {
+        "id": "anton",
+        "name": "Anton",
+        "status": "ready",
+        "reload": 0,
+        "ammo": 240
+      },
+      {
+        "id": "bruno",
+        "name": "Bruno",
+        "status": "ready",
+        "reload": 0,
+        "ammo": 240
+      },
+      {
+        "id": "caesar",
+        "name": "C\u00e4sar",
+        "status": "out-of-arc",
+        "reload": 0,
+        "ammo": 240
+      },
+      {
+        "id": "dora",
+        "name": "Dora",
+        "status": "out-of-arc",
+        "reload": 0,
+        "ammo": 240
+      }
+    ]
+  },
+  "after": {
+    "tick": 12232,
+    "mounts": [
+      {
+        "id": "anton",
+        "name": "Anton",
+        "status": "reloading",
+        "reload": 19.000000000000057,
+        "ammo": 238
+      },
+      {
+        "id": "bruno",
+        "name": "Bruno",
+        "status": "reloading",
+        "reload": 19.000000000000057,
+        "ammo": 238
+      },
+      {
+        "id": "caesar",
+        "name": "C\u00e4sar",
+        "status": "out-of-arc",
+        "reload": 0,
+        "ammo": 240
+      },
+      {
+        "id": "dora",
+        "name": "Dora",
+        "status": "out-of-arc",
+        "reload": 0,
+        "ammo": 240
+      }
+    ],
+    "shots": [
+      "Anton fired",
+      "Anton fired",
+      "Bruno fired",
+      "Bruno fired"
+    ]
+  },
+  "labels": [
+    "1, 2 \u00b7 On aim \u00b7 Reload 20s",
+    "3, 4 \u00b7 Out of arc"
+  ]
+}
