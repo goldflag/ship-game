@@ -10,6 +10,7 @@ import { ShellFollow } from './ShellFollow';
 import { Game } from './Game';
 import { ShipView } from './ShipView';
 import { HullDamageFeedback } from './HullDamageFeedback';
+import type { GunAimPoint } from './gunAim';
 
 const globals = ['window', 'document'] as const;
 let originals: (PropertyDescriptor | undefined)[];
@@ -35,6 +36,7 @@ async function frameHarness() {
   const targetView = new ShipView(model.scene.clone(true), simulation.definition, simulation.target);
   const wakePositions: number[] = [];
   const focusPositions: number[] = [];
+  const gunAimFrames: { points: GunAimPoint[]; visible: boolean }[] = [];
   const updateCamera = rig.update.bind(rig);
   rig.update = (ship, ...args) => { focusPositions.push(ship.z); updateCamera(ship, ...args); };
   const helm = { throttle: 1, rudder: 0 };
@@ -43,6 +45,7 @@ async function frameHarness() {
     renderer: { domElement: { setAttribute() {} } }, manualAim: false,
     shipLabels: { update() {} },
     playerDamageFeedback: new HullDamageFeedback(),
+    gunAim: { update(points: GunAimPoint[], _camera: PerspectiveCamera, visible: boolean) { gunAimFrames.push({ points, visible }); } },
     lastTime: 0, hudTime: Infinity, lastTrailTick: 0, trail: [], fps: 60, battery: 'main',
     paused: false, inPort: false, inspecting: false,
     input: { sample: () => helm, firing: false, setEnabled() {},
@@ -54,7 +57,7 @@ async function frameHarness() {
     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
   }) as { frame(time: number): Promise<void>; setInPort(inPort: boolean): void; toggleBinoculars(): void; toggleShellFollow(): void; shellFollow: ShellFollow;
     manualAim: boolean; currentAim: number[]; paused: boolean; inspecting: boolean };
-  return { game, simulation, playerView, targetView, camera, rig, helm, wakePositions, focusPositions };
+  return { game, simulation, playerView, targetView, camera, rig, helm, wakePositions, focusPositions, gunAimFrames };
 }
 
 test('turning through north takes the short heading path without changing authoritative combat state', async () => {
@@ -82,17 +85,20 @@ test('turning through north takes the short heading path without changing author
 });
 
 test('firing enters shell view without feeding its camera into aim, freezes on pause and restores optics', async () => {
-  const { game, simulation, camera, rig, playerView } = await frameHarness();
+  const { game, simulation, camera, rig, playerView, gunAimFrames } = await frameHarness();
   game.manualAim = true;
   rig.aimAt([2500, 0, -2500], playerView.motion);
   game.toggleBinoculars();
   const fov = camera.fov;
   let time = 0;
   for (let i = 0; i < 120; i++) await game.frame(time += 1000 / 60);
+  expect(gunAimFrames.at(-1)!.visible).toBe(true);
+  expect(gunAimFrames.at(-1)!.points).toHaveLength(4);
   game.toggleShellFollow();
   simulation.requestFire();
   await game.frame(time += 1000 / 60);
   expect(game.shellFollow.phase).toBe('flight');
+  expect(gunAimFrames.at(-1)).toEqual({ points: [], visible: false });
   expect(rig.binoculars).toBe(false);
   expect(playerView.root.visible).toBe(true);
   const aim = [...game.currentAim];
@@ -171,10 +177,11 @@ test('manual aiming and binoculars keep the camera attached to the displayed shi
 });
 
 test('repositioning for port and launch clears the old ship poses', async () => {
-  const { game, simulation, playerView } = await frameHarness();
+  const { game, simulation, playerView, gunAimFrames } = await frameHarness();
   await game.frame(50);
   game.setInPort(true);
   await game.frame(55);
+  expect(gunAimFrames.at(-1)).toEqual({ points: [], visible: false });
   expect(playerView.motion).toEqual(simulation.ship);
   expect(playerView.motion.x).toBe(240);
   expect(simulation.tick).toBe(0);
