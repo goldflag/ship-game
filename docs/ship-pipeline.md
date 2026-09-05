@@ -11,11 +11,14 @@ bun run ship:compile my-ship      # Validate JSON and compile into .build/ships/
 bun run ship:build my-ship        # Build Blender source, export, validate, then publish locally
 bun run ship:check my-ship        # Detect stale definitions/models and verify the exported GLB
 bun run ship:review my-ship       # Render five repeatable orthographic review views
+bun run ship:thumbnail my-ship    # Bake the port card image from the validated runtime GLB
 bun test
 bun run build                    # Checks published presets, types and production bundle
 ```
 
 `BLENDER_BIN` overrides the executable. The default uses the standard macOS application if present, otherwise `blender` on PATH. The tested environment uses Blender 5.2, Bun 1.3.3, and the versions in `bun.lock`. No MCP connection is required for batch builds.
+
+Port thumbnails are checked-in transparent 600 × 180 PNGs at `public/models/<ship-id>-thumbnail.png`. The carousel loads these images directly, including while the harbor is preparing. `ship:build` refreshes the thumbnail after publishing the validated model; `ship:thumbnail` refreshes it independently without rebuilding geometry. The original shared rendering recipe is `assets/ships/thumbnail.py`; camera settings and model, recipe and image hashes are recorded under `assets/ships/<ship-id>/generated/thumbnail/render.json`. `ship:check` rejects missing or stale thumbnails. After changing the presentation recipe, run `ship:thumbnail` for all affected presets. It has a separate hash so lighting or framing changes do not invalidate ship geometry. Blender renders the exported materials using Cycles; this is a studio model view rather than a capture of the ocean scene.
 
 `ship:build` stages its output under `.build/ships/<id>/`. It publishes only after the geometry and articulation checks pass. Each destination is replaced with a complete temporary sibling; the GLB/JSON pair is guarded by a shared hash at runtime. A crash between replacements fails visibly rather than silently mixing versions. Run the build again to recover. Build logs stay in the staging directory.
 
