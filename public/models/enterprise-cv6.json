@@ -3106,7 +3106,12 @@
         "caliberM": 0.127,
         "reloadSeconds": 4,
         "muzzleSpeed": 792,
-        "projectileMassKg": 25
+        "projectileMassKg": 25,
+        "ballistics": {
+          "dragPerSecond": 0.06145,
+          "dispersionRad": 0.0012,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -3153,7 +3158,12 @@
         "caliberM": 0.127,
         "reloadSeconds": 4,
         "muzzleSpeed": 792,
-        "projectileMassKg": 25
+        "projectileMassKg": 25,
+        "ballistics": {
+          "dragPerSecond": 0.06145,
+          "dispersionRad": 0.0012,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -3200,7 +3210,12 @@
         "caliberM": 0.127,
         "reloadSeconds": 4,
         "muzzleSpeed": 792,
-        "projectileMassKg": 25
+        "projectileMassKg": 25,
+        "ballistics": {
+          "dragPerSecond": 0.06145,
+          "dispersionRad": 0.0012,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -3247,7 +3262,12 @@
         "caliberM": 0.127,
         "reloadSeconds": 4,
         "muzzleSpeed": 792,
-        "projectileMassKg": 25
+        "projectileMassKg": 25,
+        "ballistics": {
+          "dragPerSecond": 0.06145,
+          "dispersionRad": 0.0012,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -3294,7 +3314,12 @@
         "caliberM": 0.127,
         "reloadSeconds": 4,
         "muzzleSpeed": 792,
-        "projectileMassKg": 25
+        "projectileMassKg": 25,
+        "ballistics": {
+          "dragPerSecond": 0.06145,
+          "dispersionRad": 0.0012,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -3341,7 +3366,12 @@
         "caliberM": 0.127,
         "reloadSeconds": 4,
         "muzzleSpeed": 792,
-        "projectileMassKg": 25
+        "projectileMassKg": 25,
+        "ballistics": {
+          "dragPerSecond": 0.06145,
+          "dispersionRad": 0.0012,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -3388,7 +3418,12 @@
         "caliberM": 0.127,
         "reloadSeconds": 4,
         "muzzleSpeed": 792,
-        "projectileMassKg": 25
+        "projectileMassKg": 25,
+        "ballistics": {
+          "dragPerSecond": 0.06145,
+          "dispersionRad": 0.0012,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -3435,7 +3470,12 @@
         "caliberM": 0.127,
         "reloadSeconds": 4,
         "muzzleSpeed": 792,
-        "projectileMassKg": 25
+        "projectileMassKg": 25,
+        "ballistics": {
+          "dragPerSecond": 0.06145,
+          "dispersionRad": 0.0012,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -3481,7 +3521,12 @@
         "caliberM": 0.02794,
         "reloadSeconds": 0.5,
         "muzzleSpeed": 823,
-        "projectileMassKg": 0.416
+        "projectileMassKg": 0.416,
+        "ballistics": {
+          "dragPerSecond": 0.18574,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -3527,7 +3572,12 @@
         "caliberM": 0.02794,
         "reloadSeconds": 0.5,
         "muzzleSpeed": 823,
-        "projectileMassKg": 0.416
+        "projectileMassKg": 0.416,
+        "ballistics": {
+          "dragPerSecond": 0.18574,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -3573,7 +3623,12 @@
         "caliberM": 0.02794,
         "reloadSeconds": 0.5,
         "muzzleSpeed": 823,
-        "projectileMassKg": 0.416
+        "projectileMassKg": 0.416,
+        "ballistics": {
+          "dragPerSecond": 0.18574,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -3619,7 +3674,12 @@
         "caliberM": 0.02794,
         "reloadSeconds": 0.5,
         "muzzleSpeed": 823,
-        "projectileMassKg": 0.416
+        "projectileMassKg": 0.416,
+        "ballistics": {
+          "dragPerSecond": 0.18574,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -3665,7 +3725,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -3711,7 +3776,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -3757,7 +3827,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -3803,7 +3878,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -3849,7 +3929,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -3895,7 +3980,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -3941,7 +4031,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -3987,7 +4082,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -4033,7 +4133,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -4079,7 +4184,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -4125,7 +4235,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -4171,7 +4286,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -4217,7 +4337,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -4263,7 +4388,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -4309,7 +4439,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -4355,7 +4490,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -4401,7 +4541,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -4447,7 +4592,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -4493,7 +4643,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -4539,7 +4694,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -4585,7 +4745,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -4631,7 +4796,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -4677,7 +4847,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -4723,7 +4898,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -4769,7 +4949,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -4815,7 +5000,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -4861,7 +5051,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -4907,7 +5102,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -4953,7 +5153,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     },
     {
@@ -4999,7 +5204,12 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+        }
       }
     }
   ],
@@ -14698,5 +14908,5 @@
     }
   ],
   "compilerVersion": 1,
-  "contentHash": "2a0001f3871bb338fdaae8103e458f03f7a23624ceaf79a6ee43842f5be32c1a"
+  "contentHash": "5c71a931dae3ac15fc7b4e90c457e7ab683bf2f6578cbe792a7aa2c128da90cc"
 }

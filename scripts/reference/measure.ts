@@ -83,7 +83,10 @@ const spaces=def.compartments.map(c=>{
   }
   return {id:c.id,passed:outside===0,outsideCorners:outside,maxExcessM:maxExcess};
 });
-const probes=spec.probes.map((p:{id:string;from:Vec3;to:Vec3})=>({...p,layers:protectionTrace(p.from,p.to,def)}));
+const probes=spec.probes.map((p:{id:string;from:Vec3;to:Vec3;caliberM?:number})=>{
+  const caliberM = p.caliberM ?? def.mounts.find(m=>m.battery==='main')!.weapon.caliberM;
+  return {...p,caliberM,basis:'Geometric resistance probe at the stated caliber; no launch velocity, drag or fuze outcome.',layers:protectionTrace(p.from,p.to,def,undefined,caliberM)};
+});
 const landmarks=spec.landmarks.map((p:any)=>{
   const mount=def.mounts.find(m=>p.id===m.id+'-axis');
   let actual:Vec3|null=null;

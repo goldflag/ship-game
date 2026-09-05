@@ -4,7 +4,8 @@ import catalog from '../../assets/parts/guns.json';
 import { compileShip, type Vec3 } from '../ships/blueprint';
 import { CombatSimulation } from './combat';
 import { hitShip, updateFlooding, type DamageEvent, type Shell } from './damage';
-import { length, localToWorld, segmentBox, sub, worldToLocal } from './geometry';
+import { dot, length, localToWorld, normalize, segmentBox, sub, worldToLocal } from './geometry';
+import { ballisticStep } from './ballistics';
 import { GRAVITY, shotDirection, solveBallistic } from './weapons';
 import { FIXED_DT } from './ship';
 
@@ -31,7 +32,13 @@ for (const aim of [[1800, 0, 0], [0, 0, 1800], [1800, 1000, 0], [40000, 0, 0]] a
     expect(sim.events.filter(e => e.message === `${mount.name} fired`)).toHaveLength(2);
     const direction = shotDirection(mount, state, sim.ship);
     const shell = sim.shells[0];
-    direction.forEach((n, axis) => expect(shell.velocity[axis]).toBeCloseTo(n * mount.weapon.muzzleSpeed - (axis === 1 ? GRAVITY * FIXED_DT : 0), 6));
+    const launch = sim.events.find(e => e.message === `${mount.name} fired`)!;
+    const spread = Math.acos(Math.min(1, dot(direction, normalize(launch.shell!.velocity))));
+    expect(spread).toBeLessThanOrEqual(3 * (mount.weapon.ballistics?.dispersionRad ?? 0) + 1e-7);
+    expect(length(launch.shell!.velocity)).toBeCloseTo(mount.weapon.muzzleSpeed, 6);
+    const predicted = ballisticStep(launch.position, launch.shell!.velocity, FIXED_DT, mount.weapon.ballistics?.dragPerSecond);
+    expect(shell.velocity).toEqual(predicted.velocity);
+    expect(shell.position).toEqual(predicted.position);
     expect(shell.velocity[2]).toBeLessThan(-800);
     sim.step(stop, { aim, fire: true, battery: 'main' });
     expect(state.ammo).toBe(ammo - 2);

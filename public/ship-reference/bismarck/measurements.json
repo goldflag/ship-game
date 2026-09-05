@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "contentHash": "26da869b9a40a31e59fba9c4abbe7f2d235bc3b3a3b81202094aa9066fc4917b",
-  "modelSha256": "eacc2156149ca75091b27a72dfb34fcd1d280593f1f01543d892622636bc51b8",
+  "contentHash": "0af135349f720b7987f9d3a98372d69add111d4e801204ce367e056d7bfacc6e",
+  "modelSha256": "63bb89d3f068206b8eeeeb79a4b01d358bf732da3ce9f18186b58409cb6210d1",
   "specRevision": "independent-1941-01",
   "dimensions": [
     {
@@ -1070,6 +1070,8 @@
         0,
         0
       ],
+      "caliberM": 0.38,
+      "basis": "Geometric resistance probe at the stated caliber; no launch velocity, drag or fuze outcome.",
       "layers": [
         {
           "id": "port-main-belt-2",
@@ -1165,6 +1167,8 @@
         -5,
         0
       ],
+      "caliberM": 0.38,
+      "basis": "Geometric resistance probe at the stated caliber; no launch velocity, drag or fuze outcome.",
       "layers": [
         {
           "id": "upper-deck-2",
@@ -1240,6 +1244,8 @@
         -3.45,
         0
       ],
+      "caliberM": 0.38,
+      "basis": "Geometric resistance probe at the stated caliber; no launch velocity, drag or fuze outcome.",
       "layers": [
         {
           "id": "port-lower-plating-2",

@@ -3,6 +3,7 @@ import type { FleetActor } from './battle';
 import type { HelmCommand } from './ship';
 import { add, clamp, localToWorld, scale, sub, wrapAngle } from './geometry';
 import { muzzleWorld, solveBallistic, type MountDefinition, type MountState } from './weapons';
+import { travelFactor } from './ballistics';
 
 export const shipVelocity = (actor: FleetActor): Vec3 => [Math.sin(actor.motion.heading) * actor.motion.speed, 0, -Math.cos(actor.motion.heading) * actor.motion.speed];
 /** Provisional bot engagement limits, in meters; small AA fittings wait for close range. */
@@ -48,7 +49,8 @@ export function botAim(actor: FleetActor, target: FleetActor, mount: MountDefini
   const velocity = shipVelocity(target), inherited = shipVelocity(actor);
   let time = Math.hypot(point[0] - from[0], point[2] - from[2]) / mount.weapon.muzzleSpeed;
   for (let i = 0; i < 3; i++) {
-    const solution = solveBallistic(from, add(point, scale(sub(velocity, inherited), time)), mount.weapon.muzzleSpeed);
+    const drag = mount.weapon.ballistics?.dragPerSecond ?? 0;
+    const solution = solveBallistic(from, sub(add(point, scale(velocity, time)), scale(inherited, travelFactor(time, drag))), mount.weapon.muzzleSpeed, drag);
     if (!solution) break;
     time = solution.time;
   }
