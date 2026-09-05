@@ -61,7 +61,7 @@ type GarageState = {
   launch: () => void; ready: boolean; settings: () => void;
 };
 function SetSail({ state }: { state: GarageState }) {
-  return <button className="garage-set-sail" onClick={state.launch} disabled={!state.ready}><Icon name="anchor" size={20}/><strong>{state.ready ? 'SET SAIL' : 'PREPARING SHIP'}</strong><Icon name="arrow" size={20}/></button>;
+  return <button className="garage-set-sail" title="Sea trial · North Atlantic" onClick={state.launch} disabled={!state.ready}><Icon name="anchor" size={20}/><strong>{state.ready ? 'SET SAIL' : 'PREPARING'}</strong><Icon name="arrow" size={20}/></button>;
 }
 function ModuleList({ state }: { state: GarageState }) {
   return <div className="garage-module-list">{(Object.keys(MODULES) as ModuleId[]).map(id => <button key={id} aria-pressed={state.module === id} onClick={() => { state.setModule(id); state.setSection('equipment'); }}><ModuleIcon id={id}/><span><strong>{MODULES[id].name}</strong><small>{state.fitted[id] ? 'UPGRADED' : MODULES[id].model}</small></span>{state.fitted[id] ? <Glyph name="check" size={16}/> : <Glyph name="chevron" size={15}/>}</button>)}</div>;
@@ -93,8 +93,13 @@ function FleetCarousel({ state }: { state: GarageState }) {
 
 function PortLayout({ state }: { state: GarageState }) {
   return <div className="garage-layout garage-fleet-harbor">
-    <header className="garage-classic-header"><div className="garage-brand"><Icon name="anchor" size={26}/><strong>FLEET COMMAND</strong></div><nav aria-label="Port sections">{([['overview','Port'],['equipment','Equipment'],['commander','Commander'],['research','Research']] as [Section,string][]).map(([id,label])=><button key={id} aria-pressed={state.section===id} onClick={()=>state.setSection(id)}>{label}</button>)}</nav><ResourceWallet credits={state.credits}/><button className="garage-settings" aria-label="Port settings" disabled={!state.ready} onClick={state.settings}><Icon name="compass" size={20}/></button></header>
-    <div className="garage-classic-deploy"><SetSail state={state}/><span>SEA TRIAL <i/> NORTH ATLANTIC</span></div>
+    <header className="garage-classic-header">
+      <div className="garage-brand"><Icon name="anchor" size={26}/><strong>FLEET COMMAND</strong></div>
+      <nav aria-label="Port sections">{([['overview','Port'],['equipment','Equipment'],['commander','Commander'],['research','Research']] as [Section,string][]).map(([id,label])=><button key={id} aria-pressed={state.section===id} onClick={()=>state.setSection(id)}>{label}</button>)}</nav>
+      <div className="garage-classic-deploy"><SetSail state={state}/><span>SEA TRIAL <i/> NORTH ATLANTIC</span></div>
+      <ResourceWallet credits={state.credits}/>
+      <button className="garage-settings" aria-label="Port settings" disabled={!state.ready} onClick={state.settings}><Icon name="compass" size={20}/></button>
+    </header>
     <section className="garage-classic-identity"><h1>BISMARCK</h1><div><span>VIII</span><span>Battleship</span><span>Germany · 1941</span></div><p className="garage-ready"><i/> {state.ready ? 'READY TO SAIL' : 'PREPARING SHIP'}</p></section>
     <div className="garage-classic-left"><button className="garage-commander-link" onClick={()=>state.setSection('commander')}><Commander/><Glyph name="chevron" size={16}/></button><section className="garage-daily-orders"><div><Glyph name="wreath" size={22}/><h2>Daily orders</h2></div><strong>A captain’s first command</strong><p>Get underway and put your ship through her paces.</p><div><span>Sea trials completed</span><b>0 / 1</b></div><i/><small><Glyph name="credits" size={13}/> 25,000 credits</small></section></div>
     <aside className="garage-classic-details" data-section={state.section}><SideContent state={state}/></aside>
