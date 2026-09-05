@@ -98,10 +98,13 @@ export class Game {
     });
     this.ship.name = 'Bismarck';
     this.scene.add(this.ship);
-    this.scene.add(new THREE.HemisphereLight('#c8deeb', '#44535d', 0.4));
+    this.scene.add(new THREE.HemisphereLight('#dcebf2', '#65757e', 0.65));
 
     this.callbacks.progress('Building the Atlantic', 0.37);
-    this.water = await WaterSystem.create(this.renderer, this.scene, this.camera, this.settings.quality, { seed: 1941 });
+    // Water Pro 3.5.1 combines seed * 100000 + cellIndex in float32.
+    // Large seeds (e.g. 1941) collapse adjacent inputs, creating repeated arcs.
+    // Keep the library's small, deterministic seed until its hash input is fixed.
+    this.water = await WaterSystem.create(this.renderer, this.scene, this.camera, this.settings.quality, { seed: 1 });
     this.assertActive();
     const params = getPresetParams('blackFlag');
     params.oceanFloor.enabled = false;
@@ -110,7 +113,8 @@ export class Game {
     params.fog.fadeEnd = 16000;
     params.fog.skyBlendDistance = 10000;
     params.fog.fadePower = 1.4;
-    params.environment.intensity = 0.55;
+    // Full sky illumination keeps the shaded hull readable in daylight.
+    params.environment.intensity = 1;
     params.clipmap.baseSize = 256;
     params.clipmap.levels = 6;
     params.foam.surface.opacity = 0.13;
@@ -129,12 +133,15 @@ export class Game {
     this.assertActive();
     await this.sky.applyPreset(SKY_PRESETS.partlyCloudy);
     this.assertActive();
-    this.sky.sun.setFromAngles(28, 235);
-    this.sky.sun.peakIntensity = 3.2;
+    // A high daytime sun, at Sky Pro's nominal daytime intensity. Keep
+    // exposure neutral; fix the illumination rather than lifting black levels.
+    this.sky.sun.setFromAngles(48, 235);
+    this.sky.sun.peakIntensity = 6.6;
     this.sky.godRays.enabled = false;
     this.sky.clouds.shape.coverage.value = 0.64;
     this.sky.clouds.shape.altitude.value = 1700;
     this.sky.clouds.shape.thickness.value = 3200;
+    this.sky.clouds.lighting.baseShadowStrength.value = 0.6;
     this.sky.clouds.wind.speed = 12;
     this.sky.atmosphere.fogDensity.value = 0.7;
     this.water.setSky(this.sky.createSkyProvider({ envMap: { width: 384, cloudMarchSteps: 16, skipFrames: 8 } }));

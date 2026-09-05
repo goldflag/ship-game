@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Ocean spectrum regression diagnostic</title>
+<style>
+  html, body, #scene { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+  pre { position: absolute; top: 0; left: 1rem; padding: 1rem; color: white; background: #000c; }
+</style>
+<div id="scene"></div><pre id="result">Initializing the actual game renderer…</pre>
+<script type="module">
+  // Dev-only GPU regression harness. Vite's production build does not include it.
+  // Private-field inspection is intentionally confined here: Water Pro 3.5.1's
+  // public API does not expose the initial Fourier coefficients for readback.
+  import { Game } from '/src/game/Game.ts';
+  import { WaterSystem } from '/vendor/threejs-water-pro/build/index.js';
+  const query = new URLSearchParams(location.search);
+  const quality = query.get('quality') ?? 'high';
+  const noop = () => {};
+  const originalCreate = WaterSystem.create.bind(WaterSystem);
+  if (query.has('seed')) {
+    // Optional negative control. Without this parameter, test Game's own seed.
+    WaterSystem.create = (renderer, scene, camera, tier, options) =>
+      originalCreate(renderer, scene, camera, tier, { ...options, seed: Number(query.get('seed')) });
+  }
+  let initializationError;
+  const game = new Game(document.querySelector('#scene'), { quality, sea: 'Atlantic', resolution: 1 }, {
+    progress: noop, ready: noop, telemetry: noop, pause: noop, hud: noop,
+    error: message => { initializationError = message; },
+  });
+  // Pin the camera, seed, and time; do not run an interactive animation loop.
+  game.scheduleFrame = noop;
+  try {
+    if (!['medium', 'high', 'ultra'].includes(quality)) throw new Error('Invalid quality');
+    game.start();
+    await game.initialization;
+    if (initializationError) throw new Error(initializationError);
+    game.camera.position.set(1650, 800, 50);
+    game.camera.lookAt(0, 0, 0);
+    game.camera.updateMatrixWorld();
+    game.water.deterministic = true;
+    game.water.syncToTick(3600);
+    await game.water.update(1 / 60);
+    game.sky.update(0);
+    game.pipeline.render();
+
+    const cascades = [];
+    for (const cascade of game.water.simulation.cascades) {
+      const values = new Float32Array(await game.renderer.getArrayBufferAsync(cascade.h0Buffer.value));
+      let compared = 0, repeated = 0;
+      for (let i = 4; i < values.length; i += 4) {
+        if ((i / 4) % cascade.resolution === 0) continue;
+        const previous = Math.hypot(values[i - 4], values[i - 3]);
+        const current = Math.hypot(values[i], values[i + 1]);
+        // Exclude zero/near-zero coefficients outside the active spectral band.
+        if (previous < 1e-10 || current < 1e-10) continue;
+        compared++;
+        // Normalize away spectral energy to compare random phase itself.
+        const phaseDifference = Math.abs(values[i] / current - values[i - 4] / previous)
+          + Math.abs(values[i + 1] / current - values[i - 3] / previous);
+        if (phaseDifference < 1e-5) repeated++;
+      }
+      cascades.push({ seed: cascade.uniforms.randomSeed.value, compared, repeated,
+        repeatedFraction: repeated / compared });
+    }
+    const result = { passed: cascades.length > 0 && cascades.every(c =>
+      c.compared > 1000 && c.repeatedFraction < 0.01), seed: game.water.seed, quality, cascades };
+    window.oceanDiagnostic = result;
+    document.querySelector('#result').textContent = JSON.stringify(result, null, 2);
+    // Capture the canvas immediately after rendering; WebGPU buffers are transient.
+    window.captureOcean = () => {
+      game.pipeline.render();
+      return game.renderer.domElement.toDataURL('image/png');
+    };
+  } catch (error) {
+    window.oceanDiagnostic = { passed: false, error: String(error) };
+    document.querySelector('#result').textContent = JSON.stringify(window.oceanDiagnostic, null, 2);
+  }
+</script>
+</html>

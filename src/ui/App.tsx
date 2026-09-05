@@ -4,6 +4,7 @@ import { createShipState, ENGINE_LABELS, KNOTS_PER_MPS } from '../simulation/shi
 import { DEFAULT_SETTINGS, type GameSettings, type Telemetry } from '../game/types';
 import { Icon } from './Icons';
 import { NavigationChart } from './NavigationChart';
+import { HudPrototype, isHudPrototype } from './hud-prototype/HudPrototype';
 
 const INITIAL_TELEMETRY: Telemetry = { ship: createShipState(), order: 1, camera: 'Chase', fps: 0, backend: 'webgpu', trail: [] };
 function loadSettings(): GameSettings {
@@ -65,8 +66,9 @@ export function App() {
 
   return <main className="game-shell">
     <div ref={host} className="ocean-viewport" />
-    <div className="scene-shade" aria-hidden="true" />
-    {ready && !error && <div className={`hud ${!hud ? 'hud-hidden' : ''}`}>
+    {ready && !error && isHudPrototype && <HudPrototype />}
+    {ready && !error && !isHudPrototype && <div className={`hud ${!hud ? 'hud-hidden' : ''}`}>
+      <div className="scene-shade" aria-hidden="true" />
       <header className="top-bar">
         <div className="identity"><Icon name="anchor" size={27}/><div><h1>BISMARCK</h1><span>SEA TRIALS</span></div><span className="identity-rule"/><p>SINGLEPLAYER<br/><strong>Open Atlantic</strong></p></div>
         <div className="compass" aria-label={`Heading ${heading} degrees`}>
