@@ -60,7 +60,7 @@ components:
     textColor: "#d4e2df"
     rounded: "{rounded.slot}"
     padding: "9px 2px 3px"
-    height: "79px"
+    height: "64px"
   fleet-weapon-slot-selected:
     backgroundColor: "#204a486b"
 ---
@@ -102,15 +102,15 @@ Ivory carries primary text; muted blue-gray carries supporting readings. Fleet a
 
 ## Typography
 
-Barlow supplies controls and explanatory text; Barlow Condensed supplies ship identity, headings and numerical instruments. The hierarchy stays compact: port headings use 20 px condensed type, inspection entries use 12 px text, and supporting labels and controls use 10–11 px. Fleet action leads with speed (31 px), ship identity (22 px) and condition, bearing and ammunition readings (19–22 px); its secondary readings and control labels use compact Barlow or condensed type. Tabular numerals stabilize changing instrument readings. Preserve readable labels by reducing panel footprints and spacing.
+Barlow supplies controls and explanatory text; Barlow Condensed supplies ship identity, headings and numerical instruments. The hierarchy stays compact: port headings use 20 px condensed type, inspection entries use 12 px text, and supporting labels and controls use 10–11 px. Fleet action leads with speed (27 px), ship identity (20 px) and condition, bearing and ammunition readings (18–21 px); its secondary readings and control labels use compact Barlow or condensed type. Tabular numerals stabilize changing instrument readings. Preserve readable labels by reducing panel footprints and spacing.
 
 ## Layout
 
-Fleet action keeps ship status and handling at lower left (292 px wide), armament at bottom center (410 px wide), a view-bearing tape at top center, and a fixed sight at the exact viewport center. The standard instrument insets use the Fleet edge and bottom spacing tokens. The upper-left scene stays clear of mission text. The quiet FPS counter sits beside pause/settings at upper right; gunnery details open below it and scroll within the available height.
+Fleet action keeps ship status and handling at lower left (240 px wide), armament at bottom center (340 px wide), a view-bearing tape at top center, and a fixed sight at the exact viewport center. The compact helm uses a 156 px bearing dial; armament uses 64 px weapon slots and 30 px readiness rings. The standard instrument insets use the Fleet edge and bottom spacing tokens. The upper-left scene stays clear of mission text. The quiet FPS counter sits beside pause/settings at upper right; gunnery details open below it and scroll within the available height.
 
 The translucent square minimap sits flush with the bottom and right viewport edges. Its five nominal desktop sizes are 240, 280, 320, 360 and 400 px, with 320 px selected initially. Available space sets the largest size to the minimum of 400 px, 31 vw and 68 vh; every size applies its own proportional factor (60%, 70%, 80%, 90% or 100%) to that limit. This keeps all five steps distinct when the viewport constrains the map. The map has no camera toolbar above it.
 
-At widths up to 1150 px, Fleet action narrows the handling and armament groups to 250 and 350 px and reduces side insets to 18 px. Between 601 and 900 px, they narrow to 210 and 300 px with 12 px side and 14 px bottom insets. At 600 px and below, the armament group moves below the top compass (100 px from the top), leaving the central sight clear; the handling group remains at lower left, and map sizes step from 30 to 50 vw. Short landscape viewports (620 px high or less, wider than 600 px) hide the mount-reload row, battery heading and extra command hint, reduce weapon slots to 54 px high with 43 px ammunition illustrations, retain weapon keycaps and bottom clearance, and move gunnery details upward; gun marks remain in the helm compass and full mount status remains available through G.
+At widths up to 1150 px, Fleet action narrows the handling and armament groups to 208 and 296 px and reduces side insets to 18 px. Between 601 and 900 px, they narrow to 180 and 260 px with 12 px side and 14 px bottom insets. At 600 px and below, the armament group is at most 310 px wide and moves below the top compass (100 px from the top), leaving the central sight clear; the handling group remains at lower left with a 100 px bearing dial, and map sizes step from 30 to 50 vw. Short landscape viewports (620 px high or less, wider than 600 px) hide the mount-reload row, battery heading and extra command hint, reduce weapon slots to 48 px high with 38 px ammunition illustrations, retain weapon keycaps and bottom clearance, and move gunnery details upward; gun marks remain in the helm compass and full mount status remains available through G.
 
 Fleet harbor keeps the fleet carousel below the ship, commander and orders on the left, characteristics on the right, and Set sail centered horizontally in the viewport within the transparent top bar. Its instruments are approximately 15% smaller than garage study A. The ship and illustrative 3D harbor remain visible. The comparison switcher and alternate garage layouts have been removed.
 

@@ -44,3 +44,10 @@ The small portrait layout places armament above the center sight; the short land
 | Design documentation | Resolved: DESIGN.md records the implemented layout and controls. |
 
 No material regressions remained in the reviewer's final pass.
+
+
+## Compact instrument refinement
+
+Following the user's sizing request, the desktop helm width decreased from 292 to 240 px and the armament width from 410 to 340 px. The compass, weapon illustrations, readiness rings and spacing were reduced together; smaller viewport layouts received corresponding reductions.
+
+Updated captures at 1600 × 900, 844 × 390 and 390 × 844 show the smaller instruments with clear sight placement and no horizontal overflow. The browser capture run reported no runtime exceptions. The layout scan and `git diff --check` were clean, and `bun run build` passed after this CSS change.
