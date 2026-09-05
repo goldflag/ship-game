@@ -1,0 +1,348 @@
+{
+  "version": 1,
+  "provider": "ElevenLabs",
+  "recipeSha256": "3225e674d771658e0ac720271f3a8a380b0dba11889e6d1914474263d0829d12",
+  "buildRecipeSha256": "d6f66ad9010bfe1e404a8204dda2fd90fd10626b380663af389ab5a2a917d54e",
+  "clips": [
+    {
+      "id": "ui-click",
+      "source": "assets/audio/naval/originals/ui-click/sfx_A_sin_20260905_134300.mp3",
+      "sourceSha256": "271df254ea125425e151ec695b8f4486c783501892c08be28a1dbaed354215a5",
+      "runtime": "public/audio/naval/ui-click.wav",
+      "runtimeSha256": "9df31840768189185277a419afacd385440855d5a14d5ff744b494f921c0ad1b",
+      "bytes": 42380,
+      "durationSeconds": 0.48,
+      "channels": 1,
+      "sampleRate": 44100,
+      "loop": false,
+      "original": {
+        "peakDbfs": -7.08,
+        "rmsDbfs": -31.53
+      },
+      "processed": {
+        "peakDbfs": -3.0,
+        "rmsDbfs": -27.55
+      }
+    },
+    {
+      "id": "ui-confirm",
+      "source": "assets/audio/naval/originals/ui-confirm/sfx_One_s_20260905_134301.mp3",
+      "sourceSha256": "d82a436e2075745eea95786200df702a7e03fbfb4ab866fdd37afd65e692c5c5",
+      "runtime": "public/audio/naval/ui-confirm.wav",
+      "runtimeSha256": "5eba8cce0a4f7135ee78c07b4e4efdde6d963e6f01985c2037a71446902e5b0e",
+      "bytes": 60042,
+      "durationSeconds": 0.6802,
+      "channels": 1,
+      "sampleRate": 44100,
+      "loop": false,
+      "original": {
+        "peakDbfs": -14.54,
+        "rmsDbfs": -30.33
+      },
+      "processed": {
+        "peakDbfs": -5.9,
+        "rmsDbfs": -20.0
+      }
+    },
+    {
+      "id": "ui-back",
+      "source": "assets/audio/naval/originals/ui-back/sfx_One_s_20260905_134303.mp3",
+      "sourceSha256": "964bf7d7403345890b4f97ef36face13b1ecbccad1c4c567c104f24bc83ad029",
+      "runtime": "public/audio/naval/ui-back.wav",
+      "runtimeSha256": "e49fe17a0bf74789ee82e01252277e62d74aecf9d27105cd5f93b808bc620fad",
+      "bytes": 42380,
+      "durationSeconds": 0.48,
+      "channels": 1,
+      "sampleRate": 44100,
+      "loop": false,
+      "original": {
+        "peakDbfs": 0.0,
+        "rmsDbfs": -17.98
+      },
+      "processed": {
+        "peakDbfs": -3.0,
+        "rmsDbfs": -20.98
+      }
+    },
+    {
+      "id": "telegraph",
+      "source": "assets/audio/naval/originals/telegraph/sfx_A_shi_20260905_134304.mp3",
+      "sourceSha256": "df1913d32d22e0b296b1f3284538556a736a0c075d6ba1ec8896f70aa7e0521b",
+      "runtime": "public/audio/naval/telegraph.wav",
+      "runtimeSha256": "ab2bfcd44032ecc536f3873602cb1ef57ff1193a502067f7fd941e4a0aaf1067",
+      "bytes": 105454,
+      "durationSeconds": 1.1951,
+      "channels": 1,
+      "sampleRate": 44100,
+      "loop": false,
+      "original": {
+        "peakDbfs": -2.56,
+        "rmsDbfs": -22.54
+      },
+      "processed": {
+        "peakDbfs": -3.0,
+        "rmsDbfs": -23.05
+      }
+    },
+    {
+      "id": "ship-horn",
+      "source": "assets/audio/naval/originals/ship-horn/sfx_One_d_20260905_134306.mp3",
+      "sourceSha256": "9a174c873629067728780031fb5e54b5eeb2d647ff713c697d0d1f1c3654249e",
+      "runtime": "public/audio/naval/ship-horn.wav",
+      "runtimeSha256": "ebbef57edcbfbd4d101d72b18a38d485183c557356bfee7a7518ad1906a2b876",
+      "bytes": 306980,
+      "durationSeconds": 3.48,
+      "channels": 1,
+      "sampleRate": 44100,
+      "loop": false,
+      "original": {
+        "peakDbfs": 0.0,
+        "rmsDbfs": -8.22
+      },
+      "processed": {
+        "peakDbfs": -11.77,
+        "rmsDbfs": -20.0
+      }
+    },
+    {
+      "id": "harbor",
+      "source": "assets/audio/naval/originals/harbor/sfx_Seaml_20260905_134308.mp3",
+      "sourceSha256": "e4224ae4b336b63a3b6943ae0a71ae30fe58d53ebdc18c5794bf665103bf14ab",
+      "runtime": "public/audio/naval/harbor.wav",
+      "runtimeSha256": "df0516d59aaaaf2f48a6449e749755eb7ee9e3e44e63571d6cf021051e4fc590",
+      "bytes": 864404,
+      "durationSeconds": 4.9,
+      "channels": 2,
+      "sampleRate": 44100,
+      "loop": true,
+      "original": {
+        "peakDbfs": -27.51,
+        "rmsDbfs": -41.05
+      },
+      "processed": {
+        "peakDbfs": -8.5,
+        "rmsDbfs": -22.0
+      }
+    },
+    {
+      "id": "ocean",
+      "source": "assets/audio/naval/originals/ocean/sfx_Seaml_20260905_134311.mp3",
+      "sourceSha256": "057aff87976b332e8be8ba0c75db0a536a19e66e7a3b66e026af0fe6c09139e0",
+      "runtime": "public/audio/naval/ocean.wav",
+      "runtimeSha256": "593a3d10c9e94e2d321c005a7e3772b09a877304b95f972b005dc0dbab0f0634",
+      "bytes": 864404,
+      "durationSeconds": 4.9,
+      "channels": 2,
+      "sampleRate": 44100,
+      "loop": true,
+      "original": {
+        "peakDbfs": -8.88,
+        "rmsDbfs": -23.88
+      },
+      "processed": {
+        "peakDbfs": -7.04,
+        "rmsDbfs": -22.0
+      }
+    },
+    {
+      "id": "wind",
+      "source": "assets/audio/naval/originals/wind/sfx_Seaml_20260905_134315.mp3",
+      "sourceSha256": "1eb8a3a826992f73f29300681f8e6bb12032113f488dd9e4fe25e027f1f60f26",
+      "runtime": "public/audio/naval/wind.wav",
+      "runtimeSha256": "e9ab4e0eebe3960e621705fdb77a0306d1ee73f44e9eb8b4c8aa59a0234b03a6",
+      "bytes": 864404,
+      "durationSeconds": 4.9,
+      "channels": 2,
+      "sampleRate": 44100,
+      "loop": true,
+      "original": {
+        "peakDbfs": -14.41,
+        "rmsDbfs": -26.37
+      },
+      "processed": {
+        "peakDbfs": -10.07,
+        "rmsDbfs": -22.0
+      }
+    },
+    {
+      "id": "engine",
+      "source": "assets/audio/naval/originals/engine/sfx_Seaml_20260905_134319.mp3",
+      "sourceSha256": "0d501c857d50796d5397ff5471a716b9d7564451e9018f5fe0531b021bd2676c",
+      "runtime": "public/audio/naval/engine.wav",
+      "runtimeSha256": "990619d025c6e933aa282ef9bba8a31b6fa56acb11055c0c59d21c12a4583eb1",
+      "bytes": 864404,
+      "durationSeconds": 4.9,
+      "channels": 2,
+      "sampleRate": 44100,
+      "loop": true,
+      "original": {
+        "peakDbfs": -5.17,
+        "rmsDbfs": -13.18
+      },
+      "processed": {
+        "peakDbfs": -13.99,
+        "rmsDbfs": -22.0
+      }
+    },
+    {
+      "id": "main-gun-a",
+      "source": "assets/audio/naval/originals/main-gun-a/sfx_One_e_20260905_134322.mp3",
+      "sourceSha256": "9a97629d32d7945d3e190992e161f7f1d58eb9b8735acf01c98478ed0151bfcd",
+      "runtime": "public/audio/naval/main-gun-a.wav",
+      "runtimeSha256": "0f0e81dfabf5c075b2f2e755afdcdacf70476ea52af1f978f3e3eefda58fc8ec",
+      "bytes": 352844,
+      "durationSeconds": 4.0,
+      "channels": 1,
+      "sampleRate": 44100,
+      "loop": false,
+      "original": {
+        "peakDbfs": -1.22,
+        "rmsDbfs": -21.94
+      },
+      "processed": {
+        "peakDbfs": -3.0,
+        "rmsDbfs": -22.7
+      }
+    },
+    {
+      "id": "main-gun-b",
+      "source": "assets/audio/naval/originals/main-gun-b/sfx_A_sin_20260905_134324.mp3",
+      "sourceSha256": "849c4a8bb72562f94c749d3eb3fed4966a8e096f7ee17bba2454d4653d015f36",
+      "runtime": "public/audio/naval/main-gun-b.wav",
+      "runtimeSha256": "ae1a868cb7bb71ae8315aca138ad3a80e2552c6fe1ccb5f3ca45aaddc03676ca",
+      "bytes": 352844,
+      "durationSeconds": 4.0,
+      "channels": 1,
+      "sampleRate": 44100,
+      "loop": false,
+      "original": {
+        "peakDbfs": -0.05,
+        "rmsDbfs": -11.72
+      },
+      "processed": {
+        "peakDbfs": -8.35,
+        "rmsDbfs": -20.0
+      }
+    },
+    {
+      "id": "secondary-gun",
+      "source": "assets/audio/naval/originals/secondary-gun/sfx_One_1_20260905_134326.mp3",
+      "sourceSha256": "c69835841de08b16c0867a9ee0e6507606b63cabe11d141290963450a516e7f1",
+      "runtime": "public/audio/naval/secondary-gun.wav",
+      "runtimeSha256": "4bc74734e620e27c3debe847bbd078a1c89bee801613676c5b64ef92bdb74be5",
+      "bytes": 218780,
+      "durationSeconds": 2.48,
+      "channels": 1,
+      "sampleRate": 44100,
+      "loop": false,
+      "original": {
+        "peakDbfs": -0.0,
+        "rmsDbfs": -17.03
+      },
+      "processed": {
+        "peakDbfs": -3.0,
+        "rmsDbfs": -20.44
+      }
+    },
+    {
+      "id": "armor-hit",
+      "source": "assets/audio/naval/originals/armor-hit/sfx_A_sin_20260905_134328.mp3",
+      "sourceSha256": "c0e6f1014ecac26d698815461a9a43cae3cbf7968062aabd1fb525bd6a135678",
+      "runtime": "public/audio/naval/armor-hit.wav",
+      "runtimeSha256": "1629b43de7851eb848c4299a43283a7f01db48363c6dc6b63139ab4297bbda78",
+      "bytes": 218732,
+      "durationSeconds": 2.4795,
+      "channels": 1,
+      "sampleRate": 44100,
+      "loop": false,
+      "original": {
+        "peakDbfs": 0.0,
+        "rmsDbfs": -15.75
+      },
+      "processed": {
+        "peakDbfs": -3.71,
+        "rmsDbfs": -20.0
+      }
+    },
+    {
+      "id": "ricochet",
+      "source": "assets/audio/naval/originals/ricochet/sfx_One_l_20260905_134330.mp3",
+      "sourceSha256": "48362025f72272f7a033c02f5789166b0f5be4c23428132557bf3e8f6814f4ba",
+      "runtime": "public/audio/naval/ricochet.wav",
+      "runtimeSha256": "00c518582db3363d447cc9c7f370c4e47c11925bae0c1bb67251f5d6f5877377",
+      "bytes": 148220,
+      "durationSeconds": 1.68,
+      "channels": 1,
+      "sampleRate": 44100,
+      "loop": false,
+      "original": {
+        "peakDbfs": -1.33,
+        "rmsDbfs": -18.99
+      },
+      "processed": {
+        "peakDbfs": -3.0,
+        "rmsDbfs": -20.47
+      }
+    },
+    {
+      "id": "splash",
+      "source": "assets/audio/naval/originals/splash/sfx_One_h_20260905_134333.mp3",
+      "sourceSha256": "8c501e73f0c866f78b2c4adf1c3a789c0f2a15b1f0be0481e4357e9e94a6a888",
+      "runtime": "public/audio/naval/splash.wav",
+      "runtimeSha256": "13bdcb5d06da9823e09ceb6711fec1702331f9e968490fa6b8111728848bb910",
+      "bytes": 306980,
+      "durationSeconds": 3.48,
+      "channels": 1,
+      "sampleRate": 44100,
+      "loop": false,
+      "original": {
+        "peakDbfs": 0.0,
+        "rmsDbfs": -19.8
+      },
+      "processed": {
+        "peakDbfs": -3.0,
+        "rmsDbfs": -23.06
+      }
+    },
+    {
+      "id": "magazine-explosion",
+      "source": "assets/audio/naval/originals/magazine-explosion/sfx_One_c_20260905_134334.mp3",
+      "sourceSha256": "d854fb179742f925625fab0d2fc1da543116c26d5ecfd05fedd246634a2999f1",
+      "runtime": "public/audio/naval/magazine-explosion.wav",
+      "runtimeSha256": "e7ba12a70fc1f803b9c5f4c1957736a41b06893cd6fb7ebccc21261a9fbdbdc5",
+      "bytes": 441044,
+      "durationSeconds": 5.0,
+      "channels": 1,
+      "sampleRate": 44100,
+      "loop": false,
+      "original": {
+        "peakDbfs": 0.0,
+        "rmsDbfs": -13.64
+      },
+      "processed": {
+        "peakDbfs": -6.26,
+        "rmsDbfs": -20.0
+      }
+    },
+    {
+      "id": "reload",
+      "source": "assets/audio/naval/originals/reload/sfx_One_h_20260905_134337.mp3",
+      "sourceSha256": "894e317efd6ef45e7ba87ba5e5b00cf8b776e7dd57d56d4d9a0df8670a7247ba",
+      "runtime": "public/audio/naval/reload.wav",
+      "runtimeSha256": "16cb7bbd9ca75f2df26faf9ab8db88b2e4d7f5e5d3446303c3340ff2af9fa9d9",
+      "bytes": 105592,
+      "durationSeconds": 1.1967,
+      "channels": 1,
+      "sampleRate": 44100,
+      "loop": false,
+      "original": {
+        "peakDbfs": 0.0,
+        "rmsDbfs": -26.68
+      },
+      "processed": {
+        "peakDbfs": -3.0,
+        "rmsDbfs": -30.24
+      }
+    }
+  ]
+}
