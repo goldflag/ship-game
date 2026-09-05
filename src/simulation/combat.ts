@@ -32,6 +32,8 @@ export class CombatSimulation {
     this.target = this.createTarget();
   }
   get ship() { return this.player.motion; }
+  /** Fraction toward the next tick, for presentation between the last two CPU poses. */
+  get interpolationAlpha() { return this.accumulator / FIXED_DT; }
   /** Start a fresh voyage without invalidating the renderer's actor references. */
   reset(): void {
     Object.assign(this.player, this.createActor('player'));
@@ -61,9 +63,10 @@ export class CombatSimulation {
     this.events.push({ ...event, sequence: ++this.eventSequence, tick: this.tick });
     if (this.events.length > 128) this.events.shift();
   };
-  advance(dt: number, helm: HelmCommand, intent: CombatIntent): void {
+  advance(dt: number, helm: HelmCommand, intent: CombatIntent, beforeStep?: () => void): void {
     this.accumulator += Number.isFinite(dt) ? clamp(dt, 0, .1) : 0;
     while (this.accumulator + 1e-10 >= FIXED_DT) {
+      beforeStep?.();
       this.step(helm, intent);
       this.accumulator = Math.max(0, this.accumulator - FIXED_DT);
     }
