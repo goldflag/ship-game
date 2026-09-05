@@ -10,6 +10,12 @@ export interface Telemetry {
   ship: ShipState;
   order: number;
   camera: CameraMode;
+  binoculars?: boolean;
+  magnification?: number;
+  pointerLocked?: boolean;
+  viewBearing?: number;
+  chartSize?: number;
+  gunneryOpen?: boolean;
   fps: number;
   backend: string;
   trail: { x: number; z: number }[];
