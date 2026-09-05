@@ -5,6 +5,7 @@ import { createMountState, GRAVITY, muzzleWorld, shotDirection, updateMount } fr
 import { deployment, MAX_TEAM_SHIPS, type BattleFleet, type BattleResult, type FleetActor, type Team } from './battle';
 import { botAim, botGunRange, botHelm, botTarget, clearFiringLane, shipVelocity } from './bots';
 import { createDamage, hitShip, systemHealth, updateFlooding, type BallisticEffectData, type DamageEvent, type Shell } from './damage';
+import { resolveShipCollisions } from './collisions';
 
 export interface CombatIntent { aim: Vec3; fire: boolean; battery: Battery; }
 export interface CombatEvent extends BallisticEffectData { sequence: number; tick: number; kind: DamageEvent['kind'] | 'shot' | 'splash'; position: Vec3; message: string; shipId: string; }
@@ -124,6 +125,7 @@ export class CombatSimulation {
       const def = actor.definition;
       stepShip(actor.motion, commands.get(actor)!, def.handling, systemHealth(actor, def, 'engine'), systemHealth(actor, def, 'steering'));
     }
+    resolveShipCollisions(this.actors);
     for (const actor of this.actors) {
       const def = actor.definition, target = targets.get(actor);
       const laneClear = target && clearFiringLane(actor, target, this.actors);
