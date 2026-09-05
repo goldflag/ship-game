@@ -4,6 +4,7 @@ import { BISMARCK, type ShipState } from '../simulation/ship';
 
 type Motion = Pick<ShipState, 'x' | 'z' | 'heading' | 'speed'>;
 type WakeSample = Motion & { born: number; strength: number };
+type ImpactSample = { x: number; z: number; born: number; scale: number };
 
 const EXTENT = 1536;
 const LIFETIME = 55;
@@ -25,6 +26,7 @@ export class WakeFoam {
   private readonly time = uniform(0);
   private readonly field;
   private readonly samples: WakeSample[] = [];
+  private readonly impacts: ImpactSample[] = [];
   private previous?: Motion;
   private sampleDistance = 0;
   private elapsed = 0;
@@ -89,14 +91,24 @@ export class WakeFoam {
     }
     this.previous = { ...state };
     while (this.samples.length && this.time.value - this.samples[0].born > LIFETIME) this.samples.shift();
-    if (this.elapsed < UPDATE_INTERVAL || (!this.samples.length && !this.dirty)) return;
+    while (this.impacts.length && this.time.value - this.impacts[0].born > 10) this.impacts.shift();
+    if (this.elapsed < UPDATE_INTERVAL || (!this.samples.length && !this.impacts.length && !this.dirty)) return;
     this.elapsed %= UPDATE_INTERVAL;
     this.rasterize(state);
-    this.dirty = this.samples.length > 0;
+    this.dirty = this.samples.length > 0 || this.impacts.length > 0;
   }
+
+  splash(x: number, z: number, caliberM: number): void {
+    if (this.impacts.length >= 32) this.impacts.shift();
+    this.impacts.push({ x, z, born: this.time.value, scale: Math.pow(Math.max(.05, caliberM) / .38, .65) });
+    this.dirty = true;
+  }
+
+  resetImpacts(): void { this.impacts.length = 0; this.dirty = true; }
 
   reset(): void {
     this.samples.length = 0;
+    this.impacts.length = 0;
     this.previous = undefined;
     this.sampleDistance = 0;
     this.pixels.fill(0);
@@ -108,6 +120,15 @@ export class WakeFoam {
     const cell = EXTENT / this.resolution;
     this.origin.value.set(Math.round(state.x / cell) * cell, Math.round(state.z / cell) * cell);
     this.pixels.fill(0);
+    for (const impact of this.impacts) {
+      const age = this.time.value - impact.born;
+      const radius = (4 + age * 3.5) * impact.scale;
+      const strength = smooth(age / .25) * Math.exp(-age / 3.2) * (1 - smooth((age - 7) / 3));
+      // Aerated center and a broken outward crest share the actual displaced,
+      // lit ocean surface instead of hovering on a horizontal sprite plane.
+      this.stamp(impact.x, impact.z, 1, 0, radius, radius, strength * .9);
+      this.stamp(impact.x, impact.z, 1, 0, radius * 1.5, radius * 1.5, strength * .7, true);
+    }
     for (const sample of this.samples) {
       const age = this.time.value - sample.born;
       const forwardX = Math.sin(sample.heading), forwardZ = -Math.cos(sample.heading);
@@ -141,7 +162,7 @@ export class WakeFoam {
   }
 
   private stamp(x: number, z: number, rightX: number, rightZ: number,
-    width: number, length: number, strength: number): void {
+    width: number, length: number, strength: number, ring = false): void {
     if (strength < 0.015) return;
     const scale = this.resolution / EXTENT;
     const cx = (x - this.origin.value.x) * scale + this.resolution / 2 - 0.5;
@@ -157,7 +178,8 @@ export class WakeFoam {
         const along = (-dx * rightZ + dz * rightX) / length;
         const radius = cross * cross + along * along;
         if (radius >= 1) continue;
-        const coverage = strength * (1 - smooth(radius)) * 255;
+        const profile = ring ? Math.exp(-(((Math.sqrt(radius) - .75) / .13) ** 2)) : 1 - smooth(radius);
+        const coverage = strength * profile * 255;
         const index = iz * this.resolution + ix;
         this.pixels[index] = Math.max(this.pixels[index], Math.round(coverage));
       }

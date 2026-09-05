@@ -2,10 +2,10 @@ import type { Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { createShipState, FIXED_DT, stepShip, type HelmCommand } from './ship';
 import { add, clamp, contains, localToWorld, scale, segmentBox, sub, worldToLocal } from './geometry';
 import { createMountState, GRAVITY, muzzleWorld, shotDirection, updateMount } from './weapons';
-import { createDamage, hitShip, systemHealth, updateFlooding, type Combatant, type DamageEvent, type Shell } from './damage';
+import { createDamage, hitShip, systemHealth, updateFlooding, type BallisticEffectData, type Combatant, type DamageEvent, type Shell } from './damage';
 
 export interface CombatIntent { aim: Vec3; fire: boolean; battery: Battery; }
-export interface CombatEvent { sequence: number; tick: number; kind: DamageEvent['kind'] | 'shot' | 'splash'; position: Vec3; message: string; shipId: string; }
+export interface CombatEvent extends BallisticEffectData { sequence: number; tick: number; kind: DamageEvent['kind'] | 'shot' | 'splash'; position: Vec3; message: string; shipId: string; }
 export interface CombatTelemetry {
   battery: Battery; range: number; ready: number; total: number; targetIntegrity: number; targetWater: number;
   targetPower: number; targetSteering: number; targetSunk: boolean; targetUnderway: boolean;
@@ -89,7 +89,8 @@ export class CombatSimulation {
           const position = muzzleWorld(m, state, barrel, this.ship);
           const velocity = add(scale(shotDirection(m, state, this.ship), m.weapon.muzzleSpeed), [Math.sin(this.ship.heading) * this.ship.speed, 0, -Math.cos(this.ship.heading) * this.ship.speed]);
           this.shells.push({ id: ++this.shellSequence, ownerId: this.ship.id, position, velocity, age: 0, penetrationMm: m.weapon.penetrationMm, damage: m.weapon.damage, caliberM: m.weapon.caliberM, visited: [] });
-          this.emit({ kind: 'shot', position: [...position], shipId: this.ship.id, message: `${m.name} fired` });
+          this.emit({ kind: 'shot', position: [...position], shipId: this.ship.id, message: `${m.name} fired`,
+            shell: { id: this.shellSequence, caliberM: m.weapon.caliberM, velocity: [...velocity] } });
         }
       }
     });
@@ -113,7 +114,8 @@ export class CombatSimulation {
       }).filter(c => c.hit).sort((a, b) => a.hit!.t - b.hit!.t);
       for (const { actor } of candidates) if (hitShip(shell, from, end, actor, def, this.emit)) { ended = true; break; }
       if (!ended && (crossingSea || (to[1] < 0 && !insideHull(to)))) {
-        this.emit({ kind: 'splash', position: [end[0], 0, end[2]], shipId: '', message: 'Shell splash' }); ended = true;
+        this.emit({ kind: 'splash', position: [end[0], 0, end[2]], shipId: '', message: 'Shell splash',
+          shell: { id: shell.id, caliberM: shell.caliberM, velocity: [...shell.velocity] } }); ended = true;
       }
       shell.position = to;
       if (ended || shell.age > 60) this.shells.splice(i, 1);
