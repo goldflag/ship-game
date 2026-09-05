@@ -5,7 +5,8 @@ import { DEFAULT_SETTINGS, type GameSettings, type Telemetry } from '../game/typ
 import { Icon } from './Icons';
 import { FleetHud } from './FleetHud';
 import { Garage } from './Garage';
-import { selectedShip } from '../ships/presets';
+import { selectedShip as initialShip, shipPreset } from '../ships/presets';
+import { ShipContext } from './ShipContext';
 
 const INITIAL_TELEMETRY: Telemetry = { ship: createShipState(), order: 1, camera: 'Chase', fps: 0, backend: 'webgpu', trail: [] };
 function loadSettings(): GameSettings {
@@ -20,6 +21,11 @@ function loadSettings(): GameSettings {
 }
 
 export function App() {
+  const [selectedShip, setSelectedShip] = useState(initialShip);
+  const selectedRef = useRef(selectedShip);
+  const [switching, setSwitching] = useState(false);
+  const [switchError, setSwitchError] = useState('');
+  const switchPending = useRef(false);
   const host = useRef<HTMLDivElement>(null);
   const game = useRef<Game | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
@@ -36,7 +42,7 @@ export function App() {
 
   useEffect(() => {
     let active = true;
-    document.title = `${selectedShip.name} — Sea Trials`;
+    setSwitching(false); setSwitchError(''); switchPending.current = false;
     setReady(false); setError(''); setPaused(false); setData(INITIAL_TELEMETRY); setPhase('garage');
     const session = new Game(host.current!, settings, {
       progress: (label, progress) => active && setLoading({ label, progress }),
@@ -45,7 +51,7 @@ export function App() {
       pause: value => active && setPaused(value),
       hud: () => active && setHud(value => !value),
       error: message => active && setError(message),
-    });
+    }, selectedRef.current);
     game.current = session;
     session.setInPort(true);
     const reviewWindow = window as unknown as {
@@ -70,7 +76,7 @@ export function App() {
   }, [paused, ready, error]);
 
   const launch = () => {
-    if (!ready) return;
+    if (!ready || switchPending.current) return;
     game.current?.setInPort(false);
     setHud(true);
     setPhase('sailing');
@@ -80,15 +86,37 @@ export function App() {
     setPhase('garage');
   };
 
+  useEffect(() => { document.title = `${selectedShip.name} — Sea Trials`; }, [selectedShip]);
+
+  const switchShip = async (id: string) => {
+    const session = game.current;
+    if (!ready || phase !== 'garage' || !session || switchPending.current || id === selectedShip.id) return;
+    switchPending.current = true; setSwitching(true); setSwitchError('');
+    try {
+      const definition = shipPreset(id);
+      await session.switchShip(definition);
+      if (game.current !== session) return;
+      selectedRef.current = definition;
+      setSelectedShip(definition);
+      const url = new URL(window.location.href);
+      url.searchParams.set('ship', definition.id);
+      window.history.replaceState(null, '', url);
+    } catch (error) {
+      if (game.current === session) setSwitchError(error instanceof Error ? error.message : String(error));
+    } finally {
+      if (game.current === session) { switchPending.current = false; setSwitching(false); }
+    }
+  };
+
   const applySettings = () => {
     try { localStorage.setItem('bismarck-settings', JSON.stringify(draft)); } catch { /* Storage is optional. */ }
     if (JSON.stringify(settings) === JSON.stringify(draft)) setGeneration(value => value + 1);
     else setSettings({ ...draft });
   };
 
-  return <main className="game-shell">
+  return <ShipContext value={selectedShip}><main className="game-shell">
     <div ref={host} className="ocean-viewport" />
-    {phase === 'garage' && !error && <Garage game={game.current} ready={ready} progress={loading.progress} fps={data.fps} onLaunch={launch} onSettings={() => game.current?.setPaused(true)}/>}
+    {phase === 'garage' && !error && <Garage key={selectedShip.id} switching={switching} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} progress={loading.progress} fps={data.fps} onLaunch={launch} onSettings={() => game.current?.setPaused(true)}/>}
     {phase === 'sailing' && ready && !error && <FleetHud data={data} game={game.current} visible={hud}/>}
 
     {phase === 'sailing' && ready && !hud && <button className="restore-hud" onClick={() => setHud(true)}>Show instruments <kbd>H</kbd></button>}
@@ -114,5 +142,5 @@ export function App() {
       {phase === 'sailing' && <div className="menu-controls"><span><kbd>C</kbd> Change camera</span><span><kbd>R</kbd> Recenter view</span><span><kbd>H</kbd> Hide instruments</span><span><kbd>F</kbd> Fullscreen</span></div>}
       <div className="renderer-status"><span>{data.backend.toUpperCase()} RENDERER</span><span>{data.fps} FPS</span></div>
     </dialog>
-  </main>;
+  </main></ShipContext>;
 }

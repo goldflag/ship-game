@@ -44,6 +44,8 @@ export class CameraRig {
     canvas.addEventListener('contextmenu', e => e.preventDefault(), options);
   }
 
+  setBridge(bridge: Vec3 = [0, 29, -31]): void { this.bridge = bridge; }
+
   cycle(): void {
     const modes: CameraMode[] = ['Chase', 'Bridge', 'Tactical'];
     this.mode = modes[(modes.indexOf(this.mode) + 1) % modes.length];
