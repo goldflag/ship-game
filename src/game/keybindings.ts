@@ -10,6 +10,7 @@ export const INPUT_ACTIONS = [
   { id: 'mainBattery', label: 'Select main battery', group: 'Gunnery' },
   { id: 'secondaryBattery', label: 'Select secondary battery', group: 'Gunnery' },
   { id: 'gunnery', label: 'Open / close gunnery', group: 'Gunnery' },
+  { id: 'shellFollow', label: 'Toggle shell follow camera', group: 'Gunnery' },
   { id: 'camera', label: 'Cycle camera', group: 'View' },
   { id: 'recenter', label: 'Recenter camera', group: 'View' },
   { id: 'hud', label: 'Show / hide instruments', group: 'View' },
@@ -28,6 +29,7 @@ export function defaultKeybindings(): Keybindings {
     stop: ['Space', null], fire: ['KeyQ', null], camera: ['KeyC', null],
     recenter: ['KeyR', null], hud: ['KeyH', null], fullscreen: ['KeyF', null],
     mainBattery: ['Digit1', null], secondaryBattery: ['Digit2', null], gunnery: ['KeyG', null],
+    shellFollow: ['KeyT', null],
     chartLarger: ['Equal', 'NumpadAdd'], chartSmaller: ['Minus', 'NumpadSubtract'],
   };
 }
@@ -66,8 +68,10 @@ export function keybindingsOf(value: unknown): Keybindings {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return defaults;
   const result = defaultKeybindings();
   const used = new Set<string>();
+  const missing: InputAction[] = [];
   for (const { id } of INPUT_ACTIONS) {
-    const pair = (value as Record<string, unknown>)[id] ?? defaults[id];
+    const pair = (value as Record<string, unknown>)[id];
+    if (pair === undefined) { missing.push(id); continue; }
     if (!Array.isArray(pair) || pair.length !== 2 || !pair.some(Boolean)) return defaults;
     for (const code of pair) {
       if (code === null) continue;
@@ -75,6 +79,15 @@ export function keybindingsOf(value: unknown): Keybindings {
       used.add(code);
     }
     result[id] = [pair[0], pair[1]];
+  }
+  // Add new actions to older saves without discarding existing custom controls.
+  for (const id of [...missing.filter(id => id !== 'shellFollow'), ...missing.filter(id => id === 'shellFollow')]) {
+    const preferred = defaults[id].filter((code): code is string => code !== null && !used.has(code));
+    if (id !== 'shellFollow' && preferred.length !== defaults[id].filter(Boolean).length) return defaults;
+    const key = preferred[0] ?? Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ', letter => `Key${letter}`).find(code => !used.has(code));
+    if (!key) return defaults;
+    result[id] = [key, preferred[1] ?? null];
+    result[id].forEach(code => { if (code) used.add(code); });
   }
   return result;
 }
