@@ -1,6 +1,7 @@
+import { insideHull as containsHull } from './structure';
 import type { Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { createShipState, FIXED_DT, stepShip, type HelmCommand } from './ship';
-import { add, clamp, contains, localToWorld, scale, segmentBox, sub, worldToLocal } from './geometry';
+import { add, clamp, localToWorld, scale, segmentBox, sub, worldToLocal } from './geometry';
 import { createMountState, GRAVITY, muzzleWorld, shotDirection, updateMount } from './weapons';
 import { BATTLE_SPAWN_DISTANCE, deployment, MAX_TEAM_SHIPS, validateSpawnDistance, type BattleFleet, type BattleResult, type FleetActor, type Team } from './battle';
 import { botAim, botGunRange, botHelm, botTarget, clearFiringLane, shipVelocity } from './bots';
@@ -163,7 +164,7 @@ export class CombatSimulation {
       let ended = false;
       // Bound each swept segment to the first sea contact, so submerged modules can't
       // be hit by shells that already splashed down outside the hull.
-      const insideHull = (point: Vec3) => this.actors.some(actor => actor.motion.id !== shell.ownerId && actor.definition.armor.some(a => contains(a, worldToLocal(point, actor.motion))));
+      const insideHull = (point: Vec3) => this.actors.some(actor => actor.motion.id !== shell.ownerId && containsHull(worldToLocal(point, actor.motion), actor.definition));
       const seaPoint = from[1] > 0 && to[1] <= 0 ? add(from, scale(sub(to, from), from[1] / (from[1] - to[1]))) : to;
       const crossingSea = from[1] > 0 && to[1] <= 0 && !insideHull(seaPoint);
       const end = crossingSea ? add(from, scale(sub(to, from), from[1] / (from[1] - to[1]))) : to;

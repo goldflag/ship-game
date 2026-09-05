@@ -1,3 +1,4 @@
+import { structuralHits } from '../simulation/structure';
 import { plateHit, segmentPlate } from '../simulation/protection';
 import type { ShipDefinition, Vec3 } from '../ships/blueprint';
 import { add, localToWorld, normalize, scale, segmentBox, worldToLocal, type Pose } from '../simulation/geometry';
@@ -14,12 +15,14 @@ export function sightAim(origin: Vec3, direction: Vec3, target?: AimTarget | Aim
   const targets = target ? Array.isArray(target) ? target : [target] : [];
   const hits = targets.flatMap(candidate => {
     const from = worldToLocal(origin, candidate.pose), to = worldToLocal(end, candidate.pose);
-    return candidate.armor.flatMap(volume => {
+    const hits = candidate.armor.flatMap(volume => {
       const hit = !volume.plate ? segmentBox(from, to, volume)
         : candidate.definition ? plateHit(from, to, volume, candidate.definition, candidate.trains ?? candidate.definition.mounts.map(() => 0))
         : volume.plate.mountId ? null : segmentPlate(from, to, volume.plate.vertices);
       return hit ? [{ t: hit.t, point: localToWorld(hit.point, candidate.pose) }] : [];
     });
+    if (candidate.definition) hits.push(...structuralHits(from, to, candidate.definition).map(hit => ({ t: hit.t, point: localToWorld(hit.point, candidate.pose) })));
+    return hits;
   }).sort((a, b) => a.t - b.t);
   if (hits[0]) return hits[0].point;
   return [end[0], .5, end[2]];

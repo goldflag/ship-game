@@ -3,6 +3,7 @@ import type { ShipDefinition } from '../ships/blueprint';
 import { inspectionColor, inspectionEntries, type InspectionMode, type InspectionEntry } from '../ships/inspection';
 import type { Combatant } from '../simulation/damage';
 import { radians } from '../simulation/geometry';
+import { EXTERIOR_PLATING_REPLACEMENT_M } from '../simulation/structure';
 
 /** Shared port and combat X-ray geometry. No simulation state is changed by inspection. */
 export class ShipInspection {
@@ -17,7 +18,7 @@ export class ShipInspection {
     this.entries = inspectionEntries(definition);
     this.root.name = 'Ship inspection'; this.root.visible = false;
     this.volumes = this.entries.map(entry => {
-      const geometry = entry.plate ? plateGeometry(entry) : new THREE.BoxGeometry(...entry.size), group = new THREE.Group();
+      const geometry = entry.surface ? surfaceGeometry(entry, definition) : entry.plate ? plateGeometry(entry) : new THREE.BoxGeometry(...entry.size), group = new THREE.Group();
       group.position.fromArray(entry.anchor ?? entry.center); group.userData.inspectionId = entry.id;
       const color = inspectionColor(entry);
       const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color, transparent: true, depthWrite: false, depthTest: false, side:THREE.DoubleSide, toneMapped: entry.kind !== 'armor' }));
@@ -96,6 +97,61 @@ export class ShipInspection {
       }
     });
   }
+}
+
+function surfaceGeometry(entry: InspectionEntry, definition: ShipDefinition): THREE.BufferGeometry {
+  const surface = entry.surface!, vertices = surface.vertices.map(v => new THREE.Vector3(...v));
+  // Combat replaces nominal hull plating near an exterior armor face. Remove
+  // those patches from the inspection skin too, exposing the actual belt color
+  // and pick target while retaining opaque plating at the unarmored hull ends.
+  const cutters = entry.id === 'structure:hull' ? definition.armor.flatMap(armor => {
+    if (!armor.plate?.exterior || armor.plate.mountId) return [];
+    const points = armor.plate.vertices.map(v => new THREE.Vector3(...v));
+    const normal = points[1].clone().sub(points[0]).cross(points[2].clone().sub(points[0])).normalize();
+    const planes = [new THREE.Plane(normal, -normal.dot(points[0]) + EXTERIOR_PLATING_REPLACEMENT_M), new THREE.Plane(normal.clone().negate(), normal.dot(points[0]) + EXTERIOR_PLATING_REPLACEMENT_M)];
+    points.forEach((point, i) => {
+      const inward = normal.clone().cross(points[(i + 1) % points.length].clone().sub(point)).normalize();
+      planes.push(new THREE.Plane(inward, -inward.dot(point)));
+    });
+    return [{ planes, bounds: new THREE.Box3().setFromPoints(points).expandByScalar(EXTERIOR_PLATING_REPLACEMENT_M) }];
+  }) : [];
+  const positions: number[] = [], center = new THREE.Vector3(...entry.center);
+  for (const ids of surface.triangles) {
+    let polygons = [ids.map(i => vertices[i])];
+    const bounds = new THREE.Box3().setFromPoints(polygons[0]);
+    for (const cutter of cutters) {
+      if (!bounds.intersectsBox(cutter.bounds)) continue;
+      polygons = polygons.flatMap(polygon => {
+        const outside: THREE.Vector3[][] = [];
+        let remainder = polygon;
+        for (const plane of cutter.planes) {
+          const part = clipSurface(remainder, plane, false);
+          if (part.length >= 3) outside.push(part);
+          remainder = clipSurface(remainder, plane, true);
+          if (remainder.length < 3) break;
+        }
+        return outside;
+      });
+    }
+    for (const polygon of polygons) for (let i = 1; i < polygon.length - 1; i++) {
+      for (const point of [polygon[0], polygon[i], polygon[i + 1]]) positions.push(...point.clone().sub(center).toArray());
+    }
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
+/** Clip one convex polygon against a half-space without changing its winding. */
+function clipSurface(points: THREE.Vector3[], plane: THREE.Plane, inside: boolean): THREE.Vector3[] {
+  const result: THREE.Vector3[] = [], sign = inside ? 1 : -1;
+  points.forEach((a, i) => {
+    const b = points[(i + 1) % points.length], da = sign * plane.distanceToPoint(a), db = sign * plane.distanceToPoint(b);
+    if (da >= 0) result.push(a);
+    if ((da >= 0) !== (db >= 0)) result.push(a.clone().lerp(b, da / (da - db)));
+  });
+  return result;
 }
 
 /** Physical thickness for inspection; CPU intersection uses the same plate's mid-surface. */

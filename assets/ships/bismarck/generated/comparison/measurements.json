@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
-  "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476",
-  "specRevision": "independent-1941-01",
+  "contentHash": "45b7cc0110d0262b177a0e3aeb4df43d0682de8b52f1cc4f18cd5ab0fcddc9a5",
+  "modelSha256": "5176f0030b07cc11d9686af04d589c48c7eb0e06fbf92307d69b4cc2f245e9fe",
+  "specRevision": "independent-1941-03",
   "dimensions": [
     {
       "id": "overall-length",
@@ -52,8 +52,8 @@
       "sourceId": "kb-dimensions",
       "basis": "documented",
       "evidenceUncertaintyM": 0.2,
-      "measured": 241.5500030517578,
-      "deviation": 0.0000030517578011313162,
+      "measured": 241.54999542236328,
+      "deviation": -0.000004577636730118684,
       "passed": true
     },
     {
@@ -84,7 +84,7 @@
     }
   ],
   "geometry": {
-    "triangles": 806,
+    "triangles": 16248,
     "degenerate": 0,
     "nonManifoldEdges": 0,
     "watertight": true
@@ -649,16 +649,39 @@
       "id": "funnel-cap",
       "runtime": [
         0,
-        23.5,
-        2
+        25,
+        2.4
       ],
       "sourceId": "kb-plan-24may",
       "basis": "plan-measured",
       "toleranceM": 1.5,
       "measured": [
         0,
-        23.5,
-        2
+        25,
+        2.4000000953674316
+      ],
+      "deviationM": [
+        0,
+        0,
+        9.536743172944284e-8
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "mainmast-top",
+      "runtime": [
+        0,
+        48.5,
+        22.5
+      ],
+      "sourceId": "kb-plan-24may",
+      "basis": "estimated",
+      "toleranceM": 2,
+      "measured": [
+        0,
+        48.5,
+        22.5
       ],
       "deviationM": [
         0,
@@ -669,24 +692,70 @@
       "status": "measured exported landmark or yaw centre and axis height"
     },
     {
-      "id": "mainmast-top",
+      "id": "fore-director",
       "runtime": [
         0,
-        48.5,
-        23.9
+        32,
+        -13.4
       ],
       "sourceId": "kb-plan-24may",
-      "basis": "estimated",
-      "toleranceM": 2,
+      "basis": "plan-measured",
+      "toleranceM": 0.8,
       "measured": [
         0,
-        48.5,
-        23.899999618530273
+        32,
+        -13.399999618530273
       ],
       "deviationM": [
         0,
         0,
+        3.8146972691777137e-7
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "conning-director",
+      "runtime": [
+        0,
+        20.6,
+        -27.6
+      ],
+      "sourceId": "kb-plan-24may",
+      "basis": "plan-measured",
+      "toleranceM": 0.8,
+      "measured": [
+        0.0000020837421743635787,
+        20.600000381469727,
+        -27.600000381469727
+      ],
+      "deviationM": [
+        0.0000020837421743635787,
+        3.8146972514141453e-7,
         -3.8146972514141453e-7
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "aft-director",
+      "runtime": [
+        0,
+        17.5,
+        37.8
+      ],
+      "sourceId": "kb-plan-24may",
+      "basis": "plan-measured",
+      "toleranceM": 0.8,
+      "measured": [
+        -0.00000285382066067541,
+        17.5,
+        37.79999923706055
+      ],
+      "deviationM": [
+        -0.00000285382066067541,
+        0,
+        -7.629394502828291e-7
       ],
       "passed": true,
       "status": "measured exported landmark or yaw centre and axis height"

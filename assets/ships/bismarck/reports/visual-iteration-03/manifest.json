@@ -1,0 +1,39 @@
+{
+  "contentHash": "45b7cc0110d0262b177a0e3aeb4df43d0682de8b52f1cc4f18cd5ab0fcddc9a5",
+  "beforeHash": "dc419a66c00f247f07a02634e136d6688aea9866303ec69f218f706437169606",
+  "views": [
+    {
+      "id": "bow-flare",
+      "crop": [
+        500,
+        120,
+        1590,
+        1020
+      ],
+      "output": "bow-flare-before-after-reference.png",
+      "method": "Identical crop and uniform resize; no retouching or per-component fitting."
+    },
+    {
+      "id": "anton",
+      "crop": [
+        300,
+        370,
+        1600,
+        785
+      ],
+      "output": "anton-before-after-reference.png",
+      "method": "Identical crop and uniform resize; no retouching or per-component fitting."
+    },
+    {
+      "id": "bruno",
+      "crop": [
+        270,
+        350,
+        1550,
+        900
+      ],
+      "output": "bruno-before-after-reference.png",
+      "method": "Identical crop and uniform resize; no retouching or per-component fitting."
+    }
+  ]
+}
