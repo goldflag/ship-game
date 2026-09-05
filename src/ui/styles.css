@@ -88,6 +88,12 @@ kbd { font-family: inherit; font-weight: 400; font-size: 10px; border: 1px solid
 .damage-readout dt { font-size: 10px; color: var(--muted); margin-bottom: 4px; }
 .damage-readout dd { margin: 0; font-size: 14px; font-variant-numeric: tabular-nums; }
 .damage-message { min-height: 30px; font-size: 11px; line-height: 1.45; margin: 13px 0; color: #e4c991; }
+.shell-history { margin: 12px 0; font-size: 11px; line-height: 1.5; }
+.shell-history summary { cursor: pointer; padding: 8px 0; color: #edf1ec; }
+.shell-history summary:focus-visible { outline: 2px solid #86e4c5; outline-offset: 2px; }
+.shell-history ol { padding-left: 20px; margin: 4px 0 12px; }
+.shell-history li { padding: 5px 0; border-bottom: 1px solid #cfdfdf35; }
+.shell-history li span, .shell-history li strong { display: block; overflow-wrap: anywhere; }
 .target-actions { display: flex; gap: 8px; }
 .target-actions button { flex: 1; background: transparent; border: 1px solid var(--line); border-radius: 3px; padding: 8px 3px; font-size: 11px; }
 .target-actions button:hover, .target-actions button[aria-pressed=true] { background: #d7e6e715; border-color: #e4c99188; }
