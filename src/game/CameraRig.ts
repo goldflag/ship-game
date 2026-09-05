@@ -25,6 +25,8 @@ export class CameraRig {
   private desired = new Vector3();
   private look = new Vector3();
   private lastShip?: ShipState;
+  private followedPosition = new Vector3();
+  private followedShipId?: string;
   private abort = new AbortController();
   private mouseFire = false;
   private requestingLock = false;
@@ -155,6 +157,7 @@ export class CameraRig {
   setInPort(inPort: boolean): void {
     this.inPort = inPort;
     this.inspecting = false;
+    this.followedShipId = undefined;
     this.mode = 'Chase';
     this.binoculars = false;
     this.updateProjection();
@@ -165,6 +168,15 @@ export class CameraRig {
   }
   update(ship: ShipState, height: number, dt: number, snap = false): void {
     this.lastShip = ship;
+    // Follow translation exactly; damping is for changes in orbit/zoom. Damping
+    // a moving world-space destination makes the follow distance vary with dt.
+    if (!snap && this.followedShipId === ship.id) {
+      this.camera.position.x += ship.x - this.followedPosition.x;
+      this.camera.position.y += height - this.followedPosition.y;
+      this.camera.position.z += ship.z - this.followedPosition.z;
+    }
+    this.followedPosition.set(ship.x, height, ship.z);
+    this.followedShipId = ship.id;
     if (this.inPort || this.inspecting) {
       this.target.set(ship.x + Math.sin(ship.heading) * 25, height + 20, ship.z - Math.cos(ship.heading) * 25);
       const distance = this.distance * Math.max(1, 1.1 / this.camera.aspect);
