@@ -6,6 +6,7 @@ import { WaterSystem, getPresetParams } from '../../vendor/threejs-water-pro/bui
 import { SkySystem, PRESETS as SKY_PRESETS } from '../../vendor/threejs-sky-pro/build/index.js';
 import { CombatSimulation } from '../simulation/combat';
 import { ShipView } from './ShipView';
+import { renderShipThumbnail } from './shipThumbnail';
 import { CombatEffects } from './CombatEffects';
 import type { Battery, Vec3 } from '../ships/blueprint';
 import type { InspectionMode } from '../ships/inspection';
@@ -35,6 +36,7 @@ export class Game {
   private playerView?: ShipView;
   private targetView?: ShipView;
   private loadedModel?: THREE.Group;
+  shipThumbnail?: string;
   private effects = new CombatEffects();
   battery: Battery = 'main';
   aimModule = this.definition.modules.find(m => m.kind === 'engine')?.id ?? '';
@@ -114,6 +116,12 @@ export class Game {
     this.loadedModel = gltf.scene;
     this.assertActive();
     if (gltf.scene.userData.definitionHash !== this.definition.contentHash) throw new Error('The ship model and definition have different versions. Rebuild the ship assets and reload.');
+    try {
+      this.shipThumbnail = await renderShipThumbnail(gltf.scene, this.abort.signal);
+    } catch (error) {
+      if (!this.disposed) console.warn('Ship thumbnail unavailable', error);
+    }
+    this.assertActive();
     this.playerView = new ShipView(gltf.scene, this.definition, this.simulation.player);
     this.targetView = new ShipView(gltf.scene.clone(true), this.definition, this.simulation.target);
     this.ship = this.playerView.root;
