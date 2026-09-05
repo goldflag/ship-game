@@ -4,6 +4,7 @@ import { createShipState } from '../simulation/ship';
 import { DEFAULT_SETTINGS, type GameSettings, type Telemetry } from '../game/types';
 import { Icon } from './Icons';
 import { FleetHud } from './FleetHud';
+import { Garage } from './Garage';
 
 const INITIAL_TELEMETRY: Telemetry = { ship: createShipState(), order: 1, camera: 'Chase', fps: 0, backend: 'webgpu', trail: [] };
 function loadSettings(): GameSettings {
@@ -30,10 +31,11 @@ export function App() {
   const [paused, setPaused] = useState(false);
   const [error, setError] = useState('');
   const [hud, setHud] = useState(true);
+  const [phase, setPhase] = useState<'garage' | 'sailing'>('garage');
 
   useEffect(() => {
     let active = true;
-    setReady(false); setError(''); setPaused(false); setData(INITIAL_TELEMETRY);
+    setReady(false); setError(''); setPaused(false); setData(INITIAL_TELEMETRY); setPhase('garage');
     const session = new Game(host.current!, settings, {
       progress: (label, progress) => active && setLoading({ label, progress }),
       ready: () => active && setReady(true),
@@ -43,6 +45,7 @@ export function App() {
       error: message => active && setError(message),
     });
     game.current = session;
+    session.setInPort(true);
     session.start();
     return () => { active = false; game.current = null; void session.dispose(); };
   }, [generation, settings]);
@@ -52,6 +55,17 @@ export function App() {
     else dialog.current?.close();
   }, [paused, ready, error]);
 
+  const launch = () => {
+    if (!ready) return;
+    game.current?.setInPort(false);
+    setHud(true);
+    setPhase('sailing');
+  };
+  const returnToPort = () => {
+    game.current?.setInPort(true);
+    setPhase('garage');
+  };
+
   const applySettings = () => {
     try { localStorage.setItem('bismarck-settings', JSON.stringify(draft)); } catch { /* Storage is optional. */ }
     if (JSON.stringify(settings) === JSON.stringify(draft)) setGeneration(value => value + 1);
@@ -60,11 +74,12 @@ export function App() {
 
   return <main className="game-shell">
     <div ref={host} className="ocean-viewport" />
-    {ready && !error && <FleetHud data={data} game={game.current} visible={hud}/>}
+    {phase === 'garage' && !error && <Garage ready={ready} progress={loading.progress} fps={data.fps} onLaunch={launch} onSettings={() => game.current?.setPaused(true)}/>}
+    {phase === 'sailing' && ready && !error && <FleetHud data={data} game={game.current} visible={hud}/>}
 
-    {ready && !hud && <button className="restore-hud" onClick={() => setHud(true)}>Show instruments <kbd>H</kbd></button>}
+    {phase === 'sailing' && ready && !hud && <button className="restore-hud" onClick={() => setHud(true)}>Show instruments <kbd>H</kbd></button>}
 
-    {(!ready || error) && <section className="loading-screen" aria-live="polite">
+    {((!ready && phase === 'sailing') || error) && <section className="loading-screen" aria-live="polite">
       <div className="loading-brand"><Icon name="anchor" size={36}/><span>SEA TRIALS</span></div>
       <div className="loading-content"><h1>BISMARCK</h1><p className="loading-subtitle">Take the helm.</p><div className="ship-measure"><div/><span>250.5 M</span><div/></div>
         {error ? <div className="error-message"><h2>Unable to launch the sea trial</h2><p>{error}</p><p>Try reloading in a current Chrome or Edge browser with hardware acceleration enabled.</p><button className="primary-button" onClick={() => setGeneration(value => value + 1)}>Try again <Icon name="arrow" size={18}/></button></div> : <><div className="loading-progress" role="progressbar" aria-label="Loading sea trial" aria-valuenow={Math.round(loading.progress * 100)} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${loading.progress * 100}%` }}/></div><div className="loading-status"><span>{loading.label}</span><span>{Math.round(loading.progress * 100)}%</span></div><p className="compile-note">The first launch prepares the ocean and cloud shaders.</p></>}
@@ -72,16 +87,17 @@ export function App() {
     </section>}
 
     <dialog ref={dialog} className="pause-menu" onCancel={e => { e.preventDefault(); game.current?.setPaused(false); }}>
-      <div className="menu-heading"><h2>At your command.</h2><button className="icon-button" aria-label="Resume sailing" onClick={() => game.current?.setPaused(false)}><Icon name="close"/></button></div>
-      <p className="menu-description">Sea trial paused. Your engine order is held.</p>
-      <button autoFocus className="primary-button" onClick={() => game.current?.setPaused(false)}>Resume sailing <Icon name="play" size={18}/></button>
+      <div className="menu-heading"><h2>{phase === 'garage' ? 'Port settings.' : 'At your command.'}</h2><button className="icon-button" aria-label={phase === 'garage' ? 'Close port settings' : 'Resume sailing'} onClick={() => game.current?.setPaused(false)}><Icon name="close"/></button></div>
+      <p className="menu-description">{phase === 'garage' ? 'Prepare the sea conditions for your next voyage.' : 'Sea trial paused. Your engine order is held.'}</p>
+      <button autoFocus className="primary-button" onClick={() => game.current?.setPaused(false)}>{phase === 'garage' ? 'Back to port' : 'Resume sailing'} <Icon name={phase === 'garage' ? 'anchor' : 'play'} size={18}/></button>
+      {phase === 'sailing' && <button className="secondary-button restart-button" onClick={returnToPort}>Return to port <Icon name="anchor" size={18}/></button>}
       <div className="settings-heading">SEA TRIAL SETTINGS</div>
       <label className="setting-row">Ocean detail<select value={draft.quality} onChange={e => setDraft({ ...draft, quality: e.target.value as GameSettings['quality'] })}><option value="medium">Medium</option><option value="high">High</option><option value="ultra">Ultra</option></select></label>
       <label className="setting-row">Render scale<select value={draft.resolution} onChange={e => setDraft({ ...draft, resolution: Number(e.target.value) })}><option value={0.65}>65%</option><option value={0.8}>80%</option><option value={1}>100%</option></select></label>
       <label className="setting-row">Sea conditions<select value={draft.sea} onChange={e => setDraft({ ...draft, sea: e.target.value as GameSettings['sea'] })}><option>Fair</option><option>Atlantic</option><option>Heavy</option></select></label>
-      <button className="secondary-button restart-button" onClick={applySettings}>Apply & restart sea trial <Icon name="arrow" size={17}/></button>
-      <p className="settings-note">Restarts from your departure point. Lower detail or render scale can improve performance.</p>
-      <div className="menu-controls"><span><kbd>C</kbd> Change camera</span><span><kbd>R</kbd> Recenter view</span><span><kbd>H</kbd> Hide instruments</span><span><kbd>F</kbd> Fullscreen</span></div>
+      <button className="secondary-button restart-button" onClick={applySettings}>Apply & reload port <Icon name="arrow" size={17}/></button>
+      <p className="settings-note">Reloads the scene in port. Lower detail or render scale can improve performance.</p>
+      {phase === 'sailing' && <div className="menu-controls"><span><kbd>C</kbd> Change camera</span><span><kbd>R</kbd> Recenter view</span><span><kbd>H</kbd> Hide instruments</span><span><kbd>F</kbd> Fullscreen</span></div>}
       <div className="renderer-status"><span>{data.backend.toUpperCase()} RENDERER</span><span>{data.fps} FPS</span></div>
     </dialog>
   </main>;
