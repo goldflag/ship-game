@@ -81,3 +81,15 @@ The renderer displayed completed 60 Hz simulation ticks directly. At 15.43 m/s a
 - Full-speed turning and pause were exercised in WebGPU; pausing held the displayed pose. Exported muzzle alignment remained within 0.00212 m. A direct canvas capture was inspected for ship/sea visibility and wake attachment; temporary evidence is under `.build/ship-jitter-review/`.
 
 The browser's normal animation loop was throttled while its window lacked focus, so the timing comparison used explicit frame replays through the live WebGPU renderer. These measurements validate movement continuity, not a hardware frame-rate guarantee. Temporary browser probes were removed after review.
+
+## Missing salvo projectiles — 2026-09-05
+
+The simulation spawned every barrel's shell, but the effects pool set its instance count to zero before the first render. Three's instancing shader sized its matrix buffer from that count, retaining only one matrix when later salvos grew the draw count. A browser pixel test reproduced eight simulated shell positions rendering as one visible shell after an empty frame.
+
+The projectile mesh now retains its full 256-instance capacity and collapses unused slots to zero scale. Removed shells and trial resets clear previously occupied slots. The browser pixel test passes on both WebGPU and WebGL2 through counts `0 → 8 → 0 → 1 → 8 → 54 → 256 → 2 → 0 → 8`. The automated adapter test also checks actual Bismarck salvo positions and reset/reuse behavior. **85 tests passed**, and `bun run build` passed all four asset checks, TypeScript and production bundling.
+
+To repeat the GPU regression with `bun run dev` running, evaluate this in the game's browser console (pass `true` for the WebGL2 fallback):
+
+```js
+await import('/scripts/tests/combat-effects-browser.ts').then(m => m.checkCombatEffects());
+```

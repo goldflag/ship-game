@@ -9,9 +9,14 @@ export class CombatEffects {
   private cursor = 0;
   private sequence = 0;
   private dummy = new THREE.Object3D();
+  private hiddenProjectile = new THREE.Matrix4().makeScale(0, 0, 0);
+  private activeProjectiles = 0;
   constructor() {
     this.projectiles.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    this.projectiles.frustumCulled = false; this.projectiles.count = 0;
+    this.projectiles.frustumCulled = false;
+    // Three sizes the instancing shader buffer from count at first compilation.
+    // Keep the full capacity even in port; zero-scale unused slots instead.
+    for (let i = 0; i < this.projectiles.count; i++) this.projectiles.setMatrixAt(i, this.hiddenProjectile);
     this.root.add(this.projectiles);
     const geometry = new THREE.SphereGeometry(1, 8, 6);
     for (let i = 0; i < 64; i++) {
@@ -20,8 +25,9 @@ export class CombatEffects {
     }
   }
   update(sim: CombatSimulation, dt: number): void {
-    this.projectiles.count = sim.shells.length;
     sim.shells.forEach((s, i) => { this.dummy.position.fromArray(s.position); this.dummy.updateMatrix(); this.projectiles.setMatrixAt(i, this.dummy.matrix); });
+    for (let i = sim.shells.length; i < this.activeProjectiles; i++) this.projectiles.setMatrixAt(i, this.hiddenProjectile);
+    this.activeProjectiles = sim.shells.length;
     this.projectiles.instanceMatrix.needsUpdate = true;
     for (const event of sim.events) {
       if (event.sequence <= this.sequence) continue;
