@@ -6,8 +6,8 @@ import { Icon } from './Icons';
 import { NavigationChart } from './NavigationChart';
 import './FleetHud.css';
 import { GunneryPanel } from './GunneryPanel';
-import { selectedShip } from '../ships/presets';
-import { SHIP_MODEL } from '../game/shipModel';
+import { useShip } from './ShipContext';
+import { shipModel } from '../game/shipModel';
 
 interface FleetHudProps {
   data: Telemetry;
@@ -45,6 +45,7 @@ function BearingTape({ degrees }: { degrees: number }) {
 }
 
 function ActiveArmament({ data, game, details, onDetails }: FleetHudProps & { details: boolean; onDetails(): void }) {
+  const selectedShip = useShip();
   const combat = data.combat;
   if (!combat) return null;
   const caliber = (battery: 'main' | 'secondary') => Math.round((selectedShip.mounts.find(m => m.battery === battery)?.weapon.caliberM ?? 0) * 1000);
@@ -61,6 +62,8 @@ function ActiveArmament({ data, game, details, onDetails }: FleetHudProps & { de
 }
 
 export function FleetHud({ data, game, visible }: FleetHudProps) {
+  const selectedShip = useShip();
+  const SHIP_MODEL = shipModel(selectedShip);
   const [help, setHelp] = useState(false);
   const [details, setDetails] = useState(false);
   const degrees = ((data.ship.heading * 180 / Math.PI) % 360 + 360) % 360;

@@ -1,6 +1,8 @@
 import * as THREE from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { SHIP_MODEL } from '../game/shipModel';
+import { shipModel } from '../game/shipModel';
+import { selectedShip } from '../ships/presets';
+import type { ShipDefinition } from '../ships/blueprint';
 import { formatLength, SCHEMATIC_PAGES, type DrawingChoices, type SchematicChoices } from './options';
 import { layOutSchematic, type Span, type View } from './layout';
 
@@ -54,7 +56,7 @@ function measureShip(model: THREE.Object3D): Record<View, Span> {
   }])) as Record<View, Span>;
 }
 
-function paintSheet(ctx: CanvasRenderingContext2D, choices: DrawingChoices, spans: Record<View, Span>, metersPerPixel: number) {
+function paintSheet(ctx: CanvasRenderingContext2D, choices: DrawingChoices, spans: Record<View, Span>, metersPerPixel: number, SHIP_MODEL: ReturnType<typeof shipModel>) {
   const theme = THEMES[choices.stock];
   const text = (value: string, x: number, y: number, size = 17, color = theme.ink, display = false) => {
     ctx.fillStyle = color;
@@ -119,7 +121,8 @@ export type ShipSchematicRenderer = {
 };
 
 /** One private model and renderer per dialog, reused for options and released after pending work. */
-export async function createShipSchematicRenderer(signal: AbortSignal): Promise<ShipSchematicRenderer> {
+export async function createShipSchematicRenderer(signal: AbortSignal, definition: ShipDefinition = selectedShip): Promise<ShipSchematicRenderer> {
+  const SHIP_MODEL = shipModel(definition);
   let renderer: THREE.WebGPURenderer | undefined;
   const geometries = new Set<THREE.BufferGeometry>();
   const materials = new Set<THREE.Material>();
@@ -181,7 +184,7 @@ export async function createShipSchematicRenderer(signal: AbortSignal): Promise<
       if (!ctx) throw new Error('The image canvas could not be created.');
       ctx.scale(scale, scale);
       const layout = layOutSchematic(spans, choices.layout), theme = THEMES[choices.stock];
-      paintSheet(ctx, choices, spans, layout.metersPerPixel);
+      paintSheet(ctx, choices, spans, layout.metersPerPixel, SHIP_MODEL);
       edgesMaterial.color.set(theme.edge);
       edgesMaterial.opacity = choices.stock === 'ink' ? 0.95 : 0.5;
       meshes.forEach((mesh, i) => { mesh.material = choices.stock === 'ink' ? inkMaterial : originalMaterials[i]; });

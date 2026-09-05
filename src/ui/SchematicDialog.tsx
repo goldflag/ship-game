@@ -1,4 +1,5 @@
-import { SHIP_MODEL } from '../game/shipModel';
+import { shipModel } from '../game/shipModel';
+import { useShip } from './ShipContext';
 // Extends Fleet harbor: maritime controls frame a model-derived drawing. The sheet leads;
 // five compact choices precede the preview, with Save image and Copy image below it.
 import { useEffect, useRef, useState } from 'react';
@@ -19,6 +20,8 @@ function loadChoices(): SchematicChoices {
 }
 
 export function SchematicDialog({ onClose }: { onClose: () => void }) {
+  const selectedShip = useShip();
+  const SHIP_MODEL = shipModel(selectedShip);
   const dialog = useRef<HTMLDialogElement>(null);
   const [choices, setChoices] = useState(loadChoices);
   const [rig, setRig] = useState<ShipSchematicRenderer | null>(null);
@@ -53,7 +56,7 @@ export function SchematicDialog({ onClose }: { onClose: () => void }) {
     setRig(null); setFailure('');
     void import('../schematic/render').then(async ({ createShipSchematicRenderer }) => {
       controller.signal.throwIfAborted();
-      resource = await createShipSchematicRenderer(controller.signal);
+      resource = await createShipSchematicRenderer(controller.signal, selectedShip);
       if (controller.signal.aborted) resource.dispose();
       else setRig(resource);
     }).catch(error => {
@@ -62,7 +65,7 @@ export function SchematicDialog({ onClose }: { onClose: () => void }) {
       setFailure('The ship could not be prepared. Try creating the schematic again.');
     });
     return () => { controller.abort(); resource?.dispose(); };
-  }, [attempt]);
+  }, [attempt, selectedShip]);
 
   const { layout, stock, units, page } = choices;
   useEffect(() => {
