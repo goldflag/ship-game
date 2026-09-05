@@ -1,0 +1,13 @@
+{
+  "backend": "webgpu",
+  "depthBias": -0.0005,
+  "normalBias": 0.1,
+  "quality": "medium",
+  "shadowMap": [
+    1024,
+    1024
+  ],
+  "shipHash": "d65cc64623f2b39c9650b6f9b70efab060c4c26c9d25173e8bbe8d842021774d",
+  "bandRms": 1.646210653505759,
+  "passed": false
+}

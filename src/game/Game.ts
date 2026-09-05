@@ -182,7 +182,10 @@ export class Game {
     sunlight.shadow.mapSize.set(shadowSize, shadowSize);
     Object.assign(sunlight.shadow.camera, { left: -380, right: 380, top: 380, bottom: -380, near: 1, far: 1800 });
     sunlight.shadow.camera.updateProjectionMatrix();
-    sunlight.shadow.normalBias = 0.1;
+    // Keep the receiver offset proportional to a shadow texel in world meters.
+    // A fixed 10 cm offset leaves diagonal self-shadow bands on broad hulls at
+    // Medium's 1024px resolution; finer maps need proportionally less offset.
+    sunlight.shadow.normalBias = 0.75 * (sunlight.shadow.camera.right - sunlight.shadow.camera.left) / shadowSize;
     this.scene.add(sunlight.target);
     this.water.lighting.addSunSyncListener(() => {
       sunlight.target.position.copy(this.ship.position);
