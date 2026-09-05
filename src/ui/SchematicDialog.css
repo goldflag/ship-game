@@ -1,0 +1,57 @@
+/* Fleet harbor controls surround the exported paper without changing its palette. */
+.schematic-dialog {
+  width: min(1480px, calc(100vw - 48px));
+  height: min(1020px, calc(100dvh - 48px));
+  max-width: none;
+  max-height: none;
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--port-line);
+  border-radius: 3px;
+  background: var(--port-ink);
+  color: var(--port-text);
+  pointer-events: auto;
+  overscroll-behavior: contain;
+}
+.schematic-dialog[open] { display: grid; grid-template-rows: auto auto minmax(180px, 1fr) auto; }
+.schematic-dialog::backdrop { background: #030c13d9; }
+.schematic-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 20px 24px; border-bottom: 1px solid var(--port-line); }
+.schematic-header h2 { font-size: 29px; }
+.schematic-header p { color: var(--port-muted); margin-top: 5px; font-size: 13px; }
+.schematic-header .icon-button { width: 40px; height: 40px; flex-shrink: 0; }
+.schematic-options { display: grid; grid-template-columns: 1fr 1fr 1fr 1.6fr 0.8fr; gap: 16px; padding: 16px 24px; }
+.schematic-options label { display: grid; gap: 7px; min-width: 0; color: var(--port-muted); font-size: 12px; }
+.schematic-options select { width: 100%; min-width: 0; min-height: 40px; padding: 8px 28px 8px 10px; color: var(--port-text); border: 1px solid var(--port-line); border-radius: 2px; background: #172c38; font-size: 13px; color-scheme: dark; }
+.schematic-options select:hover { border-color: var(--port-muted); }
+.schematic-options select:disabled { opacity: 0.5; }
+.schematic-preview { min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 22px 24px; background: #050e16; overflow: hidden; }
+.schematic-preview img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.schematic-message { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 24px; text-align: center; font-size: 16px; line-height: 1.5; }
+.schematic-message > svg { color: var(--port-accent); }
+.schematic-message > span { color: var(--port-muted); font-size: 13px; }
+.schematic-footer { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 18px 24px; }
+.schematic-caption { min-width: 0; line-height: 1.5; }
+.schematic-caption > span { font-size: 12px; }
+.schematic-caption > p { margin-top: 3px; font-size: 12px; color: var(--port-muted); }
+.schematic-actions { display: flex; gap: 10px; flex-shrink: 0; }
+.schematic-button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 42px; padding: 10px 16px; border: 1px solid var(--port-line); border-radius: 2px; background: #172c38; color: var(--port-text); }
+.schematic-button:hover:not(:disabled) { background: #294450; border-color: var(--port-muted); }
+.schematic-save { background: var(--port-accent); border-color: transparent; color: var(--port-ink); font-weight: 500; }
+.schematic-save:hover:not(:disabled) { background: #f4d199; border-color: transparent; }
+@media (max-width: 700px) {
+  .schematic-dialog { width: 100%; height: 100dvh; border: 0; border-radius: 0; }
+  .schematic-header { padding: 16px; }
+  .schematic-header h2 { font-size: 26px; }
+  .schematic-options { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 14px 16px; gap: 12px; }
+  .schematic-options label:last-child { grid-column: 1 / -1; }
+  .schematic-preview { padding: 16px 10px; }
+  .schematic-footer { flex-direction: column; align-items: stretch; gap: 12px; padding: 14px 16px max(16px, env(safe-area-inset-bottom)); }
+  .schematic-actions > button { flex: 1; }
+}
+@media (max-height: 550px) and (min-width: 701px) {
+  .schematic-dialog { width: calc(100vw - 24px); height: calc(100dvh - 24px); }
+  .schematic-header { padding: 10px 16px; }
+  .schematic-header p { display: none; }
+  .schematic-options { padding: 10px 16px; }
+  .schematic-footer { padding: 10px 16px; }
+}

@@ -1,6 +1,7 @@
 // Fleet harbor. Progression, research, commander and refits are illustrative local state.
 import { useEffect, useState, type ReactNode } from 'react';
 import { Icon } from './Icons';
+import { SchematicDialog } from './SchematicDialog';
 import './Garage.css';
 
 type Section = 'overview' | 'equipment' | 'commander' | 'research';
@@ -58,7 +59,7 @@ type GarageState = {
   module: ModuleId; setModule: (value: ModuleId) => void;
   fitted: Record<ModuleId, boolean>; fit: () => void;
   credits: number; research: (ship: string) => void;
-  launch: () => void; ready: boolean; settings: () => void;
+  launch: () => void; ready: boolean; settings: () => void; schematic: () => void;
 };
 function SetSail({ state }: { state: GarageState }) {
   return <button className="garage-set-sail" title="Sea trial · North Atlantic" onClick={state.launch} disabled={!state.ready}><Icon name="anchor" size={20}/><strong>{state.ready ? 'SET SAIL' : 'PREPARING'}</strong><Icon name="arrow" size={20}/></button>;
@@ -100,7 +101,7 @@ function PortLayout({ state }: { state: GarageState }) {
       <ResourceWallet credits={state.credits}/>
       <button className="garage-settings" aria-label="Port settings" disabled={!state.ready} onClick={state.settings}><Icon name="compass" size={20}/></button>
     </header>
-    <section className="garage-classic-identity"><h1>BISMARCK</h1><div><span>VIII</span><span>Battleship</span><span>Germany · 1941</span></div><p className="garage-ready"><i/> {state.ready ? 'READY TO SAIL' : 'PREPARING SHIP'}</p></section>
+    <section className="garage-classic-identity"><h1>BISMARCK</h1><div><span>VIII</span><span>Battleship</span><span>Germany · 1941</span></div><p className="garage-ready"><i/> {state.ready ? 'READY TO SAIL' : 'PREPARING SHIP'}</p><button className="garage-schematic-button" onClick={state.schematic} disabled={!state.ready} aria-haspopup="dialog"><Icon name="schematic" size={16}/>Create schematic</button></section>
     <div className="garage-classic-left"><button className="garage-commander-link" onClick={()=>state.setSection('commander')}><Commander/><Glyph name="chevron" size={16}/></button><section className="garage-daily-orders"><div><Glyph name="wreath" size={22}/><h2>Daily orders</h2></div><strong>A captain’s first command</strong><p>Get underway and put your ship through her paces.</p><div><span>Sea trials completed</span><b>0 / 1</b></div><i/><small><Glyph name="credits" size={13}/> 25,000 credits</small></section></div>
     <aside className="garage-classic-details" data-section={state.section}><SideContent state={state}/></aside>
     <span className="garage-orbit-hint"><Icon name="camera" size={15}/> Drag to inspect · Scroll to zoom</span>
@@ -122,11 +123,12 @@ export function Garage({ ready, progress, fps, onLaunch, onSettings }: Props) {
   const [module, setModule] = useState<ModuleId>('battery');
   const [fitted, setFitted] = useState<Record<ModuleId, boolean>>({ battery: false, hull: false, propulsion: false, director: false });
   const [research, setResearch] = useState('');
+  const [schematic, setSchematic] = useState(false);
   const credits = 2450000 - (Object.keys(MODULES) as ModuleId[]).reduce((total, id) => total + (fitted[id] ? MODULES[id].cost : 0), 0);
 
   useEffect(() => {
     const closeDetails = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape' || (event.target as HTMLElement)?.closest('dialog')) return;
+      if (event.key !== 'Escape' || document.querySelector('dialog[open]')) return;
       setResearch('');
       setSection('overview');
     };
@@ -139,11 +141,13 @@ export function Garage({ ready, progress, fps, onLaunch, onSettings }: Props) {
     module, setModule, fitted,
     fit: () => setFitted(value => ({ ...value, [module]: !value[module] })),
     credits, research: setResearch, launch: onLaunch, ready, settings: onSettings,
+    schematic: () => { setResearch(''); setSchematic(true); },
   };
 
   return <div className="garage">
     <div className="garage-scene-shade"/>
     <PortLayout state={state}/>
+    {schematic && <SchematicDialog onClose={() => setSchematic(false)}/>}
     {research && <aside className="garage-research-preview" aria-label={`${research} research preview`}>
       <button aria-label="Close research preview" onClick={() => setResearch('')}><Icon name="close" size={19}/></button>
       <Glyph name="lock" size={26}/><h2>{research}</h2><span>RESEARCH PREVIEW</span><ShipProfile/>

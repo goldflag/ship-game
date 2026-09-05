@@ -9,7 +9,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "typecheck": "tsc --noEmit",
-    "test": "bun test src/simulation",
+    "test": "bun test src",
     "export:ship": "/Applications/Blender.app/Contents/MacOS/Blender --background --python scripts/export-bismarck.py"
   },
   "dependencies": {
