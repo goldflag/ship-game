@@ -43,11 +43,11 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
             {impact.thicknessMm !== undefined && <span>{impact.thicknessMm.toFixed(1)} mm {impact.material}{impact.obliquityDeg !== undefined ? ` · ${impact.obliquityDeg.toFixed(1)}° from normal` : ''}</span>}
             <span>{impact.resistanceMm !== undefined ? `${impact.resistanceMm.toFixed(1)} mm resistance · ` : ''}{impact.penetrationAfterMm.toFixed(1)} mm remaining</span>
             {!!impact.damage && <span>{impact.damage.toFixed(1)} damage</span>}
-            {!!impact.breachAreaM2 && <span>{impact.breachAreaM2.toFixed(3)} m² opening · {impact.compartmentId}</span>}
+            {impact.breachAssignments ? impact.breachAssignments.filter(b => b.areaM2 > 0).map((b, index) => <span key={index}>{b.areaM2.toFixed(3)} m² opening · {b.compartmentId}</span>) : !!impact.breachAreaM2 && <span>{impact.breachAreaM2.toFixed(3)} m² opening · {impact.compartmentId ?? 'watertight boundary'}</span>}
           </li>)}</ol>
         </details>)}
       </details>
-      {data.inspecting && <div className="module-conditions" aria-label="Internal module condition">{c.modules.map(m => <div key={m.id}><span>{m.name}</span><strong>{m.condition <= 0 ? 'Disabled' : `${Math.round(m.condition * 100)}%`}</strong></div>)}<p>Amber outlines: armor · Pale outlines: compartments · Blue: floodwater</p></div>}
+      {data.inspecting && <div className="module-conditions" aria-label="Internal module condition">{c.modules.map(m => <div key={m.id}><span>{m.name}</span><strong>{m.reason === 'flooded' ? 'Flooded · offline' : m.reason === 'destroyed' ? 'Destroyed' : `${Math.round(m.availability * 100)}% available`}</strong></div>)}<p>Flooded equipment can recover when drained. Destroyed equipment stays offline.</p><p>Amber outlines: armor · Pale outlines: compartments · Blue: floodwater</p></div>}
       <p className="gunnery-help">Mouse aims the center sight. Hold left mouse or {bindingLabel(bindings, 'fire')} to fire. Shift opens binoculars; scroll adjusts magnification. Selecting a module tracks it until you move the mouse to aim again.</p>
     </div><div className="target-actions">
       <button aria-pressed={!!data.inspecting} onClick={() => { game?.inspectTarget(); if (window.innerWidth <= 760) onExpand(false); }}>{data.inspecting ? 'Return to ship' : 'Inspect target'}</button>

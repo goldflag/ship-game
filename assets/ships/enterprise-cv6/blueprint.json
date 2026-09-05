@@ -10,7 +10,7 @@
     "length": 246.7356,
     "beam": 28.0416,
     "draft": 7.9121,
-    "depth": 19.0,
+    "depth": 19,
     "massKg": 25909680,
     "waterplaneAreaM2": 4400,
     "reserveBuoyancyM3": 6500,
@@ -692,7 +692,7 @@
         "station": 6.3246,
         "points": [
           [
-            0.0,
+            0,
             -0.4826
           ],
           [
@@ -721,7 +721,7 @@
         "station": 9.2583,
         "points": [
           [
-            0.0,
+            0,
             -1.327201
           ],
           [
@@ -758,7 +758,7 @@
         "station": 12.192,
         "points": [
           [
-            0.0,
+            0,
             -1.752702
           ],
           [
@@ -795,7 +795,7 @@
         "station": 18.0594,
         "points": [
           [
-            0.0,
+            0,
             -2.6543
           ],
           [
@@ -828,7 +828,7 @@
         "station": 23.9268,
         "points": [
           [
-            0.0,
+            0,
             -3.505302
           ],
           [
@@ -869,7 +869,7 @@
         "station": 29.7942,
         "points": [
           [
-            0.0,
+            0,
             -4.3307
           ],
           [
@@ -910,7 +910,7 @@
         "station": 35.6616,
         "points": [
           [
-            0.0,
+            0,
             -5.296002
           ],
           [
@@ -955,7 +955,7 @@
         "station": 41.529,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -1008,7 +1008,7 @@
         "station": 47.3964,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -1061,7 +1061,7 @@
         "station": 53.2638,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -1114,7 +1114,7 @@
         "station": 59.1312,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -1167,7 +1167,7 @@
         "station": 64.9986,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -1220,7 +1220,7 @@
         "station": 70.866,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -1273,7 +1273,7 @@
         "station": 76.7334,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -1326,7 +1326,7 @@
         "station": 82.6008,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -1379,7 +1379,7 @@
         "station": 88.4682,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -1432,7 +1432,7 @@
         "station": 94.3356,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -1485,7 +1485,7 @@
         "station": 100.203,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -1538,7 +1538,7 @@
         "station": 106.0704,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -1591,7 +1591,7 @@
         "station": 111.9378,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -1644,7 +1644,7 @@
         "station": 117.8052,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -1697,7 +1697,7 @@
         "station": 123.6726,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -1750,7 +1750,7 @@
         "station": 129.54,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -1803,7 +1803,7 @@
         "station": 135.4074,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -1856,7 +1856,7 @@
         "station": 141.2748,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -1909,7 +1909,7 @@
         "station": 147.1422,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -1962,7 +1962,7 @@
         "station": 153.0096,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -2015,7 +2015,7 @@
         "station": 158.877,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -2068,7 +2068,7 @@
         "station": 164.7444,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -2121,7 +2121,7 @@
         "station": 170.6118,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -2174,7 +2174,7 @@
         "station": 176.4792,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -2227,7 +2227,7 @@
         "station": 182.3466,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -2280,7 +2280,7 @@
         "station": 188.214,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -2333,7 +2333,7 @@
         "station": 194.0814,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -2394,7 +2394,7 @@
         "station": 199.9488,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -2455,7 +2455,7 @@
         "station": 205.8162,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -2516,7 +2516,7 @@
         "station": 211.6836,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -2577,7 +2577,7 @@
         "station": 217.551,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -2638,7 +2638,7 @@
         "station": 223.4184,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -2699,7 +2699,7 @@
         "station": 229.2858,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -2760,7 +2760,7 @@
         "station": 235.1532,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -2821,7 +2821,7 @@
         "station": 238.0869,
         "points": [
           [
-            0.0,
+            0,
             -7.9121
           ],
           [
@@ -2882,7 +2882,7 @@
         "station": 239.55375,
         "points": [
           [
-            0.0,
+            0,
             -7.40918
           ],
           [
@@ -2943,7 +2943,7 @@
         "station": 241.0206,
         "points": [
           [
-            0.0,
+            0,
             -6.6929
           ],
           [
@@ -3667,7 +3667,7 @@
           -69
         ],
         [
-          -12.0,
+          -12,
           -67
         ],
         [
@@ -3683,7 +3683,7 @@
           18
         ],
         [
-          -12.0,
+          -12,
           73
         ],
         [
@@ -4762,7 +4762,8 @@
         12,
         232
       ],
-      "thicknessMm": 19
+      "thicknessMm": 19,
+      "exterior": true
     },
     {
       "id": "machinery-belt",
@@ -4777,7 +4778,8 @@
         4.5,
         133
       ],
-      "thicknessMm": 101.6
+      "thicknessMm": 101.6,
+      "exterior": false
     },
     {
       "id": "protective-deck",
@@ -4792,7 +4794,8 @@
         0.0381,
         148
       ],
-      "thicknessMm": 38.1
+      "thicknessMm": 38.1,
+      "exterior": false
     }
   ],
   "modules": [
@@ -4811,7 +4814,8 @@
         18
       ],
       "hp": 90,
-      "compartmentId": "fore-magazine"
+      "compartmentId": "fore-magazine",
+      "immersionToleranceM": 0.3
     },
     {
       "id": "engine-port",
@@ -4828,7 +4832,9 @@
         24
       ],
       "hp": 140,
-      "compartmentId": "boilers-forward"
+      "compartmentId": "boilers-forward",
+      "role": "boiler",
+      "immersionToleranceM": 0.3
     },
     {
       "id": "boilers-aft-module",
@@ -4845,7 +4851,9 @@
         24
       ],
       "hp": 140,
-      "compartmentId": "boilers-aft"
+      "compartmentId": "boilers-aft",
+      "role": "boiler",
+      "immersionToleranceM": 0.3
     },
     {
       "id": "turbines-module",
@@ -4862,7 +4870,9 @@
         25
       ],
       "hp": 140,
-      "compartmentId": "turbines"
+      "compartmentId": "turbines",
+      "role": "turbine",
+      "immersionToleranceM": 0.3
     },
     {
       "id": "magazine-aft",
@@ -4879,7 +4889,8 @@
         16
       ],
       "hp": 90,
-      "compartmentId": "aft-magazine"
+      "compartmentId": "aft-magazine",
+      "immersionToleranceM": 0.3
     },
     {
       "id": "steering-space-module",
@@ -4896,7 +4907,8 @@
         6
       ],
       "hp": 90,
-      "compartmentId": "steering-space"
+      "compartmentId": "steering-space",
+      "immersionToleranceM": 0.3
     }
   ],
   "compartments": [
@@ -4977,7 +4989,7 @@
         8,
         20
       ],
-      "capacityM3": 1088.0,
+      "capacityM3": 1088,
       "pumpM3PerSecond": 0.035
     },
     {
@@ -4993,35 +5005,6323 @@
         8,
         10
       ],
-      "capacityM3": 544.0,
+      "capacityM3": 544,
       "pumpM3PerSecond": 0.035
+    },
+    {
+      "id": "flood-strip-port-1-5",
+      "name": "Port outer space 2.6 · estimated",
+      "center": [
+        -1.371319240188598,
+        2.25,
+        -89.3678
+      ],
+      "size": [
+        2,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 41.489279999999994,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-1-5",
+      "name": "Starboard outer space 2.6 · estimated",
+      "center": [
+        1.371319240188598,
+        2.25,
+        -89.3678
+      ],
+      "size": [
+        2,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 41.489279999999994,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-2-5",
+      "name": "Port outer space 3.6 · estimated",
+      "center": [
+        -4.31141565208435,
+        2.25,
+        -69.3678
+      ],
+      "size": [
+        2,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 41.489279999999994,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-2-5",
+      "name": "Starboard outer space 3.6 · estimated",
+      "center": [
+        4.31141565208435,
+        2.25,
+        -69.3678
+      ],
+      "size": [
+        2,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 41.489279999999994,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-3-5",
+      "name": "Port outer space 4.6 · estimated",
+      "center": [
+        -7.23252568655014,
+        2.25,
+        -49.3678
+      ],
+      "size": [
+        2,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 41.489279999999994,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-3-5",
+      "name": "Starboard outer space 4.6 · estimated",
+      "center": [
+        7.23252568655014,
+        2.25,
+        -49.3678
+      ],
+      "size": [
+        2,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 41.489279999999994,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-4-1",
+      "name": "Port outer space 5.2 · estimated",
+      "center": [
+        -8.957674705410003,
+        -3.75,
+        -29.367800000000003
+      ],
+      "size": [
+        0.7953494108200037,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 16.499237201673083,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-4-1",
+      "name": "Starboard outer space 5.2 · estimated",
+      "center": [
+        8.957674705410003,
+        -3.75,
+        -29.367800000000003
+      ],
+      "size": [
+        0.7953494108200037,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 16.499237201673083,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-4-2",
+      "name": "Port outer space 5.3 · estimated",
+      "center": [
+        -9.196330686807634,
+        -2.25,
+        -29.367800000000003
+      ],
+      "size": [
+        1.272661373615266,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 26.400902037554193,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-4-2",
+      "name": "Starboard outer space 5.3 · estimated",
+      "center": [
+        9.196330686807634,
+        -2.25,
+        -29.367800000000003
+      ],
+      "size": [
+        1.272661373615266,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 26.400902037554193,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-4-3",
+      "name": "Port outer space 5.4 · estimated",
+      "center": [
+        -9.356385706472398,
+        -0.75,
+        -29.367800000000003
+      ],
+      "size": [
+        1.5927714129447939,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 33.04146956383109,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-4-3",
+      "name": "Starboard outer space 5.4 · estimated",
+      "center": [
+        9.356385706472398,
+        -0.75,
+        -29.367800000000003
+      ],
+      "size": [
+        1.5927714129447939,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 33.04146956383109,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-4-4",
+      "name": "Port outer space 5.5 · estimated",
+      "center": [
+        -9.468304129457476,
+        0.75,
+        -29.367800000000003
+      ],
+      "size": [
+        1.8166082589149486,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 37.684884352217395,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-4-4",
+      "name": "Starboard outer space 5.5 · estimated",
+      "center": [
+        9.468304129457476,
+        0.75,
+        -29.367800000000003
+      ],
+      "size": [
+        1.8166082589149486,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 37.684884352217395,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-4-5",
+      "name": "Port outer space 5.6 · estimated",
+      "center": [
+        -9.612834428596496,
+        2.25,
+        -29.367800000000003
+      ],
+      "size": [
+        2,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 41.489279999999994,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-4-5",
+      "name": "Starboard outer space 5.6 · estimated",
+      "center": [
+        9.612834428596496,
+        2.25,
+        -29.367800000000003
+      ],
+      "size": [
+        2,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 41.489279999999994,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-5-0",
+      "name": "Port outer space 6.1 · estimated",
+      "center": [
+        -9.72795802974701,
+        -5.25,
+        -9.367800000000003
+      ],
+      "size": [
+        2.335916059494018,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 48.457737724421975,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-5-0",
+      "name": "Starboard outer space 6.1 · estimated",
+      "center": [
+        9.72795802974701,
+        -5.25,
+        -9.367800000000003
+      ],
+      "size": [
+        2.335916059494018,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 48.457737724421975,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-5-1",
+      "name": "Port outer space 6.2 · estimated",
+      "center": [
+        -10.023715631103517,
+        -3.75,
+        -9.367800000000003
+      ],
+      "size": [
+        2.9274312622070315,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 60.728507659230466,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-5-1",
+      "name": "Starboard outer space 6.2 · estimated",
+      "center": [
+        10.023715631103517,
+        -3.75,
+        -9.367800000000003
+      ],
+      "size": [
+        2.9274312622070315,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 60.728507659230466,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-5-2",
+      "name": "Port outer space 6.3 · estimated",
+      "center": [
+        -10.105491435384753,
+        -2.25,
+        -9.367800000000003
+      ],
+      "size": [
+        3.090982870769503,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 64.12132690027985,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-5-2",
+      "name": "Starboard outer space 6.3 · estimated",
+      "center": [
+        10.105491435384753,
+        -2.25,
+        -9.367800000000003
+      ],
+      "size": [
+        3.090982870769503,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 64.12132690027985,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-5-3",
+      "name": "Port outer space 6.4 · estimated",
+      "center": [
+        -10.160195836114884,
+        -0.75,
+        -9.367800000000003
+      ],
+      "size": [
+        3.2003916722297685,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 66.39097309940455,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-5-3",
+      "name": "Starboard outer space 6.4 · estimated",
+      "center": [
+        10.160195836114884,
+        -0.75,
+        -9.367800000000003
+      ],
+      "size": [
+        3.2003916722297685,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 66.39097309940455,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-5-4",
+      "name": "Port outer space 6.5 · estimated",
+      "center": [
+        -10.202832241630556,
+        0.75,
+        -9.367800000000003
+      ],
+      "size": [
+        3.28566448326111,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 68.15992686603775,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-5-4",
+      "name": "Starboard outer space 6.5 · estimated",
+      "center": [
+        10.202832241630556,
+        0.75,
+        -9.367800000000003
+      ],
+      "size": [
+        3.28566448326111,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 68.15992686603775,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-5-5",
+      "name": "Port outer space 6.6 · estimated",
+      "center": [
+        -10.973970241737366,
+        2.25,
+        -9.367800000000003
+      ],
+      "size": [
+        2,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 41.489279999999994,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-5-5",
+      "name": "Starboard outer space 6.6 · estimated",
+      "center": [
+        10.973970241737366,
+        2.25,
+        -9.367800000000003
+      ],
+      "size": [
+        2,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 41.489279999999994,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-6-0",
+      "name": "Port outer space 7.1 · estimated",
+      "center": [
+        -10.0740442814827,
+        -5.25,
+        10.632199999999997
+      ],
+      "size": [
+        3.0280885629653955,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 62.816607126834455,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-6-0",
+      "name": "Starboard outer space 7.1 · estimated",
+      "center": [
+        10.0740442814827,
+        -5.25,
+        10.632199999999997
+      ],
+      "size": [
+        3.0280885629653955,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 62.816607126834455,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-6-1",
+      "name": "Port outer space 7.2 · estimated",
+      "center": [
+        -10.445853944921495,
+        -3.75,
+        10.632199999999997
+      ],
+      "size": [
+        3.771707889842988,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 78.24272235995244,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-6-1",
+      "name": "Starboard outer space 7.2 · estimated",
+      "center": [
+        10.445853944921495,
+        -3.75,
+        10.632199999999997
+      ],
+      "size": [
+        3.771707889842988,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 78.24272235995244,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-6-2",
+      "name": "Port outer space 7.3 · estimated",
+      "center": [
+        -10.475623839282989,
+        -2.25,
+        10.632199999999997
+      ],
+      "size": [
+        3.831247678565978,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 79.47785384268693,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-6-2",
+      "name": "Starboard outer space 7.3 · estimated",
+      "center": [
+        10.475623839282989,
+        -2.25,
+        10.632199999999997
+      ],
+      "size": [
+        3.831247678565978,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 79.47785384268693,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-6-3",
+      "name": "Port outer space 7.4 · estimated",
+      "center": [
+        -10.476519296979905,
+        -0.75,
+        10.632199999999997
+      ],
+      "size": [
+        3.8330385939598077,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 79.51500573780238,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-6-3",
+      "name": "Starboard outer space 7.4 · estimated",
+      "center": [
+        10.476519296979905,
+        -0.75,
+        10.632199999999997
+      ],
+      "size": [
+        3.8330385939598077,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 79.51500573780238,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-6-4",
+      "name": "Port outer space 7.5 · estimated",
+      "center": [
+        -10.481629214000701,
+        0.75,
+        10.632199999999997
+      ],
+      "size": [
+        3.8432584280014,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 79.72701251585497,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-6-4",
+      "name": "Starboard outer space 7.5 · estimated",
+      "center": [
+        10.481629214000701,
+        0.75,
+        10.632199999999997
+      ],
+      "size": [
+        3.8432584280014,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 79.72701251585497,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-6-5",
+      "name": "Port outer space 7.6 · estimated",
+      "center": [
+        -11.452035174560546,
+        2.25,
+        10.632199999999997
+      ],
+      "size": [
+        2,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 41.489279999999994,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-6-5",
+      "name": "Starboard outer space 7.6 · estimated",
+      "center": [
+        11.452035174560546,
+        2.25,
+        10.632199999999997
+      ],
+      "size": [
+        2,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 41.489279999999994,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-7-1",
+      "name": "Port outer space 8.2 · estimated",
+      "center": [
+        -9.864609136390687,
+        -3.75,
+        30.632199999999997
+      ],
+      "size": [
+        2.609218272781371,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 54.12729375027134,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-7-1",
+      "name": "Starboard outer space 8.2 · estimated",
+      "center": [
+        9.864609136390687,
+        -3.75,
+        30.632199999999997
+      ],
+      "size": [
+        2.609218272781371,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 54.12729375027134,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-7-2",
+      "name": "Port outer space 8.3 · estimated",
+      "center": [
+        -10.20822379117012,
+        -2.25,
+        30.632199999999997
+      ],
+      "size": [
+        3.296447582340237,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 68.38361837451858,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-7-2",
+      "name": "Starboard outer space 8.3 · estimated",
+      "center": [
+        10.20822379117012,
+        -2.25,
+        30.632199999999997
+      ],
+      "size": [
+        3.296447582340237,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 68.38361837451858,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-7-3",
+      "name": "Port outer space 8.4 · estimated",
+      "center": [
+        -10.385318413925171,
+        -0.75,
+        30.632199999999997
+      ],
+      "size": [
+        3.6506368278503416,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 75.73114676449731,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-7-3",
+      "name": "Starboard outer space 8.4 · estimated",
+      "center": [
+        10.385318413925171,
+        -0.75,
+        30.632199999999997
+      ],
+      "size": [
+        3.6506368278503416,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 75.73114676449731,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-7-4",
+      "name": "Port outer space 8.5 · estimated",
+      "center": [
+        -10.458594264650344,
+        0.75,
+        30.632199999999997
+      ],
+      "size": [
+        3.797188529300689,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 78.77130905247223,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-7-4",
+      "name": "Starboard outer space 8.5 · estimated",
+      "center": [
+        10.458594264650344,
+        0.75,
+        30.632199999999997
+      ],
+      "size": [
+        3.797188529300689,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 78.77130905247223,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-7-5",
+      "name": "Port outer space 8.6 · estimated",
+      "center": [
+        -11.469936807155612,
+        2.25,
+        30.632199999999997
+      ],
+      "size": [
+        2,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 41.489279999999994,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-7-5",
+      "name": "Starboard outer space 8.6 · estimated",
+      "center": [
+        11.469936807155612,
+        2.25,
+        30.632199999999997
+      ],
+      "size": [
+        2,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 41.489279999999994,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-8-2",
+      "name": "Port outer space 9.3 · estimated",
+      "center": [
+        -9.249919421625137,
+        -2.25,
+        50.6322
+      ],
+      "size": [
+        1.3798388432502744,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 28.624260061243373,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-8-2",
+      "name": "Starboard outer space 9.3 · estimated",
+      "center": [
+        9.249919421625137,
+        -2.25,
+        50.6322
+      ],
+      "size": [
+        1.3798388432502744,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 28.624260061243373,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-8-3",
+      "name": "Port outer space 9.4 · estimated",
+      "center": [
+        -9.913414714765548,
+        -0.75,
+        50.6322
+      ],
+      "size": [
+        2.706829429531096,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 56.15220205702795,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-8-3",
+      "name": "Starboard outer space 9.4 · estimated",
+      "center": [
+        9.913414714765548,
+        -0.75,
+        50.6322
+      ],
+      "size": [
+        2.706829429531096,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 56.15220205702795,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-8-4",
+      "name": "Port outer space 9.5 · estimated",
+      "center": [
+        -10.232948117780687,
+        0.75,
+        50.6322
+      ],
+      "size": [
+        3.3458962355613746,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 69.4094128840759,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-8-4",
+      "name": "Starboard outer space 9.5 · estimated",
+      "center": [
+        10.232948117780687,
+        0.75,
+        50.6322
+      ],
+      "size": [
+        3.3458962355613746,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 69.4094128840759,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-8-5",
+      "name": "Port outer space 9.6 · estimated",
+      "center": [
+        -11.209806137275695,
+        2.25,
+        50.6322
+      ],
+      "size": [
+        2,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 41.489279999999994,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-8-5",
+      "name": "Starboard outer space 9.6 · estimated",
+      "center": [
+        11.209806137275695,
+        2.25,
+        50.6322
+      ],
+      "size": [
+        2,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 41.489279999999994,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-9-2",
+      "name": "Port outer space 10.3 · estimated",
+      "center": [
+        -5.587511770582199,
+        -2.25,
+        70.6322
+      ],
+      "size": [
+        1.055023541164399,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 21.886083552980633,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-9-2",
+      "name": "Starboard outer space 10.3 · estimated",
+      "center": [
+        5.587511770582199,
+        -2.25,
+        70.6322
+      ],
+      "size": [
+        1.055023541164399,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 21.886083552980633,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-9-3",
+      "name": "Port outer space 10.4 · estimated",
+      "center": [
+        -6.963165865421296,
+        -0.75,
+        70.6322
+      ],
+      "size": [
+        3.806331730842593,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 78.96098147690647,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-9-3",
+      "name": "Starboard outer space 10.4 · estimated",
+      "center": [
+        6.963165865421296,
+        -0.75,
+        70.6322
+      ],
+      "size": [
+        3.806331730842593,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 78.96098147690647,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-9-4",
+      "name": "Port outer space 10.5 · estimated",
+      "center": [
+        -7.8957932048797606,
+        0.75,
+        70.6322
+      ],
+      "size": [
+        5.671586409759523,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 117.65501829935377,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-9-4",
+      "name": "Starboard outer space 10.5 · estimated",
+      "center": [
+        7.8957932048797606,
+        0.75,
+        70.6322
+      ],
+      "size": [
+        5.671586409759523,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 117.65501829935377,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-9-5",
+      "name": "Port outer space 10.6 · estimated",
+      "center": [
+        -10.407822022628787,
+        2.25,
+        70.6322
+      ],
+      "size": [
+        2,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 41.489279999999994,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-9-5",
+      "name": "Starboard outer space 10.6 · estimated",
+      "center": [
+        10.407822022628787,
+        2.25,
+        70.6322
+      ],
+      "size": [
+        2,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 41.489279999999994,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-10-4",
+      "name": "Port outer space 11.5 · estimated",
+      "center": [
+        -6.365408783531189,
+        0.75,
+        90.6322
+      ],
+      "size": [
+        2.6108175670623783,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 54.1604705343849,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-10-4",
+      "name": "Starboard outer space 11.5 · estimated",
+      "center": [
+        6.365408783531189,
+        0.75,
+        90.6322
+      ],
+      "size": [
+        2.6108175670623783,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 54.1604705343849,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-10-5",
+      "name": "Port outer space 11.6 · estimated",
+      "center": [
+        -8.187462165737152,
+        2.25,
+        90.6322
+      ],
+      "size": [
+        2,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 41.489279999999994,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-10-5",
+      "name": "Starboard outer space 11.6 · estimated",
+      "center": [
+        8.187462165737152,
+        2.25,
+        90.6322
+      ],
+      "size": [
+        2,
+        1.47,
+        19.6
+      ],
+      "capacityM3": 41.489279999999994,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-port-11-5",
+      "name": "Port outer space 12.6 · estimated",
+      "center": [
+        -0.4342509974002839,
+        2.25,
+        110
+      ],
+      "size": [
+        0.7685019948005677,
+        1.47,
+        18.360888000000006
+      ],
+      "capacityM3": 14.934425191081498,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-strip-starboard-11-5",
+      "name": "Starboard outer space 12.6 · estimated",
+      "center": [
+        0.4342509974002839,
+        2.25,
+        110
+      ],
+      "size": [
+        0.7685019948005677,
+        1.47,
+        18.360888000000006
+      ],
+      "capacityM3": 14.934425191081498,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-end-bow-0",
+      "name": "Bow end space 1 · estimated",
+      "center": [
+        0,
+        -5.25,
+        -111.8678
+      ],
+      "size": [
+        0.8,
+        1.47,
+        9.98
+      ],
+      "capacityM3": 8.450265600000002,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-end-bow-1",
+      "name": "Bow end space 2 · estimated",
+      "center": [
+        0,
+        -3.75,
+        -110.8678
+      ],
+      "size": [
+        0.8,
+        1.47,
+        9.98
+      ],
+      "capacityM3": 8.450265600000002,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-end-bow-2",
+      "name": "Bow end space 3 · estimated",
+      "center": [
+        0,
+        -2.25,
+        -109.8678
+      ],
+      "size": [
+        0.8,
+        1.47,
+        9.98
+      ],
+      "capacityM3": 8.450265600000002,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-end-bow-3",
+      "name": "Bow end space 4 · estimated",
+      "center": [
+        0,
+        -0.75,
+        -108.8678
+      ],
+      "size": [
+        0.8,
+        1.47,
+        9.98
+      ],
+      "capacityM3": 8.450265600000002,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-end-bow-4",
+      "name": "Bow end space 5 · estimated",
+      "center": [
+        0,
+        0.75,
+        -108.8678
+      ],
+      "size": [
+        0.8,
+        1.47,
+        9.98
+      ],
+      "capacityM3": 8.450265600000002,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-end-bow-5",
+      "name": "Bow end space 6 · estimated",
+      "center": [
+        0,
+        2.25,
+        -108.8678
+      ],
+      "size": [
+        0.8,
+        1.47,
+        9.98
+      ],
+      "capacityM3": 8.450265600000002,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-end-stern-1",
+      "name": "Stern end space 2 · estimated",
+      "center": [
+        0,
+        -3.75,
+        90.3678
+      ],
+      "size": [
+        0.8,
+        1.47,
+        2.98
+      ],
+      "capacityM3": 2.5232256000000004,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-end-stern-2",
+      "name": "Stern end space 3 · estimated",
+      "center": [
+        0,
+        -2.25,
+        92.8678
+      ],
+      "size": [
+        0.8,
+        1.47,
+        7.98
+      ],
+      "capacityM3": 6.756825600000001,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-end-stern-3",
+      "name": "Stern end space 4 · estimated",
+      "center": [
+        0,
+        -0.75,
+        110.3678
+      ],
+      "size": [
+        0.8,
+        1.47,
+        4.98
+      ],
+      "capacityM3": 4.216665600000001,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-end-stern-4",
+      "name": "Stern end space 5 · estimated",
+      "center": [
+        0,
+        0.75,
+        112.3678
+      ],
+      "size": [
+        0.8,
+        1.47,
+        8.98
+      ],
+      "capacityM3": 7.603545600000001,
+      "pumpM3PerSecond": 0.001
+    },
+    {
+      "id": "flood-end-stern-5",
+      "name": "Stern end space 6 · estimated",
+      "center": [
+        0,
+        2.25,
+        94.8678
+      ],
+      "size": [
+        0.8,
+        1.47,
+        9.98
+      ],
+      "capacityM3": 8.450265600000002,
+      "pumpM3PerSecond": 0.001
     }
   ],
   "connections": [
     {
       "fromId": "fore-magazine",
       "toId": "boilers-forward",
-      "areaM2": 0.018
+      "areaM2": 0.018,
+      "id": "boundary-0",
+      "state": "closed",
+      "position": [
+        0,
+        -2.7,
+        -52.5
+      ]
     },
     {
       "fromId": "boilers-forward",
       "toId": "boilers-aft",
-      "areaM2": 0.018
+      "areaM2": 0.018,
+      "id": "boundary-1",
+      "state": "closed",
+      "position": [
+        0,
+        -2.7,
+        -14
+      ]
     },
     {
       "fromId": "boilers-aft",
       "toId": "turbines",
-      "areaM2": 0.018
+      "areaM2": 0.018,
+      "id": "boundary-2",
+      "state": "closed",
+      "position": [
+        0,
+        -2.7,
+        16.5
+      ]
     },
     {
       "fromId": "turbines",
       "toId": "aft-magazine",
-      "areaM2": 0.018
+      "areaM2": 0.018,
+      "id": "boundary-3",
+      "state": "closed",
+      "position": [
+        0,
+        -2.7,
+        54.5
+      ]
     },
     {
       "fromId": "aft-magazine",
       "toId": "steering-space",
-      "areaM2": 0.018
+      "areaM2": 0.018,
+      "id": "boundary-4",
+      "state": "closed",
+      "position": [
+        0,
+        -2.7,
+        89.5
+      ]
+    },
+    {
+      "id": "partition-a5059cc748c6",
+      "fromId": "fore-magazine",
+      "toId": "flood-strip-port-1-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -1.371319240188598,
+        1.4075,
+        -83.2839
+      ],
+      "bounds": {
+        "center": [
+          -1.371319240188598,
+          1.4075,
+          -83.2839
+        ],
+        "size": [
+          2,
+          0.2950000000000003,
+          7.432199999999995
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-f9bf1969e183",
+      "fromId": "fore-magazine",
+      "toId": "flood-strip-starboard-1-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        1.371319240188598,
+        1.4075,
+        -83.2839
+      ],
+      "bounds": {
+        "center": [
+          1.371319240188598,
+          1.4075,
+          -83.2839
+        ],
+        "size": [
+          2,
+          0.2950000000000003,
+          7.432199999999995
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-41406b32b33e",
+      "fromId": "fore-magazine",
+      "toId": "flood-strip-port-2-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -4.155707826042175,
+        1.4075,
+        -72.0839
+      ],
+      "bounds": {
+        "center": [
+          -4.155707826042175,
+          1.4075,
+          -72.0839
+        ],
+        "size": [
+          1.6885843479156497,
+          0.2950000000000003,
+          14.1678
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-ee13d4c84c56",
+      "fromId": "fore-magazine",
+      "toId": "flood-strip-starboard-2-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        4.155707826042175,
+        1.4075,
+        -72.0839
+      ],
+      "bounds": {
+        "center": [
+          4.155707826042175,
+          1.4075,
+          -72.0839
+        ],
+        "size": [
+          1.6885843479156497,
+          0.2950000000000003,
+          14.1678
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-e001f5d017b7",
+      "fromId": "boilers-forward",
+      "toId": "flood-strip-port-3-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -7.23252568655014,
+        1.4075,
+        -41.2839
+      ],
+      "bounds": {
+        "center": [
+          -7.23252568655014,
+          1.4075,
+          -41.2839
+        ],
+        "size": [
+          2,
+          0.2950000000000003,
+          3.4321999999999946
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-fff687332491",
+      "fromId": "boilers-forward",
+      "toId": "flood-strip-starboard-3-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        7.23252568655014,
+        1.4075,
+        -41.2839
+      ],
+      "bounds": {
+        "center": [
+          7.23252568655014,
+          1.4075,
+          -41.2839
+        ],
+        "size": [
+          2,
+          0.2950000000000003,
+          3.4321999999999946
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-871b2b110809",
+      "fromId": "boilers-forward",
+      "toId": "flood-strip-port-4-1",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.530000000000001,
+        -3.75,
+        -29.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          -8.530000000000001,
+          -3.75,
+          -29.367800000000003
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4700000000000002,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-644d353cbd5c",
+      "fromId": "boilers-forward",
+      "toId": "flood-strip-starboard-4-1",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.530000000000001,
+        -3.75,
+        -29.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          8.530000000000001,
+          -3.75,
+          -29.367800000000003
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4700000000000002,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-a10e24595c63",
+      "fromId": "boilers-forward",
+      "toId": "flood-strip-port-4-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.530000000000001,
+        -2.25,
+        -29.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          -8.530000000000001,
+          -2.25,
+          -29.367800000000003
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4699999999999998,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-9bce2ba15643",
+      "fromId": "boilers-forward",
+      "toId": "flood-strip-starboard-4-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.530000000000001,
+        -2.25,
+        -29.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          8.530000000000001,
+          -2.25,
+          -29.367800000000003
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4699999999999998,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-3be2384e6f2e",
+      "fromId": "boilers-forward",
+      "toId": "flood-strip-port-4-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.530000000000001,
+        -0.75,
+        -29.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          -8.530000000000001,
+          -0.75,
+          -29.367800000000003
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4699999999999998,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-18e11f3df588",
+      "fromId": "boilers-forward",
+      "toId": "flood-strip-starboard-4-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.530000000000001,
+        -0.75,
+        -29.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          8.530000000000001,
+          -0.75,
+          -29.367800000000003
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4699999999999998,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-5adcdef228a8",
+      "fromId": "boilers-forward",
+      "toId": "flood-strip-port-4-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.530000000000001,
+        0.6575,
+        -29.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          -8.530000000000001,
+          0.6575,
+          -29.367800000000003
+        ],
+        "size": [
+          0.1400000000000023,
+          1.2849999999999997,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-412b5a7b437b",
+      "fromId": "boilers-forward",
+      "toId": "flood-strip-starboard-4-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.530000000000001,
+        0.6575,
+        -29.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          8.530000000000001,
+          0.6575,
+          -29.367800000000003
+        ],
+        "size": [
+          0.1400000000000023,
+          1.2849999999999997,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-914ed1d272dc",
+      "fromId": "boilers-forward",
+      "toId": "flood-strip-port-5-0",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.530000000000001,
+        -5.25,
+        -17.0839
+      ],
+      "bounds": {
+        "center": [
+          -8.530000000000001,
+          -5.25,
+          -17.0839
+        ],
+        "size": [
+          0.1400000000000005,
+          1.4700000000000006,
+          4.167800000000003
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-3894e19b21bf",
+      "fromId": "boilers-forward",
+      "toId": "flood-strip-starboard-5-0",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.530000000000001,
+        -5.25,
+        -17.0839
+      ],
+      "bounds": {
+        "center": [
+          8.530000000000001,
+          -5.25,
+          -17.0839
+        ],
+        "size": [
+          0.1400000000000005,
+          1.4700000000000006,
+          4.167800000000003
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-de28283dd295",
+      "fromId": "boilers-forward",
+      "toId": "flood-strip-port-5-1",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.530000000000001,
+        -3.75,
+        -17.0839
+      ],
+      "bounds": {
+        "center": [
+          -8.530000000000001,
+          -3.75,
+          -17.0839
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4700000000000002,
+          4.167800000000003
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-0678e4bd889c",
+      "fromId": "boilers-forward",
+      "toId": "flood-strip-starboard-5-1",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.530000000000001,
+        -3.75,
+        -17.0839
+      ],
+      "bounds": {
+        "center": [
+          8.530000000000001,
+          -3.75,
+          -17.0839
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4700000000000002,
+          4.167800000000003
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-07da5852fd8d",
+      "fromId": "boilers-forward",
+      "toId": "flood-strip-port-5-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.530000000000001,
+        -2.25,
+        -17.0839
+      ],
+      "bounds": {
+        "center": [
+          -8.530000000000001,
+          -2.25,
+          -17.0839
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4699999999999998,
+          4.167800000000003
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-6758257fc47b",
+      "fromId": "boilers-forward",
+      "toId": "flood-strip-starboard-5-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.530000000000001,
+        -2.25,
+        -17.0839
+      ],
+      "bounds": {
+        "center": [
+          8.530000000000001,
+          -2.25,
+          -17.0839
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4699999999999998,
+          4.167800000000003
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-f8c8ac317e87",
+      "fromId": "boilers-forward",
+      "toId": "flood-strip-port-5-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.53,
+        -0.75,
+        -17.0839
+      ],
+      "bounds": {
+        "center": [
+          -8.53,
+          -0.75,
+          -17.0839
+        ],
+        "size": [
+          0.13999999999999874,
+          1.4699999999999998,
+          4.167800000000003
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-13b45d663269",
+      "fromId": "boilers-forward",
+      "toId": "flood-strip-starboard-5-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.53,
+        -0.75,
+        -17.0839
+      ],
+      "bounds": {
+        "center": [
+          8.53,
+          -0.75,
+          -17.0839
+        ],
+        "size": [
+          0.13999999999999874,
+          1.4699999999999998,
+          4.167800000000003
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-29221b1ec655",
+      "fromId": "boilers-forward",
+      "toId": "flood-strip-port-5-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.530000000000001,
+        0.6575,
+        -17.0839
+      ],
+      "bounds": {
+        "center": [
+          -8.530000000000001,
+          0.6575,
+          -17.0839
+        ],
+        "size": [
+          0.1400000000000023,
+          1.2849999999999997,
+          4.167800000000003
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-4047e9d5a807",
+      "fromId": "boilers-forward",
+      "toId": "flood-strip-starboard-5-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.530000000000001,
+        0.6575,
+        -17.0839
+      ],
+      "bounds": {
+        "center": [
+          8.530000000000001,
+          0.6575,
+          -17.0839
+        ],
+        "size": [
+          0.1400000000000023,
+          1.2849999999999997,
+          4.167800000000003
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-b75061c52c33",
+      "fromId": "boilers-aft",
+      "toId": "flood-strip-port-5-0",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.530000000000001,
+        -5.25,
+        -6.283900000000001
+      ],
+      "bounds": {
+        "center": [
+          -8.530000000000001,
+          -5.25,
+          -6.283900000000001
+        ],
+        "size": [
+          0.1400000000000005,
+          1.4700000000000006,
+          13.432199999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-f80ec2f41f98",
+      "fromId": "boilers-aft",
+      "toId": "flood-strip-starboard-5-0",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.530000000000001,
+        -5.25,
+        -6.283900000000001
+      ],
+      "bounds": {
+        "center": [
+          8.530000000000001,
+          -5.25,
+          -6.283900000000001
+        ],
+        "size": [
+          0.1400000000000005,
+          1.4700000000000006,
+          13.432199999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-56c3192bfeea",
+      "fromId": "boilers-aft",
+      "toId": "flood-strip-port-5-1",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.530000000000001,
+        -3.75,
+        -6.283900000000001
+      ],
+      "bounds": {
+        "center": [
+          -8.530000000000001,
+          -3.75,
+          -6.283900000000001
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4700000000000002,
+          13.432199999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-c0380d6b59a6",
+      "fromId": "boilers-aft",
+      "toId": "flood-strip-starboard-5-1",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.530000000000001,
+        -3.75,
+        -6.283900000000001
+      ],
+      "bounds": {
+        "center": [
+          8.530000000000001,
+          -3.75,
+          -6.283900000000001
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4700000000000002,
+          13.432199999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-1f20e4b5fc88",
+      "fromId": "boilers-aft",
+      "toId": "flood-strip-port-5-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.530000000000001,
+        -2.25,
+        -6.283900000000001
+      ],
+      "bounds": {
+        "center": [
+          -8.530000000000001,
+          -2.25,
+          -6.283900000000001
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4699999999999998,
+          13.432199999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-801894f8f6e5",
+      "fromId": "boilers-aft",
+      "toId": "flood-strip-starboard-5-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.530000000000001,
+        -2.25,
+        -6.283900000000001
+      ],
+      "bounds": {
+        "center": [
+          8.530000000000001,
+          -2.25,
+          -6.283900000000001
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4699999999999998,
+          13.432199999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-1de9f8d76923",
+      "fromId": "boilers-aft",
+      "toId": "flood-strip-port-5-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.53,
+        -0.75,
+        -6.283900000000001
+      ],
+      "bounds": {
+        "center": [
+          -8.53,
+          -0.75,
+          -6.283900000000001
+        ],
+        "size": [
+          0.13999999999999874,
+          1.4699999999999998,
+          13.432199999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-0febf4b3160e",
+      "fromId": "boilers-aft",
+      "toId": "flood-strip-starboard-5-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.53,
+        -0.75,
+        -6.283900000000001
+      ],
+      "bounds": {
+        "center": [
+          8.53,
+          -0.75,
+          -6.283900000000001
+        ],
+        "size": [
+          0.13999999999999874,
+          1.4699999999999998,
+          13.432199999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-95810c8440eb",
+      "fromId": "boilers-aft",
+      "toId": "flood-strip-port-5-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.530000000000001,
+        0.6575,
+        -6.283900000000001
+      ],
+      "bounds": {
+        "center": [
+          -8.530000000000001,
+          0.6575,
+          -6.283900000000001
+        ],
+        "size": [
+          0.1400000000000023,
+          1.2849999999999997,
+          13.432199999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-99eae2f0e3a2",
+      "fromId": "boilers-aft",
+      "toId": "flood-strip-starboard-5-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.530000000000001,
+        0.6575,
+        -6.283900000000001
+      ],
+      "bounds": {
+        "center": [
+          8.530000000000001,
+          0.6575,
+          -6.283900000000001
+        ],
+        "size": [
+          0.1400000000000023,
+          1.2849999999999997,
+          13.432199999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-f2f344e019d1",
+      "fromId": "boilers-aft",
+      "toId": "flood-strip-port-6-0",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.530000000000001,
+        -5.25,
+        7.916099999999998
+      ],
+      "bounds": {
+        "center": [
+          -8.530000000000001,
+          -5.25,
+          7.916099999999998
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4700000000000006,
+          14.167800000000003
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-ef978da8a58b",
+      "fromId": "boilers-aft",
+      "toId": "flood-strip-starboard-6-0",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.530000000000001,
+        -5.25,
+        7.916099999999998
+      ],
+      "bounds": {
+        "center": [
+          8.530000000000001,
+          -5.25,
+          7.916099999999998
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4700000000000006,
+          14.167800000000003
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-31829b9a33c4",
+      "fromId": "boilers-aft",
+      "toId": "flood-strip-port-6-1",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.530000000000001,
+        -3.75,
+        7.916099999999998
+      ],
+      "bounds": {
+        "center": [
+          -8.530000000000001,
+          -3.75,
+          7.916099999999998
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4700000000000002,
+          14.167800000000003
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-55118fed6068",
+      "fromId": "boilers-aft",
+      "toId": "flood-strip-starboard-6-1",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.530000000000001,
+        -3.75,
+        7.916099999999998
+      ],
+      "bounds": {
+        "center": [
+          8.530000000000001,
+          -3.75,
+          7.916099999999998
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4700000000000002,
+          14.167800000000003
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-5e93feabaa59",
+      "fromId": "boilers-aft",
+      "toId": "flood-strip-port-6-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.53,
+        -2.25,
+        7.916099999999998
+      ],
+      "bounds": {
+        "center": [
+          -8.53,
+          -2.25,
+          7.916099999999998
+        ],
+        "size": [
+          0.13999999999999874,
+          1.4699999999999998,
+          14.167800000000003
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-874881f05cfa",
+      "fromId": "boilers-aft",
+      "toId": "flood-strip-starboard-6-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.53,
+        -2.25,
+        7.916099999999998
+      ],
+      "bounds": {
+        "center": [
+          8.53,
+          -2.25,
+          7.916099999999998
+        ],
+        "size": [
+          0.13999999999999874,
+          1.4699999999999998,
+          14.167800000000003
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-c88c506abc75",
+      "fromId": "boilers-aft",
+      "toId": "flood-strip-port-6-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.530000000000001,
+        -0.75,
+        7.916099999999998
+      ],
+      "bounds": {
+        "center": [
+          -8.530000000000001,
+          -0.75,
+          7.916099999999998
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4699999999999998,
+          14.167800000000003
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-d14906ef7500",
+      "fromId": "boilers-aft",
+      "toId": "flood-strip-starboard-6-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.530000000000001,
+        -0.75,
+        7.916099999999998
+      ],
+      "bounds": {
+        "center": [
+          8.530000000000001,
+          -0.75,
+          7.916099999999998
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4699999999999998,
+          14.167800000000003
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-1a72d7bee22b",
+      "fromId": "boilers-aft",
+      "toId": "flood-strip-port-6-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.530000000000001,
+        0.6575,
+        7.916099999999998
+      ],
+      "bounds": {
+        "center": [
+          -8.530000000000001,
+          0.6575,
+          7.916099999999998
+        ],
+        "size": [
+          0.1400000000000023,
+          1.2849999999999997,
+          14.167800000000003
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-c3ff366af2bd",
+      "fromId": "boilers-aft",
+      "toId": "flood-strip-starboard-6-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.530000000000001,
+        0.6575,
+        7.916099999999998
+      ],
+      "bounds": {
+        "center": [
+          8.530000000000001,
+          0.6575,
+          7.916099999999998
+        ],
+        "size": [
+          0.1400000000000023,
+          1.2849999999999997,
+          14.167800000000003
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-1835439cdbdd",
+      "fromId": "turbines",
+      "toId": "flood-strip-port-6-0",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.530000000000001,
+        -5.25,
+        18.966099999999997
+      ],
+      "bounds": {
+        "center": [
+          -8.530000000000001,
+          -5.25,
+          18.966099999999997
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4700000000000006,
+          2.932199999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-817b4e4adeef",
+      "fromId": "turbines",
+      "toId": "flood-strip-starboard-6-0",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.530000000000001,
+        -5.25,
+        18.966099999999997
+      ],
+      "bounds": {
+        "center": [
+          8.530000000000001,
+          -5.25,
+          18.966099999999997
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4700000000000006,
+          2.932199999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-aaf7a2fa9bad",
+      "fromId": "turbines",
+      "toId": "flood-strip-port-6-1",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.530000000000001,
+        -3.75,
+        18.966099999999997
+      ],
+      "bounds": {
+        "center": [
+          -8.530000000000001,
+          -3.75,
+          18.966099999999997
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4700000000000002,
+          2.932199999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-4d252a42955c",
+      "fromId": "turbines",
+      "toId": "flood-strip-starboard-6-1",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.530000000000001,
+        -3.75,
+        18.966099999999997
+      ],
+      "bounds": {
+        "center": [
+          8.530000000000001,
+          -3.75,
+          18.966099999999997
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4700000000000002,
+          2.932199999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-87a7ed7c5aac",
+      "fromId": "turbines",
+      "toId": "flood-strip-port-6-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.53,
+        -2.25,
+        18.966099999999997
+      ],
+      "bounds": {
+        "center": [
+          -8.53,
+          -2.25,
+          18.966099999999997
+        ],
+        "size": [
+          0.13999999999999874,
+          1.4699999999999998,
+          2.932199999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-b86f7e97d71b",
+      "fromId": "turbines",
+      "toId": "flood-strip-starboard-6-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.53,
+        -2.25,
+        18.966099999999997
+      ],
+      "bounds": {
+        "center": [
+          8.53,
+          -2.25,
+          18.966099999999997
+        ],
+        "size": [
+          0.13999999999999874,
+          1.4699999999999998,
+          2.932199999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-64a412fedee4",
+      "fromId": "turbines",
+      "toId": "flood-strip-port-6-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.530000000000001,
+        -0.75,
+        18.966099999999997
+      ],
+      "bounds": {
+        "center": [
+          -8.530000000000001,
+          -0.75,
+          18.966099999999997
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4699999999999998,
+          2.932199999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-46ee68316dcd",
+      "fromId": "turbines",
+      "toId": "flood-strip-starboard-6-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.530000000000001,
+        -0.75,
+        18.966099999999997
+      ],
+      "bounds": {
+        "center": [
+          8.530000000000001,
+          -0.75,
+          18.966099999999997
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4699999999999998,
+          2.932199999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-9bbf7734162b",
+      "fromId": "turbines",
+      "toId": "flood-strip-port-6-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.530000000000001,
+        0.6575,
+        18.966099999999997
+      ],
+      "bounds": {
+        "center": [
+          -8.530000000000001,
+          0.6575,
+          18.966099999999997
+        ],
+        "size": [
+          0.1400000000000023,
+          1.2849999999999997,
+          2.932199999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-44c19fd5169e",
+      "fromId": "turbines",
+      "toId": "flood-strip-starboard-6-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.530000000000001,
+        0.6575,
+        18.966099999999997
+      ],
+      "bounds": {
+        "center": [
+          8.530000000000001,
+          0.6575,
+          18.966099999999997
+        ],
+        "size": [
+          0.1400000000000023,
+          1.2849999999999997,
+          2.932199999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-e306fcefce0e",
+      "fromId": "turbines",
+      "toId": "flood-strip-port-7-1",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.530000000000001,
+        -3.75,
+        30.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          -8.530000000000001,
+          -3.75,
+          30.632199999999997
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4700000000000002,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-e7f41d8d6e1e",
+      "fromId": "turbines",
+      "toId": "flood-strip-starboard-7-1",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.530000000000001,
+        -3.75,
+        30.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          8.530000000000001,
+          -3.75,
+          30.632199999999997
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4700000000000002,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-e2bdb20a0377",
+      "fromId": "turbines",
+      "toId": "flood-strip-port-7-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.530000000000001,
+        -2.25,
+        30.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          -8.530000000000001,
+          -2.25,
+          30.632199999999997
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4699999999999998,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-a6cd4b4e6766",
+      "fromId": "turbines",
+      "toId": "flood-strip-starboard-7-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.530000000000001,
+        -2.25,
+        30.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          8.530000000000001,
+          -2.25,
+          30.632199999999997
+        ],
+        "size": [
+          0.1400000000000023,
+          1.4699999999999998,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-aab930763034",
+      "fromId": "turbines",
+      "toId": "flood-strip-port-7-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.530000000000001,
+        -0.75,
+        30.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          -8.530000000000001,
+          -0.75,
+          30.632199999999997
+        ],
+        "size": [
+          0.1400000000000005,
+          1.4699999999999998,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-cbd95e2efd4e",
+      "fromId": "turbines",
+      "toId": "flood-strip-starboard-7-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.530000000000001,
+        -0.75,
+        30.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          8.530000000000001,
+          -0.75,
+          30.632199999999997
+        ],
+        "size": [
+          0.1400000000000005,
+          1.4699999999999998,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-a7c370dd5ac8",
+      "fromId": "turbines",
+      "toId": "flood-strip-port-7-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.53,
+        0.6575,
+        30.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          -8.53,
+          0.6575,
+          30.632199999999997
+        ],
+        "size": [
+          0.13999999999999874,
+          1.2849999999999997,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-daf6a0c6013e",
+      "fromId": "turbines",
+      "toId": "flood-strip-starboard-7-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.53,
+        0.6575,
+        30.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          8.53,
+          0.6575,
+          30.632199999999997
+        ],
+        "size": [
+          0.13999999999999874,
+          1.2849999999999997,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-662b76aa6763",
+      "fromId": "turbines",
+      "toId": "flood-strip-port-8-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.53,
+        -2.25,
+        43.6661
+      ],
+      "bounds": {
+        "center": [
+          -8.53,
+          -2.25,
+          43.6661
+        ],
+        "size": [
+          0.13999999999999874,
+          1.4699999999999998,
+          5.6678
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-6517d2c30d04",
+      "fromId": "turbines",
+      "toId": "flood-strip-starboard-8-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.53,
+        -2.25,
+        43.6661
+      ],
+      "bounds": {
+        "center": [
+          8.53,
+          -2.25,
+          43.6661
+        ],
+        "size": [
+          0.13999999999999874,
+          1.4699999999999998,
+          5.6678
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-1d3fd2a24afd",
+      "fromId": "turbines",
+      "toId": "flood-strip-port-8-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.53,
+        -0.75,
+        43.6661
+      ],
+      "bounds": {
+        "center": [
+          -8.53,
+          -0.75,
+          43.6661
+        ],
+        "size": [
+          0.13999999999999874,
+          1.4699999999999998,
+          5.6678
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-ba6c0d93215f",
+      "fromId": "turbines",
+      "toId": "flood-strip-starboard-8-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.53,
+        -0.75,
+        43.6661
+      ],
+      "bounds": {
+        "center": [
+          8.53,
+          -0.75,
+          43.6661
+        ],
+        "size": [
+          0.13999999999999874,
+          1.4699999999999998,
+          5.6678
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-ea5cda05153a",
+      "fromId": "turbines",
+      "toId": "flood-strip-port-8-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.53,
+        0.6575,
+        43.6661
+      ],
+      "bounds": {
+        "center": [
+          -8.53,
+          0.6575,
+          43.6661
+        ],
+        "size": [
+          0.13999999999999874,
+          1.2849999999999997,
+          5.6678
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-d55ff3aabcce",
+      "fromId": "turbines",
+      "toId": "flood-strip-starboard-8-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.53,
+        0.6575,
+        43.6661
+      ],
+      "bounds": {
+        "center": [
+          8.53,
+          0.6575,
+          43.6661
+        ],
+        "size": [
+          0.13999999999999874,
+          1.2849999999999997,
+          5.6678
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-cd5c8a7979ad",
+      "fromId": "aft-magazine",
+      "toId": "flood-strip-port-9-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -5.029999999999999,
+        -2.25,
+        73.7161
+      ],
+      "bounds": {
+        "center": [
+          -5.029999999999999,
+          -2.25,
+          73.7161
+        ],
+        "size": [
+          0.13999999999999962,
+          1.4699999999999998,
+          13.432199999999995
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-a6fbfa36fb60",
+      "fromId": "aft-magazine",
+      "toId": "flood-strip-starboard-9-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        5.029999999999999,
+        -2.25,
+        73.7161
+      ],
+      "bounds": {
+        "center": [
+          5.029999999999999,
+          -2.25,
+          73.7161
+        ],
+        "size": [
+          0.13999999999999962,
+          1.4699999999999998,
+          13.432199999999995
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-3e180b43ddb4",
+      "fromId": "aft-magazine",
+      "toId": "flood-strip-port-9-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -5.029999999999999,
+        -0.75,
+        73.7161
+      ],
+      "bounds": {
+        "center": [
+          -5.029999999999999,
+          -0.75,
+          73.7161
+        ],
+        "size": [
+          0.13999999999999874,
+          1.4699999999999998,
+          13.432199999999995
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-93eb14f2e8d7",
+      "fromId": "aft-magazine",
+      "toId": "flood-strip-starboard-9-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        5.029999999999999,
+        -0.75,
+        73.7161
+      ],
+      "bounds": {
+        "center": [
+          5.029999999999999,
+          -0.75,
+          73.7161
+        ],
+        "size": [
+          0.13999999999999874,
+          1.4699999999999998,
+          13.432199999999995
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-bfa1468281eb",
+      "fromId": "aft-magazine",
+      "toId": "flood-strip-port-9-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -5.029999999999999,
+        0.6575,
+        73.7161
+      ],
+      "bounds": {
+        "center": [
+          -5.029999999999999,
+          0.6575,
+          73.7161
+        ],
+        "size": [
+          0.13999999999999874,
+          1.2849999999999997,
+          13.432199999999995
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-07ae03671d60",
+      "fromId": "aft-magazine",
+      "toId": "flood-strip-starboard-9-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        5.029999999999999,
+        0.6575,
+        73.7161
+      ],
+      "bounds": {
+        "center": [
+          5.029999999999999,
+          0.6575,
+          73.7161
+        ],
+        "size": [
+          0.13999999999999874,
+          1.2849999999999997,
+          13.432199999999995
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-55794cd89d89",
+      "fromId": "aft-magazine",
+      "toId": "flood-strip-port-10-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -5.029999999999999,
+        0.6575,
+        83.9161
+      ],
+      "bounds": {
+        "center": [
+          -5.029999999999999,
+          0.6575,
+          83.9161
+        ],
+        "size": [
+          0.13999999999999962,
+          1.2849999999999997,
+          6.1678
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-7ca1f996502c",
+      "fromId": "aft-magazine",
+      "toId": "flood-strip-starboard-10-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        5.029999999999999,
+        0.6575,
+        83.9161
+      ],
+      "bounds": {
+        "center": [
+          5.029999999999999,
+          0.6575,
+          83.9161
+        ],
+        "size": [
+          0.13999999999999962,
+          1.2849999999999997,
+          6.1678
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-e537ae20b57b",
+      "fromId": "aft-magazine",
+      "toId": "flood-end-stern-1",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        0,
+        -3.75,
+        87.9389
+      ],
+      "bounds": {
+        "center": [
+          0,
+          -3.75,
+          87.9389
+        ],
+        "size": [
+          0.8,
+          1.4700000000000002,
+          1.9578000000000078
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-037bb9b37eba",
+      "fromId": "aft-magazine",
+      "toId": "flood-end-stern-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        0,
+        -2.25,
+        87.9389
+      ],
+      "bounds": {
+        "center": [
+          0,
+          -2.25,
+          87.9389
+        ],
+        "size": [
+          0.8,
+          1.4699999999999998,
+          1.9578000000000078
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-9f095d946b80",
+      "fromId": "steering-space",
+      "toId": "flood-strip-port-10-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -5.029999999999999,
+        0.6575,
+        98.7161
+      ],
+      "bounds": {
+        "center": [
+          -5.029999999999999,
+          0.6575,
+          98.7161
+        ],
+        "size": [
+          0.13999999999999962,
+          1.2849999999999997,
+          3.4321999999999946
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-b57286252a3c",
+      "fromId": "steering-space",
+      "toId": "flood-strip-starboard-10-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        5.029999999999999,
+        0.6575,
+        98.7161
+      ],
+      "bounds": {
+        "center": [
+          5.029999999999999,
+          0.6575,
+          98.7161
+        ],
+        "size": [
+          0.13999999999999962,
+          1.2849999999999997,
+          3.4321999999999946
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-2539f2ce3061",
+      "fromId": "steering-space",
+      "toId": "flood-strip-port-11-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -0.4342509974002839,
+        1.4075,
+        103.90977799999999
+      ],
+      "bounds": {
+        "center": [
+          -0.4342509974002839,
+          1.4075,
+          103.90977799999999
+        ],
+        "size": [
+          0.7685019948005677,
+          0.2950000000000003,
+          6.1804440000000085
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-14af9a4d97a1",
+      "fromId": "steering-space",
+      "toId": "flood-strip-starboard-11-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        0.4342509974002839,
+        1.4075,
+        103.90977799999999
+      ],
+      "bounds": {
+        "center": [
+          0.4342509974002839,
+          1.4075,
+          103.90977799999999
+        ],
+        "size": [
+          0.7685019948005677,
+          0.2950000000000003,
+          6.1804440000000085
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-93220dfb261a",
+      "fromId": "steering-space",
+      "toId": "flood-end-stern-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        0,
+        -2.25,
+        96.9289
+      ],
+      "bounds": {
+        "center": [
+          0,
+          -2.25,
+          96.9289
+        ],
+        "size": [
+          0.8,
+          1.4699999999999998,
+          0.22220000000000256
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-d8a4f20f356f",
+      "fromId": "steering-space",
+      "toId": "flood-end-stern-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        0,
+        -0.75,
+        107.4389
+      ],
+      "bounds": {
+        "center": [
+          0,
+          -0.75,
+          107.4389
+        ],
+        "size": [
+          0.8,
+          1.4699999999999998,
+          0.9578000000000076
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-2a110dd193f3",
+      "fromId": "steering-space",
+      "toId": "flood-end-stern-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        0,
+        0.6575,
+        107.4389
+      ],
+      "bounds": {
+        "center": [
+          0,
+          0.6575,
+          107.4389
+        ],
+        "size": [
+          0.8,
+          1.2849999999999997,
+          0.9578000000000076
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-1fc83e9f1198",
+      "fromId": "steering-space",
+      "toId": "flood-end-stern-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        0,
+        1.4075,
+        98.4289
+      ],
+      "bounds": {
+        "center": [
+          0,
+          1.4075,
+          98.4289
+        ],
+        "size": [
+          0.8,
+          0.2950000000000003,
+          2.8577999999999975
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-d95fb4b6c9b5",
+      "fromId": "flood-strip-port-1-5",
+      "toId": "flood-strip-starboard-1-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        0,
+        2.25,
+        -89.3678
+      ],
+      "bounds": {
+        "center": [
+          0,
+          2.25,
+          -89.3678
+        ],
+        "size": [
+          0.8226384803771961,
+          1.4699999999999998,
+          19.599999999999994
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-37e8dafad55c",
+      "fromId": "flood-strip-port-4-1",
+      "toId": "flood-strip-port-4-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.957674705410003,
+        -3,
+        -29.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          -8.957674705410003,
+          -3,
+          -29.367800000000003
+        ],
+        "size": [
+          0.7953494108200019,
+          0.11000000000000025,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-c977337c7e73",
+      "fromId": "flood-strip-port-4-1",
+      "toId": "flood-strip-port-5-1",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.957674705410003,
+        -3.75,
+        -19.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          -8.957674705410003,
+          -3.75,
+          -19.367800000000003
+        ],
+        "size": [
+          0.7953494108200019,
+          1.4700000000000002,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-2679abb9cd7a",
+      "fromId": "flood-strip-starboard-4-1",
+      "toId": "flood-strip-starboard-4-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.957674705410003,
+        -3,
+        -29.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          8.957674705410003,
+          -3,
+          -29.367800000000003
+        ],
+        "size": [
+          0.7953494108200019,
+          0.11000000000000025,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-e4612038c3c4",
+      "fromId": "flood-strip-starboard-4-1",
+      "toId": "flood-strip-starboard-5-1",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.957674705410003,
+        -3.75,
+        -19.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          8.957674705410003,
+          -3.75,
+          -19.367800000000003
+        ],
+        "size": [
+          0.7953494108200019,
+          1.4700000000000002,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-dbc02a4a855e",
+      "fromId": "flood-strip-port-4-2",
+      "toId": "flood-strip-port-4-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -9.196330686807634,
+        -1.5,
+        -29.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          -9.196330686807634,
+          -1.5,
+          -29.367800000000003
+        ],
+        "size": [
+          1.2726613736152643,
+          0.11000000000000025,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-1334f573faef",
+      "fromId": "flood-strip-port-4-2",
+      "toId": "flood-strip-port-5-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -9.196330686807634,
+        -2.25,
+        -19.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          -9.196330686807634,
+          -2.25,
+          -19.367800000000003
+        ],
+        "size": [
+          1.2726613736152643,
+          1.4699999999999998,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-8ecc908d09ab",
+      "fromId": "flood-strip-starboard-4-2",
+      "toId": "flood-strip-starboard-4-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        9.196330686807634,
+        -1.5,
+        -29.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          9.196330686807634,
+          -1.5,
+          -29.367800000000003
+        ],
+        "size": [
+          1.2726613736152643,
+          0.11000000000000025,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-c0b1fdeeabcf",
+      "fromId": "flood-strip-starboard-4-2",
+      "toId": "flood-strip-starboard-5-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        9.196330686807634,
+        -2.25,
+        -19.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          9.196330686807634,
+          -2.25,
+          -19.367800000000003
+        ],
+        "size": [
+          1.2726613736152643,
+          1.4699999999999998,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-1b8752e62655",
+      "fromId": "flood-strip-port-4-3",
+      "toId": "flood-strip-port-4-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -9.356385706472398,
+        0,
+        -29.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          -9.356385706472398,
+          0,
+          -29.367800000000003
+        ],
+        "size": [
+          1.592771412944792,
+          0.11000000000000003,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-b4e2f19e7644",
+      "fromId": "flood-strip-port-4-3",
+      "toId": "flood-strip-port-5-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -9.356385706472398,
+        -0.75,
+        -19.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          -9.356385706472398,
+          -0.75,
+          -19.367800000000003
+        ],
+        "size": [
+          1.592771412944792,
+          1.4699999999999998,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-9683dce84fbc",
+      "fromId": "flood-strip-starboard-4-3",
+      "toId": "flood-strip-starboard-4-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        9.356385706472398,
+        0,
+        -29.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          9.356385706472398,
+          0,
+          -29.367800000000003
+        ],
+        "size": [
+          1.592771412944792,
+          0.11000000000000003,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-42b6119f22ce",
+      "fromId": "flood-strip-starboard-4-3",
+      "toId": "flood-strip-starboard-5-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        9.356385706472398,
+        -0.75,
+        -19.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          9.356385706472398,
+          -0.75,
+          -19.367800000000003
+        ],
+        "size": [
+          1.592771412944792,
+          1.4699999999999998,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-675a52364598",
+      "fromId": "flood-strip-port-4-4",
+      "toId": "flood-strip-port-4-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -9.494721343755723,
+        1.5,
+        -29.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          -9.494721343755723,
+          1.5,
+          -29.367800000000003
+        ],
+        "size": [
+          1.7637738303184527,
+          0.11000000000000025,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-55906f225d1e",
+      "fromId": "flood-strip-port-4-4",
+      "toId": "flood-strip-port-5-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -9.468304129457476,
+        0.75,
+        -19.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          -9.468304129457476,
+          0.75,
+          -19.367800000000003
+        ],
+        "size": [
+          1.8166082589149468,
+          1.4699999999999998,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-4e5a1002ff25",
+      "fromId": "flood-strip-starboard-4-4",
+      "toId": "flood-strip-starboard-4-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        9.494721343755723,
+        1.5,
+        -29.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          9.494721343755723,
+          1.5,
+          -29.367800000000003
+        ],
+        "size": [
+          1.7637738303184527,
+          0.11000000000000025,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-8d735ce7db0f",
+      "fromId": "flood-strip-starboard-4-4",
+      "toId": "flood-strip-starboard-5-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        9.468304129457476,
+        0.75,
+        -19.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          9.468304129457476,
+          0.75,
+          -19.367800000000003
+        ],
+        "size": [
+          1.8166082589149468,
+          1.4699999999999998,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-cea62f6e448f",
+      "fromId": "flood-strip-port-4-5",
+      "toId": "flood-strip-port-5-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -10.293402335166931,
+        2.25,
+        -19.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          -10.293402335166931,
+          2.25,
+          -19.367800000000003
+        ],
+        "size": [
+          0.6388641868591307,
+          1.4699999999999998,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-851e5d17f096",
+      "fromId": "flood-strip-starboard-4-5",
+      "toId": "flood-strip-starboard-5-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        10.293402335166931,
+        2.25,
+        -19.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          10.293402335166931,
+          2.25,
+          -19.367800000000003
+        ],
+        "size": [
+          0.6388641868591307,
+          1.4699999999999998,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-1d3d64538bcb",
+      "fromId": "flood-strip-port-5-0",
+      "toId": "flood-strip-port-5-1",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -9.727958029747011,
+        -4.5,
+        -9.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          -9.727958029747011,
+          -4.5,
+          -9.367800000000003
+        ],
+        "size": [
+          2.335916059494016,
+          0.10999999999999936,
+          19.6
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-937a437396fd",
+      "fromId": "flood-strip-port-5-0",
+      "toId": "flood-strip-port-6-0",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -9.727958029747011,
+        -5.25,
+        0.6321999999999974
+      ],
+      "bounds": {
+        "center": [
+          -9.727958029747011,
+          -5.25,
+          0.6321999999999974
+        ],
+        "size": [
+          2.335916059494016,
+          1.4700000000000006,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-ba3a6fc8b19c",
+      "fromId": "flood-strip-starboard-5-0",
+      "toId": "flood-strip-starboard-5-1",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        9.727958029747011,
+        -4.5,
+        -9.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          9.727958029747011,
+          -4.5,
+          -9.367800000000003
+        ],
+        "size": [
+          2.335916059494016,
+          0.10999999999999936,
+          19.6
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-bea95fb219f8",
+      "fromId": "flood-strip-starboard-5-0",
+      "toId": "flood-strip-starboard-6-0",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        9.727958029747011,
+        -5.25,
+        0.6321999999999974
+      ],
+      "bounds": {
+        "center": [
+          9.727958029747011,
+          -5.25,
+          0.6321999999999974
+        ],
+        "size": [
+          2.335916059494016,
+          1.4700000000000006,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-b1d5ca6318dc",
+      "fromId": "flood-strip-port-5-1",
+      "toId": "flood-strip-port-5-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -10.023715631103517,
+        -3,
+        -9.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          -10.023715631103517,
+          -3,
+          -9.367800000000003
+        ],
+        "size": [
+          2.9274312622070298,
+          0.11000000000000025,
+          19.6
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-00ba9c4e9beb",
+      "fromId": "flood-strip-port-5-1",
+      "toId": "flood-strip-port-6-1",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -10.023715631103517,
+        -3.75,
+        0.6321999999999974
+      ],
+      "bounds": {
+        "center": [
+          -10.023715631103517,
+          -3.75,
+          0.6321999999999974
+        ],
+        "size": [
+          2.9274312622070298,
+          1.4700000000000002,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-92eff36f60db",
+      "fromId": "flood-strip-starboard-5-1",
+      "toId": "flood-strip-starboard-5-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        10.023715631103517,
+        -3,
+        -9.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          10.023715631103517,
+          -3,
+          -9.367800000000003
+        ],
+        "size": [
+          2.9274312622070298,
+          0.11000000000000025,
+          19.6
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-d5594e287945",
+      "fromId": "flood-strip-starboard-5-1",
+      "toId": "flood-strip-starboard-6-1",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        10.023715631103517,
+        -3.75,
+        0.6321999999999974
+      ],
+      "bounds": {
+        "center": [
+          10.023715631103517,
+          -3.75,
+          0.6321999999999974
+        ],
+        "size": [
+          2.9274312622070298,
+          1.4700000000000002,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-7ceb96388e5f",
+      "fromId": "flood-strip-port-5-2",
+      "toId": "flood-strip-port-5-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -10.105491435384753,
+        -1.5,
+        -9.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          -10.105491435384753,
+          -1.5,
+          -9.367800000000003
+        ],
+        "size": [
+          3.0909828707695013,
+          0.11000000000000025,
+          19.6
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-6c53aaf91397",
+      "fromId": "flood-strip-port-5-2",
+      "toId": "flood-strip-port-6-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -10.105491435384753,
+        -2.25,
+        0.6321999999999974
+      ],
+      "bounds": {
+        "center": [
+          -10.105491435384753,
+          -2.25,
+          0.6321999999999974
+        ],
+        "size": [
+          3.0909828707695013,
+          1.4699999999999998,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-e587465e650d",
+      "fromId": "flood-strip-starboard-5-2",
+      "toId": "flood-strip-starboard-5-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        10.105491435384753,
+        -1.5,
+        -9.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          10.105491435384753,
+          -1.5,
+          -9.367800000000003
+        ],
+        "size": [
+          3.0909828707695013,
+          0.11000000000000025,
+          19.6
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-335cac915c82",
+      "fromId": "flood-strip-starboard-5-2",
+      "toId": "flood-strip-starboard-6-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        10.105491435384753,
+        -2.25,
+        0.6321999999999974
+      ],
+      "bounds": {
+        "center": [
+          10.105491435384753,
+          -2.25,
+          0.6321999999999974
+        ],
+        "size": [
+          3.0909828707695013,
+          1.4699999999999998,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-783d788efd5a",
+      "fromId": "flood-strip-port-5-3",
+      "toId": "flood-strip-port-5-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -10.160195836114886,
+        0,
+        -9.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          -10.160195836114886,
+          0,
+          -9.367800000000003
+        ],
+        "size": [
+          3.2003916722297667,
+          0.11000000000000003,
+          19.6
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-26abb7912754",
+      "fromId": "flood-strip-port-5-3",
+      "toId": "flood-strip-port-6-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -10.160195836114886,
+        -0.75,
+        0.6321999999999974
+      ],
+      "bounds": {
+        "center": [
+          -10.160195836114886,
+          -0.75,
+          0.6321999999999974
+        ],
+        "size": [
+          3.2003916722297667,
+          1.4699999999999998,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-87edfaba11dc",
+      "fromId": "flood-strip-starboard-5-3",
+      "toId": "flood-strip-starboard-5-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        10.160195836114886,
+        0,
+        -9.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          10.160195836114886,
+          0,
+          -9.367800000000003
+        ],
+        "size": [
+          3.2003916722297667,
+          0.11000000000000003,
+          19.6
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-f4cb2aff44c4",
+      "fromId": "flood-strip-starboard-5-3",
+      "toId": "flood-strip-starboard-6-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        10.160195836114886,
+        -0.75,
+        0.6321999999999974
+      ],
+      "bounds": {
+        "center": [
+          10.160195836114886,
+          -0.75,
+          0.6321999999999974
+        ],
+        "size": [
+          3.2003916722297667,
+          1.4699999999999998,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-94e606042699",
+      "fromId": "flood-strip-port-5-4",
+      "toId": "flood-strip-port-5-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -10.909817362499238,
+        1.5,
+        -9.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          -10.909817362499238,
+          1.5,
+          -9.367800000000003
+        ],
+        "size": [
+          1.8716942415237448,
+          0.11000000000000025,
+          19.6
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-cf71fee8af09",
+      "fromId": "flood-strip-port-5-4",
+      "toId": "flood-strip-port-6-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -10.202832241630556,
+        0.75,
+        0.6321999999999974
+      ],
+      "bounds": {
+        "center": [
+          -10.202832241630556,
+          0.75,
+          0.6321999999999974
+        ],
+        "size": [
+          3.285664483261108,
+          1.4699999999999998,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-aaefa8fd13aa",
+      "fromId": "flood-strip-starboard-5-4",
+      "toId": "flood-strip-starboard-5-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        10.909817362499238,
+        1.5,
+        -9.367800000000003
+      ],
+      "bounds": {
+        "center": [
+          10.909817362499238,
+          1.5,
+          -9.367800000000003
+        ],
+        "size": [
+          1.8716942415237448,
+          0.11000000000000025,
+          19.6
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-c2bfa40452f6",
+      "fromId": "flood-strip-starboard-5-4",
+      "toId": "flood-strip-starboard-6-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        10.202832241630556,
+        0.75,
+        0.6321999999999974
+      ],
+      "bounds": {
+        "center": [
+          10.202832241630556,
+          0.75,
+          0.6321999999999974
+        ],
+        "size": [
+          3.285664483261108,
+          1.4699999999999998,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-5084e95c5ba1",
+      "fromId": "flood-strip-port-5-5",
+      "toId": "flood-strip-port-6-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -11.213002708148956,
+        2.25,
+        0.6321999999999974
+      ],
+      "bounds": {
+        "center": [
+          -11.213002708148956,
+          2.25,
+          0.6321999999999974
+        ],
+        "size": [
+          1.5219350671768197,
+          1.4699999999999998,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-063f208d997f",
+      "fromId": "flood-strip-starboard-5-5",
+      "toId": "flood-strip-starboard-6-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        11.213002708148956,
+        2.25,
+        0.6321999999999974
+      ],
+      "bounds": {
+        "center": [
+          11.213002708148956,
+          2.25,
+          0.6321999999999974
+        ],
+        "size": [
+          1.5219350671768197,
+          1.4699999999999998,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-3e981593562a",
+      "fromId": "flood-strip-port-6-0",
+      "toId": "flood-strip-port-6-1",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -10.0740442814827,
+        -4.5,
+        10.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          -10.0740442814827,
+          -4.5,
+          10.632199999999997
+        ],
+        "size": [
+          3.0280885629653937,
+          0.10999999999999936,
+          19.6
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-710b3221e5ae",
+      "fromId": "flood-strip-starboard-6-0",
+      "toId": "flood-strip-starboard-6-1",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        10.0740442814827,
+        -4.5,
+        10.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          10.0740442814827,
+          -4.5,
+          10.632199999999997
+        ],
+        "size": [
+          3.0280885629653937,
+          0.10999999999999936,
+          19.6
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-25892457a959",
+      "fromId": "flood-strip-port-6-1",
+      "toId": "flood-strip-port-6-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -10.445853944921495,
+        -3,
+        10.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          -10.445853944921495,
+          -3,
+          10.632199999999997
+        ],
+        "size": [
+          3.771707889842986,
+          0.11000000000000025,
+          19.6
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-2ba57b69b44a",
+      "fromId": "flood-strip-port-6-1",
+      "toId": "flood-strip-port-7-1",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -9.864609136390687,
+        -3.75,
+        20.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          -9.864609136390687,
+          -3.75,
+          20.632199999999997
+        ],
+        "size": [
+          2.6092182727813693,
+          1.4700000000000002,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-513d98c42147",
+      "fromId": "flood-strip-starboard-6-1",
+      "toId": "flood-strip-starboard-6-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        10.445853944921495,
+        -3,
+        10.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          10.445853944921495,
+          -3,
+          10.632199999999997
+        ],
+        "size": [
+          3.771707889842986,
+          0.11000000000000025,
+          19.6
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-cd9eb2e6b01e",
+      "fromId": "flood-strip-starboard-6-1",
+      "toId": "flood-strip-starboard-7-1",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        9.864609136390687,
+        -3.75,
+        20.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          9.864609136390687,
+          -3.75,
+          20.632199999999997
+        ],
+        "size": [
+          2.6092182727813693,
+          1.4700000000000002,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-1a9c1ff2c160",
+      "fromId": "flood-strip-port-6-2",
+      "toId": "flood-strip-port-6-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -10.47562383928299,
+        -1.5,
+        10.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          -10.47562383928299,
+          -1.5,
+          10.632199999999997
+        ],
+        "size": [
+          3.831247678565976,
+          0.11000000000000025,
+          19.6
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-2a5013700370",
+      "fromId": "flood-strip-port-6-2",
+      "toId": "flood-strip-port-7-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -10.20822379117012,
+        -2.25,
+        20.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          -10.20822379117012,
+          -2.25,
+          20.632199999999997
+        ],
+        "size": [
+          3.2964475823402353,
+          1.4699999999999998,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-e69de6845d53",
+      "fromId": "flood-strip-starboard-6-2",
+      "toId": "flood-strip-starboard-6-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        10.47562383928299,
+        -1.5,
+        10.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          10.47562383928299,
+          -1.5,
+          10.632199999999997
+        ],
+        "size": [
+          3.831247678565976,
+          0.11000000000000025,
+          19.6
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-19a8dc680430",
+      "fromId": "flood-strip-starboard-6-2",
+      "toId": "flood-strip-starboard-7-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        10.20822379117012,
+        -2.25,
+        20.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          10.20822379117012,
+          -2.25,
+          20.632199999999997
+        ],
+        "size": [
+          3.2964475823402353,
+          1.4699999999999998,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-889393feef6e",
+      "fromId": "flood-strip-port-6-3",
+      "toId": "flood-strip-port-6-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -10.476519296979905,
+        0,
+        10.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          -10.476519296979905,
+          0,
+          10.632199999999997
+        ],
+        "size": [
+          3.833038593959806,
+          0.11000000000000003,
+          19.6
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-ac9a3266690b",
+      "fromId": "flood-strip-port-6-3",
+      "toId": "flood-strip-port-7-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -10.385318413925173,
+        -0.75,
+        20.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          -10.385318413925173,
+          -0.75,
+          20.632199999999997
+        ],
+        "size": [
+          3.65063682785034,
+          1.4699999999999998,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-ec1e5fcee911",
+      "fromId": "flood-strip-starboard-6-3",
+      "toId": "flood-strip-starboard-6-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        10.476519296979905,
+        0,
+        10.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          10.476519296979905,
+          0,
+          10.632199999999997
+        ],
+        "size": [
+          3.833038593959806,
+          0.11000000000000003,
+          19.6
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-2302ab3cd1d6",
+      "fromId": "flood-strip-starboard-6-3",
+      "toId": "flood-strip-starboard-7-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        10.385318413925173,
+        -0.75,
+        20.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          10.385318413925173,
+          -0.75,
+          20.632199999999997
+        ],
+        "size": [
+          3.65063682785034,
+          1.4699999999999998,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-9e07ea10b417",
+      "fromId": "flood-strip-port-6-4",
+      "toId": "flood-strip-port-6-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -11.427646801280973,
+        1.5,
+        10.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          -11.427646801280973,
+          1.5,
+          10.632199999999997
+        ],
+        "size": [
+          1.9512232534408547,
+          0.11000000000000025,
+          19.6
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-1679a0ecde7c",
+      "fromId": "flood-strip-port-6-4",
+      "toId": "flood-strip-port-7-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -10.458594264650346,
+        0.75,
+        20.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          -10.458594264650346,
+          0.75,
+          20.632199999999997
+        ],
+        "size": [
+          3.797188529300687,
+          1.4699999999999998,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-f8f8fe4a8c64",
+      "fromId": "flood-strip-starboard-6-4",
+      "toId": "flood-strip-starboard-6-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        11.427646801280973,
+        1.5,
+        10.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          11.427646801280973,
+          1.5,
+          10.632199999999997
+        ],
+        "size": [
+          1.9512232534408547,
+          0.11000000000000025,
+          19.6
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-4031e7618f1f",
+      "fromId": "flood-strip-starboard-6-4",
+      "toId": "flood-strip-starboard-7-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        10.458594264650346,
+        0.75,
+        20.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          10.458594264650346,
+          0.75,
+          20.632199999999997
+        ],
+        "size": [
+          3.797188529300687,
+          1.4699999999999998,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-9965f196537b",
+      "fromId": "flood-strip-port-6-5",
+      "toId": "flood-strip-port-7-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -11.46098599085808,
+        2.25,
+        20.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          -11.46098599085808,
+          2.25,
+          20.632199999999997
+        ],
+        "size": [
+          1.9820983674049337,
+          1.4699999999999998,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-81d6b4ff410b",
+      "fromId": "flood-strip-starboard-6-5",
+      "toId": "flood-strip-starboard-7-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        11.46098599085808,
+        2.25,
+        20.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          11.46098599085808,
+          2.25,
+          20.632199999999997
+        ],
+        "size": [
+          1.9820983674049337,
+          1.4699999999999998,
+          0.4799999999999986
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-12cdd91efc17",
+      "fromId": "flood-strip-port-7-1",
+      "toId": "flood-strip-port-7-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -9.864609136390687,
+        -3,
+        30.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          -9.864609136390687,
+          -3,
+          30.632199999999997
+        ],
+        "size": [
+          2.6092182727813693,
+          0.11000000000000025,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-2bab994f0939",
+      "fromId": "flood-strip-starboard-7-1",
+      "toId": "flood-strip-starboard-7-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        9.864609136390687,
+        -3,
+        30.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          9.864609136390687,
+          -3,
+          30.632199999999997
+        ],
+        "size": [
+          2.6092182727813693,
+          0.11000000000000025,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-cd9445f6bcda",
+      "fromId": "flood-strip-port-7-2",
+      "toId": "flood-strip-port-7-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -10.20822379117012,
+        -1.5,
+        30.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          -10.20822379117012,
+          -1.5,
+          30.632199999999997
+        ],
+        "size": [
+          3.2964475823402353,
+          0.11000000000000025,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-783e1007d876",
+      "fromId": "flood-strip-port-7-2",
+      "toId": "flood-strip-port-8-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -9.249919421625139,
+        -2.25,
+        40.6322
+      ],
+      "bounds": {
+        "center": [
+          -9.249919421625139,
+          -2.25,
+          40.6322
+        ],
+        "size": [
+          1.3798388432502726,
+          1.4699999999999998,
+          0.4800000000000057
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-a002d6ae8aa5",
+      "fromId": "flood-strip-starboard-7-2",
+      "toId": "flood-strip-starboard-7-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        10.20822379117012,
+        -1.5,
+        30.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          10.20822379117012,
+          -1.5,
+          30.632199999999997
+        ],
+        "size": [
+          3.2964475823402353,
+          0.11000000000000025,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-fae53760ba97",
+      "fromId": "flood-strip-starboard-7-2",
+      "toId": "flood-strip-starboard-8-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        9.249919421625139,
+        -2.25,
+        40.6322
+      ],
+      "bounds": {
+        "center": [
+          9.249919421625139,
+          -2.25,
+          40.6322
+        ],
+        "size": [
+          1.3798388432502726,
+          1.4699999999999998,
+          0.4800000000000057
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-ac53c358142c",
+      "fromId": "flood-strip-port-7-3",
+      "toId": "flood-strip-port-7-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -10.385318413925171,
+        0,
+        30.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          -10.385318413925171,
+          0,
+          30.632199999999997
+        ],
+        "size": [
+          3.6506368278503416,
+          0.11000000000000003,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-33e8eb08a173",
+      "fromId": "flood-strip-port-7-3",
+      "toId": "flood-strip-port-8-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -9.913414714765548,
+        -0.75,
+        40.6322
+      ],
+      "bounds": {
+        "center": [
+          -9.913414714765548,
+          -0.75,
+          40.6322
+        ],
+        "size": [
+          2.706829429531096,
+          1.4699999999999998,
+          0.4800000000000057
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-858158134f77",
+      "fromId": "flood-strip-starboard-7-3",
+      "toId": "flood-strip-starboard-7-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        10.385318413925171,
+        0,
+        30.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          10.385318413925171,
+          0,
+          30.632199999999997
+        ],
+        "size": [
+          3.6506368278503416,
+          0.11000000000000003,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-28eed270384f",
+      "fromId": "flood-strip-starboard-7-3",
+      "toId": "flood-strip-starboard-8-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        9.913414714765548,
+        -0.75,
+        40.6322
+      ],
+      "bounds": {
+        "center": [
+          9.913414714765548,
+          -0.75,
+          40.6322
+        ],
+        "size": [
+          2.706829429531096,
+          1.4699999999999998,
+          0.4800000000000057
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-38fea1821bd3",
+      "fromId": "flood-strip-port-7-4",
+      "toId": "flood-strip-port-7-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -11.41356266822815,
+        1.5,
+        30.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          -11.41356266822815,
+          1.5,
+          30.632199999999997
+        ],
+        "size": [
+          1.887251722145077,
+          0.11000000000000025,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-9c3a49e1a45f",
+      "fromId": "flood-strip-port-7-4",
+      "toId": "flood-strip-port-8-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -10.232948117780687,
+        0.75,
+        40.6322
+      ],
+      "bounds": {
+        "center": [
+          -10.232948117780687,
+          0.75,
+          40.6322
+        ],
+        "size": [
+          3.3458962355613764,
+          1.4699999999999998,
+          0.4800000000000057
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-66e0ecc396c0",
+      "fromId": "flood-strip-starboard-7-4",
+      "toId": "flood-strip-starboard-7-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        11.41356266822815,
+        1.5,
+        30.632199999999997
+      ],
+      "bounds": {
+        "center": [
+          11.41356266822815,
+          1.5,
+          30.632199999999997
+        ],
+        "size": [
+          1.887251722145077,
+          0.11000000000000025,
+          19.599999999999998
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-143026d317b1",
+      "fromId": "flood-strip-starboard-7-4",
+      "toId": "flood-strip-starboard-8-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        10.232948117780687,
+        0.75,
+        40.6322
+      ],
+      "bounds": {
+        "center": [
+          10.232948117780687,
+          0.75,
+          40.6322
+        ],
+        "size": [
+          3.3458962355613764,
+          1.4699999999999998,
+          0.4800000000000057
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-3e4e4b717578",
+      "fromId": "flood-strip-port-7-5",
+      "toId": "flood-strip-port-8-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -11.339871472215654,
+        2.25,
+        40.6322
+      ],
+      "bounds": {
+        "center": [
+          -11.339871472215654,
+          2.25,
+          40.6322
+        ],
+        "size": [
+          1.739869330120083,
+          1.4699999999999998,
+          0.4800000000000057
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-7d5cca97585b",
+      "fromId": "flood-strip-starboard-7-5",
+      "toId": "flood-strip-starboard-8-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        11.339871472215654,
+        2.25,
+        40.6322
+      ],
+      "bounds": {
+        "center": [
+          11.339871472215654,
+          2.25,
+          40.6322
+        ],
+        "size": [
+          1.739869330120083,
+          1.4699999999999998,
+          0.4800000000000057
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-dfe5c877c0b0",
+      "fromId": "flood-strip-port-8-2",
+      "toId": "flood-strip-port-8-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -9.249919421625137,
+        -1.5,
+        50.6322
+      ],
+      "bounds": {
+        "center": [
+          -9.249919421625137,
+          -1.5,
+          50.6322
+        ],
+        "size": [
+          1.3798388432502762,
+          0.11000000000000025,
+          19.599999999999994
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-93a43b224bc4",
+      "fromId": "flood-strip-starboard-8-2",
+      "toId": "flood-strip-starboard-8-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        9.249919421625137,
+        -1.5,
+        50.6322
+      ],
+      "bounds": {
+        "center": [
+          9.249919421625137,
+          -1.5,
+          50.6322
+        ],
+        "size": [
+          1.3798388432502762,
+          0.11000000000000025,
+          19.599999999999994
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-925b204f6441",
+      "fromId": "flood-strip-port-8-3",
+      "toId": "flood-strip-port-8-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -9.913414714765548,
+        0,
+        50.6322
+      ],
+      "bounds": {
+        "center": [
+          -9.913414714765548,
+          0,
+          50.6322
+        ],
+        "size": [
+          2.7068294295310977,
+          0.11000000000000003,
+          19.599999999999994
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-0e7554a26c29",
+      "fromId": "flood-strip-port-8-3",
+      "toId": "flood-strip-port-9-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -8.713165865421296,
+        -0.75,
+        60.6322
+      ],
+      "bounds": {
+        "center": [
+          -8.713165865421296,
+          -0.75,
+          60.6322
+        ],
+        "size": [
+          0.3063317308425937,
+          1.4699999999999998,
+          0.4800000000000057
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-498d5529eb69",
+      "fromId": "flood-strip-starboard-8-3",
+      "toId": "flood-strip-starboard-8-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        9.913414714765548,
+        0,
+        50.6322
+      ],
+      "bounds": {
+        "center": [
+          9.913414714765548,
+          0,
+          50.6322
+        ],
+        "size": [
+          2.7068294295310977,
+          0.11000000000000003,
+          19.599999999999994
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-2ce15967597d",
+      "fromId": "flood-strip-starboard-8-3",
+      "toId": "flood-strip-starboard-9-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        8.713165865421296,
+        -0.75,
+        60.6322
+      ],
+      "bounds": {
+        "center": [
+          8.713165865421296,
+          -0.75,
+          60.6322
+        ],
+        "size": [
+          0.3063317308425937,
+          1.4699999999999998,
+          0.4800000000000057
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-681e71a746ce",
+      "fromId": "flood-strip-port-8-4",
+      "toId": "flood-strip-port-8-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -11.057851186418535,
+        1.5,
+        50.6322
+      ],
+      "bounds": {
+        "center": [
+          -11.057851186418535,
+          1.5,
+          50.6322
+        ],
+        "size": [
+          1.69609009828568,
+          0.11000000000000025,
+          19.599999999999994
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-3eed92d19d81",
+      "fromId": "flood-strip-port-8-4",
+      "toId": "flood-strip-port-9-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -9.64579320487976,
+        0.75,
+        60.6322
+      ],
+      "bounds": {
+        "center": [
+          -9.64579320487976,
+          0.75,
+          60.6322
+        ],
+        "size": [
+          2.1715864097595237,
+          1.4699999999999998,
+          0.4800000000000057
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-69f7b86c6e74",
+      "fromId": "flood-strip-starboard-8-4",
+      "toId": "flood-strip-starboard-8-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        11.057851186418535,
+        1.5,
+        50.6322
+      ],
+      "bounds": {
+        "center": [
+          11.057851186418535,
+          1.5,
+          50.6322
+        ],
+        "size": [
+          1.69609009828568,
+          0.11000000000000025,
+          19.599999999999994
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-118ba173fcdc",
+      "fromId": "flood-strip-starboard-8-4",
+      "toId": "flood-strip-starboard-9-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        9.64579320487976,
+        0.75,
+        60.6322
+      ],
+      "bounds": {
+        "center": [
+          9.64579320487976,
+          0.75,
+          60.6322
+        ],
+        "size": [
+          2.1715864097595237,
+          1.4699999999999998,
+          0.4800000000000057
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-777aa5b12d3b",
+      "fromId": "flood-strip-port-8-5",
+      "toId": "flood-strip-port-9-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -10.808814079952242,
+        2.25,
+        60.6322
+      ],
+      "bounds": {
+        "center": [
+          -10.808814079952242,
+          2.25,
+          60.6322
+        ],
+        "size": [
+          1.198015885353092,
+          1.4699999999999998,
+          0.4800000000000057
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-927de1da9d67",
+      "fromId": "flood-strip-starboard-8-5",
+      "toId": "flood-strip-starboard-9-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        10.808814079952242,
+        2.25,
+        60.6322
+      ],
+      "bounds": {
+        "center": [
+          10.808814079952242,
+          2.25,
+          60.6322
+        ],
+        "size": [
+          1.198015885353092,
+          1.4699999999999998,
+          0.4800000000000057
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-98fb2d750814",
+      "fromId": "flood-strip-port-9-2",
+      "toId": "flood-strip-port-9-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -5.587511770582199,
+        -1.5,
+        70.6322
+      ],
+      "bounds": {
+        "center": [
+          -5.587511770582199,
+          -1.5,
+          70.6322
+        ],
+        "size": [
+          1.055023541164399,
+          0.11000000000000025,
+          19.599999999999994
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-ee4b91d7f71a",
+      "fromId": "flood-strip-starboard-9-2",
+      "toId": "flood-strip-starboard-9-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        5.587511770582199,
+        -1.5,
+        70.6322
+      ],
+      "bounds": {
+        "center": [
+          5.587511770582199,
+          -1.5,
+          70.6322
+        ],
+        "size": [
+          1.055023541164399,
+          0.11000000000000025,
+          19.599999999999994
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-2e6fc129c0c9",
+      "fromId": "flood-strip-port-9-3",
+      "toId": "flood-strip-port-9-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -6.963165865421296,
+        0,
+        70.6322
+      ],
+      "bounds": {
+        "center": [
+          -6.963165865421296,
+          0,
+          70.6322
+        ],
+        "size": [
+          3.8063317308425937,
+          0.11000000000000003,
+          19.599999999999994
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-69621f02bfe1",
+      "fromId": "flood-strip-starboard-9-3",
+      "toId": "flood-strip-starboard-9-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        6.963165865421296,
+        0,
+        70.6322
+      ],
+      "bounds": {
+        "center": [
+          6.963165865421296,
+          0,
+          70.6322
+        ],
+        "size": [
+          3.8063317308425937,
+          0.11000000000000003,
+          19.599999999999994
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-7c0bb06bafc1",
+      "fromId": "flood-strip-port-9-4",
+      "toId": "flood-strip-port-9-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -10.069704216194154,
+        1.5,
+        70.6322
+      ],
+      "bounds": {
+        "center": [
+          -10.069704216194154,
+          1.5,
+          70.6322
+        ],
+        "size": [
+          1.3237643871307352,
+          0.11000000000000025,
+          19.599999999999994
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-ffc234e1189d",
+      "fromId": "flood-strip-port-9-4",
+      "toId": "flood-strip-port-10-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -6.365408783531189,
+        0.75,
+        80.6322
+      ],
+      "bounds": {
+        "center": [
+          -6.365408783531189,
+          0.75,
+          80.6322
+        ],
+        "size": [
+          2.6108175670623783,
+          1.4699999999999998,
+          0.4800000000000057
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-9822c95b1c12",
+      "fromId": "flood-strip-starboard-9-4",
+      "toId": "flood-strip-starboard-9-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        10.069704216194154,
+        1.5,
+        70.6322
+      ],
+      "bounds": {
+        "center": [
+          10.069704216194154,
+          1.5,
+          70.6322
+        ],
+        "size": [
+          1.3237643871307352,
+          0.11000000000000025,
+          19.599999999999994
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-f0be0dcbe293",
+      "fromId": "flood-strip-starboard-9-4",
+      "toId": "flood-strip-starboard-10-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        6.365408783531189,
+        0.75,
+        80.6322
+      ],
+      "bounds": {
+        "center": [
+          6.365408783531189,
+          0.75,
+          80.6322
+        ],
+        "size": [
+          2.6108175670623783,
+          1.4699999999999998,
+          0.4800000000000057
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-a35194dde5e5",
+      "fromId": "flood-strip-port-10-4",
+      "toId": "flood-strip-port-10-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -7.429139866399765,
+        1.5,
+        90.6322
+      ],
+      "bounds": {
+        "center": [
+          -7.429139866399765,
+          1.5,
+          90.6322
+        ],
+        "size": [
+          0.4833554013252259,
+          0.11000000000000025,
+          19.599999999999994
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-f60b0585d5a6",
+      "fromId": "flood-strip-starboard-10-4",
+      "toId": "flood-strip-starboard-10-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        7.429139866399765,
+        1.5,
+        90.6322
+      ],
+      "bounds": {
+        "center": [
+          7.429139866399765,
+          1.5,
+          90.6322
+        ],
+        "size": [
+          0.4833554013252259,
+          0.11000000000000025,
+          19.599999999999994
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-12d36caa8bb7",
+      "fromId": "flood-strip-port-11-5",
+      "toId": "flood-strip-starboard-11-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        0,
+        2.25,
+        110
+      ],
+      "bounds": {
+        "center": [
+          0,
+          2.25,
+          110
+        ],
+        "size": [
+          0.1800000000000001,
+          1.4699999999999998,
+          18.360888000000017
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-8970c4c3d464",
+      "fromId": "flood-strip-port-11-5",
+      "toId": "flood-end-stern-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -0.22500000000000003,
+        1.5,
+        112.3678
+      ],
+      "bounds": {
+        "center": [
+          -0.22500000000000003,
+          1.5,
+          112.3678
+        ],
+        "size": [
+          0.35,
+          0.11000000000000025,
+          8.97999999999999
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-41f40b90d18b",
+      "fromId": "flood-strip-port-11-5",
+      "toId": "flood-end-stern-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        -0.22500000000000003,
+        2.25,
+        100.33867799999999
+      ],
+      "bounds": {
+        "center": [
+          -0.22500000000000003,
+          2.25,
+          100.33867799999999
+        ],
+        "size": [
+          0.35,
+          1.4699999999999998,
+          1.0417559999999941
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-55dc83308527",
+      "fromId": "flood-strip-starboard-11-5",
+      "toId": "flood-end-stern-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        0.22500000000000003,
+        1.5,
+        112.3678
+      ],
+      "bounds": {
+        "center": [
+          0.22500000000000003,
+          1.5,
+          112.3678
+        ],
+        "size": [
+          0.35,
+          0.11000000000000025,
+          8.97999999999999
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-9c802ef6a2c5",
+      "fromId": "flood-strip-starboard-11-5",
+      "toId": "flood-end-stern-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        0.22500000000000003,
+        2.25,
+        100.33867799999999
+      ],
+      "bounds": {
+        "center": [
+          0.22500000000000003,
+          2.25,
+          100.33867799999999
+        ],
+        "size": [
+          0.35,
+          1.4699999999999998,
+          1.0417559999999941
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-73bf3f43b159",
+      "fromId": "flood-end-bow-0",
+      "toId": "flood-end-bow-1",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        0,
+        -4.5,
+        -111.3678
+      ],
+      "bounds": {
+        "center": [
+          0,
+          -4.5,
+          -111.3678
+        ],
+        "size": [
+          0.8,
+          0.10999999999999936,
+          8.97999999999999
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-7137677591d6",
+      "fromId": "flood-end-bow-1",
+      "toId": "flood-end-bow-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        0,
+        -3,
+        -110.3678
+      ],
+      "bounds": {
+        "center": [
+          0,
+          -3,
+          -110.3678
+        ],
+        "size": [
+          0.8,
+          0.11000000000000025,
+          8.97999999999999
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-e1e1e36940f7",
+      "fromId": "flood-end-bow-2",
+      "toId": "flood-end-bow-3",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        0,
+        -1.5,
+        -109.3678
+      ],
+      "bounds": {
+        "center": [
+          0,
+          -1.5,
+          -109.3678
+        ],
+        "size": [
+          0.8,
+          0.11000000000000025,
+          8.97999999999999
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-4192be727b30",
+      "fromId": "flood-end-bow-3",
+      "toId": "flood-end-bow-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        0,
+        0,
+        -108.8678
+      ],
+      "bounds": {
+        "center": [
+          0,
+          0,
+          -108.8678
+        ],
+        "size": [
+          0.8,
+          0.11000000000000003,
+          9.97999999999999
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-b559cc450b0c",
+      "fromId": "flood-end-bow-4",
+      "toId": "flood-end-bow-5",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        0,
+        1.5,
+        -108.8678
+      ],
+      "bounds": {
+        "center": [
+          0,
+          1.5,
+          -108.8678
+        ],
+        "size": [
+          0.8,
+          0.11000000000000025,
+          9.97999999999999
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-32cac929efdf",
+      "fromId": "flood-end-stern-1",
+      "toId": "flood-end-stern-2",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        0,
+        -3,
+        90.3678
+      ],
+      "bounds": {
+        "center": [
+          0,
+          -3,
+          90.3678
+        ],
+        "size": [
+          0.8,
+          0.11000000000000025,
+          2.9799999999999898
+        ]
+      },
+      "thicknessMm": 5
+    },
+    {
+      "id": "partition-c46995e51607",
+      "fromId": "flood-end-stern-3",
+      "toId": "flood-end-stern-4",
+      "state": "closed",
+      "areaM2": 0.5,
+      "position": [
+        0,
+        0,
+        110.3678
+      ],
+      "bounds": {
+        "center": [
+          0,
+          0,
+          110.3678
+        ],
+        "size": [
+          0.8,
+          0.11000000000000003,
+          4.97999999999999
+        ]
+      },
+      "thicknessMm": 5
     }
   ],
   "obstructions": [
@@ -5046,7 +11346,7 @@
         -11
       ],
       "size": [
-        5.0,
+        5,
         11,
         44
       ]
@@ -5056,5 +11356,1959 @@
     "exterior": "Dimensional reconstruction from CV-6 contract offsets, CV-5 as-built plans and CV-6 1942 photos. See open discrepancies; not certified 100% accurate.",
     "internals": "Provisional renderer-free damage volumes, not historical watertight subdivisions.",
     "weapons": "8 single 5-inch/38, 4 quadruple 1.1-inch, 30 single 20 mm. Local fitting geometry, some placements and ballistic/damage values remain provisional."
-  }
+  },
+  "propulsion": {
+    "groups": [
+      {
+        "id": "four-shaft-plant",
+        "share": 1,
+        "boilerIds": [
+          "engine-port",
+          "boilers-aft-module"
+        ],
+        "driveIds": [
+          "turbines-module"
+        ],
+        "shaftIds": []
+      }
+    ],
+    "basis": "Forward and aft boiler groups supply one aggregated turbine group representing four shafts. Steam routing, immersion thresholds and availability are provisional."
+  },
+  "floodRegions": [
+    {
+      "id": "side-region-port-1-0",
+      "face": "port",
+      "compartmentId": "fore-magazine",
+      "center": [
+        -7.5104,
+        -5.25,
+        -89.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-1-0",
+      "face": "starboard",
+      "compartmentId": "fore-magazine",
+      "center": [
+        7.5104,
+        -5.25,
+        -89.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-1-1",
+      "face": "port",
+      "compartmentId": "fore-magazine",
+      "center": [
+        -7.5104,
+        -3.75,
+        -89.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-1-1",
+      "face": "starboard",
+      "compartmentId": "fore-magazine",
+      "center": [
+        7.5104,
+        -3.75,
+        -89.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-1-2",
+      "face": "port",
+      "compartmentId": "fore-magazine",
+      "center": [
+        -7.5104,
+        -2.25,
+        -89.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-1-2",
+      "face": "starboard",
+      "compartmentId": "fore-magazine",
+      "center": [
+        7.5104,
+        -2.25,
+        -89.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-1-3",
+      "face": "port",
+      "compartmentId": "fore-magazine",
+      "center": [
+        -7.5104,
+        -0.75,
+        -89.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-1-3",
+      "face": "starboard",
+      "compartmentId": "fore-magazine",
+      "center": [
+        7.5104,
+        -0.75,
+        -89.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-1-4",
+      "face": "port",
+      "compartmentId": "fore-magazine",
+      "center": [
+        -7.5104,
+        0.75,
+        -89.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-1-4",
+      "face": "starboard",
+      "compartmentId": "fore-magazine",
+      "center": [
+        7.5104,
+        0.75,
+        -89.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-1-5",
+      "face": "port",
+      "compartmentId": "flood-strip-port-1-5",
+      "center": [
+        -7.5104,
+        2.25,
+        -89.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-1-5",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-1-5",
+      "center": [
+        7.5104,
+        2.25,
+        -89.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-2-0",
+      "face": "port",
+      "compartmentId": "fore-magazine",
+      "center": [
+        -7.5104,
+        -5.25,
+        -69.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-2-0",
+      "face": "starboard",
+      "compartmentId": "fore-magazine",
+      "center": [
+        7.5104,
+        -5.25,
+        -69.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-2-1",
+      "face": "port",
+      "compartmentId": "fore-magazine",
+      "center": [
+        -7.5104,
+        -3.75,
+        -69.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-2-1",
+      "face": "starboard",
+      "compartmentId": "fore-magazine",
+      "center": [
+        7.5104,
+        -3.75,
+        -69.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-2-2",
+      "face": "port",
+      "compartmentId": "fore-magazine",
+      "center": [
+        -7.5104,
+        -2.25,
+        -69.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-2-2",
+      "face": "starboard",
+      "compartmentId": "fore-magazine",
+      "center": [
+        7.5104,
+        -2.25,
+        -69.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-2-3",
+      "face": "port",
+      "compartmentId": "fore-magazine",
+      "center": [
+        -7.5104,
+        -0.75,
+        -69.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-2-3",
+      "face": "starboard",
+      "compartmentId": "fore-magazine",
+      "center": [
+        7.5104,
+        -0.75,
+        -69.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-2-4",
+      "face": "port",
+      "compartmentId": "fore-magazine",
+      "center": [
+        -7.5104,
+        0.75,
+        -69.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-2-4",
+      "face": "starboard",
+      "compartmentId": "fore-magazine",
+      "center": [
+        7.5104,
+        0.75,
+        -69.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-2-5",
+      "face": "port",
+      "compartmentId": "flood-strip-port-2-5",
+      "center": [
+        -7.5104,
+        2.25,
+        -69.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-2-5",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-2-5",
+      "center": [
+        7.5104,
+        2.25,
+        -69.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-3-0",
+      "face": "port",
+      "compartmentId": "boilers-forward",
+      "center": [
+        -7.5104,
+        -5.25,
+        -49.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-3-0",
+      "face": "starboard",
+      "compartmentId": "boilers-forward",
+      "center": [
+        7.5104,
+        -5.25,
+        -49.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-3-1",
+      "face": "port",
+      "compartmentId": "boilers-forward",
+      "center": [
+        -7.5104,
+        -3.75,
+        -49.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-3-1",
+      "face": "starboard",
+      "compartmentId": "boilers-forward",
+      "center": [
+        7.5104,
+        -3.75,
+        -49.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-3-2",
+      "face": "port",
+      "compartmentId": "boilers-forward",
+      "center": [
+        -7.5104,
+        -2.25,
+        -49.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-3-2",
+      "face": "starboard",
+      "compartmentId": "boilers-forward",
+      "center": [
+        7.5104,
+        -2.25,
+        -49.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-3-3",
+      "face": "port",
+      "compartmentId": "boilers-forward",
+      "center": [
+        -7.5104,
+        -0.75,
+        -49.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-3-3",
+      "face": "starboard",
+      "compartmentId": "boilers-forward",
+      "center": [
+        7.5104,
+        -0.75,
+        -49.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-3-4",
+      "face": "port",
+      "compartmentId": "boilers-forward",
+      "center": [
+        -7.5104,
+        0.75,
+        -49.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-3-4",
+      "face": "starboard",
+      "compartmentId": "boilers-forward",
+      "center": [
+        7.5104,
+        0.75,
+        -49.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-3-5",
+      "face": "port",
+      "compartmentId": "flood-strip-port-3-5",
+      "center": [
+        -7.5104,
+        2.25,
+        -49.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-3-5",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-3-5",
+      "center": [
+        7.5104,
+        2.25,
+        -49.3678
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-4-0",
+      "face": "port",
+      "compartmentId": "boilers-forward",
+      "center": [
+        -7.5104,
+        -5.25,
+        -29.367800000000003
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-4-0",
+      "face": "starboard",
+      "compartmentId": "boilers-forward",
+      "center": [
+        7.5104,
+        -5.25,
+        -29.367800000000003
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-4-1",
+      "face": "port",
+      "compartmentId": "flood-strip-port-4-1",
+      "center": [
+        -7.5104,
+        -3.75,
+        -29.367800000000003
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-4-1",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-4-1",
+      "center": [
+        7.5104,
+        -3.75,
+        -29.367800000000003
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-4-2",
+      "face": "port",
+      "compartmentId": "flood-strip-port-4-2",
+      "center": [
+        -7.5104,
+        -2.25,
+        -29.367800000000003
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-4-2",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-4-2",
+      "center": [
+        7.5104,
+        -2.25,
+        -29.367800000000003
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-4-3",
+      "face": "port",
+      "compartmentId": "flood-strip-port-4-3",
+      "center": [
+        -7.5104,
+        -0.75,
+        -29.367800000000003
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-4-3",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-4-3",
+      "center": [
+        7.5104,
+        -0.75,
+        -29.367800000000003
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-4-4",
+      "face": "port",
+      "compartmentId": "flood-strip-port-4-4",
+      "center": [
+        -7.5104,
+        0.75,
+        -29.367800000000003
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-4-4",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-4-4",
+      "center": [
+        7.5104,
+        0.75,
+        -29.367800000000003
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-4-5",
+      "face": "port",
+      "compartmentId": "flood-strip-port-4-5",
+      "center": [
+        -7.5104,
+        2.25,
+        -29.367800000000003
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-4-5",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-4-5",
+      "center": [
+        7.5104,
+        2.25,
+        -29.367800000000003
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-5-0",
+      "face": "port",
+      "compartmentId": "flood-strip-port-5-0",
+      "center": [
+        -7.5104,
+        -5.25,
+        -9.367800000000003
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-5-0",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-5-0",
+      "center": [
+        7.5104,
+        -5.25,
+        -9.367800000000003
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-5-1",
+      "face": "port",
+      "compartmentId": "flood-strip-port-5-1",
+      "center": [
+        -7.5104,
+        -3.75,
+        -9.367800000000003
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-5-1",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-5-1",
+      "center": [
+        7.5104,
+        -3.75,
+        -9.367800000000003
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-5-2",
+      "face": "port",
+      "compartmentId": "flood-strip-port-5-2",
+      "center": [
+        -7.5104,
+        -2.25,
+        -9.367800000000003
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-5-2",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-5-2",
+      "center": [
+        7.5104,
+        -2.25,
+        -9.367800000000003
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-5-3",
+      "face": "port",
+      "compartmentId": "flood-strip-port-5-3",
+      "center": [
+        -7.5104,
+        -0.75,
+        -9.367800000000003
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-5-3",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-5-3",
+      "center": [
+        7.5104,
+        -0.75,
+        -9.367800000000003
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-5-4",
+      "face": "port",
+      "compartmentId": "flood-strip-port-5-4",
+      "center": [
+        -7.5104,
+        0.75,
+        -9.367800000000003
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-5-4",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-5-4",
+      "center": [
+        7.5104,
+        0.75,
+        -9.367800000000003
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-5-5",
+      "face": "port",
+      "compartmentId": "flood-strip-port-5-5",
+      "center": [
+        -7.5104,
+        2.25,
+        -9.367800000000003
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-5-5",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-5-5",
+      "center": [
+        7.5104,
+        2.25,
+        -9.367800000000003
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-6-0",
+      "face": "port",
+      "compartmentId": "flood-strip-port-6-0",
+      "center": [
+        -7.5104,
+        -5.25,
+        10.632199999999997
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-6-0",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-6-0",
+      "center": [
+        7.5104,
+        -5.25,
+        10.632199999999997
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-6-1",
+      "face": "port",
+      "compartmentId": "flood-strip-port-6-1",
+      "center": [
+        -7.5104,
+        -3.75,
+        10.632199999999997
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-6-1",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-6-1",
+      "center": [
+        7.5104,
+        -3.75,
+        10.632199999999997
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-6-2",
+      "face": "port",
+      "compartmentId": "flood-strip-port-6-2",
+      "center": [
+        -7.5104,
+        -2.25,
+        10.632199999999997
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-6-2",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-6-2",
+      "center": [
+        7.5104,
+        -2.25,
+        10.632199999999997
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-6-3",
+      "face": "port",
+      "compartmentId": "flood-strip-port-6-3",
+      "center": [
+        -7.5104,
+        -0.75,
+        10.632199999999997
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-6-3",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-6-3",
+      "center": [
+        7.5104,
+        -0.75,
+        10.632199999999997
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-6-4",
+      "face": "port",
+      "compartmentId": "flood-strip-port-6-4",
+      "center": [
+        -7.5104,
+        0.75,
+        10.632199999999997
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-6-4",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-6-4",
+      "center": [
+        7.5104,
+        0.75,
+        10.632199999999997
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-6-5",
+      "face": "port",
+      "compartmentId": "flood-strip-port-6-5",
+      "center": [
+        -7.5104,
+        2.25,
+        10.632199999999997
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-6-5",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-6-5",
+      "center": [
+        7.5104,
+        2.25,
+        10.632199999999997
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-7-0",
+      "face": "port",
+      "compartmentId": "turbines",
+      "center": [
+        -7.5104,
+        -5.25,
+        30.632199999999997
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-7-0",
+      "face": "starboard",
+      "compartmentId": "turbines",
+      "center": [
+        7.5104,
+        -5.25,
+        30.632199999999997
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-7-1",
+      "face": "port",
+      "compartmentId": "flood-strip-port-7-1",
+      "center": [
+        -7.5104,
+        -3.75,
+        30.632199999999997
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-7-1",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-7-1",
+      "center": [
+        7.5104,
+        -3.75,
+        30.632199999999997
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-7-2",
+      "face": "port",
+      "compartmentId": "flood-strip-port-7-2",
+      "center": [
+        -7.5104,
+        -2.25,
+        30.632199999999997
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-7-2",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-7-2",
+      "center": [
+        7.5104,
+        -2.25,
+        30.632199999999997
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-7-3",
+      "face": "port",
+      "compartmentId": "flood-strip-port-7-3",
+      "center": [
+        -7.5104,
+        -0.75,
+        30.632199999999997
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-7-3",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-7-3",
+      "center": [
+        7.5104,
+        -0.75,
+        30.632199999999997
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-7-4",
+      "face": "port",
+      "compartmentId": "flood-strip-port-7-4",
+      "center": [
+        -7.5104,
+        0.75,
+        30.632199999999997
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-7-4",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-7-4",
+      "center": [
+        7.5104,
+        0.75,
+        30.632199999999997
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-7-5",
+      "face": "port",
+      "compartmentId": "flood-strip-port-7-5",
+      "center": [
+        -7.5104,
+        2.25,
+        30.632199999999997
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-7-5",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-7-5",
+      "center": [
+        7.5104,
+        2.25,
+        30.632199999999997
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-8-0",
+      "face": "port",
+      "compartmentId": "turbines",
+      "center": [
+        -7.5104,
+        -5.25,
+        50.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-8-0",
+      "face": "starboard",
+      "compartmentId": "turbines",
+      "center": [
+        7.5104,
+        -5.25,
+        50.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-8-1",
+      "face": "port",
+      "compartmentId": "turbines",
+      "center": [
+        -7.5104,
+        -3.75,
+        50.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-8-1",
+      "face": "starboard",
+      "compartmentId": "turbines",
+      "center": [
+        7.5104,
+        -3.75,
+        50.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-8-2",
+      "face": "port",
+      "compartmentId": "flood-strip-port-8-2",
+      "center": [
+        -7.5104,
+        -2.25,
+        50.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-8-2",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-8-2",
+      "center": [
+        7.5104,
+        -2.25,
+        50.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-8-3",
+      "face": "port",
+      "compartmentId": "flood-strip-port-8-3",
+      "center": [
+        -7.5104,
+        -0.75,
+        50.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-8-3",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-8-3",
+      "center": [
+        7.5104,
+        -0.75,
+        50.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-8-4",
+      "face": "port",
+      "compartmentId": "flood-strip-port-8-4",
+      "center": [
+        -7.5104,
+        0.75,
+        50.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-8-4",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-8-4",
+      "center": [
+        7.5104,
+        0.75,
+        50.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-8-5",
+      "face": "port",
+      "compartmentId": "flood-strip-port-8-5",
+      "center": [
+        -7.5104,
+        2.25,
+        50.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-8-5",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-8-5",
+      "center": [
+        7.5104,
+        2.25,
+        50.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-9-0",
+      "face": "port",
+      "compartmentId": "aft-magazine",
+      "center": [
+        -7.5104,
+        -5.25,
+        70.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-9-0",
+      "face": "starboard",
+      "compartmentId": "aft-magazine",
+      "center": [
+        7.5104,
+        -5.25,
+        70.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-9-1",
+      "face": "port",
+      "compartmentId": "aft-magazine",
+      "center": [
+        -7.5104,
+        -3.75,
+        70.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-9-1",
+      "face": "starboard",
+      "compartmentId": "aft-magazine",
+      "center": [
+        7.5104,
+        -3.75,
+        70.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-9-2",
+      "face": "port",
+      "compartmentId": "flood-strip-port-9-2",
+      "center": [
+        -7.5104,
+        -2.25,
+        70.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-9-2",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-9-2",
+      "center": [
+        7.5104,
+        -2.25,
+        70.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-9-3",
+      "face": "port",
+      "compartmentId": "flood-strip-port-9-3",
+      "center": [
+        -7.5104,
+        -0.75,
+        70.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-9-3",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-9-3",
+      "center": [
+        7.5104,
+        -0.75,
+        70.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-9-4",
+      "face": "port",
+      "compartmentId": "flood-strip-port-9-4",
+      "center": [
+        -7.5104,
+        0.75,
+        70.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-9-4",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-9-4",
+      "center": [
+        7.5104,
+        0.75,
+        70.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-9-5",
+      "face": "port",
+      "compartmentId": "flood-strip-port-9-5",
+      "center": [
+        -7.5104,
+        2.25,
+        70.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-9-5",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-9-5",
+      "center": [
+        7.5104,
+        2.25,
+        70.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-10-2",
+      "face": "port",
+      "compartmentId": "aft-magazine",
+      "center": [
+        -7.5104,
+        -2.25,
+        90.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-10-2",
+      "face": "starboard",
+      "compartmentId": "aft-magazine",
+      "center": [
+        7.5104,
+        -2.25,
+        90.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-10-3",
+      "face": "port",
+      "compartmentId": "aft-magazine",
+      "center": [
+        -7.5104,
+        -0.75,
+        90.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-10-3",
+      "face": "starboard",
+      "compartmentId": "aft-magazine",
+      "center": [
+        7.5104,
+        -0.75,
+        90.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-10-4",
+      "face": "port",
+      "compartmentId": "flood-strip-port-10-4",
+      "center": [
+        -7.5104,
+        0.75,
+        90.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-10-4",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-10-4",
+      "center": [
+        7.5104,
+        0.75,
+        90.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-10-5",
+      "face": "port",
+      "compartmentId": "flood-strip-port-10-5",
+      "center": [
+        -7.5104,
+        2.25,
+        90.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-starboard-10-5",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-10-5",
+      "center": [
+        7.5104,
+        2.25,
+        90.6322
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        20
+      ]
+    },
+    {
+      "id": "side-region-port-11-5",
+      "face": "port",
+      "compartmentId": "flood-strip-port-11-5",
+      "center": [
+        -7.5104,
+        2.25,
+        110
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        18.735600000000005
+      ]
+    },
+    {
+      "id": "side-region-starboard-11-5",
+      "face": "starboard",
+      "compartmentId": "flood-strip-starboard-11-5",
+      "center": [
+        7.5104,
+        2.25,
+        110
+      ],
+      "size": [
+        15.0208,
+        1.5,
+        18.735600000000005
+      ]
+    },
+    {
+      "id": "end-region-bow-0",
+      "face": "bow",
+      "compartmentId": "flood-end-bow-0",
+      "center": [
+        0,
+        -5.25,
+        -105.8678
+      ],
+      "size": [
+        29.0416,
+        1.5,
+        35
+      ]
+    },
+    {
+      "id": "end-region-bow-1",
+      "face": "bow",
+      "compartmentId": "flood-end-bow-1",
+      "center": [
+        0,
+        -3.75,
+        -105.8678
+      ],
+      "size": [
+        29.0416,
+        1.5,
+        35
+      ]
+    },
+    {
+      "id": "end-region-bow-2",
+      "face": "bow",
+      "compartmentId": "flood-end-bow-2",
+      "center": [
+        0,
+        -2.25,
+        -105.8678
+      ],
+      "size": [
+        29.0416,
+        1.5,
+        35
+      ]
+    },
+    {
+      "id": "end-region-bow-3",
+      "face": "bow",
+      "compartmentId": "flood-end-bow-3",
+      "center": [
+        0,
+        -0.75,
+        -105.8678
+      ],
+      "size": [
+        29.0416,
+        1.5,
+        35
+      ]
+    },
+    {
+      "id": "end-region-bow-4",
+      "face": "bow",
+      "compartmentId": "flood-end-bow-4",
+      "center": [
+        0,
+        0.75,
+        -105.8678
+      ],
+      "size": [
+        29.0416,
+        1.5,
+        35
+      ]
+    },
+    {
+      "id": "end-region-bow-5",
+      "face": "bow",
+      "compartmentId": "flood-end-bow-5",
+      "center": [
+        0,
+        2.25,
+        -105.8678
+      ],
+      "size": [
+        29.0416,
+        1.5,
+        35
+      ]
+    },
+    {
+      "id": "end-region-stern-1",
+      "face": "stern",
+      "compartmentId": "flood-end-stern-1",
+      "center": [
+        0,
+        -3.75,
+        105.8678
+      ],
+      "size": [
+        29.0416,
+        1.5,
+        35
+      ]
+    },
+    {
+      "id": "end-region-stern-2",
+      "face": "stern",
+      "compartmentId": "flood-end-stern-2",
+      "center": [
+        0,
+        -2.25,
+        105.8678
+      ],
+      "size": [
+        29.0416,
+        1.5,
+        35
+      ]
+    },
+    {
+      "id": "end-region-stern-3",
+      "face": "stern",
+      "compartmentId": "flood-end-stern-3",
+      "center": [
+        0,
+        -0.75,
+        105.8678
+      ],
+      "size": [
+        29.0416,
+        1.5,
+        35
+      ]
+    },
+    {
+      "id": "end-region-stern-4",
+      "face": "stern",
+      "compartmentId": "flood-end-stern-4",
+      "center": [
+        0,
+        0.75,
+        105.8678
+      ],
+      "size": [
+        29.0416,
+        1.5,
+        35
+      ]
+    },
+    {
+      "id": "end-region-stern-5",
+      "face": "stern",
+      "compartmentId": "flood-end-stern-5",
+      "center": [
+        0,
+        2.25,
+        105.8678
+      ],
+      "size": [
+        29.0416,
+        1.5,
+        35
+      ]
+    }
+  ]
 }

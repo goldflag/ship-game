@@ -51,12 +51,27 @@ export interface AuthoredStructure {
 }
 export interface Module extends Volume {
   name: string; kind: 'engine' | 'steering' | 'magazine'; hp: number; compartmentId: string;
+  /** Water above the equipment's lower face disables it. Omit for sealed equipment. */
+  immersionToleranceM?: number;
+  role?: 'boiler' | 'turbine' | 'shaft' | 'combined-drive';
 }
 export interface Compartment extends Volume { name: string; capacityM3: number; pumpM3PerSecond: number; }
+export interface FloodConnection {
+  id?: string; fromId: string; toId: string; areaM2: number;
+  /** Omitted v1 connections preserve the original open-connection behavior. */
+  state?: 'open' | 'closed' | 'damaged'; position?: Vec3;
+  /** A hit on this protection surface can breach this boundary, within bounds. */
+  armorId?: string; bounds?: { center: Vec3; size: Vec3 }; thicknessMm?: number;
+}
+export interface PropulsionGroup {
+  id: string; share: number; boilerIds: string[]; driveIds: string[]; shaftIds: string[];
+}
 export interface Armor extends Volume {
   name: string; thicknessMm: number;
+  /** Exterior closed-box protection: both entry and exit can open the shell. */
+  exterior?: boolean;
   /** A convex, planar physical plate. Legacy volumes remain closed box shells. */
-  plate?: { vertices: Vec3[]; material: 'KC' | 'Wh' | 'Ww' | 'steel' | 'teak'; mountId?: string; exterior?: boolean };
+  plate?: { vertices: Vec3[]; material: 'KC' | 'Wh' | 'Ww' | 'steel' | 'teak'; mountId?: string; exterior?: boolean; surfaceId?: string };
   provenance?: { sourceId: string; basis: 'documented' | 'plan-measured' | 'estimated' | 'inferred'; note: string };
 }
 export interface ShipBlueprint {
@@ -64,7 +79,11 @@ export interface ShipBlueprint {
   coordinates: 'meters-y-up-bow-negative-z'; modelUrl: string;
   hull: Hull; handling: Handling; mounts: Mount[]; armor: Armor[];
   modules: Module[]; compartments: Compartment[];
-  connections: { fromId: string; toId: string; areaM2: number }[];
+  connections: FloodConnection[];
+  /** Additive v1 mechanics. Older definitions retain their provisional averages. */
+  propulsion?: { groups: PropulsionGroup[]; basis: string };
+  /** Explicit shell-to-space assignment; regions cover local shell surfaces. */
+  floodRegions?: (Volume & { compartmentId: string; face?: 'port' | 'starboard' | 'bow' | 'stern' })[];
   obstructions: Volume[];
   /** Gun sponsons can extend beyond the bare hull. */
   mountEnvelope?: { beam: number; length: number };
@@ -226,13 +245,40 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
   modules.forEach(m => {
     text(m.name, `${m.id}.name`); literal(m.kind, ['engine', 'steering', 'magazine'], `${m.id}.kind`);
     numeric(m.hp, `${m.id}.hp`, .001);
+    if (m.role !== undefined) {
+      literal(m.role, ['boiler', 'turbine', 'shaft', 'combined-drive'], `${m.id}.role`);
+      if (m.kind !== 'engine') fail(String(m.id), 'only propulsion equipment has a machinery role');
+    }
+    if (m.immersionToleranceM !== undefined) numeric(m.immersionToleranceM, `${m.id}.immersionToleranceM`, 0, (m.size as number[])[1]);
     if (!compartments.some(c => c.id === m.compartmentId)) fail(String(m.id), 'unknown compartment');
     const c = compartments.find(c => c.id === m.compartmentId)!;
     if ((m.center as number[]).some((n, i) => Math.abs(n - (c.center as number[])[i]) + (m.size as number[])[i] / 2 > (c.size as number[])[i] / 2 + 1e-6)) fail(String(m.id), 'module must fit its assigned compartment');
   });
+  if (b.propulsion !== undefined) {
+    const propulsion = record(b.propulsion, 'propulsion');
+    text(propulsion.basis, 'propulsion.basis');
+    const groups = list(propulsion.groups, 'propulsion.groups', 16).map(g => record(g, 'propulsion group'));
+    if (!groups.length) fail('propulsion.groups', 'at least one drive group required');
+    unique(groups, 'propulsion.groups');
+    groups.forEach(g => {
+      numeric(g.share, `${g.id}.share`, .001, 1);
+      for (const key of ['boilerIds', 'driveIds', 'shaftIds']) {
+        const ids = list(g[key], `${g.id}.${key}`, 64);
+        if (key === 'driveIds' && !ids.length) fail(String(g.id), 'at least one drive required');
+        if (new Set(ids).size !== ids.length) fail(String(g.id), 'duplicate equipment dependency');
+        ids.forEach(id => { if (!modules.some(m => m.id === id && m.kind === 'engine')) fail(String(g.id), 'unknown propulsion equipment'); });
+      }
+    });
+    if (Math.abs(groups.reduce((n, g) => n + (g.share as number), 0) - 1) > 1e-6) fail('propulsion.groups', 'power shares must sum to one');
+  }
+  if (b.floodRegions !== undefined) volumes(b.floodRegions, 'floodRegions', 512).forEach(r => {
+    if (!compartments.some(c => c.id === r.compartmentId)) fail(String(r.id), 'unknown flooding compartment');
+    if (r.face !== undefined) literal(r.face, ['port', 'starboard', 'bow', 'stern'], `${r.id}.face`);
+  });
   mounts.forEach(m => { if (m.magazineId !== undefined && !modules.some(module => module.id === m.magazineId && module.kind === 'magazine')) fail(String(m.id), 'unknown magazine connection'); });
-  volumes(b.armor, 'armor', 512).forEach(a => {
+  volumes(b.armor, 'armor', 1024).forEach(a => {
     text(a.name, `${a.id}.name`); numeric(a.thicknessMm, `${a.id}.thicknessMm`, .001, 2000);
+    if (a.exterior !== undefined) literal(a.exterior, [true, false], `${a.id}.exterior`);
     if (a.provenance !== undefined) {
       const p = record(a.provenance, `${a.id}.provenance`);
       id(p.sourceId, 'sourceId'); text(p.note, 'provenance.note');
@@ -242,6 +288,7 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
       const p = record(a.plate, `${a.id}.plate`);
       literal(p.material, ['KC', 'Wh', 'Ww', 'steel', 'teak'], 'plate.material');
       if (p.exterior !== undefined) literal(p.exterior, [true, false], 'plate.exterior');
+      if (p.surfaceId !== undefined) id(p.surfaceId, 'plate.surfaceId');
       if (p.mountId !== undefined && !mounts.some(m => m.id === p.mountId)) fail(String(a.id), 'unknown plate mount');
       const points = list(p.vertices, 'plate.vertices', 16).map(v => vector(v, 'plate vertex'));
       if (points.length < 3) fail(String(a.id), 'plate needs at least three vertices');
@@ -264,11 +311,22 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
   list(b.connections, 'connections', 512).forEach((v, i) => {
     const c = record(v, `connections[${i}]`);
     numeric(c.areaM2, `connections[${i}].areaM2`, 0, 100);
+    if (c.id !== undefined) id(c.id, `connections[${i}].id`);
+    if (c.state !== undefined) literal(c.state, ['open', 'closed', 'damaged'], `connections[${i}].state`);
+    if (c.position !== undefined) vector(c.position, `connections[${i}].position`);
+    if (c.thicknessMm !== undefined) {
+      numeric(c.thicknessMm, 'connection.thicknessMm', .001, 2000);
+      if (c.bounds === undefined || c.armorId !== undefined) fail('connections', 'standalone boundary thickness requires bounds and no armor link');
+    }
+    if (c.armorId !== undefined && !list(b.armor, 'armor', 1024).some(a => record(a, 'armor').id === c.armorId)) fail('connections', 'unknown boundary protection');
+    if (c.bounds !== undefined) { const bounds = record(c.bounds, 'connection.bounds'); vector(bounds.center, 'connection center'); vector(bounds.size, 'connection size', .001); }
     if (c.fromId === c.toId || !compartments.some(p => p.id === c.fromId) || !compartments.some(p => p.id === c.toId)) fail('connections', 'invalid compartment connection');
     const key = [c.fromId, c.toId].sort().join(':');
     if (connectionIds.has(key)) fail('connections', 'duplicate compartment connection');
     connectionIds.add(key);
   });
+  const namedConnections = list(b.connections, 'connections', 512).map(c => record(c, 'connection')).filter(c => c.id !== undefined);
+  unique(namedConnections, 'connections');
   const accuracy = record(b.accuracy, 'accuracy');
   ['exterior', 'internals', 'weapons'].forEach(k => text(accuracy[k], `accuracy.${k}`));
   const blueprint = structuredClone(input) as ShipBlueprint;
