@@ -20,6 +20,8 @@ export interface CombatTelemetry {
   modules: { id: string; name: string; condition: number }[]; message: string;
   playerIntegrity: number;
   playerWater: number;
+  playerDamageDealt: number;
+  playerFrags: number;
   targetPosition: { x: number; z: number; heading: number };
   batteries: { battery: Battery; ammo: number; ready: number; total: number; reload: number }[];
 }
@@ -38,6 +40,10 @@ export class CombatSimulation {
   private shellSequence = 0;
   private eventSequence = 0;
   private fireQueued = false;
+  private playerDamageDealt = 0;
+  private playerFrags = 0;
+  /** Last hostile hull/breach damage earns the frag, including a later flooding loss. */
+  private lastDamager = new Map<string, string>();
   /** Without a fleet, create an idle gunnery fixture for port and isolated asset tests. */
   constructor(readonly definition: ShipDefinition, fleet?: BattleFleet) {
     this.isBattle = !!fleet;
@@ -81,6 +87,7 @@ export class CombatSimulation {
   private clearCombat(): void {
     this.targetUnderway = false; this.shells.length = 0;
     this.events.length = 0; this.fireQueued = false;
+    this.playerDamageDealt = 0; this.playerFrags = 0; this.lastDamager.clear();
   }
   resetTarget(): void {
     if (this.isBattle) return;
@@ -173,7 +180,20 @@ export class CombatSimulation {
         const hit = segmentBox(worldToLocal(from, actor.motion), worldToLocal(end, actor.motion), { center: [0, 10, 0], size: [def.hull.beam + 30, 60, def.hull.length + 40] });
         return { actor, hit };
       }).filter(c => c.hit).sort((a, b) => a.hit!.t - b.hit!.t);
-      for (const { actor } of candidates) if (hitShip(shell, from, end, actor, actor.definition, this.emit)) { ended = true; break; }
+      for (const { actor } of candidates) {
+        const hp = actor.damage.integrity;
+        const breaches = actor.damage.compartments.reduce((sum, c) => sum + c.breachAreaM2, 0);
+        const stopped = hitShip(shell, from, end, actor, actor.definition, this.emit);
+        const owner = this.actors.find(a => a.motion.id === shell.ownerId);
+        if (!actor.damage.sunk && hp > 0 && owner && owner.team !== actor.team) {
+          const lost = Math.max(0, hp - actor.damage.integrity);
+          if (owner === this.player) this.playerDamageDealt += lost;
+          if (lost > 0 || actor.damage.compartments.reduce((sum, c) => sum + c.breachAreaM2, 0) > breaches) {
+            this.lastDamager.set(actor.motion.id, owner.motion.id);
+          }
+        }
+        if (stopped) { ended = true; break; }
+      }
       if (!ended && (crossingSea || (to[1] < 0 && !insideHull(to)))) {
         this.emit({ kind: 'splash', position: [end[0], 0, end[2]], shipId: '', message: 'Shell splash',
           shell: { id: shell.id, caliberM: shell.caliberM, velocity: [...shell.velocity] } }); ended = true;
@@ -184,7 +204,10 @@ export class CombatSimulation {
     for (const actor of this.actors) {
       const wasSunk = actor.damage.sunk;
       updateFlooding(actor, actor.definition, FIXED_DT);
-      if (!wasSunk && actor.damage.sunk) this.emit({ kind: 'sunk', position: [actor.motion.x, actor.motion.y, actor.motion.z], shipId: actor.motion.id, message: `${actor.definition.name} sinking` });
+      if (!wasSunk && actor.damage.sunk) {
+        if (actor.team !== this.player.team && this.lastDamager.get(actor.motion.id) === this.player.motion.id) this.playerFrags++;
+        this.emit({ kind: 'sunk', position: [actor.motion.x, actor.motion.y, actor.motion.z], shipId: actor.motion.id, message: `${actor.definition.name} sinking` });
+      }
     }
     if (this.isBattle && this.result === 'active') {
       const friendly = this.actors.some(actor => actor.team === 'friendly' && !actor.damage.sunk);
@@ -209,6 +232,7 @@ export class CombatSimulation {
       targetPower: systemHealth(this.target, this.target.definition, 'engine'), targetSteering: systemHealth(this.target, this.target.definition, 'steering'), targetSunk: this.target.damage.sunk, targetUnderway: this.targetUnderway,
       mounts, modules: this.target.definition.modules.map((m, i) => ({ id: m.id, name: m.name, condition: this.target.damage.modules[i].hp / m.hp })),
       playerIntegrity: this.player.damage.integrity / 1000,
+      playerDamageDealt: this.playerDamageDealt, playerFrags: this.playerFrags,
       playerWater: this.player.damage.compartments.reduce((n, c) => n + c.waterM3, 0),
       targetPosition: { x: this.target.motion.x, z: this.target.motion.z, heading: this.target.motion.heading },
       batteries: (['main', 'secondary'] as Battery[]).map(battery => {
