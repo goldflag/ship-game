@@ -6,6 +6,7 @@ import { SkySystem, PRESETS as SKY_PRESETS } from '../../vendor/threejs-sky-pro/
 import { SingleplayerSimulation } from '../simulation/ship';
 import { InputController } from './InputController';
 import { CameraRig } from './CameraRig';
+import { createHarborBackdrop } from './HarborBackdrop';
 import type { GameCallbacks, GameSettings } from './types';
 
 export const BUOYS = [
@@ -34,6 +35,8 @@ export class Game {
   private observer: ResizeObserver;
   private disposed = false;
   private paused = false;
+  private inPort = false;
+  private harbor?: THREE.Group;
   private raf = 0;
   private lastTime = 0;
   private hudTime = 0;
@@ -53,18 +56,18 @@ export class Game {
     this.host.appendChild(this.renderer.domElement);
     this.rig = new CameraRig(this.camera, this.renderer.domElement);
     this.input = new InputController({
-      pause: () => this.setPaused(!this.paused),
+      pause: () => { if (!this.inPort) this.setPaused(!this.paused); },
       camera: () => this.rig.cycle(), recenter: () => this.rig.recenter(),
-      hud: callbacks.hud, fullscreen: () => this.fullscreen(),
+      hud: () => { if (!this.inPort) callbacks.hud(); }, fullscreen: () => this.fullscreen(),
     });
     this.input.setEnabled(false);
     this.observer = new ResizeObserver(() => { this.resizePending = true; });
     this.observer.observe(host);
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden) this.setPaused(true);
+      if (document.hidden && !this.inPort) this.setPaused(true);
       this.lastTime = performance.now();
     }, { signal: this.abort.signal });
-    window.addEventListener('blur', () => this.setPaused(true), { signal: this.abort.signal });
+    window.addEventListener('blur', () => { if (!this.inPort) this.setPaused(true); }, { signal: this.abort.signal });
   }
 
   start(): void {
@@ -170,6 +173,9 @@ export class Game {
     this.water.wake.foamStrength = 1.25;
     this.water.wake.foamPersistence = 0.995;
     for (const buoy of BUOYS) this.addBuoy(buoy);
+    this.harbor = createHarborBackdrop();
+    this.harbor.visible = this.inPort;
+    this.scene.add(this.harbor);
 
     this.callbacks.progress('Compiling ocean shaders', 0.82);
     this.scenePass = pass(this.scene, this.camera);
@@ -185,7 +191,7 @@ export class Game {
     this.pipeline.render();
     this.callbacks.progress('Ready to get underway', 1);
     this.callbacks.ready();
-    this.input.setEnabled(!this.paused);
+    this.input.setEnabled(!this.paused && !this.inPort);
     this.lastTime = performance.now();
     this.scheduleFrame();
   }
@@ -216,7 +222,7 @@ export class Game {
     const dt = this.paused ? 0 : realDt;
     try {
       if (this.resizePending) this.resize();
-      this.simulation.advance(dt, this.input.sample());
+      if (!this.inPort) this.simulation.advance(dt, this.input.sample());
       const state = this.simulation.ship;
       this.ship.position.x = state.x;
       this.ship.position.z = state.z;
@@ -254,7 +260,20 @@ export class Game {
     this.sky?.resize(width, height);
     this.resizePending = false;
   }
-  setPaused(paused: boolean): void { this.paused = paused; this.input.setEnabled(!paused && !!this.water); this.callbacks.pause(paused); }
+  setPaused(paused: boolean): void { this.paused = paused; this.input.setEnabled(!paused && !this.inPort && !!this.water); this.callbacks.pause(paused); }
+  setInPort(inPort: boolean): void {
+    this.inPort = inPort;
+    this.rig.setInPort(inPort);
+    if (this.harbor) this.harbor.visible = this.inPort;
+    this.input.setOrder(1);
+    this.input.setRudder(0);
+    if (this.inPort) {
+      this.simulation.reset();
+      this.trail = [{ x: 0, z: 0 }];
+      this.lastTrailTick = 0;
+    }
+    this.setPaused(false);
+  }
   cycleCamera(): void { this.rig.cycle(); }
   recenter(): void { this.rig.recenter(); }
   fullscreen(): void {

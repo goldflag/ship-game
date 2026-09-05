@@ -46,6 +46,12 @@ export class CameraRig {
     this.recenter();
   }
   recenter(): void { this.azimuth = this.mode === 'Bridge' ? 0 : 0.82; this.elevation = 0.25; }
+  setInPort(inPort: boolean): void {
+    this.mode = 'Chase';
+    this.azimuth = inPort ? 1.08 : .82;
+    this.elevation = inPort ? .28 : .25;
+    this.distance = inPort ? 340 : 345;
+  }
   update(ship: ShipState, height: number, dt: number, snap = false): void {
     const forwardX = Math.sin(ship.heading), forwardZ = -Math.cos(ship.heading);
     this.target.set(ship.x + forwardX * 25, height + 20, ship.z + forwardZ * 25);

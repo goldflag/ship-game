@@ -17,6 +17,8 @@ A playable naval game foundation. The current scope is free sailing; future scop
 ## Capabilities and Constraints
 Render the supplied ship on the supplied water and sky. Keep the simulation independent of React, rendering, and local input so future controllers can provide bot or network commands. Combat and networking are not part of this first build.
 
+Start in a home-port garage before sailing. The selected Fleet harbor layout lets the player inspect Bismarck and choose Set sail; returning to port resets the sea trial. Currency, commander skills, research, daily orders and refits are authorized mock content, clearly labeled as progression previews and kept in memory.
+
 ## Evidence on Hand
 `/Users/bill/models/bismarck/Bismarck_1941.blend`, model README and dimensions; licensed Pro packages in Downloads. Model is 250.5 meters long, bow +X, waterline Z=0 in Blender.
 
