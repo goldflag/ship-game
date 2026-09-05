@@ -48,4 +48,10 @@ export class CombatEffects {
       b.mesh.position.y += dt * (b.splash ? 0 : 2);
     });
   }
+  reset(): void {
+    this.sequence = 0;
+    for (let i = 0; i < this.activeProjectiles; i++) this.projectiles.setMatrixAt(i, this.hiddenProjectile);
+    this.activeProjectiles = 0; this.projectiles.instanceMatrix.needsUpdate = true;
+    this.bursts.forEach(burst => { burst.duration = 0; burst.mesh.visible = false; });
+  }
 }

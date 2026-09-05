@@ -13,7 +13,7 @@ export function shipModel(selectedShip: ShipDefinition) {
   const identity = shipIdentity(selectedShip.id);
   const year = selectedShip.configuration.match(/19\d{2}/)?.[0] ?? '';
 
-  // The port, sea trial and schematic all use the selected compiled asset.
+  // The port, custom battle and schematic all use the selected compiled asset.
   return {
     id: selectedShip.id,
     url: selectedShip.modelUrl,
