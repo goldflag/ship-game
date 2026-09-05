@@ -4,7 +4,7 @@ import type { Combatant } from './damage';
 export const BATTLE_SPAWN_DISTANCE = 5000;
 export const MIN_BATTLE_SPAWN_DISTANCE = 1000;
 export const MAX_BATTLE_SPAWN_DISTANCE = 20000;
-export const MAX_TEAM_SHIPS = 5;
+export const MAX_TEAM_SHIPS = 30;
 export type Team = 'friendly' | 'enemy';
 export type BattleResult = 'active' | 'victory' | 'defeat' | 'draw';
 export interface BattleSetup { playerShipId: string; friendlyBots: string[]; enemies: string[]; spawnDistance: number; }
