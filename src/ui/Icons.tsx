@@ -1,10 +1,12 @@
 import type { CSSProperties } from 'react';
-export function Icon({ name, size = 20, style }: { name: 'anchor' | 'pause' | 'play' | 'camera' | 'expand' | 'close' | 'arrow' | 'compass' | 'he' | 'shell' | 'repair' | 'ship' | 'turret' | 'target' | 'plus' | 'minus' | 'schematic' | 'download' | 'copy' | 'chevron'; size?: number; style?: CSSProperties }) {
+export function Icon({ name, size = 20, style }: { name: 'settings' | 'power' | 'anchor' | 'pause' | 'play' | 'camera' | 'expand' | 'close' | 'arrow' | 'compass' | 'he' | 'shell' | 'repair' | 'ship' | 'turret' | 'target' | 'plus' | 'minus' | 'schematic' | 'download' | 'copy' | 'chevron'; size?: number; style?: CSSProperties }) {
   const paths = {
     schematic: <><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 15h18M15 3v18M6 11l2-4h3l2 4ZM6 18h6M18 6v6"/></>,
     download: <><path d="M12 3v12m-5-5 5 5 5-5M4 15v6h16v-6"/></>,
     copy: <><rect x="8" y="8" width="12" height="13" rx="1"/><path d="M16 8V3H3v13h5"/></>,
     anchor: <><circle cx="12" cy="5" r="2"/><path d="M12 7v14M7 11h10M3 14v3c0 2 5 4 9 4s9-2 9-4v-3M3 14l3 2M21 14l-3 2"/></>,
+    settings: <><path d="M4 7h16M4 17h16M8 4v6m8 4v6"/></>,
+    power: <><path d="M12 3v9M6 5.5a8 8 0 1 0 12 0"/></>,
     pause: <><path d="M8 5v14M16 5v14"/></>,
     play: <path d="m8 4 12 8-12 8Z"/>,
     camera: <><path d="M3 7h5l2-3h4l2 3h5v13H3Z"/><circle cx="12" cy="13" r="4"/></>,
