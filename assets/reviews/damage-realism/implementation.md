@@ -91,3 +91,22 @@ Fleet cost was 1.69–1.70 ms/tick here and 1.98–2.07 on Fable's loaded host, 
 | yamato | `4f1595f8929bf82e7e60bfd60eea54c78d1f1ba31293274fb7d6ac362fdda78b` |
 | baltimore | `685fc33dc77b69981f713161b24ecce69ae386102615d9ec14036d344c942d1a` |
 | enterprise-cv6 | `5c71a931dae3ac15fc7b4e90c457e7ab683bf2f6578cbe792a7aa2c128da90cc` |
+
+## Step 3c — complete, Fable accepted after calibration fix
+
+Penetration now follows impact speed through a calibrated exponent of 1.4. KC, Wh, Ww and generic steel have explicit relative resistance factors (1.1, 1, 0.9 and 1); thin-sheet grazing resistance caps at ten times thickness before the material factor. The impact history displays speed. Independent seeded muzzle-speed variation adds range spread (estimated sigma 0.3% naval / 0.5% small AA, capped at three sigma). These are game approximations, not historical penetration/dispersion data. Armor still consumes budget without slowing flight; consistent deceleration is required in 3d before fuze distance is evaluated.
+
+Per-mount caches retain the previous desired muzzle and flight time as an initial guess. Continuous tracking takes one iteration; acquisition and jumps take three. Current heading/velocity are recomputed every tick. Bot lead stays separate by gun and muzzle; out-of-range/empty/disabled guns stop solving and hold train. Tests and Fable's turn, moving-target and jump probes preserve sub-meter aim accuracy. Fleet cost fell from approximately 1.7–2.0 ms/tick in 3b to 1.35–1.58 in Fable's runs (1.42–1.45 here); host load varies.
+
+Fable initially accepted the implementation but requested an explicit penetration reference ([review](fable-step3c-review.md)). The new [original recipe](../../parts/calibrate-penetration.ts) anchors the legacy penetration budgets to nominal impact speed at 5 km for naval guns or 1 km for small AA, from a 10 m launch height to sea level. Optional validated `penetrationReferenceSpeedMps` falls back to muzzle speed when absent. Bismarck's retained 550 mm at 731.151256 m/s corresponds to 645.79 mm at nominal muzzle speed. The catalog records the reference and its limits; residual budget follows any speed recovery on descent. Fable reproduced every reference with independent 600 Hz integration, confirmed the protected engine fixture and accepted the fix ([re-review](fable-step3c-rereview.md), task `task_14fccf64c04b` / dispatch `ctx_ccfad7bca5f9`).
+
+A 22 km Bismarck-versus-Bismarck fixed-position AP duel remains in a calibrated immunity band. We accepted that result rather than raising penetration to recreate 3b's range-independent damage. The 15 km probe now produces flooding/module effects. These are scenario observations, not historical immunity-zone claims. Real bots maneuver and close; HE and other damage consequences remain in later milestones.
+
+Final validation: **156 tests passed**, production build and all four local Blender builds/checks passed. Twenty regenerated fixed views remain pixel-identical to the previously inspected geometry; live articulation error is at most 2.746 mm. Final browser seed 4158702779 launched eight stock rounds (816.03–824.98 m/s), populated five target-hit histories and rendered 20 speed labels. [Replay](browser/step3c-firing.json), [canvas](browser/step3c-firing.png), [articulation](browser/step3c-articulation.json), [fixed views](browser/step3c-fixed-view-comparison.json), [mobile layout](browser/step3c-mobile.json). The 390×844 HUD has no horizontal overflow and remains scrollable. The replay explicitly advances CPU ticks; screenshots capture the canvas, with HUD DOM recorded separately. Twelve frozen render frames settle temporal sky history before the final image.
+
+| Preset | Step-3c definition hash |
+| --- | --- |
+| bismarck | `79099ec05da3940d69b2eb2d96cc3ce029c2340dea984e418f16cb008ccdb8be` |
+| yamato | `dff1e0d3f106968fcfa56c6e904d20cc3069e34c75e346cc9a24704eb155431a` |
+| baltimore | `85a29101d9c0055a63125b7c292259f580a0ddb6f2c1381948a695a9cef7ad18` |
+| enterprise-cv6 | `db8ead3c82e60455f0620a81df7ae2ea796bc0ec41e7d1ff1f8b41faa7b2cd85` |

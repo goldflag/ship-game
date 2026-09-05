@@ -10,7 +10,7 @@ export interface GunPart {
   reloadSeconds: number; muzzleSpeed: number; projectileMassKg: number;
   penetrationMm: number; damage: number; recoilM: number; ammoPerBarrel: number; armorMm: number;
   /** Optional calibrated flight model; omitted v1 parts retain vacuum/no spread. */
-  ballistics?: { dragPerSecond: number; dispersionRad: number; basis: string };
+  ballistics?: { dragPerSecond: number; dispersionRad: number; muzzleSpeedSigmaFraction?: number; penetrationReferenceSpeedMps?: number; basis: string };
   /** Omitted in original v1 twin parts. Spacing is between adjacent barrel axes. */
   barrelCount?: 1 | 2 | 3 | 4;
   mountingStyle?: 'enclosed' | 'open-pedestal' | 'open-quad' | 'oerlikon';
@@ -218,6 +218,8 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
       const flight = record(p.ballistics, `${p.id}.ballistics`);
       numeric(flight.dragPerSecond, 'ballistics.dragPerSecond', 0, .5);
       numeric(flight.dispersionRad, 'ballistics.dispersionRad', 0, .02);
+      if (flight.muzzleSpeedSigmaFraction !== undefined) numeric(flight.muzzleSpeedSigmaFraction, 'ballistics.muzzleSpeedSigmaFraction', 0, .05);
+      if (flight.penetrationReferenceSpeedMps !== undefined) numeric(flight.penetrationReferenceSpeedMps, 'ballistics.penetrationReferenceSpeedMps', 1, 10000);
       text(flight.basis, 'ballistics.basis');
     }
     if (p.barrelCount !== undefined) literal(p.barrelCount, [1, 2, 3, 4], `${p.id}.barrelCount`);

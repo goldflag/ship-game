@@ -2,9 +2,9 @@ import type { Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { hullContains } from './hull';
 import { equipmentCondition, type EquipmentCondition } from './machinery';
 import { createShipState, FIXED_DT, stepShip, type HelmCommand } from './ship';
-import { add, clamp, localToWorld, scale, segmentBox, sub, worldToLocal } from './geometry';
+import { add, clamp, length, localToWorld, scale, segmentBox, sub, worldToLocal } from './geometry';
 import { createMountState, muzzleWorld, shotDirection, solveBallistic, updateMount } from './weapons';
-import { ballisticStep, dispersedDirection, travelFactor } from './ballistics';
+import { ballisticStep, dispersedDirection, dispersedSpeed, travelFactor, velocityPenetration } from './ballistics';
 import { deployment, MAX_TEAM_SHIPS, type BattleFleet, type BattleResult, type FleetActor, type Team } from './battle';
 import { botAim, botGunRange, botHelm, botTarget, clearFiringLane, shipVelocity } from './bots';
 import { createDamage, hitShip, systemHealth, updateFlooding, type BallisticEffectData, type DamageEvent, type Shell, type ImpactRecord, type DefeatCause } from './damage';
@@ -173,18 +173,20 @@ export class CombatSimulation {
         const state = actor.mounts[i];
         if (m.magazineId && equipmentCondition(actor, def, def.modules.find(module => module.id === m.magazineId)!).availability === 0) { state.status = 'disabled'; return; }
         if (actor === this.player && !aimValid) { state.status = 'out-of-arc'; return; }
-        const aim = actor === this.player ? intent.aim : target ? botAim(actor, target, m, state) : localToWorld([0, .5, -5000], actor.motion);
-        const aligned = updateMount(m, state, def, actor.motion, aim, FIXED_DT, shipVelocity(actor));
         const inRange = target && Math.hypot(target.motion.x - actor.motion.x, target.motion.z - actor.motion.z) <= botGunRange(m);
+        const aim = actor === this.player ? intent.aim : target && inRange && state.hp > 0 && state.ammo >= (m.weapon.barrelCount ?? 2) ? botAim(actor, target, m, state) : undefined;
+        const aligned = updateMount(m, state, def, actor.motion, aim, FIXED_DT, shipVelocity(actor));
         const firing = actor === this.player ? (intent.fire || this.fireQueued) && m.battery === intent.battery : actor.controller === 'bot' && inRange && laneClear && aligned;
         const barrelCount = m.weapon.barrelCount ?? 2;
         if (!actor.damage.sunk && firing && state.status === 'ready' && this.shells.length <= 256 - barrelCount) {
           state.reload = m.weapon.reloadSeconds; state.ammo -= barrelCount; state.recoil = 1; state.status = 'reloading';
           for (let barrel = 0; barrel < barrelCount; barrel++) {
             const position = muzzleWorld(m, state, barrel, actor.motion);
-            const direction = dispersedDirection(shotDirection(m, state, actor.motion), m.weapon.ballistics?.dispersionRad ?? 0, this.seed, this.dispersionSequence++);
-            const velocity = add(scale(direction, m.weapon.muzzleSpeed), shipVelocity(actor));
-            this.shells.push({ id: ++this.shellSequence, ownerId: actor.motion.id, position, velocity, age: 0, penetrationMm: m.weapon.penetrationMm, damage: m.weapon.damage, caliberM: m.weapon.caliberM, visited: [], dragPerSecond: m.weapon.ballistics?.dragPerSecond ?? 0 });
+            const shot = this.dispersionSequence++;
+            const direction = dispersedDirection(shotDirection(m, state, actor.motion), m.weapon.ballistics?.dispersionRad ?? 0, this.seed, shot);
+            const speed = dispersedSpeed(m.weapon.muzzleSpeed, m.weapon.ballistics?.muzzleSpeedSigmaFraction ?? 0, this.seed, shot);
+            const velocity = add(scale(direction, speed), shipVelocity(actor));
+            this.shells.push({ id: ++this.shellSequence, ownerId: actor.motion.id, position, velocity, age: 0, penetrationMm: velocityPenetration(m.weapon.penetrationMm, m.weapon.ballistics?.penetrationReferenceSpeedMps ?? m.weapon.muzzleSpeed, length(velocity)), damage: m.weapon.damage, caliberM: m.weapon.caliberM, visited: [], dragPerSecond: m.weapon.ballistics?.dragPerSecond ?? 0 });
             this.emit({ kind: 'shot', position: [...position], shipId: actor.motion.id, message: `${m.name} fired`,
               shell: { id: this.shellSequence, caliberM: m.weapon.caliberM, velocity: [...velocity] } });
           }
@@ -196,6 +198,7 @@ export class CombatSimulation {
       const shell = this.shells[i];
       const from: Vec3 = [...shell.position];
       const flight = ballisticStep(from, shell.velocity, FIXED_DT, shell.dragPerSecond ?? 0), to = flight.position;
+      shell.penetrationMm = velocityPenetration(shell.penetrationMm, length(shell.velocity), length(flight.velocity));
       shell.velocity = flight.velocity; shell.age += FIXED_DT;
       let ended = false;
       // Bound each swept segment to the first sea contact, so submerged modules can't

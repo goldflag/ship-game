@@ -40,6 +40,7 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
           <summary>Shell {h.shellId} · {h.outcome.replace('internal', 'stopped inside')}</summary>
           <ol>{h.impacts.map((impact, i) => <li key={i}>
             <strong>{impact.targetName} · {impact.outcome}</strong>
+            {impact.impactSpeedMps !== undefined && <span>{impact.impactSpeedMps.toFixed(0)} m/s at impact</span>}
             {impact.thicknessMm !== undefined && <span>{impact.thicknessMm.toFixed(1)} mm {impact.material}{impact.obliquityDeg !== undefined ? ` · ${impact.obliquityDeg.toFixed(1)}° from normal` : ''}</span>}
             <span>{impact.resistanceMm !== undefined ? `${impact.resistanceMm.toFixed(1)} mm resistance · ` : ''}{impact.penetrationAfterMm.toFixed(1)} mm remaining</span>
             {!!impact.damage && <span>{impact.damage.toFixed(1)} damage</span>}

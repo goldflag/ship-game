@@ -4,7 +4,12 @@ import { add, clamp, length, localToWorld, normalize, radians, rotate, segmentBo
 import { GRAVITY, solveDragArc, travelFactor } from './ballistics';
 export { GRAVITY } from './ballistics';
 export type MountDefinition = ShipDefinition['mounts'][number];
-export interface MountState { id: string; train: number; elevation: number; reload: number; ammo: number; hp: number; recoil: number; status: 'ready' | 'reloading' | 'blocked' | 'out-of-arc' | 'empty' | 'disabled'; }
+export interface MountState {
+  id: string; train: number; elevation: number; reload: number; ammo: number; hp: number; recoil: number;
+  status: 'ready' | 'reloading' | 'blocked' | 'out-of-arc' | 'empty' | 'disabled';
+  aimCache?: { time: number; train: number; elevation: number; point: Vec3 };
+  leadCache?: { time: number; point: Vec3 };
+}
 export const createMountState = (m: MountDefinition): MountState => ({ id: m.id, train: 0, elevation: radians(1), reload: 0, ammo: m.weapon.ammoPerBarrel * (m.weapon.barrelCount ?? 2), hp: 100, recoil: 0, status: 'ready' });
 export function muzzleLocal(m: MountDefinition, state: Pick<MountState, 'train' | 'elevation'>, barrel: number): Vec3 {
   const bearing = radians(m.bearingDeg) + state.train, w = m.weapon;
@@ -29,16 +34,20 @@ export function solveBallistic(from: Vec3, target: Vec3, speed: number, dragPerS
   return { direction: [delta[0] / range * Math.cos(angle), Math.sin(angle), delta[2] / range * Math.cos(angle)], time: range / (speed * Math.cos(angle)) };
 }
 /** Return true when the barrel has reached a valid firing solution (used by bots). */
-export function updateMount(m: MountDefinition, state: MountState, definition: ShipDefinition, pose: Pose, aim: Vec3, dt: number, inheritedVelocity: Vec3 = [0, 0, 0]): boolean {
+export function updateMount(m: MountDefinition, state: MountState, definition: ShipDefinition, pose: Pose, aim: Vec3 | undefined, dt: number, inheritedVelocity: Vec3 = [0, 0, 0]): boolean {
   state.reload = Math.max(0, state.reload - dt);
   state.recoil = Math.max(0, state.recoil - dt / 1.4);
   if (state.hp <= 0) { state.status = 'disabled'; return false; }
   if (state.ammo < (m.weapon.barrelCount ?? 2)) { state.status = 'empty'; return false; }
-  // Iterate from the actual muzzle so the long barrel offset doesn't bias close shots.
-  let desiredTrain = state.train, desiredElevation = state.elevation;
-  let reachable = true;
-  let flightTime = length(sub(aim, [pose.x, pose.y, pose.z])) / m.weapon.muzzleSpeed;
-  for (let i = 0; i < 3; i++) {
+  // Warm-start from the previous desired muzzle and flight time. Reacquisition
+  // still converges in three iterations; continuous tracking needs only one.
+  // Heading and inherited velocity are recomputed each tick, even for a cached
+  // point; the cache only supplies the initial guess, not a stale direction.
+  const cache = aim && state.aimCache && length(sub(aim, state.aimCache.point)) < 10 ? state.aimCache : undefined;
+  let desiredTrain = cache?.train ?? state.train, desiredElevation = cache?.elevation ?? state.elevation;
+  let reachable = !!aim;
+  let flightTime = cache?.time ?? (aim ? length(sub(aim, [pose.x, pose.y, pose.z])) / m.weapon.muzzleSpeed : 0);
+  for (let i = 0; aim && i < (cache ? 1 : 3); i++) {
     const midpoint = localToWorld(muzzleLocal(m, { train: desiredTrain, elevation: desiredElevation }, 0), pose);
     const drag = m.weapon.ballistics?.dragPerSecond ?? 0;
     const relativeAim = sub(aim, inheritedVelocity.map(n => n * travelFactor(flightTime, drag)) as Vec3);
@@ -49,6 +58,7 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
     desiredTrain = wrapAngle(Math.atan2(direction[0], -direction[2]) - radians(m.bearingDeg));
     desiredElevation = Math.asin(clamp(direction[1], -1, 1));
   }
+  state.aimCache = reachable && aim ? { time: flightTime, train: desiredTrain, elevation: desiredElevation, point: [...aim] } : undefined;
   const w = m.weapon, limit = radians(w.traverseDeg);
   const train = clamp(desiredTrain, -limit, limit), elevation = clamp(desiredElevation, radians(w.elevationMinDeg), radians(w.elevationMaxDeg));
   // Traverse through the permitted interval; never shortcut across the forbidden stern sector.

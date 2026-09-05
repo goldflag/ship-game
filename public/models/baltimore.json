@@ -7186,7 +7186,9 @@
         "ballistics": {
           "dragPerSecond": 0.0249,
           "dispersionRad": 0.0012,
-          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+          "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 5000 m, 10 m launch/sea target, nominal speed (637.693 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 637.693031
         }
       }
     },
@@ -7300,7 +7302,9 @@
         "ballistics": {
           "dragPerSecond": 0.0249,
           "dispersionRad": 0.0012,
-          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+          "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 5000 m, 10 m launch/sea target, nominal speed (637.693 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 637.693031
         }
       }
     },
@@ -7414,7 +7418,9 @@
         "ballistics": {
           "dragPerSecond": 0.0249,
           "dispersionRad": 0.0012,
-          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+          "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 5000 m, 10 m launch/sea target, nominal speed (637.693 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 637.693031
         }
       }
     },
@@ -7506,7 +7512,9 @@
         "ballistics": {
           "dragPerSecond": 0.06145,
           "dispersionRad": 0.0012,
-          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+          "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 5000 m, 10 m launch/sea target, nominal speed (485.109 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 485.108815
         }
       }
     },
@@ -7598,7 +7606,9 @@
         "ballistics": {
           "dragPerSecond": 0.06145,
           "dispersionRad": 0.0012,
-          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+          "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 5000 m, 10 m launch/sea target, nominal speed (485.109 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 485.108815
         }
       }
     },
@@ -7690,7 +7700,9 @@
         "ballistics": {
           "dragPerSecond": 0.06145,
           "dispersionRad": 0.0012,
-          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+          "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 5000 m, 10 m launch/sea target, nominal speed (485.109 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 485.108815
         }
       }
     },
@@ -7782,7 +7794,9 @@
         "ballistics": {
           "dragPerSecond": 0.06145,
           "dispersionRad": 0.0012,
-          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+          "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 5000 m, 10 m launch/sea target, nominal speed (485.109 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 485.108815
         }
       }
     },
@@ -7874,7 +7888,9 @@
         "ballistics": {
           "dragPerSecond": 0.06145,
           "dispersionRad": 0.0012,
-          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+          "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 5000 m, 10 m launch/sea target, nominal speed (485.109 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 485.108815
         }
       }
     },
@@ -7966,7 +7982,9 @@
         "ballistics": {
           "dragPerSecond": 0.06145,
           "dispersionRad": 0.0012,
-          "basis": "Provisional game calibration: constant linear drag set from 0.5*rho*Cd*area*muzzleSpeed/mass with rho=1.225 and Cd=0.25; not a measured drag curve. Per-shot angular sigma is estimated, Gaussian radius capped at 3 sigma; no salvo correlation or rangefinder error."
+          "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 5000 m, 10 m launch/sea target, nominal speed (485.109 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 485.108815
         }
       }
     }
@@ -16338,5 +16356,5 @@
     }
   ],
   "compilerVersion": 1,
-  "contentHash": "685fc33dc77b69981f713161b24ecce69ae386102615d9ec14036d344c942d1a"
+  "contentHash": "85a29101d9c0055a63125b7c292259f580a0ddb6f2c1381948a695a9cef7ad18"
 }

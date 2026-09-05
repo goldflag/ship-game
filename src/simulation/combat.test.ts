@@ -35,7 +35,7 @@ for (const aim of [[1800, 0, 0], [0, 0, 1800], [1800, 1000, 0], [40000, 0, 0]] a
     const launch = sim.events.find(e => e.message === `${mount.name} fired`)!;
     const spread = Math.acos(Math.min(1, dot(direction, normalize(launch.shell!.velocity))));
     expect(spread).toBeLessThanOrEqual(3 * (mount.weapon.ballistics?.dispersionRad ?? 0) + 1e-7);
-    expect(length(launch.shell!.velocity)).toBeCloseTo(mount.weapon.muzzleSpeed, 6);
+    expect(Math.abs(length(launch.shell!.velocity) / mount.weapon.muzzleSpeed - 1)).toBeLessThanOrEqual(3 * (mount.weapon.ballistics?.muzzleSpeedSigmaFraction ?? 0) + 1e-10);
     const predicted = ballisticStep(launch.position, launch.shell!.velocity, FIXED_DT, mount.weapon.ballistics?.dragPerSecond);
     expect(shell.velocity).toEqual(predicted.velocity);
     expect(shell.position).toEqual(predicted.position);
