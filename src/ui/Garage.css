@@ -1,0 +1,260 @@
+/* Fleet harbor: compact instruments around the ship, with an open top bar. */
+.garage { --port-ink:#0c1b26; --port-panel:#10232eef; --port-text:#edf1ec; --port-muted:#b7c7cc; --port-line:#c2d5da2e; --port-accent:#e5bf80; --port-ready:#94d9bf; position:absolute; inset:0; color:var(--port-text); font-family:'Barlow',sans-serif; font-size:13px; font-variant-numeric:tabular-nums; pointer-events:none; }
+.garage button { pointer-events:auto; }
+.garage button:focus-visible { outline:2px solid var(--port-accent); outline-offset:4px; }
+.garage button:disabled { cursor:wait; }
+.garage h1,.garage h2,.garage p { margin:0; }
+.garage h2 { font:500 20px/1.2 'Barlow Condensed',sans-serif; }
+.garage button { font:inherit; }
+.garage svg { flex-shrink:0; }
+.garage-layout { position:absolute; inset:0; text-shadow:0 2px 5px #061522b3; }
+.garage-scene-shade { position:absolute; inset:0; background:linear-gradient(180deg,#06152382,transparent 26%,transparent 59%,#081723ee 100%),linear-gradient(90deg,#081824ae,transparent 29%,transparent 72%,#081824b0); }
+.garage-brand { display:flex; align-items:center; gap:13px; white-space:nowrap; }
+.garage-brand>svg { color:var(--port-accent); }
+.garage-brand>strong { font:500 18px/1 'Barlow Condensed',sans-serif; letter-spacing:.045em; }
+.garage-settings { width:35px; height:35px; display:grid; place-items:center; border:1px solid var(--port-line); background:transparent; border-radius:2px; }
+.garage-settings:hover { background:#e4f3f111; }
+.garage-wallet { display:flex; align-items:center; gap:25px; font-size:12px; }
+.garage-wallet>span { display:flex; align-items:center; gap:7px; }
+.garage-wallet>span svg { color:var(--port-accent); }
+.garage-wallet>span:nth-child(2) svg { color:var(--port-ready); }
+.garage-wallet>b { color:var(--port-muted); font-size:10px; font-weight:400; border-left:1px solid var(--port-line); padding-left:22px; }
+.garage-set-sail { min-width:188px; min-height:44px; display:flex; align-items:center; justify-content:space-between; gap:15px; padding:11px 16px; background:var(--port-accent); color:#152831; border:0; border-radius:2px; text-shadow:none; box-shadow:0 7px 24px #06131d33; }
+.garage-set-sail>strong { font:600 20px/1 'Barlow Condensed',sans-serif; letter-spacing:.055em; }
+.garage-set-sail:hover { background:#f4d199; }
+.garage-set-sail:active { transform:translateY(1px); }
+.garage-set-sail:disabled { opacity:.7; }
+.garage-ready { display:flex; align-items:center; gap:7px; color:var(--port-ready); font-size:10px; letter-spacing:.035em; }
+.garage-ready>i { width:5px; height:5px; background:currentColor; border-radius:50%; }
+.garage-panel-title { display:flex; align-items:center; justify-content:space-between; gap:15px; margin-bottom:20px; }
+.garage-panel-title>span { font-size:10px; color:var(--port-muted); }
+.garage-ship-stats>div { display:grid; grid-template-columns:1fr auto; gap:8px; margin-bottom:15px; font-size:12px; }
+.garage-ship-stats>div>span { color:#d1dddf; }
+.garage-ship-stats>div>strong { font-weight:500; }
+.garage-ship-stats i { grid-column:1/-1; height:3px; background:#c2d5da2b; }
+.garage-ship-stats i>b { display:block; height:100%; background:#d4dec9; }
+.garage-specs { border-top:1px solid var(--port-line); margin:23px 0 15px; padding-top:14px; }
+.garage-specs>div { display:flex; align-items:baseline; justify-content:space-between; margin-top:10px; font-size:11px; }
+.garage-specs dt { color:var(--port-muted); }
+.garage-specs dd { margin:0; }
+.garage-text-button { display:flex; align-items:center; justify-content:space-between; width:100%; gap:10px; font-size:11px!important; border:0; border-top:1px solid var(--port-line); background:transparent; color:var(--port-accent); padding:15px 0 3px; }
+.garage-text-button:hover { color:#ffe0ab; }
+.garage-subtle { color:var(--port-muted); font-size:12px; margin-top:9px!important; }
+/* A: conventional fleet collection across the bottom, progression left, ship detail right. */
+.garage-classic-header { position:absolute; top:0; left:0; right:0; height:60px; display:flex; align-items:center; gap:27px; padding:0 27px; background:transparent; border:0; }
+.garage-classic-header>nav { display:flex; align-items:stretch; align-self:stretch; gap:22px; }
+.garage-classic-header nav>button { background:transparent; border:0; border-bottom:2px solid transparent; color:var(--port-muted); padding:0 3px; font-size:13px; }
+.garage-classic-header nav>button[aria-pressed=true] { color:var(--port-accent); border-bottom-color:var(--port-accent); }
+.garage-classic-header nav>button:hover { color:#fff2d9; }
+.garage-classic-header .garage-wallet { margin-left:auto; }
+.garage-classic-deploy { position:absolute; top:84px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:12px; }
+.garage-classic-deploy>span { font-size:10px; display:flex; align-items:center; gap:10px; color:#d8e2df; letter-spacing:.035em; }
+.garage-classic-deploy>span>i { height:3px; width:3px; border-radius:50%; background:#d8e2df; }
+.garage-classic-identity { position:absolute; left:32px; top:104px; }
+.garage-classic-identity h1 { font:500 45px/1 'Barlow Condensed',sans-serif; letter-spacing:.02em; }
+.garage-classic-identity>div { display:flex; align-items:center; gap:10px; margin-top:12px; font-size:12px; color:#d0dcd9; }
+.garage-classic-identity>div>span:first-child { color:var(--port-accent); border:1px solid #e5bf8066; padding:2px 5px; font-size:10px; }
+.garage-classic-identity .garage-ready { margin-top:18px; }
+.garage-classic-left { position:absolute; top:255px; left:32px; width:198px; }
+.garage-commander-link { display:flex; align-items:center; gap:12px; width:100%; text-align:left; padding:14px 0; border:0; border-top:1px solid var(--port-line); border-bottom:1px solid var(--port-line); background:transparent; }
+.garage-commander-link:hover { background:#cee6e90a; }
+.garage-commander { display:flex; align-items:center; gap:10px; }
+.garage-officer-badge { position:relative; width:46px; height:56px; background:#182e37e6; border:1px solid #d9ccac45; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:var(--port-accent); flex-shrink:0; }
+.garage-officer-badge>svg { width:27px; height:27px; margin-bottom:3px; }
+.garage-officer-badge>i { display:block; height:1px; width:23px; background:var(--port-accent); }
+.garage-commander>div:nth-child(2) { display:flex; flex-direction:column; gap:5px; }
+.garage-commander>div>strong { font-size:12px; font-weight:500; }
+.garage-commander>div>span { color:var(--port-muted); font-size:11px; }
+.garage-commander>div>small { color:var(--port-accent); font-size:10px; margin-top:4px; }
+.garage-daily-orders { margin-top:26px; }
+.garage-daily-orders>div:first-child { display:flex; align-items:center; gap:9px; color:var(--port-accent); }
+.garage-daily-orders h2 { font-size:21px; color:var(--port-text); }
+.garage-daily-orders>strong { display:block; margin:17px 0 7px; font-size:12px; font-weight:500; }
+.garage-daily-orders>p { font-size:12px; color:var(--port-muted); line-height:1.6; max-width:215px; }
+.garage-daily-orders>div:nth-last-of-type(1) { display:flex; justify-content:space-between; font-size:10px; color:var(--port-muted); margin-top:19px; }
+.garage-daily-orders>div>b { font-weight:400; }
+.garage-daily-orders>i { display:block; height:3px; background:#c5d8d429; margin:9px 0 12px; }
+.garage-daily-orders>small { display:flex; align-items:center; gap:6px; font-size:10px; color:var(--port-accent); }
+.garage-classic-details { position:absolute; top:106px; right:30px; width:220px; max-height:calc(100% - 296px); overflow-y:auto; scrollbar-width:thin; padding:17px; background:#102330d9; border-top:1px solid #d7e0cb53; pointer-events:auto; }
+.garage-orbit-hint { position:absolute; top:66%; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:8px; color:#d2dedc; font-size:11px; }
+.garage-fleet-carousel { position:absolute; bottom:42px; left:32px; right:32px; }
+.garage-fleet-caption { display:flex; align-items:center; justify-content:space-between; padding-bottom:13px; border-bottom:1px solid var(--port-line); margin-bottom:12px; }
+.garage-fleet-caption strong { font-size:11px; font-weight:500; letter-spacing:.035em; }
+.garage-fleet-caption span { display:flex; align-items:center; gap:9px; font-size:10px; color:var(--port-muted); }
+.garage-fleet-caption i { width:3px; height:3px; background:currentColor; border-radius:50%; }
+.garage-ship-cards { display:flex; gap:12px; }
+.garage-ship-cards>button { position:relative; min-width:0; width:180px; height:103px; padding:9px 11px; display:flex; flex-direction:column; align-items:flex-start; border:1px solid #afcadf31; border-radius:2px; background:#0d2130de; color:#bacbd2; overflow:hidden; text-align:left; }
+.garage-ship-cards>button:hover { background:#243e4ceb; border-color:#cbdedc72; }
+.garage-ship-cards>button>div { display:flex; justify-content:space-between; align-items:center; width:100%; font-size:9px; }
+.garage-ship-cards>button>strong { position:relative; font:500 19px/1.2 'Barlow Condensed',sans-serif; margin-top:auto; z-index:1; }
+.garage-ship-cards>button>small { font-size:8px; margin-top:5px; color:#abbdc6; }
+.garage-ship-cards .garage-ship-profile { position:absolute; width:150px; height:39px; right:7px; top:20px; opacity:.55; }
+.garage-ship-cards>.garage-ship-selected { border-color:var(--port-accent); color:#eef1de; background:#243d43eb; }
+.garage-ship-cards>.garage-ship-selected>small,.garage-ship-cards>.garage-ship-selected>div svg { color:var(--port-ready); }
+.garage-ship-cards>.garage-ship-selected .garage-ship-profile { color:#e3d8b7; opacity:.85; }
+.garage-research-progress { position:absolute; bottom:0; left:0; right:0; height:2px; background:#bdcfd524; }
+.garage-research-progress>b { display:block; height:100%; background:#9fbfc1; }
+.garage-port-location { position:absolute; right:32px; bottom:67px; display:grid; grid-template-columns:17px auto; gap:6px 7px; align-items:center; font-size:9px; color:var(--port-muted); }
+.garage-port-location strong { grid-column:2; font-size:14px; font-weight:400; color:var(--port-text); }
+/* Shared readouts and working mock refits. */
+.garage-module-list { margin:17px 0; }
+.garage-module-list>button { display:flex; align-items:center; gap:12px; width:100%; padding:14px 10px; background:transparent; border:0; border-bottom:1px solid var(--port-line); text-align:left; color:var(--port-muted); }
+.garage-module-list>button>span { display:flex; flex-direction:column; gap:6px; flex:1; }
+.garage-module-list strong { font-size:12px; color:var(--port-text); font-weight:500; }
+.garage-module-list small { font-size:10px; color:var(--port-muted); }
+.garage-module-list>button:hover { background:#accad612; }
+.garage-module-list>button[aria-pressed=true] { background:#aec4ba15; color:var(--port-accent); }
+.garage-module-list>button[aria-pressed=true] strong { color:var(--port-accent); }
+.garage-module-art { height:142px; display:flex; align-items:center; justify-content:center; gap:18px; margin-top:20px; background:#1b303c; color:#dcc79b; border:1px solid var(--port-line); }
+.garage-module-art>div { display:flex; flex-direction:column; gap:9px; max-width:117px; }
+.garage-module-art span { color:var(--port-muted); font-size:8px; }
+.garage-module-art strong { color:#f0e9d9; font:500 25px/1.1 'Barlow Condensed',sans-serif; }
+.garage-refit-content>p { margin-top:15px; font-size:12px; line-height:1.65; color:var(--port-muted); }
+.garage-upgrade-choice { padding:18px 0; border-top:1px solid var(--port-line); border-bottom:1px solid var(--port-line); margin-top:22px; }
+.garage-upgrade-choice>div { display:flex; align-items:center; gap:8px; }
+.garage-upgrade-choice>div>svg { color:var(--port-accent); }
+.garage-upgrade-choice strong { font-size:12px; font-weight:500; }
+.garage-upgrade-choice>p { color:var(--port-muted); font-size:11px; margin:7px 0 14px; }
+.garage-upgrade-choice dl { margin:0; display:flex; align-items:center; justify-content:space-between; font-size:11px; }
+.garage-upgrade-choice dt { color:var(--port-muted); }
+.garage-upgrade-choice dd { margin:0; display:flex; gap:9px; align-items:center; }
+.garage-upgrade-choice dd span { color:var(--port-muted); }
+.garage-upgrade-choice dd strong { color:var(--port-ready); }
+.garage-fit-button { display:flex; align-items:center; gap:10px; width:100%; min-height:43px; padding:11px 12px; border:1px solid #e5bf8080; border-radius:2px; background:#e5bf8011; color:var(--port-accent); margin-top:18px; }
+.garage-fit-button:hover { background:#e5bf8025; }
+.garage-fit-button strong { font-size:10px; font-weight:500; }
+.garage-fit-button>span { font-size:11px; margin-left:auto; }
+.garage-is-fitted { color:var(--port-ready); border-color:#94d9bf80; }
+.garage-mock-note { display:block; margin-top:12px; color:var(--port-muted); font-size:10px; line-height:1.5; }
+.garage-commander-extended { flex-wrap:wrap; margin-top:24px; }
+.garage-commander-extended>p { font-size:12px; color:var(--port-muted); line-height:1.7; margin-top:10px; }
+.garage-skill-options { display:flex; flex-direction:column; gap:8px; width:100%; margin-top:9px; }
+.garage-skill-options>button { display:flex; align-items:center; gap:9px; text-align:left; padding:11px 10px; border:1px solid var(--port-line); background:transparent; color:var(--port-muted); font-size:11px; }
+.garage-skill-options>button[aria-pressed=true] { color:var(--port-accent); border-color:#e5bf8077; background:#e5bf8011; }
+.garage-research-list { margin-top:22px; display:flex; flex-direction:column; gap:12px; }
+.garage-research-list>button { display:flex; flex-direction:column; align-items:flex-start; width:100%; border:0; border-bottom:1px solid var(--port-line); padding:8px 0 14px; background:transparent; text-align:left; }
+.garage-research-list svg { width:100%; height:65px; color:#afc2c6; }
+.garage-research-list strong { font:500 19px/1 'Barlow Condensed',sans-serif; }
+.garage-research-list small { color:var(--port-muted); font-size:10px; margin:7px 0 9px; }
+.garage-research-list i { height:2px; background:#d5e0e521; width:100%; }
+.garage-research-list i b { height:100%; display:block; background:var(--port-accent); }
+.garage-research-preview { position:absolute; top:108px; right:33px; width:290px; padding:27px; background:#102430fa; border:1px solid #d8c99a65; pointer-events:auto; box-shadow:0 20px 70px #0005; z-index:5; }
+.garage-research-preview>button:first-child { position:absolute; right:13px; top:13px; background:transparent; border:0; width:28px; height:28px; }
+.garage-research-preview>svg:first-of-type { color:var(--port-accent); margin-bottom:15px; }
+.garage-research-preview h2 { font-size:33px; margin-bottom:12px; }
+.garage-research-preview>span { font-size:9px; color:var(--port-accent); }
+.garage-research-preview .garage-ship-profile { width:100%; height:96px; color:#bed0cd; margin:15px 0; }
+.garage-research-preview>p { font-size:13px; line-height:1.7; color:var(--port-muted); }
+.garage-research-preview>div { margin-top:25px; padding-top:17px; border-top:1px solid var(--port-line); display:flex; justify-content:space-between; font-size:11px; }
+.garage-research-preview>div span { color:var(--port-muted); }
+.garage-research-preview>div strong { font-weight:500; }
+.garage-research-preview .garage-fit-button { justify-content:space-between; }
+.garage-preview-meta { position:absolute; left:25px; right:25px; bottom:14px; display:flex; justify-content:space-between; align-items:center; font-size:8px; letter-spacing:.035em; color:#adbec5; }
+.garage-loading { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); display:grid; grid-template-columns:1fr auto; gap:12px 30px; min-width:310px; padding:20px; background:#102632ed; border:1px solid var(--port-line); font-size:12px; color:#d0dfdf; }
+.garage-loading strong { font-weight:400; color:var(--port-accent); }
+.garage-loading>i { grid-column:1/-1; height:2px; background:#c4d4d52a; }
+.garage-loading>i>b { display:block; height:100%; background:var(--port-accent); }
+.garage-commander-link { gap:8px; }
+.garage-commander-link>.garage-commander { flex:1; min-width:0; gap:9px; }
+.garage-commander-link>.garage-commander>div:nth-child(2) { min-width:0; }
+.garage-commander-link .garage-commander>div>strong { font-size:11px; }
+.garage-commander-link .garage-commander>div>span { font-size:10px; }
+.garage-commander-link .garage-commander>div>small { font-size:9px; }
+.garage-module-art { height:110px; gap:12px; }
+.garage-module-art>svg { width:45px; }
+.garage-module-art>div { max-width:105px; }
+.garage-module-art strong { font-size:22px; }
+.garage-module-list>button { gap:9px; padding:12px 4px; }
+.garage-module-list>button>svg:last-child { width:12px; }
+.garage-commander-extended { gap:10px; }
+.garage-commander-extended>div:nth-child(2) { flex:1; }
+.garage-fit-button { flex-wrap:wrap; }
+.garage-classic-details { overscroll-behavior:contain; }
+.garage-research-preview { max-height:calc(100% - 286px); overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; }
+@media(max-width:1100px) {
+  .garage-classic-header { gap:20px; padding:0 24px; }
+  .garage-classic-header>nav { gap:17px; }
+  .garage-wallet { gap:16px; }
+  .garage-wallet>b { display:none; }
+  .garage-port-location { display:none; }
+  .garage-classic-identity,.garage-classic-left { left:26px; }
+  .garage-classic-details { right:25px; }
+  .garage-fleet-carousel { left:26px; right:25px; }
+}
+@media(max-width:850px) {
+  .garage-classic-header { gap:17px; }
+  .garage-brand>strong { font-size:17px; }
+  .garage-wallet { font-size:11px; }
+  .garage-wallet>span:nth-child(2) { display:none; }
+  .garage-classic-header nav>button { font-size:12px; }
+  .garage-classic-deploy { left:auto; right:24px; transform:none; }
+  .garage-classic-left { top:242px; width:186px; }
+  .garage-daily-orders { display:none; }
+  .garage-classic-details { top:207px; max-height:calc(100% - 399px); width:205px; padding:15px; }
+  .garage-classic-details .garage-specs { display:none; }
+  .garage-ship-cards { gap:10px; }
+  .garage-ship-cards>button { width:calc((100% - 30px)/4); }
+  .garage-ship-cards .garage-ship-profile { width:90%; right:5%; }
+  .garage-orbit-hint { top:67%; }
+}
+@media(max-height:740px) and (min-width:601px) {
+  .garage-classic-left { top:226px; }
+  .garage-daily-orders { margin-top:18px; }
+  .garage-daily-orders>p { display:none; }
+  .garage-daily-orders>strong { margin-top:12px; }
+  .garage-classic-identity { top:95px; }
+  .garage-classic-identity h1 { font-size:40px; }
+  .garage-classic-identity .garage-ready { margin-top:12px; }
+  .garage-classic-details { top:95px; max-height:calc(100% - 286px); }
+  .garage-module-art { height:95px; }
+}
+@media(max-width:600px) {
+  .garage-classic-header { height:98px; padding:10px 16px 0; gap:9px 13px; flex-wrap:wrap; align-content:center; }
+  .garage-classic-header .garage-brand { flex:1; }
+  .garage-brand { gap:8px; }
+  .garage-brand>svg { width:22px; }
+  .garage-classic-header .garage-wallet { margin:0; font-size:10px; }
+  .garage-classic-header>nav { order:4; width:100%; height:38px; justify-content:space-between; gap:12px; }
+  .garage-classic-header nav>button { font-size:11px; }
+  .garage-settings { width:34px; height:34px; }
+  .garage-classic-identity { top:124px; left:19px; }
+  .garage-classic-identity h1 { font-size:36px; }
+  .garage-classic-identity>div { font-size:10px; gap:7px; }
+  .garage-classic-identity .garage-ready { font-size:9px; margin-top:12px; }
+  .garage-classic-deploy { top:127px; right:18px; gap:10px; }
+  .garage-classic-deploy .garage-set-sail { min-width:142px; gap:8px; padding:11px; }
+  .garage-classic-deploy .garage-set-sail>strong { font-size:19px; }
+  .garage-classic-deploy .garage-set-sail>svg { width:16px; }
+  .garage-classic-deploy>span { font-size:8px; gap:5px; }
+  .garage-classic-left { display:none; }
+  .garage-classic-details { top:233px; right:18px; width:163px; padding:12px; max-height:calc(100% - 428px); }
+  .garage-classic-details h2 { font-size:18px; }
+  .garage-classic-details .garage-panel-title>span { display:none; }
+  .garage-classic-details .garage-panel-title { margin-bottom:17px; }
+  .garage-ship-stats>div { font-size:10px; gap:6px; margin-bottom:11px; }
+  .garage-classic-details .garage-text-button { font-size:10px!important; }
+  .garage-classic-details[data-section=equipment],.garage-classic-details[data-section=commander],.garage-classic-details[data-section=research] { left:18px; width:auto; }
+  .garage-fleet-carousel { left:18px; right:18px; bottom:37px; }
+  .garage-fleet-caption { padding-bottom:10px; margin-bottom:10px; }
+  .garage-fleet-caption>span { font-size:9px; gap:6px; }
+  .garage-fleet-caption strong { font-size:10px; }
+  .garage-ship-cards { overflow-x:auto; pointer-events:auto; padding-bottom:5px; scroll-snap-type:x proximity; }
+  .garage-ship-cards>button { flex-shrink:0; width:153px; height:99px; scroll-snap-align:start; }
+  .garage-orbit-hint { display:none; }
+  .garage-preview-meta { left:18px; right:18px; bottom:12px; }
+  .garage-research-preview { top:232px; left:18px; right:18px; width:auto; max-height:calc(100% - 420px); padding:20px; }
+  .garage-loading { min-width:0; width:calc(100% - 36px); }
+}
+@media(max-height:640px) and (min-width:601px) {
+  .garage-classic-left { display:none; }
+  .garage-classic-details { top:90px; max-height:calc(100% - 225px); }
+  .garage-fleet-carousel { bottom:30px; }
+  .garage-ship-cards>button { height:78px; }
+  .garage-ship-cards .garage-ship-profile { opacity:.35; }
+  .garage-fleet-caption { padding-bottom:7px; margin-bottom:8px; }
+}
+@media(prefers-reduced-motion:no-preference) {
+  .garage-layout { animation:garage-arrive .4s cubic-bezier(.16,1,.3,1); }
+  @keyframes garage-arrive { from { opacity:.6; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+}
+@media(prefers-reduced-motion:reduce) { .garage * { animation:none!important; transition:none!important; } }

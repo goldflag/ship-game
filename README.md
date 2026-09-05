@@ -9,6 +9,8 @@ bun run dev
 
 Open http://localhost:5173. Current Chrome or Edge with hardware acceleration is recommended. WebGPU is selected by Three.js when available; its WebGL2 backend is the compatibility fallback. The pause menu reports the actual backend. Initial startup compiles the ocean and cloud shaders, which can take a moment.
 
+You start in port with the Bismarck moored. Drag to inspect the ship, then choose **Set sail** to enter the playable sea trial. **Return to port** in the pause menu ends the current trial. The selected [Fleet harbor garage](docs/garage-mockups/README.md) uses compact panels and a transparent top bar. Currency, refits, commanders, and future ships are illustrative, with temporary state only.
+
 ## Controls
 
 | Control | Action |
@@ -23,7 +25,7 @@ Open http://localhost:5173. Current Chrome or Edge with hardware acceleration is
 | H | Hide / show instruments |
 | F | Fullscreen |
 
-The throttle stays where you set it. Going from ahead to astern takes time. Handling is tuned for a battleship feel rather than an engineering-accurate maneuvering model. Four navigational buoys provide nearby reference points; they are markers, not collision obstacles. The chart follows your ship and displays its trail. Changing settings restarts the sea trial. Losing browser focus pauses singleplayer.
+The throttle stays where you set it. Going from ahead to astern takes time. Handling is tuned for a battleship feel rather than an engineering-accurate maneuvering model. Four navigational buoys provide nearby reference points; they are markers, not collision obstacles. The chart follows your ship and displays its trail. Changing settings reloads the scene in port. Losing browser focus pauses sailing.
 
 See [Ocean configuration](docs/ocean-configuration.md) for the water/sky settings, differences from the supplied Black Flag preset, and the reasoning behind the initial look.
 
