@@ -4,7 +4,7 @@
 .ship-label { --ship-color:#86e4c5; position:absolute; top:0; left:0; width:0; height:0; }
 .ship-label[hidden] { display:none; }
 .ship-label-enemy { --ship-color:#ee9b86; }
-.ship-label-tag { position:absolute; bottom:var(--label-lift); left:calc(var(--label-offset) - 72px); width:144px; text-align:center; text-shadow:0 1px 2px #07131b,0 2px 4px #07131b; }
+.ship-label-tag { position:absolute; bottom:8px; left:-72px; width:144px; text-align:center; text-shadow:0 1px 2px #07131b,0 2px 4px #07131b; }
 .ship-label-name { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font:500 15px/17px 'Barlow Condensed',sans-serif; }
 .ship-label-health { display:block; margin-top:3px; font:500 12px/14px 'Barlow Condensed',sans-serif; }
 .ship-label-meter { height:5px; margin-top:4px; background:#06111b; border:1px solid #c9dce04a; }
