@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Harbor rendering diagnostic</title>
+<style>html,body,#scene{margin:0;width:100%;height:100%;overflow:hidden;background:#182730}canvas{display:block}#status{position:fixed;top:10px;left:10px;color:white;background:#182730b0;padding:8px;font:12px monospace}</style>
+<div id="scene"></div><output id="status">Loading harbor</output>
+<script type="module">
+const parameters=new URLSearchParams(location.search);
+const { Game } = await import('/src/game/Game.ts');
+const quality=parameters.get('quality') || 'high';
+window.errors=[];
+addEventListener('error',e=>window.errors.push(e.message));
+addEventListener('unhandledrejection',e=>window.errors.push(String(e.reason)));
+const status=document.querySelector('#status');
+const game=new Game(document.querySelector('#scene'),{quality,resolution:1,sea:'Atlantic'},{
+ progress:(text)=>status.textContent=text,
+ ready:()=>{window.ready=true;status.textContent='Ready';},
+ telemetry:data=>{window.telemetry=data;},pause:()=>{},hud:()=>{},error:error=>{window.errors.push(error);status.textContent=error;}
+});
+window.game=game;game.setInPort(true);game.start();
+// Capture only after the serialized water + scene frame. Rendering the pipeline
+// independently can catch the water system in an intermediate depth/reflection pass.
+const frame=game.frame.bind(game);
+let captureNext;
+game.frame=async(...args)=>{await frame(...args);if(captureNext){const resolve=captureNext;captureNext=null;resolve(game.renderer.domElement.toDataURL('image/png'));}};
+window.captureHarbor=()=>new Promise(resolve=>captureNext=resolve);
+window.inspect=()=>({ready:window.ready,errors:window.errors,backend:window.telemetry?.backend,fps:window.telemetry?.fps,
+ trees:game.harbor?.userData.trees,buildings:game.harbor?.userData.buildings,rocks:game.harbor?.userData.rocks,
+ camera:game.camera.position.toArray(),harborVisible:game.harbor?.visible,waveAmplitude:game.water?.waves.amplitude.value,
+ renderer:game.renderer.info});
+window.view=(azimuth=1.08,elevation=.23,distance=325)=>{game.rig.azimuth=azimuth;game.rig.elevation=elevation;game.rig.distance=distance;};
+window.hideStatus=()=>status.style.display='none';
+</script>
+</html>

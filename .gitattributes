@@ -1,3 +1,11 @@
+# Keep original source assets and references binary in diffs and merges.
+*.blend binary
+*.glb binary
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
 assets/ships/*/references/** filter=lfs diff=lfs merge=lfs -text
 assets/ships/*/reports/** filter=lfs diff=lfs merge=lfs -text
 assets/ships/*/baseline/** filter=lfs diff=lfs merge=lfs -text
