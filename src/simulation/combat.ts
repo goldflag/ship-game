@@ -49,7 +49,7 @@ export class CombatSimulation {
     this.isBattle = !!fleet;
     this.spawnDistance = fleet?.spawnDistance ?? BATTLE_SPAWN_DISTANCE;
     validateSpawnDistance(this.spawnDistance);
-    if (fleet && (!fleet.enemies.length || fleet.enemies.length > MAX_TEAM_SHIPS || fleet.friendlyBots.length >= MAX_TEAM_SHIPS)) throw new Error('Choose one to five ships per team.');
+    if (fleet && (!fleet.enemies.length || fleet.enemies.length > MAX_TEAM_SHIPS || fleet.friendlyBots.length >= MAX_TEAM_SHIPS)) throw new Error(`Choose one to ${MAX_TEAM_SHIPS} ships per team.`);
     this.player = this.createActor('player', definition, 'friendly', 'player');
     this.actors = [this.player];
     if (fleet) {

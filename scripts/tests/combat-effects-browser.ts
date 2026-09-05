@@ -1,7 +1,64 @@
 import * as THREE from 'three/webgpu';
 import { CombatEffects } from '../../src/game/CombatEffects';
+import { EffectParticlePool, effectTexture } from '../../src/game/EffectParticles';
+import { effectVolumeMaterial, effectVolumeTexture } from '../../src/game/EffectVolume';
+import { uniform, viewportDepthTexture } from 'three/tsl';
 import type { CombatSimulation } from '../../src/simulation/combat';
 import type { rtt } from 'three/tsl';
+
+/** GPU regression: one submission per volume batch, visible from outside and
+ * inside, with real scene-depth clipping and no residual pixels after reset. */
+export async function checkCombatVolumeRendering(forceWebGL = false) {
+  const renderer = new THREE.WebGPURenderer({ forceWebGL });
+  await renderer.init();
+  renderer.setSize(256, 256);
+  renderer.info.autoReset = false;
+  const target = new THREE.RenderTarget(256, 256);
+  target.depthTexture = new THREE.DepthTexture(256, 256);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(52, 1, .5, 1000);
+  const map = effectTexture('smoke'), volume = effectVolumeTexture();
+  const material = effectVolumeMaterial(volume, uniform(new THREE.Vector3(-.55, .74, -.39).normalize()), viewportDepthTexture().r, 12, true);
+  const pool = new EffectParticlePool(8, map, false, material);
+  const blocker = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshBasicMaterial({ color: 0 }));
+  blocker.position.set(0, 10, 20);
+  const wind = new THREE.Vector3();
+  scene.add(pool.mesh);
+  const particle = pool.emit(new THREE.Vector3(0, 10, 0));
+  particle.size = 28; particle.life = 12; particle.opacity = .9; particle.density = 4;
+  const frames: { view: string; visiblePixels: number; draws: number }[] = [];
+  const render = async (view: string, visible: boolean, draws: number) => {
+    camera.updateMatrixWorld(); pool.update(0, camera, wind);
+    renderer.info.reset(); renderer.render(scene, camera);
+    const pixels = await renderer.readRenderTargetPixelsAsync(target, 0, 0, 256, 256);
+    let visiblePixels = 0;
+    for (let i = 0; i < pixels.length; i += 4) if (pixels[i] > 2) visiblePixels++;
+    const calls = renderer.info.render.drawCalls;
+    frames.push({ view, visiblePixels, draws: calls });
+    if ((visible ? visiblePixels < 100 : visiblePixels !== 0) || calls !== draws) {
+      throw new Error(`Volume visibility/draw budget failed: ${JSON.stringify(frames)}`);
+    }
+  };
+  try {
+    camera.position.set(0, 10, 50); camera.lookAt(0, 10, 0);
+    renderer.setRenderTarget(target);
+    await renderer.compileAsync(scene, camera);
+    await render('outside', true, 1);
+    scene.add(blocker);
+    await render('behind opaque surface', false, 2);
+    scene.remove(blocker);
+    camera.position.set(40, 25, -25); camera.lookAt(0, 10, 0);
+    await render('reverse oblique', true, 1);
+    camera.position.set(0, 10, 0); camera.lookAt(0, 10, -1);
+    await render('inside', true, 1);
+    pool.reset();
+    await render('reset', false, 1);
+    return { backend: forceWebGL ? 'webgl2' : 'webgpu', frames };
+  } finally {
+    target.dispose(); pool.dispose(); map.dispose(); volume.dispose();
+    blocker.geometry.dispose(); blocker.material.dispose(); renderer.dispose();
+  }
+}
 
 /** Use window.review from combat-effects.html: real gunfire, sea, sky and final composition. */
 export async function checkCombatSmokeHorizon(review: {
@@ -40,6 +97,7 @@ export async function checkCombatEffects(forceWebGL = false) {
   const renderer = new THREE.WebGPURenderer({ forceWebGL });
   await renderer.init();
   renderer.setSize(512, 512);
+  renderer.info.autoReset = false;
   const target = new THREE.RenderTarget(512, 512);
   const scene = new THREE.Scene();
   const camera = new THREE.OrthographicCamera(-32, 32, 32, -32, .1, 100);
@@ -47,7 +105,7 @@ export async function checkCombatEffects(forceWebGL = false) {
   const effects = new CombatEffects();
   scene.add(effects.root);
   const sim = { shells: [], events: [] } as unknown as CombatSimulation;
-  const frames: { shells: number; visible: number }[] = [];
+  const frames: { shells: number; visible: number; draws: number }[] = [];
   try {
     // Match startup: warm the scene before firing, then render an empty pool.
     await renderer.compileAsync(scene, camera);
@@ -59,6 +117,7 @@ export async function checkCombatEffects(forceWebGL = false) {
         velocity: [0, 0, 0], age: 0, penetrationMm: 0, damage: 0, caliberM: .38, visited: [],
       });
       effects.update(sim, 0, camera);
+      renderer.info.reset();
       renderer.render(scene, camera);
       const pixels = await renderer.readRenderTargetPixelsAsync(target, 0, 0, 512, 512);
       let visible = 0;
@@ -67,8 +126,12 @@ export async function checkCombatEffects(forceWebGL = false) {
         // The target stores linear color; dark steel is only about 18/255 red.
         if (pixels[(y * 512 + x) * 4] > 1) visible++;
       }
-      frames.push({ shells: count, visible });
+      const draws = renderer.info.render.drawCalls;
+      frames.push({ shells: count, visible, draws });
       if (visible !== count) throw new Error(`Expected ${count} visible shells, got ${visible}: ${JSON.stringify(frames)}`);
+      // Five particle batches, shell bodies and streaks. A billboard must not
+      // acquire a second front/back submission as the salvos grow or reset.
+      if (draws > 7) throw new Error(`Effect draw budget exceeded: ${JSON.stringify(frames)}`);
     }
     return { backend: forceWebGL ? 'webgl2' : 'webgpu', frames };
   } finally {
