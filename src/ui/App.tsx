@@ -9,6 +9,8 @@ import { selectedShip as initialShip, shipPreset } from '../ships/presets';
 import { ShipContext } from './ShipContext';
 import { bindingLabel, KEYBINDING_STORAGE_KEY, loadKeybindings, type Keybindings } from '../game/keybindings';
 import { SettingsDialog } from './SettingsDialog';
+import { GameAudio } from '../game/GameAudio';
+import { AUDIO_STORAGE_KEY, loadAudioSettings, type AudioSettings } from '../game/audio';
 
 const INITIAL_TELEMETRY: Telemetry = { ship: createShipState(), order: 1, camera: 'Chase', fps: 0, backend: 'webgpu', trail: [] };
 function loadSettings(): GameSettings {
@@ -33,6 +35,8 @@ export function App() {
   const dialog = useRef<HTMLDialogElement>(null);
   const [settings, setSettings] = useState(loadSettings);
   const [bindings, setBindings] = useState(loadKeybindings);
+  const [audioSettings, setAudioSettings] = useState(loadAudioSettings);
+  const audioSettingsRef = useRef(audioSettings);
   const bindingsRef = useRef(bindings);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [closed, setClosed] = useState(false);
@@ -57,7 +61,7 @@ export function App() {
       pause: value => active && setPaused(value),
       hud: () => active && setHud(value => !value),
       error: message => active && setError(message),
-    }, selectedRef.current);
+    }, selectedRef.current, new GameAudio(audioSettingsRef.current));
     session.input.setBindings(bindingsRef.current);
     game.current = session;
     session.setInPort(true);
@@ -134,6 +138,12 @@ export function App() {
     try { localStorage.setItem(KEYBINDING_STORAGE_KEY, JSON.stringify(next)); return true; }
     catch { return false; }
   };
+  const changeAudio = (next: AudioSettings): boolean => {
+    audioSettingsRef.current = next; setAudioSettings(next);
+    game.current?.audio?.applySettings(next);
+    try { localStorage.setItem(AUDIO_STORAGE_KEY, JSON.stringify(next)); return true; }
+    catch { return false; }
+  };
   const closeGame = () => {
     game.current?.setPaused(true);
     setSettingsOpen(false);
@@ -177,6 +187,6 @@ export function App() {
         <span><kbd>{bindingLabel(bindings, 'fullscreen')}</kbd> Fullscreen</span>
       </div>}
     </dialog>
-    {settingsOpen && paused && ready && !error && <SettingsDialog settings={settings} bindings={bindings} onBindingsChange={changeBindings} onApply={applySettings} onClose={() => setSettingsOpen(false)}/>}
+    {settingsOpen && paused && ready && !error && <SettingsDialog settings={settings} bindings={bindings} audioSettings={audioSettings} onAudioChange={changeAudio} onPreviewSound={id => game.current?.audio?.preview(id)} onBindingsChange={changeBindings} onApply={applySettings} onClose={() => setSettingsOpen(false)}/>}
   </main></ShipContext>;
 }
