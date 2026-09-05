@@ -1,5 +1,6 @@
 import * as THREE from 'three/webgpu';
-import { pass, vec4 } from 'three/tsl';
+import { pass, renderOutput, rtt, vec4 } from 'three/tsl';
+import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { WaterSystem, getPresetParams } from '../../vendor/threejs-water-pro/build/index.js';
 import { SkySystem, PRESETS as SKY_PRESETS } from '../../vendor/threejs-sky-pro/build/index.js';
@@ -11,7 +12,7 @@ import type { InspectionMode } from '../ships/inspection';
 import { selectedShip } from '../ships/presets';
 import { InputController } from './InputController';
 import { CameraRig } from './CameraRig';
-import { createHarborBackdrop } from './HarborBackdrop';
+import { createHarborBackdrop, type HarborBackdrop } from './HarborBackdrop';
 import { ShipWake } from './ShipWake';
 import type { GameCallbacks, GameSettings } from './types';
 
@@ -27,6 +28,7 @@ export class Game {
   readonly input: InputController;
   private renderer: THREE.WebGPURenderer;
   private scene = new THREE.Scene();
+  private ambientLight = new THREE.HemisphereLight('#dcebf2', '#65757e', .65);
   private camera = new THREE.PerspectiveCamera(52, 1, 0.5, 60000);
   private rig: CameraRig;
   private ship = new THREE.Group();
@@ -43,13 +45,14 @@ export class Game {
   private shipWake?: ShipWake;
   private pipeline?: THREE.RenderPipeline;
   private scenePass?: ReturnType<typeof pass>;
+  private finalFrame?: ReturnType<typeof rtt>;
   private abort = new AbortController();
   private resizePending = true;
   private observer: ResizeObserver;
   private disposed = false;
   private paused = false;
   private inPort = false;
-  private harbor?: THREE.Group;
+  private harbor?: HarborBackdrop;
   private raf = 0;
   private lastTime = 0;
   private hudTime = 0;
@@ -116,7 +119,7 @@ export class Game {
     this.ship = this.playerView.root;
     this.targetView.root.visible = !this.inPort;
     this.scene.add(this.ship, this.targetView.root, this.effects.root);
-    this.scene.add(new THREE.HemisphereLight('#dcebf2', '#65757e', 0.65));
+    this.scene.add(this.ambientLight);
 
     this.callbacks.progress('Building the Atlantic', 0.37);
     // Water Pro 3.5.1 combines seed * 100000 + cellIndex in float32.
@@ -144,6 +147,7 @@ export class Game {
     params.waves.fft.peakWavelength = this.settings.sea === 'Heavy' ? 100 : 65;
     params.waves.fft.choppiness = 1.05;
     this.water.loadPreset(params);
+    this.updateSeaState();
 
     this.callbacks.progress('Lighting the sky', 0.59);
     this.sky = await SkySystem.create({ renderer: this.renderer, camera: this.camera, scene: this.scene,
@@ -166,16 +170,19 @@ export class Game {
     this.sky.clouds.lighting.groundBounceAlbedo.value.setRGB(0.09, 0.105, 0.12);
     this.sky.clouds.wind.speed = 12;
     this.sky.atmosphere.fogDensity.value = 0.7;
+    this.updatePortLighting();
     this.water.setSky(this.sky.createSkyProvider({ envMap: { width: 384, cloudMarchSteps: 16, skipFrames: 8 } }));
     const sunlight = this.water.lighting.sunLight;
-    sunlight.shadow.mapSize.set(this.settings.quality === 'medium' ? 1024 : 2048, this.settings.quality === 'medium' ? 1024 : 2048);
-    Object.assign(sunlight.shadow.camera, { left: -190, right: 190, top: 190, bottom: -190, near: 1, far: 1300 });
+    const shadowSize = this.settings.quality === 'medium' ? 1024 : this.settings.quality === 'ultra' ? 4096 : 2048;
+    sunlight.shadow.mapSize.set(shadowSize, shadowSize);
+    Object.assign(sunlight.shadow.camera, { left: -380, right: 380, top: 380, bottom: -380, near: 1, far: 1800 });
     sunlight.shadow.camera.updateProjectionMatrix();
     sunlight.shadow.normalBias = 0.1;
     this.scene.add(sunlight.target);
     this.water.lighting.addSunSyncListener(() => {
-      sunlight.position.copy(this.sky!.sun.direction.value).multiplyScalar(500).add(this.ship.position);
       sunlight.target.position.copy(this.ship.position);
+      if (this.inPort) sunlight.target.position.x -= 160;
+      sunlight.position.copy(this.sky!.sun.direction.value).multiplyScalar(this.inPort ? 800 : 500).add(sunlight.target.position);
       sunlight.target.updateMatrixWorld();
     });
 
@@ -183,16 +190,21 @@ export class Game {
     // ocean detail and buoy motion; it cannot move ship hitboxes or muzzle positions.
     this.shipWake = new ShipWake(this.water.wake, this.ship, this.scene);
     for (const buoy of BUOYS) this.addBuoy(buoy);
-    this.harbor = createHarborBackdrop();
+    this.callbacks.progress('Building the naval anchorage', 0.72);
+    this.harbor = await createHarborBackdrop(this.settings.quality);
     this.harbor.visible = this.inPort;
     this.scene.add(this.harbor);
+    this.assertActive();
 
     this.callbacks.progress('Compiling ocean shaders', 0.82);
     this.scenePass = pass(this.scene, this.camera);
     const sceneColor = this.scenePass.getTextureNode('output');
     const waterColor = this.water.postProcessing.buildNode(this.scenePass, sceneColor);
     const output = vec4(this.sky.applyTo(waterColor, this.scenePass));
-    this.pipeline = new THREE.RenderPipeline(this.renderer, vec4(output.rgb.mul(this.sky.atmosphere.exposure), output.a));
+    // FXAA detects edges in display space, after tone mapping and sRGB conversion.
+    this.finalFrame = rtt(renderOutput(vec4(output.rgb.mul(this.sky.atmosphere.exposure), output.a), THREE.ACESFilmicToneMapping, THREE.SRGBColorSpace));
+    this.pipeline = new THREE.RenderPipeline(this.renderer, fxaa(this.finalFrame));
+    this.pipeline.outputColorTransform = false;
     await this.renderer.compileAsync(this.scene, this.camera);
     this.assertActive();
     this.sky.update(1 / 60);
@@ -238,6 +250,7 @@ export class Game {
       this.playerView!.update(); this.targetView!.update(); this.effects.update(this.simulation, dt);
       const focus = this.inspecting ? this.simulation.target.motion : state;
       this.rig.update(focus, focus.y, realDt);
+      this.harbor?.update(dt, this.camera);
       this.shipWake!.update(state, dt);
       this.sky!.update(dt);
       // Fixed-step mode with zero delta renders without stepping the wake's
@@ -278,16 +291,29 @@ export class Game {
   setPaused(paused: boolean): void { this.paused = paused; this.input.setEnabled(!paused && !this.inPort && !!this.water); this.callbacks.pause(paused); }
   setInPort(inPort: boolean): void {
     if (this.articulationOriginal) this.restoreArticulation();
+    const leavingPort = this.inPort && !inPort;
     this.inPort = inPort;
+    // The garage camera stays at least 90 m from its target. A suitable near
+    // plane preserves depth precision on the town's distant architectural trim.
+    this.camera.near = inPort ? 3 : .5;
+    this.camera.updateProjectionMatrix();
     this.rig.setInPort(inPort);
     if (this.harbor) this.harbor.visible = inPort;
     if (this.targetView) this.targetView.root.visible = !inPort;
     this.inspecting = false; this.targetView?.inspect(false); this.playerView?.inspect(false);
     this.aimOverride = undefined;
+    this.updateSeaState();
+    this.updatePortLighting();
     this.input.setOrder(1); this.input.setRudder(0);
     if (inPort) {
-      this.simulation.reset(); this.shipWake?.reset();
-      this.trail = [{ x: 0, z: 0 }]; this.lastTrailTick = 0;
+      this.simulation.reset();
+      this.simulation.ship.x = 240;
+      this.shipWake?.reset();
+      this.trail = [{ x: this.simulation.ship.x, z: 0 }]; this.lastTrailTick = 0;
+    }
+    if (leavingPort) {
+      this.simulation.ship.x = 0;
+      this.trail = [{ x: 0, z: 0 }];
     }
     this.setPaused(false);
   }
@@ -336,6 +362,31 @@ export class Game {
     const point = new THREE.Vector3(...aim).project(this.camera);
     return { x: (point.x + 1) * 50, y: (1 - point.y) * 50, visible: point.z > -1 && point.z < 1 && Math.abs(point.x) < .94 && Math.abs(point.y) < .85 };
   }
+  private updateSeaState(): void {
+    if (!this.water) return;
+    // Breakwaters shelter the anchorage. Sailing restores the selected sea conditions.
+    this.water.waves.amplitude.value = this.inPort ? .18 : this.settings.sea === 'Fair' ? .35 : this.settings.sea === 'Heavy' ? 1.4 : .75;
+    this.water.waves.windSpeed.value = this.inPort ? 4 : this.settings.sea === 'Fair' ? 5 : this.settings.sea === 'Heavy' ? 16 : 9;
+  }
+  private updatePortLighting(): void {
+    if(!this.sky)return;
+    this.sky.sun.setFromAngles(this.inPort ? 36 : 48, this.inPort ? 58 : 235);
+    this.sky.sun.peakIntensity=this.inPort ? 3.8 : 6.6;
+    this.sky.clouds.shape.coverage.value=this.inPort ? .48 : .64;
+    this.ambientLight.intensity = this.inPort ? 1.1 : .65;
+    this.sky.atmosphere.turbidity.value = this.inPort ? 3.2 : 1;
+    this.sky.atmosphere.rayleigh.value = this.inPort ? .9 : .41;
+    this.sky.atmosphere.mieScatteringStrength.value = this.inPort ? .65 : .19;
+    // Water Pro owns scene.fogNode, including the water/sky horizon blend.
+    // Its live uniforms must change with the scene; THREE.Fog is overridden.
+    if (this.water) {
+      this.water.fog.color = this.inPort ? '#819aa5' : '#8b8f92';
+      this.water.fog.fadeStart = this.inPort ? 650 : 2500;
+      this.water.fog.fadeEnd = this.inPort ? 5600 : 16000;
+      this.water.fog.fadePower = this.inPort ? .85 : 1.4;
+      this.water.fog.skyBlendDistance = this.inPort ? 2600 : 10000;
+    }
+  }
   cycleCamera(): void { this.rig.cycle(); }
   recenter(): void { this.rig.recenter(); }
   fullscreen(): void {
@@ -350,6 +401,7 @@ export class Game {
     await this.initialization;
     await this.frameTask;
     this.pipeline?.dispose();
+    this.finalFrame?.renderTarget?.dispose();
     this.scenePass?.dispose();
     this.shipWake?.dispose();
     this.water?.dispose();
@@ -357,6 +409,7 @@ export class Game {
     const geometries = new Set<THREE.BufferGeometry>();
     const materials = new Set<THREE.Material>();
     const textures = new Set<THREE.Texture>();
+    this.harbor?.ownedTextures.forEach(texture => textures.add(texture));
     this.scene.traverse(object => {
       if (object instanceof THREE.Mesh || object instanceof THREE.LineSegments) {
         geometries.add(object.geometry);

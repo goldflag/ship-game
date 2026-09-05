@@ -64,3 +64,9 @@ Direct review of the Bismarck definition and inspection captures found developme
 - The inspection presentation exposes these raw boxes against a faint exterior. Functional selection and readable labels do not make this a finished ship cutaway.
 
 Readiness requires a source-backed reference layout, protection surfaces with appropriate local thickness and orientation, internal spaces contained by the actual hull, and damage checks at representative locations and approach angles. The simplified representation must remain useful for future editing and share authoritative geometry with the inspection view. The present pipeline and controls can support that work, but armor/internals model readiness is **not approved**.
+
+## Merge to master verification — 2026-09-05
+
+Integrated the completed worktree snapshot with master's newer harbor/camera update (`920ebce`). Conflict resolution preserves the CPU combat poses, articulated ship bindings, per-preset bridge viewpoints and port inspection together with the detailed harbor, terrain-aware port camera, sheltered sea conditions, lighting and FXAA. The ship uses the new harbor berth in port and returns to the trial origin when sailing.
+
+The merged tree passed **46 tests, 392 assertions**, including the harbor geometry suite, and `bun run build` checked all four ship assets before TypeScript and production bundling. Browser checks confirmed the new harbor renders, internal selection leaves combat frozen, launch restores the exterior and expected target range, and returning to port resets the trial at the harbor berth. This merge does not change the unfinished armor/internals assessment above.
