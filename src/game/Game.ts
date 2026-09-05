@@ -6,6 +6,7 @@ import { WaterSystem, getPresetParams } from '../../vendor/threejs-water-pro/bui
 import { SkySystem, PRESETS as SKY_PRESETS } from '../../vendor/threejs-sky-pro/build/index.js';
 import { CombatSimulation } from '../simulation/combat';
 import { ShipView } from './ShipView';
+import { ShipLabels } from './ShipLabels';
 import { disposeObjects } from './disposeObjects';
 import { CombatEffects } from './CombatEffects';
 import type { Battery, Vec3 } from '../ships/blueprint';
@@ -40,6 +41,7 @@ export class Game {
   private targetView?: ShipView;
   private fleetViews: ShipView[] = [];
   private fleetModels: THREE.Group[] = [];
+  private shipLabels: ShipLabels;
   private loadedModel?: THREE.Group;
   private effects = new CombatEffects();
   battery: Battery = 'main';
@@ -84,6 +86,7 @@ export class Game {
     this.renderer.domElement.setAttribute('aria-label', `${this.definition.name} ocean scene. Drag to orbit; scroll to zoom.`);
     this.renderer.domElement.tabIndex = 0;
     this.host.appendChild(this.renderer.domElement);
+    this.shipLabels = new ShipLabels(this.host);
     this.rig = new CameraRig(this.camera, this.renderer.domElement, this.definition.viewpoints?.bridge, {
       pause: () => this.setPaused(true), aim: () => { this.manualAim = true; }, optics: () => this.toggleBinoculars(),
     });
@@ -128,6 +131,7 @@ export class Game {
     this.targetView = new ShipView(gltf.scene.clone(true), this.definition, this.simulation.target);
     this.fleetViews = [this.playerView, this.targetView];
     this.fleetModels = [gltf.scene];
+    this.shipLabels.setFleet(this.fleetViews, this.simulation.actors);
     this.ship.position.copy(this.playerView.root.position);
     this.targetView.root.visible = !this.inPort;
     this.scene.add(this.playerView.root, this.targetView.root, this.effects.root);
@@ -282,6 +286,7 @@ export class Game {
       this.fleetModels = [...models.values()]; this.loadedModel = models.get(definition.id);
       this.fleetViews = views; this.playerView = views[0];
       this.targetView = views.find(view => view.actor === simulation.target);
+      this.shipLabels.setFleet(views, simulation.actors);
       this.articulationOriginal = undefined;
       this.battery = 'main'; this.manualAim = true; this.inspecting = false;
       this.gunneryOpen = false; this.effects.reset();
@@ -348,6 +353,7 @@ export class Game {
       await this.water!.update(dt);
       if (this.disposed) return;
       this.pipeline!.render();
+      this.shipLabels.update(this.camera);
       this.fps += (1 / realDt - this.fps) * 0.04;
       if (state.tick - this.lastTrailTick >= 120) {
         this.trail.push({ x: state.x, z: state.z });
@@ -376,6 +382,7 @@ export class Game {
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     this.water?.resize(width, height);
+    this.shipLabels.resize(width, height);
     this.sky?.resize(width, height);
     this.resizePending = false;
   }
@@ -544,6 +551,7 @@ export class Game {
     this.disposed = true;
     cancelAnimationFrame(this.raf);
     this.abort.abort(); this.observer.disconnect(); this.input.dispose(); this.rig.dispose();
+    this.shipLabels.dispose();
     await this.initialization;
     await this.frameTask;
     this.pipeline?.dispose();

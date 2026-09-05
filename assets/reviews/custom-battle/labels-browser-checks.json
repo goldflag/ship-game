@@ -1,0 +1,58 @@
+{
+  "before": [
+    {
+      "id": "player",
+      "text": "USS BaltimoreYou1000 / 1000 HP",
+      "hp": 1000,
+      "fill": "scaleX(1)",
+      "hidden": false
+    },
+    {
+      "id": "friendly-1",
+      "text": "USS BaltimoreAlly 11000 / 1000 HP",
+      "hp": 1000,
+      "fill": "scaleX(1)",
+      "hidden": false
+    },
+    {
+      "id": "enemy-1",
+      "text": "USS BaltimoreEnemy 11000 / 1000 HP",
+      "hp": 1000,
+      "fill": "scaleX(1)",
+      "hidden": false
+    }
+  ],
+  "damaged": [
+    {
+      "id": "player",
+      "text": "USS BaltimoreYou1000 / 1000 HP",
+      "hp": 1000,
+      "fill": "scaleX(1)",
+      "hidden": false
+    },
+    {
+      "id": "friendly-1",
+      "text": "USS BaltimoreAlly 1879 / 1000 HP",
+      "hp": 879,
+      "fill": "scaleX(0.879)",
+      "hidden": false
+    },
+    {
+      "id": "enemy-1",
+      "text": "USS BaltimoreEnemy 1427 / 1000 HP",
+      "hp": 427,
+      "fill": "scaleX(0.427)",
+      "hidden": false
+    }
+  ],
+  "sinking": {
+    "id": "enemy-1",
+    "text": "USS BaltimoreEnemy 1427 HP \u00b7 Sinking",
+    "hp": 427,
+    "fill": "scaleX(0.427)",
+    "hidden": false
+  },
+  "behindCameraHidden": true,
+  "resetCount": 1,
+  "disposed": true
+}
