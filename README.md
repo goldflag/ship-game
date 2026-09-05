@@ -55,7 +55,9 @@ Friendly and enemy bots have an overhead name, live hull HP bar and current HP n
 
 Bots acquire living opponents, close at an angle, bring their batteries to bear, and lead moving targets using the same ballistic solver and authoritative gun poses as the player. Main and secondary mounts fire independently when aligned, unobstructed, loaded and in range. Bots hold fire through friendly hulls and steer away from nearby ships; shell collisions still apply to all hulls, including allies. Propulsion, steering, magazines, ammunition, flooding and sinking affect every ship. Sink the opposing fleet to win; friendly bots keep fighting if your ship sinks. Esc opens the return-to-port action after victory or defeat.
 
-Bot tactics and caliber-based engagement limits are provisional gameplay tuning. Enterprise fights with its authored guns; aircraft operations are not implemented. There is no physical ship-to-ship collision response yet. Fleet selection is retained during this page session; progression remains illustrative.
+Ships collide with friendly and enemy hulls. Contact slows and pushes the ships according to their mass; glancing impacts slide along the hull, and off-center hits can turn it. You can reverse or steer away after contact. Sinking wrecks remain solid until they descend below the other ship's keel. Collision shapes follow a simplified convex envelope of each blueprint's hull stations; ramming damage is not implemented.
+
+Bot tactics and caliber-based engagement limits are provisional gameplay tuning. Enterprise fights with its authored guns; aircraft operations are not implemented. Fleet selection is retained during this page session; progression remains illustrative.
 
 Gunfire uses caliber-scaled ignition and large fireballs that cool over roughly 0.6–0.8 seconds into drifting propellant smoke. The smoke uses local raymarched 3D density, erosion and sunward light absorption inspired by the vendored Sky Pro clouds. Broad folds settle into slower motion as the plume expands, staying connected before gradually thinning. Shells follow CPU ballistics with short motion streaks. Armor strikes produce directional sparks and smoke; water impacts form aerated columns that separate into small round droplets and mist, followed by foam shaded on the ocean surface. Magazine detonations have a separate effect. Pause freezes the effects and returning to port clears them. Visual scales are gameplay approximations; see the [effects review record](assets/effects/naval/reports/validation.md).
 
@@ -67,6 +69,7 @@ Sound uses an [original ElevenLabs-generated naval set](assets/audio/naval/READM
 - `assets/`: original Blender sources, reusable gun recipes, references, source registers and generated review images.
 - `scripts/ships/`: portable build, export, independent GLB validation, starter and review commands.
 - `src/simulation/battle.ts` and `bots.ts`: bounded fleet setup, deployment, team-aware controllers and ballistic target leading.
+- `src/simulation/collisions.ts`: hull contact separation and mass-based linear/angular impulses for every fleet actor.
 - `src/simulation/`: serializable movement, weapons, swept collisions, armor, modules and flooding at a fixed 60 Hz. No browser, React, Three.js or GPU dependency.
 - `src/game/ShipView.ts`: binds simulation state to exported joints. `ShipInspection.ts` renders shared armor/module/compartment inspection geometry; `src/ships/inspection.ts` supplies both its geometry and the port list. `CombatEffects.ts` uses bounded pools for shells and effects.
 - `src/game/Game.ts`: scene, licensed Water/Sky integration and lifecycle. Combat ship poses come from CPU simulation; GPU waves animate the sea and buoys.
@@ -111,7 +114,7 @@ bun run build
 bun run preview
 ```
 
-Tests cover mixed-fleet deployment and loading, bot fire/reloads/damage/retargeting, friendly firing lanes, battle results and resets, fleet determinism, blueprint validation, reusable component compilation, movement, ballistic solutions, swept hits, armor before modules, conserved flood transfer, reload/ammunition, propulsion damage, magazine detonation, sinking, reset behavior, and identical combat outcomes at different frame rates. A renderer adapter test loads the actual exported joint hierarchy and checks rear-turret rotation, elevation and recoil against authoritative muzzle positions. The build checks that the GLB matches its compiled definition and measures actual exported hull/pivot/muzzle geometry. Browser validation is also needed for rendering and controls.
+Tests cover mixed-fleet deployment and loading, bot fire/reloads/damage/retargeting, friendly firing lanes, battle results and resets, fleet determinism, blueprint validation, reusable component compilation, movement, ship contacts (ramming, reversing, sliding, mass, turning, pile-ups, sinking and close passes), ballistic solutions, swept hits, armor before modules, conserved flood transfer, reload/ammunition, propulsion damage, magazine detonation, sinking, reset behavior, and identical combat outcomes at different frame rates. A renderer adapter test loads the actual exported joint hierarchy and checks rear-turret rotation, elevation and recoil against authoritative muzzle positions. The build checks that the GLB matches its compiled definition and measures actual exported hull/pivot/muzzle geometry. Browser validation is also needed for rendering and controls.
 
 The [implementation validation record](docs/ship-validation.md) lists the tested build, browser observations and remaining accuracy/visual checks.
 
