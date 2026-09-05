@@ -141,7 +141,11 @@ export class Game {
     this.sky.clouds.shape.coverage.value = 0.64;
     this.sky.clouds.shape.altitude.value = 1700;
     this.sky.clouds.shape.thickness.value = 3200;
-    this.sky.clouds.lighting.baseShadowStrength.value = 0.6;
+    // Cloud volumes use their own ambient fill, independently of scene lights.
+    // Soften the extra base darkening and lift the preset's near-black bounce.
+    this.sky.clouds.lighting.baseShadowStrength.value = 0.2;
+    this.sky.clouds.lighting.ambientIntensity.value = 1.1;
+    this.sky.clouds.lighting.groundBounceAlbedo.value.setRGB(0.09, 0.105, 0.12);
     this.sky.clouds.wind.speed = 12;
     this.sky.atmosphere.fogDensity.value = 0.7;
     this.water.setSky(this.sky.createSkyProvider({ envMap: { width: 384, cloudMarchSteps: 16, skipFrames: 8 } }));

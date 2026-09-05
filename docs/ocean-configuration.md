@@ -32,6 +32,12 @@ The first pass used sun elevation 28°, sun peak intensity 3.2, environment ligh
 
 The corrected setup uses sun elevation 48°, sun intensity 6.6, environment lighting 1.0, hemisphere fill 0.65 with a lighter tint, and cloud-base shadow strength 0.60 instead of 0.88. The HUD shade is now confined to shorter edge regions (20% opacity at the top, 44% at the bottom), and hides with the instruments. Wave shape, foam, water colors, and fog remain as listed above.
 
+## Cloud fill correction
+
+The cloud undersides remained too dark after the first daylight pass. Sky Pro's cloud volumes use their own lighting calculation; increasing the scene's hemisphere light does not illuminate them. The inherited `partlyCloudy` preset supplies ambient intensity 0.7 and very dark ground-bounce albedo (approximately 0.0091, 0.0152, 0.0185 in linear RGB), while the game still applied base-shadow strength 0.60.
+
+The current cloud lighting uses base-shadow strength **0.20**, ambient intensity **1.10**, and ground-bounce albedo **(0.09, 0.105, 0.12)** in linear RGB. This is an artistic fill adjustment for brighter daylight cloud bases, not a measured ocean reflectance. It retains a cool gray underside and brighter sunlit edges. Sun intensity, exposure, cloud shape, and coverage stay as configured above. The water reflects the brighter cloud lighting through the existing SkyProvider. The change was checked in the WebGPU scene with the same camera, including the normal sailing view.
+
 ## Repeating arc correction
 
 The initial game used the deterministic wave seed `1941`. Water Pro 3.5.1 constructs its random-hash input as `float(cellIndex) + randomSeed * 100000`. At approximately 194,100,000, float32 values are spaced 16 units apart. The 65,536 cells in a 256² cascade therefore collapse to only 4,097 distinct hash inputs. Neighboring Fourier components acquire identical random phases, creating organized bands and curved wave packets. The periodic FFT tiles repeat those packets across the ocean; zooming out exposes the pattern.
