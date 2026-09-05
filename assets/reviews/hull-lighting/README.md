@@ -44,3 +44,7 @@ material or model changes may require reviewing its sample region.
 Validation: 101 simulation/ship/game/schematic tests pass; `bun run build` passes,
 including all four preset asset checks. WebGPU was checked; WebGL fallback was
 not exercised. No modeling recipe or generated ship asset changed.
+
+After integrating master at `45392d0`, all 122 tests and `bun run build` pass.
+The Medium WebGPU check was repeated with the merged renderer: RMS 0.149,
+with the refreshed capture retained above.
