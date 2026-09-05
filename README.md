@@ -19,6 +19,8 @@ Choose **Create schematic** beneath the ship’s name in port to preview a refer
 
 ## Controls
 
+To see the sun, keep dragging upward in port after reaching the lowest orbit, or move the mouse upward while sailing. Upward tilt is limited to 30°. Port sky viewing tilts the camera without lowering its position. All camera modes maintain at least 12 m of clearance above sea level, including during sinking; the port also preserves clearance above terrain.
+
 | Control | Action |
 | --- | --- |
 | W / S or up / down | Raise / lower engine order; tap for each notch |
