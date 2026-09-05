@@ -1,0 +1,19 @@
+/* Current barrel aim stays distinct from the fixed white command sight. */
+.gun-aim-layer { position:absolute; inset:0; overflow:hidden; pointer-events:none; font-variant-numeric:tabular-nums; }
+.gun-aim-layer[hidden], .gun-aim-marker[hidden] { display:none; }
+.ocean-viewport[data-ship-labels=false] .gun-aim-layer { visibility:hidden; }
+.gun-aim-marker { position:absolute; top:0; left:0; width:0; height:0; color:#e0c58d; }
+.gun-aim-circle { position:absolute; width:28px; height:28px; left:-14px; top:-14px; border:2px dashed currentColor; border-radius:50%; filter:drop-shadow(0 1px 2px #07131b); }
+.gun-aim-label { position:absolute; top:19px; left:0; padding:2px 5px; background:#0e2530e6; border-radius:2px; white-space:nowrap; font:500 11px/15px 'Barlow Condensed',sans-serif; }
+.gun-aim-aligned { color:#86e4c5; }
+.gun-aim-aligned .gun-aim-circle { border-style:solid; }
+.gun-aim-reloading { color:#c1d0d4; }
+.gun-aim-blocked, .gun-aim-disabled, .gun-aim-empty { color:#ee9b86; }
+.gun-aim-blocked .gun-aim-circle:after, .gun-aim-disabled .gun-aim-circle:after, .gun-aim-empty .gun-aim-circle:after { content:''; position:absolute; width:22px; height:1px; background:currentColor; left:1px; top:11px; transform:rotate(-45deg); }
+.gun-aim-arrow { display:none; position:absolute; inset:0; }
+.gun-aim-offscreen .gun-aim-arrow { display:block; }
+.gun-aim-arrow:after { content:''; position:absolute; width:7px; height:7px; border-top:2px solid currentColor; border-right:2px solid currentColor; left:20px; top:-4px; transform:rotate(45deg); filter:drop-shadow(0 1px 2px #07131b); }
+@media (max-width:600px) {
+  .gun-aim-label { font-size:10px; }
+  .gun-aim-circle { width:24px; height:24px; left:-12px; top:-12px; }
+}
