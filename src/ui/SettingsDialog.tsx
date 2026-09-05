@@ -3,20 +3,26 @@ import type { GameSettings } from '../game/types';
 import { bindingError, defaultKeybindings, INPUT_ACTIONS, keyLabel, type InputAction, type Keybindings } from '../game/keybindings';
 import { Icon } from './Icons';
 import './SettingsDialog.css';
+import { DEFAULT_AUDIO, type AudioSettings, type SoundId } from '../game/audio';
 
 // Extends the naval pause menu: compact brass commands and labeled control rows.
 // Graphics require a scene reload; keybindings apply immediately while play stays paused.
 interface SettingsDialogProps {
   settings: GameSettings;
   bindings: Keybindings;
+  audioSettings: AudioSettings;
+  onAudioChange(settings: AudioSettings): boolean;
+  onPreviewSound(id: SoundId): void;
   onBindingsChange(bindings: Keybindings): boolean;
   onApply(settings: GameSettings): void;
   onClose(): void;
 }
 
-export function SettingsDialog({ settings, bindings, onBindingsChange, onApply, onClose }: SettingsDialogProps) {
+export function SettingsDialog({ settings, bindings, audioSettings, onAudioChange, onPreviewSound, onBindingsChange, onApply, onClose }: SettingsDialogProps) {
   const dialog = useRef<HTMLDialogElement>(null);
-  const [section, setSection] = useState<'scene' | 'keys'>('scene');
+  const [section, setSection] = useState<'scene' | 'keys' | 'sound'>('scene');
+  const [audioSaved, setAudioSaved] = useState(true);
+  const changeAudio = (next: AudioSettings) => setAudioSaved(onAudioChange(next));
   const [draft, setDraft] = useState(settings);
   const [listening, setListening] = useState<{ action: InputAction; slot: 0 | 1 } | null>(null);
   const [notice, setNotice] = useState('');
@@ -64,6 +70,7 @@ export function SettingsDialog({ settings, bindings, onBindingsChange, onApply, 
     <div className="settings-sections" role="group" aria-label="Settings sections">
       <button aria-pressed={section === 'scene'} onClick={() => { setSection('scene'); setListening(null); }}>Graphics & sea</button>
       <button aria-pressed={section === 'keys'} onClick={() => setSection('keys')}>Keybindings</button>
+      <button aria-pressed={section === 'sound'} onClick={() => { setSection('sound'); setListening(null); }}>Sound</button>
     </div>
     <div className="settings-content">
       {section === 'scene' ? <section aria-label="Graphics and sea settings">
@@ -73,6 +80,19 @@ export function SettingsDialog({ settings, bindings, onBindingsChange, onApply, 
         <label className="setting-row">Sea conditions<select value={draft.sea} onChange={event => setDraft({ ...draft, sea: event.target.value as GameSettings['sea'] })}><option>Fair</option><option>Atlantic</option><option>Heavy</option></select></label>
         <p className="settings-note">Applying these settings ends the current trial and reloads the scene in port. Lower detail or render scale can improve performance.</p>
         <button className="primary-button" disabled={!changed} onClick={() => onApply(draft)}>Apply & reload port <Icon name="arrow" size={17}/></button>
+      </section> : section === 'sound' ? <section aria-label="Sound settings">
+        <p className="settings-description">Balance the guns and instruments. Changes apply immediately.</p>
+        <label className="setting-row audio-mute">Mute all sound<input type="checkbox" checked={audioSettings.muted} onChange={event => changeAudio({ ...audioSettings, muted: event.target.checked })}/></label>
+        {([['master', 'Master volume'], ['effects', 'Guns & impacts'], ['interface', 'Controls & instruments']] as const).map(([key, label]) => <label className="audio-setting" key={key} htmlFor={`audio-volume-${key}`}>
+          <span>{label}</span><output>{Math.round(audioSettings[key] * 100)}%</output>
+          <input id={`audio-volume-${key}`} type="range" min="0" max="100" step="1" value={Math.round(audioSettings[key] * 100)} aria-label={label} aria-valuetext={`${Math.round(audioSettings[key] * 100)} percent`} onChange={event => changeAudio({ ...audioSettings, [key]: Number(event.target.value) / 100 })}/>
+        </label>)}
+        <div className="audio-previews" role="group" aria-label="Preview sounds">
+          <button className="secondary-button" data-sound="none" disabled={audioSettings.muted || audioSettings.master === 0 || audioSettings.interface === 0} onClick={() => onPreviewSound('ui-confirm')}>Test controls</button>
+          <button className="secondary-button" data-sound="none" disabled={audioSettings.muted || audioSettings.master === 0 || audioSettings.effects === 0} onClick={() => onPreviewSound('main-gun-a')}>Test gunfire</button>
+        </div>
+        <p className="settings-note" role="status">{audioSaved ? 'Sound settings are saved in this browser. Background tabs are silent.' : 'Sound settings applied for this session. Browser storage is unavailable.'}</p>
+        <button className="secondary-button" onClick={() => changeAudio({ ...DEFAULT_AUDIO })}>Reset sound to defaults</button>
       </section> : <section aria-label="Keybindings">
         <p className="settings-description">Select a binding, then press a key. Changes apply immediately.</p>
         <p className="keybinding-instructions" id="keybinding-instructions">Esc cancels a change. Delete clears a binding. Keep at least one key per action. Esc, Tab and Enter stay reserved for menus.</p>
@@ -105,7 +125,7 @@ export function SettingsDialog({ settings, bindings, onBindingsChange, onApply, 
       {section === 'keys' && <div className={`keybinding-status ${invalid ? 'keybinding-error' : ''}`} role="status" aria-live="polite">
         {listening && !invalid ? `Press a key for ${INPUT_ACTIONS.find(entry => entry.id === listening.action)!.label.toLowerCase()}.` : notice || 'Your bindings are saved in this browser.'}
       </div>}
-      <button className="secondary-button" onClick={onClose}>Back to menu <kbd>Esc</kbd></button>
+      <button className="secondary-button" data-sound="back" onClick={onClose}>Back to menu <kbd>Esc</kbd></button>
     </footer>
   </dialog>;
 }

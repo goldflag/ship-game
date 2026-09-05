@@ -1,0 +1,12 @@
+/* Fleet action extension: compact identity and live hull condition above each model. */
+.ship-label-layer { position:absolute; inset:0; overflow:hidden; pointer-events:none; color:#f0f5f3; font-variant-numeric:tabular-nums; }
+.ocean-viewport[data-ship-labels=false] .ship-label-layer { visibility:hidden; }
+.ship-label { --ship-color:#86e4c5; position:absolute; top:0; left:0; width:0; height:0; }
+.ship-label[hidden] { display:none; }
+.ship-label-enemy { --ship-color:#ee9b86; }
+.ship-label-tag { position:absolute; bottom:8px; left:-72px; width:144px; text-align:center; text-shadow:0 1px 2px #07131b,0 2px 4px #07131b; }
+.ship-label-name { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font:500 15px/17px 'Barlow Condensed',sans-serif; }
+.ship-label-health { display:block; margin-top:3px; font:500 12px/14px 'Barlow Condensed',sans-serif; }
+.ship-label-meter { height:5px; margin-top:4px; background:#06111b; border:1px solid #c9dce04a; }
+.ship-label-meter>div { height:100%; width:100%; background:var(--ship-color); transform-origin:left; }
+.ship-label-sinking .ship-label-name { color:#c1d0d4; }
