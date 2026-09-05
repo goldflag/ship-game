@@ -1,0 +1,127 @@
+{
+  "targetInspection": {
+    "targetId": "enemy-2",
+    "name": "USS Enterprise (CV-6)",
+    "inspecting": true,
+    "maxMuzzleErrorM": 0.0027435334140764795
+  },
+  "returnToPort": {
+    "tick": 0,
+    "inPort": true,
+    "renderedShips": [
+      {
+        "id": "player",
+        "visible": true
+      },
+      {
+        "id": "friendly-1",
+        "visible": false
+      },
+      {
+        "id": "enemy-1",
+        "visible": false
+      },
+      {
+        "id": "enemy-2",
+        "visible": false
+      }
+    ],
+    "fleet": [
+      {
+        "id": "player",
+        "definitionId": "baltimore",
+        "team": "friendly",
+        "controller": "player",
+        "motion": {
+          "id": "player",
+          "tick": 0,
+          "x": 240,
+          "y": 0,
+          "z": 0,
+          "roll": 0,
+          "pitch": 0,
+          "heading": 0,
+          "speed": 0,
+          "rudder": 0,
+          "yawRate": 0,
+          "distance": 0
+        },
+        "ammo": 5670,
+        "integrity": 1000
+      },
+      {
+        "id": "friendly-1",
+        "definitionId": "bismarck",
+        "team": "friendly",
+        "controller": "bot",
+        "motion": {
+          "id": "friendly-1",
+          "tick": 0,
+          "x": 650,
+          "y": 0,
+          "z": 0,
+          "roll": 0,
+          "pitch": 0,
+          "heading": 1.5707963267948966,
+          "speed": 0,
+          "rudder": 0,
+          "yawRate": 0,
+          "distance": 0
+        },
+        "ammo": 2760,
+        "integrity": 1000
+      },
+      {
+        "id": "enemy-1",
+        "definitionId": "yamato",
+        "team": "enemy",
+        "controller": "bot",
+        "motion": {
+          "id": "enemy-1",
+          "tick": 0,
+          "x": 0,
+          "y": 0,
+          "z": -5000,
+          "roll": 0,
+          "pitch": 0,
+          "heading": 4.71238898038469,
+          "speed": 0,
+          "rudder": 0,
+          "yawRate": 0,
+          "distance": 0
+        },
+        "ammo": 1800,
+        "integrity": 1000
+      },
+      {
+        "id": "enemy-2",
+        "definitionId": "enterprise-cv6",
+        "team": "enemy",
+        "controller": "bot",
+        "motion": {
+          "id": "enemy-2",
+          "tick": 0,
+          "x": 650,
+          "y": 0,
+          "z": -5000,
+          "roll": 0,
+          "pitch": 0,
+          "heading": 4.71238898038469,
+          "speed": 0,
+          "rudder": 0,
+          "yawRate": 0,
+          "distance": 0
+        },
+        "ammo": 69680,
+        "integrity": 1000
+      }
+    ]
+  },
+  "retainedSetup": [
+    "baltimore",
+    "bismarck",
+    "yamato",
+    "enterprise-cv6"
+  ],
+  "emptyEnemyLaunchDisabled": true
+}

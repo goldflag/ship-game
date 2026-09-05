@@ -8,9 +8,12 @@ import { Garage } from './Garage';
 import { selectedShip as initialShip, shipPreset } from '../ships/presets';
 import { ShipContext } from './ShipContext';
 import { bindingLabel, KEYBINDING_STORAGE_KEY, loadKeybindings, type Keybindings } from '../game/keybindings';
+import { BattleSetupDialog } from './BattleSetupDialog';
+import type { BattleSetup } from '../simulation/battle';
 import { SettingsDialog } from './SettingsDialog';
 import { GameAudio } from '../game/GameAudio';
 import { AUDIO_STORAGE_KEY, loadAudioSettings, type AudioSettings } from '../game/audio';
+import './ShipLabels.css';
 
 const INITIAL_TELEMETRY: Telemetry = { ship: createShipState(), order: 1, camera: 'Chase', fps: 0, backend: 'webgpu', trail: [] };
 function loadSettings(): GameSettings {
@@ -39,19 +42,23 @@ export function App() {
   const audioSettingsRef = useRef(audioSettings);
   const bindingsRef = useRef(bindings);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [closed, setClosed] = useState(false);
   const [generation, setGeneration] = useState(0);
   const [data, setData] = useState(INITIAL_TELEMETRY);
-  const [loading, setLoading] = useState({ label: 'Preparing your sea trial', progress: 0 });
+  const [loading, setLoading] = useState({ label: 'Preparing the harbor', progress: 0 });
   const [ready, setReady] = useState(false);
   const [paused, setPaused] = useState(false);
   const [error, setError] = useState('');
   const [hud, setHud] = useState(true);
+  const [battleSetupOpen, setBattleSetupOpen] = useState(false);
+  const [battleSetup, setBattleSetup] = useState<BattleSetup>({ playerShipId: initialShip.id, friendlyBots: [], enemies: ['bismarck'] });
+  const [battleLoading, setBattleLoading] = useState(false);
+  const [battleError, setBattleError] = useState('');
+  const battlePending = useRef(false);
   const [phase, setPhase] = useState<'garage' | 'sailing'>('garage');
 
   useEffect(() => {
-    if (closed) return;
     let active = true;
+    setBattleSetupOpen(false); setBattleLoading(false); battlePending.current = false;
     setSwitching(false); setSwitchError(''); switchPending.current = false;
     setReady(false); setError(''); setPaused(false); setSettingsOpen(false); setData(INITIAL_TELEMETRY); setPhase('garage');
     const session = new Game(host.current!, settings, {
@@ -79,18 +86,38 @@ export function App() {
       if (import.meta.env.DEV) { delete reviewWindow.shipTrialDiagnostics; delete reviewWindow.shipTrialArticulation; }
       void session.dispose();
     };
-  }, [generation, settings, closed]);
+  }, [generation, settings]);
 
   useEffect(() => {
-    if (paused && ready && !error && !closed) dialog.current?.showModal();
+    if (paused && ready && !error) dialog.current?.showModal();
     else dialog.current?.close();
-  }, [paused, ready, error, closed]);
+  }, [paused, ready, error]);
 
-  const launch = () => {
+  // Let React unmount the setup dialog before the scene takes focus for aiming.
+  useEffect(() => { if (phase === 'sailing') game.current?.setInPort(false); }, [phase]);
+
+  const openBattleSetup = () => {
     if (!ready || switchPending.current) return;
-    game.current?.setInPort(false);
-    setHud(true);
-    setPhase('sailing');
+    setBattleSetup(value => ({ ...value, playerShipId: selectedShip.id }));
+    setBattleError(''); setBattleSetupOpen(true);
+  };
+  const launch = async () => {
+    const session = game.current;
+    if (!ready || !session || switchPending.current || battlePending.current) return;
+    battlePending.current = true; setBattleLoading(true); setBattleError('');
+    try {
+      await session.prepareBattle(battleSetup);
+      if (game.current !== session) return;
+      const definition = shipPreset(battleSetup.playerShipId);
+      selectedRef.current = definition; setSelectedShip(definition);
+      const url = new URL(window.location.href); url.searchParams.set('ship', definition.id);
+      window.history.replaceState(null, '', url);
+      setBattleSetupOpen(false); setHud(true); setPhase('sailing');
+    } catch (error) {
+      if (game.current === session) setBattleError(error instanceof Error ? error.message : String(error));
+    } finally {
+      if (game.current === session) { battlePending.current = false; setBattleLoading(false); }
+    }
   };
   const returnToPort = () => {
     game.current?.setInPort(true);
@@ -102,7 +129,7 @@ export function App() {
     if (phase === 'sailing') game.current?.capturePointer();
   };
 
-  useEffect(() => { document.title = `${selectedShip.name} — Sea Trials`; }, [selectedShip]);
+  useEffect(() => { document.title = `${selectedShip.name} — Custom Battle`; }, [selectedShip]);
 
   const switchShip = async (id: string) => {
     const session = game.current;
@@ -145,38 +172,28 @@ export function App() {
     catch { return false; }
   };
   const closeGame = () => {
-    game.current?.setPaused(true);
-    setSettingsOpen(false);
-    setClosed(true);
-    // Browsers may refuse to close a tab they did not open. The closed state
-    // still unmounts the session and releases its renderer and input listeners.
-    try { window.close(); } catch { /* The exit screen remains available. */ }
+    window.close();
   };
 
-  if (closed) return <main className="game-exit">
-    <Icon name="anchor" size={36}/><h1>Game closed</h1>
-    <p>You can close this tab. Your settings and keybindings are kept in this browser.</p>
-    <button className="primary-button" onClick={() => window.location.reload()}>Launch game <Icon name="play" size={18}/></button>
-  </main>;
-
   return <ShipContext value={selectedShip}><main className="game-shell">
-    <div ref={host} className="ocean-viewport" />
-    {phase === 'garage' && !error && <Garage key={selectedShip.id} switching={switching} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} progress={loading.progress} fps={data.fps} onLaunch={launch} onSettings={() => game.current?.setPaused(true)}/>}
+    <div ref={host} className="ocean-viewport" data-ship-labels={phase === 'sailing' && hud && ready && !error} />
+    {phase === 'garage' && !error && <Garage key={selectedShip.id} switching={switching} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} progress={loading.progress} fps={data.fps} onLaunch={openBattleSetup} onSettings={() => game.current?.setPaused(true)}/>}
+    {battleSetupOpen && <BattleSetupDialog setup={battleSetup} onChange={setBattleSetup} onLaunch={launch} onClose={() => setBattleSetupOpen(false)} loading={battleLoading} error={battleError}/>}
     {phase === 'sailing' && ready && !error && <FleetHud data={data} game={game.current} visible={hud} bindings={bindings}/>}
 
     {phase === 'sailing' && ready && !hud && <button className="restore-hud" onClick={() => setHud(true)}>Show instruments <kbd>{bindingLabel(bindings, 'hud')}</kbd></button>}
 
     {((!ready && phase === 'sailing') || error) && <section className="loading-screen" aria-live="polite">
-      <div className="loading-brand"><Icon name="anchor" size={36}/><span>SEA TRIALS</span></div>
+      <div className="loading-brand"><Icon name="anchor" size={36}/><span>FLEET COMMAND</span></div>
       <div className="loading-content"><h1>{selectedShip.name.toUpperCase()}</h1><p className="loading-subtitle">Take the helm.</p><div className="ship-measure"><div/><span>{selectedShip.hull.length} M</span><div/></div>
-        {error ? <div className="error-message"><h2>Unable to launch the sea trial</h2><p>{error}</p><p>Try reloading in a current Chrome or Edge browser with hardware acceleration enabled.</p><button className="primary-button" onClick={() => setGeneration(value => value + 1)}>Try again <Icon name="arrow" size={18}/></button></div> : <><div className="loading-progress" role="progressbar" aria-label="Loading sea trial" aria-valuenow={Math.round(loading.progress * 100)} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${loading.progress * 100}%` }}/></div><div className="loading-status"><span>{loading.label}</span><span>{Math.round(loading.progress * 100)}%</span></div><p className="compile-note">The first launch prepares the ocean and cloud shaders.</p></>}
+        {error ? <div className="error-message"><h2>Unable to launch the battle</h2><p>{error}</p><p>Try reloading in a current Chrome or Edge browser with hardware acceleration enabled.</p><button className="primary-button" onClick={() => setGeneration(value => value + 1)}>Try again <Icon name="arrow" size={18}/></button></div> : <><div className="loading-progress" role="progressbar" aria-label="Loading battle" aria-valuenow={Math.round(loading.progress * 100)} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${loading.progress * 100}%` }}/></div><div className="loading-status"><span>{loading.label}</span><span>{Math.round(loading.progress * 100)}%</span></div><p className="compile-note">The first launch prepares the ocean and cloud shaders.</p></>}
       </div><div className="loading-bottom"><span>SINGLEPLAYER · OPEN OCEAN</span><span>{selectedShip.name.toUpperCase()} / {selectedShip.configuration.match(/19\d{2}/)?.[0]}</span></div>
     </section>}
 
     <dialog ref={dialog} className={`pause-menu ${settingsOpen ? 'pause-menu-covered' : ''}`} aria-labelledby="pause-title" onCancel={e => { e.preventDefault(); resume(); }}>
-      <div className="menu-heading"><h2 id="pause-title">{phase === 'garage' ? 'In port.' : 'At your command.'}</h2><button className="icon-button" aria-label={phase === 'garage' ? 'Close menu' : 'Resume sailing'} onClick={resume}><Icon name="close"/></button></div>
-      <p className="menu-description">{phase === 'garage' ? 'Prepare the sea conditions for your next voyage.' : 'Sea trial paused. Your engine order is held.'}</p>
-      <button autoFocus className="primary-button" onClick={resume}>{phase === 'garage' ? 'Back to port' : 'Resume sailing'} <Icon name={phase === 'garage' ? 'anchor' : 'play'} size={18}/></button>
+      <div className="menu-heading"><h2 id="pause-title">{phase === 'garage' ? 'In port.' : 'At your command.'}</h2><button className="icon-button" aria-label={phase === 'garage' ? 'Close menu' : 'Resume battle'} onClick={resume}><Icon name="close"/></button></div>
+      <p className="menu-description">{phase === 'garage' ? 'Prepare the sea conditions for your next voyage.' : 'Battle paused. Your engine order is held.'}</p>
+      <button autoFocus className="primary-button" onClick={resume}>{phase === 'garage' ? 'Back to port' : 'Resume battle'} <Icon name={phase === 'garage' ? 'anchor' : 'play'} size={18}/></button>
       {phase === 'sailing' && <button className="secondary-button restart-button" onClick={returnToPort}>Return to port <Icon name="anchor" size={18}/></button>}
       <button className="secondary-button menu-action" onClick={() => setSettingsOpen(true)}>Settings <Icon name="settings" size={18}/></button>
       <button className="secondary-button menu-action close-game-button" onClick={closeGame}>Close game <Icon name="power" size={18}/></button>
