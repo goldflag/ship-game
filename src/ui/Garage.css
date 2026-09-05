@@ -55,7 +55,9 @@
 .garage-classic-identity>div { display:flex; align-items:center; gap:10px; margin-top:12px; font-size:12px; color:#d0dcd9; }
 .garage-classic-identity>div>span:first-child { color:var(--port-accent); border:1px solid #e5bf8066; padding:2px 5px; font-size:10px; }
 .garage-classic-identity .garage-ready { margin-top:18px; }
-.garage-classic-left { position:absolute; top:255px; left:32px; width:198px; }
+.garage-schematic-button { display:inline-flex; align-items:center; gap:8px; min-height:34px; margin-top:12px; padding:7px 10px; color:var(--port-accent); background:#102330d9; border:1px solid #e5bf8066; border-radius:2px; font-size:12px!important; }
+.garage-schematic-button:hover:not(:disabled) { background:#294450; border-color:var(--port-accent); }
+.garage-classic-left { position:absolute; top:285px; left:32px; width:198px; }
 .garage-commander-link { display:flex; align-items:center; gap:12px; width:100%; text-align:left; padding:14px 0; border:0; border-top:1px solid var(--port-line); border-bottom:1px solid var(--port-line); background:transparent; }
 .garage-commander-link:hover { background:#cee6e90a; }
 .garage-commander { display:flex; align-items:center; gap:10px; }
@@ -192,7 +194,7 @@
   .garage-wallet { font-size:11px; }
   .garage-wallet>span:nth-child(2) { display:none; }
   .garage-classic-header nav>button { font-size:12px; }
-  .garage-classic-left { top:242px; width:186px; }
+  .garage-classic-left { top:285px; width:186px; }
   .garage-daily-orders { display:none; }
   .garage-classic-details { top:207px; max-height:calc(100% - 399px); width:205px; padding:15px; }
   .garage-classic-details .garage-specs { display:none; }
@@ -202,7 +204,7 @@
   .garage-orbit-hint { top:67%; }
 }
 @media(max-height:740px) and (min-width:1241px) {
-  .garage-classic-left { top:226px; }
+  .garage-classic-left { top:265px; }
   .garage-daily-orders { margin-top:18px; }
   .garage-daily-orders>p { display:none; }
   .garage-daily-orders>strong { margin-top:12px; }
@@ -225,6 +227,7 @@
   .garage-classic-identity h1 { font-size:36px; }
   .garage-classic-identity>div { font-size:10px; gap:7px; }
   .garage-classic-identity .garage-ready { font-size:9px; margin-top:12px; }
+  .garage-schematic-button { margin-top:9px; font-size:11px!important; min-height:34px; }
   .garage-classic-deploy .garage-set-sail { min-width:124px; gap:8px; padding:11px; }
   .garage-classic-deploy .garage-set-sail>strong { font-size:19px; }
   .garage-classic-deploy .garage-set-sail>svg { width:16px; }

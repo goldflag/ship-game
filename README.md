@@ -11,6 +11,8 @@ Open http://localhost:5173. Current Chrome or Edge with hardware acceleration is
 
 You start in port with the Bismarck moored. Drag to inspect the ship, then choose **Set sail** to enter the playable sea trial. **Return to port** in the pause menu ends the current trial. The selected [Fleet harbor garage](docs/garage-mockups/README.md) uses compact panels and a transparent top bar. Currency, refits, commanders, and future ships are illustrative, with temporary state only.
 
+Choose **Create schematic** beneath the ship’s name in port to preview a reference sheet from the actual Bismarck model. Choose Standard, Four views, or Showcase, light/charcoal/ink paper, metric or imperial dimensions, and HD or 4K output. **Save image** downloads PNG or WebP; **Copy image** copies PNG where the browser permits image clipboard access. Orthographic views share a scale; the general arrangement view has its own scale. Dimensions describe the model, including the submerged hull. Sheet preferences are remembered locally, and exports use the exact drawing shown in the preview.
+
 ## Controls
 
 | Control | Action |
@@ -41,6 +43,7 @@ The Fleet action HUD uses compact naval combat instruments: live ship handling a
 - `src/game/CameraRig.ts`: camera behavior, independent of simulation.
 - `src/game/ShipWake.ts`, `WakeFoam.ts`: spreading bow/stern waves and a widening foam trail that follows the ship's historical course, breaks into patches, and fades with age.
 - `src/ui/`: React instruments and settings. Telemetry updates at 10 Hz; React does not drive animation frames.
+- `src/schematic/`: isolated model rendering, shared-scale page layout, and image encoding. Its private renderer and model are loaded on demand, reused while the dialog is open, and disposed on close.
 - `vendor/`: supplied Pro runtime bundles, declarations, data, and their license files. These are proprietary dependencies; their original license terms remain in force.
 - `public/models/bismarck.glb`: exported ship, approximately 7 MB. Collection boundaries and materials are retained; static fittings are batched. Blender's procedural teak is baked into an embedded repeating texture.
 

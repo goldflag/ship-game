@@ -23,6 +23,9 @@ export class InputController {
   }
 
   private onDown = (event: KeyboardEvent) => {
+    // Downloads can leave focus on body while a native modal is still open.
+    // Keep the game's shortcuts from cancelling the dialog's Escape or Tab handling.
+    if (document.querySelector('dialog[open]')) return;
     const target = event.target;
     if (target instanceof HTMLElement && target.closest('dialog')) return;
     if (target instanceof HTMLElement && (target.matches('input, select, textarea, button') || target.isContentEditable)) {

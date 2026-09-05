@@ -8,6 +8,7 @@ import { InputController } from './InputController';
 import { CameraRig } from './CameraRig';
 import { createHarborBackdrop } from './HarborBackdrop';
 import { ShipWake } from './ShipWake';
+import { SHIP_MODEL } from './shipModel';
 import type { GameCallbacks, GameSettings } from './types';
 
 export const BUOYS = [
@@ -87,7 +88,7 @@ export class Game {
     this.assertActive();
     this.rig.update(this.simulation.ship, 0, 0, true);
     this.callbacks.progress('Launching Bismarck', 0.2);
-    const gltf = await new GLTFLoader().loadAsync('/models/bismarck.glb');
+    const gltf = await new GLTFLoader().loadAsync(SHIP_MODEL.url);
     this.ship.add(gltf.scene);
     this.assertActive();
     // Blender export: bow +X, up +Y. Our simulation uses bow -Z.
