@@ -9,6 +9,7 @@
     "build": "bun run ship:check bismarck && bun run ship:check yamato && bun run ship:check baltimore && bun run ship:check enterprise-cv6 && tsc --noEmit && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "typecheck": "tsc --noEmit",
+    "audio:build": "python3 scripts/audio/build.py",
     "test": "bun test src/simulation src/ships src/game src/schematic",
     "export:ship": "bun run ship:build bismarck",
     "ship:build": "bun scripts/ships/pipeline.ts build",
