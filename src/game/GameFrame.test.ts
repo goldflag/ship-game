@@ -39,6 +39,7 @@ async function frameHarness() {
   const game = Object.assign(Object.create(Game.prototype), {
     definition: simulation.definition, simulation, playerView, targetView, fleetViews: [playerView, targetView], camera, rig, ship: new Group(),
     renderer: { domElement: { setAttribute() {} } }, manualAim: false,
+    shipLabels: { update() {} },
     lastTime: 0, hudTime: Infinity, lastTrailTick: 0, trail: [], fps: 60, battery: 'main',
     paused: false, inPort: false, inspecting: false,
     input: { sample: () => helm, firing: false, setEnabled() {},

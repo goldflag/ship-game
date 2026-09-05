@@ -49,6 +49,7 @@ async function port() {
     definition, simulation, playerView, targetView, fleetViews: [playerView, targetView], fleetModels: [loaded], loadedModel: loaded, scene, harbor, camera, rig,
     currentAim: [650, .5, -550], manualAim: true,
     effects: { reset() {}, diagnostics() { return {}; } },
+    shipLabels: { setFleet() {} },
     ship: new Group(), inPort: true, disposed: false, switchingShip: false,
     renderer: { domElement: { setAttribute() {} } },
   }) as Game;

@@ -39,3 +39,23 @@ Independent finish review: **Pass — no material design fixes required.** The U
 ## Current limits
 
 Bots use provisional gun ranges, ballistic lead, broadside steering and simple fleet separation. Hull collision response and carrier aircraft are not implemented; Enterprise participates with its guns. These behaviors do not establish historical accuracy. Damage and aiming remain CPU simulation responsibilities.
+
+## Overhead ship labels and integration with master
+
+Added names, team/slot identity and live structural HP bars above battle ships, including the player. Label positions follow the interpolated render poses; clipping removes ships behind the camera and outside the viewport. Nearby labels use separate rows and stems; placement also excludes visible HUD instruments and the central aiming sight. Flooded ships can retain structural HP while sinking, so the label preserves that value and adds an explicit sinking state.
+
+The branch incorporates master's newer Bismarck protection data and naval gunfire effects. Mixed fleets retain their own plate definitions and gun trains when aiming; bot shot events include the caliber and velocity required by the effects system. Existing model outputs were retained from master, with no additional geometry authoring.
+
+- `bun test`: 116 passed, zero failed, 6,255 assertions across 21 files.
+- `bun run build`: passed, including ship definition checks and TypeScript.
+- Added projection, camera clipping and clustered-label tests, including a regression for subpixel coordinates at row boundaries.
+- [Final desktop scene](labels-desktop-final.png): label placement in the real four-preset battle, with independent player and enemy labels. [Initial capture](labels-desktop.png) preserves the view before adding HUD exclusion bounds.
+- [Controlled browser fixture](labels-browser-checks.json): the real label renderer received separate 1,000, 879 and 427 HP actors; numerical readings and bar scales followed those values. Sinking, camera culling, fleet replacement and disposal also passed. These controlled values are not claimed as observed damage from this screenshot's battle.
+
+Final independent label review: **ship**, with no open material findings.
+
+| Material fix | Score | Evidence |
+| --- | --- | --- |
+| Mobile labels overlap HUD and sight | Resolved | [The original three-label geometry](labels-mobile-regression.json) now has zero overlaps. A [separate live mobile DOM capture](labels-mobile-layout.json) also has zero overlaps. The final desktop capture confirms readable labels and stems connecting to model anchors. |
+
+Mobile screenshot verification remains unavailable because Orca's CDP screenshot operation timed out. Mobile clearance was verified through regression geometry and DOM measurements; the later live DOM capture has a different camera angle and one visible label.
