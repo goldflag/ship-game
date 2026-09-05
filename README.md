@@ -13,7 +13,7 @@ You start in port with the Bismarck moored. Drag to inspect the ship, then choos
 
 Each ship's carousel card uses a baked image of its actual model. `bun run ship:thumbnail <ship-id>` regenerates it with local Blender; `ship:build` also refreshes it.
 
-Use **Exterior / Armor / Internals** above the port's detail panel to inspect the loaded ship. Armor shows hull and gunhouse volumes with thicknesses; Internals shows machinery, magazines, steering and flooding compartments. Select a row to isolate that space against the ghosted exterior and read its dimensions. **Clear selection** restores the complete layout. Drag/scroll still orbits and zooms; **Exterior** or Esc returns to the normal model. These are the same provisional volumes used by combat. Inspection does not advance combat or modify the ship.
+Use **Exterior / Armor / Internals** above the port's detail panel to inspect the loaded ship. Armor shows hull and gunhouse protection with thicknesses and material/provenance where recorded; Internals shows machinery, magazines, steering and flooding compartments. Filter the list and select a row to isolate that space against the ghosted exterior and read its dimensions. **Clear selection** restores the complete layout. Drag/scroll still orbits and zooms; **Exterior** or Esc returns to the normal model. These are the same provisional volumes used by combat. Inspection does not advance combat or modify the ship.
 
 Choose **Create schematic** beneath the ship’s name in port to preview a reference sheet from the actual Bismarck model. Choose Standard, Four views, or Showcase, light/charcoal/ink paper, metric or imperial dimensions, and HD or 4K output. **Save image** downloads PNG or WebP; **Copy image** copies PNG where the browser permits image clipboard access. Orthographic views share a scale; the general arrangement view has its own scale. Dimensions describe the model, including the submerged hull. Sheet preferences are remembered locally, and exports use the exact drawing shown in the preview.
 
@@ -50,6 +50,8 @@ Bots acquire living opponents, close at an angle, bring their batteries to bear,
 
 Bot tactics and caliber-based engagement limits are provisional gameplay tuning. Enterprise fights with its authored guns; aircraft operations are not implemented. There is no physical ship-to-ship collision response yet. Fleet selection is retained during this page session; progression remains illustrative.
 
+Gunfire uses caliber-scaled ignition and large fireballs that cool over roughly 0.6–0.8 seconds into drifting propellant smoke. The smoke uses local raymarched 3D density, erosion and sunward light absorption inspired by the vendored Sky Pro clouds. Broad folds settle into slower motion as the plume expands, staying connected before gradually thinning. Shells follow CPU ballistics with short motion streaks. Armor strikes produce directional sparks and smoke; water impacts form aerated columns that separate into small round droplets and mist, followed by foam shaded on the ocean surface. Magazine detonations have a separate effect. Pause freezes the effects and returning to port clears them. Visual scales are gameplay approximations; see the [effects review record](assets/effects/naval/reports/validation.md).
+
 ## Architecture
 
 - `src/ships/blueprint.ts`: validated, versioned JSON blueprints and compiled ship definitions.
@@ -64,18 +66,22 @@ Bot tactics and caliber-based engagement limits are provisional gameplay tuning.
 - `src/schematic/`: orthographic model rendering and image export. Projection and filenames use the loaded preset and the pipeline's runtime axes.
 - `vendor/`: supplied proprietary Pro runtime bundles and licenses. Their original terms remain in force.
 
-Combat is an accessible simulation prototype: approximate AP penetration, uniform armor volumes, internal module failures, magazine events, compartment flooding, and sinking. The internal layout and performance values are provisional gameplay data. Networking, player shipbuilding, aircraft, crew, full physical hydrostatics, detailed HE/AP fuzes, and hull fracture remain future work. Fittings outside the compiled mount catalog, propellers and rudders remain visual.
+Combat is an accessible simulation prototype: approximate AP penetration through physical plates (Bismarck) or legacy armor volumes, internal module failures, magazine events, compartment flooding, and sinking. The internal layout and performance values are provisional gameplay data. Networking, player shipbuilding, aircraft, crew, full physical hydrostatics, detailed HE/AP fuzes, and hull fracture remain future work. Fittings outside the compiled mount catalog, propellers and rudders remain visual.
 
 The shared simulation is ready to host outside the browser, but multiplayer transport and server command validation are not implemented. The gameplay sea is flat; GPU waves do not move combat hulls independently of their hitboxes.
 
 ## Model pipeline
 
-All Bismarck sources are now under `assets/ships/bismarck/`. The original model is preserved in `baseline/`. No build depends on `/Users/bill/models`.
+Bismarck is independently rebuilt for the 24 May 1941 fit, displayed at a separately stated 9.33 m standard draft. Its new original hull, four main turrets, superstructure, 277 armor plates and 39 internal envelopes are driven by the blueprint and component catalog. All sources are under `assets/ships/bismarck/`; the earlier original model remains untouched in `baseline/`. No build depends on `/Users/bill/models`.
+
+**Reference review** in port opens the [local comparison page](public/ship-reference/bismarck/index.html): 25 neutral views, historical drawing registration, overlays, dimensions, landmarks, protection sections and downloadable GLB/ZIP. The [modeling specification](assets/ships/bismarck/modeling-spec.json) distinguishes documented dimensions from reconstructed sections and room envelopes. The game model is comparison evidence only; the original ship rebuild passes with the raw reference cache unavailable.
 
 Yamato is available at `?ship=yamato`. Its original recipe targets the April 1945 exterior with a separately stated 10.4 m trial draft. Three triple 46 cm and two triple 15.5 cm mounts share the same simulation and articulation contract. The [Yamato source notes](assets/ships/yamato/README.md) distinguish measured dimensions from unresolved historical proportions and fittings.
 
 ```sh
-bun run ship:build bismarck
+bun run ship:reference bismarck   # Optional: refresh the isolated GameModels3D raster pack
+bun run ship:build bismarck       # Also regenerates comparison artifacts
+bun run ship:independence bismarck
 bun run ship:check bismarck
 bun run ship:review bismarck
 bun run ship:build yamato
@@ -86,7 +92,7 @@ bun run ship:new my-ship
 
 Set `BLENDER_BIN` for a custom Blender executable. Builds retain independent mounts, elevation/recoil joints, muzzle sockets and assembly IDs. The export is already in runtime coordinates: meters, bow -Z, up +Y, waterline Y=0.
 
-Read the [ship pipeline and Blender MCP workflow](docs/ship-pipeline.md), [source asset index](assets/README.md), and [Bismarck discrepancy register](assets/ships/bismarck/reports/discrepancies.md). The [original systems plan](docs/ship-systems-plan.md) describes the longer roadmap. GameModels3D comparison remains pending specific reference access; passing export checks is not a historical accuracy claim.
+Read the [ship pipeline and Blender MCP workflow](docs/ship-pipeline.md), [source asset index](assets/README.md), and [Bismarck discrepancy register](assets/ships/bismarck/reports/discrepancies.md). The [original systems plan](docs/ship-systems-plan.md) describes the longer roadmap. The GameModels3D WoWS EU 15.7.0.0 reference pack is retained under the ship’s references. Passing export checks validates authored targets, not historical accuracy.
 
 ## Validation
 

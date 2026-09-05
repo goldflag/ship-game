@@ -3,7 +3,7 @@ import blueprint from '../../assets/ships/bismarck/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
 import { compileShip, type Vec3 } from '../ships/blueprint';
 import { CombatSimulation } from './combat';
-import { hitShip, updateFlooding, type Shell } from './damage';
+import { hitShip, updateFlooding, type DamageEvent, type Shell } from './damage';
 import { length, localToWorld, segmentBox, sub, worldToLocal } from './geometry';
 import { GRAVITY, shotDirection, solveBallistic } from './weapons';
 import { FIXED_DT } from './ship';
@@ -70,18 +70,21 @@ test('ballistic aim reaches its target under the flight integrator gravity', () 
 test('armor resolves before internal damage, and a surface/module is only charged once per shell', () => {
   const def = definition(), sim = new CombatSimulation(def);
   Object.assign(sim.target.motion, { x: 0, z: 0 });
+  const from: Vec3 = [-100, def.modules[0].center[1], def.modules[0].center[2]], to: Vec3 = [100, from[1], from[2]];
   const low = round(1);
-  expect(hitShip(low, [-100, .5, -21], [100, .5, -21], sim.target, def, () => {})).toBe(true);
+  expect(hitShip(low, from, to, sim.target, def, () => {})).toBe(true);
   expect(sim.target.damage.modules[0].hp).toBe(def.modules[0].hp);
   const shell = round();
-  hitShip(shell, [-100, .5, -21], [100, .5, -21], sim.target, def, () => {});
+  hitShip(shell, from, to, sim.target, def, () => {});
   const hp = sim.target.damage.modules[0].hp;
   expect(hp).toBeLessThan(def.modules[0].hp);
-  hitShip(shell, [-100, .5, -21], [100, .5, -21], sim.target, def, () => {});
+  hitShip(shell, from, to, sim.target, def, () => {});
   expect(sim.target.damage.modules[0].hp).toBe(hp);
 });
 test('flood connections conserve water with pumps/leaks disabled and list follows the flooded side', () => {
-  const def = definition(); def.compartments.forEach(c => c.pumpM3PerSecond = 0);
+  const def = definition();
+  def.connections = [{ fromId:def.compartments[0].id, toId:def.compartments[2].id, areaM2:.05 }]; // Explicit damaged connection fixture.
+  def.compartments.forEach(c => c.pumpM3PerSecond = 0);
   const sim = new CombatSimulation(def);
   sim.target.damage.compartments[0].waterM3 = 500;
   for (let i = 0; i < 600; i++) updateFlooding(sim.target, def, 1 / 60);
@@ -98,7 +101,8 @@ test('aimed salvos obey reloads and ammunition while damaging the target', () =>
   const shots = sim.events.filter(e => e.kind === 'shot');
   expect(shots.length).toBe(8);
   expect(sim.player.mounts.slice(0, 4).every(m => m.ammo === 238)).toBe(true);
-  expect(sim.target.damage.modules[0].hp).toBeLessThan(140);
+  expect(sim.target.damage.modules.find(m => m.id === 'engine-port')!.hp).toBe(140);
+  expect(sim.events.some(e => e.kind === 'stopped' && e.message.includes('Turtleback'))).toBe(true);
   expect(sim.target.damage.integrity).toBeLessThan(1000);
   expect(sim.target.damage.compartments.some(c => c.breachAreaM2 > 0)).toBe(true);
   for (let i = 0; i < 200; i++) sim.step(stop, { aim: [NaN, 0, 0], fire: true, battery: 'main' });
@@ -117,6 +121,42 @@ test('reset replaces the trial target state without invalidating renderer bindin
   target.damage.integrity = 0; target.motion.y = -15;
   sim.resetTarget();
   expect(sim.target).toBe(target); expect(target.damage.integrity).toBe(1000); expect(target.motion.y).toBe(0);
+});
+test('shot and splash events retain matching caliber and independent velocity snapshots', () => {
+  const sim = new CombatSimulation(definition()), aim: Vec3 = [450, .5, 0];
+  for (let i = 0; i < 1800; i++) sim.step(stop, { aim, fire: false, battery: 'main' });
+  sim.step(stop, { aim, fire: true, battery: 'main' });
+  const shots = sim.events.filter(e => e.kind === 'shot');
+  expect(shots.length).toBe(8);
+  const velocity: Vec3 = [...shots[0].shell!.velocity];
+  for (let i = 0; i < 120; i++) sim.step(stop, { aim, fire: false, battery: 'main' });
+  const splashes = sim.events.filter(e => e.kind === 'splash');
+  expect(splashes.length).toBe(8);
+  for (const shot of shots) {
+    const splash = splashes.find(e => e.shell?.id === shot.shell?.id)!;
+    expect(splash.shell!.caliberM).toBe(shot.shell!.caliberM);
+    expect(splash.shell!.velocity[1]).toBeLessThan(shot.shell!.velocity[1]);
+    expect(splash.position[1]).toBe(0);
+  }
+  expect(shots[0].shell!.velocity).toEqual(velocity);
+});
+test('impact normals are in world coordinates and internal damage has no surface normal', () => {
+  const def = definition(), sim = new CombatSimulation(def);
+  const localSim = new CombatSimulation(def), localEvents: DamageEvent[] = [];
+  Object.assign(localSim.target.motion, { x: 0, y: 0, z: 0, heading: 0, roll: 0, pitch: 0 });
+  hitShip(round(), [-100, .5, -21], [100, .5, -21], localSim.target, def, e => localEvents.push(e));
+  Object.assign(sim.target.motion, { x: 45, z: 80, heading: .8, roll: .2, pitch: -.1 });
+  const pose = sim.target.motion, events: DamageEvent[] = [];
+  hitShip(round(), localToWorld([-100, .5, -21], pose), localToWorld([100, .5, -21], pose), sim.target, def, e => events.push(e));
+  const plate = events.find(e => e.kind === 'penetration')!;
+  expect(length(plate.normal!)).toBeCloseTo(1, 8);
+  const localNormal = localEvents.find(e => e.kind === 'penetration')!.normal!;
+  const origin = localToWorld([0, 0, 0], pose), expected = sub(localToWorld(localNormal, pose), origin);
+  expect(length(sub(plate.normal!, expected))).toBeLessThan(1e-9);
+  // Exercise interior metadata without depending on a preset's penetration budget.
+  const [x, y, z] = def.modules.find(m => m.kind === 'engine')!.center;
+  hitShip(round(), localToWorld([x - .1, y, z], pose), localToWorld([x + .1, y, z], pose), sim.target, def, e => events.push(e));
+  expect(events.some(e => e.kind === 'module' && !e.normal)).toBe(true);
 });
 test('destroyed propulsion prevents target acceleration', () => {
   const def = definition(), sim = new CombatSimulation(def); sim.targetUnderway = true;

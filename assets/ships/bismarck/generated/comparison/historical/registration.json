@@ -1,0 +1,54 @@
+{
+  "sourceId": "kb-plan-24may",
+  "image": "historical/bsdraw24m.png",
+  "originalPixels": [
+    3250,
+    2050
+  ],
+  "method": "One uniform pixel/metre scale for all three views, from overall hull endpoints. Vertical profile uses keel datum, retaining source proportions. No independent height or component fit.",
+  "pixelsPerMeter": 11.8523,
+  "sternPixelX": 92,
+  "bowPixelX": 3061,
+  "starboard": {
+    "crop": [
+      0,
+      1290,
+      3250,
+      2050
+    ],
+    "originPixel": [
+      1576.5,
+      1881.42
+    ],
+    "keelPixelY": 1992
+  },
+  "port": {
+    "crop": [
+      0,
+      0,
+      3250,
+      760
+    ],
+    "originPixel": [
+      1576.5,
+      589.42
+    ],
+    "keelPixelY": 700,
+    "mirrorX": false
+  },
+  "top": {
+    "crop": [
+      0,
+      800,
+      3250,
+      1280
+    ],
+    "originPixel": [
+      1576.5,
+      1044
+    ],
+    "mirrorX": true
+  },
+  "uncertaintyPixels": 5,
+  "limits": "Raster endpoints and keel read manually. Waterline from keel+9.33 m is a registration datum, not a claim about the drawing's depicted load. Crops preserve the original alongside derivatives."
+}
