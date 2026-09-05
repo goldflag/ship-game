@@ -59,3 +59,11 @@ Final independent label review: **ship**, with no open material findings.
 | Mobile labels overlap HUD and sight | Resolved | [The original three-label geometry](labels-mobile-regression.json) now has zero overlaps. A [separate live mobile DOM capture](labels-mobile-layout.json) also has zero overlaps. The final desktop capture confirms readable labels and stems connecting to model anchors. |
 
 Mobile screenshot verification remains unavailable because Orca's CDP screenshot operation timed out. Mobile clearance was verified through regression geometry and DOM measurements; the later live DOM capture has a different camera angle and one visible label.
+
+## Latest label behavior
+
+At the user's request, labels now show only the ship name, HP bar and current HP number, without a surrounding box or team/slot text. The player's ship has no overhead label. Bot labels stay at their projected ship positions and may overlap each other or the HUD; the earlier avoidance behavior and review above are historical.
+
+- [Controlled browser check](labels-direct-browser-check.json): the real label renderer omits the player and keeps both bot labels visible at identical screen coordinates.
+- `bun test --timeout 20000`: 122 passed, zero failed, 6,322 assertions across 23 files.
+- `bun run build`: passed, including ship definition checks and TypeScript.
