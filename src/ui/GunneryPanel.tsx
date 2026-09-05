@@ -33,6 +33,20 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
         <div><dt>Flooding</dt><dd>{c.targetWater.toFixed(1)} m³</dd></div>
       </dl>
       <p className="damage-message" role="status">{c.message}</p>
+      {c.targetDefeatCause && <p className="damage-message">Loss cause: {c.targetDefeatCause.replaceAll('-', ' ')}</p>}
+      <details className="shell-history">
+        <summary>Recent shell impacts · {c.shellHistory.length}</summary>
+        {c.shellHistory.length === 0 ? <p>No hits recorded on this target.</p> : c.shellHistory.map(h => <details key={h.shellId}>
+          <summary>Shell {h.shellId} · {h.outcome.replace('internal', 'stopped inside')}</summary>
+          <ol>{h.impacts.map((impact, i) => <li key={i}>
+            <strong>{impact.targetName} · {impact.outcome}</strong>
+            {impact.thicknessMm !== undefined && <span>{impact.thicknessMm.toFixed(1)} mm {impact.material}{impact.obliquityDeg !== undefined ? ` · ${impact.obliquityDeg.toFixed(1)}° from normal` : ''}</span>}
+            <span>{impact.resistanceMm !== undefined ? `${impact.resistanceMm.toFixed(1)} mm resistance · ` : ''}{impact.penetrationAfterMm.toFixed(1)} mm remaining</span>
+            {!!impact.damage && <span>{impact.damage.toFixed(1)} damage</span>}
+            {!!impact.breachAreaM2 && <span>{impact.breachAreaM2.toFixed(3)} m² opening · {impact.compartmentId}</span>}
+          </li>)}</ol>
+        </details>)}
+      </details>
       {data.inspecting && <div className="module-conditions" aria-label="Internal module condition">{c.modules.map(m => <div key={m.id}><span>{m.name}</span><strong>{m.condition <= 0 ? 'Disabled' : `${Math.round(m.condition * 100)}%`}</strong></div>)}<p>Amber outlines: armor · Pale outlines: compartments · Blue: floodwater</p></div>}
       <p className="gunnery-help">Mouse aims the center sight. Hold left mouse or {bindingLabel(bindings, 'fire')} to fire. Shift opens binoculars; scroll adjusts magnification. Selecting a module tracks it until you move the mouse to aim again.</p>
     </div><div className="target-actions">
