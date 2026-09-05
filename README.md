@@ -9,7 +9,7 @@ bun run dev
 
 Open http://localhost:5173. Current Chrome or Edge with hardware acceleration is recommended. WebGPU is selected by Three.js when available; its WebGL2 backend is the compatibility fallback. The pause menu reports the actual backend. Initial startup compiles the ocean and cloud shaders, which can take a moment.
 
-You start in port with the Bismarck moored. Select a fleet card to change ships in place; the harbor stays loaded and your camera angle and zoom are preserved. Drag to inspect the ship, then choose **Set sail** to enter the playable sea trial. **Return to port** in the pause menu ends the current trial. The selected [Fleet harbor garage](docs/garage-mockups/README.md) uses compact panels and a transparent top bar. Currency, refits, commanders, and future ships are illustrative, with temporary state only.
+You start in port with the Bismarck moored. Drag to inspect the ship, then choose **Set sail** to enter the playable sea trial. **Return to port** in the pause menu ends the current trial. The selected [Fleet harbor garage](docs/garage-mockups/README.md) uses compact panels and a transparent top bar. The fleet carousel lists the registered ship presets: Bismarck, Yamato, Baltimore, and Enterprise. Select a card to switch ships in place for inspection and sailing; the harbor stays loaded and your camera position, angle, and zoom are preserved. Currency, refits, and commanders are illustrative, with temporary state only.
 
 Use **Exterior / Armor / Internals** above the port's detail panel to inspect the loaded ship. Armor shows hull and gunhouse volumes with thicknesses; Internals shows machinery, magazines, steering and flooding compartments. Select a row to isolate that space against the ghosted exterior and read its dimensions. **Clear selection** restores the complete layout. Drag/scroll still orbits and zooms; **Exterior** or Esc returns to the normal model. These are the same provisional volumes used by combat. Inspection does not advance the trial or modify the ship.
 
@@ -22,18 +22,25 @@ Choose **Create schematic** beneath the ship’s name in port to preview a refer
 | W / S or up / down | Raise / lower engine order; tap for each notch |
 | A / D or left / right | Hold port / starboard rudder; release to center |
 | Space | Stop engine; the ship coasts down |
-| Drag / scroll | Orbit / zoom camera |
+| Mouse | Aim the centered sight while sailing; drag to orbit in port or inspection |
+| Shift / right mouse | Toggle binocular aiming |
+| Scroll | Adjust camera distance, or 2×–12× binocular magnification |
+| Hold Ctrl | Release cursor to use HUD controls; release Ctrl to return to aiming |
+| 1 / 2 | Select main / secondary AP battery |
+| − / + | Decrease / increase minimap size (numpad keys also work) |
+| G | Open / close gunnery and target damage |
 | C | Cycle chase, bridge, and tactical cameras |
 | R | Recenter camera |
 | Esc | Pause / resume and sea trial settings |
 | H | Hide / show instruments |
 | F | Fullscreen |
-| Hold Q / Fire button | Fire the selected battery as guns become ready |
-| Double-click the sea | Aim at a sea position |
-| Aim at selector | Track a target module at the waterline |
+| Hold left mouse / Q / Fire button | Fire the selected battery as guns become ready |
+| Aim at selector | Track a target module; moving the mouse returns to manual aim |
 | Inspect target | View armor, compartments, modules and floodwater |
 
-The throttle stays where you set it. Going from ahead to astern takes time. Handling is tuned for a battleship feel rather than an engineering-accurate maneuvering model. Four navigational buoys provide nearby reference points; they are markers, not collision obstacles. A Bismarck trial target starts about 850 meters away. Guns initially train on its port machinery; select the main or secondary battery, wait for readiness and hold Q to fire. Inspect the target for module condition and floodwater. Enable Target underway to observe propulsion damage, or reset the target for another trial. The chart follows your ship and displays its trail. Changing settings restarts the sea trial. Losing browser focus pauses singleplayer.
+Set sail captures the mouse for centered aiming. If the browser declines capture, click the sea to engage it. Esc releases the mouse and pauses; Resume sailing captures it again. The third-person sight stays small; the numbered aiming scale and range readout appear in binoculars. The scope preserves the aimed position when entering or leaving it, and mouse sensitivity follows magnification.
+
+The throttle stays where you set it. Going from ahead to astern takes time. Handling is tuned for a battleship feel rather than an engineering-accurate maneuvering model. Four navigational buoys provide nearby reference points; they are markers, not collision obstacles. A trial target starts about 850 meters away. Point the sight at it, select a battery with 1/2, wait for guns to train, then hold left mouse or Q to fire. The ammunition bar shows live shell counts, mount readiness and reload seconds. G opens target damage and inspection; enable Target underway to observe propulsion damage, or reset the target for another trial. The transparent chart follows your ship and shows its trail, viewing direction and trial target. Use −/+ to resize it, or click its kilometer readout to cycle chart range. Changing settings restarts the sea trial. Losing browser focus pauses singleplayer.
 
 ## Architecture
 

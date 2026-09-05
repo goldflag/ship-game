@@ -1,4 +1,4 @@
-import { expect, spyOn, test } from 'bun:test';
+import { afterEach, beforeEach, expect, spyOn, test } from 'bun:test';
 import { Group, PerspectiveCamera, Scene } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Game } from './Game';
@@ -6,6 +6,20 @@ import { CameraRig } from './CameraRig';
 import { ShipView } from './ShipView';
 import { CombatSimulation } from '../simulation/combat';
 import { shipPreset } from '../ships/presets';
+
+// Camera controls now also listen for pointer-lock and focus changes.
+const browserNames = ['window', 'document'] as const;
+let browserGlobals: (PropertyDescriptor | undefined)[];
+beforeEach(() => {
+  browserGlobals = browserNames.map(name => Object.getOwnPropertyDescriptor(globalThis, name));
+  browserNames.forEach(name => Object.defineProperty(globalThis, name, { configurable: true, value: new EventTarget() }));
+});
+afterEach(() => {
+  browserNames.forEach((name, i) => {
+    if (browserGlobals[i]) Object.defineProperty(globalThis, name, browserGlobals[i]!);
+    else Reflect.deleteProperty(globalThis, name);
+  });
+});
 
 async function model(id: string) {
   const bytes = await Bun.file(new URL(`../../public/models/${id}.glb`, import.meta.url)).arrayBuffer();
@@ -33,6 +47,7 @@ async function port() {
   rig.update(simulation.ship, 0, 0, true);
   const game = Object.assign(Object.create(Game.prototype), {
     definition, simulation, playerView, targetView, loadedModel: loaded, scene, harbor, camera, rig,
+    currentAim: [650, .5, -550], manualAim: true,
     ship: new Group(), inPort: true, disposed: false, switchingShip: false,
     renderer: { domElement: { setAttribute() {} } },
   }) as Game;

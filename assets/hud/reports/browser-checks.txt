@@ -1,0 +1,70 @@
+launch {
+  camera: {
+    mode: "Chase",
+    binoculars: false,
+    magnification: 1,
+    fov: 52.00000000000001,
+    pointerLocked: false,
+    position: [ -257.9668587139224, 121.60000000000001, 229.08098961998394 ],
+    aim: [ 632, 1.9785227526587335, -561.231726283048 ],
+    manualAim: true,
+    projectionMatrix: [
+      1.153295910888354, 0, 0, 0, 0, 2.050303841579296, 0, 0, 0, 0, -1.0000083334027783,
+      -1, 0, 0, -0.5000041667013891, 0
+    ],
+    matrixWorldInverse: [
+      0.6640028684637215, 0.07477261807782318, -0.7439820201172457, 0, -1.3877787807814457e-17,
+      0.994987488780849, 0.0999994858465777, 0, 0.7477300252577461, -0.0663999454470249,
+      0.6606745466359986, 0, -2.7533531010703882e-14, -86.49065601868195, -355.4306211083367,
+      1
+    ],
+  },
+  paused: false,
+}
+desktop steps {
+  widths: [ 240, 280, 320, 360, 400 ],
+  endDisabled: true,
+}
+Shift plus {
+  optics: false,
+  map: 360,
+}
+desktop final {"viewport":[1600,900],"map":{"x":1280,"y":580,"width":320,"height":320,"top":580,"right":1600,"bottom":900,"left":1280},"ship":{"x":24,"y":581.625,"width":292,"height":298.375,"top":581.625,"right":316,"bottom":880,"left":24},"weapons":{"x":595,"y":685.203125,"width":410,"height":194.796875,"top":685.203125,"right":1005,"bottom":880,"left":595},"sight":{"x":781,"y":431,"width":38,"height":38,"top":431,"right":819,"bottom":469,"left":781},"alpha":"rgba(11, 32, 44, 0.4)","thirdPersonTicks":false,"extraneous":false,"overflow":false}
+screenshot /private/tmp/ship-hud-desktop-final.png
+binoculars final {
+  mode: "Chase",
+  binoculars: true,
+  magnification: 4,
+  fov: 13.903874338685824,
+  pointerLocked: false,
+  position: [ 0, 37, -31 ],
+  aim: [ 632, 1.9785227526587477, -561.231726283048 ],
+  manualAim: true,
+  projectionMatrix: [
+    4.613183643553416, 0, 0, 0, 0, 8.201215366317184, 0, 0, 0, 0, -1.0000083334027783,
+    -1, 0, 0, -0.5000041667013891, 0
+  ],
+  matrixWorldInverse: [
+    0.6427312416495675, 0.032492861222270006, -0.7654023549592696, 0, 0, 0.9991001299312875,
+    0.0424137993026384, 0, 0.7660917379841694, -0.02726067388886034, 0.6421528670429807,
+    0, 23.74884387750925, -37.81178569801231, 18.33742830413478, 1
+  ],
+}
+screenshot /private/tmp/ship-hud-optics-final.png
+range control {
+  label: "Change chart range · Current radius 4 kilometers",
+  orientation: "SPAN",
+}
+landscape steps {
+  widths: [ 156.96875, 183.140625, 209.296875, 235.46875, 261.625 ],
+  endDisabled: true,
+}
+landscape final {"viewport":[844,390],"map":{"x":634.703125,"y":180.703125,"width":209.296875,"height":209.296875,"top":180.703125,"right":844,"bottom":390,"left":634.703125},"ship":{"x":12,"y":137.015625,"width":210,"height":240.984375,"top":137.015625,"right":222,"bottom":378,"left":12},"weapons":{"x":272,"y":302,"width":300,"height":76,"top":302,"right":572,"bottom":378,"left":272},"sight":{"x":403,"y":176,"width":38,"height":38,"top":176,"right":441,"bottom":214,"left":403},"alpha":"rgba(11, 32, 44, 0.4)","thirdPersonTicks":false,"extraneous":false,"overflow":false}
+screenshot /private/tmp/ship-hud-landscape-final.png
+portrait steps {
+  widths: [ 117, 136.5, 156, 175.5, 195 ],
+  endDisabled: true,
+}
+portrait final {"viewport":[390,844],"map":{"x":234,"y":688,"width":156,"height":156,"top":688,"right":390,"bottom":844,"left":234},"ship":{"x":12,"y":567.203125,"width":180.890625,"height":264.796875,"top":567.203125,"right":192.890625,"bottom":832,"left":12},"weapons":{"x":15,"y":100,"width":360,"height":184.796875,"top":100,"right":375,"bottom":284.796875,"left":15},"sight":{"x":176,"y":403,"width":38,"height":38,"top":403,"right":214,"bottom":441,"left":176},"alpha":"rgba(11, 32, 44, 0.4)","thirdPersonTicks":false,"extraneous":false,"overflow":false}
+screenshot /private/tmp/ship-hud-portrait-final.png
+errors []
