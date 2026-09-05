@@ -13,7 +13,7 @@ export function projectShipLabel(anchor: Vector3, camera: Camera, width: number,
   return { x: (point.x + 1) * width / 2, y: (1 - point.y) * height / 2 };
 }
 
-/** Lift neighboring labels into separate rows; a stem still points to each ship. */
+/** Keep neighboring labels readable above their ships and clear of the HUD. */
 export function layoutShipLabels(points: ScreenPoint[], width: number, exclusions: readonly LabelRect[] = []): (ScreenPoint & { lift: number })[] {
   const occupied = [...exclusions];
   return points.map(point => {
@@ -65,17 +65,13 @@ export class ShipLabels {
       root.hidden = true;
       const tag = document.createElement('div'); tag.className = 'ship-label-tag';
       const name = document.createElement('strong'); name.className = 'ship-label-name'; name.textContent = actor.definition.name;
-      const readout = document.createElement('div'); readout.className = 'ship-label-readout';
-      const team = document.createElement('span');
       const identity = actor.controller === 'player' ? 'You' : `${actor.team === 'friendly' ? 'Ally' : 'Enemy'} ${actor.motion.id.split('-').at(-1)}`;
-      team.textContent = identity;
-      const health = document.createElement('span');
-      readout.append(team, health);
+      const health = document.createElement('span'); health.className = 'ship-label-health';
       const meter = document.createElement('div'); meter.className = 'ship-label-meter';
       meter.setAttribute('role', 'meter'); meter.setAttribute('aria-label', `${actor.definition.name}, ${identity}, hull health`);
       meter.setAttribute('aria-valuemin', '0'); meter.setAttribute('aria-valuemax', '1000');
       const fill = document.createElement('div'); meter.appendChild(fill);
-      tag.append(name, readout, meter); root.appendChild(tag); this.root.appendChild(root);
+      tag.append(name, meter, health); root.appendChild(tag); this.root.appendChild(root);
       // Measure the authored model once. Inspection helpers never change the anchor.
       const bounds = new Box3().setFromObject(view.root.children[0]);
       const top = bounds.isEmpty() ? actor.definition.hull.depth : bounds.max.y - view.root.position.y;
@@ -105,7 +101,7 @@ export class ShipLabels {
       const hp = Math.round(MathUtils.clamp(actor.damage.integrity, 0, 1000));
       if (label.hp !== hp || label.sunk !== actor.damage.sunk) {
         label.hp = hp; label.sunk = actor.damage.sunk;
-        label.health.textContent = label.sunk ? `${hp} HP · Sinking` : `${hp} / 1000 HP`;
+        label.health.textContent = `${hp} HP`;
         label.meter.setAttribute('aria-valuenow', String(hp));
         label.meter.setAttribute('aria-valuetext', `${hp} of 1000 hull health${label.sunk ? ', sinking' : ''}`);
         label.fill.style.transform = `scaleX(${hp / 1000})`;
@@ -126,8 +122,6 @@ export class ShipLabels {
       label.root.style.transform = `translate(${point.x.toFixed(2)}px, ${y.toFixed(2)}px)`;
       label.root.style.setProperty('--label-lift', `${lift.toFixed(2)}px`);
       label.root.style.setProperty('--label-offset', `${(x - point.x).toFixed(2)}px`);
-      label.root.style.setProperty('--stem-length', `${Math.hypot(x - point.x, lift).toFixed(2)}px`);
-      label.root.style.setProperty('--stem-angle', `${Math.atan2(x - point.x, lift)}rad`);
     });
   }
 
