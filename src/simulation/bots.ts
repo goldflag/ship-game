@@ -2,7 +2,7 @@ import type { Vec3 } from '../ships/blueprint';
 import type { FleetActor } from './battle';
 import { motionVelocity, type HelmCommand } from './ship';
 import { add, clamp, localToWorld, scale, sub, wrapAngle } from './geometry';
-import { muzzleWorld, solveBallistic, type MountDefinition, type MountState } from './weapons';
+import { muzzleCenterWorld, solveBallistic, type MountDefinition, type MountState } from './weapons';
 
 export const shipVelocity = (actor: FleetActor): Vec3 => motionVelocity(actor.motion);
 /** Provisional bot engagement limits, in meters; small AA fittings wait for close range. */
@@ -44,7 +44,7 @@ export function botHelm(actor: FleetActor, target: FleetActor | undefined, actor
 export function botAim(actor: FleetActor, target: FleetActor, mount: MountDefinition, state: MountState): Vec3 {
   const point = localToWorld([0, .8, 0], target.motion);
   point[1] = Math.max(.5, point[1]);
-  const from = muzzleWorld(mount, state, 0, actor.motion);
+  const from = muzzleCenterWorld(mount, state, actor.motion);
   const velocity = shipVelocity(target), inherited = shipVelocity(actor);
   let time = Math.hypot(point[0] - from[0], point[2] - from[2]) / mount.weapon.muzzleSpeed;
   for (let i = 0; i < 3; i++) {

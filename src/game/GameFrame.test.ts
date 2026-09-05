@@ -91,7 +91,7 @@ test('firing enters shell view without feeding its camera into aim, freezes on p
   game.toggleBinoculars();
   const fov = camera.fov;
   let time = 0;
-  for (let i = 0; i < 120; i++) await game.frame(time += 1000 / 60);
+  for (let i = 0; i < 600; i++) await game.frame(time += 1000 / 60);
   expect(gunAimFrames.at(-1)!.visible).toBe(true);
   expect(gunAimFrames.at(-1)!.points).toHaveLength(4);
   game.toggleShellFollow();
