@@ -81,14 +81,16 @@ function ActiveArmament({ data, game, bindings }: FleetHudProps) {
     <div className="fleet-turrets" aria-label="Battery mount readiness">{combat.mounts.map((mount, i) => {
       const reloadSeconds = selectedShip.mounts.find(m => m.id === mount.id)?.weapon.reloadSeconds ?? 1;
       const ready = mount.status === 'ready';
-      const progress = mount.reload > 0 ? 1 - mount.reload / reloadSeconds : ready ? 1 : 0;
-      const label = ready ? 'Ready' : mount.status === 'reloading' ? `Reloading · ${Math.ceil(mount.reload)} seconds` : mount.status.replaceAll('-', ' ');
-      return <div key={mount.id} title={`${mount.name}: ${label} · ${mount.ammo} shells`} aria-label={`${mount.name}: ${label}`} className={`fleet-mount ${ready ? 'fleet-gun-ready' : ''} ${mount.status === 'disabled' ? 'fleet-gun-disabled' : ''}`}>
+      const unavailable = !['ready', 'turning', 'reloading'].includes(mount.status);
+      const countdown = !unavailable && mount.reload > 0;
+      const progress = countdown ? 1 - mount.reload / reloadSeconds : ready ? 1 : 0;
+      const label = ready ? 'On aim · Loaded' : mount.status === 'reloading' ? `Reloading · ${Math.ceil(mount.reload)} seconds` : `${mount.status.replaceAll('-', ' ')}${countdown ? ` · Reload ${Math.ceil(mount.reload)} seconds` : ''}`;
+      return <div key={mount.id} title={`${mount.name}: ${label} · ${mount.ammo} shells`} aria-label={`${mount.name}: ${label}`} className={`fleet-mount ${ready ? 'fleet-gun-ready' : ''} ${['blocked', 'disabled', 'empty'].includes(mount.status) ? 'fleet-gun-disabled' : ''}`}>
         <svg viewBox="0 0 38 38" aria-hidden="true"><circle cx="19" cy="19" r="16"/><circle className="fleet-reload-progress" cx="19" cy="19" r="16" pathLength="100" strokeDasharray={`${progress * 100} 100`} transform="rotate(-90 19 19)"/></svg>
-        <b>{mount.reload > 0 ? Math.ceil(mount.reload) : ready ? <Icon name="turret" size={18}/> : '—'}</b><small>{i + 1}</small>
+        <b>{unavailable ? <Icon name="close" size={14}/> : countdown ? Math.ceil(mount.reload) : ready ? <Icon name="turret" size={18}/> : '—'}</b><small>{i + 1}</small>
       </div>;
     })}</div>
-    <div className="fleet-battery-heading"><span>{caliber(combat.battery)} mm · {combat.battery === 'main' ? 'Main battery' : 'Secondary battery'}</span><strong>{combat.ready}/{combat.total} ready</strong></div>
+    <div className="fleet-battery-heading"><span>{caliber(combat.battery)} mm · {combat.battery === 'main' ? 'Main battery' : 'Secondary battery'}</span><strong>{combat.ready}/{combat.total} can fire</strong></div>
     <div className="fleet-weapon-row">
       {combat.batteries.map(battery => <button key={battery.battery} className="fleet-weapon-slot" aria-label={`Select ${battery.battery} AP battery · ${battery.ammo} shells · ${bindingLabel(bindings, battery.battery === 'main' ? 'mainBattery' : 'secondaryBattery')}`} aria-pressed={combat.battery === battery.battery} disabled={!battery.total} onClick={event => { if (game) game.battery = battery.battery; event.currentTarget.blur(); }}>
         <span className="fleet-slot-label">{battery.battery === 'main' ? 'MAIN AP' : 'SEC. AP'}</span><AmmoGlyph secondary={battery.battery === 'secondary'}/>
@@ -98,7 +100,7 @@ function ActiveArmament({ data, game, bindings }: FleetHudProps) {
       </button>)}
       <button className="fleet-weapon-slot fleet-utility-slot" aria-label="Toggle binocular aiming · Shift" aria-pressed={!!data.binoculars} onClick={event => { game?.toggleBinoculars(); event.currentTarget.blur(); }}><span className="fleet-slot-label">BINOCULARS</span><BinocularGlyph/><strong className="fleet-slot-value">{data.binoculars ? `${data.magnification}×` : ''}</strong><kbd>SHIFT</kbd></button>
       <button className="fleet-weapon-slot" aria-label={`Gunnery and target damage · ${bindingLabel(bindings, 'gunnery')}`} aria-expanded={!!data.gunneryOpen} onClick={event => { game?.setGunneryOpen(!data.gunneryOpen); event.currentTarget.blur(); }}><span className="fleet-slot-label">GUNNERY</span><Icon name="target" size={39}/><kbd>{bindingLabel(bindings, 'gunnery')}</kbd></button>
-      <button className="fleet-weapon-slot fleet-fire-slot" aria-label={`Fire ready guns · Left mouse or ${bindingLabel(bindings, 'fire')}`} disabled={!combat.ready || combat.playerSunk} onClick={event => { game?.fire(); event.currentTarget.blur(); }}><span className="fleet-slot-label">FIRE</span><Icon name="turret" size={39}/><kbd>{bindingLabel(bindings, 'fire')} / LMB</kbd></button>
+      <button className="fleet-weapon-slot fleet-fire-slot" aria-label={`Fire aligned guns · Left mouse or ${bindingLabel(bindings, 'fire')}`} disabled={!combat.ready || combat.playerSunk} onClick={event => { game?.fire(); event.currentTarget.blur(); }}><span className="fleet-slot-label">FIRE</span><Icon name="turret" size={39}/><kbd>{bindingLabel(bindings, 'fire')} / LMB</kbd></button>
     </div>
   </section>;
 }
