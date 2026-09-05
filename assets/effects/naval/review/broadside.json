@@ -1,0 +1,314 @@
+{
+  "backend": "webgpu",
+  "camera": {
+    "matrixWorldInverse": [
+      0.6084315436571355,
+      -0.19479269281659725,
+      0.7693288396441761,
+      0,
+      0,
+      0.9694086100718515,
+      0.24545253455314192,
+      0,
+      -0.7936063612919163,
+      -0.1493410644927245,
+      0.5898187770605348,
+      0,
+      -4.761638167751429,
+      -15.437175538034106,
+      -273.1080746030175,
+      1.0000000000000002
+    ],
+    "mode": "Chase",
+    "position": [
+      210,
+      82,
+      155
+    ],
+    "projectionMatrix": [
+      1.153295910888354,
+      0,
+      0,
+      0,
+      0,
+      2.050303841579296,
+      0,
+      0,
+      0,
+      0,
+      -1.0000083334027783,
+      -1,
+      0,
+      0,
+      -0.5000041667013891,
+      0
+    ]
+  },
+  "combat": {
+    "battery": "main",
+    "message": "Aim at the target, wait for guns to train, then fire.",
+    "modules": [
+      {
+        "condition": 1,
+        "id": "engine-port",
+        "name": "Port machinery"
+      },
+      {
+        "condition": 1,
+        "id": "engine-starboard",
+        "name": "Starboard machinery"
+      },
+      {
+        "condition": 1,
+        "id": "steering",
+        "name": "Steering gear"
+      },
+      {
+        "condition": 1,
+        "id": "anton-magazine",
+        "name": "Anton magazine"
+      },
+      {
+        "condition": 1,
+        "id": "bruno-magazine",
+        "name": "Bruno magazine"
+      },
+      {
+        "condition": 1,
+        "id": "caesar-magazine",
+        "name": "C\u00e4sar magazine"
+      },
+      {
+        "condition": 1,
+        "id": "dora-magazine",
+        "name": "Dora magazine"
+      }
+    ],
+    "mounts": [
+      {
+        "ammo": 238,
+        "id": "anton",
+        "name": "Anton",
+        "reload": 19.816666666666677,
+        "status": "reloading"
+      },
+      {
+        "ammo": 238,
+        "id": "bruno",
+        "name": "Bruno",
+        "reload": 19.816666666666677,
+        "status": "reloading"
+      },
+      {
+        "ammo": 238,
+        "id": "caesar",
+        "name": "C\u00e4sar",
+        "reload": 19.816666666666677,
+        "status": "reloading"
+      },
+      {
+        "ammo": 238,
+        "id": "dora",
+        "name": "Dora",
+        "reload": 19.816666666666677,
+        "status": "reloading"
+      }
+    ],
+    "range": 850,
+    "ready": 0,
+    "targetIntegrity": 1,
+    "targetPower": 1,
+    "targetSteering": 1,
+    "targetSunk": false,
+    "targetUnderway": false,
+    "targetWater": 0,
+    "total": 4
+  },
+  "contentHash": "89cd923afa1be4f2f9ad74f3065035b1af7e2ef8106728ee6a3dd2bf0f65604a",
+  "effects": {
+    "flashes": 8,
+    "foam": 8,
+    "particleCapacity": 2272,
+    "shells": 8,
+    "smoke": 24,
+    "spray": 0
+  },
+  "events": [
+    {
+      "kind": "shot",
+      "message": "Anton fired",
+      "position": [
+        19.71810170413037,
+        8.599630202395037,
+        -70.26304707054771
+      ],
+      "sequence": 1,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 1,
+        "velocity": [
+          817.0740509531458,
+          -2.9864955919066536,
+          69.14532596709181
+        ]
+      },
+      "shipId": "player",
+      "tick": 2100
+    },
+    {
+      "kind": "shot",
+      "message": "Anton fired",
+      "position": [
+        19.401886225931293,
+        8.599630202395037,
+        -66.52640315235757
+      ],
+      "sequence": 2,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 2,
+        "velocity": [
+          817.0740509531458,
+          -2.9864955919066536,
+          69.14532596709181
+        ]
+      },
+      "shipId": "player",
+      "tick": 2100
+    },
+    {
+      "kind": "shot",
+      "message": "Bruno fired",
+      "position": [
+        19.708711325988215,
+        12.435530300337497,
+        -52.482948828597785
+      ],
+      "sequence": 3,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 3,
+        "velocity": [
+          818.3386887840928,
+          -6.787068237400673,
+          51.727421585389564
+        ]
+      },
+      "shipId": "player",
+      "tick": 2100
+    },
+    {
+      "kind": "shot",
+      "message": "Bruno fired",
+      "position": [
+        19.47214489216695,
+        12.435530300337497,
+        -48.74041809092988
+      ],
+      "sequence": 4,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 4,
+        "velocity": [
+          818.3386887840928,
+          -6.787068237400673,
+          51.727421585389564
+        ]
+      },
+      "shipId": "player",
+      "tick": 2100
+    },
+    {
+      "kind": "shot",
+      "message": "C\u00e4sar fired",
+      "position": [
+        19.462811788974978,
+        12.33730009627969,
+        54.98243717100454
+      ],
+      "sequence": 5,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 5,
+        "velocity": [
+          818.1818598967362,
+          -6.682134566207804,
+          -54.164501415194756
+        ]
+      },
+      "shipId": "player",
+      "tick": 2100
+    },
+    {
+      "kind": "shot",
+      "message": "C\u00e4sar fired",
+      "position": [
+        19.71052352636688,
+        12.33730009627969,
+        58.72424674595064
+      ],
+      "sequence": 6,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 6,
+        "velocity": [
+          818.1818598967362,
+          -6.682134566207804,
+          -54.164501415194756
+        ]
+      },
+      "shipId": "player",
+      "tick": 2100
+    },
+    {
+      "kind": "shot",
+      "message": "Dora fired",
+      "position": [
+        19.39138789669884,
+        8.2062956946827,
+        72.76895415676367
+      ],
+      "sequence": 7,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 7,
+        "velocity": [
+          816.8670190454452,
+          -2.591289252363463,
+          -71.56506421305636
+        ]
+      },
+      "shipId": "player",
+      "tick": 2100
+    },
+    {
+      "kind": "shot",
+      "message": "Dora fired",
+      "position": [
+        19.71866878793543,
+        8.2062956946827,
+        76.50464515284878
+      ],
+      "sequence": 8,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 8,
+        "velocity": [
+          816.8670190454452,
+          -2.591289252363463,
+          -71.56506421305636
+        ]
+      },
+      "shipId": "player",
+      "tick": 2100
+    }
+  ],
+  "fps": 98.64348031414865,
+  "inPort": false,
+  "inspecting": false,
+  "maxMuzzleErrorM": 0.002111462932886628,
+  "paused": true,
+  "portInspection": "exterior",
+  "shipId": "bismarck",
+  "tick": 2112
+}

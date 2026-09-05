@@ -44,7 +44,7 @@ async function frameHarness() {
     input: { sample: () => helm, firing: false, setEnabled() {},
       setOrder: (order: number) => { helm.throttle = ENGINE_ORDERS[order]; },
       setRudder: (rudder: number) => { helm.rudder = rudder; } },
-    effects: { update() {} }, sky: { update() {} }, water: { async update() {} },
+    effects: { update() {}, reset() {} }, sky: { update() {} }, water: { async update() {} },
     shipWake: { update: (ship: { z: number }) => wakePositions.push(ship.z), reset() {} },
     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {},
     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
