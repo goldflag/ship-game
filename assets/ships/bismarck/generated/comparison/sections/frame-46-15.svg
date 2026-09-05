@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 720" role="img" aria-label="Authored hull, armor and room section">
+<rect width="900" height="720" fill="#f2f0e9"/>
+<text x="24" y="38" font-family="sans-serif" font-size="23" fill="#243845">Frame 46.15 · reconstructed hull / protection / spaces</text>
+<polygon points="450.00,583.27 615.67,583.27 682.99,561.28 725.71,509.96 729.91,400.00 737.26,329.50 738.70,286.28 161.30,286.28 162.74,329.50 170.09,400.00 174.29,509.96 217.01,561.28 284.33,583.27 450.00,583.27" fill="#e3e2dc" stroke="#526772" stroke-width="2"/>
+<rect x="330.0" y="430.0" width="240" height="48.0" fill="#aa927e" fill-opacity=".28" stroke="#74847c" stroke-width=".7"><title>Dora propellant magazines</title></rect>
+<rect x="330.0" y="482.0" width="240" height="50.0" fill="#9fbbad" fill-opacity=".28" stroke="#74847c" stroke-width=".7"><title>Dora shell rooms</title></rect>
+<rect x="365.0" y="316.0" width="170.0" height="64.0" fill="#9fbbad" fill-opacity=".28" stroke="#74847c" stroke-width=".7"><title>Dora handling space</title></rect>
+<rect x="342.0" y="534.0" width="16.0" height="14.0" fill="#9fbbad" fill-opacity=".28" stroke="#74847c" stroke-width=".7"><title>Port shaft passage</title></rect>
+<rect x="442.0" y="534.0" width="16.0" height="14.0" fill="#9fbbad" fill-opacity=".28" stroke="#74847c" stroke-width=".7"><title>Center shaft passage</title></rect>
+<rect x="542.0" y="534.0" width="16.0" height="14.0" fill="#9fbbad" fill-opacity=".28" stroke="#74847c" stroke-width=".7"><title>Starboard shaft passage</title></rect>
+<line x1="177.26143925811436" y1="430.0" x2="177.26143925811436" y2="334.0" stroke="#9b5a27" stroke-width="6.4"><title>Port Main Belt 0 · 320 mm</title></line>
+<line x1="180.96143925811435" y1="430.0" x2="180.96143925811435" y2="334.0" stroke="#ba9560" stroke-width="1.0"><title>Port Teak Backing 0 · 50 mm</title></line>
+<line x1="181.72143925811434" y1="430.0" x2="181.72143925811434" y2="334.0" stroke="#666d70" stroke-width="0.7"><title>Port Belt Support 0 · 20 mm</title></line>
+<line x1="177.26143925811436" y1="334.0" x2="177.26143925811436" y2="286.6" stroke="#9b5a27" stroke-width="2.9"><title>Port Upper Belt 0 · 145 mm</title></line>
+<line x1="247.26143925811436" y1="552.0" x2="247.26143925811436" y2="426.4" stroke="#45876a" stroke-width="0.8999999999999999"><title>Port Torpedo Bulkhead 0 · 45 mm</title></line>
+<line x1="247.26143925811436" y1="380.6" x2="247.26143925811436" y2="286.6" stroke="#307ca2" stroke-width="0.7"><title>Port Splinter Bulkhead 0 · 30 mm</title></line>
+<line x1="184.26143925811436" y1="426.4" x2="247.26143925811436" y2="380.6" stroke="#307ca2" stroke-width="2.4"><title>Port Turtleback 0 · 120 mm</title></line>
+<line x1="722.7385607418856" y1="430.0" x2="722.7385607418856" y2="334.0" stroke="#9b5a27" stroke-width="6.4"><title>Starboard Main Belt 0 · 320 mm</title></line>
+<line x1="719.0385607418857" y1="430.0" x2="719.0385607418857" y2="334.0" stroke="#ba9560" stroke-width="1.0"><title>Starboard Teak Backing 0 · 50 mm</title></line>
+<line x1="718.2785607418857" y1="430.0" x2="718.2785607418857" y2="334.0" stroke="#666d70" stroke-width="0.7"><title>Starboard Belt Support 0 · 20 mm</title></line>
+<line x1="722.7385607418856" y1="334.0" x2="722.7385607418856" y2="286.6" stroke="#9b5a27" stroke-width="2.9"><title>Starboard Upper Belt 0 · 145 mm</title></line>
+<line x1="652.7385607418856" y1="552.0" x2="652.7385607418856" y2="426.4" stroke="#45876a" stroke-width="0.8999999999999999"><title>Starboard Torpedo Bulkhead 0 · 45 mm</title></line>
+<line x1="652.7385607418856" y1="380.6" x2="652.7385607418856" y2="286.6" stroke="#307ca2" stroke-width="0.7"><title>Starboard Splinter Bulkhead 0 · 30 mm</title></line>
+<line x1="715.7385607418856" y1="426.4" x2="652.7385607418856" y2="380.6" stroke="#307ca2" stroke-width="2.4"><title>Starboard Turtleback 0 · 120 mm</title></line>
+<line x1="722.7385607418856" y1="286.6" x2="177.26143925811436" y2="286.6" stroke="#307ca2" stroke-width="1.0"><title>Upper Deck 0 · 50 mm</title></line>
+<line x1="722.7385607418856" y1="334.6" x2="177.26143925811436" y2="334.6" stroke="#666d70" stroke-width="0.7"><title>Battery Deck 0 · 12 mm</title></line>
+<line x1="652.7385607418856" y1="380.6" x2="247.26143925811436" y2="380.6" stroke="#307ca2" stroke-width="2.0"><title>Armor Deck 0 · 100 mm</title></line>
+<line x1="183.26143925811436" y1="430.0" x2="202.26143925811436" y2="536.0" stroke="#666d70" stroke-width="0.7"><title>Port Lower Plating 0 · 20 mm</title></line>
+<line x1="716.7385607418856" y1="430.0" x2="697.7385607418856" y2="536.0" stroke="#666d70" stroke-width="0.7"><title>Starboard Lower Plating 0 · 20 mm</title></line>
+<path d="M40 400H860" stroke="#3a6c8e" stroke-dasharray="8 5"/>
+<text x="40" y="391" font-family="sans-serif" font-size="15">Y = 0 · standard waterline</text>
+<text x="24" y="645" font-family="sans-serif" font-size="16">Keel Y = -9.33 m · 20 px/m · plate thickness drawn to scale (minimum 0.7 px)</text>
+<text x="24" y="674" font-family="sans-serif" font-size="16">Brown KC · blue Wh · green Ww · gray structure · tan teak. Room envelopes are estimated.</text>
+</svg>

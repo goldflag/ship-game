@@ -365,7 +365,7 @@ export class Game {
   }
   private readSightAim(): Vec3 {
     return sightAim(this.camera.position.toArray(), this.camera.getWorldDirection(new THREE.Vector3()).toArray(), {
-      pose: this.simulation.target.motion, armor: this.definition.armor,
+      pose: this.simulation.target.motion, armor: this.definition.armor, definition:this.definition, trains:this.simulation.target.mounts.map(m => m.train),
     });
   }
   setInPort(inPort: boolean): void {

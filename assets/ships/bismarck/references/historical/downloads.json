@@ -1,0 +1,98 @@
+[
+  {
+    "file": "genedata.html",
+    "url": "https://www.kbismarck.com/genedata.html",
+    "sha256": "47cb53a0dc44228b8f99a7c496de1d35dd77cfaea058cec858de8fe727eeba75",
+    "bytes": 28373
+  },
+  {
+    "file": "proteccioni.html",
+    "url": "https://www.kbismarck.com/proteccioni.html",
+    "sha256": "677a808003918e1a1d1fb78ef9ef8f7d2de233bbeb35571efae9f23601967160",
+    "bytes": 22069
+  },
+  {
+    "file": "propulsioni.html",
+    "url": "https://www.kbismarck.com/propulsioni.html",
+    "sha256": "937e8ab2f5d3a6ddd1491193ca6a57b738ed7d0242132a0ab35bfb098088efd7",
+    "bytes": 16239
+  },
+  {
+    "file": "armament.html",
+    "url": "https://www.kbismarck.com/armament.html",
+    "sha256": "b3ac8c1454e12c273d02846d79e99657a36ab600c6a4d92f1561d7b6b387d05f",
+    "bytes": 23182
+  },
+  {
+    "file": "24-may-drawing.html",
+    "url": "https://www.kbismarck.com/24-may-drawing.html",
+    "sha256": "22295f982ba44c8c14c7821ee18f324cb1486f933960a3fd3fd5e498faf22ad3",
+    "bytes": 6587
+  },
+  {
+    "file": "bsdraw24m.png",
+    "url": "https://www.kbismarck.com/bsdraw24m.png",
+    "sha256": "1d9bacb3919774c3a57ca9d798fb5c9f6f6292b8ac9adfafa3aefad25b14832c",
+    "bytes": 2758095
+  },
+  {
+    "file": "bismarck-24-may.jpg",
+    "url": "https://www.kbismarck.com/bismarck-24-may.jpg",
+    "sha256": "b8b60700355eb4e0f2fc454525e3142135f2e434db2f6f6c628bb8298d9c6c8f",
+    "bytes": 89354
+  },
+  {
+    "file": "proteccion6.gif",
+    "url": "https://www.kbismarck.com/proteccion6.gif",
+    "sha256": "ed918e0fe626e5028262cd180a25c52235fc5deaef7d4756bf7f4d8f1b3635fb",
+    "bytes": 12506
+  },
+  {
+    "file": "proteccion7.gif",
+    "url": "https://www.kbismarck.com/proteccion7.gif",
+    "sha256": "23e10e936b0007dfa2a9712d705f0dd37f821ee2b2fbbf8a697b40765524046e",
+    "bytes": 20832
+  },
+  {
+    "file": "bs-armor.jpg",
+    "url": "https://www.kbismarck.com/bs-armor.jpg",
+    "sha256": "eba3a79db3ec02e17d3dc0937dce6e000ab0a14a3fd613c8d8f0816404f5d8fe",
+    "bytes": 103579
+  },
+  {
+    "file": "380mmp.gif",
+    "url": "https://www.kbismarck.com/380mmp.gif",
+    "sha256": "cc89ffdad542bf48106e66f87fc511b950b7ba2a8f975ee53204fd6f4914aeac",
+    "bytes": 6008
+  },
+  {
+    "file": "150mmp.gif",
+    "url": "https://www.kbismarck.com/150mmp.gif",
+    "sha256": "cd25cdab34a6a69b8a2206badcca861fb2ec3a4823dae08bf26a41004924e13e",
+    "bytes": 1588
+  },
+  {
+    "file": "propulsion2.gif",
+    "url": "https://www.kbismarck.com/propulsion2.gif",
+    "sha256": "8e5bf9f5a13380a7705d90e3b0630f7d10b9694404d8c7d942b99fb0d5948940",
+    "bytes": 14061
+  },
+  {
+    "file": "photo023.jpg",
+    "url": "https://www.kbismarck.com/photo023.jpg",
+    "sha256": "fae1af9d6ba2e8fd22081398091474ae28c5c6f0a5348fae97677b70bfedf834",
+    "bytes": 61422
+  },
+  {
+    "file": "photo076.jpg",
+    "url": "https://www.kbismarck.com/photo076.jpg",
+    "sha256": "ffa1c643b8bef64db28ab43957fb0fd4b0bf53e91f2f1e9411aea8cf7296e982",
+    "bytes": 59830
+  },
+  {
+    "file": "bundesarchiv-rm25-231-0004.jpg",
+    "url": "https://www.bundesarchiv.de/assets/bundesarchiv/de/_processed_/e/b/csm_BArch_RM_25__231_0004_Schiffszeichnung_Schlachtschiff_Bismarck_89976225c4.jpg",
+    "sha256": "1c7f2ea1106f7d6d707c430090d63b6fd75e3171968d2ddab07a670161b84405",
+    "bytes": 167706
+  }
+]

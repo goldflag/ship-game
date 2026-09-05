@@ -1,0 +1,411 @@
+{
+  "schemaVersion": 1,
+  "revision": "independent-1941-01",
+  "configuration": "24 May 1941; no Tirpitz additions; standard-draft display",
+  "authoringBoundary": "blueprint.json and original catalog polygons only. Reference renderer outputs raster evidence; production geometry never consumes game offsets or attachment transforms.",
+  "coordinates": {
+    "runtime": "metres; +X starboard, +Y up, -Z bow",
+    "blender": "metres; +X bow, +Y port, +Z up",
+    "conversion": "runtime = (-blenderY, blenderZ, -blenderX)",
+    "origin": "overall-length midpoint at standard waterline",
+    "waterlineY": 0,
+    "keelY": -9.33,
+    "frameToRuntimeZ": "122.50 - structural frame in metres",
+    "frameRegistration": {
+      "basis": "inferred",
+      "sourceId": "kb-armament",
+      "uncertaintyM": 0.5,
+      "note": "Frame 122.50 at overall midpoint is an adopted registration, not a verified builder datum. Relative turret distances are documented; absolute positions share this uncertainty."
+    },
+    "loadState": "Standard 9.33 m draft for reproducible geometry; battle-day draft/trim varies and is not simulated historically. Overall, waterline and keel-relative measurements remain separate.",
+    "frameOriginM": 122.5
+  },
+  "acceptance": [
+    {
+      "id": "overall-length",
+      "metric": "hull.length",
+      "target": 250.5,
+      "tolerance": 0.03,
+      "units": "m",
+      "sourceId": "kb-dimensions",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.15
+    },
+    {
+      "id": "maximum-beam",
+      "metric": "hull.beam",
+      "target": 36,
+      "tolerance": 0.03,
+      "units": "m",
+      "sourceId": "kb-dimensions",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.1
+    },
+    {
+      "id": "standard-draft",
+      "metric": "hull.draft",
+      "target": 9.33,
+      "tolerance": 0.03,
+      "units": "m",
+      "sourceId": "kb-dimensions",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.1
+    },
+    {
+      "id": "waterline-length",
+      "metric": "hull.waterlineLength",
+      "target": 241.55,
+      "tolerance": 0.12,
+      "units": "m",
+      "sourceId": "kb-dimensions",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.2
+    },
+    {
+      "id": "waterline-beam",
+      "metric": "hull.waterlineBeam",
+      "target": 36,
+      "tolerance": 0.1,
+      "units": "m",
+      "sourceId": "kb-dimensions",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.2
+    },
+    {
+      "id": "midship-depth",
+      "metric": "hull.midshipDepth",
+      "target": 15,
+      "tolerance": 0.08,
+      "units": "m",
+      "sourceId": "kb-dimensions",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.15
+    }
+  ],
+  "parameterGroups": [
+    {
+      "selector": "hull.sections / halfBreadths / deckHeights / keelHeights",
+      "sourceIds": [
+        "kb-plan-24may",
+        "kb-propulsion"
+      ],
+      "basis": "estimated",
+      "valueLocation": "blueprint.json",
+      "toleranceM": 1.5,
+      "note": "Independent reconstruction, using rounded bilges and flared forebody. No archival offsets acquired. Section tolerance is an uncertainty label, not an archival section pass."
+    },
+    {
+      "selector": "mounts[anton,bruno,caesar,dora].position.z",
+      "sourceIds": [
+        "kb-armament"
+      ],
+      "basis": "documented",
+      "values": [
+        -70.05,
+        -51.85,
+        58.15,
+        76.35
+      ],
+      "toleranceM": 0.03,
+      "note": "Build checks exact registration; all absolute positions inherit \u00b10.5 m frame datum uncertainty."
+    },
+    {
+      "selector": "mounts[main].position.y",
+      "sourceIds": [
+        "kb-plan-24may"
+      ],
+      "basis": "plan-measured",
+      "values": [
+        6.75,
+        10.55,
+        10.55,
+        6.35
+      ],
+      "toleranceM": 0.6,
+      "note": "Yaw/roller datum interpreted from deck and gunhouse silhouette, not source model transforms."
+    },
+    {
+      "selector": "parts[sk-c34-380-twin]",
+      "sourceIds": [
+        "kb-armament",
+        "kb-plan-24may",
+        "kb-protection"
+      ],
+      "basis": "estimated",
+      "values": {
+        "barbetteDiameterM": 9.9,
+        "barrelSpacingM": 3.75,
+        "gunhouseLengthM": 12.2,
+        "gunhouseBeamM": 10.6,
+        "gunhouseHeightM": 4,
+        "boreM": 0.38,
+        "muzzleForwardM": 18.4,
+        "trunnionForwardM": 4.25
+      },
+      "toleranceM": 0.6,
+      "note": "Bore is documented; barbette/gunhouse/axis offsets are dimensional interpretations requiring original mount drawings. Gunhouse armor uses our polygon enclosure."
+    },
+    {
+      "selector": "structures / mounts[secondary]",
+      "sourceIds": [
+        "kb-plan-24may",
+        "barch-profile"
+      ],
+      "basis": "estimated",
+      "valueLocation": "blueprint.json",
+      "toleranceM": 1.5,
+      "note": "Each significant footprint, base and height is editable. The archival excerpt confirms deck order but has no usable scale/title block."
+    },
+    {
+      "selector": "armor",
+      "sourceIds": [
+        "kb-protection"
+      ],
+      "basis": "estimated",
+      "valueLocation": "blueprint.json; each plate has thickness, material, geometry and provenance",
+      "toleranceM": 0.75,
+      "note": "Thickness families documented; boundary positions and corner assignments estimated. Mid-surface planes, actual thickness in inspection, single crossing in CPU probes. Teak is physical backing with zero steel-equivalent resistance."
+    },
+    {
+      "selector": "modules / compartments",
+      "sourceIds": [
+        "kb-propulsion",
+        "kb-protection",
+        "admiralty-interrogation"
+      ],
+      "basis": "estimated",
+      "valueLocation": "blueprint.json",
+      "toleranceM": 3,
+      "note": "Six boiler rooms forward of wing turbines, center turbine farther aft; magazines above shell rooms. Precise walls, auxiliary rooms, fuel cells and shaft passages are approximate envelopes, not a complete general arrangement."
+    },
+    {
+      "selector": "handling / hp / capacityM3 / hull.massKg / reserveBuoyancyM3",
+      "sourceIds": [
+        "kb-dimensions"
+      ],
+      "basis": "inferred",
+      "valueLocation": "blueprint.json",
+      "note": "Standard displacement selected from source; HP, compartment usable volume, reserve threshold (10000 m\u00b3) and handling are gameplay calibration. No derived hydrostatics claim."
+    }
+  ],
+  "historicalRegistration": {
+    "sourceId": "kb-plan-24may",
+    "image": "historical/bsdraw24m.png",
+    "originalPixels": [
+      3250,
+      2050
+    ],
+    "method": "One uniform pixel/metre scale for all three views, from overall hull endpoints. Vertical profile uses keel datum, retaining source proportions. No independent height or component fit.",
+    "pixelsPerMeter": 11.8523,
+    "sternPixelX": 92,
+    "bowPixelX": 3061,
+    "starboard": {
+      "crop": [
+        0,
+        1290,
+        3250,
+        2050
+      ],
+      "originPixel": [
+        1576.5,
+        1881.42
+      ],
+      "keelPixelY": 1992
+    },
+    "port": {
+      "crop": [
+        0,
+        0,
+        3250,
+        760
+      ],
+      "originPixel": [
+        1576.5,
+        589.42
+      ],
+      "keelPixelY": 700,
+      "mirrorX": false
+    },
+    "top": {
+      "crop": [
+        0,
+        800,
+        3250,
+        1280
+      ],
+      "originPixel": [
+        1576.5,
+        1044
+      ],
+      "mirrorX": true
+    },
+    "uncertaintyPixels": 5,
+    "limits": "Raster endpoints and keel read manually. Waterline from keel+9.33 m is a registration datum, not a claim about the drawing's depicted load. Crops preserve the original alongside derivatives."
+  },
+  "landmarks": [
+    {
+      "id": "anton-axis",
+      "runtime": [
+        0,
+        8.65,
+        -70.05
+      ],
+      "sourceId": "kb-plan-24may",
+      "basis": "estimated",
+      "toleranceM": 0.8
+    },
+    {
+      "id": "bruno-axis",
+      "runtime": [
+        0,
+        12.45,
+        -51.85
+      ],
+      "sourceId": "kb-plan-24may",
+      "basis": "estimated",
+      "toleranceM": 0.8
+    },
+    {
+      "id": "caesar-axis",
+      "runtime": [
+        0,
+        12.45,
+        58.15
+      ],
+      "sourceId": "kb-plan-24may",
+      "basis": "estimated",
+      "toleranceM": 0.8
+    },
+    {
+      "id": "dora-axis",
+      "runtime": [
+        0,
+        8.25,
+        76.35
+      ],
+      "sourceId": "kb-plan-24may",
+      "basis": "estimated",
+      "toleranceM": 0.8
+    },
+    {
+      "id": "funnel-cap",
+      "runtime": [
+        0,
+        23.5,
+        2
+      ],
+      "sourceId": "kb-plan-24may",
+      "basis": "plan-measured",
+      "toleranceM": 1.5
+    },
+    {
+      "id": "mainmast-top",
+      "runtime": [
+        0,
+        48.5,
+        23.9
+      ],
+      "sourceId": "kb-plan-24may",
+      "basis": "estimated",
+      "toleranceM": 2
+    }
+  ],
+  "probes": [
+    {
+      "id": "broadside",
+      "from": [
+        -30,
+        0,
+        0
+      ],
+      "to": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "plunging",
+      "from": [
+        0,
+        15,
+        0
+      ],
+      "to": [
+        0,
+        -5,
+        0
+      ]
+    },
+    {
+      "id": "underwater",
+      "from": [
+        -30,
+        -3.45,
+        0
+      ],
+      "to": [
+        0,
+        -3.45,
+        0
+      ]
+    }
+  ],
+  "sectionFrames": [
+    46.15,
+    64.35,
+    120.8,
+    174.35,
+    192.55
+  ],
+  "review": {
+    "title": "Bismarck \u00b7 24 May 1941",
+    "intro": "Independent reconstruction at a 9.33 m standard draft. Compare the exported ship with GameModels3D and historical drawings, using fixed cameras and a single scale registration.",
+    "historicalCredit": "Manuel P. Gonz\u00e1lez L\u00f3pez / KBismarck.com",
+    "historicalLabel": "Historical reconstruction \u00b7 Gonz\u00e1lez L\u00f3pez \u00b7 uniform scale, keel registration",
+    "limits": "The original body-plan catalogue entry is verified, but its offsets are unavailable. Exact machinery walls, turret dimensions and frame-to-midpoint registration remain estimates. The reference game hull retains its own proportions and unknown load; the comparison does not force its length or keel onto the authored hull.",
+    "images": [
+      {
+        "file": "proteccion6.gif",
+        "alt": "Technical reconstruction of longitudinal armor distribution",
+        "caption": "Longitudinal armor distribution"
+      },
+      {
+        "file": "proteccion7.gif",
+        "alt": "KBismarck armor section schematic at frames 174.3 and 202.7",
+        "caption": "Historical technical reconstruction \u00b7 unscaled schematic, no forced overlay",
+        "url": "https://www.kbismarck.com/proteccioni.html"
+      },
+      {
+        "file": "380mmp.gif",
+        "alt": "Main battery ammunition and handling room diagram",
+        "caption": "Propellant magazines above shell rooms \u00b7 simplified envelopes in the blueprint"
+      },
+      {
+        "file": "propulsion2.gif",
+        "alt": "Technical reconstruction of the boiler and turbine room order",
+        "caption": "Machinery sequence \u00b7 approximate envelopes follow sections VIII, X, XI and XIII"
+      },
+      {
+        "file": "photo023.jpg",
+        "alt": "Historical Bismarck photograph retained as appearance evidence",
+        "caption": "Historical photograph \u00b7 see source register for fit and date limits"
+      },
+      {
+        "file": "photo076.jpg",
+        "alt": "Historical Bismarck photograph retained as appearance evidence",
+        "caption": "Historical photograph \u00b7 see source register for fit and date limits"
+      },
+      {
+        "file": "bundesarchiv-rm25-231-0004.jpg",
+        "alt": "Original Bundesarchiv profile excerpt showing deck levels and bridge/funnel arrangement",
+        "caption": "BArch RM 25/231, image 0004 \u00b7 unscaled excerpt; fit revision unknown"
+      }
+    ],
+    "sectionReference": "proteccion7.gif",
+    "evidenceImages": [
+      "bundesarchiv-rm25-231-0004.jpg",
+      "propulsion2.gif"
+    ]
+  }
+}
