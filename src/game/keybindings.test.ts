@@ -2,6 +2,17 @@ import { describe, expect, test } from 'bun:test';
 import { bindingError, bindingLabel, defaultKeybindings, keybindingsOf } from './keybindings';
 
 describe('player keybindings', () => {
+  test('older saves gain shell follow without losing a custom T binding', () => {
+    const { shellFollow: _newAction, ...saved } = defaultKeybindings();
+    saved.camera = ['KeyT', null];
+    saved.fire = ['KeyL', null];
+    const loaded = keybindingsOf(saved);
+    expect(loaded.camera).toEqual(saved.camera);
+    expect(loaded.fire).toEqual(saved.fire);
+    expect(loaded.shellFollow[0]).toBeTruthy();
+    expect(loaded.shellFollow).not.toContain('KeyT');
+    expect(keybindingsOf(loaded)).toEqual(loaded);
+  });
   test('round-trips customized primary and alternate bindings', () => {
     const bindings = defaultKeybindings();
     bindings.throttleUp = ['KeyI', 'Numpad8'];
