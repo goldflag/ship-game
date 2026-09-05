@@ -1,4 +1,4 @@
-import { selectedShip } from '../ships/presets';
+import type { ShipDefinition } from '../ships/blueprint';
 
 const identities: Record<string, { type: string; nation: string }> = {
   bismarck: { type: 'Battleship', nation: 'Germany' },
@@ -9,16 +9,18 @@ const identities: Record<string, { type: string; nation: string }> = {
 export function shipIdentity(id: string) {
   return identities[id] ?? { type: 'Ship', nation: '' };
 }
-const identity = shipIdentity(selectedShip.id);
-const year = selectedShip.configuration.match(/19\d{2}/)?.[0] ?? '';
+export function shipModel(selectedShip: ShipDefinition) {
+  const identity = shipIdentity(selectedShip.id);
+  const year = selectedShip.configuration.match(/19\d{2}/)?.[0] ?? '';
 
-// The port, sea trial and schematic all use the selected compiled asset.
-export const SHIP_MODEL = {
-  id: selectedShip.id,
-  url: selectedShip.modelUrl,
-  name: selectedShip.name,
-  type: identity.type,
-  nation: identity.nation,
-  year,
-  description: [identity.type, identity.nation, year].filter(Boolean).join(' · '),
-} as const;
+  // The port, sea trial and schematic all use the selected compiled asset.
+  return {
+    id: selectedShip.id,
+    url: selectedShip.modelUrl,
+    name: selectedShip.name,
+    type: identity.type,
+    nation: identity.nation,
+    year,
+    description: [identity.type, identity.nation, year].filter(Boolean).join(' · '),
+  } as const;
+}

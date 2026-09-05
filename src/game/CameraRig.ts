@@ -89,6 +89,8 @@ export class CameraRig {
     canvas.addEventListener('contextmenu', e => e.preventDefault(), options);
   }
 
+  setBridge(bridge: Vec3 = [0, 29, -31]): void { this.bridge = bridge; }
+
   get pointerLocked(): boolean { return document.pointerLockElement === this.canvas; }
   get firing(): boolean { return this.enabled && this.pointerLocked && this.mouseFire; }
   get magnification(): number { return this.binoculars ? MAGNIFICATIONS[this.zoomIndex] : 1; }
