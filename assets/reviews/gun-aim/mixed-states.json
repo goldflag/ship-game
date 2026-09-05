@@ -1,0 +1,136 @@
+{
+  "desktop": [
+    {
+      "text": "1 \u00b7 Turning",
+      "rect": {
+        "x": 695.5,
+        "y": 469,
+        "width": 48.859375,
+        "height": 19,
+        "top": 469,
+        "right": 744.359375,
+        "bottom": 488,
+        "left": 695.5
+      }
+    },
+    {
+      "text": "2 \u00b7 Turning \u00b7 5s",
+      "rect": {
+        "x": 687,
+        "y": 491,
+        "width": 66.0390625,
+        "height": 19,
+        "top": 491,
+        "right": 753.0390625,
+        "bottom": 510,
+        "left": 687
+      }
+    },
+    {
+      "text": "3 \u00b7 Turning \u00b7 12s",
+      "rect": {
+        "x": 685.5,
+        "y": 513,
+        "width": 68.9609375,
+        "height": 19,
+        "top": 513,
+        "right": 754.4609375,
+        "bottom": 532,
+        "left": 685.5
+      }
+    },
+    {
+      "text": "4 \u00b7 On aim",
+      "rect": {
+        "x": 696,
+        "y": 535,
+        "width": 47.78125,
+        "height": 19,
+        "top": 535,
+        "right": 743.78125,
+        "bottom": 554,
+        "left": 696
+      }
+    },
+    {
+      "text": "5 \u00b7 Disabled",
+      "rect": {
+        "x": 693,
+        "y": 557,
+        "width": 53.8828125,
+        "height": 19,
+        "top": 557,
+        "right": 746.8828125,
+        "bottom": 576,
+        "left": 693
+      }
+    }
+  ],
+  "mobile": [
+    {
+      "text": "1 \u00b7 Turning",
+      "rect": {
+        "x": 172.5,
+        "y": 441,
+        "width": 45.3203125,
+        "height": 19,
+        "top": 441,
+        "right": 217.8203125,
+        "bottom": 460,
+        "left": 172.5
+      }
+    },
+    {
+      "text": "2 \u00b7 Turning \u00b7 5s",
+      "rect": {
+        "x": 164.5,
+        "y": 463,
+        "width": 60.9453125,
+        "height": 19,
+        "top": 463,
+        "right": 225.4453125,
+        "bottom": 482,
+        "left": 164.5
+      }
+    },
+    {
+      "text": "3 \u00b7 Turning \u00b7 12s",
+      "rect": {
+        "x": 163,
+        "y": 485,
+        "width": 63.6015625,
+        "height": 19,
+        "top": 485,
+        "right": 226.6015625,
+        "bottom": 504,
+        "left": 163
+      }
+    },
+    {
+      "text": "4 \u00b7 On aim",
+      "rect": {
+        "x": 173,
+        "y": 507,
+        "width": 44.34375,
+        "height": 19,
+        "top": 507,
+        "right": 217.34375,
+        "bottom": 526,
+        "left": 173
+      }
+    },
+    {
+      "text": "5 \u00b7 Disabled",
+      "rect": {
+        "x": 170,
+        "y": 529,
+        "width": 49.890625,
+        "height": 19,
+        "top": 529,
+        "right": 219.890625,
+        "bottom": 548,
+        "left": 170
+      }
+    }
+  ]
+}
