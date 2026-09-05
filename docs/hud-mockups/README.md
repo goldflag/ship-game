@@ -12,7 +12,7 @@ The sailing sight stays at the exact viewport center. Mouse movement turns the v
 
 The minimap uses a 40% opaque background and sits flush with the bottom and right viewport edges. −/+ keys or its internal buttons select five sizes, nominally 240–400 px with 320 px initially selected. Each size scales proportionally on smaller screens so every step changes the visible size. The kilometer button changes chart range independently; NORTH UP is a static orientation label.
 
-Desktop instruments are 292 px wide at lower left and 410 px wide at bottom center. Narrow portrait screens move armament below the top compass to keep the center sight clear. Short landscape screens compact the weapon row and retain gun-status access in the helm and gunnery details.
+Desktop instruments are 240 px wide at lower left and 340 px wide at bottom center, with smaller dials, weapon illustrations and tighter spacing. Narrow portrait screens move armament below the top compass to keep the center sight clear. Short landscape screens compact the weapon row and retain gun-status access in the helm and gunnery details.
 
 ## Current review captures
 
