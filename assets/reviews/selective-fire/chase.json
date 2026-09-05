@@ -1,0 +1,131 @@
+{
+  "d": {
+    "tick": 3630,
+    "paused": false,
+    "mounts": [
+      {
+        "id": "anton",
+        "name": "Anton",
+        "status": "ready",
+        "reload": 0,
+        "ammo": 240
+      },
+      {
+        "id": "bruno",
+        "name": "Bruno",
+        "status": "ready",
+        "reload": 0,
+        "ammo": 240
+      },
+      {
+        "id": "caesar",
+        "name": "C\u00e4sar",
+        "status": "out-of-arc",
+        "reload": 0,
+        "ammo": 240
+      },
+      {
+        "id": "dora",
+        "name": "Dora",
+        "status": "out-of-arc",
+        "reload": 0,
+        "ammo": 240
+      }
+    ],
+    "ready": 2,
+    "camera": {
+      "mode": "Chase",
+      "binoculars": false,
+      "magnification": 1,
+      "fov": 52.00000000000001,
+      "shellFollow": "off",
+      "pointerLocked": false,
+      "position": [
+        -0.552054498749899,
+        121.60000000000001,
+        344.999558312515
+      ],
+      "aim": [
+        7.999999999999999,
+        0.5,
+        -4999.5
+      ],
+      "manualAim": true,
+      "projectionMatrix": [
+        1.28143990098706,
+        0,
+        0,
+        0,
+        0,
+        2.050303841579296,
+        0,
+        0,
+        0,
+        0,
+        -1.0000083334027783,
+        -1,
+        0,
+        0,
+        -0.5000041667013891,
+        0
+      ],
+      "matrixWorldInverse": [
+        0.9999987197464202,
+        3.624832480320752e-05,
+        -0.0015997473486628734,
+        0,
+        -1.3552527156068805e-20,
+        0.9997433886300569,
+        0.022652966483245933,
+        0,
+        0.001600157967391011,
+        -0.0226529374817045,
+        0.9997421087050047,
+        0,
+        1.1188966420050406e-16,
+        -113.75352262069507,
+        -347.66606980173236,
+        1
+      ]
+    }
+  },
+  "count": "380 mm \u00b7 Main battery2/4 can fire",
+  "markers": [
+    {
+      "label": "1, 2 \u00b7 On aim",
+      "ring": {
+        "x": 706,
+        "y": 436,
+        "width": 28,
+        "height": 28,
+        "top": 436,
+        "right": 734,
+        "bottom": 464,
+        "left": 706
+      }
+    },
+    {
+      "label": "3, 4 \u00b7 Out of arc",
+      "ring": {
+        "x": 1308.02001953125,
+        "y": 440.29998779296875,
+        "width": 28,
+        "height": 28,
+        "top": 440.29998779296875,
+        "right": 1336.02001953125,
+        "bottom": 468.29998779296875,
+        "left": 1308.02001953125
+      }
+    }
+  ],
+  "reticle": {
+    "x": 701,
+    "y": 431,
+    "width": 38,
+    "height": 38,
+    "top": 431,
+    "right": 739,
+    "bottom": 469,
+    "left": 701
+  }
+}

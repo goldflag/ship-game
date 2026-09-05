@@ -8,8 +8,9 @@
 .gun-aim-aligned { color:#86e4c5; }
 .gun-aim-aligned .gun-aim-circle { border-style:solid; }
 .gun-aim-reloading { color:#c1d0d4; }
+.gun-aim-out-of-arc, .gun-aim-out-of-range { color:#c1d0d4; }
 .gun-aim-blocked, .gun-aim-disabled, .gun-aim-empty { color:#ee9b86; }
-.gun-aim-blocked .gun-aim-circle:after, .gun-aim-disabled .gun-aim-circle:after, .gun-aim-empty .gun-aim-circle:after { content:''; position:absolute; width:22px; height:1px; background:currentColor; left:1px; top:11px; transform:rotate(-45deg); }
+.gun-aim-blocked .gun-aim-circle:after, .gun-aim-disabled .gun-aim-circle:after, .gun-aim-empty .gun-aim-circle:after, .gun-aim-out-of-arc .gun-aim-circle:after, .gun-aim-out-of-range .gun-aim-circle:after { content:''; position:absolute; width:22px; height:1px; background:currentColor; left:1px; top:11px; transform:rotate(-45deg); }
 .gun-aim-arrow { display:none; position:absolute; inset:0; }
 .gun-aim-offscreen .gun-aim-arrow { display:block; }
 .gun-aim-arrow:after { content:''; position:absolute; width:7px; height:7px; border-top:2px solid currentColor; border-right:2px solid currentColor; left:20px; top:-4px; transform:rotate(45deg); filter:drop-shadow(0 1px 2px #07131b); }
