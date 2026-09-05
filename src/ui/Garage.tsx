@@ -1,5 +1,6 @@
 // Fleet harbor. Progression, research, commander and refits are illustrative local state.
 import { useEffect, useState, type ReactNode } from 'react';
+import { ArmorTooltip } from './ArmorTooltip';
 import { Icon } from './Icons';
 import { SchematicDialog } from './SchematicDialog';
 import './Garage.css';
@@ -185,6 +186,7 @@ export function Garage({ game, ready, progress, fps, onLaunch, onSettings, switc
   return <div className="garage">
     <div className="garage-scene-shade"/>
     <PortLayout state={state}/>
+    <ArmorTooltip game={game}/>
     {schematic && <SchematicDialog onClose={() => setSchematic(false)}/>}
     {(switching || switchError) && <div className="garage-loading" role={switchError ? 'alert' : 'status'}><span>{switchError || 'Preparing ship…'}</span></div>}
     {!ready && <div className="garage-loading" role="status">

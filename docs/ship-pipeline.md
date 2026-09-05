@@ -139,6 +139,8 @@ An optional blueprint `viewpoints.bridge` places a ship's bridge camera in runti
 
 Port inspection uses the same renderer through `ShipInspection` and the same data through `inspectionEntries`. Armor includes hull protection and moving gunhouses; Internals includes machinery, magazines, steering and compartments. The UI reads thickness, health and capacity from the compiled definition, with stable prefixed IDs for selection. Add new inspection properties to this shared adapter rather than maintaining a second port-only layout. Verify each new preset in both port views, isolate a volume, return to Exterior, launch and return to port. Combat stays frozen in port; entering port resets both actors, ammunition, shells and flooding while preserving renderer bindings.
 
+Port armor uses `ArmorOverlay` to render opaque plates into a separate depth buffer, then composites them over the faded actual ship and sea before FXAA. Plates have no edge lines and occlude deeper armor. `ArmorHover` raycasts the visible inspection meshes, including physical thickness and current mount poses, and supplies the tooltip without changing selection or simulation. Isolating a list row makes that inner layer available for inspection and hover. Internals and combat inspection keep their translucent presentation.
+
 ## What is editable now, and what comes next
 
 Hull station tables, component placements, polygonal superstructure tiers, equipment, physical armor plates and internal layout can be changed in JSON and rebuilt. The Bismarck recipe still has ship-specific superstructure, fittings and underwater details; it is not a generic in-game hull editor. Large hull changes require adjusting those structures and validating module/compartment placement.

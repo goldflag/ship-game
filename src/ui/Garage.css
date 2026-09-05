@@ -288,6 +288,17 @@
 .port-inspector-heading h2 { margin:0; }
 .port-inspector-heading>span { color:#c8d8db; font-size:10px; }
 .port-inspector-intro,.port-inspection-note { color:#c8d8db; font-size:11px; line-height:1.5; margin:10px 0 15px; }
+.port-armor-legend { display:grid; gap:5px; margin:12px 0 16px; color:var(--port-muted); font-size:10px; }
+.port-armor-legend-labels { display:flex; justify-content:space-between; gap:8px; }
+.port-armor-legend-ramp { height:6px; border-radius:1px; }
+.port-armor-legend small { font-size:inherit; line-height:1.5; }
+.port-armor-tooltip { position:fixed; z-index:5; width:260px; max-width:calc(100vw - 24px); padding:12px; background:#10232e; color:var(--port-text); border:1px solid var(--port-line); border-radius:2px; pointer-events:none; font-size:12px; line-height:1.4; }
+.port-armor-tooltip>strong { display:block; margin-bottom:10px; font-weight:500; overflow-wrap:anywhere; }
+.port-armor-tooltip dl { margin:0; display:grid; gap:5px; }
+.port-armor-tooltip dl>div { display:flex; justify-content:space-between; gap:12px; }
+.port-armor-tooltip dt { color:var(--port-muted); }
+.port-armor-tooltip dd { display:flex; align-items:center; gap:7px; margin:0; text-align:right; }
+.port-armor-tooltip dd i { width:7px; height:7px; border-radius:1px; flex-shrink:0; }
 .port-volume-list { display:flex; flex-direction:column; }
 .port-volume-list>button { display:flex; align-items:center; gap:9px; width:100%; min-height:48px; padding:8px 5px; text-align:left; background:transparent; border:0; border-bottom:1px solid #c9dce027; border-radius:0; }
 .port-volume-list>button:hover { background:#d0e4db12; }
