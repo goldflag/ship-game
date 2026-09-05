@@ -1,0 +1,33 @@
+.pause-menu.settings-dialog { width: min(580px, calc(100% - 32px)); padding: 24px; }
+.settings-dialog[open] { display: flex; flex-direction: column; overflow: hidden; }
+.pause-menu.settings-dialog::backdrop { background: transparent; }
+.settings-dialog .menu-heading { flex-shrink: 0; }
+.settings-dialog .icon-button { width: 44px; height: 44px; }
+.settings-sections { display: flex; gap: 24px; margin-top: 18px; border-bottom: 1px solid var(--line); flex-shrink: 0; }
+.settings-sections button { padding: 12px 0; background: transparent; border: 0; border-bottom: 2px solid transparent; color: var(--muted); font-size: 14px; min-height: 44px; }
+.settings-sections button[aria-pressed=true] { color: var(--accent); border-bottom-color: var(--accent); }
+.settings-sections button:hover { color: var(--accent); }
+.settings-content { overflow-y: auto; scrollbar-width: thin; min-height: 0; padding: 0 6px 6px; margin: 0 -6px; }
+.settings-description { margin: 20px 0 12px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.keybinding-instructions { font-size: 12px; line-height: 1.5; color: var(--muted); margin: 0 0 12px; }
+.keybinding-status { min-height: 46px; padding: 8px 0; color: var(--accent); font-size: 13px; line-height: 1.5; }
+.keybinding-error { color: #f3b4a7; }
+.keybinding-columns, .keybinding-row { display: grid; grid-template-columns: minmax(0, 1fr) repeat(2, 110px); gap: 8px; align-items: center; }
+.keybinding-columns { color: var(--muted); font-size: 11px; padding-bottom: 6px; }
+.keybinding-columns span:not(:first-child) { text-align: center; }
+.keybinding-group h3 { color: var(--accent); font-size: 12px; font-weight: 500; margin: 18px 0 8px; }
+.keybinding-row { min-height: 52px; border-bottom: 1px solid var(--line); font-size: 13px; line-height: 1.35; }
+.keybinding-button { min-height: 44px; padding: 6px; border: 1px solid var(--line); border-radius: 3px; background: #0e2530; font-size: 12px; }
+.keybinding-button > span { color: var(--muted); }
+.keybinding-button kbd { font-size: 13px; border: 0; }
+.keybinding-button:hover { border-color: var(--accent); }
+.keybinding-button[aria-pressed=true] { border-color: var(--accent); color: var(--accent); }
+.keybinding-fixed { display: flex; gap: 14px; align-items: center; font-size: 13px; margin-top: 20px; }
+.keybinding-fixed > span:last-child { color: var(--muted); font-size: 11px; }
+.settings-footer { padding-top: 18px; margin-top: 18px; border-top: 1px solid var(--line); flex-shrink: 0; }
+.settings-dialog .settings-note { font-size: 12px; }
+@media (max-width: 480px) {
+  .pause-menu.settings-dialog { padding: 18px; }
+  .keybinding-columns, .keybinding-row { grid-template-columns: minmax(0, 1fr) repeat(2, 76px); gap: 6px; }
+  .keybinding-row { font-size: 12px; }
+}

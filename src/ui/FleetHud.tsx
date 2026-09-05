@@ -7,8 +7,9 @@ import { NavigationChart } from './NavigationChart';
 import { GunneryPanel } from './GunneryPanel';
 import { useShip } from './ShipContext';
 import './FleetHud.css';
+import { bindingLabel, type Keybindings } from '../game/keybindings';
 
-interface FleetHudProps { data: Telemetry; game: Game | null; visible: boolean; }
+interface FleetHudProps { data: Telemetry; game: Game | null; visible: boolean; bindings: Keybindings; }
 
 function ShipBearing({ data }: { data: Telemetry }) {
   const selectedShip = useShip();
@@ -71,7 +72,7 @@ function BinocularGlyph() {
   return <svg className="fleet-optics-glyph" viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m10 41 6-25h11l2 25m6 0 2-25h11l6 25M27 25h10M28 32h8M18 16v-5h7v5m14 0v-5h7v5"/><circle cx="19" cy="43" r="10" fill="#233e4a"/><circle cx="45" cy="43" r="10" fill="#233e4a"/><circle cx="19" cy="43" r="6" strokeOpacity=".45"/><circle cx="45" cy="43" r="6" strokeOpacity=".45"/></svg>;
 }
 
-function ActiveArmament({ data, game }: FleetHudProps) {
+function ActiveArmament({ data, game, bindings }: FleetHudProps) {
   const selectedShip = useShip();
   const combat = data.combat;
   if (!combat) return null;
@@ -89,21 +90,21 @@ function ActiveArmament({ data, game }: FleetHudProps) {
     })}</div>
     <div className="fleet-battery-heading"><span>{caliber(combat.battery)} mm · {combat.battery === 'main' ? 'Main battery' : 'Secondary battery'}</span><strong>{combat.ready}/{combat.total} ready</strong></div>
     <div className="fleet-weapon-row">
-      {combat.batteries.map((battery, i) => <button key={battery.battery} className="fleet-weapon-slot" aria-label={`Select ${battery.battery} AP battery · ${battery.ammo} shells · ${i + 1}`} aria-pressed={combat.battery === battery.battery} disabled={!battery.total} onClick={event => { if (game) game.battery = battery.battery; event.currentTarget.blur(); }}>
+      {combat.batteries.map(battery => <button key={battery.battery} className="fleet-weapon-slot" aria-label={`Select ${battery.battery} AP battery · ${battery.ammo} shells · ${bindingLabel(bindings, battery.battery === 'main' ? 'mainBattery' : 'secondaryBattery')}`} aria-pressed={combat.battery === battery.battery} disabled={!battery.total} onClick={event => { if (game) game.battery = battery.battery; event.currentTarget.blur(); }}>
         <span className="fleet-slot-label">{battery.battery === 'main' ? 'MAIN AP' : 'SEC. AP'}</span><AmmoGlyph secondary={battery.battery === 'secondary'}/>
         <strong className="fleet-ammo-count">{battery.ammo}</strong>
         {battery.reload > 0 && Number.isFinite(battery.reload) && battery.ready === 0 && <span className="fleet-slot-cooldown">{Math.ceil(battery.reload)}<small>s</small></span>}
-        <kbd>{i + 1}</kbd>
+        <kbd>{bindingLabel(bindings, battery.battery === 'main' ? 'mainBattery' : 'secondaryBattery')}</kbd>
       </button>)}
       <button className="fleet-weapon-slot fleet-utility-slot" aria-label="Toggle binocular aiming · Shift" aria-pressed={!!data.binoculars} onClick={event => { game?.toggleBinoculars(); event.currentTarget.blur(); }}><span className="fleet-slot-label">BINOCULARS</span><BinocularGlyph/><strong className="fleet-slot-value">{data.binoculars ? `${data.magnification}×` : ''}</strong><kbd>SHIFT</kbd></button>
-      <button className="fleet-weapon-slot" aria-label="Gunnery and target damage · G" aria-expanded={!!data.gunneryOpen} onClick={event => { game?.setGunneryOpen(!data.gunneryOpen); event.currentTarget.blur(); }}><span className="fleet-slot-label">GUNNERY</span><Icon name="target" size={39}/><kbd>G</kbd></button>
-      <button className="fleet-weapon-slot fleet-fire-slot" aria-label="Fire ready guns · Left mouse or Q" disabled={!combat.ready} onClick={event => { game?.fire(); event.currentTarget.blur(); }}><span className="fleet-slot-label">FIRE</span><Icon name="turret" size={39}/><kbd>Q / LMB</kbd></button>
+      <button className="fleet-weapon-slot" aria-label={`Gunnery and target damage · ${bindingLabel(bindings, 'gunnery')}`} aria-expanded={!!data.gunneryOpen} onClick={event => { game?.setGunneryOpen(!data.gunneryOpen); event.currentTarget.blur(); }}><span className="fleet-slot-label">GUNNERY</span><Icon name="target" size={39}/><kbd>{bindingLabel(bindings, 'gunnery')}</kbd></button>
+      <button className="fleet-weapon-slot fleet-fire-slot" aria-label={`Fire ready guns · Left mouse or ${bindingLabel(bindings, 'fire')}`} disabled={!combat.ready} onClick={event => { game?.fire(); event.currentTarget.blur(); }}><span className="fleet-slot-label">FIRE</span><Icon name="turret" size={39}/><kbd>{bindingLabel(bindings, 'fire')} / LMB</kbd></button>
     </div>
     <div className="fleet-control-hint"><span><kbd>CTRL</kbd> Cursor</span><span><kbd>SHIFT</kbd> Aim</span><span><kbd>ESC</kbd> Menu</span></div>
   </section>;
 }
 
-export function FleetHud({ data, game, visible }: FleetHudProps) {
+export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
   const selectedShip = useShip();
   const degrees = ((data.viewBearing ?? data.ship.heading) * 180 / Math.PI + 360) % 360;
   const speed = Math.abs(data.ship.speed * KNOTS_PER_MPS).toFixed(1);
@@ -137,14 +138,14 @@ export function FleetHud({ data, game, visible }: FleetHudProps) {
         <div className="fleet-speed"><strong>{speed}</strong><span>kts</span></div>
         <div className="fleet-throttle" role="group" aria-label="Engine telegraph">{[{ label: 'FULL', index: 5 }, { label: '3/4', index: 4 }, { label: '1/2', index: 3 }, { label: '1/4', index: 2 }, { label: 'STOP', index: 1 }, { label: 'FULL', index: 0 }].map(({ label, index }) => <button key={index} aria-label={`Engine ${ENGINE_LABELS[index].toLowerCase()}`} title={ENGINE_LABELS[index]} aria-pressed={data.order === index} onClick={event => { game?.input.setOrder(index); event.currentTarget.blur(); }}><span>{label}</span>{index === 0 && <small>ASTERN</small>}</button>)}</div>
       </div></div>
-      <div className="fleet-steering" aria-label={`Rudder ${Math.abs(rudder)} degrees ${rudder < 0 ? 'port' : rudder > 0 ? 'starboard' : 'amidships'}`}><kbd>A</kbd><span>PORT</span><div><i style={{ left: `${50 + data.ship.rudder * 47}%` }}/></div><span>STBD</span><kbd>D</kbd></div>
+      <div className="fleet-steering" aria-label={`Rudder ${Math.abs(rudder)} degrees ${rudder < 0 ? 'port' : rudder > 0 ? 'starboard' : 'amidships'}`}><kbd>{bindingLabel(bindings, 'port')}</kbd><span>PORT</span><div><i style={{ left: `${50 + data.ship.rudder * 47}%` }}/></div><span>STBD</span><kbd>{bindingLabel(bindings, 'starboard')}</kbd></div>
       {(data.combat?.playerWater ?? 0) > .1 && <p className="fleet-flood-warning">Flooding · {data.combat!.playerWater.toFixed(1)} m³</p>}
       <div className="fleet-touch-helm"><button aria-label="Hold to steer port" onPointerDown={event => steer(event, -1)} onPointerUp={releaseRudder} onPointerCancel={releaseRudder} onLostPointerCapture={releaseRudder}>PORT</button><button aria-label="Hold to steer starboard" onPointerDown={event => steer(event, 1)} onPointerUp={releaseRudder} onPointerCancel={releaseRudder} onLostPointerCapture={releaseRudder}>STARBOARD</button></div>
     </section>
 
-    <ActiveArmament data={data} game={game} visible={visible}/>
-    {(data.gunneryOpen || data.inspecting) && <GunneryPanel data={data} game={game} expanded={!!data.gunneryOpen} onExpand={value => game?.setGunneryOpen(value)}/>}
+    <ActiveArmament data={data} game={game} visible={visible} bindings={bindings}/>
+    {(data.gunneryOpen || data.inspecting) && <GunneryPanel bindings={bindings} data={data} game={game} expanded={!!data.gunneryOpen} onExpand={value => game?.setGunneryOpen(value)}/>}
     {data.binoculars && data.aimModule !== 'point' && data.aimMarker?.visible && <div className="aim-marker" aria-hidden="true" style={{ left: `${data.aimMarker.x}%`, top: `${data.aimMarker.y}%` }}><span/><small>TRACKED AIM</small></div>}
-    <aside className="fleet-map-area" aria-label="Navigation minimap"><NavigationChart data={data} onResize={direction => game?.resizeChart(direction)}/></aside>
+    <aside className="fleet-map-area" aria-label="Navigation minimap"><NavigationChart bindings={bindings} data={data} onResize={direction => game?.resizeChart(direction)}/></aside>
   </div>;
 }
