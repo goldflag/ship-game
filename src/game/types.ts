@@ -1,6 +1,7 @@
 import type { CameraMode } from './CameraRig';
 import type { ShipState } from '../simulation/ship';
 import type { CombatTelemetry } from '../simulation/combat';
+import type { ShellFollow } from './ShellFollow';
 
 export type SeaState = 'Fair' | 'Atlantic' | 'Heavy';
 export type Quality = 'medium' | 'high' | 'ultra';
@@ -16,6 +17,7 @@ export interface Telemetry {
   viewBearing?: number;
   chartSize?: number;
   gunneryOpen?: boolean;
+  shellFollow?: ShellFollow['phase'];
   fps: number;
   backend: string;
   trail: { x: number; z: number }[];

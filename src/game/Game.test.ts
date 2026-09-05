@@ -3,6 +3,7 @@ import { Group, PerspectiveCamera, Scene } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Game } from './Game';
 import { CameraRig } from './CameraRig';
+import { ShellFollow } from './ShellFollow';
 import { ShipView } from './ShipView';
 import { CombatSimulation } from '../simulation/combat';
 import { shipPreset } from '../ships/presets';
@@ -47,7 +48,7 @@ async function port() {
   rig.update(simulation.ship, 0, 0, true);
   const game = Object.assign(Object.create(Game.prototype), {
     definition, simulation, playerView, targetView, fleetViews: [playerView, targetView], fleetModels: [loaded], loadedModel: loaded, scene, harbor, camera, rig,
-    currentAim: [650, .5, -550], manualAim: true,
+    currentAim: [650, .5, -550], manualAim: true, shellFollow: new ShellFollow(),
     effects: { reset() {}, diagnostics() { return {}; } },
     shipLabels: { setFleet() {} },
     ship: new Group(), inPort: true, disposed: false, switchingShip: false,

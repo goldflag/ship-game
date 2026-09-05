@@ -65,6 +65,42 @@ function sunDirection(elevation: number, azimuth: number) {
   return new Vector3(Math.sin(azimuth) * Math.cos(elevation), Math.sin(elevation), Math.cos(azimuth) * Math.cos(elevation));
 }
 
+test('shell camera follows flight without frame lag or changed aim, and restores binoculars', () => {
+  const { camera, rig, drag } = interactiveCamera();
+  const ship = createShipState();
+  rig.setInPort(false);
+  rig.toggleBinoculars([1000, 0, -5000], ship);
+  const position = camera.position.clone(), orientation = camera.quaternion.clone(), fov = camera.fov;
+  const bearing = rig.bearing;
+  const view = { position: [0, 200, -1000] as [number, number, number], velocity: [0, -20, -800] as [number, number, number] };
+  rig.setShellView(view);
+  rig.update(ship, 0, .016);
+  expect(rig.binoculars).toBe(false);
+  expect(camera.fov).toBeCloseTo(52);
+  const offset = camera.position.clone().sub(new Vector3(...view.position));
+  for (const dt of [1 / 144, 1 / 30, .047]) {
+    view.position[2] -= 800 * dt;
+    rig.setShellView(view);
+    drag(300, 300);
+    rig.update(ship, 0, dt);
+    expect(camera.position.clone().sub(new Vector3(...view.position)).distanceTo(offset)).toBeLessThan(1e-9);
+    expect(rig.bearing).toBe(bearing);
+    const projected = new Vector3(...view.position).project(camera);
+    expect(Math.abs(projected.x)).toBeLessThan(1);
+    expect(Math.abs(projected.y)).toBeLessThan(1);
+  }
+  view.position[1] = -40;
+  rig.update(ship, 0, .016);
+  expect(camera.position.y).toBeGreaterThanOrEqual(12);
+  rig.setShellView();
+  rig.update(ship, 0, .016);
+  expect(rig.binoculars).toBe(true);
+  expect(camera.fov).toBe(fov);
+  expect(camera.position.distanceTo(position)).toBeLessThan(1e-9);
+  expect(camera.quaternion.angleTo(orientation)).toBeLessThan(1e-7);
+  rig.dispose();
+});
+
 test('port dragging reveals the sun without lowering the camera below its lowest orbit', () => {
   const { camera, rig, drag } = interactiveCamera();
   const ship = { ...createShipState(), x: 240 };
