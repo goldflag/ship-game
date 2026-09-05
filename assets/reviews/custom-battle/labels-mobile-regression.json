@@ -1,0 +1,117 @@
+{
+  "fixture": "Original mobile view anchors and measured HUD rectangles, evaluated with the final placement function",
+  "viewport": [
+    390,
+    844
+  ],
+  "labels": [
+    {
+      "id": "player",
+      "left": 177.5,
+      "right": 321.5,
+      "top": 566.78,
+      "bottom": 616.78,
+      "anchor": {
+        "x": 195,
+        "y": 624.78
+      }
+    },
+    {
+      "id": "enemy-1",
+      "left": 222,
+      "right": 366,
+      "top": 369.59,
+      "bottom": 419.59,
+      "anchor": {
+        "x": 194.25,
+        "y": 427.59
+      }
+    },
+    {
+      "id": "enemy-2",
+      "left": 217.57,
+      "right": 361.57,
+      "top": 311.59,
+      "bottom": 361.59,
+      "anchor": {
+        "x": 289.57,
+        "y": 435.58
+      }
+    }
+  ],
+  "hud": [
+    {
+      "name": "fleet-compass",
+      "left": 105,
+      "right": 285,
+      "top": 16,
+      "bottom": 69.5,
+      "width": 180,
+      "height": 53.5
+    },
+    {
+      "name": "fleet-battle",
+      "left": 12,
+      "right": 177,
+      "top": 260,
+      "bottom": 406.890625,
+      "width": 165,
+      "height": 146.890625
+    },
+    {
+      "name": "fleet-top-actions",
+      "left": 300.578125,
+      "right": 378,
+      "top": 15,
+      "bottom": 45,
+      "width": 77.421875,
+      "height": 30
+    },
+    {
+      "name": "fleet-sight fleet-sight-chase",
+      "left": 176,
+      "right": 214,
+      "top": 403,
+      "bottom": 441,
+      "width": 38,
+      "height": 38
+    },
+    {
+      "name": "fleet-capture-hint",
+      "left": 147.3984375,
+      "right": 242.6015625,
+      "top": 458,
+      "bottom": 486,
+      "width": 95.203125,
+      "height": 28
+    },
+    {
+      "name": "fleet-ship",
+      "left": 12,
+      "right": 169.5,
+      "top": 579.40625,
+      "bottom": 832,
+      "width": 157.5,
+      "height": 252.59375
+    },
+    {
+      "name": "fleet-armament",
+      "left": 40,
+      "right": 350,
+      "top": 100,
+      "bottom": 261.296875,
+      "width": 310,
+      "height": 161.296875
+    },
+    {
+      "name": "fleet-map-area",
+      "left": 234,
+      "right": 390,
+      "top": 688,
+      "bottom": 844,
+      "width": 156,
+      "height": 156
+    }
+  ],
+  "overlaps": []
+}

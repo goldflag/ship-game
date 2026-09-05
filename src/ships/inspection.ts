@@ -2,14 +2,38 @@ import type { Armor, ShipDefinition, Vec3 } from './blueprint';
 
 export type InspectionMode = 'exterior' | 'armor' | 'internals';
 export type InspectionKind = 'armor' | 'engine' | 'magazine' | 'steering' | 'compartment';
-export const INSPECTION_COLORS: Record<InspectionKind, string> = {
-  armor: '#e5bf80', engine: '#90bca5', magazine: '#dca48e', steering: '#b4b2db', compartment: '#9ecad1',
+export const INSPECTION_COLORS: Record<Exclude<InspectionKind, 'armor'>, string> = {
+  engine: '#90bca5', magazine: '#dca48e', steering: '#b4b2db', compartment: '#9ecad1',
 };
+/** A fixed scale keeps equal thicknesses the same color across every ship. */
+export const ARMOR_COLOR_STOPS = [
+  { thicknessMm: 0, color: '#64d487' },
+  { thicknessMm: 200, color: '#efd05b' },
+  { thicknessMm: 400, color: '#ee615a' },
+] as const;
 export interface InspectionEntry {
   id: string; name: string; kind: InspectionKind; center: Vec3; size: Vec3;
   plate?: Armor['plate']; provenance?: Armor['provenance']; anchor?: Vec3;
   thicknessMm?: number; capacityM3?: number; hp?: number;
   mountIndex?: number; moduleIndex?: number; compartmentIndex?: number; bearingDeg?: number;
+}
+export function armorThicknessColor(thicknessMm: number): string {
+  const thickness = Math.max(0, thicknessMm);
+  for (let i = 1; i < ARMOR_COLOR_STOPS.length; i++) {
+    const low = ARMOR_COLOR_STOPS[i - 1], high = ARMOR_COLOR_STOPS[i];
+    if (thickness > high.thicknessMm) continue;
+    const fraction = (thickness - low.thicknessMm) / (high.thicknessMm - low.thicknessMm);
+    return '#' + [1, 3, 5].map(offset => {
+      const from = parseInt(low.color.slice(offset, offset + 2), 16), to = parseInt(high.color.slice(offset, offset + 2), 16);
+      return Math.round(from + (to - from) * fraction).toString(16).padStart(2, '0');
+    }).join('');
+  }
+  return ARMOR_COLOR_STOPS[ARMOR_COLOR_STOPS.length - 1].color;
+}
+export function inspectionColor(entry: InspectionEntry): string {
+  if (entry.kind !== 'armor') return INSPECTION_COLORS[entry.kind];
+  // Teak backing has no steel-equivalent resistance in combat.
+  return entry.plate?.material === 'teak' ? '#aebabe' : armorThicknessColor(entry.thicknessMm ?? 0);
 }
 /** The port lists and renders the same volumes used by hit and flooding simulation. */
 export function inspectionEntries(def: ShipDefinition): InspectionEntry[] {
