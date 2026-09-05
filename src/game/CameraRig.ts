@@ -7,6 +7,9 @@ import { terrainHeight } from './HarborTerrain';
 export type CameraMode = 'Chase' | 'Bridge' | 'Tactical';
 const NORMAL_FOV = 52;
 const MAGNIFICATIONS = [2, 4, 6, 8, 12];
+const MIN_ORBIT_ELEVATION = .08;
+const MAX_UPWARD_TILT = Math.PI / 6;
+const CAMERA_CLEARANCE = 12;
 
 export class CameraRig {
   mode: CameraMode = 'Chase';
@@ -55,12 +58,12 @@ export class CameraRig {
       const dy = locked ? e.movementY : e.clientY - this.previous.y;
       if (this.inPort || this.inspecting) {
         this.azimuth -= dx * .005;
-        this.elevation = MathUtils.clamp(this.elevation + dy * .003, .08, 1.35);
+        this.elevation = MathUtils.clamp(this.elevation + dy * .003, -MAX_UPWARD_TILT, 1.35);
       } else {
         // Angular sensitivity follows the visible field of view at every magnification.
         const sensitivity = .0025 * Math.tan(this.camera.fov * Math.PI / 360) / Math.tan(NORMAL_FOV * Math.PI / 360);
         this.azimuth += dx * sensitivity;
-        this.elevation = MathUtils.clamp(this.elevation + dy * sensitivity, -.3, 1.3);
+        this.elevation = MathUtils.clamp(this.elevation + dy * sensitivity, -MAX_UPWARD_TILT, 1.3);
         if (dx || dy) this.actions.aim();
       }
       this.previous = { x: e.clientX, y: e.clientY };
@@ -166,6 +169,10 @@ export class CameraRig {
     this.distance = inPort ? 325 : 345;
     this.releasePointer();
   }
+  private constrainCameraHeight(position: Vector3): void {
+    const ground = this.inPort ? Math.max(0, terrainHeight(position.x, position.z)) : 0;
+    position.y = Math.max(position.y, ground + CAMERA_CLEARANCE);
+  }
   update(ship: ShipState, height: number, dt: number, snap = false): void {
     this.lastShip = ship;
     // Follow translation exactly; damping is for changes in orbit/zoom. Damping
@@ -181,12 +188,22 @@ export class CameraRig {
       this.target.set(ship.x + Math.sin(ship.heading) * 25, height + 20, ship.z - Math.cos(ship.heading) * 25);
       const distance = this.distance * Math.max(1, 1.1 / this.camera.aspect);
       const angle = this.azimuth - ship.heading;
-      const radius = Math.cos(this.elevation) * distance;
-      this.desired.set(ship.x + Math.sin(angle) * radius, height + Math.sin(this.elevation) * distance + 15, ship.z + Math.cos(angle) * radius);
-      if (this.inPort) this.desired.y = Math.max(this.desired.y, terrainHeight(this.desired.x, this.desired.z) + 12);
-      this.look.copy(this.target);
+      // Below the lowest orbit, upward dragging tilts the view toward the sky
+      // while the camera stays in place above the water.
+      const orbitElevation = Math.max(this.elevation, MIN_ORBIT_ELEVATION);
+      const radius = Math.cos(orbitElevation) * distance;
+      this.desired.set(ship.x + Math.sin(angle) * radius, height + Math.sin(orbitElevation) * distance + 15, ship.z + Math.cos(angle) * radius);
+      this.constrainCameraHeight(this.desired);
       this.camera.position.lerp(this.desired, snap ? 1 : 1 - Math.exp(-5 * dt));
-      if (this.inPort) this.camera.position.y = Math.max(this.camera.position.y, terrainHeight(this.camera.position.x, this.camera.position.z) + 12);
+      this.constrainCameraHeight(this.camera.position);
+      this.look.copy(this.target);
+      if (this.elevation < MIN_ORBIT_ELEVATION) {
+        this.look.sub(this.camera.position);
+        const horizontalDistance = Math.hypot(this.look.x, this.look.z);
+        const pitch = Math.min(MAX_UPWARD_TILT, Math.atan2(this.look.y, horizontalDistance) + MIN_ORBIT_ELEVATION - this.elevation);
+        this.look.y = Math.tan(pitch) * horizontalDistance;
+        this.look.add(this.camera.position);
+      }
     } else {
       if (this.binoculars || this.mode === 'Bridge') {
         this.desired.set(...localToWorld(this.bridge, { ...ship, y: height }));
@@ -195,6 +212,7 @@ export class CameraRig {
         const distance = (this.mode === 'Tactical' ? Math.max(650, this.distance) : this.distance) * Math.max(1, 1.2 / this.camera.aspect);
         this.desired.set(ship.x - Math.sin(this.azimuth) * distance, height + distance * (this.mode === 'Tactical' ? .95 : .28) + 25, ship.z + Math.cos(this.azimuth) * distance);
       }
+      this.constrainCameraHeight(this.desired);
       this.camera.position.copy(this.desired);
       this.look.set(Math.sin(this.azimuth) * Math.cos(this.elevation), -Math.sin(this.elevation), -Math.cos(this.azimuth) * Math.cos(this.elevation)).multiplyScalar(1000).add(this.desired);
     }
