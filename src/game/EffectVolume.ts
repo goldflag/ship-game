@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu';
-import { Fn, Loop, attribute, cameraFar, cameraNear, cameraPosition, cameraViewMatrix, exp, float, mix,
+import { Break, Fn, If, Loop, attribute, cameraFar, cameraNear, cameraPosition, cameraViewMatrix, exp, float, mix,
   perspectiveDepthToViewZ, positionWorld, sin, smoothstep,
   texture3D, vec3, vec4 } from 'three/tsl';
 
@@ -46,6 +46,9 @@ export function effectVolumeMaterial(map: THREE.Data3DTexture, sun: THREE.Node<'
   sceneDepth: THREE.Node<'float'>, steps = 12, turbulent = false) {
   // Test the actual volume against opaque scene depth, not its bounding plane.
   const material = new THREE.MeshBasicNodeMaterial({ transparent: true, depthTest: false, depthWrite: false, side: THREE.DoubleSide });
+  // This is a single bounding plane, not a closed transparent shell. Rendering
+  // separate back/front passes repeats submission without adding another surface.
+  material.forceSinglePass = true;
   const volume = texture3D(map);
   material.fragmentNode = Fn(() => {
     const sphere = attribute<'vec4'>('effectSphere', 'vec4');
@@ -109,19 +112,26 @@ export function effectVolumeMaterial(map: THREE.Data3DTexture, sun: THREE.Node<'
     };
     const transmittance = float(1).toVar(), radiance = vec3(0).toVar();
     Loop(steps, ({ i }) => {
+      // Once less than 0.1% of the ray remains, further samples cannot make
+      // a visible contribution. Keep the threshold low enough for hot gas too.
+      If(transmittance.lessThan(.001), () => { Break(); });
       const point = origin.add(ray.mul(start.add(float(i).add(.5).mul(stride)))).toVar();
       const density = densityAt(point).toVar();
-      const lightDepth = densityAt(point.add(sun.mul(.24))).mul(.65)
-        .add(densityAt(point.add(sun.mul(.58)), false).mul(.85));
-      const sunlight = exp(lightDepth.mul(-2.1)).toVar();
-      // Sky fill remains in shaded folds. The exposed edges scatter more sunlight.
-      const lighting = vec3(.3, .35, .4).add(vec3(1.25, 1.19, 1.08).mul(sunlight));
-      const heat = state.z.mul(smoothstep(.08, .75, density)).toVar();
-      const ember = mix(vec3(.9, .055, .004), vec3(5, .65, .022), heat);
-      const emission = ember.mul(heat.mul(heat)).add(vec3(9, 6, 1.5).mul(smoothstep(.86, 1, heat)));
-      const sampleAlpha = float(1).sub(exp(density.mul(state.w).mul(dilution).mul(stride).negate())).toVar();
-      radiance.addAssign(tint.mul(lighting).add(emission).mul(sampleAlpha).mul(transmittance));
-      transmittance.mulAssign(float(1).sub(sampleAlpha));
+      // Empty space contributes neither light nor extinction. In particular,
+      // eroded edges and the sea-level floor need no sunward density lookups.
+      If(density.greaterThan(0), () => {
+        const lightDepth = densityAt(point.add(sun.mul(.24))).mul(.65)
+          .add(densityAt(point.add(sun.mul(.58)), false).mul(.85));
+        const sunlight = exp(lightDepth.mul(-2.1)).toVar();
+        // Sky fill remains in shaded folds. The exposed edges scatter more sunlight.
+        const lighting = vec3(.3, .35, .4).add(vec3(1.25, 1.19, 1.08).mul(sunlight));
+        const heat = state.z.mul(smoothstep(.08, .75, density)).toVar();
+        const ember = mix(vec3(.9, .055, .004), vec3(5, .65, .022), heat);
+        const emission = ember.mul(heat.mul(heat)).add(vec3(9, 6, 1.5).mul(smoothstep(.86, 1, heat)));
+        const sampleAlpha = float(1).sub(exp(density.mul(state.w).mul(dilution).mul(stride).negate())).toVar();
+        radiance.addAssign(tint.mul(lighting).add(emission).mul(sampleAlpha).mul(transmittance));
+        transmittance.mulAssign(float(1).sub(sampleAlpha));
+      });
     });
     const alpha = float(1).sub(transmittance).toVar();
     return vec4(radiance.div(alpha.max(.001)), alpha.mul(opacity));
