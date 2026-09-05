@@ -25,7 +25,7 @@ test('custom deployments use independent mixed ships, unique IDs and lines 5 km 
   const duplicates = new CombatSimulation(shipPreset('bismarck'), {
     friendlyBots: Array(MAX_TEAM_SHIPS - 1).fill(shipPreset('bismarck')), enemies: Array(MAX_TEAM_SHIPS).fill(shipPreset('bismarck')),
   });
-  expect(new Set(duplicates.actors.map(actor => actor.motion.id)).size).toBe(10);
+  expect(new Set(duplicates.actors.map(actor => actor.motion.id)).size).toBe(60);
   duplicates.actors[1].mounts[0].ammo = 0;
   expect(duplicates.player.mounts[0].ammo).toBeGreaterThan(0);
   for (const a of duplicates.actors) for (const b of duplicates.actors) if (a !== b) {
@@ -66,10 +66,11 @@ test('fleet validation rejects empty enemies, unavailable presets and overfull t
   const setup = { playerShipId: 'bismarck', friendlyBots: [], enemies: ['yamato'], spawnDistance: BATTLE_SPAWN_DISTANCE };
   const ids = Object.keys(shipPresets);
   expect(() => validateBattleSetup(setup, ids)).not.toThrow();
+  expect(() => validateBattleSetup({ ...setup, friendlyBots: Array(29).fill('bismarck'), enemies: Array(30).fill('yamato') }, ids)).not.toThrow();
   expect(() => validateBattleSetup({ ...setup, enemies: [] }, ids)).toThrow('at least one enemy');
   expect(() => validateBattleSetup({ ...setup, playerShipId: 'missing' }, ids)).toThrow('unavailable');
-  expect(() => validateBattleSetup({ ...setup, friendlyBots: Array(5).fill('bismarck') }, ids)).toThrow('up to 5');
-  expect(() => validateBattleSetup({ ...setup, enemies: Array(6).fill('bismarck') }, ids)).toThrow('up to 5');
+  expect(() => validateBattleSetup({ ...setup, friendlyBots: Array(30).fill('bismarck') }, ids)).toThrow('up to 30');
+  expect(() => validateBattleSetup({ ...setup, enemies: Array(31).fill('bismarck') }, ids)).toThrow('up to 30');
 });
 
 test('spawn distance accepts its limits and rejects invalid values at setup and simulation boundaries', () => {
