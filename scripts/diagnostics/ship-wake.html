@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Ship wake regression diagnostic</title>
+<style>
+  html,body,#scene { margin:0; width:100%; height:100%; overflow:hidden; }
+  pre { position:absolute; top:0; left:1rem; padding:1rem; color:white; background:#000c; }
+</style>
+<div id="scene"></div><pre id="result">Initializing the actual game renderer…</pre>
+<script type="module">
+  // Dev-only integration check. Reads private Water Pro 3.5.1 GPU fields because
+  // the public API has no CPU wake sampling. Never included in the production build.
+  import { Game } from '/src/game/Game.ts';
+  import { BISMARCK } from '/src/simulation/ship.ts';
+  const noop = () => {};
+  const quality = new URLSearchParams(location.search).get('quality') ?? 'high';
+  let error;
+  const game = new Game(document.querySelector('#scene'), {quality,sea:'Atlantic',resolution:1}, {
+    progress:noop, ready:noop, telemetry:noop, pause:noop, hud:noop, error:m=>{error=m;},
+  });
+  window.wakeGame=game;
+  // Drive real Game.frame calls with a controlled clock and controller input.
+  game.scheduleFrame = noop;
+  let command = {throttle:0,rudder:0};
+  game.input.sample = () => command;
+  const advance = async(seconds) => {
+    game.setPaused(false);
+    for(let i=0;i<Math.round(seconds*10);i++) await game.frame(game.lastTime+100);
+    if(error) throw new Error(error);
+  };
+  const field = async() => {
+    const sampler = game.water.wake.getSampler();
+    const values = new Float32Array(await game.renderer.getArrayBufferAsync(sampler._displacement.value));
+    const foam=game.shipWake.foam;
+    const foamValues=foam.texture.image.data.slice();
+    const foamAt=(x,z)=>{
+      const res=foam.texture.image.width, size=game.water.wake.worldSize;
+      const ix=Math.floor((x-foam.origin.value.x)/size*res+res/2);
+      const iz=Math.floor((z-foam.origin.value.y)/size*res+res/2);
+      return ix>=0 && ix<res && iz>=0 && iz<res ? foamValues[iz*res+ix]/255 : 0;
+    };
+    const resolution=game.water.wake.resolution, cell=game.water.wake.worldSize/resolution;
+    let totalFoam=0, maxFoam=0, maxHeight=0;
+    for(let i=0;i<values.length;i+=2) {
+      const x=sampler._originXNode.value+(i/2%resolution-resolution/2+0.5)*cell;
+      const z=sampler._originZNode.value+(Math.floor(i/2/resolution)-resolution/2+0.5)*cell;
+      values[i+1]=Math.max(values[i+1],foamAt(x,z));
+      if(!Number.isFinite(values[i]) || !Number.isFinite(values[i+1])) throw new Error('Non-finite wake field');
+      totalFoam+=values[i+1];
+      maxFoam=Math.max(maxFoam,values[i+1]);
+      maxHeight=Math.max(maxHeight,Math.abs(values[i]));
+    }
+    const at = (x,z) => {
+      const res=game.water.wake.resolution, size=game.water.wake.worldSize;
+      const ix=Math.floor((x-sampler._originXNode.value)/size*res+res/2);
+      const iz=Math.floor((z-sampler._originZNode.value)/size*res+res/2);
+      return ix>=0 && ix<res && iz>=0 && iz<res ? values[(iz*res+ix)*2+1] : 0;
+    };
+    return {values,foamValues,totalFoam,maxFoam,maxHeight,at,origin:[sampler._originXNode.value,sampler._originZNode.value]};
+  };
+  const results = {};
+  const report = () => {
+    window.wakeDiagnostic = {...results};
+    document.querySelector('#result').textContent=JSON.stringify(results,null,2);
+  };
+  const capture = async() => {
+    // Background tabs may have been resized to 1 px by the host. Keep this
+    // renderer's diagnostic camera and canvas at a representative desktop size.
+    game.renderer.setSize(1440,900);
+    game.camera.aspect=1440/900;
+    game.camera.updateProjectionMatrix();
+    game.water.resize(1440,900);
+    game.sky.resize(1440,900);
+    game.resizePending=false;
+    const deterministic=game.water.deterministic;
+    game.water.deterministic=true;
+    game.sky.update(0);
+    // Refresh depth, refraction and sky captures after resizing without
+    // advancing the foam. Otherwise an empty depth target hides the wake.
+    await game.water.update(0);
+    game.water.deterministic=deterministic;
+    game.pipeline.render();
+    await game.renderer.backend.device.queue.onSubmittedWorkDone();
+    return game.renderer.domElement.toDataURL('image/png');
+  };
+  try {
+    game.start();
+    await game.initialization;
+    if(error) throw new Error(error);
+    await advance(1);
+    results.stationaryClean=(await field()).maxFoam===0;
+    game.simulation.ship.speed=BISMARCK.forwardSpeed;
+    command={throttle:1,rudder:0};
+    await advance(30);
+    const straight=await field();
+    const point={x:game.simulation.ship.x,z:game.simulation.ship.z+262}; // 150 m aft of the stern emitter
+    results.trailFoam=straight.at(point.x,point.z);
+    // Energy must clear the material's dissolve threshold; merely nonzero
+    // foam can still be visually absent in the actual shaded scene.
+    results.visibleTrail=results.trailFoam>0.35;
+    results.boundedHeight=straight.maxHeight<7.99;
+    const widthAt=(z)=>{
+      let width=0;
+      for(let x=-50;x<=50;x+=2) if(straight.at(game.simulation.ship.x+x,z)>0.2) width+=2;
+      return width;
+    };
+    results.freshWidth=widthAt(game.simulation.ship.z+150);
+    results.olderWidth=widthAt(game.simulation.ship.z+300);
+    results.wakeSpreads=results.olderWidth>results.freshWidth;
+    game.rig.distance=650;
+    game.rig.elevation=0.65;
+    game.rig.update(game.simulation.ship,game.ship.position.y,0,true);
+    window.wakeStraightImage=await capture();
+    game.setPaused(true);
+    await game.frame(game.lastTime+100);
+    const pausedBefore=await field();
+    game.rig.azimuth+=2.3;
+    game.rig.distance=1400;
+    for(let i=0;i<8;i++) await game.frame(game.lastTime+100);
+    const pausedAfter=await field();
+    results.pausePreservesWake=pausedBefore.values.every((v,i)=>v===pausedAfter.values[i])
+      && pausedBefore.foamValues.every((v,i)=>v===pausedAfter.foamValues[i]);
+    results.orbitPreservesAnchor=pausedBefore.origin.every((v,i)=>v===pausedAfter.origin[i]);
+    game.rig.distance=650;
+    game.rig.elevation=0.6;
+    game.rig.recenter();
+    game.rig.elevation=0.6;
+    command={throttle:1,rudder:1};
+    await advance(20);
+    const turning=await field();
+    results.turnHeading=game.simulation.ship.heading;
+    results.oldTrackFoam=turning.at(point.x,point.z);
+    results.turnRetainsTrail=results.turnHeading>0.1 && results.oldTrackFoam>0.005;
+    window.wakeTurningImage=await capture();
+    command={throttle:0,rudder:0};
+    game.simulation.ship.speed=0;
+    await advance(20);
+    results.foamAfterStop=(await field()).totalFoam;
+    results.stoppedWakeFades=results.foamAfterStop<turning.totalFoam;
+    window.wakeStoppedImage=await capture();
+    game.setInPort(true);
+    await advance(1);
+    results.portClearsWake=(await field()).maxFoam===0;
+    results.passed=results.stationaryClean && results.visibleTrail && results.boundedHeight
+      && results.pausePreservesWake && results.orbitPreservesAnchor && results.turnRetainsTrail && results.stoppedWakeFades
+      && results.wakeSpreads && results.portClearsWake;
+    window.captureWake=capture;
+    report();
+  } catch(e) { results.passed=false; results.error=String(e); report(); }
+  window.disposeWakeDiagnostic=()=>game.dispose();
+</script></html>

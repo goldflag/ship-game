@@ -7,6 +7,7 @@ import { SingleplayerSimulation } from '../simulation/ship';
 import { InputController } from './InputController';
 import { CameraRig } from './CameraRig';
 import { createHarborBackdrop } from './HarborBackdrop';
+import { ShipWake } from './ShipWake';
 import type { GameCallbacks, GameSettings } from './types';
 
 export const BUOYS = [
@@ -26,6 +27,7 @@ export class Game {
   private ship = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.01, 0.01), new THREE.MeshBasicMaterial({ visible: false }));
   private water?: WaterSystem;
   private sky?: SkySystem;
+  private shipWake?: ShipWake;
   private pipeline?: THREE.RenderPipeline;
   private scenePass?: ReturnType<typeof pass>;
   private buoyancyId?: number;
@@ -168,10 +170,7 @@ export class Game {
       multiPoint: true, useBoundingBox: false, sampleLength: 190, sampleWidth: 28,
       heightOffset: 0, heightSmoothing: 1.8, rotationSmoothing: 1.8, rotationInfluence: 0.45,
     });
-    this.water.wake.addGenerator(this.ship, { depth: 2.8, radius: 11, offset: new THREE.Vector3(0, 0, -112), teleportThreshold: 100 });
-    this.water.wake.addGenerator(this.ship, { depth: 2.2, radius: 14, offset: new THREE.Vector3(0, 0, 112), teleportThreshold: 100 });
-    this.water.wake.foamStrength = 1.25;
-    this.water.wake.foamPersistence = 0.995;
+    this.shipWake = new ShipWake(this.water.wake, this.ship, this.scene);
     for (const buoy of BUOYS) this.addBuoy(buoy);
     this.harbor = createHarborBackdrop();
     this.harbor.visible = this.inPort;
@@ -229,7 +228,11 @@ export class Game {
       this.rotationOffset.y = -state.heading;
       this.water!.buoyancy.updateObjectConfig(this.buoyancyId!, { rotationOffset: this.rotationOffset });
       this.rig.update(state, this.ship.position.y, realDt);
+      this.shipWake!.update(state, dt);
       this.sky!.update(dt);
+      // Fixed-step mode with zero delta renders without stepping the wake's
+      // leapfrog/foam integrators. Host-clock update(0) would still step them.
+      this.water!.deterministic = this.paused;
       await this.water!.update(dt);
       if (this.disposed) return;
       this.pipeline!.render();
@@ -269,6 +272,7 @@ export class Game {
     this.input.setRudder(0);
     if (this.inPort) {
       this.simulation.reset();
+      this.shipWake?.reset();
       this.trail = [{ x: 0, z: 0 }];
       this.lastTrailTick = 0;
     }
@@ -289,6 +293,7 @@ export class Game {
     await this.frameTask;
     this.pipeline?.dispose();
     this.scenePass?.dispose();
+    this.shipWake?.dispose();
     this.water?.dispose();
     this.sky?.dispose();
     const geometries = new Set<THREE.BufferGeometry>();
