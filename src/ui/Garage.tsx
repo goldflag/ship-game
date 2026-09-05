@@ -1,5 +1,6 @@
 // Fleet harbor. Progression, research, commander and refits are illustrative local state.
 import { useEffect, useState, type ReactNode } from 'react';
+import { ArmorTooltip } from './ArmorTooltip';
 import { Icon } from './Icons';
 import { SchematicDialog } from './SchematicDialog';
 import './Garage.css';
@@ -101,7 +102,6 @@ function SideContent({ state }: { state: GarageState }) {
 function FleetCarousel({ state }: { state: GarageState }) {
   const selectedShip = useShip();
   return <section className="garage-fleet-carousel" aria-label="Your fleet">
-    <div className="garage-fleet-caption"><strong>YOUR FLEET</strong><span>{SHIPS.length} {SHIPS.length === 1 ? 'ship' : 'ships'} available <i/> Select to inspect</span></div>
     <div className="garage-ship-cards">{SHIPS.map(ship => {
       const selected = ship.id === selectedShip.id;
       return <button className={selected ? 'garage-ship-selected' : ''} key={ship.id} aria-label={`Inspect ${ship.name}`} aria-pressed={selected} disabled={!state.ready} onClick={() => state.selectShip(ship.id)}>
@@ -119,7 +119,7 @@ function PortLayout({ state }: { state: GarageState }) {
     <header className="garage-classic-header">
       <div className="garage-brand"><Icon name="anchor" size={26}/><strong>FLEET COMMAND</strong></div>
       <nav aria-label="Port sections">{([['overview','Port'],['equipment','Equipment'],['commander','Commander'],['research','Fleet']] as [Section,string][]).map(([id,label])=><button key={id} aria-pressed={state.section===id} onClick={()=>state.setSection(id)}>{label}</button>)}</nav>
-      <div className="garage-classic-deploy"><SetSail state={state}/><span>CHOOSE YOUR FLEETS <i/> 5 KM APART</span></div>
+      <div className="garage-classic-deploy"><SetSail state={state}/></div>
       <ResourceWallet credits={state.credits}/>
       <button className="garage-settings" aria-label="Port settings" disabled={!state.ready} onClick={state.settings}><Icon name="compass" size={20}/></button>
     </header>
@@ -129,9 +129,7 @@ function PortLayout({ state }: { state: GarageState }) {
       <ModelViewControls mode={state.inspection} onChange={state.inspect} ready={state.ready}/>
       {state.inspection === 'exterior' ? <SideContent state={state}/> : <PortInspection key={`${selectedShip.id}:${state.inspection}`} definition={selectedShip} mode={state.inspection} selectedId={state.selectedVolume} onSelect={state.selectVolume}/>}
     </aside>
-    <span className="garage-orbit-hint"><Icon name="camera" size={15}/> Drag to inspect · Scroll to zoom</span>
     <FleetCarousel state={state}/>
-    <div className="garage-port-location"><Icon name="anchor" size={14}/><span>HOME PORT</span><strong>Wilhelmshaven</strong></div>
   </div>;
 }
 
@@ -185,12 +183,13 @@ export function Garage({ game, ready, progress, fps, onLaunch, onSettings, switc
   return <div className="garage">
     <div className="garage-scene-shade"/>
     <PortLayout state={state}/>
+    <ArmorTooltip game={game}/>
     {schematic && <SchematicDialog onClose={() => setSchematic(false)}/>}
     {(switching || switchError) && <div className="garage-loading" role={switchError ? 'alert' : 'status'}><span>{switchError || 'Preparing ship…'}</span></div>}
     {!ready && <div className="garage-loading" role="status">
       <span>Preparing the harbor</span><strong>{Math.round(progress * 100)}%</strong>
       <i role="progressbar" aria-label="Preparing harbor" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)}><b style={{ width: `${progress * 100}%` }}/></i>
     </div>}
-    <div className="garage-preview-meta"><span>PROGRESSION PREVIEW</span><span>{fps || '—'} FPS</span></div>
+    <div className="garage-preview-meta" aria-label={`${fps || 0} frames per second`}>{fps || '—'} FPS</div>
   </div>;
 }
