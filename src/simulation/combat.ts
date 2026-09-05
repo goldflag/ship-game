@@ -144,7 +144,7 @@ export class CombatSimulation {
         return { battery, ammo: states.reduce((n, m) => n + m.ammo, 0), ready: states.filter(m => m.status === 'ready').length, total: states.length,
           reload: reloading.length ? Math.min(...reloading.map(m => m.reload)) : 0 };
       }),
-      message: significant?.message ?? 'Aim at the target, wait for guns to train, then fire.',
+      message: significant?.message ?? 'Fire loaded guns at any time. Shells follow the barrels’ current aim.',
     };
   }
 }

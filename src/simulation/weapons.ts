@@ -3,8 +3,8 @@ import { barrelIds, barrelOffset } from '../ships/blueprint';
 import { add, clamp, length, localToWorld, normalize, radians, rotate, segmentBox, sub, wrapAngle, worldToLocal, type Pose } from './geometry';
 export const GRAVITY = 9.81;
 export type MountDefinition = ShipDefinition['mounts'][number];
-export interface MountState { id: string; train: number; elevation: number; reload: number; ammo: number; hp: number; recoil: number; status: 'ready' | 'training' | 'reloading' | 'blocked' | 'out-of-arc' | 'empty' | 'disabled'; }
-export const createMountState = (m: MountDefinition): MountState => ({ id: m.id, train: 0, elevation: radians(1), reload: 0, ammo: m.weapon.ammoPerBarrel * (m.weapon.barrelCount ?? 2), hp: 100, recoil: 0, status: 'training' });
+export interface MountState { id: string; train: number; elevation: number; reload: number; ammo: number; hp: number; recoil: number; status: 'ready' | 'reloading' | 'blocked' | 'out-of-arc' | 'empty' | 'disabled'; }
+export const createMountState = (m: MountDefinition): MountState => ({ id: m.id, train: 0, elevation: radians(1), reload: 0, ammo: m.weapon.ammoPerBarrel * (m.weapon.barrelCount ?? 2), hp: 100, recoil: 0, status: 'ready' });
 export function muzzleLocal(m: MountDefinition, state: Pick<MountState, 'train' | 'elevation'>, barrel: number): Vec3 {
   const bearing = radians(m.bearingDeg) + state.train, w = m.weapon;
   const forward = w.trunnionForward + (w.muzzleForward - w.trunnionForward) * Math.cos(state.elevation);
@@ -38,19 +38,18 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
     const midpoint = localToWorld(muzzleLocal(m, { train: desiredTrain, elevation: desiredElevation }, 0), pose);
     const relativeAim = sub(aim, inheritedVelocity.map(n => n * flightTime) as Vec3);
     const solution = solveBallistic(midpoint, relativeAim, m.weapon.muzzleSpeed);
-    if (!solution) { state.status = 'out-of-arc'; return; }
+    if (!solution) { desiredTrain = state.train; desiredElevation = state.elevation; break; }
     flightTime = solution.time;
     const direction = normalize(sub(worldToLocal(add([pose.x, pose.y, pose.z], solution.direction), pose), [0, 0, 0]));
     desiredTrain = wrapAngle(Math.atan2(direction[0], -direction[2]) - radians(m.bearingDeg));
     desiredElevation = Math.asin(clamp(direction[1], -1, 1));
   }
   const w = m.weapon, limit = radians(w.traverseDeg);
-  const legal = Math.abs(desiredTrain) <= limit && desiredElevation >= radians(w.elevationMinDeg) && desiredElevation <= radians(w.elevationMaxDeg);
   const train = clamp(desiredTrain, -limit, limit), elevation = clamp(desiredElevation, radians(w.elevationMinDeg), radians(w.elevationMaxDeg));
   // Traverse through the permitted interval; never shortcut across the forbidden stern sector.
   state.train += clamp(train - state.train, -radians(w.traverseRateDeg) * dt, radians(w.traverseRateDeg) * dt);
   state.elevation += clamp(elevation - state.elevation, -radians(w.elevationRateDeg) * dt, radians(w.elevationRateDeg) * dt);
-  if (!legal) { state.status = 'out-of-arc'; return; }
+  // Readiness depends on the actual barrel path, even while tracking an unreachable reticle.
   const obstructed = barrelIds(w).some((_, barrel) => {
     const muzzle = muzzleLocal(m, state, barrel);
     const direction = normalize(sub(muzzle, add(m.position, [0, w.pivotHeight, 0])));
@@ -59,6 +58,5 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
     return definition.obstructions.some(box => segmentBox(breech, beyond, box)) || definition.mounts.some(other => other.id !== m.id && segmentBox(breech, beyond, { center: add(other.position, [0, other.weapon.gunhouseSize[2] / 2, 0]), size: [other.weapon.gunhouseSize[1], other.weapon.gunhouseSize[2], other.weapon.gunhouseSize[0]] }));
   });
   if (obstructed) { state.status = 'blocked'; return; }
-  if (Math.abs(train - state.train) > radians(.15) || Math.abs(elevation - state.elevation) > radians(.1)) { state.status = 'training'; return; }
   state.status = state.reload > 0 ? 'reloading' : 'ready';
 }
