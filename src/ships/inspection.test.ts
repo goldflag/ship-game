@@ -8,7 +8,8 @@ import { Group, Mesh, Raycaster, Vector3 } from 'three/webgpu';
 test('inspection lists exactly the armor, mounts, modules and compartments used by each ship', () => {
   for (const id of Object.keys(shipPresets)) {
     const def = shipPreset(id), entries = inspectionEntries(def);
-    expect(entriesForMode(entries, 'armor').length).toBe(def.armor.length + def.mounts.filter(m => !def.armor.some(a => a.plate?.mountId === m.id)).length);
+    const structureCount=def.structuralPlating?1+(def.structures?.length??0):0;
+    expect(entriesForMode(entries, 'armor').length).toBe(structureCount + def.armor.length + def.mounts.filter(m => !def.armor.some(a => a.plate?.mountId === m.id)).length);
     expect(entriesForMode(entries, 'internals').length).toBe(def.modules.length + def.compartments.length);
     expect(entriesForMode(entries, 'exterior')).toEqual([]);
     const armor = entries.find(e => e.id === `armor:${def.armor[0].id}`)!;
@@ -58,6 +59,8 @@ test('armor picking follows the ship transform, finds the nearest layer and excl
   const origin = ship.localToWorld(new Vector3(-40, 0, 0)), destination = ship.localToWorld(new Vector3(0, 0, 0));
   const ray = new Raycaster(origin, destination.sub(origin).normalize());
   expect(view.pickArmor(ray)?.id).toBe('armor:port-main-belt-2');
+  const bowOrigin = ship.localToWorld(new Vector3(-40, 4, -115)), bowEnd = ship.localToWorld(new Vector3(0, 4, -115));
+  expect(view.pickArmor(new Raycaster(bowOrigin, bowEnd.sub(bowOrigin).normalize()))?.id).toBe('structure:hull');
   view.setMode('armor', 'armor:port-belt-support-2'); view.update(sim.player);
   expect(view.pickArmor(ray)?.id).toBe('armor:port-belt-support-2');
   view.setMode('internals'); view.update(sim.player);

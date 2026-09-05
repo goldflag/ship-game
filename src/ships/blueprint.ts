@@ -2,6 +2,7 @@
 export type Vec3 = [number, number, number];
 export type Battery = 'main' | 'secondary';
 export interface Volume { id: string; center: Vec3; size: Vec3; }
+export interface AuthoredSurface { vertices: Vec3[]; triangles: [number, number, number][]; }
 export interface GunPart {
   id: string; name: string; kind: 'gun'; massKg: number; barbetteRadius: number;
   gunhouseSize: Vec3; pivotHeight: number; trunnionForward: number; muzzleForward: number;
@@ -14,10 +15,13 @@ export interface GunPart {
   mountingStyle?: 'enclosed' | 'open-pedestal' | 'open-quad' | 'oerlikon';
   barrelBaseRadius?: number;
   rangefinderWidth?: number;
+  rangefinderForward?: number;
   gunhouseBaseHeight?: number;
   rollerRadius?: number;
   /** Original authored gunhouse vertices in the mount's forward/port/up frame. */
   gunhouseShape?: { footprint: [number, number][]; roof: Vec3[] };
+  /** Versioned original facets shared by the visual enclosure and physical armor. */
+  gunhouseMesh?: { version: 1; vertices: Vec3[]; faces: { id: string; indices: [number, number, number]; thicknessMm: number; material: 'KC' | 'Wh' | 'steel'; finish: 'naval' | 'roof' }[]; provenance?: Armor['provenance'] };
 }
 export const barrelIds = (weapon: GunPart): readonly string[] => {
   switch (weapon.barrelCount ?? 2) {
@@ -48,6 +52,8 @@ export interface Hull {
 export interface AuthoredStructure {
   id: string; name: string; footprint: [number, number][];
   baseY: number; height: number; material: string;
+  /** Optional original surface for tapered towers and funnel jackets, in runtime coordinates. */
+  surface?: AuthoredSurface;
 }
 export interface Module extends Volume {
   name: string; kind: 'engine' | 'steering' | 'magazine'; hp: number; compartmentId: string;
@@ -69,6 +75,8 @@ export interface ShipBlueprint {
   /** Gun sponsons can extend beyond the bare hull. */
   mountEnvelope?: { beam: number; length: number };
   structures?: AuthoredStructure[];
+  /** Provisional ordinary steel, separate from the documented armor schedule. */
+  structuralPlating?: { hullMm: number; superstructureMm: number; note: string };
   /** Optional crew-eye position in the shared ship coordinate frame. */
   viewpoints?: { bridge: Vec3 };
   accuracy: { exterior: string; internals: string; weapons: string };
@@ -172,7 +180,20 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
       const points = list(s.footprint, `${s.id}.footprint`, 256);
       if (points.length < 3) fail(String(s.id), 'footprint needs at least three points');
       points.forEach(p => { const pair = list(p, 'footprint point', 2); if (pair.length !== 2) fail(String(s.id), 'expected [x, z]'); pair.forEach(n => numeric(n, 'footprint coordinate', -1000, 1000)); });
+      if (s.surface !== undefined) {
+        const surface=record(s.surface, `${s.id}.surface`);
+        const vertices=list(surface.vertices,'surface.vertices',2048).map(v=>vector(v,'surface vertex'));
+        list(surface.triangles,'surface.triangles',4096).forEach(face=>validateTriangle(face,vertices,'surface triangle'));
+      }
     });
+  }
+  if (b.structuralPlating !== undefined) {
+    const plating=record(b.structuralPlating,'structuralPlating');
+    numeric(plating.hullMm,'structuralPlating.hullMm',.1,100);numeric(plating.superstructureMm,'structuralPlating.superstructureMm',.1,100);
+    text(plating.note,'structuralPlating.note');
+    if (!h.sections) fail('structuralPlating','requires authored hull sections');
+    const sections=h.sections as {points:unknown[]}[];
+    if (sections.some(s=>s.points.length!==sections[0].points.length)) fail('structuralPlating','hull sections require matching point counts');
   }
   if (b.viewpoints !== undefined) {
     const viewpoints = record(b.viewpoints, 'viewpoints');
@@ -196,12 +217,23 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     if (p.barrelCount !== undefined) literal(p.barrelCount, [1, 2, 3, 4], `${p.id}.barrelCount`);
     if (p.mountingStyle !== undefined) literal(p.mountingStyle, ['enclosed', 'open-pedestal', 'open-quad', 'oerlikon'], `${p.id}.mountingStyle`);
     for (const k of ['barrelBaseRadius', 'rangefinderWidth', 'gunhouseBaseHeight', 'rollerRadius']) if (p[k] !== undefined) numeric(p[k], `${p.id}.${k}`, .001, 100);
+    if(p.rangefinderForward!==undefined)numeric(p.rangefinderForward,`${p.id}.rangefinderForward`,-100,100);
     if (p.gunhouseShape !== undefined) {
       const shape = record(p.gunhouseShape, `${p.id}.gunhouseShape`);
       const footprint = list(shape.footprint, 'gunhouseShape.footprint', 32), roof = list(shape.roof, 'gunhouseShape.roof', 32);
       if (footprint.length < 3 || roof.length !== footprint.length) fail(String(p.id), 'gunhouse footprint and roof require matching polygons');
       footprint.forEach(v => { const point = list(v, 'footprint point', 2); if (point.length !== 2) fail(String(p.id), 'expected a 2D footprint point'); point.forEach(n => numeric(n, 'footprint coordinate', -100, 100)); });
       roof.forEach(v => vector(v, 'roof point'));
+    }
+    if (p.gunhouseMesh !== undefined) {
+      if (p.gunhouseShape !== undefined) fail(String(p.id),'choose one gunhouse geometry format');
+      const mesh=record(p.gunhouseMesh,`${p.id}.gunhouseMesh`);literal(mesh.version,[1],'gunhouseMesh.version');
+      const vertices=list(mesh.vertices,'gunhouseMesh.vertices',128).map(v=>vector(v,'gunhouse vertex'));
+      const faces=list(mesh.faces,'gunhouseMesh.faces',128).map(f=>record(f,'gunhouse face'));unique(faces,'gunhouse faces');
+      faces.forEach(f=>{validateTriangle(f.indices,vertices,'gunhouse face');numeric(f.thicknessMm,'gunhouse thickness',.1,2000);literal(f.material,['KC','Wh','steel'],'gunhouse material');literal(f.finish,['naval','roof'],'gunhouse finish');});
+      const edges=new Map<string,{count:number;winding:number}>();
+      faces.forEach(f=>{const ids=f.indices as number[];ids.forEach((a,i)=>{const c=ids[(i+1)%3],key=[a,c].sort((a,b)=>a-b).join(':');const edge=edges.get(key)??{count:0,winding:0};edge.count++;edge.winding+=a<c?1:-1;edges.set(key,edge);});});
+      if (!faces.length || [...edges.values()].some(e=>e.count!==2||e.winding!==0)) fail(String(p.id),'gunhouse facets must form a closed consistently wound enclosure');
     }
   });
   const mounts = list(b.mounts, 'mounts', 64).map((m, i) => record(m, `mounts[${i}]`));
@@ -231,7 +263,17 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     if ((m.center as number[]).some((n, i) => Math.abs(n - (c.center as number[])[i]) + (m.size as number[])[i] / 2 > (c.size as number[])[i] / 2 + 1e-6)) fail(String(m.id), 'module must fit its assigned compartment');
   });
   mounts.forEach(m => { if (m.magazineId !== undefined && !modules.some(module => module.id === m.magazineId && module.kind === 'magazine')) fail(String(m.id), 'unknown magazine connection'); });
-  volumes(b.armor, 'armor', 512).forEach(a => {
+  const compiledArmor=[...list(b.armor,'armor',512),...mounts.flatMap(m=>{
+    const part=parts.find(p=>p.id===m.partId) as unknown as GunPart;
+    if (!part.gunhouseMesh) return [];
+    return part.gunhouseMesh.faces.map(face=>{
+      const vertices=face.indices.map(i=>{const [x,y,z]=part.gunhouseMesh!.vertices[i];return [-y,z,-x] as Vec3;});
+      const low=[0,1,2].map(i=>Math.min(...vertices.map(v=>v[i]))), high=[0,1,2].map(i=>Math.max(...vertices.map(v=>v[i])));
+      return {id:`${m.id}-turret-${face.id}`,name:`${m.name} · ${face.id.replace(/-/g,' ')}`,center:low.map((v,i)=>(v+high[i])/2),size:low.map((v,i)=>Math.max(.001,high[i]-v)),thicknessMm:face.thicknessMm,
+        plate:{vertices,material:face.material,mountId:m.id},...(part.gunhouseMesh!.provenance?{provenance:part.gunhouseMesh!.provenance}:{})};
+    });
+  })];
+  volumes(compiledArmor, 'armor', 512).forEach(a => {
     text(a.name, `${a.id}.name`); numeric(a.thicknessMm, `${a.id}.thicknessMm`, .001, 2000);
     if (a.provenance !== undefined) {
       const p = record(a.provenance, `${a.id}.provenance`);
@@ -272,5 +314,12 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
   const accuracy = record(b.accuracy, 'accuracy');
   ['exterior', 'internals', 'weapons'].forEach(k => text(accuracy[k], `accuracy.${k}`));
   const blueprint = structuredClone(input) as ShipBlueprint;
-  return { ...blueprint, compilerVersion: 1, mounts: blueprint.mounts.map(m => ({ ...m, weapon: structuredClone(parts.find(p => p.id === m.partId)) as unknown as GunPart })) };
+  return { ...blueprint, armor:structuredClone(compiledArmor) as Armor[], compilerVersion: 1, mounts: blueprint.mounts.map(m => ({ ...m, weapon: structuredClone(parts.find(p => p.id === m.partId)) as unknown as GunPart })) };
+}
+
+function validateTriangle(value: unknown, vertices: Vec3[], path: string): void {
+  const ids=list(value,path,3).map(i=>numeric(i,path,0,vertices.length-1));
+  if (ids.length!==3 || ids.some(i=>!Number.isInteger(i))) fail(path,'expected three vertex indices');
+  const [a,b,c]=ids.map(i=>vertices[i]), u=b.map((v,i)=>v-a[i]), v=c.map((n,i)=>n-a[i]);
+  if (Math.hypot(u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0])<1e-8) fail(path,'degenerate triangle');
 }

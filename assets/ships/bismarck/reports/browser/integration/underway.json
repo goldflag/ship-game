@@ -1,0 +1,737 @@
+{
+  "diagnostics": {
+    "audio": {
+      "failed": [],
+      "inPort": false,
+      "loaded": 13,
+      "paused": false,
+      "played": 95,
+      "settings": {
+        "effects": 0.8,
+        "interface": 0.65,
+        "master": 0.65,
+        "muted": false
+      },
+      "state": "running",
+      "total": 13,
+      "voices": 7
+    },
+    "backend": "webgpu",
+    "camera": {
+      "aim": [
+        -9.9849885642317,
+        1.5602318763405378,
+        -4992.494282115848
+      ],
+      "binoculars": false,
+      "fov": 52.00000000000001,
+      "magnification": 1,
+      "manualAim": true,
+      "matrixWorldInverse": [
+        0.999998000006,
+        -4.530157589208225e-05,
+        0.001999482874966849,
+        0,
+        -6.776263578034403e-21,
+        0.9997434369642998,
+        0.02265083324757171,
+        0,
+        -0.001999996000012,
+        -0.02265078794604112,
+        0.9997414374834243,
+        0,
+        0,
+        -114.64421322026007,
+        -351.14598093766915,
+        1
+      ],
+      "mode": "Chase",
+      "pointerLocked": false,
+      "position": [
+        0.6969168119725192,
+        122.56854881266491,
+        348.4584059862596
+      ],
+      "projectionMatrix": [
+        1.7257174814348164,
+        0,
+        0,
+        0,
+        0,
+        2.050303841579296,
+        0,
+        0,
+        0,
+        0,
+        -1.0000083334027783,
+        -1,
+        0,
+        0,
+        -0.5000041667013891,
+        0
+      ]
+    },
+    "combat": {
+      "batteries": [
+        {
+          "ammo": 960,
+          "battery": "main",
+          "ready": 4,
+          "reload": 0,
+          "total": 4
+        },
+        {
+          "ammo": 1800,
+          "battery": "secondary",
+          "ready": 3,
+          "reload": 0,
+          "total": 6
+        }
+      ],
+      "battery": "main",
+      "battle": true,
+      "contacts": [
+        {
+          "controller": "player",
+          "heading": 1.5707963267948966,
+          "id": "player",
+          "integrity": 1,
+          "name": "Bismarck",
+          "shipId": "bismarck",
+          "sunk": false,
+          "team": "friendly",
+          "x": 0,
+          "z": 0
+        },
+        {
+          "controller": "bot",
+          "heading": 4.612543895646025,
+          "id": "enemy-1",
+          "integrity": 1,
+          "name": "USS Baltimore",
+          "shipId": "baltimore",
+          "sunk": false,
+          "targetId": "player",
+          "team": "enemy",
+          "x": -85.03406809069693,
+          "z": -4995.847571307419
+        }
+      ],
+      "message": "Bismarck \u00b7 Stopped by Port Main Belt 2",
+      "modules": [
+        {
+          "condition": 1,
+          "id": "magazine-forward",
+          "name": "Forward 8-inch magazines"
+        },
+        {
+          "condition": 1,
+          "id": "engine-forward",
+          "name": "Forward engine room"
+        },
+        {
+          "condition": 1,
+          "id": "engine-aft",
+          "name": "After engine room"
+        },
+        {
+          "condition": 1,
+          "id": "magazine-aft",
+          "name": "After 8-inch magazine"
+        },
+        {
+          "condition": 1,
+          "id": "steering",
+          "name": "Steering gear"
+        }
+      ],
+      "mounts": [
+        {
+          "ammo": 240,
+          "id": "anton",
+          "name": "Anton",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 240,
+          "id": "bruno",
+          "name": "Bruno",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 240,
+          "id": "caesar",
+          "name": "C\u00e4sar",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 240,
+          "id": "dora",
+          "name": "Dora",
+          "reload": 0,
+          "status": "ready"
+        }
+      ],
+      "playerIntegrity": 1,
+      "playerSunk": false,
+      "playerWater": 0,
+      "range": 4992.504267094427,
+      "ready": 4,
+      "result": "active",
+      "targetId": "enemy-1",
+      "targetIntegrity": 1,
+      "targetName": "USS Baltimore",
+      "targetPosition": {
+        "heading": 4.612543895646025,
+        "x": -85.03406809069693,
+        "z": -4995.847571307419
+      },
+      "targetPower": 1,
+      "targetRange": 4996.571199179923,
+      "targetSteering": 1,
+      "targetSunk": false,
+      "targetUnderway": false,
+      "targetWater": 0,
+      "total": 4
+    },
+    "contentHash": "45b7cc0110d0262b177a0e3aeb4df43d0682de8b52f1cc4f18cd5ab0fcddc9a5",
+    "effects": {
+      "flashes": 0,
+      "foam": 0,
+      "particleCapacity": 2272,
+      "shells": 16,
+      "smoke": 104,
+      "spray": 0
+    },
+    "events": [
+      {
+        "kind": "shot",
+        "message": "Mount 52 \u00b7 5-inch fired",
+        "position": [
+          -59.642381830582295,
+          8.10166640641977,
+          -4986.032368250745
+        ],
+        "sequence": 119,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 66,
+          "velocity": [
+            9.46968128172329,
+            29.73357902221071,
+            791.6541200360319
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 1691
+      },
+      {
+        "kind": "shot",
+        "message": "Mount 52 \u00b7 5-inch fired",
+        "position": [
+          -60.48045124460434,
+          8.10166640641977,
+          -4986.017573073128
+        ],
+        "sequence": 120,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 67,
+          "velocity": [
+            9.46968128172329,
+            29.73357902221071,
+            791.6541200360319
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 1691
+      },
+      {
+        "kind": "shot",
+        "message": "Mount 54 \u00b7 5-inch fired",
+        "position": [
+          -53.91353063945775,
+          8.1016772138152,
+          -4986.459634189586
+        ],
+        "sequence": 121,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 68,
+          "velocity": [
+            8.559520305707075,
+            29.73569776790835,
+            791.6695847183734
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 1691
+      },
+      {
+        "kind": "shot",
+        "message": "Mount 54 \u00b7 5-inch fired",
+        "position": [
+          -54.75161651610788,
+          8.1016772138152,
+          -4986.445802943815
+        ],
+        "sequence": 122,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 69,
+          "velocity": [
+            8.559520305707075,
+            29.73569776790835,
+            791.6695847183734
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 1691
+      },
+      {
+        "kind": "stopped",
+        "message": "Stopped by Port Main Belt 2",
+        "normal": [
+          -0.0034780071329080548,
+          0,
+          0.9999939517149009
+        ],
+        "position": [
+          -0.8460693456260765,
+          1.491215957764984,
+          -16.922908568509985
+        ],
+        "sequence": 123,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 57,
+          "velocity": [
+            0.36856514625455494,
+            -32.335873303237506,
+            791.6368627879114
+          ]
+        },
+        "shipId": "player",
+        "tick": 1798
+      },
+      {
+        "kind": "stopped",
+        "message": "Stopped by Port Main Belt 2",
+        "normal": [
+          -0.0034780071329080548,
+          0,
+          0.9999939517149009
+        ],
+        "position": [
+          -0.007877496352220825,
+          1.4909178409704462,
+          -16.919993313647172
+        ],
+        "sequence": 124,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 56,
+          "velocity": [
+            0.36856514625455494,
+            -32.335873303237506,
+            791.6368627879114
+          ]
+        },
+        "shipId": "player",
+        "tick": 1798
+      },
+      {
+        "kind": "stopped",
+        "message": "Stopped by Port Main Belt 2",
+        "normal": [
+          -0.0034780071329080548,
+          0,
+          0.9999939517149009
+        ],
+        "position": [
+          -1.0914299736489026,
+          1.4916389663641811,
+          -16.923761939685814
+        ],
+        "sequence": 125,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 55,
+          "velocity": [
+            11.839179920024419,
+            -32.35432447026032,
+            791.4941763974934
+          ]
+        },
+        "shipId": "player",
+        "tick": 1798
+      },
+      {
+        "kind": "stopped",
+        "message": "Stopped by Port Main Belt 2",
+        "normal": [
+          -0.0034780071329080548,
+          0,
+          0.9999939517149009
+        ],
+        "position": [
+          -0.2531022072281999,
+          1.4908452751675032,
+          -16.920846212099338
+        ],
+        "sequence": 126,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 54,
+          "velocity": [
+            11.839179920024419,
+            -32.35432447026032,
+            791.4941763974934
+          ]
+        },
+        "shipId": "player",
+        "tick": 1798
+      },
+      {
+        "kind": "stopped",
+        "message": "Stopped by Port Main Belt 2",
+        "normal": [
+          -0.0034780071329080548,
+          0,
+          0.9999939517149009
+        ],
+        "position": [
+          -0.9646485133966763,
+          1.483375486607505,
+          -16.923320990195748
+        ],
+        "sequence": 127,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 61,
+          "velocity": [
+            5.914016822023381,
+            -31.89483394670361,
+            791.5897772151035
+          ]
+        },
+        "shipId": "player",
+        "tick": 1826
+      },
+      {
+        "kind": "stopped",
+        "message": "Stopped by Port Main Belt 2",
+        "normal": [
+          -0.0034780071329080548,
+          0,
+          0.9999939517149009
+        ],
+        "position": [
+          -0.12641333917664044,
+          1.4828421206900282,
+          -16.920405584647554
+        ],
+        "sequence": 128,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 60,
+          "velocity": [
+            5.914016822023381,
+            -31.89483394670361,
+            791.5897772151035
+          ]
+        },
+        "shipId": "player",
+        "tick": 1826
+      },
+      {
+        "kind": "stopped",
+        "message": "Stopped by Port Main Belt 2",
+        "normal": [
+          -0.0034780071329080548,
+          0,
+          0.9999939517149009
+        ],
+        "position": [
+          -0.9841309343730023,
+          1.483385548125777,
+          -16.923388750604705
+        ],
+        "sequence": 129,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 59,
+          "velocity": [
+            6.8248174460595195,
+            -31.89635026035774,
+            791.5780560639865
+          ]
+        },
+        "shipId": "player",
+        "tick": 1826
+      },
+      {
+        "kind": "stopped",
+        "message": "Stopped by Port Main Belt 2",
+        "normal": [
+          -0.0034780071329080548,
+          0,
+          0.9999939517149009
+        ],
+        "position": [
+          -0.14588464531745657,
+          1.4828133783299289,
+          -16.920473306398797
+        ],
+        "sequence": 130,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 58,
+          "velocity": [
+            6.8248174460595195,
+            -31.89635026035774,
+            791.5780560639865
+          ]
+        },
+        "shipId": "player",
+        "tick": 1826
+      },
+      {
+        "kind": "shot",
+        "message": "Mount 51 \u00b7 5-inch fired",
+        "position": [
+          -110.08267417445896,
+          10.200059383559095,
+          -4988.558716707612
+        ],
+        "sequence": 131,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 70,
+          "velocity": [
+            17.468532130909676,
+            29.41852875929254,
+            791.612293404479
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 1903
+      },
+      {
+        "kind": "shot",
+        "message": "Mount 51 \u00b7 5-inch fired",
+        "position": [
+          -110.92053467417307,
+          10.200059383559095,
+          -4988.534862504233
+        ],
+        "sequence": 132,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 71,
+          "velocity": [
+            17.468532130909676,
+            29.41852875929254,
+            791.612293404479
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 1903
+      },
+      {
+        "kind": "shot",
+        "message": "Mount 56 \u00b7 5-inch fired",
+        "position": [
+          -37.958213881420605,
+          10.200235273099263,
+          -4995.3977322331875
+        ],
+        "sequence": 133,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 72,
+          "velocity": [
+            6.017012014771363,
+            29.45301118467081,
+            791.8541230860428
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 1903
+      },
+      {
+        "kind": "shot",
+        "message": "Mount 56 \u00b7 5-inch fired",
+        "position": [
+          -38.796331852379325,
+          10.200235273099263,
+          -4995.386005905712
+        ],
+        "sequence": 134,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 73,
+          "velocity": [
+            6.017012014771363,
+            29.45301118467081,
+            791.8541230860428
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 1903
+      },
+      {
+        "kind": "shot",
+        "message": "Mount 52 \u00b7 5-inch fired",
+        "position": [
+          -78.81384392606981,
+          8.101595326270308,
+          -4984.4468870597475
+        ],
+        "sequence": 135,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 74,
+          "velocity": [
+            12.519065092226125,
+            29.719644049458235,
+            791.746878433478
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 1932
+      },
+      {
+        "kind": "shot",
+        "message": "Mount 52 \u00b7 5-inch fired",
+        "position": [
+          -79.65183546735759,
+          8.101595326270308,
+          -4984.428194367857
+        ],
+        "sequence": 136,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 75,
+          "velocity": [
+            12.519065092226125,
+            29.719644049458235,
+            791.746878433478
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 1932
+      },
+      {
+        "kind": "shot",
+        "message": "Mount 54 \u00b7 5-inch fired",
+        "position": [
+          -73.09632073293965,
+          8.101609579273061,
+          -4985.005689921329
+        ],
+        "sequence": 137,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 76,
+          "velocity": [
+            11.609860467811782,
+            29.72243829238678,
+            791.766532065765
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 1932
+      },
+      {
+        "kind": "shot",
+        "message": "Mount 54 \u00b7 5-inch fired",
+        "position": [
+          -73.9343332000882,
+          8.101609579273061,
+          -4984.987960146836
+        ],
+        "sequence": 138,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 77,
+          "velocity": [
+            11.609860467811782,
+            29.72243829238678,
+            791.766532065765
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 1932
+      }
+    ],
+    "fleet": [
+      {
+        "ammo": 2760,
+        "controller": "player",
+        "definitionId": "bismarck",
+        "id": "player",
+        "integrity": 1000,
+        "motion": {
+          "distance": 0,
+          "heading": 1.5707963267948966,
+          "id": "player",
+          "pitch": 0,
+          "roll": 0,
+          "rudder": 0,
+          "speed": 0,
+          "tick": 1957,
+          "x": 0,
+          "y": 0,
+          "yawRate": 0,
+          "z": 0
+        },
+        "team": "friendly"
+      },
+      {
+        "ammo": 5593,
+        "controller": "bot",
+        "definitionId": "baltimore",
+        "id": "enemy-1",
+        "integrity": 1000,
+        "motion": {
+          "distance": 85.17298888888945,
+          "heading": 4.612543895646025,
+          "id": "enemy-1",
+          "pitch": 0,
+          "roll": 0,
+          "rudder": -0.851476093214292,
+          "speed": 5.219333333333291,
+          "tick": 1957,
+          "x": -85.03406809069693,
+          "y": 0,
+          "yawRate": -0.006049532336517709,
+          "z": -4995.847571307419
+        },
+        "targetId": "player",
+        "team": "enemy"
+      }
+    ],
+    "fps": 26.399715276434208,
+    "inPort": false,
+    "inspecting": false,
+    "maxMuzzleErrorM": 0.0021678562339654222,
+    "paused": false,
+    "portInspection": "exterior",
+    "renderedShips": [
+      {
+        "id": "player",
+        "visible": true
+      },
+      {
+        "id": "enemy-1",
+        "visible": true
+      }
+    ],
+    "shipId": "bismarck",
+    "tick": 1957
+  }
+}
