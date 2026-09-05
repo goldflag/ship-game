@@ -37,14 +37,14 @@ async function frameHarness() {
   rig.update = (ship, ...args) => { focusPositions.push(ship.z); updateCamera(ship, ...args); };
   const helm = { throttle: 1, rudder: 0 };
   const game = Object.assign(Object.create(Game.prototype), {
-    definition: simulation.definition, simulation, playerView, targetView, camera, rig, ship: new Group(),
+    definition: simulation.definition, simulation, playerView, targetView, fleetViews: [playerView, targetView], camera, rig, ship: new Group(),
     renderer: { domElement: { setAttribute() {} } }, manualAim: false,
     lastTime: 0, hudTime: Infinity, lastTrailTick: 0, trail: [], fps: 60, battery: 'main',
     paused: false, inPort: false, inspecting: false,
     input: { sample: () => helm, firing: false, setEnabled() {},
       setOrder: (order: number) => { helm.throttle = ENGINE_ORDERS[order]; },
       setRudder: (rudder: number) => { helm.rudder = rudder; } },
-    effects: { update() {} }, sky: { update() {} }, water: { async update() {} },
+    effects: { update() {}, reset() {} }, sky: { update() {} }, water: { async update() {} },
     shipWake: { update: (ship: { z: number }) => wakePositions.push(ship.z), reset() {} },
     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {},
     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
