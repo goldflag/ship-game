@@ -3,6 +3,7 @@ import type { ShipState } from '../simulation/ship';
 import { localToWorld } from '../simulation/geometry';
 import type { Vec3 } from '../ships/blueprint';
 import { terrainHeight } from './HarborTerrain';
+import type { ShellView } from './ShellFollow';
 
 export type CameraMode = 'Chase' | 'Bridge' | 'Tactical';
 const NORMAL_FOV = 52;
@@ -34,6 +35,10 @@ export class CameraRig {
   private mouseFire = false;
   private requestingLock = false;
   private intentionalUnlock = false;
+  private shellView?: ShellView;
+  private returnBinoculars = false;
+  private shellDirection = new Vector3();
+  private shellRight = new Vector3();
 
   constructor(readonly camera: PerspectiveCamera, private canvas: HTMLCanvasElement, private bridge: Vec3 = [0, 29, -31],
     private actions: { pause(): void; aim(): void; optics(): void } = { pause() {}, aim() {}, optics() {} }) {
@@ -51,7 +56,7 @@ export class CameraRig {
       canvas.setPointerCapture(e.pointerId);
     }, options);
     canvas.addEventListener('pointermove', e => {
-      if (!this.enabled) return;
+      if (!this.enabled || this.shellView) return;
       const locked = this.pointerLocked;
       if (!locked && (!this.dragging || e.pointerId !== this.pointerId)) return;
       const dx = locked ? e.movementX : e.clientX - this.previous.x;
@@ -84,7 +89,7 @@ export class CameraRig {
     document.addEventListener('pointerlockerror', () => { this.requestingLock = false; }, options);
     window.addEventListener('blur', release, options);
     canvas.addEventListener('wheel', e => {
-      if (!this.enabled) return;
+      if (!this.enabled || this.shellView) return;
       e.preventDefault();
       if (this.binoculars) {
         this.zoomIndex = MathUtils.clamp(this.zoomIndex + Math.sign(-e.deltaY), 0, MAGNIFICATIONS.length - 1);
@@ -100,6 +105,15 @@ export class CameraRig {
   get firing(): boolean { return this.enabled && this.pointerLocked && this.mouseFire; }
   get magnification(): number { return this.binoculars ? MAGNIFICATIONS[this.zoomIndex] : 1; }
   get bearing(): number { return ((this.azimuth % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2); }
+
+  setShellView(view?: ShellView): void {
+    if (!!view !== !!this.shellView) {
+      if (view) { this.returnBinoculars = this.binoculars; this.binoculars = false; }
+      else { this.binoculars = this.returnBinoculars; this.followedShipId = undefined; }
+      this.updateProjection();
+    }
+    this.shellView = view;
+  }
 
   capturePointer(): void {
     if (!this.enabled || this.inPort || this.inspecting || this.pointerLocked || this.requestingLock || !this.canvas.requestPointerLock || !window.matchMedia('(pointer: fine)').matches) return;
@@ -122,6 +136,7 @@ export class CameraRig {
     if (!enabled) { this.dragging = false; this.releasePointer(); }
   }
   setInspecting(inspecting: boolean): void {
+    this.setShellView();
     this.inspecting = inspecting;
     this.binoculars = false;
     this.updateProjection();
@@ -158,6 +173,7 @@ export class CameraRig {
     this.elevation = this.inPort || this.inspecting ? .23 : this.mode === 'Tactical' ? .85 : this.mode === 'Bridge' ? .025 : .1;
   }
   setInPort(inPort: boolean): void {
+    this.setShellView();
     this.inPort = inPort;
     this.inspecting = false;
     this.followedShipId = undefined;
@@ -175,6 +191,19 @@ export class CameraRig {
   }
   update(ship: ShipState, height: number, dt: number, snap = false): void {
     this.lastShip = ship;
+    if (this.shellView) {
+      this.target.fromArray(this.shellView.position);
+      this.shellDirection.fromArray(this.shellView.velocity).normalize();
+      if (this.shellDirection.lengthSq() === 0) this.shellDirection.set(0, 0, -1);
+      this.shellRight.set(-this.shellDirection.z, 0, this.shellDirection.x).normalize();
+      this.camera.position.copy(this.target).addScaledVector(this.shellDirection, -45).addScaledVector(this.shellRight, 12);
+      this.camera.position.y += 12;
+      this.constrainCameraHeight(this.camera.position);
+      this.look.copy(this.target).addScaledVector(this.shellDirection, 35);
+      this.camera.lookAt(this.look);
+      this.camera.updateMatrixWorld();
+      return;
+    }
     // Follow translation exactly; damping is for changes in orbit/zoom. Damping
     // a moving world-space destination makes the follow distance vary with dt.
     if (!snap && this.followedShipId === ship.id) {
