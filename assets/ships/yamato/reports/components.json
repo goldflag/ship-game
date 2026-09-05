@@ -1,0 +1,259 @@
+{
+  "contentHash": "b81a8d55e9fdd446a391412f17299cb078dba1bdc6b9ab024e99c5b2f21e510f",
+  "method": "World-space original mesh vertices and joint/optical centres in retained source.blend",
+  "measures": [
+    {
+      "id": "main-1.roller-diameter",
+      "measuredM": 13.050000190734863,
+      "expectedM": 13.05,
+      "errorM": 1.9073486257070726e-07,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "O-45(N) printed p.17"
+    },
+    {
+      "id": "main-1.bore-spacing-0",
+      "measuredM": 3.5,
+      "expectedM": 3.5,
+      "errorM": 0.0,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "O-45(N) printed p.17"
+    },
+    {
+      "id": "main-1.bore-spacing-1",
+      "measuredM": 3.5,
+      "expectedM": 3.5,
+      "errorM": 0.0,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "O-45(N) printed p.17"
+    },
+    {
+      "id": "main-1.gun-axis-height",
+      "measuredM": 4.400000095367432,
+      "expectedM": 4.4,
+      "errorM": 9.536743128535363e-08,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "O-45(N) printed p.17"
+    },
+    {
+      "id": "main-1.trunnion-forward",
+      "measuredM": 3.25,
+      "expectedM": 3.25,
+      "errorM": 0.0,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "O-45(N) printed p.17"
+    },
+    {
+      "id": "main-1.optical-base",
+      "measuredM": 15.0,
+      "expectedM": 15,
+      "errorM": 0.0,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "O-45(N) printed p.17; hood centres represent optical stations"
+    },
+    {
+      "id": "main-2.roller-diameter",
+      "measuredM": 13.050000190734863,
+      "expectedM": 13.05,
+      "errorM": 1.9073486257070726e-07,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "O-45(N) printed p.17"
+    },
+    {
+      "id": "main-2.bore-spacing-0",
+      "measuredM": 3.5,
+      "expectedM": 3.5,
+      "errorM": 0.0,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "O-45(N) printed p.17"
+    },
+    {
+      "id": "main-2.bore-spacing-1",
+      "measuredM": 3.5,
+      "expectedM": 3.5,
+      "errorM": 0.0,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "O-45(N) printed p.17"
+    },
+    {
+      "id": "main-2.gun-axis-height",
+      "measuredM": 4.399999618530273,
+      "expectedM": 4.4,
+      "errorM": -3.8146972691777137e-07,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "O-45(N) printed p.17"
+    },
+    {
+      "id": "main-2.trunnion-forward",
+      "measuredM": 3.25,
+      "expectedM": 3.25,
+      "errorM": 0.0,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "O-45(N) printed p.17"
+    },
+    {
+      "id": "main-2.optical-base",
+      "measuredM": 15.0,
+      "expectedM": 15,
+      "errorM": 0.0,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "O-45(N) printed p.17; hood centres represent optical stations"
+    },
+    {
+      "id": "main-3.roller-diameter",
+      "measuredM": 13.050000190734863,
+      "expectedM": 13.05,
+      "errorM": 1.9073486257070726e-07,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "O-45(N) printed p.17"
+    },
+    {
+      "id": "main-3.bore-spacing-0",
+      "measuredM": 3.5,
+      "expectedM": 3.5,
+      "errorM": 0.0,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "O-45(N) printed p.17"
+    },
+    {
+      "id": "main-3.bore-spacing-1",
+      "measuredM": 3.5,
+      "expectedM": 3.5,
+      "errorM": 0.0,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "O-45(N) printed p.17"
+    },
+    {
+      "id": "main-3.gun-axis-height",
+      "measuredM": 4.40000057220459,
+      "expectedM": 4.4,
+      "errorM": 5.722045894884786e-07,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "O-45(N) printed p.17"
+    },
+    {
+      "id": "main-3.trunnion-forward",
+      "measuredM": 3.25,
+      "expectedM": 3.25,
+      "errorM": 0.0,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "O-45(N) printed p.17"
+    },
+    {
+      "id": "main-3.optical-base",
+      "measuredM": 15.0,
+      "expectedM": 15,
+      "errorM": 0.0,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "O-45(N) printed p.17; hood centres represent optical stations"
+    },
+    {
+      "id": "propeller-port-outer.diameter",
+      "measuredM": 5.000000868464094,
+      "expectedM": 5,
+      "errorM": 8.684640944167654e-07,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "Kure Museum screw/rudder detail page; nominal blade surface before cast thickness"
+    },
+    {
+      "id": "propeller-port-inner.diameter",
+      "measuredM": 4.999999798533201,
+      "expectedM": 5,
+      "errorM": -2.0146679879928797e-07,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "Kure Museum screw/rudder detail page; nominal blade surface before cast thickness"
+    },
+    {
+      "id": "propeller-starboard-outer.diameter",
+      "measuredM": 4.999999782753044,
+      "expectedM": 5,
+      "errorM": -2.172469564243329e-07,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "Kure Museum screw/rudder detail page; nominal blade surface before cast thickness"
+    },
+    {
+      "id": "propeller-starboard-inner.diameter",
+      "measuredM": 4.999999973144687,
+      "expectedM": 5,
+      "errorM": -2.685531264035035e-08,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "Kure Museum screw/rudder detail page; nominal blade surface before cast thickness"
+    },
+    {
+      "id": "searchlight-1.reflector-diameter",
+      "measuredM": 1.5,
+      "expectedM": 1.5,
+      "errorM": 0.0,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "Kure Museum searchlight educational page, 150 cm reflector; measured optical face, excluding casing"
+    },
+    {
+      "id": "searchlight-2.reflector-diameter",
+      "measuredM": 1.5,
+      "expectedM": 1.5,
+      "errorM": 0.0,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "Kure Museum searchlight educational page, 150 cm reflector; measured optical face, excluding casing"
+    },
+    {
+      "id": "searchlight-3.reflector-diameter",
+      "measuredM": 1.5,
+      "expectedM": 1.5,
+      "errorM": 0.0,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "Kure Museum searchlight educational page, 150 cm reflector; measured optical face, excluding casing"
+    },
+    {
+      "id": "searchlight-4.reflector-diameter",
+      "measuredM": 1.5,
+      "expectedM": 1.5,
+      "errorM": 0.0,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "Kure Museum searchlight educational page, 150 cm reflector; measured optical face, excluding casing"
+    },
+    {
+      "id": "searchlight-5.reflector-diameter",
+      "measuredM": 1.5,
+      "expectedM": 1.5,
+      "errorM": 0.0,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "Kure Museum searchlight educational page, 150 cm reflector; measured optical face, excluding casing"
+    },
+    {
+      "id": "searchlight-6.reflector-diameter",
+      "measuredM": 1.5,
+      "expectedM": 1.5,
+      "errorM": 0.0,
+      "toleranceM": 0.025,
+      "passed": true,
+      "source": "Kure Museum searchlight educational page, 150 cm reflector; measured optical face, excluding casing"
+    }
+  ],
+  "historicalAccuracy": "Checks selected component measurements only. Gunhouse plate vertices, muzzle offsets, blade pitch and equipment positions remain unverified."
+}

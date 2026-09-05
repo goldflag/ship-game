@@ -5,6 +5,7 @@ import { DEFAULT_SETTINGS, type GameSettings, type Telemetry } from '../game/typ
 import { Icon } from './Icons';
 import { FleetHud } from './FleetHud';
 import { Garage } from './Garage';
+import { selectedShip } from '../ships/presets';
 
 const INITIAL_TELEMETRY: Telemetry = { ship: createShipState(), order: 1, camera: 'Chase', fps: 0, backend: 'webgpu', trail: [] };
 function loadSettings(): GameSettings {
@@ -35,6 +36,7 @@ export function App() {
 
   useEffect(() => {
     let active = true;
+    document.title = `${selectedShip.name} — Sea Trials`;
     setReady(false); setError(''); setPaused(false); setData(INITIAL_TELEMETRY); setPhase('garage');
     const session = new Game(host.current!, settings, {
       progress: (label, progress) => active && setLoading({ label, progress }),
@@ -46,8 +48,20 @@ export function App() {
     });
     game.current = session;
     session.setInPort(true);
+    const reviewWindow = window as unknown as {
+      shipTrialDiagnostics?: () => unknown;
+      shipTrialArticulation?: (pose: Parameters<Game['previewArticulation']>[0]) => unknown;
+    };
+    if (import.meta.env.DEV) {
+      reviewWindow.shipTrialDiagnostics = () => session.diagnostics();
+      reviewWindow.shipTrialArticulation = pose => session.previewArticulation(pose);
+    }
     session.start();
-    return () => { active = false; game.current = null; void session.dispose(); };
+    return () => {
+      active = false; game.current = null;
+      if (import.meta.env.DEV) { delete reviewWindow.shipTrialDiagnostics; delete reviewWindow.shipTrialArticulation; }
+      void session.dispose();
+    };
   }, [generation, settings]);
 
   useEffect(() => {
@@ -74,16 +88,16 @@ export function App() {
 
   return <main className="game-shell">
     <div ref={host} className="ocean-viewport" />
-    {phase === 'garage' && !error && <Garage ready={ready} progress={loading.progress} fps={data.fps} onLaunch={launch} onSettings={() => game.current?.setPaused(true)}/>}
+    {phase === 'garage' && !error && <Garage game={game.current} ready={ready} progress={loading.progress} fps={data.fps} onLaunch={launch} onSettings={() => game.current?.setPaused(true)}/>}
     {phase === 'sailing' && ready && !error && <FleetHud data={data} game={game.current} visible={hud}/>}
 
     {phase === 'sailing' && ready && !hud && <button className="restore-hud" onClick={() => setHud(true)}>Show instruments <kbd>H</kbd></button>}
 
     {((!ready && phase === 'sailing') || error) && <section className="loading-screen" aria-live="polite">
       <div className="loading-brand"><Icon name="anchor" size={36}/><span>SEA TRIALS</span></div>
-      <div className="loading-content"><h1>BISMARCK</h1><p className="loading-subtitle">Take the helm.</p><div className="ship-measure"><div/><span>250.5 M</span><div/></div>
+      <div className="loading-content"><h1>{selectedShip.name.toUpperCase()}</h1><p className="loading-subtitle">Take the helm.</p><div className="ship-measure"><div/><span>{selectedShip.hull.length} M</span><div/></div>
         {error ? <div className="error-message"><h2>Unable to launch the sea trial</h2><p>{error}</p><p>Try reloading in a current Chrome or Edge browser with hardware acceleration enabled.</p><button className="primary-button" onClick={() => setGeneration(value => value + 1)}>Try again <Icon name="arrow" size={18}/></button></div> : <><div className="loading-progress" role="progressbar" aria-label="Loading sea trial" aria-valuenow={Math.round(loading.progress * 100)} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${loading.progress * 100}%` }}/></div><div className="loading-status"><span>{loading.label}</span><span>{Math.round(loading.progress * 100)}%</span></div><p className="compile-note">The first launch prepares the ocean and cloud shaders.</p></>}
-      </div><div className="loading-bottom"><span>SINGLEPLAYER · OPEN OCEAN</span><span>BISMARCK / 1941</span></div>
+      </div><div className="loading-bottom"><span>SINGLEPLAYER · OPEN OCEAN</span><span>{selectedShip.name.toUpperCase()} / {selectedShip.configuration.match(/19\d{2}/)?.[0]}</span></div>
     </section>}
 
     <dialog ref={dialog} className="pause-menu" onCancel={e => { e.preventDefault(); game.current?.setPaused(false); }}>

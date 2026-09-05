@@ -26,7 +26,7 @@ describe('schematic preferences and units', () => {
 
 describe('ship projections', () => {
   test('bow is right in side and deck views, and bow/stern elevations face opposite ways', () => {
-    const bow = new THREE.Vector3(1, 0, 0), starboard = new THREE.Vector3(0, 0, 1);
+    const bow = new THREE.Vector3(0, 0, -1), starboard = new THREE.Vector3(1, 0, 0);
     expect(bow.dot(VIEW_BASES.side.right)).toBe(1);
     expect(bow.dot(VIEW_BASES.plan.right)).toBe(1);
     expect(starboard.dot(VIEW_BASES.front.right)).toBe(-1);

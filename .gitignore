@@ -5,3 +5,9 @@ dist/
 *.log
 .env*
 !.env.example
+
+.build/
+*.blend1
+*.blend2
+*.tmp
+__pycache__/

@@ -1,0 +1,88 @@
+{
+  "combat": {
+    "battery": "main",
+    "message": "Aim at the target, wait for guns to train, then fire.",
+    "modules": [
+      {
+        "condition": 1,
+        "id": "engine-port",
+        "name": "Port turbines"
+      },
+      {
+        "condition": 1,
+        "id": "engine-starboard",
+        "name": "Starboard turbines"
+      },
+      {
+        "condition": 1,
+        "id": "steering",
+        "name": "Steering machinery"
+      },
+      {
+        "condition": 1,
+        "id": "magazine-1",
+        "name": "No. 1 magazine"
+      },
+      {
+        "condition": 1,
+        "id": "magazine-2",
+        "name": "No. 2 magazine"
+      },
+      {
+        "condition": 1,
+        "id": "magazine-3",
+        "name": "No. 3 magazine"
+      },
+      {
+        "condition": 1,
+        "id": "magazine-secondary-forward",
+        "name": "Forward secondary magazine"
+      },
+      {
+        "condition": 1,
+        "id": "magazine-secondary-aft",
+        "name": "Aft secondary magazine"
+      }
+    ],
+    "mounts": [
+      {
+        "ammo": 300,
+        "id": "main-1",
+        "name": "No. 1",
+        "reload": 0,
+        "status": "training"
+      },
+      {
+        "ammo": 300,
+        "id": "main-2",
+        "name": "No. 2",
+        "reload": 0,
+        "status": "training"
+      },
+      {
+        "ammo": 300,
+        "id": "main-3",
+        "name": "No. 3",
+        "reload": 0,
+        "status": "training"
+      }
+    ],
+    "range": 842.1335998521851,
+    "ready": 0,
+    "targetIntegrity": 1,
+    "targetPower": 1,
+    "targetSteering": 1,
+    "targetSunk": false,
+    "targetUnderway": false,
+    "targetWater": 0,
+    "total": 3
+  },
+  "events": [],
+  "fps": 11.266164242851973,
+  "inPort": true,
+  "inspecting": false,
+  "maxMuzzleErrorM": 0.0027435334140913635,
+  "paused": false,
+  "portInspection": "exterior",
+  "tick": 0
+}

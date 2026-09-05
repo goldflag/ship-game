@@ -1,3 +1,4 @@
+import { SHIP_MODEL } from '../game/shipModel';
 // Extends Fleet harbor: maritime controls frame a model-derived drawing. The sheet leads;
 // five compact choices precede the preview, with Save image and Copy image below it.
 import { useEffect, useRef, useState } from 'react';
@@ -99,7 +100,7 @@ export function SchematicDialog({ onClose }: { onClose: () => void }) {
       if (currentSheet.current !== captured) return;
       const url = URL.createObjectURL(output.blob);
       const link = document.createElement('a');
-      link.href = url; link.download = schematicFileName({ ...choices, format: output.format });
+      link.href = url; link.download = schematicFileName({ ...choices, format: output.format }, SHIP_MODEL.id);
       document.body.append(link); link.click(); link.remove();
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
       setNotice(output.format === choices.format ? 'Image saved.' : 'Saved as PNG; WebP is unavailable in this browser.');
@@ -130,7 +131,7 @@ export function SchematicDialog({ onClose }: { onClose: () => void }) {
       if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) onClose();
     }}>
     <header className="schematic-header">
-      <div><h2 id="schematic-title">Bismarck schematic</h2><p>Create a reference sheet of your ship.</p></div>
+      <div><h2 id="schematic-title">{SHIP_MODEL.name} schematic</h2><p>Create a reference sheet of your ship.</p></div>
       <button type="button" className="icon-button" aria-label="Close schematic" onClick={onClose} autoFocus><Icon name="close" size={20}/></button>
     </header>
     <div className="schematic-options">
@@ -146,7 +147,7 @@ export function SchematicDialog({ onClose }: { onClose: () => void }) {
     </div>
     <div className="schematic-preview" aria-busy={!visibleSheet && !failure}>
       {failure ? <div className="schematic-message" role="alert"><p>{failure}</p><button type="button" className="schematic-button" onClick={() => { setSheet(null); setAttempt(value => value + 1); }}>Try again</button></div>
-        : visibleSheet ? <img src={visibleSheet.url} width={dimensions.width} height={dimensions.height} alt={`Bismarck ship schematic, ${SCHEMATIC_OPTIONS.layout[choices.layout].toLowerCase()} layout on ${SCHEMATIC_OPTIONS.stock[choices.stock].toLowerCase()} paper, with ${choices.units} model dimensions.`}/>
+        : visibleSheet ? <img src={visibleSheet.url} width={dimensions.width} height={dimensions.height} alt={`${SHIP_MODEL.name} ship schematic, ${SCHEMATIC_OPTIONS.layout[choices.layout].toLowerCase()} layout on ${SCHEMATIC_OPTIONS.stock[choices.stock].toLowerCase()} paper, with ${choices.units} model dimensions.`}/>
           : <div className="schematic-message" role="status"><Icon name="ship" size={36}/><p>{rig ? 'Drawing your schematic…' : 'Preparing the ship model…'}</p><span>The full hull, fittings and armament are included.</span></div>}
     </div>
     <footer className="schematic-footer">

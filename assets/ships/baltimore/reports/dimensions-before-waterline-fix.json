@@ -1,0 +1,79 @@
+{
+  "definitionHash": "ecacb1a921aceb6901a84258387a8358b266e07d6100933bcdeabe158738e6a2",
+  "glbSha256": "4fceb9d5da10f42818d8eba01893de87616d108c6e872fece45b131b2a580b58",
+  "method": "Decode GLB POSITION and index buffers, apply full scene transforms, intersect hull triangles with runtime Y=0. No accessor bounding-box metadata used.",
+  "units": "meters",
+  "envelope": {
+    "min": [
+      -10.795001983642578,
+      -7.366000175476074,
+      -102.62870025634766
+    ],
+    "max": [
+      10.794999122619629,
+      9.699999809265137,
+      102.62870025634766
+    ],
+    "size": [
+      21.590001106262207,
+      17.06599998474121,
+      205.2574005126953
+    ]
+  },
+  "waterlineBounds": {
+    "min": [
+      -10.471152305603027,
+      -2.7755575615628914e-17,
+      -99.39987121309552
+    ],
+    "max": [
+      10.471149444580078,
+      0,
+      102.62870025634766
+    ],
+    "size": [
+      20.942301750183105,
+      2.7755575615628914e-17,
+      202.0285714694432
+    ]
+  },
+  "comparisons": [
+    {
+      "id": "length-overall",
+      "measuredM": 205.2574005126953,
+      "documentedM": 205.2574,
+      "errorM": 5.126953226408659e-7,
+      "toleranceM": 0.005,
+      "pass": true,
+      "source": "navships-250-010"
+    },
+    {
+      "id": "beam-extreme",
+      "measuredM": 21.590001106262207,
+      "documentedM": 21.59,
+      "errorM": 0.0000011062622071733585,
+      "toleranceM": 0.005,
+      "pass": true,
+      "source": "navships-250-010"
+    },
+    {
+      "id": "length-waterline",
+      "measuredM": 202.0285714694432,
+      "documentedM": 202.3872,
+      "errorM": -0.358628530556814,
+      "toleranceM": 0.005,
+      "pass": false,
+      "source": "navships-250-010"
+    },
+    {
+      "id": "limiting-keel-draft",
+      "measuredM": 7.366000175476074,
+      "documentedM": 7.366,
+      "errorM": 1.754760745598105e-7,
+      "toleranceM": 0.005,
+      "pass": true,
+      "source": "navships-250-010"
+    }
+  ],
+  "historicalAccuracy": "Envelope and waterline length only; body-plan offsets and waterline endpoint stations remain unresolved."
+}
