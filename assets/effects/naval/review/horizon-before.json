@@ -1,0 +1,653 @@
+{
+  "backend": "webgpu",
+  "camera": {
+    "aim": [
+      850,
+      0.5,
+      0
+    ],
+    "binoculars": false,
+    "fov": 4.33,
+    "magnification": 1,
+    "manualAim": true,
+    "matrixWorldInverse": [
+      2.220446049250313e-16,
+      0,
+      1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      -1,
+      0,
+      2.220446049250313e-16,
+      0,
+      -1.1102230246251565e-12,
+      -18,
+      -5000,
+      1
+    ],
+    "mode": "Chase",
+    "pointerLocked": false,
+    "position": [
+      5000,
+      18,
+      0
+    ],
+    "projectionMatrix": [
+      14.879231227665882,
+      0,
+      0,
+      0,
+      0,
+      26.451966626961568,
+      0,
+      0,
+      0,
+      0,
+      -1.0000083334027783,
+      -1,
+      0,
+      0,
+      -0.5000041667013891,
+      0
+    ]
+  },
+  "combat": {
+    "batteries": [
+      {
+        "ammo": 952,
+        "battery": "main",
+        "ready": 0,
+        "reload": 17.516666666666808,
+        "total": 4
+      },
+      {
+        "ammo": 1800,
+        "battery": "secondary",
+        "ready": 2,
+        "reload": 0,
+        "total": 6
+      }
+    ],
+    "battery": "main",
+    "battle": false,
+    "contacts": [
+      {
+        "controller": "player",
+        "heading": 0,
+        "id": "player",
+        "integrity": 1,
+        "name": "Bismarck",
+        "shipId": "bismarck",
+        "sunk": false,
+        "team": "friendly",
+        "x": 0,
+        "z": 0
+      },
+      {
+        "controller": "idle",
+        "heading": 0,
+        "id": "target",
+        "integrity": 1,
+        "name": "Bismarck",
+        "shipId": "bismarck",
+        "sunk": false,
+        "team": "enemy",
+        "x": 650,
+        "z": -550
+      }
+    ],
+    "message": "Fire loaded guns at any time. Shells follow the barrels\u2019 current aim.",
+    "modules": [
+      {
+        "condition": 1,
+        "id": "boiler-aft-port-equipment",
+        "name": "Aft port boiler room \u00b7 two Wagner boilers"
+      },
+      {
+        "condition": 1,
+        "id": "boiler-aft-center-equipment",
+        "name": "Aft center boiler room \u00b7 two Wagner boilers"
+      },
+      {
+        "condition": 1,
+        "id": "boiler-aft-starboard-equipment",
+        "name": "Aft starboard boiler room \u00b7 two Wagner boilers"
+      },
+      {
+        "condition": 1,
+        "id": "boiler-forward-port-equipment",
+        "name": "Forward port boiler room \u00b7 two Wagner boilers"
+      },
+      {
+        "condition": 1,
+        "id": "boiler-forward-center-equipment",
+        "name": "Forward center boiler room \u00b7 two Wagner boilers"
+      },
+      {
+        "condition": 1,
+        "id": "boiler-forward-starboard-equipment",
+        "name": "Forward starboard boiler room \u00b7 two Wagner boilers"
+      },
+      {
+        "condition": 1,
+        "id": "engine-port",
+        "name": "Port turbine room"
+      },
+      {
+        "condition": 1,
+        "id": "engine-starboard",
+        "name": "Starboard turbine room"
+      },
+      {
+        "condition": 1,
+        "id": "engine-center",
+        "name": "Center turbine room"
+      },
+      {
+        "condition": 1,
+        "id": "anton-magazine",
+        "name": "Anton propellant magazines"
+      },
+      {
+        "condition": 1,
+        "id": "bruno-magazine",
+        "name": "Bruno propellant magazines"
+      },
+      {
+        "condition": 1,
+        "id": "caesar-magazine",
+        "name": "C\u00e4sar propellant magazines"
+      },
+      {
+        "condition": 1,
+        "id": "dora-magazine",
+        "name": "Dora propellant magazines"
+      },
+      {
+        "condition": 1,
+        "id": "steering",
+        "name": "Steering gear room"
+      },
+      {
+        "condition": 1,
+        "id": "shaft-port-equipment",
+        "name": "Port shaft passage"
+      },
+      {
+        "condition": 1,
+        "id": "shaft-center-equipment",
+        "name": "Center shaft passage"
+      },
+      {
+        "condition": 1,
+        "id": "shaft-starboard-equipment",
+        "name": "Starboard shaft passage"
+      }
+    ],
+    "mounts": [
+      {
+        "ammo": 238,
+        "id": "anton",
+        "name": "Anton",
+        "reload": 17.516666666666808,
+        "status": "reloading"
+      },
+      {
+        "ammo": 238,
+        "id": "bruno",
+        "name": "Bruno",
+        "reload": 17.516666666666808,
+        "status": "reloading"
+      },
+      {
+        "ammo": 238,
+        "id": "caesar",
+        "name": "C\u00e4sar",
+        "reload": 17.516666666666808,
+        "status": "reloading"
+      },
+      {
+        "ammo": 238,
+        "id": "dora",
+        "name": "Dora",
+        "reload": 17.516666666666808,
+        "status": "reloading"
+      }
+    ],
+    "playerIntegrity": 1,
+    "playerSunk": false,
+    "playerWater": 0,
+    "range": 850,
+    "ready": 0,
+    "result": "active",
+    "targetId": "target",
+    "targetIntegrity": 1,
+    "targetName": "Bismarck",
+    "targetPosition": {
+      "heading": 0,
+      "x": 650,
+      "z": -550
+    },
+    "targetPower": 1,
+    "targetRange": 851.4693182963201,
+    "targetSteering": 1,
+    "targetSunk": false,
+    "targetUnderway": false,
+    "targetWater": 0,
+    "total": 4
+  },
+  "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+  "effects": {
+    "flashes": 0,
+    "foam": 0,
+    "particleCapacity": 2272,
+    "shells": 0,
+    "smoke": 24,
+    "spray": 1220
+  },
+  "events": [
+    {
+      "kind": "shot",
+      "message": "Anton fired",
+      "position": [
+        18.492481627036373,
+        8.598808356493336,
+        -70.36676582118434
+      ],
+      "sequence": 1,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 1,
+        "velocity": [
+          817.0741229778686,
+          -2.9665828745910874,
+          69.14533206222225
+        ]
+      },
+      "shipId": "player",
+      "tick": 2100
+    },
+    {
+      "kind": "shot",
+      "message": "Anton fired",
+      "position": [
+        18.176266148837296,
+        8.598808356493336,
+        -66.6301219029942
+      ],
+      "sequence": 2,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 2,
+        "velocity": [
+          817.0741229778686,
+          -2.9665828745910874,
+          69.14533206222225
+        ]
+      },
+      "shipId": "player",
+      "tick": 2100
+    },
+    {
+      "kind": "shot",
+      "message": "Bruno fired",
+      "position": [
+        18.481167766540228,
+        12.335014983769419,
+        -52.56054220660163
+      ],
+      "sequence": 3,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 3,
+        "velocity": [
+          818.3397007178017,
+          -6.663442636683917,
+          51.7274855500075
+        ]
+      },
+      "shipId": "player",
+      "tick": 2100
+    },
+    {
+      "kind": "shot",
+      "message": "Bruno fired",
+      "position": [
+        18.24460133271896,
+        12.335014983769419,
+        -48.818011468933726
+      ],
+      "sequence": 4,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 4,
+        "velocity": [
+          818.3397007178017,
+          -6.663442636683917,
+          51.7274855500075
+        ]
+      },
+      "shipId": "player",
+      "tick": 2100
+    },
+    {
+      "kind": "shot",
+      "message": "C\u00e4sar fired",
+      "position": [
+        18.235491381704424,
+        12.33515269817881,
+        55.06368707545108
+      ],
+      "sequence": 5,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 5,
+        "velocity": [
+          818.182076349475,
+          -6.6554620136661535,
+          -54.16451574459418
+        ]
+      },
+      "shipId": "player",
+      "tick": 2100
+    },
+    {
+      "kind": "shot",
+      "message": "C\u00e4sar fired",
+      "position": [
+        18.483203119096327,
+        12.33515269817881,
+        58.805496650397174
+      ],
+      "sequence": 6,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 6,
+        "velocity": [
+          818.182076349475,
+          -6.6554620136661535,
+          -54.16451574459418
+        ]
+      },
+      "shipId": "player",
+      "tick": 2100
+    },
+    {
+      "kind": "shot",
+      "message": "Dora fired",
+      "position": [
+        18.166080696778515,
+        8.205615573633342,
+        72.87630233755506
+      ],
+      "sequence": 7,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 7,
+        "velocity": [
+          816.867079227582,
+          -2.572101033262142,
+          -71.5650694855651
+        ]
+      },
+      "shipId": "player",
+      "tick": 2100
+    },
+    {
+      "kind": "shot",
+      "message": "Dora fired",
+      "position": [
+        18.493361588015105,
+        8.205615573633342,
+        76.61199333364017
+      ],
+      "sequence": 8,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 8,
+        "velocity": [
+          816.867079227582,
+          -2.572101033262142,
+          -71.5650694855651
+        ]
+      },
+      "shipId": "player",
+      "tick": 2100
+    },
+    {
+      "kind": "splash",
+      "message": "Shell splash",
+      "position": [
+        874.6241880527804,
+        0,
+        2.1280611522556954
+      ],
+      "sequence": 9,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 6,
+        "velocity": [
+          818.182076349475,
+          -16.95596201366619,
+          -54.16451574459418
+        ]
+      },
+      "shipId": "",
+      "tick": 2162
+    },
+    {
+      "kind": "splash",
+      "message": "Shell splash",
+      "position": [
+        874.3764763153885,
+        0,
+        -1.6137484226904024
+      ],
+      "sequence": 10,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 5,
+        "velocity": [
+          818.182076349475,
+          -16.95596201366619,
+          -54.16451574459418
+        ]
+      },
+      "shipId": "",
+      "tick": 2162
+    },
+    {
+      "kind": "splash",
+      "message": "Shell splash",
+      "position": [
+        874.1390513529427,
+        0,
+        5.283320480278383
+      ],
+      "sequence": 11,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 4,
+        "velocity": [
+          818.3397007178017,
+          -16.963942636683953,
+          51.7274855500075
+        ]
+      },
+      "shipId": "",
+      "tick": 2162
+    },
+    {
+      "kind": "splash",
+      "message": "Shell splash",
+      "position": [
+        874.375617786764,
+        0,
+        1.5407897426104684
+      ],
+      "sequence": 12,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 3,
+        "velocity": [
+          818.3397007178017,
+          -16.963942636683953,
+          51.7274855500075
+        ]
+      },
+      "shipId": "",
+      "tick": 2162
+    },
+    {
+      "kind": "splash",
+      "message": "Shell splash",
+      "position": [
+        882.3296266861138,
+        0,
+        0.9319911546405025
+      ],
+      "sequence": 13,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 8,
+        "velocity": [
+          816.867079227582,
+          -13.036101033262169,
+          -71.5650694855651
+        ]
+      },
+      "shipId": "",
+      "tick": 2163
+    },
+    {
+      "kind": "splash",
+      "message": "Shell splash",
+      "position": [
+        882.0023457948772,
+        0,
+        -2.803699841444622
+      ],
+      "sequence": 14,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 7,
+        "velocity": [
+          816.867079227582,
+          -13.036101033262169,
+          -71.5650694855651
+        ]
+      },
+      "shipId": "",
+      "tick": 2163
+    },
+    {
+      "kind": "splash",
+      "message": "Shell splash",
+      "position": [
+        880.7642022406296,
+        0,
+        6.3668407918449645
+      ],
+      "sequence": 15,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 2,
+        "velocity": [
+          817.0741229778686,
+          -13.430582874591115,
+          69.14533206222225
+        ]
+      },
+      "shipId": "",
+      "tick": 2163
+    },
+    {
+      "kind": "splash",
+      "message": "Shell splash",
+      "position": [
+        881.0804177188287,
+        0,
+        2.630196873654835
+      ],
+      "sequence": 16,
+      "shell": {
+        "caliberM": 0.38,
+        "id": 1,
+        "velocity": [
+          817.0741229778686,
+          -13.430582874591115,
+          69.14533206222225
+        ]
+      },
+      "shipId": "",
+      "tick": 2163
+    }
+  ],
+  "fleet": [
+    {
+      "ammo": 2752,
+      "controller": "player",
+      "definitionId": "bismarck",
+      "id": "player",
+      "integrity": 1000,
+      "motion": {
+        "distance": 0,
+        "heading": 0,
+        "id": "player",
+        "pitch": 0,
+        "roll": 0,
+        "rudder": 0,
+        "speed": 0,
+        "tick": 2250,
+        "x": 0,
+        "y": 0,
+        "yawRate": 0,
+        "z": 0
+      },
+      "team": "friendly"
+    },
+    {
+      "ammo": 2760,
+      "controller": "idle",
+      "definitionId": "bismarck",
+      "id": "target",
+      "integrity": 1000,
+      "motion": {
+        "distance": 0,
+        "heading": 0,
+        "id": "target",
+        "pitch": 0,
+        "roll": 0,
+        "rudder": 0,
+        "speed": 0,
+        "tick": 2250,
+        "x": 650,
+        "y": 0,
+        "yawRate": 0,
+        "z": -550
+      },
+      "team": "enemy"
+    }
+  ],
+  "fps": 57.9935837473061,
+  "inPort": false,
+  "inspecting": false,
+  "maxMuzzleErrorM": 0.0021656032734343267,
+  "paused": true,
+  "portInspection": "exterior",
+  "renderedShips": [
+    {
+      "id": "player",
+      "visible": true
+    },
+    {
+      "id": "target",
+      "visible": true
+    }
+  ],
+  "shipId": "bismarck",
+  "tick": 2250
+}

@@ -189,7 +189,6 @@ export class Game {
     this.sky.clouds.lighting.ambientIntensity.value = 1.1;
     this.sky.clouds.lighting.groundBounceAlbedo.value.setRGB(0.09, 0.105, 0.12);
     this.sky.clouds.wind.speed = 12;
-    this.sky.atmosphere.fogDensity.value = 0.7;
     this.updatePortLighting();
     this.water.setSky(this.sky.createSkyProvider({ envMap: { width: 384, cloudMarchSteps: 16, skipFrames: 8 } }));
     const sunlight = this.water.lighting.sunLight;
@@ -220,7 +219,10 @@ export class Game {
     this.scenePass = pass(this.scene, this.camera);
     const sceneColor = this.scenePass.getTextureNode('output');
     const waterColor = this.water.postProcessing.buildNode(this.scenePass, sceneColor);
-    const output = vec4(this.sky.applyTo(waterColor, this.scenePass));
+    // Water Pro's scene.fogNode already fogs each material at its own distance.
+    // Sky's depth-based post fog sees the distant sea behind transparent smoke,
+    // erasing a horizontal band of nearby gas at the horizon's far-fade distance.
+    const output = waterColor as THREE.Node<'vec4'>;
     // FXAA detects edges in display space, after tone mapping and sRGB conversion.
     const sceneDisplay = renderOutput(vec4(output.rgb.mul(this.sky.atmosphere.exposure), output.a), THREE.ACESFilmicToneMapping, THREE.SRGBColorSpace);
     this.armorOverlay = new ArmorOverlay();
