@@ -93,3 +93,7 @@ To repeat the GPU regression with `bun run dev` running, evaluate this in the ga
 ```js
 await import('/scripts/tests/combat-effects-browser.ts').then(m => m.checkCombatEffects());
 ```
+
+## 2026-09-05 — damage realism step 1
+
+Baseline `45392d0`; the detailed [implementation and Fable review record](../assets/reviews/damage-realism/implementation.md) supersedes earlier damage-behavior observations. Hull/sea contact now uses authored hull sections, openings retain spatial locations with bounded clustering, shell histories explain hit outcomes, and sinking records its cause while retaining the structural fallback. 132 tests and the production build pass. Claude Fable accepted the implementation and verified the review fixes with no blockers. Live battle entry, firing and the new empty history state were exercised; populated-history visual acceptance remains pending because the background Orca tab cannot retain visible focus for screenshot capture.
