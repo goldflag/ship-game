@@ -3,7 +3,7 @@ import blueprint from '../../assets/ships/bismarck/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
 import { compileShip, type Vec3 } from '../ships/blueprint';
 import { CombatSimulation } from './combat';
-import { hitShip, updateFlooding, type Shell } from './damage';
+import { hitShip, updateFlooding, type DamageEvent, type Shell } from './damage';
 import { length, localToWorld, segmentBox, sub, worldToLocal } from './geometry';
 import { GRAVITY, shotDirection, solveBallistic } from './weapons';
 import { FIXED_DT } from './ship';
@@ -121,6 +121,42 @@ test('reset replaces the trial target state without invalidating renderer bindin
   target.damage.integrity = 0; target.motion.y = -15;
   sim.resetTarget();
   expect(sim.target).toBe(target); expect(target.damage.integrity).toBe(1000); expect(target.motion.y).toBe(0);
+});
+test('shot and splash events retain matching caliber and independent velocity snapshots', () => {
+  const sim = new CombatSimulation(definition()), aim: Vec3 = [450, .5, 0];
+  for (let i = 0; i < 1800; i++) sim.step(stop, { aim, fire: false, battery: 'main' });
+  sim.step(stop, { aim, fire: true, battery: 'main' });
+  const shots = sim.events.filter(e => e.kind === 'shot');
+  expect(shots.length).toBe(8);
+  const velocity: Vec3 = [...shots[0].shell!.velocity];
+  for (let i = 0; i < 120; i++) sim.step(stop, { aim, fire: false, battery: 'main' });
+  const splashes = sim.events.filter(e => e.kind === 'splash');
+  expect(splashes.length).toBe(8);
+  for (const shot of shots) {
+    const splash = splashes.find(e => e.shell?.id === shot.shell?.id)!;
+    expect(splash.shell!.caliberM).toBe(shot.shell!.caliberM);
+    expect(splash.shell!.velocity[1]).toBeLessThan(shot.shell!.velocity[1]);
+    expect(splash.position[1]).toBe(0);
+  }
+  expect(shots[0].shell!.velocity).toEqual(velocity);
+});
+test('impact normals are in world coordinates and internal damage has no surface normal', () => {
+  const def = definition(), sim = new CombatSimulation(def);
+  const localSim = new CombatSimulation(def), localEvents: DamageEvent[] = [];
+  Object.assign(localSim.target.motion, { x: 0, y: 0, z: 0, heading: 0, roll: 0, pitch: 0 });
+  hitShip(round(), [-100, .5, -21], [100, .5, -21], localSim.target, def, e => localEvents.push(e));
+  Object.assign(sim.target.motion, { x: 45, z: 80, heading: .8, roll: .2, pitch: -.1 });
+  const pose = sim.target.motion, events: DamageEvent[] = [];
+  hitShip(round(), localToWorld([-100, .5, -21], pose), localToWorld([100, .5, -21], pose), sim.target, def, e => events.push(e));
+  const plate = events.find(e => e.kind === 'penetration')!;
+  expect(length(plate.normal!)).toBeCloseTo(1, 8);
+  const localNormal = localEvents.find(e => e.kind === 'penetration')!.normal!;
+  const origin = localToWorld([0, 0, 0], pose), expected = sub(localToWorld(localNormal, pose), origin);
+  expect(length(sub(plate.normal!, expected))).toBeLessThan(1e-9);
+  // Exercise interior metadata without depending on a preset's penetration budget.
+  const [x, y, z] = def.modules.find(m => m.kind === 'engine')!.center;
+  hitShip(round(), localToWorld([x - .1, y, z], pose), localToWorld([x + .1, y, z], pose), sim.target, def, e => events.push(e));
+  expect(events.some(e => e.kind === 'module' && !e.normal)).toBe(true);
 });
 test('destroyed propulsion prevents target acceleration', () => {
   const def = definition(), sim = new CombatSimulation(def); sim.targetUnderway = true;

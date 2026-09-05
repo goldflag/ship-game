@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Naval gunfire · Bismarck sea trials</title>
+<style>
+@font-face{font-family:Barlow;src:url('__BODY_FONT__') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:"Barlow Condensed";src:url('__DISPLAY_FONT__') format('woff2');font-weight:500;font-display:swap}
+:root{color-scheme:dark;--paper:#edf1ec;--muted:#bacbd0;--brass:#e0c58d;--navy:#132d38;--line:#cfdfdf35}
+*{box-sizing:border-box}body{margin:0;background:var(--navy);color:var(--paper);font-family:Barlow,sans-serif}
+main{max-width:1280px;margin:auto;padding:30px 28px 32px}header{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:24px}
+h1{font:500 clamp(34px,4vw,52px)/1 "Barlow Condensed",sans-serif;margin:0 0 10px;text-wrap:balance}
+p{font-size:16px;line-height:1.55;margin:0;color:var(--muted);max-width:68ch}.identity{font:500 20px "Barlow Condensed",sans-serif;text-align:right;white-space:nowrap;color:var(--brass)}
+.player{background:#0e2530;border:1px solid var(--line)}video{display:block;width:100%;aspect-ratio:16/9;background:#0e2530;object-fit:contain}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 16px;border-top:1px solid var(--line)}
+.examples{display:flex;gap:6px;flex-wrap:wrap}button,select{min-height:44px;border:1px solid var(--line);border-radius:3px;color:var(--paper);background:transparent;font:inherit;font-size:14px;padding:8px 14px;cursor:pointer}
+button[aria-pressed=true]{background:var(--brass);border-color:var(--brass);color:#152b32}button:hover{border-color:var(--brass)}button:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid #86e4c5;outline-offset:4px}
+label{font-size:14px;color:var(--muted);display:flex;align-items:center;gap:10px}select{background:var(--navy);min-width:80px}.caption{padding:0 16px 17px;min-height:62px;max-width:900px;font-size:16px}
+.stills{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:26px 0}figure{margin:0}figure img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}figcaption{padding-top:10px;color:var(--muted);font-size:14px;line-height:1.5}figcaption strong{color:var(--paper);font-weight:400;display:block;font-size:20px;margin-bottom:3px}
+footer{border-top:1px solid var(--line);padding-top:20px;display:flex;justify-content:space-between;align-items:start;gap:28px}footer p{font-size:14px}details{font-size:14px;color:var(--muted);max-width:520px}summary{cursor:pointer;min-height:32px;color:var(--paper)}details p{margin:8px 0}a{color:var(--brass);text-underline-offset:3px}
+@media(max-width:650px){main{padding:22px 16px}header{align-items:start}.identity{font-size:14px;white-space:normal;max-width:90px}.toolbar{align-items:start;flex-direction:column;padding:12px}.examples{gap:5px}.examples button{padding:8px 10px;font-size:14px}.caption{padding:0 12px 14px;min-height:94px}.stills{grid-template-columns:1fr;gap:22px}footer{flex-direction:column;gap:14px}}
+</style>
+</head>
+<body><main>
+<header><div><h1>Naval gunfire.</h1><p>Feel the weight of a salvo.</p></div><div class="identity">BISMARCK<br>SEA TRIALS</div></header>
+<section class="player" aria-label="Effects captured in the game">
+<video id="film" controls playsinline preload="metadata" aria-label="Propellant smoke drifting and softening beside Bismarck" poster="__SMOKE_POSTER__"></video>
+<div class="toolbar"><div class="examples" role="group" aria-label="Choose a recording">
+<button type="button" data-clip="smoke" aria-pressed="true">Smoke in motion</button>
+<button type="button" data-clip="broadside" aria-pressed="false">Main battery</button>
+<button type="button" data-clip="splash" aria-pressed="false">Water impacts</button>
+<button type="button" data-clip="armor" aria-pressed="false">Armor strikes</button>
+</div><label>Playback <select id="speed" aria-label="Playback speed"><option value="1">1×</option><option value="0.5">½×</option><option value="0.25">¼×</option></select></label></div>
+<p class="caption" id="caption" aria-live="polite">Watch at normal speed: the blast expands quickly, then broad smoke lobes drift and soften. Their motion settles as the plume spreads.</p>
+</section>
+<div class="stills" aria-label="Details from the same game build">
+<figure><img src="__BROAD_POSTER__" width="1920" height="1080" alt="Bismarck's main guns firing, with muzzle flashes along the starboard side"><figcaption><strong>The fireball</strong>0.2 seconds after firing. A broad, lingering fire envelope follows the white ignition.</figcaption></figure>
+<figure><img src="__SMOKE_POSTER__" width="1920" height="1080" alt="Broad smoke lobes drifting outward from the fore and aft main guns"><figcaption><strong>The smoke</strong>1.4 seconds after firing. Dense, connected folds settle into a slower drift and gradually soften.</figcaption></figure>
+<figure><img src="__SPLASH_POSTER__" width="1920" height="1080" alt="A tall, broken water column and surrounding droplets from a shell salvo"><figcaption><strong>The water</strong>2 seconds after firing. An aerated column separates into round droplets, falls, and leaves surface foam.</figcaption></figure>
+</div>
+<footer><p>Recorded in the running game with fixed review cameras.<br>101 tests passed · Production build passed</p>
+<details><summary>About this review</summary><p>The recordings use the actual ship, articulated guns, CPU shell trajectories, ocean and effects. Frames are encoded at fixed simulation timestamps for smooth playback, even when the preview window is in the background. The artifact contains its own videos, images and fonts. These recordings precede the latest Bismarck model and daylight updates; the current integration passes the checks shown here.</p><p>The smoke takes inspiration from the vendored Sky Pro clouds: 3D density, eroded edges and light absorption. Its slower motion follows the broad, cohesive plumes in the supplied <a href="https://www.youtube.com/watch?v=lFWh6xlsTm0">New Jersey firing footage</a>. Fire timing, smoke density and spray speeds are gameplay approximations. The footage and the <a href="https://www.history.navy.mil/our-collections/photography/us-navy-ships/battleships/iowa-bb-61/DN-ST-85-05379.html">US Navy's Iowa broadside photograph</a> are visual references, not a historical certification of Bismarck.</p></details></footer>
+</main>
+<script type="application/json" id="media">__MEDIA__</script>
+<script>
+const clips=JSON.parse(document.querySelector('#media').textContent),film=document.querySelector('#film'),speed=document.querySelector('#speed');
+film.src=clips.smoke.video;
+document.querySelectorAll('[data-clip]').forEach(button=>button.addEventListener('click',()=>{
+  const clip=clips[button.dataset.clip];
+  document.querySelectorAll('[data-clip]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));
+  film.pause();film.poster=clip.poster;film.src=clip.video;film.setAttribute('aria-label',clip.title);
+  document.querySelector('#caption').textContent=clip.caption;film.playbackRate=Number(speed.value);film.play().catch(()=>{});
+}));
+speed.addEventListener('change',()=>film.playbackRate=Number(speed.value));
+film.addEventListener('loadedmetadata',()=>film.playbackRate=Number(speed.value));
+</script>
+</body></html>

@@ -26,19 +26,21 @@ export function solveBallistic(from: Vec3, target: Vec3, speed: number): { direc
   const angle = Math.atan((v2 - Math.sqrt(discriminant)) / (GRAVITY * range));
   return { direction: [delta[0] / range * Math.cos(angle), Math.sin(angle), delta[2] / range * Math.cos(angle)], time: range / (speed * Math.cos(angle)) };
 }
-export function updateMount(m: MountDefinition, state: MountState, definition: ShipDefinition, pose: Pose, aim: Vec3, dt: number, inheritedVelocity: Vec3 = [0, 0, 0]): void {
+/** Return true when the barrel has reached a valid firing solution (used by bots). */
+export function updateMount(m: MountDefinition, state: MountState, definition: ShipDefinition, pose: Pose, aim: Vec3, dt: number, inheritedVelocity: Vec3 = [0, 0, 0]): boolean {
   state.reload = Math.max(0, state.reload - dt);
   state.recoil = Math.max(0, state.recoil - dt / 1.4);
-  if (state.hp <= 0) { state.status = 'disabled'; return; }
-  if (state.ammo < (m.weapon.barrelCount ?? 2)) { state.status = 'empty'; return; }
+  if (state.hp <= 0) { state.status = 'disabled'; return false; }
+  if (state.ammo < (m.weapon.barrelCount ?? 2)) { state.status = 'empty'; return false; }
   // Iterate from the actual muzzle so the long barrel offset doesn't bias close shots.
   let desiredTrain = state.train, desiredElevation = state.elevation;
+  let reachable = true;
   let flightTime = length(sub(aim, [pose.x, pose.y, pose.z])) / m.weapon.muzzleSpeed;
   for (let i = 0; i < 3; i++) {
     const midpoint = localToWorld(muzzleLocal(m, { train: desiredTrain, elevation: desiredElevation }, 0), pose);
     const relativeAim = sub(aim, inheritedVelocity.map(n => n * flightTime) as Vec3);
     const solution = solveBallistic(midpoint, relativeAim, m.weapon.muzzleSpeed);
-    if (!solution) { desiredTrain = state.train; desiredElevation = state.elevation; break; }
+    if (!solution) { reachable = false; desiredTrain = state.train; desiredElevation = state.elevation; break; }
     flightTime = solution.time;
     const direction = normalize(sub(worldToLocal(add([pose.x, pose.y, pose.z], solution.direction), pose), [0, 0, 0]));
     desiredTrain = wrapAngle(Math.atan2(direction[0], -direction[2]) - radians(m.bearingDeg));
@@ -57,6 +59,7 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
     const breech = add(m.position, [0, w.pivotHeight, 0]);
     return definition.obstructions.some(box => segmentBox(breech, beyond, box)) || definition.mounts.some(other => other.id !== m.id && segmentBox(breech, beyond, { center: add(other.position, [0, other.weapon.gunhouseSize[2] / 2, 0]), size: [other.weapon.gunhouseSize[1], other.weapon.gunhouseSize[2], other.weapon.gunhouseSize[0]] }));
   });
-  if (obstructed) { state.status = 'blocked'; return; }
+  if (obstructed) { state.status = 'blocked'; return false; }
   state.status = state.reload > 0 ? 'reloading' : 'ready';
+  return reachable && Math.abs(desiredTrain - state.train) < .0015 && Math.abs(desiredElevation - state.elevation) < .0008;
 }

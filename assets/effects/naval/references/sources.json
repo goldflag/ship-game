@@ -1,0 +1,41 @@
+{
+  "url": "https://www.youtube.com/watch?v=lFWh6xlsTm0",
+  "title": "American Battleship New Jersey USS IOWA Class Battle ship 16inch guns firing",
+  "uploader": "Patrick Clyde",
+  "reviewed": "2026-09-05",
+  "durationSeconds": 8.641,
+  "frames": [
+    {
+      "timeSeconds": 0.5,
+      "file": "new-jersey-0.5s.png"
+    },
+    {
+      "timeSeconds": 1.5,
+      "file": "new-jersey-1.5s.png"
+    },
+    {
+      "timeSeconds": 2.5,
+      "file": "new-jersey-2.5s.png"
+    },
+    {
+      "timeSeconds": 4,
+      "file": "new-jersey-4s.png"
+    },
+    {
+      "timeSeconds": 6,
+      "file": "new-jersey-6s.png"
+    },
+    {
+      "timeSeconds": 8,
+      "file": "new-jersey-8s.png"
+    }
+  ],
+  "method": "Frame grabs from the supplied YouTube video in Orca, decoded at the listed video timestamps.",
+  "observations": [
+    "The clip cuts between two firing views; the frames are not one continuous eight-second plume.",
+    "At 0.5 s the first view has broad fire envelopes. At 1.5 and 2.5 s the smoke remains a connected mass with large rounded folds.",
+    "The second view shows firing at 4 s and a cohesive plume at 6 and 8 s, with gentle spreading and softening.",
+    "Use the apparent motion as a visual reference. Upload playback speed, color grading, gun conditions and exact physical timing are not independently verified."
+  ],
+  "usage": "Visual comparison only. Reference frames are not game textures and are not embedded in the review artifact."
+}

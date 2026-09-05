@@ -3,6 +3,7 @@ import { max } from 'three/tsl';
 import { WaterSurfaceMaterial, type WaterSystem } from '../../vendor/threejs-water-pro/build/index.js';
 import { BISMARCK, type ShipState } from '../simulation/ship';
 import { WakeFoam } from './WakeFoam';
+import type { CombatEvent } from '../simulation/combat';
 
 /** Render-side wake configuration; driven by ship motion, independent of the helm. */
 export class ShipWake {
@@ -11,6 +12,7 @@ export class ShipWake {
   private readonly stern: number;
   private readonly foam: WakeFoam;
   private readonly materials = new Set<WaterSurfaceMaterial>();
+  private eventSequence = 0;
 
   constructor(private readonly wake: WaterSystem['wake'], ship: Object3D, scene: Scene) {
     // The default 100 m camera-centered field misses a 250 m hull in chase view.
@@ -52,7 +54,12 @@ export class ShipWake {
     this.materials.forEach(material => material.setWakeFieldSampler(sampler));
   }
 
-  update(state: Pick<ShipState, 'x' | 'z' | 'heading' | 'speed'>, dt: number): void {
+  update(state: Pick<ShipState, 'x' | 'z' | 'heading' | 'speed'>, dt: number, events: readonly CombatEvent[] = []): void {
+    for (const event of events) {
+      if (event.sequence <= this.eventSequence) continue;
+      this.eventSequence = event.sequence;
+      if (event.kind === 'splash') this.foam.splash(event.position[0], event.position[2], event.shell?.caliberM ?? .38);
+    }
     this.anchor.position.set(state.x, 1, state.z);
     const speed = Math.abs(state.speed);
     const speedRatio = Math.min(speed / BISMARCK.forwardSpeed, 1);
@@ -67,8 +74,11 @@ export class ShipWake {
     this.foam.update(state, dt);
   }
 
+  resetImpacts(): void { this.foam.resetImpacts(); this.eventSequence = 0; }
+
   reset(): void {
     this.foam.reset();
+    this.eventSequence = 0;
     // Clear native displacement too when returning to port, even if the
     // reset distance is below the solver's automatic teleport threshold.
     const enabled = this.wake.enabled;
