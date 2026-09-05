@@ -147,7 +147,7 @@ export class CombatSimulation {
         const aim = actor === this.player ? intent.aim : target ? botAim(actor, target, m, state) : localToWorld([0, .5, -5000], actor.motion);
         const aligned = updateMount(m, state, def, actor.motion, aim, FIXED_DT, shipVelocity(actor));
         const inRange = target && Math.hypot(target.motion.x - actor.motion.x, target.motion.z - actor.motion.z) <= botGunRange(m);
-        const firing = actor === this.player ? (intent.fire || this.fireQueued) && m.battery === intent.battery : actor.controller === 'bot' && inRange && laneClear && aligned;
+        const firing = aligned && (actor === this.player ? (intent.fire || this.fireQueued) && m.battery === intent.battery : actor.controller === 'bot' && inRange && laneClear);
         const barrelCount = m.weapon.barrelCount ?? 2;
         if (!actor.damage.sunk && firing && state.status === 'ready' && this.shells.length <= 256 - barrelCount) {
           state.reload = m.weapon.reloadSeconds; state.ammo -= barrelCount; state.recoil = 1; state.status = 'reloading';
@@ -241,7 +241,7 @@ export class CombatSimulation {
         return { battery, ammo: states.reduce((n, m) => n + m.ammo, 0), ready: states.filter(m => m.status === 'ready').length, total: states.length,
           reload: reloading.length ? Math.min(...reloading.map(m => m.reload)) : 0 };
       }),
-      message: significant ? `${this.actors.find(actor => actor.motion.id === significant.shipId)?.definition.name ?? 'Ship'} · ${significant.message}` : 'Fire loaded guns at any time. Shells follow the barrels’ current aim.',
+      message: significant ? `${this.actors.find(actor => actor.motion.id === significant.shipId)?.definition.name ?? 'Ship'} · ${significant.message}` : 'Only aligned, loaded guns fire. Turn the ship to bring guns marked Out of arc onto the target.',
     };
   }
 }
