@@ -1,0 +1,102 @@
+[
+  {
+    "ship": "bismarck",
+    "view": "profile",
+    "pixelsUnchanged": true
+  },
+  {
+    "ship": "bismarck",
+    "view": "plan",
+    "pixelsUnchanged": true
+  },
+  {
+    "ship": "bismarck",
+    "view": "quarter",
+    "pixelsUnchanged": true
+  },
+  {
+    "ship": "bismarck",
+    "view": "bow",
+    "pixelsUnchanged": true
+  },
+  {
+    "ship": "bismarck",
+    "view": "stern",
+    "pixelsUnchanged": true
+  },
+  {
+    "ship": "yamato",
+    "view": "profile",
+    "pixelsUnchanged": true
+  },
+  {
+    "ship": "yamato",
+    "view": "plan",
+    "pixelsUnchanged": true
+  },
+  {
+    "ship": "yamato",
+    "view": "quarter",
+    "pixelsUnchanged": true
+  },
+  {
+    "ship": "yamato",
+    "view": "bow",
+    "pixelsUnchanged": true
+  },
+  {
+    "ship": "yamato",
+    "view": "stern",
+    "pixelsUnchanged": true
+  },
+  {
+    "ship": "baltimore",
+    "view": "profile",
+    "pixelsUnchanged": true
+  },
+  {
+    "ship": "baltimore",
+    "view": "plan",
+    "pixelsUnchanged": true
+  },
+  {
+    "ship": "baltimore",
+    "view": "quarter",
+    "pixelsUnchanged": true
+  },
+  {
+    "ship": "baltimore",
+    "view": "bow",
+    "pixelsUnchanged": true
+  },
+  {
+    "ship": "baltimore",
+    "view": "stern",
+    "pixelsUnchanged": true
+  },
+  {
+    "ship": "enterprise-cv6",
+    "view": "profile",
+    "pixelsUnchanged": true
+  },
+  {
+    "ship": "enterprise-cv6",
+    "view": "plan",
+    "pixelsUnchanged": true
+  },
+  {
+    "ship": "enterprise-cv6",
+    "view": "quarter",
+    "pixelsUnchanged": true
+  },
+  {
+    "ship": "enterprise-cv6",
+    "view": "bow",
+    "pixelsUnchanged": true
+  },
+  {
+    "ship": "enterprise-cv6",
+    "view": "stern",
+    "pixelsUnchanged": true
+  }
+]

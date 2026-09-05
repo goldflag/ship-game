@@ -14,6 +14,7 @@ export interface ImpactRecord {
   /** Position is ship-local; DamageEvent.position is world-space. */
   kind: 'armor' | 'module' | 'mount' | 'boundary'; position: Vec3;
   thicknessMm?: number; material?: string; obliquityDeg?: number; resistanceMm?: number;
+  impactSpeedMps?: number;
   penetrationBeforeMm: number; penetrationAfterMm: number;
   outcome: 'penetrated' | 'ricochet' | 'stopped' | 'damaged' | 'destroyed' | 'detonation' | 'backing';
   damage?: number; compartmentId?: string; breachAreaM2?: number; terminal?: boolean;
@@ -145,7 +146,7 @@ export function hitShip(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor: Com
     const position = localToWorld(hit.point, actor.motion);
     const boundary = def.connections[hit.index];
     const target = hit.kind === 'armor' ? def.armor[hit.index] : hit.kind === 'module' ? def.modules[hit.index] : hit.kind === 'mount' ? def.mounts[hit.index] : { id: connectionId(boundary), name: `Watertight boundary ${connectionId(boundary)}` };
-    const evidence: ImpactRecord = { shellId: shell.id, shipId: actor.motion.id, targetId: target.id, targetName: target.name, kind: hit.kind, position: [...hit.point], penetrationBeforeMm: shell.penetrationMm, penetrationAfterMm: shell.penetrationMm, outcome: 'damaged' };
+    const evidence: ImpactRecord = { shellId: shell.id, shipId: actor.motion.id, targetId: target.id, targetName: target.name, kind: hit.kind, position: [...hit.point], impactSpeedMps: length(shell.velocity), penetrationBeforeMm: shell.penetrationMm, penetrationAfterMm: shell.penetrationMm, outcome: 'damaged' };
     const report = (kind: DamageEvent['kind'], message: string, detonation = false) => emit({
       kind, position, message, shipId: actor.motion.id,
       impact: { ...evidence, penetrationAfterMm: shell.penetrationMm },
