@@ -20,6 +20,10 @@ The smoke motion revision follows the apparent pace of the supplied New Jersey f
 
 ## Runtime and regression checks
 
+### Smoke rendering cost (2026-09-05)
+
+The [performance review](smoke-performance.md) records an optimization that skips lighting in empty gas, stops effectively opaque rays, and renders each effect plane in one pass. Alternating WebGPU shader comparisons retain the smoke detail and reduce mature-smoke GPU cost by roughly 14–27% in the final recorded run. Effect batches fall from 13 submissions to 7. Timings isolate smoke and remain sensitive to background GPU work; they are not a gameplay FPS promise. The report includes pixel comparisons, reproduction commands and a pre-existing WebGL2 depth-clipping issue discovered by the additional check.
+
 ### Horizon smoke cutoff (2026-09-05)
 
 The 5 km binocular view exposed a straight missing band through the propellant clouds. The smoke was present in the scene pass but disappeared in the final composition. Sky Pro's `applyTo` used opaque scene depth to apply a second fog layer after Water Pro's material fog. Because transparent smoke does not write depth, that layer used the distant ocean behind it; the preset's 9,100–12,600 m far fade replaced nearby smoke with sky color. Above the ocean, clear depth bypassed that fog, producing the sharp band.
