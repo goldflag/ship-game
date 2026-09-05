@@ -45,6 +45,10 @@ function ShipProfile({ className = '' }: { className?: string }) {
     <path d="M101 31h39v12h-39M44 53h172" stroke="currentColor" strokeOpacity=".45"/>
   </svg>;
 }
+function ShipThumbnail({ shipId }: { shipId: string }) {
+  const [failed, setFailed] = useState(false);
+  return failed ? <ShipProfile/> : <img className="garage-ship-thumbnail" src={`/models/${shipId}-thumbnail.png`} width={600} height={180} alt="" onError={() => setFailed(true)}/>;
+}
 function ResourceWallet({ credits }: { credits: number }) {
   return <div className="garage-wallet" aria-label="Illustrative currency balances"><span><Glyph name="credits" size={17}/>{credits.toLocaleString()}</span><span><Glyph name="star" size={17}/>12,400</span><b>CAPTAIN 08</b></div>;
 }
@@ -96,7 +100,7 @@ function FleetCarousel({ state }: { state: GarageState }) {
       const selected = ship.id === selectedShip.id;
       return <button className={selected ? 'garage-ship-selected' : ''} key={ship.id} aria-label={`Inspect ${ship.name}`} aria-pressed={selected} onClick={() => state.selectShip(ship.id)}>
         <div><span>{shipIdentity(ship.id).type}</span>{selected && <Glyph name="check" size={14}/>}</div>
-        <ShipProfile/><strong>{ship.name}</strong><small>{selected ? (state.ready ? 'IN PORT' : 'PREPARING') : 'AVAILABLE'}</small>
+        <ShipThumbnail shipId={ship.id}/><strong>{ship.name}</strong><small>{selected ? (state.ready ? 'IN PORT' : 'PREPARING') : 'AVAILABLE'}</small>
       </button>;
     })}</div>
   </section>;
