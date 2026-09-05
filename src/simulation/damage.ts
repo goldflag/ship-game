@@ -1,6 +1,6 @@
 import type { FloodConnection, ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { ShipState } from './ship';
-import { plateHit, samePlateSeam } from './protection';
+import { plateHit, plateResponse, samePlateSeam } from './protection';
 import type { MountState } from './weapons';
 import { add, clamp, contains, length, localToWorld, normalize, radians, rotate, segmentBox, sub, worldToLocal } from './geometry';
 
@@ -96,12 +96,13 @@ function exteriorBreaches(actor: Combatant, def: ShipDefinition, point: Vec3, no
 export function hitShip(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor: Combatant, def: ShipDefinition, emit: (e: DamageEvent) => void): boolean {
   const from = worldToLocal(fromWorld, actor.motion), to = worldToLocal(toWorld, actor.motion);
   const direction = normalize(sub(to, from));
+  const trains = actor.mounts.map(m => m.train);
   type Hit = { t: number; key: string; kind: ImpactRecord['kind']; index: number; point: Vec3; normal: Vec3; onEdge?: boolean };
   const hits: Hit[] = [];
   def.armor.forEach((a, index) => {
     if (a.plate) {
       const key = `${actor.motion.id}:armor:${a.id}:plate`;
-      const hit = plateHit(from, to, a, def, actor.mounts.map(m => m.train));
+      const hit = plateHit(from, to, a, def, trains);
       if (hit && !shell.visited.includes(key)) hits.push({ ...hit, key, kind:'armor', index });
       return;
     }
@@ -158,10 +159,11 @@ export function hitShip(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor: Com
         crossedPlateEdges.push(hit);
       }
       const cosine = Math.abs(direction.reduce((sum, n, i) => sum + n * hit.normal[i], 0));
-      const resistance = a.plate?.material === 'teak' ? 0 : a.thicknessMm / Math.max(.2, cosine);
+      const response = plateResponse(a.thicknessMm, a.plate?.material ?? 'steel', cosine, shell.caliberM);
+      const resistance = response.resistanceMm;
       Object.assign(evidence, { thicknessMm: a.thicknessMm, material: a.plate?.material ?? 'steel', obliquityDeg: Math.acos(clamp(cosine, 0, 1)) * 180 / Math.PI, resistanceMm: resistance });
       if (a.plate?.material === 'teak') { evidence.outcome = 'backing'; report('penetration', `Passed ${a.name}`); continue; }
-      if (cosine < .2) { evidence.outcome = 'ricochet'; evidence.terminal = true; report('ricochet', `Ricochet · ${a.name}`); return true; }
+      if (response.ricochet) { evidence.outcome = 'ricochet'; evidence.terminal = true; report('ricochet', `Ricochet · ${a.name}`); return true; }
       if (shell.penetrationMm < resistance) { evidence.outcome = 'stopped'; evidence.terminal = true; report('stopped', `Stopped by ${a.name}`); return true; }
       shell.penetrationMm -= resistance;
       evidence.outcome = 'penetrated';
