@@ -8,13 +8,13 @@
       "massKg": 1052000,
       "barbetteRadius": 4.95,
       "gunhouseSize": [
-        13.4,
-        11,
-        4.1
+        12.2,
+        10.6,
+        4.0
       ],
-      "pivotHeight": 1.85,
-      "trunnionForward": 5.8,
-      "muzzleForward": 19.63,
+      "pivotHeight": 1.9,
+      "trunnionForward": 4.25,
+      "muzzleForward": 18.4,
       "barrelSpacing": 3.75,
       "caliberM": 0.38,
       "traverseDeg": 145,
@@ -29,7 +29,86 @@
       "damage": 70,
       "recoilM": 1.2,
       "ammoPerBarrel": 120,
-      "armorMm": 250
+      "armorMm": 360,
+      "barrelBaseRadius": 0.62,
+      "gunhouseShape": {
+        "footprint": [
+          [
+            -5.9,
+            -4.2
+          ],
+          [
+            -4,
+            -5.3
+          ],
+          [
+            3,
+            -5.3
+          ],
+          [
+            5.7,
+            -4.4
+          ],
+          [
+            5.7,
+            4.4
+          ],
+          [
+            3,
+            5.3
+          ],
+          [
+            -4,
+            5.3
+          ],
+          [
+            -5.9,
+            4.2
+          ]
+        ],
+        "roof": [
+          [
+            -5.4,
+            -4.2,
+            3.8
+          ],
+          [
+            -3.8,
+            -4.5,
+            4
+          ],
+          [
+            3,
+            -4,
+            4
+          ],
+          [
+            4.8,
+            -4,
+            3
+          ],
+          [
+            4.8,
+            4,
+            3
+          ],
+          [
+            3,
+            4,
+            4
+          ],
+          [
+            -3.8,
+            4.5,
+            4
+          ],
+          [
+            -5.4,
+            4.2,
+            3.8
+          ]
+        ]
+      }
     },
     {
       "id": "sk-c28-150-twin",

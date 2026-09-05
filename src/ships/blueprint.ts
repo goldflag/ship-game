@@ -53,7 +53,12 @@ export interface Module extends Volume {
   name: string; kind: 'engine' | 'steering' | 'magazine'; hp: number; compartmentId: string;
 }
 export interface Compartment extends Volume { name: string; capacityM3: number; pumpM3PerSecond: number; }
-export interface Armor extends Volume { name: string; thicknessMm: number; }
+export interface Armor extends Volume {
+  name: string; thicknessMm: number;
+  /** A convex, planar physical plate. Legacy volumes remain closed box shells. */
+  plate?: { vertices: Vec3[]; material: 'KC' | 'Wh' | 'Ww' | 'steel' | 'teak'; mountId?: string; exterior?: boolean };
+  provenance?: { sourceId: string; basis: 'documented' | 'plan-measured' | 'estimated' | 'inferred'; note: string };
+}
 export interface ShipBlueprint {
   schemaVersion: 1; id: string; name: string; configuration: string;
   coordinates: 'meters-y-up-bow-negative-z'; modelUrl: string;
@@ -97,8 +102,8 @@ function unique(values: Record<string, unknown>[], path: string): void {
   const ids = new Set<string>();
   values.forEach((v, i) => { const key = id(v.id, `${path}[${i}].id`); if (ids.has(key)) fail(path, `duplicate ID ${key}`); ids.add(key); });
 }
-function volumes(value: unknown, path: string): Record<string, unknown>[] {
-  const values = list(value, path).map((v, i) => record(v, `${path}[${i}]`));
+function volumes(value: unknown, path: string, max = 256): Record<string, unknown>[] {
+  const values = list(value, path, max).map((v, i) => record(v, `${path}[${i}]`));
   unique(values, path);
   values.forEach((v, i) => { vector(v.center, `${path}[${i}].center`); vector(v.size, `${path}[${i}].size`, .001); });
   return values;
@@ -226,7 +231,34 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     if ((m.center as number[]).some((n, i) => Math.abs(n - (c.center as number[])[i]) + (m.size as number[])[i] / 2 > (c.size as number[])[i] / 2 + 1e-6)) fail(String(m.id), 'module must fit its assigned compartment');
   });
   mounts.forEach(m => { if (m.magazineId !== undefined && !modules.some(module => module.id === m.magazineId && module.kind === 'magazine')) fail(String(m.id), 'unknown magazine connection'); });
-  volumes(b.armor, 'armor').forEach(a => { text(a.name, `${a.id}.name`); numeric(a.thicknessMm, `${a.id}.thicknessMm`, .001, 2000); });
+  volumes(b.armor, 'armor', 512).forEach(a => {
+    text(a.name, `${a.id}.name`); numeric(a.thicknessMm, `${a.id}.thicknessMm`, .001, 2000);
+    if (a.provenance !== undefined) {
+      const p = record(a.provenance, `${a.id}.provenance`);
+      id(p.sourceId, 'sourceId'); text(p.note, 'provenance.note');
+      literal(p.basis, ['documented', 'plan-measured', 'estimated', 'inferred'], 'provenance.basis');
+    }
+    if (a.plate !== undefined) {
+      const p = record(a.plate, `${a.id}.plate`);
+      literal(p.material, ['KC', 'Wh', 'Ww', 'steel', 'teak'], 'plate.material');
+      if (p.exterior !== undefined) literal(p.exterior, [true, false], 'plate.exterior');
+      if (p.mountId !== undefined && !mounts.some(m => m.id === p.mountId)) fail(String(a.id), 'unknown plate mount');
+      const points = list(p.vertices, 'plate.vertices', 16).map(v => vector(v, 'plate vertex'));
+      if (points.length < 3) fail(String(a.id), 'plate needs at least three vertices');
+      const delta = (u: Vec3, v: Vec3) => u.map((n, i) => n - v[i]) as Vec3;
+      const cross = (u: Vec3, v: Vec3) => [u[1]*v[2]-u[2]*v[1], u[2]*v[0]-u[0]*v[2], u[0]*v[1]-u[1]*v[0]] as Vec3;
+      const dot = (u: Vec3, v: Vec3) => u.reduce((n, x, i) => n+x*v[i], 0);
+      const raw = cross(delta(points[1], points[0]), delta(points[2], points[0]));
+      const area = Math.hypot(...raw);
+      if (area < 1e-8) fail(String(a.id), 'degenerate plate');
+      const normal = raw.map(n => n / area) as Vec3;
+      points.forEach((v, i) => {
+        if (Math.abs(dot(delta(v, points[0]), normal)) > 1e-5) fail(String(a.id), 'nonplanar plate');
+        if (dot(cross(delta(points[(i+1)%points.length], v), delta(points[(i+2)%points.length], points[(i+1)%points.length])), normal) <= 1e-8) fail(String(a.id), 'plate must be strictly convex and consistently wound');
+        if (v.some((n, axis) => Math.abs(n-(a.center as number[])[axis]) > (a.size as number[])[axis]/2 + 1e-5)) fail(String(a.id), 'plate lies outside inspection bounds');
+      });
+    }
+  });
   volumes(b.obstructions, 'obstructions');
   const connectionIds = new Set<string>();
   list(b.connections, 'connections', 512).forEach((v, i) => {

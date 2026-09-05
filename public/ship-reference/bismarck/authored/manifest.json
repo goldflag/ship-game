@@ -1,0 +1,1468 @@
+{
+  "schemaVersion": 1,
+  "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+  "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476",
+  "capturePlanSha256": "73996c662ab2075cd4f8afca0eab04ebc7ba7359b699d3d604f073c64edd3319",
+  "captures": [
+    {
+      "id": "starboard",
+      "position": [
+        0,
+        -500,
+        18
+      ],
+      "target": [
+        0,
+        0,
+        18
+      ],
+      "spanM": 280,
+      "resolution": [
+        2200,
+        750
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "starboard.png",
+      "imageSha256": "d65cb32d5e5934f627ebbefb700e22d2548693f9b15548645fe29482a84d033a",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.6292068494294654e-07,
+          -1.0,
+          -500.0
+        ],
+        [
+          0.0,
+          1.0,
+          -1.6292068494294654e-07,
+          18.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 7.857142857142857,
+      "source": {
+        "id": "bismarck",
+        "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+        "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "port",
+      "position": [
+        0,
+        500,
+        18
+      ],
+      "target": [
+        0,
+        0,
+        18
+      ],
+      "spanM": 280,
+      "resolution": [
+        2200,
+        750
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "port.png",
+      "imageSha256": "3f0a4141c1a14f82b3bf46bbee0fba181880d9eeec6bcd424740a52f9e425b60",
+      "cameraMatrixWorld": [
+        [
+          -1.0,
+          1.5099581673894136e-07,
+          1.509957741063772e-07,
+          0.0
+        ],
+        [
+          1.5099580252808664e-07,
+          1.629206565212371e-07,
+          1.0,
+          500.0
+        ],
+        [
+          1.5099578831723193e-07,
+          1.0,
+          -1.6292068494294654e-07,
+          18.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 7.857142857142857,
+      "source": {
+        "id": "bismarck",
+        "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+        "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "top",
+      "position": [
+        0,
+        0,
+        500
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "spanM": 280,
+      "resolution": [
+        2200,
+        750
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "rotationEuler": [
+        0,
+        0,
+        0
+      ],
+      "image": "top.png",
+      "imageSha256": "13ea0206b44fedbe626a59f5399db4f04a2bfa1f0b8f99dd938c9871d2cfe15c",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          500.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 7.857142857142857,
+      "source": {
+        "id": "bismarck",
+        "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+        "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bow",
+      "position": [
+        500,
+        0,
+        15
+      ],
+      "target": [
+        0,
+        0,
+        15
+      ],
+      "spanM": 80,
+      "resolution": [
+        1300,
+        1300
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "bow.png",
+      "imageSha256": "7236b9699e52e763e34b005b355b5a75d09ad6e0607b458f21bd01248d31f097",
+      "cameraMatrixWorld": [
+        [
+          -4.371138828673793e-08,
+          4.371138828673793e-08,
+          1.0,
+          500.0
+        ],
+        [
+          1.0,
+          1.910685676922942e-15,
+          4.371138828673793e-08,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          -4.371138828673793e-08,
+          15.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 16.25,
+      "source": {
+        "id": "bismarck",
+        "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+        "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "stern",
+      "position": [
+        -500,
+        0,
+        15
+      ],
+      "target": [
+        0,
+        0,
+        15
+      ],
+      "spanM": 80,
+      "resolution": [
+        1300,
+        1300
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "stern.png",
+      "imageSha256": "cf334646c0923b86bce420deb9fbf51331f42b860c5c9502058a136814015806",
+      "cameraMatrixWorld": [
+        [
+          -4.371138828673793e-08,
+          -4.371138828673793e-08,
+          -1.0,
+          -500.0
+        ],
+        [
+          -1.0,
+          1.910685676922942e-15,
+          4.371138828673793e-08,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          -4.371138828673793e-08,
+          15.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 16.25,
+      "source": {
+        "id": "bismarck",
+        "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+        "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "underside",
+      "position": [
+        0,
+        0,
+        -500
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "spanM": 280,
+      "resolution": [
+        2200,
+        750
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "underside.png",
+      "imageSha256": "ca12fbba0ff8eb6e7efb4ac21f2804d228c89fe726cde888bf8d1f1987d9b03b",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.0,
+          -1.5099580252808664e-07,
+          0.0
+        ],
+        [
+          0.0,
+          1.5099580252808664e-07,
+          -1.0,
+          -500.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 7.857142857142857,
+      "source": {
+        "id": "bismarck",
+        "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+        "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "quarter-bow",
+      "position": [
+        230,
+        -300,
+        170
+      ],
+      "target": [
+        0,
+        0,
+        12
+      ],
+      "spanM": 290,
+      "resolution": [
+        2200,
+        1250
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "quarter-bow.png",
+      "imageSha256": "456bd7a7befaf16e0a98a7fa63595ffa1ebb5fcd7adad0495bb70deefccf72da",
+      "cameraMatrixWorld": [
+        [
+          0.7936063408851624,
+          -0.23463337123394012,
+          0.5613698959350586,
+          230.0
+        ],
+        [
+          0.6084315776824951,
+          0.3060435950756073,
+          -0.7322214841842651,
+          -300.0
+        ],
+        [
+          -6.696868126709887e-08,
+          0.9226508140563965,
+          0.38563650846481323,
+          170.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 7.586206896551724,
+      "source": {
+        "id": "bismarck",
+        "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+        "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "quarter-stern",
+      "position": [
+        -240,
+        -300,
+        130
+      ],
+      "target": [
+        0,
+        0,
+        12
+      ],
+      "spanM": 290,
+      "resolution": [
+        2200,
+        1250
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "quarter-stern.png",
+      "imageSha256": "82fed788b4c73d962d8c4e9d5d64d94b929bec234978754fd6cb5a979676c5a2",
+      "cameraMatrixWorld": [
+        [
+          0.7808688282966614,
+          0.18341362476348877,
+          -0.5971627235412598,
+          -240.0
+        ],
+        [
+          -0.6246950030326843,
+          0.229266956448555,
+          -0.7464534640312195,
+          -300.0
+        ],
+        [
+          -5.8608733866094553e-08,
+          0.9559268355369568,
+          0.2936049997806549,
+          130.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 7.586206896551724,
+      "source": {
+        "id": "bismarck",
+        "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+        "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "perspective",
+      "position": [
+        250,
+        -300,
+        150
+      ],
+      "target": [
+        0,
+        0,
+        12
+      ],
+      "spanM": 290,
+      "resolution": [
+        2200,
+        1250
+      ],
+      "visibility": "all",
+      "projection": "PERSP",
+      "image": "perspective.png",
+      "imageSha256": "9d737b903be1b6f61b5744fa63c6defe2f7fe04a7dc00a33d9a4662841c698e4",
+      "cameraMatrixWorld": [
+        [
+          0.7682212591171265,
+          -0.21330267190933228,
+          0.603604257106781,
+          250.0
+        ],
+        [
+          0.6401844620704651,
+          0.2559632658958435,
+          -0.7243250012397766,
+          -300.0
+        ],
+        [
+          -6.646098427154357e-08,
+          0.9428598880767822,
+          0.333189457654953,
+          150.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": null,
+      "source": {
+        "id": "bismarck",
+        "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+        "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bow-flare",
+      "position": [
+        108,
+        -150,
+        9
+      ],
+      "target": [
+        108,
+        0,
+        1
+      ],
+      "spanM": 42,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "bow-flare.png",
+      "imageSha256": "13959ab7f92a467a35efa49294d3cb79ef68bf440abc794a86fbdb1d37020797",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          108.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          9.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 38.095238095238095,
+      "source": {
+        "id": "bismarck",
+        "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+        "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "stern-curvature",
+      "position": [
+        -105,
+        -150,
+        7
+      ],
+      "target": [
+        -105,
+        0,
+        -1
+      ],
+      "spanM": 48,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "stern-curvature.png",
+      "imageSha256": "bd2ea8bc27b0ed110aeddcf140196918a1770caec04a89d7ec4695672cb70162",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -105.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          7.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 33.333333333333336,
+      "source": {
+        "id": "bismarck",
+        "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+        "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "deck-sheer",
+      "position": [
+        72,
+        -150,
+        14
+      ],
+      "target": [
+        72,
+        0,
+        6
+      ],
+      "spanM": 85,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "deck-sheer.png",
+      "imageSha256": "9e3e520f6f52e47117197da54e91cdb545d21b0f95add1bf59859d0ef406da34",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          72.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          14.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 18.823529411764707,
+      "source": {
+        "id": "bismarck",
+        "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+        "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bilge-keels",
+      "position": [
+        0,
+        -150,
+        2
+      ],
+      "target": [
+        0,
+        0,
+        -6
+      ],
+      "spanM": 90,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "bilge-keels.png",
+      "imageSha256": "2fafcf48c511b80e78eeefe07984c357397f0608a8244a826bf25c13d0fdff93",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          2.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 17.77777777777778,
+      "source": {
+        "id": "bismarck",
+        "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+        "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "anton",
+      "position": [
+        70,
+        -150,
+        17
+      ],
+      "target": [
+        70,
+        0,
+        9
+      ],
+      "spanM": 34,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "anton.png",
+      "imageSha256": "cf2c447fb424bef6b124489b5abb1e20dbe88855fa0376201e5a56ddb9f1145c",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          70.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          17.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 47.05882352941177,
+      "source": {
+        "id": "bismarck",
+        "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+        "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bruno",
+      "position": [
+        52,
+        -150,
+        21
+      ],
+      "target": [
+        52,
+        0,
+        13
+      ],
+      "spanM": 34,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "bruno.png",
+      "imageSha256": "88743eedcced20bee4dfb2e943c7db4dd6156e4f6c6d6327307cee4da9ce60f9",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          52.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          21.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 47.05882352941177,
+      "source": {
+        "id": "bismarck",
+        "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+        "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "caesar",
+      "position": [
+        -58,
+        -150,
+        21
+      ],
+      "target": [
+        -58,
+        0,
+        13
+      ],
+      "spanM": 34,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "caesar.png",
+      "imageSha256": "1792ac824df85b29546ac6414ca5d615150f12b5d3d338f46e7198feb77744a5",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -58.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          21.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 47.05882352941177,
+      "source": {
+        "id": "bismarck",
+        "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+        "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "dora",
+      "position": [
+        -76,
+        -150,
+        17
+      ],
+      "target": [
+        -76,
+        0,
+        9
+      ],
+      "spanM": 34,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "dora.png",
+      "imageSha256": "ef44289684b5e6b68b1f271fb547261749a1df226d68ea7d83cd7924389fdd66",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -76.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          17.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 47.05882352941177,
+      "source": {
+        "id": "bismarck",
+        "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+        "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bridge",
+      "position": [
+        24,
+        -150,
+        27
+      ],
+      "target": [
+        24,
+        0,
+        19
+      ],
+      "spanM": 48,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "bridge.png",
+      "imageSha256": "ad600fa60b4e919ae063fa1cfe5f858262d313e8cea95fa02264e11b099a84a2",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          24.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          27.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 33.333333333333336,
+      "source": {
+        "id": "bismarck",
+        "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+        "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "funnel",
+      "position": [
+        0,
+        -150,
+        25
+      ],
+      "target": [
+        0,
+        0,
+        17
+      ],
+      "spanM": 38,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "funnel.png",
+      "imageSha256": "1eecd97677c01431f0788bde81cf4cf925bb610423e1e98ec87b1febd842e097",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          25.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 42.10526315789474,
+      "source": {
+        "id": "bismarck",
+        "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+        "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "hangar",
+      "position": [
+        -23,
+        -150,
+        19
+      ],
+      "target": [
+        -23,
+        0,
+        11
+      ],
+      "spanM": 40,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "hangar.png",
+      "imageSha256": "cc51634572d07aa914f4f283f4ba06505e7ceeb465e79f53dde2567f34f90e8b",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -23.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          19.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 40.0,
+      "source": {
+        "id": "bismarck",
+        "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+        "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "foremast",
+      "position": [
+        16,
+        -150,
+        42
+      ],
+      "target": [
+        16,
+        0,
+        34
+      ],
+      "spanM": 43,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "foremast.png",
+      "imageSha256": "315fce393eeb0cf8af82dc5558ad7ae21034340eeaaf83338a000e4c06e2d3f1",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          42.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 37.2093023255814,
+      "source": {
+        "id": "bismarck",
+        "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+        "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "mainmast",
+      "position": [
+        -23,
+        -150,
+        44
+      ],
+      "target": [
+        -23,
+        0,
+        36
+      ],
+      "spanM": 45,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "mainmast.png",
+      "imageSha256": "703800eff65e8dd93d24daebf79cf3ffafe5ea6b961e092185653bfcc7715f21",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -23.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          44.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 35.55555555555556,
+      "source": {
+        "id": "bismarck",
+        "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+        "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "aft-superstructure",
+      "position": [
+        -39,
+        -150,
+        21
+      ],
+      "target": [
+        -39,
+        0,
+        13
+      ],
+      "spanM": 42,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "aft-superstructure.png",
+      "imageSha256": "f848ba45456b6a35b867491682eddee7aec1c023b623e5915eae916fc971a1b3",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -39.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          21.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 38.095238095238095,
+      "source": {
+        "id": "bismarck",
+        "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+        "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "battery-isolated",
+      "position": [
+        160,
+        -240,
+        140
+      ],
+      "target": [
+        0,
+        0,
+        7
+      ],
+      "spanM": 260,
+      "resolution": [
+        2200,
+        900
+      ],
+      "visibility": [
+        "main"
+      ],
+      "projection": "ORTHO",
+      "image": "battery-isolated.png",
+      "imageSha256": "7c068c2b62323ffafc468788bf7b578ab720208e7437873746192514d0db915b",
+      "cameraMatrixWorld": [
+        [
+          0.8320501446723938,
+          -0.23226720094680786,
+          0.5037305951118469,
+          160.0
+        ],
+        [
+          0.5547004342079163,
+          0.34840071201324463,
+          -0.7555953860282898,
+          -240.0
+        ],
+        [
+          -5.566314698057795e-08,
+          0.9081128239631653,
+          0.4187255799770355,
+          140.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 8.461538461538462,
+      "source": {
+        "id": "bismarck",
+        "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+        "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "hull-superstructure-isolated",
+      "position": [
+        200,
+        -300,
+        160
+      ],
+      "target": [
+        0,
+        0,
+        12
+      ],
+      "spanM": 280,
+      "resolution": [
+        2200,
+        1200
+      ],
+      "visibility": [
+        "hull",
+        "superstructure"
+      ],
+      "projection": "ORTHO",
+      "image": "hull-superstructure-isolated.png",
+      "imageSha256": "ef98d8a597abbfdd7f94e62aa976a36433372ea70bd488d30980a7e6134709bc",
+      "cameraMatrixWorld": [
+        [
+          0.8320502638816833,
+          -0.21063731610774994,
+          0.5131513476371765,
+          200.0
+        ],
+        [
+          0.5547002553939819,
+          0.31595587730407715,
+          -0.7697268724441528,
+          -300.0
+        ],
+        [
+          1.9530062900230405e-08,
+          0.9250966310501099,
+          0.3797317445278168,
+          160.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 7.857142857142857,
+      "source": {
+        "id": "bismarck",
+        "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+        "modelSha256": "ec5071a7c2fe8521e38217d4e3c84eeb04c15d256f3c8f563f93dd5ee19bf476"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    }
+  ]
+}

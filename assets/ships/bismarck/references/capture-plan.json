@@ -1,0 +1,520 @@
+{
+  "schemaVersion": 1,
+  "axes": "metres; +X bow +Y port +Z up",
+  "views": [
+    {
+      "id": "starboard",
+      "position": [
+        0,
+        -500,
+        18
+      ],
+      "target": [
+        0,
+        0,
+        18
+      ],
+      "spanM": 280,
+      "resolution": [
+        2200,
+        750
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "port",
+      "position": [
+        0,
+        500,
+        18
+      ],
+      "target": [
+        0,
+        0,
+        18
+      ],
+      "spanM": 280,
+      "resolution": [
+        2200,
+        750
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "top",
+      "position": [
+        0,
+        0,
+        500
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "spanM": 280,
+      "resolution": [
+        2200,
+        750
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "rotationEuler": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "bow",
+      "position": [
+        500,
+        0,
+        15
+      ],
+      "target": [
+        0,
+        0,
+        15
+      ],
+      "spanM": 80,
+      "resolution": [
+        1300,
+        1300
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "stern",
+      "position": [
+        -500,
+        0,
+        15
+      ],
+      "target": [
+        0,
+        0,
+        15
+      ],
+      "spanM": 80,
+      "resolution": [
+        1300,
+        1300
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "underside",
+      "position": [
+        0,
+        0,
+        -500
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "spanM": 280,
+      "resolution": [
+        2200,
+        750
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "quarter-bow",
+      "position": [
+        230,
+        -300,
+        170
+      ],
+      "target": [
+        0,
+        0,
+        12
+      ],
+      "spanM": 290,
+      "resolution": [
+        2200,
+        1250
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "quarter-stern",
+      "position": [
+        -240,
+        -300,
+        130
+      ],
+      "target": [
+        0,
+        0,
+        12
+      ],
+      "spanM": 290,
+      "resolution": [
+        2200,
+        1250
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "perspective",
+      "position": [
+        250,
+        -300,
+        150
+      ],
+      "target": [
+        0,
+        0,
+        12
+      ],
+      "spanM": 290,
+      "resolution": [
+        2200,
+        1250
+      ],
+      "visibility": "all",
+      "projection": "PERSP"
+    },
+    {
+      "id": "bow-flare",
+      "position": [
+        108,
+        -150,
+        9
+      ],
+      "target": [
+        108,
+        0,
+        1
+      ],
+      "spanM": 42,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "stern-curvature",
+      "position": [
+        -105,
+        -150,
+        7
+      ],
+      "target": [
+        -105,
+        0,
+        -1
+      ],
+      "spanM": 48,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "deck-sheer",
+      "position": [
+        72,
+        -150,
+        14
+      ],
+      "target": [
+        72,
+        0,
+        6
+      ],
+      "spanM": 85,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "bilge-keels",
+      "position": [
+        0,
+        -150,
+        2
+      ],
+      "target": [
+        0,
+        0,
+        -6
+      ],
+      "spanM": 90,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "anton",
+      "position": [
+        70,
+        -150,
+        17
+      ],
+      "target": [
+        70,
+        0,
+        9
+      ],
+      "spanM": 34,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "bruno",
+      "position": [
+        52,
+        -150,
+        21
+      ],
+      "target": [
+        52,
+        0,
+        13
+      ],
+      "spanM": 34,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "caesar",
+      "position": [
+        -58,
+        -150,
+        21
+      ],
+      "target": [
+        -58,
+        0,
+        13
+      ],
+      "spanM": 34,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "dora",
+      "position": [
+        -76,
+        -150,
+        17
+      ],
+      "target": [
+        -76,
+        0,
+        9
+      ],
+      "spanM": 34,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "bridge",
+      "position": [
+        24,
+        -150,
+        27
+      ],
+      "target": [
+        24,
+        0,
+        19
+      ],
+      "spanM": 48,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "funnel",
+      "position": [
+        0,
+        -150,
+        25
+      ],
+      "target": [
+        0,
+        0,
+        17
+      ],
+      "spanM": 38,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "hangar",
+      "position": [
+        -23,
+        -150,
+        19
+      ],
+      "target": [
+        -23,
+        0,
+        11
+      ],
+      "spanM": 40,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "foremast",
+      "position": [
+        16,
+        -150,
+        42
+      ],
+      "target": [
+        16,
+        0,
+        34
+      ],
+      "spanM": 43,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "mainmast",
+      "position": [
+        -23,
+        -150,
+        44
+      ],
+      "target": [
+        -23,
+        0,
+        36
+      ],
+      "spanM": 45,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "aft-superstructure",
+      "position": [
+        -39,
+        -150,
+        21
+      ],
+      "target": [
+        -39,
+        0,
+        13
+      ],
+      "spanM": 42,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "battery-isolated",
+      "position": [
+        160,
+        -240,
+        140
+      ],
+      "target": [
+        0,
+        0,
+        7
+      ],
+      "spanM": 260,
+      "resolution": [
+        2200,
+        900
+      ],
+      "visibility": [
+        "main"
+      ],
+      "projection": "ORTHO"
+    },
+    {
+      "id": "hull-superstructure-isolated",
+      "position": [
+        200,
+        -300,
+        160
+      ],
+      "target": [
+        0,
+        0,
+        12
+      ],
+      "spanM": 280,
+      "resolution": [
+        2200,
+        1200
+      ],
+      "visibility": [
+        "hull",
+        "superstructure"
+      ],
+      "projection": "ORTHO"
+    }
+  ],
+  "registration": {
+    "uniformScale": 15,
+    "method": "Single global similarity registration, 15 m/viewer unit for nominal 36 m beam. Source Y=0 retained as unknown game load datum. No length fit or component scaling."
+  }
+}

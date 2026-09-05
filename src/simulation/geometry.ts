@@ -44,3 +44,5 @@ export function segmentBox(from: Vec3, to: Vec3, box: Pick<Volume, 'center' | 's
   return { t: enter, exit, normal, point: add(from, scale(delta, enter)) };
 }
 export const contains = (box: Pick<Volume, 'center' | 'size'>, point: Vec3) => point.every((v, i) => Math.abs(v - box.center[i]) <= box.size[i] / 2);
+
+export const dot = (a: Vec3, b: Vec3): number => a.reduce((n, v, i) => n + v * b[i], 0);

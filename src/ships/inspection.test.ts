@@ -7,24 +7,25 @@ import { CombatSimulation } from '../simulation/combat';
 test('inspection lists exactly the armor, mounts, modules and compartments used by each ship', () => {
   for (const id of Object.keys(shipPresets)) {
     const def = shipPreset(id), entries = inspectionEntries(def);
-    expect(entriesForMode(entries, 'armor').length).toBe(def.armor.length + def.mounts.length);
+    expect(entriesForMode(entries, 'armor').length).toBe(def.armor.length + def.mounts.filter(m => !def.armor.some(a => a.plate?.mountId === m.id)).length);
     expect(entriesForMode(entries, 'internals').length).toBe(def.modules.length + def.compartments.length);
     expect(entriesForMode(entries, 'exterior')).toEqual([]);
     const armor = entries.find(e => e.id === `armor:${def.armor[0].id}`)!;
     expect(armor.thicknessMm).toBe(def.armor[0].thicknessMm);
     expect(armor.size).toEqual(def.armor[0].size);
-    const gunhouse = entries.find(e => e.id === `mount:${def.mounts[0].id}`)!;
-    expect(gunhouse.thicknessMm).toBe(def.mounts[0].weapon.armorMm);
+    const gunhouse = entries.find(e => e.mountIndex === 0)!;
+    expect(gunhouse.thicknessMm).toBeGreaterThan(0);
+    expect(def.armor.some(a => a.plate?.mountId === def.mounts[0].id) ? gunhouse.plate : gunhouse.size).toBeDefined();
   }
 });
 
 test('inspection filters and highlights without changing combat state and follows moving gunhouses', () => {
   const def = shipPreset('bismarck'), sim = new CombatSimulation(def), view = new ShipInspection(def);
   const before = JSON.stringify(sim.player);
-  view.setMode('armor', 'mount:caesar'); view.update(sim.player);
+  view.setMode('armor', 'armor:caesar-turret-side-0-a'); view.update(sim.player);
   expect(view.root.visible).toBe(true);
-  expect(view.root.children.filter(c => c.visible).map(c => c.userData.inspectionId)).toEqual(['mount:caesar']);
-  expect(view.selectedId).toBe('mount:caesar');
+  expect(view.root.children.filter(c => c.visible).map(c => c.userData.inspectionId)).toEqual(['armor:caesar-turret-side-0-a']);
+  expect(view.selectedId).toBe('armor:caesar-turret-side-0-a');
   view.setMode('internals', 'module:engine-port'); view.update(sim.player);
   expect(view.root.children.filter(c => c.visible).map(c => c.userData.inspectionId)).toEqual(['module:engine-port']);
   view.setMode('internals'); view.update(sim.player);
@@ -34,7 +35,7 @@ test('inspection filters and highlights without changing combat state and follow
   expect(view.selectedId).toBeUndefined();
   const index = def.mounts.findIndex(m => m.id === 'caesar');
   sim.player.mounts[index].train = .4; view.update(sim.player);
-  expect(view.root.children.find(c => c.userData.inspectionId === 'mount:caesar')!.rotation.y).toBeCloseTo(-Math.PI - .4);
+  expect(view.root.children.find(c => c.userData.inspectionId === 'armor:caesar-turret-side-0-a')!.rotation.y).toBeCloseTo(-Math.PI - .4);
   view.setMode('exterior');
   expect(view.root.visible).toBe(false);
 });

@@ -1,0 +1,2088 @@
+{
+  "schemaVersion": 1,
+  "sourceId": "gm-pgsb708",
+  "vehicle": "pgsb708",
+  "name": "Bismarck\u00a0&#039;41",
+  "gameVersion": "EU 15.7.0.0",
+  "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb708",
+  "accessedAt": "2026-09-05T19:48:33.721779+00:00",
+  "pageSha256": "ee3d85eacfaaf8af4a24727c2a4b62237df9f989d5d81494b2d77db5cc869ddf",
+  "schemeSha256": "fcbdcc07e91d9d276b8b234fb50442f17af03a9ec18120fd8f8c3d6d992f2244",
+  "files": [
+    {
+      "path": "common/visual/common/misc/cm004_barbette_out/cm004_barbette_out",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/common/misc/cm004_barbette_out/cm004_barbette_out.model",
+      "sha256": "598e89fd7685eb5c19e550e29eccab8b0fa29392fbdecb410bf3fb7445d1a7e1",
+      "bytes": 798,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/common/misc/cm011_fire_fighting_gear/cm011_fire_fighting_gear",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/common/misc/cm011_fire_fighting_gear/cm011_fire_fighting_gear.model",
+      "sha256": "c0438e35435db9eac5117dabca2deb8dc4ead4d42d6f7f6b3f45959f6839f2e1",
+      "bytes": 2013,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/common/misc/cm014_fuel_oil_hose/cm014_fuel_oil_hose",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/common/misc/cm014_fuel_oil_hose/cm014_fuel_oil_hose.model",
+      "sha256": "36514bb1d6c40993b5f6494ae60993105bb96f5d906203264ac7faa62ce54ccc",
+      "bytes": 1757,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/common/misc/cm056_ships_bell/cm056_ships_bell",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/common/misc/cm056_ships_bell/cm056_ships_bell.model",
+      "sha256": "7cffbb3ca0d743864d30f722df7d02981d5645d83c74fb571eaaee5c74842330",
+      "bytes": 1364,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/common/misc/cm079_fender/cm079_fender",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/common/misc/cm079_fender/cm079_fender.model",
+      "sha256": "7ee55dc9d6a5a2c35a9a78f6fcf549c98b615e7aeb9130d3f81eaaf00d2597c2",
+      "bytes": 1199,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/common/misc/cm093_rope/cm093_rope",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/common/misc/cm093_rope/cm093_rope.model",
+      "sha256": "ac268bd293f1798f54c8a4c1b9589b08ad3595f5ccb6c9f621ab5550b17e4b0b",
+      "bytes": 1184,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/common/misc/cm094_propeller3_l/cm094_propeller3_l",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/common/misc/cm094_propeller3_l/cm094_propeller3_l.model",
+      "omitted": "Server returned an empty reference component",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "common/visual/common/misc/cm095_propeller3_r/cm095_propeller3_r",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/common/misc/cm095_propeller3_r/cm095_propeller3_r.model",
+      "sha256": "c69395b734e1280c04083d1e146ceebf2730c03f82a40fc74826557110100cd5",
+      "bytes": 1865,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/common/misc/cm096_platform/cm096_platform",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/common/misc/cm096_platform/cm096_platform.model",
+      "sha256": "aa731edb7be571bf56ad33a9035fed33a79797870a830dde9673f89d5ee8306a",
+      "bytes": 634,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/common/misc/cm097_stairway/cm097_stairway",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/common/misc/cm097_stairway/cm097_stairway.model",
+      "sha256": "fb26f938fef3d37885fb1a472b0cd74ac0fc37774a470279549ebf77dca9180c",
+      "bytes": 1950,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/catapult/gc001_catapult_1/gc001_catapult_1",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/catapult/gc001_catapult_1/gc001_catapult_1.model",
+      "sha256": "f4254e8101ac34c9b2d4a053e8b8ff6ec47dd17cdff610c9e3cb4aae6c933c66",
+      "bytes": 24688,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/director/gd007_flak_zag/gd007_flak_zag",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/director/gd007_flak_zag/gd007_flak_zag.model",
+      "sha256": "7499762b324a8b180d0a76f119e1f4bfe34748bfedb70fa89073fe5865bf1028",
+      "bytes": 6861,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/director/gd008_zeilsaule_c38_night_dir/gd008_zeilsaule_c38_night_dir",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/director/gd008_zeilsaule_c38_night_dir/gd008_zeilsaule_c38_night_dir.model",
+      "sha256": "25991ab1a4dac954514103f16c981d0b77243f10f25caa718ac105279546f664",
+      "bytes": 5221,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/director/gd009_target_giver/gd009_target_giver",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/director/gd009_target_giver/gd009_target_giver.model",
+      "sha256": "ad039293f577c22af92bce572904581140e402a2d1fa4398742d7cdd572e5fdc",
+      "bytes": 9902,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/finder/gf001_10_5m_rangefinders/gf001_10_5m_rangefinders",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/finder/gf001_10_5m_rangefinders/gf001_10_5m_rangefinders.model",
+      "sha256": "55ae6f47f604045e1053dcaa85cd18a5e0972eed373cafc3107b78a17f62f04b",
+      "bytes": 22110,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/finder/gf002_10_5m_rangefinders_with_mast/gf002_10_5m_rangefinders_with_mast",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/finder/gf002_10_5m_rangefinders_with_mast/gf002_10_5m_rangefinders_with_mast.model",
+      "sha256": "f4beef3abfd4b1769de8b6f448552cbccc2a5770a5389bbea026e08d375ed80b",
+      "bytes": 45116,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/finder/gf003_7m_rangefinder/gf003_7m_rangefinder",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/finder/gf003_7m_rangefinder/gf003_7m_rangefinder.model",
+      "sha256": "17efd339c7e9caee89d89631142225ccbeece3fe70534f2c581c6b08fba18d56",
+      "bytes": 8545,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/finder/gf004_3m_rangefinder_night_ha/gf004_3m_rangefinder_night_ha",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/finder/gf004_3m_rangefinder_night_ha/gf004_3m_rangefinder_night_ha.model",
+      "sha256": "c6028a33e38c68c64e751314d51d1c1d712677a3ac7290f9bfa49c72c58555f9",
+      "bytes": 35665,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/finder/gf005_4m_rangefinder_type_sl_8/gf005_4m_rangefinder_type_sl_8",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/finder/gf005_4m_rangefinder_type_sl_8/gf005_4m_rangefinder_type_sl_8.model",
+      "sha256": "854b0d1ff4e2d4cb04d6f0b4b786d5dcacb73f765b876b832b982a2e607c554d",
+      "bytes": 5710,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/gun/aaircraft/gga007_20mm_flak_38/gga007_20mm_flak_38",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/gun/aaircraft/gga007_20mm_flak_38/gga007_20mm_flak_38.model",
+      "sha256": "72750f86996de3f998697f0ba633ebf3d5bdbaf5594b3ca07b147b8d86bee6df",
+      "bytes": 16619,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/gun/aaircraft/gga008_20mm_flack_38_quad/gga008_20mm_flack_38_quad",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/gun/aaircraft/gga008_20mm_flack_38_quad/gga008_20mm_flack_38_quad.model",
+      "sha256": "64f3c2b5880d2ba4d9ed50339775d1013bfcb4b42fc766313506810ae6e267ee",
+      "bytes": 35123,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/gun/aaircraft/gga009_37mm_skc_30_twin/gga009_37mm_skc_30_twin",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/gun/aaircraft/gga009_37mm_skc_30_twin/gga009_37mm_skc_30_twin.model",
+      "sha256": "b532a554f7d18b21ef645b42b105c32122abdad8ae4f3af9da10e6b39c322f01",
+      "bytes": 45085,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/gun/main/ggm2015_380mm_skc_34_rf/ggm2015_380mm_skc_34_rf",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/gun/main/ggm2015_380mm_skc_34_rf/ggm2015_380mm_skc_34_rf.model",
+      "sha256": "ffc8b332ebca5ccb202223fd3406156734a9fe4074328d061627733369607509",
+      "bytes": 24913,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/gun/main/ggm2016_380mm_skc_34/ggm2016_380mm_skc_34",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/gun/main/ggm2016_380mm_skc_34/ggm2016_380mm_skc_34.model",
+      "sha256": "68616ccba5292d0c71efa4327752bd7506878088fc11fc36598ccd0ea98b5f3a",
+      "bytes": 20360,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/gun/secondary/ggs001_150mm_skc_28/ggs001_150mm_skc_28",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/gun/secondary/ggs001_150mm_skc_28/ggs001_150mm_skc_28.model",
+      "sha256": "f34f4da81375d9c26710ef07da6528b3b4cd1b19ac7a561d2d924683ff3d7f96",
+      "bytes": 19840,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/gun/secondary/ggs002_150mm_skc_28_rf/ggs002_150mm_skc_28_rf",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/gun/secondary/ggs002_150mm_skc_28_rf/ggs002_150mm_skc_28_rf.model",
+      "sha256": "e5c3885638e4057d92a2bf4c63436a1c604059c8df11160b63237eaf2ae4d061",
+      "bytes": 23212,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/gun/secondary/ggs003_105_mm_skc_33/ggs003_105_mm_skc_33",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/gun/secondary/ggs003_105_mm_skc_33/ggs003_105_mm_skc_33.model",
+      "sha256": "ccc198c0702964dbb5b43ee074da0f5eb737b8152080d63be9499774742f577a",
+      "bytes": 52753,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/gun/secondary/ggs004_105_mm_skc_37/ggs004_105_mm_skc_37",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/gun/secondary/ggs004_105_mm_skc_37/ggs004_105_mm_skc_37.model",
+      "sha256": "b0aa3fbdcc203dfef991ce822b2dc9dcc90db36299ab1a430ef931a078e7923d",
+      "bytes": 53921,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm001_paravane/gm001_paravane",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm001_paravane/gm001_paravane.model",
+      "sha256": "b2f4eb84458d5ff9390929a6b921c6e68a16c8b7296977e8a48e9ce62a7fa0c3",
+      "bytes": 6414,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm002_fog_horn/gm002_fog_horn",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm002_fog_horn/gm002_fog_horn.model",
+      "sha256": "bd970a50cf4564f2089a615d9bc4547fcc11592f612df946770141185d6b57dc",
+      "bytes": 1118,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm003_reels_1/gm003_reels_1",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm003_reels_1/gm003_reels_1.model",
+      "sha256": "1a6357eba125e6d511ab3986cdd309aa5a3b4f36add29c8bfc3dafaa27cb4c0f",
+      "bytes": 3035,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm004_reels_2/gm004_reels_2",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm004_reels_2/gm004_reels_2.model",
+      "sha256": "f55d20b3d5fd0ddf4adc444d5826a477aa7cf4d16b4711b84551d4f483ae2b92",
+      "bytes": 4367,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm005_reels_3/gm005_reels_3",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm005_reels_3/gm005_reels_3.model",
+      "sha256": "b5e0e134a7a6545eb29fd1f94299664c4cf17938c321de95236540cace0e6002",
+      "bytes": 4993,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm006_reels_4/gm006_reels_4",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm006_reels_4/gm006_reels_4.model",
+      "sha256": "d347bc6172a3db937e9fddbe5743f1d53d06263b4142169324dd2972464aea1c",
+      "bytes": 5262,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm007_lifebuoy/gm007_lifebuoy",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm007_lifebuoy/gm007_lifebuoy.model",
+      "sha256": "7c81c13ea25b8b9918795413891cad0bb592bbdc0d855e9d845bd37f2537947f",
+      "bytes": 1200,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm008_loudspeaker/gm008_loudspeaker",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm008_loudspeaker/gm008_loudspeaker.model",
+      "sha256": "126594f8486d4deb23008c89e0b7d38a67cca6c38eac7b4c04acf2fcb14ca431",
+      "bytes": 1996,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm009_siren/gm009_siren",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm009_siren/gm009_siren.model",
+      "sha256": "7785a22a50de46dd971774cbece88a68a0f894bb9892e8d4d558f24f0e4cd7fe",
+      "bytes": 4150,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm010_binocular/gm010_binocular",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm010_binocular/gm010_binocular.model",
+      "sha256": "1736be0f25cfc2d17b816253b8a92dc9eb68b57ca58b3b03b3de921838caa4bb",
+      "bytes": 2845,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm011_pelorus/gm011_pelorus",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm011_pelorus/gm011_pelorus.model",
+      "sha256": "571730ebdfb55d7cf98aaf85e2d5dca088282a12029a061a75efaef2204be69c",
+      "bytes": 3538,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm013_siren/gm013_siren",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm013_siren/gm013_siren.model",
+      "sha256": "bb2f79cc44b23b2cc6698bc7b7bf283ae3d69342283343df9ae8ada9e5470943",
+      "bytes": 700,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm014_sleeve/gm014_sleeve",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm014_sleeve/gm014_sleeve.model",
+      "sha256": "e8c6cb9f607ea8e3cdbc7d3afe71523f8a08d333ec4c4829a602bc49565a83c8",
+      "bytes": 1867,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm015_clock/gm015_clock",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm015_clock/gm015_clock.model",
+      "sha256": "cdbda28d64b6bff6449beb9e4e67b9164250a10726a0e9ddd2bf1fae6f3f0d6d",
+      "bytes": 290,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm016_sleeve/gm016_sleeve",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm016_sleeve/gm016_sleeve.model",
+      "sha256": "67f2ed5fc0554fedf3169ed130f57f4e2d3e5b1220c83ab8b5a60db1f4646680",
+      "bytes": 1642,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm017_siren/gm017_siren",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm017_siren/gm017_siren.model",
+      "sha256": "e1ab2f8cce48e3366189f88d0582937400cc547e4da260d5b7b636eacd333b91",
+      "bytes": 921,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm019_loading_machine/gm019_loading_machine",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm019_loading_machine/gm019_loading_machine.model",
+      "sha256": "e3d490baf08b5b3a84d29ad2493a162f471d153f8e39b18bf06ae3de6c9f7b2c",
+      "bytes": 15712,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm020_loading_machine_2/gm020_loading_machine_2",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm020_loading_machine_2/gm020_loading_machine_2.model",
+      "sha256": "0d51d1fb4d88eff24b643c862575abcd15fea4ebbd815000f611e6c8aaa878e2",
+      "bytes": 13826,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm024_night_indicator/gm024_night_indicator",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm024_night_indicator/gm024_night_indicator.model",
+      "sha256": "6fcf49122461934bda2d2e23d9611a11b95d3286d18ab5a74ab1933be12511f2",
+      "bytes": 7027,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm500_admiral_gig_11m/gm500_admiral_gig_11m",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm500_admiral_gig_11m/gm500_admiral_gig_11m.model",
+      "sha256": "13dfe39fe26cd11fecbe469341701639d2e2fd28e1e471be821bb9410bf67ba6",
+      "bytes": 20568,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm501_lauch_11m/gm501_lauch_11m",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm501_lauch_11m/gm501_lauch_11m.model",
+      "sha256": "773722c084982f9041e616557baac94f57d0a2f3caa5731f17695f12598a398c",
+      "bytes": 21723,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm502_captains_gig_9m/gm502_captains_gig_9m",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm502_captains_gig_9m/gm502_captains_gig_9m.model",
+      "sha256": "ce10f37423bd2d1bb6e3b1d1bc2e8c42f526532b7f95e8ce269831b20d1a06ca",
+      "bytes": 21118,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm5037_bismarck_41_plate/gm5037_bismarck_41_plate",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm5037_bismarck_41_plate/gm5037_bismarck_41_plate.model",
+      "sha256": "dfe38d6c61283ec933ea7d704d93104e43f99c609b256bca37e40c3b4dcc783b",
+      "bytes": 1692,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm504_cutter_8m/gm504_cutter_8m",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm504_cutter_8m/gm504_cutter_8m.model",
+      "sha256": "4019c92cab5eb2493f74dda74cbe98dd84f91af943d9894fe3acf952347a9029",
+      "bytes": 7527,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm505_long_boat/gm505_long_boat",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm505_long_boat/gm505_long_boat.model",
+      "sha256": "b0511030d7ac8e3b3146100d6467638cef6fbfe4355ebb44dea56eb990f9dbba",
+      "bytes": 7305,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm507_boat/gm507_boat",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm507_boat/gm507_boat.model",
+      "sha256": "5bd14a1afd401db501e1c988b52455e32b5b7bde1384923211143839a67345ea",
+      "bytes": 2597,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm508_boats/gm508_boats",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm508_boats/gm508_boats.model",
+      "sha256": "87cce8de35143c54888b9fe1dda2844fdedd7e7ee949aac28dde34cc652f98cf",
+      "bytes": 4592,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm600_switch_box_1/gm600_switch_box_1",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm600_switch_box_1/gm600_switch_box_1.model",
+      "sha256": "636009cda8457b2ef01d29cf436e7207365b5d09abafd1b2c7a6807ee737e7c7",
+      "bytes": 294,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm601_switch_box_2/gm601_switch_box_2",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm601_switch_box_2/gm601_switch_box_2.model",
+      "sha256": "3da5b0422a80b976e36b1a35c9760e69a2a9f86126d527fc2031d3dacac00230",
+      "bytes": 325,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm602_switch_box_3/gm602_switch_box_3",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm602_switch_box_3/gm602_switch_box_3.model",
+      "sha256": "2b65808e6f021de9401db552faf4bcad2485c127c39e5907ca9f875ef808414a",
+      "bytes": 328,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm603_switch_box_4/gm603_switch_box_4",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm603_switch_box_4/gm603_switch_box_4.model",
+      "sha256": "f1e36f28ed22b9866fdd13b8a60c5640116bece662d034ba529e08335e2e9f5e",
+      "bytes": 473,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm604_switch_box_5/gm604_switch_box_5",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm604_switch_box_5/gm604_switch_box_5.model",
+      "sha256": "3a23235be42f5ff6443cdd442f2732db034ebae15ea24a460944c6fe52813ce3",
+      "bytes": 681,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm605_indicator/gm605_indicator",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm605_indicator/gm605_indicator.model",
+      "sha256": "feecbe0c36045e12ada616a2071308dff13c8062060f308dc637680d1f83ed11",
+      "bytes": 418,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm606_mc_box/gm606_mc_box",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm606_mc_box/gm606_mc_box.model",
+      "sha256": "f152eeb4c032b16032c6fdf33a5de2bafca943191af69b85974d7366e4ae0f38",
+      "bytes": 549,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm607_manometer/gm607_manometer",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm607_manometer/gm607_manometer.model",
+      "sha256": "2a75a39d4db1879423498130691feacbe067f41bc12471f1144951c05a15156b",
+      "bytes": 336,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm608_bell/gm608_bell",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm608_bell/gm608_bell.model",
+      "sha256": "8e57215d75df760ac604d95aba9f3632ba7e86db56aac926de9cac321124ca0c",
+      "bytes": 500,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm609_rudder_indicator/gm609_rudder_indicator",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm609_rudder_indicator/gm609_rudder_indicator.model",
+      "sha256": "2d3df7fca73596c37cee052b1514c3dacc3a8d32011bd1a196ea1c68a89d796e",
+      "bytes": 770,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm612_target_giver/gm612_target_giver",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm612_target_giver/gm612_target_giver.model",
+      "sha256": "7368832b6631475a3588c4b56025e8896b3ca7cafbb74ba52a7f917046cbbdf3",
+      "bytes": 9911,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm700_ammobox/gm700_ammobox",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm700_ammobox/gm700_ammobox.model",
+      "sha256": "7b2bbfb6b4cca37548da4d6eb30cca71a6755de6bcf3b8ccde5c8628282ba26c",
+      "bytes": 603,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm701_ammobox/gm701_ammobox",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm701_ammobox/gm701_ammobox.model",
+      "sha256": "17a18e68a615d8d8ac16562a71d8ba6070244c6351ec24eb9d8c1045360b84c0",
+      "bytes": 578,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm702_ammobox/gm702_ammobox",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm702_ammobox/gm702_ammobox.model",
+      "sha256": "a19c8dfa5d1c6281161a88128474faf82da082db25330bdc96274f960a57feaa",
+      "bytes": 603,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm850_searchlight/gm850_searchlight",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm850_searchlight/gm850_searchlight.model",
+      "sha256": "a21d8e4938a1b0aed5b136dfb0864d9eb4ec69dc29d55180e9f361cf4b4c0e8b",
+      "bytes": 46419,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm851_running_lights_r/gm851_running_lights_r",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm851_running_lights_r/gm851_running_lights_r.model",
+      "sha256": "54bc72b55d6cf7fbbaea23aa35d01b5f53bb2a39c95a769dd18ba67c56664c66",
+      "bytes": 1043,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm852_running_lights_l/gm852_running_lights_l",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm852_running_lights_l/gm852_running_lights_l.model",
+      "sha256": "627c7a02af36d1f4b4dc0875a64639e1117d52ce68eac69d82912e20982e96ed",
+      "bytes": 1088,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm853_signal_lamp/gm853_signal_lamp",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm853_signal_lamp/gm853_signal_lamp.model",
+      "sha256": "5b2e4d7cf21eb7134aa31b22c24b29b6e0312ab511d33eca4d8b57b940dc6267",
+      "bytes": 2873,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm854_running_lights_r/gm854_running_lights_r",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm854_running_lights_r/gm854_running_lights_r.model",
+      "sha256": "2e6336ef3864665947951a84546f63108dda90338983c8a8154e1be482625dc9",
+      "bytes": 986,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm855_running_lights_l/gm855_running_lights_l",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm855_running_lights_l/gm855_running_lights_l.model",
+      "sha256": "175359440ca99517cc24f39ef18535ae697ad0b52c7937bb4ef29a854e5916f8",
+      "bytes": 961,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm856_mastheadlight/gm856_mastheadlight",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm856_mastheadlight/gm856_mastheadlight.model",
+      "sha256": "ca7849890a09ee0aec98abdad5d3e569e93e5b7a2ed81c2f124447cb0df28c5a",
+      "bytes": 1281,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm859_truck_light/gm859_truck_light",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm859_truck_light/gm859_truck_light.model",
+      "sha256": "34b1592bffb850d5d9411d0e1e62a7398bc3630de6811f6727103f009af27c0c",
+      "bytes": 1456,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/misc/gm900_crane/gm900_crane",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/misc/gm900_crane/gm900_crane.model",
+      "sha256": "5b15373488d81d7c9117cd1e7b5a232c51c1233b218b6b16ec84f70b42242220",
+      "bytes": 41649,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/ship/battleship/gsb301_bismarck_41_1941/gsb301_bismarck_41_1941_bow",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/ship/battleship/gsb301_bismarck_41_1941/gsb301_bismarck_41_1941_bow.model",
+      "sha256": "4ecea9b4bc2d0b8c9153c6cf004fbccc7b91d79c0b1b7c50cbd5b775508eb9e1",
+      "bytes": 242584,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/ship/battleship/gsb301_bismarck_41_1941/gsb301_bismarck_41_1941_midback",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/ship/battleship/gsb301_bismarck_41_1941/gsb301_bismarck_41_1941_midback.model",
+      "sha256": "b38e469e13cb926bdd2a0d23200dfaf96205ad944f82c5852ad4f950c8205d1b",
+      "bytes": 352967,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/ship/battleship/gsb301_bismarck_41_1941/gsb301_bismarck_41_1941_midfront",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/ship/battleship/gsb301_bismarck_41_1941/gsb301_bismarck_41_1941_midfront.model",
+      "sha256": "2c1eab12012c2e9d068e6f713216523ea88980f86cde7b80cc9cf35764b30c5b",
+      "bytes": 673070,
+      "formatVersion": 4
+    },
+    {
+      "path": "common/visual/germany/ship/battleship/gsb301_bismarck_41_1941/gsb301_bismarck_41_1941_stern",
+      "url": "https://gamemodels3d.com/games/worldofwarships/data/current/common/visual/germany/ship/battleship/gsb301_bismarck_41_1941/gsb301_bismarck_41_1941_stern.model",
+      "sha256": "28b5e85d070fcc1012e6efb33b686e8336e870640f54e0066bbd87b7c8528fe5",
+      "bytes": 176964,
+      "formatVersion": 4
+    }
+  ],
+  "use": "Isolated reference rendering only. Never a production geometry input.",
+  "sourceUnits": "WoWS viewer units; The per-vessel capture plan specifies a single global comparison registration. Source metre scale and load datum are unverified; raw proportions are preserved.",
+  "captures": [
+    {
+      "id": "starboard",
+      "position": [
+        0,
+        -500,
+        18
+      ],
+      "target": [
+        0,
+        0,
+        18
+      ],
+      "spanM": 280,
+      "resolution": [
+        2200,
+        750
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "starboard.png",
+      "imageSha256": "a0e2c4f0cb2585f1afec7320b611ac30436d9dfdd17b3a9db0e13221cf9a3749",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.6292068494294654e-07,
+          -1.0,
+          -500.0
+        ],
+        [
+          0.0,
+          1.0,
+          -1.6292068494294654e-07,
+          18.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 7.857142857142857,
+      "source": {
+        "id": "gm-pgsb708",
+        "gameVersion": "EU 15.7.0.0",
+        "manifestSha256": "600ea11f63ae03dbb217ce493ce8079909b74904b50c78d8c1659bdf74e12790"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "port",
+      "position": [
+        0,
+        500,
+        18
+      ],
+      "target": [
+        0,
+        0,
+        18
+      ],
+      "spanM": 280,
+      "resolution": [
+        2200,
+        750
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "port.png",
+      "imageSha256": "1f2c1c24e922401378a47461e60030ebe8b6fbbb4096d7a533889b0164d72657",
+      "cameraMatrixWorld": [
+        [
+          -1.0,
+          1.5099581673894136e-07,
+          1.509957741063772e-07,
+          0.0
+        ],
+        [
+          1.5099580252808664e-07,
+          1.629206565212371e-07,
+          1.0,
+          500.0
+        ],
+        [
+          1.5099578831723193e-07,
+          1.0,
+          -1.6292068494294654e-07,
+          18.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 7.857142857142857,
+      "source": {
+        "id": "gm-pgsb708",
+        "gameVersion": "EU 15.7.0.0",
+        "manifestSha256": "600ea11f63ae03dbb217ce493ce8079909b74904b50c78d8c1659bdf74e12790"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "top",
+      "position": [
+        0,
+        0,
+        500
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "spanM": 280,
+      "resolution": [
+        2200,
+        750
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "rotationEuler": [
+        0,
+        0,
+        0
+      ],
+      "image": "top.png",
+      "imageSha256": "d5d94ce5b671cad1c35f846cadf66ad0009ae73aa9f91b2cc79d0de501c2d7a0",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          500.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 7.857142857142857,
+      "source": {
+        "id": "gm-pgsb708",
+        "gameVersion": "EU 15.7.0.0",
+        "manifestSha256": "600ea11f63ae03dbb217ce493ce8079909b74904b50c78d8c1659bdf74e12790"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bow",
+      "position": [
+        500,
+        0,
+        15
+      ],
+      "target": [
+        0,
+        0,
+        15
+      ],
+      "spanM": 80,
+      "resolution": [
+        1300,
+        1300
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "bow.png",
+      "imageSha256": "9b0899ce9e2e6665283f7a9f4c7d5ae53d145731af919df4c44a4239758eb8cc",
+      "cameraMatrixWorld": [
+        [
+          -4.371138828673793e-08,
+          4.371138828673793e-08,
+          1.0,
+          500.0
+        ],
+        [
+          1.0,
+          1.910685676922942e-15,
+          4.371138828673793e-08,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          -4.371138828673793e-08,
+          15.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 16.25,
+      "source": {
+        "id": "gm-pgsb708",
+        "gameVersion": "EU 15.7.0.0",
+        "manifestSha256": "600ea11f63ae03dbb217ce493ce8079909b74904b50c78d8c1659bdf74e12790"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "stern",
+      "position": [
+        -500,
+        0,
+        15
+      ],
+      "target": [
+        0,
+        0,
+        15
+      ],
+      "spanM": 80,
+      "resolution": [
+        1300,
+        1300
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "stern.png",
+      "imageSha256": "6a30c5d053b0e6a9be2c2a43598f96ff7e55df1f07c81620e6f32f078556b950",
+      "cameraMatrixWorld": [
+        [
+          -4.371138828673793e-08,
+          -4.371138828673793e-08,
+          -1.0,
+          -500.0
+        ],
+        [
+          -1.0,
+          1.910685676922942e-15,
+          4.371138828673793e-08,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          -4.371138828673793e-08,
+          15.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 16.25,
+      "source": {
+        "id": "gm-pgsb708",
+        "gameVersion": "EU 15.7.0.0",
+        "manifestSha256": "600ea11f63ae03dbb217ce493ce8079909b74904b50c78d8c1659bdf74e12790"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "underside",
+      "position": [
+        0,
+        0,
+        -500
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "spanM": 280,
+      "resolution": [
+        2200,
+        750
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "underside.png",
+      "imageSha256": "3d4f55a46f7dc210d83e2338c0456ff2216b00af298d7c3a02b41d7f30e007af",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.0,
+          -1.5099580252808664e-07,
+          0.0
+        ],
+        [
+          0.0,
+          1.5099580252808664e-07,
+          -1.0,
+          -500.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 7.857142857142857,
+      "source": {
+        "id": "gm-pgsb708",
+        "gameVersion": "EU 15.7.0.0",
+        "manifestSha256": "600ea11f63ae03dbb217ce493ce8079909b74904b50c78d8c1659bdf74e12790"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "quarter-bow",
+      "position": [
+        230,
+        -300,
+        170
+      ],
+      "target": [
+        0,
+        0,
+        12
+      ],
+      "spanM": 290,
+      "resolution": [
+        2200,
+        1250
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "quarter-bow.png",
+      "imageSha256": "a63c6a8ecc6de237ee40349dc6b19a7ab272c4236a1336bdb1d9319d241bba4f",
+      "cameraMatrixWorld": [
+        [
+          0.7936063408851624,
+          -0.23463337123394012,
+          0.5613698959350586,
+          230.0
+        ],
+        [
+          0.6084315776824951,
+          0.3060435950756073,
+          -0.7322214841842651,
+          -300.0
+        ],
+        [
+          -6.696868126709887e-08,
+          0.9226508140563965,
+          0.38563650846481323,
+          170.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 7.586206896551724,
+      "source": {
+        "id": "gm-pgsb708",
+        "gameVersion": "EU 15.7.0.0",
+        "manifestSha256": "600ea11f63ae03dbb217ce493ce8079909b74904b50c78d8c1659bdf74e12790"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "quarter-stern",
+      "position": [
+        -240,
+        -300,
+        130
+      ],
+      "target": [
+        0,
+        0,
+        12
+      ],
+      "spanM": 290,
+      "resolution": [
+        2200,
+        1250
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "quarter-stern.png",
+      "imageSha256": "6a7aef1a907c70575f6b5de9a6539e0fda6b3519f32352e92f92ca37aefcc88a",
+      "cameraMatrixWorld": [
+        [
+          0.7808688282966614,
+          0.18341362476348877,
+          -0.5971627235412598,
+          -240.0
+        ],
+        [
+          -0.6246950030326843,
+          0.229266956448555,
+          -0.7464534640312195,
+          -300.0
+        ],
+        [
+          -5.8608733866094553e-08,
+          0.9559268355369568,
+          0.2936049997806549,
+          130.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 7.586206896551724,
+      "source": {
+        "id": "gm-pgsb708",
+        "gameVersion": "EU 15.7.0.0",
+        "manifestSha256": "600ea11f63ae03dbb217ce493ce8079909b74904b50c78d8c1659bdf74e12790"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "perspective",
+      "position": [
+        250,
+        -300,
+        150
+      ],
+      "target": [
+        0,
+        0,
+        12
+      ],
+      "spanM": 290,
+      "resolution": [
+        2200,
+        1250
+      ],
+      "visibility": "all",
+      "projection": "PERSP",
+      "image": "perspective.png",
+      "imageSha256": "65380e88d975608b82395e4fe31b9c1817373fc61bfccd57f6a12c46a4a2d9e4",
+      "cameraMatrixWorld": [
+        [
+          0.7682212591171265,
+          -0.21330267190933228,
+          0.603604257106781,
+          250.0
+        ],
+        [
+          0.6401844620704651,
+          0.2559632658958435,
+          -0.7243250012397766,
+          -300.0
+        ],
+        [
+          -6.646098427154357e-08,
+          0.9428598880767822,
+          0.333189457654953,
+          150.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": null,
+      "source": {
+        "id": "gm-pgsb708",
+        "gameVersion": "EU 15.7.0.0",
+        "manifestSha256": "600ea11f63ae03dbb217ce493ce8079909b74904b50c78d8c1659bdf74e12790"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bow-flare",
+      "position": [
+        108,
+        -150,
+        9
+      ],
+      "target": [
+        108,
+        0,
+        1
+      ],
+      "spanM": 42,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "bow-flare.png",
+      "imageSha256": "edeec707c0f166445d4fb5e66e208235988ab50dbdd4b169bd47ef6ff127b25d",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          108.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          9.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 38.095238095238095,
+      "source": {
+        "id": "gm-pgsb708",
+        "gameVersion": "EU 15.7.0.0",
+        "manifestSha256": "600ea11f63ae03dbb217ce493ce8079909b74904b50c78d8c1659bdf74e12790"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "stern-curvature",
+      "position": [
+        -105,
+        -150,
+        7
+      ],
+      "target": [
+        -105,
+        0,
+        -1
+      ],
+      "spanM": 48,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "stern-curvature.png",
+      "imageSha256": "2d44a0bb4f600ac1cc7fe39e3314e75b263cd0aaae1e28f017bba138d13b4888",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -105.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          7.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 33.333333333333336,
+      "source": {
+        "id": "gm-pgsb708",
+        "gameVersion": "EU 15.7.0.0",
+        "manifestSha256": "600ea11f63ae03dbb217ce493ce8079909b74904b50c78d8c1659bdf74e12790"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "deck-sheer",
+      "position": [
+        72,
+        -150,
+        14
+      ],
+      "target": [
+        72,
+        0,
+        6
+      ],
+      "spanM": 85,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "deck-sheer.png",
+      "imageSha256": "790329a5f7e56bb889c6c57b5c1bd20426180606cfe9a4aa2e258f8455a4005e",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          72.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          14.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 18.823529411764707,
+      "source": {
+        "id": "gm-pgsb708",
+        "gameVersion": "EU 15.7.0.0",
+        "manifestSha256": "600ea11f63ae03dbb217ce493ce8079909b74904b50c78d8c1659bdf74e12790"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bilge-keels",
+      "position": [
+        0,
+        -150,
+        2
+      ],
+      "target": [
+        0,
+        0,
+        -6
+      ],
+      "spanM": 90,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "bilge-keels.png",
+      "imageSha256": "141eccbceb6e46fbab35c31587cd8a7956ae1713828b79260b62c513a9017959",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          2.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 17.77777777777778,
+      "source": {
+        "id": "gm-pgsb708",
+        "gameVersion": "EU 15.7.0.0",
+        "manifestSha256": "600ea11f63ae03dbb217ce493ce8079909b74904b50c78d8c1659bdf74e12790"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "anton",
+      "position": [
+        70,
+        -150,
+        17
+      ],
+      "target": [
+        70,
+        0,
+        9
+      ],
+      "spanM": 34,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "anton.png",
+      "imageSha256": "f104451b7089dd1a7239dea19bb3ff440a970b9e7b7b477e443ad0ff22fff34c",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          70.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          17.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 47.05882352941177,
+      "source": {
+        "id": "gm-pgsb708",
+        "gameVersion": "EU 15.7.0.0",
+        "manifestSha256": "600ea11f63ae03dbb217ce493ce8079909b74904b50c78d8c1659bdf74e12790"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bruno",
+      "position": [
+        52,
+        -150,
+        21
+      ],
+      "target": [
+        52,
+        0,
+        13
+      ],
+      "spanM": 34,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "bruno.png",
+      "imageSha256": "46ae1cacfae46a088dcb40378debc6ae7fb9459ae24fd0d832ece784bd8f0f94",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          52.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          21.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 47.05882352941177,
+      "source": {
+        "id": "gm-pgsb708",
+        "gameVersion": "EU 15.7.0.0",
+        "manifestSha256": "600ea11f63ae03dbb217ce493ce8079909b74904b50c78d8c1659bdf74e12790"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "caesar",
+      "position": [
+        -58,
+        -150,
+        21
+      ],
+      "target": [
+        -58,
+        0,
+        13
+      ],
+      "spanM": 34,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "caesar.png",
+      "imageSha256": "8686a633e99691a4921b4b760590a8d5f67829244c861daad084f03e52682428",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -58.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          21.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 47.05882352941177,
+      "source": {
+        "id": "gm-pgsb708",
+        "gameVersion": "EU 15.7.0.0",
+        "manifestSha256": "600ea11f63ae03dbb217ce493ce8079909b74904b50c78d8c1659bdf74e12790"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "dora",
+      "position": [
+        -76,
+        -150,
+        17
+      ],
+      "target": [
+        -76,
+        0,
+        9
+      ],
+      "spanM": 34,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "dora.png",
+      "imageSha256": "e9af04b5c4c8566ee56e22e025f8f2ee3a449cffb0bacd7392800dc74db6e86f",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -76.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          17.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 47.05882352941177,
+      "source": {
+        "id": "gm-pgsb708",
+        "gameVersion": "EU 15.7.0.0",
+        "manifestSha256": "600ea11f63ae03dbb217ce493ce8079909b74904b50c78d8c1659bdf74e12790"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bridge",
+      "position": [
+        24,
+        -150,
+        27
+      ],
+      "target": [
+        24,
+        0,
+        19
+      ],
+      "spanM": 48,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "bridge.png",
+      "imageSha256": "62198d9321b8894e3f33e82f5525baeec57361f7f394a15f06c72572a6ec2226",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          24.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          27.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 33.333333333333336,
+      "source": {
+        "id": "gm-pgsb708",
+        "gameVersion": "EU 15.7.0.0",
+        "manifestSha256": "600ea11f63ae03dbb217ce493ce8079909b74904b50c78d8c1659bdf74e12790"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "funnel",
+      "position": [
+        0,
+        -150,
+        25
+      ],
+      "target": [
+        0,
+        0,
+        17
+      ],
+      "spanM": 38,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "funnel.png",
+      "imageSha256": "c2dbc3fcb7f9b7e8d2e077b32fb24a6bf2765b41cf70c0acdb991ad7c61810b7",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          25.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 42.10526315789474,
+      "source": {
+        "id": "gm-pgsb708",
+        "gameVersion": "EU 15.7.0.0",
+        "manifestSha256": "600ea11f63ae03dbb217ce493ce8079909b74904b50c78d8c1659bdf74e12790"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "hangar",
+      "position": [
+        -23,
+        -150,
+        19
+      ],
+      "target": [
+        -23,
+        0,
+        11
+      ],
+      "spanM": 40,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "hangar.png",
+      "imageSha256": "8ceebe93d88ea7eb1e042838f88f4387255f7b6303133523bea062cacc2aecbf",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -23.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          19.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 40.0,
+      "source": {
+        "id": "gm-pgsb708",
+        "gameVersion": "EU 15.7.0.0",
+        "manifestSha256": "600ea11f63ae03dbb217ce493ce8079909b74904b50c78d8c1659bdf74e12790"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "foremast",
+      "position": [
+        16,
+        -150,
+        42
+      ],
+      "target": [
+        16,
+        0,
+        34
+      ],
+      "spanM": 43,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "foremast.png",
+      "imageSha256": "7f41d02d302d807280aaf43ac3f15ef2694cf23a77584db4bbeb44a8dad0ab1a",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          16.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          42.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 37.2093023255814,
+      "source": {
+        "id": "gm-pgsb708",
+        "gameVersion": "EU 15.7.0.0",
+        "manifestSha256": "600ea11f63ae03dbb217ce493ce8079909b74904b50c78d8c1659bdf74e12790"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "mainmast",
+      "position": [
+        -23,
+        -150,
+        44
+      ],
+      "target": [
+        -23,
+        0,
+        36
+      ],
+      "spanM": 45,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "mainmast.png",
+      "imageSha256": "5fc51c9b2166fb0f4bc7eb5e8bf159aaf032d0c76b5367d3591c3d235d6a297d",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -23.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          44.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 35.55555555555556,
+      "source": {
+        "id": "gm-pgsb708",
+        "gameVersion": "EU 15.7.0.0",
+        "manifestSha256": "600ea11f63ae03dbb217ce493ce8079909b74904b50c78d8c1659bdf74e12790"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "aft-superstructure",
+      "position": [
+        -39,
+        -150,
+        21
+      ],
+      "target": [
+        -39,
+        0,
+        13
+      ],
+      "spanM": 42,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "aft-superstructure.png",
+      "imageSha256": "d74d054ddf4a5ce901d277d886e30ba6c57a0c0ecc20b1f09a008c475792c41c",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -39.0
+        ],
+        [
+          0.0,
+          0.05325760319828987,
+          -0.998580813407898,
+          -150.0
+        ],
+        [
+          0.0,
+          0.998580813407898,
+          0.05325760319828987,
+          21.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 38.095238095238095,
+      "source": {
+        "id": "gm-pgsb708",
+        "gameVersion": "EU 15.7.0.0",
+        "manifestSha256": "600ea11f63ae03dbb217ce493ce8079909b74904b50c78d8c1659bdf74e12790"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "battery-isolated",
+      "position": [
+        160,
+        -240,
+        140
+      ],
+      "target": [
+        0,
+        0,
+        7
+      ],
+      "spanM": 260,
+      "resolution": [
+        2200,
+        900
+      ],
+      "visibility": [
+        "main"
+      ],
+      "projection": "ORTHO",
+      "image": "battery-isolated.png",
+      "imageSha256": "4b1c0760035ad147f7b8007c5fc737619771b107fad4e37eb80c38e72582ed13",
+      "cameraMatrixWorld": [
+        [
+          0.8320501446723938,
+          -0.23226720094680786,
+          0.5037305951118469,
+          160.0
+        ],
+        [
+          0.5547004342079163,
+          0.34840071201324463,
+          -0.7555953860282898,
+          -240.0
+        ],
+        [
+          -5.566314698057795e-08,
+          0.9081128239631653,
+          0.4187255799770355,
+          140.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 8.461538461538462,
+      "source": {
+        "id": "gm-pgsb708",
+        "gameVersion": "EU 15.7.0.0",
+        "manifestSha256": "600ea11f63ae03dbb217ce493ce8079909b74904b50c78d8c1659bdf74e12790"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "hull-superstructure-isolated",
+      "position": [
+        200,
+        -300,
+        160
+      ],
+      "target": [
+        0,
+        0,
+        12
+      ],
+      "spanM": 280,
+      "resolution": [
+        2200,
+        1200
+      ],
+      "visibility": [
+        "hull",
+        "superstructure"
+      ],
+      "projection": "ORTHO",
+      "image": "hull-superstructure-isolated.png",
+      "imageSha256": "2ddeba9b3a041f06ca7a6efd560586b8285ebbdd1dbe509549e9d643fb0c2daa",
+      "cameraMatrixWorld": [
+        [
+          0.8320502638816833,
+          -0.21063731610774994,
+          0.5131513476371765,
+          200.0
+        ],
+        [
+          0.5547002553939819,
+          0.31595587730407715,
+          -0.7697268724441528,
+          -300.0
+        ],
+        [
+          1.9530062900230405e-08,
+          0.9250966310501099,
+          0.3797317445278168,
+          160.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 7.857142857142857,
+      "source": {
+        "id": "gm-pgsb708",
+        "gameVersion": "EU 15.7.0.0",
+        "manifestSha256": "600ea11f63ae03dbb217ce493ce8079909b74904b50c78d8c1659bdf74e12790"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    }
+  ],
+  "capturePlanSha256": "73996c662ab2075cd4f8afca0eab04ebc7ba7359b699d3d604f073c64edd3319",
+  "captureRecipeSha256": "448271018a18984ae253aa2c7f8d2b50d36cc63d949c5e358ad479c1f781581a",
+  "registration": {
+    "uniformScale": 15,
+    "method": "Single global similarity registration, 15 m/viewer unit for nominal 36 m beam. Source Y=0 retained as unknown game load datum. No length fit or component scaling.",
+    "matrix": [
+      [
+        0.0,
+        0.0,
+        15.0,
+        0.0
+      ],
+      [
+        -15.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        15.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "historicallyVerified": false
+  },
+  "limitations": [
+    "Optional empty components are recorded in files.",
+    "Hull and superstructure may be fused in the reference chunks. Hull-only close-ups use camera framing; no geometry-derived sections or shape measurements are exported."
+  ]
+}
