@@ -1,4 +1,5 @@
 import { ENGINE_ORDERS, type HelmCommand } from '../simulation/ship';
+import { INPUT_ACTIONS, loadKeybindings, type InputAction, type Keybindings } from './keybindings';
 
 export interface InputActions {
   pause(): void;
@@ -20,8 +21,10 @@ export class InputController {
   private enabled = true;
   private shiftTap = false;
   private abort = new AbortController();
+  private bindings: Keybindings;
 
-  constructor(private actions: InputActions) {
+  constructor(private actions: InputActions, bindings = loadKeybindings()) {
+    this.bindings = bindings;
     const options = { signal: this.abort.signal };
     window.addEventListener('keydown', this.onDown, options);
     window.addEventListener('keyup', e => {
@@ -48,27 +51,33 @@ export class InputController {
     }
     const key = event.code;
     if (event.metaKey || event.altKey) return;
-    if (['KeyW', 'KeyS', 'KeyA', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'Escape', 'KeyC', 'KeyR', 'KeyH', 'KeyF', 'KeyQ', 'KeyG', 'ShiftLeft', 'ShiftRight', 'Digit1', 'Digit2', 'Minus', 'Equal', 'NumpadAdd', 'NumpadSubtract'].includes(key)) event.preventDefault();
+    const action = INPUT_ACTIONS.find(({ id }) => this.bindings[id].includes(key))?.id;
+    const shift = key === 'ShiftLeft' || key === 'ShiftRight';
+    const control = key === 'ControlLeft' || key === 'ControlRight';
+    // Ctrl releases the aiming cursor; Shift-plus remains a chart shortcut.
+    if (event.ctrlKey && !control) return;
+    if (event.shiftKey && !shift && action !== 'chartLarger' && action !== 'chartSmaller') return;
+    if (action || key === 'Escape' || shift) event.preventDefault();
     if (!event.repeat) {
       if (key === 'Escape') this.actions.pause();
-      if (key === 'KeyH') this.actions.hud();
-      if (key === 'KeyF') this.actions.fullscreen();
+      if (action === 'hud') this.actions.hud();
+      if (action === 'fullscreen') this.actions.fullscreen();
     }
     if (!this.enabled) return;
     this.keys.add(key);
     if (!event.repeat) {
-      if (key === 'KeyW' || key === 'ArrowUp') this.setOrder(this.order + 1);
-      if (key === 'KeyS' || key === 'ArrowDown') this.setOrder(this.order - 1);
-      if (key === 'Space') this.setOrder(1);
-      if (key === 'KeyC') this.actions.camera();
-      if (key === 'KeyR') this.actions.recenter();
-      if (key === 'ShiftLeft' || key === 'ShiftRight') this.shiftTap = true;
-      if (key === 'Digit1') this.actions.battery('main');
-      if (key === 'Digit2') this.actions.battery('secondary');
-      if (key === 'ControlLeft' || key === 'ControlRight') this.actions.cursor(true);
-      if (key === 'Equal' || key === 'NumpadAdd') this.actions.chartSize(1);
-      if (key === 'Minus' || key === 'NumpadSubtract') this.actions.chartSize(-1);
-      if (key === 'KeyG') this.actions.gunnery();
+      if (action === 'throttleUp') this.setOrder(this.order + 1);
+      if (action === 'throttleDown') this.setOrder(this.order - 1);
+      if (action === 'stop') this.setOrder(1);
+      if (action === 'camera') this.actions.camera();
+      if (action === 'recenter') this.actions.recenter();
+      if (shift) this.shiftTap = true;
+      if (control) this.actions.cursor(true);
+      if (action === 'mainBattery') this.actions.battery('main');
+      if (action === 'secondaryBattery') this.actions.battery('secondary');
+      if (action === 'chartLarger') this.actions.chartSize(1);
+      if (action === 'chartSmaller') this.actions.chartSize(-1);
+      if (action === 'gunnery') this.actions.gunnery();
     }
   };
 
@@ -76,10 +85,12 @@ export class InputController {
   setRudder(rudder: number): void { this.touchRudder = rudder; }
   setEnabled(enabled: boolean): void { this.enabled = enabled; this.clear(); }
   clear(): void { this.keys.clear(); this.touchRudder = 0; this.shiftTap = false; }
-  get firing(): boolean { return this.enabled && this.keys.has('KeyQ'); }
+  setBindings(bindings: Keybindings): void { this.bindings = bindings; this.clear(); }
+  private held(action: InputAction): boolean { return this.bindings[action].some(key => key !== null && this.keys.has(key)); }
+  get firing(): boolean { return this.enabled && this.held('fire'); }
   sample(): HelmCommand {
-    const left = this.keys.has('KeyA') || this.keys.has('ArrowLeft');
-    const right = this.keys.has('KeyD') || this.keys.has('ArrowRight');
+    const left = this.held('port');
+    const right = this.held('starboard');
     return { throttle: ENGINE_ORDERS[this.order], rudder: this.enabled ? (Number(right) - Number(left) || this.touchRudder) : 0 };
   }
   dispose(): void { this.abort.abort(); this.clear(); }
