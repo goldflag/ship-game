@@ -1,0 +1,3707 @@
+{
+  "contentHash": "46f537fce5212f21cc8aabb28ac303147410bfddb4a59ec4a6baa430b9defdb1",
+  "method": "Actual development game; UI aim selection and repeated Fire Salvo clicks; no simulation state injection",
+  "samples": [
+    {
+      "shipId": "enterprise-cv6",
+      "contentHash": "46f537fce5212f21cc8aabb28ac303147410bfddb4a59ec4a6baa430b9defdb1",
+      "backend": "webgpu",
+      "tick": 6,
+      "paused": false,
+      "fps": 10.002809523490532,
+      "inspecting": false,
+      "inPort": false,
+      "portInspection": "exterior",
+      "maxMuzzleErrorM": 3.0405902440156702e-05,
+      "combat": {
+        "battery": "main",
+        "range": 902.4278364500954,
+        "ready": 0,
+        "total": 8,
+        "targetIntegrity": 1,
+        "targetWater": 0,
+        "targetPower": 1,
+        "targetSteering": 1,
+        "targetSunk": false,
+        "targetUnderway": false,
+        "mounts": [
+          {
+            "id": "five-inch-port-1",
+            "name": "Port 5-inch 1",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-2",
+            "name": "Port 5-inch 2",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-3",
+            "name": "Port 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-4",
+            "name": "Port 5-inch 4",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-1",
+            "name": "Stbd 5-inch 1",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-2",
+            "name": "Stbd 5-inch 2",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-3",
+            "name": "Stbd 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-4",
+            "name": "Stbd 5-inch 4",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          }
+        ],
+        "modules": [
+          {
+            "id": "magazine-forward",
+            "name": "Fore Magazine",
+            "condition": 1
+          },
+          {
+            "id": "engine-port",
+            "name": "Boilers Forward",
+            "condition": 1
+          },
+          {
+            "id": "boilers-aft-module",
+            "name": "Boilers Aft",
+            "condition": 1
+          },
+          {
+            "id": "turbines-module",
+            "name": "Turbines",
+            "condition": 1
+          },
+          {
+            "id": "magazine-aft",
+            "name": "Aft Magazine",
+            "condition": 1
+          },
+          {
+            "id": "steering-space-module",
+            "name": "Steering Space",
+            "condition": 1
+          }
+        ],
+        "message": "Aim at the target, wait for guns to train, then fire."
+      },
+      "events": []
+    },
+    {
+      "shipId": "enterprise-cv6",
+      "contentHash": "46f537fce5212f21cc8aabb28ac303147410bfddb4a59ec4a6baa430b9defdb1",
+      "backend": "webgpu",
+      "tick": 6,
+      "paused": false,
+      "fps": 10.002809523490532,
+      "inspecting": false,
+      "inPort": false,
+      "portInspection": "exterior",
+      "maxMuzzleErrorM": 3.0405902440156702e-05,
+      "combat": {
+        "battery": "main",
+        "range": 902.4278364500954,
+        "ready": 0,
+        "total": 8,
+        "targetIntegrity": 1,
+        "targetWater": 0,
+        "targetPower": 1,
+        "targetSteering": 1,
+        "targetSunk": false,
+        "targetUnderway": false,
+        "mounts": [
+          {
+            "id": "five-inch-port-1",
+            "name": "Port 5-inch 1",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-2",
+            "name": "Port 5-inch 2",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-3",
+            "name": "Port 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-4",
+            "name": "Port 5-inch 4",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-1",
+            "name": "Stbd 5-inch 1",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-2",
+            "name": "Stbd 5-inch 2",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-3",
+            "name": "Stbd 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-4",
+            "name": "Stbd 5-inch 4",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          }
+        ],
+        "modules": [
+          {
+            "id": "magazine-forward",
+            "name": "Fore Magazine",
+            "condition": 1
+          },
+          {
+            "id": "engine-port",
+            "name": "Boilers Forward",
+            "condition": 1
+          },
+          {
+            "id": "boilers-aft-module",
+            "name": "Boilers Aft",
+            "condition": 1
+          },
+          {
+            "id": "turbines-module",
+            "name": "Turbines",
+            "condition": 1
+          },
+          {
+            "id": "magazine-aft",
+            "name": "Aft Magazine",
+            "condition": 1
+          },
+          {
+            "id": "steering-space-module",
+            "name": "Steering Space",
+            "condition": 1
+          }
+        ],
+        "message": "Aim at the target, wait for guns to train, then fire."
+      },
+      "events": []
+    },
+    {
+      "shipId": "enterprise-cv6",
+      "contentHash": "46f537fce5212f21cc8aabb28ac303147410bfddb4a59ec4a6baa430b9defdb1",
+      "backend": "webgpu",
+      "tick": 23,
+      "paused": false,
+      "fps": 10.900621632772921,
+      "inspecting": false,
+      "inPort": false,
+      "portInspection": "exterior",
+      "maxMuzzleErrorM": 3.094757971303611e-05,
+      "combat": {
+        "battery": "main",
+        "range": 902.4278364500954,
+        "ready": 0,
+        "total": 8,
+        "targetIntegrity": 1,
+        "targetWater": 0,
+        "targetPower": 1,
+        "targetSteering": 1,
+        "targetSunk": false,
+        "targetUnderway": false,
+        "mounts": [
+          {
+            "id": "five-inch-port-1",
+            "name": "Port 5-inch 1",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-2",
+            "name": "Port 5-inch 2",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-3",
+            "name": "Port 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-4",
+            "name": "Port 5-inch 4",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-1",
+            "name": "Stbd 5-inch 1",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-2",
+            "name": "Stbd 5-inch 2",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-3",
+            "name": "Stbd 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-4",
+            "name": "Stbd 5-inch 4",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          }
+        ],
+        "modules": [
+          {
+            "id": "magazine-forward",
+            "name": "Fore Magazine",
+            "condition": 1
+          },
+          {
+            "id": "engine-port",
+            "name": "Boilers Forward",
+            "condition": 1
+          },
+          {
+            "id": "boilers-aft-module",
+            "name": "Boilers Aft",
+            "condition": 1
+          },
+          {
+            "id": "turbines-module",
+            "name": "Turbines",
+            "condition": 1
+          },
+          {
+            "id": "magazine-aft",
+            "name": "Aft Magazine",
+            "condition": 1
+          },
+          {
+            "id": "steering-space-module",
+            "name": "Steering Space",
+            "condition": 1
+          }
+        ],
+        "message": "Aim at the target, wait for guns to train, then fire."
+      },
+      "events": []
+    },
+    {
+      "shipId": "enterprise-cv6",
+      "contentHash": "46f537fce5212f21cc8aabb28ac303147410bfddb4a59ec4a6baa430b9defdb1",
+      "backend": "webgpu",
+      "tick": 63,
+      "paused": false,
+      "fps": 11.206585720768569,
+      "inspecting": false,
+      "inPort": false,
+      "portInspection": "exterior",
+      "maxMuzzleErrorM": 3.215085242146886e-05,
+      "combat": {
+        "battery": "main",
+        "range": 902.4278364500954,
+        "ready": 0,
+        "total": 8,
+        "targetIntegrity": 1,
+        "targetWater": 0,
+        "targetPower": 1,
+        "targetSteering": 1,
+        "targetSunk": false,
+        "targetUnderway": false,
+        "mounts": [
+          {
+            "id": "five-inch-port-1",
+            "name": "Port 5-inch 1",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-2",
+            "name": "Port 5-inch 2",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-3",
+            "name": "Port 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-4",
+            "name": "Port 5-inch 4",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-1",
+            "name": "Stbd 5-inch 1",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-2",
+            "name": "Stbd 5-inch 2",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-3",
+            "name": "Stbd 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-4",
+            "name": "Stbd 5-inch 4",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          }
+        ],
+        "modules": [
+          {
+            "id": "magazine-forward",
+            "name": "Fore Magazine",
+            "condition": 1
+          },
+          {
+            "id": "engine-port",
+            "name": "Boilers Forward",
+            "condition": 1
+          },
+          {
+            "id": "boilers-aft-module",
+            "name": "Boilers Aft",
+            "condition": 1
+          },
+          {
+            "id": "turbines-module",
+            "name": "Turbines",
+            "condition": 1
+          },
+          {
+            "id": "magazine-aft",
+            "name": "Aft Magazine",
+            "condition": 1
+          },
+          {
+            "id": "steering-space-module",
+            "name": "Steering Space",
+            "condition": 1
+          }
+        ],
+        "message": "Aim at the target, wait for guns to train, then fire."
+      },
+      "events": []
+    },
+    {
+      "shipId": "enterprise-cv6",
+      "contentHash": "46f537fce5212f21cc8aabb28ac303147410bfddb4a59ec4a6baa430b9defdb1",
+      "backend": "webgpu",
+      "tick": 98,
+      "paused": false,
+      "fps": 11.412097692744137,
+      "inspecting": false,
+      "inPort": false,
+      "portInspection": "exterior",
+      "maxMuzzleErrorM": 3.3106625129787885e-05,
+      "combat": {
+        "battery": "main",
+        "range": 902.4278364500954,
+        "ready": 0,
+        "total": 8,
+        "targetIntegrity": 1,
+        "targetWater": 0,
+        "targetPower": 1,
+        "targetSteering": 1,
+        "targetSunk": false,
+        "targetUnderway": false,
+        "mounts": [
+          {
+            "id": "five-inch-port-1",
+            "name": "Port 5-inch 1",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-2",
+            "name": "Port 5-inch 2",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-3",
+            "name": "Port 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-4",
+            "name": "Port 5-inch 4",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-1",
+            "name": "Stbd 5-inch 1",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-2",
+            "name": "Stbd 5-inch 2",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-3",
+            "name": "Stbd 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-4",
+            "name": "Stbd 5-inch 4",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          }
+        ],
+        "modules": [
+          {
+            "id": "magazine-forward",
+            "name": "Fore Magazine",
+            "condition": 1
+          },
+          {
+            "id": "engine-port",
+            "name": "Boilers Forward",
+            "condition": 1
+          },
+          {
+            "id": "boilers-aft-module",
+            "name": "Boilers Aft",
+            "condition": 1
+          },
+          {
+            "id": "turbines-module",
+            "name": "Turbines",
+            "condition": 1
+          },
+          {
+            "id": "magazine-aft",
+            "name": "Aft Magazine",
+            "condition": 1
+          },
+          {
+            "id": "steering-space-module",
+            "name": "Steering Space",
+            "condition": 1
+          }
+        ],
+        "message": "Aim at the target, wait for guns to train, then fire."
+      },
+      "events": []
+    },
+    {
+      "shipId": "enterprise-cv6",
+      "contentHash": "46f537fce5212f21cc8aabb28ac303147410bfddb4a59ec4a6baa430b9defdb1",
+      "backend": "webgpu",
+      "tick": 133,
+      "paused": false,
+      "fps": 11.551777223444448,
+      "inspecting": false,
+      "inPort": false,
+      "portInspection": "exterior",
+      "maxMuzzleErrorM": 3.400622291188522e-05,
+      "combat": {
+        "battery": "main",
+        "range": 902.4278364500954,
+        "ready": 0,
+        "total": 8,
+        "targetIntegrity": 1,
+        "targetWater": 0,
+        "targetPower": 1,
+        "targetSteering": 1,
+        "targetSunk": false,
+        "targetUnderway": false,
+        "mounts": [
+          {
+            "id": "five-inch-port-1",
+            "name": "Port 5-inch 1",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-2",
+            "name": "Port 5-inch 2",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-3",
+            "name": "Port 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-4",
+            "name": "Port 5-inch 4",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-1",
+            "name": "Stbd 5-inch 1",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-2",
+            "name": "Stbd 5-inch 2",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-3",
+            "name": "Stbd 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-4",
+            "name": "Stbd 5-inch 4",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          }
+        ],
+        "modules": [
+          {
+            "id": "magazine-forward",
+            "name": "Fore Magazine",
+            "condition": 1
+          },
+          {
+            "id": "engine-port",
+            "name": "Boilers Forward",
+            "condition": 1
+          },
+          {
+            "id": "boilers-aft-module",
+            "name": "Boilers Aft",
+            "condition": 1
+          },
+          {
+            "id": "turbines-module",
+            "name": "Turbines",
+            "condition": 1
+          },
+          {
+            "id": "magazine-aft",
+            "name": "Aft Magazine",
+            "condition": 1
+          },
+          {
+            "id": "steering-space-module",
+            "name": "Steering Space",
+            "condition": 1
+          }
+        ],
+        "message": "Aim at the target, wait for guns to train, then fire."
+      },
+      "events": []
+    },
+    {
+      "shipId": "enterprise-cv6",
+      "contentHash": "46f537fce5212f21cc8aabb28ac303147410bfddb4a59ec4a6baa430b9defdb1",
+      "backend": "webgpu",
+      "tick": 168,
+      "paused": false,
+      "fps": 11.663784129073901,
+      "inspecting": false,
+      "inPort": false,
+      "portInspection": "exterior",
+      "maxMuzzleErrorM": 3.485884723805612e-05,
+      "combat": {
+        "battery": "main",
+        "range": 902.4278364500954,
+        "ready": 2,
+        "total": 8,
+        "targetIntegrity": 1,
+        "targetWater": 0,
+        "targetPower": 1,
+        "targetSteering": 1,
+        "targetSunk": false,
+        "targetUnderway": false,
+        "mounts": [
+          {
+            "id": "five-inch-port-1",
+            "name": "Port 5-inch 1",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-2",
+            "name": "Port 5-inch 2",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-3",
+            "name": "Port 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-4",
+            "name": "Port 5-inch 4",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-1",
+            "name": "Stbd 5-inch 1",
+            "status": "ready",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-2",
+            "name": "Stbd 5-inch 2",
+            "status": "ready",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-3",
+            "name": "Stbd 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-4",
+            "name": "Stbd 5-inch 4",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          }
+        ],
+        "modules": [
+          {
+            "id": "magazine-forward",
+            "name": "Fore Magazine",
+            "condition": 1
+          },
+          {
+            "id": "engine-port",
+            "name": "Boilers Forward",
+            "condition": 1
+          },
+          {
+            "id": "boilers-aft-module",
+            "name": "Boilers Aft",
+            "condition": 1
+          },
+          {
+            "id": "turbines-module",
+            "name": "Turbines",
+            "condition": 1
+          },
+          {
+            "id": "magazine-aft",
+            "name": "Aft Magazine",
+            "condition": 1
+          },
+          {
+            "id": "steering-space-module",
+            "name": "Steering Space",
+            "condition": 1
+          }
+        ],
+        "message": "Aim at the target, wait for guns to train, then fire."
+      },
+      "events": []
+    },
+    {
+      "shipId": "enterprise-cv6",
+      "contentHash": "46f537fce5212f21cc8aabb28ac303147410bfddb4a59ec4a6baa430b9defdb1",
+      "backend": "webgpu",
+      "tick": 208,
+      "paused": false,
+      "fps": 11.758001974605438,
+      "inspecting": false,
+      "inPort": false,
+      "portInspection": "exterior",
+      "maxMuzzleErrorM": 3.5478156750647755e-05,
+      "combat": {
+        "battery": "main",
+        "range": 902.4278364500954,
+        "ready": 2,
+        "total": 8,
+        "targetIntegrity": 1,
+        "targetWater": 0,
+        "targetPower": 1,
+        "targetSteering": 1,
+        "targetSunk": false,
+        "targetUnderway": false,
+        "mounts": [
+          {
+            "id": "five-inch-port-1",
+            "name": "Port 5-inch 1",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-2",
+            "name": "Port 5-inch 2",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-3",
+            "name": "Port 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-4",
+            "name": "Port 5-inch 4",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-1",
+            "name": "Stbd 5-inch 1",
+            "status": "reloading",
+            "reload": 3.3500000000000023,
+            "ammo": 359
+          },
+          {
+            "id": "five-inch-starboard-2",
+            "name": "Stbd 5-inch 2",
+            "status": "reloading",
+            "reload": 3.3500000000000023,
+            "ammo": 359
+          },
+          {
+            "id": "five-inch-starboard-3",
+            "name": "Stbd 5-inch 3",
+            "status": "ready",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-4",
+            "name": "Stbd 5-inch 4",
+            "status": "ready",
+            "reload": 0,
+            "ammo": 360
+          }
+        ],
+        "modules": [
+          {
+            "id": "magazine-forward",
+            "name": "Fore Magazine",
+            "condition": 1
+          },
+          {
+            "id": "engine-port",
+            "name": "Boilers Forward",
+            "condition": 1
+          },
+          {
+            "id": "boilers-aft-module",
+            "name": "Boilers Aft",
+            "condition": 1
+          },
+          {
+            "id": "turbines-module",
+            "name": "Turbines",
+            "condition": 1
+          },
+          {
+            "id": "magazine-aft",
+            "name": "Aft Magazine",
+            "condition": 1
+          },
+          {
+            "id": "steering-space-module",
+            "name": "Steering Space",
+            "condition": 1
+          }
+        ],
+        "message": "Aim at the target, wait for guns to train, then fire."
+      },
+      "events": [
+        {
+          "kind": "shot",
+          "position": [
+            16.057306299232923,
+            15.941109630457927,
+            -84.90825233667955
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 1 fired",
+          "sequence": 1,
+          "tick": 168
+        },
+        {
+          "kind": "shot",
+          "position": [
+            16.03618315032161,
+            17.036248008683263,
+            -76.93272628693421
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 2 fired",
+          "sequence": 2,
+          "tick": 168
+        }
+      ]
+    },
+    {
+      "shipId": "enterprise-cv6",
+      "contentHash": "46f537fce5212f21cc8aabb28ac303147410bfddb4a59ec4a6baa430b9defdb1",
+      "backend": "webgpu",
+      "tick": 243,
+      "paused": false,
+      "fps": 11.81843687164323,
+      "inspecting": false,
+      "inPort": false,
+      "portInspection": "exterior",
+      "maxMuzzleErrorM": 3.5478156750647755e-05,
+      "combat": {
+        "battery": "main",
+        "range": 902.4278364500954,
+        "ready": 0,
+        "total": 8,
+        "targetIntegrity": 1,
+        "targetWater": 0,
+        "targetPower": 1,
+        "targetSteering": 1,
+        "targetSunk": false,
+        "targetUnderway": false,
+        "mounts": [
+          {
+            "id": "five-inch-port-1",
+            "name": "Port 5-inch 1",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-2",
+            "name": "Port 5-inch 2",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-3",
+            "name": "Port 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-4",
+            "name": "Port 5-inch 4",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-1",
+            "name": "Stbd 5-inch 1",
+            "status": "reloading",
+            "reload": 2.766666666666671,
+            "ammo": 359
+          },
+          {
+            "id": "five-inch-starboard-2",
+            "name": "Stbd 5-inch 2",
+            "status": "reloading",
+            "reload": 2.766666666666671,
+            "ammo": 359
+          },
+          {
+            "id": "five-inch-starboard-3",
+            "name": "Stbd 5-inch 3",
+            "status": "reloading",
+            "reload": 3.4333333333333353,
+            "ammo": 359
+          },
+          {
+            "id": "five-inch-starboard-4",
+            "name": "Stbd 5-inch 4",
+            "status": "reloading",
+            "reload": 3.4333333333333353,
+            "ammo": 359
+          }
+        ],
+        "modules": [
+          {
+            "id": "magazine-forward",
+            "name": "Fore Magazine",
+            "condition": 1
+          },
+          {
+            "id": "engine-port",
+            "name": "Boilers Forward",
+            "condition": 1
+          },
+          {
+            "id": "boilers-aft-module",
+            "name": "Boilers Aft",
+            "condition": 1
+          },
+          {
+            "id": "turbines-module",
+            "name": "Turbines",
+            "condition": 1
+          },
+          {
+            "id": "magazine-aft",
+            "name": "Aft Magazine",
+            "condition": 1
+          },
+          {
+            "id": "steering-space-module",
+            "name": "Steering Space",
+            "condition": 1
+          }
+        ],
+        "message": "Stopped by Machinery belt"
+      },
+      "events": [
+        {
+          "kind": "shot",
+          "position": [
+            16.057306299232923,
+            15.941109630457927,
+            -84.90825233667955
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 1 fired",
+          "sequence": 1,
+          "tick": 168
+        },
+        {
+          "kind": "shot",
+          "position": [
+            16.03618315032161,
+            17.036248008683263,
+            -76.93272628693421
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 2 fired",
+          "sequence": 2,
+          "tick": 168
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.607809919362097,
+            15.955643563200553,
+            95.63542450531494
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 3 fired",
+          "sequence": 3,
+          "tick": 208
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.58944540451223,
+            17.051473493997054,
+            103.61941871576455
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 4 fired",
+          "sequence": 4,
+          "tick": 208
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9061074382626284,
+            -615.4161763552227
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 5,
+          "tick": 229
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9286505898611118,
+            -615.2605318898553
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 6,
+          "tick": 230
+        }
+      ]
+    },
+    {
+      "shipId": "enterprise-cv6",
+      "contentHash": "46f537fce5212f21cc8aabb28ac303147410bfddb4a59ec4a6baa430b9defdb1",
+      "backend": "webgpu",
+      "tick": 278,
+      "paused": false,
+      "fps": 11.863728480095498,
+      "inspecting": false,
+      "inPort": false,
+      "portInspection": "exterior",
+      "maxMuzzleErrorM": 3.5478156750647755e-05,
+      "combat": {
+        "battery": "main",
+        "range": 902.4278364500954,
+        "ready": 0,
+        "total": 8,
+        "targetIntegrity": 1,
+        "targetWater": 0,
+        "targetPower": 1,
+        "targetSteering": 1,
+        "targetSunk": false,
+        "targetUnderway": false,
+        "mounts": [
+          {
+            "id": "five-inch-port-1",
+            "name": "Port 5-inch 1",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-2",
+            "name": "Port 5-inch 2",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-3",
+            "name": "Port 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-4",
+            "name": "Port 5-inch 4",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-1",
+            "name": "Stbd 5-inch 1",
+            "status": "reloading",
+            "reload": 2.18333333333334,
+            "ammo": 359
+          },
+          {
+            "id": "five-inch-starboard-2",
+            "name": "Stbd 5-inch 2",
+            "status": "reloading",
+            "reload": 2.18333333333334,
+            "ammo": 359
+          },
+          {
+            "id": "five-inch-starboard-3",
+            "name": "Stbd 5-inch 3",
+            "status": "reloading",
+            "reload": 2.850000000000004,
+            "ammo": 359
+          },
+          {
+            "id": "five-inch-starboard-4",
+            "name": "Stbd 5-inch 4",
+            "status": "reloading",
+            "reload": 2.850000000000004,
+            "ammo": 359
+          }
+        ],
+        "modules": [
+          {
+            "id": "magazine-forward",
+            "name": "Fore Magazine",
+            "condition": 1
+          },
+          {
+            "id": "engine-port",
+            "name": "Boilers Forward",
+            "condition": 1
+          },
+          {
+            "id": "boilers-aft-module",
+            "name": "Boilers Aft",
+            "condition": 1
+          },
+          {
+            "id": "turbines-module",
+            "name": "Turbines",
+            "condition": 1
+          },
+          {
+            "id": "magazine-aft",
+            "name": "Aft Magazine",
+            "condition": 1
+          },
+          {
+            "id": "steering-space-module",
+            "name": "Steering Space",
+            "condition": 1
+          }
+        ],
+        "message": "Stopped by Machinery belt"
+      },
+      "events": [
+        {
+          "kind": "shot",
+          "position": [
+            16.057306299232923,
+            15.941109630457927,
+            -84.90825233667955
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 1 fired",
+          "sequence": 1,
+          "tick": 168
+        },
+        {
+          "kind": "shot",
+          "position": [
+            16.03618315032161,
+            17.036248008683263,
+            -76.93272628693421
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 2 fired",
+          "sequence": 2,
+          "tick": 168
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.607809919362097,
+            15.955643563200553,
+            95.63542450531494
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 3 fired",
+          "sequence": 3,
+          "tick": 208
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.58944540451223,
+            17.051473493997054,
+            103.61941871576455
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 4 fired",
+          "sequence": 4,
+          "tick": 208
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9061074382626284,
+            -615.4161763552227
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 5,
+          "tick": 229
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9286505898611118,
+            -615.2605318898553
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 6,
+          "tick": 230
+        }
+      ]
+    },
+    {
+      "shipId": "enterprise-cv6",
+      "contentHash": "46f537fce5212f21cc8aabb28ac303147410bfddb4a59ec4a6baa430b9defdb1",
+      "backend": "webgpu",
+      "tick": 314,
+      "paused": false,
+      "fps": 11.895540879801082,
+      "inspecting": false,
+      "inPort": false,
+      "portInspection": "exterior",
+      "maxMuzzleErrorM": 3.5478156750647755e-05,
+      "combat": {
+        "battery": "main",
+        "range": 902.4278364500954,
+        "ready": 0,
+        "total": 8,
+        "targetIntegrity": 1,
+        "targetWater": 0,
+        "targetPower": 1,
+        "targetSteering": 1,
+        "targetSunk": false,
+        "targetUnderway": false,
+        "mounts": [
+          {
+            "id": "five-inch-port-1",
+            "name": "Port 5-inch 1",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-2",
+            "name": "Port 5-inch 2",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-3",
+            "name": "Port 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-4",
+            "name": "Port 5-inch 4",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-1",
+            "name": "Stbd 5-inch 1",
+            "status": "reloading",
+            "reload": 1.583333333333342,
+            "ammo": 359
+          },
+          {
+            "id": "five-inch-starboard-2",
+            "name": "Stbd 5-inch 2",
+            "status": "reloading",
+            "reload": 1.583333333333342,
+            "ammo": 359
+          },
+          {
+            "id": "five-inch-starboard-3",
+            "name": "Stbd 5-inch 3",
+            "status": "reloading",
+            "reload": 2.250000000000006,
+            "ammo": 359
+          },
+          {
+            "id": "five-inch-starboard-4",
+            "name": "Stbd 5-inch 4",
+            "status": "reloading",
+            "reload": 2.250000000000006,
+            "ammo": 359
+          }
+        ],
+        "modules": [
+          {
+            "id": "magazine-forward",
+            "name": "Fore Magazine",
+            "condition": 1
+          },
+          {
+            "id": "engine-port",
+            "name": "Boilers Forward",
+            "condition": 1
+          },
+          {
+            "id": "boilers-aft-module",
+            "name": "Boilers Aft",
+            "condition": 1
+          },
+          {
+            "id": "turbines-module",
+            "name": "Turbines",
+            "condition": 1
+          },
+          {
+            "id": "magazine-aft",
+            "name": "Aft Magazine",
+            "condition": 1
+          },
+          {
+            "id": "steering-space-module",
+            "name": "Steering Space",
+            "condition": 1
+          }
+        ],
+        "message": "Stopped by Machinery belt"
+      },
+      "events": [
+        {
+          "kind": "shot",
+          "position": [
+            16.057306299232923,
+            15.941109630457927,
+            -84.90825233667955
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 1 fired",
+          "sequence": 1,
+          "tick": 168
+        },
+        {
+          "kind": "shot",
+          "position": [
+            16.03618315032161,
+            17.036248008683263,
+            -76.93272628693421
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 2 fired",
+          "sequence": 2,
+          "tick": 168
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.607809919362097,
+            15.955643563200553,
+            95.63542450531494
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 3 fired",
+          "sequence": 3,
+          "tick": 208
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.58944540451223,
+            17.051473493997054,
+            103.61941871576455
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 4 fired",
+          "sequence": 4,
+          "tick": 208
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9061074382626284,
+            -615.4161763552227
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 5,
+          "tick": 229
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9286505898611118,
+            -615.2605318898553
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 6,
+          "tick": 230
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.963407102869713,
+            -611.7390758609871
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 7,
+          "tick": 279
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9401429656492511,
+            -611.8947203263513
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 8,
+          "tick": 279
+        }
+      ]
+    },
+    {
+      "shipId": "enterprise-cv6",
+      "contentHash": "46f537fce5212f21cc8aabb28ac303147410bfddb4a59ec4a6baa430b9defdb1",
+      "backend": "webgpu",
+      "tick": 353,
+      "paused": false,
+      "fps": 11.92623456999727,
+      "inspecting": false,
+      "inPort": false,
+      "portInspection": "exterior",
+      "maxMuzzleErrorM": 3.5478156750647755e-05,
+      "combat": {
+        "battery": "main",
+        "range": 902.4278364500954,
+        "ready": 0,
+        "total": 8,
+        "targetIntegrity": 1,
+        "targetWater": 0,
+        "targetPower": 1,
+        "targetSteering": 1,
+        "targetSunk": false,
+        "targetUnderway": false,
+        "mounts": [
+          {
+            "id": "five-inch-port-1",
+            "name": "Port 5-inch 1",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-2",
+            "name": "Port 5-inch 2",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-3",
+            "name": "Port 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-4",
+            "name": "Port 5-inch 4",
+            "status": "blocked",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-1",
+            "name": "Stbd 5-inch 1",
+            "status": "reloading",
+            "reload": 0.9333333333333438,
+            "ammo": 359
+          },
+          {
+            "id": "five-inch-starboard-2",
+            "name": "Stbd 5-inch 2",
+            "status": "reloading",
+            "reload": 0.9333333333333438,
+            "ammo": 359
+          },
+          {
+            "id": "five-inch-starboard-3",
+            "name": "Stbd 5-inch 3",
+            "status": "reloading",
+            "reload": 1.6000000000000085,
+            "ammo": 359
+          },
+          {
+            "id": "five-inch-starboard-4",
+            "name": "Stbd 5-inch 4",
+            "status": "reloading",
+            "reload": 1.6000000000000085,
+            "ammo": 359
+          }
+        ],
+        "modules": [
+          {
+            "id": "magazine-forward",
+            "name": "Fore Magazine",
+            "condition": 1
+          },
+          {
+            "id": "engine-port",
+            "name": "Boilers Forward",
+            "condition": 1
+          },
+          {
+            "id": "boilers-aft-module",
+            "name": "Boilers Aft",
+            "condition": 1
+          },
+          {
+            "id": "turbines-module",
+            "name": "Turbines",
+            "condition": 1
+          },
+          {
+            "id": "magazine-aft",
+            "name": "Aft Magazine",
+            "condition": 1
+          },
+          {
+            "id": "steering-space-module",
+            "name": "Steering Space",
+            "condition": 1
+          }
+        ],
+        "message": "Stopped by Machinery belt"
+      },
+      "events": [
+        {
+          "kind": "shot",
+          "position": [
+            16.057306299232923,
+            15.941109630457927,
+            -84.90825233667955
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 1 fired",
+          "sequence": 1,
+          "tick": 168
+        },
+        {
+          "kind": "shot",
+          "position": [
+            16.03618315032161,
+            17.036248008683263,
+            -76.93272628693421
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 2 fired",
+          "sequence": 2,
+          "tick": 168
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.607809919362097,
+            15.955643563200553,
+            95.63542450531494
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 3 fired",
+          "sequence": 3,
+          "tick": 208
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.58944540451223,
+            17.051473493997054,
+            103.61941871576455
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 4 fired",
+          "sequence": 4,
+          "tick": 208
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9061074382626284,
+            -615.4161763552227
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 5,
+          "tick": 229
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9286505898611118,
+            -615.2605318898553
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 6,
+          "tick": 230
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.963407102869713,
+            -611.7390758609871
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 7,
+          "tick": 279
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9401429656492511,
+            -611.8947203263513
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 8,
+          "tick": 279
+        }
+      ]
+    },
+    {
+      "shipId": "enterprise-cv6",
+      "contentHash": "46f537fce5212f21cc8aabb28ac303147410bfddb4a59ec4a6baa430b9defdb1",
+      "backend": "webgpu",
+      "tick": 388,
+      "paused": false,
+      "fps": 11.943659222950071,
+      "inspecting": false,
+      "inPort": false,
+      "portInspection": "exterior",
+      "maxMuzzleErrorM": 3.5478156750647755e-05,
+      "combat": {
+        "battery": "main",
+        "range": 902.4278364500954,
+        "ready": 0,
+        "total": 8,
+        "targetIntegrity": 1,
+        "targetWater": 0,
+        "targetPower": 1,
+        "targetSteering": 1,
+        "targetSunk": false,
+        "targetUnderway": false,
+        "mounts": [
+          {
+            "id": "five-inch-port-1",
+            "name": "Port 5-inch 1",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-2",
+            "name": "Port 5-inch 2",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-3",
+            "name": "Port 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-4",
+            "name": "Port 5-inch 4",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-1",
+            "name": "Stbd 5-inch 1",
+            "status": "reloading",
+            "reload": 0.35000000000000914,
+            "ammo": 359
+          },
+          {
+            "id": "five-inch-starboard-2",
+            "name": "Stbd 5-inch 2",
+            "status": "reloading",
+            "reload": 0.35000000000000914,
+            "ammo": 359
+          },
+          {
+            "id": "five-inch-starboard-3",
+            "name": "Stbd 5-inch 3",
+            "status": "reloading",
+            "reload": 1.0166666666666773,
+            "ammo": 359
+          },
+          {
+            "id": "five-inch-starboard-4",
+            "name": "Stbd 5-inch 4",
+            "status": "reloading",
+            "reload": 1.0166666666666773,
+            "ammo": 359
+          }
+        ],
+        "modules": [
+          {
+            "id": "magazine-forward",
+            "name": "Fore Magazine",
+            "condition": 1
+          },
+          {
+            "id": "engine-port",
+            "name": "Boilers Forward",
+            "condition": 1
+          },
+          {
+            "id": "boilers-aft-module",
+            "name": "Boilers Aft",
+            "condition": 1
+          },
+          {
+            "id": "turbines-module",
+            "name": "Turbines",
+            "condition": 1
+          },
+          {
+            "id": "magazine-aft",
+            "name": "Aft Magazine",
+            "condition": 1
+          },
+          {
+            "id": "steering-space-module",
+            "name": "Steering Space",
+            "condition": 1
+          }
+        ],
+        "message": "Stopped by Machinery belt"
+      },
+      "events": [
+        {
+          "kind": "shot",
+          "position": [
+            16.057306299232923,
+            15.941109630457927,
+            -84.90825233667955
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 1 fired",
+          "sequence": 1,
+          "tick": 168
+        },
+        {
+          "kind": "shot",
+          "position": [
+            16.03618315032161,
+            17.036248008683263,
+            -76.93272628693421
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 2 fired",
+          "sequence": 2,
+          "tick": 168
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.607809919362097,
+            15.955643563200553,
+            95.63542450531494
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 3 fired",
+          "sequence": 3,
+          "tick": 208
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.58944540451223,
+            17.051473493997054,
+            103.61941871576455
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 4 fired",
+          "sequence": 4,
+          "tick": 208
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9061074382626284,
+            -615.4161763552227
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 5,
+          "tick": 229
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9286505898611118,
+            -615.2605318898553
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 6,
+          "tick": 230
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.963407102869713,
+            -611.7390758609871
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 7,
+          "tick": 279
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9401429656492511,
+            -611.8947203263513
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 8,
+          "tick": 279
+        }
+      ]
+    },
+    {
+      "shipId": "enterprise-cv6",
+      "contentHash": "46f537fce5212f21cc8aabb28ac303147410bfddb4a59ec4a6baa430b9defdb1",
+      "backend": "webgpu",
+      "tick": 423,
+      "paused": false,
+      "fps": 11.957594272082419,
+      "inspecting": false,
+      "inPort": false,
+      "portInspection": "exterior",
+      "maxMuzzleErrorM": 3.5478156750647755e-05,
+      "combat": {
+        "battery": "main",
+        "range": 902.4278364500954,
+        "ready": 2,
+        "total": 8,
+        "targetIntegrity": 1,
+        "targetWater": 0,
+        "targetPower": 1,
+        "targetSteering": 1,
+        "targetSunk": false,
+        "targetUnderway": false,
+        "mounts": [
+          {
+            "id": "five-inch-port-1",
+            "name": "Port 5-inch 1",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-2",
+            "name": "Port 5-inch 2",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-3",
+            "name": "Port 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-4",
+            "name": "Port 5-inch 4",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-1",
+            "name": "Stbd 5-inch 1",
+            "status": "ready",
+            "reload": 0,
+            "ammo": 359
+          },
+          {
+            "id": "five-inch-starboard-2",
+            "name": "Stbd 5-inch 2",
+            "status": "ready",
+            "reload": 0,
+            "ammo": 359
+          },
+          {
+            "id": "five-inch-starboard-3",
+            "name": "Stbd 5-inch 3",
+            "status": "reloading",
+            "reload": 0.43333333333334245,
+            "ammo": 359
+          },
+          {
+            "id": "five-inch-starboard-4",
+            "name": "Stbd 5-inch 4",
+            "status": "reloading",
+            "reload": 0.43333333333334245,
+            "ammo": 359
+          }
+        ],
+        "modules": [
+          {
+            "id": "magazine-forward",
+            "name": "Fore Magazine",
+            "condition": 1
+          },
+          {
+            "id": "engine-port",
+            "name": "Boilers Forward",
+            "condition": 1
+          },
+          {
+            "id": "boilers-aft-module",
+            "name": "Boilers Aft",
+            "condition": 1
+          },
+          {
+            "id": "turbines-module",
+            "name": "Turbines",
+            "condition": 1
+          },
+          {
+            "id": "magazine-aft",
+            "name": "Aft Magazine",
+            "condition": 1
+          },
+          {
+            "id": "steering-space-module",
+            "name": "Steering Space",
+            "condition": 1
+          }
+        ],
+        "message": "Stopped by Machinery belt"
+      },
+      "events": [
+        {
+          "kind": "shot",
+          "position": [
+            16.057306299232923,
+            15.941109630457927,
+            -84.90825233667955
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 1 fired",
+          "sequence": 1,
+          "tick": 168
+        },
+        {
+          "kind": "shot",
+          "position": [
+            16.03618315032161,
+            17.036248008683263,
+            -76.93272628693421
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 2 fired",
+          "sequence": 2,
+          "tick": 168
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.607809919362097,
+            15.955643563200553,
+            95.63542450531494
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 3 fired",
+          "sequence": 3,
+          "tick": 208
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.58944540451223,
+            17.051473493997054,
+            103.61941871576455
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 4 fired",
+          "sequence": 4,
+          "tick": 208
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9061074382626284,
+            -615.4161763552227
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 5,
+          "tick": 229
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9286505898611118,
+            -615.2605318898553
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 6,
+          "tick": 230
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.963407102869713,
+            -611.7390758609871
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 7,
+          "tick": 279
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9401429656492511,
+            -611.8947203263513
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 8,
+          "tick": 279
+        }
+      ]
+    },
+    {
+      "shipId": "enterprise-cv6",
+      "contentHash": "46f537fce5212f21cc8aabb28ac303147410bfddb4a59ec4a6baa430b9defdb1",
+      "backend": "webgpu",
+      "tick": 446,
+      "paused": false,
+      "fps": 28.224425024351014,
+      "inspecting": false,
+      "inPort": false,
+      "portInspection": "exterior",
+      "maxMuzzleErrorM": 3.5478156750647755e-05,
+      "combat": {
+        "battery": "main",
+        "range": 902.4278364500954,
+        "ready": 0,
+        "total": 8,
+        "targetIntegrity": 1,
+        "targetWater": 0,
+        "targetPower": 1,
+        "targetSteering": 1,
+        "targetSunk": false,
+        "targetUnderway": false,
+        "mounts": [
+          {
+            "id": "five-inch-port-1",
+            "name": "Port 5-inch 1",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-2",
+            "name": "Port 5-inch 2",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-3",
+            "name": "Port 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-4",
+            "name": "Port 5-inch 4",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-1",
+            "name": "Stbd 5-inch 1",
+            "status": "reloading",
+            "reload": 3.6333333333333346,
+            "ammo": 358
+          },
+          {
+            "id": "five-inch-starboard-2",
+            "name": "Stbd 5-inch 2",
+            "status": "reloading",
+            "reload": 3.6333333333333346,
+            "ammo": 358
+          },
+          {
+            "id": "five-inch-starboard-3",
+            "name": "Stbd 5-inch 3",
+            "status": "reloading",
+            "reload": 0.050000000000009204,
+            "ammo": 359
+          },
+          {
+            "id": "five-inch-starboard-4",
+            "name": "Stbd 5-inch 4",
+            "status": "reloading",
+            "reload": 0.050000000000009204,
+            "ammo": 359
+          }
+        ],
+        "modules": [
+          {
+            "id": "magazine-forward",
+            "name": "Fore Magazine",
+            "condition": 1
+          },
+          {
+            "id": "engine-port",
+            "name": "Boilers Forward",
+            "condition": 1
+          },
+          {
+            "id": "boilers-aft-module",
+            "name": "Boilers Aft",
+            "condition": 1
+          },
+          {
+            "id": "turbines-module",
+            "name": "Turbines",
+            "condition": 1
+          },
+          {
+            "id": "magazine-aft",
+            "name": "Aft Magazine",
+            "condition": 1
+          },
+          {
+            "id": "steering-space-module",
+            "name": "Steering Space",
+            "condition": 1
+          }
+        ],
+        "message": "Stopped by Machinery belt"
+      },
+      "events": [
+        {
+          "kind": "shot",
+          "position": [
+            16.057306299232923,
+            15.941109630457927,
+            -84.90825233667955
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 1 fired",
+          "sequence": 1,
+          "tick": 168
+        },
+        {
+          "kind": "shot",
+          "position": [
+            16.03618315032161,
+            17.036248008683263,
+            -76.93272628693421
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 2 fired",
+          "sequence": 2,
+          "tick": 168
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.607809919362097,
+            15.955643563200553,
+            95.63542450531494
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 3 fired",
+          "sequence": 3,
+          "tick": 208
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.58944540451223,
+            17.051473493997054,
+            103.61941871576455
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 4 fired",
+          "sequence": 4,
+          "tick": 208
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9061074382626284,
+            -615.4161763552227
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 5,
+          "tick": 229
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9286505898611118,
+            -615.2605318898553
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 6,
+          "tick": 230
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.963407102869713,
+            -611.7390758609871
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 7,
+          "tick": 279
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9401429656492511,
+            -611.8947203263513
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 8,
+          "tick": 279
+        },
+        {
+          "kind": "shot",
+          "position": [
+            16.057306299232923,
+            15.941109630457927,
+            -84.90825233667955
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 1 fired",
+          "sequence": 9,
+          "tick": 423
+        },
+        {
+          "kind": "shot",
+          "position": [
+            16.03618315032161,
+            17.036248008683263,
+            -76.93272628693421
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 2 fired",
+          "sequence": 10,
+          "tick": 423
+        }
+      ]
+    },
+    {
+      "shipId": "enterprise-cv6",
+      "contentHash": "46f537fce5212f21cc8aabb28ac303147410bfddb4a59ec4a6baa430b9defdb1",
+      "backend": "webgpu",
+      "tick": 446,
+      "paused": false,
+      "fps": 28.224425024351014,
+      "inspecting": false,
+      "inPort": false,
+      "portInspection": "exterior",
+      "maxMuzzleErrorM": 3.5478156750647755e-05,
+      "combat": {
+        "battery": "main",
+        "range": 902.4278364500954,
+        "ready": 0,
+        "total": 8,
+        "targetIntegrity": 1,
+        "targetWater": 0,
+        "targetPower": 1,
+        "targetSteering": 1,
+        "targetSunk": false,
+        "targetUnderway": false,
+        "mounts": [
+          {
+            "id": "five-inch-port-1",
+            "name": "Port 5-inch 1",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-2",
+            "name": "Port 5-inch 2",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-3",
+            "name": "Port 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-4",
+            "name": "Port 5-inch 4",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-1",
+            "name": "Stbd 5-inch 1",
+            "status": "reloading",
+            "reload": 3.6333333333333346,
+            "ammo": 358
+          },
+          {
+            "id": "five-inch-starboard-2",
+            "name": "Stbd 5-inch 2",
+            "status": "reloading",
+            "reload": 3.6333333333333346,
+            "ammo": 358
+          },
+          {
+            "id": "five-inch-starboard-3",
+            "name": "Stbd 5-inch 3",
+            "status": "reloading",
+            "reload": 0.050000000000009204,
+            "ammo": 359
+          },
+          {
+            "id": "five-inch-starboard-4",
+            "name": "Stbd 5-inch 4",
+            "status": "reloading",
+            "reload": 0.050000000000009204,
+            "ammo": 359
+          }
+        ],
+        "modules": [
+          {
+            "id": "magazine-forward",
+            "name": "Fore Magazine",
+            "condition": 1
+          },
+          {
+            "id": "engine-port",
+            "name": "Boilers Forward",
+            "condition": 1
+          },
+          {
+            "id": "boilers-aft-module",
+            "name": "Boilers Aft",
+            "condition": 1
+          },
+          {
+            "id": "turbines-module",
+            "name": "Turbines",
+            "condition": 1
+          },
+          {
+            "id": "magazine-aft",
+            "name": "Aft Magazine",
+            "condition": 1
+          },
+          {
+            "id": "steering-space-module",
+            "name": "Steering Space",
+            "condition": 1
+          }
+        ],
+        "message": "Stopped by Machinery belt"
+      },
+      "events": [
+        {
+          "kind": "shot",
+          "position": [
+            16.057306299232923,
+            15.941109630457927,
+            -84.90825233667955
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 1 fired",
+          "sequence": 1,
+          "tick": 168
+        },
+        {
+          "kind": "shot",
+          "position": [
+            16.03618315032161,
+            17.036248008683263,
+            -76.93272628693421
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 2 fired",
+          "sequence": 2,
+          "tick": 168
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.607809919362097,
+            15.955643563200553,
+            95.63542450531494
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 3 fired",
+          "sequence": 3,
+          "tick": 208
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.58944540451223,
+            17.051473493997054,
+            103.61941871576455
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 4 fired",
+          "sequence": 4,
+          "tick": 208
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9061074382626284,
+            -615.4161763552227
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 5,
+          "tick": 229
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9286505898611118,
+            -615.2605318898553
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 6,
+          "tick": 230
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.963407102869713,
+            -611.7390758609871
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 7,
+          "tick": 279
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9401429656492511,
+            -611.8947203263513
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 8,
+          "tick": 279
+        },
+        {
+          "kind": "shot",
+          "position": [
+            16.057306299232923,
+            15.941109630457927,
+            -84.90825233667955
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 1 fired",
+          "sequence": 9,
+          "tick": 423
+        },
+        {
+          "kind": "shot",
+          "position": [
+            16.03618315032161,
+            17.036248008683263,
+            -76.93272628693421
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 2 fired",
+          "sequence": 10,
+          "tick": 423
+        }
+      ]
+    },
+    {
+      "shipId": "enterprise-cv6",
+      "contentHash": "46f537fce5212f21cc8aabb28ac303147410bfddb4a59ec4a6baa430b9defdb1",
+      "backend": "webgpu",
+      "tick": 468,
+      "paused": false,
+      "fps": 31.151552830257412,
+      "inspecting": false,
+      "inPort": false,
+      "portInspection": "exterior",
+      "maxMuzzleErrorM": 3.5478156750647755e-05,
+      "combat": {
+        "battery": "main",
+        "range": 902.4278364500954,
+        "ready": 2,
+        "total": 8,
+        "targetIntegrity": 1,
+        "targetWater": 0,
+        "targetPower": 1,
+        "targetSteering": 1,
+        "targetSunk": false,
+        "targetUnderway": false,
+        "mounts": [
+          {
+            "id": "five-inch-port-1",
+            "name": "Port 5-inch 1",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-2",
+            "name": "Port 5-inch 2",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-3",
+            "name": "Port 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-4",
+            "name": "Port 5-inch 4",
+            "status": "blocked",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-1",
+            "name": "Stbd 5-inch 1",
+            "status": "reloading",
+            "reload": 3.2666666666666693,
+            "ammo": 358
+          },
+          {
+            "id": "five-inch-starboard-2",
+            "name": "Stbd 5-inch 2",
+            "status": "reloading",
+            "reload": 3.2666666666666693,
+            "ammo": 358
+          },
+          {
+            "id": "five-inch-starboard-3",
+            "name": "Stbd 5-inch 3",
+            "status": "ready",
+            "reload": 0,
+            "ammo": 359
+          },
+          {
+            "id": "five-inch-starboard-4",
+            "name": "Stbd 5-inch 4",
+            "status": "ready",
+            "reload": 0,
+            "ammo": 359
+          }
+        ],
+        "modules": [
+          {
+            "id": "magazine-forward",
+            "name": "Fore Magazine",
+            "condition": 1
+          },
+          {
+            "id": "engine-port",
+            "name": "Boilers Forward",
+            "condition": 1
+          },
+          {
+            "id": "boilers-aft-module",
+            "name": "Boilers Aft",
+            "condition": 1
+          },
+          {
+            "id": "turbines-module",
+            "name": "Turbines",
+            "condition": 1
+          },
+          {
+            "id": "magazine-aft",
+            "name": "Aft Magazine",
+            "condition": 1
+          },
+          {
+            "id": "steering-space-module",
+            "name": "Steering Space",
+            "condition": 1
+          }
+        ],
+        "message": "Stopped by Machinery belt"
+      },
+      "events": [
+        {
+          "kind": "shot",
+          "position": [
+            16.057306299232923,
+            15.941109630457927,
+            -84.90825233667955
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 1 fired",
+          "sequence": 1,
+          "tick": 168
+        },
+        {
+          "kind": "shot",
+          "position": [
+            16.03618315032161,
+            17.036248008683263,
+            -76.93272628693421
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 2 fired",
+          "sequence": 2,
+          "tick": 168
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.607809919362097,
+            15.955643563200553,
+            95.63542450531494
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 3 fired",
+          "sequence": 3,
+          "tick": 208
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.58944540451223,
+            17.051473493997054,
+            103.61941871576455
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 4 fired",
+          "sequence": 4,
+          "tick": 208
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9061074382626284,
+            -615.4161763552227
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 5,
+          "tick": 229
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9286505898611118,
+            -615.2605318898553
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 6,
+          "tick": 230
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.963407102869713,
+            -611.7390758609871
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 7,
+          "tick": 279
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9401429656492511,
+            -611.8947203263513
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 8,
+          "tick": 279
+        },
+        {
+          "kind": "shot",
+          "position": [
+            16.057306299232923,
+            15.941109630457927,
+            -84.90825233667955
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 1 fired",
+          "sequence": 9,
+          "tick": 423
+        },
+        {
+          "kind": "shot",
+          "position": [
+            16.03618315032161,
+            17.036248008683263,
+            -76.93272628693421
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 2 fired",
+          "sequence": 10,
+          "tick": 423
+        }
+      ]
+    },
+    {
+      "shipId": "enterprise-cv6",
+      "contentHash": "46f537fce5212f21cc8aabb28ac303147410bfddb4a59ec4a6baa430b9defdb1",
+      "backend": "webgpu",
+      "tick": 473,
+      "paused": false,
+      "fps": 34.94866098668545,
+      "inspecting": false,
+      "inPort": false,
+      "portInspection": "exterior",
+      "maxMuzzleErrorM": 3.5478156750647755e-05,
+      "combat": {
+        "battery": "main",
+        "range": 902.4278364500954,
+        "ready": 0,
+        "total": 8,
+        "targetIntegrity": 1,
+        "targetWater": 0,
+        "targetPower": 1,
+        "targetSteering": 1,
+        "targetSunk": false,
+        "targetUnderway": false,
+        "mounts": [
+          {
+            "id": "five-inch-port-1",
+            "name": "Port 5-inch 1",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-2",
+            "name": "Port 5-inch 2",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-3",
+            "name": "Port 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-4",
+            "name": "Port 5-inch 4",
+            "status": "blocked",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-1",
+            "name": "Stbd 5-inch 1",
+            "status": "reloading",
+            "reload": 3.1833333333333362,
+            "ammo": 358
+          },
+          {
+            "id": "five-inch-starboard-2",
+            "name": "Stbd 5-inch 2",
+            "status": "reloading",
+            "reload": 3.1833333333333362,
+            "ammo": 358
+          },
+          {
+            "id": "five-inch-starboard-3",
+            "name": "Stbd 5-inch 3",
+            "status": "reloading",
+            "reload": 3.9333333333333336,
+            "ammo": 358
+          },
+          {
+            "id": "five-inch-starboard-4",
+            "name": "Stbd 5-inch 4",
+            "status": "reloading",
+            "reload": 3.9333333333333336,
+            "ammo": 358
+          }
+        ],
+        "modules": [
+          {
+            "id": "magazine-forward",
+            "name": "Fore Magazine",
+            "condition": 1
+          },
+          {
+            "id": "engine-port",
+            "name": "Boilers Forward",
+            "condition": 1
+          },
+          {
+            "id": "boilers-aft-module",
+            "name": "Boilers Aft",
+            "condition": 1
+          },
+          {
+            "id": "turbines-module",
+            "name": "Turbines",
+            "condition": 1
+          },
+          {
+            "id": "magazine-aft",
+            "name": "Aft Magazine",
+            "condition": 1
+          },
+          {
+            "id": "steering-space-module",
+            "name": "Steering Space",
+            "condition": 1
+          }
+        ],
+        "message": "Stopped by Machinery belt"
+      },
+      "events": [
+        {
+          "kind": "shot",
+          "position": [
+            16.057306299232923,
+            15.941109630457927,
+            -84.90825233667955
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 1 fired",
+          "sequence": 1,
+          "tick": 168
+        },
+        {
+          "kind": "shot",
+          "position": [
+            16.03618315032161,
+            17.036248008683263,
+            -76.93272628693421
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 2 fired",
+          "sequence": 2,
+          "tick": 168
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.607809919362097,
+            15.955643563200553,
+            95.63542450531494
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 3 fired",
+          "sequence": 3,
+          "tick": 208
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.58944540451223,
+            17.051473493997054,
+            103.61941871576455
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 4 fired",
+          "sequence": 4,
+          "tick": 208
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9061074382626284,
+            -615.4161763552227
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 5,
+          "tick": 229
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9286505898611118,
+            -615.2605318898553
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 6,
+          "tick": 230
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.963407102869713,
+            -611.7390758609871
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 7,
+          "tick": 279
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9401429656492511,
+            -611.8947203263513
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 8,
+          "tick": 279
+        },
+        {
+          "kind": "shot",
+          "position": [
+            16.057306299232923,
+            15.941109630457927,
+            -84.90825233667955
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 1 fired",
+          "sequence": 9,
+          "tick": 423
+        },
+        {
+          "kind": "shot",
+          "position": [
+            16.03618315032161,
+            17.036248008683263,
+            -76.93272628693421
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 2 fired",
+          "sequence": 10,
+          "tick": 423
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.607809919362097,
+            15.955643563200553,
+            95.63542450531494
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 3 fired",
+          "sequence": 11,
+          "tick": 468
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.58944540451223,
+            17.051473493997054,
+            103.61941871576455
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 4 fired",
+          "sequence": 12,
+          "tick": 468
+        }
+      ]
+    },
+    {
+      "shipId": "enterprise-cv6",
+      "contentHash": "46f537fce5212f21cc8aabb28ac303147410bfddb4a59ec4a6baa430b9defdb1",
+      "backend": "webgpu",
+      "tick": 482,
+      "paused": false,
+      "fps": 33.27879231181315,
+      "inspecting": false,
+      "inPort": false,
+      "portInspection": "exterior",
+      "maxMuzzleErrorM": 3.5478156750647755e-05,
+      "combat": {
+        "battery": "main",
+        "range": 902.4278364500954,
+        "ready": 0,
+        "total": 8,
+        "targetIntegrity": 1,
+        "targetWater": 0,
+        "targetPower": 1,
+        "targetSteering": 1,
+        "targetSunk": false,
+        "targetUnderway": false,
+        "mounts": [
+          {
+            "id": "five-inch-port-1",
+            "name": "Port 5-inch 1",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-2",
+            "name": "Port 5-inch 2",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-3",
+            "name": "Port 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-4",
+            "name": "Port 5-inch 4",
+            "status": "blocked",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-1",
+            "name": "Stbd 5-inch 1",
+            "status": "reloading",
+            "reload": 3.0333333333333368,
+            "ammo": 358
+          },
+          {
+            "id": "five-inch-starboard-2",
+            "name": "Stbd 5-inch 2",
+            "status": "reloading",
+            "reload": 3.0333333333333368,
+            "ammo": 358
+          },
+          {
+            "id": "five-inch-starboard-3",
+            "name": "Stbd 5-inch 3",
+            "status": "reloading",
+            "reload": 3.783333333333334,
+            "ammo": 358
+          },
+          {
+            "id": "five-inch-starboard-4",
+            "name": "Stbd 5-inch 4",
+            "status": "reloading",
+            "reload": 3.783333333333334,
+            "ammo": 358
+          }
+        ],
+        "modules": [
+          {
+            "id": "magazine-forward",
+            "name": "Fore Magazine",
+            "condition": 1
+          },
+          {
+            "id": "engine-port",
+            "name": "Boilers Forward",
+            "condition": 1
+          },
+          {
+            "id": "boilers-aft-module",
+            "name": "Boilers Aft",
+            "condition": 1
+          },
+          {
+            "id": "turbines-module",
+            "name": "Turbines",
+            "condition": 1
+          },
+          {
+            "id": "magazine-aft",
+            "name": "Aft Magazine",
+            "condition": 1
+          },
+          {
+            "id": "steering-space-module",
+            "name": "Steering Space",
+            "condition": 1
+          }
+        ],
+        "message": "Stopped by Machinery belt"
+      },
+      "events": [
+        {
+          "kind": "shot",
+          "position": [
+            16.057306299232923,
+            15.941109630457927,
+            -84.90825233667955
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 1 fired",
+          "sequence": 1,
+          "tick": 168
+        },
+        {
+          "kind": "shot",
+          "position": [
+            16.03618315032161,
+            17.036248008683263,
+            -76.93272628693421
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 2 fired",
+          "sequence": 2,
+          "tick": 168
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.607809919362097,
+            15.955643563200553,
+            95.63542450531494
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 3 fired",
+          "sequence": 3,
+          "tick": 208
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.58944540451223,
+            17.051473493997054,
+            103.61941871576455
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 4 fired",
+          "sequence": 4,
+          "tick": 208
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9061074382626284,
+            -615.4161763552227
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 5,
+          "tick": 229
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9286505898611118,
+            -615.2605318898553
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 6,
+          "tick": 230
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.963407102869713,
+            -611.7390758609871
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 7,
+          "tick": 279
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9401429656492511,
+            -611.8947203263513
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 8,
+          "tick": 279
+        },
+        {
+          "kind": "shot",
+          "position": [
+            16.057306299232923,
+            15.941109630457927,
+            -84.90825233667955
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 1 fired",
+          "sequence": 9,
+          "tick": 423
+        },
+        {
+          "kind": "shot",
+          "position": [
+            16.03618315032161,
+            17.036248008683263,
+            -76.93272628693421
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 2 fired",
+          "sequence": 10,
+          "tick": 423
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.607809919362097,
+            15.955643563200553,
+            95.63542450531494
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 3 fired",
+          "sequence": 11,
+          "tick": 468
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.58944540451223,
+            17.051473493997054,
+            103.61941871576455
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 4 fired",
+          "sequence": 12,
+          "tick": 468
+        }
+      ]
+    },
+    {
+      "shipId": "enterprise-cv6",
+      "contentHash": "46f537fce5212f21cc8aabb28ac303147410bfddb4a59ec4a6baa430b9defdb1",
+      "backend": "webgpu",
+      "tick": 493,
+      "paused": false,
+      "fps": 35.83044672204801,
+      "inspecting": false,
+      "inPort": false,
+      "portInspection": "exterior",
+      "maxMuzzleErrorM": 3.5478156750647755e-05,
+      "combat": {
+        "battery": "main",
+        "range": 902.4278364500954,
+        "ready": 0,
+        "total": 8,
+        "targetIntegrity": 1,
+        "targetWater": 0,
+        "targetPower": 1,
+        "targetSteering": 1,
+        "targetSunk": false,
+        "targetUnderway": false,
+        "mounts": [
+          {
+            "id": "five-inch-port-1",
+            "name": "Port 5-inch 1",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-2",
+            "name": "Port 5-inch 2",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-3",
+            "name": "Port 5-inch 3",
+            "status": "training",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-port-4",
+            "name": "Port 5-inch 4",
+            "status": "blocked",
+            "reload": 0,
+            "ammo": 360
+          },
+          {
+            "id": "five-inch-starboard-1",
+            "name": "Stbd 5-inch 1",
+            "status": "reloading",
+            "reload": 2.850000000000004,
+            "ammo": 358
+          },
+          {
+            "id": "five-inch-starboard-2",
+            "name": "Stbd 5-inch 2",
+            "status": "reloading",
+            "reload": 2.850000000000004,
+            "ammo": 358
+          },
+          {
+            "id": "five-inch-starboard-3",
+            "name": "Stbd 5-inch 3",
+            "status": "reloading",
+            "reload": 3.6000000000000014,
+            "ammo": 358
+          },
+          {
+            "id": "five-inch-starboard-4",
+            "name": "Stbd 5-inch 4",
+            "status": "reloading",
+            "reload": 3.6000000000000014,
+            "ammo": 358
+          }
+        ],
+        "modules": [
+          {
+            "id": "magazine-forward",
+            "name": "Fore Magazine",
+            "condition": 1
+          },
+          {
+            "id": "engine-port",
+            "name": "Boilers Forward",
+            "condition": 1
+          },
+          {
+            "id": "boilers-aft-module",
+            "name": "Boilers Aft",
+            "condition": 1
+          },
+          {
+            "id": "turbines-module",
+            "name": "Turbines",
+            "condition": 1
+          },
+          {
+            "id": "magazine-aft",
+            "name": "Aft Magazine",
+            "condition": 1
+          },
+          {
+            "id": "steering-space-module",
+            "name": "Steering Space",
+            "condition": 1
+          }
+        ],
+        "message": "Stopped by Machinery belt"
+      },
+      "events": [
+        {
+          "kind": "shot",
+          "position": [
+            16.057306299232923,
+            15.941109630457927,
+            -84.90825233667955
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 1 fired",
+          "sequence": 1,
+          "tick": 168
+        },
+        {
+          "kind": "shot",
+          "position": [
+            16.03618315032161,
+            17.036248008683263,
+            -76.93272628693421
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 2 fired",
+          "sequence": 2,
+          "tick": 168
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.607809919362097,
+            15.955643563200553,
+            95.63542450531494
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 3 fired",
+          "sequence": 3,
+          "tick": 208
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.58944540451223,
+            17.051473493997054,
+            103.61941871576455
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 4 fired",
+          "sequence": 4,
+          "tick": 208
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9061074382626284,
+            -615.4161763552227
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 5,
+          "tick": 229
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9286505898611118,
+            -615.2605318898553
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 6,
+          "tick": 230
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.963407102869713,
+            -611.7390758609871
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 7,
+          "tick": 279
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9401429656492511,
+            -611.8947203263513
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 8,
+          "tick": 279
+        },
+        {
+          "kind": "shot",
+          "position": [
+            16.057306299232923,
+            15.941109630457927,
+            -84.90825233667955
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 1 fired",
+          "sequence": 9,
+          "tick": 423
+        },
+        {
+          "kind": "shot",
+          "position": [
+            16.03618315032161,
+            17.036248008683263,
+            -76.93272628693421
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 2 fired",
+          "sequence": 10,
+          "tick": 423
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.607809919362097,
+            15.955643563200553,
+            95.63542450531494
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 3 fired",
+          "sequence": 11,
+          "tick": 468
+        },
+        {
+          "kind": "shot",
+          "position": [
+            15.58944540451223,
+            17.051473493997054,
+            103.61941871576455
+          ],
+          "shipId": "player",
+          "message": "Stbd 5-inch 4 fired",
+          "sequence": 12,
+          "tick": 468
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9061074382626284,
+            -615.4161763552227
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 13,
+          "tick": 484
+        },
+        {
+          "kind": "stopped",
+          "position": [
+            637.6,
+            0.9286505898611118,
+            -615.2605318898553
+          ],
+          "message": "Stopped by Machinery belt",
+          "shipId": "target",
+          "sequence": 14,
+          "tick": 485
+        }
+      ]
+    }
+  ]
+}

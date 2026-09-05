@@ -1,0 +1,76 @@
+{
+  "shipId": "baltimore",
+  "contentHash": "6e13dafe1805949ec1e74a52804c78704e5364b3e6eb3a473c2687619e055594",
+  "backend": "webgpu",
+  "tick": 0,
+  "paused": false,
+  "fps": 18.753375590395287,
+  "inspecting": false,
+  "inPort": true,
+  "portInspection": "exterior",
+  "maxMuzzleErrorM": 0.0013164041414398498,
+  "combat": {
+    "battery": "main",
+    "range": 857.9627031520658,
+    "ready": 0,
+    "total": 3,
+    "targetIntegrity": 1,
+    "targetWater": 0,
+    "targetPower": 1,
+    "targetSteering": 1,
+    "targetSunk": false,
+    "targetUnderway": false,
+    "mounts": [
+      {
+        "id": "main-1",
+        "name": "Turret 1 \u00b7 8-inch",
+        "status": "training",
+        "reload": 0,
+        "ammo": 450
+      },
+      {
+        "id": "main-2",
+        "name": "Turret 2 \u00b7 8-inch",
+        "status": "training",
+        "reload": 0,
+        "ammo": 450
+      },
+      {
+        "id": "main-3",
+        "name": "Turret 3 \u00b7 8-inch",
+        "status": "training",
+        "reload": 0,
+        "ammo": 450
+      }
+    ],
+    "modules": [
+      {
+        "id": "magazine-forward",
+        "name": "Forward 8-inch magazines",
+        "condition": 1
+      },
+      {
+        "id": "engine-forward",
+        "name": "Forward engine room",
+        "condition": 1
+      },
+      {
+        "id": "engine-aft",
+        "name": "After engine room",
+        "condition": 1
+      },
+      {
+        "id": "magazine-aft",
+        "name": "After 8-inch magazine",
+        "condition": 1
+      },
+      {
+        "id": "steering",
+        "name": "Steering gear",
+        "condition": 1
+      }
+    ],
+    "message": "Aim at the target, wait for guns to train, then fire."
+  },
+  "events": []
+}

@@ -1,0 +1,443 @@
+{
+  "contentHash": "4afba8256544f4381dd510187409afa032a131b1e5e285f85fa8974372cdf9d1",
+  "hullBounds": [
+    [
+      -14.02080249786377,
+      -7.912099838256836,
+      -123.3677978515625
+    ],
+    [
+      14.020805358886719,
+      10.98550033569336,
+      123.3677978515625
+    ]
+  ],
+  "mounts": [
+    {
+      "id": "five-inch-port-1",
+      "measuredPivot": [
+        -12.649993896484375,
+        14.371899604797363,
+        -82
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "five-inch-port-2",
+      "measuredPivot": [
+        -12.649993896484375,
+        15.47189998626709,
+        -74
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "five-inch-port-3",
+      "measuredPivot": [
+        -12.650007247924805,
+        14.371899604797363,
+        99
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "five-inch-port-4",
+      "measuredPivot": [
+        -12.650007247924805,
+        15.47189998626709,
+        107
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "five-inch-starboard-1",
+      "measuredPivot": [
+        12.650005340576172,
+        14.371899604797363,
+        -82
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "five-inch-starboard-2",
+      "measuredPivot": [
+        12.650005340576172,
+        15.47189998626709,
+        -74
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "five-inch-starboard-3",
+      "measuredPivot": [
+        12.649991989135742,
+        14.371899604797363,
+        99
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "five-inch-starboard-4",
+      "measuredPivot": [
+        12.649991989135742,
+        15.47189998626709,
+        107
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "quad-fore-lower",
+      "measuredPivot": [
+        11.800003051757812,
+        16.471900939941406,
+        -38.40480041503906
+      ],
+      "barrels": 4,
+      "articulationChecks": 12
+    },
+    {
+      "id": "quad-fore-upper",
+      "measuredPivot": [
+        10.400002479553223,
+        18.605499267578125,
+        -35.966400146484375
+      ],
+      "barrels": 4,
+      "articulationChecks": 12
+    },
+    {
+      "id": "quad-aft-lower",
+      "measuredPivot": [
+        11.999998092651367,
+        16.471900939941406,
+        21.336000442504883
+      ],
+      "barrels": 4,
+      "articulationChecks": 12
+    },
+    {
+      "id": "quad-aft-upper",
+      "measuredPivot": [
+        10.499999046325684,
+        18.605499267578125,
+        16.459199905395508
+      ],
+      "barrels": 4,
+      "articulationChecks": 12
+    },
+    {
+      "id": "oerlikon-port-1",
+      "measuredPivot": [
+        -14.200008392333984,
+        15.821900367736816,
+        116
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-port-2",
+      "measuredPivot": [
+        -14.200008392333984,
+        15.821900367736816,
+        112
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-port-3",
+      "measuredPivot": [
+        -14.200004577636719,
+        15.821900367736816,
+        66
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-port-4",
+      "measuredPivot": [
+        -14.200004577636719,
+        15.821900367736816,
+        61
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-port-5",
+      "measuredPivot": [
+        -14.200003623962402,
+        15.821900367736816,
+        56
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-port-6",
+      "measuredPivot": [
+        -14.200003623962402,
+        15.821900367736816,
+        51
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-port-7",
+      "measuredPivot": [
+        -14.200003623962402,
+        15.821900367736816,
+        46
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-port-8",
+      "measuredPivot": [
+        -14.200002670288086,
+        15.821900367736816,
+        41
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-port-9",
+      "measuredPivot": [
+        -14.199995994567871,
+        15.821900367736816,
+        -48
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-port-10",
+      "measuredPivot": [
+        -14.199995994567871,
+        15.821900367736816,
+        -53
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-port-11",
+      "measuredPivot": [
+        -14.199995040893555,
+        15.821900367736816,
+        -58
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-port-12",
+      "measuredPivot": [
+        -14.199995040893555,
+        15.821900367736816,
+        -63
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-starboard-1",
+      "measuredPivot": [
+        14.199991226196289,
+        15.821900367736816,
+        116
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-starboard-2",
+      "measuredPivot": [
+        14.199991226196289,
+        15.821900367736816,
+        112
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-starboard-3",
+      "measuredPivot": [
+        14.199995040893555,
+        15.821900367736816,
+        66
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-starboard-4",
+      "measuredPivot": [
+        14.199995040893555,
+        15.821900367736816,
+        61
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-starboard-5",
+      "measuredPivot": [
+        14.199995994567871,
+        15.821900367736816,
+        56
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-starboard-6",
+      "measuredPivot": [
+        14.199995994567871,
+        15.821900367736816,
+        51
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-starboard-7",
+      "measuredPivot": [
+        14.199995994567871,
+        15.821900367736816,
+        46
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-starboard-8",
+      "measuredPivot": [
+        14.199996948242188,
+        15.821900367736816,
+        41
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-starboard-9",
+      "measuredPivot": [
+        14.200003623962402,
+        15.821900367736816,
+        -48
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-starboard-10",
+      "measuredPivot": [
+        14.200003623962402,
+        15.821900367736816,
+        -53
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-starboard-11",
+      "measuredPivot": [
+        14.200004577636719,
+        15.821900367736816,
+        -58
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-starboard-12",
+      "measuredPivot": [
+        14.200004577636719,
+        15.821900367736816,
+        -63
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-island-1",
+      "measuredPivot": [
+        15.499999046325684,
+        16.471900939941406,
+        7.000000953674316
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-island-2",
+      "measuredPivot": [
+        15.5,
+        16.471900939941406,
+        2.0000011920928955
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-island-3",
+      "measuredPivot": [
+        15.5,
+        16.471900939941406,
+        -2.9999988079071045
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-island-4",
+      "measuredPivot": [
+        15.500000953674316,
+        16.471900939941406,
+        -7.999999046325684
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-island-5",
+      "measuredPivot": [
+        15.500000953674316,
+        16.471900939941406,
+        -12.999999046325684
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-island-6",
+      "measuredPivot": [
+        15.500000953674316,
+        16.471900939941406,
+        -17.999998092651367
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    }
+  ],
+  "meshes": 192,
+  "primitives": 385,
+  "triangles": 147596,
+  "bytes": 5340344,
+  "result": "passed",
+  "historicalAccuracy": "not certified; see reference register and discrepancy report"
+}

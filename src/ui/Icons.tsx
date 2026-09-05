@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-export function Icon({ name, size = 20, style }: { name: 'anchor' | 'pause' | 'play' | 'camera' | 'expand' | 'close' | 'arrow' | 'compass' | 'he' | 'shell' | 'repair' | 'ship' | 'turret' | 'target' | 'plus' | 'minus' | 'schematic' | 'download' | 'copy'; size?: number; style?: CSSProperties }) {
+export function Icon({ name, size = 20, style }: { name: 'anchor' | 'pause' | 'play' | 'camera' | 'expand' | 'close' | 'arrow' | 'compass' | 'he' | 'shell' | 'repair' | 'ship' | 'turret' | 'target' | 'plus' | 'minus' | 'schematic' | 'download' | 'copy' | 'chevron'; size?: number; style?: CSSProperties }) {
   const paths = {
     schematic: <><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 15h18M15 3v18M6 11l2-4h3l2 4ZM6 18h6M18 6v6"/></>,
     download: <><path d="M12 3v12m-5-5 5 5 5-5M4 15v6h16v-6"/></>,
@@ -20,6 +20,7 @@ export function Icon({ name, size = 20, style }: { name: 'anchor' | 'pause' | 'p
     target: <><path d="M3 9V3h6m6 0h6v6m0 6v6h-6m-6 0H3v-6"/><circle cx="12" cy="12" r="3"/></>,
     plus: <path d="M5 12h14M12 5v14"/>,
     minus: <path d="M5 12h14"/>,
+    chevron: <path d="m6 9 6 6 6-6"/>,
   };
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={style}>{paths[name]}</svg>;
 }

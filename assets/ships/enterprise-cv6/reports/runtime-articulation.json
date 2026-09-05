@@ -1,0 +1,231 @@
+{
+  "contentHash": "46f537fce5212f21cc8aabb28ac303147410bfddb4a59ec4a6baa430b9defdb1",
+  "shipId": "enterprise-cv6",
+  "backend": "webgpu",
+  "poses": [
+    {
+      "trainFraction": -1,
+      "elevationFraction": 0,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 3.23503731048277e-05
+    },
+    {
+      "trainFraction": -1,
+      "elevationFraction": 0,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 3.23503731048277e-05
+    },
+    {
+      "trainFraction": -1,
+      "elevationFraction": 0.5,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 3.232776040172993e-05
+    },
+    {
+      "trainFraction": -1,
+      "elevationFraction": 0.5,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 3.232776039012421e-05
+    },
+    {
+      "trainFraction": -1,
+      "elevationFraction": 1,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 3.225235557960409e-05
+    },
+    {
+      "trainFraction": -1,
+      "elevationFraction": 1,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 3.225235557960409e-05
+    },
+    {
+      "trainFraction": 0,
+      "elevationFraction": 0,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 3.021119333964585e-05
+    },
+    {
+      "trainFraction": 0,
+      "elevationFraction": 0,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 3.021119333964585e-05
+    },
+    {
+      "trainFraction": 0,
+      "elevationFraction": 0.5,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 3.021119333964585e-05
+    },
+    {
+      "trainFraction": 0,
+      "elevationFraction": 0.5,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 3.021119333964585e-05
+    },
+    {
+      "trainFraction": 0,
+      "elevationFraction": 1,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 3.021119333964585e-05
+    },
+    {
+      "trainFraction": 0,
+      "elevationFraction": 1,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 3.021119333964585e-05
+    },
+    {
+      "trainFraction": 1,
+      "elevationFraction": 0,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 3.021119333964585e-05
+    },
+    {
+      "trainFraction": 1,
+      "elevationFraction": 0,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 3.021119333964585e-05
+    },
+    {
+      "trainFraction": 1,
+      "elevationFraction": 0.5,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 3.021119333964585e-05
+    },
+    {
+      "trainFraction": 1,
+      "elevationFraction": 0.5,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 3.021119333964585e-05
+    },
+    {
+      "trainFraction": 1,
+      "elevationFraction": 1,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 3.021119333964585e-05
+    },
+    {
+      "trainFraction": 1,
+      "elevationFraction": 1,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 3.021119333964585e-05
+    }
+  ],
+  "restored": {
+    "shipId": "enterprise-cv6",
+    "contentHash": "46f537fce5212f21cc8aabb28ac303147410bfddb4a59ec4a6baa430b9defdb1",
+    "backend": "webgpu",
+    "tick": 0,
+    "paused": false,
+    "fps": 12.463814365170888,
+    "inspecting": false,
+    "inPort": true,
+    "portInspection": "exterior",
+    "maxMuzzleErrorM": 3.021119333964585e-05,
+    "combat": {
+      "battery": "main",
+      "range": 870.4831991486109,
+      "ready": 0,
+      "total": 8,
+      "targetIntegrity": 1,
+      "targetWater": 0,
+      "targetPower": 1,
+      "targetSteering": 1,
+      "targetSunk": false,
+      "targetUnderway": false,
+      "mounts": [
+        {
+          "id": "five-inch-port-1",
+          "name": "Port 5-inch 1",
+          "status": "training",
+          "reload": 0,
+          "ammo": 360
+        },
+        {
+          "id": "five-inch-port-2",
+          "name": "Port 5-inch 2",
+          "status": "training",
+          "reload": 0,
+          "ammo": 360
+        },
+        {
+          "id": "five-inch-port-3",
+          "name": "Port 5-inch 3",
+          "status": "training",
+          "reload": 0,
+          "ammo": 360
+        },
+        {
+          "id": "five-inch-port-4",
+          "name": "Port 5-inch 4",
+          "status": "training",
+          "reload": 0,
+          "ammo": 360
+        },
+        {
+          "id": "five-inch-starboard-1",
+          "name": "Stbd 5-inch 1",
+          "status": "training",
+          "reload": 0,
+          "ammo": 360
+        },
+        {
+          "id": "five-inch-starboard-2",
+          "name": "Stbd 5-inch 2",
+          "status": "training",
+          "reload": 0,
+          "ammo": 360
+        },
+        {
+          "id": "five-inch-starboard-3",
+          "name": "Stbd 5-inch 3",
+          "status": "training",
+          "reload": 0,
+          "ammo": 360
+        },
+        {
+          "id": "five-inch-starboard-4",
+          "name": "Stbd 5-inch 4",
+          "status": "training",
+          "reload": 0,
+          "ammo": 360
+        }
+      ],
+      "modules": [
+        {
+          "id": "magazine-forward",
+          "name": "Fore Magazine",
+          "condition": 1
+        },
+        {
+          "id": "engine-port",
+          "name": "Boilers Forward",
+          "condition": 1
+        },
+        {
+          "id": "boilers-aft-module",
+          "name": "Boilers Aft",
+          "condition": 1
+        },
+        {
+          "id": "turbines-module",
+          "name": "Turbines",
+          "condition": 1
+        },
+        {
+          "id": "magazine-aft",
+          "name": "Aft Magazine",
+          "condition": 1
+        },
+        {
+          "id": "steering-space-module",
+          "name": "Steering Space",
+          "condition": 1
+        }
+      ],
+      "message": "Aim at the target, wait for guns to train, then fire."
+    },
+    "events": []
+  }
+}

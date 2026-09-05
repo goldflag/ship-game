@@ -1,0 +1,61 @@
+{
+  "contentHash": "b81a8d55e9fdd446a391412f17299cb078dba1bdc6b9ab024e99c5b2f21e510f",
+  "method": "Triangle intersections of exported hull.surface at runtime Y=0 and Z=0; actual transformed vertices.",
+  "measures": [
+    {
+      "id": "length-overall",
+      "expectedM": 263,
+      "measuredM": 263,
+      "source": "kure-museum-data; usntmj-s062 p.10",
+      "errorM": 0,
+      "toleranceM": 0.025,
+      "passed": true
+    },
+    {
+      "id": "extreme-beam",
+      "expectedM": 38.9,
+      "measuredM": 38.90000343322754,
+      "source": "kure-museum-data summary; tamiya-principal-dimensions p.2; S-06-2 differs by 0.1 m",
+      "errorM": 0.0000034332275404835855,
+      "toleranceM": 0.025,
+      "passed": true
+    },
+    {
+      "id": "trial-draft",
+      "expectedM": 10.4,
+      "measuredM": 10.399999618530273,
+      "source": "usntmj-s062 p.10",
+      "errorM": -3.8146972691777137e-7,
+      "toleranceM": 0.025,
+      "passed": true
+    },
+    {
+      "id": "waterline-length",
+      "expectedM": 256,
+      "measuredM": 256,
+      "source": "usntmj-s062 p.10",
+      "errorM": 0,
+      "toleranceM": 0.025,
+      "passed": true
+    },
+    {
+      "id": "waterline-beam",
+      "expectedM": 36.9,
+      "measuredM": 36.90000343322754,
+      "source": "usntmj-s062 p.10",
+      "errorM": 0.0000034332275404835855,
+      "toleranceM": 0.025,
+      "passed": true
+    },
+    {
+      "id": "midship-depth",
+      "expectedM": 18.915,
+      "measuredM": 18.914999961853027,
+      "source": "tamiya-principal-dimensions p.2; moulded/outer-skin distinction unresolved",
+      "errorM": -3.814697180359872e-8,
+      "toleranceM": 0.025,
+      "passed": true
+    }
+  ],
+  "historicalAccuracy": "These six dimensions are checked. Hull lines, surface offsets and equipment details remain unverified; this is not 100 percent historical certification."
+}

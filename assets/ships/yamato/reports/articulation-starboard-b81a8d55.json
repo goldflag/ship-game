@@ -1,0 +1,98 @@
+{
+  "settings": {
+    "trainFraction": 1,
+    "elevationFraction": 1,
+    "recoilFraction": 1
+  },
+  "state": {
+    "shipId": "yamato",
+    "contentHash": "b81a8d55e9fdd446a391412f17299cb078dba1bdc6b9ab024e99c5b2f21e510f",
+    "backend": "webgpu",
+    "tick": 0,
+    "paused": false,
+    "fps": 24.16329764833159,
+    "inspecting": false,
+    "inPort": true,
+    "portInspection": "exterior",
+    "maxMuzzleErrorM": 0.0027461185759006853,
+    "combat": {
+      "battery": "main",
+      "range": 842.1335998521851,
+      "ready": 0,
+      "total": 3,
+      "targetIntegrity": 1,
+      "targetWater": 0,
+      "targetPower": 1,
+      "targetSteering": 1,
+      "targetSunk": false,
+      "targetUnderway": false,
+      "mounts": [
+        {
+          "id": "main-1",
+          "name": "No. 1",
+          "status": "training",
+          "reload": 0,
+          "ammo": 300
+        },
+        {
+          "id": "main-2",
+          "name": "No. 2",
+          "status": "training",
+          "reload": 0,
+          "ammo": 300
+        },
+        {
+          "id": "main-3",
+          "name": "No. 3",
+          "status": "training",
+          "reload": 0,
+          "ammo": 300
+        }
+      ],
+      "modules": [
+        {
+          "id": "engine-port",
+          "name": "Port turbines",
+          "condition": 1
+        },
+        {
+          "id": "engine-starboard",
+          "name": "Starboard turbines",
+          "condition": 1
+        },
+        {
+          "id": "steering",
+          "name": "Steering machinery",
+          "condition": 1
+        },
+        {
+          "id": "magazine-1",
+          "name": "No. 1 magazine",
+          "condition": 1
+        },
+        {
+          "id": "magazine-2",
+          "name": "No. 2 magazine",
+          "condition": 1
+        },
+        {
+          "id": "magazine-3",
+          "name": "No. 3 magazine",
+          "condition": 1
+        },
+        {
+          "id": "magazine-secondary-forward",
+          "name": "Forward secondary magazine",
+          "condition": 1
+        },
+        {
+          "id": "magazine-secondary-aft",
+          "name": "Aft secondary magazine",
+          "condition": 1
+        }
+      ],
+      "message": "Aim at the target, wait for guns to train, then fire."
+    },
+    "events": []
+  }
+}

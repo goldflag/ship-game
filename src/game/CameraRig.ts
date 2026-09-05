@@ -1,5 +1,7 @@
 import { MathUtils, PerspectiveCamera, Vector3 } from 'three/webgpu';
 import type { ShipState } from '../simulation/ship';
+import { localToWorld } from '../simulation/geometry';
+import type { Vec3 } from '../ships/blueprint';
 
 export type CameraMode = 'Chase' | 'Bridge' | 'Tactical';
 export class CameraRig {
@@ -15,7 +17,7 @@ export class CameraRig {
   private look = new Vector3();
   private abort = new AbortController();
 
-  constructor(readonly camera: PerspectiveCamera, canvas: HTMLCanvasElement) {
+  constructor(readonly camera: PerspectiveCamera, canvas: HTMLCanvasElement, private bridge: Vec3 = [0, 29, -31]) {
     const options = { signal: this.abort.signal };
     canvas.addEventListener('pointerdown', e => {
       if (e.button !== 0 && e.button !== 2) return;
@@ -56,9 +58,9 @@ export class CameraRig {
     const forwardX = Math.sin(ship.heading), forwardZ = -Math.cos(ship.heading);
     this.target.set(ship.x + forwardX * 25, height + 20, ship.z + forwardZ * 25);
     if (this.mode === 'Bridge') {
-      this.desired.set(ship.x + forwardX * 31, height + 29, ship.z + forwardZ * 31);
+      this.desired.set(...localToWorld(this.bridge, { ...ship, y: height }));
       const angle = ship.heading + this.azimuth;
-      this.look.set(this.desired.x + Math.sin(angle) * 500, height + 22, this.desired.z - Math.cos(angle) * 500);
+      this.look.set(this.desired.x + Math.sin(angle) * 500, this.desired.y - 7, this.desired.z - Math.cos(angle) * 500);
     } else {
       const elevation = this.mode === 'Tactical' ? 1.25 : this.elevation;
       const framing = Math.max(1, 1.45 / this.camera.aspect);

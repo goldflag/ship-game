@@ -1,0 +1,60 @@
+Gunnery
+0/3 ready
+Fire
+Q
+46 cm main
+15.5 cm secondary
+No. 1
+Training
+300
+No. 2
+Training
+300
+No. 3
+9s
+291
+Aim at
+Target waterline
+Port turbines
+Starboard turbines
+Steering machinery
+No. 1 magazine
+No. 2 magazine
+No. 3 magazine
+Forward secondary magazine
+Aft secondary magazine
+Trial target
+0.99 km
+Structure
+93%
+Propulsion
+0%
+Flooding
+16.3 m³
+
+Stopped by Citadel protection (uniform proxy)
+
+Target underway
+Port turbines
+Disabled
+Starboard turbines
+Disabled
+Steering machinery
+100%
+No. 1 magazine
+100%
+No. 2 magazine
+100%
+No. 3 magazine
+100%
+Forward secondary magazine
+100%
+Aft secondary magazine
+100%
+
+Amber outlines: armor · Pale outlines: compartments · Blue: floodwater
+
+Hold Q to fire as guns become ready. Double-click the sea to aim freely.
+
+Return to ship
+Reset target

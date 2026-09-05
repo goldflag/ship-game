@@ -1,0 +1,63 @@
+{
+  "contentHash": "b81a8d55e9fdd446a391412f17299cb078dba1bdc6b9ab024e99c5b2f21e510f",
+  "projection": "orthographic",
+  "authoringAxes": "bow +X, port +Y, up +Z",
+  "views": [
+    [
+      "bridge-quarter",
+      [
+        37,
+        -80,
+        47
+      ],
+      [
+        -8,
+        0,
+        25
+      ],
+      49
+    ],
+    [
+      "superstructure-profile",
+      [
+        -17,
+        -160,
+        24
+      ],
+      [
+        -17,
+        0,
+        24
+      ],
+      79
+    ],
+    [
+      "forward-battery",
+      [
+        80,
+        -65,
+        36
+      ],
+      [
+        40,
+        0,
+        9
+      ],
+      65
+    ],
+    [
+      "stern-quarter",
+      [
+        -155,
+        -70,
+        32
+      ],
+      [
+        -108,
+        0,
+        3
+      ],
+      71
+    ]
+  ]
+}

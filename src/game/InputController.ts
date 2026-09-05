@@ -32,7 +32,7 @@ export class InputController {
       if (event.code !== 'Escape') return;
     }
     const key = event.code;
-    if (['KeyW', 'KeyS', 'KeyA', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'Escape', 'KeyC', 'KeyR', 'KeyH', 'KeyF'].includes(key)) event.preventDefault();
+    if (['KeyW', 'KeyS', 'KeyA', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'Escape', 'KeyC', 'KeyR', 'KeyH', 'KeyF', 'KeyQ'].includes(key)) event.preventDefault();
     if (!event.repeat) {
       if (key === 'Escape') this.actions.pause();
       if (key === 'KeyH') this.actions.hud();
@@ -53,6 +53,7 @@ export class InputController {
   setRudder(rudder: number): void { this.touchRudder = rudder; }
   setEnabled(enabled: boolean): void { this.enabled = enabled; this.clear(); }
   clear(): void { this.keys.clear(); this.touchRudder = 0; }
+  get firing(): boolean { return this.enabled && this.keys.has('KeyQ'); }
   sample(): HelmCommand {
     const left = this.keys.has('KeyA') || this.keys.has('ArrowLeft');
     const right = this.keys.has('KeyD') || this.keys.has('ArrowRight');

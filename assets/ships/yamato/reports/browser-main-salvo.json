@@ -1,0 +1,329 @@
+{
+  "combat": {
+    "battery": "main",
+    "message": "Stopped by Citadel protection (uniform proxy)",
+    "modules": [
+      {
+        "condition": 0,
+        "id": "engine-port",
+        "name": "Port turbines"
+      },
+      {
+        "condition": 0,
+        "id": "engine-starboard",
+        "name": "Starboard turbines"
+      },
+      {
+        "condition": 1,
+        "id": "steering",
+        "name": "Steering machinery"
+      },
+      {
+        "condition": 1,
+        "id": "magazine-1",
+        "name": "No. 1 magazine"
+      },
+      {
+        "condition": 1,
+        "id": "magazine-2",
+        "name": "No. 2 magazine"
+      },
+      {
+        "condition": 1,
+        "id": "magazine-3",
+        "name": "No. 3 magazine"
+      },
+      {
+        "condition": 1,
+        "id": "magazine-secondary-forward",
+        "name": "Forward secondary magazine"
+      },
+      {
+        "condition": 1,
+        "id": "magazine-secondary-aft",
+        "name": "Aft secondary magazine"
+      }
+    ],
+    "mounts": [
+      {
+        "ammo": 297,
+        "id": "main-1",
+        "name": "No. 1",
+        "reload": 27.766666666666794,
+        "status": "reloading"
+      },
+      {
+        "ammo": 297,
+        "id": "main-2",
+        "name": "No. 2",
+        "reload": 27.766666666666794,
+        "status": "reloading"
+      },
+      {
+        "ammo": 300,
+        "id": "main-3",
+        "name": "No. 3",
+        "reload": 0,
+        "status": "training"
+      }
+    ],
+    "range": 842.1335577236435,
+    "ready": 0,
+    "targetIntegrity": 0.868,
+    "targetPower": 0,
+    "targetSteering": 1,
+    "targetSunk": false,
+    "targetUnderway": false,
+    "targetWater": 1.8942735420125139,
+    "total": 3
+  },
+  "events": [
+    {
+      "kind": "shot",
+      "message": "No. 1 fired",
+      "position": [
+        18.937988527799828,
+        7.944969393128094,
+        -60.8459699536
+      ],
+      "sequence": 3,
+      "shipId": "player",
+      "tick": 3024
+    },
+    {
+      "kind": "shot",
+      "message": "No. 2 fired",
+      "position": [
+        14.344968286771255,
+        11.080103113816769,
+        -43.93039232175694
+      ],
+      "sequence": 4,
+      "shipId": "player",
+      "tick": 3024
+    },
+    {
+      "kind": "shot",
+      "message": "No. 2 fired",
+      "position": [
+        16.528597922786428,
+        11.080103113816769,
+        -41.195111419780645
+      ],
+      "sequence": 5,
+      "shipId": "player",
+      "tick": 3024
+    },
+    {
+      "kind": "shot",
+      "message": "No. 2 fired",
+      "position": [
+        18.7122275588016,
+        11.080103113816769,
+        -38.459830517804356
+      ],
+      "sequence": 6,
+      "shipId": "player",
+      "tick": 3024
+    },
+    {
+      "kind": "penetration",
+      "message": "Penetrated Citadel protection (uniform proxy)",
+      "position": [
+        631.5,
+        0.7899505622590144,
+        -528.1847082209293
+      ],
+      "sequence": 7,
+      "shipId": "target",
+      "tick": 3083
+    },
+    {
+      "kind": "penetration",
+      "message": "Penetrated Citadel protection (uniform proxy)",
+      "position": [
+        631.5,
+        0.7484376616547247,
+        -532.5869990117924
+      ],
+      "sequence": 8,
+      "shipId": "target",
+      "tick": 3083
+    },
+    {
+      "kind": "penetration",
+      "message": "Penetrated Citadel protection (uniform proxy)",
+      "position": [
+        631.5,
+        0.7069247610504349,
+        -536.9892898026554
+      ],
+      "sequence": 9,
+      "shipId": "target",
+      "tick": 3083
+    },
+    {
+      "kind": "penetration",
+      "message": "Penetrated Citadel protection (uniform proxy)",
+      "position": [
+        631.4999993841727,
+        0.8705815354881004,
+        -527.6606062694952
+      ],
+      "sequence": 10,
+      "shipId": "target",
+      "tick": 3084
+    },
+    {
+      "kind": "penetration",
+      "message": "Penetrated Citadel protection (uniform proxy)",
+      "position": [
+        631.4999994224773,
+        0.816430602517266,
+        -532.1391225618411
+      ],
+      "sequence": 11,
+      "shipId": "target",
+      "tick": 3084
+    },
+    {
+      "kind": "penetration",
+      "message": "Penetrated Citadel protection (uniform proxy)",
+      "position": [
+        631.4999994607821,
+        0.7622796695464344,
+        -536.6176388541868
+      ],
+      "sequence": 12,
+      "shipId": "target",
+      "tick": 3084
+    },
+    {
+      "kind": "module",
+      "message": "Port turbines damaged",
+      "position": [
+        646.2315356169479,
+        0.49999552001504644,
+        -539.4237618008575
+      ],
+      "sequence": 13,
+      "shipId": "target",
+      "tick": 3084
+    },
+    {
+      "kind": "module",
+      "message": "Port turbines disabled",
+      "position": [
+        644.1086622319384,
+        0.49999406770143506,
+        -542.2064598800092
+      ],
+      "sequence": 14,
+      "shipId": "target",
+      "tick": 3084
+    },
+    {
+      "kind": "module",
+      "message": "Starboard turbines damaged",
+      "position": [
+        652.9999992130478,
+        0.364909316812981,
+        -544.5875904055852
+      ],
+      "sequence": 15,
+      "shipId": "target",
+      "tick": 3085
+    },
+    {
+      "kind": "module",
+      "message": "Starboard turbines disabled",
+      "position": [
+        652.9999993049875,
+        0.3222769636727372,
+        -548.9898812665913
+      ],
+      "sequence": 16,
+      "shipId": "target",
+      "tick": 3085
+    },
+    {
+      "kind": "stopped",
+      "message": "Stopped by Citadel protection (uniform proxy)",
+      "position": [
+        668.4999998150238,
+        0.051332926874152994,
+        -556.4129249656912
+      ],
+      "sequence": 17,
+      "shipId": "target",
+      "tick": 3086
+    },
+    {
+      "kind": "stopped",
+      "message": "Stopped by Citadel protection (uniform proxy)",
+      "position": [
+        668.5000003184682,
+        -0.06298392928061997,
+        -557.1984495361016
+      ],
+      "sequence": 18,
+      "shipId": "target",
+      "tick": 3087
+    },
+    {
+      "kind": "stopped",
+      "message": "Stopped by Citadel protection (uniform proxy)",
+      "position": [
+        668.4999999597776,
+        0.007995898403187105,
+        -560.8152158669906
+      ],
+      "sequence": 19,
+      "shipId": "target",
+      "tick": 3087
+    },
+    {
+      "kind": "stopped",
+      "message": "Stopped by Citadel protection (uniform proxy)",
+      "position": [
+        668.5000001808779,
+        -0.035755908137061844,
+        -565.2175068265366
+      ],
+      "sequence": 20,
+      "shipId": "target",
+      "tick": 3087
+    },
+    {
+      "kind": "stopped",
+      "message": "Stopped by Citadel protection (uniform proxy)",
+      "position": [
+        668.5000007763264,
+        -0.11936691471031463,
+        -561.6769661633855
+      ],
+      "sequence": 21,
+      "shipId": "target",
+      "tick": 3088
+    },
+    {
+      "kind": "stopped",
+      "message": "Stopped by Citadel protection (uniform proxy)",
+      "position": [
+        668.5000011436045,
+        -0.17586067114308798,
+        -566.1554827183572
+      ],
+      "sequence": 22,
+      "shipId": "target",
+      "tick": 3088
+    }
+  ],
+  "fps": 21.90939007655386,
+  "inPort": false,
+  "inspecting": false,
+  "maxMuzzleErrorM": 0.0027468814794761793,
+  "paused": false,
+  "portInspection": "exterior",
+  "tick": 3159
+}

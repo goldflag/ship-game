@@ -1,0 +1,479 @@
+{
+  "schemaVersion": 1,
+  "parts": [
+    {
+      "id": "sk-c34-380-twin",
+      "name": "38 cm twin mount",
+      "kind": "gun",
+      "massKg": 1052000,
+      "barbetteRadius": 4.95,
+      "gunhouseSize": [
+        13.4,
+        11,
+        4.1
+      ],
+      "pivotHeight": 1.85,
+      "trunnionForward": 5.8,
+      "muzzleForward": 19.63,
+      "barrelSpacing": 3.75,
+      "caliberM": 0.38,
+      "traverseDeg": 145,
+      "traverseRateDeg": 6,
+      "elevationMinDeg": -5,
+      "elevationMaxDeg": 30,
+      "elevationRateDeg": 6,
+      "reloadSeconds": 20,
+      "muzzleSpeed": 820,
+      "projectileMassKg": 800,
+      "penetrationMm": 550,
+      "damage": 70,
+      "recoilM": 1.2,
+      "ammoPerBarrel": 120,
+      "armorMm": 250
+    },
+    {
+      "id": "sk-c28-150-twin",
+      "name": "15 cm twin mount",
+      "kind": "gun",
+      "massKg": 114000,
+      "barbetteRadius": 2.5,
+      "gunhouseSize": [
+        6.5,
+        5.2,
+        2.6
+      ],
+      "pivotHeight": 1.15,
+      "trunnionForward": 2.75,
+      "muzzleForward": 8.25,
+      "barrelSpacing": 1.75,
+      "caliberM": 0.15,
+      "traverseDeg": 140,
+      "traverseRateDeg": 10,
+      "elevationMinDeg": -5,
+      "elevationMaxDeg": 40,
+      "elevationRateDeg": 10,
+      "reloadSeconds": 8,
+      "muzzleSpeed": 875,
+      "projectileMassKg": 45.3,
+      "penetrationMm": 160,
+      "damage": 22,
+      "recoilM": 0.55,
+      "ammoPerBarrel": 150,
+      "armorMm": 80
+    },
+    {
+      "id": "type94-460-triple",
+      "name": "46 cm Type 94 triple mount",
+      "kind": "gun",
+      "barrelCount": 3,
+      "massKg": 2510000,
+      "barbetteRadius": 7.1,
+      "gunhouseSize": [
+        14.6,
+        13.4,
+        6.7
+      ],
+      "pivotHeight": 4.4,
+      "trunnionForward": 3.25,
+      "muzzleForward": 21.15,
+      "barrelSpacing": 3.5,
+      "barrelBaseRadius": 0.89,
+      "rangefinderWidth": 15,
+      "caliberM": 0.46,
+      "traverseDeg": 150,
+      "traverseRateDeg": 2,
+      "elevationMinDeg": -5,
+      "elevationMaxDeg": 45,
+      "elevationRateDeg": 8,
+      "reloadSeconds": 30,
+      "muzzleSpeed": 780,
+      "projectileMassKg": 1460,
+      "penetrationMm": 650,
+      "damage": 110,
+      "recoilM": 1.43,
+      "ammoPerBarrel": 100,
+      "armorMm": 410,
+      "gunhouseShape": {
+        "footprint": [
+          [
+            -7.7,
+            -4.7
+          ],
+          [
+            -5.8,
+            -6.7
+          ],
+          [
+            4.7,
+            -6.7
+          ],
+          [
+            6.9,
+            -4.8
+          ],
+          [
+            6.9,
+            4.8
+          ],
+          [
+            4.7,
+            6.7
+          ],
+          [
+            -5.8,
+            6.7
+          ],
+          [
+            -7.7,
+            4.7
+          ]
+        ],
+        "roof": [
+          [
+            -7.1,
+            -4.4,
+            6.55
+          ],
+          [
+            -5.5,
+            -6.0,
+            6.7
+          ],
+          [
+            2.5,
+            -6.0,
+            6.25
+          ],
+          [
+            6.9,
+            -4.8,
+            2.45
+          ],
+          [
+            6.9,
+            4.8,
+            2.45
+          ],
+          [
+            2.5,
+            6.0,
+            6.25
+          ],
+          [
+            -5.5,
+            6.0,
+            6.7
+          ],
+          [
+            -7.1,
+            4.4,
+            6.55
+          ]
+        ]
+      },
+      "gunhouseBaseHeight": 2.4,
+      "rollerRadius": 6.525
+    },
+    {
+      "id": "type3-155-triple",
+      "name": "15.5 cm Type 3 triple mount",
+      "kind": "gun",
+      "barrelCount": 3,
+      "massKg": 177000,
+      "barbetteRadius": 3.0,
+      "gunhouseSize": [
+        6.4,
+        6.9,
+        3.15
+      ],
+      "pivotHeight": 1.85,
+      "trunnionForward": 2.2,
+      "muzzleForward": 9.6,
+      "barrelSpacing": 1.55,
+      "barrelBaseRadius": 0.3,
+      "rangefinderWidth": 8,
+      "caliberM": 0.155,
+      "traverseDeg": 150,
+      "traverseRateDeg": 6,
+      "elevationMinDeg": -7,
+      "elevationMaxDeg": 55,
+      "elevationRateDeg": 10,
+      "reloadSeconds": 12,
+      "muzzleSpeed": 920,
+      "projectileMassKg": 55.87,
+      "penetrationMm": 170,
+      "damage": 26,
+      "recoilM": 0.6,
+      "ammoPerBarrel": 150,
+      "armorMm": 25
+    },
+    {
+      "kind": "gun",
+      "barrelSpacing": 0.3,
+      "traverseDeg": 160,
+      "traverseRateDeg": 15,
+      "elevationMinDeg": -10,
+      "elevationMaxDeg": 85,
+      "elevationRateDeg": 15,
+      "armorMm": 6,
+      "ammoPerBarrel": 360,
+      "penetrationMm": 65,
+      "damage": 10,
+      "recoilM": 0.38,
+      "id": "us-5in38-mk21-single",
+      "name": "5-inch/38 Mk 21 open mount",
+      "massKg": 13154,
+      "barrelCount": 1,
+      "mountingStyle": "open-pedestal",
+      "barbetteRadius": 1.36,
+      "gunhouseSize": [
+        3.25,
+        2.9,
+        2.15
+      ],
+      "pivotHeight": 1.62,
+      "trunnionForward": 0.25,
+      "muzzleForward": 4.48,
+      "barrelBaseRadius": 0.19,
+      "caliberM": 0.127,
+      "reloadSeconds": 4,
+      "muzzleSpeed": 792,
+      "projectileMassKg": 25
+    },
+    {
+      "kind": "gun",
+      "barrelSpacing": 0.3,
+      "traverseDeg": 160,
+      "traverseRateDeg": 15,
+      "elevationMinDeg": -10,
+      "elevationMaxDeg": 85,
+      "elevationRateDeg": 15,
+      "armorMm": 6,
+      "ammoPerBarrel": 800,
+      "penetrationMm": 13,
+      "damage": 1.4,
+      "recoilM": 0.11,
+      "id": "us-11in75-quad",
+      "name": "1.1-inch/75 quadruple mount",
+      "massKg": 4763,
+      "barrelCount": 4,
+      "mountingStyle": "open-quad",
+      "barbetteRadius": 1.3,
+      "gunhouseSize": [
+        2.45,
+        2.6,
+        1.9
+      ],
+      "pivotHeight": 1.27,
+      "trunnionForward": 0.2,
+      "muzzleForward": 1.97,
+      "barrelBaseRadius": 0.062,
+      "caliberM": 0.02794,
+      "reloadSeconds": 0.5,
+      "muzzleSpeed": 823,
+      "projectileMassKg": 0.416
+    },
+    {
+      "kind": "gun",
+      "barrelSpacing": 0.3,
+      "traverseDeg": 160,
+      "traverseRateDeg": 15,
+      "elevationMinDeg": -10,
+      "elevationMaxDeg": 85,
+      "elevationRateDeg": 15,
+      "armorMm": 6,
+      "ammoPerBarrel": 1800,
+      "penetrationMm": 6,
+      "damage": 0.6,
+      "recoilM": 0.055,
+      "id": "oerlikon-20mm-single",
+      "name": "20 mm Oerlikon single mount",
+      "massKg": 770,
+      "barrelCount": 1,
+      "mountingStyle": "oerlikon",
+      "barbetteRadius": 0.4,
+      "gunhouseSize": [
+        1.7,
+        1.02,
+        1.65
+      ],
+      "pivotHeight": 1.12,
+      "trunnionForward": 0.12,
+      "muzzleForward": 1.18,
+      "barrelBaseRadius": 0.033,
+      "caliberM": 0.02,
+      "reloadSeconds": 0.45,
+      "muzzleSpeed": 835,
+      "projectileMassKg": 0.123
+    },
+    {
+      "id": "us-8in55-mk12-triple",
+      "name": "8-inch/55 Mk 12 three-gun turret",
+      "kind": "gun",
+      "barrelCount": 3,
+      "massKg": 307700,
+      "barbetteRadius": 3.65,
+      "rollerRadius": 3.3528,
+      "gunhouseBaseHeight": 0.05,
+      "gunhouseSize": [
+        9.6266,
+        7.8,
+        3.00355
+      ],
+      "pivotHeight": 1.5113,
+      "trunnionForward": 1.8796,
+      "muzzleForward": 10.4521,
+      "barrelSpacing": 1.7018,
+      "barrelBaseRadius": 0.3,
+      "rangefinderWidth": 7.8,
+      "caliberM": 0.2032,
+      "traverseDeg": 150,
+      "traverseRateDeg": 5.3,
+      "elevationMinDeg": -5,
+      "elevationMaxDeg": 41,
+      "elevationRateDeg": 10.6,
+      "reloadSeconds": 17,
+      "muzzleSpeed": 762,
+      "projectileMassKg": 151.9534,
+      "penetrationMm": 280,
+      "damage": 40,
+      "recoilM": 0.8128,
+      "ammoPerBarrel": 150,
+      "armorMm": 152.4,
+      "gunhouseShape": {
+        "footprint": [
+          [
+            -6.096,
+            -3.65
+          ],
+          [
+            -5.8,
+            -3.9
+          ],
+          [
+            3.5306,
+            -3.2
+          ],
+          [
+            3.5306,
+            3.2
+          ],
+          [
+            -5.8,
+            3.9
+          ],
+          [
+            -6.096,
+            3.65
+          ]
+        ],
+        "roof": [
+          [
+            -6.096,
+            -3.65,
+            3.00355
+          ],
+          [
+            -5.8,
+            -3.9,
+            3.00355
+          ],
+          [
+            1.82,
+            -3.2,
+            3.00355
+          ],
+          [
+            1.82,
+            3.2,
+            3.00355
+          ],
+          [
+            -5.8,
+            3.9,
+            3.00355
+          ],
+          [
+            -6.096,
+            3.65,
+            3.00355
+          ]
+        ]
+      }
+    },
+    {
+      "id": "us-5in38-mk32-twin",
+      "name": "5-inch/38 Mk 32 twin mount",
+      "kind": "gun",
+      "barrelCount": 2,
+      "massKg": 47000,
+      "barbetteRadius": 1.65,
+      "gunhouseSize": [
+        4.45,
+        4.75,
+        2.7
+      ],
+      "pivotHeight": 1.65,
+      "trunnionForward": 0.84963,
+      "muzzleForward": 4.8895,
+      "barrelSpacing": 0.8382,
+      "barrelBaseRadius": 0.195,
+      "caliberM": 0.127,
+      "traverseDeg": 160,
+      "traverseRateDeg": 25,
+      "elevationMinDeg": -15,
+      "elevationMaxDeg": 85,
+      "elevationRateDeg": 15,
+      "reloadSeconds": 4,
+      "muzzleSpeed": 792,
+      "projectileMassKg": 25,
+      "penetrationMm": 65,
+      "damage": 12,
+      "recoilM": 0.38,
+      "ammoPerBarrel": 360,
+      "armorMm": 31.75,
+      "gunhouseShape": {
+        "footprint": [
+          [
+            -2.55,
+            -2.375
+          ],
+          [
+            1.9,
+            -2.375
+          ],
+          [
+            1.9,
+            2.375
+          ],
+          [
+            -2.55,
+            2.375
+          ]
+        ],
+        "roof": [
+          [
+            -2.55,
+            -2.375,
+            2.7
+          ],
+          [
+            0.8,
+            -2.375,
+            2.7
+          ],
+          [
+            0.8,
+            2.375,
+            2.7
+          ],
+          [
+            -2.55,
+            2.375,
+            2.7
+          ]
+        ]
+      }
+    }
+  ]
+}

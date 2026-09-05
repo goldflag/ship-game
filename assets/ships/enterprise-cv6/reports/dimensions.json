@@ -1,0 +1,215 @@
+{
+  "contentHash": "4afba8256544f4381dd510187409afa032a131b1e5e285f85fa8974372cdf9d1",
+  "method": "Actual GLB POSITION accessors, scene transforms and indexed triangles; no declared accessor bounds",
+  "historicalAccuracy": "Not certified. Exact model dimensions do not close configuration, shape or source gaps.",
+  "measurements": [
+    {
+      "measurement": "Steel hull length",
+      "actual": 246.735595703125,
+      "reference": 246.7356,
+      "difference": -4.296875005138645e-06,
+      "unit": "m",
+      "evidence": "NHHC CV-6 DANFS dimensional header; loading/configuration must be distinguished"
+    },
+    {
+      "measurement": "Maximum upper molded hull breadth",
+      "actual": 28.04160785675049,
+      "reference": 28.041600000000003,
+      "difference": 7.856750485757402e-06,
+      "unit": "m",
+      "evidence": "CV-5 1940 C&R 216500 main-deck molded breadth; class evidence"
+    },
+    {
+      "measurement": "Reference keel depth below Y=0",
+      "actual": 7.912099838256836,
+      "reference": 7.9121,
+      "difference": -1.6174316375128228e-07,
+      "unit": "m",
+      "evidence": "Declared full-load datum; actual Midway draft not established"
+    },
+    {
+      "measurement": "Flight-deck longitudinal extent",
+      "actual": 244.4496078491211,
+      "reference": 244.4496,
+      "difference": 7.849121089975597e-06,
+      "unit": "m",
+      "evidence": "NavSource as-built reference; CV-6 perimeter needs an independently matched plan"
+    },
+    {
+      "measurement": "Flight-deck maximum lateral extent",
+      "actual": 26.212809562683105,
+      "reference": 26.2128,
+      "difference": 9.562683104036296e-06,
+      "unit": "m",
+      "evidence": "NavSource as-built reference; excludes projecting galleries"
+    },
+    {
+      "measurement": "Flight-deck centerline height above baseline",
+      "actual": 24.384000939964928,
+      "reference": 24.384,
+      "difference": 9.399649272268107e-07,
+      "unit": "m",
+      "evidence": "C&R 189525 annotated 80 ft molded; small wood allowance and as-built confirmation remain open"
+    },
+    {
+      "measurement": "Flight-deck camber fall at 10 m off centerline",
+      "actual": 0.051683428497085515,
+      "reference": 0.051683048125600546,
+      "difference": 3.8037148496899986e-07,
+      "unit": "m",
+      "evidence": "C&R 189525: 4 inches in 92 feet; parabolic reconstruction between datums"
+    },
+    {
+      "measurement": "Forward elevator length",
+      "actual": 14.630393981933594,
+      "reference": 14.630400000000002,
+      "difference": -6.018066407875722e-06,
+      "unit": "m",
+      "evidence": "Class plan and as-built specifications"
+    },
+    {
+      "measurement": "Forward elevator width",
+      "actual": 13.411200523376465,
+      "reference": 13.411200000000001,
+      "difference": 5.23376463945624e-07,
+      "unit": "m",
+      "evidence": "Class plan and as-built specifications"
+    },
+    {
+      "measurement": "Middle elevator length",
+      "actual": 14.630399703979492,
+      "reference": 14.630400000000002,
+      "difference": -2.960205094382218e-07,
+      "unit": "m",
+      "evidence": "Class plan and as-built specifications"
+    },
+    {
+      "measurement": "Middle elevator width",
+      "actual": 13.411201000213623,
+      "reference": 13.411200000000001,
+      "difference": 1.000213622148749e-06,
+      "unit": "m",
+      "evidence": "Class plan and as-built specifications"
+    },
+    {
+      "measurement": "Aft elevator length",
+      "actual": 14.630401611328125,
+      "reference": 14.630400000000002,
+      "difference": 1.6113281233742782e-06,
+      "unit": "m",
+      "evidence": "Class plan and as-built specifications"
+    },
+    {
+      "measurement": "Aft elevator width",
+      "actual": 13.411200523376465,
+      "reference": 13.411200000000001,
+      "difference": 5.23376463945624e-07,
+      "unit": "m",
+      "evidence": "Class plan and as-built specifications"
+    },
+    {
+      "measurement": "communications-walkway elevation above reference baseline",
+      "actual": 26.517599267578124,
+      "reference": 26.5176,
+      "difference": -7.324218778137492e-07,
+      "unit": "m",
+      "evidence": "C&R 189526 / CV-5 1940 C&R 216500 annotations; see contract/as-built differences"
+    },
+    {
+      "measurement": "flag-walkway elevation above reference baseline",
+      "actual": 28.80360047302246,
+      "reference": 28.803600000000003,
+      "difference": 4.730224567595087e-07,
+      "unit": "m",
+      "evidence": "C&R 189526 / CV-5 1940 C&R 216500 annotations; see contract/as-built differences"
+    },
+    {
+      "measurement": "navigation-wings elevation above reference baseline",
+      "actual": 31.089599771118163,
+      "reference": 31.0896,
+      "difference": -2.2888183792701966e-07,
+      "unit": "m",
+      "evidence": "C&R 189526 / CV-5 1940 C&R 216500 annotations; see contract/as-built differences"
+    },
+    {
+      "measurement": "bridge-roof elevation above reference baseline",
+      "actual": 33.37559906921387,
+      "reference": 33.3756,
+      "difference": -9.307861290608344e-07,
+      "unit": "m",
+      "evidence": "C&R 189526 / CV-5 1940 C&R 216500 annotations; see contract/as-built differences"
+    },
+    {
+      "measurement": "pilot-roof elevation above reference baseline",
+      "actual": 34.061399621582034,
+      "reference": 34.0614,
+      "difference": -3.7841796540760697e-07,
+      "unit": "m",
+      "evidence": "C&R 189526 / CV-5 1940 C&R 216500 annotations; see contract/as-built differences"
+    },
+    {
+      "measurement": "funnel-cap elevation above reference baseline",
+      "actual": 39.58589951477051,
+      "reference": 39.5859,
+      "difference": -4.852294921420253e-07,
+      "unit": "m",
+      "evidence": "C&R 189526 / CV-5 1940 C&R 216500 annotations; see contract/as-built differences"
+    },
+    {
+      "measurement": "fighting-platform elevation above reference baseline",
+      "actual": 41.30040184936524,
+      "reference": 41.3004,
+      "difference": 1.8493652333972932e-06,
+      "unit": "m",
+      "evidence": "C&R 189526 / CV-5 1940 C&R 216500 annotations; see contract/as-built differences"
+    },
+    {
+      "measurement": "fighting-roof elevation above reference baseline",
+      "actual": 44.424600762939455,
+      "reference": 44.424600000000005,
+      "difference": 7.629394502828291e-07,
+      "unit": "m",
+      "evidence": "C&R 189526 / CV-5 1940 C&R 216500 annotations; see contract/as-built differences"
+    },
+    {
+      "measurement": "Molded shell at class design waterline",
+      "actual": 25.09479737111277,
+      "reference": 25.082500000000003,
+      "difference": 0.012297371112765632,
+      "unit": "m",
+      "evidence": "CV-5 1940 molded breadth; NOT outside plating"
+    },
+    {
+      "measurement": "Exterior belt at class design waterline",
+      "actual": 25.327905548359077,
+      "reference": 25.31745,
+      "difference": 0.010455548359075806,
+      "unit": "m",
+      "evidence": "CV-5 over-plating beam; original contract molded loft plus 4-inch armor and inferred 5/8-inch shell allowance"
+    },
+    {
+      "measurement": "Exterior belt versus CV-6 published beam",
+      "actual": 25.327905548359077,
+      "reference": 25.3238,
+      "difference": 0.0041055483590781705,
+      "unit": "m",
+      "evidence": "NHHC CV-6 beam: class DWL used for measurement; as-built plating and loading still need reconciliation"
+    },
+    {
+      "measurement": "Rudder axis forward of AP",
+      "actual": 14.020800097656249,
+      "reference": 14.020800000000001,
+      "difference": 9.765624753299562e-08,
+      "unit": "m",
+      "evidence": "CV-5 1940 C&R 216500 explicit rudder axis datum; CV-6 corroboration open"
+    },
+    {
+      "measurement": "Rudder projected side area",
+      "actual": 36.88250705879476,
+      "reference": 36.88250688,
+      "difference": 1.787947567777337e-07,
+      "unit": "m\u00b2",
+      "evidence": "CV-5 1940 area annotation; horn profile fitted from scanned drawing"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "id": "ccec25ae-572b-4936-9f70-c9eeb4e9b60a",
+  "ok": true,
+  "result": {
+    "result": "{\"shipId\":\"yamato\",\"contentHash\":\"1dfb1706ec9613dd10fc403a9f41df3c4332f962ef3ffdd0d63984325ada8dd1\",\"backend\":\"webgpu\",\"tick\":0,\"paused\":false,\"fps\":35.638843217063645,\"inspecting\":false,\"inPort\":true,\"portInspection\":\"exterior\",\"maxMuzzleErrorM\":0.0027461185759006853,\"combat\":{\"battery\":\"main\",\"range\":842.1335998521851,\"ready\":0,\"total\":3,\"targetIntegrity\":1,\"targetWater\":0,\"targetPower\":1,\"targetSteering\":1,\"targetSunk\":false,\"targetUnderway\":false,\"mounts\":[{\"id\":\"main-1\",\"name\":\"No. 1\",\"status\":\"training\",\"reload\":0,\"ammo\":300},{\"id\":\"main-2\",\"name\":\"No. 2\",\"status\":\"training\",\"reload\":0,\"ammo\":300},{\"id\":\"main-3\",\"name\":\"No. 3\",\"status\":\"training\",\"reload\":0,\"ammo\":300}],\"modules\":[{\"id\":\"engine-port\",\"name\":\"Port turbines\",\"condition\":1},{\"id\":\"engine-starboard\",\"name\":\"Starboard turbines\",\"condition\":1},{\"id\":\"steering\",\"name\":\"Steering machinery\",\"condition\":1},{\"id\":\"magazine-1\",\"name\":\"No. 1 magazine\",\"condition\":1},{\"id\":\"magazine-2\",\"name\":\"No. 2 magazine\",\"condition\":1},{\"id\":\"magazine-3\",\"name\":\"No. 3 magazine\",\"condition\":1},{\"id\":\"magazine-secondary-forward\",\"name\":\"Forward secondary magazine\",\"condition\":1},{\"id\":\"magazine-secondary-aft\",\"name\":\"Aft secondary magazine\",\"condition\":1}],\"message\":\"Aim at the target, wait for guns to train, then fire.\"},\"events\":[]}",
+    "origin": "http://localhost:5175/?ship=yamato"
+  },
+  "_meta": {
+    "runtimeId": "2f732b12-3daa-41b6-8932-e67fcd4ace2b"
+  }
+}

@@ -33,6 +33,6 @@ export function formatLength(meters: number, units: SchematicChoices['units']): 
   return `${(units === 'metric' ? meters : meters / 0.3048).toFixed(1)} ${units === 'metric' ? 'm' : 'ft'}`;
 }
 
-export function schematicFileName(choices: SchematicChoices): string {
-  return `bismarck-schematic-${choices.layout}-${choices.stock}-${choices.units}-${choices.page}.${choices.format}`;
+export function schematicFileName(choices: SchematicChoices, shipId = 'bismarck'): string {
+  return `${shipId}-schematic-${choices.layout}-${choices.stock}-${choices.units}-${choices.page}.${choices.format}`;
 }

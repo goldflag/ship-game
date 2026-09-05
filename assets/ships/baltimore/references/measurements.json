@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "configuration": "CA-68 \u00b7 October 1943 exterior \u00b7 24 ft 2 in limiting keel-draft datum; dimensional reconstruction under review",
+  "units": "meters",
+  "dimensions": [
+    {
+      "id": "length-overall",
+      "value": 205.2574,
+      "source": "navships-250-010",
+      "original": "673 ft 5 in",
+      "page": 26
+    },
+    {
+      "id": "beam-extreme",
+      "value": 21.59,
+      "source": "navships-250-010",
+      "original": "70 ft 10 in",
+      "page": 26
+    },
+    {
+      "id": "length-waterline",
+      "value": 202.3872,
+      "source": "navships-250-010",
+      "original": "664 ft 0 in",
+      "page": 26
+    },
+    {
+      "id": "limiting-keel-draft",
+      "value": 7.366,
+      "source": "navships-250-010",
+      "original": "24 ft 2 in",
+      "page": 27
+    },
+    {
+      "id": "maximum-navigation-draft",
+      "value": 8.1788,
+      "source": "navships-250-010",
+      "original": "26 ft 10 in, includes projections below keel if any",
+      "page": 27
+    }
+  ],
+  "profileCalibration": {
+    "image": "navy-starboard-plan-1943.jpg",
+    "bowPixelX": 1395,
+    "sternPixelX": 110,
+    "pixelsPerMeter": 6.2604320234008615,
+    "verticalDatum": "Main turret 1 trunnion from OP1112, relative to selected 24 ft 2 in keel draft; camouflage lower hull edge is not assumed to be a waterline.",
+    "mainTurretPivotPixels": [
+      1112,
+      1030,
+      405
+    ],
+    "stationUncertaintyM": 0.65
+  },
+  "turretTrunnions": [
+    {
+      "id": "main-1",
+      "aboveSelectedWaterline": 8.2804,
+      "source": "op1112-517",
+      "status": "transcribed from dimension chain; confirm against ship GA"
+    },
+    {
+      "id": "main-2",
+      "aboveSelectedWaterline": 11.1379,
+      "source": "op1112-517",
+      "status": "transcribed from dimension chain; confirm against ship GA"
+    },
+    {
+      "id": "main-3",
+      "aboveSelectedWaterline": 8.4328,
+      "source": "op1112-517",
+      "status": "transcribed from dimension chain; confirm against ship GA"
+    }
+  ],
+  "open": [
+    "Baltimore-specific as-built hull offsets and individual waterline endpoint stations",
+    "Five missing Baltimore BGP sheets; distinguish later annotations on retained sheet 5",
+    "Main-turret plan view and width dimension",
+    "Secondary Mark 32 primary dimensions",
+    "1943 AA placement and bridge footprints require dated photo reconciliation",
+    "1943 loading condition not inferred from 1945 limiting-draft data"
+  ],
+  "waterlineConstruction": {
+    "source": "navships-250-010",
+    "lengthM": 202.3872,
+    "sternEndpointStationM": 0,
+    "bowEndpointStationM": 202.3872,
+    "status": "Length constrained by primary tabulation. Individual fore/aft endpoint stations are an assumption pending lines plan. Original mesh measured 202.028571 m; corrected explicit stem station."
+  }
+}

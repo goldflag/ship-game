@@ -3,36 +3,46 @@ import { pass, vec4 } from 'three/tsl';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { WaterSystem, getPresetParams } from '../../vendor/threejs-water-pro/build/index.js';
 import { SkySystem, PRESETS as SKY_PRESETS } from '../../vendor/threejs-sky-pro/build/index.js';
-import { SingleplayerSimulation } from '../simulation/ship';
+import { CombatSimulation } from '../simulation/combat';
+import { ShipView } from './ShipView';
+import { CombatEffects } from './CombatEffects';
+import type { Battery, Vec3 } from '../ships/blueprint';
+import type { InspectionMode } from '../ships/inspection';
+import { selectedShip } from '../ships/presets';
 import { InputController } from './InputController';
 import { CameraRig } from './CameraRig';
 import { createHarborBackdrop } from './HarborBackdrop';
 import { ShipWake } from './ShipWake';
-import { SHIP_MODEL } from './shipModel';
 import type { GameCallbacks, GameSettings } from './types';
 
 export const BUOYS = [
   { x: -160, z: -800, color: '#b84734' }, { x: 160, z: -800, color: '#42a789' },
   { x: 220, z: -1800, color: '#b84734' }, { x: 540, z: -1800, color: '#42a789' },
 ];
+export type ArticulationPreview = { trainFraction: number; elevationFraction: number; recoilFraction: number };
 
 export class Game {
-  readonly simulation = new SingleplayerSimulation();
+  readonly definition = selectedShip;
+  readonly simulation = new CombatSimulation(this.definition);
   readonly input: InputController;
   private renderer: THREE.WebGPURenderer;
   private scene = new THREE.Scene();
   private camera = new THREE.PerspectiveCamera(52, 1, 0.5, 60000);
   private rig: CameraRig;
-  // Buoyancy's public API accepts Mesh; keep the transform carrier non-rendering
-  // while retaining valid geometry for shader compilation and scene traversal.
-  private ship = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.01, 0.01), new THREE.MeshBasicMaterial({ visible: false }));
+  private ship = new THREE.Group();
+  private playerView?: ShipView;
+  private targetView?: ShipView;
+  private loadedModel?: THREE.Group;
+  private effects = new CombatEffects();
+  battery: Battery = 'main';
+  aimModule = this.definition.modules.find(m => m.kind === 'engine')?.id ?? '';
+  inspecting = false;
+  private aimOverride?: Vec3;
   private water?: WaterSystem;
   private sky?: SkySystem;
   private shipWake?: ShipWake;
   private pipeline?: THREE.RenderPipeline;
   private scenePass?: ReturnType<typeof pass>;
-  private buoyancyId?: number;
-  private rotationOffset = new THREE.Euler(0, 0, 0, 'YXZ');
   private abort = new AbortController();
   private resizePending = true;
   private observer: ResizeObserver;
@@ -48,22 +58,31 @@ export class Game {
   private trail: { x: number; z: number }[] = [{ x: 0, z: 0 }];
   private initialization?: Promise<void>;
   private frameTask?: Promise<void>;
+  private articulationOriginal?: CombatSimulation['player']['mounts'];
 
   constructor(private host: HTMLElement, private settings: GameSettings, private callbacks: GameCallbacks) {
     this.renderer = new THREE.WebGPURenderer({ antialias: true, powerPreference: 'high-performance' });
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1;
     this.renderer.shadowMap.enabled = true;
-    this.renderer.domElement.setAttribute('aria-label', 'Bismarck ocean scene. Drag to orbit; scroll to zoom.');
+    this.renderer.domElement.setAttribute('aria-label', `${this.definition.name} ocean scene. Drag to orbit; scroll to zoom.`);
     this.renderer.domElement.tabIndex = 0;
     this.host.appendChild(this.renderer.domElement);
-    this.rig = new CameraRig(this.camera, this.renderer.domElement);
+    this.rig = new CameraRig(this.camera, this.renderer.domElement, this.definition.viewpoints?.bridge);
     this.input = new InputController({
       pause: () => { if (!this.inPort) this.setPaused(!this.paused); },
       camera: () => this.rig.cycle(), recenter: () => this.rig.recenter(),
       hud: () => { if (!this.inPort) callbacks.hud(); }, fullscreen: () => this.fullscreen(),
     });
     this.input.setEnabled(false);
+    this.renderer.domElement.addEventListener('dblclick', event => {
+      if (this.paused || this.inPort) return;
+      const rect = this.renderer.domElement.getBoundingClientRect();
+      const ray = new THREE.Raycaster();
+      ray.setFromCamera(new THREE.Vector2((event.clientX - rect.left) / rect.width * 2 - 1, 1 - (event.clientY - rect.top) / rect.height * 2), this.camera);
+      const point = ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), -.5), new THREE.Vector3());
+      if (point && point.distanceTo(this.ship.position) < 30000) this.aimOverride = point.toArray();
+    }, { signal: this.abort.signal });
     this.observer = new ResizeObserver(() => { this.resizePending = true; });
     this.observer.observe(host);
     document.addEventListener('visibilitychange', () => {
@@ -87,23 +106,16 @@ export class Game {
     await this.renderer.init();
     this.assertActive();
     this.rig.update(this.simulation.ship, 0, 0, true);
-    this.callbacks.progress('Launching Bismarck', 0.2);
-    const gltf = await new GLTFLoader().loadAsync(SHIP_MODEL.url);
-    this.ship.add(gltf.scene);
+    this.callbacks.progress(`Launching ${this.definition.name}`, 0.2);
+    const gltf = await new GLTFLoader().loadAsync(this.definition.modelUrl);
+    this.loadedModel = gltf.scene;
     this.assertActive();
-    // Blender export: bow +X, up +Y. Our simulation uses bow -Z.
-    gltf.scene.rotation.y = Math.PI / 2;
-    gltf.scene.traverse(object => {
-      if (object instanceof THREE.Mesh) {
-        object.castShadow = true;
-        object.receiveShadow = true;
-        for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
-          if (material instanceof THREE.MeshStandardMaterial && material.map) material.map.anisotropy = 8;
-        }
-      }
-    });
-    this.ship.name = 'Bismarck';
-    this.scene.add(this.ship);
+    if (gltf.scene.userData.definitionHash !== this.definition.contentHash) throw new Error('The ship model and definition have different versions. Rebuild the ship assets and reload.');
+    this.playerView = new ShipView(gltf.scene, this.definition, this.simulation.player);
+    this.targetView = new ShipView(gltf.scene.clone(true), this.definition, this.simulation.target);
+    this.ship = this.playerView.root;
+    this.targetView.root.visible = !this.inPort;
+    this.scene.add(this.ship, this.targetView.root, this.effects.root);
     this.scene.add(new THREE.HemisphereLight('#dcebf2', '#65757e', 0.65));
 
     this.callbacks.progress('Building the Atlantic', 0.37);
@@ -167,10 +179,8 @@ export class Game {
       sunlight.target.updateMatrixWorld();
     });
 
-    this.buoyancyId = this.water.buoyancy.addObject(this.ship, {
-      multiPoint: true, useBoundingBox: false, sampleLength: 190, sampleWidth: 28,
-      heightOffset: 0, heightSmoothing: 1.8, rotationSmoothing: 1.8, rotationInfluence: 0.45,
-    });
+    // Combat hulls use the shared simulation pose. GPU wave sampling remains visual
+    // ocean detail and buoy motion; it cannot move ship hitboxes or muzzle positions.
     this.shipWake = new ShipWake(this.water.wake, this.ship, this.scene);
     for (const buoy of BUOYS) this.addBuoy(buoy);
     this.harbor = createHarborBackdrop();
@@ -222,13 +232,12 @@ export class Game {
     const dt = this.paused ? 0 : realDt;
     try {
       if (this.resizePending) this.resize();
-      if (!this.inPort) this.simulation.advance(dt, this.input.sample());
+      const aim = this.aimOverride ?? this.simulation.aimAt(this.aimModule, this.battery);
+      if (!this.inPort) this.simulation.advance(dt, this.input.sample(), { aim, fire: this.input.firing, battery: this.battery });
       const state = this.simulation.ship;
-      this.ship.position.x = state.x;
-      this.ship.position.z = state.z;
-      this.rotationOffset.y = -state.heading;
-      this.water!.buoyancy.updateObjectConfig(this.buoyancyId!, { rotationOffset: this.rotationOffset });
-      this.rig.update(state, this.ship.position.y, realDt);
+      this.playerView!.update(); this.targetView!.update(); this.effects.update(this.simulation, dt);
+      const focus = this.inspecting ? this.simulation.target.motion : state;
+      this.rig.update(focus, focus.y, realDt);
       this.shipWake!.update(state, dt);
       this.sky!.update(dt);
       // Fixed-step mode with zero delta renders without stepping the wake's
@@ -246,7 +255,9 @@ export class Game {
       if (time - this.hudTime > 100) {
         this.hudTime = time;
         this.callbacks.telemetry({ ship: { ...state }, order: this.input.order, camera: this.rig.mode,
-          fps: Math.round(this.fps), backend: this.water!.backend, trail: [...this.trail] });
+          fps: Math.round(this.fps), backend: this.water!.backend, trail: [...this.trail],
+          combat: this.simulation.telemetry(this.battery, aim), inspecting: this.inspecting, aimModule: this.aimOverride ? 'point' : this.aimModule,
+          aimMarker: this.projectAim(aim) });
       }
       this.scheduleFrame();
     } catch (error) {
@@ -266,18 +277,64 @@ export class Game {
   }
   setPaused(paused: boolean): void { this.paused = paused; this.input.setEnabled(!paused && !this.inPort && !!this.water); this.callbacks.pause(paused); }
   setInPort(inPort: boolean): void {
+    if (this.articulationOriginal) this.restoreArticulation();
     this.inPort = inPort;
     this.rig.setInPort(inPort);
-    if (this.harbor) this.harbor.visible = this.inPort;
-    this.input.setOrder(1);
-    this.input.setRudder(0);
-    if (this.inPort) {
-      this.simulation.reset();
-      this.shipWake?.reset();
-      this.trail = [{ x: 0, z: 0 }];
-      this.lastTrailTick = 0;
+    if (this.harbor) this.harbor.visible = inPort;
+    if (this.targetView) this.targetView.root.visible = !inPort;
+    this.inspecting = false; this.targetView?.inspect(false); this.playerView?.inspect(false);
+    this.aimOverride = undefined;
+    this.input.setOrder(1); this.input.setRudder(0);
+    if (inPort) {
+      this.simulation.reset(); this.shipWake?.reset();
+      this.trail = [{ x: 0, z: 0 }]; this.lastTrailTick = 0;
     }
     this.setPaused(false);
+  }
+  fire(): void { if (!this.paused && !this.inPort && this.playerView) this.simulation.requestFire(); }
+  setPortInspection(mode: InspectionMode, selectedId?: string): void {
+    if (this.inPort) this.playerView?.setInspection(mode, selectedId);
+  }
+  selectAim(moduleId: string): void { this.aimOverride = undefined; this.aimModule = moduleId; }
+  inspectTarget(): void { this.inspecting = !this.inspecting; this.targetView?.inspect(this.inspecting); this.rig.recenter(); }
+  resetTarget(): void { if (!this.paused) { this.simulation.resetTarget(); this.aimOverride = undefined; } }
+  private restoreArticulation(): void {
+    if (this.articulationOriginal) {
+      this.simulation.player.mounts.forEach((m, i) => Object.assign(m, this.articulationOriginal![i]));
+      this.articulationOriginal = undefined;
+      this.playerView?.update();
+    }
+  }
+  /** Development-only port inspection of the loaded model at catalog joint limits. */
+  previewArticulation(pose: ArticulationPreview | null) {
+    if (!import.meta.env.DEV || !this.inPort || !this.playerView) throw new Error('Articulation review requires a loaded ship in the development port.');
+    if (pose === null) this.restoreArticulation();
+    else {
+      if (![pose.trainFraction, pose.elevationFraction, pose.recoilFraction].every(Number.isFinite)) throw new Error('Review fractions must be finite.');
+      this.articulationOriginal ??= structuredClone(this.simulation.player.mounts);
+      this.simulation.player.mounts.forEach((state, i) => {
+        const w = this.definition.mounts[i].weapon;
+        state.train = THREE.MathUtils.clamp(pose.trainFraction, -1, 1) * w.traverseDeg * Math.PI / 180;
+        state.elevation = (w.elevationMinDeg + THREE.MathUtils.clamp(pose.elevationFraction, 0, 1) * (w.elevationMaxDeg - w.elevationMinDeg)) * Math.PI / 180;
+        state.recoil = THREE.MathUtils.clamp(pose.recoilFraction, 0, 1);
+      });
+      this.playerView.update();
+    }
+    return this.diagnostics();
+  }
+  diagnostics() {
+    return { shipId: this.definition.id, contentHash: this.definition.contentHash, backend: this.water?.backend,
+      camera: { mode: this.rig.mode, position: this.camera.position.toArray(),
+        projectionMatrix: this.camera.projectionMatrix.toArray(), matrixWorldInverse: this.camera.matrixWorldInverse.toArray() },
+      tick: this.simulation.tick, paused: this.paused, fps: this.fps, inspecting: this.inspecting, inPort: this.inPort,
+      portInspection: this.playerView?.inspection.mode, selectedVolume: this.playerView?.inspection.selectedId,
+      maxMuzzleErrorM: Math.max(0, ...this.playerView?.muzzleErrors() ?? [], ...this.targetView?.muzzleErrors() ?? []),
+      combat: this.simulation.telemetry(this.battery, this.aimOverride ?? this.simulation.aimAt(this.aimModule, this.battery)),
+      events: this.simulation.events.slice(-20) };
+  }
+  private projectAim(aim: Vec3): { x: number; y: number; visible: boolean } {
+    const point = new THREE.Vector3(...aim).project(this.camera);
+    return { x: (point.x + 1) * 50, y: (1 - point.y) * 50, visible: point.z > -1 && point.z < 1 && Math.abs(point.x) < .94 && Math.abs(point.y) < .85 };
   }
   cycleCamera(): void { this.rig.cycle(); }
   recenter(): void { this.rig.recenter(); }
@@ -301,13 +358,13 @@ export class Game {
     const materials = new Set<THREE.Material>();
     const textures = new Set<THREE.Texture>();
     this.scene.traverse(object => {
-      if (object instanceof THREE.Mesh) {
+      if (object instanceof THREE.Mesh || object instanceof THREE.LineSegments) {
         geometries.add(object.geometry);
         for (const material of Array.isArray(object.material) ? object.material : [object.material]) materials.add(material);
       }
     });
     // A model loaded after unmount may not have reached scene.add yet.
-    this.ship.traverse(object => {
+    (this.loadedModel ?? this.ship).traverse(object => {
       if (object instanceof THREE.Mesh) {
         geometries.add(object.geometry);
         for (const material of Array.isArray(object.material) ? object.material : [object.material]) materials.add(material);

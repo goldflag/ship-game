@@ -1,0 +1,1085 @@
+{
+  "schemaVersion": 1,
+  "id": "bismarck",
+  "name": "Bismarck",
+  "configuration": "May 1941 exterior; simplified trial internals",
+  "coordinates": "meters-y-up-bow-negative-z",
+  "modelUrl": "/models/bismarck.glb",
+  "hull": {
+    "kind": "authored-stations-v1",
+    "length": 250.5,
+    "beam": 36,
+    "draft": 9.33,
+    "depth": 15,
+    "massKg": 50000000,
+    "waterplaneAreaM2": 6500,
+    "reserveBuoyancyM3": 18000,
+    "halfBreadths": [
+      [
+        0,
+        0
+      ],
+      [
+        2,
+        2.9
+      ],
+      [
+        5,
+        4.7
+      ],
+      [
+        10,
+        6.6
+      ],
+      [
+        20,
+        9.5
+      ],
+      [
+        30,
+        11.5
+      ],
+      [
+        40,
+        12.6
+      ],
+      [
+        50,
+        14
+      ],
+      [
+        60,
+        15.2
+      ],
+      [
+        70,
+        16.3
+      ],
+      [
+        80,
+        17.1
+      ],
+      [
+        90,
+        17.65
+      ],
+      [
+        100,
+        17.93
+      ],
+      [
+        110,
+        18
+      ],
+      [
+        120,
+        18
+      ],
+      [
+        130,
+        17.72
+      ],
+      [
+        140,
+        17.3
+      ],
+      [
+        150,
+        16.6
+      ],
+      [
+        160,
+        15.7
+      ],
+      [
+        170,
+        14.6
+      ],
+      [
+        180,
+        13.25
+      ],
+      [
+        190,
+        11.65
+      ],
+      [
+        200,
+        9.75
+      ],
+      [
+        210,
+        7.65
+      ],
+      [
+        220,
+        5.55
+      ],
+      [
+        230,
+        3.6
+      ],
+      [
+        240,
+        1.8
+      ],
+      [
+        247,
+        0.63
+      ],
+      [
+        250.5,
+        0
+      ]
+    ],
+    "deckHeights": [
+      [
+        0,
+        6.5
+      ],
+      [
+        35,
+        5.82
+      ],
+      [
+        90,
+        5.67
+      ],
+      [
+        150,
+        5.67
+      ],
+      [
+        190,
+        6
+      ],
+      [
+        220,
+        7
+      ],
+      [
+        250.5,
+        8.8
+      ]
+    ],
+    "keelHeights": [
+      [
+        0,
+        5.7
+      ],
+      [
+        3,
+        1.8
+      ],
+      [
+        7,
+        -1.1
+      ],
+      [
+        13,
+        -2.8
+      ],
+      [
+        21,
+        -3.7
+      ],
+      [
+        31,
+        -6.7
+      ],
+      [
+        42,
+        -8.8
+      ],
+      [
+        56,
+        -9.33
+      ],
+      [
+        205,
+        -9.33
+      ],
+      [
+        229,
+        -9.33
+      ],
+      [
+        242.8,
+        -9
+      ],
+      [
+        247,
+        -2.2
+      ],
+      [
+        250.5,
+        8.8
+      ]
+    ]
+  },
+  "handling": {
+    "forwardSpeed": 15.43,
+    "reverseSpeed": 4.12,
+    "acceleration": 0.32,
+    "braking": 0.24,
+    "rudderRate": 0.42,
+    "maxYawRate": 0.019
+  },
+  "mounts": [
+    {
+      "id": "anton",
+      "name": "Anton",
+      "partId": "sk-c34-380-twin",
+      "battery": "main",
+      "position": [
+        0,
+        6.8,
+        -70.05
+      ],
+      "bearingDeg": 0,
+      "rangefinder": false,
+      "magazineId": "anton-magazine",
+      "weapon": {
+        "id": "sk-c34-380-twin",
+        "name": "38 cm twin mount",
+        "kind": "gun",
+        "massKg": 1052000,
+        "barbetteRadius": 4.95,
+        "gunhouseSize": [
+          13.4,
+          11,
+          4.1
+        ],
+        "pivotHeight": 1.85,
+        "trunnionForward": 5.8,
+        "muzzleForward": 19.63,
+        "barrelSpacing": 3.75,
+        "caliberM": 0.38,
+        "traverseDeg": 145,
+        "traverseRateDeg": 6,
+        "elevationMinDeg": -5,
+        "elevationMaxDeg": 30,
+        "elevationRateDeg": 6,
+        "reloadSeconds": 20,
+        "muzzleSpeed": 820,
+        "projectileMassKg": 800,
+        "penetrationMm": 550,
+        "damage": 70,
+        "recoilM": 1.2,
+        "ammoPerBarrel": 120,
+        "armorMm": 250
+      }
+    },
+    {
+      "id": "bruno",
+      "name": "Bruno",
+      "partId": "sk-c34-380-twin",
+      "battery": "main",
+      "position": [
+        0,
+        10.7,
+        -51.85
+      ],
+      "bearingDeg": 0,
+      "rangefinder": true,
+      "magazineId": "bruno-magazine",
+      "weapon": {
+        "id": "sk-c34-380-twin",
+        "name": "38 cm twin mount",
+        "kind": "gun",
+        "massKg": 1052000,
+        "barbetteRadius": 4.95,
+        "gunhouseSize": [
+          13.4,
+          11,
+          4.1
+        ],
+        "pivotHeight": 1.85,
+        "trunnionForward": 5.8,
+        "muzzleForward": 19.63,
+        "barrelSpacing": 3.75,
+        "caliberM": 0.38,
+        "traverseDeg": 145,
+        "traverseRateDeg": 6,
+        "elevationMinDeg": -5,
+        "elevationMaxDeg": 30,
+        "elevationRateDeg": 6,
+        "reloadSeconds": 20,
+        "muzzleSpeed": 820,
+        "projectileMassKg": 800,
+        "penetrationMm": 550,
+        "damage": 70,
+        "recoilM": 1.2,
+        "ammoPerBarrel": 120,
+        "armorMm": 250
+      }
+    },
+    {
+      "id": "caesar",
+      "name": "Cäsar",
+      "partId": "sk-c34-380-twin",
+      "battery": "main",
+      "position": [
+        0,
+        10.6,
+        58.15
+      ],
+      "bearingDeg": 180,
+      "rangefinder": true,
+      "magazineId": "caesar-magazine",
+      "weapon": {
+        "id": "sk-c34-380-twin",
+        "name": "38 cm twin mount",
+        "kind": "gun",
+        "massKg": 1052000,
+        "barbetteRadius": 4.95,
+        "gunhouseSize": [
+          13.4,
+          11,
+          4.1
+        ],
+        "pivotHeight": 1.85,
+        "trunnionForward": 5.8,
+        "muzzleForward": 19.63,
+        "barrelSpacing": 3.75,
+        "caliberM": 0.38,
+        "traverseDeg": 145,
+        "traverseRateDeg": 6,
+        "elevationMinDeg": -5,
+        "elevationMaxDeg": 30,
+        "elevationRateDeg": 6,
+        "reloadSeconds": 20,
+        "muzzleSpeed": 820,
+        "projectileMassKg": 800,
+        "penetrationMm": 550,
+        "damage": 70,
+        "recoilM": 1.2,
+        "ammoPerBarrel": 120,
+        "armorMm": 250
+      }
+    },
+    {
+      "id": "dora",
+      "name": "Dora",
+      "partId": "sk-c34-380-twin",
+      "battery": "main",
+      "position": [
+        0,
+        6.4,
+        76.35
+      ],
+      "bearingDeg": 180,
+      "rangefinder": true,
+      "magazineId": "dora-magazine",
+      "weapon": {
+        "id": "sk-c34-380-twin",
+        "name": "38 cm twin mount",
+        "kind": "gun",
+        "massKg": 1052000,
+        "barbetteRadius": 4.95,
+        "gunhouseSize": [
+          13.4,
+          11,
+          4.1
+        ],
+        "pivotHeight": 1.85,
+        "trunnionForward": 5.8,
+        "muzzleForward": 19.63,
+        "barrelSpacing": 3.75,
+        "caliberM": 0.38,
+        "traverseDeg": 145,
+        "traverseRateDeg": 6,
+        "elevationMinDeg": -5,
+        "elevationMaxDeg": 30,
+        "elevationRateDeg": 6,
+        "reloadSeconds": 20,
+        "muzzleSpeed": 820,
+        "projectileMassKg": 800,
+        "penetrationMm": 550,
+        "damage": 70,
+        "recoilM": 1.2,
+        "ammoPerBarrel": 120,
+        "armorMm": 250
+      }
+    },
+    {
+      "id": "starboard-secondary-1",
+      "name": "Starboard Secondary 1",
+      "partId": "sk-c28-150-twin",
+      "battery": "secondary",
+      "position": [
+        9.6,
+        6.15,
+        -27
+      ],
+      "bearingDeg": 0,
+      "rangefinder": false,
+      "weapon": {
+        "id": "sk-c28-150-twin",
+        "name": "15 cm twin mount",
+        "kind": "gun",
+        "massKg": 114000,
+        "barbetteRadius": 2.5,
+        "gunhouseSize": [
+          6.5,
+          5.2,
+          2.6
+        ],
+        "pivotHeight": 1.15,
+        "trunnionForward": 2.75,
+        "muzzleForward": 8.25,
+        "barrelSpacing": 1.75,
+        "caliberM": 0.15,
+        "traverseDeg": 140,
+        "traverseRateDeg": 10,
+        "elevationMinDeg": -5,
+        "elevationMaxDeg": 40,
+        "elevationRateDeg": 10,
+        "reloadSeconds": 8,
+        "muzzleSpeed": 875,
+        "projectileMassKg": 45.3,
+        "penetrationMm": 160,
+        "damage": 22,
+        "recoilM": 0.55,
+        "ammoPerBarrel": 150,
+        "armorMm": 80
+      }
+    },
+    {
+      "id": "starboard-secondary-2",
+      "name": "Starboard Secondary 2",
+      "partId": "sk-c28-150-twin",
+      "battery": "secondary",
+      "position": [
+        14.1,
+        6.15,
+        -8.1
+      ],
+      "bearingDeg": 0,
+      "rangefinder": true,
+      "weapon": {
+        "id": "sk-c28-150-twin",
+        "name": "15 cm twin mount",
+        "kind": "gun",
+        "massKg": 114000,
+        "barbetteRadius": 2.5,
+        "gunhouseSize": [
+          6.5,
+          5.2,
+          2.6
+        ],
+        "pivotHeight": 1.15,
+        "trunnionForward": 2.75,
+        "muzzleForward": 8.25,
+        "barrelSpacing": 1.75,
+        "caliberM": 0.15,
+        "traverseDeg": 140,
+        "traverseRateDeg": 10,
+        "elevationMinDeg": -5,
+        "elevationMaxDeg": 40,
+        "elevationRateDeg": 10,
+        "reloadSeconds": 8,
+        "muzzleSpeed": 875,
+        "projectileMassKg": 45.3,
+        "penetrationMm": 160,
+        "damage": 22,
+        "recoilM": 0.55,
+        "ammoPerBarrel": 150,
+        "armorMm": 80
+      }
+    },
+    {
+      "id": "starboard-secondary-3",
+      "name": "Starboard Secondary 3",
+      "partId": "sk-c28-150-twin",
+      "battery": "secondary",
+      "position": [
+        14,
+        6.15,
+        24.4
+      ],
+      "bearingDeg": 180,
+      "rangefinder": false,
+      "weapon": {
+        "id": "sk-c28-150-twin",
+        "name": "15 cm twin mount",
+        "kind": "gun",
+        "massKg": 114000,
+        "barbetteRadius": 2.5,
+        "gunhouseSize": [
+          6.5,
+          5.2,
+          2.6
+        ],
+        "pivotHeight": 1.15,
+        "trunnionForward": 2.75,
+        "muzzleForward": 8.25,
+        "barrelSpacing": 1.75,
+        "caliberM": 0.15,
+        "traverseDeg": 140,
+        "traverseRateDeg": 10,
+        "elevationMinDeg": -5,
+        "elevationMaxDeg": 40,
+        "elevationRateDeg": 10,
+        "reloadSeconds": 8,
+        "muzzleSpeed": 875,
+        "projectileMassKg": 45.3,
+        "penetrationMm": 160,
+        "damage": 22,
+        "recoilM": 0.55,
+        "ammoPerBarrel": 150,
+        "armorMm": 80
+      }
+    },
+    {
+      "id": "port-secondary-1",
+      "name": "Port Secondary 1",
+      "partId": "sk-c28-150-twin",
+      "battery": "secondary",
+      "position": [
+        -9.6,
+        6.15,
+        -27
+      ],
+      "bearingDeg": 0,
+      "rangefinder": false,
+      "weapon": {
+        "id": "sk-c28-150-twin",
+        "name": "15 cm twin mount",
+        "kind": "gun",
+        "massKg": 114000,
+        "barbetteRadius": 2.5,
+        "gunhouseSize": [
+          6.5,
+          5.2,
+          2.6
+        ],
+        "pivotHeight": 1.15,
+        "trunnionForward": 2.75,
+        "muzzleForward": 8.25,
+        "barrelSpacing": 1.75,
+        "caliberM": 0.15,
+        "traverseDeg": 140,
+        "traverseRateDeg": 10,
+        "elevationMinDeg": -5,
+        "elevationMaxDeg": 40,
+        "elevationRateDeg": 10,
+        "reloadSeconds": 8,
+        "muzzleSpeed": 875,
+        "projectileMassKg": 45.3,
+        "penetrationMm": 160,
+        "damage": 22,
+        "recoilM": 0.55,
+        "ammoPerBarrel": 150,
+        "armorMm": 80
+      }
+    },
+    {
+      "id": "port-secondary-2",
+      "name": "Port Secondary 2",
+      "partId": "sk-c28-150-twin",
+      "battery": "secondary",
+      "position": [
+        -14.1,
+        6.15,
+        -8.1
+      ],
+      "bearingDeg": 0,
+      "rangefinder": true,
+      "weapon": {
+        "id": "sk-c28-150-twin",
+        "name": "15 cm twin mount",
+        "kind": "gun",
+        "massKg": 114000,
+        "barbetteRadius": 2.5,
+        "gunhouseSize": [
+          6.5,
+          5.2,
+          2.6
+        ],
+        "pivotHeight": 1.15,
+        "trunnionForward": 2.75,
+        "muzzleForward": 8.25,
+        "barrelSpacing": 1.75,
+        "caliberM": 0.15,
+        "traverseDeg": 140,
+        "traverseRateDeg": 10,
+        "elevationMinDeg": -5,
+        "elevationMaxDeg": 40,
+        "elevationRateDeg": 10,
+        "reloadSeconds": 8,
+        "muzzleSpeed": 875,
+        "projectileMassKg": 45.3,
+        "penetrationMm": 160,
+        "damage": 22,
+        "recoilM": 0.55,
+        "ammoPerBarrel": 150,
+        "armorMm": 80
+      }
+    },
+    {
+      "id": "port-secondary-3",
+      "name": "Port Secondary 3",
+      "partId": "sk-c28-150-twin",
+      "battery": "secondary",
+      "position": [
+        -14,
+        6.15,
+        24.4
+      ],
+      "bearingDeg": 180,
+      "rangefinder": false,
+      "weapon": {
+        "id": "sk-c28-150-twin",
+        "name": "15 cm twin mount",
+        "kind": "gun",
+        "massKg": 114000,
+        "barbetteRadius": 2.5,
+        "gunhouseSize": [
+          6.5,
+          5.2,
+          2.6
+        ],
+        "pivotHeight": 1.15,
+        "trunnionForward": 2.75,
+        "muzzleForward": 8.25,
+        "barrelSpacing": 1.75,
+        "caliberM": 0.15,
+        "traverseDeg": 140,
+        "traverseRateDeg": 10,
+        "elevationMinDeg": -5,
+        "elevationMaxDeg": 40,
+        "elevationRateDeg": 10,
+        "reloadSeconds": 8,
+        "muzzleSpeed": 875,
+        "projectileMassKg": 45.3,
+        "penetrationMm": 160,
+        "damage": 22,
+        "recoilM": 0.55,
+        "ammoPerBarrel": 150,
+        "armorMm": 80
+      }
+    }
+  ],
+  "armor": [
+    {
+      "id": "belt",
+      "name": "Armored citadel",
+      "center": [
+        0,
+        -0.5,
+        0
+      ],
+      "size": [
+        35,
+        11,
+        172
+      ],
+      "thicknessMm": 320
+    },
+    {
+      "id": "outer-hull",
+      "name": "Hull plating",
+      "center": [
+        0,
+        -1.5,
+        0
+      ],
+      "size": [
+        36,
+        15,
+        242
+      ],
+      "thicknessMm": 25
+    }
+  ],
+  "modules": [
+    {
+      "id": "engine-port",
+      "name": "Port machinery",
+      "kind": "engine",
+      "center": [
+        -7,
+        -2,
+        -21
+      ],
+      "size": [
+        10,
+        7,
+        28
+      ],
+      "hp": 140,
+      "compartmentId": "comp-3-port"
+    },
+    {
+      "id": "engine-starboard",
+      "name": "Starboard machinery",
+      "kind": "engine",
+      "center": [
+        7,
+        -2,
+        -21
+      ],
+      "size": [
+        10,
+        7,
+        28
+      ],
+      "hp": 140,
+      "compartmentId": "comp-3-starboard"
+    },
+    {
+      "id": "steering",
+      "name": "Steering gear",
+      "kind": "steering",
+      "center": [
+        -5,
+        -3,
+        98
+      ],
+      "size": [
+        8,
+        7,
+        12
+      ],
+      "hp": 90,
+      "compartmentId": "comp-6-port"
+    },
+    {
+      "id": "anton-magazine",
+      "name": "Anton magazine",
+      "kind": "magazine",
+      "center": [
+        -4,
+        -3,
+        -70
+      ],
+      "size": [
+        7,
+        6,
+        10
+      ],
+      "hp": 100,
+      "compartmentId": "comp-2-port"
+    },
+    {
+      "id": "bruno-magazine",
+      "name": "Bruno magazine",
+      "kind": "magazine",
+      "center": [
+        -4,
+        -3,
+        -51.85
+      ],
+      "size": [
+        7,
+        6,
+        10
+      ],
+      "hp": 100,
+      "compartmentId": "comp-2-port"
+    },
+    {
+      "id": "caesar-magazine",
+      "name": "Cäsar magazine",
+      "kind": "magazine",
+      "center": [
+        -4,
+        -3,
+        58.15
+      ],
+      "size": [
+        7,
+        6,
+        10
+      ],
+      "hp": 100,
+      "compartmentId": "comp-5-port"
+    },
+    {
+      "id": "dora-magazine",
+      "name": "Dora magazine",
+      "kind": "magazine",
+      "center": [
+        -4,
+        -3,
+        76.35
+      ],
+      "size": [
+        7,
+        6,
+        10
+      ],
+      "hp": 100,
+      "compartmentId": "comp-6-port"
+    }
+  ],
+  "compartments": [
+    {
+      "id": "comp-1-port",
+      "name": "Section 1 port",
+      "center": [
+        -7,
+        -2,
+        -93
+      ],
+      "size": [
+        14,
+        12,
+        36
+      ],
+      "capacityM3": 3931.2000000000003,
+      "pumpM3PerSecond": 0.03
+    },
+    {
+      "id": "comp-1-starboard",
+      "name": "Section 1 starboard",
+      "center": [
+        7,
+        -2,
+        -93
+      ],
+      "size": [
+        14,
+        12,
+        36
+      ],
+      "capacityM3": 3931.2000000000003,
+      "pumpM3PerSecond": 0.03
+    },
+    {
+      "id": "comp-2-port",
+      "name": "Section 2 port",
+      "center": [
+        -7,
+        -2,
+        -57
+      ],
+      "size": [
+        14,
+        12,
+        36
+      ],
+      "capacityM3": 3931.2000000000003,
+      "pumpM3PerSecond": 0.03
+    },
+    {
+      "id": "comp-2-starboard",
+      "name": "Section 2 starboard",
+      "center": [
+        7,
+        -2,
+        -57
+      ],
+      "size": [
+        14,
+        12,
+        36
+      ],
+      "capacityM3": 3931.2000000000003,
+      "pumpM3PerSecond": 0.03
+    },
+    {
+      "id": "comp-3-port",
+      "name": "Section 3 port",
+      "center": [
+        -7,
+        -2,
+        -21
+      ],
+      "size": [
+        14,
+        12,
+        36
+      ],
+      "capacityM3": 3931.2000000000003,
+      "pumpM3PerSecond": 0.03
+    },
+    {
+      "id": "comp-3-starboard",
+      "name": "Section 3 starboard",
+      "center": [
+        7,
+        -2,
+        -21
+      ],
+      "size": [
+        14,
+        12,
+        36
+      ],
+      "capacityM3": 3931.2000000000003,
+      "pumpM3PerSecond": 0.03
+    },
+    {
+      "id": "comp-4-port",
+      "name": "Section 4 port",
+      "center": [
+        -7,
+        -2,
+        15
+      ],
+      "size": [
+        14,
+        12,
+        36
+      ],
+      "capacityM3": 3931.2000000000003,
+      "pumpM3PerSecond": 0.03
+    },
+    {
+      "id": "comp-4-starboard",
+      "name": "Section 4 starboard",
+      "center": [
+        7,
+        -2,
+        15
+      ],
+      "size": [
+        14,
+        12,
+        36
+      ],
+      "capacityM3": 3931.2000000000003,
+      "pumpM3PerSecond": 0.03
+    },
+    {
+      "id": "comp-5-port",
+      "name": "Section 5 port",
+      "center": [
+        -7,
+        -2,
+        51
+      ],
+      "size": [
+        14,
+        12,
+        36
+      ],
+      "capacityM3": 3931.2000000000003,
+      "pumpM3PerSecond": 0.03
+    },
+    {
+      "id": "comp-5-starboard",
+      "name": "Section 5 starboard",
+      "center": [
+        7,
+        -2,
+        51
+      ],
+      "size": [
+        14,
+        12,
+        36
+      ],
+      "capacityM3": 3931.2000000000003,
+      "pumpM3PerSecond": 0.03
+    },
+    {
+      "id": "comp-6-port",
+      "name": "Section 6 port",
+      "center": [
+        -7,
+        -2,
+        87
+      ],
+      "size": [
+        14,
+        12,
+        36
+      ],
+      "capacityM3": 3931.2000000000003,
+      "pumpM3PerSecond": 0.03
+    },
+    {
+      "id": "comp-6-starboard",
+      "name": "Section 6 starboard",
+      "center": [
+        7,
+        -2,
+        87
+      ],
+      "size": [
+        14,
+        12,
+        36
+      ],
+      "capacityM3": 3931.2000000000003,
+      "pumpM3PerSecond": 0.03
+    }
+  ],
+  "connections": [
+    {
+      "fromId": "comp-1-port",
+      "toId": "comp-2-port",
+      "areaM2": 0.025
+    },
+    {
+      "fromId": "comp-1-starboard",
+      "toId": "comp-2-starboard",
+      "areaM2": 0.025
+    },
+    {
+      "fromId": "comp-2-port",
+      "toId": "comp-3-port",
+      "areaM2": 0.025
+    },
+    {
+      "fromId": "comp-2-starboard",
+      "toId": "comp-3-starboard",
+      "areaM2": 0.025
+    },
+    {
+      "fromId": "comp-3-port",
+      "toId": "comp-4-port",
+      "areaM2": 0.025
+    },
+    {
+      "fromId": "comp-3-starboard",
+      "toId": "comp-4-starboard",
+      "areaM2": 0.025
+    },
+    {
+      "fromId": "comp-4-port",
+      "toId": "comp-5-port",
+      "areaM2": 0.025
+    },
+    {
+      "fromId": "comp-4-starboard",
+      "toId": "comp-5-starboard",
+      "areaM2": 0.025
+    },
+    {
+      "fromId": "comp-5-port",
+      "toId": "comp-6-port",
+      "areaM2": 0.025
+    },
+    {
+      "fromId": "comp-5-starboard",
+      "toId": "comp-6-starboard",
+      "areaM2": 0.025
+    }
+  ],
+  "obstructions": [
+    {
+      "id": "superstructure",
+      "center": [
+        0,
+        17,
+        4
+      ],
+      "size": [
+        16,
+        22,
+        62
+      ]
+    }
+  ],
+  "accuracy": {
+    "exterior": "Dimensions constrained; hull sections and fittings interpreted.",
+    "internals": "Gameplay approximation, not a verified historical compartment or armor plan.",
+    "weapons": "Dimensions from the existing reconstruction; performance values are provisional gameplay tuning."
+  },
+  "compilerVersion": 1,
+  "contentHash": "89cd923afa1be4f2f9ad74f3065035b1af7e2ef8106728ee6a3dd2bf0f65604a"
+}

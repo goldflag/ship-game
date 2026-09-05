@@ -1,0 +1,38 @@
+{
+  "hull_length_m": 250.5,
+  "hull_beam_m": 36.0,
+  "keel_z_m": -9.33,
+  "main_turrets": [
+    {
+      "name": "Anton",
+      "station_m": 192.55,
+      "x_m": 70.05000000000001
+    },
+    {
+      "name": "Bruno",
+      "station_m": 174.35,
+      "x_m": 51.849999999999994
+    },
+    {
+      "name": "C\u00e4sar",
+      "station_m": 64.35,
+      "x_m": -58.150000000000006
+    },
+    {
+      "name": "Dora",
+      "station_m": 46.15,
+      "x_m": -76.35
+    }
+  ],
+  "main_turret_pair_spacing_m": 18.2,
+  "main_guns": 8,
+  "secondary_guns": 12,
+  "heavy_aa_guns": 16,
+  "medium_aa_guns": 16,
+  "light_aa_guns": 20,
+  "screws": 3,
+  "rudders": 2,
+  "objects": 2378,
+  "mesh_vertices": 62684,
+  "limitations": "Overall dimensions and main turret stations constrained; interpreted hull lines and simplified fittings. No certified shipyard-offset reconstruction."
+}

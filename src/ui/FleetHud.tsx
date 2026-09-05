@@ -5,6 +5,9 @@ import { ENGINE_LABELS, KNOTS_PER_MPS } from '../simulation/ship';
 import { Icon } from './Icons';
 import { NavigationChart } from './NavigationChart';
 import './FleetHud.css';
+import { GunneryPanel } from './GunneryPanel';
+import { selectedShip } from '../ships/presets';
+import { SHIP_MODEL } from '../game/shipModel';
 
 interface FleetHudProps {
   data: Telemetry;
@@ -41,22 +44,25 @@ function BearingTape({ degrees }: { degrees: number }) {
   </div>;
 }
 
-function SecuredArmament() {
-  return <section className="fleet-armament" aria-label="Armament secured during free sailing">
-    <div className="fleet-battery-heading"><span>MAIN BATTERY <b>380 mm</b></span><strong>SECURED</strong></div>
-    <div className="fleet-turrets" aria-label="Four main battery turrets secured">{['A', 'B', 'C', 'D'].map(turret => <span key={turret}><Icon name="turret" size={15}/><b>{turret}</b><i/></span>)}</div>
+function ActiveArmament({ data, game, details, onDetails }: FleetHudProps & { details: boolean; onDetails(): void }) {
+  const combat = data.combat;
+  if (!combat) return null;
+  const caliber = (battery: 'main' | 'secondary') => Math.round((selectedShip.mounts.find(m => m.battery === battery)?.weapon.caliberM ?? 0) * 1000);
+  return <section className="fleet-armament" aria-label="Live battery controls">
+    <div className="fleet-battery-heading"><span>{combat.battery === 'main' ? 'MAIN' : 'SECONDARY'} BATTERY <b>{caliber(combat.battery)} mm</b></span><strong>{combat.ready}/{combat.total} READY</strong></div>
+    <div className="fleet-turrets" aria-label="Battery mount readiness">{combat.mounts.map(mount => <span key={mount.id} title={`${mount.name}: ${mount.status}`} className={mount.status === 'ready' ? 'fleet-gun-ready' : ''}><Icon name="turret" size={15}/><b>{mount.name.split(' ')[0]}</b><i/></span>)}</div>
     <div className="fleet-weapon-row">
-      <button disabled title="High explosive shells — weapons unavailable during free sailing"><Icon name="he" size={27}/><strong>HE</strong><small>380 mm</small></button>
-      <button disabled title="Armor piercing shells — weapons unavailable during free sailing"><Icon name="shell" size={27}/><strong>AP</strong><small>380 mm</small></button>
-      <button disabled title="Damage control becomes available with combat"><Icon name="repair" size={27}/><strong>DAMAGE CONTROL</strong><small>SECURED</small></button>
-      <button disabled title="Repair party becomes available with combat"><Icon name="ship" size={27}/><strong>REPAIR PARTY</strong><small>SECURED</small></button>
-      <button disabled title="Firing becomes available with combat"><Icon name="target" size={24}/><strong>FIRE SALVO</strong><small>SECURED</small></button>
+      <button aria-pressed={combat.battery === 'main'} onClick={event => { if (game) game.battery = 'main'; event.currentTarget.blur(); }}><Icon name="shell" size={27}/><strong>MAIN · AP</strong><small>{caliber('main')} mm</small></button>
+      <button aria-pressed={combat.battery === 'secondary'} onClick={event => { if (game) game.battery = 'secondary'; event.currentTarget.blur(); }}><Icon name="turret" size={27}/><strong>SECONDARY · AP</strong><small>{caliber('secondary')} mm</small></button>
+      <button aria-expanded={details} onClick={onDetails}><Icon name="target" size={27}/><strong>GUNNERY</strong><small>Target & damage</small></button>
+      <button disabled={!combat.ready} onClick={event => { game?.fire(); event.currentTarget.blur(); }}><Icon name="target" size={24}/><strong>FIRE SALVO</strong><small>Hold Q</small></button>
     </div>
   </section>;
 }
 
 export function FleetHud({ data, game, visible }: FleetHudProps) {
   const [help, setHelp] = useState(false);
+  const [details, setDetails] = useState(false);
   const degrees = ((data.ship.heading * 180 / Math.PI) % 360 + 360) % 360;
   const heading = String(Math.round(degrees) % 360).padStart(3, '0');
   const speed = Math.abs(data.ship.speed * KNOTS_PER_MPS).toFixed(1);
@@ -70,7 +76,7 @@ export function FleetHud({ data, game, visible }: FleetHudProps) {
 
   return <div className={`fleet-hud ${visible ? '' : 'fleet-hud-hidden'}`} inert={!visible}>
     <div className="fleet-edge-shade" aria-hidden="true"/>
-    <header className="fleet-mission"><strong>NORTH ATLANTIC</strong><span>Free sailing · Singleplayer</span></header>
+    <header className="fleet-mission"><strong>NORTH ATLANTIC</strong><span>Gunnery trial · Singleplayer</span></header>
     <BearingTape degrees={degrees}/>
     <div className="fleet-top-actions">
       <span className="fleet-fps" aria-label={`${data.fps} frames per second`}><strong>{data.fps || '—'}</strong> FPS</span>
@@ -84,7 +90,7 @@ export function FleetHud({ data, game, visible }: FleetHudProps) {
     </svg></div>
 
     <section className="fleet-ship" aria-label="Ship navigation and engine controls">
-      <div className="fleet-ship-name"><Icon name="ship" size={22}/><h1>BISMARCK</h1><span>BATTLESHIP</span></div>
+      <div className="fleet-ship-name"><Icon name="ship" size={22}/><h1>{selectedShip.name.toUpperCase()}</h1><span>{SHIP_MODEL.type.toUpperCase()}</span></div>
       <div className="fleet-ship-status"><strong>{direction}</strong><span>{heading}° COURSE</span></div>
       <div className="fleet-status-rule" aria-hidden="true"/>
       <div className="fleet-navigation"><ShipBearing degrees={degrees}/><div className="fleet-engine">
@@ -96,12 +102,14 @@ export function FleetHud({ data, game, visible }: FleetHudProps) {
       <div className="fleet-sailing-meta"><span>{(data.ship.distance / 1852).toFixed(2)} NM SAILED</span><span><kbd>W</kbd><kbd>S</kbd> ENGINE</span></div>
     </section>
 
-    <SecuredArmament/>
+    <ActiveArmament data={data} game={game} visible={visible} details={details} onDetails={() => { setDetails(value => !value); setHelp(false); }}/>
+    {(details || data.inspecting) && <GunneryPanel data={data} game={game} expanded={details} onExpand={setDetails}/>}
+    {data.aimMarker?.visible && <div className="aim-marker" aria-hidden="true" style={{ left: `${data.aimMarker.x}%`, top: `${data.aimMarker.y}%` }}><span/><small>{data.aimModule === 'point' ? 'AIM POINT' : 'TRIAL TARGET'}</small></div>}
     <aside className="fleet-map-area">
       <div className="fleet-camera-controls"><button onClick={event => { game?.cycleCamera(); event.currentTarget.blur(); }} title="Cycle camera · C"><Icon name="camera" size={14}/>{data.camera}<kbd>C</kbd></button><button aria-label="Recenter camera" title="Recenter camera · R" onClick={event => { game?.recenter(); event.currentTarget.blur(); }}><Icon name="compass" size={15}/></button><button aria-label="Toggle fullscreen" title="Fullscreen · F" onClick={() => game?.fullscreen()}><Icon name="expand" size={14}/></button></div>
       <NavigationChart data={data}/>
     </aside>
     <button className="fleet-help-button" aria-expanded={help} aria-controls="fleet-help" onClick={() => setHelp(value => !value)}>Controls</button>
-    {help && <aside className="fleet-help" id="fleet-help" aria-label="Sailing controls"><div><strong>SAILING CONTROLS</strong><button aria-label="Close controls" onClick={() => setHelp(false)}><Icon name="close" size={16}/></button></div><dl><div><dt><kbd>W</kbd><kbd>S</kbd></dt><dd>Change engine order</dd></div><div><dt><kbd>A</kbd><kbd>D</kbd></dt><dd>Hold to steer</dd></div><div><dt><kbd>SPACE</kbd></dt><dd>Stop engine</dd></div><div><dt>Drag / scroll</dt><dd>Orbit / zoom</dd></div><div><dt><kbd>H</kbd></dt><dd>Hide instruments</dd></div><div><dt><kbd>ESC</kbd></dt><dd>Pause and settings</dd></div></dl><p>Weapons are secured during free sailing.</p></aside>}
+    {help && <aside className="fleet-help" id="fleet-help" aria-label="Sailing controls"><div><strong>SAILING CONTROLS</strong><button aria-label="Close controls" onClick={() => setHelp(false)}><Icon name="close" size={16}/></button></div><dl><div><dt><kbd>W</kbd><kbd>S</kbd></dt><dd>Change engine order</dd></div><div><dt><kbd>A</kbd><kbd>D</kbd></dt><dd>Hold to steer</dd></div><div><dt><kbd>SPACE</kbd></dt><dd>Stop engine</dd></div><div><dt>Drag / scroll</dt><dd>Orbit / zoom</dd></div><div><dt><kbd>H</kbd></dt><dd>Hide instruments</dd></div><div><dt><kbd>ESC</kbd></dt><dd>Pause and settings</dd></div></dl><p>Hold Q to fire ready guns. Open Gunnery to choose an aim point and inspect target damage.</p></aside>}
   </div>;
 }

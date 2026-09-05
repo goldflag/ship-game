@@ -15,6 +15,9 @@ export interface ShipState {
   tick: number;
   x: number;
   z: number;
+  y: number;
+  roll: number;
+  pitch: number;
   heading: number;
   speed: number;
   rudder: number;
@@ -34,7 +37,7 @@ export const BISMARCK = {
 } as const;
 
 export function createShipState(id = 'player'): ShipState {
-  return { id, tick: 0, x: 0, z: 0, heading: 0, speed: 0, rudder: 0, yawRate: 0, distance: 0 };
+  return { id, tick: 0, x: 0, y: 0, z: 0, roll: 0, pitch: 0, heading: 0, speed: 0, rudder: 0, yawRate: 0, distance: 0 };
 }
 
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
@@ -42,16 +45,17 @@ const finite = (n: number) => Number.isFinite(n) ? n : 0;
 const approach = (n: number, target: number, amount: number) => n + clamp(target - n, -amount, amount);
 
 /** One fixed tick. Local input, a bot, or an authoritative server supplies the same command. */
-export function stepShip(state: ShipState, command: HelmCommand): void {
+export function stepShip(state: ShipState, command: HelmCommand, handling: import('../ships/blueprint').Handling = BISMARCK, power = 1, steering = 1): void {
   const throttle = clamp(finite(command.throttle), -1, 1);
-  const rudder = clamp(finite(command.rudder), -1, 1);
-  const targetSpeed = throttle * (throttle < 0 ? BISMARCK.reverseSpeed : BISMARCK.forwardSpeed);
-  state.rudder = approach(state.rudder, rudder, BISMARCK.rudderRate * FIXED_DT);
+  const rudder = clamp(finite(command.rudder), -1, 1) * clamp(finite(steering), 0, 1);
+  const availablePower = clamp(finite(power), 0, 1);
+  const targetSpeed = throttle * (throttle < 0 ? handling.reverseSpeed : handling.forwardSpeed) * Math.sqrt(availablePower);
+  state.rudder = approach(state.rudder, rudder, handling.rudderRate * FIXED_DT);
   const braking = targetSpeed === 0 || Math.sign(targetSpeed) !== Math.sign(state.speed);
-  state.speed = approach(state.speed, targetSpeed, (braking ? BISMARCK.braking : BISMARCK.acceleration) * FIXED_DT);
+  state.speed = approach(state.speed, targetSpeed, (braking ? handling.braking : handling.acceleration * availablePower) * FIXED_DT);
   // A stationary rudder has no authority; going astern reverses its effect.
-  const authority = clamp(state.speed / BISMARCK.forwardSpeed, -0.4, 1);
-  const targetYaw = state.rudder * BISMARCK.maxYawRate * authority;
+  const authority = clamp(state.speed / handling.forwardSpeed, -0.4, 1);
+  const targetYaw = state.rudder * handling.maxYawRate * authority;
   state.yawRate += (targetYaw - state.yawRate) * (1 - Math.exp(-FIXED_DT / 2.4));
   state.heading = (state.heading + state.yawRate * FIXED_DT + Math.PI * 2) % (Math.PI * 2);
   state.x += Math.sin(state.heading) * state.speed * FIXED_DT;

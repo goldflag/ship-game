@@ -3,17 +3,22 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Icon } from './Icons';
 import { SchematicDialog } from './SchematicDialog';
 import './Garage.css';
+import type { Game } from '../game/Game';
+import { SHIP_MODEL } from '../game/shipModel';
+import { selectedShip } from '../ships/presets';
+import type { InspectionMode } from '../ships/inspection';
+import { ModelViewControls, PortInspection } from './PortInspection';
 
 type Section = 'overview' | 'equipment' | 'commander' | 'research';
 type ModuleId = 'battery' | 'hull' | 'propulsion' | 'director';
 const MODULES = {
-  battery: { name: 'Main battery', model: '380 mm SK C/34', icon: 'turret', detail: 'Four twin mounts. Eight guns. Built for long-range engagements.', upgrade: 'Improved loading system', stat: 'Reload time', standard: '26.0 s', improved: '23.4 s', cost: 125000 },
-  hull: { name: 'Hull', model: 'Bismarck · 1941', icon: 'ship', detail: 'A heavily armored citadel protects the ship’s vital compartments.', upgrade: 'Reinforced compartmentation', stat: 'Survivability', standard: '84', improved: '92', cost: 180000 },
+  battery: { name: 'Main battery', model: selectedShip.mounts[0].weapon.name, icon: 'turret', detail: `${selectedShip.mounts.filter(m => m.battery === 'main').length} main battery mounts. Built for long-range engagements.`, upgrade: 'Improved loading system', stat: 'Reload time', standard: '26.0 s', improved: '23.4 s', cost: 125000 },
+  hull: { name: 'Hull', model: `${selectedShip.name} · ${selectedShip.configuration.match(/19\d{2}/)?.[0]}`, icon: 'ship', detail: 'A heavily armored citadel protects the ship’s vital compartments.', upgrade: 'Reinforced compartmentation', stat: 'Survivability', standard: '84', improved: '92', cost: 180000 },
   propulsion: { name: 'Propulsion', model: 'Geared steam turbines', icon: 'propeller', detail: 'Three shafts deliver steady power for an Atlantic crossing.', upgrade: 'Turbine calibration', stat: 'Engine response', standard: '34.0 s', improved: '30.6 s', cost: 90000 },
   director: { name: 'Fire control', model: 'Optical rangefinder', icon: 'target', detail: 'Keep the battery on target as range, bearing and conditions change.', upgrade: 'Rangefinder calibration', stat: 'Accuracy', standard: '72', improved: '80', cost: 110000 },
 } as const;
 const SHIPS = [
-  { name: 'Bismarck', type: 'Battleship', tier: 'VIII', status: 'READY', progress: 100 },
+  { name: selectedShip.name, type: SHIP_MODEL.type, tier: 'VIII', status: 'READY', progress: 100 },
   { name: 'Admiral Hipper', type: 'Heavy cruiser', tier: 'VIII', status: 'IN RESEARCH', progress: 64 },
   { name: 'Scharnhorst', type: 'Battleship', tier: 'VII', status: 'LOCKED', progress: 23 },
   { name: 'Tirpitz', type: 'Battleship', tier: 'VIII', status: 'LOCKED', progress: 0 },
@@ -55,6 +60,7 @@ function ShipStats({ improved = false }: { improved?: boolean }) {
 }
 
 type GarageState = {
+  inspection: InspectionMode; selectedVolume?: string; inspect: (mode: InspectionMode) => void; selectVolume: (id?: string) => void;
   section: Section; setSection: (value: Section) => void;
   module: ModuleId; setModule: (value: ModuleId) => void;
   fitted: Record<ModuleId, boolean>; fit: () => void;
@@ -86,14 +92,14 @@ function SideContent({ state }: { state: GarageState }) {
   if (state.section === 'equipment') return <><h2>Equipment</h2><ModuleList state={state}/><RefitDetail state={state}/></>;
   if (state.section === 'commander') return <><h2>Command</h2><Commander extended/></>;
   if (state.section === 'research') return <><h2>Expand your fleet</h2><p className="garage-subtle">The next ships on your horizon.</p><div className="garage-research-list">{SHIPS.slice(1).map(ship=><button key={ship.name} onClick={()=>state.research(ship.name)}><ShipProfile/><strong>{ship.name}</strong><small>{ship.progress}% researched</small><i><b style={{width:`${ship.progress}%`}}/></i></button>)}</div></>;
-  return <><div className="garage-panel-title"><h2>Ship characteristics</h2><span>VIII</span></div><ShipStats improved={state.fitted.hull}/><dl className="garage-specs"><div><dt>Main battery</dt><dd>8 × 380 mm</dd></div><div><dt>Length</dt><dd>250.5 m</dd></div><div><dt>Top speed</dt><dd>30.0 kn</dd></div></dl><button className="garage-text-button" onClick={()=>state.setSection('equipment')}>Configure ship <Icon name="arrow" size={16}/></button></>;
+  return <><div className="garage-panel-title"><h2>Ship characteristics</h2><span>VIII</span></div><ShipStats improved={state.fitted.hull}/><dl className="garage-specs"><div><dt>Main battery</dt><dd>{selectedShip.mounts.filter(m => m.battery === 'main').reduce((n, m) => n + (m.weapon.barrelCount ?? 2), 0)} × {Math.round(selectedShip.mounts[0].weapon.caliberM * 1000)} mm</dd></div><div><dt>Length</dt><dd>{selectedShip.hull.length} m</dd></div><div><dt>Top speed</dt><dd>{(selectedShip.handling.forwardSpeed * 1.943844).toFixed(1)} kn</dd></div></dl><button className="garage-text-button" onClick={()=>state.setSection('equipment')}>Configure ship <Icon name="arrow" size={16}/></button></>;
 }
 function FleetCarousel({ state }: { state: GarageState }) {
-  return <section className="garage-fleet-carousel" aria-label="Your fleet"><div className="garage-fleet-caption"><strong>YOUR FLEET</strong><span>1 ship in port <i/> 3 on the horizon</span></div><div className="garage-ship-cards">{SHIPS.map((ship,i)=><button className={i===0?'garage-ship-selected':''} key={ship.name} aria-label={i===0?'Inspect Bismarck':`Preview ${ship.name} research`} onClick={()=>i===0?state.setSection('overview'):state.research(ship.name)}><div><span>{ship.tier} · {ship.type}</span>{i===0?<Glyph name="check" size={14}/>:<Glyph name="lock" size={13}/>}</div><ShipProfile/><strong>{ship.name}</strong><small>{ship.status}</small>{i>0&&<i className="garage-research-progress"><b style={{width:`${ship.progress}%`}}/></i>}</button>)}</div></section>;
+  return <section className="garage-fleet-carousel" aria-label="Your fleet"><div className="garage-fleet-caption"><strong>YOUR FLEET</strong><span>1 ship in port <i/> 3 on the horizon</span></div><div className="garage-ship-cards">{SHIPS.map((ship,i)=><button className={i===0?'garage-ship-selected':''} key={ship.name} aria-label={i===0?`Inspect ${selectedShip.name}`:`Preview ${ship.name} research`} onClick={()=>i===0?state.setSection('overview'):state.research(ship.name)}><div><span>{ship.tier} · {ship.type}</span>{i===0?<Glyph name="check" size={14}/>:<Glyph name="lock" size={13}/>}</div><ShipProfile/><strong>{ship.name}</strong><small>{ship.status}</small>{i>0&&<i className="garage-research-progress"><b style={{width:`${ship.progress}%`}}/></i>}</button>)}</div></section>;
 }
 
 function PortLayout({ state }: { state: GarageState }) {
-  return <div className="garage-layout garage-fleet-harbor">
+  return <div className={`garage-layout garage-fleet-harbor ${state.inspection !== 'exterior' ? 'port-inspection-active' : ''}`}>
     <header className="garage-classic-header">
       <div className="garage-brand"><Icon name="anchor" size={26}/><strong>FLEET COMMAND</strong></div>
       <nav aria-label="Port sections">{([['overview','Port'],['equipment','Equipment'],['commander','Commander'],['research','Research']] as [Section,string][]).map(([id,label])=><button key={id} aria-pressed={state.section===id} onClick={()=>state.setSection(id)}>{label}</button>)}</nav>
@@ -101,9 +107,12 @@ function PortLayout({ state }: { state: GarageState }) {
       <ResourceWallet credits={state.credits}/>
       <button className="garage-settings" aria-label="Port settings" disabled={!state.ready} onClick={state.settings}><Icon name="compass" size={20}/></button>
     </header>
-    <section className="garage-classic-identity"><h1>BISMARCK</h1><div><span>VIII</span><span>Battleship</span><span>Germany · 1941</span></div><p className="garage-ready"><i/> {state.ready ? 'READY TO SAIL' : 'PREPARING SHIP'}</p><button className="garage-schematic-button" onClick={state.schematic} disabled={!state.ready} aria-haspopup="dialog"><Icon name="schematic" size={16}/>Create schematic</button></section>
+    <section className="garage-classic-identity"><h1>{selectedShip.name.toUpperCase()}</h1><div><span>VIII</span><span>{SHIP_MODEL.type}</span><span>{SHIP_MODEL.nation} · {SHIP_MODEL.year}</span></div><p className="garage-ready"><i/> {state.ready ? 'READY TO SAIL' : 'PREPARING SHIP'}</p><button className="garage-schematic-button" onClick={state.schematic} disabled={!state.ready} aria-haspopup="dialog"><Icon name="schematic" size={16}/>Create schematic</button></section>
     <div className="garage-classic-left"><button className="garage-commander-link" onClick={()=>state.setSection('commander')}><Commander/><Glyph name="chevron" size={16}/></button><section className="garage-daily-orders"><div><Glyph name="wreath" size={22}/><h2>Daily orders</h2></div><strong>A captain’s first command</strong><p>Get underway and put your ship through her paces.</p><div><span>Sea trials completed</span><b>0 / 1</b></div><i/><small><Glyph name="credits" size={13}/> 25,000 credits</small></section></div>
-    <aside className="garage-classic-details" data-section={state.section}><SideContent state={state}/></aside>
+    <aside className="garage-classic-details" data-section={state.section}>
+      <ModelViewControls mode={state.inspection} onChange={state.inspect} ready={state.ready}/>
+      {state.inspection === 'exterior' ? <SideContent state={state}/> : <PortInspection definition={selectedShip} mode={state.inspection} selectedId={state.selectedVolume} onSelect={state.selectVolume}/>}
+    </aside>
     <span className="garage-orbit-hint"><Icon name="camera" size={15}/> Drag to inspect · Scroll to zoom</span>
     <FleetCarousel state={state}/>
     <div className="garage-port-location"><Icon name="anchor" size={14}/><span>HOME PORT</span><strong>Wilhelmshaven</strong></div>
@@ -111,6 +120,7 @@ function PortLayout({ state }: { state: GarageState }) {
 }
 
 interface Props {
+  game: Game | null;
   ready: boolean;
   progress: number;
   fps: number;
@@ -118,7 +128,12 @@ interface Props {
   onSettings: () => void;
 }
 
-export function Garage({ ready, progress, fps, onLaunch, onSettings }: Props) {
+export function Garage({ game, ready, progress, fps, onLaunch, onSettings }: Props) {
+  const [inspection, setInspection] = useState<InspectionMode>('exterior');
+  const [selectedVolume, setSelectedVolume] = useState<string>();
+  const inspect = (mode: InspectionMode) => { setInspection(mode); setSelectedVolume(undefined); setResearch(''); };
+  useEffect(() => { if (ready) game?.setPortInspection(inspection, selectedVolume); }, [game, ready, inspection, selectedVolume]);
+  useEffect(() => () => game?.setPortInspection('exterior'), [game]);
   const [section, setSection] = useState<Section>('overview');
   const [module, setModule] = useState<ModuleId>('battery');
   const [fitted, setFitted] = useState<Record<ModuleId, boolean>>({ battery: false, hull: false, propulsion: false, director: false });
@@ -130,14 +145,15 @@ export function Garage({ ready, progress, fps, onLaunch, onSettings }: Props) {
     const closeDetails = (event: KeyboardEvent) => {
       if (event.key !== 'Escape' || document.querySelector('dialog[open]')) return;
       setResearch('');
-      setSection('overview');
+      setSection('overview'); setInspection('exterior'); setSelectedVolume(undefined);
     };
     window.addEventListener('keydown', closeDetails);
     return () => window.removeEventListener('keydown', closeDetails);
   }, []);
 
   const state: GarageState = {
-    section, setSection: value => { setSection(value); setResearch(''); },
+    inspection, selectedVolume, inspect, selectVolume: setSelectedVolume,
+    section, setSection: value => { setSection(value); setResearch(''); inspect('exterior'); },
     module, setModule, fitted,
     fit: () => setFitted(value => ({ ...value, [module]: !value[module] })),
     credits, research: setResearch, launch: onLaunch, ready, settings: onSettings,
@@ -152,8 +168,8 @@ export function Garage({ ready, progress, fps, onLaunch, onSettings }: Props) {
       <button aria-label="Close research preview" onClick={() => setResearch('')}><Icon name="close" size={19}/></button>
       <Glyph name="lock" size={26}/><h2>{research}</h2><span>RESEARCH PREVIEW</span><ShipProfile/>
       <p>Chart a course toward your next command. This ship is a placeholder for future fleet progression.</p>
-      <div><span>Ship available to sail</span><strong>Bismarck</strong></div>
-      <button className="garage-fit-button" onClick={() => setResearch('')}><strong>BACK TO BISMARCK</strong><Icon name="arrow" size={18}/></button>
+      <div><span>Ship available to sail</span><strong>{selectedShip.name}</strong></div>
+      <button className="garage-fit-button" onClick={() => setResearch('')}><strong>BACK TO {selectedShip.name.toUpperCase()}</strong><Icon name="arrow" size={18}/></button>
     </aside>}
     {!ready && <div className="garage-loading" role="status">
       <span>Preparing the harbor</span><strong>{Math.round(progress * 100)}%</strong>

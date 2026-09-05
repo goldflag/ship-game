@@ -1,5 +1,6 @@
 import type { CameraMode } from './CameraRig';
 import type { ShipState } from '../simulation/ship';
+import type { CombatTelemetry } from '../simulation/combat';
 
 export type SeaState = 'Fair' | 'Atlantic' | 'Heavy';
 export type Quality = 'medium' | 'high' | 'ultra';
@@ -12,6 +13,10 @@ export interface Telemetry {
   fps: number;
   backend: string;
   trail: { x: number; z: number }[];
+  combat?: CombatTelemetry;
+  inspecting?: boolean;
+  aimModule?: string;
+  aimMarker?: { x: number; y: number; visible: boolean };
 }
 export interface GameCallbacks {
   progress(label: string, progress: number): void;

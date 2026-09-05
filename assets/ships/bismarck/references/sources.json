@@ -1,0 +1,39 @@
+{
+  "configuration": "Bismarck, May 1941",
+  "sources": [
+    {
+      "id": "dimensions",
+      "url": "https://www.kbismarck.com/genedata.html",
+      "supports": [
+        "overall dimensions"
+      ],
+      "status": "inherited reference; independently recheck before accuracy signoff"
+    },
+    {
+      "id": "armament",
+      "url": "https://www.kbismarck.com/armament.html",
+      "supports": [
+        "main turret stations",
+        "inventory"
+      ],
+      "status": "inherited reference"
+    },
+    {
+      "id": "plan-profile",
+      "url": "https://www.kbismarck.com/drawings.html",
+      "author": "Manuel P. Gonz\u00e1lez L\u00f3pez",
+      "supports": [
+        "24 May 1941 plan and profile"
+      ],
+      "status": "comparison only; no reference art used as textures"
+    },
+    {
+      "id": "gamemodels3d",
+      "url": "https://gamemodels3d.com/",
+      "supports": [
+        "future independent discrepancy review"
+      ],
+      "status": "pending owner reference access; no model inspected or imported"
+    }
+  ]
+}
