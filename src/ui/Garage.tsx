@@ -50,6 +50,10 @@ function ShipProfile({ className = '' }: { className?: string }) {
     <path d="M101 31h39v12h-39M44 53h172" stroke="currentColor" strokeOpacity=".45"/>
   </svg>;
 }
+function ShipThumbnail() {
+  const [failed, setFailed] = useState(false);
+  return failed ? <ShipProfile/> : <img className="garage-ship-thumbnail" src={`/models/${selectedShip.id}-thumbnail.png`} width={600} height={180} alt="" onError={() => setFailed(true)}/>;
+}
 function ResourceWallet({ credits }: { credits: number }) {
   return <div className="garage-wallet" aria-label="Illustrative currency balances"><span><Glyph name="credits" size={17}/>{credits.toLocaleString()}</span><span><Glyph name="star" size={17}/>12,400</span><b>CAPTAIN 08</b></div>;
 }
@@ -60,7 +64,6 @@ function ShipStats({ improved = false }: { improved?: boolean }) {
 }
 
 type GarageState = {
-  thumbnail?: string;
   inspection: InspectionMode; selectedVolume?: string; inspect: (mode: InspectionMode) => void; selectVolume: (id?: string) => void;
   section: Section; setSection: (value: Section) => void;
   module: ModuleId; setModule: (value: ModuleId) => void;
@@ -96,7 +99,7 @@ function SideContent({ state }: { state: GarageState }) {
   return <><div className="garage-panel-title"><h2>Ship characteristics</h2><span>VIII</span></div><ShipStats improved={state.fitted.hull}/><dl className="garage-specs"><div><dt>Main battery</dt><dd>{selectedShip.mounts.filter(m => m.battery === 'main').reduce((n, m) => n + (m.weapon.barrelCount ?? 2), 0)} × {Math.round(selectedShip.mounts[0].weapon.caliberM * 1000)} mm</dd></div><div><dt>Length</dt><dd>{selectedShip.hull.length} m</dd></div><div><dt>Top speed</dt><dd>{(selectedShip.handling.forwardSpeed * 1.943844).toFixed(1)} kn</dd></div></dl><button className="garage-text-button" onClick={()=>state.setSection('equipment')}>Configure ship <Icon name="arrow" size={16}/></button></>;
 }
 function FleetCarousel({ state }: { state: GarageState }) {
-  return <section className="garage-fleet-carousel" aria-label="Your fleet"><div className="garage-fleet-caption"><strong>YOUR FLEET</strong><span>1 ship in port <i/> 3 on the horizon</span></div><div className="garage-ship-cards">{SHIPS.map((ship,i)=><button className={i===0?'garage-ship-selected':''} key={ship.name} aria-label={i===0?`Inspect ${selectedShip.name}`:`Preview ${ship.name} research`} onClick={()=>i===0?state.setSection('overview'):state.research(ship.name)}><div><span>{ship.tier} · {ship.type}</span>{i===0?<Glyph name="check" size={14}/>:<Glyph name="lock" size={13}/>}</div>{i === 0 && state.thumbnail ? <img className="garage-ship-thumbnail" src={state.thumbnail} width={600} height={180} alt=""/> : <ShipProfile/>}<strong>{ship.name}</strong><small>{ship.status}</small>{i>0&&<i className="garage-research-progress"><b style={{width:`${ship.progress}%`}}/></i>}</button>)}</div></section>;
+  return <section className="garage-fleet-carousel" aria-label="Your fleet"><div className="garage-fleet-caption"><strong>YOUR FLEET</strong><span>1 ship in port <i/> 3 on the horizon</span></div><div className="garage-ship-cards">{SHIPS.map((ship,i)=><button className={i===0?'garage-ship-selected':''} key={ship.name} aria-label={i===0?`Inspect ${selectedShip.name}`:`Preview ${ship.name} research`} onClick={()=>i===0?state.setSection('overview'):state.research(ship.name)}><div><span>{ship.tier} · {ship.type}</span>{i===0?<Glyph name="check" size={14}/>:<Glyph name="lock" size={13}/>}</div>{i === 0 ? <ShipThumbnail/> : <ShipProfile/>}<strong>{ship.name}</strong><small>{ship.status}</small>{i>0&&<i className="garage-research-progress"><b style={{width:`${ship.progress}%`}}/></i>}</button>)}</div></section>;
 }
 
 function PortLayout({ state }: { state: GarageState }) {
@@ -153,7 +156,6 @@ export function Garage({ game, ready, progress, fps, onLaunch, onSettings }: Pro
   }, []);
 
   const state: GarageState = {
-    thumbnail: game?.shipThumbnail,
     inspection, selectedVolume, inspect, selectVolume: setSelectedVolume,
     section, setSection: value => { setSection(value); setResearch(''); inspect('exterior'); },
     module, setModule, fitted,
