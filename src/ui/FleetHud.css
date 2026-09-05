@@ -1,15 +1,11 @@
-/* Fleet action, with the mockup's main instruments reduced by about 15%.
-   Smaller footprints preserve readable text instead of scaling the whole viewport. */
-.fleet-hud { --fleet-active:#86e4c5; --fleet-muted:#c1d0d4; --fleet-line:#c9dce04a; --fleet-edge:28px; --fleet-bottom:36px; position:absolute; inset:0; pointer-events:none; color:#f0f5f3; font-size:12px; font-variant-numeric:tabular-nums; text-shadow:0 2px 4px #07131bea; transition:opacity .18s; }
+/* Fleet action: an open sea, a centered sight, and edge-mounted naval instruments. */
+.fleet-hud { --fleet-active:#86e4c5; --fleet-muted:#c1d0d4; --fleet-line:#c9dce04a; --fleet-edge:24px; --fleet-bottom:20px; --chart-limit:min(400px, 31vw, 68vh); --chart-width:calc(var(--chart-limit) * var(--map-factor)); position:absolute; inset:0; pointer-events:none; color:#f0f5f3; font-size:12px; font-variant-numeric:tabular-nums; text-shadow:0 2px 4px #07131bea; transition:opacity .18s; }
 .fleet-hud-hidden { opacity:0; visibility:hidden; }
 .fleet-hud button { pointer-events:auto; }
 .fleet-hud button:focus-visible { outline:2px solid var(--fleet-active); outline-offset:3px; }
-.fleet-hud kbd { font-size:9px; min-width:16px; padding:1px 3px; }
-.fleet-edge-shade { position:absolute; inset:0; background:linear-gradient(180deg,#0716208c 0%,transparent 20%,transparent 67%,#06111bb3 100%); }
-.fleet-mission { position:absolute; top:26px; left:var(--fleet-edge); display:flex; flex-direction:column; gap:6px; }
-.fleet-mission strong { font-size:12px; font-weight:600; letter-spacing:.04em; }
-.fleet-mission span { font-size:11px; color:var(--fleet-muted); }
-.fleet-top-actions { position:absolute; top:23px; right:var(--fleet-edge); display:flex; gap:14px; align-items:center; }
+.fleet-hud kbd { font:500 10px/1.2 'Barlow Condensed',sans-serif; min-width:18px; padding:2px 4px; border-radius:1px; }
+.fleet-edge-shade { position:absolute; inset:0; background:linear-gradient(180deg,#07162045 0%,transparent 15%,transparent 72%,#06111b85 100%); }
+.fleet-top-actions { position:absolute; top:22px; right:var(--fleet-edge); display:flex; gap:14px; align-items:center; }
 .fleet-top-actions .icon-button { width:30px; height:30px; }
 .fleet-fps { color:var(--fleet-muted); font-size:10px; white-space:nowrap; }
 .fleet-fps strong { color:#edf5f2; font-weight:500; display:inline-block; text-align:right; min-width:3ch; margin-right:3px; }
@@ -21,91 +17,185 @@
 .fleet-compass>i { width:0; height:0; display:block; border:3px solid transparent; border-bottom-color:var(--fleet-active); margin:-6px auto 5px; }
 .fleet-compass>strong { font:500 21px/1 'Barlow Condensed',sans-serif; }
 .fleet-compass small { font-size:14px; }
-.fleet-sight { position:absolute; top:44%; left:50%; transform:translate(-50%,-50%); width:459px; color:#e7f1ebbf; filter:drop-shadow(0 1px 2px #10232e); }
-.fleet-sight>svg { width:100%; display:block; }
-.fleet-ship { position:absolute; left:var(--fleet-edge); bottom:var(--fleet-bottom); width:251px; }
-.fleet-ship-name { display:flex; gap:7px; align-items:center; }
-.fleet-ship-name h1 { margin:0; font:600 22px/1 'Barlow Condensed',sans-serif; letter-spacing:.02em; }
-.fleet-ship-name>span { font-size:9px; color:var(--fleet-muted); margin-left:auto; }
-.fleet-ship-status { display:flex; justify-content:space-between; align-items:center; margin:12px 0 8px; }
-.fleet-ship-status strong { font-size:12px; font-weight:500; }
-.fleet-ship-status span { font-size:10px; color:var(--fleet-muted); }
-.fleet-status-rule { height:4px; background:var(--fleet-active); opacity:.8; }
-.fleet-navigation { display:flex; align-items:center; gap:12px; margin-top:14px; }
-.fleet-bearing { width:88px; height:88px; flex-shrink:0; color:#e1ece7; }
-.fleet-bearing svg { display:block; width:100%; height:100%; }
-.fleet-course-arrow { color:var(--fleet-active); }
-.fleet-engine { min-width:0; flex:1; }
-.fleet-speed { display:flex; align-items:baseline; gap:4px; }
-.fleet-speed>strong { font:600 31px/1 'Barlow Condensed',sans-serif; }
-.fleet-speed>span { font-size:11px; }
-.fleet-speed>b { font-size:9px; color:var(--fleet-active); font-weight:500; margin-left:auto; max-width:63px; text-align:right; }
-.fleet-throttle { display:flex; gap:2px; margin-top:7px; }
-.fleet-throttle button { flex:1; min-width:0; min-height:30px; padding:5px 1px; border:0; border-top:2px solid transparent; border-radius:0; background:transparent; color:var(--fleet-muted); font-size:9px; }
-.fleet-throttle button[aria-pressed=true] { border-top-color:var(--fleet-active); color:var(--fleet-active); }
-.fleet-throttle button:hover { background:#b7ead51c; }
-.fleet-steering { position:relative; display:flex; align-items:center; gap:5px; margin-top:8px; font-size:8px; color:var(--fleet-muted); padding-bottom:11px; }
-.fleet-steering>div { position:relative; height:4px; flex:1; border-top:1px solid #d3e5e577; }
-.fleet-steering>div:before { content:''; width:1px; height:5px; position:absolute; top:-3px; left:50%; background:#d3e5e577; }
-.fleet-steering i { position:absolute; width:4px; height:5px; top:-3px; transform:translateX(-50%); background:var(--fleet-active); }
-.fleet-steering>strong { position:absolute; bottom:-1px; left:50%; transform:translateX(-50%); font-size:9px; font-weight:400; color:#edf5ee; white-space:nowrap; }
-.fleet-sailing-meta { display:flex; justify-content:space-between; gap:12px; margin-top:12px; color:var(--fleet-muted); font-size:9px; align-items:center; }
-.fleet-sailing-meta>span:last-child { display:flex; align-items:center; gap:3px; font-size:8px; }
-.fleet-touch-helm { display:none; }
-.fleet-armament { position:absolute; bottom:var(--fleet-bottom); left:50%; transform:translateX(-50%); width:421px; }
-.fleet-battery-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; font-size:10px; color:var(--fleet-muted); }
-.fleet-battery-heading b { color:#eaf2ee; margin-left:5px; font-weight:400; }
-.fleet-battery-heading strong { font-weight:400; }
-.fleet-turrets { display:flex; gap:12px; justify-content:center; margin-bottom:10px; color:var(--fleet-muted); }
-.fleet-turrets>span { display:flex; align-items:center; gap:4px; }
-.fleet-turrets b { font-size:9px; font-weight:400; }
-.fleet-turrets i { width:13px; height:2px; background:currentColor; opacity:.5; }
-.fleet-weapon-row { display:flex; gap:6px; }
-.fleet-weapon-row>button { position:relative; flex:1; min-width:0; min-height:78px; display:flex; align-items:center; flex-direction:column; justify-content:center; gap:5px; border:1px solid var(--fleet-line); border-radius:2px; background:#10222dd6; padding:8px 3px; }
-.fleet-weapon-row>button:disabled { opacity:.7; color:#d7e2e5; cursor:default; }
-.fleet-weapon-row>button:nth-child(3) { margin-left:10px; }
-.fleet-weapon-row>button:nth-child(3),.fleet-weapon-row>button:nth-child(4) { flex:1.3; }
-.fleet-weapon-row strong { font-size:8px; font-weight:500; white-space:nowrap; }
-.fleet-weapon-row small { font-size:9px; color:var(--fleet-muted); }
-.fleet-map-area { position:absolute; right:var(--fleet-edge); bottom:var(--fleet-bottom); width:202px; }
-.fleet-camera-controls { display:flex; justify-content:flex-end; gap:5px; margin-bottom:9px; }
-.fleet-camera-controls button { display:flex; gap:7px; align-items:center; justify-content:center; min-width:30px; min-height:30px; padding:5px 7px; border:1px solid var(--fleet-line); border-radius:2px; background:#10222dcc; font-size:10px; }
-.fleet-camera-controls button:hover { background:#314d5be8; }
-.fleet-camera-controls button:first-child { margin-right:auto; }
-.navigation-chart { background:#0b202ce0; border:1px solid var(--fleet-line); color:#c3d8d8; }
-.chart-heading,.chart-footer { display:flex; justify-content:space-between; align-items:center; padding:8px 9px; font-size:9px; color:#cbdcde; gap:4px; }
-.chart-heading { border-bottom:1px solid #c9dce021; }
-.navigation-chart>svg { display:block; width:100%; }
-.chart-grid { fill:none; stroke:#bedadc29; stroke-width:.8; }
-.chart-trail { fill:none; stroke:var(--fleet-active); stroke-width:1.3; stroke-dasharray:2 2; }
-.navigation-chart text { fill:#d1e0e2; font:10px 'Barlow',sans-serif; }
-.chart-footer { border-top:1px solid #c9dce021; padding:5px 8px; font-size:8px; }
-.chart-zoom { display:flex; gap:4px; }
-.chart-zoom button { width:24px; height:24px; padding:0; display:grid; place-items:center; border:1px solid var(--fleet-line); background:transparent; border-radius:2px; }
-.chart-zoom button:hover { background:#ffffff15; }
-.chart-zoom button:disabled { opacity:.35; }
-.fleet-help-button { position:absolute; left:var(--fleet-edge); bottom:9px; background:transparent; border:0; padding:3px 0; font-size:10px; color:var(--fleet-muted); text-decoration:underline; text-underline-offset:3px; }
-.fleet-help { position:absolute; left:var(--fleet-edge); bottom:255px; width:251px; padding:16px; background:#10222ff5; border:1px solid var(--fleet-line); border-radius:3px; text-shadow:none; }
-.fleet-help>div { display:flex; align-items:center; justify-content:space-between; gap:8px; }
-.fleet-help>div>strong { font-size:11px; font-weight:500; }
-.fleet-help>div>button { background:transparent; border:0; width:25px; height:25px; padding:4px; display:flex; }
-.fleet-help dl { margin:12px 0; }
-.fleet-help dl>div { display:flex; align-items:center; gap:13px; margin-top:10px; font-size:11px; }
-.fleet-help dt { min-width:62px; display:flex; gap:4px; color:var(--fleet-muted); }
-.fleet-help dd { margin:0; }
-.fleet-help p { border-top:1px solid var(--fleet-line); margin:15px 0 0; padding-top:12px; color:var(--fleet-muted); font-size:11px; line-height:1.5; }
-@media(max-width:1050px) { .fleet-hud { --fleet-edge:20px; } .fleet-ship { width:230px; } .fleet-bearing { width:72px; height:72px; } .fleet-navigation { gap:9px; } .fleet-map-area { width:174px; } .fleet-armament { width:340px; left:52%; } .fleet-weapon-row { gap:4px; } .fleet-weapon-row>button { min-height:70px; } .fleet-weapon-row>button:nth-child(3) { margin-left:4px; } .fleet-weapon-row strong { font-size:7px; } .fleet-sight { width:390px; } }
-@media(max-width:800px) { .fleet-armament { left:50%; width:310px; bottom:255px; } .fleet-sight { width:330px; top:40%; } .fleet-compass { width:210px; top:85px; } .fleet-weapon-row>button { min-height:59px; padding:5px 2px; gap:3px; } .fleet-weapon-row svg { width:20px; height:20px; } .fleet-turrets { display:none; } .fleet-mission>span { font-size:10px; } }
-@media(max-width:480px) { .fleet-hud { --fleet-edge:14px; } .fleet-ship { width:210px; } .fleet-ship-name>span { font-size:8px; } .fleet-map-area { width:124px; } .fleet-bearing { width:62px; height:62px; } .fleet-camera-controls { flex-wrap:wrap; } .fleet-camera-controls button:first-child { width:100%; margin:0; } .chart-heading { padding:6px; font-size:8px; } .chart-heading>span:first-child { max-width:55px; } .chart-footer { flex-wrap:wrap; padding:4px 6px; } .fleet-armament { width:300px; bottom:306px; } .fleet-help { width:230px; bottom:254px; z-index:1; } .fleet-sight { width:280px; } }
-@media(max-width:360px) { .fleet-ship { width:calc(100% - 28px); } .fleet-map-area { bottom:270px; width:105px; } .fleet-armament { width:calc(100% - 28px); bottom:500px; } .fleet-camera-controls button:first-child { width:auto; } .fleet-camera-controls button:not(:first-child) { display:none; } }
-@media(pointer:coarse) { .fleet-touch-helm { display:flex; gap:8px; margin-top:10px; } .fleet-touch-helm button { flex:1; min-height:40px; background:#10222ddd; border:1px solid var(--fleet-line); border-radius:2px; font-size:10px; touch-action:none; } .fleet-throttle button { min-height:40px; } .fleet-armament { bottom:300px; } .fleet-help { bottom:310px; } }
-@media(max-height:600px) and (min-width:600px) { .fleet-hud { --fleet-edge:18px; --fleet-bottom:26px; } .fleet-mission { top:18px; } .fleet-top-actions { top:15px; } .fleet-compass { width:210px; top:18px; } .fleet-armament { width:310px; left:52%; bottom:26px; } .fleet-turrets { display:none; } .fleet-ship { width:210px; } .fleet-bearing { width:62px; height:62px; } .fleet-map-area { width:132px; } .fleet-camera-controls { margin-bottom:5px; gap:4px; } .fleet-camera-controls button { min-width:26px; padding:4px; } .fleet-camera-controls kbd { display:none; } .fleet-sight { top:38%; width:330px; } .fleet-help { bottom:50px; left:50%; transform:translateX(-50%); } .fleet-help dl>div { margin-top:6px; } .fleet-help p { margin-top:9px; padding-top:8px; } }
-@media(prefers-reduced-motion:reduce) { .fleet-hud { transition:none; } }
 
+.fleet-sight { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#edf5f0d9; filter:drop-shadow(0 1px 2px #10232e); }
+.fleet-sight>svg { width:100%; display:block; }
+.fleet-sight-chase { width:38px; }
+.fleet-sight-optics { width:min(640px,75vw); }
+.fleet-scope-readout { position:absolute; top:calc(50% + 48px); left:50%; transform:translateX(-50%); display:flex; align-items:baseline; gap:30px; white-space:nowrap; font:500 19px/1 'Barlow Condensed',sans-serif; }
+.fleet-scope-readout strong { font-weight:500; }
+.fleet-scope-readout small { font:400 10px 'Barlow',sans-serif; }
+.fleet-scope-readout span small { display:block; margin-top:6px; font-size:8px; color:var(--fleet-muted); }
+.fleet-in-optics .fleet-edge-shade { background:radial-gradient(ellipse at center,transparent 42%,#06111b45 78%,#06111b99 100%); }
+.fleet-capture-hint { position:absolute; top:calc(50% + 44px); left:50%; transform:translateX(-50%); padding:7px 13px; background:#10252ec2; border:1px solid var(--fleet-line); border-radius:2px; color:#f0f5f3; font-size:11px; white-space:nowrap; }
+.fleet-capture-hint span { margin-left:12px; color:var(--fleet-muted); font-size:10px; }
+.fleet-in-optics .fleet-capture-hint { top:calc(50% + 115px); }
+
+.fleet-ship { position:absolute; left:var(--fleet-edge); bottom:var(--fleet-bottom); width:292px; }
+.fleet-ship-silhouette { width:112px; height:28px; display:block; margin-bottom:5px; color:var(--fleet-active); filter:drop-shadow(0 2px 3px #07131b); }
+.fleet-ship-name { display:flex; gap:10px; align-items:baseline; justify-content:space-between; }
+.fleet-ship-name h1 { margin:0; font:600 22px/1.1 'Barlow Condensed',sans-serif; }
+.fleet-hp { white-space:nowrap; font:500 20px/1 'Barlow Condensed',sans-serif; }
+.fleet-hp strong { color:var(--fleet-active); font-weight:500; }
+.fleet-hp>span { color:var(--fleet-muted); font-size:16px; }
+.fleet-health-track { height:3px; margin-top:9px; background:#c9dce033; }
+.fleet-health-track i { display:block; height:100%; background:var(--fleet-active); }
+.fleet-navigation { display:flex; align-items:center; gap:12px; margin-top:10px; }
+.fleet-bearing { position:relative; width:194px; height:194px; flex-shrink:0; color:#dae8e8; }
+.fleet-bearing svg { display:block; width:100%; height:100%; }
+.fleet-bearing text { fill:currentColor; font:12px 'Barlow Condensed',sans-serif; }
+.fleet-bearing .bearing-gun { color:#a6b6bc; }
+.fleet-bearing .bearing-gun-ready { color:var(--fleet-active); }
+.fleet-bearing .bearing-gun text,.fleet-bearing .bearing-gun-ready text { fill:currentColor; font-size:8px; font-weight:600; }
+.fleet-bearing-course { position:absolute; bottom:2px; left:50%; transform:translateX(-50%); padding:0 5px; background:#10252ea6; font:500 13px 'Barlow Condensed',sans-serif; }
+.fleet-engine { flex:1; min-width:0; align-self:stretch; padding-top:2px; }
+.fleet-speed { display:flex; align-items:baseline; gap:5px; margin-bottom:4px; }
+.fleet-speed>strong { font:500 31px/1 'Barlow Condensed',sans-serif; }
+.fleet-speed>span { font-size:12px; color:var(--fleet-muted); }
+.fleet-throttle { display:flex; flex-direction:column; align-items:flex-start; }
+.fleet-throttle button { position:relative; min-width:58px; min-height:25px; padding:1px 6px; border:0; border-radius:0; background:transparent; color:var(--fleet-muted); font:500 21px/1 'Barlow Condensed',sans-serif; text-align:left; text-shadow:0 2px 4px #07131bea; }
+.fleet-throttle button[aria-pressed=true] { background:#eaf3ed; color:#193039; text-shadow:none; }
+.fleet-throttle button[aria-pressed=true]:before { position:absolute; right:100%; top:50%; transform:translateY(-50%); content:''; border-top:5px solid transparent; border-bottom:5px solid transparent; border-right:5px solid #eaf3ed; }
+.fleet-throttle button:hover { color:var(--fleet-active); background:#173d48ba; }
+.fleet-throttle button small { display:block; font:400 8px/1.3 'Barlow',sans-serif; opacity:.9; }
+.fleet-steering { display:flex; align-items:center; gap:7px; margin:9px 0 0 6px; width:182px; font-size:8px; color:var(--fleet-muted); }
+.fleet-steering>div { position:relative; height:5px; flex:1; border-top:1px solid #d3e5e577; }
+.fleet-steering>div:before { content:''; width:1px; height:6px; position:absolute; top:-3px; left:50%; background:#d3e5e577; }
+.fleet-steering i { position:absolute; width:5px; height:7px; top:-4px; transform:translateX(-50%); background:var(--fleet-active); }
+.fleet-steering kbd { padding:1px 3px; min-width:14px; font-size:9px; }
+.fleet-flood-warning { color:#f2be83; margin:7px 0 0; font-size:11px; }
+.fleet-touch-helm { display:none; }
+
+.fleet-armament { position:absolute; bottom:var(--fleet-bottom); left:50%; transform:translateX(-50%); width:410px; }
+.fleet-turrets { display:flex; gap:9px; justify-content:center; margin-bottom:13px; color:var(--fleet-muted); }
+.fleet-mount { position:relative; width:36px; height:40px; flex-shrink:1; min-width:20px; }
+.fleet-mount>svg { width:100%; height:36px; fill:none; stroke:#d5e5e542; stroke-width:1.4; }
+.fleet-mount .fleet-reload-progress { stroke:currentColor; stroke-width:2; }
+.fleet-mount>b { position:absolute; top:0; height:36px; left:0; right:0; display:flex; justify-content:center; align-items:center; font:500 19px 'Barlow Condensed',sans-serif; }
+.fleet-mount>small { position:absolute; top:38px; left:50%; transform:translateX(-50%); font-size:9px; }
 .fleet-gun-ready { color:var(--fleet-active); }
-.fleet-weapon-row>button[aria-pressed=true] { color:var(--fleet-active); border-color:var(--fleet-active); }
-.fleet-weapon-row>button:hover:not(:disabled) { background:#314d5be8; }
-.fleet-hud .gunnery { top:82px; right:var(--fleet-edge); text-shadow:none; }
-.fleet-hud .gunnery-details { max-height:min(38dvh,320px); }
-@media(max-width:800px) { .fleet-hud .gunnery { top:140px; left:var(--fleet-edge); right:var(--fleet-edge); width:auto; } .fleet-hud .gunnery-details { max-height:140px; } }
-@media(max-height:600px) and (min-width:600px) { .fleet-hud .gunnery { top:60px; } .fleet-hud .gunnery-details { max-height:140px; } }
+.fleet-gun-disabled { color:#ee9b86; }
+.fleet-battery-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 2px 8px; font-size:10px; color:var(--fleet-muted); }
+.fleet-battery-heading strong { font-weight:500; color:#e4efea; }
+.fleet-weapon-row { display:flex; align-items:stretch; gap:9px; }
+.fleet-weapon-slot { position:relative; flex:1; min-width:0; height:79px; display:flex; align-items:center; justify-content:center; border:1px solid #c9dce044; border-radius:1px; background:#10222d80; padding:9px 2px 3px; color:#d4e2df; }
+.fleet-weapon-slot:hover { background:#264655b3; border-color:#d3e5e590; }
+.fleet-weapon-slot[aria-pressed=true],.fleet-weapon-slot[aria-expanded=true] { border-color:var(--fleet-active); background:#204a486b; }
+.fleet-weapon-slot[aria-pressed=true]:after { content:''; position:absolute; inset:2px; border:1px solid #86e4c533; pointer-events:none; }
+.fleet-weapon-slot:disabled { cursor:default; opacity:.5; }
+.fleet-slot-label { position:absolute; top:5px; left:0; right:0; text-align:center; font:500 9px/1 'Barlow Condensed',sans-serif; color:#d0dedc; }
+.fleet-ammo-glyph { width:61px; height:61px; }
+.fleet-optics-glyph { width:46px; height:46px; }
+.fleet-weapon-slot .fleet-ammo-count { position:absolute; right:5px; bottom:4px; font:500 22px/1 'Barlow Condensed',sans-serif; color:#f0f5f3; }
+.fleet-weapon-slot>kbd { position:absolute; top:calc(100% + 4px); left:50%; transform:translateX(-50%); background:#c6d6d7c9; border:0; color:#132d38; min-width:23px; font-size:12px; text-shadow:none; white-space:nowrap; }
+.fleet-weapon-slot[aria-pressed=true]>kbd { background:var(--fleet-active); }
+.fleet-utility-slot { margin-left:9px; }
+.fleet-slot-cooldown { position:absolute; inset:25px 0 19px; text-align:center; background:#10252ec9; color:#e0c58d; font:500 27px/1.2 'Barlow Condensed',sans-serif; }
+.fleet-slot-cooldown small { font-size:13px; margin-left:2px; }
+.fleet-slot-value { position:absolute; bottom:4px; right:6px; color:var(--fleet-active); font:500 16px/1 'Barlow Condensed',sans-serif; }
+.fleet-control-hint { display:flex; justify-content:center; gap:16px; margin-top:31px; font-size:9px; color:var(--fleet-muted); }
+.fleet-control-hint kbd { font-size:9px; margin-right:3px; border:0; padding:0; }
+
+.fleet-map-area { position:absolute; right:0; bottom:0; width:var(--chart-width); }
+.navigation-chart { position:relative; aspect-ratio:1; background:#0b202c66; border-top:1px solid #c9dce066; border-left:1px solid #c9dce066; color:#d5e5e5; }
+.navigation-chart>svg { display:block; width:100%; height:100%; }
+.chart-grid { fill:none; stroke:#bedadc40; stroke-width:.7; }
+.chart-trail { fill:none; stroke:var(--fleet-active); stroke-width:1.2; stroke-dasharray:2 2; }
+.navigation-chart text { fill:#e1ebed; font:9px 'Barlow',sans-serif; paint-order:stroke; stroke:#10252e80; stroke-width:1.5; }
+.chart-view-cone { fill:#deefed0d; stroke:#deefed3d; stroke-width:.7; }
+.chart-contact { fill:#ee9b86; stroke:#142c35; stroke-width:1; }
+.chart-orientation { position:absolute; left:9px; top:10px; font-size:9px; color:#dfebeb; }
+.chart-controls { position:absolute; right:6px; bottom:6px; display:flex; gap:3px; align-items:center; }
+.chart-controls>span { font-size:8px; margin-right:2px; }
+.chart-controls button { display:grid; place-items:center; width:23px; height:23px; padding:0; border:1px solid var(--fleet-line); border-radius:1px; background:#10252e70; }
+.chart-controls button:hover { background:#416271c9; }
+.chart-controls button:disabled { opacity:.35; }
+.chart-range-button { position:absolute; left:6px; bottom:6px; display:flex; align-items:center; gap:4px; min-height:23px; background:#10252e70; border:1px solid var(--fleet-line); border-radius:1px; padding:3px 5px; font-size:10px; color:#d8e5e5; }
+.chart-range-button:hover { background:#416271c9; }
+
+.fleet-hud .gunnery { right:var(--fleet-edge); top:88px; z-index:3; max-height:calc(100dvh - 110px); }
+.fleet-hud .gunnery-details { max-height:calc(100dvh - 260px); min-height:0; }
+
+@media (max-width:1150px) {
+  .fleet-hud { --fleet-edge:18px; --chart-limit:min(400px, 31vw, 68vh); }
+  .fleet-ship { width:250px; }
+  .fleet-bearing { width:162px; height:162px; }
+  .fleet-navigation { gap:8px; }
+  .fleet-ship-name h1 { font-size:20px; }
+  .fleet-hp { font-size:18px; }
+  .fleet-hp>span { font-size:14px; }
+  .fleet-speed>strong { font-size:27px; }
+  .fleet-throttle button { min-height:22px; font-size:18px; }
+  .fleet-armament { width:350px; }
+  .fleet-weapon-row { gap:7px; }
+  .fleet-weapon-slot { height:69px; }
+  .fleet-ammo-glyph { width:52px; height:52px; }
+  .fleet-steering { width:156px; }
+}
+@media (max-width:900px) and (min-width:601px) {
+  .fleet-hud { --fleet-edge:12px; --fleet-bottom:14px; }
+  .fleet-ship { width:210px; }
+  .fleet-bearing { width:132px; height:132px; }
+  .fleet-engine { padding-top:0; }
+  .fleet-speed>strong { font-size:25px; }
+  .fleet-throttle button { font-size:16px; min-height:19px; min-width:51px; }
+  .fleet-ship-name h1 { font-size:18px; }
+  .fleet-hp { font-size:15px; }
+  .fleet-hp>span { font-size:12px; }
+  .fleet-navigation { align-items:flex-start; }
+  .fleet-steering { width:130px; gap:4px; margin-top:4px; }
+  .fleet-ship-silhouette { width:90px; height:23px; }
+  .fleet-armament { width:300px; }
+  .fleet-weapon-slot { height:62px; }
+  .fleet-slot-label { font-size:8px; }
+  .fleet-ammo-glyph { width:48px; height:48px; }
+  .fleet-weapon-slot>svg:not(.fleet-ammo-glyph) { width:32px; height:32px; }
+  .fleet-weapon-slot .fleet-ammo-count { font-size:18px; }
+  .fleet-utility-slot { margin-left:3px; }
+  .fleet-control-hint { gap:9px; }
+}
+@media (max-width:600px) {
+  .fleet-hud { --fleet-edge:12px; --fleet-bottom:12px; --chart-limit:50vw; }
+  .fleet-top-actions { top:15px; gap:8px; }
+  .fleet-compass { top:16px; width:180px; }
+  .fleet-ship { width:calc(51vw - 18px); }
+  .fleet-ship-silhouette { width:90px; height:22px; }
+  .fleet-ship-name { flex-wrap:wrap; gap:5px; }
+  .fleet-ship-name h1 { font-size:20px; }
+  .fleet-hp { font-size:17px; }
+  .fleet-bearing { position:absolute; width:120px; height:120px; left:-5px; top:24px; opacity:.9; }
+  .fleet-navigation { position:relative; height:170px; }
+  .fleet-engine { margin-left:auto; flex:0 0 51px; z-index:1; }
+  .fleet-speed>strong { font-size:25px; }
+  .fleet-speed>span { font-size:10px; }
+  .fleet-throttle button { min-height:22px; min-width:50px; font-size:17px; }
+  .fleet-steering { width:100%; margin-left:0; }
+  .fleet-armament { width:calc(100vw - 30px); max-width:370px; top:100px; bottom:auto; }
+  .fleet-turrets { gap:5px; }
+  .fleet-mount { max-width:32px; }
+  .fleet-sight-optics { width:88vw; }
+  .fleet-capture-hint { top:calc(50% + 36px); font-size:10px; }
+  .fleet-capture-hint span { display:none; }
+  .fleet-hud .gunnery { top:84px; left:12px; right:12px; width:auto; }
+}
+@media (max-height:620px) and (min-width:601px) {
+  .fleet-hud { --fleet-bottom:12px; }
+  .fleet-compass { top:13px; }
+  .fleet-top-actions { top:10px; }
+  .fleet-armament { padding-bottom:22px; }
+  .fleet-turrets,.fleet-battery-heading { display:none; }
+  .fleet-weapon-slot { height:54px; }
+  .fleet-ammo-glyph { width:43px; height:43px; }
+  .fleet-control-hint { display:none; }
+  .fleet-capture-hint,.fleet-in-optics .fleet-capture-hint { top:80px; }
+  .fleet-hud .gunnery { top:62px; max-height:calc(100dvh - 74px); }
+  .fleet-hud .gunnery-details { max-height:calc(100dvh - 225px); }
+}
+@media (pointer:coarse) {
+  .fleet-capture-hint { display:none; }
+  .fleet-touch-helm { display:flex; gap:5px; margin-top:8px; }
+  .fleet-touch-helm button { flex:1; min-height:36px; border:1px solid var(--fleet-line); background:#10252e9e; font-size:10px; }
+  .fleet-control-hint { visibility:hidden; }
+  .chart-controls button { width:30px; height:30px; }
+}
+@media (prefers-reduced-motion:reduce) { .fleet-hud { transition:none; } }
