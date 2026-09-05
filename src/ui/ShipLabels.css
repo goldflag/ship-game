@@ -1,0 +1,14 @@
+/* Fleet action extension: compact identity and live hull condition above each model. */
+.ship-label-layer { position:absolute; inset:0; overflow:hidden; pointer-events:none; color:#f0f5f3; font-variant-numeric:tabular-nums; }
+.ocean-viewport[data-ship-labels=false] .ship-label-layer { visibility:hidden; }
+.ship-label { --ship-color:#86e4c5; position:absolute; top:0; left:0; width:0; height:0; }
+.ship-label[hidden] { display:none; }
+.ship-label-enemy { --ship-color:#ee9b86; }
+.ship-label:after { content:''; position:absolute; bottom:0; left:0; height:var(--stem-length); border-left:1px solid var(--ship-color); opacity:.65; transform-origin:bottom; transform:rotate(var(--stem-angle)); }
+.ship-label-tag { position:absolute; bottom:var(--label-lift); left:calc(var(--label-offset) - 72px); width:144px; min-height:48px; padding:4px 6px 5px; background:#0e2530ed; border-radius:2px; text-align:center; }
+.ship-label-name { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font:500 15px/17px 'Barlow Condensed',sans-serif; }
+.ship-label-readout { display:flex; justify-content:space-between; gap:4px; margin:2px 0 4px; font:500 11px/12px 'Barlow Condensed',sans-serif; white-space:nowrap; }
+.ship-label-readout>span:first-child { color:var(--ship-color); }
+.ship-label-meter { height:5px; background:#06111b; border:1px solid #c9dce04a; }
+.ship-label-meter>div { height:100%; width:100%; background:var(--ship-color); transform-origin:left; }
+.ship-label-sinking .ship-label-name { color:#c1d0d4; }
