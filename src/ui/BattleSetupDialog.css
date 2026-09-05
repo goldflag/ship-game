@@ -18,7 +18,14 @@
 .battle-roster .icon-button { width:32px; height:36px; border:0; }
 .battle-empty { color:var(--muted); font-size:13px; line-height:1.5; }
 .battle-add { justify-content:center; gap:8px; margin-top:14px; padding:10px; font-size:13px; }
-.battle-briefing { display:flex; align-items:center; gap:13px; margin-top:24px; padding:17px 0; border-top:1px solid var(--line); }
+.battle-deployment { display:grid; grid-template-columns:1fr auto; align-items:center; column-gap:16px; margin-top:24px; padding-top:20px; border-top:1px solid var(--line); }
+.battle-deployment output { color:var(--accent); font-weight:500; }
+.battle-deployment input { grid-column:1 / -1; width:100%; min-width:0; height:32px; margin:4px 0 0; accent-color:var(--accent); cursor:pointer; }
+.battle-deployment input:focus-visible { outline:2px solid var(--accent); outline-offset:4px; }
+.battle-deployment input:disabled { cursor:wait; opacity:.5; }
+.battle-distance-limits { grid-column:1 / -1; display:flex; justify-content:space-between; color:var(--muted); font-size:12px; }
+.battle-deployment p { grid-column:1 / -1; margin:10px 0 0; color:var(--muted); font-size:13px; line-height:1.5; }
+.battle-briefing { display:flex; align-items:center; gap:13px; padding:17px 0; }
 .battle-briefing>svg { color:var(--accent); }
 .battle-briefing p { display:grid; gap:4px; margin:0; }
 .battle-briefing strong { font-weight:500; }

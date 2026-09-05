@@ -1,8 +1,9 @@
 import { expect, test } from 'bun:test';
 import { shipPreset, shipPresets } from '../ships/presets';
 import { CombatSimulation } from './combat';
-import { BATTLE_SPAWN_DISTANCE, MAX_TEAM_SHIPS, validateBattleSetup } from './battle';
+import { BATTLE_SPAWN_DISTANCE, MIN_BATTLE_SPAWN_DISTANCE, MAX_BATTLE_SPAWN_DISTANCE, MAX_TEAM_SHIPS, validateBattleSetup } from './battle';
 import { botTarget, clearFiringLane } from './bots';
+import { localToWorld } from './geometry';
 
 const stop = { throttle: 0, rudder: 0 };
 const intent = { aim: [0, .5, -5000] as [number, number, number], fire: false, battery: 'main' as const };
@@ -32,14 +33,57 @@ test('custom deployments use independent mixed ships, unique IDs and lines 5 km 
   }
 });
 
+test('custom distances deploy and reset every ship facing the opposing formation', () => {
+  for (const spawnDistance of [MIN_BATTLE_SPAWN_DISTANCE, 7500, MAX_BATTLE_SPAWN_DISTANCE]) {
+    const sim = new CombatSimulation(shipPreset('baltimore'), {
+      friendlyBots: Array(MAX_TEAM_SHIPS - 1).fill(shipPreset('bismarck')),
+      enemies: Array(MAX_TEAM_SHIPS).fill(shipPreset('yamato')), spawnDistance,
+    });
+    const initial = sim.actors.map(actor => ({ ...actor.motion }));
+    const friendly = sim.actors.filter(actor => actor.team === 'friendly');
+    const enemies = sim.actors.filter(actor => actor.team === 'enemy');
+    friendly.forEach((actor, i) => {
+      const enemy = enemies[i];
+      expect(Math.hypot(actor.motion.x - enemy.motion.x, actor.motion.z - enemy.motion.z)).toBe(spawnDistance);
+      // Use the shared bow transform so this checks physical facing, not just heading constants.
+      const bow = localToWorld([0, 0, -1], actor.motion);
+      const enemyBow = localToWorld([0, 0, -1], enemy.motion);
+      expect(bow[0]).toBeCloseTo(enemy.motion.x, 8);
+      expect(enemyBow[0]).toBeCloseTo(actor.motion.x, 8);
+      expect(Math.abs(bow[2] - enemy.motion.z)).toBeCloseTo(spawnDistance - 1, 8);
+      expect(Math.abs(enemyBow[2] - actor.motion.z)).toBeCloseTo(spawnDistance - 1, 8);
+    });
+    for (const a of sim.actors) for (const b of sim.actors) if (a !== b) {
+      expect(Math.hypot(a.motion.x - b.motion.x, a.motion.z - b.motion.z)).toBeGreaterThan(600);
+    }
+    sim.actors.forEach(actor => Object.assign(actor.motion, { x: 42, z: 99, heading: 1.2 }));
+    sim.reset();
+    expect(sim.actors.map(actor => actor.motion)).toEqual(initial);
+  }
+});
+
 test('fleet validation rejects empty enemies, unavailable presets and overfull teams', () => {
-  const setup = { playerShipId: 'bismarck', friendlyBots: [], enemies: ['yamato'] };
+  const setup = { playerShipId: 'bismarck', friendlyBots: [], enemies: ['yamato'], spawnDistance: BATTLE_SPAWN_DISTANCE };
   const ids = Object.keys(shipPresets);
   expect(() => validateBattleSetup(setup, ids)).not.toThrow();
   expect(() => validateBattleSetup({ ...setup, enemies: [] }, ids)).toThrow('at least one enemy');
   expect(() => validateBattleSetup({ ...setup, playerShipId: 'missing' }, ids)).toThrow('unavailable');
   expect(() => validateBattleSetup({ ...setup, friendlyBots: Array(5).fill('bismarck') }, ids)).toThrow('up to 5');
   expect(() => validateBattleSetup({ ...setup, enemies: Array(6).fill('bismarck') }, ids)).toThrow('up to 5');
+});
+
+test('spawn distance accepts its limits and rejects invalid values at setup and simulation boundaries', () => {
+  const setup = { playerShipId: 'bismarck', friendlyBots: [], enemies: ['yamato'], spawnDistance: BATTLE_SPAWN_DISTANCE };
+  const ids = Object.keys(shipPresets);
+  for (const spawnDistance of [MIN_BATTLE_SPAWN_DISTANCE, 7500, MAX_BATTLE_SPAWN_DISTANCE]) {
+    expect(() => validateBattleSetup({ ...setup, spawnDistance }, ids)).not.toThrow();
+  }
+  for (const spawnDistance of [NaN, Infinity, -Infinity, 0, -1000, MIN_BATTLE_SPAWN_DISTANCE - 1, MAX_BATTLE_SPAWN_DISTANCE + 1]) {
+    expect(() => validateBattleSetup({ ...setup, spawnDistance }, ids)).toThrow('spawn distance');
+    expect(() => new CombatSimulation(shipPreset('bismarck'), {
+      friendlyBots: [], enemies: [shipPreset('yamato')], spawnDistance,
+    })).toThrow('spawn distance');
+  }
 });
 
 test('every bot maneuvers, fires both applicable batteries, reloads and damages opposing hulls', () => {

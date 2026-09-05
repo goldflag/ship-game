@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { shipPresets } from '../ships/presets';
-import { BATTLE_SPAWN_DISTANCE, MAX_TEAM_SHIPS, type BattleSetup } from '../simulation/battle';
+import { MIN_BATTLE_SPAWN_DISTANCE, MAX_BATTLE_SPAWN_DISTANCE, MAX_TEAM_SHIPS, type BattleSetup } from '../simulation/battle';
 import { Icon } from './Icons';
 import './BattleSetupDialog.css';
 
@@ -49,7 +49,16 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, loading,
         <button className="secondary-button battle-add" disabled={setup.enemies.length >= MAX_TEAM_SHIPS} onClick={() => onChange({ ...setup, enemies: [...setup.enemies, 'bismarck'] })}><Icon name="plus" size={16}/> Add enemy bot</button>
       </section>
     </fieldset>
-    <div className="battle-briefing"><Icon name="compass" size={21}/><p><strong>{BATTLE_SPAWN_DISTANCE / 1000} km starting separation</strong><span>Open ocean · Sink the opposing fleet to win.</span></p></div>
+    <div className="battle-deployment">
+      <label htmlFor="battle-spawn-distance">Spawn distance</label>
+      <output htmlFor="battle-spawn-distance">{setup.spawnDistance / 1000} km</output>
+      <input id="battle-spawn-distance" type="range" min={MIN_BATTLE_SPAWN_DISTANCE} max={MAX_BATTLE_SPAWN_DISTANCE} step={500} value={setup.spawnDistance} disabled={loading}
+        aria-valuetext={`${setup.spawnDistance / 1000} kilometers`} aria-describedby="battle-spawn-description"
+        onChange={event => onChange({ ...setup, spawnDistance: Number(event.target.value) })}/>
+      <div className="battle-distance-limits" aria-hidden="true"><span>{MIN_BATTLE_SPAWN_DISTANCE / 1000} km</span><span>{MAX_BATTLE_SPAWN_DISTANCE / 1000} km</span></div>
+      <p id="battle-spawn-description">Distance between the two formations. Both teams start facing each other.</p>
+    </div>
+    <div className="battle-briefing"><Icon name="compass" size={21}/><p><strong>Open ocean</strong><span>Sink the opposing fleet to win.</span></p></div>
     {error && <p className="battle-error" role="alert">{error} Your fleet is kept here; try launching again.</p>}
     <footer><button className="secondary-button" disabled={loading} onClick={onClose}>Back to port</button><button className="primary-button" aria-busy={loading} disabled={loading || !setup.enemies.length} onClick={onLaunch}>{loading ? 'Preparing fleets…' : 'Start battle'}<Icon name="arrow" size={18}/></button></footer>
   </dialog>;
