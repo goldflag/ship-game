@@ -44,3 +44,7 @@ Regression coverage includes broadside survivability and eventual sinking, armor
 - Orca browser using this worktree's Vite server: one landed broadside displayed **Damage 364, Hull 75%, Equipment 100%, Frags 0**. Four displayed **Damage 1,450, Hull 0%, Frags 1, Victory**, with the target marked sunk. See [desktop HUD evidence](gameplay-hud-browser.json) and [sinking result](gameplay-sinking-browser.json).
 - At **1137×906** and **390×844**, the separate condition readings and Return to ship control fit the viewport, with no horizontal page overflow. See [narrow-viewport evidence](gameplay-hud-mobile.json). Full-page screenshot capture timed out in the embedded browser, so these UI checks use live DOM text and geometry rather than a completed screenshot review. The browser also emitted a Three.js depth-format warning; renderer code was unchanged.
 - `git diff --check`: passed.
+
+## Master integration
+
+Merged master `3e58102` into the balance branch, preserving its convoy presets, carrier deck operations, shell visibility and smoke fixes. The combined tree passes **494 tests across 61 files** with `bun run test --timeout 60000`, and `bun run build` passes all registered ship/aircraft checks, TypeScript and Vite. The existing large-chunk warning remains. The controlled broadside, armor, scoring and separate hull/equipment regressions pass in this combined tree.
