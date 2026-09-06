@@ -1,0 +1,984 @@
+{
+  "controls": [
+    {
+      "clientWidth": 41,
+      "name": "Select main AP battery \u00b7 220 shells \u00b7 1",
+      "rect": {
+        "bottom": 862,
+        "height": 58,
+        "left": 420.5,
+        "right": 463.6640625,
+        "top": 804,
+        "width": 43.1640625,
+        "x": 420.5,
+        "y": 804
+      },
+      "scrollWidth": 43
+    },
+    {
+      "clientWidth": 41,
+      "name": "Select secondary AP battery \u00b7 1100 shells \u00b7 2",
+      "rect": {
+        "bottom": 862,
+        "height": 58,
+        "left": 469.6640625,
+        "right": 512.8359375,
+        "top": 804,
+        "width": 43.171875,
+        "x": 469.6640625,
+        "y": 804
+      },
+      "scrollWidth": 43
+    },
+    {
+      "clientWidth": 41,
+      "name": "Select torpedoes \u00b7 13 torpedoes \u00b7 3",
+      "rect": {
+        "bottom": 862,
+        "height": 58,
+        "left": 518.8359375,
+        "right": 562,
+        "top": 804,
+        "width": 43.1640625,
+        "x": 518.8359375,
+        "y": 804
+      },
+      "scrollWidth": 43
+    },
+    {
+      "clientWidth": 41,
+      "name": "Toggle binocular aiming \u00b7 Shift",
+      "rect": {
+        "bottom": 862,
+        "height": 58,
+        "left": 575,
+        "right": 618.171875,
+        "top": 804,
+        "width": 43.171875,
+        "x": 575,
+        "y": 804
+      },
+      "scrollWidth": 41
+    },
+    {
+      "clientWidth": 41,
+      "name": "Gunnery and target damage \u00b7 G",
+      "rect": {
+        "bottom": 862,
+        "height": 58,
+        "left": 624.171875,
+        "right": 667.3359375,
+        "top": 804,
+        "width": 43.1640625,
+        "x": 624.171875,
+        "y": 804
+      },
+      "scrollWidth": 41
+    },
+    {
+      "clientWidth": 41,
+      "name": "Launch torpedo \u00b7 Left mouse or Q",
+      "rect": {
+        "bottom": 862,
+        "height": 58,
+        "left": 673.3359375,
+        "right": 716.5,
+        "top": 804,
+        "width": 43.1640625,
+        "x": 673.3359375,
+        "y": 804
+      },
+      "scrollWidth": 41
+    }
+  ],
+  "diagnostics": {
+    "audio": {
+      "failed": [],
+      "inPort": false,
+      "loaded": 13,
+      "paused": false,
+      "played": 37,
+      "settings": {
+        "effects": 0.8,
+        "interface": 0.65,
+        "master": 0.65,
+        "muted": false
+      },
+      "state": "running",
+      "total": 13,
+      "voices": 0
+    },
+    "backend": "webgpu",
+    "camera": {
+      "aim": [
+        -1.0878553640397562e-15,
+        1.2883583664621936,
+        -794.9903729796448
+      ],
+      "binoculars": false,
+      "fov": 52.00000000000001,
+      "magnification": 1,
+      "manualAim": true,
+      "matrixWorldInverse": [
+        1,
+        -7.039006532382067e-20,
+        1.3665764611529954e-18,
+        0,
+        -1.2037062152420227e-35,
+        0.9986760799917509,
+        0.05144013270113425,
+        0,
+        -1.3683880975343712e-18,
+        -0.05144013270113425,
+        0.9986760799917509,
+        0,
+        1.1555579666323419e-33,
+        -42.170097501881834,
+        -123.08218638072508,
+        1
+      ],
+      "mode": "Chase",
+      "pointerLocked": false,
+      "position": [
+        1.652328627772753e-16,
+        48.445631666619505,
+        120.74999999999999
+      ],
+      "projectionMatrix": [
+        1.633751346060547,
+        0,
+        0,
+        0,
+        0,
+        2.050303841579296,
+        0,
+        0,
+        0,
+        0,
+        -1.0000083334027783,
+        -1,
+        0,
+        0,
+        -0.5000041667013891,
+        0
+      ],
+      "shellFollow": "off"
+    },
+    "combat": {
+      "batteries": [
+        {
+          "ammo": 220,
+          "battery": "main",
+          "ready": 1,
+          "reload": 0,
+          "total": 1
+        },
+        {
+          "ammo": 1100,
+          "battery": "secondary",
+          "ready": 0,
+          "reload": 0,
+          "total": 1
+        },
+        {
+          "ammo": 13,
+          "battery": "torpedo",
+          "ready": 0,
+          "reload": 0,
+          "total": 5
+        }
+      ],
+      "battery": "torpedo",
+      "battle": true,
+      "contacts": [
+        {
+          "controller": "player",
+          "heading": 0,
+          "id": "player",
+          "integrity": 0,
+          "name": "Type VIIC",
+          "shipId": "type-viic",
+          "sunk": true,
+          "team": "friendly",
+          "x": 0,
+          "z": 0
+        },
+        {
+          "controller": "bot",
+          "heading": 3.141592653589793,
+          "id": "enemy-1",
+          "integrity": 0.24444444444444444,
+          "name": "Type VIIC",
+          "shipId": "type-viic",
+          "sunk": false,
+          "team": "enemy",
+          "x": 2.452504287832739e-14,
+          "z": -799.7378273032775
+        }
+      ],
+      "message": "Type VIIC \u00b7 Torpedo hit \u00b7 Forward torpedo room \u00b7 flooding breach",
+      "modules": [
+        {
+          "condition": 0.4563690156024437,
+          "id": "forward-torpedoes",
+          "name": "Forward torpedo stowage"
+        },
+        {
+          "condition": 1,
+          "id": "deck-magazine",
+          "name": "Deck gun ammunition locker"
+        },
+        {
+          "condition": 1,
+          "id": "diesels",
+          "name": "Twin diesel engines"
+        },
+        {
+          "condition": 1,
+          "id": "electric-motors",
+          "name": "Twin electric motors"
+        },
+        {
+          "condition": 1,
+          "id": "aft-torpedoes",
+          "name": "Stern torpedo stowage"
+        },
+        {
+          "condition": 1,
+          "id": "steering-gear",
+          "name": "Rudder linkage"
+        }
+      ],
+      "mounts": [
+        {
+          "ammo": 2,
+          "id": "bow-tube-1",
+          "name": "Bow tube 1",
+          "reload": 0,
+          "status": "disabled"
+        },
+        {
+          "ammo": 3,
+          "id": "bow-tube-2",
+          "name": "Bow tube 2",
+          "reload": 0,
+          "status": "disabled"
+        },
+        {
+          "ammo": 3,
+          "id": "bow-tube-3",
+          "name": "Bow tube 3",
+          "reload": 0,
+          "status": "disabled"
+        },
+        {
+          "ammo": 3,
+          "id": "bow-tube-4",
+          "name": "Bow tube 4",
+          "reload": 0,
+          "status": "disabled"
+        },
+        {
+          "ammo": 2,
+          "id": "stern-tube",
+          "name": "Stern tube 5",
+          "reload": 0,
+          "status": "disabled"
+        }
+      ],
+      "playerDamageDealt": 340,
+      "playerFrags": 0,
+      "playerIntegrity": 0,
+      "playerMaxIntegrity": 450,
+      "playerSunk": true,
+      "playerWater": 84.9998,
+      "range": 794.9903729796448,
+      "ready": 0,
+      "result": "defeat",
+      "targetId": "enemy-1",
+      "targetIntegrity": 0.24444444444444444,
+      "targetName": "Type VIIC",
+      "targetPosition": {
+        "heading": 3.141592653589793,
+        "x": 2.452504287832739e-14,
+        "z": -799.7378273032775
+      },
+      "targetPower": 1,
+      "targetRange": 799.7378273032775,
+      "targetSteering": 1,
+      "targetSunk": false,
+      "targetUnderway": false,
+      "targetWater": 60.39647202403204,
+      "total": 5
+    },
+    "contentHash": "790540939d476bf9503c191fbfd6d29a3f027941ebf4a4a9011a2f1c5885605b",
+    "effects": {
+      "flashes": 0,
+      "foam": 0,
+      "particleCapacity": 2272,
+      "shells": 0,
+      "smoke": 0,
+      "spray": 0,
+      "torpedoes": 0
+    },
+    "events": [
+      {
+        "kind": "shot",
+        "message": "8.8 cm deck gun fired",
+        "position": [
+          4.745662053594126e-15,
+          2.5503826997705206,
+          -961.2487285566888
+        ],
+        "sequence": 9,
+        "shell": {
+          "caliberM": 0.088,
+          "id": 7,
+          "type": "AP",
+          "velocity": [
+            8.625527216576614e-14,
+            5.411676803909537,
+            704.3277476070688
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 724
+      },
+      {
+        "impact": {
+          "direction": [
+            1.2245757621206488e-16,
+            -0.010770742958914266,
+            0.9999419938657008
+          ],
+          "normal": [
+            -0.9824694644084596,
+            0,
+            -0.18642358087150562
+          ],
+          "outcome": "stopped",
+          "position": [
+            1.1835598990359589e-13,
+            1.16879851999491,
+            -33.55000000000062
+          ]
+        },
+        "kind": "stopped",
+        "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+        "normal": [
+          -0.9824694644084596,
+          0,
+          -0.18642358087150562
+        ],
+        "position": [
+          1.1835598990359589e-13,
+          1.16879851999491,
+          -33.55000000000062
+        ],
+        "sequence": 10,
+        "shell": {
+          "caliberM": 0.088,
+          "id": 7,
+          "type": "AP",
+          "velocity": [
+            8.625527216576614e-14,
+            -7.668323196090462,
+            704.3277476070688
+          ]
+        },
+        "shipId": "player",
+        "tick": 803
+      },
+      {
+        "kind": "shot",
+        "message": "8.8 cm deck gun fired",
+        "position": [
+          8.093439135584218e-15,
+          2.5490957243754013,
+          -933.9120541431168
+        ],
+        "sequence": 11,
+        "shell": {
+          "caliberM": 0.088,
+          "id": 8,
+          "type": "AP",
+          "velocity": [
+            8.628048732937863e-14,
+            5.182444545236866,
+            704.5336450432114
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 1085
+      },
+      {
+        "kind": "torpedo-launch",
+        "message": "Bow tube 1 \u00b7 torpedo away",
+        "position": [
+          -0.43,
+          -1.1,
+          -30
+        ],
+        "sequence": 12,
+        "shipId": "player",
+        "tick": 1091,
+        "torpedo": {
+          "diameterM": 0.533,
+          "id": 9,
+          "velocity": [
+            0.010680857940986735,
+            0,
+            -22.635533480052324
+          ]
+        }
+      },
+      {
+        "impact": {
+          "direction": [
+            1.2245806089542778e-16,
+            -0.010396820060050252,
+            0.9999459516057049
+          ],
+          "normal": [
+            -0.9824694644084596,
+            0,
+            -0.18642358087150562
+          ],
+          "outcome": "stopped",
+          "position": [
+            1.1835598990359435e-13,
+            1.161037489468764,
+            -33.55000000000062
+          ]
+        },
+        "kind": "stopped",
+        "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+        "normal": [
+          -0.9824694644084596,
+          0,
+          -0.18642358087150562
+        ],
+        "position": [
+          1.1835598990359435e-13,
+          1.161037489468764,
+          -33.55000000000062
+        ],
+        "sequence": 13,
+        "shell": {
+          "caliberM": 0.088,
+          "id": 8,
+          "type": "AP",
+          "velocity": [
+            8.628048732937863e-14,
+            -7.4070554547631335,
+            704.5336450432114
+          ]
+        },
+        "shipId": "player",
+        "tick": 1161
+      },
+      {
+        "kind": "shot",
+        "message": "8.8 cm deck gun fired",
+        "position": [
+          1.1448097729433302e-14,
+          2.5478066899533838,
+          -906.5191879209052
+        ],
+        "sequence": 14,
+        "shell": {
+          "caliberM": 0.088,
+          "id": 10,
+          "type": "AP",
+          "velocity": [
+            8.628069089310419e-14,
+            4.952845538770657,
+            704.5353072671742
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 1446
+      },
+      {
+        "impact": {
+          "direction": [
+            1.2245823576151513e-16,
+            -0.010258569089015835,
+            0.999947379495664
+          ],
+          "normal": [
+            -0.9824694644084596,
+            0,
+            -0.18642358087150562
+          ],
+          "outcome": "stopped",
+          "position": [
+            1.183559899035935e-13,
+            1.1537956998471686,
+            -33.55000000000062
+          ]
+        },
+        "kind": "stopped",
+        "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+        "normal": [
+          -0.9824694644084596,
+          0,
+          -0.18642358087150562
+        ],
+        "position": [
+          1.183559899035935e-13,
+          1.1537956998471686,
+          -33.55000000000062
+        ],
+        "sequence": 15,
+        "shell": {
+          "caliberM": 0.088,
+          "id": 10,
+          "type": "AP",
+          "velocity": [
+            8.628069089310419e-14,
+            -7.309654461229342,
+            704.5353072671742
+          ]
+        },
+        "shipId": "player",
+        "tick": 1520
+      },
+      {
+        "kind": "shot",
+        "message": "8.8 cm deck gun fired",
+        "position": [
+          1.4802756282679012e-14,
+          2.5465041242324915,
+          -879.1263220302458
+        ],
+        "sequence": 16,
+        "shell": {
+          "caliberM": 0.088,
+          "id": 11,
+          "type": "AP",
+          "velocity": [
+            8.628088722466876e-14,
+            4.720836377288557,
+            704.536910436061
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 1807
+      },
+      {
+        "impact": {
+          "direction": [
+            1.224584040453024e-16,
+            -0.010123739411206485,
+            0.9999487536370723
+          ],
+          "normal": [
+            -0.9824694644084596,
+            0,
+            -0.18642358087150562
+          ],
+          "outcome": "stopped",
+          "position": [
+            1.1835598990359212e-13,
+            1.1469710761545229,
+            -33.55000000000062
+          ]
+        },
+        "kind": "stopped",
+        "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+        "normal": [
+          -0.9824694644084596,
+          0,
+          -0.18642358087150562
+        ],
+        "position": [
+          1.1835598990359212e-13,
+          1.1469710761545229,
+          -33.55000000000062
+        ],
+        "sequence": 17,
+        "shell": {
+          "caliberM": 0.088,
+          "id": 11,
+          "type": "AP",
+          "velocity": [
+            8.628088722466876e-14,
+            -7.214663622711442,
+            704.536910436061
+          ]
+        },
+        "shipId": "player",
+        "tick": 1879
+      },
+      {
+        "kind": "shot",
+        "message": "8.8 cm deck gun fired",
+        "position": [
+          1.81574147946946e-14,
+          2.545186726716306,
+          -851.7334564762558
+        ],
+        "sequence": 18,
+        "shell": {
+          "caliberM": 0.088,
+          "id": 12,
+          "type": "AP",
+          "velocity": [
+            8.628107621244513e-14,
+            4.486185420207112,
+            704.5384536383664
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 2168
+      },
+      {
+        "impact": {
+          "direction": [
+            1.2245884618071034e-16,
+            -0.009760626901292516,
+            0.9999523639466501
+          ],
+          "normal": [
+            -0.9824694644084596,
+            0,
+            -0.18642358087150562
+          ],
+          "outcome": "stopped",
+          "position": [
+            1.1835598990359079e-13,
+            1.1396978323851366,
+            -33.55000000000062
+          ]
+        },
+        "kind": "stopped",
+        "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+        "normal": [
+          -0.9824694644084596,
+          0,
+          -0.18642358087150562
+        ],
+        "position": [
+          1.1835598990359079e-13,
+          1.1396978323851366,
+          -33.55000000000062
+        ],
+        "sequence": 19,
+        "shell": {
+          "caliberM": 0.088,
+          "id": 12,
+          "type": "AP",
+          "velocity": [
+            8.628107621244513e-14,
+            -6.958814579792888,
+            704.5384536383664
+          ]
+        },
+        "shipId": "player",
+        "tick": 2237
+      },
+      {
+        "kind": "torpedo-hit",
+        "message": "Torpedo hit \u00b7 Forward torpedo room \u00b7 flooding breach",
+        "position": [
+          0.013807100262146715,
+          -2,
+          -31.14624693126209
+        ],
+        "sequence": 20,
+        "shipId": "player",
+        "tick": 2488,
+        "torpedo": {
+          "diameterM": 0.533,
+          "id": 1,
+          "velocity": [
+            -0.010034309591840802,
+            0,
+            22.635533775900385
+          ]
+        }
+      },
+      {
+        "kind": "shot",
+        "message": "8.8 cm deck gun fired",
+        "position": [
+          2.151207332999815e-14,
+          2.5437650798122746,
+          -824.340590732105
+        ],
+        "sequence": 21,
+        "shell": {
+          "caliberM": 0.088,
+          "id": 13,
+          "type": "AP",
+          "velocity": [
+            8.628126934820496e-14,
+            4.23296586987074,
+            704.5400307115272
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 2529
+      },
+      {
+        "kind": "torpedo-hit",
+        "message": "Torpedo hit \u00b7 Forward torpedo room \u00b7 flooding breach",
+        "position": [
+          -0.013860964302249949,
+          -2,
+          -31.264738071407983
+        ],
+        "sequence": 22,
+        "shipId": "player",
+        "tick": 2530,
+        "torpedo": {
+          "diameterM": 0.533,
+          "id": 3,
+          "velocity": [
+            0.010035277599427123,
+            0,
+            22.63553377547125
+          ]
+        }
+      },
+      {
+        "kind": "sunk",
+        "message": "Type VIIC sinking",
+        "position": [
+          0,
+          -0.02633833338038524,
+          0
+        ],
+        "sequence": 23,
+        "shipId": "player",
+        "tick": 2530
+      },
+      {
+        "kind": "torpedo-hit",
+        "message": "Torpedo hit \u00b7 Forward torpedo room \u00b7 flooding breach",
+        "position": [
+          0.014057113690811848,
+          -2,
+          -31.698346412293468
+        ],
+        "sequence": 24,
+        "shipId": "player",
+        "tick": 2570,
+        "torpedo": {
+          "diameterM": 0.533,
+          "id": 4,
+          "velocity": [
+            -0.010038071626078133,
+            0,
+            22.635533774232368
+          ]
+        }
+      },
+      {
+        "impact": {
+          "direction": [
+            1.224589707002947e-16,
+            -0.011799970790492465,
+            0.9999303779210549
+          ],
+          "normal": [
+            -0.9655504702051975,
+            0,
+            -0.26021585172030176
+          ],
+          "outcome": "penetration",
+          "position": [
+            1.1835555269151545e-13,
+            1.70097992064671,
+            -33.55000000000044
+          ]
+        },
+        "kind": "penetration",
+        "message": "Penetrated Hull shell \u00b7 bow to stern plating",
+        "normal": [
+          -0.9655504702051975,
+          -0.0005579534066549479,
+          -0.2602152535392921
+        ],
+        "position": [
+          1.1835555269151545e-13,
+          1.1151999504928585,
+          -33.55357010751834
+        ],
+        "sequence": 25,
+        "shell": {
+          "caliberM": 0.088,
+          "id": 13,
+          "type": "AP",
+          "velocity": [
+            8.628126934820496e-14,
+            -6.8850341301292595,
+            704.5400307115272
+          ]
+        },
+        "shipId": "player",
+        "tick": 2596
+      },
+      {
+        "impact": {
+          "direction": [
+            1.2245751632475894e-16,
+            -0.012960091621261834,
+            0.9999160144858011
+          ],
+          "normal": [
+            0,
+            0.9987523388778446,
+            0.04993761694389225
+          ],
+          "outcome": "stopped",
+          "position": [
+            1.26060747037255e-13,
+            0.95918796767941,
+            29.3662406464118
+          ]
+        },
+        "kind": "stopped",
+        "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+        "normal": [
+          0,
+          0.9988571189234543,
+          0.04779598284308188
+        ],
+        "position": [
+          1.26060747037255e-13,
+          0.47081436197786963,
+          29.36411645406143
+        ],
+        "sequence": 26,
+        "shell": {
+          "caliberM": 0.088,
+          "id": 13,
+          "type": "AP",
+          "velocity": [
+            8.628126934820496e-14,
+            -7.702534130129259,
+            704.5400307115272
+          ]
+        },
+        "shipId": "player",
+        "tick": 2601
+      },
+      {
+        "kind": "torpedo-hit",
+        "message": "Torpedo hit \u00b7 Forward torpedo room \u00b7 flooding breach",
+        "position": [
+          -0.01425053303287153,
+          -2,
+          -32.11970796909447
+        ],
+        "sequence": 27,
+        "shipId": "player",
+        "tick": 2609,
+        "torpedo": {
+          "diameterM": 0.533,
+          "id": 5,
+          "velocity": [
+            0.010042694723288505,
+            0,
+            22.63553377218171
+          ]
+        }
+      },
+      {
+        "kind": "torpedo-hit",
+        "message": "Torpedo hit \u00b7 Forward torpedo room \u00b7 flooding breach",
+        "position": [
+          -0.0779310387351782,
+          -2,
+          -776.126276000377
+        ],
+        "sequence": 28,
+        "shipId": "enemy-1",
+        "tick": 3068,
+        "torpedo": {
+          "diameterM": 0.533,
+          "id": 9,
+          "velocity": [
+            0.010680857940986735,
+            0,
+            -22.635533480052324
+          ]
+        }
+      }
+    ],
+    "fleet": [
+      {
+        "ammo": 1320,
+        "controller": "player",
+        "definitionId": "type-viic",
+        "id": "player",
+        "integrity": 0,
+        "motion": {
+          "distance": 0,
+          "heading": 0,
+          "id": "player",
+          "pitch": -0.002144196176003473,
+          "roll": 0,
+          "rudder": 0,
+          "speed": 0,
+          "swaySpeed": 0,
+          "tick": 3910,
+          "x": 0,
+          "y": -10.36883833338059,
+          "yawRate": 0,
+          "z": 0
+        },
+        "team": "friendly"
+      },
+      {
+        "ammo": 1312,
+        "controller": "bot",
+        "definitionId": "type-viic",
+        "id": "enemy-1",
+        "integrity": 110,
+        "motion": {
+          "distance": 200.26217269667112,
+          "heading": 3.141592653589793,
+          "id": "enemy-1",
+          "pitch": -0.02912791363900667,
+          "roll": 0,
+          "rudder": 0,
+          "speed": 0,
+          "swaySpeed": 0,
+          "tick": 3910,
+          "x": 2.452504287832739e-14,
+          "y": -0.27452941829105476,
+          "yawRate": 0,
+          "z": -799.7378273032775
+        },
+        "team": "enemy"
+      }
+    ],
+    "fps": 35.78040726664617,
+    "inPort": false,
+    "inspecting": false,
+    "maxMuzzleErrorM": 1.2395089280780854e-06,
+    "paused": false,
+    "portInspection": "exterior",
+    "renderedShips": [
+      {
+        "id": "player",
+        "impactDrawCalls": 1,
+        "impactMarks": 1,
+        "visible": true
+      },
+      {
+        "id": "enemy-1",
+        "impactDrawCalls": 0,
+        "impactMarks": 0,
+        "visible": true
+      }
+    ],
+    "shipId": "type-viic",
+    "tick": 3910,
+    "torpedoes": []
+  },
+  "text": "Type VIIC\n110 HP\n255\nW\n285\n300\n315\n330\n345\nN\n015\n030\n045\n060\n075\nE\n105\n000\u00b0\nDefeat\n\nFriendly 0\nEnemy 1\n\nTarget\n1. Type VIIC \u00b7 24%\nBattle ended \u00b7 Esc to return to port\n36 FPS\nDamage\n340\nFrags\n0\nTYPE VIIC\n0 / 450\nN\nE\nS\nW\n1\n2\n3\n4\n5\n000\u00b0\n0.0\nkts\nFULL\n3/4\n1/2\n1/4\nSTOP\nFULL\nASTERN\nA / Left\nPORT\nSTBD\nD / Right\n\nFlooding \u00b7 85.0 m\u00b3\n\n1\n2\n3\n4\n5\n533 mm \u00b7 Torpedo tubes\n0/5 can fire\n\nBow / stern \u00b115\u00b0 \u00b7 5.0 km \u00b7 Arms at 300 m\n\nMAIN AP\n220\n1\nSEC. AP\n1100\n2\nTORPEDO\n13\n3\nBINOCULARS\nSHIFT\nGUNNERY\nG\nFIRE\nQ / LMB\nGunnery\n0/5 can fire\nFire\nQ\n8.8 cm main\n2 cm secondary\nTorpedo tubes\nBow tube 1\nDisabled\n2\nBow tube 2\nDisabled\n3\nBow tube 3\nDisabled\n3\nBow tube 4\nDisabled\n3\nStern tube 5\nDisabled\n2\nAim at\nCenter sight \u00b7 Manual\nTarget waterline\nForward torpedo stowage\nDeck gun ammunition locker\nTwin diesel engines\nTwin electric motors\nStern torpedo stowage\nRudder linkage\nType VIIC\n0.80 km\nStructure\n24%\nPropulsion\n100%\nFlooding\n60.3 m\u00b3\n\nType VIIC \u00b7 Torpedo hit \u00b7 Forward torpedo room \u00b7 flooding breach\n\nAim within the bow or stern arc. Each press launches one loaded tube; hold to launch in sequence. Torpedoes run straight. Target waterline computes a lead for the selected target.\n\nMouse aims the center sight. Hold left mouse or Q to fire. Shift opens binoculars; scroll adjusts magnification. Selecting a module tracks it until you move the mouse to aim again.\n\nInspect target\nN\nE\nW\nNORTH UP\n8 km\nSIZE"
+}

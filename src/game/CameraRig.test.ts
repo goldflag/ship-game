@@ -48,6 +48,42 @@ test('switching the followed ship still eases the camera toward the new target',
   rig.dispose();
 });
 
+test('port preset switches keep both submarine and battleship hulls in view without resetting the orbit', () => {
+  const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
+  const rig = new CameraRig(camera, { addEventListener() {} } as unknown as HTMLCanvasElement);
+  const ship = { ...createShipState(), x: 240 };
+  rig.setHullLength(67.1);
+  rig.setInPort(true);
+  const bearing = rig.bearing;
+  for (const length of [67.1, 251, 67.1, 263]) {
+    rig.setHullLength(length);
+    rig.update(ship, 0, 0, true);
+    expect(rig.bearing).toBe(bearing);
+    for (const z of [-length / 2, length / 2]) {
+      const projected = new Vector3(ship.x, 0, z).project(camera);
+      expect(Math.abs(projected.x)).toBeLessThan(1);
+      expect(Math.abs(projected.y)).toBeLessThan(1);
+      expect(projected.z).toBeGreaterThan(-1);
+      expect(projected.z).toBeLessThan(1);
+    }
+  }
+  rig.dispose();
+});
+
+test('submarine chase framing leaves the complete hull above the weapon instruments', () => {
+  const camera = new PerspectiveCamera(52, 1137 / 906, .5, 60000);
+  const rig = new CameraRig(camera, { addEventListener() {} } as unknown as HTMLCanvasElement);
+  rig.setHullLength(67.1);
+  rig.setInPort(false);
+  rig.aimAt([0, 0, -1000], createShipState());
+  for (const z of [-33.55, 0, 33.55]) {
+    const projected = new Vector3(0, 0, z).project(camera);
+    expect(projected.y).toBeGreaterThan(-.45);
+    expect(projected.y).toBeLessThan(1);
+  }
+  rig.dispose();
+});
+
 function interactiveCamera() {
   const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
   const canvas = Object.assign(new EventTarget(), { setPointerCapture() {} });

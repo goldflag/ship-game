@@ -33,6 +33,12 @@ export class CombatAudioEvents {
       this.sequence = event.sequence;
       // Never burst old combat audio after loading, tab suspension or a slow frame.
       if (tick - event.tick > 12) continue;
+      if (event.kind === 'torpedo-expired') continue;
+      if (event.kind === 'torpedo-launch' || event.kind === 'torpedo-dud' || event.kind === 'torpedo-hit') {
+        cues.push({ id: event.kind === 'torpedo-hit' ? 'magazine-explosion' : 'splash', position: event.position, gain: event.kind === 'torpedo-hit' ? .85 : .35, rate: .7 });
+        if (event.kind === 'torpedo-hit') cues.push({ id: 'splash', position: event.position, gain: .8, rate: .8 });
+        continue;
+      }
       let id: SoundId;
       if (event.kind === 'shot') {
         if (shots.some(shot => shot.tick === event.tick && shot.shipId === event.shipId && Math.hypot(...shot.position.map((n, i) => n - event.position[i])) < 12)) continue;

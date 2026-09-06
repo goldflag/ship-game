@@ -21,9 +21,9 @@ const modulesFor = (selectedShip: ShipDefinition) => {
   return {
     battery: {
       name: "Main battery",
-      model: selectedShip.mounts[0].weapon.name,
+      model: selectedShip.mounts[0]?.weapon.name ?? "No deck gun",
       icon: "turret",
-      detail: `${selectedShip.mounts.filter((m) => m.battery === "main").length} main battery mounts. Built for long-range engagements.`,
+      detail: `${selectedShip.mounts.filter((m) => m.battery === "main").length} main battery mounts.${selectedShip.torpedoTubes?.length ? " Deck gun for surface engagements; torpedoes are the primary striking arm." : " Built for long-range engagements."}`,
       upgrade: "Improved loading system",
       stat: "Reload time",
       standard: "26.0 s",
@@ -35,7 +35,7 @@ const modulesFor = (selectedShip: ShipDefinition) => {
       model: `${selectedShip.name} · ${selectedShip.configuration.match(/19\d{2}/)?.[0]}`,
       icon: "ship",
       detail:
-        "A heavily armored citadel protects the ship’s vital compartments.",
+        selectedShip.torpedoTubes?.length ? "An unarmored outer casing surrounds the pressure hull. This first version operates on the surface." : "A heavily armored citadel protects the ship’s vital compartments.",
       upgrade: "Reinforced compartmentation",
       stat: "Survivability",
       standard: String(survivability),
@@ -44,9 +44,9 @@ const modulesFor = (selectedShip: ShipDefinition) => {
     },
     propulsion: {
       name: "Propulsion",
-      model: "Geared steam turbines",
+      model: selectedShip.torpedoTubes?.length ? "Diesels and electric motors" : "Geared steam turbines",
       icon: "propeller",
-      detail: "Three shafts deliver steady power for an Atlantic crossing.",
+      detail: selectedShip.torpedoTubes?.length ? "Twin shafts with diesel propulsion for surface operation." : "Three shafts deliver steady power for an Atlantic crossing.",
       upgrade: "Turbine calibration",
       stat: "Engine response",
       standard: "34.0 s",

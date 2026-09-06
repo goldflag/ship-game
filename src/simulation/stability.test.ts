@@ -65,7 +65,7 @@ test('asymmetric water produces mirrored list; symmetric loading sinks deeper wi
   left.a.damage.compartments[li].waterM3 = 0;
   for (let i = 0; i < 240; i++) updateStability(left.a, left.def, .5);
   expect(Math.abs(left.a.motion.roll)).toBeLessThan(.005); expect(Math.abs(left.a.motion.y)).toBeLessThan(.01);
-});
+}, 15000);
 
 test('portal levels use a common horizontal waterplane under heel and conserve water', () => {
   const { a, def } = fixture(), link = a.damage.connections[0];

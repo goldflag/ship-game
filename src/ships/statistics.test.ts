@@ -6,7 +6,7 @@ import { maxHullIntegrity } from '../simulation/damage';
 test('every preset prints a complete sheet whose figures come from the compiled definition', () => {
   for (const id of Object.keys(shipPresets)) {
     const def = shipPreset(id), sections = shipStatistics(def);
-    expect(sections.map(s => s.id)).toEqual(['survivability', 'armor', 'main-battery', ...(def.mounts.some(m => m.battery === 'secondary') ? ['secondary-battery'] : []), 'mobility', 'dimensions', 'model-basis']);
+    expect(sections.map(s => s.id)).toEqual(['survivability', 'armor', 'main-battery', ...(def.mounts.some(m => m.battery === 'secondary') ? ['secondary-battery'] : []), ...[...new Set(def.torpedoTubes?.map(t => `torpedoes-${t.weapon.id}`))], 'mobility', 'dimensions', 'model-basis']);
     for (const section of sections) {
       expect(section.headline).not.toBe('');
       expect(section.headlineHelp.length).toBeGreaterThan(10);
@@ -24,6 +24,19 @@ test('every preset prints a complete sheet whose figures come from the compiled 
     expect(main.rows.find(r => r.label === 'Layout')!.value).toBe(`${def.mounts.filter(m => m.battery === 'main').length} × ${weapon.barrelCount ?? 2}`);
     expect(sections.find(s => s.id === 'model-basis')!.notes!.map(n => n.text)).toEqual([def.accuracy.exterior, def.accuracy.internals, def.accuracy.weapons]);
   }
+});
+
+test('the VIIC statistics retain torpedo supply and launch limits alongside its guns', () => {
+  const sections = shipStatistics(shipPreset('type-viic'));
+  const torpedoes = sections.find(s => s.title === 'Torpedoes')!;
+  const row = (label: string) => torpedoes.rows.find(r => r.label === label)!;
+  expect(torpedoes.headline).toBe('5');
+  expect(row('Ammunition').value).toBe('14');
+  expect(row('Diameter').value).toBe('533');
+  expect(row('Arming distance').value).toBe('300');
+  expect(row('Tube bearings').value).toBe('0° / 180°');
+  expect(sections.some(s => s.id === 'main-battery')).toBe(true);
+  expect(shipStatistics(shipPreset('bismarck')).some(s => s.title === 'Torpedoes')).toBe(false);
 });
 
 test('category scores stay within 0-100 and separate the presets by their simulation data', () => {
