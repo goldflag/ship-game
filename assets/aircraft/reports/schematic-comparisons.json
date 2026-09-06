@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+  "comparatorSha256": "135f7901baf3b1115777a354e91b6b5c178e3249938b6d2623eb9ceee950c3df",
+  "aircraft": [
+    {
+      "id": "a6m2-zero",
+      "status": "ready for visual review",
+      "glbSha256": "a99015ee291bcc3ed5e4be9a70a7ae0fc0454eff0ac1f811195ba42450ce1bd3",
+      "lengthM": 9.059959,
+      "wingspanM": 12.0,
+      "heightM": 3.479324,
+      "triangles": 30999,
+      "meshes": 11,
+      "wingStationMaxAbsErrorM": 0.004616
+    },
+    {
+      "id": "d3a1-val",
+      "status": "ready for visual review",
+      "glbSha256": "6d47be1cd65e8fffb4a6afe0d460e373356155c676e69145c667350e6b7e9c25",
+      "lengthM": 10.075778,
+      "wingspanM": 14.37,
+      "heightM": 3.973273,
+      "triangles": 32094,
+      "meshes": 11,
+      "wingStationMaxAbsErrorM": 0.018008
+    },
+    {
+      "id": "b5n2-kate",
+      "status": "ready for visual review",
+      "glbSha256": "06ecd197858ced77d417a36b4d8f86a15758e0fadb2f926946f6381ae118b61e",
+      "lengthM": 10.279819,
+      "wingspanM": 15.5,
+      "heightM": 3.916115,
+      "triangles": 31458,
+      "meshes": 11,
+      "wingStationMaxAbsErrorM": 0.008039
+    },
+    {
+      "id": "a6m5-zero",
+      "status": "ready for visual review",
+      "glbSha256": "8d182dfa62a528d3899f69fb4d02d9f492b6d715bec2cd96e31d3dd52aa6a852",
+      "lengthM": 9.136689,
+      "wingspanM": 11.0,
+      "heightM": 3.632523,
+      "triangles": 31486,
+      "meshes": 11,
+      "wingStationMaxAbsErrorM": 0.012222
+    },
+    {
+      "id": "d4y2-judy",
+      "status": "ready for visual review",
+      "glbSha256": "23b3253415d2e0dc0f8a66a417cbac9fbfe84fb572844d46159a5541cdd6ed3a",
+      "lengthM": 10.220029,
+      "wingspanM": 11.5,
+      "heightM": 3.726074,
+      "triangles": 28252,
+      "meshes": 11,
+      "wingStationMaxAbsErrorM": 0.010039
+    },
+    {
+      "id": "b6n2-jill",
+      "status": "ready for visual review",
+      "glbSha256": "73a8e63809ac69fe4b4da191a90a5e25566831430bd03ac6b5b3768d6d4b2aed",
+      "lengthM": 10.923848,
+      "wingspanM": 14.9,
+      "heightM": 4.387756,
+      "triangles": 31210,
+      "meshes": 11,
+      "wingStationMaxAbsErrorM": 0.008605
+    },
+    {
+      "id": "f4f-4-wildcat",
+      "status": "ready for visual review",
+      "glbSha256": "1ff9d57357e84a7d6dafa31dffea641911aa15dfcf285f464cc19ce36ac219bb",
+      "lengthM": 8.770199,
+      "wingspanM": 11.58,
+      "heightM": 3.660479,
+      "triangles": 30655,
+      "meshes": 11,
+      "wingStationMaxAbsErrorM": 0.002434
+    },
+    {
+      "id": "sbd-3-dauntless",
+      "status": "ready for visual review",
+      "glbSha256": "f59209d2b4784b903a25eb797c202b8aa2359a92768745d64b53299604caf080",
+      "lengthM": 10.008076,
+      "wingspanM": 12.65,
+      "heightM": 4.228121,
+      "triangles": 38199,
+      "meshes": 16,
+      "wingStationMaxAbsErrorM": 0.019868
+    },
+    {
+      "id": "tbd-1-devastator",
+      "status": "ready for visual review",
+      "glbSha256": "17d054cd6643f4f6b6c3150328679b9f2a388f4352675ab2a48d74fa2f20e7db",
+      "lengthM": 10.662426,
+      "wingspanM": 15.24,
+      "heightM": 4.717985,
+      "triangles": 33575,
+      "meshes": 12,
+      "wingStationMaxAbsErrorM": 0.018487
+    },
+    {
+      "id": "f6f-5-hellcat",
+      "status": "ready for visual review",
+      "glbSha256": "c059861a8b499906c51c1845b9d2f818760cc24501b7af88963bdc802ba41404",
+      "lengthM": 10.24,
+      "wingspanM": 13.06,
+      "heightM": 3.957965,
+      "triangles": 31955,
+      "meshes": 11,
+      "wingStationMaxAbsErrorM": 0.004432
+    },
+    {
+      "id": "sb2c-4-helldiver",
+      "status": "ready for visual review",
+      "glbSha256": "35fe47786e6894fec6912a96877c0c69914bc8b97f3e116331278ab3e712737c",
+      "lengthM": 11.189694,
+      "wingspanM": 15.16,
+      "heightM": 5.003719,
+      "triangles": 38429,
+      "meshes": 16,
+      "wingStationMaxAbsErrorM": 0.029234
+    },
+    {
+      "id": "tbf-1c-avenger",
+      "status": "ready for visual review",
+      "glbSha256": "f801011da1a69f8ca3210347233b4c73e61ef13c113859561cd19a21fa59c1fa",
+      "lengthM": 12.35651,
+      "wingspanM": 16.51,
+      "heightM": 4.995653,
+      "triangles": 33383,
+      "meshes": 12,
+      "wingStationMaxAbsErrorM": 0.003918
+    },
+    {
+      "id": "f4u-1d-corsair",
+      "status": "ready for visual review",
+      "glbSha256": "59739a56e7d26f3d7720151013570401d9b629a507788efe544b47e5816fb0ce",
+      "lengthM": 10.2,
+      "wingspanM": 12.5,
+      "heightM": 4.41941,
+      "triangles": 30411,
+      "meshes": 11,
+      "wingStationMaxAbsErrorM": 0.012611
+    }
+  ]
+}

@@ -1,0 +1,433 @@
+{
+  "schemaVersion": 1,
+  "id": "b6n2-jill",
+  "reference": {
+    "sourceUrl": "https://www.combinedfleet.com/ijna/b6n.htm",
+    "imagePath": "assets/aircraft/references/schematics/b6n2-jill/three-view.png",
+    "sourceTitle": "Nakajima B6N2 three-view drawing, CombinedFleet IJNAF reference archive",
+    "variant": "B6N2 Model 12",
+    "notes": [
+      "Manually digitised top/side silhouettes, independently registered to catalog length and wingspan.",
+      "Published reference drawing, not manufacturing geometry. Pixel rounding, scan distortion, hidden cross sections, canopy width and small details remain approximations.",
+      "Canopy lateral widths and hidden body contours are reconstructed inside the measured exterior envelope. Wing dihedral is digitised approximately from the front view, not an airfoil or load-bearing engineering specification."
+    ],
+    "registration": {
+      "top": {
+        "noseX": 28,
+        "tailX": 488,
+        "centerY": 357,
+        "portTipY": 46,
+        "starboardTipY": 669,
+        "imagePath": "assets/aircraft/references/schematics/b6n2-jill/three-view.png"
+      },
+      "side": {
+        "noseX": 271,
+        "tailX": 729,
+        "engineShaftY": 130,
+        "imagePath": "assets/aircraft/references/schematics/b6n2-jill/three-view.png"
+      },
+      "front": {
+        "leftTipX": 176,
+        "rightTipX": 800,
+        "centerX": 486,
+        "engineShaftY": 573,
+        "imagePath": "assets/aircraft/references/schematics/b6n2-jill/three-view.png",
+        "metersPerPixel": 0.02388,
+        "wingTipsCropped": false
+      }
+    }
+  },
+  "fuselage": [
+    [
+      0.05895,
+      0.56204,
+      -0.42838,
+      0.45218
+    ],
+    [
+      0.08515,
+      0.63234,
+      -0.59498,
+      0.66638
+    ],
+    [
+      0.12882,
+      0.69994,
+      -0.69017,
+      0.73777
+    ],
+    [
+      0.16157,
+      0.70554,
+      -0.88057,
+      0.83297
+    ],
+    [
+      0.22271,
+      0.65464,
+      -0.85677,
+      0.73777
+    ],
+    [
+      0.27293,
+      0.62097,
+      -0.66638,
+      0.71397
+    ],
+    [
+      0.32969,
+      0.59421,
+      -0.64258,
+      0.64258
+    ],
+    [
+      0.3952,
+      0.55694,
+      -0.66638,
+      0.66638
+    ],
+    [
+      0.45633,
+      0.52158,
+      -0.59498,
+      0.64258
+    ],
+    [
+      0.52402,
+      0.47483,
+      -0.52358,
+      0.64258
+    ],
+    [
+      0.58734,
+      0.43159,
+      -0.49978,
+      0.71397
+    ],
+    [
+      0.66157,
+      0.38622,
+      -0.42838,
+      0.69017
+    ],
+    [
+      0.73581,
+      0.31398,
+      -0.33319,
+      0.66638
+    ],
+    [
+      0.81223,
+      0.21169,
+      -0.23799,
+      0.61878
+    ],
+    [
+      0.87991,
+      0.11966,
+      -0.19039,
+      0.47598
+    ],
+    [
+      0.93886,
+      0.06539,
+      -0.16659,
+      0.26179
+    ],
+    [
+      0.98035,
+      0.02102,
+      -0.119,
+      0.119
+    ],
+    [
+      1.0,
+      0.0,
+      -0.0476,
+      -0.0476
+    ]
+  ],
+  "wing": [
+    [
+      0.0,
+      0.23696,
+      0.6,
+      -0.40593
+    ],
+    [
+      0.09968,
+      0.25,
+      0.55,
+      -0.40593
+    ],
+    [
+      0.22186,
+      0.25652,
+      0.51957,
+      -0.32485
+    ],
+    [
+      0.35048,
+      0.26304,
+      0.50217,
+      -0.22248
+    ],
+    [
+      0.46624,
+      0.27174,
+      0.48696,
+      -0.12743
+    ],
+    [
+      0.59486,
+      0.28043,
+      0.46522,
+      -0.02153
+    ],
+    [
+      0.72347,
+      0.2913,
+      0.44565,
+      0.10283
+    ],
+    [
+      0.8328,
+      0.29783,
+      0.43043,
+      0.2203
+    ],
+    [
+      0.90675,
+      0.30435,
+      0.41087,
+      0.29299
+    ],
+    [
+      0.96141,
+      0.32174,
+      0.38913,
+      0.3452
+    ],
+    [
+      0.99035,
+      0.34565,
+      0.36957,
+      0.37284
+    ],
+    [
+      1.0,
+      0.35217,
+      0.35435,
+      0.38205
+    ]
+  ],
+  "horizontalTail": [
+    [
+      0.0,
+      0.82391,
+      0.98261,
+      0.37
+    ],
+    [
+      0.19658,
+      0.83913,
+      0.97609,
+      0.37
+    ],
+    [
+      0.4359,
+      0.85,
+      0.96739,
+      0.37
+    ],
+    [
+      0.64957,
+      0.8587,
+      0.95652,
+      0.37
+    ],
+    [
+      0.82906,
+      0.87174,
+      0.94565,
+      0.37
+    ],
+    [
+      0.94872,
+      0.88261,
+      0.93043,
+      0.37
+    ],
+    [
+      0.99145,
+      0.9,
+      0.91957,
+      0.37
+    ],
+    [
+      1.0,
+      0.9087,
+      0.91087,
+      0.37
+    ]
+  ],
+  "fin": [
+    [
+      0.82751,
+      0.59498
+    ],
+    [
+      0.85153,
+      0.73777
+    ],
+    [
+      0.87118,
+      1.26135
+    ],
+    [
+      0.88865,
+      1.83253
+    ],
+    [
+      0.89956,
+      2.04672
+    ],
+    [
+      0.91703,
+      2.09432
+    ],
+    [
+      0.93668,
+      1.97533
+    ],
+    [
+      0.95633,
+      1.71354
+    ],
+    [
+      0.96725,
+      1.26135
+    ],
+    [
+      0.97817,
+      0.76157
+    ],
+    [
+      0.9869,
+      0.28559
+    ],
+    [
+      1.0,
+      -0.0476
+    ],
+    [
+      0.97817,
+      -0.14279
+    ],
+    [
+      0.94105,
+      0.0714
+    ],
+    [
+      0.88428,
+      0.38079
+    ]
+  ],
+  "canopy": [
+    [
+      0.26201,
+      0.24803,
+      0.73777,
+      0.78537
+    ],
+    [
+      0.28821,
+      0.35284,
+      0.73777,
+      0.95197
+    ],
+    [
+      0.31659,
+      0.40622,
+      0.71397,
+      1.04716
+    ],
+    [
+      0.36026,
+      0.4226,
+      0.66638,
+      1.04716
+    ],
+    [
+      0.41703,
+      0.43,
+      0.64258,
+      1.04716
+    ],
+    [
+      0.47162,
+      0.42074,
+      0.64258,
+      1.04716
+    ],
+    [
+      0.52183,
+      0.39424,
+      0.64258,
+      1.04716
+    ],
+    [
+      0.56987,
+      0.24327,
+      0.64258,
+      0.99956
+    ],
+    [
+      0.6048,
+      0.18,
+      0.69017,
+      0.83297
+    ],
+    [
+      0.62445,
+      0.18,
+      0.71397,
+      0.71397
+    ]
+  ],
+  "tailSpan": 5.59647,
+  "cowling": {
+    "frontU": 0.05895,
+    "rearU": 0.22271,
+    "radiusM": 0.73777
+  },
+  "propeller": {
+    "u": 0.04148,
+    "radiusM": 1.68974,
+    "blades": 4,
+    "spinnerLengthM": 0.47598
+  },
+  "gear": {
+    "mainU": 0.28166,
+    "trackM": 5.0383,
+    "wheelRadiusM": 0.33319,
+    "wheelZM": -1.95153,
+    "tailU": 0.94541,
+    "tailWheelZM": -0.49978
+  },
+  "extras": {
+    "engine": "radial",
+    "wingFoldFraction": 0.38,
+    "payload": "torpedo",
+    "canopyFrameU": [
+      0.319,
+      0.374,
+      0.426,
+      0.477,
+      0.527
+    ],
+    "antennaU": 0.267,
+    "antennaHeightM": 0.98,
+    "distinctive": "Bulky stepped engine cowling, four-blade prop, long greenhouse, nearly upright tall rounded fin."
+  }
+}

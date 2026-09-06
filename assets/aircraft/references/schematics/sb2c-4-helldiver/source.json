@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "sb2c-4-helldiver",
+  "retrieved": "2026-09-05",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Curtiss_SB2C_Helldiver_BuAer_3_side_view.jpg",
+  "sourceTitle": "U.S. Navy BuAer SB2C Descriptive Arrangement from SB2C-5 characteristic sheet",
+  "license": "Public domain, U.S. Navy Bureau of Aeronautics",
+  "variant": "Sheet labels SB2C-1/1C outline with SB2C-3/4/5 engine/propeller note; used for SB2C-4 principal airframe",
+  "notes": [
+    "BuAer sheet is genuine but only 354 \u00d7 543 px; broad proportions are measured and small features require subsequent high-resolution maintenance-drawing corroboration.",
+    "Main wing has almost straight leading edge, strongly tapered trailing edge and full dihedral. Tall round-topped fin/rudder and deep bomb-bay fuselage distinguish the type.",
+    "Retained source explicitly notes four-blade 12 ft 2 in propeller for SB2C-3,4,5; main illustration uses earlier three-blade propeller. Recipe uses four blades.",
+    "SB2C-4 perforated dive-brake details, panel seams and canopy framing are reconstructed; factory sections not available."
+  ],
+  "files": [
+    {
+      "path": "assets/aircraft/references/schematics/sb2c-4-helldiver/measured-landmarks.png",
+      "sha256": "a6cb04f32a83b5f8d69d622eff813a8160d2c435b9c7975a9899077074d37168",
+      "sizeBytes": 117088
+    },
+    {
+      "path": "assets/aircraft/references/schematics/sb2c-4-helldiver/buaer-sb2c-5-grid.png",
+      "sha256": "cce6963214e676f2b8ac73503b5c90318ec2e836be3063412d1e956a2a11a277",
+      "sizeBytes": 124241
+    },
+    {
+      "path": "assets/aircraft/references/schematics/sb2c-4-helldiver/buaer-sb2c-5.jpg",
+      "sha256": "c7a846c2eb7d9e942f0dc7c05216b84ca1de9fae390c9f7e73649c9e9818a1b8",
+      "sizeBytes": 42813
+    }
+  ]
+}

@@ -1,0 +1,825 @@
+{
+  "schemaVersion": 1,
+  "id": "sb2c-4-helldiver",
+  "reference": {
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Curtiss_SB2C_Helldiver_BuAer_3_side_view.jpg",
+    "imagePath": "assets/aircraft/references/schematics/sb2c-4-helldiver/buaer-sb2c-5.jpg",
+    "sourceTitle": "U.S. Navy BuAer SB2C Descriptive Arrangement from SB2C-5 characteristic sheet",
+    "variant": "Sheet labels SB2C-1/1C outline with SB2C-3/4/5 engine/propeller note; used for SB2C-4 principal airframe",
+    "license": "Public domain, U.S. Navy Bureau of Aeronautics",
+    "notes": [
+      "BuAer sheet is genuine but only 354 \u00d7 543 px; broad proportions are measured and small features require subsequent high-resolution maintenance-drawing corroboration.",
+      "Main wing has almost straight leading edge, strongly tapered trailing edge and full dihedral. Tall round-topped fin/rudder and deep bomb-bay fuselage distinguish the type.",
+      "Retained source explicitly notes four-blade 12 ft 2 in propeller for SB2C-3,4,5; main illustration uses earlier three-blade propeller. Recipe uses four blades.",
+      "SB2C-4 perforated dive-brake details, panel seams and canopy framing are reconstructed; factory sections not available."
+    ],
+    "registration": {
+      "imageSizePx": [
+        354,
+        543
+      ],
+      "side": {
+        "boundsPx": [
+          59,
+          406,
+          279,
+          503
+        ],
+        "noseXPx": 60,
+        "tailXPx": 278,
+        "shaftYPx": 470,
+        "noseX": 60,
+        "tailX": 278,
+        "engineShaftY": 470,
+        "imagePath": "assets/aircraft/references/schematics/sb2c-4-helldiver/buaer-sb2c-5.jpg"
+      },
+      "top": {
+        "boundsPx": [
+          18,
+          13,
+          315,
+          234
+        ],
+        "lengthAxis": "y",
+        "noseAxisPx": 232,
+        "tailAxisPx": 14,
+        "centerPx": 167,
+        "spanPx": 296,
+        "tailHalfSpanPx": 57
+      },
+      "front": {
+        "boundsPx": [
+          19,
+          257,
+          316,
+          354
+        ],
+        "centerXPx": 168,
+        "shaftYPx": 318,
+        "wingRootYPx": 327,
+        "wingTipYPx": 312
+      },
+      "estimatedPickingTolerancePx": 1.5,
+      "registrationNote": "Low resolution primary scan limits station precision to roughly 0.08 m. Side full level length 36 ft 8 in; top span 49 ft 8.75 in. Tail span reconstructed by span ratio.",
+      "plan": {
+        "noseX": 232,
+        "tailX": 14,
+        "centerY": 167,
+        "spanPx": 296,
+        "imagePath": "assets/aircraft/references/schematics/sb2c-4-helldiver/buaer-sb2c-5.jpg",
+        "sourceTransform": {
+          "operation": "transpose",
+          "description": "Reference original has nose down; transpose image so newX=oldY, newY=oldX; nose then points right."
+        }
+      }
+    }
+  },
+  "fuselage": [
+    [
+      0.05505,
+      0.66581,
+      -0.46156,
+      0.6667
+    ],
+    [
+      0.07339,
+      0.76824,
+      -0.61541,
+      0.87183
+    ],
+    [
+      0.12385,
+      0.79385,
+      -0.71798,
+      0.9744
+    ],
+    [
+      0.20183,
+      0.79385,
+      -0.76927,
+      1.07697
+    ],
+    [
+      0.26147,
+      0.76824,
+      -0.82055,
+      0.71798
+    ],
+    [
+      0.33028,
+      0.74264,
+      -0.82055,
+      0.6667
+    ],
+    [
+      0.40826,
+      0.71703,
+      -0.76927,
+      0.6667
+    ],
+    [
+      0.49083,
+      0.69142,
+      -0.6667,
+      0.6667
+    ],
+    [
+      0.56881,
+      0.66581,
+      -0.51284,
+      0.6667
+    ],
+    [
+      0.64679,
+      0.61459,
+      -0.41028,
+      0.9744
+    ],
+    [
+      0.7156,
+      0.51216,
+      -0.25642,
+      1.02569
+    ],
+    [
+      0.78899,
+      0.40973,
+      -0.05128,
+      1.02569
+    ],
+    [
+      0.85321,
+      0.3073,
+      0.10257,
+      0.92312
+    ],
+    [
+      0.90367,
+      0.20486,
+      0.25642,
+      0.82055
+    ],
+    [
+      0.94495,
+      0.10243,
+      0.51284,
+      0.76927
+    ],
+    [
+      0.9633,
+      0.02561,
+      0.6667,
+      0.71798
+    ]
+  ],
+  "wing": [
+    [
+      0.0,
+      0.26147,
+      0.58716,
+      -0.45
+    ],
+    [
+      0.11486,
+      0.26147,
+      0.57798,
+      -0.43
+    ],
+    [
+      0.25676,
+      0.26147,
+      0.55046,
+      -0.33
+    ],
+    [
+      0.43919,
+      0.26147,
+      0.51376,
+      -0.2
+    ],
+    [
+      0.61486,
+      0.26147,
+      0.48624,
+      -0.07
+    ],
+    [
+      0.78378,
+      0.26147,
+      0.45872,
+      0.07
+    ],
+    [
+      0.90541,
+      0.26147,
+      0.43119,
+      0.17
+    ],
+    [
+      0.96622,
+      0.27523,
+      0.39908,
+      0.22
+    ],
+    [
+      0.99324,
+      0.30275,
+      0.3578,
+      0.24
+    ],
+    [
+      1.0,
+      0.32569,
+      0.32569,
+      0.24
+    ]
+  ],
+  "horizontalTail": [
+    [
+      0.0,
+      0.73394,
+      0.90826,
+      1.12
+    ],
+    [
+      0.21053,
+      0.76606,
+      0.94037,
+      1.12
+    ],
+    [
+      0.47368,
+      0.79358,
+      0.94037,
+      1.12
+    ],
+    [
+      0.7193,
+      0.8211,
+      0.93578,
+      1.12
+    ],
+    [
+      0.87719,
+      0.84862,
+      0.92202,
+      1.12
+    ],
+    [
+      0.96491,
+      0.87156,
+      0.89908,
+      1.12
+    ],
+    [
+      1.0,
+      0.88532,
+      0.88532,
+      1.12
+    ]
+  ],
+  "tailSpan": 5.83865,
+  "fin": [
+    [
+      0.71101,
+      1.07697
+    ],
+    [
+      0.74771,
+      1.38468
+    ],
+    [
+      0.77982,
+      1.89752
+    ],
+    [
+      0.81651,
+      2.66679
+    ],
+    [
+      0.85321,
+      3.02578
+    ],
+    [
+      0.88532,
+      3.17963
+    ],
+    [
+      0.91284,
+      3.17963
+    ],
+    [
+      0.94495,
+      2.9745
+    ],
+    [
+      0.97248,
+      2.56422
+    ],
+    [
+      0.99083,
+      1.94881
+    ],
+    [
+      1.0,
+      1.38468
+    ],
+    [
+      0.98624,
+      1.02569
+    ],
+    [
+      0.95413,
+      0.76927
+    ],
+    [
+      0.90826,
+      0.61541
+    ],
+    [
+      0.88073,
+      0.30771
+    ],
+    [
+      0.86697,
+      0.10257
+    ],
+    [
+      0.7844,
+      -0.15385
+    ],
+    [
+      0.72936,
+      -0.05128
+    ]
+  ],
+  "canopy": [
+    [
+      0.25229,
+      0.20486,
+      0.82055,
+      0.9744
+    ],
+    [
+      0.2844,
+      0.43534,
+      0.6667,
+      1.28211
+    ],
+    [
+      0.31651,
+      0.51216,
+      0.6667,
+      1.33339
+    ],
+    [
+      0.36697,
+      0.51216,
+      0.6667,
+      1.33339
+    ],
+    [
+      0.42661,
+      0.51216,
+      0.6667,
+      1.33339
+    ],
+    [
+      0.48624,
+      0.51216,
+      0.6667,
+      1.33339
+    ],
+    [
+      0.54587,
+      0.48655,
+      0.6667,
+      1.33339
+    ],
+    [
+      0.60092,
+      0.46095,
+      0.6667,
+      1.28211
+    ],
+    [
+      0.63761,
+      0.35851,
+      0.71798,
+      1.17954
+    ],
+    [
+      0.64679,
+      0.10243,
+      0.87183,
+      0.9744
+    ]
+  ],
+  "cowling": {
+    "frontU": 0.05505,
+    "rearU": 0.20183,
+    "radiusM": 0.8
+  },
+  "propeller": {
+    "u": 0.0367,
+    "radiusM": 1.8542,
+    "blades": 4,
+    "spinnerLengthM": 0.42
+  },
+  "gear": {
+    "mainU": 0.27982,
+    "trackM": 4.8768,
+    "wheelRadiusM": 0.4191,
+    "wheelZM": -1.23083,
+    "tailU": 0.86697,
+    "tailWheelZM": 0.10257
+  },
+  "extras": {
+    "seatUs": [
+      0.35,
+      0.6
+    ],
+    "gunSpanFractions": [
+      0.435
+    ],
+    "canopyFrames": 9,
+    "wingFoldSpanFraction": 0.43,
+    "diveBrakes": {
+      "innerSpanFraction": 0.14,
+      "outerSpanFraction": 0.43,
+      "chordFraction": 0.26,
+      "perforated": true,
+      "holeDiameterM": 0.075,
+      "redInterior": true
+    },
+    "wingSection": {
+      "root": "NACA 23017",
+      "tip": "NACA 23009"
+    },
+    "rearGun": {
+      "u": 0.66,
+      "baseZM": 1.19,
+      "barrelLengthM": 0.82
+    },
+    "wingGuns": [
+      {
+        "spanFraction": 0.435,
+        "caliberMm": 20
+      }
+    ],
+    "bombBay": {
+      "frontU": 0.27,
+      "rearU": 0.68,
+      "widthM": 1.15
+    },
+    "finNote": "High rounded crown and convex aft rudder, with low dorsal root; never a triangle.",
+    "spinner": "Four-blade SB2C-4 propeller; source printed three-blade silhouette is overridden by its own -3/4/5 annotation."
+  },
+  "measurement": {
+    "method": "Manual original raster pixel landmarks registered independently in top, side and front views. Linear metric conversion; intervening sections inferred.",
+    "lengthM": 11.18,
+    "wingspanM": 15.16,
+    "sideMetersPerPixel": 0.05128,
+    "topSpanMetersPerPixel": 0.05122,
+    "rawFuselagePixels": [
+      [
+        72,
+        13,
+        479,
+        457
+      ],
+      [
+        76,
+        15,
+        482,
+        453
+      ],
+      [
+        87,
+        15.5,
+        484,
+        451
+      ],
+      [
+        104,
+        15.5,
+        485,
+        449
+      ],
+      [
+        117,
+        15,
+        486,
+        456
+      ],
+      [
+        132,
+        14.5,
+        486,
+        457
+      ],
+      [
+        149,
+        14,
+        485,
+        457
+      ],
+      [
+        167,
+        13.5,
+        483,
+        457
+      ],
+      [
+        184,
+        13,
+        480,
+        457
+      ],
+      [
+        201,
+        12,
+        478,
+        451
+      ],
+      [
+        216,
+        10,
+        475,
+        450
+      ],
+      [
+        232,
+        8,
+        471,
+        450
+      ],
+      [
+        246,
+        6,
+        468,
+        452
+      ],
+      [
+        257,
+        4,
+        465,
+        454
+      ],
+      [
+        266,
+        2,
+        460,
+        455
+      ],
+      [
+        270,
+        0.5,
+        457,
+        456
+      ]
+    ],
+    "rawWingPixels": [
+      [
+        0,
+        175,
+        104,
+        -0.45
+      ],
+      [
+        17,
+        175,
+        106,
+        -0.43
+      ],
+      [
+        38,
+        175,
+        112,
+        -0.33
+      ],
+      [
+        65,
+        175,
+        120,
+        -0.2
+      ],
+      [
+        91,
+        175,
+        126,
+        -0.07
+      ],
+      [
+        116,
+        175,
+        132,
+        0.07
+      ],
+      [
+        134,
+        175,
+        138,
+        0.17
+      ],
+      [
+        143,
+        172,
+        145,
+        0.22
+      ],
+      [
+        147,
+        166,
+        154,
+        0.24
+      ],
+      [
+        148,
+        161,
+        161,
+        0.24
+      ]
+    ],
+    "rawTailPixels": [
+      [
+        0,
+        72,
+        34,
+        1.12
+      ],
+      [
+        12,
+        65,
+        27,
+        1.12
+      ],
+      [
+        27,
+        59,
+        27,
+        1.12
+      ],
+      [
+        41,
+        53,
+        28,
+        1.12
+      ],
+      [
+        50,
+        47,
+        31,
+        1.12
+      ],
+      [
+        55,
+        42,
+        36,
+        1.12
+      ],
+      [
+        57,
+        39,
+        39,
+        1.12
+      ]
+    ],
+    "rawFinPixels": [
+      [
+        215,
+        449
+      ],
+      [
+        223,
+        443
+      ],
+      [
+        230,
+        433
+      ],
+      [
+        238,
+        418
+      ],
+      [
+        246,
+        411
+      ],
+      [
+        253,
+        408
+      ],
+      [
+        259,
+        408
+      ],
+      [
+        266,
+        412
+      ],
+      [
+        272,
+        420
+      ],
+      [
+        276,
+        432
+      ],
+      [
+        278,
+        443
+      ],
+      [
+        275,
+        450
+      ],
+      [
+        268,
+        455
+      ],
+      [
+        258,
+        458
+      ],
+      [
+        252,
+        464
+      ],
+      [
+        249,
+        468
+      ],
+      [
+        231,
+        473
+      ],
+      [
+        219,
+        471
+      ]
+    ],
+    "rawCanopyPixels": [
+      [
+        115,
+        4,
+        454,
+        451
+      ],
+      [
+        122,
+        8.5,
+        457,
+        445
+      ],
+      [
+        129,
+        10,
+        457,
+        444
+      ],
+      [
+        140,
+        10,
+        457,
+        444
+      ],
+      [
+        153,
+        10,
+        457,
+        444
+      ],
+      [
+        166,
+        10,
+        457,
+        444
+      ],
+      [
+        179,
+        9.5,
+        457,
+        444
+      ],
+      [
+        191,
+        9,
+        457,
+        445
+      ],
+      [
+        199,
+        7,
+        456,
+        447
+      ],
+      [
+        201,
+        2,
+        453,
+        451
+      ]
+    ]
+  }
+}

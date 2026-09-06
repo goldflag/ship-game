@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "aircraftId": "b6n2-jill",
+  "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+  "method": "blender-mcp",
+  "blenderVersion": "5.2.0 LTS",
+  "originalGeometry": true,
+  "shapeSource": "shapes/b6n2-jill.json",
+  "reference": {
+    "sourceUrl": "https://www.combinedfleet.com/ijna/b6n.htm",
+    "imagePath": "assets/aircraft/references/schematics/b6n2-jill/three-view.png",
+    "sourceTitle": "Nakajima B6N2 three-view drawing, CombinedFleet IJNAF reference archive",
+    "variant": "B6N2 Model 12",
+    "notes": [
+      "Manually digitised top/side silhouettes, independently registered to catalog length and wingspan.",
+      "Published reference drawing, not manufacturing geometry. Pixel rounding, scan distortion, hidden cross sections, canopy width and small details remain approximations.",
+      "Canopy lateral widths and hidden body contours are reconstructed inside the measured exterior envelope. Wing dihedral is digitised approximately from the front view, not an airfoil or load-bearing engineering specification."
+    ],
+    "registration": {
+      "top": {
+        "noseX": 28,
+        "tailX": 488,
+        "centerY": 357,
+        "portTipY": 46,
+        "starboardTipY": 669,
+        "imagePath": "assets/aircraft/references/schematics/b6n2-jill/three-view.png"
+      },
+      "side": {
+        "noseX": 271,
+        "tailX": 729,
+        "engineShaftY": 130,
+        "imagePath": "assets/aircraft/references/schematics/b6n2-jill/three-view.png"
+      },
+      "front": {
+        "leftTipX": 176,
+        "rightTipX": 800,
+        "centerX": 486,
+        "engineShaftY": 573,
+        "imagePath": "assets/aircraft/references/schematics/b6n2-jill/three-view.png",
+        "metersPerPixel": 0.02388,
+        "wingTipsCropped": false
+      }
+    }
+  },
+  "triangleBudget": 40000
+}

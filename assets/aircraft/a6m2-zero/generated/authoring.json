@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "aircraftId": "a6m2-zero",
+  "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+  "method": "blender-mcp",
+  "blenderVersion": "5.2.0 LTS",
+  "originalGeometry": true,
+  "shapeSource": "shapes/a6m2-zero.json",
+  "reference": {
+    "sourceUrl": "https://www.combinedfleet.com/ijna/a6m.htm",
+    "imagePath": "assets/aircraft/references/schematics/a6m2-zero/three-view.png",
+    "sourceTitle": "Mitsubishi A6M2 three-view drawing, CombinedFleet IJNAF reference archive",
+    "variant": "A6M2 Model 21; the small upper nose is A6M1 and excluded",
+    "notes": [
+      "Manually digitised top/side silhouettes, independently registered to catalog length and wingspan.",
+      "Published reference drawing, not manufacturing geometry. Pixel rounding, scan distortion, hidden cross sections, canopy width and small details remain approximations.",
+      "Canopy lateral widths and hidden body contours are reconstructed inside the measured exterior envelope. Wing dihedral is digitised approximately from the front view, not an airfoil or load-bearing engineering specification."
+    ],
+    "registration": {
+      "top": {
+        "noseX": 33,
+        "tailX": 509,
+        "centerY": 478,
+        "portTipY": 159,
+        "starboardTipY": 794,
+        "imagePath": "assets/aircraft/references/schematics/a6m2-zero/three-view.png"
+      },
+      "side": {
+        "noseX": 283,
+        "tailX": 768,
+        "engineShaftY": 266,
+        "imagePath": "assets/aircraft/references/schematics/a6m2-zero/three-view.png"
+      },
+      "front": {
+        "leftTipX": 89,
+        "rightTipX": 722,
+        "centerX": 405,
+        "engineShaftY": 700,
+        "imagePath": "assets/aircraft/references/schematics/a6m2-zero/three-view.png",
+        "metersPerPixel": 0.01896,
+        "wingTipsCropped": false
+      }
+    }
+  },
+  "triangleBudget": 40000
+}
