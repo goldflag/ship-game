@@ -1,0 +1,881 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-09-06T00:44:29.006567+00:00",
+  "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+  "comparatorSha256": "135f7901baf3b1115777a354e91b6b5c178e3249938b6d2623eb9ceee950c3df",
+  "status": "Principal side and plan silhouettes reviewed; source and reconstruction approximations remain.",
+  "scope": "All 13 final LOD0 GLBs, all 26 fixed-datum side/top overlays. This is exterior shape review; topology, materials, LODs and runtime articulation have separate checks.",
+  "method": "Actual GLB binary triangles and composed scene transforms independently projected onto preserved original source rasters using recorded datums, followed by visual inspection. Registration does not fit the model silhouette.",
+  "resolvedFindings": [
+    "Radial cowling rings now follow measured front width and upper/lower contours.",
+    "Concave fin-root outlines survive triangulation rather than being filled as a convex fan.",
+    "Val fixed-wheel fairings follow the measured asymmetric teardrop outline.",
+    "Judy has the source deep chin radiator with chamfered entry.",
+    "Cockpit seatbacks remain inside the canopy after correcting their rotation pivot.",
+    "SBD and SB2C perforated brake panels stay within the measured trailing-edge region."
+  ],
+  "limits": [
+    "Reference drawings vary in date, resolution and variant; they are not all original factory lofts. Each shape JSON and source register records provenance and variant differences.",
+    "The numerical wing residuals compare exported leading/trailing edges at 55, 70, 85 and 95 percent half-span on each side against sampled drawing stations. They are not an overall historical accuracy score.",
+    "Hidden fuselage sections, airfoil sections, fillets, small panels, cockpit interiors, antenna routing and deployed gear kinematics remain reconstructions. Gear and propeller poses can differ from source views.",
+    "Materials, insignia, normals, runtime motion and LOD appearance require their separate visual/technical reviews."
+  ],
+  "maximumSampledWingEdgeErrorM": 0.029234,
+  "maximumLengthRelativeErrorPercent": 1.217863,
+  "maximumWingspanErrorM": 0.0,
+  "postTopologyCleanupMaskComparison": {
+    "previousReviewedContentHash": "284f7b7720d5d1b48e139aff437008115fe80720b1e3204e70d059f7c6f0a06a",
+    "minimumBinarySilhouetteIoU": 0.9979570990806946,
+    "interpretation": "Principal silhouettes unchanged; subpixel triangle rasterization affects narrow edges. Jill side has 20 pixels beyond the one-pixel band at the thin antenna endpoint. All 26 final overlays were visually inspected again.",
+    "views": [
+      {
+        "id": "a6m2-zero",
+        "view": "side",
+        "sameSize": true,
+        "changedPixels": 686,
+        "maxChannelDifference": 106,
+        "thresholdedSilhouetteChangedPixels": 51,
+        "binarySilhouetteIoU": 0.998449659533074,
+        "pixelsBeyondOnePixelEdgeBand": 0
+      },
+      {
+        "id": "a6m2-zero",
+        "view": "top",
+        "sameSize": true,
+        "changedPixels": 202,
+        "maxChannelDifference": 104,
+        "thresholdedSilhouetteChangedPixels": 10,
+        "binarySilhouetteIoU": 0.999881838591516,
+        "pixelsBeyondOnePixelEdgeBand": 0
+      },
+      {
+        "id": "d3a1-val",
+        "view": "side",
+        "sameSize": true,
+        "changedPixels": 457,
+        "maxChannelDifference": 104,
+        "thresholdedSilhouetteChangedPixels": 31,
+        "binarySilhouetteIoU": 0.9987017881820847,
+        "pixelsBeyondOnePixelEdgeBand": 0
+      },
+      {
+        "id": "d3a1-val",
+        "view": "top",
+        "sameSize": true,
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "thresholdedSilhouetteChangedPixels": 0,
+        "binarySilhouetteIoU": 1.0,
+        "pixelsBeyondOnePixelEdgeBand": 0
+      },
+      {
+        "id": "b5n2-kate",
+        "view": "side",
+        "sameSize": true,
+        "changedPixels": 747,
+        "maxChannelDifference": 104,
+        "thresholdedSilhouetteChangedPixels": 60,
+        "binarySilhouetteIoU": 0.9982703949264918,
+        "pixelsBeyondOnePixelEdgeBand": 0
+      },
+      {
+        "id": "b5n2-kate",
+        "view": "top",
+        "sameSize": true,
+        "changedPixels": 24,
+        "maxChannelDifference": 47,
+        "thresholdedSilhouetteChangedPixels": 0,
+        "binarySilhouetteIoU": 1.0,
+        "pixelsBeyondOnePixelEdgeBand": 0
+      },
+      {
+        "id": "a6m5-zero",
+        "view": "side",
+        "sameSize": true,
+        "changedPixels": 720,
+        "maxChannelDifference": 104,
+        "thresholdedSilhouetteChangedPixels": 52,
+        "binarySilhouetteIoU": 0.9987825435474808,
+        "pixelsBeyondOnePixelEdgeBand": 0
+      },
+      {
+        "id": "a6m5-zero",
+        "view": "top",
+        "sameSize": true,
+        "changedPixels": 152,
+        "maxChannelDifference": 104,
+        "thresholdedSilhouetteChangedPixels": 8,
+        "binarySilhouetteIoU": 0.9999213070892476,
+        "pixelsBeyondOnePixelEdgeBand": 0
+      },
+      {
+        "id": "d4y2-judy",
+        "view": "side",
+        "sameSize": true,
+        "changedPixels": 1792,
+        "maxChannelDifference": 104,
+        "thresholdedSilhouetteChangedPixels": 147,
+        "binarySilhouetteIoU": 0.9989793934681181,
+        "pixelsBeyondOnePixelEdgeBand": 0
+      },
+      {
+        "id": "d4y2-judy",
+        "view": "top",
+        "sameSize": true,
+        "changedPixels": 80,
+        "maxChannelDifference": 47,
+        "thresholdedSilhouetteChangedPixels": 0,
+        "binarySilhouetteIoU": 1.0,
+        "pixelsBeyondOnePixelEdgeBand": 0
+      },
+      {
+        "id": "b6n2-jill",
+        "view": "side",
+        "sameSize": true,
+        "changedPixels": 713,
+        "maxChannelDifference": 104,
+        "thresholdedSilhouetteChangedPixels": 58,
+        "binarySilhouetteIoU": 0.9979570990806946,
+        "pixelsBeyondOnePixelEdgeBand": 20
+      },
+      {
+        "id": "b6n2-jill",
+        "view": "top",
+        "sameSize": true,
+        "changedPixels": 20,
+        "maxChannelDifference": 46,
+        "thresholdedSilhouetteChangedPixels": 0,
+        "binarySilhouetteIoU": 1.0,
+        "pixelsBeyondOnePixelEdgeBand": 0
+      },
+      {
+        "id": "f4f-4-wildcat",
+        "view": "side",
+        "sameSize": true,
+        "changedPixels": 1696,
+        "maxChannelDifference": 104,
+        "thresholdedSilhouetteChangedPixels": 96,
+        "binarySilhouetteIoU": 0.9986360730269234,
+        "pixelsBeyondOnePixelEdgeBand": 0
+      },
+      {
+        "id": "f4f-4-wildcat",
+        "view": "top",
+        "sameSize": true,
+        "changedPixels": 48,
+        "maxChannelDifference": 47,
+        "thresholdedSilhouetteChangedPixels": 4,
+        "binarySilhouetteIoU": 0.9999763292599935,
+        "pixelsBeyondOnePixelEdgeBand": 0
+      },
+      {
+        "id": "sbd-3-dauntless",
+        "view": "side",
+        "sameSize": true,
+        "changedPixels": 976,
+        "maxChannelDifference": 104,
+        "thresholdedSilhouetteChangedPixels": 79,
+        "binarySilhouetteIoU": 0.998003992015968,
+        "pixelsBeyondOnePixelEdgeBand": 0
+      },
+      {
+        "id": "sbd-3-dauntless",
+        "view": "top",
+        "sameSize": true,
+        "changedPixels": 997,
+        "maxChannelDifference": 104,
+        "thresholdedSilhouetteChangedPixels": 38,
+        "binarySilhouetteIoU": 0.9996249321423284,
+        "pixelsBeyondOnePixelEdgeBand": 0
+      },
+      {
+        "id": "tbd-1-devastator",
+        "view": "side",
+        "sameSize": true,
+        "changedPixels": 1239,
+        "maxChannelDifference": 104,
+        "thresholdedSilhouetteChangedPixels": 76,
+        "binarySilhouetteIoU": 0.998542413839397,
+        "pixelsBeyondOnePixelEdgeBand": 0
+      },
+      {
+        "id": "tbd-1-devastator",
+        "view": "top",
+        "sameSize": true,
+        "changedPixels": 50,
+        "maxChannelDifference": 47,
+        "thresholdedSilhouetteChangedPixels": 0,
+        "binarySilhouetteIoU": 1.0,
+        "pixelsBeyondOnePixelEdgeBand": 0
+      },
+      {
+        "id": "f6f-5-hellcat",
+        "view": "side",
+        "sameSize": true,
+        "changedPixels": 1280,
+        "maxChannelDifference": 104,
+        "thresholdedSilhouetteChangedPixels": 75,
+        "binarySilhouetteIoU": 0.998998169990516,
+        "pixelsBeyondOnePixelEdgeBand": 0
+      },
+      {
+        "id": "f6f-5-hellcat",
+        "view": "top",
+        "sameSize": true,
+        "changedPixels": 46,
+        "maxChannelDifference": 52,
+        "thresholdedSilhouetteChangedPixels": 3,
+        "binarySilhouetteIoU": 0.9999823612417685,
+        "pixelsBeyondOnePixelEdgeBand": 0
+      },
+      {
+        "id": "sb2c-4-helldiver",
+        "view": "side",
+        "sameSize": true,
+        "changedPixels": 217,
+        "maxChannelDifference": 104,
+        "thresholdedSilhouetteChangedPixels": 10,
+        "binarySilhouetteIoU": 0.9988264288229081,
+        "pixelsBeyondOnePixelEdgeBand": 0
+      },
+      {
+        "id": "sb2c-4-helldiver",
+        "view": "top",
+        "sameSize": true,
+        "changedPixels": 512,
+        "maxChannelDifference": 113,
+        "thresholdedSilhouetteChangedPixels": 36,
+        "binarySilhouetteIoU": 0.9983077935508132,
+        "pixelsBeyondOnePixelEdgeBand": 0
+      },
+      {
+        "id": "tbf-1c-avenger",
+        "view": "side",
+        "sameSize": true,
+        "changedPixels": 1462,
+        "maxChannelDifference": 104,
+        "thresholdedSilhouetteChangedPixels": 103,
+        "binarySilhouetteIoU": 0.9989090369868238,
+        "pixelsBeyondOnePixelEdgeBand": 0
+      },
+      {
+        "id": "tbf-1c-avenger",
+        "view": "top",
+        "sameSize": true,
+        "changedPixels": 1030,
+        "maxChannelDifference": 105,
+        "thresholdedSilhouetteChangedPixels": 58,
+        "binarySilhouetteIoU": 0.9997315125564171,
+        "pixelsBeyondOnePixelEdgeBand": 0
+      },
+      {
+        "id": "f4u-1d-corsair",
+        "view": "side",
+        "sameSize": true,
+        "changedPixels": 844,
+        "maxChannelDifference": 106,
+        "thresholdedSilhouetteChangedPixels": 39,
+        "binarySilhouetteIoU": 0.9986540120793788,
+        "pixelsBeyondOnePixelEdgeBand": 0
+      },
+      {
+        "id": "f4u-1d-corsair",
+        "view": "top",
+        "sameSize": true,
+        "changedPixels": 793,
+        "maxChannelDifference": 104,
+        "thresholdedSilhouetteChangedPixels": 65,
+        "binarySilhouetteIoU": 0.9991175072975358,
+        "pixelsBeyondOnePixelEdgeBand": 0
+      }
+    ]
+  },
+  "aircraft": [
+    {
+      "id": "a6m2-zero",
+      "name": "Mitsubishi A6M2 Zero",
+      "glbSha256": "a99015ee291bcc3ed5e4be9a70a7ae0fc0454eff0ac1f811195ba42450ce1bd3",
+      "shapeSha256": "98c909b4199cce1ae77024c4fa57a89099d973c8878357e4f40a1b07b9fab77c",
+      "comparisonReport": "assets/aircraft/a6m2-zero/generated/comparison/comparison.json",
+      "comparisonReportSha256": "582f696f3ab1f3cf869c50ba951b056f8af9d67b8d99e9149f63177851de175e",
+      "sourceUrl": "https://www.combinedfleet.com/ijna/a6m.htm",
+      "sourceVariant": "A6M2 Model 21; the small upper nose is A6M1 and excluded",
+      "views": {
+        "side": {
+          "visuallyReviewed": true,
+          "overlayPath": "assets/aircraft/a6m2-zero/generated/comparison/side-overlay.png",
+          "overlaySha256": "842f1653f37e0bd421a6d230a89227b0efcfd800a18e7eb00f4558fc068738ff",
+          "sourceImage": "assets/aircraft/references/schematics/a6m2-zero/three-view.png",
+          "sourceImageSha256": "bd3911b9abab248fd6d5d8affe8b76f79216190f0ee0e624a40cac97e2e78dac"
+        },
+        "top": {
+          "visuallyReviewed": true,
+          "overlayPath": "assets/aircraft/a6m2-zero/generated/comparison/top-overlay.png",
+          "overlaySha256": "d856387be65b2ade93119d7f86672a6d9553df1965f7af40e2d794513eda3804",
+          "sourceImage": "assets/aircraft/references/schematics/a6m2-zero/three-view.png",
+          "sourceImageSha256": "bd3911b9abab248fd6d5d8affe8b76f79216190f0ee0e624a40cac97e2e78dac"
+        }
+      },
+      "measured": {
+        "lengthM": 9.059959,
+        "wingspanM": 12.0,
+        "heightM": 3.479324,
+        "triangles": 30999,
+        "meshes": 11,
+        "wingStationMaxAbsErrorM": 0.004616
+      },
+      "drawingExpected": {
+        "lengthM": 9.06,
+        "wingspanM": 12.0
+      },
+      "lengthRelativeErrorPercent": 0.000453,
+      "observations": [
+        "Long round-tipped wing, canopy run and tail outline align with the retained A6M2 view. Corrected cowling follows the measured forward taper; fin-root concavity is retained."
+      ],
+      "residuals": [
+        "Published drawing and reconstructed hidden sections retain source limitations."
+      ]
+    },
+    {
+      "id": "d3a1-val",
+      "name": "Aichi D3A1 Val",
+      "glbSha256": "6d47be1cd65e8fffb4a6afe0d460e373356155c676e69145c667350e6b7e9c25",
+      "shapeSha256": "c30725989407fd5d4cfdf1c11d835c451b5b5327a16597879c23cab84823ffb4",
+      "comparisonReport": "assets/aircraft/d3a1-val/generated/comparison/comparison.json",
+      "comparisonReportSha256": "d7195d61cc3c62b9bb6305a1e013522dfc62a60b51af4ecdb03f9c244d437944",
+      "sourceUrl": "https://www.combinedfleet.com/ijna/d3a.htm",
+      "sourceVariant": "D3A1 Model 11",
+      "views": {
+        "side": {
+          "visuallyReviewed": true,
+          "overlayPath": "assets/aircraft/d3a1-val/generated/comparison/side-overlay.png",
+          "overlaySha256": "28b5c8a6ad4fe8852d6f27a93bea8e0232de48c56bc39853e368944e8401879a",
+          "sourceImage": "assets/aircraft/references/schematics/d3a1-val/three-view.png",
+          "sourceImageSha256": "91b52859aef4b9e0e76074aa13092720ef32a51f1ff2c3151ddcf3774d0c24b6"
+        },
+        "top": {
+          "visuallyReviewed": true,
+          "overlayPath": "assets/aircraft/d3a1-val/generated/comparison/top-overlay.png",
+          "overlaySha256": "53b0eb92b985c682ce7674d0b676c6123a2c793160a72f6202e0466ce455a0a5",
+          "sourceImage": "assets/aircraft/references/schematics/d3a1-val/three-view.png",
+          "sourceImageSha256": "91b52859aef4b9e0e76074aa13092720ef32a51f1ff2c3151ddcf3774d0c24b6"
+        }
+      },
+      "measured": {
+        "lengthM": 10.075778,
+        "wingspanM": 14.37,
+        "heightM": 3.973273,
+        "triangles": 32094,
+        "meshes": 11,
+        "wingStationMaxAbsErrorM": 0.018008
+      },
+      "drawingExpected": {
+        "lengthM": 10.2,
+        "wingspanM": 14.37
+      },
+      "lengthRelativeErrorPercent": 1.217863,
+      "observations": [
+        "Rounded wing planform and long canopy align. The rebuilt fixed-gear fairing follows the digitised asymmetric teardrop, including its long aft end. Curved fin leading root now remains concave."
+      ],
+      "residuals": [
+        "Fairing depth and hidden cross-sections are reconstructed from exterior outlines."
+      ]
+    },
+    {
+      "id": "b5n2-kate",
+      "name": "Nakajima B5N2 Kate",
+      "glbSha256": "06ecd197858ced77d417a36b4d8f86a15758e0fadb2f926946f6381ae118b61e",
+      "shapeSha256": "21c27c2a8eaea99678c62757a4b1f663716319ebc410f73fd39b5108e4916def",
+      "comparisonReport": "assets/aircraft/b5n2-kate/generated/comparison/comparison.json",
+      "comparisonReportSha256": "d75f7c4be97dd478195c9c8179fe7cd3a8a9930cd0906fc8bb263fff43f58033",
+      "sourceUrl": "https://www.combinedfleet.com/ijna/b5n.htm",
+      "sourceVariant": "B5N2; upper partial B5N1 side view is excluded",
+      "views": {
+        "side": {
+          "visuallyReviewed": true,
+          "overlayPath": "assets/aircraft/b5n2-kate/generated/comparison/side-overlay.png",
+          "overlaySha256": "d51cca854921b87115aed81d467396ddba649974c5fa373ea8e9ddc1529e85ff",
+          "sourceImage": "assets/aircraft/references/schematics/b5n2-kate/three-view.png",
+          "sourceImageSha256": "5c4d662a52fdac9cafee6d67a00e57ae7da9b90bd615d0a7807d6bb7afa33a9e"
+        },
+        "top": {
+          "visuallyReviewed": true,
+          "overlayPath": "assets/aircraft/b5n2-kate/generated/comparison/top-overlay.png",
+          "overlaySha256": "be157327a6c998e725375218ee99f17bc50284b183366c5eb532efe239ada12f",
+          "sourceImage": "assets/aircraft/references/schematics/b5n2-kate/three-view.png",
+          "sourceImageSha256": "5c4d662a52fdac9cafee6d67a00e57ae7da9b90bd615d0a7807d6bb7afa33a9e"
+        }
+      },
+      "measured": {
+        "lengthM": 10.279819,
+        "wingspanM": 15.5,
+        "heightM": 3.916115,
+        "triangles": 31458,
+        "meshes": 11,
+        "wingStationMaxAbsErrorM": 0.008039
+      },
+      "drawingExpected": {
+        "lengthM": 10.3,
+        "wingspanM": 15.5
+      },
+      "lengthRelativeErrorPercent": 0.195932,
+      "observations": [
+        "Long greenhouse and distinct broad tapered wing align with the B5N2 view, excluding the separate B5N1 nose illustration. Cockpit parts remain within the roof silhouette."
+      ],
+      "residuals": [
+        "Interior volume and deployed gear geometry are approximations."
+      ]
+    },
+    {
+      "id": "a6m5-zero",
+      "name": "Mitsubishi A6M5 Zero",
+      "glbSha256": "8d182dfa62a528d3899f69fb4d02d9f492b6d715bec2cd96e31d3dd52aa6a852",
+      "shapeSha256": "622d79503f3f7e6208c7fffb1898ddad265dd19becc2025374d2036cc7fde7e7",
+      "comparisonReport": "assets/aircraft/a6m5-zero/generated/comparison/comparison.json",
+      "comparisonReportSha256": "cfc37dad4abf1e915a5bf5d7ff545672c129b4266025f7d38ad97e40a0693ef3",
+      "sourceUrl": "https://rclibrary.co.uk/3view.asp?ID=13451",
+      "sourceVariant": "A6M5 Model 52; use complete lower half of top view",
+      "views": {
+        "side": {
+          "visuallyReviewed": true,
+          "overlayPath": "assets/aircraft/a6m5-zero/generated/comparison/side-overlay.png",
+          "overlaySha256": "47036f72749251ed70606b3fd025a56d4b9872fca9e3076f1ad017817faa1247",
+          "sourceImage": "assets/aircraft/references/schematics/a6m5-zero/rc3v13451-thumb-large.jpg",
+          "sourceImageSha256": "199387fabab44c1f9ec1518ede9f9f9244c8b0c004897932b0dcf27d0d0e4cf2"
+        },
+        "top": {
+          "visuallyReviewed": true,
+          "overlayPath": "assets/aircraft/a6m5-zero/generated/comparison/top-overlay.png",
+          "overlaySha256": "7cf20e9ecd9c3f5884004622403c4dfb4b8dba39e04c97b0b40390b59cbf1e12",
+          "sourceImage": "assets/aircraft/references/schematics/a6m5-zero/rc3v13451-thumb-large.jpg",
+          "sourceImageSha256": "199387fabab44c1f9ec1518ede9f9f9244c8b0c004897932b0dcf27d0d0e4cf2"
+        }
+      },
+      "measured": {
+        "lengthM": 9.136689,
+        "wingspanM": 11.0,
+        "heightM": 3.632523,
+        "triangles": 31486,
+        "meshes": 11,
+        "wingStationMaxAbsErrorM": 0.012222
+      },
+      "drawingExpected": {
+        "lengthM": 9.12,
+        "wingspanM": 11.0
+      },
+      "lengthRelativeErrorPercent": 0.182993,
+      "observations": [
+        "Shorter rounded wing outline is visibly distinct from the A6M2. Corrected nose taper and fin contour follow the retained plate."
+      ],
+      "residuals": [
+        "Only the available 640-pixel plate preview was retrievable; precise small details are not evidenced at this resolution."
+      ]
+    },
+    {
+      "id": "d4y2-judy",
+      "name": "Yokosuka D4Y2 Judy",
+      "glbSha256": "23b3253415d2e0dc0f8a66a417cbac9fbfe84fb572844d46159a5541cdd6ed3a",
+      "shapeSha256": "05ed7c79e5cf545722542bd217fb9ff18623ee92dee8c208902d4ca454348287",
+      "comparisonReport": "assets/aircraft/d4y2-judy/generated/comparison/comparison.json",
+      "comparisonReportSha256": "cedbc5eb15f0294ccb23465b51919ec49ddefee776a2c0ee03706faf35cd4697",
+      "sourceUrl": "https://www.gruppofalchi.com/files/Profile-Publications-Aircraft-241---Aichi-D3A-Yokosuka-D4Y.pdf",
+      "sourceVariant": "D4Y2-C reconnaissance Model 1-2; external airframe used for D4Y2, bomber-bay internals not evidenced",
+      "views": {
+        "side": {
+          "visuallyReviewed": true,
+          "overlayPath": "assets/aircraft/d4y2-judy/generated/comparison/side-overlay.png",
+          "overlaySha256": "68cbc7f498defa39004dda42a1a1c02ac17e9ef50a85200196394c4056cf4c6f",
+          "sourceImage": "assets/aircraft/references/schematics/d4y2-judy/profile-241-page-17-measure.png",
+          "sourceImageSha256": "1b3b5b841ae1b675d264bee80dfa07eb9fd5520aad7ab4f49cc20f0b5bb22669"
+        },
+        "top": {
+          "visuallyReviewed": true,
+          "overlayPath": "assets/aircraft/d4y2-judy/generated/comparison/top-overlay.png",
+          "overlaySha256": "fd92d7c6353b37d9fc11a4c72122436157c246bd4a6ba7dbb3d336076b970d0c",
+          "sourceImage": "assets/aircraft/references/schematics/d4y2-judy/top-registered.png",
+          "sourceImageSha256": "6872d1b491a82e32693c0099d8c51a20f64f4dbfbb9c9286f707df8815377d98"
+        }
+      },
+      "measured": {
+        "lengthM": 10.220029,
+        "wingspanM": 11.5,
+        "heightM": 3.726074,
+        "triangles": 28252,
+        "meshes": 11,
+        "wingStationMaxAbsErrorM": 0.010039
+      },
+      "drawingExpected": {
+        "lengthM": 10.22,
+        "wingspanM": 11.5
+      },
+      "lengthRelativeErrorPercent": 0.000284,
+      "observations": [
+        "Slender inline-engine nose and long cockpit match the D4Y2-C exterior reference. Separate deep chin radiator and its chamfered entry now fill the measured lower contour."
+      ],
+      "residuals": [
+        "Reference depicts reconnaissance D4Y2-C; bomber-bay internals are not evidenced."
+      ]
+    },
+    {
+      "id": "b6n2-jill",
+      "name": "Nakajima B6N2 Jill",
+      "glbSha256": "73a8e63809ac69fe4b4da191a90a5e25566831430bd03ac6b5b3768d6d4b2aed",
+      "shapeSha256": "6212cc85189bffdce46936ba4d5994bd8c2dd4cd69ffe453a1394d921c0c4cca",
+      "comparisonReport": "assets/aircraft/b6n2-jill/generated/comparison/comparison.json",
+      "comparisonReportSha256": "a7a1d3f76f492cc133280416838b035b7b401bacca1c982a023c5cc5bcf96e88",
+      "sourceUrl": "https://www.combinedfleet.com/ijna/b6n.htm",
+      "sourceVariant": "B6N2 Model 12",
+      "views": {
+        "side": {
+          "visuallyReviewed": true,
+          "overlayPath": "assets/aircraft/b6n2-jill/generated/comparison/side-overlay.png",
+          "overlaySha256": "663d921f14e952944ed34202a251e87ca6bcd796212f137d8e087be5dde57972",
+          "sourceImage": "assets/aircraft/references/schematics/b6n2-jill/three-view.png",
+          "sourceImageSha256": "08ac443a134d8e790135a9e6116b158c8d74195e9d67edfb290e5afff5628adf"
+        },
+        "top": {
+          "visuallyReviewed": true,
+          "overlayPath": "assets/aircraft/b6n2-jill/generated/comparison/top-overlay.png",
+          "overlaySha256": "17cd99367f6c4d3a9b1312bb4c0d2cf34729f56ac01a54c5092b17b2102d4620",
+          "sourceImage": "assets/aircraft/references/schematics/b6n2-jill/three-view.png",
+          "sourceImageSha256": "08ac443a134d8e790135a9e6116b158c8d74195e9d67edfb290e5afff5628adf"
+        }
+      },
+      "measured": {
+        "lengthM": 10.923848,
+        "wingspanM": 14.9,
+        "heightM": 4.387756,
+        "triangles": 31210,
+        "meshes": 11,
+        "wingStationMaxAbsErrorM": 0.008605
+      },
+      "drawingExpected": {
+        "lengthM": 10.9,
+        "wingspanM": 14.9
+      },
+      "lengthRelativeErrorPercent": 0.218789,
+      "observations": [
+        "Long cockpit, tapered wing and curved tall fin align with the measured principal outline. Seat geometry no longer protrudes above the canopy."
+      ],
+      "residuals": [
+        "Plan aft-fuselage envelope is approximately 0.15 m narrower in places than the source; rounded wingtip corners remain simplified. Hidden sections and canopy width are reconstructed."
+      ]
+    },
+    {
+      "id": "f4f-4-wildcat",
+      "name": "Grumman F4F-4 Wildcat",
+      "glbSha256": "1ff9d57357e84a7d6dafa31dffea641911aa15dfcf285f464cc19ce36ac219bb",
+      "shapeSha256": "c7a5398f3108d1c5eec5c7f78d7ae417363596b9aabcac41ee0696f0943f1200",
+      "comparisonReport": "assets/aircraft/f4f-4-wildcat/generated/comparison/comparison.json",
+      "comparisonReportSha256": "14dbe750cddba6a432f7e9a9bc63c76c8bd9da73fd788915da971d0c90bc9dc9",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Grumman_F4F_Wildcat_3-view_line_drawing.svg",
+      "sourceVariant": "F4F-4",
+      "views": {
+        "side": {
+          "visuallyReviewed": true,
+          "overlayPath": "assets/aircraft/f4f-4-wildcat/generated/comparison/side-overlay.png",
+          "overlaySha256": "384e6bfa894ae6ca4131daea18c097b731a4e4c3c580d663f32bd2451fd9ceec",
+          "sourceImage": "assets/aircraft/references/schematics/f4f-4-wildcat/threeview.png",
+          "sourceImageSha256": "5673170e7dab2001ffaa016035230f5d9a6580ef6b629f7267731cdcdd4301ee"
+        },
+        "top": {
+          "visuallyReviewed": true,
+          "overlayPath": "assets/aircraft/f4f-4-wildcat/generated/comparison/top-overlay.png",
+          "overlaySha256": "2478c1ecb9e20cce90874fb3275dcaa59072cab739955098edd52e0e86e50bff",
+          "sourceImage": "assets/aircraft/references/schematics/f4f-4-wildcat/threeview.png",
+          "sourceImageSha256": "5673170e7dab2001ffaa016035230f5d9a6580ef6b629f7267731cdcdd4301ee"
+        }
+      },
+      "measured": {
+        "lengthM": 8.770199,
+        "wingspanM": 11.58,
+        "heightM": 3.660479,
+        "triangles": 30655,
+        "meshes": 11,
+        "wingStationMaxAbsErrorM": 0.002434
+      },
+      "drawingExpected": {
+        "lengthM": 8.76,
+        "wingspanM": 11.58
+      },
+      "lengthRelativeErrorPercent": 0.116427,
+      "observations": [
+        "Short deep body, high midwing, rounded clipped wingtip, narrow gear and curved fin distinguish this shape. Corrected cowling and fin root now follow the measured plate."
+      ],
+      "residuals": [
+        "Modern orthographic drawing is not a manufacturing loft; narrow-track deployed gear is reconstructed."
+      ]
+    },
+    {
+      "id": "sbd-3-dauntless",
+      "name": "Douglas SBD-3 Dauntless",
+      "glbSha256": "f59209d2b4784b903a25eb797c202b8aa2359a92768745d64b53299604caf080",
+      "shapeSha256": "97571d4e3534188cbac77ba788abacbaeda68a7579e4900e8cfd112d1d429998",
+      "comparisonReport": "assets/aircraft/sbd-3-dauntless/generated/comparison/comparison.json",
+      "comparisonReportSha256": "b41a7af43bde6e43984016ba6f93195403a73cbe7f6f3c1c1434268ded708352",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Douglas_SBD-5_BuAer_3_view_drawing.jpg",
+      "sourceVariant": "SBD-5/6 main airframe used for SBD-3; variant-specific intake and sight retained separately",
+      "views": {
+        "side": {
+          "visuallyReviewed": true,
+          "overlayPath": "assets/aircraft/sbd-3-dauntless/generated/comparison/side-overlay.png",
+          "overlaySha256": "ee64c7de5f901c658af559c6d290858a38c82602ddf28e4a6b5f3c5c178f56fc",
+          "sourceImage": "assets/aircraft/references/schematics/sbd-3-dauntless/buaer-sbd-5.jpg",
+          "sourceImageSha256": "3b6e045a32fac9349e7938b53b000d390c3f887c640e39e734fd4385bf0185a7"
+        },
+        "top": {
+          "visuallyReviewed": true,
+          "overlayPath": "assets/aircraft/sbd-3-dauntless/generated/comparison/top-overlay.png",
+          "overlaySha256": "30fab79f4983004c2eb3cdfe62b84039ba4cbe0f793675184f367eec3256282e",
+          "sourceImage": "assets/aircraft/references/schematics/sbd-3-dauntless/buaer-sbd-5.jpg",
+          "sourceImageSha256": "3b6e045a32fac9349e7938b53b000d390c3f887c640e39e734fd4385bf0185a7"
+        }
+      },
+      "measured": {
+        "lengthM": 10.008076,
+        "wingspanM": 12.65,
+        "heightM": 4.228121,
+        "triangles": 38199,
+        "meshes": 16,
+        "wingStationMaxAbsErrorM": 0.019868
+      },
+      "drawingExpected": {
+        "lengthM": 10.06,
+        "wingspanM": 12.65
+      },
+      "lengthRelativeErrorPercent": 0.516143,
+      "observations": [
+        "Fixed wing, rounded tips and long dorsal-fin curve follow retained broad-airframe drawing. Perforated dive-brake span and chord fit within the source trailing-edge region."
+      ],
+      "residuals": [
+        "Measured primary plate is SBD-5/6; SBD-3 intake, sight and exact cowling-panel stations remain explicit variant approximations."
+      ]
+    },
+    {
+      "id": "tbd-1-devastator",
+      "name": "Douglas TBD-1 Devastator",
+      "glbSha256": "17d054cd6643f4f6b6c3150328679b9f2a388f4352675ab2a48d74fa2f20e7db",
+      "shapeSha256": "29153f60f93e61251d31f38de80041dcbc6010b895f850d65167884ee209af62",
+      "comparisonReport": "assets/aircraft/tbd-1-devastator/generated/comparison/comparison.json",
+      "comparisonReportSha256": "0047e1d8625530d2102cfb94ac36529c8cbd31e356d8227707f19f938eba7281",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Douglas_TBD_Devastator_3-view.svg",
+      "sourceVariant": "Production TBD-1 with raised greenhouse canopy",
+      "views": {
+        "side": {
+          "visuallyReviewed": true,
+          "overlayPath": "assets/aircraft/tbd-1-devastator/generated/comparison/side-overlay.png",
+          "overlaySha256": "fa15934cba498c382e47d0958eaf28161f95e37a95235a9b16ea135e9ea7bfc3",
+          "sourceImage": "assets/aircraft/references/schematics/tbd-1-devastator/commons-tbd.png",
+          "sourceImageSha256": "fc45af704ce7d02c420e361ab037be84155888433f1d03cb0355aa96fa5e9331"
+        },
+        "top": {
+          "visuallyReviewed": true,
+          "overlayPath": "assets/aircraft/tbd-1-devastator/generated/comparison/top-overlay.png",
+          "overlaySha256": "f90f81e041493967cae5f8c84c6b3e5066bfb965742aa71adb00204a5045614d",
+          "sourceImage": "assets/aircraft/references/schematics/tbd-1-devastator/commons-tbd.png",
+          "sourceImageSha256": "fc45af704ce7d02c420e361ab037be84155888433f1d03cb0355aa96fa5e9331"
+        }
+      },
+      "measured": {
+        "lengthM": 10.662426,
+        "wingspanM": 15.24,
+        "heightM": 4.717985,
+        "triangles": 33575,
+        "meshes": 12,
+        "wingStationMaxAbsErrorM": 0.018487
+      },
+      "drawingExpected": {
+        "lengthM": 10.67,
+        "wingspanM": 15.24
+      },
+      "lengthRelativeErrorPercent": 0.070984,
+      "observations": [
+        "Strongly tapered corrugated wing, long raised greenhouse and narrow tail fuselage follow retained orthographic drawing."
+      ],
+      "residuals": [
+        "Deployed gear differs from the retracted source pose; tail and wingtip corners remain polygonal approximations of the curves."
+      ]
+    },
+    {
+      "id": "f6f-5-hellcat",
+      "name": "Grumman F6F-5 Hellcat",
+      "glbSha256": "c059861a8b499906c51c1845b9d2f818760cc24501b7af88963bdc802ba41404",
+      "shapeSha256": "e122af37b6fc0929231249bf8b8d55ce40992c8e510cbf3a2a5b4970f6e5da80",
+      "comparisonReport": "assets/aircraft/f6f-5-hellcat/generated/comparison/comparison.json",
+      "comparisonReportSha256": "7d540952395076e156790edb8f8b141906849b3a2aef1e1b29fedc1db6e8f432",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Grumman_F6F_Hellcat_3-view_line_drawing.svg",
+      "sourceVariant": "F6F outline, cross-checked against exact F6F-5 drawing",
+      "views": {
+        "side": {
+          "visuallyReviewed": true,
+          "overlayPath": "assets/aircraft/f6f-5-hellcat/generated/comparison/side-overlay.png",
+          "overlaySha256": "392ad1697f1d40ba9061791c44ee6ac74bfe38c647c9e12c5ef5798ad03074a5",
+          "sourceImage": "assets/aircraft/references/schematics/f6f-5-hellcat/line-threeview.png",
+          "sourceImageSha256": "25633c0abeb0e0a3b6fb2a5e33f7c2b474ac598c21177f6e8cfac78fb4374f81"
+        },
+        "top": {
+          "visuallyReviewed": true,
+          "overlayPath": "assets/aircraft/f6f-5-hellcat/generated/comparison/top-overlay.png",
+          "overlaySha256": "de29bee53d64ac66f250f55d5f59ab251b700b82416df79eb955362d1382a710",
+          "sourceImage": "assets/aircraft/references/schematics/f6f-5-hellcat/line-threeview.png",
+          "sourceImageSha256": "25633c0abeb0e0a3b6fb2a5e33f7c2b474ac598c21177f6e8cfac78fb4374f81"
+        }
+      },
+      "measured": {
+        "lengthM": 10.24,
+        "wingspanM": 13.06,
+        "heightM": 3.957965,
+        "triangles": 31955,
+        "meshes": 11,
+        "wingStationMaxAbsErrorM": 0.004432
+      },
+      "drawingExpected": {
+        "lengthM": 10.24,
+        "wingspanM": 13.06
+      },
+      "lengthRelativeErrorPercent": 0.0,
+      "observations": [
+        "Broad tapered wing, deep lower cowl/chin, raised dorsal spine and curved fin remain distinct from the Wildcat. Cowling taper and fin concavity agree with measured source outline."
+      ],
+      "residuals": [
+        "Family outline is cross-checked with a separate exact F6F-5 plate; hidden sections and gear extension are inferred.",
+        "The retained side source has a faint red folded-wing outline above the aircraft; this is original reference ink, not exported geometry."
+      ]
+    },
+    {
+      "id": "sb2c-4-helldiver",
+      "name": "Curtiss SB2C-4 Helldiver",
+      "glbSha256": "35fe47786e6894fec6912a96877c0c69914bc8b97f3e116331278ab3e712737c",
+      "shapeSha256": "416879dbe2021070e356179db0258194b10410f3ed1a15a957fb0e45d35d7d64",
+      "comparisonReport": "assets/aircraft/sb2c-4-helldiver/generated/comparison/comparison.json",
+      "comparisonReportSha256": "c5b1ce9c6fbb6b8fd42320b11cdbb06905d8e9b49df350a78cf567f0d2a9f3b3",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Curtiss_SB2C_Helldiver_BuAer_3_side_view.jpg",
+      "sourceVariant": "Sheet labels SB2C-1/1C outline with SB2C-3/4/5 engine/propeller note; used for SB2C-4 principal airframe",
+      "views": {
+        "side": {
+          "visuallyReviewed": true,
+          "overlayPath": "assets/aircraft/sb2c-4-helldiver/generated/comparison/side-overlay.png",
+          "overlaySha256": "48bc492a491431bfa0cb64afbb6ab57d4e53536eb8590f96929df902fafc7ec5",
+          "sourceImage": "assets/aircraft/references/schematics/sb2c-4-helldiver/buaer-sb2c-5.jpg",
+          "sourceImageSha256": "c7a846c2eb7d9e942f0dc7c05216b84ca1de9fae390c9f7e73649c9e9818a1b8"
+        },
+        "top": {
+          "visuallyReviewed": true,
+          "overlayPath": "assets/aircraft/sb2c-4-helldiver/generated/comparison/top-overlay.png",
+          "overlaySha256": "1247c386c7f3d3a56ac7121894171f6c32b729f2df2dcbccda5e46dae8ec8a3b",
+          "sourceImage": "assets/aircraft/references/schematics/sb2c-4-helldiver/buaer-sb2c-5.jpg",
+          "sourceImageSha256": "c7a846c2eb7d9e942f0dc7c05216b84ca1de9fae390c9f7e73649c9e9818a1b8"
+        }
+      },
+      "measured": {
+        "lengthM": 11.189694,
+        "wingspanM": 15.16,
+        "heightM": 5.003719,
+        "triangles": 38429,
+        "meshes": 16,
+        "wingStationMaxAbsErrorM": 0.029234
+      },
+      "drawingExpected": {
+        "lengthM": 11.18,
+        "wingspanM": 15.16
+      },
+      "lengthRelativeErrorPercent": 0.086708,
+      "observations": [
+        "Deep fuselage, tall rounded fin and nearly straight wing leading edge align with the BuAer outline. Perforated brake extent fits the source wing region."
+      ],
+      "residuals": [
+        "Primary plate is only 354 by 543 pixels. Broad outline uses earlier SB2C sheet with explicit later propeller note; -4 brake and small details remain reconstructed."
+      ]
+    },
+    {
+      "id": "tbf-1c-avenger",
+      "name": "Grumman TBF-1C Avenger",
+      "glbSha256": "f801011da1a69f8ca3210347233b4c73e61ef13c113859561cd19a21fa59c1fa",
+      "shapeSha256": "8071c97877c6f62ceb6971cdf91a653cf0edde7dd11e34ae40af9c52bca29348",
+      "comparisonReport": "assets/aircraft/tbf-1c-avenger/generated/comparison/comparison.json",
+      "comparisonReportSha256": "1408118fbbd9f1afc011f5771948115c7d2b6b5399c863ef79befcca70c4635f",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Grumman_TBF-1_Avenger_BuAer_drawing.jpg",
+      "sourceVariant": "MODEL TBF-1 & 1C; also TBM-1 & 1C",
+      "views": {
+        "side": {
+          "visuallyReviewed": true,
+          "overlayPath": "assets/aircraft/tbf-1c-avenger/generated/comparison/side-overlay.png",
+          "overlaySha256": "1824460f49a7e976595452a123b3581cce455b742be57f0bd76d4dc69be8aba6",
+          "sourceImage": "assets/aircraft/references/schematics/tbf-1c-avenger/buaer-tbf-1.jpg",
+          "sourceImageSha256": "b8371a8284b3e2949e62f1bff05b98606adba532a3f79d3e50bdef08318daaf1"
+        },
+        "top": {
+          "visuallyReviewed": true,
+          "overlayPath": "assets/aircraft/tbf-1c-avenger/generated/comparison/top-overlay.png",
+          "overlaySha256": "71e352b8589191035087911f4dfc9298cae3229915333ebcf28ef2019327e0d4",
+          "sourceImage": "assets/aircraft/references/schematics/tbf-1c-avenger/buaer-tbf-1.jpg",
+          "sourceImageSha256": "b8371a8284b3e2949e62f1bff05b98606adba532a3f79d3e50bdef08318daaf1"
+        }
+      },
+      "measured": {
+        "lengthM": 12.35651,
+        "wingspanM": 16.51,
+        "heightM": 4.995653,
+        "triangles": 33383,
+        "meshes": 12,
+        "wingStationMaxAbsErrorM": 0.003918
+      },
+      "drawingExpected": {
+        "lengthM": 12.48,
+        "wingspanM": 16.51
+      },
+      "lengthRelativeErrorPercent": 0.989503,
+      "observations": [
+        "Broad wing, deep body, turret roof and squared tall fin follow retained BuAer sheet. Horizontal-tail center V notch is visible in the original drawing and intentionally retained."
+      ],
+      "residuals": [
+        "Side fin and plan tail have slightly inconsistent aft extents in the source; independent measurements are retained. Wingtip corners remain simplified."
+      ]
+    },
+    {
+      "id": "f4u-1d-corsair",
+      "name": "Vought F4U-1D Corsair",
+      "glbSha256": "59739a56e7d26f3d7720151013570401d9b629a507788efe544b47e5816fb0ce",
+      "shapeSha256": "e3d8b1a05fe5b04ba3a620abbf3c393d97d51d42f971f296f7ac9ee41c572fa3",
+      "comparisonReport": "assets/aircraft/f4u-1d-corsair/generated/comparison/comparison.json",
+      "comparisonReportSha256": "c909c6c0a786ff84d0befead0fa0340421525c3e060c6e0c8c2dfef9fb1c3242",
+      "sourceUrl": "https://www.vought.org/photo/html/pdown.html",
+      "sourceVariant": "F4U-1D",
+      "views": {
+        "side": {
+          "visuallyReviewed": true,
+          "overlayPath": "assets/aircraft/f4u-1d-corsair/generated/comparison/side-overlay.png",
+          "overlaySha256": "a076e32a32ccfd476d394cde278e758a39f1206b9dea35242d3e77ac444adf4b",
+          "sourceImage": "assets/aircraft/references/schematics/f4u-1d-corsair/vought-1532_016_22.png",
+          "sourceImageSha256": "c5464eaaac26ea0b1e1be7e7faae1b73876e305653fe4dddd7eb8cf7b16884dc"
+        },
+        "top": {
+          "visuallyReviewed": true,
+          "overlayPath": "assets/aircraft/f4u-1d-corsair/generated/comparison/top-overlay.png",
+          "overlaySha256": "90abf572c71d09691e4ff1c9bebc506246688aa6d0b92e49fed397f6cfc904e8",
+          "sourceImage": "assets/aircraft/references/schematics/f4u-1d-corsair/vought-1532_016_22.png",
+          "sourceImageSha256": "c5464eaaac26ea0b1e1be7e7faae1b73876e305653fe4dddd7eb8cf7b16884dc"
+        }
+      },
+      "measured": {
+        "lengthM": 10.2,
+        "wingspanM": 12.5,
+        "heightM": 4.41941,
+        "triangles": 30411,
+        "meshes": 11,
+        "wingStationMaxAbsErrorM": 0.012611
+      },
+      "drawingExpected": {
+        "lengthM": 10.2,
+        "wingspanM": 12.5
+      },
+      "lengthRelativeErrorPercent": 0.0,
+      "observations": [
+        "Long nose, aft cockpit, rounded fin and wing/tail planforms follow Vought F4U-1D archive plate. Independent exported wing-height samples confirm downward inboard panel and rising outer panel at the measured 35.766 percent half-span gull break."
+      ],
+      "residuals": [
+        "Primary drawing early 13 ft 4 in propeller differs from later Smithsonian 13 ft 1 in example used. Hidden sections, fairings and gear kinematics remain reconstructed."
+      ]
+    }
+  ]
+}
