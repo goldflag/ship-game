@@ -7,7 +7,7 @@ import { SkySystem, PRESETS as SKY_PRESETS } from '../../vendor/threejs-sky-pro/
 import { CombatSimulation } from '../simulation/combat';
 import { ShipView } from './ShipView';
 import { ArmorOverlay } from './ArmorOverlay';
-import { ArmorHover, type ArmorHoverInfo } from './ArmorHover';
+import { InspectionHover, type InspectionHoverInfo } from './InspectionHover';
 import { ShipLabels } from './ShipLabels';
 import { HullDamageFeedback } from './HullDamageFeedback';
 import { FIXED_DT } from '../simulation/ship';
@@ -71,7 +71,7 @@ export class Game {
   private scenePass?: ReturnType<typeof pass>;
   private finalFrame?: ReturnType<typeof rtt>;
   private armorOverlay?: ArmorOverlay;
-  private armorHover: ArmorHover;
+  private inspectionHover: InspectionHover;
   private abort = new AbortController();
   private resizePending = true;
   private observer: ResizeObserver;
@@ -108,7 +108,7 @@ export class Game {
     this.rig = new CameraRig(this.camera, this.renderer.domElement, this.definition.viewpoints?.bridge, {
       pause: () => this.setPaused(true), aim: () => { this.manualAim = true; }, optics: () => this.toggleBinoculars(),
     });
-    this.armorHover = new ArmorHover(this.renderer.domElement, this.camera);
+    this.inspectionHover = new InspectionHover(this.renderer.domElement, this.camera);
     this.input = new InputController({
       pause: () => { if (!this.inPort) this.setPaused(!this.paused); },
       camera: () => this.cycleCamera(), recenter: () => this.recenter(),
@@ -285,7 +285,7 @@ export class Game {
   }
 
   private async replaceFleet(simulation: CombatSimulation, definition: typeof selectedShip): Promise<void> {
-    this.armorHover?.clear();
+    this.inspectionHover?.clear();
     const definitions = [...new Map(simulation.actors.map(actor => [actor.definition.id, actor.definition])).values()];
     const models = new Map<string, THREE.Group>();
     const views: ShipView[] = [];
@@ -378,7 +378,7 @@ export class Game {
       const showGunAim = !this.inPort && !this.inspecting && !this.shellFollow.view && !this.simulation.player.damage.sunk;
       this.gunAim.update(showGunAim ? gunAimPoints(this.simulation.player, this.definition, this.battery, aim) : [], this.camera, showGunAim);
       this.hitDirections.update(this.simulation, this.camera, !this.inPort);
-      this.armorHover?.update(this.inPort && !this.paused && !this.switchingShip ? this.playerView?.inspection : undefined);
+      this.inspectionHover?.update(this.inPort && !this.paused && !this.switchingShip ? this.playerView?.inspection : undefined);
       this.effects.update(this.simulation, dt, this.camera, this.rig.binoculars && !this.shellFollow.view);
       this.audio?.update(this.simulation, this.input.order, this.battery,
         this.camera.position.toArray(), new THREE.Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0).toArray());
@@ -444,7 +444,7 @@ export class Game {
     finally { inspection.root.visible = true; }
   }
   setPaused(paused: boolean): void {
-    if (paused) this.armorHover?.clear();
+    if (paused) this.inspectionHover?.clear();
     this.paused = paused;
     this.audio?.setScene(this.inPort, paused);
     this.input.setEnabled(!paused && !this.inPort && !!this.water);
@@ -468,7 +468,7 @@ export class Game {
       this.simulation.actors.filter(actor => actor !== this.simulation.player && actor.motion.y > -40).map(actor => ({ pose: actor.motion, armor: actor.definition.armor, definition: actor.definition, trains: actor.mounts.map(m => m.train) })));
   }
   setInPort(inPort: boolean): void {
-    this.armorHover?.clear();
+    this.inspectionHover?.clear();
     if (this.articulationOriginal) this.restoreArticulation();
     if (!inPort && this.switchingShip) return;
     this.stopShellFollow();
@@ -525,11 +525,11 @@ export class Game {
     if (focus) this.rig.update(focus, focus.y, 0, true);
   }
   setPortInspection(mode: InspectionMode, selectedId?: string): void {
-    this.armorHover?.clear();
+    this.inspectionHover?.clear();
     if (this.inPort) this.playerView?.setInspection(mode, selectedId);
   }
-  subscribeArmorHover(listener: (hover: ArmorHoverInfo | null) => void): () => void {
-    return this.armorHover.subscribe(listener);
+  subscribeInspectionHover(listener: (hover: InspectionHoverInfo | null) => void): () => void {
+    return this.inspectionHover.subscribe(listener);
   }
   selectAim(moduleId: string): void { this.stopShellFollow(); this.manualAim = moduleId === 'point'; this.aimModule = moduleId; }
   inspectTarget(): void {
@@ -582,7 +582,7 @@ export class Game {
       tick: this.simulation.tick, paused: this.paused, fps: this.fps, inspecting: this.inspecting, inPort: this.inPort,
       effects: this.effects.diagnostics(),
       audio: this.audio?.diagnostics(),
-      portInspection: this.playerView?.inspection.mode, selectedVolume: this.playerView?.inspection.selectedId, hoveredArmor: this.playerView?.inspection.hoveredId,
+      portInspection: this.playerView?.inspection.mode, selectedVolume: this.playerView?.inspection.selectedId, hoveredVolume: this.playerView?.inspection.hoveredId,
       maxMuzzleErrorM: Math.max(0, ...this.fleetViews.flatMap(view => view.muzzleErrors())),
       combat: this.simulation.telemetry(this.battery, this.currentAim),
       fleet: this.simulation.actors.map(actor => ({ id: actor.motion.id, definitionId: actor.definition.id, team: actor.team, controller: actor.controller, targetId: actor.targetId, motion: { ...actor.motion }, ammo: actor.mounts.reduce((n, m) => n + m.ammo, 0), integrity: actor.damage.integrity })),
@@ -636,7 +636,7 @@ export class Game {
     this.audio?.dispose();
     cancelAnimationFrame(this.raf);
     this.abort.abort(); this.observer.disconnect(); this.input.dispose(); this.rig.dispose();
-    this.armorHover.dispose();
+    this.inspectionHover.dispose();
     this.shipLabels.dispose();
     this.gunAim.dispose();
     this.hitDirections.dispose();

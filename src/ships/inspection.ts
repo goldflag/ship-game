@@ -6,6 +6,9 @@ export type InspectionKind = 'armor' | 'engine' | 'magazine' | 'steering' | 'com
 export const INSPECTION_COLORS: Record<Exclude<InspectionKind, 'armor'>, string> = {
   engine: '#90bca5', magazine: '#dca48e', steering: '#b4b2db', compartment: '#9ecad1',
 };
+export const INSPECTION_KIND_LABELS: Record<Exclude<InspectionKind, 'armor'>, string> = {
+  engine: 'Machinery', magazine: 'Magazine', steering: 'Steering gear', compartment: 'Compartment',
+};
 /** A fixed scale keeps equal thicknesses the same color across every ship. */
 export const ARMOR_COLOR_STOPS = [
   { thicknessMm: 0, color: '#64d487' },
@@ -16,7 +19,9 @@ export interface InspectionEntry {
   id: string; name: string; kind: InspectionKind; center: Vec3; size: Vec3;
   plate?: Armor['plate']; provenance?: Armor['provenance']; anchor?: Vec3;
   surface?: AuthoredSurface;
-  thicknessMm?: number; capacityM3?: number; hp?: number;
+  thicknessMm?: number; capacityM3?: number; pumpM3PerSecond?: number; hp?: number;
+  /** Name of the compartment housing a module. */
+  within?: string;
   mountIndex?: number; moduleIndex?: number; compartmentIndex?: number; bearingDeg?: number;
 }
 export function armorThicknessColor(thicknessMm: number): string {
@@ -52,8 +57,8 @@ export function inspectionEntries(def: ShipDefinition): InspectionEntry[] {
       center: [m.position[0], m.position[1] + m.weapon.gunhouseSize[2] / 2, m.position[2]] as Vec3,
       size: [m.weapon.gunhouseSize[1], m.weapon.gunhouseSize[2], m.weapon.gunhouseSize[0]] as Vec3, thicknessMm: m.weapon.armorMm,
     }]),
-    ...def.modules.map((m, moduleIndex) => ({ id: `module:${m.id}`, name: m.name, kind: m.kind, center: m.center, size: m.size, hp: m.hp, moduleIndex })),
-    ...def.compartments.map((c, compartmentIndex) => ({ id: `compartment:${c.id}`, name: c.name, kind: 'compartment' as const, center: c.center, size: c.size, capacityM3: c.capacityM3, compartmentIndex })),
+    ...def.modules.map((m, moduleIndex) => ({ id: `module:${m.id}`, name: m.name, kind: m.kind, center: m.center, size: m.size, hp: m.hp, moduleIndex, within: def.compartments.find(c => c.id === m.compartmentId)?.name })),
+    ...def.compartments.map((c, compartmentIndex) => ({ id: `compartment:${c.id}`, name: c.name, kind: 'compartment' as const, center: c.center, size: c.size, capacityM3: c.capacityM3, pumpM3PerSecond: c.pumpM3PerSecond, compartmentIndex })),
   ];
 }
 export function entriesForMode(entries: InspectionEntry[], mode: InspectionMode) {
