@@ -1,0 +1,24 @@
+[
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/bill/orca/workspaces/ship-game/vodyanoy/src/ui/HitDirectionIndicators.css",
+    "line": 5,
+    "snippet": "Undocumented color #ee9b86 is outside DESIGN.md colors",
+    "ignoreValue": "#ee9b86"
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/bill/orca/workspaces/ship-game/vodyanoy/src/ui/HitDirectionIndicators.css",
+    "line": 7,
+    "snippet": "Undocumented color #07131b is outside DESIGN.md colors",
+    "ignoreValue": "#07131b"
+  }
+]
