@@ -1,5 +1,7 @@
 # Ship pipeline and combat validation — 2026-09-05
 
+Latest: [fleet fidelity / five-preset master integration](fleet-fidelity-integration.md). The dated milestones below retain their original hashes, test totals and review scope.
+
 The implemented milestone is a local ship asset pipeline and singleplayer gunnery/damage trial. Historical accuracy approval, a construction UI and networked PvP are separate future milestones.
 
 ## Asset evidence
@@ -94,6 +96,32 @@ To repeat the GPU regression with `bun run dev` running, evaluate this in the ga
 await import('/scripts/tests/combat-effects-browser.ts').then(m => m.checkCombatEffects());
 ```
 
+## Fleet fidelity 01 — 2026-09-05 Pacific
+
+Implemented the Yamato / Baltimore / Enterprise fidelity handoff from assigned master base `8e0be03`, preserving newer fleet, contact, shell-follow, audio and aircraft work. The [shared authoring/verification record](../assets/ships/fleet-fidelity/README.md) links per-vessel changes, exact hashes, source qualifications, twelve neutral matched views, five fixed views, decoded geometry and live evidence. This milestone supersedes earlier implementation-status notes for these ships, not their historical accuracy caveats.
+
+All three now share authored hull/deckhouse surfaces between rendering, CPU swept collision, sight picking and inspection. Original gunhouse facets, characteristic equipment, separately qualified protection and contained internal envelopes replace the earlier sparse/proxy portions. Corrections include Yamato's recurved bow air gap and port/starboard diagonals, Baltimore's broad transom cap and Enterprise's open hangar/elevator surfaces. Bismarck was rebuilt for shared recipe changes without editing its blueprint, exterior recipe or preserved baseline.
+
+- `bun test --timeout 20000`: **247 passed, 0 failed, 30,803 assertions across 36 files**. The new fleet structural regressions cover posed end/bridge hits, AP exits, air misses, dry high hits, inside-hull waterline traversal, breaches/flooding, effective armor and mixed-definition world-space effects. An HTTP regression reproduces and fixes review directory URLs falling through to Vite's game SPA; all four port links now use explicit `index.html`.
+- `bun run build`: all four asset/evidence and aircraft checks, TypeScript and Vite production build passed. The supplied large-bundle advisory remains. Local command logs are under `.build/fleet-fidelity/`.
+- All four `ship:compile`, `ship:build`, `ship:review` and `ship:compare` runs passed. All three upgraded presets passed full `ship:independence` builds with raw game references unavailable. Per-vessel dimensional audits and Yamato's selected component measurements pass. All models stay within 500k triangles / 30 MiB; Bismarck's historical ZIP remains close to the 100 MiB individual-file limit.
+- Current-hash WebGPU sweeps covered twelve train/elevation/recoil combinations for all four ships. Maximum muzzle discrepancy: Yamato 2.747 mm, Baltimore 1.317 mm, Enterprise 0.0324 mm and Bismarck 2.167 mm. All fixed and matched views were visually inspected; original before snapshots remain in assets.
+- Each target launched as player against a mixed three-ship enemy fleet, fired both batteries through the UI, used armor hover/internal selection and returned to tick 0 / Exterior / zero water. Separate, labeled live seeded trajectories exercised each definition's bow, stern, bridge, misses and valid waterline damage/flooding through the normal CPU/effects path. Enterprise's offset bridge camera remained correct. Exact events, ammo changes, seeds, captures and limitations are in the per-vessel records.
+
+Local Blender 5.2.0 LTS was used because no callable Blender MCP was available. Orca controlled only the assigned worktree's browser/terminal. Restricted historical scans were excluded from public packs. Direct canvas captures omit the HTML HUD and are distinguished from full UI screenshots and Blender renders. Roughly 20–54 port / 10–33 four-actor frame readings varied with desktop load, occlusion and effects: functional usability was exercised, but no controlled performance or maximum-fleet certification is claimed. Exact hull offsets, fitting locations, armor boundaries, rooms, capacities and hydrostatics remain qualified estimates in each discrepancy register.
+
+### Final evidence packaging
+
+The final production build passed after regenerating all four comparison packs. ZIP CRC checks and every published individual-file size check pass. Explicit historical redistribution allowlists pass for all three new packs; Bismarck retains its existing comparison policy. All new per-ship Markdown evidence links resolve locally.
+
+| Portable archive | Bytes | MiB |
+| --- | ---: | ---: |
+| Yamato | 45,964,184 | 43.83 |
+| Baltimore | 40,264,828 | 38.40 |
+| Enterprise CV-6 | 43,518,366 | 41.50 |
+| Bismarck | 104,061,929 | 99.24 |
+
+Orca verified the corrected explicit port link and Yamato's twelve before/after controls, two historical overlays, five sections and opacity values 0 / 0.25 / 0.75 / 1. The regenerated Yamato page also exposed its current runtime records/captures in the accessibility snapshot. A subsequent extra browser pass over lazy-loaded runtime images and the other two review pages could not finish: the desktop connection closed, and targeted tab recovery repeated the same error. The shared Orca app was not restarted. This limits the final interactive-page recheck, not the already completed exact-hash in-game articulation, firing, damage, inspection and reset trials. All four published review URLs additionally pass the real Vite HTTP regression, and final archive/freshness checks cover their files. The read-only review-control helper is retained under `assets/ships/fleet-fidelity/review-page.js` for repetition when the desktop host is available.
 ## 2026-09-05 — damage realism step 1
 
 Baseline `45392d0`; the detailed [implementation and Fable review record](../assets/reviews/damage-realism/implementation.md) supersedes earlier damage-behavior observations. Hull/sea contact now uses authored hull sections, openings retain spatial locations with bounded clustering, shell histories explain hit outcomes, and sinking records its cause while retaining the structural fallback. 132 tests and the production build pass. Claude Fable accepted the implementation and verified the review fixes with no blockers. Live battle entry, firing and the new empty history state were exercised; populated-history visual acceptance remains pending because the background Orca tab cannot retain visible focus for screenshot capture.

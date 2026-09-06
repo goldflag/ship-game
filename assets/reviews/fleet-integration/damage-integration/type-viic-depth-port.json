@@ -1,0 +1,14 @@
+{
+  "backend": "webgpu",
+  "contentHash": "2d15f3220ddd6d8456cbd80f79076f5c5905a928eb2473c94e7a70aa90425667",
+  "master": "1cf301c",
+  "maxMuzzleErrorM": 0.0000019376981760574782,
+  "pose": {
+    "elevationFraction": 1,
+    "recoilFraction": 1,
+    "trainFraction": 1
+  },
+  "shipId": "type-viic",
+  "tick": 0,
+  "time": "2026-09-06T06:53:53.127Z"
+}
