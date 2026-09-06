@@ -30,7 +30,7 @@ To see the sun, keep dragging upward in port after reaching the lowest orbit, or
 | Space | Stop engine; the ship coasts down |
 | Mouse | Aim the centered sight while sailing; drag to orbit in port or inspection |
 | Shift / right mouse | Toggle binocular aiming |
-| Scroll | Adjust camera distance, or 2×–12× binocular magnification |
+| Scroll | Adjust camera distance, or 2×–24× binocular magnification |
 | Hold Ctrl | Release cursor to use HUD controls; release Ctrl to return to aiming |
 | 1 / 2 / 3 | Select main / secondary battery / torpedoes (when fitted) |
 | − / + | Decrease / increase minimap size (numpad keys also work) |
