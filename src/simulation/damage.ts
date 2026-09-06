@@ -1,3 +1,4 @@
+import { createControl, heatModule, type ControlState } from './damageControl';
 import type { Ammunition, APProjectile, FloodConnection, HEProjectile, ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { ShipState } from './ship';
 import { plateHit, plateResponse, samePlateSeam } from './protection';
@@ -24,7 +25,8 @@ export interface ImpactRecord {
   breachAssignments?: { compartmentId: string; areaM2: number; position: Vec3 }[];
 }
 export interface DamageState {
-  integrity: number; modules: { id: string; hp: number; detonated: boolean }[];
+  control: ControlState;
+  integrity: number; modules: { id: string; hp: number; detonated: boolean; ignition: number }[];
   compartments: CompartmentState[]; connections: ConnectionState[]; sunk: boolean; defeatCause?: DefeatCause;
 }
 export interface Combatant { motion: ShipState; mounts: MountState[]; damage: DamageState; }
@@ -48,7 +50,7 @@ export interface BallisticEffectData {
 }
 export interface DamageEvent extends BallisticEffectData { kind: 'penetration' | 'contact' | 'ricochet' | 'stopped' | 'module' | 'sunk' | 'burst'; position: Vec3; message: string; shipId: string; impact?: ImpactRecord; defeatCause?: DefeatCause; }
 export function createDamage(def: ShipDefinition): DamageState {
-  return { integrity: 1000, modules: def.modules.map(m => ({ id: m.id, hp: m.hp, detonated: false })), compartments: def.compartments.map(c => ({ id: c.id, waterM3: 0, breachAreaM2: 0, breaches: [] })), connections: def.connections.map(c => ({ id: connectionId(c), state: c.state ?? 'open', damageAreaM2: c.state === 'damaged' ? c.areaM2 : 0, fromIndex: def.compartments.findIndex(r => r.id === c.fromId), toIndex: def.compartments.findIndex(r => r.id === c.toId) })), sunk: false };
+  return { control: createControl(def), integrity: 1000, modules: def.modules.map(m => ({ id: m.id, hp: m.hp, detonated: false, ignition: 0 })), compartments: def.compartments.map(c => ({ id: c.id, waterM3: 0, breachAreaM2: 0, breaches: [] })), connections: def.connections.map(c => ({ id: connectionId(c), state: c.state ?? 'open', damageAreaM2: c.state === 'damaged' ? c.areaM2 : 0, fromIndex: def.compartments.findIndex(r => r.id === c.fromId), toIndex: def.compartments.findIndex(r => r.id === c.toId) })), sunk: false };
 }
 export function addBreach(state: CompartmentState, position: Vec3, areaM2: number, shellId: number, apertureRadiusM = Math.sqrt(areaM2 / Math.PI)): number {
   const added = Math.max(0, Math.min(areaM2, 4 - state.breachAreaM2));
@@ -76,20 +78,6 @@ function structuralDamage(state: DamageState, amount: number, cause: DefeatCause
   if (before > 0 && state.integrity === 0) state.defeatCause = cause;
 }
 export { systemHealth } from './machinery';
-
-/** Existing magazine consequence shared by contact and burst damage. Ignition,
- * wet ammunition and protection against fire are the following milestone. */
-export function checkMagazine(actor: Combatant, def: ShipDefinition, index: number, shell: Shell, emit: (e: DamageEvent) => void): void {
-  const m = def.modules[index], state = actor.damage.modules[index];
-  if (m.kind !== 'magazine' || state.hp > 0 || state.detonated) return;
-  state.detonated = true; structuralDamage(actor.damage, 450, 'magazine');
-  const c = actor.damage.compartments.find(c => c.id === m.compartmentId)!;
-  const breachAreaM2 = addBreach(c, m.center, 2, shell.id);
-  emit({ kind: 'module', position: localToWorld(m.center, actor.motion), shipId: actor.motion.id, message: `${m.name} detonation`, detonation: true,
-    shell: { id: shell.id, caliberM: shell.caliberM, velocity: [...shell.velocity] },
-    impact: { shellId: shell.id, shipId: actor.motion.id, targetId: m.id, targetName: m.name, kind: 'module', position: [...m.center],
-      outcome: 'detonation', damage: 450, penetrationBeforeMm: shell.penetrationMm, penetrationAfterMm: shell.penetrationMm, compartmentId: c.id, breachAreaM2 } });
-}
 
 /** Split the same strip approximation used by inflow at authored room heights.
  * An opening across a watertight deck can reach the room below its center. */
@@ -319,7 +307,7 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
       evidence.terminal = shell.penetrationMm === 0;
       if (evidence.terminal && shell.detonateAtAge !== undefined) { shell.lodged = { shipId: actor.motion.id, position: [...hit.point] }; evidence.terminal = false; }
       report('module', `${m.name} ${state.hp === 0 ? 'disabled' : 'damaged'}`);
-      checkMagazine(actor, def, hit.index, shell, emit);
+      if (shell.ap || shell.he) heatModule(actor, def, hit.index, kineticDamage * .15);
       if (shell.penetrationMm === 0) return true;
     } else if (hit.kind === 'boundary') {
       const state = actor.damage.connections[hit.index];
@@ -371,7 +359,7 @@ export function updateFlooding(actor: Combatant, def: ShipDefinition, dt: number
       const head = Math.max(0, -Math.max((bottom + Math.min(top, 0)) / 2, internalY));
       return sum + .6 * breach.areaM2 * wetted * Math.sqrt(2 * 9.81 * head);
     }, 0);
-    state.waterM3 = clamp(state.waterM3 + (inflow - c.pumpM3PerSecond) * dt, 0, c.capacityM3);
+    state.waterM3 = clamp(state.waterM3 + (inflow - c.pumpM3PerSecond - (damage.control.pumping[i] ?? 0)) * dt, 0, c.capacityM3);
   });
   // Sequential, stable connection order; each transfer conserves water and respects capacity.
   def.connections.forEach((connection, i) => {

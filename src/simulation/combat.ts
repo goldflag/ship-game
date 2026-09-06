@@ -1,3 +1,4 @@
+import { directControl, updateDamageControl, type ControlPriority, type ControlState } from './damageControl';
 import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { advanceProjectile } from './projectile';
 import { equipmentCondition, type EquipmentCondition } from './machinery';
@@ -9,12 +10,13 @@ import { deployment, MAX_TEAM_SHIPS, type BattleFleet, type BattleResult, type F
 import { botAim, botAmmunition, botGunRange, botHelm, botTarget, clearFiringLane, shipVelocity } from './bots';
 import { createDamage, systemHealth, updateFlooding, type BallisticEffectData, type DamageEvent, type Shell, type ImpactRecord, type DefeatCause } from './damage';
 
-export interface CombatIntent { aim: Vec3; fire: boolean; battery: Battery; ammunition?: Ammunition; }
+export interface CombatIntent { aim: Vec3; fire: boolean; battery: Battery; ammunition?: Ammunition; controlPriority?: ControlPriority; controlFocus?: string; }
 export interface CombatEvent extends BallisticEffectData { sequence: number; tick: number; kind: DamageEvent['kind'] | 'shot' | 'splash'; position: Vec3; message: string; shipId: string; impact?: ImpactRecord; defeatCause?: DefeatCause; }
 export interface ShellHistory { shellId: number; ownerId: string; tick: number; ammunition: Ammunition; impacts: ImpactRecord[]; outcome: 'flying' | 'splash' | 'passed-through' | 'expired' | 'stopped' | 'ricochet' | 'internal' | 'burst'; }
 export interface CombatTelemetry {
   battery: Battery; range: number; ready: number; total: number; targetIntegrity: number; targetWater: number;
   ammunition: Ammunition; ammunitionStock: { ap: number; he: number }; heSupported: boolean;
+  control: ControlState; targetFires: number; controlTargets: { id: string; name: string }[];
   targetMounts: { id: string; name: string; condition: number }[];
   targetId: string; targetName: string; targetRange: number;
   contacts: { id: string; name: string; shipId: string; team: Team; controller: FleetActor['controller']; targetId?: string; x: number; z: number; heading: number; integrity: number; sunk: boolean }[];
@@ -215,6 +217,8 @@ export class CombatSimulation {
     }
     this.pruneHistory();
     for (const actor of this.actors) {
+      if (actor === this.player && intent.controlPriority) directControl(actor, intent.controlPriority, intent.controlFocus ?? '');
+      updateDamageControl(actor, actor.definition, FIXED_DT, event => this.emit(event));
       const wasSunk = actor.damage.sunk;
       updateFlooding(actor, actor.definition, FIXED_DT);
       if (!wasSunk && actor.damage.sunk) this.emit({ kind: 'sunk', position: [actor.motion.x, actor.motion.y, actor.motion.z], shipId: actor.motion.id, defeatCause: actor.damage.defeatCause, message: `${actor.definition.name} sinking · ${actor.damage.defeatCause}` });
@@ -241,6 +245,8 @@ export class CombatSimulation {
       battle: this.isBattle, result: this.result, playerSunk: this.player.damage.sunk,
       contacts: this.actors.map(actor => ({ id: actor.motion.id, shipId: actor.definition.id, name: actor.definition.name, team: actor.team, controller: actor.controller,
         targetId: actor.targetId, x: actor.motion.x, z: actor.motion.z, heading: actor.motion.heading, integrity: actor.damage.integrity / 1000, sunk: actor.damage.sunk })),
+      control: structuredClone(this.player.damage.control), targetFires: [...this.target.damage.control.rooms, ...this.target.damage.control.mounts].filter(f => f.intensity > 0).length,
+      controlTargets: [...this.player.definition.compartments.map(c => ({ id: c.id, name: c.name })), ...this.player.definition.mounts.map(m => ({ id: m.id, name: m.name }))],
       targetIntegrity: this.target.damage.integrity / 1000, targetWater: this.target.damage.compartments.reduce((n, c) => n + c.waterM3, 0),
       targetPower: systemHealth(this.target, this.target.definition, 'engine'), targetSteering: systemHealth(this.target, this.target.definition, 'steering'), targetSunk: this.target.damage.sunk, targetUnderway: this.targetUnderway,
       mounts, modules: this.target.definition.modules.map((m, i) => ({ id: m.id, name: m.name, condition: this.target.damage.modules[i].hp / m.hp, ...equipmentCondition(this.target, this.target.definition, m) })),

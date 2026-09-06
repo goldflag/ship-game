@@ -1,3 +1,4 @@
+import type { ControlPriority } from '../simulation/damageControl';
 import type { Game } from '../game/Game';
 import type { Telemetry } from '../game/types';
 import type { Ammunition, Battery } from '../ships/blueprint';
@@ -27,6 +28,18 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
         <span className={m.status === 'ready' ? 'gun-ready' : ''}>{m.loaded.toUpperCase()} · {m.status === 'reloading' ? `${Math.ceil(m.reload)}s` : m.status.replaceAll('-', ' ')}</span>
         <small title="Shells remaining">{m.ammo}</small>
       </div>)}</div>
+      <details className="shell-history">
+        <summary>Own damage control · {[...c.control.rooms, ...c.control.mounts].filter(f => f.intensity > 0).length} fires · {c.control.teams.filter(Boolean).length}/{c.control.teams.length} teams</summary>
+        <label className="aim-select">Priority <select value={c.control.priority} onChange={e => { if (game) game.controlPriority = e.target.value as ControlPriority; }}>
+          <option value="balanced">Balanced</option><option value="fires">Fight fires</option><option value="flooding">Contain flooding</option><option value="repairs">Repair equipment</option>
+        </select></label>
+        <label className="aim-select">Focus <select value={c.control.focus} onChange={e => { if (game) game.controlFocus = e.target.value; }}>
+          <option value="">Automatic</option>{c.controlTargets.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+        </select></label>
+        <p className="gunnery-help">{c.control.spares.toFixed(0)} repair supplies · Repairs restore up to 60%; destroyed equipment stays lost. Crews shore small openings and pump accessible rooms.</p>
+        <div className="module-conditions">{c.control.teams.map((job, i) => <div key={i}><span>Team {i + 1}</span><strong>{job ? `${job.kind.replaceAll('-', ' ')}${job.setup > 0 ? ` · ${Math.ceil(job.setup)}s setup` : ''}` : 'Available'}</strong></div>)}</div>
+        <div className="module-conditions">{[...c.control.rooms.map((f, i) => ({ f, name: c.controlTargets[i]?.name })), ...c.control.mounts.map((f, i) => ({ f, name: c.controlTargets[c.control.rooms.length + i]?.name }))].filter(({ f }) => f.intensity > 0).map(({ f, name }, i) => <div key={i}><span>{name}</span><strong>Fire · {Math.round(f.intensity * 100)}%</strong></div>)}</div>
+      </details>
       <label className="aim-select">Aim at <select value={data.aimModule ?? ''} onChange={e => game?.selectAim(e.target.value)}>
         <option value="point">Center sight · Manual</option>
         <option value="">Target waterline</option>
@@ -37,6 +50,7 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
       <dl className="damage-readout">
         <div><dt>Structure</dt><dd>{Math.round(c.targetIntegrity * 100)}%</dd></div>
         <div><dt>Propulsion</dt><dd>{Math.round(c.targetPower * 100)}%</dd></div>
+        <div><dt>Fires</dt><dd>{c.targetFires}</dd></div>
         <div><dt>Flooding</dt><dd>{c.targetWater.toFixed(1)} m³</dd></div>
       </dl>
       <p className="damage-message" role="status">{c.message}</p>

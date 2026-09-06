@@ -93,21 +93,14 @@ test('ordered hit evidence records resistance, damage, breach assignment and ter
     expect(impact.resistanceMm).toBeGreaterThanOrEqual(0);
   }
 });
-test('every sinking has a stable cause, including magazine-triggered structural exhaustion', () => {
-  for (const cause of ['structural-fallback', 'flooding', 'magazine'] as const) {
+test('flooding and the temporary structural fallback retain stable causes', () => {
+  for (const cause of ['structural-fallback', 'flooding'] as const) {
     const { def, actor } = fixture();
     if (cause === 'flooding') def.compartments.forEach((c, i) => actor.damage.compartments[i].waterM3 = c.capacityM3);
-    else if (cause === 'structural-fallback') actor.damage.integrity = 0;
-    else {
-      actor.damage.integrity = 100;
-      const magazine = def.modules.find(m => m.kind === 'magazine')!;
-      hitShip({ ...shell(magazine.center, [820, 0, 0]), damage: magazine.hp }, magazine.center, [magazine.center[0] + .1, magazine.center[1], magazine.center[2]], actor, def, () => {});
-    }
+    else actor.damage.integrity = 0;
     updateFlooding(actor, def, 1 / 60);
-    expect(actor.damage.sunk).toBe(true);
-    expect(actor.damage.defeatCause).toBe(cause);
-    updateFlooding(actor, def, 1 / 60);
-    expect(actor.damage.defeatCause).toBe(cause);
+    expect(actor.damage.sunk).toBe(true); expect(actor.damage.defeatCause).toBe(cause);
+    updateFlooding(actor, def, 1 / 60); expect(actor.damage.defeatCause).toBe(cause);
   }
 });
 test('small-caliber breach clusters have bounded cost and conserve opening area', () => {

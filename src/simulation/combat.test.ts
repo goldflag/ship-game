@@ -1,3 +1,5 @@
+import { burstShell } from './burst';
+import { updateDamageControl } from './damageControl';
 import { expect, test } from 'bun:test';
 import blueprint from '../../assets/ships/bismarck/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
@@ -172,15 +174,17 @@ test('destroyed propulsion prevents target acceleration', () => {
   expect(sim.target.motion.speed).toBe(0);
 });
 
-test('penetrating magazine hits detonate once and disable the connected battery mount', () => {
+test('an internal armed burst ignites the magazine once and disable the connected battery mount', () => {
   const def = definition(), sim = new CombatSimulation(def);
   const index = def.modules.findIndex(m => m.id === 'anton-magazine');
   const magazine = def.modules[index];
-  const from: Vec3 = [-100, magazine.center[1], magazine.center[2]], to: Vec3 = [100, magazine.center[1], magazine.center[2]];
   const messages: string[] = [];
-  for (let i = 0; i < 3; i++) hitShip({ ...round(), ownerId: 'target', id: i }, from, to, sim.player, def, e => messages.push(e.message));
+  for (let i = 0; i < 3; i++) {
+    burstShell({ ...round(), position: [...magazine.center], ownerId: 'target', id: i, he: { explosiveKg: 50, fragmentPenetrationMm: 50, damage: 180, stockFraction: .4, basis: 'Test charge' } }, [sim.player], e => messages.push(e.message));
+    updateDamageControl(sim.player, def, 1 / 60, e => messages.push(e.message));
+  }
   expect(sim.player.damage.modules[index].detonated).toBe(true);
-  expect(messages.filter(m => m.includes('detonation')).length).toBe(1);
+  expect(messages.filter(m => m.includes('ignition')).length).toBe(1);
   const mount = sim.player.mounts.find(m => m.id === 'anton')!;
   const ammo = mount.ammo;
   for (let i = 0; i < 1500; i++) sim.step(stop, { aim: sim.aimAt(), fire: true, battery: 'main' });

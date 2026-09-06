@@ -1,5 +1,6 @@
+import { heatModule, heatMount } from './damageControl';
 import type { ShipDefinition, Vec3, Volume } from '../ships/blueprint';
-import { checkMagazine, nearbyContacts, shipContacts, type Combatant, type DamageEvent, type Shell } from './damage';
+import { nearbyContacts, shipContacts, type Combatant, type DamageEvent, type Shell } from './damage';
 import { clamp, dot, length, localToWorld, normalize, segmentOverlapsBox, sub, worldToLocal } from './geometry';
 import { plateResponse } from './protection';
 
@@ -78,8 +79,10 @@ export function burstShell(shell: Shell, actors: (Combatant & { definition: Ship
       let damage = 0, connectionIds: string[] | undefined;
       if (target.kind === 'module') {
         const state = actor.damage.modules[target.index]; damage = Math.min(state.hp, amount); state.hp -= damage;
+        heatModule(actor, def, target.index, amount);
       } else if (target.kind === 'mount') {
         const state = actor.mounts[target.index]; damage = Math.min(state.hp, amount); state.hp -= damage;
+        heatMount(actor, target.index, amount);
       } else {
         const state = actor.damage.connections[target.index], c = def.connections[target.index];
         const area = shell.caliberM ** 2 * (1 - distance / radius) * exposure;
@@ -91,7 +94,6 @@ export function burstShell(shell: Shell, actors: (Combatant & { definition: Ship
         impact: { shellId: shell.id, shipId: actor.motion.id, targetId: target.id, targetName: target.name, kind: target.kind,
           position: target.point, penetrationBeforeMm: charge.fragmentPenetrationMm, penetrationAfterMm: Math.max(0, budget),
           outcome: 'damaged', damage, connectionIds, fuze: 'armed', fuzeRemainingSeconds: 0 } });
-      if (target.kind === 'module') checkMagazine(actor, def, target.index, shell, emit);
     }
   }
   const actor = actors.find(a => a.motion.id === burstShip);

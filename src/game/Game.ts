@@ -1,3 +1,4 @@
+import type { ControlPriority } from '../simulation/damageControl';
 import * as THREE from 'three/webgpu';
 import { mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
 import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
@@ -48,6 +49,8 @@ export class Game {
   private loadedModel?: THREE.Group;
   private effects = new CombatEffects();
   battery: Battery = 'main';
+  controlPriority: ControlPriority = 'balanced';
+  controlFocus = '';
   ammunition: Record<Battery, Ammunition> = { main: 'ap', secondary: 'ap' };
   aimModule: string;
   inspecting = false;
@@ -302,6 +305,7 @@ export class Game {
       this.shipLabels.setFleet(views, simulation.actors);
       this.articulationOriginal = undefined;
       this.battery = 'main'; this.manualAim = true; this.inspecting = false;
+      this.controlPriority = 'balanced'; this.controlFocus = '';
       this.ammunition = { main: 'ap', secondary: 'ap' };
       this.gunneryOpen = false; this.effects.reset();
       this.currentAim = simulation.aimAt(undefined, this.battery);
@@ -348,7 +352,7 @@ export class Game {
       this.rig.update(focus, focus.y, 0);
       const aim = this.manualAim ? this.inspecting ? this.currentAim : this.readSightAim() : this.simulation.aimAt(this.aimModule, this.battery);
       this.currentAim = aim;
-      if (!this.inPort) this.simulation.advance(dt, this.input.sample(), { aim, fire: this.input.firing || this.rig.firing, battery: this.battery, ammunition: this.ammunition[this.battery] }, () => {
+      if (!this.inPort) this.simulation.advance(dt, this.input.sample(), { aim, fire: this.input.firing || this.rig.firing, battery: this.battery, ammunition: this.ammunition[this.battery], controlPriority: this.controlPriority, controlFocus: this.controlFocus }, () => {
         this.fleetViews.forEach(view => view.capturePreviousPose());
       });
       const alpha = this.inPort ? 1 : this.simulation.interpolationAlpha;

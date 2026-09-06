@@ -13310,5 +13310,21 @@
         35
       ]
     }
-  ]
+  ],
+  "damageControl": {
+    "version": 1,
+    "teams": 3,
+    "setupSeconds": 6,
+    "repairPoints": 180,
+    "roomFuelSeconds": 180,
+    "mountFuelSeconds": 90,
+    "suppressionPerSecond": 0.12,
+    "portablePumpM3PerSecond": 0.06,
+    "repairHpPerSecond": 0.4,
+    "repairCeiling": 0.6,
+    "patchM2PerSecond": 0.003,
+    "maxPatchM2": 0.25,
+    "flashProtection": 0.95,
+    "basis": "Provisional game calibration shared across presets: three abstract teams, six-second setup, finite normalized fuel and spares. Repairs stop at 60% and cannot revive destroyed equipment. Small-hole shoring and portable pumps require accessible spaces. Flash-path attenuation is estimated; no individual crew, ventilation or electrical network."
+  }
 }
