@@ -1,0 +1,40 @@
+[
+  {
+    "view": "starboard",
+    "image": "u570-general-plan-1941.jpg",
+    "sourceId": "u570-usn-plan",
+    "crop": [
+      300,
+      390,
+      5010,
+      1400
+    ],
+    "originPixel": [
+      2647,
+      1054
+    ],
+    "pixelsPerMeter": 68.4645184942873,
+    "redistribute": true,
+    "credit": "U.S. Navy / David Taylor Model Basin redraw of captured general arrangement, retained by U-boat Archive; U.S. government archival drawing.",
+    "note": "Uniform scale from overall stern/bow scan endpoints x350/x4944; waterline inferred from the dimensioned pressure body and casing. Local scan/drawing mismatch approximately 0.15\u20130.3 m remains visible. Drawing is sectioned internally, has different scope extension, and depicts net cutters explicitly absent on captured U-570. No per-feature fitting or stretching."
+  },
+  {
+    "view": "top",
+    "image": "u570-general-plan-1941.jpg",
+    "sourceId": "u570-usn-plan",
+    "crop": [
+      300,
+      1485,
+      5010,
+      1900
+    ],
+    "originPixel": [
+      2647,
+      1692
+    ],
+    "pixelsPerMeter": 68.4645184942873,
+    "redistribute": true,
+    "credit": "U.S. Navy / David Taylor Model Basin redraw of captured general arrangement, retained by U-boat Archive; U.S. government archival drawing.",
+    "note": "Same whole-sheet scale as profile; deck plan centreline y1692. The casing deck, saddle width, AA basket and gun/tower axes can be compared. Image is not stretched independently to force beam agreement."
+  }
+]

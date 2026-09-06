@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "shipId": "type-viic",
+  "contentHash": "0cdcb80b8790f728b709cd73c96abb53655305d5c03259983b1f0b91594ffe63",
+  "datedConfiguration": "U-570, August\u2013September 1941",
+  "localBlender": true,
+  "blenderMcpAvailable": false,
+  "geometry": {
+    "triangles": 47594,
+    "degenerate": 0,
+    "nonManifoldEdges": 0,
+    "watertight": true
+  },
+  "dimensions": [
+    {
+      "id": "length",
+      "metric": "hull.length",
+      "target": 67.10045,
+      "tolerance": 0.015,
+      "units": "m",
+      "sourceId": "u570-docking-plate4",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.015,
+      "measured": 67.10044860839844,
+      "deviation": -1.3916015575432539e-06,
+      "passed": true
+    },
+    {
+      "id": "beam",
+      "metric": "hull.beam",
+      "target": 6.15315,
+      "tolerance": 0.015,
+      "units": "m",
+      "sourceId": "u570-docking-plate4",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.025,
+      "measured": 6.153151273727417,
+      "deviation": 1.2737274168728163e-06,
+      "passed": true
+    },
+    {
+      "id": "draft",
+      "metric": "hull.draft",
+      "target": 4.7625,
+      "tolerance": 0.015,
+      "units": "m",
+      "sourceId": "u570-docking-plate4",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.1,
+      "measured": 4.762499809265137,
+      "deviation": -1.9073486345888568e-07,
+      "passed": true
+    },
+    {
+      "id": "midshipDepth",
+      "metric": "hull.midshipDepth",
+      "target": 5.9817,
+      "tolerance": 0.015,
+      "units": "m",
+      "sourceId": "u570-docking-plate4",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.035,
+      "measured": 5.981699824333191,
+      "deviation": -1.7566680909908428e-07,
+      "passed": true
+    }
+  ],
+  "landmarksPassed": true,
+  "landmarkCount": 14,
+  "roomEnvelopesPassed": true,
+  "structuralProbesPassed": true,
+  "standardViewsInspected": [
+    "profile",
+    "plan",
+    "bow",
+    "stern",
+    "quarter"
+  ],
+  "matchedViewsInspected": 12,
+  "tests": {
+    "command": "bun test --timeout 60000",
+    "passed": 428,
+    "failed": 0,
+    "files": 54,
+    "expectCalls": 167136,
+    "durationSeconds": 129.42
+  },
+  "generationDeterministic": true,
+  "runtime": "runtime/review.json",
+  "productionBuild": "Final bun run build result recorded in ../validation.md after comparison publication.",
+  "historicalAccuracy": "No certification or percentage. Primary principal dimensions and 1941 fit are supported; original offset interpolation and unresolved fittings are registered separately."
+}
