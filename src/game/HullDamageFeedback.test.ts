@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { HullDamageFeedback } from './HullDamageFeedback';
 
 test('salvo losses combine, hold their original gold span, then fade in simulation time', () => {
-  const feedback = new HullDamageFeedback();
+  const feedback = new HullDamageFeedback(1000);
   expect(feedback.update(1000, 0).amount).toBe(0);
   expect(feedback.update(960, 1)).toEqual({ amount: 40, fromHp: 1000, opacity: 1 });
   expect(feedback.update(900, 1.2)).toEqual({ amount: 100, fromHp: 1000, opacity: 1 });
@@ -14,7 +14,7 @@ test('salvo losses combine, hold their original gold span, then fade in simulati
 });
 
 test('reset, healed hulls and a replacement fleet do not carry an old hit cue', () => {
-  const feedback = new HullDamageFeedback();
+  const feedback = new HullDamageFeedback(1000);
   feedback.update(600, 10);
   expect(feedback.update(1000, 0).amount).toBe(0);
   feedback.update(700, 2);
@@ -22,4 +22,14 @@ test('reset, healed hulls and a replacement fleet do not carry an old hit cue', 
   expect(new HullDamageFeedback(700).update(700, 0).amount).toBe(0);
   expect(feedback.update(0, 4).amount).toBe(800);
   expect(feedback.update(0, 6).amount).toBe(0);
+});
+
+test('damage feedback preserves absolute losses above and below the former 1,000 HP cap', () => {
+  for (const maxHp of [1750, 440]) {
+    const feedback = new HullDamageFeedback(maxHp);
+    expect(feedback.update(maxHp, 0).amount).toBe(0);
+    expect(feedback.update(maxHp - 50, 1)).toEqual({ amount: 50, fromHp: maxHp, opacity: 1 });
+    expect(feedback.update(maxHp - 100, 1.2).amount).toBe(100);
+    expect(feedback.update(maxHp, 0).amount).toBe(0);
+  }
 });

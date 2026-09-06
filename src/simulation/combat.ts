@@ -7,6 +7,7 @@ import { BATTLE_SPAWN_DISTANCE, deployment, MAX_TEAM_SHIPS, validateSpawnDistanc
 import { botAim, botGunRange, botHelm, botTarget, clearFiringLane, shipVelocity } from './bots';
 import { createDamage, hitShip, systemHealth, updateFlooding, type BallisticEffectData, type DamageEvent, type Shell } from './damage';
 import { resolveShipCollisions } from './collisions';
+import { mayReachHull, shellHullRadius } from './spatial';
 
 export interface CombatIntent { aim: Vec3; fire: boolean; battery: Battery; }
 export interface CombatEvent extends BallisticEffectData { sequence: number; tick: number; kind: DamageEvent['kind'] | 'shot' | 'splash'; position: Vec3; message: string; shipId: string; }
@@ -19,6 +20,7 @@ export interface CombatTelemetry {
   mounts: { id: string; name: string; status: string; reload: number; ammo: number }[];
   modules: { id: string; name: string; condition: number }[]; message: string;
   playerIntegrity: number;
+  playerMaxIntegrity: number;
   playerWater: number;
   playerDamageDealt: number;
   playerFrags: number;
@@ -162,6 +164,7 @@ export class CombatSimulation {
       });
     }
     this.fireQueued = false;
+    const hullCandidates = this.shells.length ? this.actors.filter(actor => actor.motion.y > -40).map(actor => ({ actor, radius: shellHullRadius(actor.definition) })) : [];
     for (let i = this.shells.length - 1; i >= 0; i--) {
       const shell = this.shells[i];
       const from: Vec3 = [...shell.position];
@@ -175,7 +178,7 @@ export class CombatSimulation {
       const seaPoint = from[1] > 0 && to[1] <= 0 ? add(from, scale(sub(to, from), from[1] / (from[1] - to[1]))) : to;
       const crossingSea = from[1] > 0 && to[1] <= 0 && !insideHull(seaPoint);
       const end = crossingSea ? add(from, scale(sub(to, from), from[1] / (from[1] - to[1]))) : to;
-      const candidates = this.actors.filter(a => a.motion.id !== shell.ownerId && a.motion.y > -40).map(actor => {
+      const candidates = hullCandidates.filter(({ actor, radius }) => actor.motion.id !== shell.ownerId && mayReachHull(from, end, actor.motion, radius)).map(({ actor }) => {
         const def = actor.definition;
         const hit = segmentBox(worldToLocal(from, actor.motion), worldToLocal(end, actor.motion), { center: [0, 10, 0], size: [def.hull.beam + 30, 60, def.hull.length + 40] });
         return { actor, hit };
@@ -227,11 +230,12 @@ export class CombatSimulation {
       targetRange: Math.hypot(this.target.motion.x - this.ship.x, this.target.motion.z - this.ship.z),
       battle: this.isBattle, result: this.result, playerSunk: this.player.damage.sunk,
       contacts: this.actors.map(actor => ({ id: actor.motion.id, shipId: actor.definition.id, name: actor.definition.name, team: actor.team, controller: actor.controller,
-        targetId: actor.targetId, x: actor.motion.x, z: actor.motion.z, heading: actor.motion.heading, integrity: actor.damage.integrity / 1000, sunk: actor.damage.sunk })),
-      targetIntegrity: this.target.damage.integrity / 1000, targetWater: this.target.damage.compartments.reduce((n, c) => n + c.waterM3, 0),
+        targetId: actor.targetId, x: actor.motion.x, z: actor.motion.z, heading: actor.motion.heading, integrity: actor.damage.integrity / actor.damage.maxIntegrity, sunk: actor.damage.sunk })),
+      targetIntegrity: this.target.damage.integrity / this.target.damage.maxIntegrity, targetWater: this.target.damage.compartments.reduce((n, c) => n + c.waterM3, 0),
       targetPower: systemHealth(this.target, this.target.definition, 'engine'), targetSteering: systemHealth(this.target, this.target.definition, 'steering'), targetSunk: this.target.damage.sunk, targetUnderway: this.targetUnderway,
       mounts, modules: this.target.definition.modules.map((m, i) => ({ id: m.id, name: m.name, condition: this.target.damage.modules[i].hp / m.hp })),
-      playerIntegrity: this.player.damage.integrity / 1000,
+      playerIntegrity: this.player.damage.integrity / this.player.damage.maxIntegrity,
+      playerMaxIntegrity: this.player.damage.maxIntegrity,
       playerDamageDealt: this.playerDamageDealt, playerFrags: this.playerFrags,
       playerWater: this.player.damage.compartments.reduce((n, c) => n + c.waterM3, 0),
       targetPosition: { x: this.target.motion.x, z: this.target.motion.z, heading: this.target.motion.heading },

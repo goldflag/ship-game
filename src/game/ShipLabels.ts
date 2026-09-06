@@ -47,7 +47,7 @@ export class ShipLabels {
       const health = document.createElement('span'); health.className = 'ship-label-health';
       const meter = document.createElement('div'); meter.className = 'ship-label-meter';
       meter.setAttribute('role', 'meter'); meter.setAttribute('aria-label', `${actor.definition.name}, ${identity}, hull health`);
-      meter.setAttribute('aria-valuemin', '0'); meter.setAttribute('aria-valuemax', '1000');
+      meter.setAttribute('aria-valuemin', '0'); meter.setAttribute('aria-valuemax', String(actor.damage.maxIntegrity));
       const fill = document.createElement('div'); fill.className = 'ship-label-fill';
       const loss = document.createElement('div'); loss.className = 'ship-label-loss';
       const damageNumber = document.createElement('span'); damageNumber.className = 'ship-label-damage';
@@ -67,10 +67,10 @@ export class ShipLabels {
     camera.updateMatrixWorld();
     for (const label of this.labels) {
       const { actor, view, root } = label;
-      const hp = Math.round(MathUtils.clamp(actor.damage.integrity, 0, 1000));
+      const hp = Math.round(MathUtils.clamp(actor.damage.integrity, 0, actor.damage.maxIntegrity));
       const damage = label.feedback.update(actor.damage.integrity, time);
-      label.loss.style.left = `${actor.damage.integrity / 10}%`;
-      label.loss.style.width = `${damage.amount / 10}%`;
+      label.loss.style.left = `${actor.damage.integrity / actor.damage.maxIntegrity * 100}%`;
+      label.loss.style.width = `${damage.amount / actor.damage.maxIntegrity * 100}%`;
       label.loss.style.opacity = String(damage.opacity);
       label.damageNumber.hidden = damage.amount <= 0;
       label.damageNumber.textContent = `−${Math.max(1, Math.round(damage.amount)).toLocaleString()}`;
@@ -80,8 +80,8 @@ export class ShipLabels {
         label.hp = hp; label.sunk = actor.damage.sunk;
         label.health.textContent = `${hp} HP`;
         label.meter.setAttribute('aria-valuenow', String(hp));
-        label.meter.setAttribute('aria-valuetext', `${hp} of 1000 hull health${label.sunk ? ', sinking' : ''}`);
-        label.fill.style.transform = `scaleX(${actor.damage.integrity / 1000})`;
+        label.meter.setAttribute('aria-valuetext', `${hp} of ${actor.damage.maxIntegrity} hull health${label.sunk ? ', sinking' : ''}`);
+        label.fill.style.transform = `scaleX(${actor.damage.integrity / actor.damage.maxIntegrity})`;
         root.classList.toggle('ship-label-sinking', label.sunk);
       }
       view.root.updateWorldMatrix(true, false);
