@@ -1,0 +1,82 @@
+{
+  "backend": "webgpu",
+  "contentHash": "ef914897ea8fdf958676af212c4e32b83d3f78ea1cbac1a46f22d620ce994094",
+  "kind": "mounted-game-joint-sweep",
+  "method": "Synchronous loaded Game.previewArticulation transform checks; frames not awaited between poses",
+  "poses": [
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 0.0000323503731027707,
+      "recoilFraction": 0,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 0.0000323503731027707,
+      "recoilFraction": 1,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 0.00003225235557352997,
+      "recoilFraction": 0,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 0.00003225235557352997,
+      "recoilFraction": 1,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 0.00003021119333964585,
+      "recoilFraction": 0,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 0.00003021119333964585,
+      "recoilFraction": 1,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 0.00003021119333964585,
+      "recoilFraction": 0,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 0.00003021119333964585,
+      "recoilFraction": 1,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 0.00003021119333964585,
+      "recoilFraction": 0,
+      "trainFraction": 1
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 0.00003021119333964585,
+      "recoilFraction": 1,
+      "trainFraction": 1
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 0.00003021119333964585,
+      "recoilFraction": 0,
+      "trainFraction": 1
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 0.00003021119333964585,
+      "recoilFraction": 1,
+      "trainFraction": 1
+    }
+  ],
+  "shipId": "enterprise-cv6",
+  "time": "2026-09-06T06:48:46.237Z"
+}

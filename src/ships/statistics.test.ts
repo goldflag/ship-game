@@ -6,7 +6,7 @@ import { maxHullIntegrity } from '../simulation/damage';
 test('every preset prints a complete sheet whose figures come from the compiled definition', () => {
   for (const id of Object.keys(shipPresets)) {
     const def = shipPreset(id), sections = shipStatistics(def);
-    expect(sections.map(s => s.id)).toEqual(['survivability', 'armor', 'main-battery', ...(def.mounts.some(m => m.battery === 'secondary') ? ['secondary-battery'] : []), ...[...new Set(def.torpedoTubes?.map(t => `torpedoes-${t.weapon.id}`))], ...[...new Set(def.depthChargeLaunchers?.map(l => `depth-charges-${l.weapon.id}`))], 'mobility', 'dimensions', 'model-basis']);
+    expect(sections.map(s => s.id)).toEqual(['survivability', 'armor', 'main-battery', ...(def.mounts.some(m => m.battery === 'secondary') ? ['secondary-battery'] : []), ...[...new Set(def.torpedoTubes?.map(t => `torpedoes-${t.weapon.id}`))], ...[...new Set(def.depthChargeLaunchers?.map(l => `depth-charges-${l.weapon.id}`))], 'mobility', ...(def.submarine ? ['diving'] : []), 'dimensions', 'model-basis']);
     for (const section of sections) {
       expect(section.headline).not.toBe('');
       expect(section.headlineHelp.length).toBeGreaterThan(10);
@@ -54,8 +54,10 @@ test('category scores stay within 0-100 and separate the presets by their simula
 
 test('maximum range follows the low-arc solver: elevation limited, then capped at 30 km', () => {
   const bismarck = shipPreset('bismarck').mounts[0].weapon;
-  expect(maximumRangeM(bismarck)).toBe(30000);
+  expect(maximumRangeM(bismarck)).toBeLessThanOrEqual(30000);
   // Elevation above 45° never extends the low arc past its 45° maximum.
-  expect(maximumRangeM({ ...bismarck, muzzleSpeed: 400, elevationMaxDeg: 85 })).toBeCloseTo(400 ** 2 / 9.81, 3);
-  expect(maximumRangeM({ ...bismarck, muzzleSpeed: 400, elevationMaxDeg: 30 })).toBeCloseTo(400 ** 2 * Math.sin(Math.PI / 3) / 9.81, 3);
+  expect(maximumRangeM({ ...bismarck, ballistics: undefined, muzzleSpeed: 400, elevationMaxDeg: 85 })).toBeCloseTo(400 ** 2 / 9.81, 3);
+  expect(maximumRangeM({ ...bismarck, ballistics: undefined, muzzleSpeed: 400, elevationMaxDeg: 30 })).toBeCloseTo(400 ** 2 * Math.sin(Math.PI / 3) / 9.81, 3);
+  const slow = { ...bismarck, muzzleSpeed: 400 };
+  expect(maximumRangeM(slow)).toBeLessThan(maximumRangeM({ ...slow, ballistics: undefined }));
 });

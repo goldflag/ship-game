@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ocean map review</title>
+<style>html,body{margin:0;background:#10232e}#scene{width:1600px;height:900px}canvas{display:block}output{position:fixed;top:8px;left:8px;color:white;background:#10232e;padding:8px;font:14px sans-serif}</style>
+<div id="scene"></div><output>Loading map review…</output>
+<script type="module">
+import { Game } from '/src/game/Game.ts';
+const output=document.querySelector('output');
+window.errors=[];
+addEventListener('error',e=>errors.push(e.message));addEventListener('unhandledrejection',e=>errors.push(String(e.reason)));
+const noop=()=>{};
+const game=new Game(document.querySelector('#scene'),{quality:'high',sea:'Atlantic',resolution:1/Math.min(devicePixelRatio,1.5)},{progress:text=>output.textContent=text,ready:noop,telemetry:noop,pause:noop,hud:noop,error:message=>errors.push(message)});
+window.game=game;
+game.scheduleFrame=noop;
+game.setInPort(true);game.start();await game.initialization;
+game.setPaused(true);
+const rigUpdate=game.rig.update.bind(game.rig);
+window.reviewMap=async(id,sea='Atlantic')=>{
+ game.rig.update=rigUpdate;game.sky.clouds.enabled=true;
+ game.setInPort(true);game.setPaused(true);
+ await game.prepareBattle({playerShipId:'bismarck',friendlyBots:[],enemies:['bismarck'],spawnDistance:5000,mapId:id,sea});
+ game.setInPort(false);game.setPaused(true);game.rig.releasePointer();
+ game.rig.update=noop;
+ game.camera.position.set(550,200,700);game.camera.lookAt(-650,75,-1000);game.camera.fov=60;game.camera.updateProjectionMatrix();game.camera.updateMatrixWorld();
+ game.water.deterministic=true;game.water.syncToTick(3600);await game.water.update(1/60);
+ for(let i=0;i<40;i++){await new Promise(requestAnimationFrame);await game.frame(performance.now());}
+ output.textContent=id+' · '+sea;
+ return {mapId:game.simulation.mapId,islands:game.simulation.islands.length,backend:game.water.backend,errors:window.errors};
+};
+window.reviewLandform=async(index=0,overview=false)=>{
+ const island=game.simulation.islands[index];
+ game.sky.clouds.enabled=!overview;
+ if(overview){
+  game.camera.position.set(island.x+island.rx*1.8,island.height*1.8+700,island.z+island.rz*1.6);
+  game.camera.lookAt(island.x,island.height*.25,island.z);
+ }else{
+  game.camera.position.set(island.x+island.rx*1.25,Math.max(180,island.height*.32),island.z+island.rz*.65);
+  game.camera.lookAt(island.x,island.height*.28,island.z);
+ }
+ game.camera.updateMatrixWorld();
+ game.sky.pipeline.cloudTemporal.invalidateHistory();
+ for(let i=0;i<64;i++){await new Promise(requestAnimationFrame);await game.frame(performance.now());}
+ return {island:island.id,clouds:game.sky.clouds.enabled,triangles:game.renderer.info.render.triangles,calls:game.renderer.info.render.calls,errors:window.errors};
+};
+window.captureMap=async()=>{await new Promise(requestAnimationFrame);await game.frame(performance.now());await game.renderer.backend.device.queue.onSubmittedWorkDone();return game.renderer.domElement.toDataURL('image/png');};
+window.ready=true;output.textContent='Ready';
+</script>
+</html>

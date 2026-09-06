@@ -1,3 +1,4 @@
+import { FlightControl } from './FlightControl';
 import { type CSSProperties, type PointerEvent } from 'react';
 import type { Battery } from '../ships/blueprint';
 import { ammunitionName, batteryName, torpedoArcLabel } from '../ships/armament';
@@ -8,6 +9,7 @@ import { ENGINE_LABELS, KNOTS_PER_MPS } from '../simulation/ship';
 import { Icon } from './Icons';
 import { NavigationChart } from './NavigationChart';
 import { GunneryPanel } from './GunneryPanel';
+import { DepthControl } from './DepthControl';
 import { useShip } from './ShipContext';
 import './FleetHud.css';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
@@ -101,8 +103,8 @@ function ActiveArmament({ data, game, bindings }: FleetHudProps) {
     {torpedoes && <p className="fleet-torpedo-help">{torpedoArcLabel(selectedShip)} · {((selectedShip.torpedoTubes?.[0].weapon.rangeM ?? 0) / 1000).toFixed(1)} km · Arms at {selectedShip.torpedoTubes?.[0].weapon.armingDistanceM} m</p>}
     {depthCharges && <p className="fleet-torpedo-help">Stern racks / side throwers · Burst at {selectedShip.depthChargeLaunchers?.[0].weapon.detonationDepthM} m<br/>Drop on a close pass; keep moving clear of the blast.</p>}
     <div className="fleet-weapon-row">
-      {combat.batteries.filter(battery => battery.total > 0).map(battery => <button key={battery.battery} className="fleet-weapon-slot" aria-label={`Select ${battery.battery === 'depth-charge' ? 'depth charges' : battery.battery === 'torpedo' ? 'torpedoes' : `${battery.battery} AP battery`} · ${battery.ammo} ${ammunitionName(battery.battery)} · ${bindingLabel(bindings, shortcut(battery.battery))}`} aria-pressed={combat.battery === battery.battery} disabled={!battery.total} onClick={event => { if (game) game.battery = battery.battery; event.currentTarget.blur(); }}>
-        <span className="fleet-slot-label">{battery.battery === 'depth-charge' ? 'DEPTH' : battery.battery === 'torpedo' ? 'TORPEDO' : battery.battery === 'main' ? 'MAIN AP' : 'SEC. AP'}</span><AmmoGlyph secondary={battery.battery === 'secondary'} torpedo={battery.battery === 'torpedo'} depthCharge={battery.battery === 'depth-charge'}/>
+      {combat.batteries.filter(battery => battery.total > 0).map(battery => <button key={battery.battery} className="fleet-weapon-slot" aria-label={`Select ${battery.battery === 'depth-charge' ? 'depth charges' : battery.battery === 'torpedo' ? 'torpedoes' : `${battery.battery} ${battery.ammunition.toUpperCase()} battery`} · ${battery.ammo} ${ammunitionName(battery.battery)} · ${bindingLabel(bindings, shortcut(battery.battery))}`} aria-pressed={combat.battery === battery.battery} disabled={!battery.total} onClick={event => { if (game) game.battery = battery.battery; event.currentTarget.blur(); }}>
+        <span className="fleet-slot-label">{battery.battery === 'depth-charge' ? 'DEPTH' : battery.battery === 'torpedo' ? 'TORPEDO' : `${battery.battery === 'main' ? 'MAIN' : 'SEC.'} ${battery.ammunition.toUpperCase()}`}</span><AmmoGlyph secondary={battery.battery === 'secondary'} torpedo={battery.battery === 'torpedo'} depthCharge={battery.battery === 'depth-charge'}/>
         <strong className="fleet-ammo-count">{battery.ammo}</strong>
         {battery.reload > 0 && Number.isFinite(battery.reload) && battery.ready === 0 && <span className="fleet-slot-cooldown">{Math.ceil(battery.reload)}<small>s</small></span>}
         <kbd>{bindingLabel(bindings, shortcut(battery.battery))}</kbd>
@@ -121,6 +123,7 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
   const rudder = Math.round(data.ship.rudder * 35);
   const integrity = Math.max(0, Math.min(1, data.combat?.playerIntegrity ?? 1));
   const maxIntegrity = data.combat?.playerMaxIntegrity ?? maxHullIntegrity(selectedShip);
+  const hp = Math.round(integrity * maxIntegrity);
   const damage = data.playerDamage;
   const steer = (event: PointerEvent<HTMLButtonElement>, value: number) => {
     event.currentTarget.setPointerCapture(event.pointerId); game?.input.setRudder(value);
@@ -135,8 +138,8 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
     <BearingTape degrees={degrees}/>
     {data.combat?.battle && <section className="fleet-battle" aria-label="Battle status">
       <h2>{data.combat.result === 'active' ? 'Custom battle' : data.combat.result === 'victory' ? 'Victory' : data.combat.result === 'defeat' ? 'Defeat' : 'Draw'}</h2>
-      <p><span>Friendly <strong>{data.combat.contacts.filter(c => c.team === 'friendly' && !c.sunk).length}</strong></span><span>Enemy <strong>{data.combat.contacts.filter(c => c.team === 'enemy' && !c.sunk).length}</strong></span></p>
-      <label>Target<select aria-label="Enemy target" value={data.combat.targetId} onChange={event => game?.selectTarget(event.target.value)}>{data.combat.contacts.filter(c => c.team === 'enemy').map((contact, index) => <option key={contact.id} value={contact.id}>{index + 1}. {contact.name} · {contact.sunk ? 'Sinking' : `${Math.round(contact.integrity * 100)}%`}</option>)}</select></label>
+      <p><span>Friendly <strong>{data.combat.contacts.filter(c => c.team === 'friendly' && !c.sunk && !c.combatLost).length}</strong></span><span>Enemy <strong>{data.combat.contacts.filter(c => c.team === 'enemy' && !c.sunk && !c.combatLost).length}</strong></span></p>
+      <label>Target<select aria-label="Enemy target" value={data.combat.targetId} onChange={event => game?.selectTarget(event.target.value)}>{data.combat.contacts.filter(c => c.team === 'enemy').map((contact, index) => <option key={contact.id} value={contact.id}>{index + 1}. {contact.name} · {`${contact.status.replaceAll('-', ' ')} · ${Math.round(contact.integrity * 100)}%`}</option>)}</select></label>
       <small>{data.combat.result !== 'active' ? 'Battle ended · Esc to return to port' : data.combat.playerSunk ? 'Your ship is sinking. Friendly bots are still fighting.' : `${(data.combat.targetRange / 1000).toFixed(2)} km · Hold Ctrl to select a target`}</small>
     </section>}
     <div className="fleet-top-actions"><span className="fleet-fps" aria-label={`${data.fps} frames per second`}><strong>{data.fps || '—'}</strong> FPS</span><button className="icon-button" aria-label="Pause and settings" title="Pause · Esc" onClick={() => game?.setPaused(true)}><Icon name="pause" size={17}/></button></div>
@@ -156,20 +159,23 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
     {!data.pointerLocked && !data.inspecting && !data.gunneryOpen && !following && <button className="fleet-capture-hint" onClick={() => game?.capturePointer()}>Click sea to aim <span>Hold Ctrl for cursor</span></button>}
 
     <section className="fleet-ship" aria-label="Ship condition and helm">
-      {damage && damage.amount > 0 && <p className="fleet-hit-notice" role="status" style={{ opacity: damage.opacity }}><strong>−{Math.max(1, Math.round(damage.amount)).toLocaleString()} HP</strong><span>Hull hit</span></p>}
+      {damage && damage.amount > 0 && <p className="fleet-hit-notice" role="status" style={{ opacity: damage.opacity }}><strong>−{Math.max(1, Math.round(damage.amount)).toLocaleString()}</strong><span>Equipment damaged</span></p>}
       <svg className="fleet-ship-silhouette" viewBox="0 0 180 34" fill="currentColor" aria-hidden="true"><path d="m3 24 8 8h151l14-10-27 2v-5h-17v-6h-12V9h-8V4h-2v5h-8v7H85V9H73V5h-2v4H60v9H42v5H27v-5H15v6Zm35-7h20v2H38Zm94-5h25v2h-25Z"/></svg>
-      <div className="fleet-ship-name"><h1>{selectedShip.name.toUpperCase()}</h1><span className="fleet-hp" aria-label={`Hull integrity ${Math.round(integrity * 100)} percent`}><strong>{Math.round(integrity * maxIntegrity).toLocaleString()}</strong><span> / {maxIntegrity.toLocaleString()}</span></span></div>
-      <div className="fleet-health-track" role="meter" aria-label="Hull integrity" aria-valuenow={Math.round(integrity * 100)} aria-valuemin={0} aria-valuemax={100}><i style={{ width: `${integrity * 100}%` }}/>{damage && damage.amount > 0 && <b className="fleet-health-loss" style={{ left: `${integrity * 100}%`, width: `${damage.amount / maxIntegrity * 100}%`, opacity: damage.opacity }}/>}</div>
+      <div className="fleet-ship-name"><h1>{selectedShip.name.toUpperCase()}</h1><span className="fleet-hp" aria-label={`${hp} of ${maxIntegrity} HP`}><strong>{hp.toLocaleString()}</strong><span> / {maxIntegrity.toLocaleString()} HP</span></span></div>
+      <div className="fleet-health-track" role="meter" aria-label="HP" aria-valuenow={hp} aria-valuemin={0} aria-valuemax={maxIntegrity}><i style={{ width: `${integrity * 100}%` }}/>{damage && damage.amount > 0 && <b className="fleet-health-loss" style={{ left: `${integrity * 100}%`, width: `${damage.amount / maxIntegrity * 100}%`, opacity: damage.opacity }}/>}</div>
       <div className="fleet-navigation"><ShipBearing data={data}/><div className="fleet-engine">
         <div className="fleet-speed"><strong>{speed}</strong><span>kts</span></div>
         <div className="fleet-throttle" role="group" aria-label="Engine telegraph">{[{ label: 'FULL', index: 5 }, { label: '3/4', index: 4 }, { label: '1/2', index: 3 }, { label: '1/4', index: 2 }, { label: 'STOP', index: 1 }, { label: 'FULL', index: 0 }].map(({ label, index }) => <button key={index} aria-label={`Engine ${ENGINE_LABELS[index].toLowerCase()}`} title={ENGINE_LABELS[index]} aria-pressed={data.order === index} onClick={event => { game?.input.setOrder(index); event.currentTarget.blur(); }}><span>{label}</span>{index === 0 && <small>ASTERN</small>}</button>)}</div>
       </div></div>
       <div className="fleet-steering" aria-label={`Rudder ${Math.abs(rudder)} degrees ${rudder < 0 ? 'port' : rudder > 0 ? 'starboard' : 'amidships'}`}><kbd>{bindingLabel(bindings, 'port')}</kbd><span>PORT</span><div><i style={{ left: `${50 + data.ship.rudder * 47}%` }}/></div><span>STBD</span><kbd>{bindingLabel(bindings, 'starboard')}</kbd></div>
+      {data.combat && data.combat.playerStatus !== 'operational' && <p className="fleet-flood-warning">{data.combat.playerStatus === 'capsized' ? 'Capsized' : data.combat.playerStatus === 'sinking' ? 'Sinking' : `Afloat · ${data.combat.playerStatus.replaceAll('-', ' ')}`}</p>}
       {(data.combat?.playerWater ?? 0) > .1 && <p className="fleet-flood-warning">Flooding · {data.combat!.playerWater.toFixed(1)} m³</p>}
       <div className="fleet-touch-helm"><button aria-label="Hold to steer port" onPointerDown={event => steer(event, -1)} onPointerUp={releaseRudder} onPointerCancel={releaseRudder} onLostPointerCapture={releaseRudder}>PORT</button><button aria-label="Hold to steer starboard" onPointerDown={event => steer(event, 1)} onPointerUp={releaseRudder} onPointerCancel={releaseRudder} onLostPointerCapture={releaseRudder}>STARBOARD</button></div>
     </section>
 
     <ActiveArmament data={data} game={game} visible={visible} bindings={bindings}/>
+    {data.combat?.airWing && <FlightControl combat={data.combat} game={game}/> }
+    {data.combat?.submarine && <DepthControl combat={data.combat} game={game} bindings={bindings}/>}
     {(data.gunneryOpen || data.inspecting) && <GunneryPanel bindings={bindings} data={data} game={game} expanded={!!data.gunneryOpen} onExpand={value => game?.setGunneryOpen(value)}/>}
     {data.binoculars && data.aimModule !== 'point' && data.aimMarker?.visible && <div className="aim-marker" aria-hidden="true" style={{ left: `${data.aimMarker.x}%`, top: `${data.aimMarker.y}%` }}><span/><small>TRACKED AIM</small></div>}
     <aside className="fleet-map-area" aria-label="Navigation minimap"><NavigationChart bindings={bindings} data={data} onResize={direction => game?.resizeChart(direction)}/></aside>

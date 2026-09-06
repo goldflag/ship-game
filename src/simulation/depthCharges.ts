@@ -3,6 +3,7 @@ import type { FleetActor } from './battle';
 import { add, clamp, localToWorld, rotate, scale, worldToLocal } from './geometry';
 import { motionVelocity } from './ship';
 import { damageUnderwaterBlast } from './torpedoes';
+import { equipmentCondition } from './machinery';
 
 export type DepthChargeDefinition = NonNullable<ShipDefinition['depthChargeLaunchers']>[number];
 export interface DepthChargeLauncherState {
@@ -15,7 +16,8 @@ export interface DepthCharge {
 export const createDepthChargeLauncherState = (l: DepthChargeDefinition): DepthChargeLauncherState => ({ id: l.id, ammo: l.ammo, reload: 0, status: l.ammo ? 'ready' : 'empty' });
 export function updateDepthChargeLauncher(actor: FleetActor, l: DepthChargeDefinition, state: DepthChargeLauncherState, dt: number): void {
   state.reload = Math.max(0, state.reload - dt);
-  state.status = actor.damage.sunk || actor.damage.modules.find(m => m.id === l.magazineId)?.hp === 0 ? 'disabled' : state.ammo <= 0 ? 'empty' : state.reload > 0 || (actor.depthChargeCooldown ?? 0) > 0 ? 'reloading' : 'ready';
+  const magazine = actor.definition.modules.find(m => m.id === l.magazineId);
+  state.status = actor.damage.sunk || actor.damage.stability.combatLost || !magazine || equipmentCondition(actor, actor.definition, magazine).availability <= 0 ? 'disabled' : state.ammo <= 0 ? 'empty' : state.reload > 0 || (actor.depthChargeCooldown ?? 0) > 0 ? 'reloading' : 'ready';
 }
 export function launchDepthCharge(actor: FleetActor, l: DepthChargeDefinition, id: number): DepthCharge {
   return { id, ownerId: actor.motion.id, launcherId: l.id, position: localToWorld(l.position, actor.motion),
@@ -55,14 +57,15 @@ export function depthChargeReach(position: Vec3, actor: FleetActor) {
     return a[1] + (b[1] - a[1]) * clamp((station - a[0]) / (b[0] - a[0]), 0, 1);
   };
   const width = interpolate(h.halfBreadths), keel = interpolate(h.keelHeights);
-  const point: Vec3 = [clamp(local[0], -width, width), clamp(local[1], keel, 0), z];
+  const top = Math.min(interpolate(h.deckHeights), -actor.motion.y);
+  const point: Vec3 = [clamp(local[0], -width, width), clamp(local[1], keel, Math.max(keel, top)), z];
   return { point, distance: Math.hypot(...local.map((v, i) => v - point[i])) };
 }
 export function damageDepthCharge(charge: DepthCharge, actor: FleetActor): string | null {
   const { point, distance } = depthChargeReach(charge.position, actor), w = charge.weapon;
   if (distance >= w.blastRadiusM) return null;
   const strength = (1 - distance / w.blastRadiusM) ** 2;
-  return damageUnderwaterBlast(actor, point, { damage: w.damage * strength, breachAreaM2: w.breachAreaM2 * strength }, 'Depth charge hit');
+  return damageUnderwaterBlast(actor, point, { damage: w.damage * strength, breachAreaM2: w.breachAreaM2 * strength }, 'Depth charge hit', charge.id);
 }
 
 /** Bots release only into a predicted close pass, with the same trajectory and blast reach. */

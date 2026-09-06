@@ -1,0 +1,82 @@
+{
+  "backend": "webgpu",
+  "contentHash": "b0bed026943cfd57d1dfc133c6d6703dfbf1ed477ec95cc83cf54b0ba8651aa4",
+  "kind": "articulation",
+  "mounts": 5,
+  "poses": [
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 0.0027435334140913635,
+      "recoilFraction": 0,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 0.0027435334140913635,
+      "recoilFraction": 1,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 0.0027435334140913635,
+      "recoilFraction": 0,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 0.0027435334140913635,
+      "recoilFraction": 1,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 0.002743536201881167,
+      "recoilFraction": 0,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 0.0027435362018670877,
+      "recoilFraction": 1,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 0.0027437568104304996,
+      "recoilFraction": 0,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 0.0027437568104304996,
+      "recoilFraction": 1,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 0.002746863355506571,
+      "recoilFraction": 0,
+      "trainFraction": 1
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 0.002746863355506648,
+      "recoilFraction": 1,
+      "trainFraction": 1
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 0.00274611857590037,
+      "recoilFraction": 0,
+      "trainFraction": 1
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 0.00274611857590037,
+      "recoilFraction": 1,
+      "trainFraction": 1
+    }
+  ],
+  "shipId": "yamato",
+  "time": "2026-09-06T06:33:43.469Z"
+}

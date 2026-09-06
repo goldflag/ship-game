@@ -18,12 +18,17 @@ async function files(folder:string):Promise<string[]>{
  return results.sort();
 }
 async function inputHash(){
+ const spec=JSON.parse(await readFile(join(source,'modeling-spec.json'),'utf8'));
+ if(spec.comparisonMode==='historical-before-after'){
+  const paths=[join(root,'public/models',ship+'.glb'),join(root,'public/models',ship+'.json'),join(source,'generated/source.blend'),join(source,'modeling-spec.json'),join(source,'blueprint.json'),join(source,'build.py'),join(source,'reports/discrepancies.md'),...(await files(join(source,'references'))),...(await files(join(source,'reports/fidelity-01'))),...(await files(join(root,'assets/ships/fleet-fidelity'))),...(await files(join(root,'assets/reference-ui'))),...(await files(join(root,'scripts/reference'))),...(await files(join(root,'scripts/ships'))),join(root,'assets/parts/guns.json'),join(root,'src/simulation/protection.ts'),join(root,'src/simulation/geometry.ts'),join(root,'src/simulation/structure.ts')].filter(p=>!p.includes('__pycache__')&&!p.endsWith('.pyc')).sort();
+  const h=createHash('sha256');for(const path of paths){h.update(path.slice(root.length));h.update(await readFile(path));}return h.digest('hex');
+ }
  const ref=JSON.parse(await readFile(join(reference,'manifest.json'),'utf8'));
  const captureHash=sha(Buffer.concat(await Promise.all(['capture.py','render_views.py'].map(f=>readFile(join(root,'scripts/reference',f))))));
  if(captureHash!==ref.captureRecipeSha256)throw new Error('Reference capture recipe changed. Run ship:reference before ship:build.');
  const paths=[join(root,'public/models',ship+'.glb'),join(root,'public/models',ship+'.json'),join(source,'generated/source.blend'),join(source,'modeling-spec.json'),join(source,'blueprint.json'),join(source,'references/sources.json'),join(source,'references/capture-plan.json'),join(reference,'manifest.json'),...ref.captures.map((c:any)=>{
    if(!/^[a-z0-9-]+\.png$/.test(c.image))throw new Error('Invalid reference image path');return join(reference,c.image);
- }),...(await files(join(root,'assets/reference-ui'))),...(await files(join(source,'references/historical'))),...(await files(join(root,'scripts/reference'))).filter(p=>!p.includes('__pycache__')&&!p.endsWith('.pyc')),join(root,'src/simulation/protection.ts'),join(root,'src/simulation/geometry.ts')].sort();
+ }),...(await files(join(root,'assets/reference-ui'))),...(await files(join(source,'references/historical'))),...(await files(join(root,'scripts/reference'))).filter(p=>!p.includes('__pycache__')&&!p.endsWith('.pyc')),join(root,'src/simulation/protection.ts'),join(root,'src/simulation/geometry.ts'),join(root,'src/simulation/structure.ts')].sort();
  const h=createHash('sha256');for(const path of paths){h.update(path.slice(root.length));h.update(await readFile(path));}return h.digest('hex');
 }
 if(action==='check'){
@@ -59,13 +64,14 @@ if(action==='check'){
    const hash=await inputHash();
    await run(['bun',join(root,'scripts/reference/measure.ts'),ship],'measure');
    await run([blender,'--background','--factory-startup','--python-exit-code','1','--python',join(root,'scripts/reference/render_authored.py')],'authored-capture');
-   await run(['python3',join(root,'scripts/reference/compare.py'),ship],'comparison-sheets');
+   const spec=JSON.parse(await readFile(join(source,'modeling-spec.json'),'utf8'));
+   await run(['python3',join(root,'scripts/reference',spec.comparisonMode==='historical-before-after'?'compare_historical.py':'compare.py'),ship],'comparison-sheets');
    if(hash!==await inputHash())throw new Error('Reference/authoring inputs changed during comparison');
    const outputs:Record<string,string>={};for(const path of await files(output))outputs[path.slice(output.length+1)]=sha(await readFile(path));
    await writeFile(join(output,'build.json'),JSON.stringify({schemaVersion:1,inputHash:hash,files:outputs},null,2)+'\n');
    await mkdir(resolve(published,'..'),{recursive:true});const temp=published+'.tmp';await rm(temp,{recursive:true,force:true});await cp(output,temp,{recursive:true});
    await rm(published,{recursive:true,force:true});await rename(temp,published);
-   console.log('Local review page: /ship-reference/'+ship+'/');
+   console.log('Local review page: /ship-reference/'+ship+'/index.html');
   }
  }finally{await rm(lock,{recursive:true,force:true});}
 }

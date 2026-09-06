@@ -2,6 +2,7 @@ import { afterEach, beforeEach, expect, test } from 'bun:test';
 import { PerspectiveCamera, Vector3 } from 'three/webgpu';
 import { createShipState } from '../simulation/ship';
 import { CameraRig } from './CameraRig';
+import viic from '../../assets/ships/type-viic/blueprint.json';
 
 const globals = ['window', 'document'] as const;
 let originals: (PropertyDescriptor | undefined)[];
@@ -101,6 +102,57 @@ function sunDirection(elevation: number, azimuth: number) {
   return new Vector3(Math.sin(azimuth) * Math.cos(elevation), Math.sin(elevation), Math.cos(azimuth) * Math.cos(elevation));
 }
 
+test('port framing scales the aim point and camera offsets with the hull', () => {
+  const { camera, rig } = interactiveCamera();
+  const ship = { ...createShipState(), x: 240 };
+  rig.setInPort(true);
+  try {
+    for (const aspect of [16 / 9, .7]) {
+      camera.aspect = aspect;
+      camera.updateProjectionMatrix();
+      rig.setHullLength(250.5);
+      rig.update(ship, 0, 0, true);
+      const reference = [-.5, 0, .5].map(z => new Vector3(ship.x, 0, z * 250.5).project(camera));
+      rig.setHullLength(67.1);
+      rig.update(ship, 0, 0, true);
+      reference.forEach((expected, i) => {
+        const projected = new Vector3(ship.x, 0, (i - 1) * 67.1 / 2).project(camera);
+        expect(projected.x).toBeCloseTo(expected.x, 6);
+        expect(projected.y).toBeCloseTo(expected.y, 6);
+      });
+    }
+  } finally { rig.dispose(); }
+});
+
+test('port zoom stays proportional when switching very small and large hulls', () => {
+  const { camera, canvas, rig, drag } = interactiveCamera();
+  const ship = { ...createShipState(), x: 240 };
+  rig.setInPort(true);
+  drag(70, 40);
+  const bearing = rig.bearing;
+  const orbitRadius = () => Math.hypot(camera.position.x - ship.x, camera.position.z - ship.z);
+  try {
+    for (const zoom of [0, -100000, 100000]) {
+      rig.setHullLength(250.5);
+      canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY: zoom }));
+      rig.update(ship, 0, 0, true);
+      const relativeRadius = orbitRadius() / 250.5;
+      for (const length of [25, 67.1, 500, 250.5]) {
+        rig.setHullLength(length);
+        // A zero-delta wheel event must not jump to an unscaled zoom limit.
+        canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY: 0 }));
+        rig.update(ship, 0, 0, true);
+        expect(rig.bearing).toBe(bearing);
+        expect(orbitRadius() / length).toBeCloseTo(relativeRadius, 6);
+        expect(camera.position.y).toBeGreaterThanOrEqual(12);
+        const center = new Vector3(ship.x, 0, ship.z).project(camera);
+        expect(Math.abs(center.x)).toBeLessThan(.5);
+        expect(Math.abs(center.y)).toBeLessThan(.7);
+      }
+    }
+  } finally { rig.dispose(); }
+});
+
 test('shell camera follows flight without frame lag or changed aim, and restores binoculars', () => {
   const { camera, rig, drag } = interactiveCamera();
   const ship = createShipState();
@@ -137,24 +189,30 @@ test('shell camera follows flight without frame lag or changed aim, and restores
   rig.dispose();
 });
 
-test('port dragging reveals the sun without lowering the camera below its lowest orbit', () => {
-  const { camera, rig, drag } = interactiveCamera();
+test('upward port dragging stops at the lowest ship-focused orbit across hull sizes and zoom limits', () => {
+  const { camera, canvas, rig, drag } = interactiveCamera();
   const ship = { ...createShipState(), x: 240 };
-  const sun = sunDirection(36 * Math.PI / 180, 58 * Math.PI / 180);
   rig.setInPort(true);
   try {
-    drag((1.08 - Math.atan2(-sun.x, -sun.z)) / .005, -50);
-    rig.update(ship, ship.y, 0, true);
-    const lowestOrbit = camera.position.clone();
-    drag(0, -250);
-    rig.update(ship, ship.y, 0, true);
-    const projected = camera.position.clone().addScaledVector(sun, 10000).project(camera);
-    expect(Math.abs(projected.x)).toBeLessThan(.9);
-    expect(Math.abs(projected.y)).toBeLessThan(.9);
-    expect(projected.z).toBeGreaterThan(-1);
-    expect(projected.z).toBeLessThan(1);
-    expect(camera.position.distanceTo(lowestOrbit)).toBeLessThan(1e-9);
-    expect(Math.asin(camera.getWorldDirection(new Vector3()).y)).toBeLessThanOrEqual(Math.PI / 6 + 1e-9);
+    for (const length of [67.1, 250.5, 263]) for (const zoom of [-100000, 100000]) {
+      rig.setHullLength(length);
+      canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY: zoom }));
+      drag(0, -100000);
+      rig.update(ship, ship.y, 0, true);
+      const lowestOrbit = camera.position.clone(), direction = camera.getWorldDirection(new Vector3());
+      expect(direction.y).toBeLessThan(0);
+      expect(camera.position.y).toBeGreaterThanOrEqual(12);
+      const center = new Vector3(ship.x, 0, ship.z).project(camera);
+      expect(Math.abs(center.y)).toBeLessThan(1);
+      drag(0, -250);
+      rig.update(ship, ship.y, 0, true);
+      expect(camera.position.distanceTo(lowestOrbit)).toBeLessThan(1e-9);
+      expect(camera.getWorldDirection(new Vector3()).distanceTo(direction)).toBeLessThan(1e-9);
+      // Dragging back responds immediately, without unwinding past the limit.
+      drag(0, 20);
+      rig.update(ship, ship.y, 0, true);
+      expect(camera.getWorldDirection(new Vector3()).y).toBeLessThan(direction.y);
+    }
     rig.recenter();
     rig.update(ship, ship.y, 0, true);
     expect(camera.getWorldDirection(new Vector3()).y).toBeLessThan(0);
@@ -221,3 +279,37 @@ for (const mode of ['Port', 'Inspection', 'Chase', 'Bridge', 'Tactical', 'Binocu
     } finally { rig.dispose(); }
   });
 }
+
+test('VIIC chase follows underwater, scope eye breaks the surface at 7 m, and deeper scope stays submerged', () => {
+  const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
+  const rig = new CameraRig(camera, { addEventListener() {} } as unknown as HTMLCanvasElement, [0, 5.6, -1.4]);
+  rig.setHullLength(viic.hull.length);
+  rig.setSubmarine(viic.submarine as import('../ships/blueprint').SubmarineDefinition);
+  const ship = createShipState(); ship.y = -7;
+  rig.update(ship, ship.y, 0, true);
+  expect(camera.position.y).toBeLessThan(0);
+  expect(Math.hypot(camera.position.x - ship.x, camera.position.z - ship.z)).toBeLessThan(50);
+  camera.aspect = 390 / 844; camera.updateProjectionMatrix(); rig.update(ship, ship.y, 0, true);
+  expect(Math.hypot(camera.position.x - ship.x, camera.position.z - ship.z)).toBeLessThan(60);
+  rig.mode = 'Bridge'; rig.update(ship, ship.y, 0, true);
+  // Captured notebook: 14.612 m maximum eye above keel, survey draft 4.7625 m.
+  expect(camera.position.y).toBeCloseTo(14.612 - 4.7625 - 7);
+  rig.binoculars = true; rig.update(ship, ship.y, 0, true);
+  expect(camera.position.y).toBeCloseTo(14.612 - 4.7625 - 7);
+  ship.y = -50; rig.update(ship, ship.y, 0, true);
+  expect(camera.position.y).toBeCloseTo(14.612 - 4.7625 - 50);
+  // Submerged views still clear an island if the camera crosses its shore.
+  rig.setBattleTerrain(() => 80);
+  rig.update(ship, ship.y, 0, true);
+  expect(camera.position.y).toBeGreaterThanOrEqual(92);
+  rig.setBattleTerrain(() => 0);
+  rig.update(ship, ship.y, 0, true);
+  expect(camera.position.y).toBeCloseTo(14.612 - 4.7625 - 50);
+  rig.binoculars = false; rig.mode = 'Tactical'; rig.update(ship, ship.y, 0, true);
+  expect(camera.position.y).toBeGreaterThanOrEqual(12);
+  rig.setInPort(true); ship.y = 0; rig.update(ship, 0, 0, true);
+  expect(camera.position.y).toBeGreaterThanOrEqual(12);
+  rig.setInPort(false); rig.setSubmarine(); ship.y = -50; rig.update(ship, ship.y, 0, true);
+  expect(camera.position.y).toBeGreaterThanOrEqual(12);
+  rig.dispose();
+});

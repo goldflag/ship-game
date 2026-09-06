@@ -33,7 +33,7 @@
 
 .fleet-ship { position:absolute; left:var(--fleet-edge); bottom:var(--fleet-bottom); width:240px; }
 .fleet-ship-silhouette { width:96px; height:24px; display:block; margin-bottom:5px; color:var(--fleet-active); filter:drop-shadow(0 2px 3px #07131b); }
-.fleet-ship-name { display:flex; gap:10px; align-items:baseline; justify-content:space-between; }
+.fleet-ship-name { display:flex; flex-wrap:wrap; gap:4px 10px; align-items:baseline; justify-content:space-between; }
 .fleet-ship-name h1 { margin:0; font:600 20px/1.1 'Barlow Condensed',sans-serif; }
 .fleet-hp { white-space:nowrap; font:500 18px/1 'Barlow Condensed',sans-serif; }
 .fleet-hp strong { color:var(--fleet-active); font-weight:500; }

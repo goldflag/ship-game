@@ -65,3 +65,24 @@
   .battle-roster img { width:90px; }
   .battle-setup footer button { min-width:0; flex:1; gap:8px; padding:12px; }
 }
+
+.battle-map-picker { border:0; padding:0; margin:0 0 26px; min-width:0; }
+.battle-map-picker legend { font:500 23px/1.2 'Barlow Condensed',sans-serif; margin-bottom:12px; }
+.battle-map-options { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+.battle-map-option { position:relative; display:grid; gap:4px; padding:0 0 10px; border:1px solid var(--line); border-radius:3px; overflow:hidden; cursor:pointer; background:#0e2530; }
+.battle-map-option img { width:100%; height:auto; aspect-ratio:16/9; object-fit:cover; }
+.battle-map-option input { position:absolute; top:10px; left:10px; width:18px; height:18px; accent-color:var(--accent); }
+.battle-map-option>span { margin:4px 12px 0; font:500 18px/1.2 'Barlow Condensed',sans-serif; }
+.battle-map-option>small { margin:0 12px; color:var(--muted); font-size:12px; }
+.battle-map-option:has(:checked) { border-color:var(--accent); }
+.battle-map-option:has(:checked)>span { color:var(--accent); }
+.battle-map-option:has(:focus-visible) { outline:2px solid var(--accent); outline-offset:3px; }
+.battle-map-option:hover { border-color:var(--accent); }
+.battle-map-picker:disabled { opacity:.6; }
+.battle-map-picker:disabled .battle-map-option { cursor:wait; }
+.battle-map-detail { display:flex; justify-content:space-between; align-items:center; gap:24px; margin-top:12px; }
+.battle-map-detail p { margin:0; max-width:60ch; color:var(--muted); line-height:1.5; }
+.battle-map-detail label { display:flex; gap:12px; align-items:center; flex-shrink:0; font-size:13px; }
+.battle-map-detail select { color:#edf1ec; border:1px solid var(--line); border-radius:3px; background:#0e2530; min-height:36px; padding:6px 10px; font:inherit; }
+.battle-map-detail select:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+@media (max-width:650px) { .battle-map-options { grid-template-columns:repeat(2,minmax(0,1fr)); } .battle-map-detail { flex-direction:column; align-items:stretch; gap:12px; } .battle-map-detail label { justify-content:space-between; } }

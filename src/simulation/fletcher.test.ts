@@ -8,6 +8,8 @@ import { CombatSimulation } from './combat';
 import { depthChargeReach, botShouldDropDepthCharge, launchDepthCharge, stepDepthCharge, type DepthCharge } from './depthCharges';
 import { FIXED_DT } from './ship';
 import { tubeLocalPosition } from './torpedoes';
+import { localToWorld } from './geometry';
+import { updateCapability } from './stability';
 
 const definition = compileShip(blueprint, catalog), helm = { throttle: 0, rudder: 0 };
 const intent = (battery: Battery, fire = false, aim: Vec3 = [1500, 0, 0]) => ({ battery, fire, aim });
@@ -98,7 +100,8 @@ test('side throwers arc outward; charges splash then sink and burst at the autho
 test('nearby blasts damage surfaced submarines, open breaches, credit score and spare distant hulls', () => {
   const sim = new CombatSimulation(definition, { friendlyBots: [], enemies: [shipPreset('type-viic')], spawnDistance: 1000 });
   sim.target.controller = 'idle'; sim.target.motion.x = 200; sim.target.motion.z = 0;
-  sim.depthCharges.push(readyBlast(sim, [200, -10, 0]));
+  const engine = sim.target.definition.modules.find(m => m.kind === 'engine')!;
+  sim.depthCharges.push(readyBlast(sim, localToWorld([engine.center[0], -10, engine.center[2]], sim.target.motion)));
   const playerHp = sim.player.damage.integrity;
   step(sim, 2, 'depth-charge');
   expect(sim.target.damage.integrity).toBeLessThan(sim.target.damage.maxIntegrity);
@@ -122,10 +125,13 @@ test('blast falloff uses three-dimensional hull distance; allies and own ship ca
   expect(sim.telemetry('depth-charge', [0, 0, 0]).playerDamageDealt).toBe(0);
 });
 
-test('charge damage earns a frag once and reset restores every weapon, pose and score', () => {
+test('a depth-charge breach earns a later flooding frag once and reset restores every weapon, pose and score', () => {
   const sim = new CombatSimulation(definition); sim.target.motion.x = 200; sim.target.motion.z = 0;
-  sim.target.damage.integrity = 1;
   sim.depthCharges.push(readyBlast(sim, [200, -10, 0]));
+  step(sim, 2, 'depth-charge');
+  expect(sim.target.damage.sunk).toBe(false);
+  expect(sim.target.damage.compartments.some(c => c.breachAreaM2 > 0)).toBe(true);
+  sim.target.damage.compartments.forEach((c, i) => c.waterM3 = sim.target.definition.compartments[i].capacityM3);
   step(sim, 2, 'depth-charge');
   expect(sim.target.damage.sunk).toBe(true);
   expect(sim.telemetry('depth-charge', [0, 0, 0]).playerFrags).toBe(1);
@@ -134,6 +140,31 @@ test('charge damage earns a frag once and reset restores every weapon, pose and 
   expect(sim.depthCharges).toHaveLength(0); expect(ammo(sim)).toBe(28);
   expect(sim.player.torpedoLaunchers!.every(l => l.train === 0)).toBe(true);
   expect(sim.telemetry('depth-charge', [0, 0, 0]).playerFrags).toBe(0);
+});
+
+test('surviving depth charges keep a disarmed destroyer in battle until their stock is exhausted', () => {
+  const sim = new CombatSimulation(definition);
+  sim.player.mounts.forEach(m => { m.ammo = 0; m.heAmmo = 0; });
+  sim.player.torpedoTubes!.forEach(t => t.ammo = 0);
+  updateCapability(sim.player, definition);
+  expect(sim.player.damage.stability.combatLost).toBe(false);
+  step(sim, 1, 'depth-charge', true);
+  expect(ammo(sim)).toBe(27);
+  sim.player.depthChargeLaunchers!.forEach(l => l.ammo = 0);
+  updateCapability(sim.player, definition);
+  expect(sim.player.damage.stability.combatLost).toBe(true);
+  expect(sim.player.damage.defeatCause).toBe('ammunition-exhausted');
+});
+
+test.each([12, 70])('depth-charge reach uses the submarine actual depth (%s m)', depth => {
+  const sim = new CombatSimulation(definition, { friendlyBots: [], enemies: [shipPreset('type-viic')] });
+  sim.target.controller = 'idle';
+  Object.assign(sim.target.motion, { x: 200, y: -depth, z: 0, heading: 0 });
+  sim.target.submarine!.targetDepthM = depth;
+  sim.depthCharges.push(readyBlast(sim, [200, -10, 11.4]));
+  step(sim, 1, 'depth-charge');
+  expect(sim.target.damage.compartments.some(c => c.breachAreaM2 > 0)).toBe(depth === 12);
+  expect(sim.events.filter(e => e.kind === 'depth-charge-hit' && e.shipId === sim.target.motion.id)).toHaveLength(depth === 12 ? 1 : 0);
 });
 
 test('destroyed magazine, empty stations, sunk hull and full projectile pool cannot consume ammunition', () => {

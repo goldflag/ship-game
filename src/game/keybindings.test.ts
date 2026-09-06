@@ -52,6 +52,15 @@ describe('player keybindings', () => {
   });
 });
 
+test('older custom controls survive new diving actions even when Z, X and B are taken', () => {
+  const { dive: _d, rise: _r, emergencyBlow: _b, ...saved } = defaultKeybindings();
+  saved.camera = ['KeyZ', null]; saved.fire = ['KeyX', null]; saved.gunnery = ['KeyB', null];
+  const loaded = keybindingsOf(saved);
+  expect(loaded.camera).toEqual(saved.camera); expect(loaded.fire).toEqual(saved.fire); expect(loaded.gunnery).toEqual(saved.gunnery);
+  expect(loaded.dive).not.toContain('KeyZ'); expect(loaded.rise).not.toContain('KeyX'); expect(loaded.emergencyBlow).not.toContain('KeyB');
+  expect(keybindingsOf(loaded)).toEqual(loaded);
+});
+
 test('older saves gain depth charges without taking an existing custom 4 binding', () => {
   const saved: Partial<ReturnType<typeof defaultKeybindings>> = defaultKeybindings();
   delete saved.depthCharges; saved.fire = ['Digit4', null];

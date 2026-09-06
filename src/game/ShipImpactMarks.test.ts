@@ -5,7 +5,7 @@ import { impactStyle, MAX_SHIP_IMPACT_MARKS, ShipImpactMarks } from './ShipImpac
 
 const event = (sequence = 1): CombatEvent => ({ sequence, tick: sequence, kind: 'penetration', shipId: 'target',
   position: [0, 0, 1], message: 'Test strike', shell: { id: sequence, caliberM: .38, type: 'AP', velocity: [0, 0, -820] },
-  impact: { position: [0, 0, 1], normal: [0, 0, 1], direction: [.2, 0, -1], outcome: 'penetration' } });
+  surfaceImpact: { position: [0, 0, 1], normal: [0, 0, 1], direction: [.2, 0, -1], outcome: 'penetration' } });
 
 function fixture(mounted = false) {
   const root = new THREE.Group(), model = new THREE.Group(), mount = new THREE.Group();
@@ -42,7 +42,7 @@ test('decals conform to the struck face, remain depth-tested and batch repeated 
 
 test('mount-local hits follow rendered turret articulation and the hull pose', () => {
   const { root, mount, receiver, marks } = fixture(true), strike = event();
-  strike.impact!.mountId = 'turret';
+  strike.surfaceImpact!.mountId = 'turret';
   root.position.set(280, -3, 190); root.rotation.set(.1, 1.3, -.12, 'YXZ');
   mount.position.set(0, 10, -60); mount.rotation.y = 1.1;
   try {
@@ -60,8 +60,8 @@ test('mount-local hits follow rendered turret articulation and the hull pose', (
 test('interior events, other ships and unmatched surfaces cannot leave floating marks', () => {
   const { marks } = fixture();
   try {
-    const interior = { ...event(), kind: 'module', impact: undefined } as CombatEvent;
-    const miss = event(3); miss.impact!.position = [200, 0, 1];
+    const interior = { ...event(), kind: 'module', surfaceImpact: undefined } as CombatEvent;
+    const miss = event(3); miss.surfaceImpact!.position = [200, 0, 1];
     marks.update([interior, { ...event(2), shipId: 'player' }, miss], 'target');
     expect(marks.count).toBe(0); expect(marks.drawCalls).toBe(0);
   } finally { marks.dispose(); }
@@ -70,7 +70,7 @@ test('interior events, other ships and unmatched surfaces cannot leave floating 
 test('plate winding does not hide port-side strikes or exit wounds', () => {
   const { marks, receiver } = fixture();
   try {
-    const strike = event(); strike.impact!.position = [0, 0, -1];
+    const strike = event(); strike.surfaceImpact!.position = [0, 0, -1];
     marks.update([strike], 'target'); expect(marks.count).toBe(1);
     const positions = (receiver.children[0] as THREE.Mesh).geometry.getAttribute('position');
     for (let i = 0; i < positions.count; i++) expect(positions.getZ(i)).toBeCloseTo(-1);
