@@ -21,7 +21,7 @@ function terrainMaterial(map: OceanMap): THREE.MeshStandardMaterial | THREE.Mesh
   const masks=attribute<'vec3'>('terrainCover','vec3');
   const stone=rock.mul(color(map.land.style==='volcanic'?'#969087':'#a1a099'));
   const leafLight=grass.dot(vec3(.2126,.7152,.0722)).mul(.8).add(.12);
-  const vegetation=leafLight.mul(color(map.land.style==='tropical'?'#52773c':'#67734e')); 
+  const vegetation=leafLight.mul(color(map.land.style==='tropical'?'#52773c':'#67734e'));
   const ground=mix(vegetation,stone,masks.x);
   const snow=vec3(.64,.71,.74);
   const sand=rock.mul(.35).add(color(map.land.shore).mul(.52));

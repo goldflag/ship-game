@@ -1,0 +1,727 @@
+{
+  "schemaVersion": 1,
+  "contentHash": "ce13513b2d08f2542f19e216ef0c1085374fe6569a7c5ad2c933a32907cd414d",
+  "modelSha256": "d0f528ff68bbd772ae896050968146529b5c385e0669214154b35c8c86fa8d1b",
+  "specRevision": "fidelity-01",
+  "dimensions": [
+    {
+      "id": "length",
+      "metric": "hull.length",
+      "target": 67.10045,
+      "tolerance": 0.015,
+      "units": "m",
+      "sourceId": "u570-docking-plate4",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.015,
+      "measured": 67.10044860839844,
+      "deviation": -0.0000013916015575432539,
+      "passed": true
+    },
+    {
+      "id": "beam",
+      "metric": "hull.beam",
+      "target": 6.15315,
+      "tolerance": 0.015,
+      "units": "m",
+      "sourceId": "u570-docking-plate4",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.025,
+      "measured": 6.153151273727417,
+      "deviation": 0.0000012737274168728163,
+      "passed": true
+    },
+    {
+      "id": "draft",
+      "metric": "hull.draft",
+      "target": 4.7625,
+      "tolerance": 0.015,
+      "units": "m",
+      "sourceId": "u570-docking-plate4",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.1,
+      "measured": 4.762499809265137,
+      "deviation": -1.9073486345888568e-7,
+      "passed": true
+    },
+    {
+      "id": "midshipDepth",
+      "metric": "hull.midshipDepth",
+      "target": 5.9817,
+      "tolerance": 0.015,
+      "units": "m",
+      "sourceId": "u570-docking-plate4",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.035,
+      "measured": 5.981699824333191,
+      "deviation": -1.7566680909908428e-7,
+      "passed": true
+    }
+  ],
+  "geometry": {
+    "triangles": 46580,
+    "degenerate": 0,
+    "nonManifoldEdges": 0,
+    "watertight": true
+  },
+  "spaces": [
+    {
+      "id": "forward-torpedo-room",
+      "cells": 40,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "forward-accommodation",
+      "cells": 30,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "control-room",
+      "cells": 30,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "aft-accommodation",
+      "cells": 20,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "diesel-room",
+      "cells": 30,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "motor-room",
+      "cells": 30,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    }
+  ],
+  "probes": [
+    {
+      "id": "midship-skin",
+      "from": [
+        -8,
+        -1.8,
+        0
+      ],
+      "to": [
+        8,
+        -1.8,
+        0
+      ],
+      "caliberM": 0.088,
+      "basis": "Geometric resistance probe at the stated caliber; no launch velocity, drag or fuze outcome.",
+      "layers": []
+    }
+  ],
+  "structuralProbes": [
+    {
+      "id": "round-bilge",
+      "from": [
+        -8,
+        -3,
+        0
+      ],
+      "to": [
+        8,
+        -3,
+        0
+      ],
+      "expectHit": true,
+      "hits": [
+        {
+          "id": "hull",
+          "point": [
+            -2.079252169616109,
+            -3,
+            0
+          ],
+          "thicknessMm": 18.5,
+          "hull": true
+        },
+        {
+          "id": "hull",
+          "point": [
+            -2.079252169616108,
+            -3,
+            0
+          ],
+          "thicknessMm": 18.5,
+          "hull": true
+        },
+        {
+          "id": "hull",
+          "point": [
+            2.079252169616108,
+            -3,
+            0
+          ],
+          "thicknessMm": 18.5,
+          "hull": true
+        },
+        {
+          "id": "hull",
+          "point": [
+            2.079252169616108,
+            -3,
+            0
+          ],
+          "thicknessMm": 18.5,
+          "hull": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "saddle-tank",
+      "from": [
+        -8,
+        -0.82,
+        0
+      ],
+      "to": [
+        8,
+        -0.82,
+        0
+      ],
+      "expectHit": true,
+      "hits": [
+        {
+          "id": "hull",
+          "point": [
+            -3.076575000000001,
+            -0.82,
+            0
+          ],
+          "thicknessMm": 18.5,
+          "hull": true
+        },
+        {
+          "id": "hull",
+          "point": [
+            -3.076575000000001,
+            -0.82,
+            0
+          ],
+          "thicknessMm": 18.5,
+          "hull": true
+        },
+        {
+          "id": "hull",
+          "point": [
+            -3.076575000000001,
+            -0.82,
+            0
+          ],
+          "thicknessMm": 18.5,
+          "hull": true
+        },
+        {
+          "id": "hull",
+          "point": [
+            -3.076575,
+            -0.82,
+            0
+          ],
+          "thicknessMm": 18.5,
+          "hull": true
+        },
+        {
+          "id": "hull",
+          "point": [
+            -3.076575,
+            -0.82,
+            0
+          ],
+          "thicknessMm": 18.5,
+          "hull": true
+        },
+        {
+          "id": "hull",
+          "point": [
+            -3.076575,
+            -0.82,
+            0
+          ],
+          "thicknessMm": 18.5,
+          "hull": true
+        },
+        {
+          "id": "hull",
+          "point": [
+            3.076575,
+            -0.82,
+            0
+          ],
+          "thicknessMm": 18.5,
+          "hull": true
+        },
+        {
+          "id": "hull",
+          "point": [
+            3.076575,
+            -0.82,
+            0
+          ],
+          "thicknessMm": 18.5,
+          "hull": true
+        },
+        {
+          "id": "hull",
+          "point": [
+            3.076575,
+            -0.82,
+            0
+          ],
+          "thicknessMm": 18.5,
+          "hull": true
+        },
+        {
+          "id": "hull",
+          "point": [
+            3.076575,
+            -0.82,
+            0
+          ],
+          "thicknessMm": 18.5,
+          "hull": true
+        },
+        {
+          "id": "hull",
+          "point": [
+            3.076575,
+            -0.82,
+            0
+          ],
+          "thicknessMm": 18.5,
+          "hull": true
+        },
+        {
+          "id": "hull",
+          "point": [
+            3.076575,
+            -0.82,
+            0
+          ],
+          "thicknessMm": 18.5,
+          "hull": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "bridge-wall",
+      "from": [
+        -8,
+        4,
+        -3
+      ],
+      "to": [
+        8,
+        4,
+        -3
+      ],
+      "expectHit": true,
+      "hits": [
+        {
+          "id": "conning-tower",
+          "point": [
+            -1.1066486486486484,
+            4,
+            -3
+          ],
+          "thicknessMm": 3,
+          "hull": false
+        },
+        {
+          "id": "conning-tower",
+          "point": [
+            1.1062986486486466,
+            4,
+            -3
+          ],
+          "thicknessMm": 3,
+          "hull": false
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "free-air",
+      "from": [
+        -8,
+        11,
+        0
+      ],
+      "to": [
+        8,
+        11,
+        0
+      ],
+      "expectHit": false,
+      "hits": [],
+      "passed": true
+    }
+  ],
+  "landmarks": [
+    {
+      "id": "deck-gun-axis",
+      "runtime": [
+        0,
+        2.305251,
+        -7.93
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-usn-plan",
+      "basis": "interpreted",
+      "evidenceUncertaintyM": 0.2,
+      "note": "Longitudinal axis read at x3190 / 2590 on retained 6238-pixel scan; elevation includes shared catalog part.",
+      "measured": [
+        0,
+        2.305251121520996,
+        -7.929999828338623
+      ],
+      "deviationM": [
+        0,
+        1.2152099593265575e-7,
+        1.716613766689079e-7
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "flak-gun-axis",
+      "runtime": [
+        0,
+        4.09,
+        0.83
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-usn-plan",
+      "basis": "interpreted",
+      "evidenceUncertaintyM": 0.2,
+      "note": "Longitudinal axis read at x3190 / 2590 on retained 6238-pixel scan; elevation includes shared catalog part.",
+      "measured": [
+        0,
+        4.090000152587891,
+        0.8299999833106995
+      ],
+      "deviationM": [
+        0,
+        1.5258789076710855e-7,
+        -1.6689300497141346e-8
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "attack-scope-eye",
+      "runtime": [
+        0,
+        9.8495,
+        -1.285
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-interrogation-1941",
+      "basis": "documented datum / interpreted placement",
+      "evidenceUncertaintyM": 0.08,
+      "measured": [
+        0,
+        9.849499702453613,
+        -1.284999966621399
+      ],
+      "deviationM": [
+        0,
+        -2.975463875287687e-7,
+        3.337860099428269e-8
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "observation-scope-eye",
+      "runtime": [
+        0,
+        7.14,
+        -3.695
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-usn-plan",
+      "basis": "documented datum / interpreted placement",
+      "evidenceUncertaintyM": 0.25,
+      "measured": [
+        0,
+        7.139999866485596,
+        -3.694999933242798
+      ],
+      "deviationM": [
+        0,
+        -1.3351440397713077e-7,
+        6.675720198856538e-8
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "bridge-lip",
+      "runtime": [
+        0,
+        4.60375,
+        -3.3
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-docking-plate4",
+      "basis": "documented datum / interpreted placement",
+      "evidenceUncertaintyM": 0.035,
+      "measured": [
+        0,
+        4.603750228881836,
+        -3.299999952316284
+      ],
+      "deviationM": [
+        0,
+        2.2888183615066282e-7,
+        4.7683715642676816e-8
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "saddle-maximum",
+      "runtime": [
+        -3.076575,
+        -0.82,
+        0
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-docking-plate4",
+      "basis": "documented datum / interpreted placement",
+      "evidenceUncertaintyM": 0.1,
+      "measured": [
+        -3.0765750408172607,
+        -0.8199999928474426,
+        0
+      ],
+      "deviationM": [
+        -4.081726068250191e-8,
+        7.152557324197062e-9,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "bow-plane-starboard",
+      "runtime": [
+        1.2,
+        -1.55,
+        -25.65
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-docking-plate4",
+      "basis": "interpreted",
+      "evidenceUncertaintyM": 0.2,
+      "note": "Fixed datum plus independent moving joint; tolerance validates export, not scan precision.",
+      "measured": [
+        1.2000019550323486,
+        -1.5499999523162842,
+        -25.649999618530273
+      ],
+      "deviationM": [
+        0.0000019550323486772214,
+        4.768371586472142e-8,
+        3.8146972514141453e-7
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "stern-plane-starboard",
+      "runtime": [
+        0.72,
+        -1.4,
+        26.5
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-docking-plate4",
+      "basis": "interpreted",
+      "evidenceUncertaintyM": 0.2,
+      "note": "Fixed datum plus independent moving joint; tolerance validates export, not scan precision.",
+      "measured": [
+        0.7199980020523071,
+        -1.399999976158142,
+        26.5
+      ],
+      "deviationM": [
+        -0.0000019979476928444484,
+        2.3841857821338408e-8,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "propeller-starboard",
+      "runtime": [
+        1.1176,
+        -2.4412,
+        27.4
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-docking-plate4",
+      "basis": "interpreted",
+      "evidenceUncertaintyM": 0.2,
+      "note": "Fixed datum plus independent moving joint; tolerance validates export, not scan precision.",
+      "measured": [
+        1.1175979375839233,
+        -2.441200017929077,
+        27.399999618530273
+      ],
+      "deviationM": [
+        -0.0000020624160765869703,
+        -1.7929077333889154e-8,
+        -3.8146972514141453e-7
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "rudder-starboard",
+      "runtime": [
+        0.6223,
+        -1.75,
+        30.05
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-docking-plate4",
+      "basis": "interpreted",
+      "evidenceUncertaintyM": 0.2,
+      "note": "Fixed datum plus independent moving joint; tolerance validates export, not scan precision.",
+      "measured": [
+        0.6222977638244629,
+        -1.75,
+        30.049999237060547
+      ],
+      "deviationM": [
+        -0.0000022361755370736702,
+        0,
+        -7.629394538355427e-7
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "bow-plane-port",
+      "runtime": [
+        -1.2,
+        -1.55,
+        -25.65
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-docking-plate4",
+      "basis": "interpreted",
+      "evidenceUncertaintyM": 0.2,
+      "note": "Fixed datum plus independent moving joint; tolerance validates export, not scan precision.",
+      "measured": [
+        -1.199998140335083,
+        -1.5499999523162842,
+        -25.649999618530273
+      ],
+      "deviationM": [
+        0.0000018596649169477786,
+        4.768371586472142e-8,
+        3.8146972514141453e-7
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "stern-plane-port",
+      "runtime": [
+        -0.72,
+        -1.4,
+        26.5
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-docking-plate4",
+      "basis": "interpreted",
+      "evidenceUncertaintyM": 0.2,
+      "note": "Fixed datum plus independent moving joint; tolerance validates export, not scan precision.",
+      "measured": [
+        -0.7200020551681519,
+        -1.399999976158142,
+        26.5
+      ],
+      "deviationM": [
+        -0.000002055168151882114,
+        2.3841857821338408e-8,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "propeller-port",
+      "runtime": [
+        -1.1176,
+        -2.4412,
+        27.4
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-docking-plate4",
+      "basis": "interpreted",
+      "evidenceUncertaintyM": 0.2,
+      "note": "Fixed datum plus independent moving joint; tolerance validates export, not scan precision.",
+      "measured": [
+        -1.117601990699768,
+        -2.441200017929077,
+        27.399999618530273
+      ],
+      "deviationM": [
+        -0.000001990699768139592,
+        -1.7929077333889154e-8,
+        -3.8146972514141453e-7
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "rudder-port",
+      "runtime": [
+        -0.6223,
+        -1.75,
+        30.05
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-docking-plate4",
+      "basis": "interpreted",
+      "evidenceUncertaintyM": 0.2,
+      "note": "Fixed datum plus independent moving joint; tolerance validates export, not scan precision.",
+      "measured": [
+        -0.6223022937774658,
+        -1.75,
+        30.049999237060547
+      ],
+      "deviationM": [
+        -0.0000022937774658560173,
+        0,
+        -7.629394538355427e-7
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    }
+  ],
+  "passed": true,
+  "historicalAccuracy": "Not certified. Tolerances validate authored targets; source uncertainty and discrepancies remain separate."
+}

@@ -1,0 +1,1096 @@
+{
+  "d": {
+    "audio": {
+      "failed": [],
+      "inPort": false,
+      "loaded": 13,
+      "paused": false,
+      "played": 19,
+      "settings": {
+        "effects": 0.8,
+        "interface": 0.65,
+        "master": 0.65,
+        "muted": false
+      },
+      "state": "running",
+      "total": 13,
+      "voices": 0
+    },
+    "backend": "webgpu",
+    "battleSeed": 2106533317,
+    "camera": {
+      "aim": [
+        47.9335046803461,
+        0.5,
+        -30311.261418405553
+      ],
+      "binoculars": false,
+      "fov": 52.00000000000001,
+      "magnification": 1,
+      "manualAim": true,
+      "matrixWorldInverse": [
+        0.9999987197464202,
+        6.276350794862715e-06,
+        -0.0016001456583778966,
+        0,
+        0,
+        0.9999923076262686,
+        0.003922331996444099,
+        0,
+        0.0016001579673910109,
+        -0.003922326974864518,
+        0.999991027382537,
+        0,
+        0.5699887726939485,
+        45.27616864870982,
+        312.101050598315,
+        1
+      ],
+      "mode": "Chase",
+      "pointerLocked": false,
+      "position": [
+        -0.07086507099079464,
+        -46.49998430438503,
+        -311.9215743694447
+      ],
+      "projectionMatrix": [
+        1.633751346060547,
+        0,
+        0,
+        0,
+        0,
+        2.050303841579296,
+        0,
+        0,
+        0,
+        0,
+        8.333402778356486e-06,
+        -1,
+        0,
+        0,
+        0.5000041667013891,
+        0
+      ],
+      "shellFollow": "off"
+    },
+    "combat": {
+      "ammunition": "ap",
+      "ammunitionStock": {
+        "ap": 219,
+        "he": 0
+      },
+      "batteries": [
+        {
+          "ammo": 219,
+          "ammunition": "ap",
+          "battery": "main",
+          "ready": 0,
+          "reload": 0,
+          "total": 1
+        },
+        {
+          "ammo": 1100,
+          "ammunition": "ap",
+          "battery": "secondary",
+          "ready": 0,
+          "reload": 0,
+          "total": 1
+        },
+        {
+          "ammo": 13,
+          "ammunition": "ap",
+          "battery": "torpedo",
+          "ready": 0,
+          "reload": 0,
+          "total": 5
+        }
+      ],
+      "battery": "main",
+      "battle": true,
+      "contacts": [
+        {
+          "combatLost": false,
+          "controller": "player",
+          "heading": 0,
+          "id": "player",
+          "integrity": 0.9071574764170531,
+          "name": "Type VIIC",
+          "shipId": "type-viic",
+          "status": "operational",
+          "sunk": false,
+          "team": "friendly",
+          "x": 0,
+          "z": -356.21367933335455
+        },
+        {
+          "combatLost": false,
+          "controller": "bot",
+          "heading": 2.6385526682314318,
+          "id": "enemy-1",
+          "integrity": 1,
+          "name": "Bismarck",
+          "shipId": "bismarck",
+          "status": "operational",
+          "sunk": false,
+          "targetId": "player",
+          "team": "enemy",
+          "x": 227.79951969266824,
+          "z": -4184.779528435168
+        }
+      ],
+      "control": {
+        "focus": "",
+        "mounts": [
+          {
+            "fuel": 0,
+            "heat": 0.32175875459036035,
+            "intensity": 0
+          },
+          {
+            "fuel": 0,
+            "heat": 0.2151174690986794,
+            "intensity": 0
+          }
+        ],
+        "priority": "balanced",
+        "pumping": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "rooms": [
+          {
+            "fuel": 0,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 0,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 0,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 0,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 0,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 0,
+            "heat": 0,
+            "intensity": 0
+          }
+        ],
+        "spares": 0,
+        "teams": []
+      },
+      "controlTargets": [
+        {
+          "id": "forward-torpedo-room",
+          "name": "Forward torpedo room"
+        },
+        {
+          "id": "forward-accommodation",
+          "name": "Forward accommodation / battery"
+        },
+        {
+          "id": "control-room",
+          "name": "Control room"
+        },
+        {
+          "id": "aft-accommodation",
+          "name": "Aft accommodation / battery"
+        },
+        {
+          "id": "diesel-room",
+          "name": "Diesel engine room"
+        },
+        {
+          "id": "motor-room",
+          "name": "Motor / stern torpedo room"
+        },
+        {
+          "id": "deck-gun",
+          "name": "8.8 cm deck gun"
+        },
+        {
+          "id": "flak-gun",
+          "name": "2 cm aft platform gun"
+        }
+      ],
+      "heSupported": false,
+      "message": "Type VIIC \u00b7 HE shell burst",
+      "modules": [
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-aft-port-equipment",
+          "name": "Aft port boiler room \u00b7 two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-aft-center-equipment",
+          "name": "Aft center boiler room \u00b7 two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-aft-starboard-equipment",
+          "name": "Aft starboard boiler room \u00b7 two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-forward-port-equipment",
+          "name": "Forward port boiler room \u00b7 two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-forward-center-equipment",
+          "name": "Forward center boiler room \u00b7 two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-forward-starboard-equipment",
+          "name": "Forward starboard boiler room \u00b7 two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "engine-port",
+          "name": "Port turbine room",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "engine-starboard",
+          "name": "Starboard turbine room",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "engine-center",
+          "name": "Center turbine room",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "anton-magazine",
+          "name": "Anton propellant magazines",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "bruno-magazine",
+          "name": "Bruno propellant magazines",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "caesar-magazine",
+          "name": "C\u00e4sar propellant magazines",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "dora-magazine",
+          "name": "Dora propellant magazines",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "steering",
+          "name": "Steering gear room",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "shaft-port-equipment",
+          "name": "Port shaft passage",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "shaft-center-equipment",
+          "name": "Center shaft passage",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "shaft-starboard-equipment",
+          "name": "Starboard shaft passage",
+          "reason": "operational"
+        }
+      ],
+      "mounts": [
+        {
+          "ammo": 219,
+          "id": "deck-gun",
+          "loaded": "ap",
+          "name": "8.8 cm deck gun",
+          "reload": 0,
+          "status": "submerged"
+        }
+      ],
+      "playerDamageDealt": 0,
+      "playerFrags": 0,
+      "playerIntegrity": 0.9071574764170531,
+      "playerMaxIntegrity": 450,
+      "playerStatus": "operational",
+      "playerSunk": false,
+      "playerWater": 0,
+      "range": 29955.08609019452,
+      "ready": 0,
+      "result": "active",
+      "shellHistory": [
+        {
+          "ammunition": "ap",
+          "impacts": [
+            {
+              "breachAreaM2": 0.007744000000000028,
+              "breachAssignments": [
+                {
+                  "areaM2": 0.007744000000000028,
+                  "compartmentId": "flood-end-bow-5",
+                  "position": [
+                    -3.178946999840578,
+                    2.9113369697893736,
+                    -111.8943999752304
+                  ]
+                }
+              ],
+              "compartmentId": "flood-end-bow-5",
+              "exitSpeedMps": 160.0323510250721,
+              "impactSpeedMps": 699.9941790253904,
+              "kind": "armor",
+              "material": "steel",
+              "obliquityDeg": 76.0502260490892,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 12.035863367560793,
+              "penetrationBeforeMm": 94.99889401666353,
+              "position": [
+                -3.178946999840578,
+                2.9113369697893736,
+                -111.8943999752304
+              ],
+              "resistanceMm": 82.96303064910273,
+              "shellId": 2,
+              "shipId": "enemy-1",
+              "targetId": "hull",
+              "targetName": "Hull shell \u00b7 bow to stern plating",
+              "thicknessMm": 20
+            },
+            {
+              "connectionIds": [
+                "partition-991bfde5b48c"
+              ],
+              "exitSpeedMps": 0,
+              "impactSpeedMps": 160.11545407677178,
+              "kind": "boundary",
+              "material": "steel",
+              "outcome": "stopped",
+              "penetrationAfterMm": 0,
+              "penetrationBeforeMm": 12.04461440555016,
+              "position": [
+                -4.049946420842263,
+                1.5550000000000002,
+                -85.73422045477501
+              ],
+              "resistanceMm": 25,
+              "shellId": 2,
+              "shipId": "enemy-1",
+              "targetId": "partition-991bfde5b48c",
+              "targetName": "Watertight boundary partition-991bfde5b48c",
+              "terminal": true,
+              "thicknessMm": 5
+            }
+          ],
+          "outcome": "stopped",
+          "ownerId": "player",
+          "shellId": 2,
+          "tick": 522
+        }
+      ],
+      "submarine": {
+        "ballastFraction": 0.8500000420538658,
+        "ballastM3": 102.0000050464639,
+        "depthM": 49.999984309353415,
+        "emergencyBlow": false,
+        "maxDepthM": 150,
+        "maxTorpedoDepthM": 12,
+        "periscopeDepthM": 7,
+        "propulsion": "Electric",
+        "targetDepthM": 50,
+        "verticalSpeed": -3.312254159780995e-06
+      },
+      "targetDraftChange": 0,
+      "targetFires": 0,
+      "targetId": "enemy-1",
+      "targetIntegrity": 1,
+      "targetList": 0,
+      "targetMounts": [
+        {
+          "condition": 1,
+          "id": "anton",
+          "name": "Anton"
+        },
+        {
+          "condition": 1,
+          "id": "bruno",
+          "name": "Bruno"
+        },
+        {
+          "condition": 1,
+          "id": "caesar",
+          "name": "C\u00e4sar"
+        },
+        {
+          "condition": 1,
+          "id": "dora",
+          "name": "Dora"
+        },
+        {
+          "condition": 1,
+          "id": "starboard-secondary-1",
+          "name": "Starboard Secondary 1"
+        },
+        {
+          "condition": 1,
+          "id": "starboard-secondary-2",
+          "name": "Starboard Secondary 2"
+        },
+        {
+          "condition": 1,
+          "id": "starboard-secondary-3",
+          "name": "Starboard Secondary 3"
+        },
+        {
+          "condition": 1,
+          "id": "port-secondary-1",
+          "name": "Port Secondary 1"
+        },
+        {
+          "condition": 1,
+          "id": "port-secondary-2",
+          "name": "Port Secondary 2"
+        },
+        {
+          "condition": 1,
+          "id": "port-secondary-3",
+          "name": "Port Secondary 3"
+        }
+      ],
+      "targetName": "Bismarck",
+      "targetPosition": {
+        "heading": 2.6385526682314318,
+        "x": 227.79951969266824,
+        "z": -4184.779528435168
+      },
+      "targetPower": 1,
+      "targetRange": 3835.336892905354,
+      "targetStatus": "operational",
+      "targetSteering": 1,
+      "targetSunk": false,
+      "targetTrim": 0,
+      "targetUnderway": false,
+      "targetWater": 0,
+      "total": 1
+    },
+    "contentHash": "0cdcb80b8790f728b709cd73c96abb53655305d5c03259983b1f0b91594ffe63",
+    "effects": {
+      "flashes": 0,
+      "foam": 0,
+      "particleCapacity": 2272,
+      "shells": 6,
+      "smoke": 149,
+      "spray": 348,
+      "torpedoes": 1
+    },
+    "events": [
+      {
+        "kind": "shot",
+        "message": "Starboard Secondary 1 fired",
+        "position": [
+          174.08156015931655,
+          7.455623277616763,
+          -4267.576422859465
+        ],
+        "sequence": 111,
+        "shell": {
+          "ammunition": "he",
+          "caliberM": 0.15,
+          "id": 55,
+          "type": "HE",
+          "velocity": [
+            -36.79127019093845,
+            25.17005290457991,
+            881.3190589835222
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 5752
+      },
+      {
+        "kind": "shot",
+        "message": "Starboard Secondary 1 fired",
+        "position": [
+          172.3335340392612,
+          7.455623277616763,
+          -4267.659517285296
+        ],
+        "sequence": 112,
+        "shell": {
+          "ammunition": "he",
+          "caliberM": 0.15,
+          "id": 56,
+          "type": "HE",
+          "velocity": [
+            -38.99685001325754,
+            23.3395829993558,
+            879.7377262711414
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 5752
+      },
+      {
+        "kind": "splash",
+        "message": "Shell splash",
+        "position": [
+          6.745373755824761,
+          0,
+          -263.23044251290173
+        ],
+        "sequence": 113,
+        "shell": {
+          "ammunition": "he",
+          "caliberM": 0.15,
+          "id": 53,
+          "type": "HE",
+          "velocity": [
+            -24.29192243461048,
+            -25.898737641369156,
+            668.904794551397
+          ]
+        },
+        "shipId": "",
+        "tick": 5860
+      },
+      {
+        "kind": "splash",
+        "message": "Shell splash",
+        "position": [
+          -11.047001651676432,
+          0,
+          -185.0892400124997
+        ],
+        "sequence": 114,
+        "shell": {
+          "ammunition": "he",
+          "caliberM": 0.15,
+          "id": 54,
+          "type": "HE",
+          "velocity": [
+            -26.45397472978575,
+            -26.24033295770444,
+            669.4599621070663
+          ]
+        },
+        "shipId": "",
+        "tick": 5865
+      },
+      {
+        "kind": "splash",
+        "message": "Shell splash",
+        "position": [
+          3.731110471953048,
+          0,
+          -464.1237777965407
+        ],
+        "sequence": 115,
+        "shell": {
+          "ammunition": "he",
+          "caliberM": 0.15,
+          "id": 56,
+          "type": "HE",
+          "velocity": [
+            -30.159100164803124,
+            -24.483064368088638,
+            680.3651627335936
+          ]
+        },
+        "shipId": "",
+        "tick": 6046
+      },
+      {
+        "kind": "shot",
+        "message": "Starboard Secondary 2 fired",
+        "position": [
+          179.11992839315096,
+          7.302745735054403,
+          -4244.945312615813
+        ],
+        "sequence": 116,
+        "shell": {
+          "ammunition": "he",
+          "caliberM": 0.15,
+          "id": 57,
+          "type": "HE",
+          "velocity": [
+            -38.66553201081603,
+            23.87192134256102,
+            882.3336774612767
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 6050
+      },
+      {
+        "kind": "shot",
+        "message": "Starboard Secondary 2 fired",
+        "position": [
+          177.37204445558828,
+          7.302745735054403,
+          -4245.031345986144
+        ],
+        "sequence": 117,
+        "shell": {
+          "ammunition": "he",
+          "caliberM": 0.15,
+          "id": 58,
+          "type": "HE",
+          "velocity": [
+            -38.22407683306093,
+            25.520744428873634,
+            880.3428850521943
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 6050
+      },
+      {
+        "kind": "splash",
+        "message": "Shell splash",
+        "position": [
+          5.828557954972262,
+          0,
+          -237.14809558721655
+        ],
+        "sequence": 118,
+        "shell": {
+          "ammunition": "he",
+          "caliberM": 0.15,
+          "id": 55,
+          "type": "HE",
+          "velocity": [
+            -27.986276376935727,
+            -25.769687132021023,
+            670.3992178842644
+          ]
+        },
+        "shipId": "",
+        "tick": 6065
+      },
+      {
+        "kind": "shot",
+        "message": "Starboard Secondary 1 fired",
+        "position": [
+          206.10076639808153,
+          7.449673495434273,
+          -4196.688902723131
+        ],
+        "sequence": 119,
+        "shell": {
+          "ammunition": "he",
+          "caliberM": 0.15,
+          "id": 59,
+          "type": "HE",
+          "velocity": [
+            -49.22921281967443,
+            23.103269240936072,
+            881.6800056043833
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 6296
+      },
+      {
+        "kind": "shot",
+        "message": "Starboard Secondary 1 fired",
+        "position": [
+          204.35390247702563,
+          7.449673495434273,
+          -4196.79362350098
+        ],
+        "sequence": 120,
+        "shell": {
+          "ammunition": "he",
+          "caliberM": 0.15,
+          "id": 60,
+          "type": "HE",
+          "velocity": [
+            -50.39906877798406,
+            24.17934036378301,
+            885.1960672033456
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 6296
+      },
+      {
+        "kind": "splash",
+        "message": "Shell splash",
+        "position": [
+          9.311571795710723,
+          0,
+          -369.97905847599026
+        ],
+        "sequence": 121,
+        "shell": {
+          "ammunition": "he",
+          "caliberM": 0.15,
+          "id": 57,
+          "type": "HE",
+          "velocity": [
+            -29.77289921616901,
+            -24.78246770469754,
+            679.4069624268417
+          ]
+        },
+        "shipId": "",
+        "tick": 6349
+      },
+      {
+        "kind": "splash",
+        "message": "Shell splash",
+        "position": [
+          0.9254010594968657,
+          0,
+          -181.26944577096015
+        ],
+        "sequence": 122,
+        "shell": {
+          "ammunition": "he",
+          "caliberM": 0.15,
+          "id": 58,
+          "type": "HE",
+          "velocity": [
+            -29.00028818415906,
+            -25.926218850021716,
+            667.9088020591771
+          ]
+        },
+        "shipId": "",
+        "tick": 6366
+      },
+      {
+        "kind": "shot",
+        "message": "Anton fired",
+        "position": [
+          250.70477472066702,
+          9.02222230584334,
+          -4122.559222793687
+        ],
+        "sequence": 123,
+        "shell": {
+          "ammunition": "he",
+          "caliberM": 0.38,
+          "id": 61,
+          "type": "HE",
+          "velocity": [
+            -55.8712584183455,
+            21.17557504906213,
+            827.5449976559457
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 6505
+      },
+      {
+        "kind": "shot",
+        "message": "Anton fired",
+        "position": [
+          246.96485841362525,
+          9.02222230584334,
+          -4122.834042764436
+        ],
+        "sequence": 124,
+        "shell": {
+          "ammunition": "he",
+          "caliberM": 0.38,
+          "id": 62,
+          "type": "HE",
+          "velocity": [
+            -56.27581351280131,
+            21.771445547726632,
+            828.2032197391818
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 6505
+      },
+      {
+        "kind": "shot",
+        "message": "Bruno fired",
+        "position": [
+          247.60746801675646,
+          12.8097965082343,
+          -4129.973338329169
+        ],
+        "sequence": 125,
+        "shell": {
+          "ammunition": "he",
+          "caliberM": 0.38,
+          "id": 63,
+          "type": "HE",
+          "velocity": [
+            -56.17346031595985,
+            21.191017602839008,
+            832.0490030396511
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 6565
+      },
+      {
+        "kind": "shot",
+        "message": "Bruno fired",
+        "position": [
+          243.86786951377547,
+          12.8097965082343,
+          -4130.252449483553
+        ],
+        "sequence": 126,
+        "shell": {
+          "ammunition": "he",
+          "caliberM": 0.38,
+          "id": 64,
+          "type": "HE",
+          "velocity": [
+            -57.12187352449258,
+            20.95049143358901,
+            830.3478379423681
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 6565
+      },
+      {
+        "kind": "splash",
+        "message": "Shell splash",
+        "position": [
+          -5.130917419514879,
+          0,
+          -413.594648213911
+        ],
+        "sequence": 127,
+        "shell": {
+          "ammunition": "he",
+          "caliberM": 0.15,
+          "id": 59,
+          "type": "HE",
+          "velocity": [
+            -38.172163169249494,
+            -24.2392299040916,
+            683.6516594379692
+          ]
+        },
+        "shipId": "",
+        "tick": 6587
+      },
+      {
+        "kind": "shot",
+        "message": "Starboard Secondary 2 fired",
+        "position": [
+          216.3518056279095,
+          7.296456931966999,
+          -4168.754108869183
+        ],
+        "sequence": 128,
+        "shell": {
+          "ammunition": "he",
+          "caliberM": 0.15,
+          "id": 65,
+          "type": "HE",
+          "velocity": [
+            -48.216860603756544,
+            22.226800193240123,
+            881.7990730240415
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 6588
+      },
+      {
+        "kind": "shot",
+        "message": "Starboard Secondary 2 fired",
+        "position": [
+          214.60502781998483,
+          7.296456931966999,
+          -4168.860256359694
+        ],
+        "sequence": 129,
+        "shell": {
+          "ammunition": "he",
+          "caliberM": 0.15,
+          "id": 66,
+          "type": "HE",
+          "velocity": [
+            -48.70547288226662,
+            22.51072857973232,
+            885.1360241238009
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 6588
+      },
+      {
+        "kind": "splash",
+        "message": "Shell splash",
+        "position": [
+          -19.333905016409627,
+          0,
+          -267.99945575985777
+        ],
+        "sequence": 130,
+        "shell": {
+          "ammunition": "he",
+          "caliberM": 0.15,
+          "id": 60,
+          "type": "HE",
+          "velocity": [
+            -38.70656400863326,
+            -24.971544594358495,
+            679.8319704344177
+          ]
+        },
+        "shipId": "",
+        "tick": 6598
+      }
+    ],
+    "fleet": [
+      {
+        "ammo": 1319,
+        "controller": "player",
+        "definitionId": "type-viic",
+        "id": "player",
+        "integrity": 408.2208643876739,
+        "motion": {
+          "distance": 356.21367933335455,
+          "heading": 0,
+          "id": "player",
+          "pitch": -3.508191685195683e-07,
+          "roll": 0,
+          "rudder": 0,
+          "speed": 3.9097744,
+          "swaySpeed": 0,
+          "tick": 6629,
+          "verticalSpeed": -3.312254159780995e-06,
+          "x": 0,
+          "y": -49.999984309353415,
+          "yawRate": 0,
+          "z": -356.21367933335455
+        },
+        "submarine": {
+          "ballastM3": 102.0000050464639,
+          "emergencyBlow": false,
+          "planes": 1.4017955272612566e-07,
+          "targetDepthM": 50,
+          "trimPitch": -3.508191685195683e-07
+        },
+        "team": "friendly"
+      },
+      {
+        "ammo": 2696,
+        "controller": "bot",
+        "definitionId": "bismarck",
+        "id": "enemy-1",
+        "integrity": 1450,
+        "motion": {
+          "distance": 852.6589249761593,
+          "heading": 2.6385526682314318,
+          "id": "enemy-1",
+          "pitch": 0,
+          "roll": 0,
+          "rudder": -1,
+          "speed": 10.205230798717123,
+          "swaySpeed": 0,
+          "tick": 6629,
+          "x": 227.79951969266824,
+          "y": 0,
+          "yawRate": -0.012250514647574562,
+          "z": -4184.779528435168
+        },
+        "targetId": "player",
+        "team": "enemy"
+      }
+    ],
+    "fps": 10.393112891049473,
+    "inPort": false,
+    "inspecting": false,
+    "maxMuzzleErrorM": 0.0021624536549051786,
+    "paused": false,
+    "portInspection": "exterior",
+    "renderedShips": [
+      {
+        "id": "player",
+        "impactDrawCalls": 1,
+        "impactMarks": 1,
+        "visible": true
+      },
+      {
+        "id": "enemy-1",
+        "impactDrawCalls": 1,
+        "impactMarks": 1,
+        "visible": true
+      }
+    ],
+    "shipId": "type-viic",
+    "tick": 6629,
+    "torpedoes": [
+      {
+        "armed": true,
+        "distance": 2439.7335218665,
+        "id": 1,
+        "ownerId": "player",
+        "position": [
+          3.739036014617595,
+          -2,
+          -2470.7300447511875
+        ],
+        "tubeId": "bow-tube-1"
+      }
+    ]
+  }
+}
