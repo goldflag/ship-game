@@ -44,9 +44,14 @@ test('inspection lists exactly the armor, mounts, modules and compartments used 
     expect(entriesForMode(entries, 'armor').length).toBe(structureCount + def.armor.length + def.mounts.filter(m => !def.armor.some(a => a.plate?.mountId === m.id)).length);
     expect(entriesForMode(entries, 'internals').length).toBe(def.modules.length + def.compartments.length);
     expect(entriesForMode(entries, 'exterior')).toEqual([]);
-    const armor = entries.find(e => e.id === `armor:${def.armor[0].id}`)!;
-    expect(armor.thicknessMm).toBe(def.armor[0].thicknessMm);
-    expect(armor.size).toEqual(def.armor[0].size);
+    if (def.armor.length) {
+      const armor = entries.find(e => e.id === `armor:${def.armor[0].id}`)!;
+      expect(armor.thicknessMm).toBe(def.armor[0].thicknessMm);
+      expect(armor.size).toEqual(def.armor[0].size);
+    } else {
+      const hull = entries.find(e => e.id === 'structure:hull')!;
+      expect(hull.thicknessMm).toBe(def.structuralPlating!.hullMm);
+    }
     const gunhouse = entries.find(e => e.mountIndex === 0)!;
     expect(gunhouse.thicknessMm).toBeGreaterThan(0);
     expect(def.armor.some(a => a.plate?.mountId === def.mounts[0].id) ? gunhouse.plate : gunhouse.size).toBeDefined();

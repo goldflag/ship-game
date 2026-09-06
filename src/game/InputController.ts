@@ -8,7 +8,7 @@ export interface InputActions {
   hud(): void;
   fullscreen(): void;
   optics(): void;
-  battery(battery: 'main' | 'secondary'): void;
+  battery(battery: 'main' | 'secondary' | 'torpedo'): void;
   cursor(released: boolean): void;
   chartSize(direction: number): void;
   gunnery(): void;
@@ -76,6 +76,7 @@ export class InputController {
       if (control) this.actions.cursor(true);
       if (action === 'mainBattery') this.actions.battery('main');
       if (action === 'secondaryBattery') this.actions.battery('secondary');
+      if (action === 'torpedoes') this.actions.battery('torpedo');
       if (action === 'chartLarger') this.actions.chartSize(1);
       if (action === 'chartSmaller') this.actions.chartSize(-1);
       if (action === 'gunnery') this.actions.gunnery();
