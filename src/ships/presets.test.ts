@@ -15,7 +15,7 @@ test('every available port review link serves evidence without inventing packs f
     await server.listen();
     const address = server.httpServer!.address();
     if (!address || typeof address === 'string') throw new Error('Missing review test server');
-    expect(shipReviewUrls['type-viic']).toBeUndefined();
+    expect(shipReviewUrls['type-viic']).toBe('/ship-reference/type-viic/index.html');
     for (const id of Object.keys(shipReviewUrls)) {
       expect(Object.hasOwn(shipPresets, id)).toBe(true);
       const response = await fetch(`http://localhost:${address.port}${shipReviewUrls[id]}`);
