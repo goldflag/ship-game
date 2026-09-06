@@ -97,7 +97,7 @@ export function shipStatistics(def: ShipDefinition): StatSection[] {
   const engines = def.modules.filter(m => m.kind === 'engine').length, magazines = def.modules.filter(m => m.kind === 'magazine').length, steering = def.modules.filter(m => m.kind === 'steering').length;
   const floodingM3 = def.compartments.reduce((n, c) => n + c.capacityM3, 0), pumpM3PerMinute = def.compartments.reduce((n, c) => n + c.pumpM3PerSecond, 0) * 60;
   const survivability: StatSection = {
-    id: 'survivability', title: 'Survivability', headline: format(hp), headlineUnit: 'condition points', headlineHelp: 'Full equipment condition on this ship’s damage-score scale. Buoyancy and stability determine sinking; losing every usable gun can end the fight while afloat.',
+    id: 'survivability', title: 'Survivability', headline: format(hp), headlineUnit: 'condition points', headlineHelp: 'Full equipment condition on this ship’s damage-score scale. Buoyancy and stability determine sinking; permanently losing every weapon or its ammunition can end the fight while afloat.',
     rows: [
       { label: 'Displacement', value: format(h.massKg / 1000), unit: 't', help: 'Standard-draft hull mass used for buoyancy and loading.' },
       { label: 'Reserve buoyancy', value: format(h.reserveBuoyancyM3), unit: 'm³', help: 'Nominal authored reserve. Ships with a stability profile use their actual hull geometry, loading and list to determine loss of flotation.' },
@@ -139,6 +139,29 @@ export function shipStatistics(def: ShipDefinition): StatSection[] {
     rows: secondaryGroups.flatMap(group => batteryRows(group, true).filter(row => secondaryGroups.length === 1 || ['Reload', 'Damage per minute', 'Maximum range', 'Penetration'].includes(row.label) || row.text)),
     collapsed: true,
   } : undefined;
+  const tubes = def.torpedoTubes ?? [];
+  const torpedoGroups = [...new Map(tubes.map(t => [t.partId, tubes.filter(other => other.partId === t.partId)])).values()];
+  const torpedoBatteries: StatSection[] = torpedoGroups.map(group => {
+    const weapon = group[0].weapon;
+    return {
+      id: `torpedoes-${weapon.id}`, title: 'Torpedoes', headline: format(group.length), headlineUnit: 'tubes',
+      headlineHelp: `${weapon.name}. Fixed tubes launch on a straight course within their allowed bearing arcs.`, collapsed: true,
+      rows: [
+        { label: 'Weapon', value: weapon.name, help: 'Torpedo component fitted to these tubes.', text: true },
+        { label: 'Diameter', value: format(weapon.diameterM * 1000), unit: 'mm', help: 'Diameter of the torpedo body.' },
+        { label: 'Ammunition', value: format(group.reduce((n, t) => n + t.ammo, 0)), unit: 'rounds', help: 'Initial ammunition across these tubes, including reloads.' },
+        { label: 'Speed', value: format(knots(weapon.speed)), unit: 'kn', help: 'Constant speed after launch; no homing or later steering.' },
+        { label: 'Maximum range', value: format(weapon.rangeM / 1000, 1), unit: 'km', help: 'Maximum distance before the torpedo expires.' },
+        { label: 'Running depth', value: format(weapon.runningDepthM, 1), unit: 'm', help: 'Depth below the CPU sea datum, reached gradually after launch.' },
+        { label: 'Arming distance', value: format(weapon.armingDistanceM), unit: 'm', help: 'Earlier contact is a harmless dud. Provisional game tuning.' },
+        { label: 'Reload', value: format(weapon.reloadSeconds), unit: 's', help: 'Physical reload time for each tube. Provisional game tuning.' },
+        { label: 'Module damage', value: format(weapon.damage * .5), unit: 'max', help: 'Maximum damage to one nearby module from an armed hit. Distance reduces damage, and remaining module condition caps it. The local flooding breach is resolved separately.' },
+        { label: 'Flood opening', value: format(weapon.breachAreaM2, 1), unit: 'm²', help: 'Local opening from an armed hit, capped at 4 m² per compartment across repeated strikes.' },
+        { label: 'Tube bearings', value: [...new Set(group.map(t => `${t.bearingDeg}°`))].join(' / '), help: 'Fixed bearings relative to the bow; 180° points astern.' },
+        { label: 'Launch arcs', value: [...new Set(group.map(t => `±${t.arcDeg}°`))].join(' / '), help: 'Allowed course offset either side of each fixed tube bearing.' },
+      ],
+    };
+  });
   const turningDiameterM = 2 * handling.forwardSpeed / handling.maxYawRate;
   const mobility: StatSection = {
     id: 'mobility', title: 'Mobility', headline: format(knots(handling.forwardSpeed), 1), headlineUnit: 'kn', headlineHelp: 'Top speed at full ahead with undamaged machinery.',
@@ -169,5 +192,5 @@ export function shipStatistics(def: ShipDefinition): StatSection[] {
     rows: [], collapsed: true,
     notes: [{ label: 'Exterior', text: def.accuracy.exterior }, { label: 'Internals', text: def.accuracy.internals }, { label: 'Weapons', text: def.accuracy.weapons }],
   };
-  return [survivability, armor, ...(mainBattery ? [mainBattery] : []), ...(secondaryBattery ? [secondaryBattery] : []), mobility, dimensions, modelBasis];
+  return [survivability, armor, ...(mainBattery ? [mainBattery] : []), ...(secondaryBattery ? [secondaryBattery] : []), ...torpedoBatteries, mobility, dimensions, modelBasis];
 }

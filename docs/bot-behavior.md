@@ -10,6 +10,7 @@ Friendly and enemy bots share the same controller and physical weapon/damage rul
 - Crews choose forward, middle or aft hull areas and change areas every 18–30 seconds. Each mount has its own longitudinal offset and aim height. Secondary guns aim somewhat higher. No internal module or magazine location is consulted.
 - Each mount retains a range/bearing error between shots and revises it after firing. Error scales with range and decreases as tracking settles, retaining residual error. At 5 km the maximum range error falls from roughly 76 m to 19 m; maximum cross-range error is 60% of that. These are aim-solution errors, not random per-shell dispersion.
 - A loaded main mount pauses an additional 0.8–3.5 seconds after its physical reload; secondary mounts add 0.2–1.4 seconds. Friendly firing-lane checks and caliber engagement caps remain in force.
+- Fitted torpedoes obey the same opening/reacquisition delay and lead the delayed observed track. They then use their own tube reload, launch interval, bearing arc, arming/range limits and predicted friendly-lane check. Torpedoes do not use the gun crews' per-mount aim errors or additional gun-reload pauses.
 
 ## Helm and targeting
 
@@ -18,6 +19,8 @@ Nearest-opponent selection retains its 25% hysteresis. Bots do not have fleet co
 Ships with guns of at least 300 mm choose a preferred distance of 4.2–5.8 km; others choose 3.2–4.6 km. Bots approach beyond that distance, bring a broadside to bear nearby, and open the range when too close. Each crew chooses a side and small course offset, holds course/speed decisions for 22–38 seconds, and occasionally changes broadside. Hull avoidance still overrides the desired course near other ships.
 
 A loss of more than 15 equipment condition points between observations prompts an 8–14 second turn away at 85% throttle. Below 35% equipment condition, the preferred engagement distance increases by 35%. These reactions are tactical heuristics, not incoming-shell prediction or coordinated retreat.
+
+Ships with functioning torpedo tubes and ammunition bring the nearest bow or stern tube bearing toward the observed intercept. Evasive turns and nearby-hull avoidance take precedence; without torpedo ammunition the controller returns to the gun engagement course.
 
 ## Reproduction and validation
 

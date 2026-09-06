@@ -79,8 +79,8 @@ test('HE gives useful local damage where a thin target does not arm AP', () => {
 
 test('HE profiles reject invalid mass and stock allocations; old parts stay AP-only', () => {
   const copy = structuredClone(catalog);
-  copy.parts[0].he.stockFraction = 1.1; expect(() => compileShip(blueprint, copy)).toThrow();
-  copy.parts[0].he.stockFraction = .4; copy.parts[0].he.explosiveKg = copy.parts[0].projectileMassKg;
+  copy.parts[0].he!.stockFraction = 1.1; expect(() => compileShip(blueprint, copy)).toThrow();
+  copy.parts[0].he!.stockFraction = .4; copy.parts[0].he!.explosiveKg = copy.parts[0].projectileMassKg;
   expect(() => compileShip(blueprint, copy)).toThrow();
   delete (copy.parts[0] as { he?: unknown }).he;
   const def = compileShip(blueprint, copy), state = createMountState(def.mounts[0]);
