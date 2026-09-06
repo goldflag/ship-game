@@ -1,3 +1,4 @@
+import type { Island, OceanMapId } from '../maps/catalog';
 import type { CameraMode } from './CameraRig';
 import type { ShipState } from '../simulation/ship';
 import type { CombatTelemetry } from '../simulation/combat';
@@ -9,6 +10,8 @@ export type Quality = 'medium' | 'high' | 'ultra';
 export interface GameSettings { quality: Quality; sea: SeaState; resolution: number; }
 export const DEFAULT_SETTINGS: GameSettings = { quality: 'high', sea: 'Atlantic', resolution: 1 };
 export interface Telemetry {
+  mapId?: OceanMapId;
+  islands?: Island[];
   ship: ShipState;
   order: number;
   camera: CameraMode;

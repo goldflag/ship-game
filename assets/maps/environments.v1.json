@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "maps": [
+    {
+      "id": "north-atlantic", "name": "North Atlantic", "region": "Atlantic Ocean", "description": "Steel-blue open water beneath broken cloud. Long, clear firing lanes.",
+      "water": { "waterColor": "#224659", "transmissionColor": "#226755", "absorptionColor": "#945b57", "amplitudeScale": 1, "windScale": 1, "wavelengthScale": 1, "windDirection": 35, "foam": 0.45 },
+      "sky": { "elevation": 48, "azimuth": 235, "intensity": 6.6, "coverage": 0.40, "altitude": 1700, "thickness": 2400, "turbidity": 2.2, "rayleigh": 0.38, "mie": 0.5, "mieG": 0.72, "multiple": 1, "ambient": 0.65 },
+      "fog": { "color": "#8b8f92", "start": 2500, "end": 16000, "skyBlend": 10000 },
+      "land": { "style": "rock", "shore": "#a39b86", "low": "#657151", "high": "#7d8281", "islands": [] }
+    },
+    {
+      "id": "pacific-islands", "name": "Pacific Islands", "region": "South Pacific Ocean", "description": "Turquoise water, green island ridges and white beaches under a high sun.",
+      "water": { "waterColor": "#146779", "transmissionColor": "#40bc9f", "absorptionColor": "#b67b45", "amplitudeScale": 0.65, "windScale": 0.7, "wavelengthScale": 0.8, "windDirection": 80, "foam": 0.25 },
+      "sky": { "elevation": 67, "azimuth": 135, "intensity": 6.5, "coverage": 0.24, "altitude": 2100, "thickness": 1500, "turbidity": 1.5, "rayleigh": 0.55, "mie": 0.18, "mieG": 0.65, "multiple": 1.15, "ambient": 0.85 },
+      "fog": { "color": "#8fc4cf", "start": 5000, "end": 24000, "skyBlend": 16000 },
+      "land": { "style": "tropical", "shore": "#e0d5ae", "low": "#3b7046", "high": "#526446", "islands": [
+        { "id": "western-ridge", "side": -1, "offset": 0, "along": -700, "rx": 1700, "rz": 3100, "height": 660, "seed": 11 },
+        { "id": "eastern-isle", "side": 1, "offset": 700, "along": 1800, "rx": 1300, "rz": 1750, "height": 390, "seed": 26 },
+        { "id": "northern-isle", "side": 1, "offset": 1800, "along": -4700, "rx": 1800, "rz": 2300, "height": 780, "seed": 38 }
+      ] }
+    },
+    {
+      "id": "arctic-passage", "name": "Arctic Passage", "region": "Arctic Ocean", "description": "Cold teal water and snow-covered headlands under low, silver daylight.",
+      "water": { "waterColor": "#2c515b", "transmissionColor": "#77abb0", "absorptionColor": "#916d59", "amplitudeScale": 0.6, "windScale": 0.65, "wavelengthScale": 0.8, "windDirection": 165, "foam": 0.3 },
+      "sky": { "elevation": 18, "azimuth": 205, "intensity": 4.8, "coverage": 0.56, "altitude": 1100, "thickness": 2800, "turbidity": 2.8, "rayleigh": 0.25, "mie": 0.38, "mieG": 0.55, "multiple": 1.5, "ambient": 1 },
+      "fog": { "color": "#afc4ca", "start": 3000, "end": 17500, "skyBlend": 12000 },
+      "land": { "style": "snow", "shore": "#82989e", "low": "#c2d8db", "high": "#edf1ec", "islands": [
+        { "id": "west-headland", "side": -1, "offset": 0, "along": -1700, "rx": 2100, "rz": 4200, "height": 1050, "seed": 41 },
+        { "id": "east-headland", "side": 1, "offset": 300, "along": -500, "rx": 1900, "rz": 3200, "height": 850, "seed": 52 },
+        { "id": "outer-skerry", "side": 1, "offset": -100, "along": 4000, "rx": 450, "rz": 700, "height": 95, "seed": 63 }
+      ] }
+    },
+    {
+      "id": "indian-volcanic-coast", "name": "Volcanic Coast", "region": "Indian Ocean", "description": "Deep indigo water below dark volcanic ridges, with warm late-afternoon haze.",
+      "water": { "waterColor": "#203f65", "transmissionColor": "#327d85", "absorptionColor": "#a97851", "amplitudeScale": 1.05, "windScale": 1.1, "wavelengthScale": 1.1, "windDirection": 260, "foam": 0.5 },
+      "sky": { "elevation": 26, "azimuth": 285, "intensity": 5.8, "coverage": 0.30, "altitude": 2400, "thickness": 1900, "turbidity": 4.8, "rayleigh": 0.36, "mie": 0.48, "mieG": 0.65, "multiple": 1.25, "ambient": 0.8 },
+      "fog": { "color": "#b3a895", "start": 3800, "end": 20000, "skyBlend": 14000 },
+      "land": { "style": "volcanic", "shore": "#4f5554", "low": "#495648", "high": "#615951", "islands": [
+        { "id": "main-volcano", "side": -1, "offset": 300, "along": -1500, "rx": 2500, "rz": 3600, "height": 1500, "seed": 74 },
+        { "id": "basalt-isle", "side": -1, "offset": -200, "along": 4300, "rx": 750, "rz": 1200, "height": 270, "seed": 85 },
+        { "id": "distant-ridge", "side": 1, "offset": 3000, "along": -5000, "rx": 2400, "rz": 2700, "height": 1100, "seed": 96 }
+      ] }
+    }
+  ]
+}
