@@ -2,6 +2,7 @@ import { afterEach, beforeEach, expect, test } from 'bun:test';
 import { PerspectiveCamera, Vector3 } from 'three/webgpu';
 import { createShipState } from '../simulation/ship';
 import { CameraRig } from './CameraRig';
+import viic from '../../assets/ships/type-viic/blueprint.json';
 
 const globals = ['window', 'document'] as const;
 let originals: (PropertyDescriptor | undefined)[];
@@ -221,3 +222,29 @@ for (const mode of ['Port', 'Inspection', 'Chase', 'Bridge', 'Tactical', 'Binocu
     } finally { rig.dispose(); }
   });
 }
+
+test('VIIC chase follows underwater, scope eye breaks the surface at 7 m, and deeper scope stays submerged', () => {
+  const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
+  const rig = new CameraRig(camera, { addEventListener() {} } as unknown as HTMLCanvasElement, [0, 5.6, -1.4]);
+  rig.setHullLength(viic.hull.length);
+  rig.setSubmarine(viic.submarine as import('../ships/blueprint').SubmarineDefinition);
+  const ship = createShipState(); ship.y = -7;
+  rig.update(ship, ship.y, 0, true);
+  expect(camera.position.y).toBeLessThan(0);
+  expect(Math.hypot(camera.position.x - ship.x, camera.position.z - ship.z)).toBeLessThan(50);
+  camera.aspect = 390 / 844; camera.updateProjectionMatrix(); rig.update(ship, ship.y, 0, true);
+  expect(Math.hypot(camera.position.x - ship.x, camera.position.z - ship.z)).toBeLessThan(60);
+  rig.mode = 'Bridge'; rig.update(ship, ship.y, 0, true);
+  expect(camera.position.y).toBeCloseTo(1.4);
+  rig.binoculars = true; rig.update(ship, ship.y, 0, true);
+  expect(camera.position.y).toBeCloseTo(1.4);
+  ship.y = -50; rig.update(ship, ship.y, 0, true);
+  expect(camera.position.y).toBeCloseTo(-41.6);
+  rig.binoculars = false; rig.mode = 'Tactical'; rig.update(ship, ship.y, 0, true);
+  expect(camera.position.y).toBeGreaterThanOrEqual(12);
+  rig.setInPort(true); ship.y = 0; rig.update(ship, 0, 0, true);
+  expect(camera.position.y).toBeGreaterThanOrEqual(12);
+  rig.setInPort(false); rig.setSubmarine(); ship.y = -50; rig.update(ship, ship.y, 0, true);
+  expect(camera.position.y).toBeGreaterThanOrEqual(12);
+  rig.dispose();
+});

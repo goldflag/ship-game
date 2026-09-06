@@ -11,6 +11,7 @@ import { InspectionHover, type InspectionHoverInfo } from './InspectionHover';
 import { ShipLabels } from './ShipLabels';
 import { HullDamageFeedback } from './HullDamageFeedback';
 import { FIXED_DT } from '../simulation/ship';
+import { orderDepth } from '../simulation/submarine';
 import { GunAimIndicators } from './GunAimIndicators';
 import { HitDirectionIndicators } from './HitDirectionIndicators';
 import { gunAimPoints } from './gunAim';
@@ -24,7 +25,7 @@ import { validateBattleSetup, type BattleSetup } from '../simulation/battle';
 import { InputController } from './InputController';
 import { CameraRig } from './CameraRig';
 import { ShellFollow } from './ShellFollow';
-import { sightAim } from './aiming';
+import { sightAim, torpedoCourseAim } from './aiming';
 import { createHarborBackdrop, type HarborBackdrop } from './HarborBackdrop';
 import { ShipWake } from './ShipWake';
 import type { GameCallbacks, GameSettings } from './types';
@@ -124,6 +125,8 @@ export class Game {
       cursor: released => { if (released) this.rig.releasePointer(); else if (!document.querySelector('dialog[open]')) this.rig.capturePointer(); },
       chartSize: direction => this.resizeChart(direction), gunnery: () => this.setGunneryOpen(!this.gunneryOpen),
       shellFollow: () => this.toggleShellFollow(),
+      depth: direction => this.setDepth((this.simulation.player.submarine?.targetDepthM ?? 0) + direction * 10),
+      emergencyBlow: () => this.setDepth(0, true),
     });
     this.input.setEnabled(false);
     this.observer = new ResizeObserver(() => { this.resizePending = true; });
@@ -370,6 +373,7 @@ export class Game {
       if (this.resizePending) this.resize();
       const state = this.simulation.ship;
       const focus = (this.inspecting ? this.targetView! : this.playerView!).motion;
+      this.rig.setSubmarine((this.inspecting ? this.simulation.target.definition : this.definition).submarine);
       // Apply mouse aim before sampling the sight; follow the new rendered pose
       // after stepping, with camera damping applied only once per frame.
       this.rig.update(focus, focus.y, 0);
@@ -469,6 +473,10 @@ export class Game {
     this.callbacks.pause(paused);
   }
   capturePointer(): void { this.rig.capturePointer(); }
+  setDepth(depthM: number, emergency = false): void {
+    if (this.inPort || this.paused || this.simulation.player.damage.sunk) return;
+    orderDepth(this.simulation.player, this.definition, depthM, emergency);
+  }
   resizeChart(direction: number): void { this.chartSize = THREE.MathUtils.clamp(this.chartSize + direction, 0, 4); }
   setGunneryOpen(open: boolean): void {
     this.gunneryOpen = open;
@@ -481,8 +489,10 @@ export class Game {
     this.rig.toggleBinoculars(this.manualAim ? this.readSightAim() : this.currentAim, this.simulation.ship);
   }
   private readSightAim(): Vec3 {
-    return sightAim(this.camera.position.toArray(), this.camera.getWorldDirection(new THREE.Vector3()).toArray(),
+    const aim = sightAim(this.camera.position.toArray(), this.camera.getWorldDirection(new THREE.Vector3()).toArray(),
       this.simulation.actors.filter(actor => actor !== this.simulation.player && actor.motion.y > -40).map(actor => ({ pose: actor.motion, armor: actor.definition.armor, definition: actor.definition, trains: actor.mounts.map(m => m.train) })));
+    const tube = this.definition.torpedoTubes?.[0];
+    return this.battery === 'torpedo' && tube && this.camera.position.y < 0 ? torpedoCourseAim(aim, this.simulation.ship, tube.weapon.rangeM) : aim;
   }
   setInPort(inPort: boolean): void {
     this.inspectionHover?.clear();
@@ -604,11 +614,19 @@ export class Game {
       portInspection: this.playerView?.inspection.mode, selectedVolume: this.playerView?.inspection.selectedId, hoveredVolume: this.playerView?.inspection.hoveredId,
       maxMuzzleErrorM: Math.max(0, ...this.fleetViews.flatMap(view => view.muzzleErrors())),
       combat: this.simulation.telemetry(this.battery, this.currentAim),
-      fleet: this.simulation.actors.map(actor => ({ id: actor.motion.id, definitionId: actor.definition.id, team: actor.team, controller: actor.controller, targetId: actor.targetId, motion: { ...actor.motion }, ammo: actor.mounts.reduce((n, m) => n + m.ammo, 0), integrity: actor.damage.integrity })),
+      fleet: this.simulation.actors.map(actor => ({ id: actor.motion.id, definitionId: actor.definition.id, team: actor.team, controller: actor.controller, targetId: actor.targetId, motion: { ...actor.motion }, submarine: actor.submarine ? { ...actor.submarine } : undefined, ammo: actor.mounts.reduce((n, m) => n + m.ammo, 0), integrity: actor.damage.integrity })),
       renderedShips: this.fleetViews.map(view => ({ id: view.actor.motion.id, visible: view.root.visible,
         impactMarks: view.impactMarks.count, impactDrawCalls: view.impactMarks.drawCalls })),
       torpedoes: this.simulation.torpedoes.map(t => ({ id: t.id, ownerId: t.ownerId, tubeId: t.tubeId, position: [...t.position], distance: t.distance, armed: t.distance >= t.weapon.armingDistanceM })),
       events: this.simulation.events.slice(-20) };
+  }
+  /** Bounded fixed-tick rehearsal for development review on slow render hosts. */
+  previewAdvance(seconds: number): void {
+    if (!import.meta.env.DEV || this.inPort || this.paused || !Number.isFinite(seconds) || seconds <= 0 || seconds > 120) return;
+    for (let i = 0; i < Math.floor(seconds / FIXED_DT); i++) {
+      this.simulation.step(this.input.sample(), { aim: this.currentAim, fire: false, battery: this.battery });
+    }
+    this.fleetViews.forEach(view => view.snap());
   }
   private projectAim(aim: Vec3): { x: number; y: number; visible: boolean } {
     const point = new THREE.Vector3(...aim).project(this.camera);

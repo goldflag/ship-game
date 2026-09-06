@@ -7,6 +7,7 @@ import { ENGINE_LABELS, KNOTS_PER_MPS } from '../simulation/ship';
 import { Icon } from './Icons';
 import { NavigationChart } from './NavigationChart';
 import { GunneryPanel } from './GunneryPanel';
+import { DepthControl } from './DepthControl';
 import { useShip } from './ShipContext';
 import './FleetHud.css';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
@@ -167,6 +168,7 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
     </section>
 
     <ActiveArmament data={data} game={game} visible={visible} bindings={bindings}/>
+    {data.combat?.submarine && <DepthControl combat={data.combat} game={game} bindings={bindings}/>}
     {(data.gunneryOpen || data.inspecting) && <GunneryPanel bindings={bindings} data={data} game={game} expanded={!!data.gunneryOpen} onExpand={value => game?.setGunneryOpen(value)}/>}
     {data.binoculars && data.aimModule !== 'point' && data.aimMarker?.visible && <div className="aim-marker" aria-hidden="true" style={{ left: `${data.aimMarker.x}%`, top: `${data.aimMarker.y}%` }}><span/><small>TRACKED AIM</small></div>}
     <aside className="fleet-map-area" aria-label="Navigation minimap"><NavigationChart bindings={bindings} data={data} onResize={direction => game?.resizeChart(direction)}/></aside>

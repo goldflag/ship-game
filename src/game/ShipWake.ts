@@ -54,14 +54,15 @@ export class ShipWake {
     this.materials.forEach(material => material.setWakeFieldSampler(sampler));
   }
 
-  update(state: Pick<ShipState, 'x' | 'z' | 'heading' | 'speed'>, dt: number, events: readonly CombatEvent[] = []): void {
+  update(state: Pick<ShipState, 'x' | 'z' | 'heading' | 'speed'> & { y?: number }, dt: number, events: readonly CombatEvent[] = []): void {
     for (const event of events) {
       if (event.sequence <= this.eventSequence) continue;
       this.eventSequence = event.sequence;
       if (event.kind === 'splash') this.foam.splash(event.position[0], event.position[2], event.shell?.caliberM ?? .38);
     }
     this.anchor.position.set(state.x, 1, state.z);
-    const speed = Math.abs(state.speed);
+    const surface = Math.max(0, Math.min(1, 1 + (state.y ?? 0) / 3));
+    const speed = Math.abs(state.speed) * surface;
     const speedRatio = Math.min(speed / BISMARCK.forwardSpeed, 1);
     const active = speed > 0.1;
     const displacement = speedRatio * speedRatio;
@@ -71,7 +72,7 @@ export class ShipWake {
     // Water Pro's decay is per solve. Express it in seconds so foam lifetime
     // and its coupled injection rate remain consistent across frame rates.
     if (dt > 0) this.wake.foamPersistence = Math.exp(-dt / 9);
-    this.foam.update(state, dt);
+    this.foam.update({ ...state, speed: state.speed * surface }, dt);
   }
 
   resetImpacts(): void { this.foam.resetImpacts(); this.eventSequence = 0; }

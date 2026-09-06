@@ -1,0 +1,397 @@
+{
+  "periscopeHold": {
+    "camera": {
+      "aim": [
+        7.840774040215953,
+        0.5,
+        -4899.993726757459
+      ],
+      "binoculars": false,
+      "fov": 52.00000000000001,
+      "magnification": 1,
+      "manualAim": true,
+      "matrixWorldInverse": [
+        0.9999987197464202,
+        6.276350794862721e-06,
+        -0.001600145658377897,
+        0,
+        0,
+        0.9999923076262686,
+        0.003922331996444103,
+        0,
+        0.0016001579673910113,
+        -0.003922326974864522,
+        0.999991027382537,
+        0,
+        1.3881175939603474e-17,
+        3.6736760460457893,
+        -44.27193117914047,
+        1
+      ],
+      "mode": "Chase",
+      "pointerLocked": false,
+      "position": [
+        -0.07086459574387834,
+        -3.4999985745483615,
+        44.285943302689965
+      ],
+      "projectionMatrix": [
+        1.633751346060547,
+        0,
+        0,
+        0,
+        0,
+        2.050303841579296,
+        0,
+        0,
+        0,
+        0,
+        -1.0000083334027783,
+        -1,
+        0,
+        0,
+        -0.5000041667013891,
+        0
+      ],
+      "shellFollow": "off"
+    },
+    "depth": {
+      "ballastFraction": 0.8500000078468126,
+      "ballastM3": 102.00000094161751,
+      "depthM": 6.9999985747783455,
+      "emergencyBlow": false,
+      "maxDepthM": 150,
+      "maxTorpedoDepthM": 12,
+      "periscopeDepthM": 7,
+      "propulsion": "Electric",
+      "targetDepthM": 7,
+      "verticalSpeed": -2.8748035910437946e-07
+    },
+    "maxMuzzleErrorM": 0.002167840886199059
+  },
+  "periscopeCamera": {
+    "depth": {
+      "ballastFraction": 0.8500000000375181,
+      "ballastM3": 102.00000000450217,
+      "depthM": 6.99999999318558,
+      "emergencyBlow": false,
+      "maxDepthM": 150,
+      "maxTorpedoDepthM": 12,
+      "periscopeDepthM": 7,
+      "propulsion": "Electric",
+      "targetDepthM": 7,
+      "verticalSpeed": -1.3745312411340811e-09
+    },
+    "camera": {
+      "aim": [
+        0,
+        0.5,
+        -36.44249995992957
+      ],
+      "binoculars": false,
+      "fov": 52.00000000000001,
+      "magnification": 1,
+      "manualAim": true,
+      "matrixWorldInverse": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0.9996875162757024,
+        0.024997395914712325,
+        0,
+        0,
+        -0.024997395914712325,
+        0.9996875162757024,
+        0,
+        0,
+        -1.4108113577382388,
+        0.4148630294232214,
+        1
+      ],
+      "mode": "Bridge",
+      "pointerLocked": false,
+      "position": [
+        0,
+        1.4000000067540226,
+        -0.4500000015490696
+      ],
+      "projectionMatrix": [
+        1.633751346060547,
+        0,
+        0,
+        0,
+        0,
+        2.050303841579296,
+        0,
+        0,
+        0,
+        0,
+        -1.0000083334027783,
+        -1,
+        0,
+        0,
+        -0.5000041667013891,
+        0
+      ],
+      "shellFollow": "off"
+    }
+  },
+  "deepDive": {
+    "deep": {
+      "camera": [
+        -0.08434703934438031,
+        -3.4999976681537532,
+        52.71162790027867
+      ],
+      "inPort": false,
+      "motion": {
+        "distance": 304.19131551112855,
+        "heading": 0,
+        "id": "player",
+        "pitch": -2.464390921178493e-07,
+        "roll": 0,
+        "rudder": 0,
+        "speed": 3.9097744,
+        "swaySpeed": 0,
+        "tick": 10830,
+        "verticalSpeed": -2.3267511587074283e-06,
+        "x": 0,
+        "y": -49.99998897782948,
+        "yawRate": 0,
+        "z": -304.19131551112855
+      },
+      "mounts": [
+        {
+          "ammo": 3,
+          "id": "bow-tube-1",
+          "name": "Bow tube 1",
+          "reload": 0,
+          "status": "too-deep"
+        },
+        {
+          "ammo": 3,
+          "id": "bow-tube-2",
+          "name": "Bow tube 2",
+          "reload": 0,
+          "status": "too-deep"
+        },
+        {
+          "ammo": 3,
+          "id": "bow-tube-3",
+          "name": "Bow tube 3",
+          "reload": 0,
+          "status": "too-deep"
+        },
+        {
+          "ammo": 3,
+          "id": "bow-tube-4",
+          "name": "Bow tube 4",
+          "reload": 0,
+          "status": "too-deep"
+        },
+        {
+          "ammo": 2,
+          "id": "stern-tube",
+          "name": "Stern tube 5",
+          "reload": 0,
+          "status": "too-deep"
+        }
+      ],
+      "paused": false,
+      "submarine": {
+        "ballastFraction": 0.8500000295414776,
+        "ballastM3": 102.0000035449773,
+        "depthM": 49.99998897782948,
+        "emergencyBlow": false,
+        "maxDepthM": 150,
+        "maxTorpedoDepthM": 12,
+        "periscopeDepthM": 7,
+        "propulsion": "Electric",
+        "targetDepthM": 50,
+        "verticalSpeed": -2.3267511587074283e-06
+      },
+      "tick": 10830
+    },
+    "order": {
+      "camera": [
+        -0.08434703934438031,
+        -3.4999976681537532,
+        52.71162790027867
+      ],
+      "inPort": false,
+      "motion": {
+        "distance": 0,
+        "heading": 0,
+        "id": "player",
+        "pitch": -6.274997177316796e-08,
+        "roll": 0,
+        "rudder": 0,
+        "speed": 0,
+        "swaySpeed": 0,
+        "tick": 5430,
+        "verticalSpeed": -4.692600720318479e-07,
+        "x": 0,
+        "y": -6.999997673581529,
+        "yawRate": 0,
+        "z": 0
+      },
+      "mounts": [
+        {
+          "ammo": 3,
+          "id": "bow-tube-1",
+          "name": "Bow tube 1",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 3,
+          "id": "bow-tube-2",
+          "name": "Bow tube 2",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 3,
+          "id": "bow-tube-3",
+          "name": "Bow tube 3",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 3,
+          "id": "bow-tube-4",
+          "name": "Bow tube 4",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 2,
+          "id": "stern-tube",
+          "name": "Stern tube 5",
+          "reload": 0,
+          "status": "out-of-arc"
+        }
+      ],
+      "paused": false,
+      "submarine": {
+        "ballastFraction": 0.8500000128085131,
+        "ballastM3": 102.00000153702157,
+        "depthM": 6.999997673581529,
+        "emergencyBlow": false,
+        "maxDepthM": 150,
+        "maxTorpedoDepthM": 12,
+        "periscopeDepthM": 7,
+        "propulsion": "Electric",
+        "targetDepthM": 50,
+        "verticalSpeed": -4.692600720318479e-07
+      },
+      "tick": 5430
+    }
+  },
+  "emergencySurfacing": {
+    "order": {
+      "inPort": false,
+      "integrity": 1,
+      "motion": {
+        "distance": 304.19131551112855,
+        "heading": 0,
+        "id": "player",
+        "pitch": -2.464390921178493e-07,
+        "roll": 0,
+        "rudder": 0,
+        "speed": 3.9097744,
+        "swaySpeed": 0,
+        "tick": 10830,
+        "verticalSpeed": -2.3267511587074283e-06,
+        "x": 0,
+        "y": -49.99998897782948,
+        "yawRate": 0,
+        "z": -304.19131551112855
+      },
+      "paused": false,
+      "submarine": {
+        "ballastFraction": 0.8500000295414776,
+        "ballastM3": 102.0000035449773,
+        "depthM": 49.99998897782948,
+        "emergencyBlow": true,
+        "maxDepthM": 150,
+        "maxTorpedoDepthM": 12,
+        "periscopeDepthM": 7,
+        "propulsion": "Electric",
+        "targetDepthM": 0,
+        "verticalSpeed": -2.3267511587074283e-06
+      },
+      "tick": 10830
+    },
+    "rising": {
+      "inPort": false,
+      "integrity": 1,
+      "motion": {
+        "distance": 323.74018751113,
+        "heading": 0,
+        "id": "player",
+        "pitch": 0.1053431213372668,
+        "roll": 0,
+        "rudder": 0,
+        "speed": 3.9097744,
+        "swaySpeed": 0,
+        "tick": 11130,
+        "verticalSpeed": 2.5,
+        "x": 0,
+        "y": -42.931889755152284,
+        "yawRate": 0,
+        "z": -323.74018751113
+      },
+      "paused": false,
+      "submarine": {
+        "ballastFraction": 0,
+        "ballastM3": 0,
+        "depthM": 42.931889755152284,
+        "emergencyBlow": true,
+        "maxDepthM": 150,
+        "maxTorpedoDepthM": 12,
+        "periscopeDepthM": 7,
+        "propulsion": "Electric",
+        "targetDepthM": 0,
+        "verticalSpeed": 2.5
+      },
+      "tick": 11130
+    },
+    "surfaced": {
+      "inPort": false,
+      "integrity": 0.8462222222222223,
+      "motion": {
+        "distance": 744.3834453510593,
+        "heading": 0,
+        "id": "player",
+        "pitch": 7.067094377238752e-11,
+        "roll": 0,
+        "rudder": 0,
+        "speed": 9.1056588,
+        "swaySpeed": 0,
+        "tick": 14730,
+        "verticalSpeed": 0,
+        "x": 0,
+        "y": 0,
+        "yawRate": 0,
+        "z": -744.3834453510593
+      },
+      "paused": false,
+      "submarine": {
+        "ballastFraction": 0,
+        "ballastM3": 0,
+        "depthM": 0,
+        "emergencyBlow": false,
+        "maxDepthM": 150,
+        "maxTorpedoDepthM": 12,
+        "periscopeDepthM": 7,
+        "propulsion": "Diesel",
+        "targetDepthM": 0,
+        "verticalSpeed": 0
+      },
+      "tick": 14730
+    }
+  }
+}

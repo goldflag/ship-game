@@ -27,6 +27,7 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
       </select></label>
       <div className="target-condition"><strong>{c.targetName}{c.targetSunk ? ' · Sinking' : ''}</strong><span>{(c.targetRange / 1000).toFixed(2)} km</span></div>
       <dl className="damage-readout">
+        {c.targetDepthM !== undefined && <div><dt>Depth</dt><dd>{c.targetDepthM.toFixed(1)} m</dd></div>}
         <div><dt>Structure</dt><dd>{Math.round(c.targetIntegrity * 100)}%</dd></div>
         <div><dt>Propulsion</dt><dd>{Math.round(c.targetPower * 100)}%</dd></div>
         <div><dt>Flooding</dt><dd>{c.targetWater.toFixed(1)} m³</dd></div>

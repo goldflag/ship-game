@@ -6,6 +6,9 @@ export const INPUT_ACTIONS = [
   { id: 'port', label: 'Steer port', group: 'Helm' },
   { id: 'starboard', label: 'Steer starboard', group: 'Helm' },
   { id: 'stop', label: 'Stop engine', group: 'Helm' },
+  { id: 'dive', label: 'Dive 10 m deeper', group: 'Helm' },
+  { id: 'rise', label: 'Rise 10 m', group: 'Helm' },
+  { id: 'emergencyBlow', label: 'Emergency blow ballast', group: 'Helm' },
   { id: 'fire', label: 'Fire selected battery', group: 'Gunnery' },
   { id: 'mainBattery', label: 'Select main battery', group: 'Gunnery' },
   { id: 'secondaryBattery', label: 'Select secondary battery', group: 'Gunnery' },
@@ -31,6 +34,7 @@ export function defaultKeybindings(): Keybindings {
     recenter: ['KeyR', null], hud: ['KeyH', null], fullscreen: ['KeyF', null],
     mainBattery: ['Digit1', null], secondaryBattery: ['Digit2', null], gunnery: ['KeyG', null],
     shellFollow: ['KeyT', null], torpedoes: ['Digit3', null],
+    dive: ['KeyZ', null], rise: ['KeyX', null], emergencyBlow: ['KeyB', null],
     chartLarger: ['Equal', 'NumpadAdd'], chartSmaller: ['Minus', 'NumpadSubtract'],
   };
 }
@@ -82,9 +86,10 @@ export function keybindingsOf(value: unknown): Keybindings {
     result[id] = [pair[0], pair[1]];
   }
   // Add new actions to older saves without discarding existing custom controls.
-  for (const id of [...missing.filter(id => !['shellFollow', 'torpedoes'].includes(id)), ...missing.filter(id => ['shellFollow', 'torpedoes'].includes(id))]) {
+  const additions = ['shellFollow', 'torpedoes', 'dive', 'rise', 'emergencyBlow'];
+  for (const id of [...missing.filter(id => !additions.includes(id)), ...missing.filter(id => additions.includes(id))]) {
     const preferred = defaults[id].filter((code): code is string => code !== null && !used.has(code));
-    if (!['shellFollow', 'torpedoes'].includes(id) && preferred.length !== defaults[id].filter(Boolean).length) return defaults;
+    if (!additions.includes(id) && preferred.length !== defaults[id].filter(Boolean).length) return defaults;
     const key = preferred[0] ?? Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ', letter => `Key${letter}`).find(code => !used.has(code));
     if (!key) return defaults;
     result[id] = [key, preferred[1] ?? null];

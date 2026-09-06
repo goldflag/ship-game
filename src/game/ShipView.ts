@@ -23,6 +23,7 @@ export class ShipView {
   private bindings: { yaw: THREE.Object3D; elevation: THREE.Object3D[]; recoil: THREE.Object3D[]; muzzles: THREE.Object3D[] }[];
   private surfaces: { material: THREE.MeshStandardMaterial; opacity: number; transparent: boolean; depthWrite: boolean }[] = [];
   private inspecting = false;
+  private appendages: { node: THREE.Object3D; base: THREE.Quaternion; kind: keyof NonNullable<ShipDefinition['submarine']>['appendages']; index: number }[] = [];
   constructor(model: THREE.Group, readonly definition: ShipDefinition, readonly actor: Combatant) {
     this.motionSource = actor.motion;
     this.damageSource = actor.damage;
@@ -55,6 +56,9 @@ export class ShipView {
     });
     const node = (id: string) => { const n = nodes.get(id); if (!n) throw new Error(`Ship export is missing ${id}. Rebuild with bun run ship:build ${definition.id}`); return n; };
     this.bindings = definition.mounts.map(m => ({ yaw: node(`${m.id}.yaw`), elevation: barrelIds(m.weapon).map(side => node(`${m.id}.${side}.elevation`)), recoil: barrelIds(m.weapon).map(side => node(`${m.id}.${side}.recoil`)), muzzles: barrelIds(m.weapon).map(side => node(`${m.id}.${side}.muzzle`)) }));
+    if (definition.submarine) for (const kind of ['bowPlanes', 'sternPlanes', 'rudders', 'propellers'] as const) {
+      this.appendages.push(...definition.submarine.appendages[kind].map((id, index) => ({ node: node(id), base: node(id).quaternion.clone(), kind, index })));
+    }
     this.root.add(model, this.internals);
     this.impactMarks = new ShipImpactMarks(this.root, model, new Map(definition.mounts.map((m, i) => [m.id, this.bindings[i].yaw])));
     this.update();
@@ -120,6 +124,12 @@ export class ShipView {
       b.yaw.rotation.set(0, -(radians(this.definition.mounts[i].bearingDeg) + mounts[i].train), 0);
       b.elevation.forEach(n => { n.rotation.set(mounts[i].elevation, 0, 0); });
       b.recoil.forEach(n => { n.position.z = mounts[i].recoil * this.definition.mounts[i].weapon.recoilM; });
+    });
+    this.appendages.forEach(({ node, base, kind, index }) => {
+      node.quaternion.copy(base);
+      if (kind === 'rudders') node.rotateY(-motion.rudder * radians(35));
+      else if (kind === 'propellers') node.rotateZ(motion.distance * (index % 2 ? -1 : 1) * Math.sign(motion.speed) * 1.8);
+      else node.rotateX((this.actor.submarine?.planes ?? 0) * radians(kind === 'bowPlanes' ? -20 : 20));
     });
     this.updateInspection();
   }

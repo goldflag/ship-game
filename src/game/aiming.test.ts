@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import { PerspectiveCamera, Vector3 } from 'three/webgpu';
 import { CameraRig } from './CameraRig';
-import { sightAim } from './aiming';
+import { sightAim, torpedoCourseAim } from './aiming';
 import { createShipState } from '../simulation/ship';
 import { localToWorld, normalize, sub } from '../simulation/geometry';
 import type { Vec3 } from '../ships/blueprint';
@@ -82,4 +82,15 @@ test('the sight intersects a sloped physical plate rather than its bounding box'
   const pose=createShipState('target');
   const point=sightAim([-20,5,0],[1,0,0],{pose,armor:[{id:'slope',name:'Slope',center:[5,5,0],size:[10,10,10],thicknessMm:100,plate:{material:'Wh',vertices:[[0,0,-5],[10,10,-5],[10,10,5],[0,0,5]]}}]});
   expect(point).toEqual([5,5,0]);
+});
+
+
+test('an empty underwater sight yields a usable torpedo course from either bow or stern', () => {
+  for (const sign of [-1, 1]) {
+    const raw = sightAim([0, -4, 120], [0, -.1, sign]);
+    const aim = torpedoCourseAim(raw, { x: 0, z: 0 }, 5000);
+    expect(Math.abs(aim[2])).toBeCloseTo(4900);
+    expect(Math.sign(aim[2])).toBe(sign);
+  }
+  expect(torpedoCourseAim([0, .5, -1000], { x: 0, z: 0 }, 5000)).toEqual([0, .5, -1000]);
 });

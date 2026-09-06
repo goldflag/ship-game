@@ -129,3 +129,30 @@ test('fleet meshes reuse materials within each ship while inspection stays indep
   a.inspect(false);
   expect((materials(a)[0] as InstanceType<typeof MeshStandardMaterial>).opacity).toBe(.9);
 });
+
+test('VIIC dive planes, rudders and screws use the retained pivot hierarchy underwater', async () => {
+  const source = await Bun.file(new URL('../../assets/ships/type-viic/blueprint.json', import.meta.url)).json();
+  const bytes = await Bun.file(new URL('../../public/models/type-viic.glb', import.meta.url)).arrayBuffer();
+  const chunkLength = new DataView(bytes).getUint32(12, true);
+  const gltf = JSON.parse(new TextDecoder().decode(new Uint8Array(bytes, 20, chunkLength)));
+  const nodes = gltf.nodes.map(({ mesh: _mesh, ...node }: { mesh?: number }) => node);
+  const model = await new GLTFLoader().parseAsync(JSON.stringify({ asset: gltf.asset, scene: gltf.scene, scenes: gltf.scenes, nodes }), '');
+  const sim = new CombatSimulation(compileShip(source, catalog));
+  const view = new ShipView(model.scene, sim.definition, sim.player);
+  Object.assign(sim.ship, { y: -50, pitch: -.08, heading: .8, rudder: .5, speed: 2, distance: 30 });
+  sim.player.submarine!.planes = .7;
+  view.update();
+  expect(view.root.position.y).toBe(-50);
+  expect(Math.max(...view.muzzleErrors())).toBeLessThan(.025);
+  const joints: Record<string, number> = {};
+  model.scene.traverse(o => {
+    if (o.userData.nodeId === 'bow-plane-port.pivot') joints.bow = o.rotation.x;
+    if (o.userData.nodeId === 'stern-plane-port.pivot') joints.stern = o.rotation.x;
+    if (o.userData.nodeId === 'rudder-port.pivot') joints.rudder = o.rotation.y;
+    if (o.userData.nodeId === 'propeller-port.pivot') joints.propeller = o.rotation.z;
+  });
+  expect(joints.bow).toBeCloseTo(-.7 * 20 * Math.PI / 180);
+  expect(joints.stern).toBeCloseTo(.7 * 20 * Math.PI / 180);
+  expect(joints.rudder).toBeCloseTo(-.5 * 35 * Math.PI / 180);
+  expect(Math.abs(joints.propeller)).toBeGreaterThan(.1);
+});

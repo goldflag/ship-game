@@ -10,7 +10,7 @@ export interface DamageState {
   integrity: number; maxIntegrity: number; modules: { id: string; hp: number; detonated: boolean }[];
   compartments: CompartmentState[]; sunk: boolean;
 }
-export interface Combatant { motion: ShipState; mounts: MountState[]; damage: DamageState; }
+export interface Combatant { motion: ShipState; mounts: MountState[]; damage: DamageState; submarine?: import('./submarine').SubmarineState; }
 export type ShellType = 'AP' | 'HE';
 export interface Shell {
   id: number; ownerId: string; position: Vec3; velocity: Vec3; age: number;
@@ -224,7 +224,7 @@ export function updateFlooding(actor: Combatant, def: ShipDefinition, dt: number
     const breachWorld = localToWorld([c.center[0], state.breachHeight, c.center[2]], actor.motion);
     const waterDepth = Math.max(0, -breachWorld[1]);
     const internalDepth = state.waterM3 / c.capacityM3 * c.size[1];
-    const head = Math.max(0, Math.min(waterDepth, c.size[1]) - internalDepth);
+    const head = Math.max(0, (def.submarine ? waterDepth : Math.min(waterDepth, c.size[1])) - internalDepth);
     const inflow = .6 * state.breachAreaM2 * Math.sqrt(2 * 9.81 * head);
     state.waterM3 = clamp(state.waterM3 + (inflow - c.pumpM3PerSecond) * dt, 0, c.capacityM3);
   });
@@ -239,8 +239,12 @@ export function updateFlooding(actor: Combatant, def: ShipDefinition, dt: number
   });
   const water = damage.compartments.reduce((n, c) => n + c.waterM3, 0);
   damage.sunk ||= damage.integrity <= 0 || water >= def.hull.reserveBuoyancyM3;
-  if (damage.sunk) { actor.motion.y = Math.max(-50, actor.motion.y - dt * .45); return; }
-  actor.motion.y = -water / def.hull.waterplaneAreaM2;
+  if (damage.sunk) {
+    const y = Math.min(actor.motion.y, Math.max(def.submarine ? -1000 : -50, actor.motion.y - dt * .45));
+    actor.motion.verticalSpeed = dt > 0 ? (y - actor.motion.y) / dt : 0;
+    actor.motion.y = y; return;
+  }
+  if (!actor.submarine) actor.motion.y = -water / def.hull.waterplaneAreaM2;
   const totalMass = def.hull.massKg + water * 1000;
   actor.motion.roll = clamp(-damage.compartments.reduce((n, c, i) => n + c.waterM3 * 1000 * def.compartments[i].center[0], 0) / totalMass * .5, -.45, .45);
   actor.motion.pitch = clamp(damage.compartments.reduce((n, c, i) => n + c.waterM3 * 1000 * def.compartments[i].center[2], 0) / totalMass * .02, -.2, .2);
