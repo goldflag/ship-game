@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-  "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f",
-  "specRevision": "independent-1941-01",
+  "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+  "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a",
+  "specRevision": "independent-1941-04",
   "dimensions": [
     {
       "id": "overall-length",
@@ -52,8 +52,8 @@
       "sourceId": "kb-dimensions",
       "basis": "documented",
       "evidenceUncertaintyM": 0.2,
-      "measured": 241.5500030517578,
-      "deviation": 0.0000030517578011313162,
+      "measured": 241.54999542236328,
+      "deviation": -0.000004577636730118684,
       "passed": true
     },
     {
@@ -84,7 +84,7 @@
     }
   ],
   "geometry": {
-    "triangles": 806,
+    "triangles": 16248,
     "degenerate": 0,
     "nonManifoldEdges": 0,
     "watertight": true
@@ -616,6 +616,20 @@
       "maxExcessM": 0
     },
     {
+      "id": "flood-strip-port-4-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-4-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
       "id": "flood-strip-port-4-2",
       "cells": 1,
       "passed": true,
@@ -1134,6 +1148,34 @@
       "maxExcessM": 0
     },
     {
+      "id": "flood-strip-port-12-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-12-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-12-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-12-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
       "id": "flood-end-bow-0",
       "cells": 1,
       "passed": true,
@@ -1219,168 +1261,168 @@
     },
     {
       "id": "reserve-cell-0-0-0",
-      "cells": 190,
+      "cells": 176,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "reserve-cell-0-0-1",
-      "cells": 171,
+      "cells": 172,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "reserve-cell-0-0-2",
-      "cells": 108,
+      "cells": 75,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "reserve-cell-0-1-0",
-      "cells": 190,
+      "cells": 176,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "reserve-cell-0-1-1",
-      "cells": 171,
+      "cells": 172,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "reserve-cell-0-1-2",
-      "cells": 108,
+      "cells": 75,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "reserve-cell-1-0-0",
-      "cells": 163,
+      "cells": 165,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "reserve-cell-1-0-1",
-      "cells": 241,
+      "cells": 232,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "reserve-cell-1-0-2",
-      "cells": 58,
+      "cells": 26,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "reserve-cell-1-1-0",
-      "cells": 163,
+      "cells": 165,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "reserve-cell-1-1-1",
-      "cells": 241,
+      "cells": 232,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "reserve-cell-1-1-2",
-      "cells": 58,
+      "cells": 26,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "reserve-cell-2-0-0",
-      "cells": 134,
+      "cells": 132,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "reserve-cell-2-0-1",
-      "cells": 188,
+      "cells": 174,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "reserve-cell-2-0-2",
-      "cells": 38,
+      "cells": 9,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "reserve-cell-2-1-0",
-      "cells": 134,
+      "cells": 132,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "reserve-cell-2-1-1",
-      "cells": 188,
+      "cells": 174,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "reserve-cell-2-1-2",
-      "cells": 38,
+      "cells": 9,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "reserve-cell-3-0-0",
-      "cells": 186,
+      "cells": 176,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "reserve-cell-3-0-1",
-      "cells": 252,
+      "cells": 290,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "reserve-cell-3-0-2",
-      "cells": 95,
+      "cells": 57,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "reserve-cell-3-1-0",
-      "cells": 186,
+      "cells": 176,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "reserve-cell-3-1-1",
-      "cells": 252,
+      "cells": 290,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "reserve-cell-3-1-2",
-      "cells": 95,
+      "cells": 57,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
@@ -1716,16 +1758,39 @@
       "id": "funnel-cap",
       "runtime": [
         0,
-        23.5,
-        2
+        25,
+        2.4
       ],
       "sourceId": "kb-plan-24may",
       "basis": "plan-measured",
       "toleranceM": 1.5,
       "measured": [
         0,
-        23.5,
-        2
+        25,
+        2.4000000953674316
+      ],
+      "deviationM": [
+        0,
+        0,
+        9.536743172944284e-8
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "mainmast-top",
+      "runtime": [
+        0,
+        48.5,
+        22.5
+      ],
+      "sourceId": "kb-plan-24may",
+      "basis": "estimated",
+      "toleranceM": 2,
+      "measured": [
+        0,
+        48.5,
+        22.5
       ],
       "deviationM": [
         0,
@@ -1736,24 +1801,70 @@
       "status": "measured exported landmark or yaw centre and axis height"
     },
     {
-      "id": "mainmast-top",
+      "id": "fore-director",
       "runtime": [
         0,
-        48.5,
-        23.9
+        32,
+        -13.4
       ],
       "sourceId": "kb-plan-24may",
-      "basis": "estimated",
-      "toleranceM": 2,
+      "basis": "plan-measured",
+      "toleranceM": 0.8,
       "measured": [
         0,
-        48.5,
-        23.899999618530273
+        32,
+        -13.399999618530273
       ],
       "deviationM": [
         0,
         0,
+        3.8146972691777137e-7
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "conning-director",
+      "runtime": [
+        0,
+        20.6,
+        -27.6
+      ],
+      "sourceId": "kb-plan-24may",
+      "basis": "plan-measured",
+      "toleranceM": 0.8,
+      "measured": [
+        0.0000020837421743635787,
+        20.600000381469727,
+        -27.600000381469727
+      ],
+      "deviationM": [
+        0.0000020837421743635787,
+        3.8146972514141453e-7,
         -3.8146972514141453e-7
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "aft-director",
+      "runtime": [
+        0,
+        17.5,
+        37.8
+      ],
+      "sourceId": "kb-plan-24may",
+      "basis": "plan-measured",
+      "toleranceM": 0.8,
+      "measured": [
+        -0.00000285382066067541,
+        17.5,
+        37.79999923706055
+      ],
+      "deviationM": [
+        -0.00000285382066067541,
+        0,
+        -7.629394502828291e-7
       ],
       "passed": true,
       "status": "measured exported landmark or yaw centre and axis height"

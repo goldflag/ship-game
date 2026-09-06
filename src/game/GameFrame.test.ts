@@ -6,8 +6,11 @@ import { ENGINE_ORDERS, FIXED_DT } from '../simulation/ship';
 import { wrapAngle } from '../simulation/geometry';
 import { shipPreset } from '../ships/presets';
 import { CameraRig } from './CameraRig';
+import { ShellFollow } from './ShellFollow';
 import { Game } from './Game';
 import { ShipView } from './ShipView';
+import { HullDamageFeedback } from './HullDamageFeedback';
+import type { GunAimPoint } from './gunAim';
 
 const globals = ['window', 'document'] as const;
 let originals: (PropertyDescriptor | undefined)[];
@@ -33,13 +36,17 @@ async function frameHarness() {
   const targetView = new ShipView(model.scene.clone(true), simulation.definition, simulation.target);
   const wakePositions: number[] = [];
   const focusPositions: number[] = [];
+  const gunAimFrames: { points: GunAimPoint[]; visible: boolean }[] = [];
   const updateCamera = rig.update.bind(rig);
   rig.update = (ship, ...args) => { focusPositions.push(ship.z); updateCamera(ship, ...args); };
   const helm = { throttle: 1, rudder: 0 };
   const game = Object.assign(Object.create(Game.prototype), {
-    definition: simulation.definition, simulation, playerView, targetView, fleetViews: [playerView, targetView], camera, rig, ship: new Group(),
+    definition: simulation.definition, simulation, playerView, targetView, fleetViews: [playerView, targetView], camera, rig, ship: new Group(), shellFollow: new ShellFollow(),
     renderer: { domElement: { setAttribute() {} } }, manualAim: false,
     shipLabels: { update() {} },
+    playerDamageFeedback: new HullDamageFeedback(simulation.player.damage.integrity),
+    gunAim: { update(points: GunAimPoint[], _camera: PerspectiveCamera, visible: boolean) { gunAimFrames.push({ points, visible }); } },
+    hitDirections: { update() {} },
     lastTime: 0, hudTime: Infinity, lastTrailTick: 0, trail: [], fps: 60, battery: 'main',
     ammunition: { main: 'ap', secondary: 'ap' },
     paused: false, inPort: false, inspecting: false,
@@ -50,9 +57,9 @@ async function frameHarness() {
     shipWake: { update: (ship: { z: number }) => wakePositions.push(ship.z), reset() {} },
     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {},
     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
-  }) as { frame(time: number): Promise<void>; setInPort(inPort: boolean): void; toggleBinoculars(): void;
+  }) as { frame(time: number): Promise<void>; setInPort(inPort: boolean): void; toggleBinoculars(): void; toggleShellFollow(): void; shellFollow: ShellFollow;
     manualAim: boolean; currentAim: number[]; paused: boolean; inspecting: boolean };
-  return { game, simulation, playerView, targetView, camera, rig, helm, wakePositions, focusPositions };
+  return { game, simulation, playerView, targetView, camera, rig, helm, wakePositions, focusPositions, gunAimFrames };
 }
 
 test('turning through north takes the short heading path without changing authoritative combat state', async () => {
@@ -77,6 +84,45 @@ test('turning through north takes the short heading path without changing author
     expect(Math.max(...playerView.muzzleErrors())).toBeLessThan(.025);
   }
   expect(simulation.ship.heading).toBeLessThan(.1);
+});
+
+test('firing enters shell view without feeding its camera into aim, freezes on pause and restores optics', async () => {
+  const { game, simulation, camera, rig, playerView, gunAimFrames } = await frameHarness();
+  game.manualAim = true;
+  rig.aimAt([2500, 0, -2500], playerView.motion);
+  game.toggleBinoculars();
+  const fov = camera.fov;
+  let time = 0;
+  for (let i = 0; i < 600; i++) await game.frame(time += 1000 / 60);
+  expect(gunAimFrames.at(-1)!.visible).toBe(true);
+  expect(gunAimFrames.at(-1)!.points).toHaveLength(4);
+  game.toggleShellFollow();
+  simulation.requestFire();
+  await game.frame(time += 1000 / 60);
+  expect(game.shellFollow.phase).toBe('flight');
+  expect(gunAimFrames.at(-1)).toEqual({ points: [], visible: false });
+  expect(rig.binoculars).toBe(false);
+  expect(playerView.root.visible).toBe(true);
+  const aim = [...game.currentAim];
+  for (let i = 0; i < 8; i++) {
+    await game.frame(time += 1000 / 60);
+    expect(game.currentAim).toEqual(aim);
+  }
+  game.paused = true;
+  const position = camera.position.clone(), tick = simulation.tick;
+  await game.frame(time += 100);
+  expect(camera.position).toEqual(position);
+  expect(simulation.tick).toBe(tick);
+  game.paused = false;
+  game.toggleShellFollow();
+  expect(game.shellFollow.phase).toBe('off');
+  expect(rig.binoculars).toBe(true);
+  expect(camera.fov).toBe(fov);
+  expect(camera.position.distanceTo(playerView.root.position)).toBeLessThan(100);
+  game.toggleShellFollow();
+  game.setInPort(true);
+  expect(game.shellFollow.phase).toBe('off');
+  expect(rig.binoculars).toBe(false);
 });
 
 test('target inspection follows the interpolated underway target and resets without a streak', async () => {
@@ -133,10 +179,11 @@ test('manual aiming and binoculars keep the camera attached to the displayed shi
 });
 
 test('repositioning for port and launch clears the old ship poses', async () => {
-  const { game, simulation, playerView } = await frameHarness();
+  const { game, simulation, playerView, gunAimFrames } = await frameHarness();
   await game.frame(50);
   game.setInPort(true);
   await game.frame(55);
+  expect(gunAimFrames.at(-1)).toEqual({ points: [], visible: false });
   expect(playerView.motion).toEqual(simulation.ship);
   expect(playerView.motion.x).toBe(240);
   expect(simulation.tick).toBe(0);
@@ -161,3 +208,17 @@ for (const frameTimes of [[1 / 30], [1 / 59], [1 / 60], [1 / 120], [1 / 144], [1
     }
   });
 }
+
+test('all fleet impact marks share one cosmetic work budget, renewed for each frame', async () => {
+  const { game, playerView, targetView } = await frameHarness();
+  const budgets: { remainingMs: number }[] = [], available: number[] = [];
+  for (const view of [playerView, targetView]) view.impactMarks.update = (_events, _id, budget) => {
+    if (!budget) throw new Error('Missing fleet impact budget');
+    budgets.push(budget); available.push(budget.remainingMs); budget.remainingMs = 0;
+  };
+  await game.frame(1000 / 60);
+  await game.frame(2000 / 60);
+  expect(available).toEqual([2, 0, 2, 0]);
+  expect(budgets[0]).toBe(budgets[1]); expect(budgets[2]).toBe(budgets[3]);
+  expect(budgets[0]).not.toBe(budgets[2]);
+});

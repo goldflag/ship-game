@@ -1,0 +1,31 @@
+{
+  "integratedMaster": "d58af64bba748629ec05059fcbafac92fee8d8f9",
+  "contentHash": "45b7cc0110d0262b177a0e3aeb4df43d0682de8b52f1cc4f18cd5ab0fcddc9a5",
+  "tests": {
+    "passed": 146,
+    "failed": 0,
+    "assertions": 9303,
+    "files": 24
+  },
+  "productionBuild": "passed all four ship checks, tsc and Vite",
+  "comparisonBuild": "passed; portable archive 104041996 bytes",
+  "armorReview": "Opaque structural skin remains visible at unarmored ends and superstructure; replacement patches expose belt armor and preserve hover selection. Actual canvas visually inspected.",
+  "articulation": "Both traverse limits, min/max elevation and recoil visually inspected on the loaded model.",
+  "maximumObservedMuzzleErrorM": 0.0021678562339654222,
+  "mixedFleetLaunch": {
+    "tick": 1957,
+    "fleet": [
+      {
+        "ship": "bismarck",
+        "controller": "player"
+      },
+      {
+        "ship": "baltimore",
+        "controller": "bot"
+      }
+    ],
+    "returnedToPort": true,
+    "returnedTick": 0
+  },
+  "captureMethod": "Orca evaluation of actual WebGPU canvas; HTML HUD excluded. No retouching or model substitution."
+}

@@ -12,6 +12,7 @@ export interface InputActions {
   cursor(released: boolean): void;
   chartSize(direction: number): void;
   gunnery(): void;
+  shellFollow(): void;
 }
 
 export class InputController {
@@ -78,6 +79,7 @@ export class InputController {
       if (action === 'chartLarger') this.actions.chartSize(1);
       if (action === 'chartSmaller') this.actions.chartSize(-1);
       if (action === 'gunnery') this.actions.gunnery();
+      if (action === 'shellFollow') this.actions.shellFollow();
     }
   };
 

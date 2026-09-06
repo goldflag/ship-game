@@ -1,0 +1,4000 @@
+{
+  "schemaVersion": 1,
+  "auditedAt": "2026-09-06T00:27:02.835441+00:00",
+  "method": "Independent binary glTF accessor inspection per mesh node. Degenerate threshold triangle area < 1e-12 m\u00b2; tiny nonzero < 1e-8 m\u00b2. Normals invalid if nonfinite or length differs from 1 by >0.01. Texture GPU estimate assumes uncompressed RGBA8 plus complete mip chain; actual driver allocation may differ. Geometry quantities in node-local metric coordinates, exported node transforms are near unit.",
+  "models": [
+    {
+      "path": "assets/aircraft/a6m2-zero/generated/model-lod1.glb",
+      "aircraftId": "a6m2-zero",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "f24e13a3f9830d1eef48a49323b145933da934a333953893e4511d6a8e360d6c",
+      "fileBytes": 1090452,
+      "triangles": 14322,
+      "degenerateTriangles": 748,
+      "tinyNonzeroTriangles": 14,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 574242,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "48c8400a7c3d12582af6b8f54db5c5b37c66b625a11f9e5f4b00b1f4f420640b"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.069",
+          "mesh": 0,
+          "triangles": 11821,
+          "degenerateTriangles": 568,
+          "tinyNonzeroTriangles": 14,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.069",
+          "mesh": 2,
+          "triangles": 124,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.069",
+          "mesh": 3,
+          "triangles": 124,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.069",
+          "mesh": 4,
+          "triangles": 388,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.069",
+          "mesh": 5,
+          "triangles": 388,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/a6m2-zero/generated/model-lod2.glb",
+      "aircraftId": "a6m2-zero",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "697f1a25efca28d4486ba804f621a1e9d6dae91da4dc6d9404a4c6638caa1cf6",
+      "fileBytes": 896148,
+      "triangles": 6372,
+      "degenerateTriangles": 748,
+      "tinyNonzeroTriangles": 14,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 574242,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "48c8400a7c3d12582af6b8f54db5c5b37c66b625a11f9e5f4b00b1f4f420640b"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.069",
+          "mesh": 0,
+          "triangles": 5254,
+          "degenerateTriangles": 568,
+          "tinyNonzeroTriangles": 14,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.069",
+          "mesh": 2,
+          "triangles": 60,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.069",
+          "mesh": 3,
+          "triangles": 60,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.069",
+          "mesh": 4,
+          "triangles": 172,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.069",
+          "mesh": 5,
+          "triangles": 172,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/a6m2-zero/generated/model.glb",
+      "aircraftId": "a6m2-zero",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "807ad3743d27dbe2e85564622b6dcf922eadeb724b99b8f3559ff79c09f83c7f",
+      "fileBytes": 1482096,
+      "triangles": 31852,
+      "degenerateTriangles": 753,
+      "tinyNonzeroTriangles": 11,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 574242,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "48c8400a7c3d12582af6b8f54db5c5b37c66b625a11f9e5f4b00b1f4f420640b"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.069",
+          "mesh": 0,
+          "triangles": 26272,
+          "degenerateTriangles": 573,
+          "tinyNonzeroTriangles": 11,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.069",
+          "mesh": 2,
+          "triangles": 276,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.069",
+          "mesh": 3,
+          "triangles": 276,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.069",
+          "mesh": 4,
+          "triangles": 864,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.069",
+          "mesh": 5,
+          "triangles": 864,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/a6m5-zero/generated/model-lod1.glb",
+      "aircraftId": "a6m5-zero",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "a988230220dde9760009dda383d076cd766ea3bf73a5323b33a7d64946264308",
+      "fileBytes": 1443796,
+      "triangles": 14536,
+      "degenerateTriangles": 733,
+      "tinyNonzeroTriangles": 15,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 925180,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "d29ada098f7f229d6d36e28e023e052c620dfa727ffbb9aaa3bee7ab3de6be4b"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.072",
+          "mesh": 0,
+          "triangles": 12034,
+          "degenerateTriangles": 553,
+          "tinyNonzeroTriangles": 15,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.072",
+          "mesh": 2,
+          "triangles": 124,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.072",
+          "mesh": 3,
+          "triangles": 124,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.072",
+          "mesh": 4,
+          "triangles": 388,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.072",
+          "mesh": 5,
+          "triangles": 388,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/a6m5-zero/generated/model-lod2.glb",
+      "aircraftId": "a6m5-zero",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "58511eedfb4f98e62a16c5277a1bac99adf6c6fec8df247692bb85338f50da19",
+      "fileBytes": 1250300,
+      "triangles": 6466,
+      "degenerateTriangles": 733,
+      "tinyNonzeroTriangles": 15,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 925180,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "d29ada098f7f229d6d36e28e023e052c620dfa727ffbb9aaa3bee7ab3de6be4b"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.072",
+          "mesh": 0,
+          "triangles": 5348,
+          "degenerateTriangles": 553,
+          "tinyNonzeroTriangles": 15,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.072",
+          "mesh": 2,
+          "triangles": 60,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.072",
+          "mesh": 3,
+          "triangles": 60,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.072",
+          "mesh": 4,
+          "triangles": 172,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.072",
+          "mesh": 5,
+          "triangles": 172,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/a6m5-zero/generated/model.glb",
+      "aircraftId": "a6m5-zero",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "f72a5f746d77678d043dbcf9c581451faa767692d8f21f3e3adf82571cc3648a",
+      "fileBytes": 1845540,
+      "triangles": 32324,
+      "degenerateTriangles": 736,
+      "tinyNonzeroTriangles": 13,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 925180,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "d29ada098f7f229d6d36e28e023e052c620dfa727ffbb9aaa3bee7ab3de6be4b"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.072",
+          "mesh": 0,
+          "triangles": 26744,
+          "degenerateTriangles": 556,
+          "tinyNonzeroTriangles": 13,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.072",
+          "mesh": 2,
+          "triangles": 276,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.072",
+          "mesh": 3,
+          "triangles": 276,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.072",
+          "mesh": 4,
+          "triangles": 864,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.072",
+          "mesh": 5,
+          "triangles": 864,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/b5n2-kate/generated/model-lod1.glb",
+      "aircraftId": "b5n2-kate",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "1a5828338c5515174f9efecbcdb6f143dfd835df4edc4a03b78dc5499781f158",
+      "fileBytes": 1457372,
+      "triangles": 14522,
+      "degenerateTriangles": 749,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 934072,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "f2c113523e651cf7968e2658a559ba39e0f1c752cb4f597c897a6fe64ecb5687"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.071",
+          "mesh": 0,
+          "triangles": 12039,
+          "degenerateTriangles": 569,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.071",
+          "mesh": 2,
+          "triangles": 124,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.071",
+          "mesh": 3,
+          "triangles": 124,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.071",
+          "mesh": 4,
+          "triangles": 388,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.071",
+          "mesh": 5,
+          "triangles": 388,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/b5n2-kate/generated/model-lod2.glb",
+      "aircraftId": "b5n2-kate",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "111a0b912af0f1d1c558880fc8b4b668524007b42c1bac37d7f54cfaf47de955",
+      "fileBytes": 1264332,
+      "triangles": 6462,
+      "degenerateTriangles": 749,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 934072,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "f2c113523e651cf7968e2658a559ba39e0f1c752cb4f597c897a6fe64ecb5687"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.071",
+          "mesh": 0,
+          "triangles": 5350,
+          "degenerateTriangles": 569,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.071",
+          "mesh": 2,
+          "triangles": 60,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.071",
+          "mesh": 3,
+          "triangles": 60,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.071",
+          "mesh": 4,
+          "triangles": 172,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.071",
+          "mesh": 5,
+          "triangles": 172,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/b5n2-kate/generated/model.glb",
+      "aircraftId": "b5n2-kate",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "cfa69bcfd79c1de7aba7be66601bb842f36dacf10782584b771f9d721f96b75c",
+      "fileBytes": 1857680,
+      "triangles": 32296,
+      "degenerateTriangles": 749,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 934072,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "f2c113523e651cf7968e2658a559ba39e0f1c752cb4f597c897a6fe64ecb5687"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.071",
+          "mesh": 0,
+          "triangles": 26756,
+          "degenerateTriangles": 569,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.071",
+          "mesh": 2,
+          "triangles": 276,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.071",
+          "mesh": 3,
+          "triangles": 276,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.071",
+          "mesh": 4,
+          "triangles": 864,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.071",
+          "mesh": 5,
+          "triangles": 864,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/b6n2-jill/generated/model-lod1.glb",
+      "aircraftId": "b6n2-jill",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "b03ae8f2cbea6e5ee64a1bed1ff244177ce65bcf0382f53dbc5223dad01fa166",
+      "fileBytes": 1454812,
+      "triangles": 14411,
+      "degenerateTriangles": 749,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 931299,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "5aff7d8e1f81dd6cbd0e2f16e731fe8960545a0fa281823d283195aba5e0c983"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.074",
+          "mesh": 0,
+          "triangles": 11916,
+          "degenerateTriangles": 569,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.074",
+          "mesh": 2,
+          "triangles": 124,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.074",
+          "mesh": 3,
+          "triangles": 124,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.074",
+          "mesh": 4,
+          "triangles": 388,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.074",
+          "mesh": 5,
+          "triangles": 388,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/b6n2-jill/generated/model-lod2.glb",
+      "aircraftId": "b6n2-jill",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "27328f4fc3ec4bb6d03b481ddceeb5c249586f8568e5665ccbaee896d4f3ed37",
+      "fileBytes": 1262324,
+      "triangles": 6413,
+      "degenerateTriangles": 749,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 931299,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "5aff7d8e1f81dd6cbd0e2f16e731fe8960545a0fa281823d283195aba5e0c983"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.074",
+          "mesh": 0,
+          "triangles": 5295,
+          "degenerateTriangles": 569,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.074",
+          "mesh": 2,
+          "triangles": 60,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.074",
+          "mesh": 3,
+          "triangles": 60,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.074",
+          "mesh": 4,
+          "triangles": 172,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.074",
+          "mesh": 5,
+          "triangles": 172,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/b6n2-jill/generated/model.glb",
+      "aircraftId": "b6n2-jill",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "347fab4b2db00a1962928dd68c0cc288b4e7c3199ae32adeaf792e3ebd22b18d",
+      "fileBytes": 1851420,
+      "triangles": 32048,
+      "degenerateTriangles": 749,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 931299,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "5aff7d8e1f81dd6cbd0e2f16e731fe8960545a0fa281823d283195aba5e0c983"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.074",
+          "mesh": 0,
+          "triangles": 26480,
+          "degenerateTriangles": 569,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.074",
+          "mesh": 2,
+          "triangles": 276,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.074",
+          "mesh": 3,
+          "triangles": 276,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.074",
+          "mesh": 4,
+          "triangles": 864,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.074",
+          "mesh": 5,
+          "triangles": 864,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/d3a1-val/generated/model-lod1.glb",
+      "aircraftId": "d3a1-val",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "d26c7f85c17fdcb640f6e54b36f8564fbbf461a65063be9b0b540252272f4f96",
+      "fileBytes": 1104588,
+      "triangles": 14774,
+      "degenerateTriangles": 653,
+      "tinyNonzeroTriangles": 15,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 577354,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "999edf5c892a5090d9c24a73a178f86eaaae0aed1b4efeffa64ea5e2f4a8d6e3"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.070",
+          "mesh": 0,
+          "triangles": 11357,
+          "degenerateTriangles": 473,
+          "tinyNonzeroTriangles": 15,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.070",
+          "mesh": 2,
+          "triangles": 124,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.070",
+          "mesh": 3,
+          "triangles": 124,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.070",
+          "mesh": 4,
+          "triangles": 388,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.070",
+          "mesh": 5,
+          "triangles": 388,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/d3a1-val/generated/model-lod2.glb",
+      "aircraftId": "d3a1-val",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "0c7d6e6738a6b41ffa4220358ff77c821e18c68f0dce5bb1b3bb1f2c10c39119",
+      "fileBytes": 906072,
+      "triangles": 6574,
+      "degenerateTriangles": 653,
+      "tinyNonzeroTriangles": 15,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 577354,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "999edf5c892a5090d9c24a73a178f86eaaae0aed1b4efeffa64ea5e2f4a8d6e3"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.070",
+          "mesh": 0,
+          "triangles": 5047,
+          "degenerateTriangles": 473,
+          "tinyNonzeroTriangles": 15,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.070",
+          "mesh": 2,
+          "triangles": 60,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.070",
+          "mesh": 3,
+          "triangles": 60,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.070",
+          "mesh": 4,
+          "triangles": 172,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.070",
+          "mesh": 5,
+          "triangles": 172,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/d3a1-val/generated/model.glb",
+      "aircraftId": "d3a1-val",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "1ae99ccc54cfffd33a0199555f82d5191d8faef54c3815e265234328e8bbbc17",
+      "fileBytes": 1502604,
+      "triangles": 32852,
+      "degenerateTriangles": 661,
+      "tinyNonzeroTriangles": 8,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 577354,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "999edf5c892a5090d9c24a73a178f86eaaae0aed1b4efeffa64ea5e2f4a8d6e3"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.070",
+          "mesh": 0,
+          "triangles": 25240,
+          "degenerateTriangles": 481,
+          "tinyNonzeroTriangles": 8,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.070",
+          "mesh": 2,
+          "triangles": 276,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.070",
+          "mesh": 3,
+          "triangles": 276,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.070",
+          "mesh": 4,
+          "triangles": 864,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.070",
+          "mesh": 5,
+          "triangles": 864,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/d4y2-judy/generated/model-lod1.glb",
+      "aircraftId": "d4y2-judy",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "ebd095e73206b1a45fa7ee4f764ca0b01b1cd8c500fdb21e3f263d3ae237d81e",
+      "fileBytes": 1413544,
+      "triangles": 13056,
+      "degenerateTriangles": 701,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 27,
+      "materials": 9,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 9,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 925836,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "d1a98ce021b1f64b15a6a6f3f9fd20c9f7e9a3cbbfe4b4d1da75891146a53041"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.073",
+          "mesh": 0,
+          "triangles": 10549,
+          "degenerateTriangles": 521,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.073",
+          "mesh": 2,
+          "triangles": 124,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.073",
+          "mesh": 3,
+          "triangles": 124,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.073",
+          "mesh": 4,
+          "triangles": 388,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.073",
+          "mesh": 5,
+          "triangles": 388,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/d4y2-judy/generated/model-lod2.glb",
+      "aircraftId": "d4y2-judy",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "1eb8337109a82d76f96f26a5f63fbb652db172131e710ff51189e148523038e3",
+      "fileBytes": 1237152,
+      "triangles": 5817,
+      "degenerateTriangles": 701,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 27,
+      "materials": 9,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 9,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 925836,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "d1a98ce021b1f64b15a6a6f3f9fd20c9f7e9a3cbbfe4b4d1da75891146a53041"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.073",
+          "mesh": 0,
+          "triangles": 4689,
+          "degenerateTriangles": 521,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.073",
+          "mesh": 2,
+          "triangles": 62,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.073",
+          "mesh": 3,
+          "triangles": 62,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.073",
+          "mesh": 4,
+          "triangles": 172,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.073",
+          "mesh": 5,
+          "triangles": 172,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/d4y2-judy/generated/model.glb",
+      "aircraftId": "d4y2-judy",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "454d2084c1177079d8db18cdfb5d497790ca5f1242d5c4b5bd9924f0f2036bef",
+      "fileBytes": 1771924,
+      "triangles": 29042,
+      "degenerateTriangles": 701,
+      "tinyNonzeroTriangles": 2,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 27,
+      "materials": 9,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 9,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 925836,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "d1a98ce021b1f64b15a6a6f3f9fd20c9f7e9a3cbbfe4b4d1da75891146a53041"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.073",
+          "mesh": 0,
+          "triangles": 23446,
+          "degenerateTriangles": 521,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.073",
+          "mesh": 2,
+          "triangles": 276,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.073",
+          "mesh": 3,
+          "triangles": 276,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.073",
+          "mesh": 4,
+          "triangles": 864,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 1,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.073",
+          "mesh": 5,
+          "triangles": 864,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 1,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/f4f-4-wildcat/generated/model-lod1.glb",
+      "aircraftId": "f4f-4-wildcat",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "7ddd5f87758dd20821c8c463021f94cd828c1676b57d15cfd6224b09f3ed4c58",
+      "fileBytes": 1124956,
+      "triangles": 14094,
+      "degenerateTriangles": 580,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 27,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 619355,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "6a64795768784463628959872064dce3d0ac1f02ffdb63c45bad0055ea775ba9"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.075",
+          "mesh": 0,
+          "triangles": 11506,
+          "degenerateTriangles": 380,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.075",
+          "mesh": 2,
+          "triangles": 124,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.075",
+          "mesh": 3,
+          "triangles": 124,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.075",
+          "mesh": 4,
+          "triangles": 388,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.075",
+          "mesh": 5,
+          "triangles": 388,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "propeller.spin.mesh.075",
+          "mesh": 10,
+          "triangles": 290,
+          "degenerateTriangles": 20,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/f4f-4-wildcat/generated/model-lod2.glb",
+      "aircraftId": "f4f-4-wildcat",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "120056cd65220df1857855810b67e623806f2291c30a3df548dca6ef5c734a97",
+      "fileBytes": 938852,
+      "triangles": 6276,
+      "degenerateTriangles": 580,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 26,
+      "materials": 9,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 9,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 619355,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "6a64795768784463628959872064dce3d0ac1f02ffdb63c45bad0055ea775ba9"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.075",
+          "mesh": 0,
+          "triangles": 5113,
+          "degenerateTriangles": 380,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.075",
+          "mesh": 2,
+          "triangles": 62,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.075",
+          "mesh": 3,
+          "triangles": 62,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.075",
+          "mesh": 4,
+          "triangles": 172,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.075",
+          "mesh": 5,
+          "triangles": 172,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "propeller.spin.mesh.075",
+          "mesh": 10,
+          "triangles": 129,
+          "degenerateTriangles": 20,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/f4f-4-wildcat/generated/model.glb",
+      "aircraftId": "f4f-4-wildcat",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "90ab33a567ca5fadd7876ab54e3840e1f19fdc04285746786c47caac6b260734",
+      "fileBytes": 1513300,
+      "triangles": 31344,
+      "degenerateTriangles": 600,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 27,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 619355,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "6a64795768784463628959872064dce3d0ac1f02ffdb63c45bad0055ea775ba9"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.075",
+          "mesh": 0,
+          "triangles": 25572,
+          "degenerateTriangles": 380,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.075",
+          "mesh": 2,
+          "triangles": 276,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.075",
+          "mesh": 3,
+          "triangles": 276,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.075",
+          "mesh": 4,
+          "triangles": 864,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.075",
+          "mesh": 5,
+          "triangles": 864,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "propeller.spin.mesh.075",
+          "mesh": 10,
+          "triangles": 648,
+          "degenerateTriangles": 40,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/f4u-1d-corsair/generated/model-lod1.glb",
+      "aircraftId": "f4u-1d-corsair",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "7c3b4ba48f1f4c772a786555394cddbe98bba310e4fb8b7ada2025bc6f8c110d",
+      "fileBytes": 1847632,
+      "triangles": 14048,
+      "degenerateTriangles": 724,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 27,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 1339151,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "93a4816995f2c0134c4fba5072b1a7be877ba9c68acfdccbe4263cf700fcf0d8"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.081",
+          "mesh": 0,
+          "triangles": 11512,
+          "degenerateTriangles": 524,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.081",
+          "mesh": 2,
+          "triangles": 124,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.081",
+          "mesh": 3,
+          "triangles": 124,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.081",
+          "mesh": 4,
+          "triangles": 388,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.081",
+          "mesh": 5,
+          "triangles": 388,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "propeller.spin.mesh.081",
+          "mesh": 10,
+          "triangles": 290,
+          "degenerateTriangles": 20,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/f4u-1d-corsair/generated/model-lod2.glb",
+      "aircraftId": "f4u-1d-corsair",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "25537a992135078bcfb5c9eac39904146dba702f5e1f91d40321b34a42e05be6",
+      "fileBytes": 1657752,
+      "triangles": 6251,
+      "degenerateTriangles": 724,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 26,
+      "materials": 9,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 9,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 1339151,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "93a4816995f2c0134c4fba5072b1a7be877ba9c68acfdccbe4263cf700fcf0d8"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.081",
+          "mesh": 0,
+          "triangles": 5115,
+          "degenerateTriangles": 524,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.081",
+          "mesh": 2,
+          "triangles": 60,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.081",
+          "mesh": 3,
+          "triangles": 60,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.081",
+          "mesh": 4,
+          "triangles": 172,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.081",
+          "mesh": 5,
+          "triangles": 172,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "propeller.spin.mesh.081",
+          "mesh": 10,
+          "triangles": 129,
+          "degenerateTriangles": 20,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/f4u-1d-corsair/generated/model.glb",
+      "aircraftId": "f4u-1d-corsair",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "e21074b21efce5d6786ae3e274deae5067ce1d75072b04b7606329babf41045f",
+      "fileBytes": 2232832,
+      "triangles": 31244,
+      "degenerateTriangles": 744,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 27,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 1339151,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "93a4816995f2c0134c4fba5072b1a7be877ba9c68acfdccbe4263cf700fcf0d8"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.081",
+          "mesh": 0,
+          "triangles": 25584,
+          "degenerateTriangles": 524,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.081",
+          "mesh": 2,
+          "triangles": 276,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.081",
+          "mesh": 3,
+          "triangles": 276,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.081",
+          "mesh": 4,
+          "triangles": 864,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.081",
+          "mesh": 5,
+          "triangles": 864,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "propeller.spin.mesh.081",
+          "mesh": 10,
+          "triangles": 648,
+          "degenerateTriangles": 40,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/f6f-5-hellcat/generated/model-lod1.glb",
+      "aircraftId": "f6f-5-hellcat",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "b463ab2df484c49764534577341516ef05a5419e22712df2579d5d85489d0e61",
+      "fileBytes": 1867712,
+      "triangles": 14754,
+      "degenerateTriangles": 748,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 27,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 1344405,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "431004417bcfd80623f8fe025bc39b962bbd4fdcf7530ecaa5a5c18e474ca4ad"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.078",
+          "mesh": 0,
+          "triangles": 12192,
+          "degenerateTriangles": 548,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.078",
+          "mesh": 2,
+          "triangles": 124,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.078",
+          "mesh": 3,
+          "triangles": 124,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.078",
+          "mesh": 4,
+          "triangles": 388,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.078",
+          "mesh": 5,
+          "triangles": 388,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "propeller.spin.mesh.078",
+          "mesh": 10,
+          "triangles": 290,
+          "degenerateTriangles": 20,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/f6f-5-hellcat/generated/model-lod2.glb",
+      "aircraftId": "f6f-5-hellcat",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "56cc7a8a417e79d8736c1a0905721a7454eebeab92d963a4b49df778538c435f",
+      "fileBytes": 1671904,
+      "triangles": 6567,
+      "degenerateTriangles": 748,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 26,
+      "materials": 9,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 9,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 1344405,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "431004417bcfd80623f8fe025bc39b962bbd4fdcf7530ecaa5a5c18e474ca4ad"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.078",
+          "mesh": 0,
+          "triangles": 5419,
+          "degenerateTriangles": 548,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.078",
+          "mesh": 2,
+          "triangles": 60,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.078",
+          "mesh": 3,
+          "triangles": 60,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.078",
+          "mesh": 4,
+          "triangles": 172,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.078",
+          "mesh": 5,
+          "triangles": 172,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "propeller.spin.mesh.078",
+          "mesh": 10,
+          "triangles": 129,
+          "degenerateTriangles": 20,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/f6f-5-hellcat/generated/model.glb",
+      "aircraftId": "f6f-5-hellcat",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "6b86be02046ff0aa8be32c3fce49bee0517b8a3fd9764a58c00aeec9157ef1f4",
+      "fileBytes": 2274152,
+      "triangles": 32812,
+      "degenerateTriangles": 768,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 27,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 1344405,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "431004417bcfd80623f8fe025bc39b962bbd4fdcf7530ecaa5a5c18e474ca4ad"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.078",
+          "mesh": 0,
+          "triangles": 27096,
+          "degenerateTriangles": 548,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.078",
+          "mesh": 2,
+          "triangles": 276,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.078",
+          "mesh": 3,
+          "triangles": 276,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.078",
+          "mesh": 4,
+          "triangles": 864,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.078",
+          "mesh": 5,
+          "triangles": 864,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "propeller.spin.mesh.078",
+          "mesh": 10,
+          "triangles": 648,
+          "degenerateTriangles": 40,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/sb2c-4-helldiver/generated/model-lod1.glb",
+      "aircraftId": "sb2c-4-helldiver",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "f101222f8f8cdc68ab4dd916b46d4775c4c08ceec7b4f1d53821a0a9ad20e26d",
+      "fileBytes": 2168320,
+      "triangles": 17710,
+      "degenerateTriangles": 874,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 16,
+      "primitives": 47,
+      "materials": 11,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 11,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 1348939,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "90ba74aa70f600a981d2e240a0a8f9d954dcecc20df69cb11861b6438290e57f"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.079",
+          "mesh": 0,
+          "triangles": 12364,
+          "degenerateTriangles": 646,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.079",
+          "mesh": 2,
+          "triangles": 124,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.079",
+          "mesh": 3,
+          "triangles": 124,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.079",
+          "mesh": 4,
+          "triangles": 388,
+          "degenerateTriangles": 86,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.079",
+          "mesh": 5,
+          "triangles": 388,
+          "degenerateTriangles": 86,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/sb2c-4-helldiver/generated/model-lod2.glb",
+      "aircraftId": "sb2c-4-helldiver",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "db7760e551d62fc53983d7335e7bf6f65bd01d54ba4713aa5e9b154d51233753",
+      "fileBytes": 1846576,
+      "triangles": 8094,
+      "degenerateTriangles": 874,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 16,
+      "primitives": 47,
+      "materials": 11,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 11,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 1348939,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "90ba74aa70f600a981d2e240a0a8f9d954dcecc20df69cb11861b6438290e57f"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.079",
+          "mesh": 0,
+          "triangles": 5495,
+          "degenerateTriangles": 646,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.079",
+          "mesh": 2,
+          "triangles": 60,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.079",
+          "mesh": 3,
+          "triangles": 60,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.079",
+          "mesh": 4,
+          "triangles": 172,
+          "degenerateTriangles": 86,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.079",
+          "mesh": 5,
+          "triangles": 172,
+          "degenerateTriangles": 86,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/sb2c-4-helldiver/generated/model.glb",
+      "aircraftId": "sb2c-4-helldiver",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "cd93667e28a9d09da2a1fb43ff3a35c94cb89c556b047311a02e8c2f8fd33632",
+      "fileBytes": 2708048,
+      "triangles": 39392,
+      "degenerateTriangles": 874,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 16,
+      "primitives": 47,
+      "materials": 11,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 11,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 1348939,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "90ba74aa70f600a981d2e240a0a8f9d954dcecc20df69cb11861b6438290e57f"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.079",
+          "mesh": 0,
+          "triangles": 27476,
+          "degenerateTriangles": 646,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.079",
+          "mesh": 2,
+          "triangles": 276,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.079",
+          "mesh": 3,
+          "triangles": 276,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.079",
+          "mesh": 4,
+          "triangles": 864,
+          "degenerateTriangles": 86,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.079",
+          "mesh": 5,
+          "triangles": 864,
+          "degenerateTriangles": 86,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/sbd-3-dauntless/generated/model-lod1.glb",
+      "aircraftId": "sbd-3-dauntless",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "b9ad5c72b0cc17b5aa356d1a33c2c7372590f4b3a3cd7cc752279dd19ded0866",
+      "fileBytes": 1436848,
+      "triangles": 17592,
+      "degenerateTriangles": 840,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 16,
+      "primitives": 47,
+      "materials": 11,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 11,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 620616,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "01d35c2e08b85f08fa26fa930bf1975bdc156b477c81aad34ffd81c9dc8056a5"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.076",
+          "mesh": 0,
+          "triangles": 12308,
+          "degenerateTriangles": 628,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.076",
+          "mesh": 2,
+          "triangles": 88,
+          "degenerateTriangles": 20,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.076",
+          "mesh": 3,
+          "triangles": 88,
+          "degenerateTriangles": 20,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.076",
+          "mesh": 4,
+          "triangles": 388,
+          "degenerateTriangles": 86,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.076",
+          "mesh": 5,
+          "triangles": 388,
+          "degenerateTriangles": 86,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/sbd-3-dauntless/generated/model-lod2.glb",
+      "aircraftId": "sbd-3-dauntless",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "fa3f0e4fe12975c3ac41f67d621a30360e99bc19323c543de2ad3f8286fa365d",
+      "fileBytes": 1116544,
+      "triangles": 8055,
+      "degenerateTriangles": 840,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 16,
+      "primitives": 47,
+      "materials": 11,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 11,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 620616,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "01d35c2e08b85f08fa26fa930bf1975bdc156b477c81aad34ffd81c9dc8056a5"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.076",
+          "mesh": 0,
+          "triangles": 5470,
+          "degenerateTriangles": 628,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.076",
+          "mesh": 2,
+          "triangles": 46,
+          "degenerateTriangles": 20,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.076",
+          "mesh": 3,
+          "triangles": 46,
+          "degenerateTriangles": 20,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.076",
+          "mesh": 4,
+          "triangles": 172,
+          "degenerateTriangles": 86,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.076",
+          "mesh": 5,
+          "triangles": 172,
+          "degenerateTriangles": 86,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/sbd-3-dauntless/generated/model.glb",
+      "aircraftId": "sbd-3-dauntless",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "09b0ddbbc9d476b26aed9d0a1f90b1a8f63c4498d5a683ee26e0d09f59415726",
+      "fileBytes": 1971264,
+      "triangles": 39130,
+      "degenerateTriangles": 842,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 16,
+      "primitives": 47,
+      "materials": 11,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 11,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 620616,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "01d35c2e08b85f08fa26fa930bf1975bdc156b477c81aad34ffd81c9dc8056a5"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.076",
+          "mesh": 0,
+          "triangles": 27354,
+          "degenerateTriangles": 630,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.076",
+          "mesh": 2,
+          "triangles": 196,
+          "degenerateTriangles": 20,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.076",
+          "mesh": 3,
+          "triangles": 196,
+          "degenerateTriangles": 20,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.076",
+          "mesh": 4,
+          "triangles": 864,
+          "degenerateTriangles": 86,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.076",
+          "mesh": 5,
+          "triangles": 864,
+          "degenerateTriangles": 86,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/tbd-1-devastator/generated/model-lod1.glb",
+      "aircraftId": "tbd-1-devastator",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "24d9cb394fa29ca772d9f2344b54884e496047162bde658e309996c700da21ef",
+      "fileBytes": 1175368,
+      "triangles": 15487,
+      "degenerateTriangles": 776,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 12,
+      "primitives": 31,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 622283,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "24a1d93c2d59aa994654fc1126cb17b6b9b1692fe734b1e8862eb070bf6afecc"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.077",
+          "mesh": 0,
+          "triangles": 12906,
+          "degenerateTriangles": 596,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.077",
+          "mesh": 2,
+          "triangles": 124,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.077",
+          "mesh": 3,
+          "triangles": 124,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.077",
+          "mesh": 4,
+          "triangles": 388,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.077",
+          "mesh": 5,
+          "triangles": 388,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/tbd-1-devastator/generated/model-lod2.glb",
+      "aircraftId": "tbd-1-devastator",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "64233f7d81123f9ef4d989a95ad90bb5d3300343d8bc631c527bf4f101ca70c0",
+      "fileBytes": 971888,
+      "triangles": 6891,
+      "degenerateTriangles": 776,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 12,
+      "primitives": 31,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 622283,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "24a1d93c2d59aa994654fc1126cb17b6b9b1692fe734b1e8862eb070bf6afecc"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.077",
+          "mesh": 0,
+          "triangles": 5736,
+          "degenerateTriangles": 596,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.077",
+          "mesh": 2,
+          "triangles": 60,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.077",
+          "mesh": 3,
+          "triangles": 60,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.077",
+          "mesh": 4,
+          "triangles": 172,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.077",
+          "mesh": 5,
+          "triangles": 172,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/tbd-1-devastator/generated/model.glb",
+      "aircraftId": "tbd-1-devastator",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "c86b62708bed6e2e6f59ee46fdd557fb5fefa0c4154cf2fbd58cf262beeaec1f",
+      "fileBytes": 1597748,
+      "triangles": 34440,
+      "degenerateTriangles": 776,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 12,
+      "primitives": 31,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 622283,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "24a1d93c2d59aa994654fc1126cb17b6b9b1692fe734b1e8862eb070bf6afecc"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.077",
+          "mesh": 0,
+          "triangles": 28680,
+          "degenerateTriangles": 596,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.077",
+          "mesh": 2,
+          "triangles": 276,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.077",
+          "mesh": 3,
+          "triangles": 276,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.077",
+          "mesh": 4,
+          "triangles": 864,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.077",
+          "mesh": 5,
+          "triangles": 864,
+          "degenerateTriangles": 62,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/tbf-1c-avenger/generated/model-lod1.glb",
+      "aircraftId": "tbf-1c-avenger",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "884182044d4137ce664c8ac55c27ca7b9b95a2610155742bff141b824c461feb",
+      "fileBytes": 1469896,
+      "triangles": 15486,
+      "degenerateTriangles": 968,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 12,
+      "primitives": 31,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 920514,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "1dd57f7fa8fb09b9bf12b19972c0a6a6af72bf3614bfad25902b83a925845cd0"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.080",
+          "mesh": 0,
+          "triangles": 12452,
+          "degenerateTriangles": 684,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.080",
+          "mesh": 2,
+          "triangles": 124,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.080",
+          "mesh": 3,
+          "triangles": 124,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.080",
+          "mesh": 4,
+          "triangles": 388,
+          "degenerateTriangles": 86,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.080",
+          "mesh": 5,
+          "triangles": 388,
+          "degenerateTriangles": 86,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "turret.yaw.mesh.005",
+          "mesh": 11,
+          "triangles": 576,
+          "degenerateTriangles": 56,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/tbf-1c-avenger/generated/model-lod2.glb",
+      "aircraftId": "tbf-1c-avenger",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "4d340989dd21a9893e4cc901af93395c086eced273afe1f089ad00e3f23871db",
+      "fileBytes": 1262480,
+      "triangles": 6896,
+      "degenerateTriangles": 968,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 12,
+      "primitives": 31,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 920514,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "1dd57f7fa8fb09b9bf12b19972c0a6a6af72bf3614bfad25902b83a925845cd0"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.080",
+          "mesh": 0,
+          "triangles": 5534,
+          "degenerateTriangles": 684,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.080",
+          "mesh": 2,
+          "triangles": 60,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.080",
+          "mesh": 3,
+          "triangles": 60,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.080",
+          "mesh": 4,
+          "triangles": 174,
+          "degenerateTriangles": 86,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.080",
+          "mesh": 5,
+          "triangles": 174,
+          "degenerateTriangles": 86,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "turret.yaw.mesh.005",
+          "mesh": 11,
+          "triangles": 256,
+          "degenerateTriangles": 56,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    },
+    {
+      "path": "assets/aircraft/tbf-1c-avenger/generated/model.glb",
+      "aircraftId": "tbf-1c-avenger",
+      "contentHash": "0c6ea1cc66fb83ece4a631a50a5773e8d61bcad6d4b2d392e0a2ba9e8bc665be",
+      "sha256": "c56260f1a605ca1f0b92ed38e2b03d32dceb7f4cbfdcfddbc49375be5c735263",
+      "fileBytes": 1887076,
+      "triangles": 34440,
+      "degenerateTriangles": 968,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 12,
+      "primitives": 31,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 10,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 920514,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "1dd57f7fa8fb09b9bf12b19972c0a6a6af72bf3614bfad25902b83a925845cd0"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 98976,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9a5893021ac5cc53d332a9f14778fa38d0e1a52118873a5308e635fea16a515d"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": [
+        {
+          "node": "aircraft.root.mesh.080",
+          "mesh": 0,
+          "triangles": 27672,
+          "degenerateTriangles": 684,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.port.mesh.080",
+          "mesh": 2,
+          "triangles": 276,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.aileron.starboard.mesh.080",
+          "mesh": 3,
+          "triangles": 276,
+          "degenerateTriangles": 28,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.port.mesh.080",
+          "mesh": 4,
+          "triangles": 864,
+          "degenerateTriangles": 86,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "control.elevator.starboard.mesh.080",
+          "mesh": 5,
+          "triangles": 864,
+          "degenerateTriangles": 86,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        },
+        {
+          "node": "turret.yaw.mesh.005",
+          "mesh": 11,
+          "triangles": 1284,
+          "degenerateTriangles": 56,
+          "tinyNonzeroTriangles": 0,
+          "repeatedIndexTriangles": 0,
+          "nonfiniteTriangles": 0,
+          "badNormals": 0,
+          "missingNormalPrimitives": 0
+        }
+      ]
+    }
+  ]
+}

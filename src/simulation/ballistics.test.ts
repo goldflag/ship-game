@@ -5,7 +5,7 @@ import { compileShip, type Vec3 } from '../ships/blueprint';
 import { ballisticStep, dispersedDirection, dispersedSpeed, travelFactor } from './ballistics';
 import { botAim, shipVelocity } from './bots';
 import { add, dot, length, normalize, scale, sub } from './geometry';
-import { solveBallistic, updateMount, muzzleWorld, shotDirection } from './weapons';
+import { solveBallistic, updateMount, muzzleCenterWorld, shotDirection } from './weapons';
 import { CombatSimulation } from './combat';
 
 test('shared drag solution reaches elevated and lowered targets and composes across ticks', () => {
@@ -34,7 +34,7 @@ test('aiming a moving mount includes drag on inherited velocity', () => {
   const mount = def.mounts[0], state = actor.mounts[0], inherited: Vec3 = [12, 0, -5];
   const aim: Vec3 = [4500, 2, -7000];
   for (let i = 0; i < 600; i++) updateMount(mount, state, def, actor.motion, aim, 1 / 60, inherited);
-  const from = muzzleWorld(mount, state, 0, actor.motion), k = mount.weapon.ballistics!.dragPerSecond;
+  const from = muzzleCenterWorld(mount, state, actor.motion), k = mount.weapon.ballistics!.dragPerSecond;
   let time = length(sub(aim, from)) / mount.weapon.muzzleSpeed;
   for (let i = 0; i < 10; i++) time = solveBallistic(from, sub(aim, scale(inherited, travelFactor(time, k))), mount.weapon.muzzleSpeed, k)!.time;
   const end = ballisticStep(from, add(scale(shotDirection(mount, state, actor.motion), mount.weapon.muzzleSpeed), inherited), time, k);
@@ -62,7 +62,7 @@ test('dispersion is bounded, unbiased and reproducible for horizontal and near-v
 test('battle reset repeats its seed and different seeds alter launches without changing shot count', () => {
   const def = compileShip(blueprint, catalog), sim = new CombatSimulation(def, undefined, 42);
   const fire = (s: CombatSimulation) => {
-    s.step({ throttle: 0, rudder: 0 }, { aim: [0, 0, -5000], fire: true, battery: 'main' });
+    for (let i = 0; i < 1200 && !s.events.some(e => e.kind === 'shot'); i++) s.step({ throttle: 0, rudder: 0 }, { aim: [0, 0, -5000], fire: true, battery: 'main' });
     return s.events.filter(e => e.kind === 'shot').map(e => e.shell!.velocity);
   };
   const first = fire(sim); sim.reset();
@@ -88,7 +88,7 @@ test('authored penetration reference affects launch budget without changing the 
     const def = compileShip(blueprint, catalog);
     def.mounts.forEach(m => { m.weapon.ballistics!.penetrationReferenceSpeedMps = referenceSpeed; });
     const sim = new CombatSimulation(def, undefined, 5);
-    sim.step({ throttle: 0, rudder: 0 }, { aim: [0, 0, -5000], fire: true, battery: 'main' });
+    for (let i = 0; i < 1200 && !sim.shells.length; i++) sim.step({ throttle: 0, rudder: 0 }, { aim: [0, 0, -5000], fire: true, battery: 'main' });
     return sim.shells[0];
   };
   const muzzle = launch(), reference = launch(500);
@@ -128,13 +128,13 @@ test('cached per-gun lead follows a moving target and reacquires a jumped aim po
     const aim = botAim(actor, target, mount, state);
     updateMount(mount, state, def, actor.motion, aim, 1 / 60, shipVelocity(actor));
   }
-  const from = muzzleWorld(mount, state, 0, actor.motion), time = state.aimCache!.time;
+  const from = muzzleCenterWorld(mount, state, actor.motion), time = state.aimCache!.time;
   const end = ballisticStep(from, add(scale(shotDirection(mount, state, actor.motion), mount.weapon.muzzleSpeed), shipVelocity(actor)), time, k).position;
   const future = add([target.motion.x, .8, target.motion.z], scale(shipVelocity(target), time));
   expect(length(sub(end, future))).toBeLessThan(1);
   const jumped: Vec3 = [actor.motion.x + 1000, 4, actor.motion.z - 3000];
   for (let i = 0; i < 600; i++) updateMount(mount, state, def, actor.motion, jumped, 1 / 60, shipVelocity(actor));
-  const newEnd = ballisticStep(muzzleWorld(mount, state, 0, actor.motion), add(scale(shotDirection(mount, state, actor.motion), mount.weapon.muzzleSpeed), shipVelocity(actor)), state.aimCache!.time, k).position;
+  const newEnd = ballisticStep(muzzleCenterWorld(mount, state, actor.motion), add(scale(shotDirection(mount, state, actor.motion), mount.weapon.muzzleSpeed), shipVelocity(actor)), state.aimCache!.time, k).position;
   expect(length(sub(newEnd, jumped))).toBeLessThan(.1);
   updateMount(mount, state, def, actor.motion, undefined, 1 / 60);
   expect(state.aimCache).toBeUndefined();

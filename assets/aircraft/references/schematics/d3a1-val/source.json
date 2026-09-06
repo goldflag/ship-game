@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "aircraftId": "d3a1-val",
+  "title": "Aichi D3A1 three-view drawing, CombinedFleet IJNAF reference archive",
+  "sourcePage": "https://www.combinedfleet.com/ijna/d3a.htm",
+  "downloadUrl": "https://www.combinedfleet.com/ijna/d3a1.gif",
+  "author": "Plate creator not credited on the linked three-view; archive compiled by Joao Paulo Juliao Matsuura.",
+  "retrievedAt": "2026-09-05",
+  "variant": "D3A1 Model 11",
+  "originalFile": "three-view.gif",
+  "sha256": "2c6d6aaa561bb1ee77bccdb351298ed73869b9436cee9ac4a1999e28f135254b",
+  "rights": "Copyright retained by original creator/publisher unless independently established otherwise. Retained as credited development comparison reference; not packaged in public game build. No claim that these images are public domain.",
+  "measurements": "assets/aircraft/shapes/d3a1-val.json",
+  "method": "Manual raster outline sampling, retained source points in assets/aircraft/shapes/measure-japanese.py; top and side scale registered separately; see JSON notes for unresolved reconstruction."
+}

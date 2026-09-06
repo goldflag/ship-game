@@ -41,7 +41,7 @@ for (const id of ['bismarck', 'yamato', 'baltimore', 'enterprise-cv6']) {
   const old = [...b.compartments], h = b.hull, base = hydrostatics(h), full = hydrostatics(h, -h.length);
   const gm = h.beam * .07;
   b.stability = { version: 1, dryCenterOfGravity: [0, initialMetacenter(h) - gm, base.center[2]], buoyancyScale: h.massKg / (1025 * base.volume), shellThicknessMm: 12,
-    basis: 'Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Unmapped outer shell uses 12 mm steel. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates.' };
+    basis: 'Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. ' + (b.structuralPlating ? 'Outer shell uses the blueprint structural plating thickness. ' : 'Unmapped outer shell uses 12 mm steel. ') + 'Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates.' };
   for (let zi = 0; zi < 4; zi++) for (let side = 0; side < 2; side++) for (let yi = 0; yi < 3; yi++) {
     const z0 = -h.length / 2 + h.length * zi / 4, z1 = z0 + h.length / 4;
     const bottom = -h.draft, top = Math.max(...h.deckHeights.map(p => p[1])), y0 = bottom + (top - bottom) * yi / 3, y1 = bottom + (top - bottom) * (yi + 1) / 3;

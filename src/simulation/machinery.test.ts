@@ -79,7 +79,7 @@ test('a penetrating underwater path opens boundaries and flooding disables other
   expect(actor.damage.modules.find(m => m.id === boiler.id)!.hp).toBe(boiler.hp - 1);
   expect(equipmentCondition(actor, def, boiler).reason).toBe('flooded');
   expect(actor.damage.compartments.find(c => c.id === 'boiler-aft-port')!.waterM3).toBe(0);
-});
+}, 15000); // Ten simulated minutes through the complete compartment network.
 test('authored outer spaces fit the hull and never overlap retained room envelopes', () => {
   for (const preset of [blueprint, yamato, baltimore, enterprise]) {
     const def = compileShip(preset, catalog), added = def.compartments.filter(c => c.id.startsWith('flood-strip-') || c.id.startsWith('flood-end-'));

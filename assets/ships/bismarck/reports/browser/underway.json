@@ -1,0 +1,222 @@
+{
+  "diagnostics": {
+    "backend": "webgpu",
+    "camera": {
+      "aim": [
+        632.0431083893354,
+        1.840748069607443,
+        -541.9621980815094
+      ],
+      "binoculars": false,
+      "fov": 52.00000000000001,
+      "magnification": 1,
+      "manualAim": true,
+      "matrixWorldInverse": [
+        0.6509374284748499,
+        0.07719693686861563,
+        -0.7551960653688898,
+        0,
+        -6.938893903907228e-18,
+        0.9948160191113671,
+        0.10169114081085007,
+        0,
+        0.7591313879761195,
+        -0.06619456969808861,
+        0.6475629812859405,
+        0,
+        -2.842170943040401e-14,
+        -86.4979520980047,
+        -359.1168331287488,
+        1
+      ],
+      "mode": "Chase",
+      "pointerLocked": false,
+      "position": [
+        -264.5262424391931,
+        122.56854881266491,
+        226.8250723719249
+      ],
+      "projectionMatrix": [
+        1.7257174814348164,
+        0,
+        0,
+        0,
+        0,
+        2.050303841579296,
+        0,
+        0,
+        0,
+        0,
+        -1.0000083334027783,
+        -1,
+        0,
+        0,
+        -0.5000041667013891,
+        0
+      ]
+    },
+    "combat": {
+      "batteries": [
+        {
+          "ammo": 960,
+          "battery": "main",
+          "ready": 0,
+          "reload": 0,
+          "total": 4
+        },
+        {
+          "ammo": 1800,
+          "battery": "secondary",
+          "ready": 0,
+          "reload": 0,
+          "total": 6
+        }
+      ],
+      "battery": "main",
+      "message": "Aim at the target, wait for guns to train, then fire.",
+      "modules": [
+        {
+          "condition": 1,
+          "id": "boiler-aft-port-equipment",
+          "name": "Aft port boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "condition": 1,
+          "id": "boiler-aft-center-equipment",
+          "name": "Aft center boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "condition": 1,
+          "id": "boiler-aft-starboard-equipment",
+          "name": "Aft starboard boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "condition": 1,
+          "id": "boiler-forward-port-equipment",
+          "name": "Forward port boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "condition": 1,
+          "id": "boiler-forward-center-equipment",
+          "name": "Forward center boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "condition": 1,
+          "id": "boiler-forward-starboard-equipment",
+          "name": "Forward starboard boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "condition": 1,
+          "id": "engine-port",
+          "name": "Port turbine room"
+        },
+        {
+          "condition": 1,
+          "id": "engine-starboard",
+          "name": "Starboard turbine room"
+        },
+        {
+          "condition": 1,
+          "id": "engine-center",
+          "name": "Center turbine room"
+        },
+        {
+          "condition": 1,
+          "id": "anton-magazine",
+          "name": "Anton propellant magazines"
+        },
+        {
+          "condition": 1,
+          "id": "bruno-magazine",
+          "name": "Bruno propellant magazines"
+        },
+        {
+          "condition": 1,
+          "id": "caesar-magazine",
+          "name": "C\u00e4sar propellant magazines"
+        },
+        {
+          "condition": 1,
+          "id": "dora-magazine",
+          "name": "Dora propellant magazines"
+        },
+        {
+          "condition": 1,
+          "id": "steering",
+          "name": "Steering gear room"
+        },
+        {
+          "condition": 1,
+          "id": "shaft-port-equipment",
+          "name": "Port shaft passage"
+        },
+        {
+          "condition": 1,
+          "id": "shaft-center-equipment",
+          "name": "Center shaft passage"
+        },
+        {
+          "condition": 1,
+          "id": "shaft-starboard-equipment",
+          "name": "Starboard shaft passage"
+        }
+      ],
+      "mounts": [
+        {
+          "ammo": 240,
+          "id": "anton",
+          "name": "Anton",
+          "reload": 0,
+          "status": "training"
+        },
+        {
+          "ammo": 240,
+          "id": "bruno",
+          "name": "Bruno",
+          "reload": 0,
+          "status": "training"
+        },
+        {
+          "ammo": 240,
+          "id": "caesar",
+          "name": "C\u00e4sar",
+          "reload": 0,
+          "status": "training"
+        },
+        {
+          "ammo": 240,
+          "id": "dora",
+          "name": "Dora",
+          "reload": 0,
+          "status": "training"
+        }
+      ],
+      "playerIntegrity": 1,
+      "playerWater": 0,
+      "range": 832.5872416820921,
+      "ready": 0,
+      "targetIntegrity": 1,
+      "targetPosition": {
+        "heading": 0,
+        "x": 650,
+        "z": -550
+      },
+      "targetPower": 1,
+      "targetSteering": 1,
+      "targetSunk": false,
+      "targetUnderway": false,
+      "targetWater": 0,
+      "total": 4
+    },
+    "contentHash": "45b7cc0110d0262b177a0e3aeb4df43d0682de8b52f1cc4f18cd5ab0fcddc9a5",
+    "events": [],
+    "fps": 71.49425807534139,
+    "inPort": false,
+    "inspecting": false,
+    "maxMuzzleErrorM": 0.0021608318721604053,
+    "paused": false,
+    "portInspection": "exterior",
+    "shipId": "bismarck",
+    "tick": 108
+  }
+}

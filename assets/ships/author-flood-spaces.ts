@@ -15,9 +15,10 @@ if (!/^[a-z][a-z0-9-]+$/.test(shipId ?? '')) throw new Error('Supply a ship ID')
 const path = new URL(`./${shipId}/blueprint.json`, import.meta.url);
 const b = JSON.parse(await readFile(path, 'utf8')) as ShipBlueprint;
 const catalog = JSON.parse(await readFile(new URL('../parts/guns.json', import.meta.url), 'utf8'));
-// Regeneration removes only this recipe's namespaced outputs.
-b.compartments = b.compartments.filter(c => !c.id.startsWith('flood-strip-') && !c.id.startsWith('flood-end-'));
-b.connections = b.connections.filter(c => !c.id?.startsWith('partition-'));
+// Residual cells depend on these room envelopes. Rebuild them afterwards with
+// author-stability.ts, rather than treating their old bounding boxes as rooms.
+b.compartments = b.compartments.filter(c => !c.id.startsWith('flood-strip-') && !c.id.startsWith('flood-end-') && !c.id.startsWith('reserve-cell-'));
+b.connections = b.connections.filter(c => !c.id?.startsWith('partition-') && !c.id?.startsWith('reserve-link-'));
 b.floodRegions = [];
 const existing = [...b.compartments], hull = b.hull;
 const low = (c: Compartment, axis: number) => c.center[axis] - c.size[axis] / 2;

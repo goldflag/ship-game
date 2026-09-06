@@ -47,3 +47,141 @@ test('switching the followed ship still eases the camera toward the new target',
   expect(movement.z).toBeCloseTo(-550 * (1 - Math.exp(-5 / 60)), 8);
   rig.dispose();
 });
+
+function interactiveCamera() {
+  const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
+  const canvas = Object.assign(new EventTarget(), { setPointerCapture() {} });
+  const rig = new CameraRig(camera, canvas as unknown as HTMLCanvasElement);
+  const drag = (dx: number, dy: number) => {
+    // Touch follows the same angular controls without requiring pointer lock.
+    canvas.dispatchEvent(Object.assign(new Event('pointerdown'), { button: 0, pointerType: 'touch', pointerId: 1, clientX: 0, clientY: 0 }));
+    canvas.dispatchEvent(Object.assign(new Event('pointermove'), { pointerId: 1, clientX: dx, clientY: dy }));
+    window.dispatchEvent(new Event('pointerup'));
+  };
+  return { camera, canvas, rig, drag };
+}
+
+function sunDirection(elevation: number, azimuth: number) {
+  return new Vector3(Math.sin(azimuth) * Math.cos(elevation), Math.sin(elevation), Math.cos(azimuth) * Math.cos(elevation));
+}
+
+test('shell camera follows flight without frame lag or changed aim, and restores binoculars', () => {
+  const { camera, rig, drag } = interactiveCamera();
+  const ship = createShipState();
+  rig.setInPort(false);
+  rig.toggleBinoculars([1000, 0, -5000], ship);
+  const position = camera.position.clone(), orientation = camera.quaternion.clone(), fov = camera.fov;
+  const bearing = rig.bearing;
+  const view = { position: [0, 200, -1000] as [number, number, number], velocity: [0, -20, -800] as [number, number, number] };
+  rig.setShellView(view);
+  rig.update(ship, 0, .016);
+  expect(rig.binoculars).toBe(false);
+  expect(camera.fov).toBeCloseTo(52);
+  const offset = camera.position.clone().sub(new Vector3(...view.position));
+  for (const dt of [1 / 144, 1 / 30, .047]) {
+    view.position[2] -= 800 * dt;
+    rig.setShellView(view);
+    drag(300, 300);
+    rig.update(ship, 0, dt);
+    expect(camera.position.clone().sub(new Vector3(...view.position)).distanceTo(offset)).toBeLessThan(1e-9);
+    expect(rig.bearing).toBe(bearing);
+    const projected = new Vector3(...view.position).project(camera);
+    expect(Math.abs(projected.x)).toBeLessThan(1);
+    expect(Math.abs(projected.y)).toBeLessThan(1);
+  }
+  view.position[1] = -40;
+  rig.update(ship, 0, .016);
+  expect(camera.position.y).toBeGreaterThanOrEqual(12);
+  rig.setShellView();
+  rig.update(ship, 0, .016);
+  expect(rig.binoculars).toBe(true);
+  expect(camera.fov).toBe(fov);
+  expect(camera.position.distanceTo(position)).toBeLessThan(1e-9);
+  expect(camera.quaternion.angleTo(orientation)).toBeLessThan(1e-7);
+  rig.dispose();
+});
+
+test('port dragging reveals the sun without lowering the camera below its lowest orbit', () => {
+  const { camera, rig, drag } = interactiveCamera();
+  const ship = { ...createShipState(), x: 240 };
+  const sun = sunDirection(36 * Math.PI / 180, 58 * Math.PI / 180);
+  rig.setInPort(true);
+  try {
+    drag((1.08 - Math.atan2(-sun.x, -sun.z)) / .005, -50);
+    rig.update(ship, ship.y, 0, true);
+    const lowestOrbit = camera.position.clone();
+    drag(0, -250);
+    rig.update(ship, ship.y, 0, true);
+    const projected = camera.position.clone().addScaledVector(sun, 10000).project(camera);
+    expect(Math.abs(projected.x)).toBeLessThan(.9);
+    expect(Math.abs(projected.y)).toBeLessThan(.9);
+    expect(projected.z).toBeGreaterThan(-1);
+    expect(projected.z).toBeLessThan(1);
+    expect(camera.position.distanceTo(lowestOrbit)).toBeLessThan(1e-9);
+    expect(Math.asin(camera.getWorldDirection(new Vector3()).y)).toBeLessThanOrEqual(Math.PI / 6 + 1e-9);
+    rig.recenter();
+    rig.update(ship, ship.y, 0, true);
+    expect(camera.getWorldDirection(new Vector3()).y).toBeLessThan(0);
+  } finally { rig.dispose(); }
+});
+
+for (const mode of ['Chase', 'Bridge', 'Tactical'] as const) {
+  test(`${mode} mouse aiming reveals the sailing sun within a restrained upward tilt`, () => {
+    const { camera, canvas, rig } = interactiveCamera();
+    const ship = createShipState();
+    const sun = sunDirection(48 * Math.PI / 180, 235 * Math.PI / 180);
+    rig.setInPort(false);
+    rig.mode = mode;
+    Object.assign(document, { pointerLockElement: canvas, exitPointerLock() { Object.assign(document, { pointerLockElement: null }); } });
+    try {
+      canvas.dispatchEvent(Object.assign(new Event('pointermove'), {
+        movementX: (Math.atan2(sun.x, -sun.z) - .82) / .0025,
+        movementY: (-48 * Math.PI / 180 - .1) / .0025,
+      }));
+      rig.update(ship, ship.y, 0, true);
+      const direction = camera.getWorldDirection(new Vector3());
+      expect(Math.asin(direction.y)).toBeCloseTo(Math.PI / 6, 9);
+      const sunPosition = camera.position.clone().addScaledVector(sun, 10000).project(camera);
+      expect(Math.abs(sunPosition.x)).toBeLessThan(.9);
+      expect(Math.abs(sunPosition.y)).toBeLessThan(.9);
+      expect(sunPosition.z).toBeGreaterThan(-1);
+      expect(sunPosition.z).toBeLessThan(1);
+      const aim = camera.position.clone().addScaledVector(direction, 10000);
+      rig.toggleBinoculars(aim.toArray(), ship);
+      const projected = aim.project(camera);
+      expect(Math.abs(projected.x)).toBeLessThan(.001);
+      expect(Math.abs(projected.y)).toBeLessThan(.001);
+    } finally { rig.dispose(); }
+  });
+}
+
+for (const mode of ['Port', 'Inspection', 'Chase', 'Bridge', 'Tactical', 'Binoculars'] as const) {
+  test(`${mode} camera stays above water through extreme input, zoom and sinking`, () => {
+    const { camera, canvas, rig, drag } = interactiveCamera();
+    const ship = createShipState();
+    rig.setInPort(mode === 'Port');
+    if (mode === 'Inspection') rig.setInspecting(true);
+    if (mode === 'Bridge' || mode === 'Tactical') rig.mode = mode;
+    if (mode === 'Binoculars') rig.toggleBinoculars([0, .5, -1000], ship);
+    try {
+      for (const aspect of [16 / 9, .7]) {
+        camera.aspect = aspect;
+        camera.updateProjectionMatrix();
+        for (const input of [-100000, 100000]) {
+          drag(input, input);
+          canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY: input }));
+          ship.y = 0;
+          rig.update(ship, ship.y, 0, true);
+          for (let frame = 0; frame < 120; frame++) {
+            ship.y -= 20;
+            ship.pitch = .4; ship.roll = .8;
+            rig.update(ship, ship.y, frame % 2 ? 1 / 30 : 1 / 144);
+            expect(camera.position.y).toBeGreaterThanOrEqual(12);
+          }
+          rig.update(ship, ship.y, 0, true);
+          expect(camera.position.y).toBeGreaterThanOrEqual(12);
+        }
+      }
+    } finally { rig.dispose(); }
+  });
+}

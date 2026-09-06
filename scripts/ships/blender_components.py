@@ -51,9 +51,15 @@ def create_gun_mount(mount, collection, helpers, materials, deck_height):
         vl=[(a,b,zbase+base_height) for a,b in outline]+[(a,b,zbase+c) for a,b,c in shape['roof']]
     n=len(outline)
     fc=[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
+    if spec.get('gunhouseMesh'):
+        shape=spec['gunhouseMesh']
+        vl=[(a,b,zbase+c) for a,b,c in shape['vertices']]
+        fc=[face['indices'] for face in shape['faces']]
     ob=mesh(name+' • sloped gunhouse',vl,fc,None,col)
     ob.data.materials.append(naval);ob.data.materials.append(roof)
-    ob.data.polygons[1].material_index=1
+    if spec.get('gunhouseMesh'):
+        for polygon,face in zip(ob.data.polygons,spec['gunhouseMesh']['faces']):polygon.material_index=1 if face['finish']=='roof' else 0
+    else:ob.data.polygons[1].material_index=1
     # Sloped frontal roof / face plates remain visibly faceted.
     ob.location=(x,y,0);ob.rotation_euler.z=bearing
     def pt(a,b,z):return (x+a*math.cos(bearing)-b*math.sin(bearing),y+a*math.sin(bearing)+b*math.cos(bearing),z)
@@ -85,9 +91,10 @@ def create_gun_mount(mount, collection, helpers, materials, deck_height):
     if rangefinder:
         rr=.31 if primary else .22
         half=spec.get('rangefinderWidth',10.5 if primary else 6.2)/2
-        rod(name+' • transverse rangefinder',pt(-2.35,-half,zbase+H-.85),pt(-2.35,half,zbase+H-.85),rr,naval,col,vertices=20)
+        rx=spec.get('rangefinderForward',-2.35)
+        rod(name+' • transverse rangefinder',pt(rx,-half,zbase+H-.85),pt(rx,half,zbase+H-.85),rr,naval,col,vertices=20)
         for gy in (-half,half):
-            o=box(name+' • rangefinder hood',pt(-2.35,gy,zbase+H-.85),(1.35,.75,1.05) if primary else (.8,.45,.6),naval,col)
+            o=box(name+' • rangefinder hood',pt(rx,gy,zbase+H-.85),(1.35,.75,1.05) if primary else (.8,.45,.6),naval,col)
             o.rotation_euler.z=bearing
     ob['battery']=spec['name']
     for piece in set(bpy.context.scene.objects)-before:

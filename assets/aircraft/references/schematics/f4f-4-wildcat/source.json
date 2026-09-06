@@ -1,0 +1,438 @@
+{
+  "schemaVersion": 1,
+  "aircraftId": "f4f-4-wildcat",
+  "retrievedAt": "2026-09-05",
+  "sources": [
+    {
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Grumman_F4F_Wildcat_3-view_line_drawing.svg",
+      "imagePath": "assets/aircraft/references/schematics/f4f-4-wildcat/threeview.png",
+      "sourceTitle": "Grumman F4F-4 Wildcat three-view orthographic drawing",
+      "variant": "F4F-4",
+      "author": "Kaboldy",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "originalPath": "assets/aircraft/references/schematics/f4f-4-wildcat/threeview.svg",
+      "notes": [
+        "Measured from the actual 960 \u00d7 1178 raster; the original SVG is retained. Modern reference drawing, not a Grumman manufacturing drawing.",
+        "The wing root is mid-fuselage, the fin has a curved leading edge and near-vertical aft face, and the main gear retracts into the fuselage.",
+        "Side/plan scale differs by under 1 percent; each axis registration uses documented catalog dimensions. Narrow-track gear tire position is a reconstruction from the visible retracted/front outlines, not a certified extension geometry."
+      ],
+      "registration": {
+        "side": {
+          "boundsPx": [
+            22,
+            0,
+            646,
+            330
+          ],
+          "nosePx": [
+            22,
+            169
+          ],
+          "tailPx": [
+            646,
+            169
+          ],
+          "shaftYPx": 169,
+          "metersPerPixel": 0.01404
+        },
+        "plan": {
+          "noseXPx": 22,
+          "tailXPx": 646,
+          "centerYPx": 737,
+          "halfSpanPx": 416,
+          "spanMetersPerPixel": 0.01392
+        },
+        "rawLandmarksPx": {
+          "fuselage": [
+            [
+              68,
+              32,
+              203,
+              128
+            ],
+            [
+              76,
+              40,
+              210,
+              124
+            ],
+            [
+              95,
+              47,
+              217,
+              119
+            ],
+            [
+              118,
+              50,
+              221,
+              115
+            ],
+            [
+              135,
+              53,
+              226,
+              113
+            ],
+            [
+              165,
+              54,
+              231,
+              111
+            ],
+            [
+              205,
+              53,
+              237,
+              108
+            ],
+            [
+              235,
+              52,
+              229,
+              113
+            ],
+            [
+              260,
+              51,
+              226,
+              117
+            ],
+            [
+              299,
+              49,
+              223,
+              89
+            ],
+            [
+              347,
+              44,
+              219,
+              96
+            ],
+            [
+              390,
+              37,
+              213,
+              103
+            ],
+            [
+              437,
+              31,
+              208,
+              116
+            ],
+            [
+              477,
+              25,
+              202,
+              123
+            ],
+            [
+              517,
+              19,
+              194,
+              122
+            ],
+            [
+              553,
+              14,
+              186,
+              127
+            ],
+            [
+              591,
+              8,
+              180,
+              143
+            ],
+            [
+              618,
+              4,
+              175,
+              156
+            ],
+            [
+              629,
+              1,
+              170,
+              163
+            ]
+          ],
+          "wing": [
+            [
+              0,
+              156,
+              350,
+              0.08
+            ],
+            [
+              55,
+              162,
+              339,
+              0.11
+            ],
+            [
+              112,
+              165,
+              330,
+              0.15
+            ],
+            [
+              170,
+              168,
+              321,
+              0.19
+            ],
+            [
+              230,
+              171,
+              312,
+              0.235
+            ],
+            [
+              295,
+              174,
+              303,
+              0.28
+            ],
+            [
+              355,
+              177,
+              296,
+              0.33
+            ],
+            [
+              402,
+              178,
+              292,
+              0.36
+            ],
+            [
+              409,
+              182,
+              285,
+              0.366
+            ],
+            [
+              414,
+              199,
+              258,
+              0.37
+            ],
+            [
+              416,
+              216,
+              220,
+              0.372
+            ]
+          ],
+          "horizontalTail": [
+            [
+              0,
+              532,
+              646,
+              0.58
+            ],
+            [
+              30,
+              543,
+              642,
+              0.58
+            ],
+            [
+              65,
+              553,
+              639,
+              0.58
+            ],
+            [
+              100,
+              565,
+              637,
+              0.58
+            ],
+            [
+              130,
+              574,
+              634,
+              0.58
+            ],
+            [
+              142,
+              581,
+              632,
+              0.58
+            ],
+            [
+              147,
+              592,
+              626,
+              0.58
+            ],
+            [
+              149,
+              607,
+              611,
+              0.58
+            ]
+          ],
+          "tailHalfSpanPx": 149,
+          "fin": [
+            [
+              481,
+              123
+            ],
+            [
+              503,
+              120
+            ],
+            [
+              520,
+              115
+            ],
+            [
+              537,
+              104
+            ],
+            [
+              547,
+              93
+            ],
+            [
+              559,
+              72
+            ],
+            [
+              572,
+              46
+            ],
+            [
+              581,
+              37
+            ],
+            [
+              593,
+              34
+            ],
+            [
+              616,
+              34
+            ],
+            [
+              628,
+              37
+            ],
+            [
+              637,
+              44
+            ],
+            [
+              640,
+              69
+            ],
+            [
+              643,
+              105
+            ],
+            [
+              646,
+              142
+            ],
+            [
+              628,
+              158
+            ],
+            [
+              628,
+              170
+            ],
+            [
+              604,
+              178
+            ],
+            [
+              596,
+              127
+            ],
+            [
+              552,
+              127
+            ]
+          ],
+          "canopy": [
+            [
+              210,
+              1,
+              111,
+              108
+            ],
+            [
+              223,
+              13,
+              115,
+              96
+            ],
+            [
+              235,
+              20,
+              118,
+              83
+            ],
+            [
+              245,
+              24,
+              120,
+              82
+            ],
+            [
+              259,
+              24,
+              120,
+              84
+            ],
+            [
+              279,
+              24,
+              119,
+              85
+            ],
+            [
+              294,
+              23,
+              118,
+              86
+            ],
+            [
+              299,
+              1,
+              117,
+              89
+            ]
+          ]
+        },
+        "method": "Manual visual landmark measurement of preserved orthographic raster; each view independently registered to catalog length/span. Fuselage cross sections use elliptical interpolation between side and plan envelopes. Hidden wing roots and canopy bases are interpolated; a drawing is not a manufacturing loft."
+      }
+    }
+  ],
+  "inspection": {
+    "status": "visually inspected actual source rasters and station overlays",
+    "overlay": "assets/aircraft/references/schematics/f4f-4-wildcat/registration-overlay.png",
+    "method": "Red planform edges, purple fin boundary, orange side body envelope, blue canopy envelope. Root and hidden hull lines are reconstructions."
+  },
+  "retainedFiles": [
+    {
+      "file": "registration-overlay.png",
+      "sha256": "69fa041e4f9ec4e6952b5139c51385ecbbeb6ce567432448dfdeab68d4dbd7ae"
+    },
+    {
+      "file": "threeview.svg",
+      "sha256": "90ac9d09bb9bc1a766b422e104cafc28f45b84674ebab54204332ce41490cfd9"
+    },
+    {
+      "file": "threeview.png",
+      "sha256": "5673170e7dab2001ffaa016035230f5d9a6580ef6b629f7267731cdcdd4301ee"
+    }
+  ]
+}

@@ -1,0 +1,443 @@
+{
+  "schemaVersion": 1,
+  "aircraftId": "f6f-5-hellcat",
+  "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+  "method": "blender-mcp",
+  "blenderVersion": "5.2.0 LTS",
+  "originalGeometry": true,
+  "shapeSource": "shapes/f6f-5-hellcat.json",
+  "reference": {
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Grumman_F6F_Hellcat_3-view_line_drawing.svg",
+    "imagePath": "assets/aircraft/references/schematics/f6f-5-hellcat/line-threeview.png",
+    "sourceTitle": "Grumman F6F Hellcat three-view line drawing",
+    "variant": "F6F outline, cross-checked against exact F6F-5 drawing",
+    "author": "Kaboldy",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "originalPath": "assets/aircraft/references/schematics/f6f-5-hellcat/line-threeview.svg",
+    "supplementalSources": [
+      {
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Grumman_F6F-5_Hellcat_2002.png",
+        "imagePath": "assets/aircraft/references/schematics/f6f-5-hellcat/threeview.png",
+        "author": "Ssawka",
+        "license": "CC BY 2.5",
+        "licenseUrl": "https://creativecommons.org/licenses/by/2.5/"
+      }
+    ],
+    "notes": [
+      "Measured from actual 960 \u00d7 1167 raster and inspected exact F6F-5 2000 \u00d7 5008 plan/side/front drawing. Modern reference drawings, not a Grumman manufacturing loft.",
+      "The line drawing omits the -5 suffix; F6F-5 canopy lacks aft quarter windows and is modeled with its flat windscreen.",
+      "Large dorsal spine, deeper lower cowling/chin intake, broad root chord, rounded tips and separate curved fin distinguish this aircraft from the F4F. Gear coordinates are approximate deployed positions."
+    ],
+    "registration": {
+      "side": {
+        "boundsPx": [
+          17,
+          0,
+          652,
+          330
+        ],
+        "nosePx": [
+          17,
+          157
+        ],
+        "tailPx": [
+          652,
+          157
+        ],
+        "shaftYPx": 157,
+        "metersPerPixel": 0.01613
+      },
+      "plan": {
+        "noseXPx": 17,
+        "tailXPx": 652,
+        "centerYPx": 731,
+        "halfSpanPx": 411,
+        "spanMetersPerPixel": 0.01589
+      },
+      "rawLandmarksPx": {
+        "fuselage": [
+          [
+            55,
+            29,
+            201,
+            117
+          ],
+          [
+            63,
+            41,
+            209,
+            111
+          ],
+          [
+            76,
+            45,
+            212,
+            109
+          ],
+          [
+            119,
+            51,
+            218,
+            104
+          ],
+          [
+            142,
+            53,
+            221,
+            101
+          ],
+          [
+            179,
+            53,
+            221,
+            97
+          ],
+          [
+            200,
+            53,
+            221,
+            96
+          ],
+          [
+            221,
+            53,
+            221,
+            101
+          ],
+          [
+            248,
+            51,
+            221,
+            109
+          ],
+          [
+            274,
+            48,
+            220,
+            109
+          ],
+          [
+            295,
+            46,
+            220,
+            77
+          ],
+          [
+            329,
+            42,
+            218,
+            84
+          ],
+          [
+            374,
+            36,
+            216,
+            94
+          ],
+          [
+            420,
+            30,
+            211,
+            104
+          ],
+          [
+            470,
+            23,
+            206,
+            116
+          ],
+          [
+            509,
+            18,
+            202,
+            123
+          ],
+          [
+            538,
+            14,
+            199,
+            123
+          ],
+          [
+            571,
+            10,
+            194,
+            137
+          ],
+          [
+            610,
+            6,
+            190,
+            149
+          ],
+          [
+            640,
+            2,
+            184,
+            161
+          ]
+        ],
+        "wing": [
+          [
+            0,
+            154,
+            357,
+            -0.44
+          ],
+          [
+            51,
+            157,
+            347,
+            -0.43
+          ],
+          [
+            90,
+            161,
+            338,
+            -0.37
+          ],
+          [
+            133,
+            164,
+            330,
+            -0.3
+          ],
+          [
+            190,
+            170,
+            320,
+            -0.21
+          ],
+          [
+            250,
+            176,
+            308,
+            -0.1
+          ],
+          [
+            310,
+            181,
+            298,
+            0.01
+          ],
+          [
+            366,
+            185,
+            290,
+            0.105
+          ],
+          [
+            399,
+            187,
+            287,
+            0.164
+          ],
+          [
+            406,
+            194,
+            264,
+            0.178
+          ],
+          [
+            410,
+            218,
+            237,
+            0.185
+          ],
+          [
+            411,
+            227,
+            229,
+            0.187
+          ]
+        ],
+        "horizontalTail": [
+          [
+            0,
+            531,
+            652,
+            0.19
+          ],
+          [
+            30,
+            539,
+            639,
+            0.19
+          ],
+          [
+            65,
+            549,
+            639,
+            0.19
+          ],
+          [
+            100,
+            559,
+            639,
+            0.19
+          ],
+          [
+            136,
+            570,
+            638,
+            0.19
+          ],
+          [
+            160,
+            577,
+            629,
+            0.19
+          ],
+          [
+            177,
+            586,
+            616,
+            0.19
+          ],
+          [
+            182,
+            601,
+            605,
+            0.19
+          ]
+        ],
+        "tailHalfSpanPx": 182,
+        "fin": [
+          [
+            510,
+            123
+          ],
+          [
+            529,
+            123
+          ],
+          [
+            544,
+            119
+          ],
+          [
+            553,
+            108
+          ],
+          [
+            563,
+            88
+          ],
+          [
+            574,
+            64
+          ],
+          [
+            582,
+            50
+          ],
+          [
+            592,
+            42
+          ],
+          [
+            603,
+            40
+          ],
+          [
+            616,
+            42
+          ],
+          [
+            628,
+            46
+          ],
+          [
+            636,
+            55
+          ],
+          [
+            640,
+            81
+          ],
+          [
+            645,
+            124
+          ],
+          [
+            651,
+            165
+          ],
+          [
+            640,
+            170
+          ],
+          [
+            640,
+            184
+          ],
+          [
+            599,
+            192
+          ],
+          [
+            595,
+            148
+          ],
+          [
+            554,
+            141
+          ]
+        ],
+        "canopy": [
+          [
+            220,
+            1,
+            104,
+            101
+          ],
+          [
+            231,
+            13,
+            108,
+            86
+          ],
+          [
+            241,
+            20,
+            110,
+            73
+          ],
+          [
+            249,
+            23,
+            110,
+            68
+          ],
+          [
+            260,
+            23,
+            110,
+            67
+          ],
+          [
+            273,
+            24,
+            110,
+            68
+          ],
+          [
+            286,
+            23,
+            110,
+            70
+          ],
+          [
+            292,
+            1,
+            110,
+            73
+          ]
+        ]
+      },
+      "method": "Manual visual landmark measurement of preserved orthographic raster; each view independently registered to catalog length/span. Fuselage cross sections use elliptical interpolation between side and plan envelopes. Hidden wing roots and canopy bases are interpolated; a drawing is not a manufacturing loft."
+    }
+  },
+  "triangleBudget": 40000
+}

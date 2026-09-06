@@ -3,10 +3,15 @@ import type { ShipState } from '../simulation/ship';
 import { localToWorld } from '../simulation/geometry';
 import type { Vec3 } from '../ships/blueprint';
 import { terrainHeight } from './HarborTerrain';
+import type { ShellView } from './ShellFollow';
 
 export type CameraMode = 'Chase' | 'Bridge' | 'Tactical';
 const NORMAL_FOV = 52;
 const MAGNIFICATIONS = [2, 4, 6, 8, 12];
+const MIN_ORBIT_ELEVATION = .08;
+const MAX_UPWARD_TILT = Math.PI / 6;
+const CAMERA_CLEARANCE = 12;
+const PORT_ELEVATION = .2;
 
 export class CameraRig {
   mode: CameraMode = 'Chase';
@@ -31,6 +36,10 @@ export class CameraRig {
   private mouseFire = false;
   private requestingLock = false;
   private intentionalUnlock = false;
+  private shellView?: ShellView;
+  private returnBinoculars = false;
+  private shellDirection = new Vector3();
+  private shellRight = new Vector3();
 
   constructor(readonly camera: PerspectiveCamera, private canvas: HTMLCanvasElement, private bridge: Vec3 = [0, 29, -31],
     private actions: { pause(): void; aim(): void; optics(): void } = { pause() {}, aim() {}, optics() {} }) {
@@ -48,19 +57,19 @@ export class CameraRig {
       canvas.setPointerCapture(e.pointerId);
     }, options);
     canvas.addEventListener('pointermove', e => {
-      if (!this.enabled) return;
+      if (!this.enabled || this.shellView) return;
       const locked = this.pointerLocked;
       if (!locked && (!this.dragging || e.pointerId !== this.pointerId)) return;
       const dx = locked ? e.movementX : e.clientX - this.previous.x;
       const dy = locked ? e.movementY : e.clientY - this.previous.y;
       if (this.inPort || this.inspecting) {
         this.azimuth -= dx * .005;
-        this.elevation = MathUtils.clamp(this.elevation + dy * .003, .08, 1.35);
+        this.elevation = MathUtils.clamp(this.elevation + dy * .003, -MAX_UPWARD_TILT, 1.35);
       } else {
         // Angular sensitivity follows the visible field of view at every magnification.
         const sensitivity = .0025 * Math.tan(this.camera.fov * Math.PI / 360) / Math.tan(NORMAL_FOV * Math.PI / 360);
         this.azimuth += dx * sensitivity;
-        this.elevation = MathUtils.clamp(this.elevation + dy * sensitivity, -.3, 1.3);
+        this.elevation = MathUtils.clamp(this.elevation + dy * sensitivity, -MAX_UPWARD_TILT, 1.3);
         if (dx || dy) this.actions.aim();
       }
       this.previous = { x: e.clientX, y: e.clientY };
@@ -81,7 +90,7 @@ export class CameraRig {
     document.addEventListener('pointerlockerror', () => { this.requestingLock = false; }, options);
     window.addEventListener('blur', release, options);
     canvas.addEventListener('wheel', e => {
-      if (!this.enabled) return;
+      if (!this.enabled || this.shellView) return;
       e.preventDefault();
       if (this.binoculars) {
         this.zoomIndex = MathUtils.clamp(this.zoomIndex + Math.sign(-e.deltaY), 0, MAGNIFICATIONS.length - 1);
@@ -97,6 +106,15 @@ export class CameraRig {
   get firing(): boolean { return this.enabled && this.pointerLocked && this.mouseFire; }
   get magnification(): number { return this.binoculars ? MAGNIFICATIONS[this.zoomIndex] : 1; }
   get bearing(): number { return ((this.azimuth % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2); }
+
+  setShellView(view?: ShellView): void {
+    if (!!view !== !!this.shellView) {
+      if (view) { this.returnBinoculars = this.binoculars; this.binoculars = false; }
+      else { this.binoculars = this.returnBinoculars; this.followedShipId = undefined; }
+      this.updateProjection();
+    }
+    this.shellView = view;
+  }
 
   capturePointer(): void {
     if (!this.enabled || this.inPort || this.inspecting || this.pointerLocked || this.requestingLock || !this.canvas.requestPointerLock || !window.matchMedia('(pointer: fine)').matches) return;
@@ -119,6 +137,7 @@ export class CameraRig {
     if (!enabled) { this.dragging = false; this.releasePointer(); }
   }
   setInspecting(inspecting: boolean): void {
+    this.setShellView();
     this.inspecting = inspecting;
     this.binoculars = false;
     this.updateProjection();
@@ -152,9 +171,10 @@ export class CameraRig {
   }
   recenter(): void {
     this.azimuth = this.inPort || this.inspecting ? 1.08 : this.lastShip?.heading ?? 0;
-    this.elevation = this.inPort || this.inspecting ? .23 : this.mode === 'Tactical' ? .85 : this.mode === 'Bridge' ? .025 : .1;
+    this.elevation = this.inPort || this.inspecting ? PORT_ELEVATION : this.mode === 'Tactical' ? .85 : this.mode === 'Bridge' ? .025 : .1;
   }
   setInPort(inPort: boolean): void {
+    this.setShellView();
     this.inPort = inPort;
     this.inspecting = false;
     this.followedShipId = undefined;
@@ -162,12 +182,29 @@ export class CameraRig {
     this.binoculars = false;
     this.updateProjection();
     this.azimuth = inPort ? 1.08 : .82;
-    this.elevation = inPort ? .23 : .1;
+    this.elevation = inPort ? PORT_ELEVATION : .1;
     this.distance = inPort ? 325 : 345;
     this.releasePointer();
   }
+  private constrainCameraHeight(position: Vector3): void {
+    const ground = this.inPort ? Math.max(0, terrainHeight(position.x, position.z)) : 0;
+    position.y = Math.max(position.y, ground + CAMERA_CLEARANCE);
+  }
   update(ship: ShipState, height: number, dt: number, snap = false): void {
     this.lastShip = ship;
+    if (this.shellView) {
+      this.target.fromArray(this.shellView.position);
+      this.shellDirection.fromArray(this.shellView.velocity).normalize();
+      if (this.shellDirection.lengthSq() === 0) this.shellDirection.set(0, 0, -1);
+      this.shellRight.set(-this.shellDirection.z, 0, this.shellDirection.x).normalize();
+      this.camera.position.copy(this.target).addScaledVector(this.shellDirection, -45).addScaledVector(this.shellRight, 12);
+      this.camera.position.y += 12;
+      this.constrainCameraHeight(this.camera.position);
+      this.look.copy(this.target).addScaledVector(this.shellDirection, 35);
+      this.camera.lookAt(this.look);
+      this.camera.updateMatrixWorld();
+      return;
+    }
     // Follow translation exactly; damping is for changes in orbit/zoom. Damping
     // a moving world-space destination makes the follow distance vary with dt.
     if (!snap && this.followedShipId === ship.id) {
@@ -181,12 +218,22 @@ export class CameraRig {
       this.target.set(ship.x + Math.sin(ship.heading) * 25, height + 20, ship.z - Math.cos(ship.heading) * 25);
       const distance = this.distance * Math.max(1, 1.1 / this.camera.aspect);
       const angle = this.azimuth - ship.heading;
-      const radius = Math.cos(this.elevation) * distance;
-      this.desired.set(ship.x + Math.sin(angle) * radius, height + Math.sin(this.elevation) * distance + 15, ship.z + Math.cos(angle) * radius);
-      if (this.inPort) this.desired.y = Math.max(this.desired.y, terrainHeight(this.desired.x, this.desired.z) + 12);
-      this.look.copy(this.target);
+      // Below the lowest orbit, upward dragging tilts the view toward the sky
+      // while the camera stays in place above the water.
+      const orbitElevation = Math.max(this.elevation, MIN_ORBIT_ELEVATION);
+      const radius = Math.cos(orbitElevation) * distance;
+      this.desired.set(ship.x + Math.sin(angle) * radius, height + Math.sin(orbitElevation) * distance + 15, ship.z + Math.cos(angle) * radius);
+      this.constrainCameraHeight(this.desired);
       this.camera.position.lerp(this.desired, snap ? 1 : 1 - Math.exp(-5 * dt));
-      if (this.inPort) this.camera.position.y = Math.max(this.camera.position.y, terrainHeight(this.camera.position.x, this.camera.position.z) + 12);
+      this.constrainCameraHeight(this.camera.position);
+      this.look.copy(this.target);
+      if (this.elevation < MIN_ORBIT_ELEVATION) {
+        this.look.sub(this.camera.position);
+        const horizontalDistance = Math.hypot(this.look.x, this.look.z);
+        const pitch = Math.min(MAX_UPWARD_TILT, Math.atan2(this.look.y, horizontalDistance) + MIN_ORBIT_ELEVATION - this.elevation);
+        this.look.y = Math.tan(pitch) * horizontalDistance;
+        this.look.add(this.camera.position);
+      }
     } else {
       if (this.binoculars || this.mode === 'Bridge') {
         this.desired.set(...localToWorld(this.bridge, { ...ship, y: height }));
@@ -195,6 +242,7 @@ export class CameraRig {
         const distance = (this.mode === 'Tactical' ? Math.max(650, this.distance) : this.distance) * Math.max(1, 1.2 / this.camera.aspect);
         this.desired.set(ship.x - Math.sin(this.azimuth) * distance, height + distance * (this.mode === 'Tactical' ? .95 : .28) + 25, ship.z + Math.cos(this.azimuth) * distance);
       }
+      this.constrainCameraHeight(this.desired);
       this.camera.position.copy(this.desired);
       this.look.set(Math.sin(this.azimuth) * Math.cos(this.elevation), -Math.sin(this.elevation), -Math.cos(this.azimuth) * Math.cos(this.elevation)).multiplyScalar(1000).add(this.desired);
     }

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "aircraftId": "b5n2-kate",
+  "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+  "method": "blender-mcp",
+  "blenderVersion": "5.2.0 LTS",
+  "originalGeometry": true,
+  "shapeSource": "shapes/b5n2-kate.json",
+  "reference": {
+    "sourceUrl": "https://www.combinedfleet.com/ijna/b5n.htm",
+    "imagePath": "assets/aircraft/references/schematics/b5n2-kate/three-view.png",
+    "sourceTitle": "Nakajima B5N2 three-view drawing, CombinedFleet IJNAF reference archive",
+    "variant": "B5N2; upper partial B5N1 side view is excluded",
+    "notes": [
+      "Manually digitised top/side silhouettes, independently registered to catalog length and wingspan.",
+      "Published reference drawing, not manufacturing geometry. Pixel rounding, scan distortion, hidden cross sections, canopy width and small details remain approximations.",
+      "Canopy lateral widths and hidden body contours are reconstructed inside the measured exterior envelope. Wing dihedral is digitised approximately from the front view, not an airfoil or load-bearing engineering specification."
+    ],
+    "registration": {
+      "top": {
+        "noseX": 23,
+        "tailX": 535,
+        "centerY": 475,
+        "portTipY": 103,
+        "starboardTipY": 849,
+        "imagePath": "assets/aircraft/references/schematics/b5n2-kate/three-view.png"
+      },
+      "side": {
+        "noseX": 290,
+        "tailX": 801,
+        "engineShaftY": 242,
+        "imagePath": "assets/aircraft/references/schematics/b5n2-kate/three-view.png"
+      },
+      "front": {
+        "leftTipX": 55,
+        "rightTipX": 800,
+        "centerX": 428,
+        "engineShaftY": 702,
+        "imagePath": "assets/aircraft/references/schematics/b5n2-kate/three-view.png",
+        "metersPerPixel": 0.02081,
+        "wingTipsCropped": false
+      }
+    }
+  },
+  "triangleBudget": 40000
+}

@@ -1,0 +1,235 @@
+{
+  "surfaceFixture": {
+    "backend": "webgpu",
+    "initial": {
+      "draws": 1,
+      "events": [
+        {
+          "caliber": 0.15,
+          "kind": "stopped",
+          "normal": [
+            0.9999939517149009,
+            0,
+            -0.003478007132908116
+          ],
+          "position": [
+            16.857361408450704,
+            2,
+            -18
+          ],
+          "type": "AP"
+        },
+        {
+          "caliber": 0.38,
+          "kind": "stopped",
+          "normal": [
+            0.9999939517149009,
+            0,
+            -0.003478007132908116
+          ],
+          "position": [
+            16.88518563380282,
+            2,
+            -10
+          ],
+          "type": "AP"
+        },
+        {
+          "caliber": 0.38,
+          "kind": "penetration",
+          "normal": [
+            0.9999939517149009,
+            0,
+            -0.003478007132908116
+          ],
+          "position": [
+            16.913009859154926,
+            2,
+            -2
+          ],
+          "type": "AP"
+        },
+        {
+          "caliber": 0.38,
+          "kind": "penetration",
+          "normal": [
+            0.9999939517149009,
+            0,
+            0.003478007132908116
+          ],
+          "position": [
+            -16.91300985915494,
+            2,
+            -2
+          ],
+          "type": "AP"
+        },
+        {
+          "caliber": 0.46,
+          "kind": "penetration",
+          "normal": [
+            0.9999939517149009,
+            0,
+            -0.003478007132908116
+          ],
+          "position": [
+            16.940834084507042,
+            2,
+            6
+          ],
+          "type": "AP"
+        },
+        {
+          "caliber": 0.46,
+          "kind": "penetration",
+          "normal": [
+            0.9999939517149009,
+            0,
+            0.003478007132908116
+          ],
+          "position": [
+            -16.940834084507046,
+            2,
+            6
+          ],
+          "type": "AP"
+        },
+        {
+          "caliber": 0.38,
+          "kind": "stopped",
+          "normal": [
+            0.9999939517149009,
+            0,
+            -0.003478007132908116
+          ],
+          "position": [
+            16.968658309859155,
+            2,
+            14
+          ],
+          "type": "HE"
+        },
+        {
+          "caliber": 0.38,
+          "kind": "penetration",
+          "normal": [
+            0.999799906219462,
+            0.01813770024001655,
+            0.008436311608677992
+          ],
+          "position": [
+            17.862907537522435,
+            3,
+            21.151576684811538
+          ],
+          "type": "AP"
+        },
+        {
+          "caliber": 0.38,
+          "kind": "ricochet",
+          "normal": [
+            0.9999939517149009,
+            0,
+            -0.003478007132908116
+          ],
+          "position": [
+            17.018209905162824,
+            3,
+            28.247036796632294
+          ],
+          "type": "AP"
+        }
+      ],
+      "marks": 9
+    }
+  },
+  "interactions": {
+    "hidden": true,
+    "kept": 9,
+    "marks": 10,
+    "mounted": [
+      {
+        "direction": [
+          -1,
+          0,
+          0
+        ],
+        "mountId": "anton",
+        "normal": [
+          1,
+          0,
+          0
+        ],
+        "outcome": "penetration",
+        "position": [
+          4.350000000000001,
+          2,
+          0
+        ]
+      }
+    ],
+    "muzzleError": 0.00216055669833403
+  },
+  "liveSimulation": {
+    "articulation": {
+      "error": 0.00216055669833403,
+      "marks": 10
+    },
+    "events": [
+      {
+        "impact": true,
+        "kind": "penetration"
+      },
+      {
+        "impact": false,
+        "kind": "penetration"
+      }
+    ],
+    "liveMarks": 1,
+    "reset": 0
+  },
+  "finalViews": {
+    "articulation": {
+      "error": 0.00216055669833403,
+      "impacts": [
+        {
+          "direction": [
+            -1,
+            0,
+            0
+          ],
+          "mountId": "anton",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "outcome": "penetration",
+          "position": [
+            4.350000000000001,
+            2,
+            0
+          ]
+        }
+      ],
+      "marks": 10
+    },
+    "narrowAspect": 0.5416666666666666,
+    "reset": 0
+  },
+  "visualReview": {
+    "disposition": "ship",
+    "findings": {
+      "stoppedAPSeparation": "resolved",
+      "freshAspectAndTurretFrames": "resolved"
+    }
+  },
+  "validation": {
+    "simulationAndGameTests": 198,
+    "combinedRunPassed": 197,
+    "combinedRunTimedOut": 1,
+    "isolatedBattleRetestPassed": 12,
+    "build": "passed",
+    "designDetector": []
+  }
+}

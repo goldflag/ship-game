@@ -92,3 +92,40 @@ test('Yamato center and outer barrels remain aligned through fore and aft traver
     }
   }
 });
+
+test('fleet exteriors defer inspection geometry until a ship is inspected', async () => {
+  const { ShipInspection } = await import('./ShipInspection');
+  const inspection = new ShipInspection(compileShip(blueprint, catalog));
+  expect(inspection.entries.length).toBeGreaterThan(0);
+  expect(inspection.root.children).toHaveLength(0);
+  inspection.setMode('exterior');
+  expect(inspection.root.children).toHaveLength(0);
+  inspection.setMode('armor');
+  expect(inspection.root.children.length).toBeGreaterThan(0);
+  const children = [...inspection.root.children];
+  inspection.setMode('exterior');
+  expect(inspection.root.visible).toBe(false);
+  inspection.setMode('internals');
+  expect(inspection.root.children).toEqual(children);
+});
+
+test('fleet meshes reuse materials within each ship while inspection stays independent', async () => {
+  const { Group, Mesh, BoxGeometry, MeshStandardMaterial } = await import('three/webgpu');
+  const definition = compileShip(blueprint, catalog);
+  // A mount-free fixture isolates material ownership from the separately tested joints.
+  const fixture = { ...definition, mounts: [] };
+  const sim = new CombatSimulation(fixture);
+  const model = new Group(), source = new MeshStandardMaterial({ opacity: .9 });
+  model.add(new Mesh(new BoxGeometry(), source), new Mesh(new BoxGeometry(), source));
+  const a = new ShipView(model.clone(true), fixture, sim.player);
+  const b = new ShipView(model.clone(true), fixture, sim.target);
+  const materials = (view: ShipView) => (view.root.children[0].children as InstanceType<typeof Mesh>[]).map(mesh => mesh.material);
+  expect(materials(a)[0]).toBe(materials(a)[1]);
+  expect(materials(a)[0]).not.toBe(materials(b)[0]);
+  a.inspect(true);
+  expect((materials(a)[0] as InstanceType<typeof MeshStandardMaterial>).opacity).toBe(.16);
+  expect((materials(b)[0] as InstanceType<typeof MeshStandardMaterial>).opacity).toBe(.9);
+  expect(source.opacity).toBe(.9);
+  a.inspect(false);
+  expect((materials(a)[0] as InstanceType<typeof MeshStandardMaterial>).opacity).toBe(.9);
+});

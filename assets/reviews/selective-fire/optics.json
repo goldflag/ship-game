@@ -1,0 +1,92 @@
+{
+  "zoom": 12,
+  "ready": 2,
+  "mounts": [
+    {
+      "id": "anton",
+      "name": "Anton",
+      "status": "ready",
+      "reload": 0,
+      "ammo": 240
+    },
+    {
+      "id": "bruno",
+      "name": "Bruno",
+      "status": "ready",
+      "reload": 0,
+      "ammo": 240
+    },
+    {
+      "id": "caesar",
+      "name": "C\u00e4sar",
+      "status": "out-of-arc",
+      "reload": 0,
+      "ammo": 240
+    },
+    {
+      "id": "dora",
+      "name": "Dora",
+      "status": "out-of-arc",
+      "reload": 0,
+      "ammo": 240
+    }
+  ],
+  "markers": [
+    {
+      "label": "1, 2 \u00b7 On aim",
+      "ring": {
+        "x": 706,
+        "y": 436,
+        "width": 28,
+        "height": 28,
+        "top": 436,
+        "right": 734,
+        "bottom": 464,
+        "left": 706
+      },
+      "labelRect": {
+        "x": 692.5,
+        "y": 469,
+        "width": 54.7109375,
+        "height": 19,
+        "top": 469,
+        "right": 747.2109375,
+        "bottom": 488,
+        "left": 692.5
+      }
+    },
+    {
+      "label": "3, 4 \u00b7 Out of arc",
+      "ring": {
+        "x": 1195.5999755859375,
+        "y": 436.4200134277344,
+        "width": 28,
+        "height": 28,
+        "top": 436.4200134277344,
+        "right": 1223.5999755859375,
+        "bottom": 464.4200134277344,
+        "left": 1195.5999755859375
+      },
+      "labelRect": {
+        "x": 1175.5999755859375,
+        "y": 469.4200134277344,
+        "width": 67.953125,
+        "height": 19,
+        "top": 469.4200134277344,
+        "right": 1243.5531005859375,
+        "bottom": 488.4200134277344,
+        "left": 1175.5999755859375
+      }
+    }
+  ],
+  "reticle": {
+    "x": 714.07421875,
+    "y": 444.07421875,
+    "width": 11.8515625,
+    "height": 11.8515625,
+    "top": 444.07421875,
+    "right": 725.92578125,
+    "bottom": 455.92578125,
+    "left": 714.07421875
+  }
+}

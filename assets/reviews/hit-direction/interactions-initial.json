@@ -1,0 +1,40 @@
+{
+  "eastCamera": [
+    "Your ship hit from behind",
+    "Your ship hit from ahead",
+    "Your ship hit from left",
+    "Your ship hit from right"
+  ],
+  "hidden": {
+    "hidden": false,
+    "visibility": "hidden",
+    "pointerEvents": "none"
+  },
+  "restored": {
+    "hidden": false,
+    "visibility": "visible",
+    "pointerEvents": "none"
+  },
+  "fading": [
+    "0.5",
+    "0.516667",
+    "0.533333",
+    "0.55"
+  ],
+  "paused": [
+    "0.5",
+    "0.516667",
+    "0.533333",
+    "0.55"
+  ],
+  "expired": {
+    "hidden": true,
+    "visibility": "visible",
+    "pointerEvents": "none"
+  },
+  "port": {
+    "hidden": true,
+    "visibility": "visible",
+    "pointerEvents": "none"
+  }
+}

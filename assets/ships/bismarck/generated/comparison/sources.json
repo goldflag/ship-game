@@ -3,17 +3,205 @@
   "configuration": "Bismarck, 24 May 1941; exterior at standard reference draft, not operational loading",
   "accessDate": "2026-09-05",
   "sources": [
-    {"id":"kb-dimensions","url":"https://www.kbismarck.com/genedata.html","document":"Technical characteristics, Dimensions table and footnote 2","dateConfiguration":"Bismarck 1941; standard and maximum load distinguished","units":"metres, metric tonnes","scale":"tabulated","datum":"keel to upper deck amidships; standard draft","confidence":"medium-high","status":"verified online; retained historical/genedata.html","supports":["250.50 m overall length","241.55 m waterline length","36.00 m beam","9.33 m standard draft","15 m midship depth"],"limits":"Waterplane area/coefficient arithmetic and load definitions are not a hull offset table. Not a builder drawing."},
-    {"id":"nhhc-1942","url":"https://www.history.navy.mil/content/history/nhhc/research/library/online-reading-room/title-list-alphabetically/s/sinking-of-the-bismarck/the-cruise-of-the-bismarck.html","document":"The Sinking of the Bismarck, Combat Narratives, 1942; opening paragraph","dateConfiguration":"May 1941 intelligence, published 1942","units":"feet","scale":"tabulated approximate intelligence","datum":"unspecified length; maximum beam","confidence":"medium for coarse independent cross-check","status":"verified online","supports":["approximately 118 ft beam"],"limits":"797 ft length is ambiguous and differs from overall length. Do not substitute it for the documented overall length or average it with other numbers."},
-    {"id":"kb-plan-24may","url":"https://www.kbismarck.com/24-may-drawing.html","document":"Manuel P. González López, Bismarck line drawings 24 May 1941, bsdraw24m.png","dateConfiguration":"24 May 1941 reconstruction","units":"metres on lower scale bar","scale":"raster; uniform scale registered from complete hull endpoints","datum":"depicted waterline/load unknown; keel registration used for vertical comparison","confidence":"medium for fit and external proportions","status":"original raster retained, including credit; crops and registration separately indexed","supports":["profile/plan proportions, bridge tiers, funnel, hangars and gunhouse silhouettes"],"limits":"Reconstruction, not an as-built plan. Linework and pixel measurements are not survey precision."},
-    {"id":"barch-profile","url":"https://www.bundesarchiv.de/im-archiv-recherchieren/archivgut-recherchieren/nach-themen/technische-zeichnungen-militaerischer-herkunft-bis-1945/","document":"BArch RM 25/231, image 0004; supplied profile excerpt","dateConfiguration":"Bismarck construction drawing; exact drawing revision unavailable in excerpt","units":"unreadable in crop","scale":"unscaled excerpt","datum":"Oberdeck, Batteriedeck, Panzerdeck visible","confidence":"high provenance; low fit/dimension applicability","status":"original supplied excerpt retained as historical/bundesarchiv-rm25-231-0004.jpg","supports":["independent structural deck order and bridge/funnel arrangement"],"limits":"Crop cuts off hull endpoints/title block; qualitative only, no forced metric overlay."},
-    {"id":"rmg-body","url":"https://www.rmg.co.uk/collections/objects/rmgc-object-533632","document":"National Maritime Museum NPO3614","dateConfiguration":"7 October 1941, Bismarck (1939)","units":"1:48; drawing size 454 × 3456 mm","scale":"catalogued 1:48","datum":"body plan and fore/aft sheer lines","confidence":"high catalogue provenance; geometry unreviewed","status":"catalogue verified; no downloadable scan exposed","supports":["original body-plan research lead"],"limits":"No offsets or lines extracted. Hull sections remain reconstructed until the full drawing can be reviewed."},
-    {"id":"rmg-platform","url":"https://www.rmg.co.uk/collections/objects/rmgc-object-44878","document":"Platform deck plan, NPA0920","dateConfiguration":"9 September 1941","units":"catalogued 1:192","scale":"1:192","datum":"platform deck","confidence":"high catalogue provenance; geometry unreviewed","status":"catalogue verified; full scan not acquired","supports":["original internal-layout research lead"],"limits":"Not used to assert exact compartment walls."},
-    {"id":"shiparchive-lines","url":"https://www.shiparchive.com/ships/bismarck/bismarck.php","document":"Bismarck 1941 lines plan description","dateConfiguration":"February 1941 recorded hull offsets, per publisher","units":"metres, published paper scales","scale":"paper plans; no PDFs offered","datum":"moulded offsets below armor, external offsets above","confidence":"promising technical reconstruction; underlying offsets not reviewed","status":"provenance claim verified; plans not acquired","supports":["distinction between Bismarck and Tirpitz hull form and moulded/external breadth"],"limits":"Not an input to numeric station reconstruction."},
-    {"id":"kb-protection","url":"https://www.kbismarck.com/proteccioni.html","document":"Protection sections; proteccion6.gif, proteccion7.gif, bs-armor.jpg, 380mmp.gif","dateConfiguration":"Bismarck technical reconstruction; updated 1 July 2019","units":"mm armor; metres and structural frame numbers","scale":"schematic; not assumed uniform","datum":"keel-relative armored deck 10.3 m; frame numbers increase forward","confidence":"medium-high thickness; medium layout","status":"page and original figures retained","supports":["separate belt, backing, decks, slopes, bulkheads, turret and barbette thickness families"],"limits":"Plate boundaries are reconstructed. Material names are descriptive; no empirical material penetration equivalence is claimed. Wood adds no steel penetration budget."},
-    {"id":"kb-propulsion","url":"https://www.kbismarck.com/propulsioni.html","document":"Boiler/turbine arrangement and propulsion2.gif; July 1940 drydock photo023.jpg","dateConfiguration":"1941 machinery arrangement; photograph predates final exterior fit","units":"room names and section numbers; photo unscaled","scale":"arrangement is schematic","datum":"sections VIII/X turbines, XI/XIII boilers","confidence":"high count/order, low exact envelopes","status":"verified and retained","supports":["six two-boiler rooms; three turbine rooms; three shafts; twin rudders"],"limits":"Room frame boundaries and box dimensions are estimated from arrangement proportions; explicit ±3 m longitudinal uncertainty."},
-    {"id":"kb-armament","url":"https://www.kbismarck.com/armament.html","document":"Main artillery, turret frames and armament inventory","dateConfiguration":"Bismarck May 1941","units":"cm, metres, structural frames","scale":"tabulated","datum":"frames 192.55, 174.35, 64.35, 46.15","confidence":"medium-high frames/counts","status":"verified and retained","supports":["main turret centres and twin 38 cm battery"],"limits":"Frame-to-overall-midpoint offset and gunhouse dimensions need original drawings."},
-    {"id":"admiralty-interrogation","url":"https://www.uboatarchive.net/Int/BismarckINT.htm","document":"C.B. 4051 (24), interrogation of Bismarck survivors, VII (2–3), pp. 27–30; Plate 1 listed","dateConfiguration":"May 1941 survivor account","units":"mixed cm/metres","scale":"narrative; Plate 1 unavailable in current transcription","datum":"watertight section names","confidence":"primary report, uneven witness reliability","status":"text reviewed through web reader; origin download returned HTTP 465","supports":["machinery sequencing and internal subdivision cross-check"],"limits":"Report itself warns of limited survivor knowledge; conflicting armor recollections are not preferred over documented technical reconstructions."},
-    {"id":"gm-pgsb708","url":"https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb708","document":"WoWS Bismarck '41, visual scheme and format-4 model endpoint","dateConfiguration":"WoWS EU 15.7.0.0; nominal 1941 fit, load state unknown","units":"viewer units; one global comparison registration","scale":"15 m per viewer unit for approximate 36 m beam; not historically verified","datum":"source Y=0 retained as game datum","confidence":"high identity, comparison only for historical features","status":"25 neutral captures in gamemodels3d/; hashed acquisition and capture manifest","supports":["qualitative external comparisons and discrepancy identification"],"limits":"Only raster outputs leave isolated reference stage. One empty propeller component. No source mesh, UV, texture, section or attachment transform is an authored geometry input."}
+    {
+      "id": "kb-dimensions",
+      "url": "https://www.kbismarck.com/genedata.html",
+      "document": "Technical characteristics, Dimensions table and footnote 2",
+      "dateConfiguration": "Bismarck 1941; standard and maximum load distinguished",
+      "units": "metres, metric tonnes",
+      "scale": "tabulated",
+      "datum": "keel to upper deck amidships; standard draft",
+      "confidence": "medium-high",
+      "status": "verified online; retained historical/genedata.html",
+      "supports": [
+        "250.50 m overall length",
+        "241.55 m waterline length",
+        "36.00 m beam",
+        "9.33 m standard draft",
+        "15 m midship depth"
+      ],
+      "limits": "Waterplane area/coefficient arithmetic and load definitions are not a hull offset table. Not a builder drawing."
+    },
+    {
+      "id": "nhhc-1942",
+      "url": "https://www.history.navy.mil/content/history/nhhc/research/library/online-reading-room/title-list-alphabetically/s/sinking-of-the-bismarck/the-cruise-of-the-bismarck.html",
+      "document": "The Sinking of the Bismarck, Combat Narratives, 1942; opening paragraph",
+      "dateConfiguration": "May 1941 intelligence, published 1942",
+      "units": "feet",
+      "scale": "tabulated approximate intelligence",
+      "datum": "unspecified length; maximum beam",
+      "confidence": "medium for coarse independent cross-check",
+      "status": "verified online",
+      "supports": [
+        "approximately 118 ft beam"
+      ],
+      "limits": "797 ft length is ambiguous and differs from overall length. Do not substitute it for the documented overall length or average it with other numbers."
+    },
+    {
+      "id": "kb-plan-24may",
+      "url": "https://www.kbismarck.com/24-may-drawing.html",
+      "document": "Manuel P. Gonz\u00e1lez L\u00f3pez, Bismarck line drawings 24 May 1941, bsdraw24m.png",
+      "dateConfiguration": "24 May 1941 reconstruction",
+      "units": "metres on lower scale bar",
+      "scale": "raster; uniform scale registered from complete hull endpoints",
+      "datum": "depicted waterline/load unknown; keel registration used for vertical comparison",
+      "confidence": "medium for fit and external proportions",
+      "status": "original raster retained, including credit; crops and registration separately indexed",
+      "supports": [
+        "profile/plan proportions, bridge tiers, funnel, hangars and gunhouse silhouettes"
+      ],
+      "limits": "Reconstruction, not an as-built plan. Linework and pixel measurements are not survey precision."
+    },
+    {
+      "id": "barch-profile",
+      "url": "https://www.bundesarchiv.de/im-archiv-recherchieren/archivgut-recherchieren/nach-themen/technische-zeichnungen-militaerischer-herkunft-bis-1945/",
+      "document": "BArch RM 25/231, image 0004; supplied profile excerpt",
+      "dateConfiguration": "Bismarck construction drawing; exact drawing revision unavailable in excerpt",
+      "units": "unreadable in crop",
+      "scale": "unscaled excerpt",
+      "datum": "Oberdeck, Batteriedeck, Panzerdeck visible",
+      "confidence": "high provenance; low fit/dimension applicability",
+      "status": "original supplied excerpt retained as historical/bundesarchiv-rm25-231-0004.jpg",
+      "supports": [
+        "independent structural deck order and bridge/funnel arrangement"
+      ],
+      "limits": "Crop cuts off hull endpoints/title block; qualitative only, no forced metric overlay."
+    },
+    {
+      "id": "rmg-body",
+      "url": "https://www.rmg.co.uk/collections/objects/rmgc-object-533632",
+      "document": "National Maritime Museum NPO3614",
+      "dateConfiguration": "7 October 1941, Bismarck (1939)",
+      "units": "1:48; drawing size 454 \u00d7 3456 mm",
+      "scale": "catalogued 1:48",
+      "datum": "body plan and fore/aft sheer lines",
+      "confidence": "high catalogue provenance; geometry unreviewed",
+      "status": "catalogue verified; no downloadable scan exposed",
+      "supports": [
+        "original body-plan research lead"
+      ],
+      "limits": "No offsets or lines extracted. Hull sections remain reconstructed until the full drawing can be reviewed."
+    },
+    {
+      "id": "rmg-platform",
+      "url": "https://www.rmg.co.uk/collections/objects/rmgc-object-44878",
+      "document": "Platform deck plan, NPA0920",
+      "dateConfiguration": "9 September 1941",
+      "units": "catalogued 1:192",
+      "scale": "1:192",
+      "datum": "platform deck",
+      "confidence": "high catalogue provenance; geometry unreviewed",
+      "status": "catalogue verified; full scan not acquired",
+      "supports": [
+        "original internal-layout research lead"
+      ],
+      "limits": "Not used to assert exact compartment walls."
+    },
+    {
+      "id": "shiparchive-lines",
+      "url": "https://www.shiparchive.com/ships/bismarck/bismarck.php",
+      "document": "Bismarck 1941 lines plan description",
+      "dateConfiguration": "February 1941 recorded hull offsets, per publisher",
+      "units": "metres, published paper scales",
+      "scale": "paper plans; no PDFs offered",
+      "datum": "moulded offsets below armor, external offsets above",
+      "confidence": "promising technical reconstruction; underlying offsets not reviewed",
+      "status": "provenance claim verified; plans not acquired",
+      "supports": [
+        "distinction between Bismarck and Tirpitz hull form and moulded/external breadth"
+      ],
+      "limits": "Not an input to numeric station reconstruction."
+    },
+    {
+      "id": "kb-protection",
+      "url": "https://www.kbismarck.com/proteccioni.html",
+      "document": "Protection sections; proteccion6.gif, proteccion7.gif, bs-armor.jpg, 380mmp.gif, 150mmp.gif",
+      "dateConfiguration": "Bismarck technical reconstruction; updated 1 July 2019",
+      "units": "mm armor; metres and structural frame numbers",
+      "scale": "schematic; not assumed uniform",
+      "datum": "keel-relative armored deck 10.3 m; frame numbers increase forward",
+      "confidence": "medium-high thickness; medium layout",
+      "status": "page and original figures retained",
+      "supports": [
+        "separate belt, backing, decks, slopes, bulkheads, turret and barbette thickness families",
+        "Secondary turret 80 mm face, 40 mm sides/rear, 20 mm rear roof and 35 mm forward slopes; facet boundaries reconstructed"
+      ],
+      "limits": "Plate boundaries are reconstructed. Material names are descriptive; no empirical material penetration equivalence is claimed. Wood adds no steel penetration budget."
+    },
+    {
+      "id": "kb-propulsion",
+      "url": "https://www.kbismarck.com/propulsioni.html",
+      "document": "Boiler/turbine arrangement and propulsion2.gif; July 1940 drydock photo023.jpg",
+      "dateConfiguration": "1941 machinery arrangement; photograph predates final exterior fit",
+      "units": "room names and section numbers; photo unscaled",
+      "scale": "arrangement is schematic",
+      "datum": "sections VIII/X turbines, XI/XIII boilers",
+      "confidence": "high count/order, low exact envelopes",
+      "status": "verified and retained",
+      "supports": [
+        "six two-boiler rooms; three turbine rooms; three shafts; twin rudders"
+      ],
+      "limits": "Room frame boundaries and box dimensions are estimated from arrangement proportions; explicit \u00b13 m longitudinal uncertainty."
+    },
+    {
+      "id": "kb-armament",
+      "url": "https://www.kbismarck.com/armament.html",
+      "document": "Main artillery, turret frames and armament inventory",
+      "dateConfiguration": "Bismarck May 1941",
+      "units": "cm, metres, structural frames",
+      "scale": "tabulated",
+      "datum": "frames 192.55, 174.35, 64.35, 46.15",
+      "confidence": "medium-high frames/counts",
+      "status": "verified and retained",
+      "supports": [
+        "main turret centres and twin 38 cm battery"
+      ],
+      "limits": "Frame-to-overall-midpoint offset and gunhouse dimensions need original drawings."
+    },
+    {
+      "id": "admiralty-interrogation",
+      "url": "https://www.uboatarchive.net/Int/BismarckINT.htm",
+      "document": "C.B. 4051 (24), interrogation of Bismarck survivors, VII (2\u20133), pp. 27\u201330; Plate 1 listed",
+      "dateConfiguration": "May 1941 survivor account",
+      "units": "mixed cm/metres",
+      "scale": "narrative; Plate 1 unavailable in current transcription",
+      "datum": "watertight section names",
+      "confidence": "primary report, uneven witness reliability",
+      "status": "text reviewed through web reader; origin download returned HTTP 465",
+      "supports": [
+        "machinery sequencing and internal subdivision cross-check"
+      ],
+      "limits": "Report itself warns of limited survivor knowledge; conflicting armor recollections are not preferred over documented technical reconstructions."
+    },
+    {
+      "id": "gm-pgsb708",
+      "url": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb708",
+      "document": "WoWS Bismarck '41, visual scheme and format-4 model endpoint",
+      "dateConfiguration": "WoWS EU 15.7.0.0; nominal 1941 fit, load state unknown",
+      "units": "viewer units; one global comparison registration",
+      "scale": "15 m per viewer unit for approximate 36 m beam; not historically verified",
+      "datum": "source Y=0 retained as game datum",
+      "confidence": "high identity, comparison only for historical features",
+      "status": "25 neutral captures in gamemodels3d/; hashed acquisition and capture manifest",
+      "supports": [
+        "qualitative external comparisons and discrepancy identification"
+      ],
+      "limits": "Only raster outputs leave isolated reference stage. One empty propeller component. No source mesh, UV, texture, section or attachment transform is an authored geometry input."
+    },
+    {
+      "id": "original-structure",
+      "url": "modeling-spec.json",
+      "document": "Original structural collision and nominal plating specification",
+      "dateConfiguration": "Independent 1941-03 gameplay model",
+      "units": "metres and millimetres",
+      "scale": "authored blueprint",
+      "datum": "shared standard-draft runtime coordinates",
+      "confidence": "gameplay estimate only",
+      "status": "blueprint surfaces shared by simulation and visual recipe",
+      "supports": [
+        "complete hull shell and major deckhouse/funnel hit surfaces"
+      ],
+      "limits": "20 mm hull and 8 mm superstructure plating are not a verified historical schedule. Small fittings, AA and masts remain visual details."
+    }
   ]
 }

@@ -1,0 +1,843 @@
+{
+  "schemaVersion": 1,
+  "id": "tbd-1-devastator",
+  "reference": {
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Douglas_TBD_Devastator_3-view.svg",
+    "imagePath": "assets/aircraft/references/schematics/tbd-1-devastator/commons-tbd.png",
+    "sourceTitle": "Douglas TBD Devastator three-view orthographic drawing, Kaboldy, 25 October 2011",
+    "variant": "Production TBD-1 with raised greenhouse canopy",
+    "license": "Reference only: Kaboldy, CC BY-SA 3.0 https://creativecommons.org/licenses/by-sa/3.0/; raster is unchanged conversion of retained original SVG. Sparse dimensional landmarks are factual measurements; independently constructed mesh topology.",
+    "notes": [
+      "Credited modern technical orthographic reference, not a factory drawing. Original SVG and an unchanged nominal raster are retained under source license.",
+      "Official NHHC Dictionary of American Naval Aviation Squadrons volume I page 511 confirms span 50 ft and length 35 ft; its original PDF now returns 404 and mirror 403 during acquisition, so it was not used as the measured raster.",
+      "Wing shape, long raised three-place greenhouse, very narrow tail fuselage and corrugated outer wing are measured or located from retained three-view. Small sections and extended gear geometry remain inferred."
+    ],
+    "registration": {
+      "imageSizePx": [
+        873,
+        1118
+      ],
+      "side": {
+        "boundsPx": [
+          279,
+          13,
+          862,
+          211
+        ],
+        "noseXPx": 860,
+        "tailXPx": 280,
+        "shaftYPx": 148,
+        "noseX": 860,
+        "tailX": 280,
+        "engineShaftY": 148,
+        "imagePath": "assets/aircraft/references/schematics/tbd-1-devastator/commons-tbd.png"
+      },
+      "top": {
+        "boundsPx": [
+          278,
+          292,
+          861,
+          1105
+        ],
+        "lengthAxis": "x",
+        "noseAxisPx": 860,
+        "tailAxisPx": 280,
+        "centerPx": 698,
+        "spanPx": 810,
+        "tailHalfSpanPx": 144
+      },
+      "front": {
+        "boundsPx": [
+          14,
+          292,
+          238,
+          1106
+        ],
+        "centerXPx": 146,
+        "shaftYPx": 698,
+        "note": "Front view is rotated 90 degrees: span runs vertically, height runs horizontally; main wing low at root with pronounced outer-panel dihedral."
+      },
+      "estimatedPickingTolerancePx": 2,
+      "registrationNote": "Original retained SVG rasterized at nominal size using MuPDF; geometric source paths are not imported. Top span and side length scales differ by 2.3 percent, registered independently.",
+      "plan": {
+        "noseX": 860,
+        "tailX": 280,
+        "centerY": 698,
+        "spanPx": 810,
+        "imagePath": "assets/aircraft/references/schematics/tbd-1-devastator/commons-tbd.png",
+        "sourceTransform": "identity"
+      }
+    }
+  },
+  "fuselage": [
+    [
+      0.03793,
+      0.54563,
+      -0.58869,
+      0.5519
+    ],
+    [
+      0.05345,
+      0.60207,
+      -0.64388,
+      0.60709
+    ],
+    [
+      0.08966,
+      0.62089,
+      -0.68067,
+      0.64388
+    ],
+    [
+      0.12069,
+      0.6397,
+      -0.73586,
+      0.66228
+    ],
+    [
+      0.18276,
+      0.65852,
+      -0.84624,
+      0.47831
+    ],
+    [
+      0.24138,
+      0.67733,
+      -0.93822,
+      0.47831
+    ],
+    [
+      0.31034,
+      0.65852,
+      -0.97502,
+      0.47831
+    ],
+    [
+      0.37931,
+      0.62089,
+      -0.91983,
+      0.47831
+    ],
+    [
+      0.46552,
+      0.56444,
+      -0.84624,
+      0.47831
+    ],
+    [
+      0.56897,
+      0.508,
+      -0.71747,
+      0.5151
+    ],
+    [
+      0.65517,
+      0.43274,
+      -0.5519,
+      0.5519
+    ],
+    [
+      0.74138,
+      0.33867,
+      -0.33114,
+      0.64388
+    ],
+    [
+      0.7931,
+      0.26341,
+      -0.20236,
+      0.71747
+    ],
+    [
+      0.84483,
+      0.18815,
+      -0.11038,
+      0.69907
+    ],
+    [
+      0.90517,
+      0.1317,
+      -0.03679,
+      0.64388
+    ],
+    [
+      0.96552,
+      0.09407,
+      0.11038,
+      0.58869
+    ],
+    [
+      0.99483,
+      0.02822,
+      0.31274,
+      0.49671
+    ]
+  ],
+  "wing": [
+    [
+      0.0,
+      0.23621,
+      0.6,
+      -0.63
+    ],
+    [
+      0.11111,
+      0.23621,
+      0.58793,
+      -0.63
+    ],
+    [
+      0.19753,
+      0.23793,
+      0.56379,
+      -0.63
+    ],
+    [
+      0.2963,
+      0.24483,
+      0.5431,
+      -0.61
+    ],
+    [
+      0.45679,
+      0.25172,
+      0.51724,
+      -0.39
+    ],
+    [
+      0.61728,
+      0.25862,
+      0.49138,
+      -0.15
+    ],
+    [
+      0.77778,
+      0.26897,
+      0.46207,
+      0.08
+    ],
+    [
+      0.90123,
+      0.27931,
+      0.43966,
+      0.25
+    ],
+    [
+      0.96543,
+      0.3,
+      0.41552,
+      0.35
+    ],
+    [
+      0.99012,
+      0.32069,
+      0.38966,
+      0.38
+    ],
+    [
+      1.0,
+      0.35,
+      0.35,
+      0.4
+    ]
+  ],
+  "horizontalTail": [
+    [
+      0.0,
+      0.77414,
+      0.92069,
+      0.59
+    ],
+    [
+      0.15278,
+      0.78793,
+      0.97241,
+      0.59
+    ],
+    [
+      0.41667,
+      0.81207,
+      0.96552,
+      0.59
+    ],
+    [
+      0.69444,
+      0.83793,
+      0.95862,
+      0.59
+    ],
+    [
+      0.875,
+      0.86207,
+      0.94483,
+      0.59
+    ],
+    [
+      0.97222,
+      0.88276,
+      0.92069,
+      0.59
+    ],
+    [
+      1.0,
+      0.90172,
+      0.90517,
+      0.59
+    ]
+  ],
+  "tailSpan": 5.41867,
+  "fin": [
+    [
+      0.78276,
+      0.73586
+    ],
+    [
+      0.80345,
+      0.79105
+    ],
+    [
+      0.82069,
+      0.91983
+    ],
+    [
+      0.84483,
+      1.21417
+    ],
+    [
+      0.87414,
+      1.80286
+    ],
+    [
+      0.9,
+      2.26278
+    ],
+    [
+      0.92586,
+      2.46514
+    ],
+    [
+      0.94655,
+      2.37316
+    ],
+    [
+      0.96552,
+      2.06041
+    ],
+    [
+      0.98448,
+      1.50852
+    ],
+    [
+      0.99655,
+      0.88303
+    ],
+    [
+      1.0,
+      0.49671
+    ],
+    [
+      0.99483,
+      0.31274
+    ],
+    [
+      0.98276,
+      0.16557
+    ],
+    [
+      0.94828,
+      0.05519
+    ],
+    [
+      0.90517,
+      -0.05519
+    ],
+    [
+      0.85862,
+      -0.12878
+    ]
+  ],
+  "canopy": [
+    [
+      0.18276,
+      0.1317,
+      0.49671,
+      0.66228
+    ],
+    [
+      0.21552,
+      0.35748,
+      0.49671,
+      0.86464
+    ],
+    [
+      0.25,
+      0.47037,
+      0.49671,
+      1.0486
+    ],
+    [
+      0.28103,
+      0.508,
+      0.49671,
+      1.19578
+    ],
+    [
+      0.30862,
+      0.508,
+      0.5151,
+      1.25097
+    ],
+    [
+      0.35345,
+      0.48919,
+      0.5151,
+      1.17738
+    ],
+    [
+      0.41034,
+      0.47037,
+      0.5151,
+      1.10379
+    ],
+    [
+      0.46207,
+      0.47037,
+      0.5151,
+      0.99341
+    ],
+    [
+      0.51724,
+      0.45156,
+      0.5151,
+      0.91983
+    ],
+    [
+      0.56379,
+      0.45156,
+      0.5335,
+      0.82784
+    ],
+    [
+      0.56897,
+      0.43274,
+      0.5335,
+      0.5519
+    ]
+  ],
+  "cowling": {
+    "frontU": 0.03793,
+    "rearU": 0.12069,
+    "radiusM": 0.66
+  },
+  "propeller": {
+    "u": 0.02414,
+    "radiusM": 1.6,
+    "blades": 3,
+    "spinnerLengthM": 0.25
+  },
+  "gear": {
+    "mainU": 0.28103,
+    "trackM": 3.1,
+    "wheelRadiusM": 0.368,
+    "wheelZM": -1.87645,
+    "tailU": 0.90172,
+    "tailWheelZM": -0.34953
+  },
+  "extras": {
+    "seatUs": [
+      0.31,
+      0.414,
+      0.535
+    ],
+    "canopyFrames": 10,
+    "wingFoldSpanFraction": 0.295,
+    "wingCorrugations": {
+      "outerSpanFraction": 0.3,
+      "endSpanFraction": 0.96,
+      "pitchM": 0.056,
+      "depthM": 0.008,
+      "direction": "chordwise"
+    },
+    "wingSection": {
+      "root": "NACA 22 family, inferred thickness",
+      "tip": "NACA 22 family, inferred thickness"
+    },
+    "rearGun": {
+      "u": 0.56,
+      "baseZM": 0.6,
+      "barrelLengthM": 0.7
+    },
+    "torpedoCrutch": {
+      "frontU": 0.31,
+      "rearU": 0.65,
+      "semiRecessed": true
+    },
+    "gearNote": "Semi-retractable wheels remain partly exposed when retracted; extended depiction uses main underwing yoke rather than generic vertical fuselage gear.",
+    "telescopicSight": {
+      "frontU": 0.165,
+      "rearU": 0.29,
+      "heightM": 0.19
+    }
+  },
+  "measurement": {
+    "method": "Manual original raster pixel landmarks registered independently in top, side and front views. Linear metric conversion; intervening sections inferred.",
+    "lengthM": 10.67,
+    "wingspanM": 15.24,
+    "sideMetersPerPixel": 0.0184,
+    "topSpanMetersPerPixel": 0.01881,
+    "rawFuselagePixels": [
+      [
+        838,
+        29,
+        180,
+        118
+      ],
+      [
+        829,
+        32,
+        183,
+        115
+      ],
+      [
+        808,
+        33,
+        185,
+        113
+      ],
+      [
+        790,
+        34,
+        188,
+        112
+      ],
+      [
+        754,
+        35,
+        194,
+        122
+      ],
+      [
+        720,
+        36,
+        199,
+        122
+      ],
+      [
+        680,
+        35,
+        201,
+        122
+      ],
+      [
+        640,
+        33,
+        198,
+        122
+      ],
+      [
+        590,
+        30,
+        194,
+        122
+      ],
+      [
+        530,
+        27,
+        187,
+        120
+      ],
+      [
+        480,
+        23,
+        178,
+        118
+      ],
+      [
+        430,
+        18,
+        166,
+        113
+      ],
+      [
+        400,
+        14,
+        159,
+        109
+      ],
+      [
+        370,
+        10,
+        154,
+        110
+      ],
+      [
+        335,
+        7,
+        150,
+        113
+      ],
+      [
+        300,
+        5,
+        142,
+        116
+      ],
+      [
+        283,
+        1.5,
+        131,
+        121
+      ]
+    ],
+    "rawWingPixels": [
+      [
+        0,
+        723,
+        512,
+        -0.63
+      ],
+      [
+        45,
+        723,
+        519,
+        -0.63
+      ],
+      [
+        80,
+        722,
+        533,
+        -0.63
+      ],
+      [
+        120,
+        718,
+        545,
+        -0.61
+      ],
+      [
+        185,
+        714,
+        560,
+        -0.39
+      ],
+      [
+        250,
+        710,
+        575,
+        -0.15
+      ],
+      [
+        315,
+        704,
+        592,
+        0.08
+      ],
+      [
+        365,
+        698,
+        605,
+        0.25
+      ],
+      [
+        391,
+        686,
+        619,
+        0.35
+      ],
+      [
+        401,
+        674,
+        634,
+        0.38
+      ],
+      [
+        405,
+        657,
+        657,
+        0.4
+      ]
+    ],
+    "rawTailPixels": [
+      [
+        0,
+        411,
+        326,
+        0.59
+      ],
+      [
+        22,
+        403,
+        296,
+        0.59
+      ],
+      [
+        60,
+        389,
+        300,
+        0.59
+      ],
+      [
+        100,
+        374,
+        304,
+        0.59
+      ],
+      [
+        126,
+        360,
+        312,
+        0.59
+      ],
+      [
+        140,
+        348,
+        326,
+        0.59
+      ],
+      [
+        144,
+        337,
+        335,
+        0.59
+      ]
+    ],
+    "rawFinPixels": [
+      [
+        406,
+        108
+      ],
+      [
+        394,
+        105
+      ],
+      [
+        384,
+        98
+      ],
+      [
+        370,
+        82
+      ],
+      [
+        353,
+        50
+      ],
+      [
+        338,
+        25
+      ],
+      [
+        323,
+        14
+      ],
+      [
+        311,
+        19
+      ],
+      [
+        300,
+        36
+      ],
+      [
+        289,
+        66
+      ],
+      [
+        282,
+        100
+      ],
+      [
+        280,
+        121
+      ],
+      [
+        283,
+        131
+      ],
+      [
+        290,
+        139
+      ],
+      [
+        310,
+        145
+      ],
+      [
+        335,
+        151
+      ],
+      [
+        362,
+        155
+      ]
+    ],
+    "rawCanopyPixels": [
+      [
+        754,
+        7,
+        121,
+        112
+      ],
+      [
+        735,
+        19,
+        121,
+        101
+      ],
+      [
+        715,
+        25,
+        121,
+        91
+      ],
+      [
+        697,
+        27,
+        121,
+        83
+      ],
+      [
+        681,
+        27,
+        120,
+        80
+      ],
+      [
+        655,
+        26,
+        120,
+        84
+      ],
+      [
+        622,
+        25,
+        120,
+        88
+      ],
+      [
+        592,
+        25,
+        120,
+        94
+      ],
+      [
+        560,
+        24,
+        120,
+        98
+      ],
+      [
+        533,
+        24,
+        119,
+        103
+      ],
+      [
+        530,
+        23,
+        119,
+        118
+      ]
+    ]
+  }
+}

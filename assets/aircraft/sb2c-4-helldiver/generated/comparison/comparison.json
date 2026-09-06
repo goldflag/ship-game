@@ -1,0 +1,394 @@
+{
+  "schemaVersion": 1,
+  "aircraftId": "sb2c-4-helldiver",
+  "method": "Independent GLB binary vertices/indices plus composed scene transforms projected onto the retained original drawing. No fitting to the model, Blender scene, or review render camera.",
+  "status": "ready for visual review",
+  "historicalAccuracy": "Not certified. Export residuals verify interpretation of sampled drawing landmarks; drawings, hidden sections, and variant differences retain their source limitations.",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Curtiss_SB2C_Helldiver_BuAer_3_side_view.jpg",
+  "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+  "expectedContentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+  "glbSha256": "35fe47786e6894fec6912a96877c0c69914bc8b97f3e116331278ab3e712737c",
+  "shapeSha256": "416879dbe2021070e356179db0258194b10410f3ed1a15a957fb0e45d35d7d64",
+  "comparatorSha256": "135f7901baf3b1115777a354e91b6b5c178e3249938b6d2623eb9ceee950c3df",
+  "axes": "meters, source +X nose +Y port +Z up; source=(-runtimeZ,-runtimeX,runtimeY)",
+  "boundsM": [
+    [
+      -5.59,
+      -7.58,
+      -1.801653
+    ],
+    [
+      5.599694,
+      7.58,
+      3.202066
+    ]
+  ],
+  "measured": {
+    "lengthM": 11.189694,
+    "wingspanM": 15.16,
+    "heightM": 5.003719,
+    "triangles": 38429,
+    "meshes": 16,
+    "wingStationMaxAbsErrorM": 0.029234
+  },
+  "drawingExpected": {
+    "lengthM": 11.18,
+    "wingspanM": 15.16
+  },
+  "wingStations": [
+    {
+      "halfSpanFraction": 0.55,
+      "side": "port",
+      "expectedSourceXM": {
+        "leading": 2.666765,
+        "trailing": 0.040239
+      },
+      "actualSourceXM": {
+        "leading": 2.666766,
+        "trailing": 0.042618
+      },
+      "errorM": {
+        "leading": 0.0,
+        "trailing": 0.002379
+      }
+    },
+    {
+      "halfSpanFraction": 0.55,
+      "side": "starboard",
+      "expectedSourceXM": {
+        "leading": 2.666765,
+        "trailing": 0.040239
+      },
+      "actualSourceXM": {
+        "leading": 2.666765,
+        "trailing": 0.042617
+      },
+      "errorM": {
+        "leading": -0.0,
+        "trailing": 0.002378
+      }
+    },
+    {
+      "halfSpanFraction": 0.7,
+      "side": "port",
+      "expectedSourceXM": {
+        "leading": 2.666765,
+        "trailing": 0.308912
+      },
+      "actualSourceXM": {
+        "leading": 2.666766,
+        "trailing": 0.301901
+      },
+      "errorM": {
+        "leading": 1e-06,
+        "trailing": -0.007011
+      }
+    },
+    {
+      "halfSpanFraction": 0.7,
+      "side": "starboard",
+      "expectedSourceXM": {
+        "leading": 2.666765,
+        "trailing": 0.308912
+      },
+      "actualSourceXM": {
+        "leading": 2.666765,
+        "trailing": 0.3019
+      },
+      "errorM": {
+        "leading": -0.0,
+        "trailing": -0.007012
+      }
+    },
+    {
+      "halfSpanFraction": 0.85,
+      "side": "port",
+      "expectedSourceXM": {
+        "leading": 2.666765,
+        "trailing": 0.62908
+      },
+      "actualSourceXM": {
+        "leading": 2.666766,
+        "trailing": 0.608427
+      },
+      "errorM": {
+        "leading": 1e-06,
+        "trailing": -0.020653
+      }
+    },
+    {
+      "halfSpanFraction": 0.85,
+      "side": "starboard",
+      "expectedSourceXM": {
+        "leading": 2.666765,
+        "trailing": 0.62908
+      },
+      "actualSourceXM": {
+        "leading": 2.666765,
+        "trailing": 0.608426
+      },
+      "errorM": {
+        "leading": -0.0,
+        "trailing": -0.020654
+      }
+    },
+    {
+      "halfSpanFraction": 0.95,
+      "side": "port",
+      "expectedSourceXM": {
+        "leading": 2.553962,
+        "trailing": 1.032531
+      },
+      "actualSourceXM": {
+        "leading": 2.568977,
+        "trailing": 1.003299
+      },
+      "errorM": {
+        "leading": 0.015015,
+        "trailing": -0.029233
+      }
+    },
+    {
+      "halfSpanFraction": 0.95,
+      "side": "starboard",
+      "expectedSourceXM": {
+        "leading": 2.553962,
+        "trailing": 1.032531
+      },
+      "actualSourceXM": {
+        "leading": 2.568976,
+        "trailing": 1.003298
+      },
+      "errorM": {
+        "leading": 0.015014,
+        "trailing": -0.029234
+      }
+    }
+  ],
+  "wingSectionHeights": [
+    {
+      "halfSpanFraction": 0.18,
+      "side": "port",
+      "chordFraction": 0.3,
+      "sourceXM": 1.647563,
+      "drawingWingDatumZM": -0.384094,
+      "actualBottomTopZM": [
+        -0.530124,
+        -0.139674
+      ],
+      "actualMidSurfaceZM": -0.334899,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.18,
+      "side": "starboard",
+      "chordFraction": 0.3,
+      "sourceXM": 1.647563,
+      "drawingWingDatumZM": -0.384094,
+      "actualBottomTopZM": [
+        -0.530124,
+        -0.139674
+      ],
+      "actualMidSurfaceZM": -0.334899,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.36,
+      "side": "port",
+      "chordFraction": 0.3,
+      "sourceXM": 1.767153,
+      "drawingWingDatumZM": -0.256431,
+      "actualBottomTopZM": [
+        -0.38423,
+        -0.041958
+      ],
+      "actualMidSurfaceZM": -0.213094,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.36,
+      "side": "starboard",
+      "chordFraction": 0.3,
+      "sourceXM": 1.767153,
+      "drawingWingDatumZM": -0.256431,
+      "actualBottomTopZM": [
+        -0.38423,
+        -0.041958
+      ],
+      "actualMidSurfaceZM": -0.213094,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.55,
+      "side": "port",
+      "chordFraction": 0.3,
+      "sourceXM": 1.878808,
+      "drawingWingDatumZM": -0.117998,
+      "actualBottomTopZM": [
+        -0.230018,
+        0.069931
+      ],
+      "actualMidSurfaceZM": -0.080043,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.55,
+      "side": "starboard",
+      "chordFraction": 0.3,
+      "sourceXM": 1.878808,
+      "drawingWingDatumZM": -0.117998,
+      "actualBottomTopZM": [
+        -0.230018,
+        0.069931
+      ],
+      "actualMidSurfaceZM": -0.080043,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.75,
+      "side": "port",
+      "chordFraction": 0.3,
+      "sourceXM": 1.986731,
+      "drawingWingDatumZM": 0.042003,
+      "actualBottomTopZM": [
+        -0.055087,
+        0.204667
+      ],
+      "actualMidSurfaceZM": 0.07479,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.75,
+      "side": "starboard",
+      "chordFraction": 0.3,
+      "sourceXM": 1.986731,
+      "drawingWingDatumZM": 0.042003,
+      "actualBottomTopZM": [
+        -0.055087,
+        0.204667
+      ],
+      "actualMidSurfaceZM": 0.07479,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.95,
+      "side": "port",
+      "chordFraction": 0.3,
+      "sourceXM": 2.097533,
+      "drawingWingDatumZM": 0.206663,
+      "actualBottomTopZM": [
+        0.140415,
+        0.318215
+      ],
+      "actualMidSurfaceZM": 0.229315,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.95,
+      "side": "starboard",
+      "chordFraction": 0.3,
+      "sourceXM": 2.097533,
+      "drawingWingDatumZM": 0.206663,
+      "actualBottomTopZM": [
+        0.140415,
+        0.318215
+      ],
+      "actualMidSurfaceZM": 0.229315,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    }
+  ],
+  "views": {
+    "side": {
+      "referenceCropPx": [
+        51,
+        398,
+        288,
+        515
+      ],
+      "overlayDisplayScale": 2,
+      "overlayHeaderHeightPx": 52,
+      "projectionMatrixSourceToPixel": [
+        [
+          -19.499106,
+          0.0,
+          0.0,
+          169.0
+        ],
+        [
+          0.0,
+          0.0,
+          -19.499106,
+          470.0
+        ]
+      ],
+      "triangleCount": 38429,
+      "projectedBoundsPx": [
+        [
+          59.0,
+          406.0
+        ],
+        [
+          279.0,
+          506.0
+        ]
+      ],
+      "files": {
+        "overlay": "assets/aircraft/sb2c-4-helldiver/generated/comparison/side-overlay.png",
+        "reference": "assets/aircraft/sb2c-4-helldiver/generated/comparison/side-reference.png",
+        "silhouette": "assets/aircraft/sb2c-4-helldiver/generated/comparison/side-silhouette.png"
+      },
+      "sourceImage": "assets/aircraft/references/schematics/sb2c-4-helldiver/buaer-sb2c-5.jpg",
+      "sourceImageSha256": "c7a846c2eb7d9e942f0dc7c05216b84ca1de9fae390c9f7e73649c9e9818a1b8",
+      "sourceImageTransform": "identity"
+    },
+    "top": {
+      "referenceCropPx": [
+        10,
+        5,
+        324,
+        243
+      ],
+      "overlayDisplayScale": 2,
+      "overlayHeaderHeightPx": 52,
+      "projectionMatrixSourceToPixel": [
+        [
+          0.0,
+          19.525066,
+          0.0,
+          167.0
+        ],
+        [
+          19.499106,
+          0.0,
+          0.0,
+          123.0
+        ]
+      ],
+      "triangleCount": 38429,
+      "projectedBoundsPx": [
+        [
+          18.0,
+          13.0
+        ],
+        [
+          315.0,
+          234.0
+        ]
+      ],
+      "files": {
+        "overlay": "assets/aircraft/sb2c-4-helldiver/generated/comparison/top-overlay.png",
+        "reference": "assets/aircraft/sb2c-4-helldiver/generated/comparison/top-reference.png",
+        "silhouette": "assets/aircraft/sb2c-4-helldiver/generated/comparison/top-silhouette.png"
+      },
+      "sourceImage": "assets/aircraft/references/schematics/sb2c-4-helldiver/buaer-sb2c-5.jpg",
+      "sourceImageSha256": "c7a846c2eb7d9e942f0dc7c05216b84ca1de9fae390c9f7e73649c9e9818a1b8",
+      "sourceImageTransform": "identity"
+    }
+  },
+  "limitations": [
+    "BuAer sheet is genuine but only 354 \u00d7 543 px; broad proportions are measured and small features require subsequent high-resolution maintenance-drawing corroboration.",
+    "Main wing has almost straight leading edge, strongly tapered trailing edge and full dihedral. Tall round-topped fin/rudder and deep bomb-bay fuselage distinguish the type.",
+    "Retained source explicitly notes four-blade 12 ft 2 in propeller for SB2C-3,4,5; main illustration uses earlier three-blade propeller. Recipe uses four blades.",
+    "SB2C-4 perforated dive-brake details, panel seams and canopy framing are reconstructed; factory sections not available."
+  ]
+}

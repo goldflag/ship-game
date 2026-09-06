@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-  "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f",
+  "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+  "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a",
   "capturePlanSha256": "73996c662ab2075cd4f8afca0eab04ebc7ba7359b699d3d604f073c64edd3319",
   "captures": [
     {
@@ -24,7 +24,7 @@
       "visibility": "all",
       "projection": "ORTHO",
       "image": "starboard.png",
-      "imageSha256": "11c4ddb5f7ccf55acb32c9b178ebedab6516c3f11587a1912c4158272c4b2004",
+      "imageSha256": "844a3ffc41d9ffee996e79956d4548a18045545905d8ddc17686b8847e06919f",
       "cameraMatrixWorld": [
         [
           1.0,
@@ -55,8 +55,8 @@
       "pixelsPerMeter": 7.857142857142857,
       "source": {
         "id": "bismarck",
-        "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-        "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f"
+        "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+        "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a"
       },
       "material": "neutral texture-free clay; no source UVs or textures loaded",
       "axes": "Blender +X bow, +Y port, +Z up",
@@ -82,7 +82,7 @@
       "visibility": "all",
       "projection": "ORTHO",
       "image": "port.png",
-      "imageSha256": "9178e9366b902dfd5de020d138a953b83a2840d57684964fa5218b6ec38b3aa4",
+      "imageSha256": "aad1275aea11dc4aae7c13621e71fedf1fd8352d5d529604ab9f783802808a08",
       "cameraMatrixWorld": [
         [
           -1.0,
@@ -113,8 +113,8 @@
       "pixelsPerMeter": 7.857142857142857,
       "source": {
         "id": "bismarck",
-        "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-        "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f"
+        "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+        "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a"
       },
       "material": "neutral texture-free clay; no source UVs or textures loaded",
       "axes": "Blender +X bow, +Y port, +Z up",
@@ -145,7 +145,7 @@
         0
       ],
       "image": "top.png",
-      "imageSha256": "b50757b6a8b82424228c331d333ddf303ac26157219e452a31c2ec346c0a2ea7",
+      "imageSha256": "8e57b416ca4dc9527a22e4be2d2d849f6a5604f2def70c29ef3143fe6aace720",
       "cameraMatrixWorld": [
         [
           1.0,
@@ -176,8 +176,8 @@
       "pixelsPerMeter": 7.857142857142857,
       "source": {
         "id": "bismarck",
-        "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-        "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f"
+        "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+        "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a"
       },
       "material": "neutral texture-free clay; no source UVs or textures loaded",
       "axes": "Blender +X bow, +Y port, +Z up",
@@ -203,7 +203,7 @@
       "visibility": "all",
       "projection": "ORTHO",
       "image": "bow.png",
-      "imageSha256": "c285cdf4caa97a2abf7084d2785fe484eb66dd59b6cac6411af245ececce6cd2",
+      "imageSha256": "8c40ceb199cb13eb3b91146465c555e0faaa27e898b60d4ebd888d7f210c1cd8",
       "cameraMatrixWorld": [
         [
           -4.371138828673793e-08,
@@ -234,8 +234,8 @@
       "pixelsPerMeter": 16.25,
       "source": {
         "id": "bismarck",
-        "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-        "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f"
+        "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+        "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a"
       },
       "material": "neutral texture-free clay; no source UVs or textures loaded",
       "axes": "Blender +X bow, +Y port, +Z up",
@@ -261,7 +261,7 @@
       "visibility": "all",
       "projection": "ORTHO",
       "image": "stern.png",
-      "imageSha256": "aa3ad795cce2e3b8798c23dde811c5dad964011cf7a78510171bf4d7e0abfd99",
+      "imageSha256": "877f1553830ade73c477f23ba1d9e9cf6d3101852f83eb577e2b4892d23e2baa",
       "cameraMatrixWorld": [
         [
           -4.371138828673793e-08,
@@ -292,8 +292,8 @@
       "pixelsPerMeter": 16.25,
       "source": {
         "id": "bismarck",
-        "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-        "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f"
+        "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+        "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a"
       },
       "material": "neutral texture-free clay; no source UVs or textures loaded",
       "axes": "Blender +X bow, +Y port, +Z up",
@@ -319,7 +319,7 @@
       "visibility": "all",
       "projection": "ORTHO",
       "image": "underside.png",
-      "imageSha256": "bbc78242af668adbac8f141518d3b74efb6dcd2c56e9520296eba107d57eef59",
+      "imageSha256": "b69ea265bf352c3b1b08e55f3d1fdd165c7bac79445c35bf704b9780cdf2ba90",
       "cameraMatrixWorld": [
         [
           1.0,
@@ -350,8 +350,8 @@
       "pixelsPerMeter": 7.857142857142857,
       "source": {
         "id": "bismarck",
-        "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-        "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f"
+        "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+        "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a"
       },
       "material": "neutral texture-free clay; no source UVs or textures loaded",
       "axes": "Blender +X bow, +Y port, +Z up",
@@ -377,7 +377,7 @@
       "visibility": "all",
       "projection": "ORTHO",
       "image": "quarter-bow.png",
-      "imageSha256": "c5eff76bb7ce62f9ba17cac9270b57d0b0b9732881e4d94f43fec2bf59e867d5",
+      "imageSha256": "c394e07e75a728a2e4b9f2e23765e16c34beb2183ae43f718be50ca60613e22b",
       "cameraMatrixWorld": [
         [
           0.7936063408851624,
@@ -408,8 +408,8 @@
       "pixelsPerMeter": 7.586206896551724,
       "source": {
         "id": "bismarck",
-        "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-        "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f"
+        "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+        "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a"
       },
       "material": "neutral texture-free clay; no source UVs or textures loaded",
       "axes": "Blender +X bow, +Y port, +Z up",
@@ -435,7 +435,7 @@
       "visibility": "all",
       "projection": "ORTHO",
       "image": "quarter-stern.png",
-      "imageSha256": "83851779ef0c57deb23ed092417960ca0f42f86054a748b5d31012f066a4edde",
+      "imageSha256": "ac45a2dfa718aba90fd3e3d0e1c33356dbffeea18b429fbabe2814050c7ab857",
       "cameraMatrixWorld": [
         [
           0.7808688282966614,
@@ -466,8 +466,8 @@
       "pixelsPerMeter": 7.586206896551724,
       "source": {
         "id": "bismarck",
-        "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-        "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f"
+        "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+        "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a"
       },
       "material": "neutral texture-free clay; no source UVs or textures loaded",
       "axes": "Blender +X bow, +Y port, +Z up",
@@ -493,7 +493,7 @@
       "visibility": "all",
       "projection": "PERSP",
       "image": "perspective.png",
-      "imageSha256": "c9471a25f89feb25981a1f3ab64c34b9051fd5c00c9775766dce1b891953e308",
+      "imageSha256": "84d1c7b3d93e7b2b722d8849f7678740a2e7f483e1fa1d2c91dae6ecca8ac9d0",
       "cameraMatrixWorld": [
         [
           0.7682212591171265,
@@ -524,8 +524,8 @@
       "pixelsPerMeter": null,
       "source": {
         "id": "bismarck",
-        "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-        "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f"
+        "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+        "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a"
       },
       "material": "neutral texture-free clay; no source UVs or textures loaded",
       "axes": "Blender +X bow, +Y port, +Z up",
@@ -551,7 +551,7 @@
       "visibility": "all",
       "projection": "ORTHO",
       "image": "bow-flare.png",
-      "imageSha256": "684128154fdcbe70e149531bfb876fde242e4e74f4f73807af62ba835607ec73",
+      "imageSha256": "97d783536b45be93962ba3de17684517db404db95f3fcc0dd6e2db9647663fc9",
       "cameraMatrixWorld": [
         [
           1.0,
@@ -582,8 +582,8 @@
       "pixelsPerMeter": 38.095238095238095,
       "source": {
         "id": "bismarck",
-        "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-        "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f"
+        "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+        "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a"
       },
       "material": "neutral texture-free clay; no source UVs or textures loaded",
       "axes": "Blender +X bow, +Y port, +Z up",
@@ -609,7 +609,7 @@
       "visibility": "all",
       "projection": "ORTHO",
       "image": "stern-curvature.png",
-      "imageSha256": "e070b4eaf5cd8222efd578770327fedbe1ec2ec0119c8d9b4b26efb401a6eb3b",
+      "imageSha256": "f87817ed29663298ba64e25fd982437988ee6d9e7a7e192d4e61ef06520c0178",
       "cameraMatrixWorld": [
         [
           1.0,
@@ -640,8 +640,8 @@
       "pixelsPerMeter": 33.333333333333336,
       "source": {
         "id": "bismarck",
-        "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-        "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f"
+        "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+        "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a"
       },
       "material": "neutral texture-free clay; no source UVs or textures loaded",
       "axes": "Blender +X bow, +Y port, +Z up",
@@ -667,7 +667,7 @@
       "visibility": "all",
       "projection": "ORTHO",
       "image": "deck-sheer.png",
-      "imageSha256": "d5ea73949aadca1d9ae2dd6b846d7bd2cea880e341615544fdb4ddcd9bce6820",
+      "imageSha256": "8ae97866a2634cf76884a99556a34b9383af46ce63ba94f6334ee82242164ac4",
       "cameraMatrixWorld": [
         [
           1.0,
@@ -698,8 +698,8 @@
       "pixelsPerMeter": 18.823529411764707,
       "source": {
         "id": "bismarck",
-        "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-        "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f"
+        "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+        "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a"
       },
       "material": "neutral texture-free clay; no source UVs or textures loaded",
       "axes": "Blender +X bow, +Y port, +Z up",
@@ -725,7 +725,7 @@
       "visibility": "all",
       "projection": "ORTHO",
       "image": "bilge-keels.png",
-      "imageSha256": "ee2a27d10957a67c62a0774dfc221b657e7302b27f71bb6dbfc3d6ecf7d4abca",
+      "imageSha256": "124c0fded3688e155a1dbae52a42caa6f8c6320cfcf42f70881d624590f77a1e",
       "cameraMatrixWorld": [
         [
           1.0,
@@ -756,8 +756,8 @@
       "pixelsPerMeter": 17.77777777777778,
       "source": {
         "id": "bismarck",
-        "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-        "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f"
+        "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+        "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a"
       },
       "material": "neutral texture-free clay; no source UVs or textures loaded",
       "axes": "Blender +X bow, +Y port, +Z up",
@@ -783,7 +783,7 @@
       "visibility": "all",
       "projection": "ORTHO",
       "image": "anton.png",
-      "imageSha256": "82ee67abcd713801a6e645a6b7850e582b54ce6599545054874961e7f6f970a0",
+      "imageSha256": "fa947b43a89c61a6cb563b451eaf44215baa04238e1266e12089fa94dbef48fb",
       "cameraMatrixWorld": [
         [
           1.0,
@@ -814,8 +814,8 @@
       "pixelsPerMeter": 47.05882352941177,
       "source": {
         "id": "bismarck",
-        "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-        "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f"
+        "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+        "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a"
       },
       "material": "neutral texture-free clay; no source UVs or textures loaded",
       "axes": "Blender +X bow, +Y port, +Z up",
@@ -841,7 +841,7 @@
       "visibility": "all",
       "projection": "ORTHO",
       "image": "bruno.png",
-      "imageSha256": "40248a28ff1fdfc098c7d07667622c3513155acd8b5a025462581e79bdb5d4b4",
+      "imageSha256": "3f03e201451b6783f5f23ed5b6b9dc715d22a5bff0c097b089d46245f79a51fe",
       "cameraMatrixWorld": [
         [
           1.0,
@@ -872,8 +872,8 @@
       "pixelsPerMeter": 47.05882352941177,
       "source": {
         "id": "bismarck",
-        "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-        "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f"
+        "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+        "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a"
       },
       "material": "neutral texture-free clay; no source UVs or textures loaded",
       "axes": "Blender +X bow, +Y port, +Z up",
@@ -899,7 +899,7 @@
       "visibility": "all",
       "projection": "ORTHO",
       "image": "caesar.png",
-      "imageSha256": "945ecb3ab641d9228b895ac050ab3e81560fd89090c0816eda2f431bbcfbf298",
+      "imageSha256": "a5737fbe9d9736cb7da44c9dea66ba7ac9f8b04553522610de0c32f7515cc185",
       "cameraMatrixWorld": [
         [
           1.0,
@@ -930,8 +930,8 @@
       "pixelsPerMeter": 47.05882352941177,
       "source": {
         "id": "bismarck",
-        "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-        "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f"
+        "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+        "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a"
       },
       "material": "neutral texture-free clay; no source UVs or textures loaded",
       "axes": "Blender +X bow, +Y port, +Z up",
@@ -957,7 +957,7 @@
       "visibility": "all",
       "projection": "ORTHO",
       "image": "dora.png",
-      "imageSha256": "eb43e290dd8111b8d6369b3dc92c95b80789a31e84b5201be9b2ce2da7c0bf74",
+      "imageSha256": "7474b4a82063fd72f639347e5613936a49ec72b44c4d15c6359b3025abf1a678",
       "cameraMatrixWorld": [
         [
           1.0,
@@ -988,8 +988,8 @@
       "pixelsPerMeter": 47.05882352941177,
       "source": {
         "id": "bismarck",
-        "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-        "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f"
+        "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+        "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a"
       },
       "material": "neutral texture-free clay; no source UVs or textures loaded",
       "axes": "Blender +X bow, +Y port, +Z up",
@@ -1015,7 +1015,7 @@
       "visibility": "all",
       "projection": "ORTHO",
       "image": "bridge.png",
-      "imageSha256": "7395f32a1bbb0e16c67a431d39465f98786083741f3f3f112fade2a27123eb93",
+      "imageSha256": "14129a53e140f139cc9a79496795ee219d72e98138a7ad2e0e73c6393d373c73",
       "cameraMatrixWorld": [
         [
           1.0,
@@ -1046,8 +1046,8 @@
       "pixelsPerMeter": 33.333333333333336,
       "source": {
         "id": "bismarck",
-        "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-        "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f"
+        "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+        "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a"
       },
       "material": "neutral texture-free clay; no source UVs or textures loaded",
       "axes": "Blender +X bow, +Y port, +Z up",
@@ -1073,7 +1073,7 @@
       "visibility": "all",
       "projection": "ORTHO",
       "image": "funnel.png",
-      "imageSha256": "c772dcc99c49def419027f7f5176a1b1cf5d829ab542cf69337b0877793e4493",
+      "imageSha256": "07c8139c1f374050bc9807ba9c897e154916e1af578b9ab2b34fa27f2abd766d",
       "cameraMatrixWorld": [
         [
           1.0,
@@ -1104,8 +1104,8 @@
       "pixelsPerMeter": 42.10526315789474,
       "source": {
         "id": "bismarck",
-        "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-        "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f"
+        "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+        "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a"
       },
       "material": "neutral texture-free clay; no source UVs or textures loaded",
       "axes": "Blender +X bow, +Y port, +Z up",
@@ -1131,7 +1131,7 @@
       "visibility": "all",
       "projection": "ORTHO",
       "image": "hangar.png",
-      "imageSha256": "d1933b761cb8ce86e57aac791d3121ed49f93b98563b20a50520fe27f220eb56",
+      "imageSha256": "8d7a201af07a085bf4f0012af65582a102413a30922179f8e713254e192dd1ca",
       "cameraMatrixWorld": [
         [
           1.0,
@@ -1162,8 +1162,8 @@
       "pixelsPerMeter": 40.0,
       "source": {
         "id": "bismarck",
-        "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-        "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f"
+        "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+        "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a"
       },
       "material": "neutral texture-free clay; no source UVs or textures loaded",
       "axes": "Blender +X bow, +Y port, +Z up",
@@ -1189,7 +1189,7 @@
       "visibility": "all",
       "projection": "ORTHO",
       "image": "foremast.png",
-      "imageSha256": "450b08ffccf3ccd645d929678c3521efe9e5a49f34f1449b79170ede7623f9e3",
+      "imageSha256": "15d39787aee6cb65738de4e6665b4a38a605cb569dbdf37b512f5ab41b4863e1",
       "cameraMatrixWorld": [
         [
           1.0,
@@ -1220,8 +1220,8 @@
       "pixelsPerMeter": 37.2093023255814,
       "source": {
         "id": "bismarck",
-        "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-        "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f"
+        "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+        "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a"
       },
       "material": "neutral texture-free clay; no source UVs or textures loaded",
       "axes": "Blender +X bow, +Y port, +Z up",
@@ -1247,7 +1247,7 @@
       "visibility": "all",
       "projection": "ORTHO",
       "image": "mainmast.png",
-      "imageSha256": "48690b130588c289e263def5d2c82c97b8aaa5190d8b80bac4f1920c644454db",
+      "imageSha256": "bf51407936381faf4e10c0d6d874ffb84025bdbee60d20a506dce21a1f929e83",
       "cameraMatrixWorld": [
         [
           1.0,
@@ -1278,8 +1278,8 @@
       "pixelsPerMeter": 35.55555555555556,
       "source": {
         "id": "bismarck",
-        "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-        "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f"
+        "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+        "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a"
       },
       "material": "neutral texture-free clay; no source UVs or textures loaded",
       "axes": "Blender +X bow, +Y port, +Z up",
@@ -1305,7 +1305,7 @@
       "visibility": "all",
       "projection": "ORTHO",
       "image": "aft-superstructure.png",
-      "imageSha256": "ae0c765ce5b9fd0af9d7782f1baf06d70ac4a16cd7b7202a8aa235a6d26da0cf",
+      "imageSha256": "33c90791717e37d02cfbcd5fbe4aea19722dca8e2d2216c3a40d287621ce8ec1",
       "cameraMatrixWorld": [
         [
           1.0,
@@ -1336,8 +1336,8 @@
       "pixelsPerMeter": 38.095238095238095,
       "source": {
         "id": "bismarck",
-        "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-        "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f"
+        "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+        "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a"
       },
       "material": "neutral texture-free clay; no source UVs or textures loaded",
       "axes": "Blender +X bow, +Y port, +Z up",
@@ -1365,7 +1365,7 @@
       ],
       "projection": "ORTHO",
       "image": "battery-isolated.png",
-      "imageSha256": "c8dc9045e260a220cf6fe275e8f9a920f020a530fe1b629502c83f7262d462f4",
+      "imageSha256": "462632945cd451782390be26132e6bc6f643d085ea9b9f5fa32b05f08540c1cd",
       "cameraMatrixWorld": [
         [
           0.8320501446723938,
@@ -1396,8 +1396,8 @@
       "pixelsPerMeter": 8.461538461538462,
       "source": {
         "id": "bismarck",
-        "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-        "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f"
+        "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+        "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a"
       },
       "material": "neutral texture-free clay; no source UVs or textures loaded",
       "axes": "Blender +X bow, +Y port, +Z up",
@@ -1426,7 +1426,7 @@
       ],
       "projection": "ORTHO",
       "image": "hull-superstructure-isolated.png",
-      "imageSha256": "44a2f19becd2aab0d6140be0e3efd09d869fd71a656a3cae91fc59c062c2b6ed",
+      "imageSha256": "3b01e7517f719a7a5c7c60a272532ce6393a09b794b0aa5b9aa07e06ed2e4a2c",
       "cameraMatrixWorld": [
         [
           0.8320502638816833,
@@ -1457,8 +1457,8 @@
       "pixelsPerMeter": 7.857142857142857,
       "source": {
         "id": "bismarck",
-        "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
-        "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f"
+        "contentHash": "168bc5c97204aca893e471341dc211462fd8cb79ad54ac8ae0f0e2654ee13eb4",
+        "modelSha256": "667a152522265599db640eae41d4d1d308dfcb42517c9c2c45a141d36bfe490a"
       },
       "material": "neutral texture-free clay; no source UVs or textures loaded",
       "axes": "Blender +X bow, +Y port, +Z up",

@@ -12,6 +12,7 @@ const shell = (position: Vec3, velocity: Vec3): Shell => ({ id: 900, ownerId: 'p
 const fixture = () => {
   const def = compileShip(blueprint, catalog), sim = new CombatSimulation(def);
   Object.assign(sim.target.motion, { x: 0, z: 0 });
+  sim.player.motion.x = -1000;
   def.compartments.forEach(c => c.pumpM3PerSecond = 0);
   return { def, sim, actor: sim.target };
 };

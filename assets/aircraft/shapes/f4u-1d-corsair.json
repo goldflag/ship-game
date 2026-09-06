@@ -1,0 +1,833 @@
+{
+  "schemaVersion": 1,
+  "id": "f4u-1d-corsair",
+  "reference": {
+    "sourceUrl": "https://www.vought.org/photo/html/pdown.html",
+    "imagePath": "assets/aircraft/references/schematics/f4u-1d-corsair/vought-1532_016_22.png",
+    "sourceTitle": "Vought Heritage F4U-1D line drawing 1532_016",
+    "variant": "F4U-1D",
+    "author": "Vought aircraft archive, preserved by Vought Heritage",
+    "license": "Archive drawing; original attribution retained; reference use only, not included as an aircraft texture",
+    "originalPath": "assets/aircraft/references/schematics/f4u-1d-corsair/vought-1532_016_22.gif",
+    "downloadUrl": "https://www.vought.org/photo/html/pimages/down/1532_016_22.gif",
+    "supplementalSources": [
+      {
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Vought_F4U-1_Corsair_3-view.svg",
+        "imagePath": "assets/aircraft/references/schematics/f4u-1d-corsair/f4u-1-threeview.png",
+        "originalPath": "assets/aircraft/references/schematics/f4u-1d-corsair/f4u-1-threeview.svg",
+        "author": "Kaboldy",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+        "use": "Panel detail, section topology and outline cross-check; caption gives F4U-1 family rather than exact -1D"
+      },
+      {
+        "sourceUrl": "https://airandspace.si.edu/collection-objects/vought-f4u-1d-corsair/nasm_A19610124000",
+        "use": "10.20 m length, 12.50 m span and later 13 ft 1 in propeller diameter; restored airframe dimensions."
+      }
+    ],
+    "notes": [
+      "Primary F4U-1D manufacturer/archive three-view visually inspected. Raster 1584 \u00d7 1016; measured original pixels are retained below.",
+      "Plan is rotated 90 degrees relative to side: converted plan x = 492 - original image y; span offset = original image x - 313.",
+      "The primary drawing labels 16 ft 6 in horizontal tail span and 12 ft 1 in landing-gear track; those values override measurement noise. Its 13 ft 4 in early propeller differs from later 13 ft 1 in Smithsonian example; the model uses the latter and records the variant difference.",
+      "Wing front contour measured against shaft at original image y=795: root at y=810, minimum at y=834 near x=411, tip near y=797. Mesh z is the airfoil midline, not its lower surface.",
+      "Fin and cockpit are separate from the tapered body. The late -1D clear sliding hood uses only end hoops and windshield framing; manufacturing sections, panel fasteners, and wheel extension kinematics remain approximate."
+    ],
+    "registration": {
+      "side": {
+        "boundsPx": [
+          868,
+          635,
+          1311,
+          887
+        ],
+        "nosePx": [
+          868,
+          793
+        ],
+        "tailPx": [
+          1311,
+          793
+        ],
+        "shaftYPx": 793,
+        "metersPerPixel": 0.02302
+      },
+      "plan": {
+        "noseXPx": 0,
+        "tailXPx": 432,
+        "centerYPx": 313,
+        "halfSpanPx": 274,
+        "spanMetersPerPixel": 0.02281,
+        "sourceTransform": "x=492-sourceY; span=sourceX-313"
+      },
+      "rawLandmarksPx": {
+        "fuselage": [
+          [
+            899,
+            25,
+            813,
+            773
+          ],
+          [
+            904,
+            30,
+            821,
+            766
+          ],
+          [
+            921,
+            32,
+            823,
+            765
+          ],
+          [
+            935,
+            32,
+            823,
+            764
+          ],
+          [
+            948,
+            33,
+            823,
+            763
+          ],
+          [
+            964,
+            33,
+            824,
+            762
+          ],
+          [
+            994,
+            32,
+            819,
+            760
+          ],
+          [
+            1037,
+            29,
+            818,
+            756
+          ],
+          [
+            1065,
+            27,
+            818,
+            766
+          ],
+          [
+            1083,
+            25,
+            818,
+            773
+          ],
+          [
+            1107,
+            22,
+            817,
+            749
+          ],
+          [
+            1137,
+            19,
+            814,
+            749
+          ],
+          [
+            1170,
+            16,
+            809,
+            752
+          ],
+          [
+            1209,
+            12,
+            802,
+            758
+          ],
+          [
+            1240,
+            9,
+            793,
+            768
+          ],
+          [
+            1272,
+            6,
+            784,
+            774
+          ],
+          [
+            1295,
+            3,
+            781,
+            775
+          ],
+          [
+            1311,
+            0.5,
+            778,
+            776
+          ]
+        ],
+        "wing": [
+          [
+            0,
+            94,
+            208,
+            -0.28
+          ],
+          [
+            33,
+            94,
+            208,
+            -0.38
+          ],
+          [
+            62,
+            94,
+            208,
+            -0.58
+          ],
+          [
+            98,
+            95,
+            208,
+            -0.75
+          ],
+          [
+            120,
+            96,
+            205,
+            -0.69
+          ],
+          [
+            160,
+            99,
+            200,
+            -0.54
+          ],
+          [
+            200,
+            103,
+            194,
+            -0.39
+          ],
+          [
+            235,
+            107,
+            186,
+            -0.26
+          ],
+          [
+            251,
+            114,
+            179,
+            -0.2
+          ],
+          [
+            261,
+            122,
+            168,
+            -0.155
+          ],
+          [
+            269,
+            133,
+            153,
+            -0.125
+          ],
+          [
+            273,
+            141,
+            143,
+            -0.105
+          ],
+          [
+            274,
+            142,
+            142.5,
+            -0.1
+          ]
+        ],
+        "horizontalTail": [
+          [
+            0,
+            362,
+            423,
+            0.43
+          ],
+          [
+            20,
+            365,
+            421,
+            0.43
+          ],
+          [
+            45,
+            369,
+            417,
+            0.43
+          ],
+          [
+            72,
+            374,
+            414,
+            0.43
+          ],
+          [
+            96,
+            380,
+            410,
+            0.43
+          ],
+          [
+            106,
+            385,
+            403,
+            0.43
+          ],
+          [
+            111,
+            392,
+            396,
+            0.43
+          ]
+        ],
+        "tailHalfSpanPx": 111,
+        "fin": [
+          [
+            1208,
+            758
+          ],
+          [
+            1212,
+            741
+          ],
+          [
+            1218,
+            718
+          ],
+          [
+            1223,
+            705
+          ],
+          [
+            1230,
+            699
+          ],
+          [
+            1239,
+            696
+          ],
+          [
+            1248,
+            698
+          ],
+          [
+            1258,
+            704
+          ],
+          [
+            1266,
+            715
+          ],
+          [
+            1270,
+            728
+          ],
+          [
+            1277,
+            754
+          ],
+          [
+            1281,
+            769
+          ],
+          [
+            1262,
+            769
+          ],
+          [
+            1234,
+            764
+          ],
+          [
+            1213,
+            761
+          ]
+        ],
+        "canopy": [
+          [
+            1037,
+            1,
+            757,
+            756
+          ],
+          [
+            1049,
+            12,
+            763,
+            747
+          ],
+          [
+            1064,
+            19,
+            767,
+            738
+          ],
+          [
+            1073,
+            21,
+            770,
+            738
+          ],
+          [
+            1083,
+            21,
+            772,
+            740
+          ],
+          [
+            1093,
+            21,
+            773,
+            744
+          ],
+          [
+            1101,
+            19,
+            771,
+            749
+          ],
+          [
+            1107,
+            1,
+            767,
+            749
+          ]
+        ]
+      },
+      "method": "Manual visual landmark measurement of preserved orthographic raster; each view independently registered to catalog length/span. Fuselage cross sections use elliptical interpolation between side and plan envelopes. Hidden wing roots and canopy bases are interpolated; a drawing is not a manufacturing loft.",
+      "front": {
+        "shaftPx": [
+          313,
+          795
+        ],
+        "wingRootPx": [
+          345,
+          810
+        ],
+        "gullBreakPx": [
+          411,
+          834
+        ],
+        "tipPx": [
+          584,
+          797
+        ],
+        "metersPerPixel": 0.02297794117647059
+      }
+    }
+  },
+  "fuselage": [
+    [
+      0.06998,
+      0.57026,
+      -0.4605,
+      0.4605
+    ],
+    [
+      0.08126,
+      0.68431,
+      -0.6447,
+      0.62167
+    ],
+    [
+      0.11964,
+      0.72993,
+      -0.69074,
+      0.6447
+    ],
+    [
+      0.15124,
+      0.72993,
+      -0.69074,
+      0.66772
+    ],
+    [
+      0.18059,
+      0.75274,
+      -0.69074,
+      0.69074
+    ],
+    [
+      0.2167,
+      0.75274,
+      -0.71377,
+      0.71377
+    ],
+    [
+      0.28442,
+      0.72993,
+      -0.59865,
+      0.75982
+    ],
+    [
+      0.38149,
+      0.6615,
+      -0.57562,
+      0.85192
+    ],
+    [
+      0.4447,
+      0.61588,
+      -0.57562,
+      0.62167
+    ],
+    [
+      0.48533,
+      0.57026,
+      -0.57562,
+      0.4605
+    ],
+    [
+      0.5395,
+      0.50182,
+      -0.5526,
+      1.01309
+    ],
+    [
+      0.60722,
+      0.43339,
+      -0.48352,
+      1.01309
+    ],
+    [
+      0.68172,
+      0.36496,
+      -0.3684,
+      0.94402
+    ],
+    [
+      0.76975,
+      0.27372,
+      -0.20722,
+      0.80587
+    ],
+    [
+      0.83973,
+      0.20529,
+      0.0,
+      0.57562
+    ],
+    [
+      0.91196,
+      0.13686,
+      0.20722,
+      0.43747
+    ],
+    [
+      0.96388,
+      0.06843,
+      0.2763,
+      0.41445
+    ],
+    [
+      1.0,
+      0.01141,
+      0.34537,
+      0.39142
+    ]
+  ],
+  "wing": [
+    [
+      0.0,
+      0.21759,
+      0.48148,
+      -0.28
+    ],
+    [
+      0.12044,
+      0.21759,
+      0.48148,
+      -0.38
+    ],
+    [
+      0.22628,
+      0.21759,
+      0.48148,
+      -0.58
+    ],
+    [
+      0.35766,
+      0.21991,
+      0.48148,
+      -0.75
+    ],
+    [
+      0.43796,
+      0.22222,
+      0.47454,
+      -0.69
+    ],
+    [
+      0.58394,
+      0.22917,
+      0.46296,
+      -0.54
+    ],
+    [
+      0.72993,
+      0.23843,
+      0.44907,
+      -0.39
+    ],
+    [
+      0.85766,
+      0.24769,
+      0.43056,
+      -0.26
+    ],
+    [
+      0.91606,
+      0.26389,
+      0.41435,
+      -0.2
+    ],
+    [
+      0.95255,
+      0.28241,
+      0.38889,
+      -0.155
+    ],
+    [
+      0.98175,
+      0.30787,
+      0.35417,
+      -0.125
+    ],
+    [
+      0.99635,
+      0.32639,
+      0.33102,
+      -0.105
+    ],
+    [
+      1.0,
+      0.3287,
+      0.32986,
+      -0.1
+    ]
+  ],
+  "horizontalTail": [
+    [
+      0.0,
+      0.83796,
+      0.97917,
+      0.43
+    ],
+    [
+      0.18018,
+      0.84491,
+      0.97454,
+      0.43
+    ],
+    [
+      0.40541,
+      0.85417,
+      0.96528,
+      0.43
+    ],
+    [
+      0.64865,
+      0.86574,
+      0.95833,
+      0.43
+    ],
+    [
+      0.86486,
+      0.87963,
+      0.94907,
+      0.43
+    ],
+    [
+      0.95495,
+      0.8912,
+      0.93287,
+      0.43
+    ],
+    [
+      1.0,
+      0.90741,
+      0.91667,
+      0.43
+    ]
+  ],
+  "tailSpan": 5.0292,
+  "fin": [
+    [
+      0.76749,
+      0.80587
+    ],
+    [
+      0.77652,
+      1.19729
+    ],
+    [
+      0.79007,
+      1.72686
+    ],
+    [
+      0.80135,
+      2.02619
+    ],
+    [
+      0.81716,
+      2.16433
+    ],
+    [
+      0.83747,
+      2.23341
+    ],
+    [
+      0.85779,
+      2.18736
+    ],
+    [
+      0.88036,
+      2.04921
+    ],
+    [
+      0.89842,
+      1.79594
+    ],
+    [
+      0.90745,
+      1.49661
+    ],
+    [
+      0.92325,
+      0.89797
+    ],
+    [
+      0.93228,
+      0.5526
+    ],
+    [
+      0.88939,
+      0.5526
+    ],
+    [
+      0.82619,
+      0.66772
+    ],
+    [
+      0.77878,
+      0.73679
+    ]
+  ],
+  "canopy": [
+    [
+      0.38149,
+      0.02281,
+      0.82889,
+      0.85192
+    ],
+    [
+      0.40858,
+      0.27372,
+      0.69074,
+      1.05914
+    ],
+    [
+      0.44244,
+      0.43339,
+      0.59865,
+      1.26637
+    ],
+    [
+      0.46275,
+      0.47901,
+      0.52957,
+      1.26637
+    ],
+    [
+      0.48533,
+      0.47901,
+      0.48352,
+      1.22032
+    ],
+    [
+      0.5079,
+      0.47901,
+      0.4605,
+      1.12822
+    ],
+    [
+      0.52596,
+      0.43339,
+      0.50655,
+      1.01309
+    ],
+    [
+      0.5395,
+      0.02281,
+      0.59865,
+      1.01309
+    ]
+  ],
+  "cowling": {
+    "frontU": 0.06998,
+    "rearU": 0.18059,
+    "radiusM": 0.74
+  },
+  "propeller": {
+    "u": 0.04515,
+    "radiusM": 1.9939,
+    "blades": 3,
+    "spinnerLengthM": 0
+  },
+  "gear": {
+    "mainU": 0.22799,
+    "trackM": 3.683,
+    "wheelRadiusM": 0.4,
+    "wheelZM": -1.78,
+    "tailU": 0.842,
+    "tailWheelZM": -0.72
+  },
+  "extras": {
+    "gullWing": true,
+    "gullBreakSpanFraction": 0.35766,
+    "gullBreakZM": -0.75,
+    "wingFoldSpanFraction": 0.35766,
+    "wingFoldU": 0.38,
+    "mainGearMountU": 0.257,
+    "mainGearMountZM": -0.75,
+    "mainGearWheelHalfWidthM": 0.16,
+    "wingRootIntakes": true,
+    "wingRootIntakeU": 0.218,
+    "wingRootIntakeSpanFraction": 0.2,
+    "wingRootIntakeZM": -0.46,
+    "gunSpanFractions": [
+      0.43,
+      0.48,
+      0.53
+    ],
+    "gunBarrelLengthM": 0.015,
+    "canopyStyle": "clear-hood",
+    "canopyFrameU": [
+      0.442,
+      0.538
+    ],
+    "mastU": 0.611,
+    "mastZM": 1.02,
+    "mastHeightM": 0.65,
+    "radialCylinders": 18,
+    "cowlingFlaps": 12,
+    "tailWheelRadiusM": 0.17,
+    "rudderHingeU": 0.844,
+    "tailSpanDocumentedM": 5.0292,
+    "finThicknessM": 0.1
+  }
+}

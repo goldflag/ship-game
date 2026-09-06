@@ -28,7 +28,7 @@ test('large AP can tear a thin plate at a shallow angle; thick armor deflects an
 test('the same shell penetrates nearby protection but is stopped after losing speed at long range', () => {
   const results = [1000, 20000].map(range => {
     const def = compileShip(blueprint, catalog);
-    delete def.stability; delete def.floodRegions; // Isolated plate, without a surrounding ship hull.
+    delete def.stability; delete def.floodRegions; delete def.structuralPlating; // Isolated plate, without a surrounding ship hull.
     def.armor = [{ id: 'range-plate', name: 'Range plate', center: [0, 0, 0], size: [.001, 40, 40], thicknessMm: 420,
       plate: { vertices: [[0, -20, -20], [0, 20, -20], [0, 20, 20], [0, -20, 20]], material: 'KC' } }];
     def.modules = []; def.mounts = []; def.connections = []; def.compartments = []; def.propulsion = undefined;

@@ -8,13 +8,13 @@ export interface MountState {
   id: string; train: number; elevation: number; reload: number; ammo: number; hp: number; recoil: number;
   /** Total rounds include the HE subset; rounds are consumed when fired. */
   heAmmo: number; loaded: Ammunition;
-  status: 'ready' | 'reloading' | 'blocked' | 'out-of-arc' | 'empty' | 'disabled';
+  status: 'ready' | 'reloading' | 'turning' | 'out-of-range' | 'blocked' | 'out-of-arc' | 'empty' | 'disabled';
   aimCache?: { time: number; train: number; elevation: number; point: Vec3 };
   leadCache?: { time: number; point: Vec3 };
 }
 export const createMountState = (m: MountDefinition): MountState => ({ id: m.id, train: 0, elevation: radians(1), reload: 0,
   ammo: m.weapon.ammoPerBarrel * (m.weapon.barrelCount ?? 2), heAmmo: Math.floor(m.weapon.ammoPerBarrel * (m.weapon.he?.stockFraction ?? 0)) * (m.weapon.barrelCount ?? 2),
-  loaded: 'ap', hp: 100, recoil: 0, status: 'ready' });
+  loaded: 'ap', hp: 100, recoil: 0, status: 'turning' });
 export const availableAmmunition = (state: MountState, type = state.loaded): number => type === 'he' ? Math.max(0, Math.min(state.ammo, state.heAmmo)) : Math.max(0, state.ammo - state.heAmmo);
 /** Unloading returns the unfired round to its existing stock. Changing type
  * always requires a complete load interval, including changing back mid-load. */
@@ -31,6 +31,14 @@ export function muzzleLocal(m: MountDefinition, state: Pick<MountState, 'train' 
   return add(m.position, [Math.cos(bearing) * lateral + Math.sin(bearing) * forward, w.pivotHeight + (w.muzzleForward - w.trunnionForward) * Math.sin(state.elevation), Math.sin(bearing) * lateral - Math.cos(bearing) * forward]);
 }
 export const muzzleWorld = (m: MountDefinition, state: MountState, barrel: number, pose: Pose) => localToWorld(muzzleLocal(m, state, barrel), pose);
+/** The aiming reference is the battery mount's barrel center, including odd/single layouts. */
+export function muzzleCenterLocal(m: MountDefinition, state: Pick<MountState, 'train' | 'elevation'>): Vec3 {
+  const count = m.weapon.barrelCount ?? 2;
+  let center: Vec3 = [0, 0, 0];
+  for (let barrel = 0; barrel < count; barrel++) center = add(center, muzzleLocal(m, state, barrel).map(n => n / count) as Vec3);
+  return center;
+}
+export const muzzleCenterWorld = (m: MountDefinition, state: MountState, pose: Pose) => localToWorld(muzzleCenterLocal(m, state), pose);
 export function shotDirection(m: MountDefinition, state: MountState, pose: Pose): Vec3 {
   const bearing = radians(m.bearingDeg) + state.train;
   return rotate([Math.sin(bearing) * Math.cos(state.elevation), Math.sin(state.elevation), -Math.cos(bearing) * Math.cos(state.elevation)], pose);
@@ -61,7 +69,7 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
   let reachable = !!aim;
   let flightTime = cache?.time ?? (aim ? length(sub(aim, [pose.x, pose.y, pose.z])) / m.weapon.muzzleSpeed : 0);
   for (let i = 0; aim && i < (cache ? 1 : 3); i++) {
-    const midpoint = localToWorld(muzzleLocal(m, { train: desiredTrain, elevation: desiredElevation }, 0), pose);
+    const midpoint = localToWorld(muzzleCenterLocal(m, { train: desiredTrain, elevation: desiredElevation }), pose);
     const drag = m.weapon.ballistics?.dragPerSecond ?? 0;
     const relativeAim = sub(aim, inheritedVelocity.map(n => n * travelFactor(flightTime, drag)) as Vec3);
     const solution = solveBallistic(midpoint, relativeAim, m.weapon.muzzleSpeed, drag);
@@ -86,6 +94,10 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
     return definition.obstructions.some(box => segmentBox(breech, beyond, box)) || definition.mounts.some(other => other.id !== m.id && segmentBox(breech, beyond, { center: add(other.position, [0, other.weapon.gunhouseSize[2] / 2, 0]), size: [other.weapon.gunhouseSize[1], other.weapon.gunhouseSize[2], other.weapon.gunhouseSize[0]] }));
   });
   if (obstructed) { state.status = 'blocked'; return false; }
+  if (!reachable) { state.status = 'out-of-range'; return false; }
+  if (Math.abs(desiredTrain) > limit + 1e-6 || desiredElevation < radians(w.elevationMinDeg) - 1e-6 || desiredElevation > radians(w.elevationMaxDeg) + 1e-6) { state.status = 'out-of-arc'; return false; }
+  // A small angular tolerance is shared by firing and the HUD via this status.
+  if (Math.abs(desiredTrain - state.train) >= .0015 || Math.abs(desiredElevation - state.elevation) >= .0008) { state.status = 'turning'; return false; }
   state.status = state.reload > 0 ? 'reloading' : 'ready';
-  return reachable && Math.abs(desiredTrain - state.train) < .0015 && Math.abs(desiredElevation - state.elevation) < .0008;
+  return true;
 }

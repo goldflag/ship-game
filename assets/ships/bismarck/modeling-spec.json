@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": "independent-1941-01",
+  "revision": "independent-1941-04",
   "configuration": "24 May 1941; no Tirpitz additions; standard-draft display",
   "authoringBoundary": "blueprint.json and original catalog polygons only. Reference renderer outputs raster evidence; production geometry never consumes game offsets or attachment transforms.",
   "coordinates": {
@@ -135,15 +135,15 @@
       "values": {
         "barbetteDiameterM": 9.9,
         "barrelSpacingM": 3.75,
-        "gunhouseLengthM": 12.2,
-        "gunhouseBeamM": 10.6,
-        "gunhouseHeightM": 4,
+        "gunhouseLengthM": 14.15,
+        "gunhouseBeamM": 8.7,
+        "gunhouseHeightM": 3.65,
         "boreM": 0.38,
         "muzzleForwardM": 18.4,
         "trunnionForwardM": 4.25
       },
       "toleranceM": 0.6,
-      "note": "Bore is documented; barbette/gunhouse/axis offsets are dimensional interpretations requiring original mount drawings. Gunhouse armor uses our polygon enclosure."
+      "note": "Original planar roof, shoulder and lower-wall facets interpreted at the retained plan scale. Longer rear overhang and narrower sides replace the old full-height sloped box. The same versioned component facets compile to physical armor; bore, pivot and barrel axes retained."
     },
     {
       "selector": "structures / mounts[secondary]",
@@ -186,6 +186,77 @@
       "basis": "inferred",
       "valueLocation": "blueprint.json",
       "note": "Standard displacement selected from source; HP, compartment usable volume, reserve threshold (10000 m\u00b3) and handling are gameplay calibration. No derived hydrostatics claim."
+    },
+    {
+      "selector": "build.py: bridge galleries, conning support, funnel cap/platforms, directors, aircraft handling, AA and deck fittings",
+      "sourceIds": [
+        "kb-plan-24may",
+        "barch-profile",
+        "kb-armament"
+      ],
+      "basis": "plan-measured",
+      "valueLocation": "blueprint.structures and original build.py detail recipe",
+      "toleranceM": 1.0,
+      "note": "24 May reconstruction reread on a 5 m grid. Conning director moved from x=35,z=15 to x=27.6,z=20.6 in Blender axes; physical support now modeled. Funnel reference-height/cap rake revised. Detailed fitting dimensions remain image estimates; no game geometry or attachment data used."
+    },
+    {
+      "selector": "hull.sections",
+      "sourceIds": [
+        "kb-plan-24may",
+        "kb-dimensions",
+        "rmg-body"
+      ],
+      "basis": "estimated",
+      "valueLocation": "blueprint.hull.sections",
+      "toleranceM": 1.0,
+      "note": "198 authored stations with 25 half-section points. Curved upper stem and nearly vertical lower forefoot replace the straight rake. Waterline endpoints redistributed to 2.65 and 244.20 m from the overall stern, preserving 241.55 m LWL. Raster profile and loading datum leave about 1 m endpoint uncertainty; this is not an acquired body plan."
+    },
+    {
+      "selector": "structuralPlating / structures[].surface",
+      "sourceIds": [
+        "original-structure"
+      ],
+      "basis": "estimated",
+      "valueLocation": "blueprint.json",
+      "note": "20 mm ordinary hull steel and 8 mm superstructure steel are provisional gameplay values. Hull sections, deckhouse polygons, tower taper and funnel jacket supply renderer-free collision and inspection surfaces. Nearby exterior armor replaces nominal shell plating."
+    },
+    {
+      "selector": "parts[sk-c28-150-twin].gunhouseMesh",
+      "sourceIds": [
+        "kb-plan-24may",
+        "barch-profile",
+        "kb-protection"
+      ],
+      "basis": "estimated",
+      "valueLocation": "assets/parts/guns.json",
+      "toleranceM": 0.6,
+      "values": {
+        "gunhouseLengthM": 6.65,
+        "gunhouseBeamM": 5.1,
+        "gunhouseHeightM": 2.6,
+        "rangefinderSpanM": 6.5
+      },
+      "note": "24 original facets replace the full-height tapered box: rear roof ridge, falling forward roof, clipped nose and near-vertical side walls. Roof/face thickness families follow retained 150mmp.gif. Barrel and yaw axes preserved; middle pair retain local rangefinders. Polygon dimensions, blast bags and fittings remain interpretations."
+    },
+    {
+      "selector": "structures[bridge-*,conning-*,navigation-roof,signal-platform,fore-aa-platform,foretop-*]",
+      "sourceIds": [
+        "kb-plan-24may",
+        "barch-profile"
+      ],
+      "basis": "estimated",
+      "valueLocation": "blueprint.json / build.py",
+      "toleranceM": 1.0,
+      "note": "Separate forward navigation wheelhouse and narrow conning enclosure/crown. Recessed gallery centers and projecting wings replace repeated wide slabs; glazing follows actual chamfered walls. Conning enclosure remains provisional 8 mm structural collision, without a verified conning armor schedule."
+    },
+    {
+      "selector": "armor[forward-transverse-*,aft-transverse-*]",
+      "sourceIds": [
+        "kb-protection"
+      ],
+      "basis": "estimated",
+      "valueLocation": "blueprint.json; fit-transverse-armor.py edits the six stable IDs",
+      "note": "Convex plate boundaries fit hull half-sections at both physical faces with 25 mm inward clearance. Lower aft plate respects the local rising keel. Layer heights/thickness families retained except clipping the lower edge to the hull; no renderer-only offset or hiding."
     }
   ],
   "historicalRegistration": {
@@ -291,8 +362,8 @@
       "id": "funnel-cap",
       "runtime": [
         0,
-        23.5,
-        2
+        25.0,
+        2.4
       ],
       "sourceId": "kb-plan-24may",
       "basis": "plan-measured",
@@ -303,11 +374,44 @@
       "runtime": [
         0,
         48.5,
-        23.9
+        22.5
       ],
       "sourceId": "kb-plan-24may",
       "basis": "estimated",
       "toleranceM": 2
+    },
+    {
+      "id": "fore-director",
+      "runtime": [
+        0,
+        32.0,
+        -13.4
+      ],
+      "sourceId": "kb-plan-24may",
+      "basis": "plan-measured",
+      "toleranceM": 0.8
+    },
+    {
+      "id": "conning-director",
+      "runtime": [
+        0,
+        20.6,
+        -27.6
+      ],
+      "sourceId": "kb-plan-24may",
+      "basis": "plan-measured",
+      "toleranceM": 0.8
+    },
+    {
+      "id": "aft-director",
+      "runtime": [
+        0,
+        17.5,
+        37.8
+      ],
+      "sourceId": "kb-plan-24may",
+      "basis": "plan-measured",
+      "toleranceM": 0.8
     }
   ],
   "probes": [
@@ -363,7 +467,7 @@
     "intro": "Independent reconstruction at a 9.33 m standard draft. Compare the exported ship with GameModels3D and historical drawings, using fixed cameras and a single scale registration.",
     "historicalCredit": "Manuel P. Gonz\u00e1lez L\u00f3pez / KBismarck.com",
     "historicalLabel": "Historical reconstruction \u00b7 Gonz\u00e1lez L\u00f3pez \u00b7 uniform scale, keel registration",
-    "limits": "The original body-plan catalogue entry is verified, but its offsets are unavailable. Exact machinery walls, turret dimensions and frame-to-midpoint registration remain estimates. The reference game hull retains its own proportions and unknown load; the comparison does not force its length or keel onto the authored hull.",
+    "limits": "Body-plan offsets and exact bridge/gunhouse dimensions remain estimates. The fourth pass corrects secondary roof profiles, separates the navigation/conning bridge and fits transverse armor within the hull. The reference game retains its own proportions and unknown load; export checks do not certify historical accuracy.",
     "images": [
       {
         "file": "proteccion6.gif",

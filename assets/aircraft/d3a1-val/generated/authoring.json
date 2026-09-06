@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "aircraftId": "d3a1-val",
+  "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+  "method": "blender-mcp",
+  "blenderVersion": "5.2.0 LTS",
+  "originalGeometry": true,
+  "shapeSource": "shapes/d3a1-val.json",
+  "reference": {
+    "sourceUrl": "https://www.combinedfleet.com/ijna/d3a.htm",
+    "imagePath": "assets/aircraft/references/schematics/d3a1-val/three-view.png",
+    "sourceTitle": "Aichi D3A1 three-view drawing, CombinedFleet IJNAF reference archive",
+    "variant": "D3A1 Model 11",
+    "notes": [
+      "Manually digitised top/side silhouettes, independently registered to catalog length and wingspan.",
+      "Published reference drawing, not manufacturing geometry. Pixel rounding, scan distortion, hidden cross sections, canopy width and small details remain approximations.",
+      "Canopy lateral widths and hidden body contours are reconstructed inside the measured exterior envelope. Wing dihedral is digitised approximately from the front view, not an airfoil or load-bearing engineering specification."
+    ],
+    "registration": {
+      "top": {
+        "noseX": 56,
+        "tailX": 466,
+        "centerY": 320,
+        "portTipY": 40,
+        "starboardTipY": 599,
+        "imagePath": "assets/aircraft/references/schematics/d3a1-val/three-view.png"
+      },
+      "side": {
+        "noseX": 309,
+        "tailX": 719,
+        "engineShaftY": 134,
+        "imagePath": "assets/aircraft/references/schematics/d3a1-val/three-view.png"
+      },
+      "front": {
+        "leftTipX": 197,
+        "rightTipX": 762,
+        "centerX": 479,
+        "engineShaftY": 491,
+        "imagePath": "assets/aircraft/references/schematics/d3a1-val/three-view.png",
+        "metersPerPixel": 0.02543,
+        "wingTipsCropped": false
+      }
+    }
+  },
+  "triangleBudget": 40000
+}
