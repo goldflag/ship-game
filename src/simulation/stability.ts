@@ -2,7 +2,7 @@ import { equipmentCondition, systemHealth } from './machinery';
 import type { ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { Combatant } from './damage';
 import { flotation, hydrostatics, rightingArms } from './hydrostatics';
-import { waterBody, type WaterBody } from './floodwater';
+import { levelAtVolume, waterBody, type WaterBody } from './floodwater';
 import { clamp, localToWorld } from './geometry';
 
 export type VesselStatus = 'operational' | 'immobile' | 'disarmed' | 'disabled' | 'sinking' | 'capsized';
@@ -12,14 +12,13 @@ export interface StabilityState {
 }
 export const createStability = (): StabilityState => ({ elapsed: .5, targetY: 0, rollRate: 0, pitchRate: 0, capsizeSeconds: 0, water: [], rollArm: 0, pitchArm: 0, displacementM3: 0, reserveM3: 0, status: 'operational', combatLost: false });
 const fullCache = new WeakMap<ShipDefinition, number>();
-/** Sea-relative waterplane, shared by portals, breaches, immersion and inspection.
- * Between 2 Hz hydrostatic updates, a local waterplane-area derivative tracks inflow. */
-export function waterLevel(actor: Combatant, def: ShipDefinition, i: number): number {
+/** Read-only sea-relative waterplane shared by physics and inspection. Volume
+ * queries use the full fill curve at the last 2 Hz hydrostatic orientation. */
+export function waterLevel(actor: Combatant, def: ShipDefinition, i: number, volume = actor.damage.compartments[i].waterM3): number {
   const state = actor.damage.compartments[i], room = def.compartments[i];
-  let body = actor.damage.stability.water[i];
-  if (def.stability && state.waterM3 > 0 && (!body || body.volume === 0)) { body = waterBody(room, state.waterM3, actor.motion.roll, actor.motion.pitch); actor.damage.stability.water[i] = body; }
-  if (!body) return localToWorld([room.center[0], room.center[1] - room.size[1] / 2 + state.waterM3 / room.capacityM3 * room.size[1], room.center[2]], actor.motion)[1];
-  return actor.motion.y + body.level + (state.waterM3 - body.volume) / body.area;
+  if (!def.stability) return localToWorld([room.center[0], room.center[1] - room.size[1] / 2 + volume / room.capacityM3 * room.size[1], room.center[2]], actor.motion)[1];
+  const body = actor.damage.stability.water[i] ?? waterBody(room, state.waterM3, actor.motion.roll, actor.motion.pitch);
+  return actor.motion.y + levelAtVolume(room, body, volume);
 }
 export function updateStability(actor: Combatant, def: ShipDefinition, dt: number): void {
   const state = actor.damage.stability, profile = def.stability;

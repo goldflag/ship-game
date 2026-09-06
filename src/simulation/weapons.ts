@@ -19,7 +19,7 @@ export const availableAmmunition = (state: MountState, type = state.loaded): num
 /** Unloading returns the unfired round to its existing stock. Changing type
  * always requires a complete load interval, including changing back mid-load. */
 export function selectAmmunition(m: MountDefinition, state: MountState, requested: Ammunition): void {
-  const type = requested;
+  const type = requested === 'he' && !m.weapon.he ? 'ap' : requested;
   if (state.loaded === type) return;
   state.loaded = type; state.reload = Math.max(state.reload, m.weapon.reloadSeconds);
   delete state.aimCache; delete state.leadCache;

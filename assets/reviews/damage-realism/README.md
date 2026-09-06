@@ -85,3 +85,5 @@ The user explicitly waived all further reviews. Continue the accepted implementa
 ## Implementation status — 2026-09-05
 
 All five agreed milestones are implemented. The dated implementation record, per-ship stability reports, scenario harness and browser artifacts document the final behavior and remaining calibration limits. The user waived further agent reviews after step 4a; verification continues through tests, builds and live checks.
+
+The [2026-09-05 code review](code-review.md) records eight subsequent correctness fixes, twelve added regression cases and a controlled CPU timing comparison.

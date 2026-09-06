@@ -95,3 +95,40 @@ test('damage control resets and uses identical fixed ticks at different display 
   for (let i = 0; i < 300; i++) y.sim.advance(1 / 30, { throttle: 0, rudder: 0 }, intent);
   expect(x.a.damage).toEqual(y.a.damage); x.sim.reset(); expect(x.a.damage.control).toEqual(initial);
 });
+
+test('a freed team does not take another team’s job and reset its setup progress', () => {
+  const { a, def } = fixture(2);
+  a.mounts[0].hp = 20;
+  a.damage.control.teams = [null, { kind: 'repair-mount', index: 0, setup: 1 }];
+  updateDamageControl(a, def, .5, () => {});
+  expect(a.damage.control.teams[0]).toBeNull();
+  expect(a.damage.control.teams[1]).toEqual({ kind: 'repair-mount', index: 0, setup: .5 });
+});
+
+test('repair and portable pumping use only the time left after setup completes', () => {
+  const { a, def } = fixture(2);
+  a.mounts[0].hp = 20;
+  a.damage.compartments[0].waterM3 = 10;
+  updateDamageControl(a, def, def.damageControl!.setupSeconds + .5, () => {});
+  expect(a.mounts[0].hp).toBeCloseTo(20 + def.damageControl!.repairHpPerSecond * .5, 8);
+  expect(a.damage.control.pumping[0] * (def.damageControl!.setupSeconds + .5)).toBeCloseTo(def.damageControl!.portablePumpM3PerSecond * .5, 8);
+});
+
+test('fire damage cannot consume more fuel than remains in the last burning tick', () => {
+  const { a, def } = fixture(0);
+  Object.assign(a.damage.control.mounts[0], { heat: 1, fuel: .001 });
+  updateDamageControl(a, def, 1, () => {});
+  expect(a.mounts[0].hp).toBeCloseTo(100 - .001 * .8, 8);
+  expect(a.damage.control.mounts[0].fuel).toBe(0);
+});
+
+test('a new fire preempts lower-priority repairs while another team keeps pumping setup', () => {
+  const { a, def } = fixture(2);
+  a.mounts[0].hp = 20;
+  a.damage.compartments[0].waterM3 = 10;
+  a.damage.control.teams = [{ kind: 'repair-mount', index: 0, setup: 1 }, { kind: 'pump', index: 0, setup: 1 }];
+  heatMount(a, 1, 100);
+  updateDamageControl(a, def, .5, () => {});
+  expect(a.damage.control.teams[0]).toEqual({ kind: 'fire-mount', index: 1, setup: def.damageControl!.setupSeconds - .5 });
+  expect(a.damage.control.teams[1]).toEqual({ kind: 'pump', index: 0, setup: .5 });
+});
