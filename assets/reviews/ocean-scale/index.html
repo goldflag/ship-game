@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ocean scale — before / after</title>
+<style>
+  :root { color-scheme: dark; font-family: system-ui, sans-serif; color: #edf1ec; background: #132d38; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px; }
+  main { max-width: 1180px; margin: auto; }
+  h1 { margin: 0; font-size: 26px; font-weight: 600; }
+  h2 { margin: 0; font-size: 18px; font-weight: 500; }
+  p { color: #bacbd0; font-size: 14px; line-height: 1.5; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+  button { min-height: 44px; padding: 8px 16px; border: 1px solid #80939a; border-radius: 3px; background: transparent; color: #edf1ec; font: inherit; cursor: pointer; }
+  button[aria-pressed="true"] { color: #152b32; background: #e0c58d; border-color: #e0c58d; }
+  button:focus-visible, input:focus-visible { outline: 2px solid #e0c58d; outline-offset: 4px; }
+  .modes { display: flex; gap: 8px; flex-shrink: 0; }
+  section { margin-top: 24px; }
+  .caption { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 10px; }
+  .caption p { margin: 0; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  figure { margin: 0; position: relative; }
+  img { display: block; width: 100%; height: auto; }
+  figcaption { position: absolute; top: 10px; left: 10px; background: #132d38; padding: 5px 10px; font-size: 13px; }
+  .after figcaption { left: auto; right: 10px; }
+  .wipe .pair { display: block; position: relative; }
+  .wipe .before { position: absolute; inset: 0; z-index: 1; clip-path: inset(0 calc(100% - var(--split, 50%)) 0 0); }
+  .wipe .after::after { content: ""; position: absolute; left: var(--split, 50%); top: 0; bottom: 0; width: 2px; background: #edf1ec; }
+  .slider { display: none; align-items: center; gap: 16px; padding-top: 10px; font-size: 13px; }
+  .wipe .slider { display: flex; }
+  input { flex: 1; min-height: 44px; accent-color: #e0c58d; cursor: ew-resize; }
+  footer { margin-top: 20px; color: #bacbd0; font-size: 12px; line-height: 1.5; }
+  a { color: #e0c58d; }
+  @media (max-width: 650px) {
+    body { padding: 16px; }
+    header, .caption { align-items: flex-start; flex-direction: column; gap: 10px; }
+    .pair { grid-template-columns: 1fr; }
+    h1 { font-size: 23px; }
+  }
+</style>
+<main>
+  <header>
+    <div><h1>Smaller waves, stronger ship scale</h1><p>Matching views from the game, with camera and animation time held fixed.</p></div>
+    <div class="modes" role="group" aria-label="Comparison display">
+      <button type="button" aria-pressed="true" data-mode="side">Side by side</button>
+      <button type="button" aria-pressed="false" data-mode="wipe">Drag to compare</button>
+    </div>
+  </header>
+  <section style="--split:50%">
+    <div class="caption"><h2>In port</h2><p>Sheltered ripples: 65 → 14 m peak wavelength.</p></div>
+    <div class="pair">
+      <figure class="before"><img src="port-before.png" width="1600" height="900" alt="Before: broad water ripples around Bismarck in port."><figcaption>Before</figcaption></figure>
+      <figure class="after"><img src="port-after.png" width="1600" height="900" alt="After: finer, calmer ripples around the same ship."><figcaption>After</figcaption></figure>
+    </div>
+    <label class="slider">Before<input type="range" min="0" max="100" value="50" aria-label="Port comparison divider">After</label>
+  </section>
+  <section style="--split:50%">
+    <div class="caption"><h2>At sea</h2><p>Atlantic waves: 65 → 28 m; amplitude reduced 40%.</p></div>
+    <div class="pair">
+      <figure class="before"><img src="sea-before.png" width="1600" height="900" alt="Before: large ocean crests beside Bismarck."><figcaption>Before</figcaption></figure>
+      <figure class="after"><img src="sea-after.png" width="1600" height="900" alt="After: shorter, lower crests beside the same hull."><figcaption>After</figcaption></figure>
+    </div>
+    <label class="slider">Before<input type="range" min="0" max="100" value="50" aria-label="Sea comparison divider">After</label>
+  </section>
+  <footer>Unedited 1600 × 900 WebGPU captures · High quality · Neutral exposure · <a href="README.md">Capture notes</a></footer>
+</main>
+<script>
+  document.querySelectorAll('[data-mode]').forEach(button => button.addEventListener('click', () => {
+    document.querySelector('main').classList.toggle('wipe', button.dataset.mode === 'wipe');
+    document.querySelectorAll('[data-mode]').forEach(other => other.setAttribute('aria-pressed', String(other === button)));
+  }));
+  document.querySelectorAll('input').forEach(input => input.addEventListener('input', () => {
+    input.closest('section').style.setProperty('--split', input.value + '%');
+  }));
+</script>
+</html>
