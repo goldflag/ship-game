@@ -7,7 +7,7 @@ import { ShipContext } from '../ui/ShipContext';
 import { defaultKeybindings } from './keybindings';
 import type { Telemetry } from './types';
 
-test('the helm displays real current/max HP and proportional hit feedback for large and small hulls', () => {
+test('the helm displays equipment condition and proportional hit feedback for large and small hulls', () => {
   for (const id of ['yamato', 'baltimore']) {
     const definition = shipPreset(id), sim = new CombatSimulation(definition);
     const maxHp = sim.player.damage.maxIntegrity;
@@ -20,8 +20,8 @@ test('the helm displays real current/max HP and proportional hit feedback for la
     const html = renderToStaticMarkup(<ShipContext.Provider value={definition}>
       <FleetHud data={data} game={null} visible bindings={defaultKeybindings()}/>
     </ShipContext.Provider>);
-    expect(html).toContain(`<strong>${(maxHp * .6).toLocaleString()}</strong><span> / ${maxHp.toLocaleString()}</span>`);
-    expect(html).toContain('aria-label="Hull integrity 60 percent"');
+    expect(html).toContain('<strong>60%</strong><span> condition</span>');
+    expect(html).toContain('aria-label="Equipment condition 60 percent"');
     expect(html).toContain('class="fleet-health-loss" style="left:60%;width:20%;opacity:1"');
   }
 });

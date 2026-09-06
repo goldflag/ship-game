@@ -5,7 +5,7 @@ import enterprise from '../../assets/ships/enterprise-cv6/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
 import { compileShip, type Vec3 } from '../ships/blueprint';
 import { CombatSimulation } from './combat';
-import { hitShip, updateFlooding, type Shell } from './damage';
+import { hitShip, updateFlooding, type DamageEvent, type Shell } from './damage';
 import { insideHull, structuralHits, structuralSurfaces } from './structure';
 import { localToWorld } from './geometry';
 import { inspectionEntries } from '../ships/inspection';
@@ -19,14 +19,20 @@ definitions.forEach((def,index)=>{
   const c=cases[index];
   for(const [part,y,z] of [['bow',c.bowY,-def.hull.length/2+8],['stern',c.sternY,def.hull.length/2-8],['bridge',c.bridgeY,c.bridgeZ]] as const){
     test(`${def.id}: posed swept ${part} hit, AP exit, sight and inspection agree`,()=>{
-      const sim=new CombatSimulation(def),s=round(),events:string[]=[];
+      const sim=new CombatSimulation(def),s=round(),events:DamageEvent[]=[];
       Object.assign(sim.player.motion,{x:450,y:.2,z:-310,heading:1.05,roll:.035,pitch:-.02});
       const a:Vec3=[-45,y,z],b:Vec3=[45,y,z];
-      expect(hitShip(s,localToWorld(a,sim.player.motion),localToWorld(b,sim.player.motion),sim.player,def,e=>events.push(e.message))).toBe(false);
-      expect(events.some(e=>e.includes('plating'))).toBe(true);
-      expect(sim.player.damage.integrity).toBeLessThan(sim.player.damage.maxIntegrity);
+      expect(hitShip(s,localToWorld(a,sim.player.motion),localToWorld(b,sim.player.motion),sim.player,def,e=>events.push(e))).toBe(false);
+      expect(events.some(e=>e.message.includes('plating'))).toBe(true);
+      expect(events.some(e=>e.surfaceImpact&&e.impact&&e.impact.penetrationAfterMm<e.impact.penetrationBeforeMm)).toBe(true);
+      // Empty structure consumes penetration without inventing equipment HP loss.
+      expect(sim.player.damage.integrity).toBe(sim.player.damage.maxIntegrity);
       expect(s.penetrationMm).toBeGreaterThan(1700);
-      expect(sim.player.damage.compartments.every(c=>c.breachAreaM2===0)).toBe(true);
+      expect(s.penetrationMm).toBeLessThan(2200);
+      // Above-water hull holes are retained for later immersion; they stay dry.
+      updateFlooding(sim.player,def,.25);
+      expect(sim.player.damage.compartments.every(c=>c.waterM3===0)).toBe(true);
+      expect(sim.player.damage.compartments.some(c=>c.breachAreaM2>0)).toBe(part!=='bridge');
       const hit=structuralHits(a,b,def)[0];
       expect(inspectionEntries(def).some(e=>e.id==='structure:'+hit.surface.id)).toBe(true);
       const pose={...sim.player.motion,x:0,y:0,z:0,heading:0,pitch:0,roll:0};

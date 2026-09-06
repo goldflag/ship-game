@@ -60,10 +60,10 @@ test('missing or reset projectiles release the camera without inventing an impac
 });
 
 for (const stepsPerFrame of [1, 6]) {
-  for (const [region, y, z, damage, terminal] of [
-    ['bridge', 15, -18, 7, 'splash'],
-    ['unarmored bow', 4, -115, 7, 'splash'],
-    ['armored hull', .5, 0, 14, 'stopped'],
+  for (const [region, y, z, terminal] of [
+    ['bridge', 15, -18, 'splash'],
+    ['unarmored bow', 4, -115, 'splash'],
+    ['armored hull', .5, 0, 'stopped'],
   ] as const) {
     test(`shell follow holds on the first ${region} strike at ${60 / stepsPerFrame} fps while combat resolves normally`, () => {
       const def = shipPreset('bismarck'), sim = new CombatSimulation(def), follow = new ShellFollow();
@@ -81,7 +81,9 @@ for (const stepsPerFrame of [1, 6]) {
         for (let step = 0; step < stepsPerFrame; step++) {
           sim.step({ throttle: 0, rudder: 0 }, { aim: [0, y, z], fire: false, battery: 'main' });
         }
+        const beforeCamera = JSON.stringify({ actors: sim.actors, shells: sim.shells, events: sim.events });
         follow.update(sim.shells, sim.events, 'player', FIXED_DT * stepsPerFrame);
+        expect(JSON.stringify({ actors: sim.actors, shells: sim.shells, events: sim.events })).toBe(beforeCamera);
         firstStrike ??= sim.events.find(event => event.shell?.id === round.id && event.kind !== 'shot');
         if (firstStrike) {
           expect(follow.phase).toBe('impact');
@@ -93,7 +95,7 @@ for (const stepsPerFrame of [1, 6]) {
       expect(firstStrike?.kind).toBe('penetration');
       if (terminal === 'splash') expect(heldWhileShellAlive).toBe(true);
       expect(sim.shells).toHaveLength(0);
-      expect(sim.target.damage.maxIntegrity - sim.target.damage.integrity).toBe(damage);
+      expect(firstStrike?.impact?.penetrationAfterMm).toBeLessThan(firstStrike!.impact!.penetrationBeforeMm);
       expect(sim.events.at(-1)!.kind).toBe(terminal);
       expect(follow.view!.position).not.toEqual(sim.events.at(-1)!.position);
     });

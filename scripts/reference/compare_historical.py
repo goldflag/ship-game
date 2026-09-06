@@ -73,8 +73,9 @@ for station in spec['sectionStations']:
     points=' '.join(f'{px(x):.2f},{py(y):.2f}' for x,y in pts+[[-x,y] for x,y in reversed(pts)])
     elements.append(f'<polygon points="{points}" fill="#e3e2dc" stroke="#526772" stroke-width="2"/>')
     for c in b['compartments']:
-        if abs(z-c['center'][2])<=c['size'][2]/2:
-            x,y,_=c['center'];sx,sy,_=c['size'];elements.append(f'<rect x="{px(x-sx/2)}" y="{py(y+sy/2)}" width="{sx*scale}" height="{sy*scale}" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>{html.escape(c["name"])}</title></rect>')
+        for cell in c.get('cells',[c]):
+            if abs(z-cell['center'][2])<=cell['size'][2]/2:
+                x,y,_=cell['center'];sx,sy,_=cell['size'];elements.append(f'<rect x="{px(x-sx/2)}" y="{py(y+sy/2)}" width="{sx*scale}" height="{sy*scale}" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>{html.escape(c["name"])}</title></rect>')
     for a in b['armor']:
         p=a.get('plate')
         if not p or p.get('mountId'):continue
