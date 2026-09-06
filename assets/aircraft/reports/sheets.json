@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+  "sheets": {
+    "quarter": {
+      "path": "quarter-sheet.jpg",
+      "sha256": "2295040a912666660b1e9cc5cf8b1c94b2099331ca13c877766e9891e4e00ecc"
+    },
+    "top": {
+      "path": "top-sheet.jpg",
+      "sha256": "37665dfc3018cce49d178b5ffb37647add31412888f8d3c07d15535b1fa85f08"
+    },
+    "side": {
+      "path": "side-sheet.jpg",
+      "sha256": "eb160c903ed8e8af97660dd4aa6741fb4b2a502c15f1d4a07711edb2964c9579"
+    },
+    "front": {
+      "path": "front-sheet.jpg",
+      "sha256": "955760121ae409da2ba55578c69a31197a9784c26cf148ea1aa0b93d62da699f"
+    },
+    "rear": {
+      "path": "rear-sheet.jpg",
+      "sha256": "9929671f6f4f6f16e59d3c11e17e9e85869009f758a12245d7d73db73e460f52"
+    },
+    "articulated": {
+      "path": "articulated-sheet.jpg",
+      "sha256": "af6966cae9c8f9b838de5907a83d6a4510e63796baa908fe8b0942fa66f6a4ac"
+    }
+  }
+}
