@@ -1,0 +1,677 @@
+{
+  "aircraft": [
+    {
+      "ammo": 16,
+      "bank": 0.8434520403296701,
+      "controls": {
+        "aileron": -0.0003148947314711714,
+        "brakes": 0,
+        "elevator": -0.02952048430657473,
+        "gear": 0,
+        "hook": 0,
+        "propeller": 2.1651697388407776,
+        "rudder": -0.033370829104851965
+      },
+      "cooldown": 0,
+      "flightTime": 86.01666666666307,
+      "heading": -0.3366514743198046,
+      "hp": 100,
+      "id": "player/vf-6/1",
+      "kills": 0,
+      "modelId": "f4f-4-wildcat",
+      "ownerId": "player",
+      "payload": false,
+      "phase": "outbound",
+      "pilot": {
+        "aimTime": 0,
+        "attempts": 0,
+        "breakCooldown": 0,
+        "breakTime": 0,
+        "think": 0.65
+      },
+      "pitch": 2.4218721069798844e-06,
+      "position": [
+        694.1594057579371,
+        419.9987052660008,
+        -2136.4143431379566
+      ],
+      "previousAttitude": {
+        "bank": 0.8434637030975024,
+        "heading": -0.3346651154445155,
+        "pitch": 2.4288951270575635e-06
+      },
+      "previousControls": {
+        "aileron": -0.0003050934006332273,
+        "brakes": 0,
+        "elevator": -0.0295208915213184,
+        "gear": 0,
+        "hook": 0,
+        "propeller": 0.5818364055074454,
+        "rudder": -0.03337162509424986
+      },
+      "previousPosition": [
+        694.6684945013468,
+        419.9987015335095,
+        -2134.959694961049
+      ],
+      "role": "fighter",
+      "squadronId": "vf-6",
+      "targetId": "enemy-1",
+      "team": "friendly",
+      "timer": 77.99999999999686,
+      "velocity": [
+        -30.545324604585375,
+        0.0002239494752887859,
+        -87.27889061444168
+      ]
+    },
+    {
+      "ammo": 16,
+      "bank": 0.757183732406329,
+      "controls": {
+        "aileron": 0.000411876175703485,
+        "brakes": 0,
+        "elevator": -0.02646419076006655,
+        "gear": 0,
+        "hook": 0,
+        "propeller": 0.5315075132337874,
+        "rudder": -0.027998551684439685
+      },
+      "cooldown": 0,
+      "flightTime": 63.84999999999766,
+      "heading": 2.8035767341365343,
+      "hp": 100,
+      "id": "player/vf-6/2",
+      "kills": 0,
+      "modelId": "f4f-4-wildcat",
+      "ownerId": "player",
+      "payload": false,
+      "phase": "outbound",
+      "pilot": {
+        "aimTime": 0,
+        "attempts": 0,
+        "breakCooldown": 0,
+        "breakTime": 0,
+        "think": 0.65
+      },
+      "pitch": 0.0002944138860689915,
+      "position": [
+        -904.1305329800374,
+        454.8280111601696,
+        -1570.912422302169
+      ],
+      "previousAttitude": {
+        "bank": 0.7571684777331548,
+        "heading": 2.805243314593941,
+        "pitch": 0.00029518971678055327
+      },
+      "previousControls": {
+        "aileron": 0.000401790072701691,
+        "brakes": 0,
+        "elevator": -0.026463559117421723,
+        "gear": 0,
+        "hook": 0,
+        "propeller": -1.0518258200995465,
+        "rudder": -0.027997689689907724
+      },
+      "previousPosition": [
+        -904.6429879970424,
+        454.8275561944666,
+        -1572.3703060421628
+      ],
+      "role": "fighter",
+      "squadronId": "vf-6",
+      "targetId": "enemy-1",
+      "team": "friendly",
+      "timer": 55.833333333331446,
+      "velocity": [
+        30.74730102029747,
+        0.027297942180762376,
+        87.47302439962345
+      ]
+    },
+    {
+      "ammo": 16,
+      "bank": 0.7355130575552167,
+      "controls": {
+        "aileron": -0.0018443101682343865,
+        "brakes": 0,
+        "elevator": -0.024245992535474364,
+        "gear": 0,
+        "hook": 0,
+        "propeller": -1.9834156795540983,
+        "rudder": -0.026903315642404994
+      },
+      "cooldown": 0,
+      "flightTime": 42.599999999998865,
+      "heading": -1.188542037678964,
+      "hp": 100,
+      "id": "player/vf-6/3",
+      "kills": 0,
+      "modelId": "f4f-4-wildcat",
+      "ownerId": "player",
+      "payload": false,
+      "phase": "outbound",
+      "pilot": {
+        "aimTime": 0,
+        "attempts": 0,
+        "breakCooldown": 0,
+        "breakTime": 0,
+        "think": 0.65
+      },
+      "pitch": 0.013180911652305777,
+      "position": [
+        310.40116596113353,
+        481.38285723632345,
+        -2791.752897345166
+      ],
+      "previousAttitude": {
+        "bank": 0.7355813653392254,
+        "heading": -1.1869406498431072,
+        "pitch": 0.013212098412284073
+      },
+      "previousControls": {
+        "aileron": -0.0018339683823547226,
+        "brakes": 0,
+        "elevator": -0.024244811380139442,
+        "gear": 0,
+        "hook": 0,
+        "propeller": 2.716436294292155,
+        "rudder": -0.026907353208236562
+      },
+      "previousPosition": [
+        311.8298638274977,
+        481.3625596496231,
+        -2791.178519372657
+      ],
+      "role": "fighter",
+      "squadronId": "vf-6",
+      "targetId": "enemy-1",
+      "team": "friendly",
+      "timer": 34.583333333332654,
+      "velocity": [
+        -85.72187198185279,
+        1.2178552020199358,
+        -34.462678350541786
+      ]
+    },
+    {
+      "ammo": 0,
+      "bank": 0.07183619053227691,
+      "controls": {
+        "aileron": 0.004495957578313489,
+        "brakes": 0,
+        "elevator": -0.0025142666686296922,
+        "gear": 0,
+        "hook": 0,
+        "propeller": 2.5407674809873306,
+        "rudder": -0.0022469124442267238
+      },
+      "cooldown": 0,
+      "flightTime": 25.016666666666527,
+      "heading": -0.08867713475889083,
+      "hp": 100,
+      "id": "player/vb-6/1",
+      "kills": 0,
+      "modelId": "sbd-3-dauntless",
+      "ownerId": "player",
+      "payload": true,
+      "phase": "outbound",
+      "pilot": {
+        "aimTime": 0,
+        "attackHeading": -0.02654957313523283,
+        "attackStage": "ingress",
+        "attempts": 0,
+        "breakCooldown": 0,
+        "breakTime": 0,
+        "think": 0
+      },
+      "pitch": 0.18,
+      "position": [
+        -67.68627149613181,
+        323.5143664054016,
+        -1801.2951995161593
+      ],
+      "previousAttitude": {
+        "bank": 0.07166967358493197,
+        "heading": -0.08854338997054434,
+        "pitch": 0.18
+      },
+      "previousControls": {
+        "aileron": 0.004478127531874196,
+        "brakes": 0,
+        "elevator": -0.002508438575472619,
+        "gear": 0,
+        "hook": 0,
+        "propeller": 0.9574341476539985,
+        "rudder": -0.002241673707228876
+      },
+      "previousPosition": [
+        -67.55642782948915,
+        323.2475717483519,
+        -1799.834810197809
+      ],
+      "role": "dive-bomber",
+      "squadronId": "vb-6",
+      "targetId": "enemy-1",
+      "team": "friendly",
+      "timer": 17.000000000000316,
+      "velocity": [
+        -7.790619998559783,
+        16.00767942297973,
+        -87.62335910102095
+      ]
+    },
+    {
+      "ammo": 0,
+      "bank": 0.16666666666666666,
+      "controls": {
+        "aileron": 0.22499999999999995,
+        "brakes": 0,
+        "elevator": -0.005833333333333334,
+        "gear": 0.18333333333333035,
+        "hook": 0,
+        "propeller": 1.9027247594745837,
+        "rudder": -0.005852644641751218
+      },
+      "cooldown": 0,
+      "flightTime": 8.349999999999994,
+      "heading": -0.0036626116235733974,
+      "hp": 100,
+      "id": "player/vb-6/2",
+      "kills": 0,
+      "modelId": "sbd-3-dauntless",
+      "ownerId": "player",
+      "payload": true,
+      "phase": "outbound",
+      "pilot": {
+        "aimTime": 0,
+        "attackHeading": -0.0521175399022685,
+        "attackStage": "ingress",
+        "attempts": 0,
+        "breakCooldown": 0,
+        "breakTime": 0,
+        "think": 0
+      },
+      "pitch": 0.18,
+      "position": [
+        -0.03525216707806928,
+        58.11646068336686,
+        -344.7204109281386
+      ],
+      "previousAttitude": {
+        "bank": 0.15833333333333333,
+        "heading": -0.0033142399187067184,
+        "pitch": 0.18
+      },
+      "previousControls": {
+        "aileron": 0.22499999999999995,
+        "brakes": 0,
+        "elevator": -0.005541666666666667,
+        "gear": 0.18916666666666368,
+        "hook": 0,
+        "propeller": 0.3193914261412516,
+        "rudder": -0.005560129065227919
+      },
+      "previousPosition": [
+        -0.030428076118128682,
+        57.876784841943035,
+        -343.4032990188142
+      ],
+      "role": "dive-bomber",
+      "squadronId": "vb-6",
+      "targetId": "enemy-1",
+      "team": "friendly",
+      "timer": 0.3333333333333333,
+      "velocity": [
+        -0.28944545759643603,
+        14.380550485429325,
+        -79.0267145594646
+      ]
+    },
+    {
+      "ammo": 0,
+      "bank": 0,
+      "controls": {
+        "aileron": 0,
+        "brakes": 0,
+        "elevator": 0,
+        "gear": 1,
+        "hook": 0,
+        "propeller": -0.899703947692494,
+        "rudder": 0
+      },
+      "cooldown": 0,
+      "deckPosition": [
+        0,
+        18.441,
+        -18.8
+      ],
+      "flightTime": 0,
+      "heading": -3.141592653589793,
+      "hp": 100,
+      "id": "player/vb-6/3",
+      "kills": 0,
+      "modelId": "sbd-3-dauntless",
+      "ownerId": "player",
+      "payload": true,
+      "phase": "taxi",
+      "pilot": {
+        "aimTime": 0,
+        "attempts": 0,
+        "breakCooldown": 0,
+        "breakTime": 0,
+        "think": 0
+      },
+      "pitch": 0,
+      "position": [
+        0,
+        18.441,
+        -18.8
+      ],
+      "previousAttitude": {
+        "bank": 0,
+        "heading": 1.5707963267948966,
+        "pitch": 0
+      },
+      "previousControls": {
+        "aileron": 0,
+        "brakes": 0,
+        "elevator": 0,
+        "gear": 1,
+        "hook": 0,
+        "propeller": -1.4830372810258279,
+        "rudder": 0
+      },
+      "previousPosition": [
+        0,
+        18.441,
+        -19
+      ],
+      "role": "dive-bomber",
+      "squadronId": "vb-6",
+      "targetId": "enemy-1",
+      "team": "friendly",
+      "timer": 0,
+      "velocity": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "ammo": 0,
+      "bank": 0,
+      "controls": {
+        "aileron": 0,
+        "brakes": 0,
+        "elevator": 0,
+        "gear": 1,
+        "hook": 0,
+        "propeller": 0,
+        "rudder": 0
+      },
+      "cooldown": 0,
+      "deckPosition": [
+        -4,
+        18.74445,
+        25
+      ],
+      "flightTime": 0,
+      "heading": 0,
+      "hp": 100,
+      "id": "player/vt-6/1",
+      "kills": 0,
+      "modelId": "tbd-1-devastator",
+      "ownerId": "player",
+      "payload": true,
+      "phase": "queued",
+      "pilot": {
+        "aimTime": 0,
+        "attempts": 0,
+        "breakCooldown": 0,
+        "breakTime": 0,
+        "think": 0
+      },
+      "pitch": 0,
+      "position": [
+        -4,
+        18.74445,
+        25
+      ],
+      "previousAttitude": {
+        "bank": 0,
+        "heading": 0,
+        "pitch": 0
+      },
+      "previousControls": {
+        "aileron": 0,
+        "brakes": 0,
+        "elevator": 0,
+        "gear": 1,
+        "hook": 0,
+        "propeller": 0,
+        "rudder": 0
+      },
+      "previousPosition": [
+        -4,
+        18.74445,
+        25
+      ],
+      "role": "torpedo-bomber",
+      "squadronId": "vt-6",
+      "targetId": "enemy-1",
+      "team": "friendly",
+      "timer": 0,
+      "velocity": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "ammo": 0,
+      "bank": 0,
+      "controls": {
+        "aileron": 0,
+        "brakes": 0,
+        "elevator": 0,
+        "gear": 1,
+        "hook": 0,
+        "propeller": 0,
+        "rudder": 0
+      },
+      "cooldown": 0,
+      "deckPosition": [
+        -4,
+        18.74445,
+        36
+      ],
+      "flightTime": 0,
+      "heading": 0,
+      "hp": 100,
+      "id": "player/vt-6/2",
+      "kills": 0,
+      "modelId": "tbd-1-devastator",
+      "ownerId": "player",
+      "payload": true,
+      "phase": "queued",
+      "pilot": {
+        "aimTime": 0,
+        "attempts": 0,
+        "breakCooldown": 0,
+        "breakTime": 0,
+        "think": 0
+      },
+      "pitch": 0,
+      "position": [
+        -4,
+        18.74445,
+        36
+      ],
+      "previousAttitude": {
+        "bank": 0,
+        "heading": 0,
+        "pitch": 0
+      },
+      "previousControls": {
+        "aileron": 0,
+        "brakes": 0,
+        "elevator": 0,
+        "gear": 1,
+        "hook": 0,
+        "propeller": 0,
+        "rudder": 0
+      },
+      "previousPosition": [
+        -4,
+        18.74445,
+        36
+      ],
+      "role": "torpedo-bomber",
+      "squadronId": "vt-6",
+      "targetId": "enemy-1",
+      "team": "friendly",
+      "timer": 0,
+      "velocity": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "ammo": 0,
+      "bank": 0,
+      "controls": {
+        "aileron": 0,
+        "brakes": 0,
+        "elevator": 0,
+        "gear": 1,
+        "hook": 0,
+        "propeller": 0,
+        "rudder": 0
+      },
+      "cooldown": 0,
+      "deckPosition": [
+        -4,
+        18.74445,
+        47
+      ],
+      "flightTime": 0,
+      "heading": 0,
+      "hp": 100,
+      "id": "player/vt-6/3",
+      "kills": 0,
+      "modelId": "tbd-1-devastator",
+      "ownerId": "player",
+      "payload": true,
+      "phase": "queued",
+      "pilot": {
+        "aimTime": 0,
+        "attempts": 0,
+        "breakCooldown": 0,
+        "breakTime": 0,
+        "think": 0
+      },
+      "pitch": 0,
+      "position": [
+        -4,
+        18.74445,
+        47
+      ],
+      "previousAttitude": {
+        "bank": 0,
+        "heading": 0,
+        "pitch": 0
+      },
+      "previousControls": {
+        "aileron": 0,
+        "brakes": 0,
+        "elevator": 0,
+        "gear": 1,
+        "hook": 0,
+        "propeller": 0,
+        "rudder": 0
+      },
+      "previousPosition": [
+        -4,
+        18.74445,
+        47
+      ],
+      "role": "torpedo-bomber",
+      "squadronId": "vt-6",
+      "targetId": "enemy-1",
+      "team": "friendly",
+      "timer": 0,
+      "velocity": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "camera": {
+    "aim": [
+      8.000000000000002,
+      0.5,
+      -4999.500000000004
+    ],
+    "binoculars": false,
+    "followedAircraftId": "player/vf-6/1",
+    "fov": 52.00000000000001,
+    "magnification": 1,
+    "manualAim": true,
+    "matrixWorldInverse": [
+      0.8851000390362779,
+      -0.06828941304571319,
+      0.4603634183597252,
+      0,
+      -6.938893903907228e-18,
+      0.9891762134547635,
+      0.14673247334961692,
+      0,
+      -0.4654008174659553,
+      -0.1298729178896355,
+      0.8755199051425688,
+      0,
+      -1613.7156899404226,
+      -650.4265168809175,
+      1440.6343800729956,
+      1
+    ],
+    "mode": "Chase",
+    "pointerLocked": false,
+    "position": [
+      720.6672072756089,
+      431.9985933182341,
+      -2096.80146666266
+    ],
+    "projectionMatrix": [
+      1.633751346060547,
+      0,
+      0,
+      0,
+      0,
+      2.050303841579296,
+      0,
+      0,
+      0,
+      0,
+      8.333402778356486e-06,
+      -1,
+      0,
+      0,
+      0.5000041667013891,
+      0
+    ],
+    "shellFollow": "off"
+  },
+  "paused": false,
+  "renderedAircraft": {
+    "batches": 132,
+    "instances": 18,
+    "models": 9,
+    "payloads": 3
+  },
+  "tick": 10205
+}

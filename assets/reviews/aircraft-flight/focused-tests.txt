@@ -1,0 +1,39 @@
+bun test v1.3.3 (274e01c7)
+
+src/simulation/aircraftFlight.test.ts:
+(pass) bank rolls in before a coordinated turn, with finite pitch and speed response [4.79ms]
+(pass) a steep descent begins pulling out before the sea and gear/brakes deploy gradually [1.93ms]
+(pass) attitude and mechanisms interpolate across wrap and remain read-only during pause [1.68ms]
+(pass) fighters require a forward gun solution and hold fire through an ally [1.13ms]
+(pass) fighters prioritize inbound loaded bombers, retain targets, and discard losses [0.77ms]
+(pass) aircraft flight and pilot memory replay identically with no renderer [413.14ms]
+(pass) recovery follows a moving, rotated carrier and makes one continuous touchdown [124.41ms]
+
+src/simulation/aircraft.test.ts:
+(pass) versioned air wing validation and unsupported model rejection [22.17ms]
+(pass) launch queues three, spaces takeoffs, uses moving carrier datum, recall and reset [56.16ms]
+(pass) dive bombers release ballistic HE bombs with carrier ownership and recover [486.81ms]
+(pass) torpedo bombers create falling payloads then armed-distance water runners [144.50ms]
+(pass) opposing fighters engage aircraft and shoot them down without friendly damage [150.53ms]
+(pass) service loss blocks launches, submerged targets are rejected, aircraft preserve fighting capability [1.55ms]
+(pass) recall cancels queued launches; port fixture cannot deploy [0.88ms]
+(pass) fixed-tick combat integrates bot air operations and resets airborne payloads [1107.73ms]
+(pass) aircraft weapons resolve actual ship hits and score hostile damage through combat [7645.31ms]
+(pass) bot strike orders fall back from a lost or submerged target to a valid hostile ship [7.83ms]
+(pass) fighters alone cannot keep a carrier in a ship battle after all strike aircraft and guns are lost [0.68ms]
+(pass) deck aircraft occupy distinct stable spots and taxi continuously before takeoff [23.44ms]
+(pass) recovery reaches the deck, rolls to a stop, parks and rearms without disappearing [69.74ms]
+(pass) a recalled group waits its turn and all survivors recover on a stationary carrier [409.81ms]
+(pass) a taxi aircraft clears the launch lane when the airborne limit fills [83.99ms]
+
+src/game/AircraftFollow.test.ts:
+(pass) aircraft camera samples airborne interpolation and follows deck poses without changing simulation [1.12ms]
+(pass) follow selects only surviving own aircraft, cancels shell follow, and camera controls return to ship [1.10ms]
+
+src/game/AircraftView.test.ts:
+(pass) port renders only the player deck, follows its displayed pose, and retains parked battle aircraft [8.93ms]
+
+ 25 pass
+ 0 fail
+ 591 expect() calls
+Ran 25 tests across 4 files. [11.02s]
