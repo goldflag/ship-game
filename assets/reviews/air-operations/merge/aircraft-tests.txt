@@ -1,0 +1,69 @@
+bun test v1.3.3 (274e01c7)
+
+src/simulation/aircraft.test.ts:
+(pass) versioned air wing validation and unsupported model rejection [22.41ms]
+(pass) launch queues three, spaces takeoffs, uses moving carrier datum, recall and reset [47.87ms]
+(pass) dive bombers release ballistic HE bombs with carrier ownership and recover [124.12ms]
+(pass) torpedo bombers create falling payloads then armed-distance water runners [64.11ms]
+(pass) opposing fighters engage aircraft and shoot them down without friendly damage [90.10ms]
+(pass) service loss blocks launches, submerged targets are rejected, aircraft preserve fighting capability [1.33ms]
+(pass) recall cancels queued launches; port fixture cannot deploy [0.79ms]
+(pass) fixed-tick combat integrates bot air operations and resets airborne payloads [1003.08ms]
+(pass) aircraft weapons resolve actual ship hits and score hostile damage through combat [6276.45ms]
+(pass) bot strike orders fall back from a lost or submerged target to a valid hostile ship [4.01ms]
+(pass) fighters alone cannot keep a carrier in a ship battle after all strike aircraft and guns are lost [0.59ms]
+(pass) deck aircraft occupy distinct stable spots and taxi continuously before takeoff [12.92ms]
+(pass) recovery reaches the deck, rolls to a stop, parks and rearms without disappearing [40.33ms]
+(pass) a recalled group waits its turn and all survivors recover on a stationary carrier [185.46ms]
+(pass) a taxi aircraft clears the launch lane when the airborne limit fills [19.93ms]
+
+src/game/AircraftFollow.test.ts:
+(pass) aircraft camera samples airborne interpolation and follows deck poses without changing simulation [1.55ms]
+(pass) follow selects only surviving own aircraft, cancels shell follow, and camera controls return to ship [1.07ms]
+
+src/game/AircraftView.test.ts:
+(pass) port renders only the player deck, follows its displayed pose, and retains parked battle aircraft [13.66ms]
+
+src/game/CameraRig.test.ts:
+(pass) Chase camera keeps its ship offset steady when frame duration varies [3.66ms]
+(pass) Bridge camera keeps its ship offset steady when frame duration varies [0.79ms]
+(pass) Tactical camera keeps its ship offset steady when frame duration varies [0.65ms]
+(pass) Inspection camera keeps its ship offset steady when frame duration varies [0.41ms]
+(pass) switching the followed ship still eases the camera toward the new target [0.19ms]
+(pass) port preset switches keep both submarine and battleship hulls in view without resetting the orbit [1.41ms]
+(pass) submarine chase framing leaves the complete hull above the weapon instruments [0.25ms]
+(pass) port framing scales the aim point and camera offsets with the hull [0.26ms]
+(pass) port zoom stays proportional when switching very small and large hulls [0.61ms]
+(pass) shell camera follows flight without frame lag or changed aim, and restores binoculars [0.39ms]
+(pass) upward port dragging stops at the lowest ship-focused orbit across hull sizes and zoom limits [0.40ms]
+(pass) Chase mouse aiming reveals the sailing sun within a restrained upward tilt [0.21ms]
+(pass) Bridge mouse aiming reveals the sailing sun within a restrained upward tilt [0.07ms]
+(pass) Tactical mouse aiming reveals the sailing sun within a restrained upward tilt [0.05ms]
+(pass) Port camera stays above water through extreme input, zoom and sinking [4.32ms]
+(pass) Inspection camera stays above water through extreme input, zoom and sinking [0.96ms]
+(pass) Chase camera stays above water through extreme input, zoom and sinking [0.81ms]
+(pass) Bridge camera stays above water through extreme input, zoom and sinking [0.94ms]
+(pass) Tactical camera stays above water through extreme input, zoom and sinking [0.68ms]
+(pass) Binoculars camera stays above water through extreme input, zoom and sinking [1.40ms]
+(pass) VIIC chase follows underwater, scope eye breaks the surface at 7 m, and deeper scope stays submerged [0.43ms]
+
+src/game/GameFrame.test.ts:
+(pass) map and port transitions restore their own absorption after underwater attenuation [94.70ms]
+(pass) turning through north takes the short heading path without changing authoritative combat state [194.56ms]
+(pass) firing enters shell view without feeding its camera into aim, freezes on pause and restores optics [505.09ms]
+(pass) target inspection follows the interpolated underway target and resets without a streak [32.46ms]
+(pass) pause holds the interpolated pose and resume continues without a tick-sized jump [16.22ms]
+(pass) manual aiming and binoculars keep the camera attached to the displayed ship at full speed [167.14ms]
+(pass) repositioning for port and launch clears the old ship poses [13.44ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.03333333333333333 [99.66ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.01694915254237288 [56.10ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.016666666666666666 [58.72ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.008333333333333333 [41.81ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.006944444444444444 [35.09ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.006944444444444444,0.02127659574468085,0.013888888888888888,0.043 [72.28ms]
+(pass) all fleet impact marks share one cosmetic work budget, renewed for each frame [11.67ms]
+
+ 53 pass
+ 0 fail
+ 6677 expect() calls
+Ran 53 tests across 5 files. [9.58s]

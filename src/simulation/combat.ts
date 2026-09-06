@@ -415,8 +415,8 @@ export class CombatSimulation {
     return {
       ...(this.player.airWing ? { airWing: { available: airServiceAvailable(this.player) && this.result === 'active', squadrons: this.definition.airWing!.squadrons.map(s => {
         const planes = this.player.airWing!.planes.filter(p => p.squadronId === s.id);
-        return { id: s.id, name: s.name, role: s.role, ready: planes.filter(p => p.phase === 'ready').length, queued: planes.filter(p => p.phase === 'queued').length, airborne: planes.filter(airborne).length, rearming: planes.filter(p => p.phase === 'rearming').length, lost: planes.filter(p => p.phase === 'lost').length, rearmSeconds: Math.ceil(Math.max(0, ...planes.filter(p => p.phase === 'rearming').map(p => p.timer))), kills: planes.reduce((n,p) => n+p.kills,0) };
-      }), flights: this.player.airWing.planes.filter(airborne).map(p => ({ id: p.id, modelId: p.modelId, phase: p.phase, hp: p.hp, payload: p.payload, ammo: p.ammo })) } } : {}),
+        return { id: s.id, name: s.name, role: s.role, ready: planes.filter(p => p.phase === 'ready').length, queued: planes.filter(p => p.phase === 'queued' || p.phase === 'taxi').length, airborne: planes.filter(airborne).length, rearming: planes.filter(p => ['rollout', 'parking', 'rearming'].includes(p.phase)).length, lost: planes.filter(p => p.phase === 'lost').length, rearmSeconds: Math.ceil(Math.max(0, ...planes.filter(p => p.phase === 'rearming').map(p => p.timer))), kills: planes.reduce((n,p) => n+p.kills,0) };
+      }), flights: this.player.airWing.planes.filter(p => p.phase !== 'lost').map(p => ({ id: p.id, modelId: p.modelId, phase: p.phase, hp: p.hp, payload: p.payload, ammo: p.ammo })) } } : {}),
       airContacts: this.aircraft.filter(airborne).map(p => ({ id: p.id, team: p.team, x: p.position[0], z: p.position[2] })),
       battery, range: Math.hypot(aim[0] - this.ship.x, aim[2] - this.ship.z), ready: mounts.filter(m => m.status === 'ready').length, total: mounts.length,
       ammunition: this.ammunitionSelection[battery], heSupported: this.definition.mounts.some(m => m.battery === battery && m.weapon.he !== undefined),

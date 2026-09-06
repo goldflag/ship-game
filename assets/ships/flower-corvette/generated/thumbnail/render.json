@@ -1,0 +1,23 @@
+{
+  "contentHash": "28c076b7e85bf142e6ebcb70ccc1fc6287ef8b6a3f2ce8ad2b666d24e059a65a",
+  "recipeHash": "256a1dc45e1c85022e44fb81b4bfe8f52c7059b64d36d447ac8cb2b66820355b",
+  "imageHash": "23716f547a754efcabf27ec9534491274195553fdaa60af2a08d1fd4bdb51d1f",
+  "input": "validated runtime GLB",
+  "importedAxes": "bow +Y, starboard +X, up +Z",
+  "projection": "orthographic",
+  "location": [
+    -117.22270965576172,
+    40.72871017456055,
+    59.217185974121094
+  ],
+  "rotationEuler": [
+    1.1691491603851318,
+    5.5148277056105144e-8,
+    -1.9074711799621582
+  ],
+  "scale": 84.24967956542969,
+  "resolution": [
+    600,
+    180
+  ]
+}

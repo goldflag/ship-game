@@ -1,0 +1,11 @@
+{
+  "id": "a176e62b-80bb-4f18-abae-c716e9f70e8a",
+  "ok": true,
+  "result": {
+    "result": "{\"hash\":\"5f7975e4cd42b636e9927a146281f5ff827977b5a77e3399e137497367627287\",\"ready\":18,\"recovered\":3}",
+    "origin": "http://127.0.0.1:5261/scripts/diagnostics/carrier-deck.html"
+  },
+  "_meta": {
+    "runtimeId": "ddeb9046-2fba-425a-ab05-8e6acf1a4049"
+  }
+}
