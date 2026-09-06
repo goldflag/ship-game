@@ -20,7 +20,13 @@ export default defineConfig({
   server: { port: 5173, strictPort: true },
   build: {
     target: 'es2022',
-    rollupOptions: { output: { manualChunks: { 'three-engine': ['three/webgpu', 'three/tsl'], 'react': ['react', 'react-dom/client'] } } },
+    rollupOptions: {
+      input: {
+        game: fileURLToPath(new URL('./index.html', import.meta.url)),
+        aircraftReview: fileURLToPath(new URL('./aircraft-review.html', import.meta.url)),
+      },
+      output: { manualChunks: { 'three-engine': ['three/webgpu', 'three/tsl'], 'react': ['react', 'react-dom/client'] } },
+    },
     // The supplied Water Pro bundle embeds its foam and spray textures.
     chunkSizeWarningLimit: 7000,
   },

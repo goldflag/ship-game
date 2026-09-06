@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "aircraftId": "d4y2-judy",
+  "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+  "method": "blender-mcp",
+  "blenderVersion": "5.2.0 LTS",
+  "originalGeometry": true,
+  "shapeSource": "shapes/d4y2-judy.json",
+  "reference": {
+    "sourceUrl": "https://www.gruppofalchi.com/files/Profile-Publications-Aircraft-241---Aichi-D3A-Yokosuka-D4Y.pdf",
+    "imagePath": "assets/aircraft/references/schematics/d4y2-judy/profile-241-page-17-measure.png",
+    "sourceTitle": "Yokosuka D4Y2-C, P. Endsleigh Castle, Aircraft Profile 241 plate (scan p.17)",
+    "variant": "D4Y2-C reconnaissance Model 1-2; external airframe used for D4Y2, bomber-bay internals not evidenced",
+    "notes": [
+      "Manually digitised top/side silhouettes, independently registered to catalog length and wingspan.",
+      "Published reference drawing, not manufacturing geometry. Pixel rounding, scan distortion, hidden cross sections, canopy width and small details remain approximations.",
+      "Canopy lateral widths and hidden body contours are reconstructed inside the measured exterior envelope. Wing dihedral is digitised approximately from the front view, not an airfoil or load-bearing engineering specification.",
+      "Plan registration: source PDF page 17 rendered at 2x (2064x2784), reduced to 1376x1856; crop [80,330,1270,1300], rotate +66 degrees, expand. No nonuniform plan warping.",
+      "Illustrated D4Y2-C uses inline Atsuta engine; D4Y3/4 radial drawings deliberately excluded. Chin radiator is separate from primary fuselage loft."
+    ],
+    "registration": {
+      "top": {
+        "noseX": 205,
+        "tailX": 1218,
+        "centerY": 654,
+        "portTipY": 62,
+        "starboardTipY": 1243,
+        "imagePath": "assets/aircraft/references/schematics/d4y2-judy/top-registered.png"
+      },
+      "side": {
+        "noseX": 190,
+        "tailX": 1216,
+        "engineShaftY": 1507,
+        "imagePath": "assets/aircraft/references/schematics/d4y2-judy/profile-241-page-17-measure.png"
+      },
+      "front": {
+        "leftTipX": 113,
+        "rightTipX": 1288,
+        "centerX": 702,
+        "engineShaftY": 195,
+        "imagePath": "assets/aircraft/references/schematics/d4y2-judy/profile-241-page-17-measure.png",
+        "metersPerPixel": 0.00979,
+        "wingTipsCropped": false
+      }
+    }
+  },
+  "triangleBudget": 40000
+}

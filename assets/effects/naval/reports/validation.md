@@ -20,6 +20,29 @@ The smoke motion revision follows the apparent pace of the supplied New Jersey f
 
 ## Runtime and regression checks
 
+### Smoke rendering cost (2026-09-05)
+
+The [performance review](smoke-performance.md) records an optimization that skips lighting in empty gas, stops effectively opaque rays, and renders each effect plane in one pass. Alternating WebGPU shader comparisons retain the smoke detail and reduce mature-smoke GPU cost by roughly 14–27% in the final recorded run. Effect batches fall from 13 submissions to 7. Timings isolate smoke and remain sensitive to background GPU work; they are not a gameplay FPS promise. The report includes pixel comparisons, reproduction commands and a pre-existing WebGL2 depth-clipping issue discovered by the additional check.
+
+### Horizon smoke cutoff (2026-09-05)
+
+The 5 km binocular view exposed a straight missing band through the propellant clouds. The smoke was present in the scene pass but disappeared in the final composition. Sky Pro's `applyTo` used opaque scene depth to apply a second fog layer after Water Pro's material fog. Because transparent smoke does not write depth, that layer used the distant ocean behind it; the preset's 9,100–12,600 m far fade replaced nearby smoke with sky color. Above the ocean, clear depth bypassed that fog, producing the sharp band.
+
+`Game` now composes Water Pro's output directly before exposure, tone mapping, the armor overlay and FXAA. Water Pro's existing `scene.fogNode` continues to fog ship and effect materials at their own distances and blend the ocean into the sky. Sky rendering, clouds and reflections still use Sky Pro. Smoke depth clipping against ships and water is unchanged. Removing the duplicate fog also reduces the extra haze previously applied to opaque objects.
+
+The real Game review adds `horizon`: camera `(5000, 18, 0)`, looking at `(0, 18, 0)`, vertical FOV 4.33°, 2.5 seconds after a CPU-fired broadside. The unedited [before](../review/horizon-before.png) and [after](../review/horizon-after.png) captures retain camera and combat diagnostics in their adjacent JSON files.
+
+`checkCombatSmokeHorizon(window.review)` in `scripts/tests/combat-effects-browser.ts` reads the final display target and checks plume contrast against neighboring sky/sea on every row across the horizon. It failed before the fix (minimum contrast 0.00565) and passed after it (38 rows, minimum contrast 0.09836; threshold 0.04), at 1920×1080 using WebGPU in Orca. The full 122-test simulation/game suite and `bun run build` passed. The full ocean/sky composition was not separately reviewed on WebGL2.
+
+To repeat, open `/scripts/diagnostics/combat-effects.html` on the local Vite server, wait for `window.reviewReady`, then run:
+
+```js
+const { checkCombatSmokeHorizon } = await import('/scripts/tests/combat-effects-browser.ts');
+await checkCombatSmokeHorizon(window.review);
+```
+
+### Earlier effects checks
+
 - `bun test src/simulation src/ships src/game src/schematic`: 54 passing tests. This includes metadata snapshots, world-space impact normals, equal spray trajectories at 30/60/144 Hz, pause/reset behavior, bounded storage, surface foam clearing while stationary, fire persisting at 0.35 seconds then cooling fully, and water droplets retaining a round profile through the apex.
 - `bun run build`: passed, including all four ship export checks and TypeScript.
 - Bismarck WebGPU runtime reviewed with fixed cameras: fire at 0.2 s, changing smoke at 1.0, 1.4, 2.6 and 4 s, rising water at 2 s, breakup near the apex at 3.7 s, and target armor contact at 1.05 s. The close smoke view also confirmed removal of the straight perspective-bound cutoff. PNG capture originals were encoded to WebP without painting or compositing the frames. Captures and camera/shot metadata are in `../review/`.

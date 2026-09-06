@@ -53,7 +53,7 @@ export function updateStability(actor: Combatant, def: ShipDefinition, dt: numbe
 export function updateCapability(actor: Combatant, def: ShipDefinition): void {
   const s = actor.damage.stability;
   const maximum = def.modules.reduce((n, m) => n + m.hp, 0) + def.mounts.length * 100;
-  actor.damage.integrity = maximum ? 1000 * (actor.damage.modules.reduce((n, m) => n + m.hp, 0) + actor.mounts.reduce((n, m) => n + m.hp, 0)) / maximum : 1000;
+  actor.damage.integrity = actor.damage.maxIntegrity * (maximum ? (actor.damage.modules.reduce((n, m) => n + m.hp, 0) + actor.mounts.reduce((n, m) => n + m.hp, 0)) / maximum : 1);
   if (actor.damage.sunk) { s.combatLost = true; if (s.status !== 'capsized') s.status = 'sinking'; return; }
   const usable = def.mounts.some((m, i) => actor.mounts[i].hp > 0 && actor.mounts[i].ammo > 0 && (!m.magazineId || equipmentCondition(actor, def, def.modules.find(mod => mod.id === m.magazineId)!).availability > 0));
   const recoverable = def.mounts.some((m, i) => actor.mounts[i].hp > 0 && actor.mounts[i].ammo > 0 && (!m.magazineId || actor.damage.modules.find(mod => mod.id === m.magazineId)!.hp > 0));

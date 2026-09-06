@@ -7,8 +7,9 @@ import { createShipState, FIXED_DT, stepShip, type HelmCommand } from './ship';
 import { add, clamp, length, localToWorld, scale, sub } from './geometry';
 import { availableAmmunition, createMountState, muzzleWorld, selectAmmunition, shotDirection, solveBallistic, updateMount } from './weapons';
 import { dispersedDirection, dispersedSpeed, travelFactor, velocityPenetration } from './ballistics';
-import { deployment, MAX_TEAM_SHIPS, type BattleFleet, type BattleResult, type FleetActor, type Team } from './battle';
-import { botAim, botAmmunition, botGunRange, botHelm, botTarget, clearFiringLane, shipVelocity } from './bots';
+import { BATTLE_SPAWN_DISTANCE, deployment, MAX_TEAM_SHIPS, validateSpawnDistance, type BattleFleet, type BattleResult, type FleetActor, type Team } from './battle';
+import { botAim, botAmmunition, botDidFire, botGunRange, botHelm, botReadyToFire, botTarget, clearFiringLane, createBotState, shipVelocity, updateBot } from './bots';
+import { resolveShipCollisions } from './collisions';
 import { createDamage, systemHealth, updateFlooding, type BallisticEffectData, type DamageEvent, type Shell, type ImpactRecord, type DefeatCause } from './damage';
 
 export interface CombatIntent { aim: Vec3; fire: boolean; battery: Battery; ammunition?: Ammunition; controlPriority?: ControlPriority; controlFocus?: string; }
@@ -27,9 +28,12 @@ export interface CombatTelemetry {
   mounts: { id: string; name: string; status: string; reload: number; ammo: number; loaded: Ammunition }[];
   modules: ({ id: string; name: string; condition: number } & EquipmentCondition)[]; message: string;
   playerIntegrity: number;
+  playerMaxIntegrity: number;
   playerWater: number;
   targetDefeatCause?: DefeatCause;
   shellHistory: ShellHistory[];
+  playerDamageDealt: number;
+  playerFrags: number;
   targetPosition: { x: number; z: number; heading: number };
   batteries: { battery: Battery; ammunition: Ammunition; ammo: number; ready: number; total: number; reload: number }[];
 }
@@ -38,6 +42,8 @@ export class CombatSimulation {
   target: FleetActor;
   readonly actors: FleetActor[];
   readonly isBattle: boolean;
+  readonly spawnDistance: number;
+  readonly seed: number;
   result: BattleResult = 'active';
   readonly shells: Shell[] = [];
   readonly events: CombatEvent[] = [];
@@ -51,17 +57,25 @@ export class CombatSimulation {
   private fireQueued = false;
   private dispersionSequence = 0;
   private ammunitionSelection: Record<Battery, Ammunition> = { main: 'ap', secondary: 'ap' };
+  private playerDamageDealt = 0;
+  private playerFrags = 0;
+  /** Last hostile hull/breach damage earns the frag, including a later flooding loss. */
+  private lastDamager = new Map<string, string>();
+  private creditedLosses = new Set<string>();
   /** Without a fleet, create an idle gunnery fixture for port and isolated asset tests. */
-  constructor(readonly definition: ShipDefinition, fleet?: BattleFleet, readonly seed = 0x6e617661) {
-    if (!Number.isInteger(seed) || seed < 0 || seed > 0xffffffff) throw new Error('Battle seed must be an unsigned 32-bit integer');
+  constructor(readonly definition: ShipDefinition, fleet?: BattleFleet, seed = fleet?.seed ?? 0x6e617661) {
     this.isBattle = !!fleet;
-    if (fleet && (!fleet.enemies.length || fleet.enemies.length > MAX_TEAM_SHIPS || fleet.friendlyBots.length >= MAX_TEAM_SHIPS)) throw new Error('Choose one to five ships per team.');
+    this.spawnDistance = fleet?.spawnDistance ?? BATTLE_SPAWN_DISTANCE;
+    this.seed = seed;
+    if (!Number.isInteger(this.seed) || this.seed < 0 || this.seed > 0xffffffff) throw new Error('Battle seed must be an unsigned 32-bit integer.');
+    validateSpawnDistance(this.spawnDistance);
+    if (fleet && (!fleet.enemies.length || fleet.enemies.length > MAX_TEAM_SHIPS || fleet.friendlyBots.length >= MAX_TEAM_SHIPS)) throw new Error(`Choose one to ${MAX_TEAM_SHIPS} ships per team.`);
     this.player = this.createActor('player', definition, 'friendly', 'player');
     this.actors = [this.player];
     if (fleet) {
       fleet.friendlyBots.forEach((def, i) => this.actors.push(this.createActor(`friendly-${i + 1}`, def, 'friendly', 'bot')));
       fleet.enemies.forEach((def, i) => this.actors.push(this.createActor(`enemy-${i + 1}`, def, 'enemy', 'bot')));
-      for (const team of ['friendly', 'enemy'] as const) this.actors.filter(actor => actor.team === team).forEach((actor, i) => Object.assign(actor.motion, deployment(i, team)));
+      for (const team of ['friendly', 'enemy'] as const) this.actors.filter(actor => actor.team === team).forEach((actor, i) => Object.assign(actor.motion, deployment(i, team, this.spawnDistance)));
       this.target = this.actors.find(actor => actor.team === 'enemy')!;
     } else {
       this.target = this.createTarget();
@@ -76,14 +90,15 @@ export class CombatSimulation {
     for (const team of ['friendly', 'enemy'] as const) this.actors.filter(actor => actor.team === team).forEach((actor, i) => {
       Object.assign(actor, this.createActor(actor.motion.id, actor.definition, actor.team, actor.controller));
       delete actor.targetId;
-      if (this.isBattle) Object.assign(actor.motion, deployment(i, team));
+      if (this.isBattle) Object.assign(actor.motion, deployment(i, team, this.spawnDistance));
     });
     this.target = this.actors.find(actor => actor.team === 'enemy')!;
     if (!this.isBattle) Object.assign(this.target, this.createTarget());
     this.clearCombat(); this.tick = 0; this.accumulator = 0; this.result = 'active';
   }
   private createActor(id: string, definition: ShipDefinition, team: Team, controller: FleetActor['controller']): FleetActor {
-    return { definition, team, controller, motion: createShipState(id), mounts: definition.mounts.map(createMountState), damage: createDamage(definition) };
+    return { definition, team, controller, motion: createShipState(id), mounts: definition.mounts.map(createMountState), damage: createDamage(definition),
+      ...(controller === 'bot' ? { bot: createBotState(id, definition, this.seed) } : {}) };
   }
   private createTarget() {
     const target = this.createActor('target', this.definition, 'enemy', 'idle');
@@ -91,10 +106,12 @@ export class CombatSimulation {
     return target;
   }
   private clearCombat(): void {
+    this.shellSequence = 0;
     this.dispersionSequence = 0;
     this.ammunitionSelection = { main: 'ap', secondary: 'ap' };
     this.targetUnderway = false; this.shells.length = 0;
     this.events.length = 0; this.shellHistory.length = 0; this.fireQueued = false;
+    this.playerDamageDealt = 0; this.playerFrags = 0; this.lastDamager.clear(); this.creditedLosses.clear();
   }
   resetTarget(): void {
     if (this.isBattle) return;
@@ -126,6 +143,17 @@ export class CombatSimulation {
       const history = this.history(event.shell.id, event.kind === 'shot' ? event.shipId : undefined);
       if (event.kind === 'shot') history.ammunition = event.shell.ammunition ?? 'ap';
       if (event.impact) history.impacts.push(event.impact);
+      if (event.impact) {
+        const victim = this.actors.find(a => a.motion.id === event.shipId);
+        const owner = this.actors.find(a => a.motion.id === history.ownerId);
+        if (victim && owner && victim.team !== owner.team && !victim.damage.sunk && !victim.damage.stability.combatLost) {
+          const dealt = event.impact.damage ?? 0;
+          if (dealt > 0 || (event.impact.breachAreaM2 ?? 0) > 0) this.lastDamager.set(victim.motion.id, owner.motion.id);
+          const maximum = victim.definition.modules.reduce((n, m) => n + m.hp, 0) + victim.definition.mounts.length * 100;
+          if (owner === this.player && maximum > 0) this.playerDamageDealt += dealt / maximum * victim.damage.maxIntegrity;
+        }
+        if (victim) updateCapability(victim, victim.definition);
+      }
       if (event.kind === 'splash') history.outcome = history.impacts.length ? 'passed-through' : 'splash';
       else if (event.impact?.terminal) history.outcome = event.kind === 'stopped' || event.kind === 'ricochet' || event.kind === 'burst' ? event.kind : 'internal';
     }
@@ -168,6 +196,7 @@ export class CombatSimulation {
     for (const actor of this.actors) {
       if (actor.controller === 'bot') {
         const target = botTarget(actor, this.actors);
+        updateBot(actor, target, this.tick * FIXED_DT);
         actor.targetId = target?.motion.id;
         targets.set(actor, target);
         commands.set(actor, botHelm(actor, target, this.actors));
@@ -177,6 +206,7 @@ export class CombatSimulation {
       const def = actor.definition;
       stepShip(actor.motion, commands.get(actor)!, def.handling, systemHealth(actor, def, 'engine'), systemHealth(actor, def, 'steering'));
     }
+    resolveShipCollisions(this.actors);
     for (const actor of this.actors) {
       const def = actor.definition, target = targets.get(actor);
       const laneClear = target && clearFiringLane(actor, target, this.actors);
@@ -189,9 +219,10 @@ export class CombatSimulation {
         const inRange = target && Math.hypot(target.motion.x - actor.motion.x, target.motion.z - actor.motion.z) <= botGunRange(m);
         const aim = actor === this.player ? intent.aim : target && inRange && state.hp > 0 && availableAmmunition(state) >= (m.weapon.barrelCount ?? 2) ? botAim(actor, target, m, state) : undefined;
         const aligned = updateMount(m, state, def, actor.motion, aim, FIXED_DT, shipVelocity(actor));
-        const firing = actor === this.player ? (intent.fire || this.fireQueued) && m.battery === intent.battery : actor.controller === 'bot' && inRange && laneClear && aligned;
+        const firing = actor === this.player ? aligned && (intent.fire || this.fireQueued) && m.battery === intent.battery : actor.controller === 'bot' && inRange && laneClear && aligned && botReadyToFire(actor, m);
         const barrelCount = m.weapon.barrelCount ?? 2;
         if (!actor.damage.sunk && firing && state.status === 'ready' && this.shells.length <= 256 - barrelCount) {
+          if (actor.controller === 'bot') botDidFire(actor, m);
           state.reload = m.weapon.reloadSeconds; state.ammo -= barrelCount; state.recoil = 1; state.status = 'reloading';
           if (state.loaded === 'he') state.heAmmo -= barrelCount;
           for (let barrel = 0; barrel < barrelCount; barrel++) {
@@ -202,7 +233,7 @@ export class CombatSimulation {
             const velocity = add(scale(direction, speed), shipVelocity(actor));
             this.shells.push({ id: ++this.shellSequence, ownerId: actor.motion.id, position, velocity, age: 0, penetrationMm: state.loaded === 'he' ? 0 : velocityPenetration(m.weapon.penetrationMm, m.weapon.ballistics?.penetrationReferenceSpeedMps ?? m.weapon.muzzleSpeed, length(velocity)), damage: m.weapon.damage, caliberM: m.weapon.caliberM, visited: [], ammunition: state.loaded, ap: state.loaded === 'ap' ? m.weapon.ap : undefined, he: state.loaded === 'he' ? m.weapon.he : undefined, dragPerSecond: m.weapon.ballistics?.dragPerSecond ?? 0 });
             this.emit({ kind: 'shot', position: [...position], shipId: actor.motion.id, message: `${m.name} fired`,
-              shell: { id: this.shellSequence, caliberM: m.weapon.caliberM, velocity: [...velocity], ammunition: state.loaded } });
+              shell: { id: this.shellSequence, caliberM: m.weapon.caliberM, velocity: [...velocity], ammunition: state.loaded, type: state.loaded === 'he' ? 'HE' : 'AP' } });
           }
         }
       });
@@ -224,6 +255,10 @@ export class CombatSimulation {
       const wasSunk = actor.damage.sunk;
       updateFlooding(actor, actor.definition, FIXED_DT);
       updateCapability(actor, actor.definition);
+      if ((actor.damage.sunk || actor.damage.stability.combatLost) && !this.creditedLosses.has(actor.motion.id)) {
+        this.creditedLosses.add(actor.motion.id);
+        if (this.lastDamager.get(actor.motion.id) === this.player.motion.id) this.playerFrags++;
+      }
       if (!wasSunk && actor.damage.sunk) this.emit({ kind: 'sunk', position: [actor.motion.x, actor.motion.y, actor.motion.z], shipId: actor.motion.id, defeatCause: actor.damage.defeatCause, message: `${actor.definition.name} sinking · ${actor.damage.defeatCause}` });
     }
     if (this.isBattle && this.result === 'active') {
@@ -247,14 +282,15 @@ export class CombatSimulation {
       targetRange: Math.hypot(this.target.motion.x - this.ship.x, this.target.motion.z - this.ship.z),
       battle: this.isBattle, result: this.result, playerSunk: this.player.damage.sunk,
       contacts: this.actors.map(actor => ({ id: actor.motion.id, shipId: actor.definition.id, name: actor.definition.name, team: actor.team, controller: actor.controller,
-        targetId: actor.targetId, x: actor.motion.x, z: actor.motion.z, heading: actor.motion.heading, integrity: actor.damage.integrity / 1000, sunk: actor.damage.sunk, status: actor.damage.stability.status, combatLost: actor.damage.stability.combatLost })),
+        targetId: actor.targetId, x: actor.motion.x, z: actor.motion.z, heading: actor.motion.heading, integrity: actor.damage.integrity / actor.damage.maxIntegrity, sunk: actor.damage.sunk, status: actor.damage.stability.status, combatLost: actor.damage.stability.combatLost })),
       targetStatus: this.target.damage.stability.status, playerStatus: this.player.damage.stability.status, targetList: this.target.motion.roll * 180 / Math.PI, targetTrim: this.target.motion.pitch * 180 / Math.PI, targetDraftChange: -this.target.motion.y,
       control: structuredClone(this.player.damage.control), targetFires: [...this.target.damage.control.rooms, ...this.target.damage.control.mounts].filter(f => f.intensity > 0).length,
       controlTargets: [...this.player.definition.compartments.map(c => ({ id: c.id, name: c.name })), ...this.player.definition.mounts.map(m => ({ id: m.id, name: m.name }))],
-      targetIntegrity: this.target.damage.integrity / 1000, targetWater: this.target.damage.compartments.reduce((n, c) => n + c.waterM3, 0),
+      targetIntegrity: this.target.damage.integrity / this.target.damage.maxIntegrity, targetWater: this.target.damage.compartments.reduce((n, c) => n + c.waterM3, 0),
       targetPower: systemHealth(this.target, this.target.definition, 'engine'), targetSteering: systemHealth(this.target, this.target.definition, 'steering'), targetSunk: this.target.damage.sunk, targetUnderway: this.targetUnderway,
       mounts, modules: this.target.definition.modules.map((m, i) => ({ id: m.id, name: m.name, condition: this.target.damage.modules[i].hp / m.hp, ...equipmentCondition(this.target, this.target.definition, m) })),
-      playerIntegrity: this.player.damage.integrity / 1000,
+      playerIntegrity: this.player.damage.integrity / this.player.damage.maxIntegrity,
+      playerMaxIntegrity: this.player.damage.maxIntegrity, playerDamageDealt: this.playerDamageDealt, playerFrags: this.playerFrags,
       playerWater: this.player.damage.compartments.reduce((n, c) => n + c.waterM3, 0),
       targetDefeatCause: this.target.damage.defeatCause,
       shellHistory: this.shellHistory.filter(h => h.impacts.some(i => i.shipId === this.target.motion.id)).slice(-8).reverse().map(h => ({ ...h, impacts: h.impacts.filter(i => i.shipId === this.target.motion.id).map(i => ({ ...i, position: [...i.position] })) })),
@@ -265,7 +301,7 @@ export class CombatSimulation {
         return { battery, ammunition: this.ammunitionSelection[battery], ammo: states.reduce((n, m) => n + m.ammo, 0), ready: states.filter(m => m.status === 'ready').length, total: states.length,
           reload: reloading.length ? Math.min(...reloading.map(m => m.reload)) : 0 };
       }),
-      message: significant ? `${this.actors.find(actor => actor.motion.id === significant.shipId)?.definition.name ?? 'Ship'} · ${significant.message}` : 'Fire loaded guns at any time. Shells follow the barrels’ current aim.',
+      message: significant ? `${this.actors.find(actor => actor.motion.id === significant.shipId)?.definition.name ?? 'Ship'} · ${significant.message}` : 'Only aligned, loaded guns fire. Turn the ship to bring guns marked Out of arc onto the target.',
     };
   }
 }

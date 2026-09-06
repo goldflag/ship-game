@@ -45,10 +45,14 @@ function prepare(scene = 'broadside', secondary = false) {
   sim.eventSequence = 0; sim.shellSequence = 0; // Repeatable visual seed in this isolated review.
   // Train normally through the CPU mount rules. No synthetic shot or impact events.
   for (let i = 0; i < 2100; i++) sim.step(stop, { aim, battery, fire:false });
-  game.camera.position.set(...(scene === 'splash' ? [480, 64, 125]
+  game.camera.fov = scene === 'horizon' ? 4.33 : 52;
+  game.camera.updateProjectionMatrix();
+  game.camera.position.set(...(scene === 'horizon' ? [5000, 18, 0]
+    : scene === 'splash' ? [480, 64, 125]
     : scene === 'smoke' ? [145, 58, -150]
     : scene === 'armor' ? [target.x - 200, 55, target.z + 95] : [210, 82, 155]));
-  game.camera.lookAt(...(scene === 'splash' ? [325, 13, -35]
+  game.camera.lookAt(...(scene === 'horizon' ? [0, 18, 0]
+    : scene === 'splash' ? [325, 13, -35]
     : scene === 'smoke' ? [45, 18, -55]
     : scene === 'armor' ? [target.x, 8, target.z - 20] : [0, 15, -6]));
   game.camera.updateMatrixWorld();

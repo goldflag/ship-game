@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+  "modelHash": "35fe47786e6894fec6912a96877c0c69914bc8b97f3e116331278ab3e712737c",
+  "images": {
+    "quarter": {
+      "sha256": "075f1f18cd0f50e27047bbb86f7c42bac05a3993450dc84304398d7db545d529",
+      "width": 1400,
+      "height": 1050
+    },
+    "top": {
+      "sha256": "09cf035a556f70f84b75b1d380b8467de5faedb7b24f2caa848eaa097c5b0864",
+      "width": 1400,
+      "height": 1050
+    },
+    "side": {
+      "sha256": "f4bae2708ee23af76b06d9c6d3ef33f487fb1f77d0966fc3bfdb0e252723d452",
+      "width": 1400,
+      "height": 1050
+    },
+    "front": {
+      "sha256": "fa279c90b34992dc068205e5b20db71a40bb77c53b06cf16e965d551a77b5579",
+      "width": 1400,
+      "height": 1050
+    },
+    "rear": {
+      "sha256": "b618c78ef80aec3b83a8504b91788bee03849c71f1d4bcc175c130c819feeba4",
+      "width": 1400,
+      "height": 1050
+    },
+    "articulated": {
+      "sha256": "23b41a7c4f0421fbdfed897ac3d2a6a0894d92c935543a77d3da00538e8eaa35",
+      "width": 1400,
+      "height": 1050
+    }
+  },
+  "camerasHash": "54c4d0d8e104e55716ae953be1610b376c91f0a5e6ff0ba7fd4e3880ae485559"
+}

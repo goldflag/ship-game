@@ -18,7 +18,9 @@ function clip(points: Vec3[], axis: number, value: number, sign: number): Vec3[]
 }
 let count = 0;
 const sections = b.hull.sections as { station: number; points: [number, number][] }[];
-for (let i = 1; i < sections.length; i++) for (let k = 1; k < sections[i].points.length; k++) for (const sign of [-1, 1]) {
+// Complete structural plating now follows every authored hull section at run
+// time. Retire the old partial closure proxies when that coverage is enabled.
+for (let i = 1; !b.structuralPlating && i < sections.length; i++) for (let k = 1; k < sections[i].points.length; k++) for (const sign of [-1, 1]) {
   const a = sections[i - 1], c = sections[i];
   const p = (s: typeof a, n: number): Vec3 => [sign * s.points[n][0], s.points[n][1], b.hull.length / 2 - s.station];
   for (const triangle of [[p(a, k - 1), p(c, k - 1), p(c, k)], [p(a, k - 1), p(c, k), p(a, k)]]) {

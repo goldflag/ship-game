@@ -30,6 +30,33 @@ S-06-2 p.10 independently confirms 263 m LOA, 256 m waterline length, 36.9 m wat
 
 The museum director's [bridge reconstruction account](https://yamato-museum.com/note/post_14/) states that surviving drawings differ and that its own reconstruction is not 100%. The museum's [drawing guide](https://yamatomuseum.securesite.jp/et/?page_id=1142) describes the destruction of most originals and the later discovery of bridge drawings. No amount of successful export validation supplies that missing historical evidence.
 
+## Combat opening-salvo review, 2026-09-05
+
+The three main magazine envelopes are 9 m high, centered at Y=-2 m, and extend to Y=+2.5 m. These provisional boxes and the uniform 410 mm citadel proxy expose multiple magazines to bow-on shots aimed near the waterline. Their vertical boundaries and protection remain unresolved authoring work; the simulation correction does not establish historical accuracy.
+
+A renderer-free custom battle with stationary Yamato against one Bismarck reproduced sinking at 6.1 seconds from 5 km, and 1.25 seconds from 1 km. Two automatic 450 HP magazine explosions plus 112 HP of hull penetration damage exhausted the common 1,000 HP hull pool. Continuing with reduced explosion damage revealed that the same four shells could destroy four magazines by applying full module damage repeatedly along their paths.
+
+The shared simulation now spends a finite internal damage budget per shell and tunes each magazine explosion to 150 HP, retaining mount disablement and flooding. Replaying both distances leaves Yamato afloat at 10 seconds with 588/1,000 HP and two lost magazines. Regression coverage exercises actual bot deployment, aiming, shell flight, armor and damage at 1 km and 5 km. All 189 tests and `bun run build` pass. This is provisional gameplay tuning; the internal layout, penetration model and lack of gun dispersion still need separate review.
+
+The subsequent displacement-based hull HP change gives Yamato 1,750 HP from its authored 69,935 tonne mass. The later small-ship balance adjustment uses 300 base HP plus a square-root displacement bonus; Yamato remains at 1,750 HP. The same opening salvo now leaves 1,338 HP; the earlier 588/1,000 result above records the damage-rule correction before HP scaling. This formula changes gameplay endurance, not the unresolved magazine geometry.
+
 ## Visual review, build b81a8d55e9fd
 
 Profile, plan, quarter, bow and stern inspected. Corrected rear turret roof AA attachment, forefoot faceting, waterline width/length, unsupported stern AA, closed boat bays, screw diameter, rudder outline and single radar array. Bridge galleries, navigation glazing, conning tower, curved funnel uptake, six searchlight stations and rounded boat-bay ends have since been revised from museum references. Remaining visible discrepancies include simplified secondary gunhouses, AA shields, aft director, stern machinery and fittings, plus unverified positions and profiles across the model. Those are open historical/modeling work, not passed items.
+
+
+## 2026-09-05 — provisional flooding and machinery extension
+
+The versioned blueprint now records machinery dependencies, immersion thresholds, hull-side flood regions and additional outer spaces authored by `assets/ships/author-flood-spaces.ts`. New room boxes fit the reconstructed hull and exclude retained room envelopes; these tests do not establish historical subdivision. The strips, 72% floodable volume, pump rates, closed partition locations and nominal 5 mm unmeasured partitions are gameplay estimates. Existing physical protection is reused where it crosses a boundary; no initial open connection is asserted. Side coverage currently spans roughly -6 to +3 m, leaving end, upper-deck and deeper-bottom mapping incomplete. Exact steam routing, machinery vulnerability, free-surface stability and full damaged-hull flotation remain unresolved. See the damage-realism implementation record for validation and review status.
+
+### Step 2 review corrections — 2026-09-05
+
+Two retained combined-drive envelopes stand in for the boiler/turbine/shaft plant, with equal provisional power shares. This is not a recovered steam-routing plan. Original equipment and room IDs are retained, including Enterprise’s legacy engine-port ID for forward boilers.
+
+164 rooms, 162 exterior mapping regions, 365 closed boundaries (0 linked to existing plates; 358 estimated 5 mm partitions). Wing spaces now extend to neighboring retained room envelopes; the prior 2 m strip cap disconnected Yamato’s interior. Small centreline end pockets are conservative hull-inscribed flood volumes, not historical end-compartment plans. Their mapping regions approximate the surrounding end shell; full end volume, upper-deck and deep-bottom coverage remain required before replacing the sinking fallback.
+
+## 2026-09-05 — stability and residual flood coverage (supersedes the gameplay gaps above)
+
+The original `assets/ships/author-stability.ts` recipe preserves prior IDs and adds conservative compound flood cells excluding retained rooms. Adaptive cells approximate the remaining hull volume; cells grouped into a named space share a waterplane. Estimated 85% permeability and access partitions do not constitute historical subdivision. A CPU hull-shell query covers missing deck/bottom/end plating with provisional 12 mm steel and defers to nearby explicit exterior protection. The port overlay still displays explicit plates; fallback contacts are inspectable in the impact ledger.
+
+`stability.json` records modeled reference/full displacement, the stated mass mismatch, the uniform buoyancy scale, estimated CG and initial GM target (7% beam). Numerical station integration, sixteen-column water surfaces in box rooms, up to sixteen columns per compound cell, 2 Hz force updates and heuristic angular inertia/damping bound runtime cost. Capsize requires sustained inversion beyond 100 degrees with an outward/neutral arm. These are reproducible game approximations, not recovered loading or stability curves. No trapped air, detailed downflooding openings, free-surface waves, dynamic ocean forces, underwater shock or hull fracture is modeled. Finite local fire fuel, abstract crew rates and magazine flash protection are likewise provisional.
