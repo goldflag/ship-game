@@ -1,0 +1,356 @@
+{
+  "air": [
+    {
+      "hp": 0,
+      "id": "player/vf-6/1",
+      "phase": "lost"
+    },
+    {
+      "hp": 0,
+      "id": "player/vf-6/2",
+      "phase": "lost"
+    },
+    {
+      "hp": 28,
+      "id": "player/vf-6/3",
+      "phase": "returning"
+    },
+    {
+      "hp": 57.79168491164237,
+      "id": "player/vb-6/1",
+      "phase": "returning"
+    },
+    {
+      "hp": 59.63989584664099,
+      "id": "player/vb-6/2",
+      "phase": "returning"
+    },
+    {
+      "hp": 63.33759910513239,
+      "id": "player/vb-6/3",
+      "phase": "returning"
+    },
+    {
+      "hp": 87.29580585673416,
+      "id": "player/vt-6/1",
+      "phase": "returning"
+    },
+    {
+      "hp": 92.97974854374455,
+      "id": "player/vt-6/2",
+      "phase": "returning"
+    },
+    {
+      "hp": 97.59041381579995,
+      "id": "player/vt-6/3",
+      "phase": "returning"
+    },
+    {
+      "hp": 0,
+      "id": "enemy-1/vf-6/1",
+      "phase": "lost"
+    },
+    {
+      "hp": 0,
+      "id": "enemy-1/vf-6/2",
+      "phase": "lost"
+    },
+    {
+      "hp": 10,
+      "id": "enemy-1/vf-6/3",
+      "phase": "landing"
+    },
+    {
+      "hp": 0,
+      "id": "enemy-1/vb-6/1",
+      "phase": "lost"
+    },
+    {
+      "hp": 71.31105871829415,
+      "id": "enemy-1/vb-6/2",
+      "phase": "returning"
+    },
+    {
+      "hp": 24.935055011582474,
+      "id": "enemy-1/vb-6/3",
+      "phase": "returning"
+    },
+    {
+      "hp": 99.93736375804528,
+      "id": "enemy-1/vt-6/1",
+      "phase": "attack"
+    },
+    {
+      "hp": 100,
+      "id": "enemy-1/vt-6/2",
+      "phase": "attack"
+    },
+    {
+      "hp": 100,
+      "id": "enemy-1/vt-6/3",
+      "phase": "attack"
+    }
+  ],
+  "events": [
+    {
+      "blastRadiusM": 3.7797631496846193,
+      "detonation": true,
+      "impact": {
+        "fuze": "armed",
+        "fuzeRemainingSeconds": 0,
+        "kind": "burst",
+        "outcome": "detonation",
+        "penetrationAfterMm": 0,
+        "penetrationBeforeMm": 0,
+        "position": [
+          -6.39488485308376,
+          8.1915,
+          -15.219552658327485
+        ],
+        "shellId": 79,
+        "shipId": "player",
+        "targetId": "he-burst",
+        "targetName": "HE shell burst",
+        "terminal": true
+      },
+      "kind": "burst",
+      "message": "HE shell burst",
+      "position": [
+        -6.39488485308376,
+        8.1915,
+        -15.219552658327485
+      ],
+      "sequence": 328,
+      "shell": {
+        "ammunition": "he",
+        "caliberM": 0.127,
+        "id": 79,
+        "type": "HE",
+        "velocity": [
+          24.055446776278746,
+          -32.039590271703496,
+          527.1200717735786
+        ]
+      },
+      "shipId": "player",
+      "tick": 4509
+    },
+    {
+      "kind": "shot",
+      "message": "Stbd 5-inch 3 fired",
+      "position": [
+        -143.09255294040418,
+        16.174659646940817,
+        -4554.0154680223195
+      ],
+      "sequence": 329,
+      "shell": {
+        "ammunition": "he",
+        "caliberM": 0.127,
+        "id": 92,
+        "type": "HE",
+        "velocity": [
+          25.412400844945154,
+          35.19896892160743,
+          801.4738063090282
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 4514
+    },
+    {
+      "kind": "shot",
+      "message": "Stbd 5-inch 1 fired",
+      "position": [
+        -267.8145009141055,
+        16.169560074776847,
+        -4421.676025731739
+      ],
+      "sequence": 330,
+      "shell": {
+        "ammunition": "he",
+        "caliberM": 0.127,
+        "id": 93,
+        "type": "HE",
+        "velocity": [
+          45.76688878478643,
+          32.49891770531834,
+          797.9923406629687
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 4519
+    },
+    {
+      "kind": "torpedo-launch",
+      "message": "Air torpedo entered water",
+      "position": [
+        -372.07193438798765,
+        -2,
+        -3743.3332301950004
+      ],
+      "sequence": 331,
+      "shipId": "player",
+      "tick": 4530,
+      "torpedo": {
+        "diameterM": 0.57,
+        "id": 90,
+        "velocity": [
+          -1.4693203160174717,
+          0,
+          -22.953019361490078
+        ]
+      }
+    },
+    {
+      "impact": {
+        "exitSpeedMps": 523.0473978076384,
+        "fragmentBudgetMm": 21.1667,
+        "fuze": "armed",
+        "fuzeRemainingSeconds": 0,
+        "impactSpeedMps": 523.0473978076384,
+        "kind": "armor",
+        "material": "steel",
+        "outcome": "detonation",
+        "penetrationAfterMm": 0,
+        "penetrationBeforeMm": 0,
+        "position": [
+          7.910388836676549,
+          16.43951848865301,
+          -50.232981405185484
+        ],
+        "resistanceMm": 6,
+        "shellId": 80,
+        "shipId": "player",
+        "targetId": "flight-deck",
+        "targetName": "Flight deck, steel and wood plating",
+        "thicknessMm": 6
+      },
+      "kind": "contact",
+      "message": "HE contact \u00b7 Flight deck, steel and wood plating",
+      "normal": [
+        0.007753139156756251,
+        0.9999699439649253,
+        0
+      ],
+      "position": [
+        7.910388836676549,
+        16.43951848865301,
+        -50.232981405185484
+      ],
+      "sequence": 332,
+      "shell": {
+        "ammunition": "he",
+        "caliberM": 0.127,
+        "id": 80,
+        "type": "HE",
+        "velocity": [
+          10.400659841725115,
+          -31.786544643008,
+          521.9770322608617
+        ]
+      },
+      "shipId": "player",
+      "surfaceImpact": {
+        "direction": [
+          0.019884736804579563,
+          -0.060771824458436874,
+          0.9979535974153334
+        ],
+        "normal": [
+          0.007753139156756251,
+          0.9999699439649253,
+          0
+        ],
+        "outcome": "penetration",
+        "position": [
+          7.910388836676549,
+          16.43951848865301,
+          -50.232981405185484
+        ]
+      },
+      "tick": 4533
+    },
+    {
+      "blastRadiusM": 3.7797631496846193,
+      "detonation": true,
+      "impact": {
+        "fuze": "armed",
+        "fuzeRemainingSeconds": 0,
+        "kind": "burst",
+        "outcome": "detonation",
+        "penetrationAfterMm": 0,
+        "penetrationBeforeMm": 0,
+        "position": [
+          7.910388836676549,
+          16.43951848865301,
+          -50.232981405185484
+        ],
+        "shellId": 80,
+        "shipId": "player",
+        "targetId": "he-burst",
+        "targetName": "HE shell burst",
+        "terminal": true
+      },
+      "kind": "burst",
+      "message": "HE shell burst",
+      "position": [
+        7.910388836676549,
+        16.43951848865301,
+        -50.232981405185484
+      ],
+      "sequence": 333,
+      "shell": {
+        "ammunition": "he",
+        "caliberM": 0.127,
+        "id": 80,
+        "type": "HE",
+        "velocity": [
+          10.400659841725115,
+          -31.786544643008,
+          521.9770322608617
+        ]
+      },
+      "shipId": "player",
+      "tick": 4533
+    },
+    {
+      "kind": "shot",
+      "message": "Stbd 5-inch 4 fired",
+      "position": [
+        -142.14841492950984,
+        17.27480902287685,
+        -4553.289928371559
+      ],
+      "sequence": 334,
+      "shell": {
+        "ammunition": "he",
+        "caliberM": 0.127,
+        "id": 94,
+        "type": "HE",
+        "velocity": [
+          24.197948342808314,
+          34.65350105541978,
+          797.7425054813988
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 4556
+    },
+    {
+      "aircraft": {
+        "id": "player/vt-6/3"
+      },
+      "kind": "aircraft-release",
+      "message": "Torpedo away",
+      "position": [
+        -399.427919503779,
+        21.242883441060883,
+        -3588.364704778566
+      ],
+      "sequence": 335,
+      "shipId": "player",
+      "tick": 4591
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import { FlightControl } from './FlightControl';
 import { type CSSProperties, type PointerEvent } from 'react';
 import type { Battery } from '../ships/blueprint';
 import type { Game } from '../game/Game';
@@ -170,6 +171,7 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
     </section>
 
     <ActiveArmament data={data} game={game} visible={visible} bindings={bindings}/>
+    {data.combat?.airWing && <FlightControl combat={data.combat} game={game}/> }
     {data.combat?.submarine && <DepthControl combat={data.combat} game={game} bindings={bindings}/>}
     {(data.gunneryOpen || data.inspecting) && <GunneryPanel bindings={bindings} data={data} game={game} expanded={!!data.gunneryOpen} onExpand={value => game?.setGunneryOpen(value)}/>}
     {data.binoculars && data.aimModule !== 'point' && data.aimMarker?.visible && <div className="aim-marker" aria-hidden="true" style={{ left: `${data.aimMarker.x}%`, top: `${data.aimMarker.y}%` }}><span/><small>TRACKED AIM</small></div>}
