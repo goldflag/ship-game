@@ -89,9 +89,10 @@ for frame in spec['sectionFrames']:
  outline=pts+[[-x,y] for x,y in reversed(pts)]
  points=' '.join(f'{px(x):.2f},{py(y):.2f}' for x,y in outline);elements.append(f'<polygon points="{points}" fill="#e3e2dc" stroke="#526772" stroke-width="2"/>')
  for c in blueprint['compartments']:
-  if abs(z-c['center'][2])<=c['size'][2]/2:
-   x,y,_=c['center'];sx,sy,_=c['size'];color='#aa927e' if 'propellant' in c['id'] else '#9fbbad'
-   elements.append(f'<rect x="{px(x-sx/2)}" y="{py(y+sy/2)}" width="{sx*scale}" height="{sy*scale}" fill="{color}" fill-opacity=".28" stroke="#74847c" stroke-width=".7"><title>{html.escape(c["name"])}</title></rect>')
+  for cell in c.get('cells',[c]):
+   if abs(z-cell['center'][2])<=cell['size'][2]/2:
+    x,y,_=cell['center'];sx,sy,_=cell['size'];color='#aa927e' if 'propellant' in c['id'] else '#9fbbad'
+    elements.append(f'<rect x="{px(x-sx/2)}" y="{py(y+sy/2)}" width="{sx*scale}" height="{sy*scale}" fill="{color}" fill-opacity=".28" stroke="#74847c" stroke-width=".7"><title>{html.escape(c["name"])}</title></rect>')
  for a in blueprint['armor']:
   plate=a.get('plate');
   if not plate or plate.get('mountId'):continue

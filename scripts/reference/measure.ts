@@ -76,12 +76,12 @@ function halfWidth(s:number,y:number):number {
 }
 const spaces=def.compartments.map(c=>{
   let outside=0,maxExcess=0;
-  for(let i=0;i<8;i++){
-    const p=c.center.map((v,j)=>v+c.size[j]/2*(i&(1<<j)?1:-1)) as Vec3;
+  for(const cell of c.cells ?? [c]) for(let i=0;i<8;i++){
+    const p=cell.center.map((v,j)=>v+cell.size[j]/2*(i&(1<<j)?1:-1)) as Vec3;
     const w=halfWidth(def.hull.length/2-p[2],p[1]);const excess=w<0?100:Math.abs(p[0])-w;
     if(excess>.25)outside++;maxExcess=Math.max(maxExcess,excess);
   }
-  return {id:c.id,passed:outside===0,outsideCorners:outside,maxExcessM:maxExcess};
+  return {id:c.id,cells:c.cells?.length ?? 1,passed:outside===0,outsideCorners:outside,maxExcessM:maxExcess};
 });
 const probes=spec.probes.map((p:{id:string;from:Vec3;to:Vec3;caliberM?:number})=>{
   const caliberM = p.caliberM ?? def.mounts.find(m=>m.battery==='main')!.weapon.caliberM;
