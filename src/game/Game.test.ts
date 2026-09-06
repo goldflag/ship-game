@@ -134,11 +134,14 @@ test('battle loading binds each mixed fleet hull and selected target to its own 
   const { game, scene, harbor, rig } = await port();
   const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => model(String(url).split('/').pop()!.replace('.glb', '')));
   try {
-    await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck', 'bismarck'], enemies: ['yamato', 'enterprise-cv6'], spawnDistance: 7500 });
+    await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck', 'bismarck'], enemies: ['yamato', 'enterprise-cv6'], spawnDistance: 7500, mapId: 'pacific-islands', sea: 'Fair' });
     expect(loader).toHaveBeenCalledTimes(4);
     expect(scene.children).toContain(harbor);
     expect(scene.children).toHaveLength(6);
     expect(game.simulation.actors).toHaveLength(5);
+    expect(game.diagnostics().mapId).toBe('pacific-islands');
+    expect(game.diagnostics().sea).toBe('Fair');
+    expect(game.simulation.islands).toHaveLength(3);
     expect(game.simulation.target.motion.z - game.simulation.ship.z).toBe(-7500);
     expect(game.simulation.ship.heading).toBe(0);
     expect(game.simulation.target.motion.heading).toBe(Math.PI);
