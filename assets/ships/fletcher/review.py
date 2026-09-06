@@ -62,6 +62,8 @@ body=body[:start]+'<details><summary>Earlier hull and bridge corrections</summar
 published_report=(source/'reports/shape-correction.md').read_text().replace('../generated/comparison/index.html','index.html').replace('../generated/comparison/shape-measurements.json','shape-measurements.json').replace('[validation.md](validation.md)','[runtime summary](runtime/summary.json)')
 (out/'shape-correction.md').write_text(published_report)
 shutil.copy2(source/'reports/discrepancies.md',out/'discrepancies.md')
+for report in ('merge-validation.md', 'merge-tests.txt'):
+    if (source/'reports'/report).exists():shutil.copy2(source/'reports'/report,out/report)
 runtime=source/'reports/runtime-review'
 if (runtime/'summary.json').exists():
     checked=json.loads((runtime/'summary.json').read_text())

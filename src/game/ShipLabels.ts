@@ -30,7 +30,7 @@ export class ShipLabels {
   constructor(host: HTMLElement) {
     this.root.className = 'ship-label-layer';
     this.root.setAttribute('role', 'group');
-    this.root.setAttribute('aria-label', 'Ship names and equipment condition');
+    this.root.setAttribute('aria-label', 'Ship names and hull condition');
     host.appendChild(this.root);
   }
 
@@ -48,7 +48,7 @@ export class ShipLabels {
       const identity = `${actor.team === 'friendly' ? 'Ally' : 'Enemy'} ${actor.motion.id.split('-').at(-1)}`;
       const health = document.createElement('span'); health.className = 'ship-label-health';
       const meter = document.createElement('div'); meter.className = 'ship-label-meter';
-      meter.setAttribute('role', 'meter'); meter.setAttribute('aria-label', `${actor.definition.name}, ${identity}, equipment condition`);
+      meter.setAttribute('role', 'meter'); meter.setAttribute('aria-label', `${actor.definition.name}, ${identity}, hull condition`);
       meter.setAttribute('aria-valuemin', '0'); meter.setAttribute('aria-valuemax', String(actor.damage.maxIntegrity));
       const fill = document.createElement('div'); fill.className = 'ship-label-fill';
       const loss = document.createElement('div'); loss.className = 'ship-label-loss';
@@ -77,7 +77,7 @@ export class ShipLabels {
       label.damageNumber.hidden = damage.amount <= 0;
       label.damageNumber.textContent = `−${Math.max(1, Math.round(damage.amount)).toLocaleString()}`;
       label.damageNumber.style.opacity = String(damage.opacity);
-      label.damageNumber.setAttribute('aria-label', `${Math.max(1, Math.round(damage.amount))} equipment condition points lost`);
+      label.damageNumber.setAttribute('aria-label', `${Math.max(1, Math.round(damage.amount))} hull HP lost`);
       if (label.hp !== hp || label.sunk !== actor.damage.sunk || label.health.dataset.status !== actor.damage.stability.status) {
         label.health.dataset.status = actor.damage.stability.status;
         label.hp = hp; label.sunk = actor.damage.sunk;
@@ -85,7 +85,7 @@ export class ShipLabels {
         label.health.textContent = `${Math.round(hp / actor.damage.maxIntegrity * 100)}% · ${status}`;
         label.meter.setAttribute('aria-valuenow', String(hp));
         label.meter.setAttribute('aria-valuemax', String(actor.damage.maxIntegrity));
-        label.meter.setAttribute('aria-valuetext', `${Math.round(hp / actor.damage.maxIntegrity * 100)} percent equipment condition, ${status}`);
+        label.meter.setAttribute('aria-valuetext', `${Math.round(hp / actor.damage.maxIntegrity * 100)} percent hull condition, ${status}`);
         label.fill.style.transform = `scaleX(${hp / actor.damage.maxIntegrity})`;
         root.classList.toggle('ship-label-sinking', label.sunk);
       }

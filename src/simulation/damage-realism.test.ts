@@ -94,8 +94,9 @@ test('ordered hit evidence records resistance, damage, breach assignment and ter
     expect(impact.resistanceMm).toBeGreaterThanOrEqual(0);
   }
 });
-test('flooding has a stable cause and zero global integrity no longer sinks a dry hull', () => {
-  const { def, actor } = fixture(); actor.damage.integrity = 0;
+test('flooding has a stable cause and equipment loss alone does not sink a dry hull', () => {
+  const { def, actor } = fixture();
+  actor.damage.modules.forEach(m => m.hp = 0); actor.mounts.forEach(m => m.hp = 0);
   updateFlooding(actor, def, 1 / 60); expect(actor.damage.sunk).toBe(false);
   def.compartments.forEach((c, i) => actor.damage.compartments[i].waterM3 = c.capacityM3);
   for (let i=0;i<60;i++) updateFlooding(actor, def, 1/60);
