@@ -3319,6 +3319,179 @@
       "barrelCount": 1,
       "mountingStyle": "open-quad",
       "barrelBaseRadius": 0.017
+    },
+    {
+      "kind": "gun",
+      "barrelCount": 1,
+      "mountingStyle": "open-pedestal",
+      "barrelSpacing": 0.1,
+      "traverseRateDeg": 18,
+      "elevationMinDeg": -10,
+      "elevationRateDeg": 15,
+      "id": "us-3in50-single",
+      "name": "3-inch/50 defensive gun",
+      "caliberM": 0.0762,
+      "massKg": 3000,
+      "barbetteRadius": 0.85,
+      "gunhouseSize": [
+        2.5,
+        1.9,
+        1.6
+      ],
+      "pivotHeight": 1.3,
+      "trunnionForward": 0.2,
+      "muzzleForward": 3.35,
+      "barrelBaseRadius": 0.1,
+      "traverseDeg": 155,
+      "elevationMaxDeg": 85,
+      "reloadSeconds": 5,
+      "muzzleSpeed": 823,
+      "projectileMassKg": 5.9,
+      "penetrationMm": 38,
+      "damage": 7,
+      "recoilM": 0.28,
+      "ammoPerBarrel": 240,
+      "armorMm": 4,
+      "ballistics": {
+        "dragPerSecond": 0.1,
+        "dispersionRad": 0.0015,
+        "muzzleSpeedSigmaFraction": 0.003,
+        "penetrationReferenceSpeedMps": 576.0999999999999,
+        "basis": "Provisional gameplay calibration; rates, ammunition, penetration, dispersion and damage are not certified historical firing data."
+      },
+      "ap": {
+        "armingResistanceMm": 12.700000000000001,
+        "fuzeDelaySeconds": 0.02,
+        "explosiveKg": 0.14750000000000002,
+        "fragmentPenetrationMm": 6.096,
+        "basis": "Provisional gameplay calibration; rates, ammunition, penetration, dispersion and damage are not certified historical firing data."
+      },
+      "he": {
+        "explosiveKg": 0.47200000000000003,
+        "fragmentPenetrationMm": 12.700000000000001,
+        "damage": 14,
+        "stockFraction": 0.6,
+        "basis": "Provisional gameplay calibration; rates, ammunition, penetration, dispersion and damage are not certified historical firing data."
+      }
+    },
+    {
+      "kind": "gun",
+      "barrelCount": 1,
+      "mountingStyle": "open-pedestal",
+      "barrelSpacing": 0.1,
+      "traverseRateDeg": 18,
+      "elevationMinDeg": -10,
+      "elevationRateDeg": 15,
+      "id": "bl-4in-mk9-single",
+      "name": "BL 4-inch Mk IX shielded gun",
+      "caliberM": 0.1016,
+      "massKg": 6000,
+      "barbetteRadius": 1.05,
+      "gunhouseSize": [
+        3.15,
+        2.55,
+        2.15
+      ],
+      "pivotHeight": 1.45,
+      "trunnionForward": 0.25,
+      "muzzleForward": 4.1,
+      "barrelBaseRadius": 0.13,
+      "traverseDeg": 145,
+      "elevationMaxDeg": 30,
+      "reloadSeconds": 6,
+      "muzzleSpeed": 732,
+      "projectileMassKg": 14.1,
+      "penetrationMm": 55,
+      "damage": 12,
+      "recoilM": 0.36,
+      "ammoPerBarrel": 240,
+      "armorMm": 6,
+      "ballistics": {
+        "dragPerSecond": 0.065,
+        "dispersionRad": 0.0015,
+        "muzzleSpeedSigmaFraction": 0.003,
+        "penetrationReferenceSpeedMps": 512.4,
+        "basis": "Provisional gameplay calibration; rates, ammunition, penetration, dispersion and damage are not certified historical firing data."
+      },
+      "ap": {
+        "armingResistanceMm": 16.933333333333334,
+        "fuzeDelaySeconds": 0.02,
+        "explosiveKg": 0.35250000000000004,
+        "fragmentPenetrationMm": 8.128,
+        "basis": "Provisional gameplay calibration; rates, ammunition, penetration, dispersion and damage are not certified historical firing data."
+      },
+      "he": {
+        "explosiveKg": 1.128,
+        "fragmentPenetrationMm": 16.933333333333334,
+        "damage": 24,
+        "stockFraction": 0.6,
+        "basis": "Provisional gameplay calibration; rates, ammunition, penetration, dispersion and damage are not certified historical firing data."
+      }
+    },
+    {
+      "kind": "gun",
+      "barrelCount": 1,
+      "mountingStyle": "open-pedestal",
+      "barrelSpacing": 0.1,
+      "traverseRateDeg": 18,
+      "elevationMinDeg": -10,
+      "elevationRateDeg": 15,
+      "id": "qf-2pdr-single",
+      "name": "QF 2-pounder pom-pom",
+      "caliberM": 0.04,
+      "massKg": 650,
+      "barbetteRadius": 0.65,
+      "gunhouseSize": [
+        1.6,
+        1.3,
+        1.7
+      ],
+      "pivotHeight": 1.25,
+      "trunnionForward": 0.12,
+      "muzzleForward": 1.85,
+      "barrelBaseRadius": 0.065,
+      "traverseDeg": 165,
+      "elevationMaxDeg": 80,
+      "reloadSeconds": 0.8,
+      "muzzleSpeed": 585,
+      "projectileMassKg": 0.91,
+      "penetrationMm": 15,
+      "damage": 2.2,
+      "recoilM": 0.1,
+      "ammoPerBarrel": 1000,
+      "armorMm": 3,
+      "ballistics": {
+        "dragPerSecond": 0.13,
+        "dispersionRad": 0.0015,
+        "muzzleSpeedSigmaFraction": 0.003,
+        "penetrationReferenceSpeedMps": 409.5,
+        "basis": "Provisional gameplay calibration; rates, ammunition, penetration, dispersion and damage are not certified historical firing data."
+      },
+      "he": {
+        "explosiveKg": 0.0728,
+        "fragmentPenetrationMm": 6.666666666666667,
+        "damage": 4.4,
+        "stockFraction": 0.6,
+        "basis": "Provisional gameplay calibration; rates, ammunition, penetration, dispersion and damage are not certified historical firing data."
+      }
+    },
+    {
+      "id": "lewis-303-twin",
+      "name": "Twin .303 Lewis light machine guns",
+      "kind": "gun", "mountingStyle": "open-quad", "barrelCount": 2,
+      "caliberM": 0.0077, "massKg": 45, "barbetteRadius": 0.28,
+      "gunhouseSize": [1.1, 0.7, 1.45], "pivotHeight": 1.22,
+      "trunnionForward": 0.05, "muzzleForward": 0.93, "barrelBaseRadius": 0.035,
+      "barrelSpacing": 0.32, "traverseDeg": 150, "traverseRateDeg": 35,
+      "elevationMinDeg": -10, "elevationMaxDeg": 80, "elevationRateDeg": 30,
+      "reloadSeconds": 0.22, "muzzleSpeed": 745, "projectileMassKg": 0.0113,
+      "penetrationMm": 3, "damage": 0.25, "recoilM": 0.015,
+      "ammoPerBarrel": 2000, "armorMm": 1,
+      "ballistics": {
+        "dragPerSecond": 0.28, "dispersionRad": 0.003,
+        "muzzleSpeedSigmaFraction": 0.008, "penetrationReferenceSpeedMps": 520,
+        "basis": "Representative early-war twin Lewis installation. Dimensions, sustained rate, penetration and ammunition are gameplay estimates; drum changes are abstracted. No explosive bullets."
+      }
     }
   ],
   "torpedoes": [

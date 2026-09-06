@@ -1,0 +1,17 @@
+{
+  "configuration": "VC2-S-AP2 Victory cargo ship, 1945 arrangement; 6000 shp geared steam turbine",
+  "draftM": 8.6868,
+  "massKg": 15500000,
+  "geometryDisplacementM3": 15114.664028160729,
+  "fullEnvelopeM3": 23545.063334820392,
+  "reserveM3": 8430.399306659663,
+  "buoyancyScale": 1.000482127246619,
+  "estimatedGmM": 1.2,
+  "dryCenterOfGravity": [
+    0,
+    -2.567232359213474,
+    2.3786010033216454
+  ],
+  "floodCapacityM3": 14591.504928310615,
+  "basis": "Uniform displacement calibration at the declared draft. Estimated initial GM 1.2 m; longitudinal CG aligned to upright buoyancy center. Not an historical stability curve."
+}

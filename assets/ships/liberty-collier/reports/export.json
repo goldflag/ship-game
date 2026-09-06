@@ -1,0 +1,104 @@
+{
+  "contentHash": "4a2c183dece9c55b6e81477c2e1d229a0618765eb5d13d2a77488f81f2a008c0",
+  "hullBounds": [
+    [
+      -8.664576530456543,
+      -8.719599723815918,
+      -67.61479949951172
+    ],
+    [
+      8.664575576782227,
+      5.559999942779541,
+      67.61479949951172
+    ]
+  ],
+  "mounts": [
+    {
+      "id": "aft-5in",
+      "measuredPivot": [
+        -0.00000470351915282663,
+        6.800000190734863,
+        62.29999923706055
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "fore-3in",
+      "measuredPivot": [
+        0.000004686183729063487,
+        6.398749828338623,
+        -62.07038497924805
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bow-aa-starboard",
+      "measuredPivot": [
+        4.600004196166992,
+        5.652500152587891,
+        -54.90321731567383
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bridge-aa-starboard-1",
+      "measuredPivot": [
+        5.050002098083496,
+        10.739999771118164,
+        -24
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "aft-aa-starboard",
+      "measuredPivot": [
+        5.399997234344482,
+        5.650000095367432,
+        39
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bow-aa-port",
+      "measuredPivot": [
+        -4.5999956130981445,
+        5.652500152587891,
+        -54.90321731567383
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bridge-aa-port-1",
+      "measuredPivot": [
+        -5.0499982833862305,
+        10.739999771118164,
+        -24
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "aft-aa-port",
+      "measuredPivot": [
+        -5.400002956390381,
+        5.650000095367432,
+        39
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    }
+  ],
+  "torpedoTubes": [],
+  "meshes": 69,
+  "primitives": 157,
+  "triangles": 78560,
+  "bytes": 3453624,
+  "result": "passed",
+  "historicalAccuracy": "not certified; see reference register and discrepancy report"
+}

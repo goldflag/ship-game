@@ -173,8 +173,8 @@ export class Game {
     this.loadedModel = gltf.scene;
     this.assertActive();
     if (gltf.scene.userData.definitionHash !== this.definition.contentHash) throw new Error('The ship model and definition have different versions. Rebuild the ship assets and reload.');
-    this.playerView = new ShipView(gltf.scene.clone(true), this.definition, this.simulation.player);
-    this.targetView = new ShipView(gltf.scene.clone(true), this.definition, this.simulation.target);
+    this.playerView = new ShipView(gltf.scene.clone(true), this.definition, this.simulation.player, this.renderer.reversedDepthBuffer);
+    this.targetView = new ShipView(gltf.scene.clone(true), this.definition, this.simulation.target, this.renderer.reversedDepthBuffer);
     this.fleetViews = [this.playerView, this.targetView];
     this.fleetModels = [gltf.scene];
     this.shipLabels.setFleet(this.fleetViews, this.simulation.actors);
@@ -338,7 +338,7 @@ export class Game {
       for (const actor of simulation.actors) {
         const clone = models.get(actor.definition.id)!.clone(true);
         clones.push(clone);
-        const view = new ShipView(clone, actor.definition, actor);
+        const view = new ShipView(clone, actor.definition, actor, this.renderer.reversedDepthBuffer);
         view.root.visible = actor === simulation.player;
         views.push(view);
       }
