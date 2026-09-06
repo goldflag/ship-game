@@ -1,0 +1,83 @@
+{
+  "origin": "http://localhost:61731/?ship=king-george-v",
+  "refs": {
+    "e1": {
+      "name": "Custom battle",
+      "role": "heading"
+    },
+    "e10": {
+      "name": "Clear",
+      "role": "button"
+    },
+    "e11": {
+      "name": "Ships",
+      "role": "heading"
+    },
+    "e12": {
+      "name": "Friendly team",
+      "role": "heading"
+    },
+    "e13": {
+      "name": "Enemy team",
+      "role": "heading"
+    },
+    "e14": {
+      "name": "Remove HMS King George V, friendly bot 1",
+      "role": "button"
+    },
+    "e15": {
+      "name": "Remove Bismarck, enemy bot 1",
+      "role": "button"
+    },
+    "e16": {
+      "name": "Remove HMS King George V, enemy bot 2",
+      "role": "button"
+    },
+    "e17": {
+      "name": "You",
+      "role": "button"
+    },
+    "e18": {
+      "name": "Friendly",
+      "role": "button"
+    },
+    "e19": {
+      "name": "Enemy",
+      "role": "button"
+    },
+    "e2": {
+      "name": "Close battle setup",
+      "role": "button"
+    },
+    "e3": {
+      "name": "Spawn distance",
+      "role": "slider"
+    },
+    "e4": {
+      "name": "Ships",
+      "role": "region"
+    },
+    "e5": {
+      "name": "Friendly team",
+      "role": "region"
+    },
+    "e6": {
+      "name": "Enemy team",
+      "role": "region"
+    },
+    "e7": {
+      "name": "Back to port",
+      "role": "button"
+    },
+    "e8": {
+      "name": "Start battle",
+      "role": "button"
+    },
+    "e9": {
+      "name": "Filter ships",
+      "role": "searchbox"
+    }
+  },
+  "snapshot": "- dialog \"Custom battle\"\n  - heading \"Custom battle\" [level=2, ref=e1]\n  - button \"Close battle setup\" [ref=e2]\n  - paragraph\n    - StaticText \"Pick ships from the catalog to build both fleets. You command one ship; bots command the rest.\"\n  - group \"Fleet selection\"\n    - Legend\n      - StaticText \"Fleet selection\"\n    - region \"Ships\" [ref=e4]\n      - sectionheader\n        - heading \"Ships\" [level=3, ref=e11]\n        - status\n          - StaticText \"1 / 6 hulls\"\n      - LabelText\n        - StaticText \"Filter ships\"\n      - searchbox \"Filter ships\" [ref=e9]: King George\n        - StaticText \"King George\"\n      - button \"Clear\" [ref=e10]\n      - list\n        - listitem [level=1]\n          - strong\n            - StaticText \"HMS King George V\"\n          - generic\n            - StaticText \"227 m \u00b7 38,641 t\"\n          - group \"Add HMS King George V\"\n            - button \"You\" [ref=e17]\n            - button \"Friendly\" [ref=e18]\n            - button \"Enemy\" [ref=e19]\n    - region \"Friendly team\" [ref=e5]\n      - sectionheader\n        - heading \"Friendly team\" [level=3, ref=e12]\n        - StaticText \"2\"\n        - StaticText \" / \"\n        - StaticText \"30\"\n        - StaticText \" ships\"\n      - list\n        - listitem [level=1]\n          - StaticText \"HMS King George V\"\n          - StaticText \"Your ship \u00b7 You\"\n        - listitem [level=1]\n          - StaticText \"HMS King George V\"\n          - generic\n            - StaticText \"Friendly bot 1\"\n          - button \"Remove HMS King George V, friendly bot 1\" [ref=e14]\n    - region \"Enemy team\" [ref=e6]\n      - sectionheader\n        - heading \"Enemy team\" [level=3, ref=e13]\n        - StaticText \"2\"\n        - StaticText \" / \"\n        - StaticText \"30\"\n        - StaticText \" ships\"\n      - list\n        - listitem [level=1]\n          - StaticText \"Bismarck\"\n          - generic\n            - StaticText \"Enemy bot 1\"\n          - button \"Remove Bismarck, enemy bot 1\" [ref=e15]\n        - listitem [level=1]\n          - StaticText \"HMS King George V\"\n          - generic\n            - StaticText \"Enemy bot 2\"\n          - button \"Remove HMS King George V, enemy bot 2\" [ref=e16]\n  - LabelText\n    - StaticText \"Spawn distance\"\n  - status\n    - StaticText \"5 km\"\n  - slider \"Spawn distance\" [ref=e3]: 5000\n  - paragraph\n    - StaticText \"Distance between the two formations. Both teams start facing each other.\"\n  - strong\n    - StaticText \"Open ocean\"\n  - StaticText \"Defeat the opposing fleet to win.\"\n  - contentinfo\n    - button \"Back to port\" [ref=e7]\n    - button \"Start battle\" [ref=e8]",
+  "browserPageId": "62ea48b0-064e-4e60-bdea-6be969971206"
+}

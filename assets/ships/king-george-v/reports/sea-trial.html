@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>King George V · controlled sea trial</title>
+<style>
+  html,body{margin:0;background:#132d38;color:#edf1ec;font:14px sans-serif}
+  #scene{width:1280px;height:720px}canvas{display:block}
+  #status{position:fixed;left:20px;top:20px;max-width:900px;background:#132d38;padding:10px}
+</style>
+<div id="scene"></div><output id="status">Preparing KGV sea trial…</output>
+<script type="module">
+import { Game } from '/src/game/Game.ts';
+import { shipPreset } from '/src/ships/presets.ts';
+import { selectAmmunition, updateMount } from '/src/simulation/weapons.ts';
+import { hitShip, updateFlooding } from '/src/simulation/damage.ts';
+import { localToWorld } from '/src/simulation/geometry.ts';
+
+// Developer review fixture. Uses the published model and production Game, CPU
+// weapons, collision, flooding, ocean and damage rendering. Fixed steps and camera
+// make evidence repeatable; this is distinct from the ordinary custom-battle check.
+const status = document.querySelector('#status');
+let ready;
+const loaded = new Promise(resolve => ready = resolve);
+const game = new Game(document.querySelector('#scene'), {quality:'medium',sea:'Fair',resolution:1}, {
+  progress: label => status.textContent=label, ready,
+  telemetry:()=>{},pause:()=>{},hud:()=>{},
+  error:message=>{status.textContent=message;window.reviewError=message;},
+}, shipPreset('king-george-v'));
+game.start(); await loaded;
+game.setInPort(false); game.setPaused(true); game.rig.update=()=>{};
+const sim=game.simulation, stop={throttle:0,rudder:0};
+const report={contentHash:game.definition.contentHash, batteryTrials:[]};
+function camera() {
+  const pose=game.simulation.player.motion;
+  game.camera.fov=45; game.camera.position.set(pose.x+260,pose.y+95,pose.z+160); game.camera.lookAt(pose.x,pose.y+4,pose.z);
+  game.camera.updateProjectionMatrix(); game.camera.updateMatrixWorld();
+}
+function snap() { game.fleetViews.forEach(view=>view.snap()); }
+async function still() {
+  for(let i=0;i<3;i++) { await new Promise(requestAnimationFrame); await game.frameTask; }
+}
+function stock() { return sim.player.mounts.reduce((sum,m)=>sum+m.ammo,0); }
+function fresh() {
+  sim.reset(); game.effects.reset();
+  Object.assign(sim.player.motion,{x:0,z:0,heading:0});
+  Object.assign(sim.target.motion,{x:1800,z:0,heading:0});
+  game.playerView.setInspection('exterior'); snap(); camera();
+}
+async function battery(battery,ammunition='ap') {
+  fresh(); game.battery=battery; game.manualAim=false;
+  const aim=[1800,.5,0], before=stock();
+  // Changing AP/HE requires the real catalog reload interval before firing.
+  game.definition.mounts.forEach((m,i)=>{
+    if(m.battery===battery) selectAmmunition(m,sim.player.mounts[i],ammunition);
+  });
+  for(let tick=0;tick<3600;tick++) game.definition.mounts.forEach((m,i)=>
+    updateMount(m,sim.player.mounts[i],game.definition,sim.player.motion,aim,1/60));
+  sim.requestFire(); sim.step(stop,{aim,fire:false,battery,ammunition}); snap();
+  const shots=sim.events.filter(e=>e.kind==='shot').length;
+  const result={battery,ammunition,shots,ammunitionSpent:before-stock(),
+    maxMuzzleErrorM:Math.max(...game.playerView.muzzleErrors())};
+  await still();
+  for(let tick=0;tick<360;tick++) {
+    sim.step(stop,{aim,fire:false,battery,ammunition});
+    if(tick%30===29) { snap(); await still(); }
+  }
+  snap(); await still();
+  Object.assign(result,{
+    impactCount:sim.shellHistory.reduce((n,h)=>n+h.impacts.length,0),
+    impactOutcomes:[...new Set(sim.events.filter(e=>e.impact).map(e=>e.kind))],
+    targetIntegrity:sim.target.damage.integrity,
+    targetMaximumIntegrity:sim.target.damage.maxIntegrity,
+    targetMarks:game.targetView.impactMarks.count,
+    targetWaterM3:sim.target.damage.compartments.reduce((n,c)=>n+c.waterM3,0),
+    muzzleErrorsAfterFlight:Math.max(...game.playerView.muzzleErrors()),
+  });
+  if(shots!==(battery==='main'?10:8) || result.ammunitionSpent!==shots || !result.impactCount)
+    throw new Error('Battery trial did not fire and hit with the expected ammunition count.');
+  report.batteryTrials.push(result);
+  status.textContent=`KGV ${battery} ${ammunition.toUpperCase()}: ${shots} shells; ${result.impactCount} impact records`;
+  return result;
+}
+async function damage() {
+  fresh();
+  const i=game.definition.modules.findIndex(m=>m.id==='boiler-1-1'), module=game.definition.modules[i];
+  const from=localToWorld([-60,module.center[1],module.center[2]],sim.player.motion);
+  const to=localToWorld([60,module.center[1],module.center[2]],sim.player.motion);
+  const shell={id:9001,ownerId:'target',position:from,velocity:[800,0,0],age:1,
+    penetrationMm:2000,damage:100,caliberM:.3556,type:'AP',visited:[]};
+  const events=[];
+  // Deliberately high-energy incoming AP exercises the underwater breach path,
+  // independently of the normal catalog salvos above; no damage state is forced.
+  hitShip(shell,from,to,sim.player,game.definition,event=>events.push(event));
+  sim.events.push(...events.map((event,i)=>({...event,sequence:10000+i,tick:sim.tick})));
+  for(let tick=0;tick<120;tick++) updateFlooding(sim.player,game.definition,1/60);
+  snap(); await still();
+  report.damageTrial={module:module.id,hpBefore:module.hp,hpAfter:sim.player.damage.modules[i].hp,
+    breachedSpaces:sim.player.damage.compartments.filter(c=>c.breachAreaM2>0).length,
+    waterAfterTwoSecondsM3:sim.player.damage.compartments.reduce((n,c)=>n+c.waterM3,0),
+    marks:game.playerView.impactMarks.count,eventKinds:[...new Set(events.map(e=>e.kind))]};
+  if(report.damageTrial.hpAfter>=module.hp || !report.damageTrial.breachedSpaces || !report.damageTrial.waterAfterTwoSecondsM3)
+    throw new Error('Incoming AP did not damage the selected boiler and admit floodwater.');
+  game.playerView.setInspection('internals',`module:${module.id}`); await still();
+  status.textContent=`KGV controlled incoming AP: boiler ${report.damageTrial.hpAfter}/${module.hp} HP; ${report.damageTrial.waterAfterTwoSecondsM3.toFixed(2)} m³ floodwater`;
+  return report.damageTrial;
+}
+async function reset() {
+  game.setInPort(true); game.setPaused(true); camera(); await still();
+  report.reset={ammunition:stock(),waterM3:sim.player.damage.compartments.reduce((n,c)=>n+c.waterM3,0),
+    breachCount:sim.player.damage.compartments.filter(c=>c.breachAreaM2>0).length,
+    allModulesRestored:sim.player.damage.modules.every((m,i)=>m.hp===game.definition.modules[i].hp),
+    marks:game.playerView.impactMarks.count};
+  if(report.reset.ammunition!==7400 || report.reset.waterM3 || report.reset.breachCount || !report.reset.allModulesRestored || report.reset.marks)
+    throw new Error('Returning to port did not fully restore the ship.');
+  status.textContent='KGV reset: ammunition, modules, breaches, floodwater and impact marks restored';
+  return report.reset;
+}
+fresh(); status.textContent='King George V controlled sea trial ready';
+window.kingGeorgeTrial={game,report,battery,damage,reset,still};
+</script>
+</html>

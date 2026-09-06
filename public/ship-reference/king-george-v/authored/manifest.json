@@ -1,0 +1,1763 @@
+{
+  "schemaVersion": 1,
+  "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+  "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2",
+  "capturePlanSha256": "f42fdfa7988d20b2c77daaa753757276d8c12f43aa558fe7a6c8b77fa0766a0a",
+  "captures": [
+    {
+      "id": "starboard",
+      "position": [
+        0,
+        -500,
+        17
+      ],
+      "target": [
+        0,
+        0,
+        17
+      ],
+      "spanM": 255,
+      "resolution": [
+        2400,
+        780
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "starboard.png",
+      "imageSha256": "0c31fd1872054743cc22bb87ad66eb222013568af2f51941a81e574cad0a7a91",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.6292068494294654e-07,
+          -1.0,
+          -500.0
+        ],
+        [
+          0.0,
+          1.0,
+          -1.6292068494294654e-07,
+          17.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 9.411764705882353,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "port",
+      "position": [
+        0,
+        500,
+        17
+      ],
+      "target": [
+        0,
+        0,
+        17
+      ],
+      "spanM": 255,
+      "resolution": [
+        2400,
+        780
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "port.png",
+      "imageSha256": "93c11b04f153abcfdd8520882da8de45bc0c9bf3fcbc1e56125afc71b4120459",
+      "cameraMatrixWorld": [
+        [
+          -1.0,
+          1.5099581673894136e-07,
+          1.509957741063772e-07,
+          0.0
+        ],
+        [
+          1.5099580252808664e-07,
+          1.629206565212371e-07,
+          1.0,
+          500.0
+        ],
+        [
+          1.5099578831723193e-07,
+          1.0,
+          -1.6292068494294654e-07,
+          17.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 9.411764705882353,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "top",
+      "position": [
+        0,
+        0,
+        500
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "spanM": 255,
+      "resolution": [
+        2400,
+        780
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "rotationEuler": [
+        0,
+        0,
+        0
+      ],
+      "image": "top.png",
+      "imageSha256": "3bc14f4c593591701fc9630d79238c6473b7f1913e273908b3348911fe3f8f0e",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          500.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 9.411764705882353,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bow",
+      "position": [
+        500,
+        0,
+        14
+      ],
+      "target": [
+        0,
+        0,
+        14
+      ],
+      "spanM": 62,
+      "resolution": [
+        1500,
+        1500
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "bow.png",
+      "imageSha256": "df1ec75fd3835eb7c73b90cb13a8381734bde518a1545930f89044b51124e7b2",
+      "cameraMatrixWorld": [
+        [
+          -4.371138828673793e-08,
+          4.371138828673793e-08,
+          1.0,
+          500.0
+        ],
+        [
+          1.0,
+          1.910685676922942e-15,
+          4.371138828673793e-08,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          -4.371138828673793e-08,
+          14.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 24.193548387096776,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "stern",
+      "position": [
+        -500,
+        0,
+        14
+      ],
+      "target": [
+        0,
+        0,
+        14
+      ],
+      "spanM": 62,
+      "resolution": [
+        1500,
+        1500
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "stern.png",
+      "imageSha256": "e06e63bebd8549c61b40e58a5ccbac197f2bab8ff93faed5f8e4521ad746b6ca",
+      "cameraMatrixWorld": [
+        [
+          -4.371138828673793e-08,
+          -4.371138828673793e-08,
+          -1.0,
+          -500.0
+        ],
+        [
+          -1.0,
+          1.910685676922942e-15,
+          4.371138828673793e-08,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          -4.371138828673793e-08,
+          14.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 24.193548387096776,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "underside",
+      "position": [
+        0,
+        0,
+        -500
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "spanM": 255,
+      "resolution": [
+        2400,
+        780
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "underside.png",
+      "imageSha256": "9361b88c08ecc2c02bb9458810812f1ad77040df8e5bb252bac6dc9a314234bc",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.0,
+          -1.5099580252808664e-07,
+          0.0
+        ],
+        [
+          0.0,
+          1.5099580252808664e-07,
+          -1.0,
+          -500.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 9.411764705882353,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "quarter-bow",
+      "position": [
+        210,
+        -290,
+        155
+      ],
+      "target": [
+        0,
+        0,
+        10
+      ],
+      "spanM": 263,
+      "resolution": [
+        2400,
+        1350
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "quarter-bow.png",
+      "imageSha256": "95b3acfdf8104df290ecc9878c3b925a01133e984e5ea4e451b50da5ff3a4172",
+      "cameraMatrixWorld": [
+        [
+          0.8099420666694641,
+          -0.22015196084976196,
+          0.5436239242553711,
+          210.0
+        ],
+        [
+          0.5865098834037781,
+          0.30401915311813354,
+          -0.7507186532020569,
+          -290.0
+        ],
+        [
+          9.029211867073172e-08,
+          0.9268794059753418,
+          0.3753592073917389,
+          155.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 9.125475285171103,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "quarter-stern",
+      "position": [
+        -210,
+        -290,
+        125
+      ],
+      "target": [
+        0,
+        0,
+        10
+      ],
+      "spanM": 263,
+      "resolution": [
+        2400,
+        1350
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "quarter-stern.png",
+      "imageSha256": "7896ed8b8bc2900bdbdb6b2be4b044be0fe5f28949e446298cb1e55c8219710a",
+      "cameraMatrixWorld": [
+        [
+          0.8099420070648193,
+          0.1793535202741623,
+          -0.558414101600647,
+          -210.0
+        ],
+        [
+          -0.5865100026130676,
+          0.2476785033941269,
+          -0.7711428999900818,
+          -290.0
+        ],
+        [
+          -2.6916602280380175e-08,
+          0.9520964622497559,
+          0.30579784512519836,
+          125.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 9.125475285171103,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bow-flare",
+      "position": [
+        96,
+        -150,
+        11
+      ],
+      "target": [
+        96,
+        0,
+        4
+      ],
+      "spanM": 43,
+      "resolution": [
+        1800,
+        1000
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "bow-flare.png",
+      "imageSha256": "e3048865c27e9bc2d4193746c3888c7c404c499007425461facaad76c2a2e5bd",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          96.0
+        ],
+        [
+          0.0,
+          0.04661594331264496,
+          -0.9989128708839417,
+          -150.0
+        ],
+        [
+          0.0,
+          0.9989128708839417,
+          0.04661594331264496,
+          11.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 41.86046511627907,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "stern-curvature",
+      "position": [
+        -97,
+        -150,
+        7
+      ],
+      "target": [
+        -97,
+        0,
+        0
+      ],
+      "spanM": 44,
+      "resolution": [
+        1800,
+        1000
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "stern-curvature.png",
+      "imageSha256": "2bd8a51b0999a5d59e6abbd4e9c9289858bc25b92b91cc7cfdd04af2c84d591f",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -97.0
+        ],
+        [
+          0.0,
+          0.04661594331264496,
+          -0.9989128708839417,
+          -150.0
+        ],
+        [
+          0.0,
+          0.9989128708839417,
+          0.04661594331264496,
+          7.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 40.90909090909091,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "deck-sheer",
+      "position": [
+        62,
+        -150,
+        12
+      ],
+      "target": [
+        62,
+        0,
+        5
+      ],
+      "spanM": 95,
+      "resolution": [
+        1800,
+        1000
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "deck-sheer.png",
+      "imageSha256": "c06a157598a0fdd90a0a946a76f26568fb8d987bb852ebe5417312841aa4759f",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          62.0
+        ],
+        [
+          0.0,
+          0.04661594331264496,
+          -0.9989128708839417,
+          -150.0
+        ],
+        [
+          0.0,
+          0.9989128708839417,
+          0.04661594331264496,
+          12.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 18.94736842105263,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "main-a",
+      "position": [
+        50,
+        -150,
+        16
+      ],
+      "target": [
+        50,
+        0,
+        9
+      ],
+      "spanM": 33,
+      "resolution": [
+        1800,
+        1000
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "main-a.png",
+      "imageSha256": "89f1242e91dfa54752ea15e0f07d0076f991c62010ea59d5594125027537bdc1",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          50.0
+        ],
+        [
+          0.0,
+          0.04661594331264496,
+          -0.9989128708839417,
+          -150.0
+        ],
+        [
+          0.0,
+          0.9989128708839417,
+          0.04661594331264496,
+          16.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 54.54545454545455,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "main-b",
+      "position": [
+        35,
+        -150,
+        20
+      ],
+      "target": [
+        35,
+        0,
+        13
+      ],
+      "spanM": 30,
+      "resolution": [
+        1800,
+        1000
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "main-b.png",
+      "imageSha256": "22e8cd789e2f01f60dd53b57177a8c8d72a98b037c4a10da762055907b28408f",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          35.0
+        ],
+        [
+          0.0,
+          0.04661594331264496,
+          -0.9989128708839417,
+          -150.0
+        ],
+        [
+          0.0,
+          0.9989128708839417,
+          0.04661594331264496,
+          20.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 60.0,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "main-y",
+      "position": [
+        -60,
+        -150,
+        16
+      ],
+      "target": [
+        -60,
+        0,
+        9
+      ],
+      "spanM": 33,
+      "resolution": [
+        1800,
+        1000
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "main-y.png",
+      "imageSha256": "0a2048f12d7257ebc818e86f86465d3a18cea5ca171a6e2a21160e83cedcc0df",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -60.0
+        ],
+        [
+          0.0,
+          0.04661594331264496,
+          -0.9989128708839417,
+          -150.0
+        ],
+        [
+          0.0,
+          0.9989128708839417,
+          0.04661594331264496,
+          16.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 54.54545454545455,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bridge",
+      "position": [
+        22,
+        -150,
+        26
+      ],
+      "target": [
+        22,
+        0,
+        19
+      ],
+      "spanM": 43,
+      "resolution": [
+        1800,
+        1000
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "bridge.png",
+      "imageSha256": "399bf967ffda83a0e87621bf6f8034cf49c77d7dcc1c908eff985d912d93a78c",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          22.0
+        ],
+        [
+          0.0,
+          0.04661594331264496,
+          -0.9989128708839417,
+          -150.0
+        ],
+        [
+          0.0,
+          0.9989128708839417,
+          0.04661594331264496,
+          26.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 41.86046511627907,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "fore-funnel",
+      "position": [
+        1,
+        -150,
+        23
+      ],
+      "target": [
+        1,
+        0,
+        16
+      ],
+      "spanM": 31,
+      "resolution": [
+        1800,
+        1000
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "fore-funnel.png",
+      "imageSha256": "df9ef6d6f556f396e47e16c0949a68ded705b07f1f2cd51768ac83c27f71ec59",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        [
+          0.0,
+          0.04661594331264496,
+          -0.9989128708839417,
+          -150.0
+        ],
+        [
+          0.0,
+          0.9989128708839417,
+          0.04661594331264496,
+          23.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 58.064516129032256,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "aft-funnel",
+      "position": [
+        -24,
+        -150,
+        23
+      ],
+      "target": [
+        -24,
+        0,
+        16
+      ],
+      "spanM": 32,
+      "resolution": [
+        1800,
+        1000
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "aft-funnel.png",
+      "imageSha256": "1dc4532721c836cc9b68bf2a1563c136b3dddccaa0f9e8d127e6e961592285e2",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -24.0
+        ],
+        [
+          0.0,
+          0.04661594331264496,
+          -0.9989128708839417,
+          -150.0
+        ],
+        [
+          0.0,
+          0.9989128708839417,
+          0.04661594331264496,
+          23.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 56.25,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "catapult",
+      "position": [
+        -9,
+        -150,
+        17
+      ],
+      "target": [
+        -9,
+        0,
+        10
+      ],
+      "spanM": 47,
+      "resolution": [
+        1800,
+        1000
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "catapult.png",
+      "imageSha256": "b51dca6b744455f735c007068d3d694cc2f170f7dece05e019795d5f6535b772",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -9.0
+        ],
+        [
+          0.0,
+          0.04661594331264496,
+          -0.9989128708839417,
+          -150.0
+        ],
+        [
+          0.0,
+          0.9989128708839417,
+          0.04661594331264496,
+          17.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 38.297872340425535,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "foremast",
+      "position": [
+        9,
+        -150,
+        35
+      ],
+      "target": [
+        9,
+        0,
+        28
+      ],
+      "spanM": 36,
+      "resolution": [
+        1800,
+        1000
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "foremast.png",
+      "imageSha256": "d8e381910bf4d7d4b82b5a74ec3b420bb454e8affc547e7ff4912d72ea1067a5",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          9.0
+        ],
+        [
+          0.0,
+          0.04661594331264496,
+          -0.9989128708839417,
+          -150.0
+        ],
+        [
+          0.0,
+          0.9989128708839417,
+          0.04661594331264496,
+          35.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 50.0,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "mainmast",
+      "position": [
+        -43,
+        -150,
+        33
+      ],
+      "target": [
+        -43,
+        0,
+        26
+      ],
+      "spanM": 37,
+      "resolution": [
+        1800,
+        1000
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "mainmast.png",
+      "imageSha256": "8571be38c3d6ea244a5dd672fe775c5b8af42b5e53d892e5d8d2fb4933adb4ed",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -43.0
+        ],
+        [
+          0.0,
+          0.04661594331264496,
+          -0.9989128708839417,
+          -150.0
+        ],
+        [
+          0.0,
+          0.9989128708839417,
+          0.04661594331264496,
+          33.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 48.648648648648646,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "aft-superstructure",
+      "position": [
+        -42,
+        -150,
+        21
+      ],
+      "target": [
+        -42,
+        0,
+        14
+      ],
+      "spanM": 36,
+      "resolution": [
+        1800,
+        1000
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "aft-superstructure.png",
+      "imageSha256": "214919a89f814876241af3b65c883563a01852c99d816d2bf89eea393b81e139",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -42.0
+        ],
+        [
+          0.0,
+          0.04661594331264496,
+          -0.9989128708839417,
+          -150.0
+        ],
+        [
+          0.0,
+          0.9989128708839417,
+          0.04661594331264496,
+          21.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 50.0,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "secondary-forward",
+      "position": [
+        8,
+        -150,
+        16
+      ],
+      "target": [
+        8,
+        0,
+        9
+      ],
+      "spanM": 37,
+      "resolution": [
+        1800,
+        1000
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "secondary-forward.png",
+      "imageSha256": "f1c26e261fb12dec775040f2d2e3612bb9beb90c1194bc524314a1fd60509698",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          8.0
+        ],
+        [
+          0.0,
+          0.04661594331264496,
+          -0.9989128708839417,
+          -150.0
+        ],
+        [
+          0.0,
+          0.9989128708839417,
+          0.04661594331264496,
+          16.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 48.648648648648646,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "secondary-aft",
+      "position": [
+        -29,
+        -150,
+        16
+      ],
+      "target": [
+        -29,
+        0,
+        9
+      ],
+      "spanM": 35,
+      "resolution": [
+        1800,
+        1000
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "secondary-aft.png",
+      "imageSha256": "12b0efa67f75af78681ffb307b8d68e886f2b09fe45a525d5b4b16ff8672054a",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -29.0
+        ],
+        [
+          0.0,
+          0.04661594331264496,
+          -0.9989128708839417,
+          -150.0
+        ],
+        [
+          0.0,
+          0.9989128708839417,
+          0.04661594331264496,
+          16.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 51.42857142857143,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bridge-quarter",
+      "position": [
+        53,
+        -63,
+        34
+      ],
+      "target": [
+        20,
+        0,
+        17
+      ],
+      "spanM": 41,
+      "resolution": [
+        1800,
+        1500
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "bridge-quarter.png",
+      "imageSha256": "9f10631adcefb76a4223a00aedaf341cf422fb4a825c53fea0f7da316a8c731a",
+      "cameraMatrixWorld": [
+        [
+          0.8858315348625183,
+          -0.10787437856197357,
+          0.45129328966140747,
+          53.0
+        ],
+        [
+          0.46400701999664307,
+          0.20594197511672974,
+          -0.8615598678588867,
+          -63.0
+        ],
+        [
+          -4.1222494862047654e-10,
+          0.9726001620292664,
+          0.2324843555688858,
+          34.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 43.90243902439025,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "main-a-quarter",
+      "position": [
+        76,
+        -55,
+        24
+      ],
+      "target": [
+        48,
+        0,
+        10
+      ],
+      "spanM": 34,
+      "resolution": [
+        1800,
+        1500
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "main-a-quarter.png",
+      "imageSha256": "b1bb2b0e8fb8a082f3f817c78f29aa7e50f91613b591d93349c0eed7b3b8c691",
+      "cameraMatrixWorld": [
+        [
+          0.8911631107330322,
+          -0.1003643050789833,
+          0.44244247674942017,
+          76.0
+        ],
+        [
+          0.453683078289032,
+          0.1971440464258194,
+          -0.8690833449363708,
+          -55.0
+        ],
+        [
+          4.702724965000016e-08,
+          0.9752236604690552,
+          0.22122108936309814,
+          24.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 52.94117647058823,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "main-a-top",
+      "position": [
+        50,
+        0,
+        150
+      ],
+      "target": [
+        50,
+        0,
+        10
+      ],
+      "spanM": 29,
+      "resolution": [
+        1500,
+        1500
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "rotationEuler": [
+        0,
+        0,
+        0
+      ],
+      "image": "main-a-top.png",
+      "imageSha256": "5d5226b37a0ff25aea679b68efe4fd62baf9627ff9d3fc6e567c0309d9c2f336",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          50.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          150.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 51.724137931034484,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "secondary-quarter",
+      "position": [
+        36,
+        -58,
+        23
+      ],
+      "target": [
+        7,
+        -10,
+        10
+      ],
+      "spanM": 24,
+      "resolution": [
+        1800,
+        1500
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "secondary-quarter.png",
+      "imageSha256": "1b20c3cab69a8e6cbece3400b6f293a9b8a9e39eb184c3598c7937d138b1b02d",
+      "cameraMatrixWorld": [
+        [
+          0.8559154868125916,
+          -0.11677618324756622,
+          0.5037578344345093,
+          36.0
+        ],
+        [
+          0.5171157121658325,
+          0.1932847648859024,
+          -0.8338059782981873,
+          -58.0
+        ],
+        [
+          -3.82229075057694e-08,
+          0.9741685390472412,
+          0.22582222521305084,
+          23.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 75.0,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "aircraft-deck",
+      "position": [
+        25,
+        -52,
+        42
+      ],
+      "target": [
+        -10,
+        0,
+        10
+      ],
+      "spanM": 60,
+      "resolution": [
+        1800,
+        1500
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "aircraft-deck.png",
+      "imageSha256": "ea6501df300a634056418ac93e65e50db31ede9e809d98daf17626f7db1d3af8",
+      "cameraMatrixWorld": [
+        [
+          0.8295878171920776,
+          -0.2538883686065674,
+          0.4973175823688507,
+          25.0
+        ],
+        [
+          0.5583763122558594,
+          0.3772057890892029,
+          -0.7388719320297241,
+          -52.0
+        ],
+        [
+          -6.776070904379594e-08,
+          0.8906494975090027,
+          0.4546905755996704,
+          42.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 30.0,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "battery-isolated",
+      "position": [
+        150,
+        -250,
+        125
+      ],
+      "target": [
+        0,
+        0,
+        8
+      ],
+      "spanM": 240,
+      "resolution": [
+        2400,
+        1000
+      ],
+      "visibility": [
+        "main"
+      ],
+      "projection": "ORTHO",
+      "image": "battery-isolated.png",
+      "imageSha256": "1a20c8d7fd58c7d91ffce9e23f931425c1eebf18063322a2faf7dfb562b58b30",
+      "cameraMatrixWorld": [
+        [
+          0.8574929237365723,
+          -0.19161663949489594,
+          0.4774818420410156,
+          150.0
+        ],
+        [
+          0.5144957304000854,
+          0.3193610906600952,
+          -0.7958031296730042,
+          -250.0
+        ],
+        [
+          6.093458182476752e-09,
+          0.9280579686164856,
+          0.3724358081817627,
+          125.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 10.0,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "hull-superstructure-isolated",
+      "position": [
+        185,
+        -265,
+        150
+      ],
+      "target": [
+        0,
+        0,
+        10
+      ],
+      "spanM": 258,
+      "resolution": [
+        2400,
+        1250
+      ],
+      "visibility": [
+        "hull",
+        "superstructure"
+      ],
+      "projection": "ORTHO",
+      "image": "hull-superstructure-isolated.png",
+      "imageSha256": "42932740f13512a09706cb88b03436c32e9daf529d5aa5deff4d19d42193aa9e",
+      "cameraMatrixWorld": [
+        [
+          0.8199580907821655,
+          -0.2275342494249344,
+          0.5252588987350464,
+          185.0
+        ],
+        [
+          0.5724235773086548,
+          0.32592758536338806,
+          -0.7523977756500244,
+          -265.0
+        ],
+        [
+          -1.0676663464437297e-07,
+          0.9176052212715149,
+          0.397492915391922,
+          150.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 9.30232558139535,
+      "source": {
+        "id": "king-george-v",
+        "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+        "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    }
+  ]
+}

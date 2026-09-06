@@ -1,0 +1,19 @@
+Production scene ready
+main ap {"battery":"main","ammunition":"ap","shots":10,"ammunitionSpent":10,"maxMuzzleErrorM":0.001739647528956642,"impactCount":213,"impactOutcomes":["burst"],"targetIntegrity":1281.4137164465744,"targetMaximumIntegrity":1380,"targetMarks":0,"targetWaterM3":0.12663788968808415,"muzzleErrorsAfterFlight":0.0017396475289548662}
+Captured sea-trial-main-ap 9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f
+secondary ap {"battery":"secondary","ammunition":"ap","shots":8,"ammunitionSpent":8,"maxMuzzleErrorM":0.0017396475289548662,"impactCount":25,"impactOutcomes":["stopped","penetration","burst"],"targetIntegrity":1380,"targetMaximumIntegrity":1380,"targetMarks":5,"targetWaterM3":0,"muzzleErrorsAfterFlight":0.0017396475289548662}
+Captured sea-trial-secondary-ap 9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f
+secondary he {"battery":"secondary","ammunition":"he","shots":8,"ammunitionSpent":8,"maxMuzzleErrorM":0.0017396475289548662,"impactCount":22,"impactOutcomes":["contact","burst"],"targetIntegrity":1380,"targetMaximumIntegrity":1380,"targetMarks":4,"targetWaterM3":0,"muzzleErrorsAfterFlight":0.0017396475289548662}
+Captured sea-trial-secondary-he 9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f
+Captured sea-trial-damage 9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f
+Captured articulation-elevation 9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f
+Captured articulation-starboard 9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f
+Captured articulation-port 9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f
+Captured articulation-restored 9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f
+Captured in-game-refined 9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f
+Captured turrets-in-game 9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f
+Captured turrets-elevated-in-game 9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f
+Captured in-game-armor 9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f
+Captured in-game-internals 9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f
+Captured in-game-isolation 9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f
+Firing, damage, flooding, reset, articulation and inspection complete.
