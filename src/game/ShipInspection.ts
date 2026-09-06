@@ -50,7 +50,7 @@ export class ShipInspection {
   setMode(mode: InspectionMode | 'all', selectedId?: string): void {
     if (mode !== 'exterior') this.buildVolumes();
     this.mode = mode;
-    this.selectedId = this.entries.some(e => e.id === selectedId && (mode === 'all' || (mode === 'armor' ? e.kind === 'armor' : mode === 'internals' && e.kind !== 'armor'))) ? selectedId : undefined;
+    this.selectedId = this.entries.some(e => e.id === selectedId && this.inMode(e, mode)) ? selectedId : undefined;
     this.root.visible = mode !== 'exterior';
     this.setHovered(undefined);
     const opaqueArmor = mode === 'armor';
@@ -70,40 +70,56 @@ export class ShipInspection {
       }
     });
   }
-  /** Pick the nearest visible plate, including its physical thickness and current turret pose. */
-  pickArmor(raycaster: THREE.Raycaster): InspectionEntry | undefined {
-    if (this.mode !== 'armor' || !this.root.visible) return;
+  private inMode(entry: InspectionEntry, mode = this.mode): boolean {
+    return mode === 'all' || (mode === 'armor' ? entry.kind === 'armor' : mode === 'internals' && entry.kind !== 'armor');
+  }
+  /** Pick the nearest visible plate (with physical thickness and current turret pose) in the
+   * armor view, or the nearest module, else compartment, in the internals view. */
+  pick(raycaster: THREE.Raycaster): InspectionEntry | undefined {
+    if ((this.mode !== 'armor' && this.mode !== 'internals') || !this.root.visible) return;
     this.root.updateWorldMatrix(true, true);
-    const meshes = this.volumes.filter(v => v.entry.kind === 'armor' && v.group.visible).map(v => v.fill);
-    const hit = raycaster.intersectObjects(meshes, false)[0];
-    return hit && this.volumes.find(v => v.fill === hit.object)?.entry;
+    const candidates = this.volumes.filter(v => v.group.visible && this.inMode(v.entry));
+    const hits = raycaster.intersectObjects(candidates.map(v => v.fill), false);
+    const entryOf = (object?: THREE.Object3D) => candidates.find(v => v.fill === object)?.entry;
+    const nearest = hits[0];
+    if (this.mode === 'armor' || !nearest) return entryOf(nearest?.object);
+    // A compartment encloses its modules, so its near face is always the first hit. Prefer a
+    // module struck before the ray leaves that compartment; deeper spaces stay behind it.
+    const exit = hits.find(hit => hit.object === nearest.object && hit.distance > nearest.distance)?.distance ?? Infinity;
+    const module = hits.find(hit => hit.distance <= exit && entryOf(hit.object)?.moduleIndex !== undefined);
+    return entryOf((module ?? nearest).object);
   }
   setHovered(id?: string): void {
     if (id === this.hoveredId) return;
-    this.hoveredId = this.mode === 'armor' && (!this.selectedId || this.selectedId === id) && this.entries.some(e => e.kind === 'armor' && e.id === id) ? id : undefined;
-    this.volumes.forEach(({ entry, color, fill, outline }) => {
-      if (entry.kind !== 'armor') return;
-      outline.visible = entry.id === this.hoveredId;
+    const hoverable = this.mode === 'armor' || this.mode === 'internals';
+    this.hoveredId = hoverable && (!this.selectedId || this.selectedId === id) && this.entries.some(e => e.id === id && this.inMode(e)) ? id : undefined;
+    this.volumes.forEach(volume => this.paint(volume));
+  }
+  /** Hover and selection styling shared by immediate hover changes and per-frame updates. */
+  private paint({ entry, color, fill, outline }: (typeof this.volumes)[number]): void {
+    const hovered = entry.id === this.hoveredId, selected = entry.id === this.selectedId, dim = !!this.selectedId && !selected;
+    if (entry.kind === 'armor') {
+      outline.visible = hovered;
       outline.material.color.copy(this.hoverColor);
       outline.material.opacity = 1;
-      fill.material.color.set(color);
-      if (entry.id === this.hoveredId) fill.material.color.lerp(this.hoverColor, .3);
-    });
+      fill.material.opacity = this.mode === 'armor' ? 1 : dim ? .025 : selected ? .4 : .1;
+    } else {
+      outline.material.color.set(hovered ? this.hoverColor : selected ? '#fff3c9' : color);
+      outline.material.opacity = hovered || selected ? 1 : dim ? .18 : .65;
+      fill.material.opacity = hovered ? (entry.kind === 'compartment' ? .14 : .6) : dim ? .025 : selected ? .4 : entry.kind === 'compartment' ? .015 : .4;
+    }
+    fill.material.color.set(color);
+    if (hovered) fill.material.color.lerp(this.hoverColor, .3);
   }
   update(actor: Combatant): void {
     if (!this.root.visible) return;
-    this.volumes.forEach(({ entry, color, group, fill, outline, water }) => {
-      group.visible = (this.mode === 'all' || (this.mode === 'armor' ? entry.kind === 'armor' : entry.kind !== 'armor')) && (!this.selectedId || entry.id === this.selectedId);
-      const selected = entry.id === this.selectedId, dim = this.selectedId && !selected;
-      if (entry.kind === 'armor') outline.visible = entry.id === this.hoveredId;
-      outline.material.color.set(entry.kind === 'armor' ? this.hoverColor : selected ? '#fff3c9' : color);
-      outline.material.opacity = entry.kind === 'armor' ? 1 : dim ? .18 : selected ? 1 : .65;
-      fill.material.opacity = entry.kind === 'armor' && this.mode === 'armor' ? 1 : dim ? .025 : selected ? .4 : entry.kind === 'compartment' ? .015 : entry.kind === 'armor' ? .1 : .4;
-      fill.material.color.set(color);
-      if (entry.id === this.hoveredId) fill.material.color.lerp(this.hoverColor, .3);
+    this.volumes.forEach(volume => {
+      const { entry, group, fill, water } = volume;
+      group.visible = this.inMode(entry) && (!this.selectedId || entry.id === this.selectedId);
+      this.paint(volume);
       if (entry.moduleIndex !== undefined) {
         const condition = actor.damage.modules[entry.moduleIndex].hp / this.definition.modules[entry.moduleIndex].hp;
-        if (condition < 1) fill.material.color.set(condition <= 0 ? '#d36b4f' : '#dfbd83');
+        if (condition < 1) { fill.material.color.set(condition <= 0 ? '#d36b4f' : '#dfbd83'); if (entry.id === this.hoveredId) fill.material.color.lerp(this.hoverColor, .3); }
       }
       if (entry.mountIndex !== undefined) group.rotation.y = -(radians(entry.bearingDeg!) + actor.mounts[entry.mountIndex].train);
       if (water && entry.compartmentIndex !== undefined) {
