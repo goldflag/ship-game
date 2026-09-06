@@ -3,6 +3,18 @@ import { Break, Fn, If, Loop, attribute, cameraFar, cameraNear, cameraPosition, 
   perspectiveDepthToViewZ, positionWorld, sin, smoothstep,
   texture3D, vec3, vec4 } from 'three/tsl';
 
+/** The ocean renders several targets: float scene depth and integer auxiliary
+ * depth. WebGPU requires each viewport copy to use its source target's format. */
+export class EffectDepthTextureNode extends THREE.ViewportDepthTextureNode {
+  override getTextureForReference(reference: THREE.RenderTarget | THREE.CanvasTarget | null = null): THREE.Texture {
+    const texture = super.getTextureForReference(reference);
+    const source = reference && 'depthTexture' in reference ? reference.depthTexture : null;
+    const type = source?.type ?? THREE.UnsignedIntType;
+    if (texture.type !== type) { texture.type = type; texture.needsUpdate = true; }
+    return texture;
+  }
+}
+
 /** Original periodic Worley volumes, following Sky Pro's coarse-shape / fine-erosion approach.
  * The sky package's private material graph and baked assets are not coupled to combat. */
 export function effectVolumeTexture(): THREE.Data3DTexture {

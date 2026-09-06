@@ -1,0 +1,71 @@
+{
+  "date": "2026-09-06",
+  "baseCommit": "0a567e06934f2e8cfe260b42d1f3c3d70f316165",
+  "baseline": {
+    "marksCreated": 9,
+    "isolatedReversedDepthVisiblePixels": {
+      "WebGPU": 0,
+      "WebGL": 0
+    }
+  },
+  "gpu": [
+    {
+      "backend": "WebGPU",
+      "blockedPixels": 0,
+      "foregroundContrast": 3.438375711313975e-05,
+      "marks": 1,
+      "pass": true,
+      "rearContrast": 1,
+      "requestedReversedDepth": false,
+      "reversedDepth": false,
+      "visiblePixels": 278
+    },
+    {
+      "backend": "WebGPU",
+      "blockedPixels": 0,
+      "foregroundContrast": 3.438375711313975e-05,
+      "marks": 1,
+      "pass": true,
+      "rearContrast": 1,
+      "requestedReversedDepth": true,
+      "reversedDepth": true,
+      "visiblePixels": 278
+    },
+    {
+      "backend": "WebGL",
+      "blockedPixels": 0,
+      "foregroundContrast": 3.4435854611821826e-05,
+      "marks": 1,
+      "pass": true,
+      "rearContrast": 1,
+      "requestedReversedDepth": false,
+      "reversedDepth": false,
+      "visiblePixels": 276
+    },
+    {
+      "backend": "WebGL",
+      "blockedPixels": 0,
+      "foregroundContrast": 3.4435854611821826e-05,
+      "marks": 1,
+      "pass": true,
+      "rearContrast": 1,
+      "requestedReversedDepth": true,
+      "reversedDepth": true,
+      "visiblePixels": 276
+    }
+  ],
+  "gameSmokeOcclusion": {
+    "contrastRatio": 0.08686370470107681,
+    "errors": [],
+    "pass": true,
+    "rearContrastRatio": 1,
+    "samples": 2544
+  },
+  "validation": {
+    "tests": "bun test src/simulation src/game --timeout 30000",
+    "passed": 403,
+    "failed": 0,
+    "build": "bun run build passed; existing large-chunk warning",
+    "note": "Initial 5-second test timeout hit two simulation cases during browser work; the complete run passed with a 30-second per-test allowance."
+  }
+}
