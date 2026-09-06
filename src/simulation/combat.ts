@@ -6,6 +6,7 @@ import { directControl, updateDamageControl, type ControlPriority, type ControlS
 import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { advanceProjectile } from './projectile';
 import { equipmentCondition, type EquipmentCondition } from './machinery';
+import { equipmentIntegrity } from './durability';
 import { createShipState, FIXED_DT, stepShip, type HelmCommand } from './ship';
 import { add, clamp, length, localToWorld, scale, sub } from './geometry';
 import { availableAmmunition, createMountState, muzzleWorld, selectAmmunition, shotDirection, solveBallistic, updateMount } from './weapons';
@@ -35,6 +36,7 @@ export interface CombatTelemetry {
   targetPower: number; targetSteering: number; targetSunk: boolean; targetUnderway: boolean;
   mounts: { id: string; name: string; status: string; reload: number; ammo: number; loaded?: Ammunition }[];
   modules: ({ id: string; name: string; condition: number } & EquipmentCondition)[]; message: string;
+  targetEquipmentIntegrity: number;
   playerIntegrity: number;
   playerMaxIntegrity: number;
   playerWater: number;
@@ -172,10 +174,9 @@ export class CombatSimulation {
         const victim = this.actors.find(a => a.motion.id === event.shipId);
         const owner = this.actors.find(a => a.motion.id === history.ownerId);
         if (victim && owner && victim.team !== owner.team && !victim.damage.sunk && !victim.damage.stability.combatLost) {
-          const dealt = event.impact.damage ?? 0;
+          const dealt = event.impact.hullDamage ?? 0;
           if (dealt > 0 || (event.impact.breachAreaM2 ?? 0) > 0) this.lastDamager.set(victim.motion.id, owner.motion.id);
-          const maximum = victim.definition.modules.reduce((n, m) => n + m.hp, 0) + victim.definition.mounts.length * 100;
-          if (owner === this.player && maximum > 0) this.playerDamageDealt += dealt / maximum * victim.damage.maxIntegrity;
+          if (owner === this.player) this.playerDamageDealt += dealt;
         }
         if (victim) updateCapability(victim, victim.definition);
       }
@@ -384,6 +385,7 @@ export class CombatSimulation {
       control: structuredClone(this.player.damage.control), targetFires: [...this.target.damage.control.rooms, ...this.target.damage.control.mounts].filter(f => f.intensity > 0).length,
       controlTargets: [...this.player.definition.compartments.map(c => ({ id: c.id, name: c.name })), ...this.player.definition.mounts.map(m => ({ id: m.id, name: m.name }))],
       targetIntegrity: this.target.damage.integrity / this.target.damage.maxIntegrity, targetWater: this.target.damage.compartments.reduce((n, c) => n + c.waterM3, 0),
+      targetEquipmentIntegrity: equipmentIntegrity(this.target, this.target.definition),
       targetPower: systemHealth(this.target, this.target.definition, 'engine'), targetSteering: systemHealth(this.target, this.target.definition, 'steering'), targetSunk: this.target.damage.sunk, targetUnderway: this.targetUnderway,
       mounts, modules: this.target.definition.modules.map((m, i) => ({ id: m.id, name: m.name, condition: this.target.damage.modules[i].hp / m.hp, ...equipmentCondition(this.target, this.target.definition, m) })),
       playerIntegrity: this.player.damage.integrity / this.player.damage.maxIntegrity,

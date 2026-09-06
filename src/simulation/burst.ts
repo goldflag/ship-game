@@ -3,6 +3,8 @@ import type { ShipDefinition, Vec3, Volume } from '../ships/blueprint';
 import { contactArmor, nearbyContacts, shipContacts, type Combatant, type DamageEvent, type Shell } from './damage';
 import { clamp, dot, length, localToWorld, normalize, segmentOverlapsBox, sub, worldToLocal } from './geometry';
 import { plateResponse } from './protection';
+import { damageShellHull, HULL_DAMAGE } from './durability';
+import { hullContains } from './hull';
 
 /** Calibrated, bounded target rays. Closed steel blocks pressure; fragments pay
  * each intervening layer. No unoccluded sphere damage or stochastic ray swarm.
@@ -90,15 +92,22 @@ export function burstShell(shell: Shell, actors: (Combatant & { definition: Ship
       }
       if (!damage && !connectionIds) continue;
       burstShip ||= actor.motion.id;
+      const hullDamage = damage > 0 ? damageShellHull(shell, actor, shell.he
+        ? Math.min(shell.he.damage, damage) * HULL_DAMAGE.heEquipment
+        : shell.damage * HULL_DAMAGE.equipment * Math.min(1, damage / (shell.damage * .75))) : 0;
       emit({ ...base, kind: 'burst', shipId: actor.motion.id, message: `${name} burst · ${target.name}`,
         impact: { shellId: shell.id, shipId: actor.motion.id, targetId: target.id, targetName: target.name, kind: target.kind,
           position: target.point, penetrationBeforeMm: charge.fragmentPenetrationMm, penetrationAfterMm: Math.max(0, budget),
-          outcome: 'damaged', damage, connectionIds, fuze: 'armed', fuzeRemainingSeconds: 0 } });
+          outcome: 'damaged', damage, hullDamage, connectionIds, fuze: 'armed', fuzeRemainingSeconds: 0 } });
     }
   }
   const actor = actors.find(a => a.motion.id === burstShip);
+  // Only a shell that actually penetrated the victim can upgrade an internal
+  // burst. Reconstructed exterior armor may sit slightly inside the hull mesh.
+  const hullDamage = actor && shell.ap && (shell.hullDamage?.[actor.motion.id] ?? 0) > 0 && hullContains(actor.definition.hull, worldToLocal(shell.position, actor.motion))
+    ? damageShellHull(shell, actor, shell.damage * HULL_DAMAGE.penetration) : 0;
   emit({ ...base, kind: 'burst', shipId: burstShip, message: `${name} shell burst`, detonation: true, blastRadiusM: radius,
     impact: { shellId: shell.id, shipId: burstShip, targetId: `${name.toLowerCase()}-burst`, targetName: actor ? `${name} shell burst` : 'Burst outside ship', kind: 'burst',
       position: actor ? worldToLocal(shell.position, actor.motion) : [...shell.position], penetrationBeforeMm: shell.penetrationMm,
-      penetrationAfterMm: 0, outcome: 'detonation', terminal: true, fuze: 'armed', fuzeRemainingSeconds: 0 } });
+      penetrationAfterMm: 0, outcome: 'detonation', hullDamage, terminal: true, fuze: 'armed', fuzeRemainingSeconds: 0 } });
 }

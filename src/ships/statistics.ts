@@ -97,7 +97,7 @@ export function shipStatistics(def: ShipDefinition): StatSection[] {
   const engines = def.modules.filter(m => m.kind === 'engine').length, magazines = def.modules.filter(m => m.kind === 'magazine').length, steering = def.modules.filter(m => m.kind === 'steering').length;
   const floodingM3 = def.compartments.reduce((n, c) => n + c.capacityM3, 0), pumpM3PerMinute = def.compartments.reduce((n, c) => n + c.pumpM3PerSecond, 0) * 60;
   const survivability: StatSection = {
-    id: 'survivability', title: 'Survivability', headline: format(hp), headlineUnit: 'condition points', headlineHelp: 'Full equipment condition on this ship’s damage-score scale. Buoyancy and stability determine sinking; permanently losing every weapon or its ammunition can end the fight while afloat.',
+    id: 'survivability', title: 'Survivability', headline: format(hp), headlineUnit: 'HP', headlineHelp: 'Gameplay hull durability. Reaching zero starts sinking; flooding and capsize can also sink the ship. Equipment condition is separate, and losing every weapon or its ammunition can end the fight while afloat.',
     rows: [
       { label: 'Displacement', value: format(h.massKg / 1000), unit: 't', help: 'Standard-draft hull mass used for buoyancy and loading.' },
       { label: 'Reserve buoyancy', value: format(h.reserveBuoyancyM3), unit: 'm³', help: 'Nominal authored reserve. Ships with a stability profile use their actual hull geometry, loading and list to determine loss of flotation.' },

@@ -25,8 +25,10 @@ definitions.forEach((def,index)=>{
       expect(hitShip(s,localToWorld(a,sim.player.motion),localToWorld(b,sim.player.motion),sim.player,def,e=>events.push(e))).toBe(false);
       expect(events.some(e=>e.message.includes('plating'))).toBe(true);
       expect(events.some(e=>e.surfaceImpact&&e.impact&&e.impact.penetrationAfterMm<e.impact.penetrationBeforeMm)).toBe(true);
-      // Empty structure consumes penetration without inventing equipment HP loss.
-      expect(sim.player.damage.integrity).toBe(sim.player.damage.maxIntegrity);
+      // Empty plating costs hull durability while the protected equipment survives.
+      expect(sim.player.damage.integrity).toBeLessThan(sim.player.damage.maxIntegrity);
+      expect(sim.player.mounts.every(m => m.hp === 100)).toBe(true);
+      expect(sim.player.damage.modules.every((m, i) => m.hp === def.modules[i].hp)).toBe(true);
       expect(s.penetrationMm).toBeGreaterThan(1700);
       expect(s.penetrationMm).toBeLessThan(2200);
       // Above-water hull holes are retained for later immersion; they stay dry.
