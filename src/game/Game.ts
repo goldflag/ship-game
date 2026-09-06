@@ -192,10 +192,6 @@ export class Game {
     params.foam.waves.opacity = 0.45;
     params.postProcessing.underwaterParticles.enabled = false;
     params.spray.enabled = false;
-    params.waves.fft.amplitude = this.settings.sea === 'Fair' ? 0.35 : this.settings.sea === 'Heavy' ? 1.4 : 0.75;
-    params.waves.fft.windSpeed = this.settings.sea === 'Fair' ? 5 : this.settings.sea === 'Heavy' ? 16 : 9;
-    params.waves.fft.peakWavelength = this.settings.sea === 'Heavy' ? 100 : 65;
-    params.waves.fft.choppiness = 1.05;
     this.water.loadPreset(params);
     this.updateSeaState();
 
@@ -632,8 +628,13 @@ export class Game {
   private updateSeaState(): void {
     if (!this.water) return;
     // Breakwaters shelter the anchorage. Sailing restores the selected sea conditions.
-    this.water.waves.amplitude.value = this.inPort ? .18 : this.settings.sea === 'Fair' ? .35 : this.settings.sea === 'Heavy' ? 1.4 : .75;
+    // Shorter, lower crests keep the surface detail small beside the hull.
+    this.water.waves.amplitude.value = this.inPort ? .12 : this.settings.sea === 'Fair' ? .22 : this.settings.sea === 'Heavy' ? .95 : .45;
     this.water.waves.windSpeed.value = this.inPort ? 4 : this.settings.sea === 'Fair' ? 5 : this.settings.sea === 'Heavy' ? 16 : 9;
+    this.water.waves.peakWavelength.value = this.inPort ? 14 : this.settings.sea === 'Fair' ? 20 : this.settings.sea === 'Heavy' ? 50 : 28;
+    this.water.waves.choppiness.value = .8;
+    // Wind and wavelength alter the initial spectrum, which must be rebuilt.
+    this.water.waves.dirty = true;
     this.effects.setWind(this.water.waves.windSpeed.value);
   }
   private updatePortLighting(): void {
