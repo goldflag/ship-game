@@ -1,0 +1,80 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Shell mark depth regression</title>
+<pre id="result">Running GPU checks…</pre>
+<script type="module">
+import * as THREE from 'three/webgpu';
+import { ShipImpactMarks } from '/src/game/ShipImpactMarks.ts';
+import { CombatEffects } from '/src/game/CombatEffects.ts';
+
+// Actual production decals and GPU pixels, isolated from ocean animation.
+async function checkDepth(reversedDepthBuffer, forceWebGL = false) {
+  const renderer = new THREE.WebGPURenderer({ reversedDepthBuffer, forceWebGL });
+  renderer.setSize(256, 256); await renderer.init();
+  const scene = new THREE.Scene(), root = new THREE.Group(), model = new THREE.Group();
+  const receiver = new THREE.Mesh(new THREE.BoxGeometry(20, 10, 2), new THREE.MeshStandardMaterial({ color: '#aaaaaa' }));
+  scene.add(root, new THREE.HemisphereLight('#ffffff', '#ffffff', 3)); root.add(model); model.add(receiver);
+  const marks = new ShipImpactMarks(root, model, new Map(), renderer.reversedDepthBuffer);
+  const camera = new THREE.PerspectiveCamera(45, 1, .1, 32000);
+  camera.position.set(4, 3, 16); camera.lookAt(0, 0, 1);
+  marks.update([{ sequence: 1, tick: 1, kind: 'penetration', shipId: 'target',
+    position: [0, 0, 1], message: 'GPU regression strike',
+    shell: { id: 1, caliberM: .38, type: 'AP', velocity: [0, 0, -820] },
+    surfaceImpact: { position: [0, 0, 1], normal: [0, 0, 1], direction: [.2, 0, -1], outcome: 'penetration' }
+  }], 'target');
+  const capture = document.createElement('canvas'); capture.width = capture.height = 256;
+  const context = capture.getContext('2d');
+  const effects = new CombatEffects(); scene.add(effects.root); effects.root.visible = false;
+  async function pixels(visible) {
+    marks.setVisible(visible); renderer.render(scene, camera);
+    context.drawImage(renderer.domElement, 0, 0);
+    return context.getImageData(0, 0, 256, 256).data;
+  }
+  const difference = (a, b) => {
+    let changed = 0;
+    for (let i = 0; i < a.length; i += 4) {
+      if (Math.abs(a[i] - b[i]) + Math.abs(a[i + 1] - b[i + 1]) + Math.abs(a[i + 2] - b[i + 2]) > 30) changed++;
+    }
+    return changed;
+  };
+  try {
+    const clear = await pixels(false), marked = await pixels(true);
+    const visiblePixels = difference(clear, marked);
+    // A real foreground face must still hide the scar: disabling depthTest is not a fix.
+    const blocker = new THREE.Mesh(new THREE.BoxGeometry(8, 8, .1), receiver.material);
+    blocker.position.z = 3; model.add(blocker);
+    const blockedPixels = difference(await pixels(false), await pixels(true));
+    blocker.removeFromParent(); blocker.geometry.dispose();
+    const plume = effects.smoke.emit(new THREE.Vector3(2, 1.5, 8));
+    Object.assign(plume, { size: 14, life: 20, age: 1, density: 30, opacity: 1 });
+    plume.color.set('#b9b6ae'); effects.smoke.update(0, camera, new THREE.Vector3());
+    effects.root.visible = true;
+    async function scarContrast() {
+      const hidden = await pixels(false), visible = await pixels(true);
+      let baseline = 0, contrast = 0;
+      for (let i = 0; i < clear.length; i += 4) {
+        const delta = Math.abs(clear[i] - marked[i]) + Math.abs(clear[i + 1] - marked[i + 1]) + Math.abs(clear[i + 2] - marked[i + 2]);
+        if (delta <= 30) continue;
+        baseline += delta;
+        contrast += Math.abs(hidden[i] - visible[i]) + Math.abs(hidden[i + 1] - visible[i + 1]) + Math.abs(hidden[i + 2] - visible[i + 2]);
+      }
+      return contrast / Math.max(1, baseline);
+    }
+    const foregroundContrast = await scarContrast();
+    plume.position.set(0, 0, -9); effects.smoke.update(0, camera, new THREE.Vector3());
+    const rearContrast = await scarContrast();
+    return { requestedReversedDepth: reversedDepthBuffer, reversedDepth: renderer.reversedDepthBuffer,
+      backend: renderer.backend.isWebGPUBackend ? 'WebGPU' : 'WebGL', marks: marks.count,
+      visiblePixels, blockedPixels, foregroundContrast, rearContrast,
+      pass: visiblePixels > 100 && blockedPixels === 0 && foregroundContrast < .2 && rearContrast > .8 };
+  } finally {
+    marks.dispose(); effects.dispose(); receiver.geometry.dispose(); receiver.material.dispose(); renderer.dispose();
+  }
+}
+window.depthResults = [];
+for (const webgl of [false, true]) for (const reversed of [false, true]) {
+  depthResults.push(await checkDepth(reversed, webgl));
+  document.querySelector('#result').textContent = JSON.stringify(depthResults, null, 2);
+}
+window.depthDone = true;
+</script>

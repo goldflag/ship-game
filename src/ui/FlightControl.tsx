@@ -2,7 +2,7 @@ import type { Game } from '../game/Game';
 import type { CombatTelemetry } from '../simulation/combat';
 import './FlightControl.css';
 
-export function FlightControl({ combat, game }: { combat: CombatTelemetry; game: Game | null }) {
+export function FlightControl({ combat, game, followedAircraftId }: { combat: CombatTelemetry; game: Game | null; followedAircraftId?: string }) {
   const wing = combat.airWing;
   if (!wing) return null;
   const targetUnavailable = combat.targetSunk || combat.contacts.some(c => c.id === combat.targetId && c.combatLost) || (combat.targetDepthM ?? 0) > 8;
@@ -18,6 +18,6 @@ export function FlightControl({ combat, game }: { combat: CombatTelemetry; game:
     </div>)}
     <footer><span>Hold Ctrl to command</span><button disabled={!active || combat.playerSunk} onClick={e => { game?.recallAircraft(); e.currentTarget.blur(); }}>Recall all</button></footer>
     {!wing.available && <p className="fleet-flight-warning">{combat.result !== 'active' ? 'Battle ended' : combat.playerSunk ? 'Carrier lost' : 'Flight operations suspended · Check damage and ship attitude'}</p>}
-    {!!wing.flights.length && <details><summary>Inspect flights</summary><ul>{wing.flights.map(p => <li key={p.id}><span>{p.id.split('/').slice(1).join(' / ')} · {p.phase}</span><span>{Math.ceil(p.hp)}% · {p.modelId.includes('wildcat') ? `${p.ammo} bursts` : p.payload ? 'Armed' : 'Released'}</span></li>)}</ul></details>}
+    {!!wing.flights.length && <details><summary>Aircraft · select to follow</summary><ul>{wing.flights.map(p => <li key={p.id}><span>{p.id.split('/').slice(1).join(' / ')} · {p.phase}</span><span>{Math.ceil(p.hp)}% · {p.modelId.includes('wildcat') ? `${p.ammo} bursts` : p.payload ? 'Armed' : 'Released'}</span><button aria-pressed={followedAircraftId === p.id} aria-label={`Follow ${p.id.split('/').slice(1).join(' ')}`} onClick={e => { game?.followAircraft(p.id); e.currentTarget.blur(); }}>{followedAircraftId === p.id ? 'Following' : 'Follow'}</button></li>)}</ul></details>}
   </section>;
 }

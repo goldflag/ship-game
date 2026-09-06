@@ -1,0 +1,22 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Carrier deck flight-cycle review</title><style>body{margin:0;background:#173743;color:#eee;font:14px sans-serif}nav{position:absolute;top:12px;left:12px;z-index:1}button{margin:4px;padding:8px}pre{position:absolute;bottom:10px;left:16px}</style></head><body><nav><button id="fighters">Launch fighters</button><button id="bombers">Launch bombers</button><button id="recall">Recall</button><button id="speed">Speed ×1</button></nav><pre id="status"></pre><script type="module">
+import * as T from 'three/webgpu';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { AircraftView } from '/src/game/AircraftView.ts';
+import { CombatSimulation } from '/src/simulation/combat.ts';
+import { shipPreset } from '/src/ships/presets.ts';
+import { stepAircraft } from '/src/simulation/aircraft.ts';
+const sim = new CombatSimulation(shipPreset('enterprise-cv6'), {friendlyBots:[],enemies:[shipPreset('bismarck')]});
+sim.target.controller='idle';
+const scene=new T.Scene();scene.background=new T.Color('#173743');scene.add(new T.HemisphereLight(0xffffff,0x536678,3));
+const sun=new T.DirectionalLight(0xffffff,3);sun.position.set(100,200,100);scene.add(sun);
+const ship=(await new GLTFLoader().loadAsync('/models/enterprise-cv6.glb')).scene;scene.add(ship);ship.position.set(sim.ship.x,sim.ship.y,sim.ship.z);ship.updateMatrixWorld(true);
+const planes=new AircraftView();await planes.load();scene.add(planes.root);
+const renderer=new T.WebGPURenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);document.body.append(renderer.domElement);await renderer.init();renderer.backend.device?.addEventListener('uncapturederror',e=>{renderer.setAnimationLoop(null);window.reviewGpuError=e.error.message;});
+const camera=new T.PerspectiveCamera(45,innerWidth/innerHeight,.5,20000);camera.position.set(sim.ship.x-145,200,150);const orbit=new OrbitControls(camera,renderer.domElement);orbit.target.set(sim.ship.x,15,0);orbit.update();
+const roots=new Map([['player',ship]]);let tick=0,id=1000,speed=1;
+const events=[];const ctx={actors:sim.actors,planes:sim.aircraft,shells:sim.shells,torpedoes:sim.torpedoes,releases:sim.airReleases,nextId:()=>++id,emit:e=>events.push(e)};
+document.querySelector('#fighters').onclick=()=>sim.launchAircraft('vf-6');document.querySelector('#bombers').onclick=()=>sim.launchAircraft('vb-6');document.querySelector('#recall').onclick=()=>sim.recallAircraft();document.querySelector('#speed').onclick=e=>{speed=speed===1?10:1;e.target.textContent='Speed ×'+speed};
+window.deckReview={sim,planes,events,camera,step(seconds){for(let i=0;i<seconds*60;i++)stepAircraft(ctx,1/60,tick++/60)}};
+renderer.setAnimationLoop(()=>{for(let i=0;i<speed;i++)stepAircraft(ctx,1/60,tick++/60);sim.tick=tick;planes.update(sim,camera,true,false,roots);orbit.update();renderer.render(scene,camera);document.querySelector('#status').textContent=sim.player.airWing.planes.filter(p=>p.phase!=='ready').map(p=>p.id+': '+p.phase).join('\n')||'18 aircraft parked · drag to orbit';});
+</script></body></html>

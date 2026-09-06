@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { Camera, InstancedMesh, Matrix4, Vector3 } from 'three/webgpu';
+import { Camera, InstancedMesh, Matrix4, PerspectiveCamera, Vector3 } from 'three/webgpu';
 import blueprint from '../../assets/ships/bismarck/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
 import { compileShip } from '../ships/blueprint';
@@ -93,6 +93,11 @@ test('large-gun fire remains in the gas at 0.35 seconds and cools completely int
   effects.update(sim, .65, camera);
   for (let i = 0; i < effects.diagnostics().smoke; i++) expect(state.getZ(i)).toBe(0);
   expect(effects.diagnostics().smoke).toBeGreaterThan(0);
+  effects.update(sim, 3, camera);
+  const opacity = mesh.geometry.getAttribute('effectOpacity');
+  for (let i = 0; i < effects.diagnostics().smoke; i++) expect(opacity.getX(i)).toBeLessThan(.4);
+  effects.update(sim, 2, camera);
+  expect(effects.diagnostics().smoke).toBe(0);
   effects.dispose();
 });
 
@@ -135,6 +140,7 @@ test('the shell pool keeps its shader capacity through empty frames, salvos and 
   const sim = new CombatSimulation(compileShip(blueprint, catalog));
   const effects = new CombatEffects(), camera = new Camera();
   const pool = effects.root.getObjectByName('Shell bodies') as InstancedMesh;
+  const tracers = ['Shell streaks', 'Shell glows'].map(name => effects.root.getObjectByName(name) as InstancedMesh);
   const matrix = new Matrix4(), scale = new Vector3();
   const helm = { throttle: 0, rudder: 0 };
   const intent = { aim: [1800, 0, 0] as [number, number, number], battery: 'main' as const, fire: false };
@@ -142,6 +148,10 @@ test('the shell pool keeps its shader capacity through empty frames, salvos and 
     effects.update(sim, 0, camera);
     // Three's instancing shader sizes its buffer from count when it first compiles.
     expect(pool.count).toBe(pool.instanceMatrix.count);
+    for (const tracer of tracers) {
+      expect(tracer.count).toBe(tracer.instanceMatrix.count);
+      expect([...tracer.instanceMatrix.array.slice(sim.shells.length * 16)].every(value => value === 0)).toBe(true);
+    }
     for (let i = 0; i < pool.count; i++) {
       pool.getMatrixAt(i, matrix);
       if (i < sim.shells.length) {
@@ -170,4 +180,50 @@ test('the shell pool keeps its shader capacity through empty frames, salvos and 
   } finally {
     effects.dispose();
   }
+});
+
+test('tracers end at the CPU shell, grow from the muzzle, and stay legible across range and zoom', () => {
+  const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects();
+  const camera = new PerspectiveCamera(52, 16 / 9, .1, 30000);
+  const shell = { id: 1, ownerId: 'player', position: [0, 100, -1000] as [number, number, number],
+    velocity: [820, 40, 0] as [number, number, number], age: .01, caliberM: .38, visited: [], penetrationMm: 0, damage: 0 };
+  sim.shells.push(shell);
+  const streak = effects.root.getObjectByName('Shell streaks') as InstancedMesh;
+  const glow = effects.root.getObjectByName('Shell glows') as InstancedMesh;
+  const matrix = new Matrix4(), direction = new Vector3(...shell.velocity).normalize();
+  const widthOnScreen = () => {
+    camera.updateMatrixWorld(); effects.update(sim, 0, camera);
+    glow.getMatrixAt(0, matrix);
+    return new Vector3().setFromMatrixScale(matrix).x * camera.projectionMatrix.elements[5] / -shell.position[2];
+  };
+  try {
+    const before = JSON.stringify(sim);
+    const width = widthOnScreen();
+    expect(JSON.stringify(sim)).toBe(before);
+    streak.getMatrixAt(0, matrix);
+    const tip = new Vector3(0, .5, 0).applyMatrix4(matrix);
+    expect(tip.distanceTo(new Vector3(...shell.position))).toBeLessThan(.0001);
+    const tail = new Vector3(0, -.5, 0).applyMatrix4(matrix);
+    expect(tip.distanceTo(tail)).toBeCloseTo(Math.hypot(...shell.velocity) * shell.age, 3);
+    expect(tip.clone().sub(tail).normalize().dot(direction)).toBeCloseTo(1, 5);
+    shell.position[2] = -5000;
+    expect(widthOnScreen()).toBeCloseTo(width, 6);
+    camera.fov = 8; camera.updateProjectionMatrix();
+    expect(widthOnScreen()).toBeCloseTo(width, 6);
+    // Even directly along the flight axis, the core is a nondegenerate billboard.
+    camera.position.copy(new Vector3(...shell.position)).addScaledVector(direction, -100);
+    camera.lookAt(...shell.position); camera.updateMatrixWorld(); effects.update(sim, 0, camera);
+    glow.getMatrixAt(0, matrix);
+    expect(new Vector3().setFromMatrixScale(matrix).x).toBeGreaterThan(0);
+    const paused = [...streak.instanceMatrix.array];
+    effects.update(sim, 0, camera);
+    expect([...streak.instanceMatrix.array]).toEqual(paused);
+    // Lodged rounds awaiting their fuze must not leave a luminous trail in the hull.
+    sim.shells[0].lodged = { shipId: 'target', position: [0, 0, 0] };
+    effects.update(sim, 0, camera);
+    streak.getMatrixAt(0, matrix);
+    expect(new Vector3().setFromMatrixScale(matrix).y).toBe(0);
+    glow.getMatrixAt(0, matrix);
+    expect(new Vector3().setFromMatrixScale(matrix).x).toBe(0);
+  } finally { effects.dispose(); }
 });

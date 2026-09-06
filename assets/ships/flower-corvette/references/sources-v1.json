@@ -1,0 +1,29 @@
+{
+  "configuration": "Representative extended-forecastle Flower 1943–44",
+  "sources": [
+    {
+      "id": "rcn-sackville",
+      "url": "https://www.canada.ca/en/navy/services/history/ships-histories/sackville.html",
+      "title": "Royal Canadian Navy — HMCS Sackville",
+      "supports": "62.5 × 10.1 × 3.5 m, 965.2 tonnes, 16 kn, 4-inch, 2-pounder, two 20 mm, Hedgehog and depth charges. Basis of game dimensions and nominal fit.",
+      "accessed": "2026-09-05"
+    },
+    {
+      "id": "parks-sackville",
+      "url": "https://www.pc.gc.ca/apps/dfhd/page_nhs_eng.aspx?id=288",
+      "title": "Parks Canada — Sackville National Historic Site",
+      "file": "../../convoy/references/sackville-parks-canada.jpg",
+      "supports": "Restored 1944 exterior, radar lantern, single screw, steam machinery and ASW fittings. Conflicts with RCN on draft (4.29 m) and displacement (1,170 tons); not silently combined with RCN loading.",
+      "usage": "2006 museum photograph, © none as credited on Parks Canada page. Reference only; no texture or geometry reuse.",
+      "accessed": "2026-09-05"
+    },
+    {
+      "id": "sackville-trust",
+      "url": "https://hmcssackville.ca/wp/the-ship/history/",
+      "title": "Canadian Naval Memorial Trust — Sackville history",
+      "supports": "Wartime escort service and surviving restored ship. Our generic paint pattern and interpreted superstructure are not a dated Sackville paint plan.",
+      "accessed": "2026-09-05"
+    }
+  ],
+  "independence": "Only original recipe, blueprint and component catalog feed the production model. No GameModels3D or other game assets used."
+}

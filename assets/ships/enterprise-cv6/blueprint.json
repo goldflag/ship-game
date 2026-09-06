@@ -92021,12 +92021,12 @@
   "airWing": {
     "version": 1,
     "launchPosition": [
-      -4,
+      0,
       16.5,
       70
     ],
     "recoveryPosition": [
-      -4,
+      0,
       16.5,
       95
     ],

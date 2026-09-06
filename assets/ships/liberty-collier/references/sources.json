@@ -1,0 +1,44 @@
+{
+  "configuration": "EC2-S-AW1 machinery-aft collier, Delta Shipbuilding 1945; representative armed fit",
+  "sources": [
+    {
+      "id": "liberty-usmc-ga",
+      "file": "../../convoy/references/plans/liberty-thomas-sully-builders.pdf",
+      "title": "USMC/Gibbs & Cox / St Johns River Shipbuilding — Thomas Sully plans, 1941–43",
+      "url": "https://archive.org/details/marcom1205ga1943",
+      "download": "https://archive.org/download/marcom1205ga1943/marcom1205ga1943.pdf",
+      "sha256": "df8181d924561ddef060132d976b049af9eb45473915b16161b712d9c52d3552",
+      "pages": "PDF page 2: inboard profile and holds, 312-S1-3-2, 30 August 1941; page 3: midship section, 28 August 1943; pages 4–5: stern frame/rudder",
+      "supports": "441 ft 6 in LOA, molded beam 56 ft 10.25 in, molded depth 37 ft 4 in, five holds, amidship machinery, flat merchant floor and tight bilge.",
+      "limits": "Faint/creased scans and a postwar cover photo; general armed fit is not certified by this package.",
+      "provenance": "Lloyd's Register Foundation survey archive scans mirrored in Internet Archive Ship Design Drawings. Original documents retained for reference, no mesh/texture reuse.",
+      "accessed": "2026-09-06"
+    },
+    {
+      "id": "abs-collier",
+      "file": "../../convoy/references/plans/abs-workhorse-of-the-fleet-2019.pdf",
+      "title": "American Bureau of Shipping — Workhorse of the Fleet, 2019",
+      "url": "https://ww2.eagle.org/content/dam/eagle/publications/company-information/workhorse-of-the-fleet-2019.pdf",
+      "sha256": "c26a60d0639fe95d137a2adae085a858118c8402a6c1434cab7dcb0aca578515",
+      "pages": "Printed p.105 / PDF page 114 (zero-based 113): collier; printed p.104: disguised tanker",
+      "supports": "EC2-S-AW1 aft machinery, boiler platform 21 ft above baseline, 95 ft 10.5 in poop, five holds/two hinged steel hatch lids each. Tanker intentionally resembles cargo Liberty.",
+      "limits": "Classification society history, not a complete collier GA/offset plan. Published book rights retained by publisher.",
+      "provenance": "Downloaded from ABS official publication server; local reference copy only, not distributed as game content.",
+      "accessed": "2026-09-06"
+    },
+    {
+      "id": "collier-profile-photo",
+      "file": "../../convoy/references/plans/collier-arrangement-skipshistorie-2024.pdf",
+      "title": "Norsk Skipsfartshistorisk Selskap Sør — Nr. 14/2024, special Liberty types",
+      "url": "https://skipshistorie.net/NSS%C3%98%20snutter/Nr.%2014-2024.pdf",
+      "sha256": "8e7d8c7d952cfe3c2075a293690379b1439d97d16bcd1f41d652174ca5267104",
+      "pages": "Page 3 / zero-based PDF page 2",
+      "supports": "Reproduced postwar collier profile, wartime-gray Jagger Seam underway and primary Delta Shipbuilding launch photo dated 18 December 1944, MCE 2816 / Delta 148.",
+      "limits": "Profile is Karsten-Kunibert Krueger-Kopiske's postwar Mystic interpretation, not an original builder drawing. Preserve provenance; omit postwar logo. Do not use interpretation to claim exact 1945 armament.",
+      "provenance": "Newsletter reproduction of drawing and historical photographs. Underlying image rights not independently established; reference only.",
+      "accessed": "2026-09-06"
+    }
+  ],
+  "measurements": "../../convoy/plans-v2.json",
+  "independence": "Only independently authored blueprint, versioned original recipe and original component catalog feed the model. Scans are comparison references; no third-party mesh, texture or GameModels3D asset is used."
+}

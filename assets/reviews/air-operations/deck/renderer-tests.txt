@@ -1,0 +1,9 @@
+bun test v1.3.3 (274e01c7)
+
+src/game/AircraftView.test.ts:
+(pass) port renders only the player deck, follows its displayed pose, and retains parked battle aircraft [14.36ms]
+
+ 1 pass
+ 0 fail
+ 20 expect() calls
+Ran 1 test across 1 file. [194.00ms]

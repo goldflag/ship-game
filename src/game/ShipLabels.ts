@@ -1,14 +1,16 @@
-import { Box3, MathUtils, Vector3, type Camera } from 'three/webgpu';
+import { Box3, MathUtils, Vector3, WebGPUCoordinateSystem, type Camera } from 'three/webgpu';
 import type { FleetActor } from '../simulation/battle';
 import type { ShipView } from './ShipView';
 import { HullDamageFeedback } from './HullDamageFeedback';
 
 type ScreenPoint = { x: number; y: number };
 
-/** Cull in clip space so ships behind the camera never acquire mirrored labels. */
+/** Match the renderer's depth range so ships behind the camera never acquire mirrored labels. */
 export function projectShipLabel(anchor: Vector3, camera: Camera, width: number, height: number): ScreenPoint | null {
   const point = anchor.clone().project(camera);
-  if (![point.x, point.y, point.z].every(Number.isFinite) || point.z < -1 || point.z > 1 || Math.abs(point.x) > 1 || Math.abs(point.y) > 1) return null;
+  // Three.js uses 0..1 for WebGPU and for reversed depth on either backend.
+  const minDepth = camera.reversedDepth || camera.coordinateSystem === WebGPUCoordinateSystem ? 0 : -1;
+  if (![point.x, point.y, point.z].every(Number.isFinite) || point.z < minDepth || point.z > 1 || Math.abs(point.x) > 1 || Math.abs(point.y) > 1) return null;
   return { x: (point.x + 1) * width / 2, y: (1 - point.y) * height / 2 };
 }
 

@@ -1,0 +1,21 @@
+{
+  "configuration": "Flower class, HMCS Cobalt 1941 short-forecastle arrangement; representative early-war armament",
+  "sources": [
+    {
+      "id": "cobalt-builder-ga",
+      "file": "../../convoy/references/plans/cobalt-1941-builders.pdf",
+      "title": "Port Arthur Shipbuilding Co. — Cobalt general arrangement, 19 November 1941",
+      "url": "https://archive.org/details/k124bogp1941v2",
+      "download": "https://archive.org/download/k124bogp1941v2/k124bogp1941v2.pdf",
+      "original": "https://maritime.org/doc/plans/k124.pdf",
+      "sha256": "bb3dc4695e5f92b60719cec25b6a0e46887f768b13d9aeb440d39dcfd949f51c",
+      "pages": "PDF pages 2–3 (zero-based 1–2): profile/forecastle/bridge, upper/lower decks and hold",
+      "supports": "Builder-dated short forecastle, 205 ft LOA, 33 ft beam, 22-inch frame spacing, gun platforms, bridge, two masts, funnel and deck arrangement.",
+      "limits": "Cover photograph depicts 1944, not the 1941 drawing. No body/offset plan. Dated weapon inventory and paint unresolved.",
+      "provenance": "Great Lakes Marine Archives / Historic Naval Ships Association, Internet Archive mirror. Original scan retained; reference only, not a texture.",
+      "accessed": "2026-09-06"
+    }
+  ],
+  "measurements": "../../convoy/plans-v2.json",
+  "independence": "Only independently authored blueprint, versioned original recipe and original component catalog feed the model. Scans are comparison references; no third-party mesh, texture or GameModels3D asset is used."
+}
