@@ -1,0 +1,114 @@
+{
+  "contentHash": "90609df03cc5cf73dbf987d217ff009d9be1e64efe7620123610dc81553cdb58",
+  "hullBounds": [
+    [
+      -10.795001983642578,
+      -7.366000175476074,
+      -102.62870025634766
+    ],
+    [
+      10.794999122619629,
+      9.960000038146973,
+      102.62870025634766
+    ]
+  ],
+  "mounts": [
+    {
+      "id": "main-1",
+      "measuredPivot": [
+        0.00000433540299127344,
+        6.769100189208984,
+        -57.42415237426758
+      ],
+      "barrels": 3,
+      "articulationChecks": 9
+    },
+    {
+      "id": "main-2",
+      "measuredPivot": [
+        0.0000033465212254668586,
+        9.62660026550293,
+        -44.32601547241211
+      ],
+      "barrels": 3,
+      "articulationChecks": 9
+    },
+    {
+      "id": "main-3",
+      "measuredPivot": [
+        -0.00000419068828705349,
+        6.921500205993652,
+        55.50735092163086
+      ],
+      "barrels": 3,
+      "articulationChecks": 9
+    },
+    {
+      "id": "secondary-51",
+      "measuredPivot": [
+        0.000002285281880176626,
+        8.399999618530273,
+        -30.26947593688965
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "secondary-52",
+      "measuredPivot": [
+        -7.050000190734863,
+        6.300000190734863,
+        2.9550676345825195
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "secondary-53",
+      "measuredPivot": [
+        7.050000190734863,
+        6.300000190734863,
+        2.955068588256836
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "secondary-54",
+      "measuredPivot": [
+        -7.0500006675720215,
+        6.300000190734863,
+        8.70546817779541
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "secondary-55",
+      "measuredPivot": [
+        7.049999713897705,
+        6.300000190734863,
+        8.705470085144043
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "secondary-56",
+      "measuredPivot": [
+        -0.00000318974707624875,
+        8.399999618530273,
+        42.249481201171875
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    }
+  ],
+  "torpedoTubes": [],
+  "meshes": 126,
+  "primitives": 370,
+  "triangles": 260522,
+  "bytes": 8587524,
+  "result": "passed",
+  "historicalAccuracy": "not certified; see reference register and discrepancy report"
+}

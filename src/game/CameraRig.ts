@@ -1,7 +1,7 @@
 import { MathUtils, PerspectiveCamera, Vector3 } from 'three/webgpu';
 import type { ShipState } from '../simulation/ship';
 import { localToWorld } from '../simulation/geometry';
-import type { Vec3 } from '../ships/blueprint';
+import type { SubmarineDefinition, Vec3 } from '../ships/blueprint';
 import { terrainHeight } from './HarborTerrain';
 import type { ShellView } from './ShellFollow';
 
@@ -21,6 +21,8 @@ export class CameraRig {
   private elevation = .1;
   private distance = 345;
   private hullScale = 1;
+  private hullLength = 250.5;
+  private submarine?: SubmarineDefinition;
   private portHullScale = 1;
   private dragging = false;
   private inPort = false;
@@ -103,6 +105,7 @@ export class CameraRig {
   }
 
   setBridge(bridge: Vec3 = [0, 29, -31]): void { this.bridge = bridge; }
+  setSubmarine(equipment?: SubmarineDefinition): void { this.submarine = equipment; }
 
   get pointerLocked(): boolean { return document.pointerLockElement === this.canvas; }
   get firing(): boolean { return this.enabled && this.pointerLocked && this.mouseFire; }
@@ -190,6 +193,7 @@ export class CameraRig {
   }
   /** Preserve relative zoom and orbit when switching between differently sized hulls. */
   setHullLength(length: number): void {
+    this.hullLength = length;
     const previousScale = this.distanceScale;
     // Port framing follows the actual hull size, including boats below the
     // combat camera's minimum scale. Water/terrain clearance is applied later.
@@ -202,6 +206,7 @@ export class CameraRig {
   setBattleTerrain(height: (x: number, z: number) => number): void { this.battleTerrain = height; }
   private constrainCameraHeight(position: Vector3): void {
     const ground = this.inPort ? Math.max(0, terrainHeight(position.x, position.z)) : Math.max(0, this.battleTerrain(position.x, position.z));
+    if (ground === 0 && this.submarine && !this.inPort && !this.shellView && (this.mode !== 'Tactical' || this.inspecting)) return;
     position.y = Math.max(position.y, ground + CAMERA_CLEARANCE);
   }
   update(ship: ShipState, height: number, dt: number, snap = false): void {
@@ -251,11 +256,21 @@ export class CameraRig {
       }
     } else {
       if (this.binoculars || this.mode === 'Bridge') {
-        this.desired.set(...localToWorld(this.bridge, { ...ship, y: height }));
-        if (this.binoculars) this.desired.y += 8;
+        const periscope = this.submarine && height < -.5;
+        this.desired.set(...localToWorld(periscope ? this.submarine!.periscopeEye : this.bridge, { ...ship, y: height }));
+        if (this.binoculars && !periscope) this.desired.y += 8;
       } else {
-        const distance = (this.mode === 'Tactical' ? Math.max(650, this.distance) : this.distance) * Math.max(1, 1.2 / this.camera.aspect);
-        const lift = this.mode === 'Tactical' ? distance * .95 + 25 : (distance * .28 + 25) * this.hullScale;
+        let distance = (this.mode === 'Tactical' ? Math.max(650, this.distance) : this.distance) * Math.max(1, 1.2 / this.camera.aspect);
+        let lift = this.mode === 'Tactical' ? distance * .95 + 25 : (distance * .28 + 25) * this.hullScale;
+        if (this.submarine && this.mode === 'Chase') {
+          const blend = MathUtils.clamp((-height - .5) / 5, 0, 1);
+          const zoom = this.distance / (345 * this.hullScale);
+          // Stay just behind the stern: the full surface follow distance is
+          // beyond underwater visibility, especially in a portrait viewport.
+          const close = this.hullLength * Math.max(.6, .66 * zoom) * Math.max(1, .55 / this.camera.aspect);
+          distance = MathUtils.lerp(distance, close, blend);
+          lift = MathUtils.lerp(lift, 3.5, blend);
+        }
         this.desired.set(ship.x - Math.sin(this.azimuth) * distance, height + lift, ship.z + Math.cos(this.azimuth) * distance);
       }
       this.constrainCameraHeight(this.desired);

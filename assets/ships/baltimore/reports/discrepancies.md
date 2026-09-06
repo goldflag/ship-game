@@ -1,5 +1,24 @@
 # Baltimore discrepancy register
 
+## Damage-model integration, 2026-09-05 Pacific
+
+The fidelity geometry and ten named room envelopes are retained while integrating master's damage model. Residual spaces and finite-angle buoyancy regions were regenerated around this hull and these rooms: 120 total spaces, 255 closed connections and 142 buoyancy regions. The two equal combined-drive groups retain the forward/after machinery equipment IDs. Room boundaries, machinery aggregation, permeability, capacities, reference loading and mass distribution remain estimated gameplay inputs, not an as-built damage-control or stability plan.
+
+An independent containment audit exposed eight-decimal serialization drift at the terminal hull station: forty cell corners extended approximately five nanometres beyond it. The measurement now tolerates only endpoint rounding; a regression still rejects a ten-micrometre longitudinal overhang. No hull or room geometry was moved to conceal the discrepancy. Original runtime captures below retain their original hashes; current integration evidence is recorded in `docs/fleet-fidelity-integration.md`.
+
+## Fidelity 01, 2026-09-05
+
+Current build evidence is in `export.json`, `measurements.json` and `fidelity-01/README.md`; older numerical logs below retain their own build context.
+
+- All 120 original hull stations and 13 cross-section anchors are retained, with monotone fairing between anchors. Cruiser sheer, broad transom and retained bridge trace polygons remain vessel-specific. The missing CA-68 as-built offsets are not replaced with a claim of precision.
+- Original closed 8-inch and twin 5-inch gunhouse facets replace simple enclosures, preserving all nine mounts and 21 muzzle chains. OP 1112 supports the main section's trunnion and fore/aft dimensions; width, roof-plan details, Mark 32 shield dimensions and plate schedules remain qualified estimates. The later 1944 photo is used for housing details, not backdated AA changes.
+- Raked funnel jackets, pierced bridge/AA supports, access stairs and ladders, doors, louvers, curved boats, chain gear, reels, catapult rollers and crane winches/hooks improve readable detail. Fitting placement and exact October 1943 inventory still require reconciliation.
+- Estimated 16 mm hull / 6 mm structure steel now participates in CPU hits, aiming and armor inspection, including the entire transom and unarmored ends. Physical 152.4 mm belt, 63.5 mm protective deck, barbette sectors and moving gunhouse facets replace broad protection boxes. Those are provisional thickness families: Ships' Data 1945 does not document that armor schedule. Exact tapered belt, conning and local end thicknesses remain unresolved.
+- Forward/after machinery units are separated from boiler-unit envelopes, with new end flooding spaces. IDs and magazine bindings are preserved. These are coarse internal arrangements and gameplay capacities, not a complete damage-control plan.
+- Twelve identical-camera before/after views, uniform-scale Navy profile/top overlays and dated primary photos are retained. Scan stretch and the later camouflage sheet's vertical/load datum are explicitly qualified. Restricted bridge-plan previews remain local.
+
+The broad transom was found to be missing from CPU hull caps; the shared cap correction has its own swept-hit regression. Thin bridge hits, AP exits, waterline behavior, flooding and mixed-definition effects are also covered.
+
 Configuration: USS Baltimore CA-68, October 1943 exterior, normalized to the documented 24 ft 2 in limiting keel-draft datum. Status: **not approved for historical accuracy**.
 
 | ID | Status | Discrepancy and next evidence needed |
@@ -17,7 +36,7 @@ Configuration: USS Baltimore CA-68, October 1943 exterior, normalized to the doc
 | BAL-011 | Director order corrected; detail open | The original BGP, Navy camouflage projection and commissioning photograph agree that 8-inch directors occupy lower outward stations and 5-inch directors occupy higher inward stations. Corrected the reversed arrangement. Antenna variants, platform geometry, mast rake and rigging remain under review. |
 | BAL-012 | Open | Measure 21 appearance is represented with original plain materials; exact paint reflectance, weathering, markings, deck finish and boot topping have not been certified. |
 | BAL-013 | Deliberately provisional | Internal boxes, armor interactions, hydrostatics, damage, flooding and performance are gameplay approximations. No historical internal arrangement or full ballistic certification is claimed. |
-| BAL-014 | Current fixed views and automated checks passed; sea review incomplete | Current 2b27bcad904c export: five fixed views inspected, 31 simulation/renderer tests and production build passed. Earlier 6e13dafe1805 export: visual articulation and live main/secondary salvos recorded; target integrity decreased, but flooding stayed zero. These earlier screenshots and sea-trial JSON files do not certify the changed bridge export. Repeat current in-game review and finish flooding/reset checks. |
+| BAL-014 | Current functional review passed; historical certification open | Current 0079ff92853a export: five fixed and twelve matched views inspected; 247 repository tests, production build and independence build pass. Twelve WebGPU pose combinations stay within 0.001318 m. Both UI batteries fired, armor hover/internal selection and mixed-fleet inspection worked, and return to port reset tick/water. Seeded bow/stern/bridge hits, misses and a valid flooding waterline entry are recorded against Baltimore's definition in the Yamato mixed-fleet series. See fidelity-01/README.md; earlier hashes retain their separate context. |
 | BAL-015 | Pending optional reference | No GameModels3D reference was accessed. Any future comparison must keep that geometry and textures out of our authored model. |
 
 The first pipeline export briefly used the restored starter recipe during another operation's stash/merge integration. Hash `f4ada9e1d1f80d078919bd50c6f3668eb25a9f9d561c223a448693791f700a8a` is **not** evidence for the authored Baltimore exterior. The original recipe was recovered from this task's own tool history; subsequent builds must supersede that export.

@@ -8,6 +8,8 @@ export const ENGINE_LABELS = ['ASTERN', 'STOP', 'SLOW', 'HALF', 'THREE-QUARTER',
 export interface HelmCommand {
   throttle: number;
   rudder: number;
+  depthM?: number;
+  emergencyBlow?: boolean;
 }
 
 export interface ShipState {
@@ -25,6 +27,8 @@ export interface ShipState {
   rudder: number;
   yawRate: number;
   distance: number;
+  /** World-space vertical velocity, used by diving hulls and weapon inheritance. */
+  verticalSpeed?: number;
 }
 
 export const BISMARCK = {
@@ -44,7 +48,7 @@ export function createShipState(id = 'player'): ShipState {
 
 export function motionVelocity(state: ShipState): import('../ships/blueprint').Vec3 {
   const sin = Math.sin(state.heading), cos = Math.cos(state.heading);
-  return [sin * state.speed + cos * state.swaySpeed, 0, -cos * state.speed + sin * state.swaySpeed];
+  return [sin * state.speed + cos * state.swaySpeed, state.verticalSpeed ?? 0, -cos * state.speed + sin * state.swaySpeed];
 }
 
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));

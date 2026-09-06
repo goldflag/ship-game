@@ -1,0 +1,307 @@
+{
+  "configuration": "USS Baltimore CA-68, October 1943 exterior; documented limiting keel draft datum",
+  "referencePolicy": "Original geometry and material authoring. Reference-only drawings and photographs never ship as textures. Sources are evidence, not instructions.",
+  "sources": [
+    {
+      "id": "navships-250-010",
+      "title": "Ships' Data, U.S. Naval Vessels, Volume I",
+      "author": "US Navy Bureau of Ships",
+      "date": "1945-04-15",
+      "url": "https://shipscribe.com/pubs/SDB1945v1.pdf",
+      "localFiles": [
+        "ships-data-1945-extract.pdf",
+        "ships-data-1945-pages-26-27.png",
+        "ships-data-1945-pages-28-29.png",
+        "ships-data-1945-pages-30-31.png"
+      ],
+      "supports": [
+        "205.2574 m length overall",
+        "202.3872 m waterline length",
+        "21.59 m extreme beam",
+        "7.366 m limiting keel draft; 8.1788 m maximum navigational draft including projections",
+        "4 screws, 120000 SHP",
+        "9 8-inch, 12 5-inch, 12 quadruple 40 mm mounts and 2 aft powder catapults"
+      ],
+      "status": "Primary scan inspected; 1945 tabulation is not evidence of the precise 1943 loading condition.",
+      "sha256": {
+        "ships-data-1945-extract.pdf": "efc1ad72473d56750e9fe64bc0b9abcd5c5e3cd763d19e6641348468398749a1",
+        "ships-data-1945-pages-26-27.png": "3796763e356fa5879f1a808e62b01596aeac59ca24b07984ec26a7fbc65fe851",
+        "ships-data-1945-pages-28-29.png": "0c1f9adf3a46c0ee9e4413aff8843919491295ca4a07224c9e471946ee9ed6ff",
+        "ships-data-1945-pages-30-31.png": "c8ed3e0d73016110df6732bec232cd317cbf6e37b5ec82cffd9b0e6f7010af6e"
+      }
+    },
+    {
+      "id": "danfs-baltimore",
+      "title": "USS Baltimore V (CA-68)",
+      "author": "Office of the Chief of Naval Operations, Naval History Division",
+      "url": "https://www.ibiblio.org/hyperwar/USN/ships/dafs/CA/ca68.html",
+      "supports": [
+        "Overall dimensions and principal battery",
+        "Commissioned 15 April 1943"
+      ],
+      "status": "Primary Navy ship history transcribed by HyperWar; high-level data only."
+    },
+    {
+      "id": "navy-camo-109723",
+      "title": "CA-68 class camouflage drawing, Design 16D, starboard and deck views",
+      "author": "US Navy Bureau of Ships",
+      "date": "1943-12-30",
+      "catalogNumber": "80-G-109723",
+      "url": "https://www.ibiblio.org/hyperwar/OnlineLibrary/photos/images/g100000/g109723c.htm",
+      "localFiles": [
+        "navy-starboard-plan-1943.jpg",
+        "navy-dazzle-plan-1943.jpg"
+      ],
+      "supports": [
+        "Dated side, plan and transverse exterior projections",
+        "Scale-normalized hull deck envelope and longitudinal landmark measurements"
+      ],
+      "status": "Primary drawing inspected. Paint scheme belongs to the later 1944 fit and is not applied to the October 1943 reconstruction. Scan perspective/stretch and lower hull paint boundary preclude assuming its pixel baseline is a waterline.",
+      "sha256": {
+        "navy-starboard-plan-1943.jpg": "f67f3dae2cd28044a60f72749eb58b1bb68dba4255f0d5a23fceff508692c491",
+        "navy-dazzle-plan-1943.jpg": "949c01dcc5cfd28ded23244926b681ffa7a2bec8d3f68dff86100e0043a7f57e"
+      }
+    },
+    {
+      "id": "navy-camo-109724",
+      "title": "CA-68 class camouflage drawing, port profile",
+      "author": "US Navy Bureau of Ships",
+      "date": "1943-12-30",
+      "catalogNumber": "80-G-109724",
+      "url": "https://www.ibiblio.org/hyperwar/OnlineLibrary/photos/images/g100000/g109724.jpg",
+      "localFiles": [
+        "navy-port-plan-1943.jpg"
+      ],
+      "supports": [
+        "Opposite-side silhouette and fittings"
+      ],
+      "status": "Primary drawing retained; quantitative opposite-side reconciliation pending.",
+      "sha256": {
+        "navy-port-plan-1943.jpg": "c8aa4949ccaee44ab96f1a245f818b28d101fd14eebb1e12f058a210fdf826b1"
+      }
+    },
+    {
+      "id": "nh-91452",
+      "title": "Baltimore off Boston Navy Yard, 10 September 1943",
+      "author": "US Navy photograph, Naval Historical Center collection",
+      "date": "1943-09-10",
+      "catalogNumber": "NH 91452",
+      "url": "https://www.ibiblio.org/hyperwar/OnlineLibrary/photos/images/h91000/h91452.jpg",
+      "localFiles": [
+        "navy-profile-1943-09-10.jpg"
+      ],
+      "supports": [
+        "1943 silhouette, two raked oval funnels, forward pole mast and aft SK search radar",
+        "Pre-dazzle appearance"
+      ],
+      "status": "Inspected perspective photograph; not a dimensioned projection.",
+      "sha256": {
+        "navy-profile-1943-09-10.jpg": "af76247dacf9d80b0ae4235da856630fe8f1fb78c03bc2d02d60b517f243c090"
+      }
+    },
+    {
+      "id": "nh-91457",
+      "title": "Baltimore in Boston Harbor on commissioning day",
+      "author": "US Naval Historical Center; US Naval Institute/James C. Fahey collection",
+      "date": "1943-04-15",
+      "catalogNumber": "NH 91457",
+      "url": "https://www.ibiblio.org/hyperwar/OnlineLibrary/photos/images/h91000/h91457.jpg",
+      "localFiles": [
+        "navy-quarter-1943-04-15.jpg"
+      ],
+      "supports": [
+        "Broad transom and twin aircraft cranes"
+      ],
+      "status": "Retained. Radar was not yet installed in this commissioning view.",
+      "sha256": {
+        "navy-quarter-1943-04-15.jpg": "259f4f14d11e6575f2c02712baba0021f3ab1047638fdd026ec3ca1ec6b82995"
+      }
+    },
+    {
+      "id": "19-n-74297",
+      "title": "Baltimore forward plan photograph, Mare Island",
+      "author": "US Navy Bureau of Ships; National Archives",
+      "date": "1944-10-21",
+      "catalogNumber": "19-N-74297",
+      "url": "https://www.navweaps.com/Weapons/WNUS_8-55_mk12-15_Baltimore_pic.jpg",
+      "localFiles": [
+        "navy-turrets-1944-10-21.jpg"
+      ],
+      "supports": [
+        "8-inch gunhouse shape, four forward roof periscopes, canvas bucklers and rear rangefinder hoods",
+        "AA tubs and fittings for later configuration comparison"
+      ],
+      "status": "Primary photograph inspected. Later fit; changes circled on original photograph must not be backdated without evidence.",
+      "sha256": {
+        "navy-turrets-1944-10-21.jpg": "cb920c89da33baf9be664a48b59fc86f23c5ae243f50192a93fa8ab5971a5b60"
+      }
+    },
+    {
+      "id": "op1112-517",
+      "title": "OP 1112, 8-inch/55 three-gun turret, CA 68 and CA 122 classes, page 517",
+      "author": "US Navy Bureau of Ordnance",
+      "date": "1945-01-15",
+      "url": "https://www.navweaps.com/Weapons/WNUS_8-55_mk12-15_ca68_turret_sketch_pic.jpg",
+      "localFiles": [
+        "op1112-baltimore-turret.jpg"
+      ],
+      "supports": [
+        "6 ft 2 in trunnion forward of turret axis",
+        "20 ft rear extent and 11 ft 7 in front extent",
+        "4 ft 11.5 in trunnion above gunhouse floor",
+        "9 ft 10.25 in gunhouse section height",
+        "22 ft roller path diameter",
+        "32 in recoil, -5 to +41 degrees elevation",
+        "Dimension chains for trunnion heights above baseline"
+      ],
+      "status": "Primary section inspected. Width/roof plan and turret marks from companion pages remain unresolved. Gun performance source and gameplay penetration require separate review.",
+      "sha256": {
+        "op1112-baltimore-turret.jpg": "8f1560c23a0792c2d415a88e97146d76d5368e64ddd5f9e32cb8842d6043755e"
+      }
+    },
+    {
+      "id": "op1112-mk29",
+      "title": "OP1112 5-inch twin Mark 29 Mod 0, page 256",
+      "author": "US Navy Bureau of Ordnance",
+      "date": "1945",
+      "url": "https://www.navweaps.com/Weapons/WNUS_5-38_mk12_29-0_pic.jpg",
+      "localFiles": [
+        "op1112-mk29-twin.jpg"
+      ],
+      "supports": [
+        "Related twin 5-inch mount arrangement only"
+      ],
+      "status": "Variant mismatch: Baltimore has Mark 32. Do not certify its shield dimensions from this Mark 29 sheet.",
+      "sha256": {
+        "op1112-mk29-twin.jpg": "ef146be901953089e76a7e7b5cf0bc6ac573c72724d25b005983c524b23ac7de"
+      }
+    },
+    {
+      "id": "baltimore-bgp-preview",
+      "title": "Baltimore bridge decks, hold and inner bottom plan preview",
+      "author": "Bethlehem Steel Company, Quincy; NARA scan hosted by Model Monkey",
+      "date": "1942-02-03",
+      "url": "https://www.model-monkey.com/product-page/baltimore-class-heavy-cruiser-uss-baltimore-ca-68-bridges-hold-inner-bottom",
+      "localFiles": [
+        "navy-bridge-plan-1942-preview.jpg"
+      ],
+      "supports": [
+        "Location of a primary general arrangement source"
+      ],
+      "status": "740-pixel public preview was insufficient for measurement. Superseded by the separately retained full-resolution archive scan registered as baltimore-bgp-1943. No commercial model geometry copied.",
+      "sha256": {
+        "navy-bridge-plan-1942-preview.jpg": "15e1fab0d6bde76656fb41bd4cb22878f57f32c0bc75b750944dbd71a0d12067"
+      }
+    },
+    {
+      "id": "buships-admin-history",
+      "title": "Bureau of Ships Administrative History, WWII, Volume 4",
+      "author": "US Navy Bureau of Ships",
+      "url": "https://www.ibiblio.org/hyperwar/NHC/BuShipsAdminHistWWII/BuShipsAdminHistWWII-v.4/BuShipsAdminHistWWII-v.4.htm",
+      "supports": [
+        "CA68-71 twin aircraft cranes and armored conning tower; later class differences"
+      ],
+      "status": "Primary text consulted."
+    },
+    {
+      "id": "gamemodels3d",
+      "title": "GameModels3D comparison",
+      "url": "https://gamemodels3d.com/",
+      "supports": [
+        "Potential qualitative discrepancy comparison"
+      ],
+      "status": "No Baltimore reference accessed or imported. Original model and materials authored independently."
+    },
+    {
+      "id": "baltimore-bgp-1943",
+      "title": "USS Baltimore, Booklet of General Plans, sheet 5 of 6, bridges, hold and inner bottom",
+      "author": "Bethlehem Steel Company / US Navy Bureau of Ships",
+      "date": "1943-06-30",
+      "catalogNumber": "NARA 153714323; BuShips 563341; Bethlehem 9411-11 sheet 5",
+      "url": "https://archive.org/details/ca68bogp1943",
+      "localFiles": [
+        "navy-bgp-1943-06-30.jpg"
+      ],
+      "supports": [
+        "Frame-indexed bridge, director and funnel projections",
+        "Identification of main and secondary director order"
+      ],
+      "status": "Original drawing dated 9 January 1942, finished-plan stamp 30 June 1943. Full scan inspected. Later dark handwritten annotations include 3-inch/50 and AN/SPA-4A equipment: not all visible details belong to the 1943 fit. Only one of six BGP sheets is present.",
+      "sha256": {
+        "navy-bgp-1943-06-30.jpg": "2aee922f9975c8efd265ee022b7c39448d50e75c4bbfd5394ed5e11af59ace8e"
+      }
+    },
+    {
+      "id": "quincy-docking-1946",
+      "title": "USS Quincy CA-71 docking plan, revision B",
+      "author": "Bethlehem Steel Company / US Navy Bureau of Ships",
+      "date": "1946-07-01",
+      "url": "https://archive.org/details/ca71gad1946",
+      "localFiles": [
+        "navy-quincy-docking-1946.jpg",
+        "quincy-sections-inspection.jpg",
+        "quincy-rudder-inspection.jpg",
+        "quincy-shafts-inspection.jpg"
+      ],
+      "supports": [
+        "Early Baltimore-class keel, forefoot, rudder silhouette and staggered four-shaft arrangement",
+        "12 ft inboard and 24 ft 9 in outboard shaft offsets",
+        "Frame 82.5, 80 and 115 transverse docking sections"
+      ],
+      "status": "Sister-ship comparison, not a Baltimore as-built drawing. Quincy LOA excluding added stern sponson is 673 ft 0 1/8 in, different from Baltimore 673 ft 5 in; extension and loading values are not copied. Docking block offsets are not mistaken for full hull offsets.",
+      "sha256": {
+        "navy-quincy-docking-1946.jpg": "cd3c02fefe524ee1d354c1accf7014297ab52b711a49b63a3c6b1a1eba9213e4",
+        "quincy-sections-inspection.jpg": "5f5dad909ddc835769c51faa3f2b2cb79555a68bfd04564206ead060b3993ae7",
+        "quincy-rudder-inspection.jpg": "fc465f2e866950414d592dafda56889a8771bca674bbb14f926b90a0f2b9eb92",
+        "quincy-shafts-inspection.jpg": "c05c1a6200d6ffeca4f76ebe71f3e48e833bb6a56fb26d8adc226e61ba14114e"
+      }
+    },
+    {
+      "id": "canberra-sections-1953",
+      "title": "USS Canberra, midship and typical cross sections",
+      "author": "US Navy; New York Shipbuilding Corporation",
+      "date": "1953-02-25",
+      "url": "https://archive.org/details/ca70bogp1953",
+      "localFiles": [
+        "navy-canberra-sections-1953.jpg"
+      ],
+      "supports": [
+        "Class main-deck level 43 ft 8 7/8 in above baseline",
+        "Original hull outline comparison at frames 39, 50, 58, 75, 83, 105, 118, 142 and 158"
+      ],
+      "status": "Scan includes missile-conversion and helicopter-platform changes. Excludes those features from 1943 model. Reuse of original hull/deck outlines is an explicit class-level inference and needs Baltimore-specific confirmation.",
+      "sha256": {
+        "navy-canberra-sections-1953.jpg": "d5b251cc6a955edd96ae93ae728c18d1fcf1c3ca1f0f12594ab9f62122abf8b8"
+      }
+    },
+    {
+      "id": "baltimore-commissioning-highres",
+      "title": "CA-68 Boston Harbor, Boston, Massachusetts, April 15, 1943",
+      "author": "US Navy photograph",
+      "date": "1943-04-15",
+      "url": "https://archive.org/download/ca68bogp1943/00%20-%20cover%20photo.jpg",
+      "localFiles": [
+        "navy-commissioning-1943-highres.jpg"
+      ],
+      "supports": [
+        "Twin cranes, catapult arrangement, 8-inch/5-inch director order and early-fit superstructure"
+      ],
+      "status": "Dated primary photograph, large scan inspected; perspective photograph, not dimensional projection. Radar was not installed.",
+      "sha256": {
+        "navy-commissioning-1943-highres.jpg": "c99df17a0c24fb0cb18deecf8c4a23199ae5226d3b60a19f1458efe1c8f963ac"
+      }
+    },
+    {
+      "id": "fidelity-provisional-protection",
+      "title": "Original fidelity-01 protection assumptions",
+      "url": "#evidence",
+      "type": "authoring estimate, not a historical source",
+      "status": "Nominal hull/deckhouse plating and unsourced local gunhouse plate families are explicit gameplay assumptions.",
+      "limitations": [
+        "Baltimore 152.4 mm belt and 63.5 mm deck are provisional retained families; Ships' Data 1945 is dimensional/armament evidence, not their armor schedule.",
+        "Local plate extents, barbette sectors, transverse closures and many plate grades await primary schedules.",
+        "No blanket box is added over closed original gunhouse facets."
+      ]
+    }
+  ]
+}

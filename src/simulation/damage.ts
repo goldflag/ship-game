@@ -33,7 +33,7 @@ export interface DamageState {
   integrity: number; maxIntegrity: number; modules: { id: string; hp: number; detonated: boolean; ignition: number }[];
   compartments: CompartmentState[]; connections: ConnectionState[]; sunk: boolean; defeatCause?: DefeatCause;
 }
-export interface Combatant { motion: ShipState; mounts: MountState[]; damage: DamageState; torpedoTubes?: { id: string; ammo: number }[]; }
+export interface Combatant { motion: ShipState; mounts: MountState[]; damage: DamageState; torpedoTubes?: { id: string; ammo: number }[]; submarine?: import('./submarine').SubmarineState; }
 export type ShellType = 'AP' | 'HE';
 export interface SurfaceImpact {
   position: Vec3; normal: Vec3; direction: Vec3; mountId?: string;
@@ -465,9 +465,13 @@ export function updateFlooding(actor: Combatant, def: ShipDefinition, dt: number
     damage.defeatCause ??= 'flooding';
     damage.sunk = true;
   }
-  if (damage.sunk) { actor.motion.y = Math.max(-50, actor.motion.y - dt * .45); return; }
+  if (damage.sunk) {
+    const y = Math.min(actor.motion.y, Math.max(def.submarine ? -1000 : -50, actor.motion.y - dt * .45));
+    actor.motion.verticalSpeed = dt > 0 ? (y - actor.motion.y) / dt : 0;
+    actor.motion.y = y; return;
+  }
   if (def.stability) return;
-  actor.motion.y = -water / def.hull.waterplaneAreaM2;
+  if (!actor.submarine) actor.motion.y = -water / def.hull.waterplaneAreaM2;
   const totalMass = def.hull.massKg + water * 1000;
   actor.motion.roll = clamp(-damage.compartments.reduce((n, c, i) => n + c.waterM3 * 1000 * def.compartments[i].center[0], 0) / totalMass * .5, -.45, .45);
   actor.motion.pitch = clamp(damage.compartments.reduce((n, c, i) => n + c.waterM3 * 1000 * def.compartments[i].center[2], 0) / totalMass * .02, -.2, .2);

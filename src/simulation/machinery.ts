@@ -18,6 +18,10 @@ export function equipmentCondition(actor: Combatant, def: ShipDefinition, module
 export function systemHealth(actor: Combatant, def: ShipDefinition, kind: 'engine' | 'steering'): number {
   if (actor.damage.sunk) return 0;
   const available = (id: string) => equipmentCondition(actor, def, def.modules.find(m => m.id === id)!).availability;
+  if (kind === 'engine' && def.submarine) {
+    const ids = actor.motion.y < -.5 ? def.submarine.submergedEngineIds : def.submarine.surfaceEngineIds;
+    return ids.reduce((power, id) => power + available(id), 0) / ids.length;
+  }
   if (kind === 'engine' && def.propulsion) return def.propulsion.groups.reduce((power, group) => {
     const steam = group.boilerIds.length ? group.boilerIds.reduce((n, id) => n + available(id), 0) / group.boilerIds.length : 1;
     const drive = Math.min(...group.driveIds.map(available));

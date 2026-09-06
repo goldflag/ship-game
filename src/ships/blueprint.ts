@@ -66,6 +66,17 @@ export interface Handling {
   forwardSpeed: number; reverseSpeed: number; acceleration: number;
   braking: number; rudderRate: number; maxYawRate: number;
 }
+/** Optional diving equipment; all depths are below the surfaced waterline datum. */
+export interface SubmarineDefinition {
+  submergedHandling: Handling;
+  ballastCapacityM3: number; neutralBallastFraction: number;
+  floodRateM3PerSecond: number; blowRateM3PerSecond: number; emergencyBlowRateM3PerSecond: number;
+  maxDiveSpeed: number; maxRiseSpeed: number;
+  periscopeDepthM: number; maxDepthM: number; maxTorpedoDepthM: number;
+  periscopeEye: Vec3;
+  surfaceEngineIds: string[]; submergedEngineIds: string[];
+  appendages: { bowPlanes: string[]; sternPlanes: string[]; rudders: string[]; propellers: string[] };
+}
 export interface Hull {
   kind: 'authored-stations-v1'; length: number; beam: number; draft: number; depth: number;
   massKg: number; waterplaneAreaM2: number; reserveBuoyancyM3: number;
@@ -122,6 +133,7 @@ export interface ShipBlueprint {
   stability?: { version: 1; dryCenterOfGravity: Vec3; buoyancyScale: number; shellThicknessMm: number; basis: string };
   hull: Hull; handling: Handling; mounts: Mount[]; armor: Armor[];
   torpedoTubes?: TorpedoTube[];
+  submarine?: SubmarineDefinition;
   modules: Module[]; compartments: Compartment[];
   connections: FloodConnection[];
   /** Additive v1 mechanics. Older definitions retain their provisional averages. */
@@ -489,6 +501,30 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
   const namedConnections = list(b.connections, 'connections', 512).map(c => record(c, 'connection')).filter(c => c.id !== undefined);
   unique(namedConnections, 'connections');
   const accuracy = record(b.accuracy, 'accuracy');
+  if (b.submarine !== undefined) {
+    const s = record(b.submarine, 'submarine');
+    const handling = record(s.submergedHandling, 'submarine.submergedHandling');
+    ['forwardSpeed', 'reverseSpeed', 'acceleration', 'braking', 'rudderRate', 'maxYawRate'].forEach(k => numeric(handling[k], `submarine.submergedHandling.${k}`, .00001, 100));
+    ['ballastCapacityM3', 'floodRateM3PerSecond', 'blowRateM3PerSecond', 'emergencyBlowRateM3PerSecond'].forEach(k => numeric(s[k], `submarine.${k}`, .01, 10000));
+    numeric(s.neutralBallastFraction, 'submarine.neutralBallastFraction', .1, .95);
+    ['maxDiveSpeed', 'maxRiseSpeed'].forEach(k => numeric(s[k], `submarine.${k}`, .1, 10));
+    numeric(s.maxDepthM, 'submarine.maxDepthM', 10, 1000);
+    numeric(s.periscopeDepthM, 'submarine.periscopeDepthM', 1, s.maxDepthM as number);
+    numeric(s.maxTorpedoDepthM, 'submarine.maxTorpedoDepthM', s.periscopeDepthM as number, s.maxDepthM as number);
+    const eye = vector(s.periscopeEye, 'submarine.periscopeEye');
+    if (eye[1] <= (s.periscopeDepthM as number) || eye[1] > 30 || Math.abs(eye[0]) > (h.beam as number) / 2 || Math.abs(eye[2]) > (h.length as number) / 2) fail('submarine.periscopeEye', 'must lie over the hull and above water at periscope depth');
+    for (const key of ['surfaceEngineIds', 'submergedEngineIds']) {
+      const ids = list(s[key], `submarine.${key}`, 16);
+      if (!ids.length || new Set(ids).size !== ids.length) fail(`submarine.${key}`, 'requires distinct engine IDs');
+      ids.forEach(value => { id(value, key); if (!modules.some(m => m.id === value && m.kind === 'engine')) fail(`submarine.${key}`, 'unknown engine module'); });
+    }
+    const appendages = record(s.appendages, 'submarine.appendages'), joints = new Set<string>();
+    for (const key of ['bowPlanes', 'sternPlanes', 'rudders', 'propellers']) list(appendages[key], `submarine.appendages.${key}`, 8).forEach(value => {
+      const joint = text(value, 'appendage joint');
+      if (!/^[a-z][a-z0-9.-]{0,95}$/.test(joint) || joints.has(joint)) fail('submarine.appendages', 'requires distinct stable joint IDs');
+      joints.add(joint);
+    });
+  }
   ['exterior', 'internals', 'weapons'].forEach(k => text(accuracy[k], `accuracy.${k}`));
   const blueprint = structuredClone(input) as ShipBlueprint;
   const result: ShipDefinition = { ...blueprint, torpedoTubes: undefined, armor:structuredClone(compiledArmor) as Armor[], compilerVersion: 1, mounts: blueprint.mounts.map(m => ({ ...m, weapon: structuredClone(parts.find(p => p.id === m.partId)) as unknown as GunPart })) };

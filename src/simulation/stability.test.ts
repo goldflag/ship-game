@@ -94,7 +94,7 @@ test('afloat ships retain useful guns after propulsion loss; permanent gun/ammun
   updateCapability(a, def); expect(a.damage.stability.status).toBe('immobile'); expect(a.damage.stability.combatLost).toBe(false);
   a.mounts.forEach(m => m.hp = 0);
   sim.step({ throttle: 0, rudder: 0 }, { aim: sim.aimAt(), fire: false, battery: 'main' });
-  expect(a.damage.sunk).toBe(false); expect(a.damage.stability.status).toBe('knocked-out'); expect(sim.result).toBe('victory');
+  expect(a.damage.sunk).toBe(false); expect(a.damage.stability.status).toBe('disabled'); expect(sim.result).toBe('victory');
   sim.reset(); expect(sim.target.damage.stability.status).toBe('operational'); expect(sim.result).toBe('active');
 });
 

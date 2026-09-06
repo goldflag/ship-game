@@ -1090,7 +1090,7 @@
   "accuracy": {
     "exterior": "Original 1941 Type VIIC reconstruction informed by captured U-570 plans and photographs. Hull sections, details and exact fittings remain approximate.",
     "internals": "Six approximate spaces follow the documented machinery order. Capacities, HP and flooding are gameplay values, not a watertight subdivision survey.",
-    "weapons": "Four bow / one stern 533 mm tubes and 14 torpedoes; articulated 88 mm deck and 20 mm guns. G7a fast run, gyro arc, reload, arming, blast and reserve distribution are simplified. Surface operation only."
+    "weapons": "Four bow / one stern 533 mm tubes and 14 torpedoes; articulated 88 mm deck and 20 mm guns. G7a fast run, gyro arc, reload, arming, blast and reserve distribution are simplified. Surface guns; torpedoes launch down to 12 m. Ballast, diving rates, 150 m operating limit and propulsion transitions are gameplay approximations."
   },
   "torpedoTubes": [
     {
@@ -1298,6 +1298,55 @@
       -1.4
     ]
   },
+  "submarine": {
+    "submergedHandling": {
+      "forwardSpeed": 3.9097744,
+      "reverseSpeed": 1.2,
+      "acceleration": 0.16,
+      "braking": 0.28,
+      "rudderRate": 0.5,
+      "maxYawRate": 0.026
+    },
+    "ballastCapacityM3": 120,
+    "neutralBallastFraction": 0.85,
+    "floodRateM3PerSecond": 7,
+    "blowRateM3PerSecond": 8,
+    "emergencyBlowRateM3PerSecond": 24,
+    "maxDiveSpeed": 2.5,
+    "maxRiseSpeed": 2.5,
+    "periscopeDepthM": 7,
+    "maxDepthM": 150,
+    "maxTorpedoDepthM": 12,
+    "periscopeEye": [
+      0,
+      8.4,
+      -0.45
+    ],
+    "surfaceEngineIds": [
+      "diesels"
+    ],
+    "submergedEngineIds": [
+      "electric-motors"
+    ],
+    "appendages": {
+      "bowPlanes": [
+        "bow-plane-port.pivot",
+        "bow-plane-starboard.pivot"
+      ],
+      "sternPlanes": [
+        "stern-plane-port.pivot",
+        "stern-plane-starboard.pivot"
+      ],
+      "rudders": [
+        "rudder-port.pivot",
+        "rudder-starboard.pivot"
+      ],
+      "propellers": [
+        "propeller-port.pivot",
+        "propeller-starboard.pivot"
+      ]
+    }
+  },
   "compilerVersion": 1,
-  "contentHash": "50d60f41823e06dc6d9cbdfebbab37c9652b0864312bb8f21e91abdc35be5d53"
+  "contentHash": "8f3d1334a5fffe612c679cfe1704930802a725f477c59e702086e07da195aa01"
 }

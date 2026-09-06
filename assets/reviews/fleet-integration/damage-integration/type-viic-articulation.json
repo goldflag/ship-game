@@ -1,0 +1,82 @@
+{
+  "backend": "webgpu",
+  "contentHash": "2d15f3220ddd6d8456cbd80f79076f5c5905a928eb2473c94e7a70aa90425667",
+  "kind": "mounted-game-joint-sweep",
+  "method": "Synchronous loaded Game.previewArticulation transform checks; frames not awaited between poses",
+  "poses": [
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 0.0000019734857864522954,
+      "recoilFraction": 0,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 0.00000197348578563008,
+      "recoilFraction": 1,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 0.0000019376981760574782,
+      "recoilFraction": 0,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 0.0000019376981760574782,
+      "recoilFraction": 1,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 0.000001255014193085077,
+      "recoilFraction": 0,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 0.000001255014193085077,
+      "recoilFraction": 1,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 0.0000013171713543735791,
+      "recoilFraction": 0,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 0.0000013171713543735791,
+      "recoilFraction": 1,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 0.0000019734857864522954,
+      "recoilFraction": 0,
+      "trainFraction": 1
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 0.00000197348578563008,
+      "recoilFraction": 1,
+      "trainFraction": 1
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 0.0000019376981760574782,
+      "recoilFraction": 0,
+      "trainFraction": 1
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 0.0000019376981760574782,
+      "recoilFraction": 1,
+      "trainFraction": 1
+    }
+  ],
+  "shipId": "type-viic",
+  "time": "2026-09-06T06:51:11.985Z"
+}

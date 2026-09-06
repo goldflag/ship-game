@@ -71,7 +71,7 @@ if teak is not None:
                 vertex = obj.data.vertices[obj.data.loops[loop_index].vertex_index]
                 point = obj.matrix_world @ vertex.co
                 uv_layer.data[loop_index].uv = ((point.x + 10) / 20, (point.y + 1.28) / 2.56)
-    
+
 
 # Change basis for every local frame AND mesh, so exported coordinates are already
 # +Y up, -Z bow. Runtime performs no additional model rotation.

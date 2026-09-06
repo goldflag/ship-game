@@ -15,6 +15,7 @@ from mathutils import Vector, Matrix
 ROOT=Path(__file__).resolve().parents[3]
 sys.path.insert(0,str(ROOT/'scripts/ships'))
 from blender_components import create_gun_mount
+from blender_fidelity import authored_hull, authored_structure, Fittings, loft_breadth
 OUT=Path(os.environ['SHIP_OUTPUT'])
 D=json.loads(Path(os.environ['SHIP_DEFINITION']).read_text())
 bpy.ops.object.select_all(action='SELECT')
@@ -88,40 +89,15 @@ def interp(points,s):
 H=D['hull'];L=H['length']
 deckz=lambda x:interp(H['deckHeights'],x+L/2)
 width=lambda x:interp(H['halfBreadths'],max(0,min(L,x+L/2)))
-# Loft the explicitly retained station sections. Keep the measurement surface
-# separate from every fitting so the exported hull envelope is independently checked.
-vv=[];ff=[];cross_n=len(H['sections'][0]['points'])+2;ring_n=cross_n*2
-assert all(len(s['points'])==cross_n-2 for s in H['sections'])
-for sec in H['sections']:
- pts=sec['points'];k=pts[0][1];z1=max(k,-1.1);z2=max(k,-.25)
- def breadth(z):
-  for (ya,za),(yb,zb) in zip(pts,pts[1:]):
-   if za<=z<=zb and zb>za:return ya+(yb-ya)*(z-za)/(zb-za)
-  return pts[0][0] if z<k else pts[-1][0]
- # Insert the boot topping intersections in the existing section, retaining
- # flat-bottom breadth instead of collapsing the floor to a V.
- cross=pts[:4]+[[breadth(z1),z1],[breadth(z2),z2]]+pts[4:]
- # The inserted points can lie below earlier bilge samples in shallow sections;
- # sort a stable set by height before lofting.
- cross=sorted(cross,key=lambda p:p[1])
- x=sec['station']-L/2
- vv.extend([(x,-y,z) for y,z in cross]+[(x,y,z) for y,z in reversed(cross)])
-for s in range(len(H['sections'])-1):
- for j in range(ring_n):ff.append((s*ring_n+j,(s+1)*ring_n+j,(s+1)*ring_n+(j+1)%ring_n,s*ring_n+(j+1)%ring_n))
-ff.extend([tuple(reversed(range(ring_n))),tuple((len(H['sections'])-1)*ring_n+j for j in range(ring_n))])
-hull=mesh('Baltimore station hull',vv,ff,None,smooth=True);hull['nodeId']='hull.surface'
-for key in ['hullgray','antifouling','boot','roof']:hull.data.materials.append(materials[key])
-for face in hull.data.polygons:
- zs=[vv[i][2] for i in face.vertices]
- if len(face.vertices)==4 and all(i%ring_n in [cross_n-1,cross_n] for i in face.vertices):face.material_index=3;face.use_smooth=False
- elif max(zs)<-1.09:face.material_index=1
- elif max(zs)<=.01:face.material_index=2
- else:face.material_index=0
+# Retained class-informed sections, with the same surface used by CPU hits.
+hull=authored_hull(H,mesh,COL,[materials[k] for k in ['hullgray','antifouling','boot']],True)
+S={s['id']:s for s in D['structures']}
 # Articulated main and secondary mounts are generated through the shared catalog.
 COL=collections['Main and secondary batteries']
 for mount in D['mounts']:
  ASSEMBLY=mount['id']
  create_gun_mount(mount,COL,dict(mesh=mesh,cyl=cyl,rod=rod,box=box),materials,deckz)
+ Fittings(dict(mesh=mesh,cyl=cyl,rod=rod,box=box),materials,COL).gun_details(mount)
  # Baltimore's transverse rangefinder is near the BACK of the long gunhouse.
  # Its placement is retained here rather than inheriting German mount placement.
  if mount['battery']=='main':
@@ -138,16 +114,16 @@ for mount in D['mounts']:
 # Blueprint deckhouses and their deck lips.
 COL=collections['Superstructure']
 for s in D.get('structures',[]):
+ if s['id'] in ['forward-funnel','after-funnel','conning-tower'] or s['id'].startswith('aa-platform'):continue
  ASSEMBLY=s['id'];outline=[(-z,-x) for x,z in s['footprint']]
- prism(s['name'],outline,s['baseY'],s['height'],s['material'])
+ authored_structure(s,mesh,materials,COL)
  if s['height']>.5:prism(s['name']+' deck rim',outline,s['baseY']+s['height'],.075,'roof')
  if s['id'] in ['bridge-wings','bridge-navigation-deck','bridge-platform','bridge-air-defense-platform']:
   perimeter_wall(s['name'],outline,s['baseY']+s['height'])
 # Stack casings are oval, raked slightly aft, with open-looking black exhausts.
 for name,x,top in [('forward-funnel',3.8,23.2),('after-funnel',-15.6,22.0)]:
  ASSEMBLY=name
- ellipse(name+' base',x,0,7.8,4.1,3.1,2.2)
- ellipse(name+' casing',x,0,10,3.4,2.55,top-10,'naval',lean=-1.25)
+ authored_structure(S[name],mesh,materials,COL)
  ellipse(name+' cap',x-1.25,0,top,3.55,2.7,.4,'edge')
  ellipse(name+' exhaust',x-1.25,0,top+.405,3.20,2.35,.018,'dark')
  for side in [-1,1]:
@@ -336,9 +312,7 @@ for side in [-1,1]:
   for dx in [-.32,.32]:cyl('Bollard',(x+dx,y,z+.42),.15,.6,'edge',vertices=16)
  for x in [2,-5]:
   ASSEMBLY='boats';y=side*4.2
-  ellipse('26-foot motor whaleboat',x,y,10.7,3.96,1.02,.8,'naval')
-  ellipse('Whaleboat interior',x,y,11.51,3.3,.7,.03,'canvas')
-  box('Boat engine cover',(x+.2,y,11.62),(1.4,1.1,.45),'roof')
+  Fittings(dict(mesh=mesh,cyl=cyl,rod=rod,box=box),materials,COL).boat('26-foot motor whaleboat',x,y,10.7,7.92,2.04,False)
   for dx in [-2.3,2.3]:rod('Boat davit',(x+dx,y+side*.8,8.0),(x+dx,y+side*.8,12.3),.09,'naval')
  for x in [19,10,-23,-31]:
   for yy in [side*5.55,side*6.1]:
@@ -391,6 +365,52 @@ verts=[(stock_x+x,side*.22,z-H['draft']) for side in [-1,1] for x,z in outline]
 n=len(outline)
 mesh('Balanced rudder',verts,[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)],'antifouling')
 rod('Rudder stock',(stock_x,0,-2.4),(stock_x,0,1.4),.32,'edge',vertices=20)
+# Dated 1943 bridge plan and commissioning/profile photographs: access,
+# platform support, director optics, ventilators and handling machinery.
+COL=collections['Superstructure'];ASSEMBLY='superstructure-service-fittings'
+fit=Fittings(dict(mesh=mesh,cyl=cyl,rod=rod,box=box),materials,COL)
+for sign in [-1,1]:
+ for a,b in [((9,sign*4.8,8.25),(13,sign*4.8,10.75)),((14,sign*3.3,10.75),(18,sign*3.3,13.08)),((12.5,sign*2.55,13.1),(15.5,sign*2.55,15.35)),((-29,sign*4.8,8.3),(-25,sign*4.8,10.75))]:fit.stairs('External access stair',a,b,.72)
+ fit.ladder('Aft director tower ladder',(-28.2,sign*1.65,11),(-28.2,sign*1.65,20.0),.58)
+ for x,z in [(6,6.1),(-3,6.1),(-29,6.1),(-39,6.1)]:fit.door('Watertight deckhouse door',x,sign*6.45,z)
+ for x in [4,8,-3,-26,-31,-35]:fit.vent('Machinery uptake grille',x,sign*5.32,9.2,1.4,1.15)
+ for id in ['bridge-wings','bridge-navigation-deck','bridge-air-defense-platform','aft-platform']:
+  s=S[id]
+  for xx,zz in s['footprint'][::3]:
+   y=-xx;x=-zz
+   if y*sign>2.7:fit.knee('Gallery underside knee',x,sign*min(2.1,abs(y)*.65),y,s['baseY'],1.0)
+ for x,top in [(3.8,23.2),(-15.6,22)]:
+  fit.ladder('Funnel maintenance ladder',(x,sign*2.7,10.7),(x-1.25,sign*2.7,top),.6)
+  fit.vent('Uptake intake',x,sign*3.12,9.05,2.0,1.25)
+  # The photographed walkway wraps the oval funnel shoulder.
+  pts=[(x-1+3.9*math.cos(i*math.tau/32),3.0*math.sin(i*math.tau/32)) for i in range(32)]
+  for a,b in zip(pts,pts[1:]+pts[:1]):rod('Funnel handrail',(*a,top-1.4),(*b,top-1.4),.029,'edge')
+COL=collections['Deck fittings'];ASSEMBLY='forecastle-and-mooring-machinery';fit.col=COL
+for sign in [-1,1]:
+ for x in [59,68,-62,-74,-91]:fit.reel('Mooring rope reel',x,sign*max(1.0,width(x)-2.1),deckz(x)+.08,.43,1.05)
+ fit.chain('Bower chain',(88,sign*2,deckz(88)+.18),(96,sign*3.1,deckz(96)+.18),.34)
+ for x in [67,-64]:
+  y=sign*3.6;z=deckz(x)
+  box('Companionway coaming',(x,y,z+.38),(1.7,.94,.76),'naval')
+  box('Companionway weather cover',(x,y,z+.80),(1.85,1.03,.10),'roof')
+  for dx in [-.5,.5]:rod('Hatch hinge',(x+dx,y-.3,z+.86),(x+dx,y+.3,z+.86),.042,'edge')
+COL=collections['Aircraft handling'];ASSEMBLY='aircraft-handling-machinery';fit.col=COL
+for sign in [-1,1]:
+ fit.reel('Crane hoist drum',-96.4,sign*7.1,7.5,.4,1.15)
+ fit.ladder('Crane tower ladder',(-97,sign*7.6,8),(-95.6,sign*7.6,15.5),.44)
+ fit.ring('Crane lifting hook',(-82.1,sign*7.1,11.45),.20,.045,'y',segments=14)
+ for x in [-89,-85,-81,-77]:
+  for dy in [-.35,.35]:fit.ring('Catapult trolley roller',(x,sign*4.7+dy,8.1),.115,.035,'y',segments=10)
+ for i,x in enumerate([-93,-89,-85,-81,-77,-73]):
+  box('Hangar hatch cross seam',(x,0,6.89),(.045,5.5,.035),'edge')
+COL=collections['Light AA'];ASSEMBLY='aa-service-fittings';fit.col=COL
+for x,y,z in [(45,7.5,6.1),(26,8.1,8),(-28,8,7.9),(-50,7.1,5.8),(-68,7.1,6)]:
+ for sign in [-1,1]:
+  fit.knee('40 mm platform supporting web',x,sign*(y-2),sign*(y+1.8),z-.2,1.1)
+  fit.reel('40 mm training handwheel',x-.72,sign*y,z+.35,.17,.25)
+  for dx in [-1.2,1.2]:
+   box('40 mm ready-service locker',(x+dx,sign*(y-1.0),z+.38),(.64,.52,.74),'naval')
+   box('Ready-service locker lid',(x+dx,sign*(y-1.0),z+.77),(.70,.58,.07),'roof')
 # Named simulation volumes are retained in Blender and excluded from exports.
 COL=collections['Simulation volumes']
 for group in ['armor','modules','compartments','obstructions']:

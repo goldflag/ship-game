@@ -312,6 +312,18 @@
         "Diameter, shaft exits, lateral spacing and pitch require primary CV-6 confirmation."
       ],
       "accessed": "2026-09-05"
+    },
+    {
+      "id": "fidelity-provisional-protection",
+      "title": "Original fidelity-01 protection assumptions",
+      "url": "#evidence",
+      "type": "authoring estimate, not a historical source",
+      "status": "Nominal hull/deckhouse plating and unsourced local gunhouse plate families are explicit gameplay assumptions.",
+      "limitations": [
+        "Baltimore 152.4 mm belt and 63.5 mm deck are provisional retained families; Ships' Data 1945 is dimensional/armament evidence, not their armor schedule.",
+        "Local plate extents, barbette sectors, transverse closures and many plate grades await primary schedules.",
+        "No blanket box is added over closed original gunhouse facets."
+      ]
     }
   ]
 }

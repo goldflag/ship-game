@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Underwater visibility diagnostic</title>
+<style>html,body,#scene{margin:0;width:100%;height:100%;overflow:hidden}pre{position:absolute;left:12px;top:0;background:#000c;color:white;padding:12px;pointer-events:none}</style>
+<div id="scene"></div><pre id="status">Loading the actual Type VIIC and ocean…</pre>
+<script type="module">
+// Dev-only GPU regression harness; not part of the production build.
+// Private Game fields are used only here to pin actual cameras/poses and pause
+// time. Production rendering still goes through Game.frame and Water Pro.
+import { Game } from '/src/game/Game.ts';
+import { shipPreset } from '/src/ships/presets.ts';
+const noop = () => {}, query = new URLSearchParams(location.search);
+const game = new Game(document.querySelector('#scene'), { quality:query.get('quality') ?? 'high', sea:'Atlantic', resolution:1 }, {
+  progress:noop, ready:noop, telemetry:noop, pause:noop, hud:noop,
+  error:message => { window.visibilityError=message; document.querySelector('#status').textContent=message; },
+}, shipPreset('type-viic'));
+game.scheduleFrame=noop;
+game.start();
+await game.initialization;
+if (!window.visibilityError) {
+  game.setInPort(false);
+  game.setPaused(true);
+  game.targetView.root.visible=false;
+  game.harbor.visible=false;
+  game.rig.setSubmarine(game.definition.submarine);
+  game.rig.recenter();
+  game.water.deterministic=true;
+  game.water.syncToTick(3600);
+  const absorption=game.water.color.absorptionColor.clone();
+  const distortion=game.water.underwaterDistortion.enabled;
+  window.visibilityGame=game;
+  window.captureVisibility=async({depth=50,scale=1,fog=true,warp=distortion,azimuth=.82,frame=true,ship=true,mode='Chase',legacy=query.has('legacy')}={})=>{
+    const motion=game.simulation.ship;
+    Object.assign(motion,{x:0,y:-depth,z:0,heading:0,pitch:0,roll:0});
+    game.playerView.snap();
+    game.playerView.update(1);
+    game.playerView.root.visible=ship;
+    game.ship.position.copy(game.playerView.root.position);
+    game.rig.mode=mode;
+    game.rig.binoculars=false;
+    game.rig.azimuth=azimuth;
+    game.rig.update(motion,motion.y,0,true);
+    game.water.color.absorptionColor.copy(absorption).multiplyScalar(scale);
+    game.water.underwater.enabled=fog;
+    game.water.underwaterDistortion.enabled=warp;
+    if(frame) await game.frame(performance.now());
+    else { game.sky.update(0); await game.water.update(0); }
+    game.playerView.root.visible=ship;
+    // Negative control restores the original coefficients after the real frame.
+    if(legacy) game.water.color.absorptionColor.copy(absorption);
+    // Refresh scene depth/color after hiding the ship for the comparison frame.
+    await game.water.update(0);
+    game.pipeline.render();
+    await game.renderer.backend.device?.queue.onSubmittedWorkDone();
+    game.pipeline.render();
+    const result={depth,scale,fog,warp,azimuth,mode,legacy,camera:game.camera.position.toArray(),absorption:game.water.color.absorptionColor.toArray(),image:game.renderer.domElement.toDataURL('image/png')};
+    document.querySelector('#status').textContent=JSON.stringify({...result,image:undefined},null,2);
+    return result;
+  };
+  // Compare the real frame's visible hull against the same frame without it.
+  // A solid water-colored screen fails even when all shader calls succeed.
+  window.testVisibility=async(depth=50)=>{
+    const read=async(record)=>{
+      const bitmap=await createImageBitmap(await (await fetch(record.image)).blob());
+      const canvas=document.createElement('canvas');canvas.width=bitmap.width;canvas.height=bitmap.height;
+      const context=canvas.getContext('2d');context.drawImage(bitmap,0,0);bitmap.close();
+      return context.getImageData(0,0,canvas.width,canvas.height).data;
+    };
+    const visible=await window.captureVisibility({depth,azimuth:.82,frame:true});
+    const background=await window.captureVisibility({depth,azimuth:.82,frame:true,ship:false});
+    const a=await read(visible),b=await read(background);
+    let clearPixels=0;
+    for(let i=0;i<a.length;i+=4)if(Math.max(Math.abs(a[i]-b[i]),Math.abs(a[i+1]-b[i+1]),Math.abs(a[i+2]-b[i+2]))>=24)clearPixels++;
+    const fraction=clearPixels/(a.length/4);
+    const result={depth,passed:fraction>.02,clearHullFraction:fraction,camera:visible.camera,absorption:visible.absorption};
+    window.visibilityResult=result;document.querySelector('#status').textContent=JSON.stringify(result,null,2);
+    return result;
+  };
+  window.runVisibilityChecks=async()=>{
+    const dives=[];
+    for(const depth of [7,50,150]) dives.push(await window.testVisibility(depth));
+    const scope=await window.captureVisibility({depth:7,mode:'Bridge'});
+    const surfaced=await window.captureVisibility({depth:0});
+    const restored=record=>record.absorption.every((value,i)=>value===absorption.toArray()[i]);
+    const recovery={periscopeAboveWater:scope.camera[1]>0,periscopeRestored:restored(scope),surfaceRestored:restored(surfaced)};
+    const result={passed:dives.every(d=>d.passed)&&Object.values(recovery).every(Boolean),quality:query.get('quality')??'high',legacy:query.has('legacy'),dives,recovery};
+    window.visibilityResult=result;
+    document.querySelector('#status').textContent=JSON.stringify(result,null,2);
+    return result;
+  };
+  window.visibilityReady=true;
+  if(query.has('test')) await window.runVisibilityChecks();
+  else await window.captureVisibility();
+}
+</script></html>

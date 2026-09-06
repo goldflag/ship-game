@@ -21,7 +21,7 @@ export function projectGunAim(point: Vector3, camera: PerspectiveCamera, width: 
 type Marker = ReturnType<typeof projectGunAim> & { points: GunAimPoint[]; state: string; reload: number; };
 
 function markerState(point: GunAimPoint): string {
-  if (['disabled', 'empty', 'blocked', 'out-of-arc', 'out-of-range'].includes(point.status)) return point.status;
+  if (['disabled', 'empty', 'blocked', 'out-of-arc', 'out-of-range', 'submerged'].includes(point.status)) return point.status;
   if (!point.aligned) return 'turning';
   return point.status === 'ready' ? 'aligned' : 'reloading';
 }
@@ -88,7 +88,7 @@ export class GunAimIndicators {
         mark = { root, arrow, label }; this.marks.push(mark);
       }
       const reload = group.reload;
-      const status = group.state === 'aligned' ? 'On aim' : group.state === 'reloading' ? `On aim · Reload ${reload}s` : group.state === 'turning' ? `Turning${reload ? ` · Reload ${reload}s` : ''}` : group.state === 'out-of-arc' ? 'Out of arc' : group.state === 'out-of-range' ? 'Out of range' : group.state === 'blocked' ? 'Blocked' : group.state === 'empty' ? 'Empty' : 'Disabled';
+      const status = group.state === 'aligned' ? 'On aim' : group.state === 'reloading' ? `On aim · Reload ${reload}s` : group.state === 'turning' ? `Turning${reload ? ` · Reload ${reload}s` : ''}` : group.state === 'out-of-arc' ? 'Out of arc' : group.state === 'out-of-range' ? 'Out of range' : group.state === 'blocked' ? 'Blocked' : group.state === 'empty' ? 'Empty' : group.state === 'submerged' ? 'Submerged' : 'Disabled';
       const label = `${group.points.map(point => point.number).join(', ')} · ${status}${group.behind ? ' · Aft' : ''}`;
       mark.root.hidden = false;
       mark.root.className = `gun-aim-marker gun-aim-${group.state}${group.edge ? ' gun-aim-offscreen' : ''}`;

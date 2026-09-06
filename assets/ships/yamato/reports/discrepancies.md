@@ -1,5 +1,24 @@
 # Yamato discrepancy register
 
+## Damage-model integration, 2026-09-05 Pacific
+
+The fidelity geometry and 27 named room envelopes are retained while integrating master's damage model. Residual spaces and finite-angle buoyancy regions were regenerated around this hull and these rooms, not copied from the earlier geometry: 195 total spaces, 440 closed connections and 174 buoyancy regions. Room boundaries, permeability, capacities, reference loading and mass distribution remain estimated gameplay inputs, not an as-built damage-control or stability plan.
+
+The four retained turbine equipment envelopes now supply four equal combined-drive groups. The twelve boiler-room envelopes are not twelve separately damageable boiler modules; boiler supply and shafts remain aggregated into those drive groups. This supersedes the earlier two-group approximation below without claiming historical machinery routing. Gun ballistics, local AP/HE damage, crew repair and condition-derived loss rules follow the merged shared model. Original runtime captures below retain their original hashes; current integration evidence is recorded in `docs/fleet-fidelity-integration.md`.
+
+## Fidelity 01, 2026-09-05
+
+This section supersedes the older implementation descriptions below, not their historical caveats. Current hashes and measured results live in `export.json`, `measurements.json` and `fidelity-01/README.md`.
+
+- Recurved upper stem and bulb now use 333 original loft stations, explicit curve intersections, and matching port/starboard triangulation. Stern boat bays are recessed in the blueprint loft itself, not Blender-only booleans. The exact offsets and bay dimensions remain interpreted from S-06-2, O-45, Alexpl and museum evidence.
+- Main and secondary gunhouses use original closed facets, with sloped faces, shoulder breaks, planar roofs and the preserved barrel chains. Pleated bucklers, vents, access ladders, roof seams and handholds follow each articulated mount. Main face 650 mm, side 250 mm, rear 190 mm and roof 270 mm are provisional families; published 650/660 mm disagreement and actual plate boundaries remain open. Secondary protection is nominal.
+- Tapered tower stages, curved funnel, open lookout platforms, late AA galleries, pierced supports, bridge access stairs, doors/louvers, chain/windlass gear, reels, hollow launches and crane mechanisms added/refined. Small fitting positions remain photo/plan estimates, not surveyed measurements.
+- Full hull ends and substantive structures participate in CPU swept hits, sight picking and inspection. Estimated ordinary steel is 25 mm hull / 8 mm structure. The 410 mm side-belt and 200 mm deck families are corroborated by the Matsumoto/Chihaya first-person account; longitudinal limits, 410 mm end closures and full 560 mm barbette cylinders are simplified, not a verified schedule. Lower belt, local deck slopes, underwater protection subdivision and conning-tower schedule remain incomplete.
+- Lower powder stores replace the old tall exposed magazine proxies; separate shell rooms sit above them, following O-45. Four turbine and twelve boiler-room envelopes plus fore/after voids improve inspectability and local flooding. Exact walls, auxiliaries, fuel cells, usable volumes and hydrostatics remain estimated. Original magazine/joint IDs are retained.
+- Twelve registered before/after views, two uniformly scaled Alexpl overlays and primary section evidence are included in the review pack. Museum photos stay local. The original Alexpl image and transformed overlays retain CC BY-SA 3.0 credit; neither is primary as-built proof.
+
+The flat centerline sheet found in the first recurve iteration and its stern diagonal seam were reproduced, corrected and regression-tested. Air above the bulb is no longer rendered or hit as steel. Passing those checks does not close the historical discrepancies below.
+
 The requested endpoint is a historically accurate Yamato with real dimensions and proportions. **Not achieved.** Passing the asset validator certifies agreement with the authored blueprint, not agreement with every historical feature.
 
 Working fit: 7 April 1945. Working datum: 10.4 m trial draft. This deliberately identifies the load datum independently of the exterior equipment date; the exact departure/sinking draft has not been established.
@@ -18,7 +37,7 @@ Working fit: 7 April 1945. Working datum: 10.4 m trial draft. This deliberately 
 | Y-10 | Underwater fittings | Four screws corrected to 5 m diameter from the museum's published figure. Original rounded/pitched blades and stepped tandem rudders replace flat polygons/slabs. | Verify exact blade pitch/chord, stock stations, rudder areas and shaft alignments against original drawings. |
 | Y-11 | Paint and fittings | Original gray materials and baked plank material; simplified portholes, rails, hatches, doors and ventilation. | Confirm dated paint and deck evidence and survey the fittings individually. |
 | Y-12 | Internal layout/combat | Gameplay volumes and handling are approximate. Three barrels fire synchronously; the historical central-gun firing delay is absent. | No historical simulation claim; keep gameplay approximations visible in the blueprint accuracy fields. |
-| Y-13 | Full validation | Build b81a8d55e9fd passes 15 muzzle chains at 3 poses each, six independent hull dimensions, 28 selected component dimensions, all 43 relevant tests and production build. All five review views and four close views inspected. Live shots from all nine main barrels disabled both turbines and admitted floodwater. Both gun movement limits were exercised in-game, with less than 0.003 m muzzle error. | Browser evidence is recorded against the asset hash in validation.md. Functional validation does not certify the open historical discrepancies. |
+| Y-13 | Full validation | Current e386fddd3669 export passes 15 muzzle chains, six independent hull dimensions, 28 selected component dimensions, independence build and the 247-test repository suite / production build. Five fixed and twelve matched views inspected. Twelve WebGPU articulation combinations stay within 0.002747 m. Both UI batteries fired; mixed live structural hits, air misses, waterline flooding, armor hover, internals and port reset checked. | Current exact-hash evidence is in fidelity-01/README.md and runtime/review.json. Seeded collision shots are identified separately from UI firing. Functional validation does not certify the open historical discrepancies. |
 
 ## Reference conflicts
 
@@ -31,6 +50,8 @@ S-06-2 p.10 independently confirms 263 m LOA, 256 m waterline length, 36.9 m wat
 The museum director's [bridge reconstruction account](https://yamato-museum.com/note/post_14/) states that surviving drawings differ and that its own reconstruction is not 100%. The museum's [drawing guide](https://yamatomuseum.securesite.jp/et/?page_id=1142) describes the destruction of most originals and the later discovery of bridge drawings. No amount of successful export validation supplies that missing historical evidence.
 
 ## Combat opening-salvo review, 2026-09-05
+
+Historical pre-fidelity record: the tall magazine/citadel proxies described below are preserved in `fidelity-01/before/`, not the current blueprint. Current lower powder stores, shell rooms and physical protection are covered by new 1 km / 5 km regressions; opening hits leave Yamato damaged and afloat, with above-water strikes correctly remaining dry.
 
 The three main magazine envelopes are 9 m high, centered at Y=-2 m, and extend to Y=+2.5 m. These provisional boxes and the uniform 410 mm citadel proxy expose multiple magazines to bow-on shots aimed near the waterline. Their vertical boundaries and protection remain unresolved authoring work; the simulation correction does not establish historical accuracy.
 

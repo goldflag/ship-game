@@ -48,16 +48,19 @@ test('score counts actual enemy equipment loss, caps overkill and awards permane
   expect(score(sim)).toEqual([0, 0]);
 });
 
-test('primary knockout earns one frag with intact secondaries; subsequent sinking cannot award another', () => {
+test('main battery destruction earns damage but no frag while a secondary gun survives', () => {
   const sim = fixture(true);
   hit(sim, sim.target, sim.player, 10000);
   expect(sim.target.damage.sunk).toBe(false);
-  expect(sim.target.damage.stability.status).toBe('knocked-out');
+  expect(sim.target.damage.stability.status).toBe('operational');
+  expect(sim.target.damage.stability.combatLost).toBe(false);
   expect(sim.target.mounts[1].hp).toBe(100);
-  expect(score(sim)).toEqual([sim.target.damage.maxIntegrity * .5, 1]);
+  expect(score(sim)).toEqual([sim.target.damage.maxIntegrity * .5, 0]);
   sim.target.damage.compartments[0].waterM3 = 1000;
   sim.step(helm, intent);
   expect(sim.target.damage.sunk).toBe(true);
+  expect(score(sim)).toEqual([sim.target.damage.maxIntegrity * .5, 1]);
+  sim.step(helm, intent);
   expect(score(sim)).toEqual([sim.target.damage.maxIntegrity * .5, 1]);
 });
 

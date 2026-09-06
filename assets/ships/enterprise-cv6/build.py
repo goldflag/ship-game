@@ -5,10 +5,11 @@ blueprint compilation. Historical uncertainties are in reports/discrepancies.md.
 Blender frame: bow +X, port +Y, up +Z; the common exporter changes basis once.
 """
 from pathlib import Path
-import bpy, json, math, os, sys, random
+import bpy, bmesh, json, math, os, sys, random
 from mathutils import Vector
 sys.path.insert(0,str(Path(__file__).resolve().parents[3]/'scripts/ships'))
 from blender_components import create_gun_mount
+from blender_fidelity import authored_hull, authored_structure, Fittings
 OUT=Path(os.environ['SHIP_OUTPUT'])
 D=json.loads(Path(os.environ['SHIP_DEFINITION']).read_text())
 H=D['hull'];rng=random.Random(19420604)
@@ -80,43 +81,8 @@ def resample(points,n):
  ds=[0]
  for a,b in zip(points,points[1:]):ds.append(ds[-1]+math.dist(a,b))
  return [(interpolate(list(zip(ds,[p[0] for p in points])),ds[-1]*i/(n-1)),interpolate(list(zip(ds,[p[1] for p in points])),ds[-1]*i/(n-1))) for i in range(n)]
-# Independently lofted hull with every tabulated longitudinal section retained.
-N=48;vs=[];faces=[]
-for s in H['sections']:
- x=s['station']-H['length']/2
- pts=resample(s['points'],N)
- # Include the exact section extrema as well as evenly spaced samples.
- # The top sample preserves the blueprint's measured maximum beam.
- ring=[(x,-w,z) for w,z in pts]+[(x,w,z) for w,z in reversed(pts)]
- vs.extend(ring)
-RN=N*2
-for i in range(len(H['sections'])-1):
- for j in range(RN):faces.append((i*RN+j,(i+1)*RN+j,(i+1)*RN+(j+1)%RN,i*RN+(j+1)%RN))
-faces.extend([tuple(reversed(range(RN))),tuple((len(H['sections'])-1)*RN+j for j in range(RN))])
-def clip_height(points,height,above):
- result=[]
- for a,b in zip(points,points[1:]+points[:1]):
-  ina=(a[2]>=height) if above else (a[2]<=height)
-  inb=(b[2]>=height) if above else (b[2]<=height)
-  if ina:result.append(a)
-  if ina!=inb:
-   t=(height-a[2])/(b[2]-a[2]);result.append(tuple(a[k]+(b[k]-a[k])*t for k in range(3)))
- return result
-# Split plating at actual horizontal paint datums. Assigning whole loft quads
-# by their centroid creates false sawtooth waterlines in side and end views.
-cut_vertices=[];cut_faces=[];cut_materials=[]
-for face in faces:
- points=[vs[i] for i in face]
- for material,lower,upper in [(2,-100,-1.4),(1,-1.4,.4),(0,.4,100)]:
-  clipped=clip_height(clip_height(points,lower,True),upper,False)
-  if len(clipped)>=3:
-   n=len(cut_vertices);cut_vertices.extend(clipped);cut_faces.append(tuple(range(n,n+len(clipped))));cut_materials.append(material)
-hull=mesh('Molded hull surface',cut_vertices,cut_faces,None,COL['Hull'],True);hull['nodeId']='hull.surface';hull['assemblyId']='hull'
-for key in ['hullgray','boot','antifouling']:hull.data.materials.append(M[key])
-for face,material in zip(hull.data.polygons,cut_materials):face.material_index=material
-import bmesh
-bm=bmesh.new();bm.from_mesh(hull.data);bmesh.ops.remove_doubles(bm,verts=list(bm.verts),dist=.00001)
-bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(hull.data);bm.free()
+# The blueprint now retains common section samples for rendering and CPU hits.
+hull=authored_hull(H,mesh,COL['Hull'],[M['hullgray'],M['antifouling'],M['boot']],True)
 # The hull is plated, not subdivided into an inflated generic canoe.
 S={s['id']:s for s in D['structures']}
 FLIGHT=S['flight-deck']['baseY']+S['flight-deck']['height'];MAIN=S['hangar-deck']['baseY']+S['hangar-deck']['height']
@@ -168,26 +134,13 @@ for side,sign in [('port',1),('starboard',-1)]:
 structure_objects={}
 for s in D['structures']:
  points=[(-z,-x) for x,z in s['footprint']]
- col=COL['Flight deck'] if s['id'].startswith(('flight-','elevator')) else COL['Hangar and galleries'] if s['id']=='hangar-deck' else COL['Island']
- if s['id']=='funnel':
-  roof=[(-z,-x) for x,z in S['funnel-cap']['footprint']];n=len(points)
-  verts=[(x,y,s['baseY']) for x,y in points]+[(x,y,STACK) for x,y in roof]
-  faces=[tuple(reversed(range(n))),tuple(range(n,n*2))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
-  obj=mesh(s['name'],verts,faces,M[s['material']],col)
- else:obj=poly(s['name'],points,s['baseY'],s['baseY']+s['height'],M[s['material']],col)
+ col=COL['Flight deck'] if s['id'].startswith(('flight-','elevator')) else COL['Hangar and galleries'] if s['id'].startswith(('hangar','gallery','portal','aa-gallery')) else COL['Island']
+ obj=authored_structure(s,mesh,M,col)
  obj['nodeId']=s['id']+'.surface';obj['assemblyId']=s['id'];structure_objects[s['id']]=obj
  if s['id'].startswith('elevator'):
   # Preserve one independent lift datum per elevator for future flight operations.
   pivot=empty(s['id']+'.lift',(0,0,0),col);obj.parent=pivot
-# Three actual openings in the flight-deck slab; closed by independent platforms.
-flight_obj=structure_objects['flight-deck']
-for key,s in S.items():
- if not key.startswith('elevator'):continue
- points=[(-z,-x) for x,z in s['footprint']]
- cutter=poly('Elevator opening tool',points,FLIGHT-1,FLIGHT+1,None,COL['Flight deck'])
- bpy.context.view_layer.objects.active=flight_obj
- mod=flight_obj.modifiers.new('Opening '+key,'BOOLEAN');mod.operation='DIFFERENCE';mod.solver='EXACT';mod.object=cutter
- bpy.ops.object.modifier_apply(modifier=mod.name);bpy.data.objects.remove(cutter,do_unlink=True)
+# Openings and the crown are durable blueprint surfaces, shared with CPU hits.
 # Flight-deck plank surface. Geometry and colours are original, no reference textures.
 outline=[(-z,-x) for x,z in S['flight-deck']['footprint']]
 def span(y):
@@ -237,7 +190,7 @@ for x in range(-121,115,5):
 # include the crown instead of bridging it with a single flat polygon.
 bpy.context.view_layer.update()
 for obj in [*COL['Flight deck'].objects,*COL['Deck equipment'].objects]:
- if obj.type!='MESH':continue
+ if obj.type!='MESH' or obj.get('nodeId') in [id+'.surface' for id in ['flight-deck','elevator-forward','elevator-middle','elevator-aft']]:continue
  mat=obj.matrix_world.copy();inv=mat.inverted();bm=bmesh.new();bm.from_mesh(obj.data)
  ys=[(mat@v.co).y for v in bm.verts];lo,hi=min(ys),max(ys)
  for y in range(math.floor(lo)+1,math.ceil(hi)):
@@ -266,19 +219,16 @@ for side,y in [('port',10.1),('starboard',-10.1)]:
  col=COL['Hangar and galleries']
  gallery=FLIGHT-7.5*FT;opening=gallery-MAIN
  # Open hangar has three separated openings and solid machinery/uptake sections.
- for a,b in [(-90,-69),(-34,31),(67,75)]:box('Hangar '+side+' plating',((a+b)/2,y,MAIN+opening/2),(b-a,.15,opening),M['naval'],col)
+ # Major hangar walls and portal frames are rendered from blueprint structures.
  for a,b in [(-69,-34),(31,67)]:
-  for x in [a,a+5,b-5,b]:box('Open hangar portal',(x,y,MAIN+opening/2),(.25,.27,opening),M['naval'],col)
   box('Rolled hangar shutter',((a+b)/2,y,gallery-.36),(b-a,.24,.55),M['edge'],col)
   # Catwalk inside the open door retains a view through the ship.
   box('Hangar side walkway',((a+b)/2,y*.94,MAIN+.20),(b-a,1.0,.12),M['steel-deck'],col)
   railing([(a,y),(b,y)],MAIN,'Hangar',col)
- box('Gallery side',(-7.5,y,(FLIGHT-.3+gallery)/2),(166.4,.16,FLIGHT-.3-gallery),M['naval'],col)
  for x in range(-86,75,4):
   box('Gallery transverse beam',(x,0,FLIGHT-.46),(.13,23,.25),M['edge'],col)
  for a,b,yedge in [(-69,-34,14.2),(31,67,14.2),(-121,-109,13.1)]:
   yy=yedge if side=='port' else -yedge
-  box(side+' AA gallery',((a+b)/2,yy,FLIGHT-.80),(b-a,1.65,.23),M['naval'],col)
   railing([(a,yy+(1 if yy>0 else -1)*.75),(b,yy+(1 if yy>0 else -1)*.75)],FLIGHT-.68,'AA gallery',col)
  for x in range(-82,72,6):
   # Flared brackets beneath the flight-deck cantilever.
@@ -401,10 +351,7 @@ for id,x in [('forward',frame(75.5)),('aft',frame(109.5))]:
  for o in set(scene.objects)-before:o.parent=pivot;o['assemblyId']='crane-'+id
 # Boat racks and Carley floats. No aircraft parked on deck, to expose geometry.
 def boat(name,x,y,z,length,width):
- pts=[(-length/2,0),(-length*.37,-width*.43),(length*.25,-width/2),(length/2,0),(length*.25,width/2),(-length*.37,width*.43)]
- ob=poly(name,[(x+a,y+b) for a,b in pts],z,z+.7,M['naval'],COL['Deck equipment'])
- poly(name+' interior',[(x+a*.86,y+b*.75) for a,b in pts],z+.70,z+.74,M['dark'],COL['Deck equipment'])
- for a in [-.28,0,.25]:box('Boat thwart',(x+length*a,y,z+.79),(.19,width*.73,.07),M['canvas'],COL['Deck equipment'])
+ Fittings(dict(mesh=mesh,cyl=cyl,rod=rod,box=box),M,COL['Deck equipment']).boat(name,x,y,z,length,width,length>10)
 for side,sgn in [('port',1),('starboard',-1)]:
  for x,length in [(-79,10.7),(-45,8.5),(0,12.2),(14,9.1)]:
   y=sgn*11.55;boat(side+' boat',x,y,MAIN+.5,length,2.0)
@@ -476,6 +423,64 @@ outline=[(x*FT,(1/3+(z-1/3)*397/area)*FT) for x,z in outline]
 n=len(outline);verts=[(x,side*.26,z) for side in [-1,1] for x,z in outline]
 faces=[tuple(reversed(range(n))),tuple(range(n,n*2))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
 o=mesh('Single balanced rudder with horn clearance',verts,faces,M['antifouling'],COL['Underwater']);o.parent=rudder;o['assemblyId']='rudder'
+# March 1942 island photo 19-N-29696: pierced platform webs, external ladders,
+# uptake piping, rain hoods, gangways and crane winches. No later Bofors fit.
+fit=Fittings(dict(mesh=mesh,cyl=cyl,rod=rod,box=box),M,COL['Island'])
+for sign in [-1,1]:
+ y=IY+sign*2.55
+ for x in [frame(73),frame(85),frame(104)]:fit.door('Island watertight access',x,y,FLAG+.12,.72,1.8)
+ for x in [frame(90),frame(94),frame(99),frame(103)]:fit.vent('Island ventilation trunk',x,y,COMM+.62,1.15,1.1)
+ for x in [frame(75),frame(84)]:fit.stairs('Bridge exterior stair',(x-2.4,y,FLAG),(x+.7,y,NAV),.68)
+ fit.ladder('Funnel external ladder',(frame(96),IY+sign*2.48,ROOF),(frame(96),IY+sign*2.48,STACK),.64)
+ fit.ladder('Fighting top access',(MX-1,IY+sign*.9,ROOF),(MX-1,IY+sign*.9,TOP_FLOOR),.54)
+ for x in [frame(96)-1.65,frame(96)+1.65]:fit.knee('Searchlight gallery pierced knee',x,IY+sign*2.2,IY+sign*4.2,ROOF-.2,1.4)
+ for x in [frame(72),frame(75)]:fit.knee('Navigation wing pierced knee',x,IY+sign*2.1,IY+sign*5.0,NAV-.18,1.45)
+ # Rounded air intakes and narrow pipe lagging beneath the stack walkway.
+ for x in [frame(91),frame(98)]:
+  rod('Uptake service pipe',(x,y,FLAG+.2),(x,y,STACK-.7),.065,M['naval'],COL['Island'],vertices=10)
+  rod('Pipe elbow',(x,y,STACK-.7),(x+.45,y,STACK-.7),.065,M['naval'],COL['Island'],vertices=10)
+for x,z in [(frame(71.5),PILOT_ROOF),(frame(110.7),ROOF)]:
+ for sign in [-1,1]:
+  box('Director optical hood',(x+.3,IY+sign*1.0,z+1.25),(.65,.40,.50),M['naval'],COL['Island'])
+  box('Director sight aperture',(x+.64,IY+sign*1.0,z+1.25),(.02,.24,.28),M['glass'],COL['Island'])
+fit.col=COL['Hangar and galleries']
+for sign in [-1,1]:
+ # Deep deck-end supports are open structural framing. Keep visible air below.
+ for x in [87,93,99,105,111,-113,-119,-125]:
+  y=sign*6.2;z=FLIGHT-.4
+  fit.knee('Flight deck end cantilever',x,y,sign*10.8,z,3.0)
+  rod('Deck end crossbeam',(x,-10.8,z),(x,10.8,z),.11,M['naval'],COL['Hangar and galleries'],vertices=8)
+ for x in range(-84,74,8):fit.knee('Flight deck gallery web',x,sign*10.12,sign*13.5,FLIGHT-.36,1.65)
+ for a,b in [(-69,-34),(31,67)]:
+  for x in range(a+2,b,3):
+   # Raised rolled shutters retain separate vertical slats and guide tracks.
+   box('Shutter roll rib',(x,sign*10.29,FLIGHT-2.64),(.035,.055,.47),M['naval'],COL['Hangar and galleries'])
+  for x in [a,b]:
+   box('Hangar shutter guide',(x,sign*10.28,MAIN+2.6),(.13,.10,5.0),M['edge'],COL['Hangar and galleries'])
+ for x in [-82,-74,-29,-18,0,17,26,71]:fit.vent('Gallery louver',x,sign*10.24,FLIGHT-1.35,1.65,.80)
+ for x in [-77,-24,24,71]:fit.door('Hangar personnel door',x,sign*10.24,MAIN+.12,.8,1.9)
+fit.col=COL['Deck equipment']
+for sign in [-1,1]:
+ for x in [-117,-105,-85,-65]:
+  y=sign*10.7
+  fit.ring('Arresting cable return sheave',(x,y,FLIGHT-.28),.28,.065,'x',segments=18)
+  box('Arrestor sheave cover',(x,y,FLIGHT-.18),(.7,.35,.30),M['naval'],COL['Deck equipment'])
+ for x in [104,95,-109,-119]:fit.reel('Deck end mooring reel',x,sign*4.0,MAIN+.2,.42,1.2)
+ for x in [48,58,-51,-61]:
+  box('20 mm magazine locker',(x,sign*13.4,FLIGHT-.27),(.9,.42,.7),M['naval'],COL['Deck equipment'])
+  box('Magazine locker lid',(x,sign*13.4,FLIGHT+.10),(.96,.49,.07),M['roof'],COL['Deck equipment'])
+ for x in [-79,-45,0,14]:
+  for dx in [-2.4,2.4]:
+   fit.ring('Davit block',(x+dx,sign*11.55,MAIN+4.2),.12,.035,'y',segments=12)
+   rod('Boat fall',(x+dx,sign*11.55,MAIN+4.2),(x+dx,sign*11.55,MAIN+1.65),.021,M['edge'],COL['Deck equipment'],vertices=6)
+# Elevator roller tracks and lip seams follow the retained platform perimeter.
+for id in ['elevator-forward','elevator-middle','elevator-aft']:
+ s=S[id];pts=[(-z,-x) for x,z in s['footprint']]
+ for a,b in zip(pts,pts[1:]+pts[:1]):
+  rod('Elevator edge seam',(*a,FLIGHT+.045),(*b,FLIGHT+.045),.019,M['edge'],COL['Deck equipment'],vertices=6)
+  for i in range(3):
+   x=a[0]+(b[0]-a[0])*(i+.5)/3;y=a[1]+(b[1]-a[1])*(i+.5)/3
+   box('Elevator guide shoe',(x,y,FLIGHT-.35),(.16,.18,.5),M['edge'],COL['Deck equipment'])
 # Non-rendering gameplay volumes remain in the retained source, never the GLB.
 for kind in ['armor','modules','compartments','obstructions']:
  for v in D[kind]:

@@ -1,0 +1,329 @@
+{
+  "configuration": "USS Enterprise CV-6, June 1942, before 1943 refit",
+  "status": "historical reconstruction in progress",
+  "sources": [
+    {
+      "id": "cv6-contract-1934",
+      "title": "C&R contract drawings for aircraft carriers Nos. 5 and 6",
+      "creator": "Bureau of Construction and Repair, U.S. Navy",
+      "date": "1934-03 (individual sheet dates vary)",
+      "url": "https://archive.org/details/cv6ga1934",
+      "originalArchive": "https://catalog.archives.gov/id/175662092",
+      "type": "primary Navy drawings, digital scan",
+      "supports": [
+        "Molded offsets C&R 189522",
+        "Original body/lines and sheer",
+        "Contract island and deck arrangements",
+        "Midship and type sections, exterior side armor arrangement",
+        "Contract inboard profile and deck elevations",
+        "C&R 189525: flight-deck molded centerline 80 ft; camber 4 inches in 92 ft",
+        "C&R 189523: 4-inch external side armor tapering to 2½ inches below contract DWL"
+      ],
+      "limitations": [
+        "Contract configuration is not automatically the 1942 as-built ship.",
+        "Some arrangement sheets carry proposed alterations; inspect individual sheet dates.",
+        "Scan host requests local reference use and sharing the archive link instead of republication."
+      ],
+      "files": [
+        "cv6-1934-body-plan.jpg",
+        "cv6-1934-island.jpg",
+        "cv6-1934-outboard-profile.jpg",
+        "cv6-1934-lines-sheer.jpg",
+        "cv6-1934-flight-gallery.jpg",
+        "cv6-1934-midship-sections.jpg",
+        "cv6-1934-inboard-profile.jpg"
+      ],
+      "accessed": "2026-09-05",
+      "fileSha256": {
+        "cv6-1934-body-plan.jpg": "0b0a3b1a24b18ff99e25ab04a708081c7452c4d58bde7b26788c15427c4dbbcd",
+        "cv6-1934-island.jpg": "ca7d0704b37bc97be574359afd0275725776abc11808ea1b338ce6ae3d0ccc19",
+        "cv6-1934-outboard-profile.jpg": "2a90e797572b2e76f9714ffb1ce27ddfa9775228350e7783dc1a6035d6c9405a",
+        "cv6-1934-lines-sheer.jpg": "7728bf0dd0fde176057116e9982237df45fbbe5188bd1ebc66656511eda7495b",
+        "cv6-1934-flight-gallery.jpg": "1232ded8ca217daff1ba702a7b0d76557b42ddc8eb888f7179cc2aa3c73a539a",
+        "cv6-1934-midship-sections.jpg": "c58d3ce8406914873621c747cf9cac446aff4bc014667815466205b45f275a80",
+        "cv6-1934-inboard-profile.jpg": "e532eda99bf5580dc522baae87977aedfe38a4f3f0cea28e5ee97e46c8a52626"
+      },
+      "sheetDetails": {
+        "cv6-1934-midship-sections.jpg": {
+          "drawingNumber": "C&R 189523",
+          "drawnDate": "1934-03-02",
+          "basis": "Read directly from Newport News / C&R title block"
+        },
+        "cv6-1934-inboard-profile.jpg": {
+          "drawingNumber": "C&R 189525"
+        },
+        "cv6-1934-body-plan.jpg": {
+          "drawingNumber": "C&R 189522"
+        },
+        "cv6-1934-island.jpg": {
+          "drawingNumber": "C&R 189526"
+        }
+      },
+      "inspectionDerivatives": [
+        {
+          "file": "details/flight-deck-annotation.png",
+          "source": "cv6-1934-inboard-profile.jpg",
+          "cropPixels": [
+            2080,
+            2970,
+            2800,
+            3040
+          ],
+          "displayScale": 3,
+          "use": "Local annotation inspection; no geometry measurements taken from resized pixels",
+          "sha256": "ce10bcc0c8f4ff6bb5eea5c0039f71635fd8b57e696f1cf68c5b4f34b4ff2b68"
+        },
+        {
+          "file": "details/hull-offset-table.png",
+          "source": "cv6-1934-body-plan.jpg",
+          "cropPixels": [
+            2030,
+            2940,
+            4830,
+            4660
+          ],
+          "use": "Local transcription inspection",
+          "sha256": "8c7b9545aad7b9aa609f06fc62c7c73703a2b8d512507d1898086852aa7efb51"
+        },
+        {
+          "file": "details/midship-title-block.png",
+          "source": "cv6-1934-midship-sections.jpg",
+          "cropPixels": [
+            12600,
+            3650,
+            13550,
+            4150
+          ],
+          "use": "Title and individual sheet date verification",
+          "sha256": "092209a134f3cc728f9cb6601670ef02cf5140489f81399b968f39b0cb57207f"
+        }
+      ]
+    },
+    {
+      "id": "cv5-asbuilt-1940",
+      "title": "USS Yorktown (CV-5), Booklet of General Plans, corrected as built February 1940",
+      "creator": "Navy Yard, Puget Sound",
+      "date": "1940-02",
+      "url": "https://archive.org/details/cv5bogp1940",
+      "originalUrl": "https://maritime.org/doc/plans/cv5.pdf",
+      "downloadUrl": "https://ia800902.us.archive.org/0/items/cv5bogp1940/cv5bogp1940.pdf",
+      "type": "primary sister-ship Navy plans, digital scan",
+      "supports": [
+        "Perpendiculars, hull versus projected overall length",
+        "Main-deck versus waterline breadth",
+        "Deck/elevator arrangement and island centerline",
+        "Mast heights and internal class layout",
+        "Annotated island levels, funnel height and frame grid",
+        "Rudder axis 46 ft forward of AP, 397 sq ft area and annotated chord datums",
+        "Molded versus outside-plating design-waterline breadth",
+        "Plate 3: approximately frame 35–162 extent of exterior belt; local end profiles still need confirmation"
+      ],
+      "limitations": [
+        "CV-5 is class evidence; Enterprise-specific differences require CV-6 evidence."
+      ],
+      "files": [
+        "cv5-1940-general-plans.pdf",
+        "cv5-1940-data.jpg"
+      ],
+      "accessed": "2026-09-05",
+      "fileSha256": {
+        "cv5-1940-general-plans.pdf": "b0e4bc74e7261bcbad8b646a31cf62edfe56aea825c613042f59aa53c574396e",
+        "cv5-1940-data.jpg": "2dc6f71fa5e21318d7985e6859d2f4678864d4191ce054415a0869b3b592be6b"
+      }
+    },
+    {
+      "id": "cv6-danfs",
+      "title": "Enterprise VII (CV-6)",
+      "creator": "Naval History and Heritage Command",
+      "url": "https://www.history.navy.mil/research/histories/ship-histories/danfs/e/enterprise-cv-6-vii.html",
+      "type": "official Navy history",
+      "supports": [
+        "809 ft 6 in hull length",
+        "83 ft 1 in beam",
+        "Identity and chronology",
+        "10–26 March 1942 Pearl Harbor alterations installed thirty 20 mm guns",
+        "Ten boats removed during the March 1942 alterations; remaining inventory needs reconciliation"
+      ],
+      "limitations": [
+        "Header combines dimensions/conditions; does not supply exact Midway survey geometry."
+      ],
+      "accessed": "2026-09-05"
+    },
+    {
+      "id": "cv6-navsource-data",
+      "title": "Enterprise as-built specifications",
+      "creator": "NavSource",
+      "url": "https://www.navsource.net/archives/02/06.htm",
+      "type": "secondary reference index",
+      "supports": [
+        "802 × 86 ft flight deck",
+        "48 × 44 ft elevators",
+        "25 ft 11.5 in full-load draft",
+        "As-built armament overview"
+      ],
+      "limitations": [
+        "Individual facts require reconciliation with primary plans and dated CV-6 evidence."
+      ],
+      "accessed": "2026-09-05"
+    },
+    {
+      "id": "020694",
+      "title": "USS Enterprise 19-N-29691",
+      "creator": "U.S. Navy / National Archives",
+      "date": "1942-03",
+      "url": "https://www.navsource.net/archives/02/020694.jpg",
+      "context": "https://www.navsource.net/archives/02/06a.htm",
+      "type": "primary photograph reproduced in reference archive",
+      "supports": [
+        "Island forward, CXAM-1 and two forward quadruple 1.1-inch mounts"
+      ],
+      "limitations": [
+        "Perspective image: qualitative until camera and scale are matched."
+      ],
+      "files": [
+        "020694.jpg"
+      ],
+      "accessed": "2026-09-05",
+      "fileSha256": {
+        "020694.jpg": "1c41cb246352aa7d77c86360a363d16bcb89e91559a18847951021b5f684bddc"
+      }
+    },
+    {
+      "id": "020644",
+      "title": "USS Enterprise 19-N-29696",
+      "creator": "U.S. Navy / National Archives",
+      "date": "1942-03",
+      "url": "https://www.navsource.net/archives/02/020644.jpg",
+      "context": "https://www.navsource.net/archives/02/06a.htm",
+      "type": "primary photograph reproduced in reference archive",
+      "supports": [
+        "Starboard island, rectangular stack, cranes and guns"
+      ],
+      "limitations": [
+        "Perspective image: qualitative until camera and scale are matched."
+      ],
+      "files": [
+        "020644.jpg"
+      ],
+      "accessed": "2026-09-05",
+      "fileSha256": {
+        "020644.jpg": "fd33b5b215d154d62fab2d8be87a566569c9d6633121125b21021632c5d87155"
+      }
+    },
+    {
+      "id": "020643",
+      "title": "USS Enterprise caption revised to March–early April 1942",
+      "creator": "U.S. Navy / National Archives",
+      "date": "1942-03/04",
+      "url": "https://www.navsource.net/archives/02/020643.jpg",
+      "context": "https://www.navsource.net/archives/02/06a.htm",
+      "type": "primary photograph reproduced in reference archive",
+      "supports": [
+        "Starboard bow and foredeck supports"
+      ],
+      "limitations": [
+        "Perspective image: qualitative until camera and scale are matched."
+      ],
+      "files": [
+        "020643.jpg"
+      ],
+      "accessed": "2026-09-05",
+      "fileSha256": {
+        "020643.jpg": "5446d0507b22b9699feb46ad3051c00c7d8ae47db1529bd2e9bae9e0df0b4ac1"
+      }
+    },
+    {
+      "id": "020622",
+      "title": "USS Enterprise 80-G-66121",
+      "creator": "U.S. Navy / National Archives",
+      "date": "1942-05-26",
+      "url": "https://www.navsource.net/archives/02/020622.jpg",
+      "context": "https://www.navsource.net/archives/02/06a.htm",
+      "type": "primary photograph reproduced in reference archive",
+      "supports": [
+        "Pearl Harbor arrival, pre-Midway overall configuration"
+      ],
+      "limitations": [
+        "Perspective image: qualitative until camera and scale are matched."
+      ],
+      "files": [
+        "020622.jpg"
+      ],
+      "accessed": "2026-09-05",
+      "fileSha256": {
+        "020622.jpg": "adb5f6c88bb756489a8066207bd2a507ab9791dc4231a285666a66cb67201c23"
+      }
+    },
+    {
+      "id": "020619",
+      "title": "USS Enterprise US Navy photo from Pensacola",
+      "creator": "U.S. Navy / National Archives",
+      "date": "1942-06-04",
+      "url": "https://www.navsource.net/archives/02/020619.jpg",
+      "context": "https://www.navsource.net/archives/02/06a.htm",
+      "type": "primary photograph reproduced in reference archive",
+      "supports": [
+        "Midway underway silhouette"
+      ],
+      "limitations": [
+        "Perspective image: qualitative until camera and scale are matched."
+      ],
+      "files": [
+        "020619.jpg"
+      ],
+      "accessed": "2026-09-05",
+      "fileSha256": {
+        "020619.jpg": "3e163b58a6ae59ad28f606dd1a751785707535a3e3a276ddb875e3b42bfbd7a2"
+      }
+    },
+    {
+      "id": "020564a",
+      "title": "USS Enterprise US Navy photo indexed by NavSource",
+      "creator": "U.S. Navy / National Archives",
+      "date": "1942-06-04",
+      "url": "https://www.navsource.net/archives/02/020564a.jpg",
+      "context": "https://www.navsource.net/archives/02/06a.htm",
+      "type": "primary photograph reproduced in reference archive",
+      "supports": [
+        "Flight-deck planking and markings"
+      ],
+      "limitations": [
+        "Perspective image: qualitative until camera and scale are matched."
+      ],
+      "files": [
+        "020564a.jpg"
+      ],
+      "accessed": "2026-09-05",
+      "fileSha256": {
+        "020564a.jpg": "2ea1b71e8afea42ae2b33c48fdd639cc474d6edb462a030b2f1707588ab5ebf7"
+      }
+    },
+    {
+      "id": "cv5-propeller-secondary",
+      "title": "USS Yorktown class ship data",
+      "creator": "Task Force 17 archive",
+      "url": "https://www.oocities.org/~taskforce-17/Yorktown.html",
+      "type": "secondary class reference",
+      "supports": [
+        "12 ft 7 in three-bladed propeller diameter, used provisionally"
+      ],
+      "limitations": [
+        "Contains a contradictory rudder count. Do not use as authority for hull appendage arrangement.",
+        "Diameter, shaft exits, lateral spacing and pitch require primary CV-6 confirmation."
+      ],
+      "accessed": "2026-09-05"
+    },
+    {
+      "id": "fidelity-provisional-protection",
+      "title": "Original fidelity-01 protection assumptions",
+      "url": "#evidence",
+      "type": "authoring estimate, not a historical source",
+      "status": "Nominal hull/deckhouse plating and unsourced local gunhouse plate families are explicit gameplay assumptions.",
+      "limitations": [
+        "Baltimore 152.4 mm belt and 63.5 mm deck are provisional retained families; Ships' Data 1945 is dimensional/armament evidence, not their armor schedule.",
+        "Local plate extents, barbette sectors, transverse closures and many plate grades await primary schedules.",
+        "No blanket box is added over closed original gunhouse facets."
+      ]
+    }
+  ]
+}

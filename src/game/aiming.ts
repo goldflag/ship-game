@@ -5,6 +5,14 @@ import { add, localToWorld, normalize, scale, segmentBox, worldToLocal, type Pos
 
 const MAX_AIM_DISTANCE = 30000;
 
+/** Underwater rays need not meet the surface. A manual torpedo course ends at
+ * the weapon's run limit, so an empty underwater sight can still order a shot. */
+export function torpedoCourseAim(point: Vec3, ship: { x: number; z: number }, rangeM: number): Vec3 {
+  const dx = point[0] - ship.x, dz = point[2] - ship.z, range = Math.hypot(dx, dz);
+  const distance = Math.min(range, rangeM * .98);
+  return range > 0 ? [ship.x + dx / range * distance, point[1], ship.z + dz / range * distance] : point;
+}
+
 /** CPU geometry only: the rendered ocean never chooses a gameplay aim point. */
 type AimTarget = { pose: Pose; armor: ShipDefinition['armor']; definition?: ShipDefinition; trains?: number[] };
 export function sightAim(origin: Vec3, direction: Vec3, target?: AimTarget | AimTarget[]): Vec3 {

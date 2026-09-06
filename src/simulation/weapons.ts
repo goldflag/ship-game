@@ -8,7 +8,7 @@ export interface MountState {
   id: string; train: number; elevation: number; reload: number; ammo: number; hp: number; recoil: number;
   /** Total rounds include the HE subset; rounds are consumed when fired. */
   heAmmo: number; loaded: Ammunition;
-  status: 'ready' | 'reloading' | 'turning' | 'out-of-range' | 'blocked' | 'out-of-arc' | 'empty' | 'disabled';
+  status: 'ready' | 'reloading' | 'turning' | 'out-of-range' | 'blocked' | 'out-of-arc' | 'empty' | 'disabled' | 'submerged';
   aimCache?: { time: number; train: number; elevation: number; point: Vec3 };
   leadCache?: { time: number; point: Vec3 };
 }
@@ -60,6 +60,7 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
   state.recoil = Math.max(0, state.recoil - dt / 1.4);
   if (state.hp <= 0) { state.status = 'disabled'; return false; }
   if (availableAmmunition(state) < (m.weapon.barrelCount ?? 2)) { state.status = 'empty'; return false; }
+  if ((definition.submarine && pose.y < -.5) || muzzleWorld(m, state, 0, pose)[1] <= 0) { state.status = 'submerged'; return false; }
   // Warm-start from the previous desired muzzle and flight time. Reacquisition
   // still converges in three iterations; continuous tracking needs only one.
   // Heading and inherited velocity are recomputed each tick, even for a cached
