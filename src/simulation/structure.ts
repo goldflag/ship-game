@@ -54,7 +54,17 @@ export function structuralSurfaces(def:ShipDefinition):StructuralSurface[] {
   const triangles:[number,number,number][]=[];
   for(let s=0;s<sections.length-1;s++)for(let j=0;j<n;j++){
     const a=s*n+j,b=s*n+(j+1)%n,c=(s+1)*n+(j+1)%n,d=(s+1)*n+j;
-    triangles.push([a,b,c],[a,c,d]);
+    // A recurved stem can have a zero-breadth interval above its bulb.
+    // Opposite coincident faces there are air, not a centerline steel sheet.
+    const halves=j>=sections[0].points.length?[[a,b,d],[b,c,d]]:[[a,b,c],[a,c,d]];
+    for(const ids of halves as [number,number,number][])
+      if(ids.some(i=>Math.abs(vertices[i][0])>1e-7))triangles.push(ids);
+  }
+  // A broad transom is an exterior face too. Pointed ends naturally reduce to
+  // zero-area caps; ear clipping drops their collapsed/collinear vertices.
+  for(const section of [0,sections.length-1]) {
+    const offset=section*n,points=vertices.slice(offset,offset+n).map(v=>[v[0],v[1]] as [number,number]);
+    for(const [a,b,c] of cap(points))triangles.push(section===0?[offset+a,offset+b,offset+c]:[offset+c,offset+b,offset+a]);
   }
   body('hull','Hull shell · bow to stern',{vertices,triangles},plating.hullMm,true);
   for(const s of def.structures??[]) {
@@ -97,5 +107,5 @@ export function insideHull(point:Vec3,def:ShipDefinition):boolean {
     const [wa,ya]=points[i],[wb,yb]=points[i+1];
     if(point[1]>=ya-1e-6&&point[1]<=yb+1e-6)width=Math.max(width,Math.abs(yb-ya)<1e-8?Math.max(wa,wb):wa+(wb-wa)*(point[1]-ya)/(yb-ya));
   }
-  return Math.abs(point[0])<=width+1e-6;
+  return width>1e-7&&Math.abs(point[0])<=width+1e-6;
 }

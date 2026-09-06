@@ -182,6 +182,37 @@
       "limitations": [
         "Photograph is not a measurable reproduction of the complete drawing; not used to claim exact bridge dimensions."
       ]
+    },
+    {
+      "id": "fidelity-provisional-protection",
+      "title": "Original fidelity-01 protection assumptions",
+      "url": "#evidence",
+      "type": "authoring estimate, not a historical source",
+      "status": "Nominal hull/deckhouse plating and unsourced local gunhouse plate families are explicit gameplay assumptions.",
+      "limitations": [
+        "Baltimore 152.4 mm belt and 63.5 mm deck are provisional retained families; Ships' Data 1945 is dimensional/armament evidence, not their armor schedule.",
+        "Local plate extents, barbette sectors, transverse closures and many plate grades await primary schedules.",
+        "No blanket box is added over closed original gunhouse facets."
+      ]
+    },
+    {
+      "id": "usni-design-1953",
+      "title": "Design and Construction of the Yamato and Musashi",
+      "author": "Kitaro Matsumoto and Masataka Chihaya, former Imperial Japanese Navy",
+      "date": "1953-10",
+      "url": "https://www.usni.org/magazines/proceedings/1953/october/design-and-construction-yamato-and-musashi",
+      "type": "first-person design/construction account",
+      "supports": [
+        "200 mm protective deck over machinery",
+        "410 mm side armor; 560 mm barbette family",
+        "Four turbine engines; protected stern boat hangars"
+      ],
+      "limitations": [
+        "Retrospective account has its own errors and conflicting loading figures.",
+        "Does not establish all gunhouse faces, barbette sectors, plate extents or compartment boundaries.",
+        "Our 560 mm full barbette cylinder and 410 mm transverse closures are conservative gameplay approximations, not a full schedule."
+      ],
+      "accessed": "2026-09-05"
     }
   ]
 }

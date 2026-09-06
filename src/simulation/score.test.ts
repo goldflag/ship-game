@@ -9,7 +9,7 @@ const helm = { throttle: 0, rudder: 0 };
 const intent = { aim: [0, 0, -5000] as [number, number, number], fire: false, battery: 'main' as const };
 function fixture() {
   // One thin hull surface isolates actual hull loss from the historical preset's layers.
-  const definition: ShipDefinition = { ...shipPreset('baltimore'), mounts: [], modules: [],
+  const definition: ShipDefinition = { ...shipPreset('baltimore'), structuralPlating: undefined, mounts: [], modules: [],
     armor: [{ id: 'hull', name: 'Hull', center: [0, 0, 0], size: [20, 10, 100], thicknessMm: 1 }] };
   const sim = new CombatSimulation(definition, { friendlyBots: [definition], enemies: [definition, definition] });
   sim.actors.filter(a => a !== sim.player).forEach(a => a.controller = 'idle');

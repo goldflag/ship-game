@@ -4,6 +4,9 @@ import { CombatSimulation } from './combat';
 import { BATTLE_SPAWN_DISTANCE, MIN_BATTLE_SPAWN_DISTANCE, MAX_BATTLE_SPAWN_DISTANCE, MAX_TEAM_SHIPS, validateBattleSetup } from './battle';
 import { botTarget, clearFiringLane } from './bots';
 import { localToWorld } from './geometry';
+import { compileShip } from '../ships/blueprint';
+import legacyYamato from '../../assets/ships/yamato/reports/fidelity-01/before/blueprint.json';
+import catalog from '../../assets/parts/guns.json';
 
 const stop = { throttle: 0, rudder: 0 };
 const intent = { aim: [0, .5, -5000] as [number, number, number], fire: false, battery: 'main' as const };
@@ -12,8 +15,10 @@ const fleet = () => new CombatSimulation(shipPreset('baltimore'), {
 });
 
 for (const spawnDistance of [MIN_BATTLE_SPAWN_DISTANCE, BATTLE_SPAWN_DISTANCE]) {
-  test(`Yamato survives Bismarck's opening salvo at ${spawnDistance} m with inspectable magazine damage`, () => {
-    const sim = new CombatSimulation(shipPreset('yamato'), {
+  test(`legacy Yamato magazine-damage regression survives opening salvo at ${spawnDistance} m`, () => {
+    // Freeze the deliberately exposed magazine geometry that reproduced the
+    // damage-budget bug. Current historical layout must not require explosions.
+    const sim = new CombatSimulation(compileShip(legacyYamato,catalog), {
       friendlyBots: [], enemies: [shipPreset('bismarck')], spawnDistance,
     });
     // Exercise deployed bot aiming, shell flight, armor, magazines and flooding together.
@@ -30,6 +35,18 @@ for (const spawnDistance of [MIN_BATTLE_SPAWN_DISTANCE, BATTLE_SPAWN_DISTANCE]) 
     expect(sim.result).toBe('active');
     expect(sim.player.damage.compartments.some(c => c.waterM3 > 0)).toBe(true);
     expect(sim.player.mounts.filter(m => m.status === 'disabled').length).toBeGreaterThanOrEqual(2);
+  });
+  test(`current Yamato survives a damaging opening salvo at ${spawnDistance} m`,()=>{
+    const sim=new CombatSimulation(shipPreset('yamato'),{friendlyBots:[],enemies:[shipPreset('bismarck')],spawnDistance});
+    for(let tick=0;tick<600;tick++)sim.step(stop,intent);
+    expect(sim.events.some(e=>e.kind==='penetration'&&e.shipId==='player')).toBe(true);
+    expect(sim.player.damage.integrity).toBeGreaterThan(sim.player.damage.maxIntegrity/2);
+    expect(sim.player.damage.integrity).toBeLessThan(sim.player.damage.maxIntegrity);
+    expect(sim.player.damage.sunk).toBe(false);
+    expect(sim.result).toBe('active');
+    // These bow entries are above the sea and stop at the new barbette. They
+    // damage the hull without requiring a fictitious flooded magazine.
+    expect(sim.player.damage.compartments.every(c=>c.waterM3===0)).toBe(true);
   });
 }
 
