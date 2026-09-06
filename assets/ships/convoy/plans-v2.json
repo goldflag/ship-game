@@ -1,0 +1,39 @@
+{
+  "flower-corvette": {
+    "name": "Flower Corvette", "configuration": "Flower class, HMCS Cobalt 1941 short-forecastle arrangement; representative early-war armament",
+    "length": 62.484, "beam": 10.0584, "draft": 3.5052, "massKg": 1170000,
+    "evidence": "Independently lofted against Port Arthur Shipbuilding general arrangement dated 19 November 1941, sheets 1–2: short forecastle, two masts, raised 4-inch platform, narrow wheelhouse/open compass deck, tall circular funnel, boat platforms and aft casing. Transverse sections, loading, camouflage and small fittings remain reconstructed. Not a later extended-forecastle Sackville.",
+    "registration": {"source":"references/plans/cobalt-1941-builders.pdf", "raster":"cobalt-sheet-1.png", "rasterWidth":1800,"sternX":121,"bowX":1678,"baselineY":622,"waterlineY":534.7,"planCenterY":846,"pixelsPerMeter":24.918,"note":"Uniform scale from 205 ft overall, checked against 22 inch frame spacing and 33 ft beam. Scan has folds and slight skew; landmark tolerance 0.3 m. Cover photo is 1944, NOT the 1941 configuration."},
+    "landmarks": {"forecastleBreakX":12.95,"foreGunX":16.8,"foreGunDeckZ":5.4,"bridgeFrontX":10.25,"bridgeBackX":5.45,"compassDeckZ":6.8,"funnelX":-1.9,"funnelTopZ":11.65,"foremastX":12.1,"foremastTopZ":19.0,"mainmastX":-9.8,"mainmastTopZ":17.8,"aftGunX":-16.8},
+    "breadth":[[0,0.34],[0.008,0.43],[0.02,0.53],[0.04,0.64],[0.075,0.77],[0.12,0.87],[0.2,0.96],[0.3,0.997],[0.4,1],[0.55,1],[0.65,0.995],[0.70,0.96],[0.75,0.90],[0.80,0.81],[0.85,0.68],[0.90,0.50],[0.95,0.275],[0.98,0.115],[1,0]],
+    "deck":[[0,4.80],[0.06,4.05],[0.15,3.28],[0.27,2.63],[0.45,2.36],[0.65,2.44],[0.7068,2.6],[0.707,4.66],[0.82,4.73],[1,4.88]],
+    "keel":[[0,4.73],[0.012,3.1],[0.027,1.35],[0.045,0.75],[0.075,0.05],[0.091,-0.35],[0.098,-0.75],[0.104,-2.30],[0.16,-2.60],[0.20,-3.5052],[0.60,-3.5052],[0.80,-3.30],[0.90,-2.55],[0.95,-1.73],[0.978,-0.5],[0.99,1.25],[1,4.82]]
+  },
+  "liberty-cargo": {
+    "name":"Liberty Cargo", "configuration":"EC2-S-C1 general cargo design; 1941 USMC plans with representative 1943 defensive armament",
+    "length":134.5692,"beam":17.32915,"draft":8.4328,"massKg":14478000,
+    "evidence":"Original reconstruction from US Maritime Commission / Gibbs & Cox inboard profile and hold plan 312-S1-3-2 (30 August 1941), and St Johns River as-built midship section (28 August 1943), retained by Lloyd's Register for Thomas Sully. Five holds, amidship machinery, three cargo masts, flat floor and tight bilge follow the plans. End-section interpolation and small fittings remain estimates.",
+    "registration":{"source":"references/plans/liberty-thomas-sully-builders.pdf","raster":"liberty-sheet-1.png","rasterWidth":1800,"sternX":40,"bowX":1175,"pixelsPerMeter":8.434,"baselineY":357,"waterlineY":285.87,"note":"Scan is faint and slightly skewed. LOA 441 ft 6 in; molded beam 56 ft 10.25 in; molded depth 37 ft 4 in. The original midship section controls the flat bottom and bilge, not the earlier shared rounded hull."},
+    "breadth":[[0,0],[0.01,0.23],[0.025,0.40],[0.05,0.57],[0.10,0.76],[0.16,0.89],[0.24,0.97],[0.32,1],[0.60,1],[0.70,0.96],[0.80,0.83],[0.88,0.63],[0.94,0.38],[0.975,0.16],[1,0]],
+    "deck":[[0,5.35],[0.08,4.25],[0.18,3.42],[0.35,2.9464],[0.58,2.9464],[0.74,3.4],[0.88,4.5],[1,5.85]],
+    "keel":[[0,5.30],[0.008,2.0],[0.02,-0.4],[0.038,-2.2],[0.062,-3.0],[0.079,-7.1],[0.12,-8.4328],[0.80,-8.4328],[0.90,-8.0],[0.95,-7.0],[0.976,-3.5],[0.986,0],[1,5.8]]
+  },
+  "liberty-collier": {
+    "name":"Liberty Collier", "configuration":"EC2-S-AW1 machinery-aft collier, Delta Shipbuilding 1945; representative armed fit",
+    "length":135.2296,"beam":17.32915,"draft":8.7196,"massKg":14967000,
+    "evidence":"Liberty hull family with the documented EC2-S-AW1 structural conversion: aft machinery and 95 ft 10.5 in poop, detached navigation bridge, five holds with ten hinged steel hatch covers, hatch-lifting posts instead of cargo derricks. Based on ABS Workhorse of the Fleet p105, reproduced outboard profile and dated Delta Jagger Seam launch photograph. No complete original collier GA or lines obtained; hatch/deckhouse placements remain measured reconstruction, not builder-certified.",
+    "registration":{"source":"references/plans/collier-arrangement-skipshistorie-2024.pdf","page":3,"note":"Outboard profile is Karsten-Kunibert Krueger-Kopiske's postwar Mystic interpretation, not an original builder plan. Cross-check structure against the Delta Shipbuilding photograph dated 18 December 1944 and ABS history. Omit postwar M funnel logo. Length increase and loaded draft have conflicting published bases; use 443 ft 8 in / 28 ft 7.3 in as a representative load, not a certified Jagger Seam displacement."},
+    "breadth":[[0,0],[0.01,0.23],[0.025,0.40],[0.05,0.57],[0.10,0.76],[0.16,0.89],[0.24,0.97],[0.32,1],[0.60,1],[0.70,0.96],[0.80,0.83],[0.88,0.63],[0.94,0.38],[0.975,0.16],[1,0]],
+    "deck":[[0,5.1],[0.08,4],[0.18,3.15],[0.35,2.66],[0.58,2.66],[0.74,3.12],[0.88,4.21],[1,5.56]],
+    "keel":[[0,5.05],[0.008,1.71],[0.02,-0.69],[0.038,-2.49],[0.062,-3.29],[0.079,-7.39],[0.12,-8.7196],[0.80,-8.7196],[0.90,-8.29],[0.95,-7.29],[0.976,-3.79],[0.986,-0.29],[1,5.51]]
+  },
+  "victory-cargo": {
+    "name":"Victory Cargo", "configuration":"VC2-S-AP2 Victory cargo ship, 1945 arrangement; 6000 shp geared steam turbine",
+    "length":138.7602,"beam":18.8976,"draft":8.6868,"massKg":15500000,
+    "evidence":"Independently reconstructed from National Park Service HAER CA-345 Winthrop Victory sheets 2, 3 and 6: 455 ft 3 in overall, 62 ft beam, raised forecastle, five hatches, paired kingposts, turbine machinery, superstructure and hull lines. HAER drawings were made in 2010 from historical drawings and photographs; loading and fine equipment remain estimates, not a claim to match the laid-up vessel in 2010.",
+    "registration":{"source":"references/plans/winthrop-victory-haer-2010.pdf","raster":"victory-sheet-2.png","rasterWidth":1800,"sternX":194,"bowX":1617,"pixelsPerMeter":10.255,"baselineY":494,"waterlineY":405,"note":"Sheet 6 body and half-breadth plans guide separate Victory end sections; 28 ft 6 in load datum. This is a different class, not relabeled Liberty cargo."},
+    "breadth":[[0,0],[0.008,0.18],[0.02,0.36],[0.045,0.55],[0.08,0.72],[0.13,0.86],[0.20,0.95],[0.28,0.988],[0.34,1],[0.63,1],[0.72,0.96],[0.80,0.84],[0.87,0.66],[0.93,0.44],[0.97,0.24],[0.989,0.10],[1,0]],
+    "deck":[[0,5.45],[0.07,5.12],[0.18,4.25],[0.32,3.55],[0.57,3.35],[0.76,3.55],[0.79,4.2],[0.797,6.25],[0.94,7.55],[1,8.4]],
+    "keel":[[0,5.39],[0.007,1.6],[0.02,0.15],[0.038,-1.1],[0.058,-2.5],[0.075,-8.6868],[0.83,-8.6868],[0.91,-8.3],[0.965,-7.5],[0.975,-4.3],[0.987,1.3],[1,8.35]]
+  }
+}

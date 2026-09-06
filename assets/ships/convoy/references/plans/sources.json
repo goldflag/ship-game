@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "accessed": "2026-09-06",
+  "usage": "Retained local research copies. No reference raster or PDF enters runtime textures or geometry. Source rights and evidential limitations are recorded separately.",
+  "sources": [
+    {
+      "id": "cobalt-builder-ga",
+      "file": "cobalt-1941-builders.pdf",
+      "title": "Port Arthur Shipbuilding Co. — Cobalt general arrangement, 19 November 1941",
+      "url": "https://archive.org/details/k124bogp1941v2",
+      "download": "https://archive.org/download/k124bogp1941v2/k124bogp1941v2.pdf",
+      "original": "https://maritime.org/doc/plans/k124.pdf",
+      "sha256": "bb3dc4695e5f92b60719cec25b6a0e46887f768b13d9aeb440d39dcfd949f51c",
+      "pages": "PDF pages 2–3 (zero-based 1–2): profile/forecastle/bridge, upper/lower decks and hold",
+      "supports": "Builder-dated short forecastle, 205 ft LOA, 33 ft beam, 22-inch frame spacing, gun platforms, bridge, two masts, funnel and deck arrangement.",
+      "limits": "Cover photograph depicts 1944, not the 1941 drawing. No body/offset plan. Dated weapon inventory and paint unresolved.",
+      "provenance": "Great Lakes Marine Archives / Historic Naval Ships Association, Internet Archive mirror. Original scan retained; reference only, not a texture.",
+      "accessed": "2026-09-06"
+    },
+    {
+      "id": "liberty-usmc-ga",
+      "file": "liberty-thomas-sully-builders.pdf",
+      "title": "USMC/Gibbs & Cox / St Johns River Shipbuilding — Thomas Sully plans, 1941–43",
+      "url": "https://archive.org/details/marcom1205ga1943",
+      "download": "https://archive.org/download/marcom1205ga1943/marcom1205ga1943.pdf",
+      "sha256": "df8181d924561ddef060132d976b049af9eb45473915b16161b712d9c52d3552",
+      "pages": "PDF page 2: inboard profile and holds, 312-S1-3-2, 30 August 1941; page 3: midship section, 28 August 1943; pages 4–5: stern frame/rudder",
+      "supports": "441 ft 6 in LOA, molded beam 56 ft 10.25 in, molded depth 37 ft 4 in, five holds, amidship machinery, flat merchant floor and tight bilge.",
+      "limits": "Faint/creased scans and a postwar cover photo; general armed fit is not certified by this package.",
+      "provenance": "Lloyd's Register Foundation survey archive scans mirrored in Internet Archive Ship Design Drawings. Original documents retained for reference, no mesh/texture reuse.",
+      "accessed": "2026-09-06"
+    },
+    {
+      "id": "victory-haer",
+      "file": "winthrop-victory-haer-2010.pdf",
+      "title": "National Park Service — HAER CA-345, Winthrop Victory drawings, 2010",
+      "url": "https://www.loc.gov/item/ca3462/",
+      "download": "https://archive.org/download/mcv790haer2010/mcv790haer2010.pdf",
+      "mirror": "https://archive.org/details/mcv790haer2010",
+      "sha256": "a45ae95a4846e2b974272f169c0651ff5e6444267e368974d85e43e0e367e8c0",
+      "pages": "HAER sheets 2, 3 and 6 (zero-based PDF pages 2, 3 and 6): profile, decks, sheer/half-breadth/body plan",
+      "supports": "455 ft 3 in × 62 ft Victory hull and distinct forecastle, cargo kingposts, deckhouses and hull lines.",
+      "limits": "Drawn in 2010 from historical drawings/photos; not an original 1945 builder package and not a certification of the laid-up 2010 fit.",
+      "provenance": "US National Park Service / Library of Congress HAER, mirrored by Internet Archive. Reference drawings only.",
+      "accessed": "2026-09-06"
+    },
+    {
+      "id": "abs-collier",
+      "file": "abs-workhorse-of-the-fleet-2019.pdf",
+      "title": "American Bureau of Shipping — Workhorse of the Fleet, 2019",
+      "url": "https://ww2.eagle.org/content/dam/eagle/publications/company-information/workhorse-of-the-fleet-2019.pdf",
+      "sha256": "c26a60d0639fe95d137a2adae085a858118c8402a6c1434cab7dcb0aca578515",
+      "pages": "Printed p.105 / PDF page 114 (zero-based 113): collier; printed p.104: disguised tanker",
+      "supports": "EC2-S-AW1 aft machinery, boiler platform 21 ft above baseline, 95 ft 10.5 in poop, five holds/two hinged steel hatch lids each. Tanker intentionally resembles cargo Liberty.",
+      "limits": "Classification society history, not a complete collier GA/offset plan. Published book rights retained by publisher.",
+      "provenance": "Downloaded from ABS official publication server; local reference copy only, not distributed as game content.",
+      "accessed": "2026-09-06"
+    },
+    {
+      "id": "collier-profile-photo",
+      "file": "collier-arrangement-skipshistorie-2024.pdf",
+      "title": "Norsk Skipsfartshistorisk Selskap Sør — Nr. 14/2024, special Liberty types",
+      "url": "https://skipshistorie.net/NSS%C3%98%20snutter/Nr.%2014-2024.pdf",
+      "sha256": "8e7d8c7d952cfe3c2075a293690379b1439d97d16bcd1f41d652174ca5267104",
+      "pages": "Page 3 / zero-based PDF page 2",
+      "supports": "Reproduced postwar collier profile, wartime-gray Jagger Seam underway and primary Delta Shipbuilding launch photo dated 18 December 1944, MCE 2816 / Delta 148.",
+      "limits": "Profile is Karsten-Kunibert Krueger-Kopiske's postwar Mystic interpretation, not an original builder drawing. Preserve provenance; omit postwar logo. Do not use interpretation to claim exact 1945 armament.",
+      "provenance": "Newsletter reproduction of drawing and historical photographs. Underlying image rights not independently established; reference only.",
+      "accessed": "2026-09-06"
+    }
+  ]
+}

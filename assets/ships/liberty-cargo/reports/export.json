@@ -1,0 +1,124 @@
+{
+  "contentHash": "dc7cf7f609078887adae273a39e5470c91fd27f21742ebae1d4c188ed66d1794",
+  "hullBounds": [
+    [
+      -8.664576530456543,
+      -8.43280029296875,
+      -67.28459930419922
+    ],
+    [
+      8.664575576782227,
+      5.849999904632568,
+      67.28459930419922
+    ]
+  ],
+  "mounts": [
+    {
+      "id": "aft-5in",
+      "measuredPivot": [
+        -0.000004620471827365691,
+        7.128288269042969,
+        61.20000076293945
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "fore-3in",
+      "measuredPivot": [
+        0.000004663298568630125,
+        6.68874979019165,
+        -61.76726150512695
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bow-aa-starboard",
+      "measuredPivot": [
+        4.600004196166992,
+        5.942500114440918,
+        -54.635093688964844
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bridge-aa-starboard-1",
+      "measuredPivot": [
+        5.90000057220459,
+        10.776399612426758,
+        -7.749999523162842
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bridge-aa-starboard-2",
+      "measuredPivot": [
+        5.90000057220459,
+        10.776399612426758,
+        -3.84999942779541
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "aft-aa-starboard",
+      "measuredPivot": [
+        5.399996280670166,
+        6.363789081573486,
+        53.5
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bow-aa-port",
+      "measuredPivot": [
+        -4.5999956130981445,
+        5.942500114440918,
+        -54.635093688964844
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bridge-aa-port-1",
+      "measuredPivot": [
+        -5.899999618530273,
+        10.776399612426758,
+        -7.750000476837158
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bridge-aa-port-2",
+      "measuredPivot": [
+        -5.899999618530273,
+        10.776399612426758,
+        -3.8500003814697266
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "aft-aa-port",
+      "measuredPivot": [
+        -5.400003910064697,
+        6.363789081573486,
+        53.5
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    }
+  ],
+  "torpedoTubes": [],
+  "meshes": 81,
+  "primitives": 171,
+  "triangles": 95100,
+  "bytes": 4059692,
+  "result": "passed",
+  "historicalAccuracy": "not certified; see reference register and discrepancy report"
+}

@@ -1,0 +1,20 @@
+{
+  "configuration": "EC2-S-C1 general cargo design; 1941 USMC plans with representative 1943 defensive armament",
+  "sources": [
+    {
+      "id": "liberty-usmc-ga",
+      "file": "../../convoy/references/plans/liberty-thomas-sully-builders.pdf",
+      "title": "USMC/Gibbs & Cox / St Johns River Shipbuilding — Thomas Sully plans, 1941–43",
+      "url": "https://archive.org/details/marcom1205ga1943",
+      "download": "https://archive.org/download/marcom1205ga1943/marcom1205ga1943.pdf",
+      "sha256": "df8181d924561ddef060132d976b049af9eb45473915b16161b712d9c52d3552",
+      "pages": "PDF page 2: inboard profile and holds, 312-S1-3-2, 30 August 1941; page 3: midship section, 28 August 1943; pages 4–5: stern frame/rudder",
+      "supports": "441 ft 6 in LOA, molded beam 56 ft 10.25 in, molded depth 37 ft 4 in, five holds, amidship machinery, flat merchant floor and tight bilge.",
+      "limits": "Faint/creased scans and a postwar cover photo; general armed fit is not certified by this package.",
+      "provenance": "Lloyd's Register Foundation survey archive scans mirrored in Internet Archive Ship Design Drawings. Original documents retained for reference, no mesh/texture reuse.",
+      "accessed": "2026-09-06"
+    }
+  ],
+  "measurements": "../../convoy/plans-v2.json",
+  "independence": "Only independently authored blueprint, versioned original recipe and original component catalog feed the model. Scans are comparison references; no third-party mesh, texture or GameModels3D asset is used."
+}
