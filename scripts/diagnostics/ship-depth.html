@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Distant ship depth · runtime review</title>
+<style>
+  body{margin:0;background:#132d38;color:#edf1ec;font:14px sans-serif}
+  #scene{width:1280px;height:720px}canvas{display:block}
+  #status{position:fixed;left:16px;top:16px;background:#132d38;padding:8px}
+</style>
+<div id="scene"></div><output id="status">Preparing depth review…</output>
+<script type="module">
+import * as THREE from 'three/webgpu';
+import { Game } from '/src/game/Game.ts';
+
+// Real game renderer, model, water and post-processing, with a stationary target.
+// ?standard=1 preserves the old depth configuration for an A/B comparison.
+const params = new URLSearchParams(location.search);
+// Exercise Three.js's real WebGL fallback with ?webgl=1.
+if(params.has('webgl') && navigator.gpu) navigator.gpu.requestAdapter=async()=>null;
+const status = document.querySelector('#status');
+let ready;
+const loaded = new Promise(resolve => ready = resolve);
+const game = new Game(document.querySelector('#scene'), {quality:'medium',sea:'Fair',resolution:1}, {
+  progress:label=>status.textContent=label,ready,telemetry:()=>{},pause:()=>{},hud:()=>{},
+  error:message=>{status.textContent=message;window.reviewError=message;},
+});
+if (params.has('standard')) {
+  game.renderer.reversedDepthBuffer=false;
+  game.renderer.backend.parameters.reversedDepthBuffer=false;
+}
+game.start(); await loaded;
+game.setInPort(false); game.setPaused(true);
+// Manual frames work even when the diagnostic browser tab is in the background.
+game.scheduleFrame=()=>{}; cancelAnimationFrame(game.raf); await game.frameTask;
+game.rig.update=()=>{}; game.rig.binoculars=true;
+function prepare(range=5000,near=.5) {
+  Object.assign(game.simulation.target.motion,{x:range,z:0,heading:0});
+  game.targetView.snap(); game.targetView.root.visible=true;
+  game.camera.near=near;
+  game.camera.fov=2*Math.atan(Math.tan(52*Math.PI/360)/24)*180/Math.PI;
+  game.camera.position.set(0,29,0); game.camera.lookAt(range,14,0);
+  game.camera.updateProjectionMatrix(); game.camera.updateMatrixWorld();
+  return {range,near,reversed:game.renderer.reversedDepthBuffer};
+}
+async function still() {
+  // PassNode caches once per renderer animation frame. Explicitly advance that
+  // clock for background-tab captures so a camera change cannot return old pixels.
+  for(let i=0;i<2;i++) {
+    game.renderer._nodes.nodeFrame.update();
+    await game.frame(performance.now());
+  }
+  // WebGL may discard the default framebuffer after an async frame finishes.
+  // Present the prepared post-process textures and capture synchronously.
+  game.pipeline.render();
+  return game.renderer.domElement.toDataURL('image/png');
+}
+async function checkDepth() {
+  // A foreground fitting must occlude a backing plate 1 cm behind it, at all
+  // battle ranges and in either draw order. Use the production scene pass's
+  // depth attachment format, not a specially improved test-only format.
+  const renderer=game.renderer, scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(game.camera.fov,1,.5,60000);
+  const target=new THREE.RenderTarget(16,16);
+  target.depthTexture=new THREE.DepthTexture(16,16,game.scenePass.renderTarget.depthTexture.type);
+  const geometry=new THREE.PlaneGeometry(2000,2000);
+  const front=new THREE.Mesh(geometry,new THREE.MeshBasicMaterial({color:0x00ff00,toneMapped:false}));
+  const back=new THREE.Mesh(geometry,new THREE.MeshBasicMaterial({color:0xff0000,toneMapped:false}));
+  scene.add(front,back);
+  const previous=renderer.getRenderTarget(),results=[];
+  try {
+    renderer.setRenderTarget(target);
+    for(const range of [1000,5000,10000,20000]) for(const order of [0,1]) {
+      front.position.z=-range; back.position.z=-range-.01;
+      front.renderOrder=order; back.renderOrder=1-order;
+      renderer.render(scene,camera);
+      const pixels=await renderer.readRenderTargetPixelsAsync(target,8,8,1,1);
+      results.push({range,order,pass:pixels[1]>200&&pixels[0]<20,pixel:Array.from(pixels)});
+    }
+  } finally {
+    renderer.setRenderTarget(previous);target.dispose();geometry.dispose();front.material.dispose();back.material.dispose();
+  }
+  return {pass:results.every(r=>r.pass),backend:renderer.backend.constructor.name,reversed:renderer.reversedDepthBuffer,results};
+}
+async function checkSkyOcclusion() {
+  prepare();
+  const meshes=game.sky.backdropMeshes(),visibility=meshes.map(m=>m.visible);
+  const point=new THREE.Vector3(5000,3,0).project(game.camera);
+  async function pixels() {
+    const image=new Image(); image.src=await still(); await image.decode();
+    const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;
+    const context=canvas.getContext('2d');context.drawImage(image,0,0);
+    return context.getImageData(Math.round((point.x+1)*image.width/2)-2,Math.round((1-point.y)*image.height/2)-2,5,5).data;
+  }
+  try {
+    const withSky=await pixels();meshes.forEach(m=>m.visible=false);
+    const withoutSky=await pixels();let maxDifference=0;
+    for(let i=0;i<withSky.length;i++)maxDifference=Math.max(maxDifference,Math.abs(withSky[i]-withoutSky[i]));
+    return {pass:maxDifference<=3&&withoutSky[1]>30,maxDifference};
+  } finally {meshes.forEach((m,i)=>m.visible=visibility[i]);}
+}
+prepare(); await still(); status.hidden=true;
+window.depthReview={game,prepare,still,checkDepth,checkSkyOcclusion};
+</script>
+</html>
