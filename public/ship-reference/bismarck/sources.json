@@ -115,7 +115,7 @@
     {
       "id": "kb-protection",
       "url": "https://www.kbismarck.com/proteccioni.html",
-      "document": "Protection sections; proteccion6.gif, proteccion7.gif, bs-armor.jpg, 380mmp.gif",
+      "document": "Protection sections; proteccion6.gif, proteccion7.gif, bs-armor.jpg, 380mmp.gif, 150mmp.gif",
       "dateConfiguration": "Bismarck technical reconstruction; updated 1 July 2019",
       "units": "mm armor; metres and structural frame numbers",
       "scale": "schematic; not assumed uniform",
@@ -123,7 +123,8 @@
       "confidence": "medium-high thickness; medium layout",
       "status": "page and original figures retained",
       "supports": [
-        "separate belt, backing, decks, slopes, bulkheads, turret and barbette thickness families"
+        "separate belt, backing, decks, slopes, bulkheads, turret and barbette thickness families",
+        "Secondary turret 80 mm face, 40 mm sides/rear, 20 mm rear roof and 35 mm forward slopes; facet boundaries reconstructed"
       ],
       "limits": "Plate boundaries are reconstructed. Material names are descriptive; no empirical material penetration equivalence is claimed. Wood adds no steel penetration budget."
     },

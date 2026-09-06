@@ -1,0 +1,12 @@
+bun test v1.3.3 (274e01c7)
+
+src/game/ShipView.test.ts:
+(pass) Baltimore exported hierarchy binds all 21 muzzles through train, pitch and recoil [18.48ms]
+(pass) actual exported joints follow authoritative muzzle positions through rear traverse and recoil [152.79ms]
+(pass) Enterprise single and quadruple exported guns align at their traverse and elevation limits [14.46ms]
+(pass) Yamato center and outer barrels remain aligned through fore and aft traverse, elevation and recoil [5.29ms]
+
+ 4 pass
+ 0 fail
+ 47 expect() calls
+Ran 4 tests across 1 file. [264.00ms]

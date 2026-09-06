@@ -1,5 +1,24 @@
 # Bismarck exterior and collision validation · 5 September 2026
 
+The fourth iteration revises all six secondary gunhouses and the bridge, and fits the six transverse armor bulkheads inside the actual hull at both plate faces. Durable changes live in the component catalog, blueprint and recipe; the original baseline remains preserved. The reviewed fit is **24 May 1941**, at a separately stated **9.33 m standard draft**. Shape and fitting estimates remain recorded in the [discrepancy register](discrepancies.md).
+
+Current content hash: `957a349026ab6dfccb0b6caa5469c6899066fe034d3e9563940ad0b8e336037b`.
+
+| Verification | Fourth iteration evidence |
+| --- | --- |
+| Playable asset | Local Blender 5.2 build, export and review passed: 368,428 triangles, 98 mesh nodes, 286 primitives, 21,897,784 bytes. Ten mount chains and twenty independent barrels retain their stable axes and IDs. [Export](export.json). Blender MCP was unavailable. |
+| Geometry | All six principal dimensions pass; 16,248 hull triangles, zero degenerates/nonmanifold welded edges, 39 contained compartment envelopes. The new gunhouses compile to moving armor; total armor facets 509, major structures 24. [Measurements](measurements.json). |
+| Transverse armor | Regression reproduced 40 solid vertices outside the old hull boundary. Fitted polygons now pass vertex and edge containment checks and remain hittable. Independent edge traces against the triangulated hull confirm at least 24.8 mm clearance. [Geometry](visual-iteration-04/geometry-review.json), [clearances](visual-iteration-04/armor-edge-clearances.txt). |
+| Tests and production | 184 tests passed, 0 failures, 26,744 assertions across 29 files. Final exported-hierarchy checks passed again after the last fitting refinement. `bun run build` passed all four preset checks, TypeScript and Vite. [Test log](visual-iteration-04/tests.txt), [build log](visual-iteration-04/production-build.txt). |
+| Visual and articulation | Inspected all five fixed review views and final WebGPU bridge, secondary and armor close views. Both traverse extremes, elevation limits and recoil passed; maximum muzzle discrepancy 0.002166 m. [Before/after and articulation](visual-iteration-04/README.md). |
+| Combat and reset | Live-game fixed-tick replay with bot AI reached tick 4,200: 8 player main shells and 28 secondary shells, enemy damage and hits against the fitted transverse armor. Maximum muzzle discrepancy 0.002168 m. Normal return to port reset tick, damage, water, ammunition and events. [Replay and reset evidence](visual-iteration-04/README.md#validation). |
+
+All comparison views and the [portable review ZIP](../generated/comparison/bismarck-review.zip) were regenerated. Only Bismarck uses the changed secondary component; the shared compiler and Blender helpers are unchanged. Export checks establish pipeline consistency, not historical accuracy.
+
+## Third iteration and master integration (retained history)
+
+The following records describe the previous model. Their hashes, counts and browser captures are retained for comparison; the fourth iteration above is current.
+
 The third independent iteration corrects the bow profile and main gunhouses on top of the detailed second iteration. It also makes the complete hull and 22 major superstructure surfaces hittable, aimable and inspectable. The reviewed fit remains **24 May 1941**, at the separately stated **9.33 m standard draft**.
 
 Content hash: `45b7cc0110d0262b177a0e3aeb4df43d0682de8b52f1cc4f18cd5ab0fcddc9a5`.

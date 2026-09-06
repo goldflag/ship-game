@@ -4,6 +4,37 @@ import { entriesForMode, inspectionEntries } from './inspection';
 import { ShipInspection } from '../game/ShipInspection';
 import { CombatSimulation } from '../simulation/combat';
 import { Group, Mesh, Raycaster, Vector3 } from 'three/webgpu';
+import { compileShip, type Vec3 } from './blueprint';
+import blueprint from '../../assets/ships/bismarck/blueprint.json';
+import catalog from '../../assets/parts/guns.json';
+import { insideHull } from '../simulation/structure';
+import { plateHit } from '../simulation/protection';
+
+test('Bismarck transverse armor, including rendered thickness, fits inside the local hull section', () => {
+  const def = compileShip(blueprint, catalog), view = new ShipInspection(def);
+  const bulkheads = def.armor.filter(a => /^(forward|aft)-transverse-/.test(a.id));
+  expect(bulkheads).toHaveLength(6);
+  const outside: string[] = [];
+  for (const plate of bulkheads) {
+    const group = view.root.children.find(c => c.userData.inspectionId === `armor:${plate.id}`)!;
+    const fill = group.children[0] as Mesh;
+    const positions = fill.geometry.getAttribute('position');
+    // Exercise the actual inspection solid, not just the zero-thickness blueprint.
+    for (let i = 0; i < positions.count; i++) {
+      const n = plate.plate!.vertices.length, next = Math.floor(i/n)*n + (i+1)%n;
+      const a = new Vector3().fromBufferAttribute(positions, i);
+      const b = new Vector3().fromBufferAttribute(positions, next);
+      for (const t of [0,.25,.5,.75]) {
+        const point = a.clone().lerp(b,t).add(group.position).toArray() as Vec3;
+        if (!insideHull(point, def)) outside.push(`${plate.id}: ${point.join(', ')}`);
+      }
+    }
+    // Shaping the edges must retain protection across the center of each layer.
+    const [x,y,z] = plate.center;
+    expect(plateHit([x,y,z-1], [x,y,z+1], plate, def, def.mounts.map(() => 0))).not.toBeNull();
+  }
+  expect(outside).toEqual([]);
+});
 
 test('inspection lists exactly the armor, mounts, modules and compartments used by each ship', () => {
   for (const id of Object.keys(shipPresets)) {

@@ -28219,7 +28219,7 @@
         -80.2
       ],
       "size": [
-        22.23776,
+        20.271028,
         4.2,
         0.001
       ],
@@ -28227,23 +28227,63 @@
       "plate": {
         "vertices": [
           [
-            -11.11888,
+            -9.138853,
             -7.6,
             -80.2
           ],
           [
-            11.11888,
+            9.138853,
             -7.6,
             -80.2
           ],
           [
-            11.11888,
+            9.502705,
+            -7.153565,
+            -80.2
+          ],
+          [
+            9.877433,
+            -6.433671,
+            -80.2
+          ],
+          [
+            10.065861,
+            -5.598,
+            -80.2
+          ],
+          [
+            10.116566,
+            -4.441686,
+            -80.2
+          ],
+          [
+            10.135514,
             -3.4,
             -80.2
           ],
           [
-            -11.11888,
+            -10.135514,
             -3.4,
+            -80.2
+          ],
+          [
+            -10.116566,
+            -4.441686,
+            -80.2
+          ],
+          [
+            -10.065861,
+            -5.598,
+            -80.2
+          ],
+          [
+            -9.877433,
+            -6.433671,
+            -80.2
+          ],
+          [
+            -9.502705,
+            -7.153565,
             -80.2
           ]
         ],
@@ -28253,7 +28293,7 @@
       "provenance": {
         "sourceId": "kb-protection",
         "basis": "estimated",
-        "note": "Thickness documented; plate boundary is an approximate envelope."
+        "note": "Thickness family retained; convex boundary fitted inside the authored hull at both physical plate faces with 25 mm clearance. Lower aft boundary follows the rising keel. Reconstructed geometry, not an original bulkhead drawing."
       }
     },
     {
@@ -28265,7 +28305,7 @@
         -80.2
       ],
       "size": [
-        22.23776,
+        20.412582,
         4.37,
         0.001
       ],
@@ -28273,23 +28313,33 @@
       "plate": {
         "vertices": [
           [
-            -11.11888,
+            -9.597886,
             -3.4,
             -80.2
           ],
           [
-            11.11888,
+            9.597886,
             -3.4,
             -80.2
           ],
           [
-            11.11888,
+            10.187164,
+            -0.155855,
+            -80.2
+          ],
+          [
+            10.206291,
             0.97,
             -80.2
           ],
           [
-            -11.11888,
+            -10.206291,
             0.97,
+            -80.2
+          ],
+          [
+            -10.187164,
+            -0.155855,
             -80.2
           ]
         ],
@@ -28299,7 +28349,7 @@
       "provenance": {
         "sourceId": "kb-protection",
         "basis": "estimated",
-        "note": "Thickness documented; plate boundary is an approximate envelope."
+        "note": "Thickness family retained; convex boundary fitted inside the authored hull at both physical plate faces with 25 mm clearance. Lower aft boundary follows the rising keel. Reconstructed geometry, not an original bulkhead drawing."
       }
     },
     {
@@ -28311,7 +28361,7 @@
         -80.2
       ],
       "size": [
-        22.23776,
+        22.505532,
         4.7,
         0.001
       ],
@@ -28319,23 +28369,33 @@
       "plate": {
         "vertices": [
           [
-            -11.11888,
+            -10.338328,
             0.97,
             -80.2
           ],
           [
-            11.11888,
+            10.338328,
             0.97,
             -80.2
           ],
           [
-            11.11888,
+            10.456938,
+            1.287817,
+            -80.2
+          ],
+          [
+            11.252766,
             5.67,
             -80.2
           ],
           [
-            -11.11888,
+            -11.252766,
             5.67,
+            -80.2
+          ],
+          [
+            -10.456938,
+            1.287817,
             -80.2
           ]
         ],
@@ -28345,7 +28405,7 @@
       "provenance": {
         "sourceId": "kb-protection",
         "basis": "estimated",
-        "note": "Thickness documented; plate boundary is an approximate envelope."
+        "note": "Thickness family retained; convex boundary fitted inside the authored hull at both physical plate faces with 25 mm clearance. Lower aft boundary follows the rising keel. Reconstructed geometry, not an original bulkhead drawing."
       }
     },
     {
@@ -28353,35 +28413,95 @@
       "name": "Aft Transverse 0",
       "center": [
         0.0,
-        -5.5,
+        -5.221415,
         90.5
       ],
       "size": [
-        23.77518,
-        4.2,
+        22.69697,
+        3.64283,
         0.001
       ],
       "thicknessMm": 180,
       "plate": {
         "vertices": [
           [
-            -11.88759,
-            -7.6,
+            -5.950744,
+            -7.04283,
             90.5
           ],
           [
-            11.88759,
-            -7.6,
+            5.950744,
+            -7.04283,
             90.5
           ],
           [
-            11.88759,
+            6.592657,
+            -6.990967,
+            90.5
+          ],
+          [
+            8.163282,
+            -6.51919,
+            90.5
+          ],
+          [
+            9.61699,
+            -5.869993,
+            90.5
+          ],
+          [
+            10.382848,
+            -5.419098,
+            90.5
+          ],
+          [
+            10.995782,
+            -4.87375,
+            90.5
+          ],
+          [
+            11.290463,
+            -4.240698,
+            90.5
+          ],
+          [
+            11.348485,
             -3.4,
             90.5
           ],
           [
-            -11.88759,
+            -11.348485,
             -3.4,
+            90.5
+          ],
+          [
+            -11.290463,
+            -4.240698,
+            90.5
+          ],
+          [
+            -10.995782,
+            -4.87375,
+            90.5
+          ],
+          [
+            -10.382848,
+            -5.419098,
+            90.5
+          ],
+          [
+            -9.61699,
+            -5.869993,
+            90.5
+          ],
+          [
+            -8.163282,
+            -6.51919,
+            90.5
+          ],
+          [
+            -6.592657,
+            -6.990967,
             90.5
           ]
         ],
@@ -28391,7 +28511,7 @@
       "provenance": {
         "sourceId": "kb-protection",
         "basis": "estimated",
-        "note": "Thickness documented; plate boundary is an approximate envelope."
+        "note": "Thickness family retained; convex boundary fitted inside the authored hull at both physical plate faces with 25 mm clearance. Lower aft boundary follows the rising keel. Reconstructed geometry, not an original bulkhead drawing."
       }
     },
     {
@@ -28403,7 +28523,7 @@
         90.5
       ],
       "size": [
-        23.77518,
+        22.920562,
         4.37,
         0.001
       ],
@@ -28411,23 +28531,33 @@
       "plate": {
         "vertices": [
           [
-            -11.88759,
+            -10.634595,
             -3.4,
             90.5
           ],
           [
-            11.88759,
+            10.634595,
             -3.4,
             90.5
           ],
           [
-            11.88759,
+            11.443181,
+            0.290385,
+            90.5
+          ],
+          [
+            11.460281,
             0.97,
             90.5
           ],
           [
-            -11.88759,
+            -11.460281,
             0.97,
+            90.5
+          ],
+          [
+            -11.443181,
+            0.290385,
             90.5
           ]
         ],
@@ -28437,7 +28567,7 @@
       "provenance": {
         "sourceId": "kb-protection",
         "basis": "estimated",
-        "note": "Thickness documented; plate boundary is an approximate envelope."
+        "note": "Thickness family retained; convex boundary fitted inside the authored hull at both physical plate faces with 25 mm clearance. Lower aft boundary follows the rising keel. Reconstructed geometry, not an original bulkhead drawing."
       }
     },
     {
@@ -28449,7 +28579,7 @@
         90.5
       ],
       "size": [
-        23.77518,
+        24.330906,
         4.7,
         0.001
       ],
@@ -28457,23 +28587,83 @@
       "plate": {
         "vertices": [
           [
-            -11.88759,
+            -11.59298,
             0.97,
             90.5
           ],
           [
-            11.88759,
+            11.59298,
             0.97,
             90.5
           ],
           [
-            11.88759,
+            11.805543,
+            1.911906,
+            90.5
+          ],
+          [
+            12.012153,
+            2.856235,
+            90.5
+          ],
+          [
+            12.104762,
+            3.531303,
+            90.5
+          ],
+          [
+            12.129932,
+            4.177474,
+            90.5
+          ],
+          [
+            12.149146,
+            4.763842,
+            90.5
+          ],
+          [
+            12.161407,
+            5.275026,
+            90.5
+          ],
+          [
+            12.165453,
             5.67,
             90.5
           ],
           [
-            -11.88759,
+            -12.165453,
             5.67,
+            90.5
+          ],
+          [
+            -12.161407,
+            5.275026,
+            90.5
+          ],
+          [
+            -12.149146,
+            4.763842,
+            90.5
+          ],
+          [
+            -12.129932,
+            4.177474,
+            90.5
+          ],
+          [
+            -12.104762,
+            3.531303,
+            90.5
+          ],
+          [
+            -12.012153,
+            2.856235,
+            90.5
+          ],
+          [
+            -11.805543,
+            1.911906,
             90.5
           ]
         ],
@@ -28483,7 +28673,7 @@
       "provenance": {
         "sourceId": "kb-protection",
         "basis": "estimated",
-        "note": "Thickness documented; plate boundary is an approximate envelope."
+        "note": "Thickness family retained; convex boundary fitted inside the authored hull at both physical plate faces with 25 mm clearance. Lower aft boundary follows the rising keel. Reconstructed geometry, not an original bulkhead drawing."
       }
     },
     {
@@ -32979,25 +33169,25 @@
       "center": [
         0.0,
         13.895,
-        -24.0
+        -24.85
       ],
       "size": [
-        13.3,
+        12.8,
         2.75,
-        22.0
+        23.700000000000003
       ]
     },
     {
       "id": "bridge-wheelhouse",
       "center": [
         0.0,
-        16.835,
-        -25.25
+        16.31,
+        -33.35
       ],
       "size": [
-        10.4,
-        2.65,
-        10.5
+        9.7,
+        1.6,
+        6.5
       ]
     },
     {
@@ -33018,12 +33208,12 @@
       "center": [
         0.0,
         27.62,
-        -13.6
+        -13.725
       ],
       "size": [
-        8.4,
+        7.6,
         2.42,
-        7.199999999999999
+        7.449999999999999
       ]
     },
     {
@@ -33093,7 +33283,7 @@
     }
   ],
   "accuracy": {
-    "exterior": "Independent 24 May 1941 reconstruction; revised from retained historical plan and neutral reference renders. Hull offsets and small fitting measurements remain interpreted.",
+    "exterior": "Independent 1941-04: revised secondary gunhouses, separated navigation/conning bridge and scalloped tower galleries. Principal dimensions documented; local shapes and fittings remain image estimates.",
     "internals": "Plate thicknesses and machinery sequence evidence-based; room boundaries and hull-conforming plate envelopes approximate. Standard-draft datum, not battle displacement.",
     "weapons": "Independent gunhouse polygons; historical bore and turret frames. Simplified geometry and AP budget, no fuze, spall or material penetration model."
   },
@@ -33265,51 +33455,55 @@
       "name": "Lower bridge deckhouse",
       "footprint": [
         [
-          4.3,
+          4.1,
           -13
         ],
         [
-          6.3,
+          5.8,
           -16
         ],
         [
-          6.65,
-          -21
+          6.4,
+          -22
         ],
         [
-          6.65,
-          -29.0
+          6.4,
+          -30
         ],
         [
           5.4,
-          -33.4
+          -34.4
         ],
         [
           3.6,
-          -35.0
+          -36.2
+        ],
+        [
+          0,
+          -36.7
         ],
         [
           -3.6,
-          -35.0
+          -36.2
         ],
         [
           -5.4,
-          -33.4
+          -34.4
         ],
         [
-          -6.65,
-          -29.0
+          -6.4,
+          -30
         ],
         [
-          -6.65,
-          -21
+          -6.4,
+          -22
         ],
         [
-          -6.3,
+          -5.8,
           -16
         ],
         [
-          -4.3,
+          -4.1,
           -13
         ]
       ],
@@ -33322,52 +33516,56 @@
       "name": "Navigation bridge wings",
       "footprint": [
         [
-          4.5,
-          -16.8
+          3.8,
+          -18.3
+        ],
+        [
+          5.8,
+          -19.2
+        ],
+        [
+          7.3,
+          -26.0
         ],
         [
           7.0,
-          -19.0
+          -33.4
         ],
         [
-          9.3,
-          -21.5
+          5.7,
+          -35.6
         ],
         [
-          9.3,
-          -26.5
+          3.1,
+          -37.0
         ],
         [
-          6.5,
-          -30.5
+          0,
+          -37.3
         ],
         [
-          3.0,
-          -32.0
+          -3.1,
+          -37.0
         ],
         [
-          -3.0,
-          -32.0
-        ],
-        [
-          -6.5,
-          -30.5
-        ],
-        [
-          -9.3,
-          -26.5
-        ],
-        [
-          -9.3,
-          -21.5
+          -5.7,
+          -35.6
         ],
         [
           -7.0,
-          -19.0
+          -33.4
         ],
         [
-          -4.5,
-          -16.8
+          -7.3,
+          -26.0
+        ],
+        [
+          -5.8,
+          -19.2
+        ],
+        [
+          -3.8,
+          -18.3
         ]
       ],
       "baseY": 15.27,
@@ -33379,81 +33577,97 @@
       "name": "Navigation wheelhouse",
       "footprint": [
         [
-          3.4000000000000004,
-          -20.0
+          3.4,
+          -30.1
         ],
         [
-          5.2,
-          -21.8
+          4.85,
+          -31.4
         ],
         [
-          5.2,
-          -28.7
+          4.85,
+          -34.4
         ],
         [
-          3.4000000000000004,
-          -30.5
+          3.7,
+          -35.75
         ],
         [
-          -3.4000000000000004,
-          -30.5
+          1.8,
+          -36.45
         ],
         [
-          -5.2,
-          -28.7
+          0,
+          -36.6
         ],
         [
-          -5.2,
-          -21.8
+          -1.8,
+          -36.45
         ],
         [
-          -3.4000000000000004,
-          -20.0
+          -3.7,
+          -35.75
+        ],
+        [
+          -4.85,
+          -34.4
+        ],
+        [
+          -4.85,
+          -31.4
+        ],
+        [
+          -3.4,
+          -30.1
         ]
       ],
       "baseY": 15.51,
-      "height": 2.65,
+      "height": 1.6,
       "material": "naval"
     },
     {
       "id": "bridge-admiral-platform",
-      "name": "Admiral bridge platform",
+      "name": "Conning tower crown and director platform",
       "footprint": [
         [
-          4.65,
-          -17.2
+          2.6,
+          -23.9
         ],
         [
-          6.65,
-          -19.2
+          3.4,
+          -25.5
         ],
         [
-          6.65,
-          -29.5
+          3.4,
+          -30.8
         ],
         [
-          4.65,
-          -31.5
+          2.5,
+          -32.5
         ],
         [
-          -4.65,
-          -31.5
+          0,
+          -33.4
         ],
         [
-          -6.65,
-          -29.5
+          -2.5,
+          -32.5
         ],
         [
-          -6.65,
-          -19.2
+          -3.4,
+          -30.8
         ],
         [
-          -4.65,
-          -17.2
+          -3.4,
+          -25.5
+        ],
+        [
+          -2.6,
+          -23.9
         ]
       ],
-      "baseY": 18.16,
-      "height": 0.23,
+      "baseY": 18.47,
+      "height": 0.16,
       "material": "roof"
     },
     {
@@ -33965,39 +34179,63 @@
     },
     {
       "id": "signal-platform",
-      "name": "Signal and searchlight gallery",
+      "name": "Admiral bridge and signal wings",
       "footprint": [
         [
-          4.2,
-          -8
+          3.4,
+          -8.6
         ],
         [
-          7.8,
-          -11
+          5.5,
+          -10
         ],
         [
-          7.8,
-          -17.6
+          7.15,
+          -14.5
         ],
         [
-          4.2,
-          -19.7
+          7.15,
+          -17.5
         ],
         [
-          -4.2,
-          -19.7
+          5.7,
+          -19.5
         ],
         [
-          -7.8,
-          -17.6
+          3.7,
+          -19.5
         ],
         [
-          -7.8,
-          -11
+          2.65,
+          -17.8
         ],
         [
-          -4.2,
-          -8
+          -2.65,
+          -17.8
+        ],
+        [
+          -3.7,
+          -19.5
+        ],
+        [
+          -5.7,
+          -19.5
+        ],
+        [
+          -7.15,
+          -17.5
+        ],
+        [
+          -7.15,
+          -14.5
+        ],
+        [
+          -5.5,
+          -10
+        ],
+        [
+          -3.4,
+          -8.6
         ]
       ],
       "baseY": 20.65,
@@ -34009,36 +34247,68 @@
       "name": "Fore 20 mm platform",
       "footprint": [
         [
-          4,
-          -9.3
-        ],
-        [
-          7.2,
-          -12
-        ],
-        [
-          7.2,
-          -18
+          3.2,
+          -10
         ],
         [
           4.7,
-          -21
-        ],
-        [
-          -4.7,
-          -21
-        ],
-        [
-          -7.2,
-          -18
-        ],
-        [
-          -7.2,
           -12
         ],
         [
-          -4,
-          -9.3
+          4.7,
+          -16.3
+        ],
+        [
+          5.7,
+          -18.7
+        ],
+        [
+          5.7,
+          -21.4
+        ],
+        [
+          4.2,
+          -22.2
+        ],
+        [
+          2.8,
+          -22.2
+        ],
+        [
+          2.8,
+          -18
+        ],
+        [
+          -2.8,
+          -18
+        ],
+        [
+          -2.8,
+          -22.2
+        ],
+        [
+          -4.2,
+          -22.2
+        ],
+        [
+          -5.7,
+          -21.4
+        ],
+        [
+          -5.7,
+          -18.7
+        ],
+        [
+          -4.7,
+          -16.3
+        ],
+        [
+          -4.7,
+          -12
+        ],
+        [
+          -3.2,
+          -10
         ]
       ],
       "baseY": 23.2,
@@ -34050,36 +34320,60 @@
       "name": "Foretop observation gallery",
       "footprint": [
         [
-          3,
-          -7.8
+          3.0,
+          -8.3
         ],
         [
-          7.3,
+          5.0,
           -9.5
         ],
         [
-          7.3,
+          5.8,
+          -13.8
+        ],
+        [
+          5.8,
+          -18.2
+        ],
+        [
+          4.15,
+          -20.0
+        ],
+        [
+          2.7,
+          -20.0
+        ],
+        [
+          2.0,
           -17.7
         ],
         [
-          4.2,
-          -21.3
-        ],
-        [
-          -4.2,
-          -21.3
-        ],
-        [
-          -7.3,
+          -2.0,
           -17.7
         ],
         [
-          -7.3,
+          -2.7,
+          -20.0
+        ],
+        [
+          -4.15,
+          -20.0
+        ],
+        [
+          -5.8,
+          -18.2
+        ],
+        [
+          -5.8,
+          -13.8
+        ],
+        [
+          -5.0,
           -9.5
         ],
         [
-          -3,
-          -7.8
+          -3.0,
+          -8.3
         ]
       ],
       "baseY": 26.15,
@@ -34091,36 +34385,40 @@
       "name": "Foretop observation house",
       "footprint": [
         [
-          3.1,
+          2.7,
           -10.0
         ],
         [
-          4.2,
-          -11.1
+          3.8,
+          -11.2
         ],
         [
-          4.2,
-          -16.099999999999998
+          3.8,
+          -16.1
         ],
         [
-          3.1,
+          2.7,
           -17.2
         ],
         [
-          -3.1,
+          0,
+          -17.45
+        ],
+        [
+          -2.7,
           -17.2
         ],
         [
-          -4.2,
-          -16.099999999999998
+          -3.8,
+          -16.1
         ],
         [
-          -4.2,
-          -11.1
+          -3.8,
+          -11.2
         ],
         [
-          -3.1,
-          -10.0
+          -2.7,
+          -10
         ]
       ],
       "baseY": 26.41,
@@ -34132,36 +34430,40 @@
       "name": "Upper fire-control platform",
       "footprint": [
         [
-          3.9499999999999997,
-          -9.2
+          2.8,
+          -9.5
         ],
         [
-          5.35,
-          -10.6
+          4.1,
+          -10.7
         ],
         [
-          5.35,
-          -16.6
+          4.1,
+          -16.3
         ],
         [
-          3.9499999999999997,
-          -18.0
+          2.9,
+          -17.6
         ],
         [
-          -3.9499999999999997,
-          -18.0
+          0,
+          -18
         ],
         [
-          -5.35,
-          -16.6
+          -2.9,
+          -17.6
         ],
         [
-          -5.35,
-          -10.6
+          -4.1,
+          -16.3
         ],
         [
-          -3.9499999999999997,
-          -9.2
+          -4.1,
+          -10.7
+        ],
+        [
+          -2.8,
+          -9.5
         ]
       ],
       "baseY": 28.83,
@@ -34173,40 +34475,44 @@
       "name": "Armored conning tower platform",
       "footprint": [
         [
-          2.2,
+          2.5,
           -24.0
         ],
         [
-          4.2,
+          3.3,
           -26.0
         ],
         [
-          4.2,
-          -31.9
+          3.3,
+          -30.9
         ],
         [
-          2.2,
-          -33.9
+          2.4,
+          -32.4
         ],
         [
-          -2.2,
-          -33.9
+          0,
+          -33.1
         ],
         [
-          -4.2,
-          -31.9
+          -2.4,
+          -32.4
         ],
         [
-          -4.2,
-          -26.0
+          -3.3,
+          -30.9
         ],
         [
-          -2.2,
-          -24.0
+          -3.3,
+          -26
+        ],
+        [
+          -2.5,
+          -24
         ]
       ],
       "baseY": 15.27,
-      "height": 0.2,
+      "height": 0.24,
       "material": "roof"
     },
     {
@@ -38007,13 +38313,111 @@
           ]
         ]
       }
+    },
+    {
+      "id": "conning-tower",
+      "name": "Armored forward conning tower enclosure",
+      "footprint": [
+        [
+          1.7,
+          -24.9
+        ],
+        [
+          2.8,
+          -26
+        ],
+        [
+          2.8,
+          -29.4
+        ],
+        [
+          2.0,
+          -31.3
+        ],
+        [
+          0,
+          -32.4
+        ],
+        [
+          -2.0,
+          -31.3
+        ],
+        [
+          -2.8,
+          -29.4
+        ],
+        [
+          -2.8,
+          -26
+        ],
+        [
+          -1.7,
+          -24.9
+        ]
+      ],
+      "baseY": 15.51,
+      "height": 2.96,
+      "material": "naval"
+    },
+    {
+      "id": "navigation-roof",
+      "name": "Navigation wheelhouse roof",
+      "footprint": [
+        [
+          3.5,
+          -29.9
+        ],
+        [
+          5.0,
+          -31.3
+        ],
+        [
+          5.0,
+          -34.5
+        ],
+        [
+          3.8,
+          -35.9
+        ],
+        [
+          1.8,
+          -36.6
+        ],
+        [
+          0,
+          -36.75
+        ],
+        [
+          -1.8,
+          -36.6
+        ],
+        [
+          -3.8,
+          -35.9
+        ],
+        [
+          -5.0,
+          -34.5
+        ],
+        [
+          -5.0,
+          -31.3
+        ],
+        [
+          -3.5,
+          -29.9
+        ]
+      ],
+      "baseY": 17.11,
+      "height": 0.14,
+      "material": "naval"
     }
   ],
   "viewpoints": {
     "bridge": [
       0,
-      17.25,
-      -30.6
+      16.6,
+      -36.8
     ]
   },
   "structuralPlating": {
