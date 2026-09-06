@@ -26,6 +26,7 @@ def shot(name): (out/(name+'.png')).write_bytes(base64.b64decode(call('screensho
 def camera(x,y,z,tx,ty,tz):ev(f'const p=g.simulation.ship;g.camera.position.set(p.x+({x}),p.y+({y}),p.z+({z}));g.camera.lookAt(p.x+({tx}),p.y+({ty}),p.z+({tz}));g.camera.updateMatrixWorld()')
 def pose(t,e,r):ev('g.previewArticulation('+json.dumps(dict(trainFraction=t,elevationFraction=e,recoilFraction=r))+')')
 initial=call('eval','window.reviewGame.diagnostics()');assert initial['contentHash']==expected
+ev('g.setInPort(true);g.setPaused(true);document.querySelector("#hud").style.display="none"')
 # Reuse the 18 poses just checked for this exact build; fail on any stale record.
 a=json.loads((out/'orca-components.json').read_text()) if (out/'orca-components.json').exists() else {}
 if a.get('contentHash')!=expected:
@@ -37,9 +38,13 @@ for row in a['rows']:
 save('articulation',{**a,'headless':False,'backend':initial['backend']})
 ev('g.setInPort(true);g.setPaused(true);document.querySelector("#hud").style.display="none"')
 camera(9,11,-48,0,7.4,-39)
+component_poses=[]
 for label,t,e,r in [('neutral',0,.15,0),('low-recoil',0,0,1),('high-recoil',0,1,1)]:
     pose(t,e,r);shot('turret-game-'+label)
-    save('turret-game-'+label,call('eval','window.reviewGame.diagnostics()'))
+    row=call('eval',"(()=>{const g=window.reviewGame;let axis;g.playerView.root.traverse(n=>{if(n.userData.nodeId==='gun-1.center.elevation')axis=n});return {diagnostics:g.diagnostics(),elevation:axis.rotation.x,cpuElevation:g.simulation.player.mounts[0].elevation}})()")
+    assert abs(row['elevation']-row['cpuElevation'])<1e-5 and row['diagnostics']['maxMuzzleErrorM']<.001
+    component_poses.append({'label':label,**row})
+    save('turret-game-'+label,row['diagnostics'])
 print('Turret closeups captured',flush=True)
 camera(40,25,-45,0,7.5,-17)
 for label,t,e in [('port-low',-1,0),('starboard-high',1,1)]:pose(t,e,1);shot('articulation-close-'+label)
@@ -53,6 +58,7 @@ camera(10,.2,63,0,-2.7,50.75);shot('propellers-game-quarter')
 camera(0,.2,65,0,-2.7,50.75);shot('propellers-game-stern')
 rotated=call('eval','''(()=>{const g=window.reviewGame;const nodes=[];g.playerView.root.traverse(o=>{if((o.userData.nodeId??'').startsWith('propeller-'))nodes.push(o)});window.propellerRestore=nodes.map(o=>[o,o.quaternion.clone()]);return nodes.map((o,i)=>{const before=o.getWorldPosition(o.position.clone()),axisBefore=o.position.clone().set(0,0,1).applyQuaternion(o.getWorldQuaternion(o.quaternion.clone()));o.rotateZ((i===0?1:-1)*Math.PI/3);o.updateWorldMatrix(true,true);const after=o.getWorldPosition(o.position.clone());return {id:o.userData.nodeId,originErrorM:before.distanceTo(after),axisError:axisBefore.distanceTo(o.position.clone().set(0,0,1).applyQuaternion(o.getWorldQuaternion(o.quaternion.clone()))),position:after.toArray(),quaternion:o.quaternion.toArray()}})})()''')
 assert len(rotated)==2 and all(x['originErrorM']<1e-5 and x['axisError']<1e-5 for x in rotated)
+save('component-closeups',{'contentHash':expected,'browser':'Orca embedded browser','backend':initial['backend'],'poses':component_poses,'propellers':rotated,'inspection':'Sea and other ship meshes hidden temporarily. Manual opposite 60-degree pivot poses; sailing animation remains static.','pageErrors':call('eval','window.reviewError?[window.reviewError]:[]')})
 ev('');shot('propellers-game-rotated');save('propeller-pivots',{'contentHash':expected,'inspectionOnly':True,'note':'Actual loaded GLB isolated from sea/hull. Opposite 60-degree manual pivot poses; sailing animation remains static.','nodes':rotated})
 ev('for(const [o,q] of window.propellerRestore)o.quaternion.copy(q);for(const [o,v] of window.componentVisibility)o.visible=v')
 print('Both propellers inspected; independent pivot origins stable',flush=True)

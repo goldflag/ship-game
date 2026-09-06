@@ -1,17 +1,19 @@
 {
-  "configuration": "Generic early-war Type VIIC, 1941, informed by U-570; surfaced gameplay preset",
-  "accessed": "2026-09-05",
-  "acquisition": "U-boat Archive HTTPS certificate hostname validation failed with system curl; public reference-only files retrieved with a host-scoped curl -k fallback. Web tool independently exposed matching report contents. No game model files were used.",
+  "configuration": "U-570 as captured, August–September 1941; British hull survey datums with German 1941 fittings; raised attack periscope",
+  "accessed": "2026-09-06",
+  "acquisition": "September 6 schematics/photographs downloaded over certificate-verified HTTPS; acquisition.json records URLs and SHA-256. Older September 5 files used the documented host-scoped certificate fallback. No third-party game geometry or textures used.",
   "sources": [
     {
       "id": "oni-u570-1941",
-      "title": "ONI report on U-570, inspected September 23\u201326, 1941",
+      "title": "ONI report on U-570, inspected September 23–26, 1941",
       "url": "https://www.uboatarchive.net/U-570/U-570ONIReport.htm",
       "kind": "Contemporary primary survey, September 28, 1941",
       "supports": [
         "Four bow tubes and one stern tube, 14 torpedoes in the surveyed load",
         "Diesels, electric motors, saddle tanks, deck fittings and compartment order",
-        "8.8 cm deck gun and 20 mm platform weapon"
+        "8.8 cm deck gun and 20 mm platform weapon",
+        "Approximately 8 kn maximum submerged speed in the captured-boat survey; the 7.6 kn nominal game setting is not a reproduction of this trial",
+        "Explicitly says net cutters depicted on enclosed plans were NOT fitted to captured U-570."
       ],
       "local": "U-570ONIReport.htm",
       "limits": "Survey dimensions and load are not a complete build specification; not every feature was directly measured."
@@ -25,7 +27,7 @@
       "supports": [
         "Qualitative profile, plan, tower and internal machinery order"
       ],
-      "limits": "Used to guide independent station and fitting estimates; no calibrated tracing or station survey claimed."
+      "limits": "Older lower-resolution copy. Fidelity pass uses separately registered high-resolution U.S. Navy redraw; both preserved."
     },
     {
       "id": "u570-photos",
@@ -35,10 +37,15 @@
       "local": [
         "U-570Photo1.jpg",
         "U-570Photo2.jpg",
-        "U-570Photo9.jpg"
+        "U-570Photo9.jpg",
+        "schematics-1941/U-570Photo3.jpg",
+        "schematics-1941/U-570Photo4.jpg",
+        "schematics-1941/U-570Photo5.jpg",
+        "schematics-1941/U-570Photo6.jpg"
       ],
       "supports": [
-        "Narrow slotted wood deck, central rails, open bridge, tower fittings and deck gun"
+        "Narrow slotted wood deck, central rails, open bridge, tower fittings and deck gun",
+        "Bridge wood lining, voicepipes, compass repeaters; forward/aft deck loading hatches and stowage covers"
       ],
       "limits": "Perspective inspection only; no unverified dimensional extraction."
     },
@@ -61,15 +68,129 @@
         "44 knot / 5000 m fast setting, 533 mm diameter and approximately 7.16 m length"
       ],
       "limits": "Single selected game run mode; period reliability, gyro turn, speed settings, depth errors and detonator mechanisms are not recreated."
+    },
+    {
+      "id": "british-u570-1943",
+      "title": "C.B.4318: British technical report on ex-U-570 / HMS Graph (1943)",
+      "url": "https://m.uboatarchive.net/U-570/U-570BritishReport.htm",
+      "kind": "Primary captured-boat technical survey; original HTML retained",
+      "supports": [
+        "Main ballast blown with compressed air during recovery",
+        "Diesel/electric propulsion and approximately 8 kn submerged speed"
+      ],
+      "limits": "Later British fittings are not backdated to 1941. Survey beam/draft differ from rounded nominal class dimensions. Load-dependent displacement is not equated with existing gameplay mass. Report notes an erroneous No.3 ballast-tank volume; no uncritical use of that figure.",
+      "local": "schematics-1941/U-570BritishReport.htm"
+    },
+    {
+      "id": "u570-usn-plan",
+      "title": "U.S. Navy David Taylor Model Basin redraw/translation of captured U-570 general arrangement",
+      "url": "https://www.uboatarchive.net/U-570/U-570GeneralPlanDavidTaylorHR.htm",
+      "kind": "Contemporary primary arrangement drawing",
+      "local": "u570-general-plan-1941.jpg",
+      "originalLocal": "schematics-1941/U-570GeneralPlanC.jpg.jpg",
+      "supports": [
+        "Longitudinal gun, tower, periscope, deck and stern appendage positions",
+        "Six pressure-body sections showing circular bilges, saddle lobes, casing and keel",
+        "Early single AA basket and external torpedo stowage"
+      ],
+      "registration": {
+        "scanPixels": [
+          6238,
+          2750
+        ],
+        "sternX": 350,
+        "bowX": 4944,
+        "overallLengthM": 67.10045,
+        "pixelsPerMeter": 68.4645184942873,
+        "originX": 2647,
+        "profileWaterlineY": 1054,
+        "deckPlanCenterlineY": 1692
+      },
+      "limits": "Class drawing is not an unqualified as-captured inventory: net cutters shown but absent by ONI report. Midpoint/waterline registration interpreted; local scan/drawing disagreement ±0.15–0.3 m. Six sections do not supply a complete yard table of offsets. Raised scope extension differs between views.",
+      "rights": "U.S. government archival redraw; reference-only reproduction, credited to U.S. Navy / David Taylor Model Basin and U-boat Archive."
+    },
+    {
+      "id": "u570-docking-plate4",
+      "title": "British docking plan 1732Z/12, Plate 4, ex-U-570 as fitted",
+      "url": "https://www.uboatarchive.net/U-570/U-570BritishReportPlate4.jpg",
+      "kind": "Primary dimensioned docking drawing",
+      "local": "u570-docking-plan.jpg",
+      "originalLocal": "schematics-1941/U-570BritishReportPlate4.jpg",
+      "supports": [
+        "220 ft 1¾ in overall = 67.10045 m; 20 ft 2¼ in beam = 6.15315 m",
+        "15 ft 7½ in surfaced draft = 4.7625 m",
+        "19 ft 7½ in keel to casing deck = 5.9817 m; 2 ft 5 in casing above pressure crown",
+        "15 ft 6 in pressure diameter = 4.7244 m; bridge lip 11 ft 1¼ in above casing",
+        "Screw lateral centres ±3 ft 8 in; rudder stock lateral centres ±2 ft ½ in; stern profiles"
+      ],
+      "limits": "Dimensioned drawing preferred to nominal rounded class dimensions. Derived heights use one selected surfaced datum. Loading changes draft. Exact scan outlines/appendage longitudinal centres remain interpreted; German gun fittings come from 1941 sources. Propeller diameter lettering is not confidently resolved; 1940 class manual supplies 1.620 m provisional diameter.",
+      "rights": "British government wartime archival engineering drawing; Crown copyright term expired; archive credited. Modern archive text is not used as artwork."
+    },
+    {
+      "id": "u570-interrogation-1941",
+      "title": "British U-570 interrogation, VI: Details of U-570, captured notebook characteristics",
+      "url": "https://www.uboatarchive.net/U-570/U-570INT.htm",
+      "kind": "Contemporary primary interrogation / captured notebook transcription",
+      "local": "schematics-1941/U-570INT.htm",
+      "supports": [
+        "67.10 m overall, 65.90 m waterline, 4.70 m pressure diameter, 49.40 m pressure length",
+        "Maximum raised periscope 14.612 m above keel"
+      ],
+      "limits": "Metric class/notebook values and British measured imperial survey differ slightly. 14.612 m is a maximum extension, not the scope height in every photo. Reported loading/displacement is not assumed equal to gameplay state."
+    },
+    {
+      "id": "viic-manual-1940",
+      "title": "Type VIIC preliminary information, effective 15 July 1940, propellers",
+      "url": "https://64.uboatarchive.net/Manual/Manual.htm",
+      "kind": "Primary official class manual, archival translated transcription",
+      "local": "schematics-1941/TypeVIIC-Manual.htm",
+      "supports": [
+        "Three blades, 1620 mm diameter, 1540 mm pitch; ahead rotation tops outward"
+      ],
+      "limits": "Class specification, not a legible measured U-570 blade drawing. Actual blade outline, thickness, skew and handed visual reconstruction remain estimates."
+    },
+    {
+      "id": "u570-tank-plans",
+      "title": "Captured main-ballast arrangement (Plate 27) and British watertight-compartment plan 1732Z/13",
+      "url": "https://www.uboatarchive.net/U-570/U-570Plate27.htm",
+      "kind": "Primary tank / watertight subdivision drawings",
+      "local": [
+        "schematics-1941/U-570DTPlate27.jpg",
+        "schematics-1941/U-570Plate27.jpg",
+        "schematics-1941/U-570BritishReportPlate5.jpg"
+      ],
+      "supports": [
+        "Six major interior spaces, central ballast and outboard saddle/fuel-ballast arrangement"
+      ],
+      "limits": "External free-flooding volume and pressure spaces are visually distinguished but still share one game collision envelope. Conservative disjoint room cells are not a calibrated tank capacity/trim model."
     }
   ],
   "retainedHashes": {
-    "U-570ONIReport.htm": "cb34c9f9506245e8f31b283016e8281822d81fffe6811e9b834a3ec1947fe078",
-    "U-570Photo9.jpg": "fc024c60db9f230b6b1b36883724ed03b05b232ec32e48e75213b33db6bd6280",
-    "U-570GeneralPlan.jpg": "1dcaa3394a9dd4a8be85842503fdfabe6e7bf9034ea4ede32c8ab3b629bf9f92",
-    "U-570Photographs.htm": "a40e90552eeabfe4472e5403f3ca57c4fabf96cff8f41a2f69b5b5871d2ae7f0",
     "U-570GeneralPlan.htm": "d3ff6e608ba11c5b85bfc44c583812f49599bf3d6c862b0e1a3aa2c21d420de5",
+    "U-570GeneralPlan.jpg": "1dcaa3394a9dd4a8be85842503fdfabe6e7bf9034ea4ede32c8ab3b629bf9f92",
+    "U-570ONIReport.htm": "cb34c9f9506245e8f31b283016e8281822d81fffe6811e9b834a3ec1947fe078",
+    "U-570Photo1.jpg": "25e0eff7f940090e4c39bb385526c8455bf1b6e2da4d427aff8028c90c7021ef",
     "U-570Photo2.jpg": "58a79631325ad3505b79c915bf1a2e7b310169bbd7c13b033bb4786d04cd8a39",
-    "U-570Photo1.jpg": "25e0eff7f940090e4c39bb385526c8455bf1b6e2da4d427aff8028c90c7021ef"
+    "U-570Photo9.jpg": "fc024c60db9f230b6b1b36883724ed03b05b232ec32e48e75213b33db6bd6280",
+    "U-570Photographs.htm": "a40e90552eeabfe4472e5403f3ca57c4fabf96cff8f41a2f69b5b5871d2ae7f0",
+    "schematics-1941/TypeVIIC-Manual.htm": "aab1999fedb6103dc0750221b7b796fd0dd80ae0e8bdd1427d995a70d565c437",
+    "schematics-1941/U-570BritishReport.htm": "81ec25fdd46fb8714ab265f6e0165ed6ad842019f39ceabfb5efa98e9d57a418",
+    "schematics-1941/U-570BritishReportPlate4.jpg": "48981d5a1dd38124491cb1676c131408980b54c537db1b71df0f8902cdebc28f",
+    "schematics-1941/U-570BritishReportPlate5.jpg": "81516ce6168853981549d23c3e045238683393dd6124b899acb1083067db621c",
+    "schematics-1941/U-570DTPlate27.jpg": "118e1a18fb0fd042dfbc901e4276c6efbd64ca10599d56f373263572e1a3d57c",
+    "schematics-1941/U-570DTPlate5.jpg": "2460b378adb397c56a560a9e0928613fdbeec11416d9e6f10e392eea032e5d4f",
+    "schematics-1941/U-570GeneralPlanC.jpg.jpg": "7cce9cddb4d39f79300427f5b5bf9e16992a927f7a8bf12a5d5b2358a76fdc31",
+    "schematics-1941/U-570INT.htm": "10bb6be97bc900312e51b173d8807bf5112f43c119c685eddf1a078966e76cfa",
+    "schematics-1941/U-570Photo3.jpg": "af95c53347baefb125c6e102475ce100066598c6a09bba2006ed4d183b07e9d1",
+    "schematics-1941/U-570Photo4.jpg": "59e80f2740aa5f17dc66982b3da23ee7f5a7856961603d590bc25d8ee738ce90",
+    "schematics-1941/U-570Photo5.jpg": "2a4f2a787a9486f7c585bbed845ce4ed6c2c94ad15135eef1c8841c9974c61f5",
+    "schematics-1941/U-570Photo6.jpg": "365ca788003c68f7c8ac3d74b2f2fa7917bac0f18d49ddcb1c35f7a81c09dfb7",
+    "schematics-1941/U-570Photographs.htm": "a40e90552eeabfe4472e5403f3ca57c4fabf96cff8f41a2f69b5b5871d2ae7f0",
+    "schematics-1941/U-570Plate27.htm": "b3bfc493c741bf395ab4d8368aca2bce0342530929d01c08182ce6aeb898fb71",
+    "schematics-1941/U-570Plate27.jpg": "174d0fbf60b32e55c6bfc805759dee8e6b3449611cd209460119c3a07d8a7d12",
+    "schematics-1941/U-570Plate5.htm": "762e121bfcabfbfb4802a08cbca4b88530075fbbeecc3ba4815c9c7180c8e9e8",
+    "schematics-1941/U-570Plate5.jpg": "ce1051d86daa683bd7b957f9ccb138acdceee5ec449a977b23032ef790d36ecb",
+    "u570-docking-plan.jpg": "48981d5a1dd38124491cb1676c131408980b54c537db1b71df0f8902cdebc28f",
+    "u570-general-plan-1941.jpg": "7cce9cddb4d39f79300427f5b5bf9e16992a927f7a8bf12a5d5b2358a76fdc31"
   }
 }

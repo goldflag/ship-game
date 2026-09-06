@@ -1,10 +1,29 @@
-import type { ShipDefinition, Vec3 } from '../ships/blueprint';
+import type { Ammunition, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { barrelIds, barrelOffset } from '../ships/blueprint';
 import { add, clamp, length, localToWorld, normalize, radians, rotate, segmentBox, sub, wrapAngle, worldToLocal, type Pose } from './geometry';
-export const GRAVITY = 9.81;
+import { GRAVITY, solveDragArc, travelFactor } from './ballistics';
+export { GRAVITY } from './ballistics';
 export type MountDefinition = ShipDefinition['mounts'][number];
-export interface MountState { id: string; train: number; elevation: number; reload: number; ammo: number; hp: number; recoil: number; status: 'ready' | 'turning' | 'reloading' | 'blocked' | 'out-of-arc' | 'out-of-range' | 'empty' | 'disabled'; }
-export const createMountState = (m: MountDefinition): MountState => ({ id: m.id, train: 0, elevation: radians(1), reload: 0, ammo: m.weapon.ammoPerBarrel * (m.weapon.barrelCount ?? 2), hp: 100, recoil: 0, status: 'turning' });
+export interface MountState {
+  id: string; train: number; elevation: number; reload: number; ammo: number; hp: number; recoil: number;
+  /** Total rounds include the HE subset; rounds are consumed when fired. */
+  heAmmo: number; loaded: Ammunition;
+  status: 'ready' | 'reloading' | 'turning' | 'out-of-range' | 'blocked' | 'out-of-arc' | 'empty' | 'disabled' | 'submerged';
+  aimCache?: { time: number; train: number; elevation: number; point: Vec3 };
+  leadCache?: { time: number; point: Vec3 };
+}
+export const createMountState = (m: MountDefinition): MountState => ({ id: m.id, train: 0, elevation: radians(1), reload: 0,
+  ammo: m.weapon.ammoPerBarrel * (m.weapon.barrelCount ?? 2), heAmmo: Math.floor(m.weapon.ammoPerBarrel * (m.weapon.he?.stockFraction ?? 0)) * (m.weapon.barrelCount ?? 2),
+  loaded: 'ap', hp: 100, recoil: 0, status: 'turning' });
+export const availableAmmunition = (state: MountState, type = state.loaded): number => type === 'he' ? Math.max(0, Math.min(state.ammo, state.heAmmo)) : Math.max(0, state.ammo - state.heAmmo);
+/** Unloading returns the unfired round to its existing stock. Changing type
+ * always requires a complete load interval, including changing back mid-load. */
+export function selectAmmunition(m: MountDefinition, state: MountState, requested: Ammunition): void {
+  const type = requested === 'he' && !m.weapon.he ? 'ap' : requested;
+  if (state.loaded === type) return;
+  state.loaded = type; state.reload = Math.max(state.reload, m.weapon.reloadSeconds);
+  delete state.aimCache; delete state.leadCache;
+}
 export function muzzleLocal(m: MountDefinition, state: Pick<MountState, 'train' | 'elevation'>, barrel: number): Vec3 {
   const bearing = radians(m.bearingDeg) + state.train, w = m.weapon;
   const forward = w.trunnionForward + (w.muzzleForward - w.trunnionForward) * Math.cos(state.elevation);
@@ -25,35 +44,43 @@ export function shotDirection(m: MountDefinition, state: MountState, pose: Pose)
   return rotate([Math.sin(bearing) * Math.cos(state.elevation), Math.sin(state.elevation), -Math.cos(bearing) * Math.cos(state.elevation)], pose);
 }
 /** Low ballistic arc. Same gravity and speed as projectile integration. */
-export function solveBallistic(from: Vec3, target: Vec3, speed: number): { direction: Vec3; time: number } | null {
+export function solveBallistic(from: Vec3, target: Vec3, speed: number, dragPerSecond = 0): { direction: Vec3; time: number } | null {
   const delta = sub(target, from), range = Math.hypot(delta[0], delta[2]);
   if (range < 1 || range > 30000 || !target.every(Number.isFinite)) return null;
+  if (dragPerSecond > 1e-8) return solveDragArc(from, target, speed, dragPerSecond);
   const v2 = speed * speed;
   const discriminant = v2 * v2 - GRAVITY * (GRAVITY * range * range + 2 * delta[1] * v2);
   if (discriminant < 0) return null;
   const angle = Math.atan((v2 - Math.sqrt(discriminant)) / (GRAVITY * range));
   return { direction: [delta[0] / range * Math.cos(angle), Math.sin(angle), delta[2] / range * Math.cos(angle)], time: range / (speed * Math.cos(angle)) };
 }
-/** Shared player/bot fire eligibility. Reload and aim are independent; status explains why a gun cannot fire. */
-export function updateMount(m: MountDefinition, state: MountState, definition: ShipDefinition, pose: Pose, aim: Vec3, dt: number, inheritedVelocity: Vec3 = [0, 0, 0]): boolean {
+/** Return true when the barrel has reached a valid firing solution (used by bots). */
+export function updateMount(m: MountDefinition, state: MountState, definition: ShipDefinition, pose: Pose, aim: Vec3 | undefined, dt: number, inheritedVelocity: Vec3 = [0, 0, 0]): boolean {
   state.reload = Math.max(0, state.reload - dt);
   state.recoil = Math.max(0, state.recoil - dt / 1.4);
   if (state.hp <= 0) { state.status = 'disabled'; return false; }
-  if (state.ammo < (m.weapon.barrelCount ?? 2)) { state.status = 'empty'; return false; }
-  // Iterate from the actual muzzle so the long barrel offset doesn't bias close shots.
-  let desiredTrain = state.train, desiredElevation = state.elevation;
-  let reachable = true;
-  let flightTime = length(sub(aim, [pose.x, pose.y, pose.z])) / m.weapon.muzzleSpeed;
-  for (let i = 0; i < 3; i++) {
+  if (availableAmmunition(state) < (m.weapon.barrelCount ?? 2)) { state.status = 'empty'; return false; }
+  if ((definition.submarine && pose.y < -.5) || muzzleWorld(m, state, 0, pose)[1] <= 0) { state.status = 'submerged'; return false; }
+  // Warm-start from the previous desired muzzle and flight time. Reacquisition
+  // still converges in three iterations; continuous tracking needs only one.
+  // Heading and inherited velocity are recomputed each tick, even for a cached
+  // point; the cache only supplies the initial guess, not a stale direction.
+  const cache = aim && state.aimCache && length(sub(aim, state.aimCache.point)) < 10 ? state.aimCache : undefined;
+  let desiredTrain = cache?.train ?? state.train, desiredElevation = cache?.elevation ?? state.elevation;
+  let reachable = !!aim;
+  let flightTime = cache?.time ?? (aim ? length(sub(aim, [pose.x, pose.y, pose.z])) / m.weapon.muzzleSpeed : 0);
+  for (let i = 0; aim && i < (cache ? 1 : 3); i++) {
     const midpoint = localToWorld(muzzleCenterLocal(m, { train: desiredTrain, elevation: desiredElevation }), pose);
-    const relativeAim = sub(aim, inheritedVelocity.map(n => n * flightTime) as Vec3);
-    const solution = solveBallistic(midpoint, relativeAim, m.weapon.muzzleSpeed);
+    const drag = m.weapon.ballistics?.dragPerSecond ?? 0;
+    const relativeAim = sub(aim, inheritedVelocity.map(n => n * travelFactor(flightTime, drag)) as Vec3);
+    const solution = solveBallistic(midpoint, relativeAim, m.weapon.muzzleSpeed, drag);
     if (!solution) { reachable = false; desiredTrain = state.train; desiredElevation = state.elevation; break; }
     flightTime = solution.time;
     const direction = normalize(sub(worldToLocal(add([pose.x, pose.y, pose.z], solution.direction), pose), [0, 0, 0]));
     desiredTrain = wrapAngle(Math.atan2(direction[0], -direction[2]) - radians(m.bearingDeg));
     desiredElevation = Math.asin(clamp(direction[1], -1, 1));
   }
+  state.aimCache = reachable && aim ? { time: flightTime, train: desiredTrain, elevation: desiredElevation, point: [...aim] } : undefined;
   const w = m.weapon, limit = radians(w.traverseDeg);
   const train = clamp(desiredTrain, -limit, limit), elevation = clamp(desiredElevation, radians(w.elevationMinDeg), radians(w.elevationMaxDeg));
   // Traverse through the permitted interval; never shortcut across the forbidden stern sector.

@@ -18,7 +18,7 @@ describe('keyboard gameplay controls', () => {
     Object.defineProperty(globalThis, 'window', { configurable: true, value: events });
     Object.defineProperty(globalThis, 'document', { configurable: true, value: { querySelector: () => modal ? {} : null } });
     Object.defineProperty(globalThis, 'HTMLElement', { configurable: true, value: class {} });
-    actions = { pause: mock(), camera: mock(), recenter: mock(), hud: mock(), fullscreen: mock(), optics: mock(), battery: mock(), cursor: mock(), chartSize: mock(), gunnery: mock(), shellFollow: mock() };
+    actions = { pause: mock(), camera: mock(), recenter: mock(), hud: mock(), fullscreen: mock(), optics: mock(), battery: mock(), cursor: mock(), chartSize: mock(), gunnery: mock(), shellFollow: mock(), depth: mock(), emergencyBlow: mock() };
     input = new InputController(actions, defaultKeybindings());
   });
   afterEach(() => {
@@ -94,10 +94,19 @@ describe('keyboard gameplay controls', () => {
     expect(actions.optics).toHaveBeenCalledTimes(1);
   });
 
+  test('depth orders notch once, emergency blow is reachable, and pause blocks both', () => {
+    key('keydown', 'KeyZ'); key('keydown', 'KeyZ', { repeat: true }); key('keyup', 'KeyZ');
+    expect(actions.depth).toHaveBeenCalledTimes(1); expect(actions.depth).toHaveBeenLastCalledWith(1);
+    key('keydown', 'KeyX'); key('keyup', 'KeyX'); expect(actions.depth).toHaveBeenLastCalledWith(-1);
+    key('keydown', 'KeyB'); key('keyup', 'KeyB'); expect(actions.emergencyBlow).toHaveBeenCalledTimes(1);
+    input.setEnabled(false); key('keydown', 'KeyZ'); key('keydown', 'KeyB');
+    expect(actions.depth).toHaveBeenCalledTimes(2); expect(actions.emergencyBlow).toHaveBeenCalledTimes(1);
+  });
+
   test('battery, chart and gunnery bindings replace the new HUD defaults', () => {
     const bindings = defaultKeybindings();
     bindings.mainBattery = ['KeyM', null]; bindings.secondaryBattery = ['KeyN', null];
-    bindings.chartLarger = ['KeyP', null]; bindings.chartSmaller = ['KeyO', null]; bindings.gunnery = ['KeyB', null];
+    bindings.chartLarger = ['KeyP', null]; bindings.chartSmaller = ['KeyO', null]; bindings.gunnery = ['KeyV', null];
     input.setBindings(bindings);
     for (const code of ['Digit1', 'Digit2', 'Equal', 'NumpadAdd', 'Minus', 'NumpadSubtract', 'KeyG']) key('keydown', code);
     expect(actions.battery).not.toHaveBeenCalled(); expect(actions.chartSize).not.toHaveBeenCalled(); expect(actions.gunnery).not.toHaveBeenCalled();
@@ -105,7 +114,7 @@ describe('keyboard gameplay controls', () => {
     key('keydown', 'KeyN'); expect(actions.battery).toHaveBeenLastCalledWith('secondary');
     key('keydown', 'KeyP'); expect(actions.chartSize).toHaveBeenLastCalledWith(1);
     key('keydown', 'KeyO'); expect(actions.chartSize).toHaveBeenLastCalledWith(-1);
-    key('keydown', 'KeyB'); expect(actions.gunnery).toHaveBeenCalledTimes(1);
+    key('keydown', 'KeyV'); expect(actions.gunnery).toHaveBeenCalledTimes(1);
   });
 
   test('dialogs and browser shortcuts do not trigger or consume gameplay input', () => {

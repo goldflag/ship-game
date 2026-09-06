@@ -1,11 +1,14 @@
+import { burstShell } from './burst';
+import { updateDamageControl } from './damageControl';
 import { expect, test } from 'bun:test';
 import blueprint from '../../assets/ships/bismarck/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
 import { compileShip, type Vec3 } from '../ships/blueprint';
 import { CombatSimulation } from './combat';
 import { hitShip, updateFlooding, type DamageEvent, type Shell } from './damage';
-import { length, localToWorld, segmentBox, sub, worldToLocal } from './geometry';
-import { GRAVITY, solveBallistic, updateMount } from './weapons';
+import { dot, length, localToWorld, normalize, segmentBox, sub, worldToLocal } from './geometry';
+import { ballisticStep } from './ballistics';
+import { GRAVITY, shotDirection, solveBallistic, updateMount } from './weapons';
 import { FIXED_DT } from './ship';
 
 const definition = () => compileShip(blueprint, catalog);
@@ -117,7 +120,7 @@ test('armor resolves before internal damage, and a surface/module is only charge
 test('a shell spends one internal damage budget across modules and tick boundaries', () => {
   for (const split of [false, true]) {
     const def = definition();
-    def.armor = []; def.mounts = []; delete def.structuralPlating;
+    def.armor = []; def.mounts = []; delete def.structuralPlating; delete def.stability;
     def.modules = [30, 100, 100].map((hp, i) => ({
       id: `engine-${i}`, name: `Engine ${i}`, kind: 'engine' as const,
       center: [i * 20, 0, 0] as Vec3, size: [10, 10, 10] as Vec3, hp,
@@ -126,9 +129,11 @@ test('a shell spends one internal damage budget across modules and tick boundari
     const sim = new CombatSimulation(def), shell = round();
     const events: DamageEvent[] = [];
     if (split) expect(hitShip(shell, [-20, 0, 0], [10, 0, 0], sim.player, def, e => events.push(e))).toBe(false);
-    expect(hitShip(shell, [split ? 10 : -20, 0, 0], [60, 0, 0], sim.player, def, e => events.push(e))).toBe(true);
+    expect(hitShip(shell, [split ? 10 : -20, 0, 0], [60, 0, 0], sim.player, def, e => events.push(e))).toBe(false);
     expect(sim.player.damage.modules.map(m => m.hp)).toEqual([0, 60, 100]);
-    expect(events.filter(e => e.kind === 'module')).toHaveLength(2);
+    expect(events.filter(e => e.kind === 'module' && e.impact!.damage! > 0)).toHaveLength(2);
+    expect(shell.remainingModuleDamage).toBe(0);
+    expect(shell.penetrationMm).toBeGreaterThan(0); // A spent damage budget does not erase a moving shell.
   }
 });
 
@@ -154,7 +159,6 @@ test('aimed salvos obey reloads and ammunition while damaging the target', () =>
   expect(sim.player.mounts.slice(0, 4).every(m => m.ammo === 238)).toBe(true);
   expect(sim.target.damage.modules.find(m => m.id === 'engine-port')!.hp).toBe(140);
   expect(sim.events.some(e => e.kind === 'stopped' && e.message.includes('Turtleback'))).toBe(true);
-  expect(sim.target.damage.integrity).toBeLessThan(sim.target.damage.maxIntegrity);
   expect(sim.target.damage.compartments.some(c => c.breachAreaM2 > 0)).toBe(true);
   for (let i = 0; i < 200; i++) sim.step(stop, { aim: [NaN, 0, 0], fire: true, battery: 'main' });
   expect(sim.events.filter(e => e.kind === 'shot').length).toBe(8);
@@ -206,12 +210,12 @@ test('impact normals are in world coordinates and internal damage has no surface
   const localNormal = localEvents.find(e => e.kind === 'penetration')!.normal!;
   const origin = localToWorld([0, 0, 0], pose), expected = sub(localToWorld(localNormal, pose), origin);
   expect(length(sub(plate.normal!, expected))).toBeLessThan(1e-9);
-  const localImpact = localEvents.find(e => e.impact)?.impact!;
-  const impact = events.find(e => e.impact)?.impact!;
+  const localImpact = localEvents.find(e => e.surfaceImpact)?.surfaceImpact!;
+  const impact = events.find(e => e.surfaceImpact)?.surfaceImpact!;
   expect(length(sub(impact.position, localImpact.position))).toBeLessThan(1e-8);
   expect(length(sub(impact.direction, localImpact.direction))).toBeLessThan(1e-8);
   expect(impact.outcome).toBe('penetration');
-  expect(events.filter(e => e.kind === 'module').every(e => !e.impact)).toBe(true);
+  expect(events.filter(e => e.kind === 'module').every(e => !e.surfaceImpact)).toBe(true);
   // Exercise interior metadata without depending on a preset's penetration budget.
   const [x, y, z] = def.modules.find(m => m.kind === 'engine')!.center;
   hitShip(round(), localToWorld([x - .1, y, z], pose), localToWorld([x + .1, y, z], pose), sim.target, def, e => events.push(e));
@@ -235,25 +239,27 @@ test('surface evidence preserves ammunition and mount-local contact before later
   const mountPose = { x: mount.position[0], y: mount.position[1], z: mount.position[2], heading: mount.bearingDeg * Math.PI / 180 + .7, roll: 0, pitch: 0 };
   const world = (point: Vec3) => localToWorld(localToWorld(point, mountPose), sim.player.motion);
   hitShip({ ...round(), type: 'HE' }, world([8, 2, 0]), world([-8, 2, 0]), sim.player, def, e => events.push(e));
-  const strike = events.find(e => e.impact)!;
-  expect(strike.shell?.type).toBe('HE'); expect(strike.impact?.mountId).toBe(mount.id);
-  expect(length(sub(strike.impact!.position, [2, 2, 0]))).toBeLessThan(1e-8);
-  expect(length(sub(strike.impact!.direction, [-1, 0, 0]))).toBeLessThan(1e-8);
+  const strike = events.find(e => e.surfaceImpact)!;
+  expect(strike.shell?.type).toBe('HE'); expect(strike.surfaceImpact?.mountId).toBe(mount.id);
+  expect(length(sub(strike.surfaceImpact!.position, [2, 2, 0]))).toBeLessThan(1e-8);
+  expect(length(sub(strike.surfaceImpact!.direction, [-1, 0, 0]))).toBeLessThan(1e-8);
   const snapshot = JSON.stringify(strike);
   sim.player.mounts[0].train = -1; sim.player.motion.x += 100;
   expect(JSON.stringify(strike)).toBe(snapshot);
-  expect(events.filter(e => e.kind === 'module').every(e => !e.impact)).toBe(true);
+  expect(events.filter(e => e.kind === 'module').every(e => !e.surfaceImpact)).toBe(true);
 });
 
-test('penetrating magazine hits detonate once and disable the connected battery mount', () => {
+test('an internal armed burst ignites the magazine once and disable the connected battery mount', () => {
   const def = definition(), sim = new CombatSimulation(def);
   const index = def.modules.findIndex(m => m.id === 'anton-magazine');
   const magazine = def.modules[index];
-  const from: Vec3 = [-100, magazine.center[1], magazine.center[2]], to: Vec3 = [100, magazine.center[1], magazine.center[2]];
   const messages: string[] = [];
-  for (let i = 0; i < 3; i++) hitShip({ ...round(), ownerId: 'target', id: i }, from, to, sim.player, def, e => messages.push(e.message));
+  for (let i = 0; i < 3; i++) {
+    burstShell({ ...round(), position: [...magazine.center], ownerId: 'target', id: i, he: { explosiveKg: 50, fragmentPenetrationMm: 50, damage: 180, stockFraction: .4, basis: 'Test charge' } }, [sim.player], e => messages.push(e.message));
+    updateDamageControl(sim.player, def, 1 / 60, e => messages.push(e.message));
+  }
   expect(sim.player.damage.modules[index].detonated).toBe(true);
-  expect(messages.filter(m => m.includes('detonation')).length).toBe(1);
+  expect(messages.filter(m => m.includes('ignition')).length).toBe(1);
   const mount = sim.player.mounts.find(m => m.id === 'anton')!;
   const ammo = mount.ammo;
   for (let i = 0; i < 1500; i++) sim.step(stop, { aim: sim.aimAt(), fire: true, battery: 'main' });

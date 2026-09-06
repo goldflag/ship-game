@@ -86,6 +86,10 @@ function inspectGlb(bytes: Buffer, def: ShipDefinition) {
   };
   const worlds = frames();
   const getIndex = (id: string) => { const index = byId.get(id); if (index === undefined) throw new Error(`Missing required export node ${id}`); return index; };
+  if (def.submarine) for (const id of Object.values(def.submarine.appendages).flat()) {
+    const node = gltf.nodes[getIndex(id)];
+    if (node.mesh !== undefined || !node.children?.length) throw new Error(`Appendage ${id} must retain an independent pivot empty and moving geometry`);
+  }
   const hullIndex = getIndex('hull.surface');
   const hull = gltf.nodes[hullIndex];
   const bounds = [new Vector3(Infinity, Infinity, Infinity), new Vector3(-Infinity, -Infinity, -Infinity)];

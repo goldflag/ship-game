@@ -52,7 +52,7 @@ export function App() {
   const [error, setError] = useState('');
   const [hud, setHud] = useState(true);
   const [battleSetupOpen, setBattleSetupOpen] = useState(false);
-  const [battleSetup, setBattleSetup] = useState<BattleSetup>({ playerShipId: initialShip.id, friendlyBots: [], enemies: ['bismarck'], spawnDistance: BATTLE_SPAWN_DISTANCE });
+  const [battleSetup, setBattleSetup] = useState<BattleSetup>({ playerShipId: initialShip.id, friendlyBots: [], enemies: ['bismarck'], spawnDistance: BATTLE_SPAWN_DISTANCE, mapId: 'north-atlantic', sea: settings.sea });
   const [battleLoading, setBattleLoading] = useState(false);
   const [battleError, setBattleError] = useState('');
   const battlePending = useRef(false);
@@ -77,15 +77,17 @@ export function App() {
     const reviewWindow = window as unknown as {
       shipTrialDiagnostics?: () => unknown;
       shipTrialArticulation?: (pose: Parameters<Game['previewArticulation']>[0]) => unknown;
+      shipTrialAdvance?: (seconds: number) => void;
     };
     if (import.meta.env.DEV) {
       reviewWindow.shipTrialDiagnostics = () => session.diagnostics();
       reviewWindow.shipTrialArticulation = pose => session.previewArticulation(pose);
+      reviewWindow.shipTrialAdvance = seconds => session.previewAdvance(seconds);
     }
     session.start();
     return () => {
       active = false; game.current = null;
-      if (import.meta.env.DEV) { delete reviewWindow.shipTrialDiagnostics; delete reviewWindow.shipTrialArticulation; }
+      if (import.meta.env.DEV) { delete reviewWindow.shipTrialDiagnostics; delete reviewWindow.shipTrialArticulation; delete reviewWindow.shipTrialAdvance; }
       void session.dispose();
     };
   }, [generation, settings]);
