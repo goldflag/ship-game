@@ -4,8 +4,10 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { CombatEvent } from '../simulation/combat';
 import type { ShellType, SurfaceImpact } from '../simulation/damage';
 import { impactTexture } from './ImpactTexture';
+import { raycastSurface, surfaceChunks } from './SurfaceChunks';
 
 export const MAX_SHIP_IMPACT_MARKS = 96;
+export interface ImpactMarkBudget { remainingMs: number; }
 const SURFACE_SEARCH_M = 3;
 let atlas: THREE.DataTexture | undefined, atlasUsers = 0;
 
@@ -25,21 +27,26 @@ function projectSurface(receiver: THREE.Mesh, point: THREE.Vector3, normal: THRE
   const orientation = new THREE.Euler().setFromRotationMatrix(basis);
   const projector = basis.clone().setPosition(point).invert().multiply(receiver.matrixWorld);
   const source = receiver.geometry, positions = source.getAttribute('position'), normals = source.getAttribute('normal');
-  const index = source.index, count = index?.count ?? positions.count;
+  const index = source.index;
   const vertices: number[] = [], directions: number[] = [];
   const p = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
   const a = new THREE.Vector3(), b = new THREE.Vector3();
   const depth = Math.min(.8, Math.max(.16, Math.min(width, height) * .3));
-  for (let i = 0; i < count; i += 3) {
-    for (let j = 0; j < 3; j++) p[j].fromBufferAttribute(positions, index ? index.getX(i + j) : i + j).applyMatrix4(projector);
-    if (p.every(v => v.x < -width / 2) || p.every(v => v.x > width / 2) ||
-        p.every(v => v.y < -height / 2) || p.every(v => v.y > height / 2) ||
-        p.every(v => v.z < -depth / 2) || p.every(v => v.z > depth / 2)) continue;
-    if (a.subVectors(p[1], p[0]).cross(b.subVectors(p[2], p[0])).normalize().z < .25) continue;
-    for (let j = 0; j < 3; j++) {
-      const id = index ? index.getX(i + j) : i + j;
-      vertices.push(positions.getX(id), positions.getY(id), positions.getZ(id));
-      if (normals) directions.push(normals.getX(id), normals.getY(id), normals.getZ(id));
+  const localBounds = new THREE.Box3(new THREE.Vector3(-width / 2, -height / 2, -depth / 2),
+    new THREE.Vector3(width / 2, height / 2, depth / 2)).applyMatrix4(projector.clone().invert()).expandByScalar(1e-6);
+  for (const chunk of surfaceChunks(source)) {
+    if (!chunk.bounds.intersectsBox(localBounds)) continue;
+    for (let i = chunk.first; i < chunk.end; i += 3) {
+      for (let j = 0; j < 3; j++) p[j].fromBufferAttribute(positions, index ? index.getX(i + j) : i + j).applyMatrix4(projector);
+      if (p.every(v => v.x < -width / 2) || p.every(v => v.x > width / 2) ||
+          p.every(v => v.y < -height / 2) || p.every(v => v.y > height / 2) ||
+          p.every(v => v.z < -depth / 2) || p.every(v => v.z > depth / 2)) continue;
+      if (a.subVectors(p[1], p[0]).cross(b.subVectors(p[2], p[0])).normalize().z < .25) continue;
+      for (let j = 0; j < 3; j++) {
+        const id = index ? index.getX(i + j) : i + j;
+        vertices.push(positions.getX(id), positions.getY(id), positions.getZ(id));
+        if (normals) directions.push(normals.getX(id), normals.getY(id), normals.getZ(id));
+      }
     }
   }
   const subset = new THREE.BufferGeometry();
@@ -63,30 +70,43 @@ export class ShipImpactMarks {
   private material?: THREE.MeshStandardMaterial;
   private visible = true;
   private sequence = 0;
+  private readonly pending: CombatEvent[] = [];
+  private disposed = false;
 
   constructor(private readonly root: THREE.Group, model: THREE.Group, private readonly mounts: Map<string, THREE.Object3D>) {
+    atlas ??= impactTexture(); atlasUsers++; // Generate the shared atlas while loading, not during the first hit.
     model.traverse(object => {
       if (!(object instanceof THREE.Mesh)) return;
       let mountId: string | undefined;
       for (let parent: THREE.Object3D | null = object; parent && !mountId; parent = parent.parent) {
         for (const [id, node] of mounts) if (parent === node) { mountId = id; break; }
       }
+      surfaceChunks(object.geometry); // Warm shared bounds during loading, before the first salvo.
       this.receivers.push({ mesh: object, mountId });
     });
   }
 
   get count() { return this.marks.length; }
+  get pendingCount() { return this.pending.length; }
   get drawCalls() { return this.batches.size; }
 
-  update(events: readonly CombatEvent[], shipId: string): void {
-    const dirty = new Set<THREE.Mesh>();
-    let updated = false;
+  update(events: readonly CombatEvent[], shipId: string, budget?: ImpactMarkBudget): void {
+    // Capture before spending the frame budget: old events may leave the shared
+    // simulation ring while this hull's cosmetic work waits for a later frame.
     for (const event of events) {
       if (event.sequence <= this.sequence) continue;
       this.sequence = event.sequence;
-      if (event.shipId !== shipId || !event.impact || !event.shell) continue;
+      if (event.shipId === shipId && event.impact && event.shell) this.pending.push(event);
+    }
+    if (this.pending.length > MAX_SHIP_IMPACT_MARKS) this.pending.splice(0, this.pending.length - MAX_SHIP_IMPACT_MARKS);
+    if (!this.pending.length || (budget && budget.remainingMs <= 0)) return;
+    const started = performance.now(), available = budget?.remainingMs ?? Infinity;
+    const dirty = new Set<THREE.Mesh>();
+    let updated = false;
+    while (this.pending.length && performance.now() - started < available) {
+      const event = this.pending.shift()!;
       if (!updated) { this.root.updateMatrixWorld(true); updated = true; }
-      const { impact, shell } = event;
+      const impact = event.impact!, shell = event.shell!;
       const frame = impact.mountId ? this.mounts.get(impact.mountId) : this.root;
       if (!frame) continue;
       const point = new THREE.Vector3(...impact.position).applyMatrix4(frame.matrixWorld);
@@ -99,7 +119,7 @@ export class ShipImpactMarks {
       const hits = [1, -1].flatMap(sign => {
         const ray = new THREE.Raycaster(point.clone().addScaledVector(normal, SURFACE_SEARCH_M * sign),
           normal.clone().multiplyScalar(-sign), 0, SURFACE_SEARCH_M * 2);
-        return ray.intersectObjects(candidates, false);
+        return candidates.flatMap(mesh => raycastSurface(mesh, ray));
       }).filter(hit => hit.face &&
         Math.abs(hit.face.normal.clone().transformDirection(hit.object.matrixWorld).dot(normal)) > .25);
       hits.sort((a, b) => a.point.distanceToSquared(point) - b.point.distanceToSquared(point));
@@ -124,6 +144,7 @@ export class ShipImpactMarks {
       }
     }
     for (const receiver of dirty) this.rebuild(receiver);
+    if (budget) budget.remainingMs = Math.max(0, available - (performance.now() - started));
   }
 
   private rebuild(receiver: THREE.Mesh): void {
@@ -132,7 +153,6 @@ export class ShipImpactMarks {
     const geometries = this.marks.filter(mark => mark.receiver === receiver).map(mark => mark.geometry);
     if (!geometries.length) return;
     if (!this.material) {
-      atlas ??= impactTexture(); atlasUsers++;
       this.material = new THREE.MeshStandardMaterial({ map: atlas, transparent: true, depthWrite: false,
         polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4, roughness: .92, metalness: .15 });
     }
@@ -149,14 +169,13 @@ export class ShipImpactMarks {
   clear(): void {
     this.marks.forEach(mark => mark.geometry.dispose()); this.marks.length = 0;
     this.batches.forEach(batch => { batch.removeFromParent(); batch.geometry.dispose(); }); this.batches.clear();
-    this.sequence = 0;
+    this.sequence = 0; this.pending.length = 0;
   }
 
   dispose(): void {
+    if (this.disposed) return; this.disposed = true;
     this.clear();
-    if (this.material) {
-      this.material.dispose(); this.material = undefined;
-      if (--atlasUsers === 0) { atlas?.dispose(); atlas = undefined; }
-    }
+    this.material?.dispose(); this.material = undefined;
+    if (--atlasUsers === 0) { atlas?.dispose(); atlas = undefined; }
   }
 }

@@ -86,3 +86,32 @@ test('the mark budget evicts old geometry, and clear permits a fresh battle sequ
     marks.update([event()], 'target'); expect(marks.count).toBe(1);
   } finally { marks.dispose(); }
 });
+
+test('a shared frame budget defers cosmetic marks without losing consumed events or replaying them', () => {
+  const a = fixture(), b = fixture();
+  const spent = { remainingMs: 0 };
+  try {
+    a.marks.update([event()], 'target', spent);
+    b.marks.update([event(2)], 'target', spent);
+    expect(a.marks.count).toBe(0); expect(b.marks.count).toBe(0);
+    expect(a.marks.pendingCount).toBe(1); expect(b.marks.pendingCount).toBe(1);
+    // The simulation event ring may have moved on by the next rendered frame.
+    a.marks.update([], 'target', { remainingMs: Infinity });
+    b.marks.update([], 'target', { remainingMs: Infinity });
+    expect(a.marks.count).toBe(1); expect(b.marks.count).toBe(1);
+    a.marks.update([event()], 'target'); expect(a.marks.count).toBe(1);
+    a.marks.update([event(3)], 'target', spent);
+    a.marks.clear(); a.marks.update([], 'target');
+    expect(a.marks.pendingCount).toBe(0); expect(a.marks.count).toBe(0);
+  } finally { a.marks.dispose(); b.marks.dispose(); }
+});
+
+test('queued cosmetic marks remain bounded during sustained salvos', () => {
+  const { marks } = fixture();
+  try {
+    marks.update(Array.from({length:500},(_,i)=>event(i+1)), 'target', {remainingMs:0});
+    expect(marks.pendingCount).toBe(MAX_SHIP_IMPACT_MARKS);
+    marks.update([], 'target');
+    expect(marks.count).toBe(MAX_SHIP_IMPACT_MARKS); expect(marks.pendingCount).toBe(0);
+  } finally { marks.dispose(); }
+});
