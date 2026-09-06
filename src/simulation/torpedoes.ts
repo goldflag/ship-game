@@ -5,6 +5,7 @@ import { motionVelocity } from './ship';
 import { structuralHits } from './structure';
 import { addBreach } from './damage';
 import { equipmentCondition } from './machinery';
+import { damageHull } from './durability';
 
 export type TubeDefinition = NonNullable<ShipDefinition['torpedoTubes']>[number];
 export interface TubeState {
@@ -108,6 +109,7 @@ export function firstTorpedoHit(torpedo: Torpedo, from: Vec3, to: Vec3, actors: 
 /** Bounded contact blast and one local breach. These are explicit gameplay values. */
 export function damageTorpedoHit(torpedo: Torpedo, actor: FleetActor, point: Vec3): string {
   const def = actor.definition, damage = actor.damage, w = torpedo.weapon;
+  damageHull(actor, w.damage);
   const distanceTo = (box: { center: Vec3; size: Vec3 }) => Math.hypot(...point.map((v, i) => Math.max(0, Math.abs(v - box.center[i]) - box.size[i] / 2)));
   const compartment = def.compartments.map((c, i) => ({ c, i, distance: Math.min(...(c.cells ?? [c]).map(distanceTo)) })).sort((a, b) => a.distance - b.distance)[0];
   if (compartment) {
