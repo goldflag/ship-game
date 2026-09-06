@@ -10,7 +10,7 @@ export interface DamageState {
   integrity: number; maxIntegrity: number; modules: { id: string; hp: number; detonated: boolean }[];
   compartments: CompartmentState[]; sunk: boolean;
 }
-export interface Combatant { motion: ShipState; mounts: MountState[]; damage: DamageState; }
+export interface Combatant { motion: ShipState; mounts: MountState[]; damage: DamageState; torpedoLaunchers?: import('./torpedoes').TorpedoLauncherState[]; }
 export type ShellType = 'AP' | 'HE';
 export interface Shell {
   id: number; ownerId: string; position: Vec3; velocity: Vec3; age: number;

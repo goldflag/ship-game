@@ -1,0 +1,1268 @@
+$ bun run ship:check bismarck && bun run ship:check yamato && bun run ship:check baltimore && bun run ship:check enterprise-cv6 && bun run ship:check type-viic && bun run ship:check fletcher && bun run aircraft:check all && tsc --noEmit && vite build
+$ bun scripts/ships/pipeline.ts check bismarck
+Matched comparisons, probes, source pack and portable archive are current
+{
+  "contentHash": "f70db5ac23faddb38012509862a0d38294035364d950209b56650f274f07ac29",
+  "hullBounds": [
+    [
+      -18,
+      -9.329999923706055,
+      -125.25
+    ],
+    [
+      18,
+      9.300000190734863,
+      125.25
+    ]
+  ],
+  "mounts": [
+    {
+      "id": "anton",
+      "measuredPivot": [
+        0.000005288628017297015,
+        6.75,
+        -70.05000305175781
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "bruno",
+      "measuredPivot": [
+        0.00000391456615034258,
+        10.550000190734863,
+        -51.849998474121094
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "caesar",
+      "measuredPivot": [
+        -0.0000043902032302867156,
+        10.550000190734863,
+        58.150001525878906
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "dora",
+      "measuredPivot": [
+        -0.000005764264642493799,
+        6.349999904632568,
+        76.3499984741211
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "starboard-secondary-1",
+      "measuredPivot": [
+        9.650001525878906,
+        6.150000095367432,
+        -27.200000762939453
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "starboard-secondary-2",
+      "measuredPivot": [
+        14.05000114440918,
+        6,
+        -7.999999046325684
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "starboard-secondary-3",
+      "measuredPivot": [
+        13.89999771118164,
+        6,
+        24.000001907348633
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "port-secondary-1",
+      "measuredPivot": [
+        -9.64999771118164,
+        6.150000095367432,
+        -27.200000762939453
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "port-secondary-2",
+      "measuredPivot": [
+        -14.049999237060547,
+        6,
+        -8.000000953674316
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "port-secondary-3",
+      "measuredPivot": [
+        -13.900001525878906,
+        6,
+        23.999998092651367
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    }
+  ],
+  "torpedoTubes": [],
+  "depthChargeLaunchers": [],
+  "meshes": 98,
+  "primitives": 286,
+  "triangles": 368428,
+  "bytes": 21897784,
+  "result": "passed",
+  "historicalAccuracy": "not certified; see reference register and discrepancy report"
+}
+$ bun scripts/ships/pipeline.ts check yamato
+{
+  "contentHash": "163092b8762131d6f22b17e7d3ff69fe985b7c28c4aa3661cc19470a5b6b019d",
+  "hullBounds": [
+    [
+      -19.450002670288086,
+      -10.399999618530273,
+      -131.5
+    ],
+    [
+      19.450000762939453,
+      9.399999618530273,
+      131.5
+    ]
+  ],
+  "mounts": [
+    {
+      "id": "main-1",
+      "measuredPivot": [
+        0.000003835293227893999,
+        3.5999999046325684,
+        -50.79999923706055
+      ],
+      "barrels": 3,
+      "articulationChecks": 9
+    },
+    {
+      "id": "main-2",
+      "measuredPivot": [
+        0.0000021139412638149224,
+        6.800000190734863,
+        -28
+      ],
+      "barrels": 3,
+      "articulationChecks": 9
+    },
+    {
+      "id": "main-3",
+      "measuredPivot": [
+        -0.000004884714144282043,
+        4.699999809265137,
+        64.69999694824219
+      ],
+      "barrels": 3,
+      "articulationChecks": 9
+    },
+    {
+      "id": "secondary-forward",
+      "measuredPivot": [
+        0,
+        13,
+        -10
+      ],
+      "barrels": 3,
+      "articulationChecks": 9
+    },
+    {
+      "id": "secondary-aft",
+      "measuredPivot": [
+        -0.000003533301651259535,
+        11.600000381469727,
+        46.79999923706055
+      ],
+      "barrels": 3,
+      "articulationChecks": 9
+    }
+  ],
+  "torpedoTubes": [],
+  "depthChargeLaunchers": [],
+  "meshes": 104,
+  "primitives": 328,
+  "triangles": 141730,
+  "bytes": 4915160,
+  "result": "passed",
+  "historicalAccuracy": "not certified; see reference register and discrepancy report"
+}
+$ bun scripts/ships/pipeline.ts check baltimore
+{
+  "contentHash": "35c847887cdb69604c44bb97c8c572b75577c2dc1a57e58cb78980917d0b7738",
+  "hullBounds": [
+    [
+      -10.795001983642578,
+      -7.366000175476074,
+      -102.62870025634766
+    ],
+    [
+      10.794999122619629,
+      9.960000038146973,
+      102.62870025634766
+    ]
+  ],
+  "mounts": [
+    {
+      "id": "main-1",
+      "measuredPivot": [
+        0.00000433540299127344,
+        6.769100189208984,
+        -57.42415237426758
+      ],
+      "barrels": 3,
+      "articulationChecks": 9
+    },
+    {
+      "id": "main-2",
+      "measuredPivot": [
+        0.0000033465212254668586,
+        9.62660026550293,
+        -44.32601547241211
+      ],
+      "barrels": 3,
+      "articulationChecks": 9
+    },
+    {
+      "id": "main-3",
+      "measuredPivot": [
+        -0.00000419068828705349,
+        6.921500205993652,
+        55.50735092163086
+      ],
+      "barrels": 3,
+      "articulationChecks": 9
+    },
+    {
+      "id": "secondary-51",
+      "measuredPivot": [
+        0.000002285281880176626,
+        8.399999618530273,
+        -30.26947593688965
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "secondary-52",
+      "measuredPivot": [
+        -7.050000190734863,
+        6.300000190734863,
+        2.9550676345825195
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "secondary-53",
+      "measuredPivot": [
+        7.050000190734863,
+        6.300000190734863,
+        2.955068588256836
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "secondary-54",
+      "measuredPivot": [
+        -7.0500006675720215,
+        6.300000190734863,
+        8.70546817779541
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "secondary-55",
+      "measuredPivot": [
+        7.049999713897705,
+        6.300000190734863,
+        8.705470085144043
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "secondary-56",
+      "measuredPivot": [
+        -0.00000318974707624875,
+        8.399999618530273,
+        42.249481201171875
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    }
+  ],
+  "torpedoTubes": [],
+  "depthChargeLaunchers": [],
+  "meshes": 122,
+  "primitives": 346,
+  "triangles": 109820,
+  "bytes": 3674064,
+  "result": "passed",
+  "historicalAccuracy": "not certified; see reference register and discrepancy report"
+}
+$ bun scripts/ships/pipeline.ts check "enterprise-cv6"
+{
+  "contentHash": "e92889c41c480da6238655e8998db7e5a398dfcdc46de1d17e32cfa5a758b00b",
+  "hullBounds": [
+    [
+      -14.02080249786377,
+      -7.912099838256836,
+      -123.3677978515625
+    ],
+    [
+      14.020805358886719,
+      10.98550033569336,
+      123.3677978515625
+    ]
+  ],
+  "mounts": [
+    {
+      "id": "five-inch-port-1",
+      "measuredPivot": [
+        -12.649993896484375,
+        14.371899604797363,
+        -82
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "five-inch-port-2",
+      "measuredPivot": [
+        -12.649993896484375,
+        15.47189998626709,
+        -74
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "five-inch-port-3",
+      "measuredPivot": [
+        -12.650007247924805,
+        14.371899604797363,
+        99
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "five-inch-port-4",
+      "measuredPivot": [
+        -12.650007247924805,
+        15.47189998626709,
+        107
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "five-inch-starboard-1",
+      "measuredPivot": [
+        12.650005340576172,
+        14.371899604797363,
+        -82
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "five-inch-starboard-2",
+      "measuredPivot": [
+        12.650005340576172,
+        15.47189998626709,
+        -74
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "five-inch-starboard-3",
+      "measuredPivot": [
+        12.649991989135742,
+        14.371899604797363,
+        99
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "five-inch-starboard-4",
+      "measuredPivot": [
+        12.649991989135742,
+        15.47189998626709,
+        107
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "quad-fore-lower",
+      "measuredPivot": [
+        11.800003051757812,
+        16.471900939941406,
+        -38.40480041503906
+      ],
+      "barrels": 4,
+      "articulationChecks": 12
+    },
+    {
+      "id": "quad-fore-upper",
+      "measuredPivot": [
+        10.400002479553223,
+        18.605499267578125,
+        -35.966400146484375
+      ],
+      "barrels": 4,
+      "articulationChecks": 12
+    },
+    {
+      "id": "quad-aft-lower",
+      "measuredPivot": [
+        11.999998092651367,
+        16.471900939941406,
+        21.336000442504883
+      ],
+      "barrels": 4,
+      "articulationChecks": 12
+    },
+    {
+      "id": "quad-aft-upper",
+      "measuredPivot": [
+        10.499999046325684,
+        18.605499267578125,
+        16.459199905395508
+      ],
+      "barrels": 4,
+      "articulationChecks": 12
+    },
+    {
+      "id": "oerlikon-port-1",
+      "measuredPivot": [
+        -14.200008392333984,
+        15.821900367736816,
+        116
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-port-2",
+      "measuredPivot": [
+        -14.200008392333984,
+        15.821900367736816,
+        112
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-port-3",
+      "measuredPivot": [
+        -14.200004577636719,
+        15.821900367736816,
+        66
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-port-4",
+      "measuredPivot": [
+        -14.200004577636719,
+        15.821900367736816,
+        61
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-port-5",
+      "measuredPivot": [
+        -14.200003623962402,
+        15.821900367736816,
+        56
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-port-6",
+      "measuredPivot": [
+        -14.200003623962402,
+        15.821900367736816,
+        51
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-port-7",
+      "measuredPivot": [
+        -14.200003623962402,
+        15.821900367736816,
+        46
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-port-8",
+      "measuredPivot": [
+        -14.200002670288086,
+        15.821900367736816,
+        41
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-port-9",
+      "measuredPivot": [
+        -14.199995994567871,
+        15.821900367736816,
+        -48
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-port-10",
+      "measuredPivot": [
+        -14.199995994567871,
+        15.821900367736816,
+        -53
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-port-11",
+      "measuredPivot": [
+        -14.199995040893555,
+        15.821900367736816,
+        -58
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-port-12",
+      "measuredPivot": [
+        -14.199995040893555,
+        15.821900367736816,
+        -63
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-starboard-1",
+      "measuredPivot": [
+        14.199991226196289,
+        15.821900367736816,
+        116
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-starboard-2",
+      "measuredPivot": [
+        14.199991226196289,
+        15.821900367736816,
+        112
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-starboard-3",
+      "measuredPivot": [
+        14.199995040893555,
+        15.821900367736816,
+        66
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-starboard-4",
+      "measuredPivot": [
+        14.199995040893555,
+        15.821900367736816,
+        61
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-starboard-5",
+      "measuredPivot": [
+        14.199995994567871,
+        15.821900367736816,
+        56
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-starboard-6",
+      "measuredPivot": [
+        14.199995994567871,
+        15.821900367736816,
+        51
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-starboard-7",
+      "measuredPivot": [
+        14.199995994567871,
+        15.821900367736816,
+        46
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-starboard-8",
+      "measuredPivot": [
+        14.199996948242188,
+        15.821900367736816,
+        41
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-starboard-9",
+      "measuredPivot": [
+        14.200003623962402,
+        15.821900367736816,
+        -48
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-starboard-10",
+      "measuredPivot": [
+        14.200003623962402,
+        15.821900367736816,
+        -53
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-starboard-11",
+      "measuredPivot": [
+        14.200004577636719,
+        15.821900367736816,
+        -58
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-starboard-12",
+      "measuredPivot": [
+        14.200004577636719,
+        15.821900367736816,
+        -63
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-island-1",
+      "measuredPivot": [
+        15.499999046325684,
+        16.471900939941406,
+        7.000000953674316
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-island-2",
+      "measuredPivot": [
+        15.5,
+        16.471900939941406,
+        2.0000011920928955
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-island-3",
+      "measuredPivot": [
+        15.5,
+        16.471900939941406,
+        -2.9999988079071045
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-island-4",
+      "measuredPivot": [
+        15.500000953674316,
+        16.471900939941406,
+        -7.999999046325684
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-island-5",
+      "measuredPivot": [
+        15.500000953674316,
+        16.471900939941406,
+        -12.999999046325684
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-island-6",
+      "measuredPivot": [
+        15.500000953674316,
+        16.471900939941406,
+        -17.999998092651367
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    }
+  ],
+  "torpedoTubes": [],
+  "depthChargeLaunchers": [],
+  "meshes": 192,
+  "primitives": 385,
+  "triangles": 147596,
+  "bytes": 5340344,
+  "result": "passed",
+  "historicalAccuracy": "not certified; see reference register and discrepancy report"
+}
+$ bun scripts/ships/pipeline.ts check type-viic
+{
+  "contentHash": "9ea6cda9f697422f7f9120e57673cb28ab11700aee1f2876bb788e800070cdcf",
+  "hullBounds": [
+    [
+      -3.1000001430511475,
+      -4.739999771118164,
+      -33.54999923706055
+    ],
+    [
+      3.1000001430511475,
+      2,
+      33.54999923706055
+    ]
+  ],
+  "mounts": [
+    {
+      "id": "deck-gun",
+      "measuredPivot": [
+        0,
+        1.4700000286102295,
+        -8.399999618530273
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "flak-gun",
+      "measuredPivot": [
+        0,
+        4.25,
+        2.799999952316284
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    }
+  ],
+  "torpedoTubes": [
+    {
+      "id": "bow-tube-1",
+      "measuredMuzzle": [
+        -0.4299977421760559,
+        -1.100000023841858,
+        -30
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "bow-tube-2",
+      "measuredMuzzle": [
+        0.43000227212905884,
+        -1.100000023841858,
+        -30
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "bow-tube-3",
+      "measuredMuzzle": [
+        -0.4299977421760559,
+        -2.049999952316284,
+        -30
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "bow-tube-4",
+      "measuredMuzzle": [
+        0.43000227212905884,
+        -2.049999952316284,
+        -30
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "stern-tube",
+      "measuredMuzzle": [
+        -0.0000024159328404493863,
+        -1.2000000476837158,
+        32
+      ],
+      "direction": [
+        -1.5099580252808492e-7,
+        0,
+        0.9999999999999887
+      ]
+    }
+  ],
+  "depthChargeLaunchers": [],
+  "meshes": 32,
+  "primitives": 55,
+  "triangles": 23486,
+  "bytes": 1477376,
+  "result": "passed",
+  "historicalAccuracy": "not certified; see reference register and discrepancy report"
+}
+$ bun scripts/ships/pipeline.ts check fletcher
+{
+  "contentHash": "4d62de645ac3cfe900ed56f85aa4ffbcb5908728de932a8de00c58fd09e3c574",
+  "hullBounds": [
+    [
+      -6.05000114440918,
+      -4.199999809265137,
+      -57.349998474121094
+    ],
+    [
+      6.050000190734863,
+      4.800000190734863,
+      57.349998474121094
+    ]
+  ],
+  "mounts": [
+    {
+      "id": "gun-1",
+      "measuredPivot": [
+        0.0000032464097330375807,
+        3.950000047683716,
+        -43
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "gun-2",
+      "measuredPivot": [
+        0.0000022649369384453166,
+        5.800000190734863,
+        -30
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "gun-3",
+      "measuredPivot": [
+        0,
+        5.599999904632568,
+        21
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "gun-4",
+      "measuredPivot": [
+        -0.0000024914306777645834,
+        5.599999904632568,
+        33
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "gun-5",
+      "measuredPivot": [
+        -0.0000033974056350416504,
+        2.799999952316284,
+        45
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bofors-aft",
+      "measuredPivot": [
+        -0.0000020384434264997253,
+        7.300000190734863,
+        27
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "oerlikon-1",
+      "measuredPivot": [
+        -3.4999983310699463,
+        8.800000190734863,
+        -21
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-2",
+      "measuredPivot": [
+        3.5000016689300537,
+        8.800000190734863,
+        -21
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-3",
+      "measuredPivot": [
+        -4.299999237060547,
+        2.9000000953674316,
+        -10
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-4",
+      "measuredPivot": [
+        4.30000114440918,
+        2.9000000953674316,
+        -10
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-5",
+      "measuredPivot": [
+        -4.300002098083496,
+        2.799999952316284,
+        28
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-6",
+      "measuredPivot": [
+        4.2999982833862305,
+        2.799999952316284,
+        28
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    }
+  ],
+  "torpedoTubes": [
+    {
+      "id": "torpedo-forward-1",
+      "measuredMuzzle": [
+        -1.299999713897705,
+        3.8499999046325684,
+        -4.900000095367432
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "torpedo-forward-2",
+      "measuredMuzzle": [
+        -0.6499996781349182,
+        3.8499999046325684,
+        -4.900000095367432
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "torpedo-forward-3",
+      "measuredMuzzle": [
+        0,
+        3.8499999046325684,
+        -4.900000095367432
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "torpedo-forward-4",
+      "measuredMuzzle": [
+        0.650000274181366,
+        3.8499999046325684,
+        -4.900000095367432
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "torpedo-forward-5",
+      "measuredMuzzle": [
+        1.3000001907348633,
+        3.8499999046325684,
+        -4.900000095367432
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "torpedo-aft-1",
+      "measuredMuzzle": [
+        -1.299999713897705,
+        3.8499999046325684,
+        10.100000381469727
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "torpedo-aft-2",
+      "measuredMuzzle": [
+        -0.6499996781349182,
+        3.8499999046325684,
+        10.100000381469727
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "torpedo-aft-3",
+      "measuredMuzzle": [
+        0,
+        3.8499999046325684,
+        10.100000381469727
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "torpedo-aft-4",
+      "measuredMuzzle": [
+        0.650000274181366,
+        3.8499999046325684,
+        10.100000381469727
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "torpedo-aft-5",
+      "measuredMuzzle": [
+        1.3000001907348633,
+        3.8499999046325684,
+        10.100000381469727
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    }
+  ],
+  "depthChargeLaunchers": [
+    {
+      "id": "dc-rack-port",
+      "measuredRelease": [
+        -2.000004291534424,
+        3.1500000953674316,
+        55.79999923706055
+      ]
+    },
+    {
+      "id": "dc-thrower-port-1",
+      "measuredRelease": [
+        -4.400002956390381,
+        3.5,
+        36.5
+      ]
+    },
+    {
+      "id": "dc-thrower-port-2",
+      "measuredRelease": [
+        -4.400002956390381,
+        3.5,
+        40
+      ]
+    },
+    {
+      "id": "dc-thrower-port-3",
+      "measuredRelease": [
+        -4.400003433227539,
+        3.5,
+        43.5
+      ]
+    },
+    {
+      "id": "dc-rack-starboard",
+      "measuredRelease": [
+        1.9999958276748657,
+        3.1500000953674316,
+        55.79999923706055
+      ]
+    },
+    {
+      "id": "dc-thrower-starboard-1",
+      "measuredRelease": [
+        4.399997234344482,
+        3.5,
+        36.5
+      ]
+    },
+    {
+      "id": "dc-thrower-starboard-2",
+      "measuredRelease": [
+        4.399997234344482,
+        3.5,
+        40
+      ]
+    },
+    {
+      "id": "dc-thrower-starboard-3",
+      "measuredRelease": [
+        4.399996757507324,
+        3.5,
+        43.5
+      ]
+    }
+  ],
+  "meshes": 79,
+  "primitives": 182,
+  "triangles": 44182,
+  "bytes": 2559188,
+  "result": "passed",
+  "historicalAccuracy": "not certified; see reference register and discrepancy report"
+}
+$ bun scripts/aircraft/pipeline.ts check all
+a6m2-zero: passed (LOD triangles 30,999 / 13,936 / 6,148, 1046 KiB base)
+d3a1-val: passed (LOD triangles 32,094 / 14,430 / 6,395, 1073 KiB base)
+b5n2-kate: passed (LOD triangles 31,458 / 14,143 / 6,243, 1135 KiB base)
+a6m5-zero: passed (LOD triangles 31,486 / 14,156 / 6,249, 1133 KiB base)
+d4y2-judy: passed (LOD triangles 28,252 / 12,700 / 5,616, 1058 KiB base)
+b6n2-jill: passed (LOD triangles 31,210 / 14,031 / 6,194, 1134 KiB base)
+f4f-4-wildcat: passed (LOD triangles 30,655 / 13,781 / 6,081, 1001 KiB base)
+sbd-3-dauntless: passed (LOD triangles 38,199 / 17,172 / 7,790, 1545 KiB base)
+tbd-1-devastator: passed (LOD triangles 33,575 / 15,095 / 6,664, 1072 KiB base)
+f6f-5-hellcat: passed (LOD triangles 31,955 / 14,366 / 6,341, 1285 KiB base)
+sb2c-4-helldiver: passed (LOD triangles 38,429 / 17,275 / 7,799, 1810 KiB base)
+tbf-1c-avenger: passed (LOD triangles 33,383 / 15,008 / 6,634, 1180 KiB base)
+f4u-1d-corsair: passed (LOD triangles 30,411 / 13,670 / 6,034, 1248 KiB base)
+vite v6.4.3 building for production...
+transforming...
+✓ 132 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                                   0.82 kB │ gzip:     0.43 kB
+dist/aircraft-review.html                                         4.69 kB │ gzip:     1.49 kB
+dist/assets/data/baseShape16.bin                                 14.21 kB
+dist/assets/barlow-condensed-latin-500-normal-HIEiP5Ov.woff      18.60 kB
+dist/assets/barlow-condensed-latin-600-normal-BFJEwTuo.woff      18.89 kB
+dist/assets/barlow-latin-500-normal-C1h8hMer.woff                19.52 kB
+dist/assets/barlow-latin-400-normal-fsAxiSwU.woff                19.58 kB
+dist/assets/barlow-latin-600-normal-CNwfPWQD.woff                19.88 kB
+dist/assets/barlow-condensed-latin-500-normal-BgYH2mbd.woff2     21.42 kB
+dist/assets/barlow-latin-500-normal-BPAOfeC8.woff2               22.01 kB
+dist/assets/barlow-latin-400-normal-qiz4-Cze.woff2               22.20 kB
+dist/assets/barlow-condensed-latin-600-normal-DepVgxBB.woff2     22.31 kB
+dist/assets/barlow-latin-600-normal-DILqtrty.woff2               22.77 kB
+dist/assets/data/baseShape32.bin                                113.24 kB
+dist/assets/data/baseShape64.bin                                908.29 kB
+dist/assets/aircraftReview-B-FvKVDH.css                           7.16 kB │ gzip:     2.17 kB
+dist/assets/game-DPnXXcuf.css                                    69.48 kB │ gzip:    13.74 kB
+dist/assets/render-CXnU82OS.js                                    7.45 kB │ gzip:     3.58 kB
+dist/assets/aircraftReview-D_MNAoJq.js                           32.06 kB │ gzip:     9.29 kB
+dist/assets/react-BYzzQ_KH.js                                   193.01 kB │ gzip:    60.33 kB
+dist/assets/GLTFLoader-D8lsevl2.js                              399.10 kB │ gzip:   100.65 kB
+dist/assets/three-engine-TQNI8Ta4.js                            933.99 kB │ gzip:   259.36 kB
+dist/assets/game-AgcqRhjb.js                                  7,217.29 kB │ gzip: 4,598.86 kB
+
+(!) Some chunks are larger than 7000 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 3.85s

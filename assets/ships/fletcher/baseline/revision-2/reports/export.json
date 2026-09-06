@@ -1,0 +1,341 @@
+{
+  "contentHash": "4697b4259a43065b9ad72a386daea744c665e75d125c499680f97fd81a14c958",
+  "hullBounds": [
+    [
+      -6.050001621246338,
+      -4.199999809265137,
+      -57.349998474121094
+    ],
+    [
+      6.050000190734863,
+      4.949999809265137,
+      57.349998474121094
+    ]
+  ],
+  "mounts": [
+    {
+      "id": "gun-1",
+      "measuredPivot": [
+        0.0000028236215712240664,
+        3.9200000762939453,
+        -37.400001525878906
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "gun-2",
+      "measuredPivot": [
+        0.0000022422877918870654,
+        5.699999809265137,
+        -29.700000762939453
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "gun-3",
+      "measuredPivot": [
+        0,
+        5.699999809265137,
+        20.399999618530273
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "gun-4",
+      "measuredPivot": [
+        -0.000002340435003134189,
+        5.699999809265137,
+        31
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "gun-5",
+      "measuredPivot": [
+        -0.000002982167188747553,
+        2.799999952316284,
+        39.5
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bofors-aft",
+      "measuredPivot": [
+        0,
+        8.600000381469727,
+        25.899999618530273
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "oerlikon-1",
+      "measuredPivot": [
+        -3.499998092651367,
+        5.78000020980835,
+        -24.5
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-2",
+      "measuredPivot": [
+        3.500001907348633,
+        5.78000020980835,
+        -24.5
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-3",
+      "measuredPivot": [
+        -4.400000095367432,
+        3.049999952316284,
+        0.2999996840953827
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-4",
+      "measuredPivot": [
+        4.400000095367432,
+        3.049999952316284,
+        0.3000003397464752
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-5",
+      "measuredPivot": [
+        -4.350000858306885,
+        3,
+        14.899999618530273
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "oerlikon-6",
+      "measuredPivot": [
+        4.349998950958252,
+        3,
+        14.899999618530273
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    }
+  ],
+  "torpedoTubes": [
+    {
+      "id": "torpedo-forward-1",
+      "measuredMuzzle": [
+        -1.299999713897705,
+        6.119999885559082,
+        -5.550000190734863
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "torpedo-forward-2",
+      "measuredMuzzle": [
+        -0.649999737739563,
+        6.119999885559082,
+        -5.550000190734863
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "torpedo-forward-3",
+      "measuredMuzzle": [
+        0,
+        6.119999885559082,
+        -5.550000190734863
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "torpedo-forward-4",
+      "measuredMuzzle": [
+        0.6500002145767212,
+        6.119999885559082,
+        -5.550000190734863
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "torpedo-forward-5",
+      "measuredMuzzle": [
+        1.3000001907348633,
+        6.119999885559082,
+        -5.550000190734863
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "torpedo-aft-1",
+      "measuredMuzzle": [
+        -1.299999713897705,
+        6.119999885559082,
+        8.75
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "torpedo-aft-2",
+      "measuredMuzzle": [
+        -0.649999737739563,
+        6.119999885559082,
+        8.75
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "torpedo-aft-3",
+      "measuredMuzzle": [
+        0,
+        6.119999885559082,
+        8.75
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "torpedo-aft-4",
+      "measuredMuzzle": [
+        0.6500002145767212,
+        6.119999885559082,
+        8.75
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "torpedo-aft-5",
+      "measuredMuzzle": [
+        1.3000001907348633,
+        6.119999885559082,
+        8.75
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    }
+  ],
+  "depthChargeLaunchers": [
+    {
+      "id": "dc-rack-port",
+      "measuredRelease": [
+        -2.000004291534424,
+        3.1500000953674316,
+        55.79999923706055
+      ]
+    },
+    {
+      "id": "dc-thrower-port-1",
+      "measuredRelease": [
+        -4.400002479553223,
+        3.5,
+        34.5
+      ]
+    },
+    {
+      "id": "dc-thrower-port-2",
+      "measuredRelease": [
+        -4.400003433227539,
+        3.5,
+        42.79999923706055
+      ]
+    },
+    {
+      "id": "dc-thrower-port-3",
+      "measuredRelease": [
+        -4.100003242492676,
+        3.5,
+        46
+      ]
+    },
+    {
+      "id": "dc-rack-starboard",
+      "measuredRelease": [
+        1.9999958276748657,
+        3.1500000953674316,
+        55.79999923706055
+      ]
+    },
+    {
+      "id": "dc-thrower-starboard-1",
+      "measuredRelease": [
+        4.399997711181641,
+        3.5,
+        34.5
+      ]
+    },
+    {
+      "id": "dc-thrower-starboard-2",
+      "measuredRelease": [
+        4.399996757507324,
+        3.5,
+        42.79999923706055
+      ]
+    },
+    {
+      "id": "dc-thrower-starboard-3",
+      "measuredRelease": [
+        4.099996566772461,
+        3.5,
+        46
+      ]
+    }
+  ],
+  "meshes": 80,
+  "primitives": 232,
+  "triangles": 253480,
+  "bytes": 11341816,
+  "result": "passed",
+  "historicalAccuracy": "not certified; see reference register and discrepancy report"
+}

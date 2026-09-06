@@ -1,19 +1,42 @@
 import type { ShipDefinition, TorpedoPart, Vec3 } from '../ships/blueprint';
 import type { FleetActor } from './battle';
-import { add, clamp, localToWorld, radians, scale, segmentBox, worldToLocal, wrapAngle } from './geometry';
+import { add, clamp, localToWorld, radians, rotate, scale, segmentBox, sub, worldToLocal, wrapAngle } from './geometry';
 import { motionVelocity } from './ship';
 import { structuralHits } from './structure';
 
 export type TubeDefinition = NonNullable<ShipDefinition['torpedoTubes']>[number];
 export interface TubeState {
   id: string; ammo: number; reload: number;
-  status: 'ready' | 'reloading' | 'out-of-arc' | 'out-of-range' | 'too-close' | 'disabled' | 'empty' | 'blocked';
+  status: 'ready' | 'reloading' | 'turning' | 'out-of-arc' | 'out-of-range' | 'too-close' | 'disabled' | 'empty' | 'blocked';
 }
+export interface TorpedoLauncherState { id: string; train: number; }
 export interface Torpedo {
   id: number; ownerId: string; tubeId: string; position: Vec3; velocity: Vec3;
   distance: number; age: number; weapon: TorpedoPart;
 }
 export const createTubeState = (tube: TubeDefinition): TubeState => ({ id: tube.id, ammo: tube.ammo, reload: 0, status: tube.ammo ? 'ready' : 'empty' });
+
+export function tubeLocalPosition(actor: Pick<FleetActor, 'definition' | 'torpedoLaunchers'>, tube: TubeDefinition): Vec3 {
+  const launcher = actor.definition.torpedoLaunchers?.find(l => l.id === tube.launcherId);
+  if (!launcher) return tube.position;
+  const train = actor.torpedoLaunchers?.find(l => l.id === launcher.id)?.train ?? 0;
+  return add(launcher.position, rotate(sub(tube.position, launcher.position), { heading: train, roll: 0, pitch: 0 }));
+}
+
+/** Train each shared five-tube assembly once per tick. The CPU owns its yaw. */
+export function trainTorpedoLaunchers(actor: FleetActor, aimFor: (tube: TubeDefinition) => Vec3 | null, dt: number): void {
+  for (const launcher of actor.definition.torpedoLaunchers ?? []) {
+    const state = actor.torpedoLaunchers!.find(s => s.id === launcher.id)!;
+    const tubes = actor.definition.torpedoTubes!.filter(t => t.launcherId === launcher.id);
+    const tube = tubes.find(t => (actor.torpedoTubes?.find(s => s.id === t.id)?.ammo ?? 0) > 0) ?? tubes[0];
+    if (actor.damage.sunk || actor.damage.modules.find(m => m.id === tube.magazineId)?.hp === 0) continue;
+    const aim = aimFor(tube);
+    if (!aim?.every(Number.isFinite)) continue;
+    const local = worldToLocal(aim, actor.motion);
+    const desired = Math.atan2(local[0] - launcher.position[0], launcher.position[2] - local[2]);
+    state.train = wrapAngle(state.train + clamp(wrapAngle(desired - state.train), -radians(launcher.traverseRateDeg) * dt, radians(launcher.traverseRateDeg) * dt));
+  }
+}
 
 /** Constant-speed interception in the horizontal plane. The course is fixed at launch. */
 export function torpedoIntercept(from: Vec3, point: Vec3, velocity: Vec3, speed: number): Vec3 | null {
@@ -32,13 +55,18 @@ export function torpedoIntercept(from: Vec3, point: Vec3, velocity: Vec3, speed:
 
 export function tubeSolution(actor: FleetActor, tube: TubeDefinition, state: TubeState, aim: Vec3, dt: number) {
   state.reload = Math.max(0, state.reload - dt);
-  const origin = localToWorld(tube.position, actor.motion);
+  const origin = localToWorld(tubeLocalPosition(actor, tube), actor.motion);
   const heading = Math.atan2(aim[0] - origin[0], origin[2] - aim[2]);
   const range = Math.hypot(aim[0] - origin[0], aim[2] - origin[2]);
   const magazine = actor.damage.modules.find(m => m.id === tube.magazineId);
+  const launcher = actor.definition.torpedoLaunchers?.find(l => l.id === tube.launcherId);
+  const train = actor.torpedoLaunchers?.find(l => l.id === tube.launcherId)?.train ?? radians(tube.bearingDeg);
+  const relative = wrapAngle(heading - actor.motion.heading);
+  const inArc = launcher ? launcher.launchArcsDeg.some(([a, b]) => relative >= radians(a) && relative <= radians(b)) : Math.abs(wrapAngle(relative - train)) <= radians(tube.arcDeg) + 1e-8;
   state.status = actor.damage.sunk || magazine?.hp === 0 ? 'disabled' : state.ammo === 0 ? 'empty' :
-    !aim.every(Number.isFinite) || Math.abs(wrapAngle(heading - actor.motion.heading - radians(tube.bearingDeg))) > radians(tube.arcDeg) + 1e-8 ? 'out-of-arc' :
-    range < tube.weapon.armingDistanceM ? 'too-close' : range > tube.weapon.rangeM ? 'out-of-range' : state.reload > 0 ? 'reloading' : 'ready';
+    !aim.every(Number.isFinite) || !inArc ? 'out-of-arc' :
+    range < tube.weapon.armingDistanceM ? 'too-close' : range > tube.weapon.rangeM ? 'out-of-range' : state.reload > 0 ? 'reloading' :
+    launcher && Math.abs(wrapAngle(relative - train)) > radians(tube.arcDeg) ? 'turning' : 'ready';
   return { origin, heading, range };
 }
 
@@ -103,7 +131,12 @@ export function firstTorpedoHit(torpedo: Torpedo, from: Vec3, to: Vec3, actors: 
 
 /** Bounded contact blast and one local breach. These are explicit gameplay values. */
 export function damageTorpedoHit(torpedo: Torpedo, actor: FleetActor, point: Vec3): string {
-  const def = actor.definition, damage = actor.damage, w = torpedo.weapon;
+  return damageUnderwaterBlast(actor, point, torpedo.weapon, 'Torpedo hit');
+}
+
+/** Common local underwater damage; callers own blast falloff, scoring and events. */
+export function damageUnderwaterBlast(actor: FleetActor, point: Vec3, w: { damage: number; breachAreaM2: number }, label: string): string {
+  const def = actor.definition, damage = actor.damage;
   damage.integrity = Math.max(0, damage.integrity - w.damage);
   const distanceTo = (box: { center: Vec3; size: Vec3 }) => Math.hypot(...point.map((v, i) => Math.max(0, Math.abs(v - box.center[i]) - box.size[i] / 2)));
   const compartment = def.compartments.map((c, i) => ({ c, i, distance: distanceTo(c) })).sort((a, b) => a.distance - b.distance)[0];
@@ -123,5 +156,5 @@ export function damageTorpedoHit(torpedo: Torpedo, actor: FleetActor, point: Vec
       room.breachAreaM2 = Math.min(4, room.breachAreaM2 + 2); room.breachHeight = module.m.center[1];
     }
   }
-  return `Torpedo hit${compartment ? ` · ${compartment.c.name}` : ''} · flooding breach`;
+  return `${label}${compartment ? ` · ${compartment.c.name}` : ''} · flooding breach`;
 }
