@@ -79,10 +79,11 @@ export class ShipLabels {
       if (label.hp !== hp || label.sunk !== actor.damage.sunk || label.health.dataset.status !== actor.damage.stability.status) {
         label.health.dataset.status = actor.damage.stability.status;
         label.hp = hp; label.sunk = actor.damage.sunk;
-        label.health.textContent = `${Math.round(hp / actor.damage.maxIntegrity * 100)}% · ${actor.damage.stability.status}`;
+        const status = actor.damage.stability.status.replaceAll('-', ' ');
+        label.health.textContent = `${Math.round(hp / actor.damage.maxIntegrity * 100)}% · ${status}`;
         label.meter.setAttribute('aria-valuenow', String(hp));
         label.meter.setAttribute('aria-valuemax', String(actor.damage.maxIntegrity));
-        label.meter.setAttribute('aria-valuetext', `${Math.round(hp / actor.damage.maxIntegrity * 100)} percent equipment condition${label.sunk ? ', sinking' : ''}`);
+        label.meter.setAttribute('aria-valuetext', `${Math.round(hp / actor.damage.maxIntegrity * 100)} percent equipment condition, ${status}`);
         label.fill.style.transform = `scaleX(${hp / actor.damage.maxIntegrity})`;
         root.classList.toggle('ship-label-sinking', label.sunk);
       }

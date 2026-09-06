@@ -27,8 +27,8 @@ test('gun crews choose different aim points and revise them during an engagement
   sim.step(stop, intent);
   const aims = bot.definition.mounts.slice(0, 2).map((mount, i) => botAim(bot, sim.player, mount, bot.mounts[i]));
   expect(Math.hypot(aims[0][0] - aims[1][0], aims[0][2] - aims[1][2])).toBeGreaterThan(5);
-  // Keep the target motionless and guns silent so only the controller's aim changes.
-  bot.mounts.forEach(mount => { mount.ammo = 0; });
+  // Hold guns in reload without knocking the bot out through ammunition loss.
+  bot.mounts.forEach(mount => { mount.reload = 120; });
   for (let tick = 0; tick < 40 * 60; tick++) sim.step(stop, intent);
   const later = botAim(bot, sim.player, bot.definition.mounts[0], bot.mounts[0]);
   expect(Math.hypot(later[0] - aims[0][0], later[2] - aims[0][2])).toBeGreaterThan(20);
@@ -37,7 +37,7 @@ test('gun crews choose different aim points and revise them during an engagement
 test('a sudden course change takes time to enter a bot firing solution', () => {
   const sim = new CombatSimulation(shipPreset('yamato'), { friendlyBots: [], enemies: [shipPreset('bismarck')] });
   const bot = sim.actors[1];
-  bot.mounts.forEach(mount => { mount.ammo = 0; });
+  bot.mounts.forEach(mount => { mount.reload = 120; });
   const aim = () => botAim(bot, sim.player, bot.definition.mounts[0], bot.mounts[0]);
   sim.step(stop, intent);
   const before = aim();
@@ -103,7 +103,7 @@ test('battle seeds vary courses and opening shots while resets reproduce crew de
 test('taking damage prompts a sustained evasive helm order after a crew reaction', () => {
   const sim = new CombatSimulation(shipPreset('yamato'), { friendlyBots: [], enemies: [shipPreset('bismarck')] });
   const bot = sim.actors[1];
-  bot.mounts.forEach(mount => { mount.ammo = 0; });
+  bot.mounts.forEach(mount => { mount.reload = 120; });
   for (let tick = 0; tick < 3 * 60; tick++) sim.step(stop, intent);
   const before = botHelm(bot, sim.player, sim.actors);
   bot.damage.modules[0].hp -= 40;
