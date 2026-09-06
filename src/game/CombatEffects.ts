@@ -1,9 +1,9 @@
 import { localToWorld } from '../simulation/geometry';
 import * as THREE from 'three/webgpu';
-import { uniform, viewportDepthTexture } from 'three/tsl';
+import { nodeObject, uniform } from 'three/tsl';
 import type { CombatEvent, CombatSimulation } from '../simulation/combat';
 import { EffectParticlePool, effectTexture } from './EffectParticles';
-import { effectVolumeMaterial, effectVolumeTexture } from './EffectVolume';
+import { EffectDepthTextureNode, effectVolumeMaterial, effectVolumeTexture } from './EffectVolume';
 
 const UP = new THREE.Vector3(0, 1, 0), FORWARD = new THREE.Vector3(0, 0, 1);
 const WARM = new THREE.Color('#ffe7b6');
@@ -21,7 +21,8 @@ export class CombatEffects {
   private readonly maps = { smoke: effectTexture('smoke'), flash: effectTexture('flash'), foam: effectTexture('foam') };
   private readonly volumeMap = effectVolumeTexture();
   private readonly sun = uniform(new THREE.Vector3(-.55, .74, -.39).normalize());
-  private readonly volumeDepth = viewportDepthTexture().r;
+  private readonly volumeDepthTexture = new THREE.DepthTexture(1, 1);
+  private readonly volumeDepth = nodeObject(new EffectDepthTextureNode(undefined, null, this.volumeDepthTexture)).r;
   private readonly smoke = new EffectParticlePool(192, this.maps.smoke, false, effectVolumeMaterial(this.volumeMap, this.sun, this.volumeDepth, 12, true));
   private readonly spouts = new EffectParticlePool(192, this.maps.smoke, false, effectVolumeMaterial(this.volumeMap, this.sun, this.volumeDepth, 10));
   private readonly spray = new EffectParticlePool(1536, this.maps.smoke);
@@ -349,6 +350,7 @@ export class CombatEffects {
     for (const mesh of [this.projectiles, this.streaks, this.torpedoBodies, this.torpedoWakes]) { mesh.dispose(); mesh.geometry.dispose(); mesh.material.dispose(); }
     Object.values(this.maps).forEach(map => map.dispose());
     this.volumeMap.dispose();
+    this.volumeDepthTexture.dispose();
     this.lights.forEach(({ light }) => light.dispose());
   }
 }
