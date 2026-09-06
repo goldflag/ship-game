@@ -90,8 +90,8 @@ function ActiveArmament({ data, game, bindings }: FleetHudProps) {
     })}</div>
     <div className="fleet-battery-heading"><span>{caliber(combat.battery)} mm · {combat.battery === 'main' ? 'Main battery' : 'Secondary battery'}</span><strong>{combat.ready}/{combat.total} ready</strong></div>
     <div className="fleet-weapon-row">
-      {combat.batteries.map(battery => <button key={battery.battery} className="fleet-weapon-slot" aria-label={`Select ${battery.battery} AP battery · ${battery.ammo} shells · ${bindingLabel(bindings, battery.battery === 'main' ? 'mainBattery' : 'secondaryBattery')}`} aria-pressed={combat.battery === battery.battery} disabled={!battery.total} onClick={event => { if (game) game.battery = battery.battery; event.currentTarget.blur(); }}>
-        <span className="fleet-slot-label">{battery.battery === 'main' ? 'MAIN AP' : 'SEC. AP'}</span><AmmoGlyph secondary={battery.battery === 'secondary'}/>
+      {combat.batteries.map(battery => <button key={battery.battery} className="fleet-weapon-slot" aria-label={`Select ${battery.battery} ${battery.ammunition.toUpperCase()} battery · ${battery.ammo} shells · ${bindingLabel(bindings, battery.battery === 'main' ? 'mainBattery' : 'secondaryBattery')}`} aria-pressed={combat.battery === battery.battery} disabled={!battery.total} onClick={event => { if (game) game.battery = battery.battery; event.currentTarget.blur(); }}>
+        <span className="fleet-slot-label">{battery.battery === 'main' ? 'MAIN' : 'SEC.'} {battery.ammunition.toUpperCase()}</span><AmmoGlyph secondary={battery.battery === 'secondary'}/>
         <strong className="fleet-ammo-count">{battery.ammo}</strong>
         {battery.reload > 0 && Number.isFinite(battery.reload) && battery.ready === 0 && <span className="fleet-slot-cooldown">{Math.ceil(battery.reload)}<small>s</small></span>}
         <kbd>{bindingLabel(bindings, battery.battery === 'main' ? 'mainBattery' : 'secondaryBattery')}</kbd>

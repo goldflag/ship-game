@@ -122,6 +122,13 @@
         "explosiveKg": 20,
         "fragmentPenetrationMm": 30.4,
         "basis": "Provisional AP game calibration, not historical fuze/filler data. Arming requires caliber/6 equivalent resistance in one non-ricochet contact; delay 35 ms at >=200 mm, otherwise 20 ms; fill 2.5% of projectile mass; fragment budget 8% of caliber in mm. Smaller AA AP remains inert. See assets/parts/author-ap.ts; blast radius and damage are bounded approximations."
+      },
+      "he": {
+        "explosiveKg": 64,
+        "fragmentPenetrationMm": 63.3333,
+        "damage": 140,
+        "stockFraction": 0.4,
+        "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
       }
     },
     {
@@ -166,6 +173,13 @@
         "explosiveKg": 1.1325,
         "fragmentPenetrationMm": 12,
         "basis": "Provisional AP game calibration, not historical fuze/filler data. Arming requires caliber/6 equivalent resistance in one non-ricochet contact; delay 35 ms at >=200 mm, otherwise 20 ms; fill 2.5% of projectile mass; fragment budget 8% of caliber in mm. Smaller AA AP remains inert. See assets/parts/author-ap.ts; blast radius and damage are bounded approximations."
+      },
+      "he": {
+        "explosiveKg": 3.624,
+        "fragmentPenetrationMm": 25,
+        "damage": 44,
+        "stockFraction": 0.4,
+        "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
       }
     },
     {
@@ -293,6 +307,13 @@
         "explosiveKg": 36.5,
         "fragmentPenetrationMm": 36.8,
         "basis": "Provisional AP game calibration, not historical fuze/filler data. Arming requires caliber/6 equivalent resistance in one non-ricochet contact; delay 35 ms at >=200 mm, otherwise 20 ms; fill 2.5% of projectile mass; fragment budget 8% of caliber in mm. Smaller AA AP remains inert. See assets/parts/author-ap.ts; blast radius and damage are bounded approximations."
+      },
+      "he": {
+        "explosiveKg": 116.8,
+        "fragmentPenetrationMm": 76.6667,
+        "damage": 220,
+        "stockFraction": 0.4,
+        "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
       }
     },
     {
@@ -340,6 +361,13 @@
         "explosiveKg": 1.3967,
         "fragmentPenetrationMm": 12.4,
         "basis": "Provisional AP game calibration, not historical fuze/filler data. Arming requires caliber/6 equivalent resistance in one non-ricochet contact; delay 35 ms at >=200 mm, otherwise 20 ms; fill 2.5% of projectile mass; fragment budget 8% of caliber in mm. Smaller AA AP remains inert. See assets/parts/author-ap.ts; blast radius and damage are bounded approximations."
+      },
+      "he": {
+        "explosiveKg": 4.4696,
+        "fragmentPenetrationMm": 25.8333,
+        "damage": 52,
+        "stockFraction": 0.4,
+        "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
       }
     },
     {
@@ -387,6 +415,13 @@
         "explosiveKg": 0.625,
         "fragmentPenetrationMm": 10.16,
         "basis": "Provisional AP game calibration, not historical fuze/filler data. Arming requires caliber/6 equivalent resistance in one non-ricochet contact; delay 35 ms at >=200 mm, otherwise 20 ms; fill 2.5% of projectile mass; fragment budget 8% of caliber in mm. Smaller AA AP remains inert. See assets/parts/author-ap.ts; blast radius and damage are bounded approximations."
+      },
+      "he": {
+        "explosiveKg": 2,
+        "fragmentPenetrationMm": 21.1667,
+        "damage": 20,
+        "stockFraction": 0.4,
+        "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
       }
     },
     {
@@ -427,6 +462,13 @@
         "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 1000 m, 10 m launch/sea target, nominal speed (637.388 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
         "muzzleSpeedSigmaFraction": 0.005,
         "penetrationReferenceSpeedMps": 637.388476
+      },
+      "he": {
+        "explosiveKg": 0.03328,
+        "fragmentPenetrationMm": 4.6567,
+        "damage": 2.8,
+        "stockFraction": 0.4,
+        "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
       }
     },
     {
@@ -467,6 +509,13 @@
         "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 1000 m, 10 m launch/sea target, nominal speed (508.570 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
         "muzzleSpeedSigmaFraction": 0.005,
         "penetrationReferenceSpeedMps": 508.569711
+      },
+      "he": {
+        "explosiveKg": 0.00984,
+        "fragmentPenetrationMm": 3.3333,
+        "damage": 1.2,
+        "stockFraction": 0.4,
+        "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
       }
     },
     {
@@ -576,6 +625,13 @@
         "explosiveKg": 3.7988,
         "fragmentPenetrationMm": 16.256,
         "basis": "Provisional AP game calibration, not historical fuze/filler data. Arming requires caliber/6 equivalent resistance in one non-ricochet contact; delay 35 ms at >=200 mm, otherwise 20 ms; fill 2.5% of projectile mass; fragment budget 8% of caliber in mm. Smaller AA AP remains inert. See assets/parts/author-ap.ts; blast radius and damage are bounded approximations."
+      },
+      "he": {
+        "explosiveKg": 12.156272,
+        "fragmentPenetrationMm": 33.8667,
+        "damage": 80,
+        "stockFraction": 0.4,
+        "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
       }
     },
     {
@@ -664,6 +720,13 @@
         "explosiveKg": 0.625,
         "fragmentPenetrationMm": 10.16,
         "basis": "Provisional AP game calibration, not historical fuze/filler data. Arming requires caliber/6 equivalent resistance in one non-ricochet contact; delay 35 ms at >=200 mm, otherwise 20 ms; fill 2.5% of projectile mass; fragment budget 8% of caliber in mm. Smaller AA AP remains inert. See assets/parts/author-ap.ts; blast radius and damage are bounded approximations."
+      },
+      "he": {
+        "explosiveKg": 2,
+        "fragmentPenetrationMm": 21.1667,
+        "damage": 24,
+        "stockFraction": 0.4,
+        "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
       }
     }
   ]
