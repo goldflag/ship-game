@@ -1,0 +1,195 @@
+{
+  "errors": [],
+  "rosterSelection": true,
+  "historyScroll": 126,
+  "measurements": {
+    "desktop": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "log": {
+        "x": 1126,
+        "y": 102,
+        "width": 290,
+        "height": 54,
+        "top": 102,
+        "right": 1416,
+        "bottom": 156,
+        "left": 1126
+      },
+      "battle": {
+        "x": 24,
+        "y": 24,
+        "width": 260,
+        "height": 71,
+        "top": 24,
+        "right": 284,
+        "bottom": 95,
+        "left": 24
+      },
+      "weapons": {
+        "x": 550,
+        "y": 727,
+        "width": 340,
+        "height": 153,
+        "top": 727,
+        "right": 890,
+        "bottom": 880,
+        "left": 550
+      },
+      "helm": {
+        "x": 24,
+        "y": 618.8125,
+        "width": 240,
+        "height": 261.1875,
+        "top": 618.8125,
+        "right": 264,
+        "bottom": 880,
+        "left": 24
+      },
+      "fills": []
+    },
+    "roster": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "log": {
+        "x": 1126,
+        "y": 102,
+        "width": 290,
+        "height": 54,
+        "top": 102,
+        "right": 1416,
+        "bottom": 156,
+        "left": 1126
+      },
+      "battle": {
+        "x": 24,
+        "y": 24,
+        "width": 260,
+        "height": 97,
+        "top": 24,
+        "right": 284,
+        "bottom": 121,
+        "left": 24
+      },
+      "weapons": {
+        "x": 550,
+        "y": 727,
+        "width": 340,
+        "height": 153,
+        "top": 727,
+        "right": 890,
+        "bottom": 880,
+        "left": 550
+      },
+      "helm": {
+        "x": 24,
+        "y": 618.8125,
+        "width": 240,
+        "height": 261.1875,
+        "top": 618.8125,
+        "right": 264,
+        "bottom": 880,
+        "left": 24
+      },
+      "fills": []
+    },
+    "mobile": {
+      "viewport": [
+        390,
+        844
+      ],
+      "log": {
+        "x": 158,
+        "y": 90,
+        "width": 220,
+        "height": 36,
+        "top": 90,
+        "right": 378,
+        "bottom": 126,
+        "left": 158
+      },
+      "battle": {
+        "x": 12,
+        "y": 300,
+        "width": 171,
+        "height": 68,
+        "top": 300,
+        "right": 183,
+        "bottom": 368,
+        "left": 12
+      },
+      "weapons": {
+        "x": 40,
+        "y": 150,
+        "width": 310,
+        "height": 147,
+        "top": 150,
+        "right": 350,
+        "bottom": 297,
+        "left": 40
+      },
+      "helm": {
+        "x": 12,
+        "y": 597.40625,
+        "width": 157.5,
+        "height": 234.59375,
+        "top": 597.40625,
+        "right": 169.5,
+        "bottom": 832,
+        "left": 12
+      },
+      "fills": []
+    },
+    "landscape": {
+      "viewport": [
+        844,
+        390
+      ],
+      "log": {
+        "x": 572,
+        "y": 82,
+        "width": 260,
+        "height": 36,
+        "top": 82,
+        "right": 832,
+        "bottom": 118,
+        "left": 572
+      },
+      "battle": {
+        "x": 12,
+        "y": 14,
+        "width": 232,
+        "height": 71,
+        "top": 14,
+        "right": 244,
+        "bottom": 85,
+        "left": 12
+      },
+      "weapons": {
+        "x": 292,
+        "y": 308,
+        "width": 260,
+        "height": 70,
+        "top": 308,
+        "right": 552,
+        "bottom": 378,
+        "left": 292
+      },
+      "helm": {
+        "x": 12,
+        "y": 140.328125,
+        "width": 180,
+        "height": 237.671875,
+        "top": 140.328125,
+        "right": 192,
+        "bottom": 378,
+        "left": 12
+      },
+      "fills": []
+    }
+  }
+}
