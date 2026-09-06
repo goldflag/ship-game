@@ -35,6 +35,18 @@ In the development fixture, run `await impactReview.checkSmokeOcclusion()` to co
 
 Validation: all 333 simulation/game tests passed, and `bun run build` passed with the existing large-chunk warning.
 
+### Reversed-depth visibility regression (6 September 2026)
+
+The renderer's reversed-depth change left nine generated scars almost entirely hidden behind the hull. The decal's negative polygon bias pointed away from the camera under reversed depth. Three r185 also reverses its whole sorted render list, including explicit `renderOrder`, which inverted the earlier smoke ordering fix.
+
+Ship views now pass the renderer's active depth convention to the impact adapter. It chooses both polygon bias and draw order for that convention before the first draw. Foreground geometry still hides scars. The smoke/spray depth sampler also matches each render target's depth texture type: the main scene uses float depth while ocean auxiliary passes use integer depth. This removes failed WebGPU depth copies without changing combat or authored ship assets.
+
+The [GPU regression fixture](../../../scripts/diagnostics/ship-impact-depth.html) renders real production scars and smoke with WebGPU and forced WebGL, each with conventional and reversed depth. It measures visible scars, foreground geometry blocking, foreground smoke attenuation and rear-smoke preservation. All four cases pass. Before the correction, the isolated reversed-depth checks produced zero visible scar pixels on both backends.
+
+The full ocean fixture passes with 2,544 scar pixels, foreground contrast of 0.087×, rear contrast of 1.000×, and no console errors during the check. See the [clear-view capture](reversed-depth-clear.png), [foreground-smoke capture](reversed-depth-smoke.png), and [measured results](reversed-depth-checks.json).
+
+Validation: all 403 simulation/game tests passed with `bun test src/simulation src/game --timeout 30000`; `bun run build` passed with the existing large-chunk warning. The first run hit the default five-second limit in two simulation tests while browser checks were active; both pass in the complete rerun.
+
 | Review finding | Final verdict |
 | --- | --- |
 | Stopped AP resembled penetration | Resolved: brighter, closed steel centers distinguish stopped rounds from dark punctures. |

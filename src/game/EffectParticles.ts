@@ -15,7 +15,7 @@ function noise(x: number, y: number): number {
 }
 
 /** Original, deterministic density textures. No downloads or canvas/readback needed. */
-export function effectTexture(kind: 'smoke' | 'flash' | 'foam'): THREE.DataTexture {
+export function effectTexture(kind: 'smoke' | 'flash' | 'foam' | 'tracer'): THREE.DataTexture {
   const size = 128, pixels = new Uint8Array(size * size * 4);
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
     const u = (x + .5) / size * 2 - 1, v = (y + .5) / size * 2 - 1;
@@ -24,7 +24,12 @@ export function effectTexture(kind: 'smoke' | 'flash' | 'foam'): THREE.DataTextu
     const detail = noise(u * 12 + 71, v * 12 + 53) * .65 + noise(u * 29 + 9, v * 29 + 17) * .35;
     const density = smooth((1 - radius + (coarse - .5) * .5) * 2.8) * (.5 + detail * .5);
     let alpha: number, light: number;
-    if (kind === 'foam') {
+    if (kind === 'tracer') {
+      // +Y is the shell tip. The hot center narrows and fades toward the tail.
+      const along = (v + 1) / 2, width = .12 + along * .7;
+      alpha = Math.exp(-((u / width) ** 2) * 4) * smooth(along * 1.3) * smooth((1 - along) * 18);
+      light = 1;
+    } else if (kind === 'foam') {
       const ring = Math.exp(-(((radius - .69 + (coarse - .5) * .11) / .13) ** 2));
       alpha = ring * (.22 + detail * .78) * smooth((1 - radius) * 9);
       light = .8 + detail * .2;
@@ -199,8 +204,10 @@ export class EffectParticlePool {
           // Inside the volume, every screen ray may intersect gas. Cover the
           // viewport at a valid clip depth; the shader still uses the real sphere.
           this.dummy.quaternion.copy(camera.quaternion);
-          this.dummy.position.set(0, 0, 0).unproject(camera);
-          this.direction.set(1, 1, 0).unproject(camera).sub(this.dummy.position).applyQuaternion(this.cameraInverse);
+          // Mid-clip depth stays inside the frustum with standard AND reversed
+          // depth; zero lies on the far plane when reversed depth is active.
+          this.dummy.position.set(0, 0, .5).unproject(camera);
+          this.direction.set(1, 1, .5).unproject(camera).sub(this.dummy.position).applyQuaternion(this.cameraInverse);
           this.dummy.scale.set(Math.abs(this.direction.x) * 2, Math.abs(this.direction.y) * 2, 1);
         }
       }

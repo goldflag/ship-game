@@ -1,11 +1,11 @@
 import { localToWorld } from '../simulation/geometry';
 import * as THREE from 'three/webgpu';
-import { uniform, viewportDepthTexture } from 'three/tsl';
+import { nodeObject, uniform } from 'three/tsl';
 import type { CombatEvent, CombatSimulation } from '../simulation/combat';
 import { EffectParticlePool, effectTexture } from './EffectParticles';
-import { effectVolumeMaterial, effectVolumeTexture } from './EffectVolume';
+import { EffectDepthTextureNode, effectVolumeMaterial, effectVolumeTexture } from './EffectVolume';
 
-const UP = new THREE.Vector3(0, 1, 0), FORWARD = new THREE.Vector3(0, 0, 1);
+const UP = new THREE.Vector3(0, 1, 0);
 const WARM = new THREE.Color('#ffe7b6');
 const SMOKE = new THREE.Color('#b9b6ae'), WATER = new THREE.Color('#e7f2f1');
 
@@ -18,10 +18,11 @@ function randomFor(seed: number): () => number {
 /** Ballistics come from the CPU simulation. Only gas, spray and fragments live here. */
 export class CombatEffects {
   readonly root = new THREE.Group();
-  private readonly maps = { smoke: effectTexture('smoke'), flash: effectTexture('flash'), foam: effectTexture('foam') };
+  private readonly maps = { smoke: effectTexture('smoke'), flash: effectTexture('flash'), foam: effectTexture('foam'), tracer: effectTexture('tracer') };
   private readonly volumeMap = effectVolumeTexture();
   private readonly sun = uniform(new THREE.Vector3(-.55, .74, -.39).normalize());
-  private readonly volumeDepth = viewportDepthTexture().r;
+  private readonly volumeDepthTexture = new THREE.DepthTexture(1, 1);
+  private readonly volumeDepth = nodeObject(new EffectDepthTextureNode(undefined, null, this.volumeDepthTexture)).r;
   private readonly smoke = new EffectParticlePool(192, this.maps.smoke, false, effectVolumeMaterial(this.volumeMap, this.sun, this.volumeDepth, 12, true));
   private readonly spouts = new EffectParticlePool(192, this.maps.smoke, false, effectVolumeMaterial(this.volumeMap, this.sun, this.volumeDepth, 10));
   private readonly spray = new EffectParticlePool(1536, this.maps.smoke);
@@ -29,10 +30,15 @@ export class CombatEffects {
   private readonly foam = new EffectParticlePool(96, this.maps.foam);
   private readonly pools = [this.foam, this.smoke, this.spouts, this.spray, this.fire];
   private readonly projectiles = new THREE.InstancedMesh(new THREE.CapsuleGeometry(.5, 2, 2, 6),
-    new THREE.MeshBasicMaterial({ color: '#4b4640' }), 256);
+    new THREE.MeshBasicMaterial({ color: '#b9ad91' }), 256);
+  // Water's depth-based postprocessing otherwise classifies these low-flying
+  // lights as sea pixels and erases them. Reject the transparent quad margins.
+  private readonly shellGlows = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1),
+    new THREE.MeshBasicMaterial({ map: this.maps.flash, color: new THREE.Color('#fff1cc').multiplyScalar(4),
+      transparent: true, blending: THREE.AdditiveBlending, alphaTest: .02, depthWrite: true, side: THREE.DoubleSide }), 256);
   private readonly streaks = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1),
-    new THREE.MeshBasicMaterial({ map: this.maps.flash, color: '#ffe4af', transparent: true, opacity: .7,
-      blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }), 256);
+    new THREE.MeshBasicMaterial({ map: this.maps.tracer, color: new THREE.Color('#ffc16b').multiplyScalar(3), transparent: true, opacity: .9,
+      blending: THREE.AdditiveBlending, alphaTest: .02, depthWrite: true, side: THREE.DoubleSide }), 256);
   private readonly torpedoBodies = new THREE.InstancedMesh(new THREE.CapsuleGeometry(.5, 1, 3, 8),
     new THREE.MeshBasicMaterial({ color: '#82948f' }), 128);
   private readonly torpedoWakes = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1),
@@ -45,8 +51,9 @@ export class CombatEffects {
   private readonly across = new THREE.Vector3();
   private readonly vertical = new THREE.Vector3();
   private readonly dummy = new THREE.Object3D();
-  private readonly turn = new THREE.Quaternion();
-  private readonly inverse = new THREE.Quaternion();
+  private readonly tracerBasis = new THREE.Matrix4();
+  private readonly cameraPosition = new THREE.Vector3();
+  private readonly cameraRotation = new THREE.Quaternion();
   private sequence = 0;
   private fireTick = -1;
   private lightCursor = 0;
@@ -55,14 +62,14 @@ export class CombatEffects {
 
   constructor() {
     this.root.name = 'Combat effects';
-    this.projectiles.name = 'Shell bodies'; this.streaks.name = 'Shell streaks';
-    this.streaks.material.forceSinglePass = true;
+    this.projectiles.name = 'Shell bodies'; this.streaks.name = 'Shell streaks'; this.shellGlows.name = 'Shell glows';
+    this.streaks.material.forceSinglePass = true; this.shellGlows.material.forceSinglePass = true;
     this.smoke.mesh.name = 'Propellant and impact volumes';
     this.spouts.mesh.name = 'Aerated water volumes';
     this.spray.mesh.name = 'Water droplets and mist';
     this.pools.forEach(pool => this.root.add(pool.mesh));
     this.torpedoBodies.name = 'Torpedo bodies'; this.torpedoWakes.name = 'Torpedo surface wakes';
-    for (const mesh of [this.projectiles, this.streaks, this.torpedoBodies, this.torpedoWakes]) {
+    for (const mesh of [this.projectiles, this.streaks, this.shellGlows, this.torpedoBodies, this.torpedoWakes]) {
       mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
       mesh.frustumCulled = false; mesh.instanceMatrix.array.fill(0); this.root.add(mesh);
     }
@@ -134,28 +141,49 @@ export class CombatEffects {
   private updateShells(sim: CombatSimulation, camera: THREE.Camera): void {
     const count = Math.min(sim.shells.length, 256);
     this.shellCount = count;
-    this.inverse.copy(camera.quaternion).invert();
+    camera.getWorldPosition(this.cameraPosition);
+    camera.getWorldQuaternion(this.cameraRotation);
     for (let i = 0; i < count; i++) {
       const shell = sim.shells[i];
       this.position.fromArray(shell.position);
       this.direction.fromArray(shell.velocity).normalize();
+      if (this.direction.lengthSq() === 0) this.direction.copy(UP);
       this.dummy.position.copy(this.position);
       this.dummy.quaternion.setFromUnitVectors(UP, this.direction);
       this.dummy.scale.setScalar(shell.caliberM);
       this.dummy.updateMatrix(); this.projectiles.setMatrixAt(i, this.dummy.matrix);
-      // Short shutter-length glints follow velocity without a persistent smoke trail.
+      // Preserve physical shell size, with a luminous tip that remains legible at
+      // battle distances. Projection scale follows binocular zoom as well as range.
+      this.normal.copy(this.position).applyMatrix4(camera.matrixWorldInverse);
+      const depth = camera.projectionMatrix.elements[11] === -1 ? Math.max(.1, -this.normal.z) : 1;
+      const viewHeight = 2 * depth / camera.projectionMatrix.elements[5];
+      const glowSize = shell.lodged ? 0 : Math.max(shell.caliberM * 3, Math.min(64, viewHeight * .005));
+      this.dummy.quaternion.copy(this.cameraRotation);
+      this.dummy.scale.set(glowSize, glowSize, 1);
+      this.dummy.updateMatrix(); this.shellGlows.setMatrixAt(i, this.dummy.matrix);
+
+      // A short exposure of the CPU velocity forms a warm, tapered ribbon.
+      // Its tip ends at the shell and its tail cannot extend behind a fresh muzzle.
       const speed = Math.hypot(...shell.velocity);
-      const length = Math.min(12, speed * .009, speed * shell.age);
+      const exposure = .16 * THREE.MathUtils.clamp((shell.caliberM / .38) ** .35, .4, 1.2);
+      const length = shell.lodged ? 0 : Math.min(150, speed * Math.min(exposure, shell.age));
       this.dummy.position.addScaledVector(this.direction, -length / 2);
-      this.direction.applyQuaternion(this.inverse);
-      const projected = Math.hypot(this.direction.x, this.direction.y);
-      this.dummy.quaternion.copy(camera.quaternion);
-      this.turn.setFromAxisAngle(FORWARD, Math.atan2(-this.direction.x, this.direction.y));
-      this.dummy.quaternion.multiply(this.turn);
-      this.dummy.scale.set(Math.max(.16, shell.caliberM * 1.15), Math.max(shell.caliberM, length * projected), 1);
+      this.normal.subVectors(this.cameraPosition, this.dummy.position).normalize();
+      this.across.crossVectors(this.direction, this.normal);
+      // End-on trails collapse naturally; the round tip stays visible in shell follow.
+      if (this.across.lengthSq() < 1e-8) {
+        this.normal.set(1, 0, 0);
+        if (Math.abs(this.direction.x) > .9) this.normal.copy(UP);
+        this.across.crossVectors(this.direction, this.normal);
+      }
+      this.across.normalize();
+      this.normal.crossVectors(this.across, this.direction).normalize();
+      this.tracerBasis.makeBasis(this.across, this.direction, this.normal);
+      this.dummy.quaternion.setFromRotationMatrix(this.tracerBasis);
+      this.dummy.scale.set(Math.max(shell.caliberM * 1.6, Math.min(24, viewHeight * .0026)), length, 1);
       this.dummy.updateMatrix(); this.streaks.setMatrixAt(i, this.dummy.matrix);
     }
-    for (const mesh of [this.projectiles, this.streaks]) {
+    for (const mesh of [this.projectiles, this.streaks, this.shellGlows]) {
       mesh.instanceMatrix.array.fill(0, count * 16); mesh.instanceMatrix.needsUpdate = true;
     }
   }
@@ -215,7 +243,7 @@ export class CombatEffects {
       p.velocity.y += 2;
       p.size = (14 + random() * 9) * size; p.growth = (48 + random() * 24) * size; p.growthDecay = 2.6;
       p.diffusion = (.9 + random() * .6) * size;
-      p.life = 9 + random() * 3; p.drag = 2.3 + random() * .35;
+      p.life = 4.5 + random() * 1.5; p.drag = 2.3 + random() * .35;
       p.gravity = -1 - random() * 1.2; p.wind = .5 + random() * .25;
       p.heat = .85 + random() * .15; p.cooling = (.62 + random() * .2) * Math.sqrt(size);
       p.opacity = .92; p.density = 3.2 + random() * 1.1;
@@ -336,7 +364,7 @@ export class CombatEffects {
 
   reset(): void {
     this.pools.forEach(pool => pool.reset()); this.shellCount = 0; this.torpedoCount = 0; this.fireTick = -1;
-    for (const mesh of [this.projectiles, this.streaks, this.torpedoBodies, this.torpedoWakes]) { mesh.instanceMatrix.array.fill(0); mesh.instanceMatrix.needsUpdate = true; }
+    for (const mesh of [this.projectiles, this.streaks, this.shellGlows, this.torpedoBodies, this.torpedoWakes]) { mesh.instanceMatrix.array.fill(0); mesh.instanceMatrix.needsUpdate = true; }
     this.lights.forEach(item => { item.age = 1; item.light.intensity = 0; }); this.sequence = 0;
   }
   diagnostics() {
@@ -346,9 +374,10 @@ export class CombatEffects {
   }
   dispose(): void {
     this.root.removeFromParent(); this.pools.forEach(pool => pool.dispose());
-    for (const mesh of [this.projectiles, this.streaks, this.torpedoBodies, this.torpedoWakes]) { mesh.dispose(); mesh.geometry.dispose(); mesh.material.dispose(); }
+    for (const mesh of [this.projectiles, this.streaks, this.shellGlows, this.torpedoBodies, this.torpedoWakes]) { mesh.dispose(); mesh.geometry.dispose(); mesh.material.dispose(); }
     Object.values(this.maps).forEach(map => map.dispose());
     this.volumeMap.dispose();
+    this.volumeDepthTexture.dispose();
     this.lights.forEach(({ light }) => light.dispose());
   }
 }
