@@ -1,0 +1,10 @@
+/* Incoming-fire bearings extend the existing salmon damage signals, with a clear sight. */
+.hit-direction-layer { position:absolute; inset:0; z-index:2; overflow:hidden; pointer-events:none; }
+.hit-direction-layer[hidden] { display:none; }
+.ocean-viewport[data-ship-labels=false] .hit-direction-layer,
+.ocean-viewport[data-ship-labels=false] ~ .hit-direction-layer { visibility:hidden; }
+.hit-direction-marker { position:absolute; top:50%; left:50%; width:min(320px,64vw,56vh); height:min(320px,64vw,56vh); color:#ee9b86; overflow:visible; }
+.hit-direction-underlay, .hit-direction-arc { fill:none; stroke-linecap:round; }
+.hit-direction-underlay { stroke:#07131b; stroke-width:11px; stroke-opacity:.8; }
+.hit-direction-arc { stroke:currentColor; stroke-width:5px; }
+.hit-direction-tip { fill:currentColor; stroke:#07131b; stroke-width:2px; stroke-linejoin:round; }
