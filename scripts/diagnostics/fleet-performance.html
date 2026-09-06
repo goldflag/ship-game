@@ -1,0 +1,44 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Fleet performance review</title>
+<style>body{margin:0;background:#132d38;color:white;font:16px sans-serif}#scene{width:1280px;height:720px}#status{position:fixed;bottom:12px;left:12px}</style>
+<div id="scene"></div><output id="status">Loading…</output>
+<script type="module">
+import { Game } from '/src/game/Game.ts';
+const status = document.querySelector('#status');
+let ready;
+const loaded = new Promise(resolve => ready = resolve);
+const game = new Game(document.querySelector('#scene'), {quality:'medium',sea:'Fair',resolution:1}, {
+ progress: message => status.textContent = message, ready, telemetry() {}, pause() {}, hud() {}, error: message => {window.reviewError = message; status.textContent = message;}
+});
+window.review = {game};
+game.start(); await loaded;
+game.setInPort(true);
+const perTeam = Number(new URLSearchParams(location.search).get('team') ?? 24);
+await game.prepareBattle({playerShipId:'bismarck',friendlyBots:Array(perTeam-1).fill('bismarck'),enemies:Array(perTeam).fill('bismarck'),spawnDistance:5000});
+game.setInPort(false); game.setPaused(true);
+game.rig.update = () => {};
+game.camera.position.set(1800,1300,1800); game.camera.lookAt(0,0,-2500); game.camera.updateMatrixWorld();
+game.scheduleFrame = () => {}; cancelAnimationFrame(game.raf); await game.frameTask; cancelAnimationFrame(game.raf);
+window.review.measure = async (samples=16) => {
+ const renderer = game.renderer;
+ const stats = values => {values.sort((a,b)=>a-b);return {median:values[Math.floor(values.length/2)],p90:values[Math.floor(values.length*.9)]};};
+ const results = {};
+ const tracking = renderer.backend.trackTimestamp, auto = renderer.info.autoReset;
+ renderer.backend.trackTimestamp = renderer.hasFeature('timestamp-query'); renderer.info.autoReset = false;
+ try {
+  for(let frame=-4;frame<samples;frame++) for(const visible of frame%2 ? [true,false] : [false,true]) {
+   await new Promise(requestAnimationFrame);
+   game.fleetViews.forEach(view=>view.root.visible=visible);
+   renderer.info.reset(); const start=performance.now(); game.renderFrame(); const cpu=performance.now()-start;
+   const gpu=renderer.backend.trackTimestamp ? await renderer.resolveTimestampsAsync('render') : null;
+   if(frame<0)continue;
+   const row=results[visible?'fleet':'sea']??={cpu:[],gpu:[]};row.cpu.push(cpu);if(gpu!==null)row.gpu.push(gpu);
+   row.drawCalls=renderer.info.render.drawCalls;row.triangles=renderer.info.render.triangles;
+  }
+  let nodes=0,materials=new Set();game.fleetViews.forEach(v=>v.root.traverse(o=>{nodes++;if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material])materials.add(m);}));
+  return {ships:game.fleetViews.length,nodes,materials:materials.size,results:Object.fromEntries(Object.entries(results).map(([key,row])=>[key,{submitMs:stats(row.cpu),gpuMs:stats(row.gpu),drawCalls:row.drawCalls,triangles:row.triangles}]))};
+ } finally {renderer.backend.trackTimestamp=tracking;renderer.info.autoReset=auto;game.fleetViews.forEach(v=>v.root.visible=true);game.renderFrame();}
+};
+status.textContent='Ready'; window.reviewReady=true;
+</script>

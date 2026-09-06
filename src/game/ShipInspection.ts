@@ -15,10 +15,15 @@ export class ShipInspection {
   hoveredId?: string;
   private hoverColor = new THREE.Color('#ffffff');
   private armorShading = uniform(0);
-  private volumes: { entry: InspectionEntry; color: string; group: THREE.Group; fill: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial | THREE.MeshBasicNodeMaterial>; outline: THREE.LineSegments<THREE.EdgesGeometry, THREE.LineBasicMaterial>; water?: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial> }[];
+  private volumes: { entry: InspectionEntry; color: string; group: THREE.Group; fill: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial | THREE.MeshBasicNodeMaterial>; outline: THREE.LineSegments<THREE.EdgesGeometry, THREE.LineBasicMaterial>; water?: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial> }[] = [];
   constructor(private definition: ShipDefinition) {
     this.entries = inspectionEntries(definition);
     this.root.name = 'Ship inspection'; this.root.visible = false;
+  }
+  /** Most fleet actors are never inspected. Build their X-ray meshes on demand. */
+  private buildVolumes(): void {
+    if (this.volumes.length) return;
+    const definition = this.definition;
     // A neutral upper-left inspection light follows the camera, independent of
     // harbor exposure. Face normals keep plate edges crisp, including back faces.
     const shade = normalFlat.dot(vec3(-.55, .8, .7).normalize()).max(0).mul(.68).add(.32);
@@ -43,6 +48,7 @@ export class ShipInspection {
     });
   }
   setMode(mode: InspectionMode | 'all', selectedId?: string): void {
+    if (mode !== 'exterior') this.buildVolumes();
     this.mode = mode;
     this.selectedId = this.entries.some(e => e.id === selectedId && (mode === 'all' || (mode === 'armor' ? e.kind === 'armor' : mode === 'internals' && e.kind !== 'armor'))) ? selectedId : undefined;
     this.root.visible = mode !== 'exterior';

@@ -29,12 +29,17 @@ export class ShipView {
     this.root.name = actor.motion.id;
     this.inspection = new ShipInspection(definition);
     const nodes = new Map<string, THREE.Object3D>();
+    // Preserve GLTF material sharing within a hull, with separate inspection state per ship.
+    const materials = new Map<THREE.Material, THREE.Material>();
     model.traverse(o => {
       if (o.userData.nodeId) nodes.set(o.userData.nodeId, o);
       if (o instanceof THREE.Mesh) {
         o.castShadow = true; o.receiveShadow = true;
         const copy = (m: THREE.Material) => {
+          const cached = materials.get(m);
+          if (cached) return cached;
           const material = m.clone();
+          materials.set(m, material);
           if (material instanceof THREE.MeshStandardMaterial) {
             if (material.map) material.map.anisotropy = 8;
             this.surfaces.push({ material, opacity: material.opacity, transparent: material.transparent, depthWrite: material.depthWrite });
