@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 2,
+  "date": "2026-09-05",
+  "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+  "aircraftCount": 13,
+  "lodCount": 3,
+  "authoringMethod": "Blender MCP execute_blender_code via discovered local MCP server tools",
+  "mcpTools": [
+    "get_scene_info",
+    "execute_blender_code",
+    "get_viewport_screenshot"
+  ],
+  "sourceInputs": "catalog.json + build.py + detail_bombers.py + 13 individually measured shape JSONs; referenced raster hashes retained separately",
+  "lods": [
+    {
+      "level": 0,
+      "triangleRange": [
+        28252,
+        38429
+      ],
+      "fileByteRange": [
+        1024524,
+        1852948
+      ],
+      "totalBytes": 16095088,
+      "baseColorSize": 2048,
+      "roughnessSize": 512
+    },
+    {
+      "level": 1,
+      "triangleRange": [
+        12700,
+        17275
+      ],
+      "fileByteRange": [
+        499792,
+        923888
+      ],
+      "totalBytes": 7887176,
+      "baseColorSize": 1024,
+      "roughnessSize": 256
+    },
+    {
+      "level": 2,
+      "triangleRange": [
+        5616,
+        7799
+      ],
+      "fileByteRange": [
+        259876,
+        479796
+      ],
+      "totalBytes": 4056788,
+      "baseColorSize": 512,
+      "roughnessSize": 128
+    }
+  ],
+  "geometry": {
+    "auditedFiles": 39,
+    "degenerateTriangles": 0,
+    "invalidNormals": 0,
+    "invalidUVs": 0,
+    "opaqueBackFaceCulling": true
+  },
+  "tests": {
+    "command": "bun test --timeout 30000",
+    "pass": 197,
+    "fail": 0,
+    "assertions": 12482
+  },
+  "build": {
+    "command": "bun run build",
+    "passed": true,
+    "warning": "Existing main game bundle exceeds Vite 7000 kB chunk advisory."
+  },
+  "browser": {
+    "modelLoads": 39,
+    "articulationPassed": true,
+    "fixedValGearRespected": true,
+    "brakesIncluded": true,
+    "captures": "browser/",
+    "diagnostics": "browser-articulation.json",
+    "captureMethod": "Actual Three.js canvas through Orca eval; no full-page or mobile screenshot claim",
+    "visualReview": {
+      "quarterViews": 13,
+      "fullArticulatedDiveBombers": 2,
+      "lod0Lod2Pairs": [
+        "f4u-1d-corsair",
+        "d3a1-val",
+        "sb2c-4-helldiver",
+        "tbf-1c-avenger",
+        "a6m5-zero",
+        "tbd-1-devastator"
+      ],
+      "result": "No new visual blocker; expected lower-LOD faceting and documented mechanism simplifications remain."
+    }
+  },
+  "schematicComparisons": {
+    "registeredViews": 26,
+    "report": "schematic-comparisons.json",
+    "wingStationMaxAbsErrorM": 0.029234,
+    "interpretation": "Agreement with retained drawing stations only, not a historical accuracy certificate",
+    "visualReview": "schematic-visual-review.md"
+  },
+  "localFallback": {
+    "aircraftId": "f4u-1d-corsair",
+    "method": "fresh local Blender 5.2 --background --factory-startup",
+    "binaryValidationPassed": true,
+    "lods": 3,
+    "retainedMcpFilesReplaced": false
+  },
+  "scope": "Visual assets only; aircraft not added to combat or carrier operations. Mechanisms and variant details retain documented approximations.",
+  "evidenceHashes": {
+    "browser-corsair.png": "010b6b26690e18461ab6bfd1106a85b5ac24ab9ae6a2b23292e586176a8a0d06",
+    "browser-articulation.json": "74c2039ee9f0a467e7b11fc4d2532c9d049c5a9b3890135568f4e5586cc76f44",
+    "blender-mcp-viewport.png": "59ecb05bf817f41bbb8ec00711659b642d738643a08fcb83150e4f3b89d336d3",
+    "sheets.json": "967ac5bbce726a95655372cb19969b96e278cea68ba90213faec7049bb8d80e1",
+    "geometry-audit.json": "d17f5b5274f49688b693833ea61e60ef53b0942f9de737ecb23e046a44261fc4",
+    "schematic-comparisons.json": "f7526e86e7d3e0c3bf9f3a83be03f892edd918e2e8ad4c894b0d41b6b1fa2ea9",
+    "local-fallback-check.json": "b172867694dfaf182f3efb3ba208bfb1e5c76b31fe2e9b3ff6847d5d113d742f",
+    "schematic-visual-review.md": "a587fd6b70c09c70c714bee9670c53bba4750c773b52ae8ec9ecae4738dc2bdd",
+    "schematic-visual-review.json": "c733cace70c49eb6494dea8dc2e034b77b73ca21941bd5376402c3149d7a8618"
+  }
+}

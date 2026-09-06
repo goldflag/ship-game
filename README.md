@@ -114,6 +114,12 @@ Set `BLENDER_BIN` for a custom Blender executable. Builds retain independent mou
 
 Read the [ship pipeline and Blender MCP workflow](docs/ship-pipeline.md), [source asset index](assets/README.md), and [Bismarck discrepancy register](assets/ships/bismarck/reports/discrepancies.md). The [original systems plan](docs/ship-systems-plan.md) describes the longer roadmap. The GameModels3D WoWS EU 15.7.0.0 reference pack is retained under the ship’s references. Passing export checks validates authored targets, not historical accuracy.
 
+## Aircraft model collection
+
+Thirteen original Japanese and American WWII carrier aircraft are available as standalone Blender sources and GLBs: Zero (A6M2/A6M5), Val, Kate, Judy, Jill, Wildcat, Dauntless, Devastator, Hellcat, Helldiver, Avenger and Corsair. Open **`/aircraft-review.html`** to select, orbit and articulate them. They are visual assets for future air combat; carrier operations and aircraft simulation remain unimplemented.
+
+The models were rebuilt through Blender MCP from individually measured three-view schematics, with transparent cockpits, original textured finishes, separate moving parts and three mesh/texture detail levels. Retained drawing overlays and variant caveats accompany the editable sources. Run `bun run aircraft:check all` to validate them, or `bun run aircraft:build all` for the reproducible local Blender build. See the [aircraft source index](assets/aircraft/README.md), [pipeline](docs/aircraft-pipeline.md), and [model overview](assets/aircraft/reports/quarter-sheet.jpg).
+
 ## Validation
 
 ```sh

@@ -1,0 +1,483 @@
+{
+  "schemaVersion": 1,
+  "id": "d4y2-judy",
+  "reference": {
+    "sourceUrl": "https://www.gruppofalchi.com/files/Profile-Publications-Aircraft-241---Aichi-D3A-Yokosuka-D4Y.pdf",
+    "imagePath": "assets/aircraft/references/schematics/d4y2-judy/profile-241-page-17-measure.png",
+    "sourceTitle": "Yokosuka D4Y2-C, P. Endsleigh Castle, Aircraft Profile 241 plate (scan p.17)",
+    "variant": "D4Y2-C reconnaissance Model 1-2; external airframe used for D4Y2, bomber-bay internals not evidenced",
+    "notes": [
+      "Manually digitised top/side silhouettes, independently registered to catalog length and wingspan.",
+      "Published reference drawing, not manufacturing geometry. Pixel rounding, scan distortion, hidden cross sections, canopy width and small details remain approximations.",
+      "Canopy lateral widths and hidden body contours are reconstructed inside the measured exterior envelope. Wing dihedral is digitised approximately from the front view, not an airfoil or load-bearing engineering specification.",
+      "Plan registration: source PDF page 17 rendered at 2x (2064x2784), reduced to 1376x1856; crop [80,330,1270,1300], rotate +66 degrees, expand. No nonuniform plan warping.",
+      "Illustrated D4Y2-C uses inline Atsuta engine; D4Y3/4 radial drawings deliberately excluded. Chin radiator is separate from primary fuselage loft."
+    ],
+    "registration": {
+      "top": {
+        "noseX": 205,
+        "tailX": 1218,
+        "centerY": 654,
+        "portTipY": 62,
+        "starboardTipY": 1243,
+        "imagePath": "assets/aircraft/references/schematics/d4y2-judy/top-registered.png"
+      },
+      "side": {
+        "noseX": 190,
+        "tailX": 1216,
+        "engineShaftY": 1507,
+        "imagePath": "assets/aircraft/references/schematics/d4y2-judy/profile-241-page-17-measure.png"
+      },
+      "front": {
+        "leftTipX": 113,
+        "rightTipX": 1288,
+        "centerX": 702,
+        "engineShaftY": 195,
+        "imagePath": "assets/aircraft/references/schematics/d4y2-judy/profile-241-page-17-measure.png",
+        "metersPerPixel": 0.00979,
+        "wingTipsCropped": false
+      }
+    }
+  },
+  "fuselage": [
+    [
+      0.05945,
+      0.30585,
+      -0.25899,
+      0.36856
+    ],
+    [
+      0.08772,
+      0.39878,
+      -0.33867,
+      0.42832
+    ],
+    [
+      0.13158,
+      0.46718,
+      -0.37852,
+      0.49805
+    ],
+    [
+      0.18129,
+      0.49174,
+      -0.41836,
+      0.53789
+    ],
+    [
+      0.2232,
+      0.49474,
+      -0.43828,
+      0.57774
+    ],
+    [
+      0.26413,
+      0.49136,
+      -0.50801,
+      0.56778
+    ],
+    [
+      0.2963,
+      0.48863,
+      -0.88653,
+      0.51797
+    ],
+    [
+      0.35283,
+      0.48031,
+      -0.87657,
+      0.49805
+    ],
+    [
+      0.41228,
+      0.47075,
+      -0.82676,
+      0.49805
+    ],
+    [
+      0.47368,
+      0.46143,
+      -0.77696,
+      0.50801
+    ],
+    [
+      0.53411,
+      0.43932,
+      -0.72715,
+      0.53789
+    ],
+    [
+      0.59649,
+      0.4015,
+      -0.62754,
+      0.52793
+    ],
+    [
+      0.65302,
+      0.36049,
+      -0.51797,
+      0.48809
+    ],
+    [
+      0.71345,
+      0.31443,
+      -0.45821,
+      0.44825
+    ],
+    [
+      0.76901,
+      0.26879,
+      -0.38848,
+      0.4084
+    ],
+    [
+      0.82554,
+      0.21323,
+      -0.32871,
+      0.36856
+    ],
+    [
+      0.88499,
+      0.149,
+      -0.27891,
+      0.29883
+    ],
+    [
+      0.94542,
+      0.08308,
+      -0.23906,
+      0.2291
+    ],
+    [
+      0.98733,
+      0.02455,
+      -0.16934,
+      0.08965
+    ],
+    [
+      1.0,
+      0.0,
+      -0.08965,
+      -0.02988
+    ]
+  ],
+  "wing": [
+    [
+      0.0,
+      0.24482,
+      0.54393,
+      -0.36213
+    ],
+    [
+      0.09508,
+      0.25469,
+      0.52024,
+      -0.36213
+    ],
+    [
+      0.21562,
+      0.2616,
+      0.49457,
+      -0.31686
+    ],
+    [
+      0.34295,
+      0.26654,
+      0.48272,
+      -0.27038
+    ],
+    [
+      0.47029,
+      0.27048,
+      0.46989,
+      -0.2305
+    ],
+    [
+      0.59932,
+      0.27542,
+      0.45607,
+      -0.19009
+    ],
+    [
+      0.72326,
+      0.28036,
+      0.44324,
+      -0.15127
+    ],
+    [
+      0.82852,
+      0.28628,
+      0.42744,
+      -0.11886
+    ],
+    [
+      0.91002,
+      0.2922,
+      0.41066,
+      -0.09493
+    ],
+    [
+      0.96095,
+      0.30701,
+      0.38993,
+      -0.07998
+    ],
+    [
+      0.98981,
+      0.32971,
+      0.36723,
+      -0.0715
+    ],
+    [
+      1.0,
+      0.3465,
+      0.34748,
+      -0.06851
+    ]
+  ],
+  "horizontalTail": [
+    [
+      0.0,
+      0.80948,
+      0.96249,
+      0.29
+    ],
+    [
+      0.15294,
+      0.82231,
+      0.95755,
+      0.29
+    ],
+    [
+      0.32549,
+      0.83218,
+      0.9536,
+      0.29
+    ],
+    [
+      0.49412,
+      0.84205,
+      0.94669,
+      0.29
+    ],
+    [
+      0.67451,
+      0.8539,
+      0.93978,
+      0.29
+    ],
+    [
+      0.83529,
+      0.86377,
+      0.9309,
+      0.29
+    ],
+    [
+      0.94118,
+      0.87759,
+      0.91807,
+      0.29
+    ],
+    [
+      0.99216,
+      0.88845,
+      0.90326,
+      0.29
+    ],
+    [
+      1.0,
+      0.89536,
+      0.89635,
+      0.29
+    ]
+  ],
+  "fin": [
+    [
+      0.80702,
+      0.38848
+    ],
+    [
+      0.82554,
+      0.56778
+    ],
+    [
+      0.84795,
+      1.00606
+    ],
+    [
+      0.87329,
+      1.44435
+    ],
+    [
+      0.89181,
+      1.61368
+    ],
+    [
+      0.91423,
+      1.71329
+    ],
+    [
+      0.93665,
+      1.69337
+    ],
+    [
+      0.95712,
+      1.56388
+    ],
+    [
+      0.96784,
+      1.32481
+    ],
+    [
+      0.97563,
+      0.96622
+    ],
+    [
+      0.98246,
+      0.55782
+    ],
+    [
+      0.9883,
+      0.24903
+    ],
+    [
+      0.99903,
+      0.00996
+    ],
+    [
+      0.99318,
+      -0.14942
+    ],
+    [
+      0.96491,
+      -0.2291
+    ],
+    [
+      0.92593,
+      -0.01992
+    ],
+    [
+      0.88694,
+      0.15938
+    ],
+    [
+      0.83821,
+      0.25899
+    ]
+  ],
+  "canopy": [
+    [
+      0.27096,
+      0.14535,
+      0.56778,
+      0.5877
+    ],
+    [
+      0.29337,
+      0.27088,
+      0.52793,
+      0.77696
+    ],
+    [
+      0.32456,
+      0.42195,
+      0.49805,
+      0.97618
+    ],
+    [
+      0.35867,
+      0.43657,
+      0.49805,
+      0.96622
+    ],
+    [
+      0.39571,
+      0.44837,
+      0.49805,
+      0.95626
+    ],
+    [
+      0.42885,
+      0.4389,
+      0.49805,
+      0.9463
+    ],
+    [
+      0.46394,
+      0.42606,
+      0.49805,
+      0.93634
+    ],
+    [
+      0.50097,
+      0.38903,
+      0.49805,
+      0.89649
+    ],
+    [
+      0.54094,
+      0.33411,
+      0.50801,
+      0.8168
+    ],
+    [
+      0.58285,
+      0.26226,
+      0.51797,
+      0.69727
+    ],
+    [
+      0.62476,
+      0.11793,
+      0.51797,
+      0.55782
+    ],
+    [
+      0.64133,
+      0.06,
+      0.51797,
+      0.51797
+    ]
+  ],
+  "tailSpan": 4.96613,
+  "cowling": {
+    "frontU": 0.05945,
+    "rearU": 0.26803,
+    "radiusM": 0.39844
+  },
+  "propeller": {
+    "u": 0.04873,
+    "radiusM": 1.50411,
+    "blades": 3,
+    "spinnerLengthM": 0.49805
+  },
+  "gear": {
+    "mainU": 0.27973,
+    "trackM": 4.77617,
+    "wheelRadiusM": 0.30879,
+    "wheelZM": -1.69337,
+    "tailU": 0.93567,
+    "tailWheelZM": -0.60762
+  },
+  "extras": {
+    "engine": "inline",
+    "chinRadiator": {
+      "frontU": 0.09,
+      "rearU": 0.43,
+      "zM": -0.73,
+      "heightM": 0.3,
+      "widthM": 0.82
+    },
+    "exhaustStacks": true,
+    "payload": "bomb",
+    "canopyFrameU": [
+      0.331,
+      0.397,
+      0.464,
+      0.526
+    ],
+    "antennaU": 0.464,
+    "antennaHeightM": 1.03,
+    "distinctive": "Long slender inline-engine nose; deep chin radiator; short broad rounded wing and tandem greenhouse."
+  }
+}

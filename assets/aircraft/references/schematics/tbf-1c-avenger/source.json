@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "tbf-1c-avenger",
+  "retrieved": "2026-09-05",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Grumman_TBF-1_Avenger_BuAer_drawing.jpg",
+  "sourceTitle": "U.S. Navy BuAer Descriptive Arrangement, 1 July 1943",
+  "license": "Public domain, U.S. Navy Bureau of Aeronautics",
+  "variant": "MODEL TBF-1 & 1C; also TBM-1 & 1C",
+  "notes": [
+    "The retained original sheet explicitly includes TBF-1C and wing-gun annotation; no variant extrapolation needed for principal silhouette.",
+    "Source dimensions include span 54 ft 2 in, tail span 20 ft 10 in, main tread 10 ft 6 in, propeller diameter 13 ft. Catalog length 12.48 m retained.",
+    "Fuselage under the canopy, hidden elliptic sections, root fairings, ventral glazing and turret depth remain reconstructed from orthographic silhouettes, not factory lofting."
+  ],
+  "files": [
+    {
+      "path": "assets/aircraft/references/schematics/tbf-1c-avenger/measured-landmarks.png",
+      "sha256": "8456db78256bddbc463bd227977d756fe9bdf1f55d4644a9dab5e9e2472d2d57",
+      "sizeBytes": 630057
+    },
+    {
+      "path": "assets/aircraft/references/schematics/tbf-1c-avenger/buaer-tbf-1-grid.png",
+      "sha256": "d6e4946abc326abd9ae5039b1034c2895c6e1f414975338726c4d8e2f4c0e0f8",
+      "sizeBytes": 681067
+    },
+    {
+      "path": "assets/aircraft/references/schematics/tbf-1c-avenger/buaer-tbf-1.jpg",
+      "sha256": "b8371a8284b3e2949e62f1bff05b98606adba532a3f79d3e50bdef08318daaf1",
+      "sizeBytes": 416781
+    }
+  ]
+}

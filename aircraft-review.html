@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#132d38" />
+    <meta name="description" content="Inspect the original WWII carrier aircraft models for Fleet Command." />
+    <title>Aircraft hangar — Fleet Command</title>
+  </head>
+  <body>
+    <div class="hangar">
+      <header class="hangar-header">
+        <h1>Aircraft hangar</h1>
+        <span class="hangar-context">Fleet Command · Model collection</span>
+        <a href="/">Return to fleet</a>
+      </header>
+      <main class="hangar-main">
+        <aside class="instruments" aria-label="Aircraft selection and controls">
+          <div class="aircraft-selection">
+            <label for="aircraft-select">Carrier aircraft <span id="aircraft-count"></span></label>
+            <select id="aircraft-select" disabled><option>Loading collection…</option></select>
+          </div>
+          <div class="aircraft-selection">
+            <label for="detail-select">Viewing distance</label>
+            <select id="detail-select" disabled><option value="0">Near · Full detail</option><option value="1">Medium · 120 m</option><option value="2">Distant · 400 m</option></select>
+          </div>
+          <section class="aircraft-identity" aria-labelledby="aircraft-name">
+            <h2 id="aircraft-name">Aircraft collection</h2>
+            <p id="aircraft-description">Japanese and American carrier aircraft of the Second World War.</p>
+            <dl class="aircraft-specifications">
+              <div><dt>Nation</dt><dd id="aircraft-nation">—</dd></div>
+              <div><dt>Role</dt><dd id="aircraft-role">—</dd></div>
+              <div><dt>Variant year</dt><dd id="aircraft-year">—</dd></div>
+              <div><dt>Length</dt><dd id="aircraft-length">—</dd></div>
+              <div><dt>Wingspan</dt><dd id="aircraft-wingspan">—</dd></div>
+            </dl>
+          </section>
+          <fieldset class="articulation-controls" id="articulation-controls" disabled>
+            <legend>Inspect articulation</legend>
+            <label><input type="checkbox" id="propeller-toggle" /> Spin propeller</label>
+            <label><input type="checkbox" id="controls-toggle" /> Move control surfaces</label>
+            <label><input type="checkbox" id="gear-toggle" /> Retract landing gear</label>
+            <label id="brake-label" hidden><input type="checkbox" id="brake-toggle" /> Open dive brakes</label>
+            <p id="articulation-note">Load an aircraft to inspect its moving parts.</p>
+          </fieldset>
+          <div class="display-controls">
+            <label><input type="checkbox" id="grid-toggle" checked /> Show 1 m scale grid</label>
+            <button id="reset-button" type="button" disabled>Reset view &amp; pose</button>
+          </div>
+          <p class="collection-note">Original game models. Shapes, paint schemes and mechanisms include documented approximations.</p>
+        </aside>
+        <section class="model-stage" id="model-stage" aria-label="Interactive aircraft model">
+          <div class="view-controls" role="group" aria-label="Camera view">
+            <button type="button" data-view="quarter" aria-pressed="true" disabled>Quarter</button>
+            <button type="button" data-view="top" aria-pressed="false" disabled>Top</button>
+            <button type="button" data-view="side" aria-pressed="false" disabled>Side</button>
+            <button type="button" data-view="front" aria-pressed="false" disabled>Front</button>
+            <button type="button" data-view="rear" aria-pressed="false" disabled>Rear</button>
+          </div>
+          <div class="model-message" id="model-message" role="status" aria-live="polite">
+            <strong id="message-title">Opening the aircraft collection</strong>
+            <p id="message-detail">Preparing the model viewer…</p>
+            <button type="button" id="retry-button" hidden>Try again</button>
+          </div>
+          <div class="stage-footer">
+            <span id="model-status" role="status" aria-live="polite">Loading collection</span>
+            <span class="orbit-hint" id="orbit-hint">Drag to orbit · Scroll or pinch to zoom</span>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script type="module" src="/src/aircraft-review/main.ts"></script>
+  </body>
+</html>

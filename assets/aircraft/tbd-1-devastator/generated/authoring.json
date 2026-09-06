@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "aircraftId": "tbd-1-devastator",
+  "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+  "method": "blender-mcp",
+  "blenderVersion": "5.2.0 LTS",
+  "originalGeometry": true,
+  "shapeSource": "shapes/tbd-1-devastator.json",
+  "reference": {
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Douglas_TBD_Devastator_3-view.svg",
+    "imagePath": "assets/aircraft/references/schematics/tbd-1-devastator/commons-tbd.png",
+    "sourceTitle": "Douglas TBD Devastator three-view orthographic drawing, Kaboldy, 25 October 2011",
+    "variant": "Production TBD-1 with raised greenhouse canopy",
+    "license": "Reference only: Kaboldy, CC BY-SA 3.0 https://creativecommons.org/licenses/by-sa/3.0/; raster is unchanged conversion of retained original SVG. Sparse dimensional landmarks are factual measurements; independently constructed mesh topology.",
+    "notes": [
+      "Credited modern technical orthographic reference, not a factory drawing. Original SVG and an unchanged nominal raster are retained under source license.",
+      "Official NHHC Dictionary of American Naval Aviation Squadrons volume I page 511 confirms span 50 ft and length 35 ft; its original PDF now returns 404 and mirror 403 during acquisition, so it was not used as the measured raster.",
+      "Wing shape, long raised three-place greenhouse, very narrow tail fuselage and corrugated outer wing are measured or located from retained three-view. Small sections and extended gear geometry remain inferred."
+    ],
+    "registration": {
+      "imageSizePx": [
+        873,
+        1118
+      ],
+      "side": {
+        "boundsPx": [
+          279,
+          13,
+          862,
+          211
+        ],
+        "noseXPx": 860,
+        "tailXPx": 280,
+        "shaftYPx": 148,
+        "noseX": 860,
+        "tailX": 280,
+        "engineShaftY": 148,
+        "imagePath": "assets/aircraft/references/schematics/tbd-1-devastator/commons-tbd.png"
+      },
+      "top": {
+        "boundsPx": [
+          278,
+          292,
+          861,
+          1105
+        ],
+        "lengthAxis": "x",
+        "noseAxisPx": 860,
+        "tailAxisPx": 280,
+        "centerPx": 698,
+        "spanPx": 810,
+        "tailHalfSpanPx": 144
+      },
+      "front": {
+        "boundsPx": [
+          14,
+          292,
+          238,
+          1106
+        ],
+        "centerXPx": 146,
+        "shaftYPx": 698,
+        "note": "Front view is rotated 90 degrees: span runs vertically, height runs horizontally; main wing low at root with pronounced outer-panel dihedral."
+      },
+      "estimatedPickingTolerancePx": 2,
+      "registrationNote": "Original retained SVG rasterized at nominal size using MuPDF; geometric source paths are not imported. Top span and side length scales differ by 2.3 percent, registered independently.",
+      "plan": {
+        "noseX": 860,
+        "tailX": 280,
+        "centerY": 698,
+        "spanPx": 810,
+        "imagePath": "assets/aircraft/references/schematics/tbd-1-devastator/commons-tbd.png",
+        "sourceTransform": "identity"
+      }
+    }
+  },
+  "triangleBudget": 40000
+}

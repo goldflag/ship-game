@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "aircraftId": "d4y2-judy",
+  "title": "Yokosuka D4Y2-C, P. Endsleigh Castle, Aircraft Profile 241 plate (scan p.17)",
+  "sourcePage": "https://www.gruppofalchi.com/files/Profile-Publications-Aircraft-241---Aichi-D3A-Yokosuka-D4Y.pdf",
+  "downloadUrl": "https://www.gruppofalchi.com/files/Profile-Publications-Aircraft-241---Aichi-D3A-Yokosuka-D4Y.pdf",
+  "author": "P. Endsleigh Castle ARAeS, Profile Publications Ltd; Aircraft Profile 241.",
+  "retrievedAt": "2026-09-05",
+  "variant": "D4Y2-C reconnaissance Model 1-2; external airframe used for D4Y2, bomber-bay internals not evidenced",
+  "originalFile": "profile-241-page-17.pdf",
+  "sha256": "10038c2bded8aa2f9bd168ecafdde6ee42d32c5c8b9394ed737742f6320f2d80",
+  "rights": "Copyright retained by original creator/publisher unless independently established otherwise. Retained as credited development comparison reference; not packaged in public game build. No claim that these images are public domain.",
+  "measurements": "assets/aircraft/shapes/d4y2-judy.json",
+  "method": "Manual raster outline sampling, retained source points in assets/aircraft/shapes/measure-japanese.py; top and side scale registered separately; see JSON notes for unresolved reconstruction.",
+  "retainedExtract": "Single original plate extracted from PDF page 17; source embedded raster preserved. The full booklet was used to locate the plate and is not retained."
+}

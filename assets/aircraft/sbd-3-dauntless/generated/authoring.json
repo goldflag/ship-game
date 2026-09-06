@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "aircraftId": "sbd-3-dauntless",
+  "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+  "method": "blender-mcp",
+  "blenderVersion": "5.2.0 LTS",
+  "originalGeometry": true,
+  "shapeSource": "shapes/sbd-3-dauntless.json",
+  "reference": {
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Douglas_SBD-5_BuAer_3_view_drawing.jpg",
+    "imagePath": "assets/aircraft/references/schematics/sbd-3-dauntless/buaer-sbd-5.jpg",
+    "sourceTitle": "U.S. Navy BuAer SBD-5 & 6 Descriptive Arrangement, 1 June 1944",
+    "variant": "SBD-5/6 main airframe used for SBD-3; variant-specific intake and sight retained separately",
+    "license": "Public domain, U.S. Navy Bureau of Aeronautics",
+    "notes": [
+      "Primary retained SBD-5/6 drawing supplies common airframe, broad fixed inner wing, rounded tips and long curved dorsal-fin root; this does not certify an SBD-3-specific engine cowling.",
+      "SBD-3 upper carburetor intake and telescopic sight are explicit variant approximations; exact -3 cowling-panel stations remain unresolved.",
+      "No wing fold: the SBD had fixed wings. Perforated split dive brakes are a required visible distinguishing feature. Cross-sections, fillets and canopy curvature between measured silhouettes remain inferred."
+    ],
+    "registration": {
+      "imageSizePx": [
+        880,
+        1153
+      ],
+      "side": {
+        "boundsPx": [
+          184,
+          866,
+          688,
+          1085
+        ],
+        "noseXPx": 184,
+        "tailXPx": 687,
+        "shaftYPx": 981,
+        "noseX": 184,
+        "tailX": 687,
+        "engineShaftY": 981,
+        "imagePath": "assets/aircraft/references/schematics/sbd-3-dauntless/buaer-sbd-5.jpg"
+      },
+      "top": {
+        "boundsPx": [
+          117,
+          30,
+          752,
+          535
+        ],
+        "lengthAxis": "y",
+        "noseAxisPx": 534,
+        "tailAxisPx": 31,
+        "centerPx": 434,
+        "spanPx": 634,
+        "tailHalfSpanPx": 135
+      },
+      "front": {
+        "boundsPx": [
+          120,
+          584,
+          753,
+          800
+        ],
+        "centerXPx": 434,
+        "shaftYPx": 703,
+        "wingRootYPx": 736,
+        "wingTipYPx": 688
+      },
+      "estimatedPickingTolerancePx": 2,
+      "registrationNote": "Source side view has horizontal engine shaft with landing gear in airframe-level attitude. Top/side longitudinal scale agrees; tail span label 17 ft 9 in.",
+      "plan": {
+        "noseX": 534,
+        "tailX": 31,
+        "centerY": 434,
+        "spanPx": 634,
+        "imagePath": "assets/aircraft/references/schematics/sbd-3-dauntless/buaer-sbd-5.jpg",
+        "sourceTransform": {
+          "operation": "transpose",
+          "description": "Reference original has nose down; transpose image so newX=oldY, newY=oldX; nose then points right."
+        }
+      }
+    }
+  },
+  "triangleBudget": 40000
+}

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "aircraftId": "b6n2-jill",
+  "title": "Nakajima B6N2 three-view drawing, CombinedFleet IJNAF reference archive",
+  "sourcePage": "https://www.combinedfleet.com/ijna/b6n.htm",
+  "downloadUrl": "https://www.combinedfleet.com/ijna/b6n2.gif",
+  "author": "Plate creator not credited on the linked three-view; archive compiled by Joao Paulo Juliao Matsuura.",
+  "retrievedAt": "2026-09-05",
+  "variant": "B6N2 Model 12",
+  "originalFile": "three-view.gif",
+  "sha256": "aa5c6ce611da1ad53ce9cc84510a8061261a124c80f5a9152cfae13e2553dece",
+  "rights": "Copyright retained by original creator/publisher unless independently established otherwise. Retained as credited development comparison reference; not packaged in public game build. No claim that these images are public domain.",
+  "measurements": "assets/aircraft/shapes/b6n2-jill.json",
+  "method": "Manual raster outline sampling, retained source points in assets/aircraft/shapes/measure-japanese.py; top and side scale registered separately; see JSON notes for unresolved reconstruction."
+}

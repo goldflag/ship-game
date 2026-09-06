@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "sbd-3-dauntless",
+  "retrieved": "2026-09-05",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Douglas_SBD-5_BuAer_3_view_drawing.jpg",
+  "sourceTitle": "U.S. Navy BuAer SBD-5 & 6 Descriptive Arrangement, 1 June 1944",
+  "license": "Public domain, U.S. Navy Bureau of Aeronautics",
+  "variant": "SBD-5/6 main airframe used for SBD-3; variant-specific intake and sight retained separately",
+  "notes": [
+    "Primary retained SBD-5/6 drawing supplies common airframe, broad fixed inner wing, rounded tips and long curved dorsal-fin root; this does not certify an SBD-3-specific engine cowling.",
+    "SBD-3 upper carburetor intake and telescopic sight are explicit variant approximations; exact -3 cowling-panel stations remain unresolved.",
+    "No wing fold: the SBD had fixed wings. Perforated split dive brakes are a required visible distinguishing feature. Cross-sections, fillets and canopy curvature between measured silhouettes remain inferred."
+  ],
+  "files": [
+    {
+      "path": "assets/aircraft/references/schematics/sbd-3-dauntless/measured-landmarks.png",
+      "sha256": "93e8f247e23fc7eb0b6698b6da7b83bcf6b94f9aa9ef369c3b33404fcff76cd9",
+      "sizeBytes": 383949
+    },
+    {
+      "path": "assets/aircraft/references/schematics/sbd-3-dauntless/buaer-sbd-5.jpg",
+      "sha256": "3b6e045a32fac9349e7938b53b000d390c3f887c640e39e734fd4385bf0185a7",
+      "sizeBytes": 163225
+    },
+    {
+      "path": "assets/aircraft/references/schematics/sbd-3-dauntless/buaer-sbd-5-grid.png",
+      "sha256": "ee92aa6a6918e025095d165837015d48710995be6c90004fd4c4d68e9f971335",
+      "sizeBytes": 403018
+    }
+  ]
+}

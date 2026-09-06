@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "aircraftId": "tbf-1c-avenger",
+  "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+  "method": "blender-mcp",
+  "blenderVersion": "5.2.0 LTS",
+  "originalGeometry": true,
+  "shapeSource": "shapes/tbf-1c-avenger.json",
+  "reference": {
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Grumman_TBF-1_Avenger_BuAer_drawing.jpg",
+    "imagePath": "assets/aircraft/references/schematics/tbf-1c-avenger/buaer-tbf-1.jpg",
+    "sourceTitle": "U.S. Navy BuAer Descriptive Arrangement, 1 July 1943",
+    "variant": "MODEL TBF-1 & 1C; also TBM-1 & 1C",
+    "license": "Public domain, U.S. Navy Bureau of Aeronautics",
+    "notes": [
+      "The retained original sheet explicitly includes TBF-1C and wing-gun annotation; no variant extrapolation needed for principal silhouette.",
+      "Source dimensions include span 54 ft 2 in, tail span 20 ft 10 in, main tread 10 ft 6 in, propeller diameter 13 ft. Catalog length 12.48 m retained.",
+      "Fuselage under the canopy, hidden elliptic sections, root fairings, ventral glazing and turret depth remain reconstructed from orthographic silhouettes, not factory lofting."
+    ],
+    "registration": {
+      "imageSizePx": [
+        1134,
+        1810
+      ],
+      "side": {
+        "boundsPx": [
+          191,
+          1312,
+          951,
+          1623
+        ],
+        "noseXPx": 201,
+        "tailXPx": 946,
+        "shaftYPx": 1482,
+        "noseX": 201,
+        "tailX": 946,
+        "engineShaftY": 1482,
+        "imagePath": "assets/aircraft/references/schematics/tbf-1c-avenger/buaer-tbf-1.jpg"
+      },
+      "top": {
+        "boundsPx": [
+          83,
+          65,
+          1073,
+          798
+        ],
+        "lengthAxis": "y",
+        "noseAxisPx": 795,
+        "tailAxisPx": 68,
+        "centerPx": 578,
+        "spanPx": 987,
+        "tailHalfSpanPx": 190
+      },
+      "front": {
+        "boundsPx": [
+          77,
+          850,
+          1085,
+          1160
+        ],
+        "centerXPx": 576,
+        "shaftYPx": 1024,
+        "wingRootYPx": 1035,
+        "wingTipYPx": 989
+      },
+      "estimatedPickingTolerancePx": 3,
+      "registrationNote": "Top and side printing differ by ~2.6 percent in axial scale. Length and span registered independently; engine shaft horizontal in side drawing, ground line intentionally not used as flight datum.",
+      "plan": {
+        "noseX": 795,
+        "tailX": 68,
+        "centerY": 578,
+        "spanPx": 987,
+        "imagePath": "assets/aircraft/references/schematics/tbf-1c-avenger/buaer-tbf-1.jpg",
+        "sourceTransform": {
+          "operation": "transpose",
+          "description": "Reference original has nose down; transpose image so newX=oldY, newY=oldX; nose then points right."
+        }
+      }
+    }
+  },
+  "triangleBudget": 40000
+}
