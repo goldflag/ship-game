@@ -95,6 +95,8 @@ Sound uses an [original ElevenLabs-generated naval set](assets/audio/naval/READM
 
 Combat uses velocity-aware AP penetration and delayed fuzes, protected AP/HE bursts, finite ammunition, local fires, machinery failures, timed damage-control teams and compartment flooding. Flotation and righting moments come from the authored hull and a declared provisional loading calibration. Floodwater moves under heel and trim; seawater can enter or leave openings. Ships can be immobile, disarmed, disabled afloat, sinking or capsized. Equipment condition replaces the former universal hull HP counter. The internal layouts, fuel, crew performance, loading and protection values remain game approximations. Networking, player shipbuilding, aircraft, individual crew, detailed spall and hull fracture remain future work. Fittings outside the compiled mount catalog, propellers and rudders remain visual.
 
+Bismarck, Yamato, Baltimore and Enterprise have full hull-end and major-structure coverage. Their fidelity geometry and retained room IDs are integrated with the damage model; legacy armor volumes remain supported for other definitions. See the [integration record](docs/fleet-fidelity-integration.md) for the independently identified validation snapshots.
+
 The shared simulation is ready to host outside the browser, but multiplayer transport and server command validation are not implemented. The gameplay sea is flat; GPU waves do not move combat hulls independently of their hitboxes.
 
 ## Model pipeline
@@ -106,6 +108,8 @@ The latest correction replaces the secondary gunhouses' tapered boxes with ridge
 **Reference review** in port opens the [local comparison page](public/ship-reference/bismarck/index.html): 25 neutral views, historical drawing registration, overlays, dimensions, landmarks, protection sections and downloadable GLB/ZIP. The [modeling specification](assets/ships/bismarck/modeling-spec.json) distinguishes documented dimensions from reconstructed sections and room envelopes. The game model is comparison evidence only; the original ship rebuild passes with the raw reference cache unavailable.
 
 Yamato is available at `?ship=yamato`. Its original recipe targets the April 1945 exterior with a separately stated 10.4 m trial draft. Three triple 46 cm and two triple 15.5 cm mounts share the same simulation and articulation contract. The [Yamato source notes](assets/ships/yamato/README.md) distinguish measured dimensions from unresolved historical proportions and fittings.
+
+The [fleet fidelity pass](assets/ships/fleet-fidelity/README.md) upgrades Yamato, Baltimore and Enterprise with vessel-specific hull/deckhouse surfaces, weapon and equipment detail, provisional protection/internals and complete structural hit coverage. Each has twelve matched before/after views, a portable historical/measurement review and exact-hash WebGPU articulation/combat evidence. **Reference review** is available for all four ships and opens `/ship-reference/<ship-id>/index.html` explicitly, including in Vite development. Bismarck's original recipe and preserved baseline remain unchanged. Historical gaps and uncontrolled mixed-fleet performance observations are recorded separately from passing export/tests.
 
 ```sh
 bun run ship:reference bismarck   # Optional: refresh the isolated GameModels3D raster pack

@@ -2,18 +2,18 @@
   "version": 1,
   "shipId": "enterprise-cv6",
   "method": "Station polygon clipping and midpoint integration; conservative residual cells, 85% permeability",
-  "baselineVolumeM3": 25342.36768779197,
-  "fullHullVolumeM3": 67826.22483074565,
+  "baselineVolumeM3": 25343.074508348618,
+  "fullHullVolumeM3": 67849.3985751012,
   "statedMassKg": 25909680,
-  "geometricDisplacementKg": 25975926.87998677,
-  "buoyancyScale": 0.997449681765242,
+  "geometricDisplacementKg": 25976651.371057335,
+  "buoyancyScale": 0.9974218628066913,
   "dryCenterOfGravity": [
     0,
-    1.2687229640541724,
-    2.8600793199395835
+    1.2743900918081237,
+    2.875327114812861
   ],
   "initialGM": 1.9629120000000002,
-  "floodCapacityM3": 50055.68876747853,
+  "floodCapacityM3": 49799.15576005365,
   "reserveSpaces": 24,
-  "limitations": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Unmapped outer shell uses 12 mm steel. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
+  "limitations": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
 }
