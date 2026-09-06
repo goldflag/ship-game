@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 650" role="img" aria-label="Original hull protection and provisional rooms">
+<rect width="900" height="650" fill="#f2f0e9"/>
+<text x="24" y="35" font-family="sans-serif" font-size="22">Station 229.464 m from stern · runtime Z -106.096 m</text>
+<polygon points="450.00,538.24 459.98,537.38 469.97,536.52 477.15,530.65 479.73,521.11 482.10,511.38 484.64,501.69 484.35,491.68 484.05,481.67 483.75,471.65 482.69,461.69 481.59,451.73 480.50,441.77 479.40,431.81 478.65,421.82 478.00,411.82 477.36,401.83 476.72,391.83 476.36,381.82 476.09,371.80 475.83,361.78 476.96,352.00 480.39,342.59 483.85,333.19 487.31,323.79 490.77,314.38 494.22,304.98 498.40,296.02 505.11,288.60 511.88,281.22 518.65,273.84 525.43,266.46 532.20,259.07 538.97,251.69 545.90,244.47 553.47,237.90 561.05,231.35 568.64,224.81 576.22,218.26 583.96,211.90 591.75,205.59 599.53,199.28 607.31,192.96 615.09,186.65 622.93,180.40 630.70,174.13 638.42,167.81 646.14,161.50 253.86,161.50 261.58,167.81 269.30,174.13 277.07,180.40 284.91,186.65 292.69,192.96 300.47,199.28 308.25,205.59 316.04,211.90 323.78,218.26 331.36,224.81 338.95,231.35 346.53,237.90 354.10,244.47 361.03,251.69 367.80,259.07 374.57,266.46 381.35,273.84 388.12,281.22 394.89,288.60 401.60,296.02 405.78,304.98 409.23,314.38 412.69,323.79 416.15,333.19 419.61,342.59 423.04,352.00 424.17,361.78 423.91,371.80 423.64,381.82 423.28,391.83 422.64,401.83 422.00,411.82 421.35,421.82 420.60,431.81 419.50,441.77 418.41,451.73 417.31,461.69 416.25,471.65 415.95,481.67 415.65,491.68 415.36,501.69 417.90,511.38 420.27,521.11 422.85,530.65 430.03,536.52 440.02,537.38 450.00,538.24" fill="#e3e2dc" stroke="#526772" stroke-width="2"/>
+<rect x="421.11496668529657" y="458.98531112353106" width="57.77006662940682" height="38.513377752937885" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Forward Void · provisional flooding space</title></rect>
+<rect x="442.0" y="410.3" width="16.0" height="29.4" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Bow end space 3 · estimated</title></rect>
+<rect x="442.0" y="380.3" width="16.0" height="29.4" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Bow end space 4 · estimated</title></rect>
+<rect x="442.0" y="350.3" width="16.0" height="29.4" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Bow end space 5 · estimated</title></rect>
+<rect x="442.0" y="320.3" width="16.0" height="29.4" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Bow end space 6 · estimated</title></rect>
+<rect x="442.0" y="439.7" width="8.0" height="0.6" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port deep reserve space 1 · estimated</title></rect>
+<rect x="426.632" y="517.2446667" width="23.368000000000002" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port deep reserve space 1 · estimated</title></rect>
+<rect x="442.0" y="499.7000001" width="8.0" height="17.5446666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port deep reserve space 1 · estimated</title></rect>
+<rect x="426.632" y="497.4986889" width="15.367999999999999" height="19.745977800000002" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port deep reserve space 1 · estimated</title></rect>
+<rect x="426.632" y="454.2526666" width="15.367999999999999" height="4.7326444" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port deep reserve space 1 · estimated</title></rect>
+<rect x="442.0" y="497.49868879999997" width="8.0" height="2.2013112" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port deep reserve space 1 · estimated</title></rect>
+<rect x="442.0" y="440.3" width="8.0" height="18.6853112" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port deep reserve space 1 · estimated</title></rect>
+<rect x="426.632" y="412.2580001" width="15.367999999999999" height="41.994666599999995" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port deep reserve space 1 · estimated</title></rect>
+<rect x="442.0" y="409.7" width="8.0" height="0.6" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port middle reserve space 1 · estimated</title></rect>
+<rect x="442.0" y="379.7" width="8.0" height="0.6" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port middle reserve space 1 · estimated</title></rect>
+<rect x="442.0" y="349.7" width="8.0" height="0.6" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port middle reserve space 1 · estimated</title></rect>
+<rect x="414.948" y="286.2740001" width="11.684000000000001" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port middle reserve space 1 · estimated</title></rect>
+<rect x="426.632" y="307.2713333" width="15.367999999999999" height="20.9973334" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port middle reserve space 1 · estimated</title></rect>
+<rect x="442.0" y="307.2713333" width="8.0" height="13.028666600000001" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port middle reserve space 1 · estimated</title></rect>
+<rect x="426.632" y="286.27399990000004" width="23.368000000000002" height="20.9973334" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port middle reserve space 1 · estimated</title></rect>
+<rect x="426.632" y="349.266" width="15.367999999999999" height="62.992" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port middle reserve space 1 · estimated</title></rect>
+<rect x="426.632" y="328.2686667" width="15.367999999999999" height="20.9973334" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port middle reserve space 1 · estimated</title></rect>
+<rect x="414.948" y="307.2713333" width="11.684000000000001" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port middle reserve space 1 · estimated</title></rect>
+<rect x="414.948" y="296.7726667" width="11.684000000000001" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port middle reserve space 1 · estimated</title></rect>
+<rect x="403.264" y="202.2846667" width="46.736000000000004" height="41.994666599999995" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port upper reserve space 1 · estimated</title></rect>
+<rect x="333.16" y="181.2873333" width="116.83999999999999" height="20.9973334" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port upper reserve space 1 · estimated</title></rect>
+<rect x="356.528" y="202.2846667" width="46.736000000000004" height="20.9973334" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port upper reserve space 1 · estimated</title></rect>
+<rect x="379.896" y="223.2819999" width="23.368000000000002" height="20.9973334" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port upper reserve space 1 · estimated</title></rect>
+<rect x="298.108" y="181.2873333" width="35.052" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port upper reserve space 1 · estimated</title></rect>
+<rect x="286.424" y="170.7886667" width="163.57600000000002" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port upper reserve space 1 · estimated</title></rect>
+<rect x="321.476" y="202.2846667" width="35.052" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port upper reserve space 1 · estimated</title></rect>
+<rect x="344.844" y="223.2820001" width="35.052" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port upper reserve space 1 · estimated</title></rect>
+<rect x="333.16" y="212.78333329999998" width="23.368000000000002" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port upper reserve space 1 · estimated</title></rect>
+<rect x="309.79200000000003" y="191.7860001" width="23.368000000000002" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port upper reserve space 1 · estimated</title></rect>
+<rect x="368.212" y="244.2793333" width="35.052" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port upper reserve space 1 · estimated</title></rect>
+<rect x="391.58" y="265.2766667" width="11.684000000000001" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port upper reserve space 1 · estimated</title></rect>
+<rect x="379.896" y="254.7780001" width="23.368000000000002" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port upper reserve space 1 · estimated</title></rect>
+<rect x="356.528" y="233.7806667" width="23.368000000000002" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port upper reserve space 1 · estimated</title></rect>
+<rect x="403.264" y="244.2793333" width="46.736000000000004" height="41.994666599999995" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Port upper reserve space 1 · estimated</title></rect>
+<rect x="450.0" y="439.7" width="8.0" height="0.6" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard deep reserve space 1 · estimated</title></rect>
+<rect x="450.0" y="517.2446667" width="23.368000000000002" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard deep reserve space 1 · estimated</title></rect>
+<rect x="450.0" y="499.7000001" width="8.0" height="17.5446666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard deep reserve space 1 · estimated</title></rect>
+<rect x="458.0" y="497.4986889" width="15.367999999999999" height="19.745977800000002" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard deep reserve space 1 · estimated</title></rect>
+<rect x="458.0" y="454.2526666" width="15.367999999999999" height="4.7326444" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard deep reserve space 1 · estimated</title></rect>
+<rect x="450.0" y="497.49868879999997" width="8.0" height="2.2013112" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard deep reserve space 1 · estimated</title></rect>
+<rect x="450.0" y="440.3" width="8.0" height="18.6853112" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard deep reserve space 1 · estimated</title></rect>
+<rect x="458.0" y="412.2580001" width="15.367999999999999" height="41.994666599999995" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard deep reserve space 1 · estimated</title></rect>
+<rect x="450.0" y="409.7" width="8.0" height="0.6" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard middle reserve space 1 · estimated</title></rect>
+<rect x="450.0" y="379.7" width="8.0" height="0.6" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard middle reserve space 1 · estimated</title></rect>
+<rect x="450.0" y="349.7" width="8.0" height="0.6" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard middle reserve space 1 · estimated</title></rect>
+<rect x="458.0" y="307.2713333" width="15.367999999999999" height="20.9973334" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard middle reserve space 1 · estimated</title></rect>
+<rect x="450.0" y="307.2713333" width="8.0" height="13.028666600000001" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard middle reserve space 1 · estimated</title></rect>
+<rect x="450.0" y="286.27399990000004" width="23.368000000000002" height="20.9973334" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard middle reserve space 1 · estimated</title></rect>
+<rect x="473.368" y="286.2740001" width="11.684000000000001" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard middle reserve space 1 · estimated</title></rect>
+<rect x="458.0" y="349.266" width="15.367999999999999" height="62.992" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard middle reserve space 1 · estimated</title></rect>
+<rect x="458.0" y="328.2686667" width="15.367999999999999" height="20.9973334" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard middle reserve space 1 · estimated</title></rect>
+<rect x="473.368" y="307.2713333" width="11.684000000000001" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard middle reserve space 1 · estimated</title></rect>
+<rect x="473.368" y="296.7726667" width="11.684000000000001" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard middle reserve space 1 · estimated</title></rect>
+<rect x="450.0" y="202.2846667" width="46.736000000000004" height="41.994666599999995" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard upper reserve space 1 · estimated</title></rect>
+<rect x="450.0" y="181.2873333" width="116.83999999999999" height="20.9973334" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard upper reserve space 1 · estimated</title></rect>
+<rect x="496.736" y="223.2819999" width="23.368000000000002" height="20.9973334" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard upper reserve space 1 · estimated</title></rect>
+<rect x="496.736" y="202.2846667" width="46.736000000000004" height="20.9973334" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard upper reserve space 1 · estimated</title></rect>
+<rect x="450.0" y="244.2793333" width="46.736000000000004" height="41.994666599999995" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard upper reserve space 1 · estimated</title></rect>
+<rect x="450.0" y="170.7886667" width="163.57600000000002" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard upper reserve space 1 · estimated</title></rect>
+<rect x="496.736" y="265.2766667" width="11.684000000000001" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard upper reserve space 1 · estimated</title></rect>
+<rect x="496.736" y="254.7780001" width="23.368000000000002" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard upper reserve space 1 · estimated</title></rect>
+<rect x="496.736" y="244.2793333" width="35.052" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard upper reserve space 1 · estimated</title></rect>
+<rect x="520.104" y="233.7806667" width="23.368000000000002" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard upper reserve space 1 · estimated</title></rect>
+<rect x="520.104" y="223.2820001" width="35.052" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard upper reserve space 1 · estimated</title></rect>
+<rect x="543.472" y="212.78333329999998" width="23.368000000000002" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard upper reserve space 1 · estimated</title></rect>
+<rect x="543.472" y="202.2846667" width="35.052" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard upper reserve space 1 · estimated</title></rect>
+<rect x="566.84" y="191.7860001" width="23.368000000000002" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard upper reserve space 1 · estimated</title></rect>
+<rect x="566.84" y="181.2873333" width="35.052" height="10.4986666" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>Starboard upper reserve space 1 · estimated</title></rect>
+<path d="M40 380H860" stroke="#3a6c8e" stroke-dasharray="8 5"/>
+<text x="24" y="598" font-family="sans-serif" font-size="16">Y = 0 is the declared load datum. Steel thickness to scale, minimum 0.8 px.</text>
+<text x="24" y="626" font-family="sans-serif" font-size="16">Room envelopes and armor boundaries are reconstructed, not certified subdivision.</text>
+</svg>

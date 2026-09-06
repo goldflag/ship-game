@@ -1,0 +1,4 @@
+Alexpl, Yamato1945.png, CC BY-SA 3.0 / GFDL; transformed registration licensed CC BY-SA 3.0. Secondary 1945 reconstruction, whole-sheet uniform scale from 263 m endpoints; inferred trial-waterline alignment. About ±1 m raster/datum uncertainty. Not primary offsets.
+
+Alexpl, Yamato1945.png, CC BY-SA 3.0 / GFDL; transformed registration licensed CC BY-SA 3.0. Same sheet scale; no independent lateral stretch. Remaining endpoint/plan/profile disagreement is retained.
+See sources.json for original archival credits. Restricted scans excluded.

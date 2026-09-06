@@ -1,8 +1,17 @@
 # Bismarck exterior and collision validation · 5 September 2026
 
+The latest merged export is tracked in the [fleet integration report](../../../../docs/fleet-fidelity-integration.md). The milestone hashes and live captures below are retained history, not re-labeled evidence for that new export.
+
+## Fleet branch rebuild before master integration (retained evidence)
+
+Pre-integration content hash: `ef5c6fefab2763a1ee2669c7a46c8afcc9f3df4bf625d8dcb47bc68b5f086068`. The [fleet fidelity pass](../../fleet-fidelity/README.md) changed shared build inputs, so Bismarck was recompiled/rebuilt and its fixed views, comparison pack and thumbnail refreshed. Bismarck's blueprint, original exterior recipe and preserved baseline were not edited on that branch. That export has 364,170 triangles, 96 mesh nodes, 284 primitives and 21,566,248 GLB bytes, with ten mounts / twenty barrel chains. The later fourth-iteration master changes below are preserved during integration; this earlier hash is not silently relabeled as their runtime evidence.
+
+The shared CPU hull-surface cap/diagonal corrections preserve Bismarck's structural regressions. The full suite passed **247 tests, 0 failures, 30,803 assertions across 36 files**, followed by all-preset checks, TypeScript and Vite production build. Five current [fixed views](fidelity-01/fixed-views.png) were inspected. A fresh exact-hash WebGPU sweep exercised twelve train/elevation/recoil combinations, maximum muzzle error **0.002166616 m**; [runtime record](fidelity-01/runtime/review.json) and [positive-limit canvas](fidelity-01/runtime/articulation-positive-canvas.png). This pass did not repeat Bismarck's full historical battle trial; that earlier evidence remains separately identified below. Its historical approximations are unchanged.
+
+## Fourth iteration from master (retained evidence)
 The fourth iteration revises all six secondary gunhouses and the bridge, and fits the six transverse armor bulkheads inside the actual hull at both plate faces. Durable changes live in the component catalog, blueprint and recipe; the original baseline remains preserved. The reviewed fit is **24 May 1941**, at a separately stated **9.33 m standard draft**. Shape and fitting estimates remain recorded in the [discrepancy register](discrepancies.md).
 
-Current content hash: `957a349026ab6dfccb0b6caa5469c6899066fe034d3e9563940ad0b8e336037b`.
+Fourth-iteration content hash: `957a349026ab6dfccb0b6caa5469c6899066fe034d3e9563940ad0b8e336037b`.
 
 | Verification | Fourth iteration evidence |
 | --- | --- |
@@ -17,7 +26,7 @@ All comparison views and the [portable review ZIP](../generated/comparison/bisma
 
 ## Third iteration and master integration (retained history)
 
-The following records describe the previous model. Their hashes, counts and browser captures are retained for comparison; the fourth iteration above is current.
+The following records describe the previous model. Their hashes, counts and browser captures are retained for comparison. Current merged hashes and validation are recorded in the fleet integration report.
 
 The third independent iteration corrects the bow profile and main gunhouses on top of the detailed second iteration. It also makes the complete hull and 22 major superstructure surfaces hittable, aimable and inspectable. The reviewed fit remains **24 May 1941**, at the separately stated **9.33 m standard draft**.
 

@@ -1,0 +1,40 @@
+[
+  {
+    "view": "starboard",
+    "image": "navy-starboard-plan-1943.jpg",
+    "sourceId": "navy-camo-109723",
+    "crop": [
+      70,
+      275,
+      1415,
+      525
+    ],
+    "originPixel": [
+      752.5,
+      494
+    ],
+    "pixelsPerMeter": 6.2604320234008615,
+    "redistribute": true,
+    "credit": "U.S. Navy Bureau of Ships, 80-G-109723, 30 December 1943; U.S. government drawing.",
+    "note": "Uniform scale from retained hull endpoints. Vertical origin inferred using forward trunnion datum, not the lower camouflage edge. \u00b11 m registration uncertainty; later paint is not backdated."
+  },
+  {
+    "view": "top",
+    "image": "navy-starboard-plan-1943.jpg",
+    "sourceId": "navy-camo-109723",
+    "crop": [
+      70,
+      545,
+      1430,
+      704
+    ],
+    "originPixel": [
+      752.5,
+      624
+    ],
+    "pixelsPerMeter": 6.2604320234008615,
+    "redistribute": true,
+    "credit": "U.S. Navy Bureau of Ships, 80-G-109723, 30 December 1943; U.S. government drawing.",
+    "note": "Same scale as profile. Scan/plan mismatch is not corrected with independent stretching; up to 2 m endpoint uncertainty."
+  }
+]

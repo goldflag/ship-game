@@ -4,6 +4,9 @@ import { CombatSimulation } from './combat';
 import { BATTLE_SPAWN_DISTANCE, MIN_BATTLE_SPAWN_DISTANCE, MAX_BATTLE_SPAWN_DISTANCE, MAX_TEAM_SHIPS, validateBattleSetup } from './battle';
 import { botTarget, clearFiringLane } from './bots';
 import { localToWorld } from './geometry';
+import { compileShip } from '../ships/blueprint';
+import legacyYamato from '../../assets/ships/yamato/reports/fidelity-01/before/blueprint.json';
+import catalog from '../../assets/parts/guns.json';
 
 const stop = { throttle: 0, rudder: 0 };
 const intent = { aim: [0, .5, -5000] as [number, number, number], fire: false, battery: 'main' as const };
@@ -12,9 +15,11 @@ const fleet = () => new CombatSimulation(shipPreset('baltimore'), {
 });
 
 for (const spawnDistance of [MIN_BATTLE_SPAWN_DISTANCE, BATTLE_SPAWN_DISTANCE]) {
-  test(`Yamato survives an accurately aimed Bismarck salvo at ${spawnDistance} m with local damage and remaining guns`, () => {
+  test(`legacy Yamato survives an accurately aimed salvo at ${spawnDistance} m with bounded local damage`, () => {
+    // Freeze the deliberately exposed magazine geometry that reproduced the
+    // damage-budget bug. Current historical layout must not require explosions.
     const sim = new CombatSimulation(shipPreset('bismarck'), {
-      friendlyBots: [], enemies: [shipPreset('yamato')], spawnDistance,
+      friendlyBots: [], enemies: [compileShip(legacyYamato,catalog)], spawnDistance,
     });
     // Keep the worst-case damage regression independent of intentionally imperfect bot fire control.
     sim.target.controller = 'idle';
@@ -29,9 +34,23 @@ for (const spawnDistance of [MIN_BATTLE_SPAWN_DISTANCE, BATTLE_SPAWN_DISTANCE]) 
     expect(sim.target.damage.integrity).toBeLessThan(sim.target.damage.maxIntegrity);
     expect(sim.target.damage.sunk).toBe(false);
     expect(sim.result).toBe('active');
-    expect(sim.target.damage.compartments.some(c => c.waterM3 > 0)).toBe(true);
-    expect(sim.target.mounts.some(m => m.hp < 100)).toBe(true);
-    expect(sim.target.mounts.some(m => m.hp > 0)).toBe(true);
+    // Local magazine HP loss is no longer an automatic explosion or gun loss.
+    // Explicit submerged-hit/flood-space tests cover flooding independently.
+    expect(sim.target.damage.modules.every(m => !m.detonated)).toBe(true);
+    expect(sim.target.mounts.every(m => m.hp > 0)).toBe(true);
+  });
+  test(`current Yamato survives a damaging opening salvo at ${spawnDistance} m`,()=>{
+    const sim=new CombatSimulation(shipPreset('bismarck'),{friendlyBots:[],enemies:[shipPreset('yamato')],spawnDistance});
+    sim.target.controller='idle';
+    for(let tick=0;tick<600;tick++)sim.step(stop,{...intent,aim:sim.aimAt(),fire:true});
+    expect(sim.events.some(e=>e.kind==='penetration'&&e.shipId===sim.target.motion.id)).toBe(true);
+    expect(sim.target.damage.integrity).toBeGreaterThan(sim.target.damage.maxIntegrity/2);
+    expect(sim.target.damage.integrity).toBeLessThan(sim.target.damage.maxIntegrity);
+    expect(sim.target.damage.sunk).toBe(false);
+    expect(sim.result).toBe('active');
+    // These above-water entries and their local bursts damage equipment
+    // without requiring a fictitious flooded magazine.
+    expect(sim.target.damage.compartments.every(c=>c.waterM3===0)).toBe(true);
   });
 }
 
