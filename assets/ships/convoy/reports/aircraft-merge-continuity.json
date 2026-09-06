@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "reviewedCommit": "f75ac3c",
+  "ships": [
+    {
+      "id": "liberty-cargo",
+      "beforeHash": "7f550a85e52db6553dd6bc90a1bdc77ac0810145971a8e65719daf3887938430",
+      "afterHash": "632a5aa6c4c8702a3b90b47bd60c6b7ff425b4c2fb3f2a7e4a390321bf25ae59",
+      "checks": {
+        "simulationDefinitionUnchanged": true,
+        "sceneUnchangedExceptDefinitionHash": true,
+        "binaryUnchangedExceptUvFloatRounding": true,
+        "definitionHashesMatchExports": true
+      },
+      "binary": {
+        "equivalent": true,
+        "rawBytesIdentical": true,
+        "roundedUvComponents": 0,
+        "maximumUvDelta": 0
+      },
+      "sceneHash": "e010c033df297c9c64abe2a4eb1f776a4003451e0135b1fb8ee0c3bea751c625",
+      "binaryHash": "7fa9026ec69cef49b5f9ed46a304f9a030c60a8ba72a5258f8e61fa982d7c111"
+    },
+    {
+      "id": "liberty-collier",
+      "beforeHash": "4a2c183dece9c55b6e81477c2e1d229a0618765eb5d13d2a77488f81f2a008c0",
+      "afterHash": "e6b91a8e273339ef0f6bb4158018b54af80092c832105c5ae664b0e2f627f3c7",
+      "checks": {
+        "simulationDefinitionUnchanged": true,
+        "sceneUnchangedExceptDefinitionHash": true,
+        "binaryUnchangedExceptUvFloatRounding": true,
+        "definitionHashesMatchExports": true
+      },
+      "binary": {
+        "equivalent": true,
+        "rawBytesIdentical": false,
+        "roundedUvComponents": 4,
+        "maximumUvDelta": 5.960464477539063e-8
+      },
+      "sceneHash": "ea7163604a4004146e313b941062da27928de81ee184288880b8aa9dbc25faa1",
+      "binaryHash": "5eb373a72972615ef6a561436ff2e6f4588fb9d9707420d8e6844724ff379ad5"
+    },
+    {
+      "id": "victory-cargo",
+      "beforeHash": "1b7774a4768bd2a4063e17ded52f5ccc28c00383db1416d8243f8cc0f326612c",
+      "afterHash": "3e22dc50e74fdbdb73721bf5bf2d14a0f2d8f2f19a71e814fea6050733059ef0",
+      "checks": {
+        "simulationDefinitionUnchanged": true,
+        "sceneUnchangedExceptDefinitionHash": true,
+        "binaryUnchangedExceptUvFloatRounding": true,
+        "definitionHashesMatchExports": true
+      },
+      "binary": {
+        "equivalent": true,
+        "rawBytesIdentical": false,
+        "roundedUvComponents": 8,
+        "maximumUvDelta": 5.960464477539063e-8
+      },
+      "sceneHash": "4261fd4cdc6810edca9f28f8e4f9aa433b77d34a950b4d2f9f45d5de7b71e34b",
+      "binaryHash": "bac3871ff4a59b79b09e72e60ba46d35a945cf2984af32508a5230668875aff7"
+    },
+    {
+      "id": "flower-corvette",
+      "beforeHash": "e667b8ae2dca5baa7493c047eb106d2c3557bdd8ac6d1605fc0c2c75a4b322d2",
+      "afterHash": "b6a4b6dd55da0bdaee88b5641434909f09afcfabb6e25fc43977c19fb76980e8",
+      "checks": {
+        "simulationDefinitionUnchanged": true,
+        "sceneUnchangedExceptDefinitionHash": true,
+        "binaryUnchangedExceptUvFloatRounding": true,
+        "definitionHashesMatchExports": true
+      },
+      "binary": {
+        "equivalent": true,
+        "rawBytesIdentical": true,
+        "roundedUvComponents": 0,
+        "maximumUvDelta": 0
+      },
+      "sceneHash": "4fb49526548e95e49ddc39dfc68b211162dd6254180c99a146cc28717252b502",
+      "binaryHash": "0a56c8ba365f1c253c0c823a88d92d079d80b712f899aae044ff1528e736ff96"
+    }
+  ],
+  "note": "Exact geometry/scene continuity with up to 1e-7 UV float rounding, not a new historical or live-browser review."
+}
