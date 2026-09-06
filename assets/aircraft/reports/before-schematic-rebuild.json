@@ -1,0 +1,1747 @@
+{
+  "schemaVersion": 1,
+  "description": "Diagnostic measurements of the previous exported models against newly measured source drawing stations, captured before rebuilding. Corsair already rebuilt when this diagnostic ran, so excluded.",
+  "method": "Actual GLB triangles sliced at 55, 70, 85 and 95 percent half-span in the physical wing region.",
+  "aircraft": [
+    {
+      "aircraftId": "b5n2-kate",
+      "glbSha256": "90635e987daddc632d303cbfae510ff58fa35684dbb5e952a8c76eb3c391069c",
+      "shapeSha256": "21c27c2a8eaea99678c62757a4b1f663716319ebc410f73fd39b5108e4916def",
+      "contentHash": "d5e2cc0463dafbd5631251bb8610361b676af6691b57c602480472079af384bc",
+      "expectedContentHash": "e0894bf498b0eedf4e471f661b60d8c8d272e533d753745bbdbb0a6ac72c099d",
+      "measured": {
+        "lengthM": 10.3,
+        "wingspanM": 15.5,
+        "heightM": 3.6332,
+        "triangles": 26082,
+        "meshes": 11,
+        "wingStationMaxAbsErrorM": 1.419451
+      },
+      "wingStations": [
+        {
+          "halfSpanFraction": 0.55,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.465607,
+            "trailing": 0.145043
+          },
+          "actualSourceXM": {
+            "leading": 1.22175,
+            "trailing": -0.57975
+          },
+          "errorM": {
+            "leading": -1.243857,
+            "trailing": -0.724792
+          }
+        },
+        {
+          "halfSpanFraction": 0.55,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.465607,
+            "trailing": 0.145043
+          },
+          "actualSourceXM": {
+            "leading": 1.22175,
+            "trailing": -0.57975
+          },
+          "errorM": {
+            "leading": -1.243858,
+            "trailing": -0.724793
+          }
+        },
+        {
+          "halfSpanFraction": 0.7,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.320391,
+            "trailing": 0.352273
+          },
+          "actualSourceXM": {
+            "leading": 0.9945,
+            "trailing": -0.4665
+          },
+          "errorM": {
+            "leading": -1.325891,
+            "trailing": -0.818773
+          }
+        },
+        {
+          "halfSpanFraction": 0.7,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.320391,
+            "trailing": 0.352273
+          },
+          "actualSourceXM": {
+            "leading": 0.9945,
+            "trailing": -0.4665
+          },
+          "errorM": {
+            "leading": -1.325892,
+            "trailing": -0.818774
+          }
+        },
+        {
+          "halfSpanFraction": 0.85,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.186701,
+            "trailing": 0.57675
+          },
+          "actualSourceXM": {
+            "leading": 0.767251,
+            "trailing": -0.353249
+          },
+          "errorM": {
+            "leading": -1.41945,
+            "trailing": -0.93
+          }
+        },
+        {
+          "halfSpanFraction": 0.85,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.186701,
+            "trailing": 0.57675
+          },
+          "actualSourceXM": {
+            "leading": 0.76725,
+            "trailing": -0.35325
+          },
+          "errorM": {
+            "leading": -1.419451,
+            "trailing": -0.930001
+          }
+        },
+        {
+          "halfSpanFraction": 0.95,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 1.935773,
+            "trailing": 0.928697
+          },
+          "actualSourceXM": {
+            "leading": 0.571827,
+            "trailing": -0.233721
+          },
+          "errorM": {
+            "leading": -1.363946,
+            "trailing": -1.162418
+          }
+        },
+        {
+          "halfSpanFraction": 0.95,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 1.935773,
+            "trailing": 0.928697
+          },
+          "actualSourceXM": {
+            "leading": 0.571826,
+            "trailing": -0.233722
+          },
+          "errorM": {
+            "leading": -1.363947,
+            "trailing": -1.162419
+          }
+        }
+      ]
+    },
+    {
+      "aircraftId": "f6f-5-hellcat",
+      "glbSha256": "486b3a8d91ea511966e781c3cade661c8d4cb3fb990829819f304d3479c77d09",
+      "shapeSha256": "e122af37b6fc0929231249bf8b8d55ce40992c8e510cbf3a2a5b4970f6e5da80",
+      "contentHash": "d5e2cc0463dafbd5631251bb8610361b676af6691b57c602480472079af384bc",
+      "expectedContentHash": "e0894bf498b0eedf4e471f661b60d8c8d272e533d753745bbdbb0a6ac72c099d",
+      "measured": {
+        "lengthM": 10.24,
+        "wingspanM": 13.06,
+        "heightM": 3.88405,
+        "triangles": 27794,
+        "meshes": 11,
+        "wingStationMaxAbsErrorM": 1.811861
+      },
+      "wingStations": [
+        {
+          "halfSpanFraction": 0.55,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.594633,
+            "trailing": 0.350063
+          },
+          "actualSourceXM": {
+            "leading": 1.11525,
+            "trailing": -0.97325
+          },
+          "errorM": {
+            "leading": -1.479382,
+            "trailing": -1.323312
+          }
+        },
+        {
+          "halfSpanFraction": 0.55,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.594633,
+            "trailing": 0.350063
+          },
+          "actualSourceXM": {
+            "leading": 1.11525,
+            "trailing": -0.97325
+          },
+          "errorM": {
+            "leading": -1.479383,
+            "trailing": -1.323313
+          }
+        },
+        {
+          "halfSpanFraction": 0.7,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.505306,
+            "trailing": 0.528652
+          },
+          "actualSourceXM": {
+            "leading": 0.9135,
+            "trailing": -0.8855
+          },
+          "errorM": {
+            "leading": -1.591805,
+            "trailing": -1.414152
+          }
+        },
+        {
+          "halfSpanFraction": 0.7,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.505306,
+            "trailing": 0.528652
+          },
+          "actualSourceXM": {
+            "leading": 0.9135,
+            "trailing": -0.8855
+          },
+          "errorM": {
+            "leading": -1.591806,
+            "trailing": -1.414153
+          }
+        },
+        {
+          "halfSpanFraction": 0.85,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.429984,
+            "trailing": 0.679258
+          },
+          "actualSourceXM": {
+            "leading": 0.71175,
+            "trailing": -0.79775
+          },
+          "errorM": {
+            "leading": -1.718234,
+            "trailing": -1.477007
+          }
+        },
+        {
+          "halfSpanFraction": 0.85,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.429984,
+            "trailing": 0.679258
+          },
+          "actualSourceXM": {
+            "leading": 0.71175,
+            "trailing": -0.79775
+          },
+          "errorM": {
+            "leading": -1.718234,
+            "trailing": -1.477008
+          }
+        },
+        {
+          "halfSpanFraction": 0.95,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.386903,
+            "trailing": 0.753431
+          },
+          "actualSourceXM": {
+            "leading": 0.575043,
+            "trailing": -0.73925
+          },
+          "errorM": {
+            "leading": -1.81186,
+            "trailing": -1.49268
+          }
+        },
+        {
+          "halfSpanFraction": 0.95,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.386903,
+            "trailing": 0.753431
+          },
+          "actualSourceXM": {
+            "leading": 0.575042,
+            "trailing": -0.73925
+          },
+          "errorM": {
+            "leading": -1.811861,
+            "trailing": -1.492681
+          }
+        }
+      ]
+    },
+    {
+      "aircraftId": "a6m2-zero",
+      "glbSha256": "8a14223479749d0a911e91ab9d678adf303829ef35d5ba439e7cb105f50e0032",
+      "shapeSha256": "98c909b4199cce1ae77024c4fa57a89099d973c8878357e4f40a1b07b9fab77c",
+      "contentHash": "d5e2cc0463dafbd5631251bb8610361b676af6691b57c602480472079af384bc",
+      "expectedContentHash": "e0894bf498b0eedf4e471f661b60d8c8d272e533d753745bbdbb0a6ac72c099d",
+      "measured": {
+        "lengthM": 9.06,
+        "wingspanM": 12.0,
+        "heightM": 3.273756,
+        "triangles": 25314,
+        "meshes": 11,
+        "wingStationMaxAbsErrorM": 1.751265
+      },
+      "wingStations": [
+        {
+          "halfSpanFraction": 0.55,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.631516,
+            "trailing": 0.811529
+          },
+          "actualSourceXM": {
+            "leading": 1.09075,
+            "trailing": -0.40875
+          },
+          "errorM": {
+            "leading": -1.540766,
+            "trailing": -1.220279
+          }
+        },
+        {
+          "halfSpanFraction": 0.55,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.631516,
+            "trailing": 0.811529
+          },
+          "actualSourceXM": {
+            "leading": 1.09075,
+            "trailing": -0.40875
+          },
+          "errorM": {
+            "leading": -1.540766,
+            "trailing": -1.220279
+          }
+        },
+        {
+          "halfSpanFraction": 0.7,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.5404,
+            "trailing": 1.005854
+          },
+          "actualSourceXM": {
+            "leading": 0.8905,
+            "trailing": -0.3225
+          },
+          "errorM": {
+            "leading": -1.649899,
+            "trailing": -1.328353
+          }
+        },
+        {
+          "halfSpanFraction": 0.7,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.5404,
+            "trailing": 1.005854
+          },
+          "actualSourceXM": {
+            "leading": 0.8905,
+            "trailing": -0.3225
+          },
+          "errorM": {
+            "leading": -1.6499,
+            "trailing": -1.328354
+          }
+        },
+        {
+          "halfSpanFraction": 0.85,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.441515,
+            "trailing": 1.15123
+          },
+          "actualSourceXM": {
+            "leading": 0.69025,
+            "trailing": -0.23625
+          },
+          "errorM": {
+            "leading": -1.751265,
+            "trailing": -1.387479
+          }
+        },
+        {
+          "halfSpanFraction": 0.85,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.441515,
+            "trailing": 1.15123
+          },
+          "actualSourceXM": {
+            "leading": 0.69025,
+            "trailing": -0.23625
+          },
+          "errorM": {
+            "leading": -1.751265,
+            "trailing": -1.38748
+          }
+        },
+        {
+          "halfSpanFraction": 0.95,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.231522,
+            "trailing": 1.312119
+          },
+          "actualSourceXM": {
+            "leading": 0.520604,
+            "trailing": -0.142514
+          },
+          "errorM": {
+            "leading": -1.710918,
+            "trailing": -1.454632
+          }
+        },
+        {
+          "halfSpanFraction": 0.95,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.231522,
+            "trailing": 1.312119
+          },
+          "actualSourceXM": {
+            "leading": 0.520604,
+            "trailing": -0.142515
+          },
+          "errorM": {
+            "leading": -1.710919,
+            "trailing": -1.454633
+          }
+        }
+      ]
+    },
+    {
+      "aircraftId": "b6n2-jill",
+      "glbSha256": "177e316c6bd8a014ecd56572887b3d92cae0ceee81d4584f48c2473b3b3bd380",
+      "shapeSha256": "6212cc85189bffdce46936ba4d5994bd8c2dd4cd69ffe453a1394d921c0c4cca",
+      "contentHash": "d5e2cc0463dafbd5631251bb8610361b676af6691b57c602480472079af384bc",
+      "expectedContentHash": "e0894bf498b0eedf4e471f661b60d8c8d272e533d753745bbdbb0a6ac72c099d",
+      "measured": {
+        "lengthM": 10.9,
+        "wingspanM": 14.9,
+        "heightM": 3.9437,
+        "triangles": 26126,
+        "meshes": 11,
+        "wingStationMaxAbsErrorM": 1.514172
+      },
+      "wingStations": [
+        {
+          "halfSpanFraction": 0.55,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.42635,
+            "trailing": 0.296453
+          },
+          "actualSourceXM": {
+            "leading": 1.19575,
+            "trailing": -0.71375
+          },
+          "errorM": {
+            "leading": -1.230599,
+            "trailing": -1.010203
+          }
+        },
+        {
+          "halfSpanFraction": 0.55,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.42635,
+            "trailing": 0.296453
+          },
+          "actualSourceXM": {
+            "leading": 1.19575,
+            "trailing": -0.71375
+          },
+          "errorM": {
+            "leading": -1.2306,
+            "trailing": -1.010203
+          }
+        },
+        {
+          "halfSpanFraction": 0.7,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.296452,
+            "trailing": 0.553488
+          },
+          "actualSourceXM": {
+            "leading": 0.9655,
+            "trailing": -0.5975
+          },
+          "errorM": {
+            "leading": -1.330952,
+            "trailing": -1.150987
+          }
+        },
+        {
+          "halfSpanFraction": 0.7,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.296452,
+            "trailing": 0.553488
+          },
+          "actualSourceXM": {
+            "leading": 0.9655,
+            "trailing": -0.5975
+          },
+          "errorM": {
+            "leading": -1.330952,
+            "trailing": -1.150988
+          }
+        },
+        {
+          "halfSpanFraction": 0.85,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.187123,
+            "trailing": 0.807902
+          },
+          "actualSourceXM": {
+            "leading": 0.73525,
+            "trailing": -0.48125
+          },
+          "errorM": {
+            "leading": -1.451873,
+            "trailing": -1.289152
+          }
+        },
+        {
+          "halfSpanFraction": 0.85,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.187123,
+            "trailing": 0.807902
+          },
+          "actualSourceXM": {
+            "leading": 0.735249,
+            "trailing": -0.48125
+          },
+          "errorM": {
+            "leading": -1.451874,
+            "trailing": -1.289153
+          }
+        },
+        {
+          "halfSpanFraction": 0.95,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 1.982602,
+            "trailing": 1.159018
+          },
+          "actualSourceXM": {
+            "leading": 0.533254,
+            "trailing": -0.355153
+          },
+          "errorM": {
+            "leading": -1.449348,
+            "trailing": -1.51417
+          }
+        },
+        {
+          "halfSpanFraction": 0.95,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 1.982602,
+            "trailing": 1.159018
+          },
+          "actualSourceXM": {
+            "leading": 0.533253,
+            "trailing": -0.355154
+          },
+          "errorM": {
+            "leading": -1.449349,
+            "trailing": -1.514172
+          }
+        }
+      ]
+    },
+    {
+      "aircraftId": "d3a1-val",
+      "glbSha256": "594105ebdcdd6614ec7889974c7b8891ef8c1b14ab3b7dc0cbfd1fa57626e9bb",
+      "shapeSha256": "3a96dc794537c3208d8f0c0f049f0b1b921b6f41a0c6970f1dbfab199ddec2a1",
+      "contentHash": "d5e2cc0463dafbd5631251bb8610361b676af6691b57c602480472079af384bc",
+      "expectedContentHash": "e0894bf498b0eedf4e471f661b60d8c8d272e533d753745bbdbb0a6ac72c099d",
+      "measured": {
+        "lengthM": 10.2,
+        "wingspanM": 14.37,
+        "heightM": 3.55186,
+        "triangles": 27158,
+        "meshes": 11,
+        "wingStationMaxAbsErrorM": 1.46531
+      },
+      "wingStations": [
+        {
+          "halfSpanFraction": 0.55,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.936929,
+            "trailing": 0.346961
+          },
+          "actualSourceXM": {
+            "leading": 1.827523,
+            "trailing": -0.719501
+          },
+          "errorM": {
+            "leading": -1.109406,
+            "trailing": -1.066463
+          }
+        },
+        {
+          "halfSpanFraction": 0.55,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.936929,
+            "trailing": 0.346961
+          },
+          "actualSourceXM": {
+            "leading": 1.827522,
+            "trailing": -0.719502
+          },
+          "errorM": {
+            "leading": -1.109406,
+            "trailing": -1.066463
+          }
+        },
+        {
+          "halfSpanFraction": 0.7,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.675207,
+            "trailing": 0.630254
+          },
+          "actualSourceXM": {
+            "leading": 1.624794,
+            "trailing": -0.553009
+          },
+          "errorM": {
+            "leading": -1.050413,
+            "trailing": -1.183263
+          }
+        },
+        {
+          "halfSpanFraction": 0.7,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.675207,
+            "trailing": 0.630254
+          },
+          "actualSourceXM": {
+            "leading": 1.624793,
+            "trailing": -0.553009
+          },
+          "errorM": {
+            "leading": -1.050414,
+            "trailing": -1.183263
+          }
+        },
+        {
+          "halfSpanFraction": 0.85,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.424267,
+            "trailing": 1.070715
+          },
+          "actualSourceXM": {
+            "leading": 1.320455,
+            "trailing": -0.285089
+          },
+          "errorM": {
+            "leading": -1.103813,
+            "trailing": -1.355804
+          }
+        },
+        {
+          "halfSpanFraction": 0.85,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.424267,
+            "trailing": 1.070715
+          },
+          "actualSourceXM": {
+            "leading": 1.320454,
+            "trailing": -0.28509
+          },
+          "errorM": {
+            "leading": -1.103814,
+            "trailing": -1.355805
+          }
+        },
+        {
+          "halfSpanFraction": 0.95,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.223202,
+            "trailing": 1.497179
+          },
+          "actualSourceXM": {
+            "leading": 0.979684,
+            "trailing": 0.03187
+          },
+          "errorM": {
+            "leading": -1.243518,
+            "trailing": -1.465309
+          }
+        },
+        {
+          "halfSpanFraction": 0.95,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.223202,
+            "trailing": 1.497179
+          },
+          "actualSourceXM": {
+            "leading": 0.979683,
+            "trailing": 0.031869
+          },
+          "errorM": {
+            "leading": -1.243519,
+            "trailing": -1.46531
+          }
+        }
+      ]
+    },
+    {
+      "aircraftId": "sbd-3-dauntless",
+      "glbSha256": "50c58ce9a8814407d32d3f830670cbc43949246cebb33e858a6079ff35ea5922",
+      "shapeSha256": "97571d4e3534188cbac77ba788abacbaeda68a7579e4900e8cfd112d1d429998",
+      "contentHash": "d5e2cc0463dafbd5631251bb8610361b676af6691b57c602480472079af384bc",
+      "expectedContentHash": "e0894bf498b0eedf4e471f661b60d8c8d272e533d753745bbdbb0a6ac72c099d",
+      "measured": {
+        "lengthM": 10.06,
+        "wingspanM": 12.65,
+        "heightM": 3.4146,
+        "triangles": 29850,
+        "meshes": 13,
+        "wingStationMaxAbsErrorM": 1.60235
+      },
+      "wingStations": [
+        {
+          "halfSpanFraction": 0.55,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.53512,
+            "trailing": 0.210389
+          },
+          "actualSourceXM": {
+            "leading": 1.098,
+            "trailing": -0.876
+          },
+          "errorM": {
+            "leading": -1.43712,
+            "trailing": -1.086389
+          }
+        },
+        {
+          "halfSpanFraction": 0.55,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.53512,
+            "trailing": 0.210389
+          },
+          "actualSourceXM": {
+            "leading": 1.098,
+            "trailing": -0.876
+          },
+          "errorM": {
+            "leading": -1.437121,
+            "trailing": -1.086389
+          }
+        },
+        {
+          "halfSpanFraction": 0.7,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.413649,
+            "trailing": 0.419589
+          },
+          "actualSourceXM": {
+            "leading": 0.882,
+            "trailing": -0.774
+          },
+          "errorM": {
+            "leading": -1.531649,
+            "trailing": -1.193589
+          }
+        },
+        {
+          "halfSpanFraction": 0.7,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.413649,
+            "trailing": 0.419589
+          },
+          "actualSourceXM": {
+            "leading": 0.882,
+            "trailing": -0.774
+          },
+          "errorM": {
+            "leading": -1.531649,
+            "trailing": -1.193589
+          }
+        },
+        {
+          "halfSpanFraction": 0.85,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.26835,
+            "trailing": 0.617706
+          },
+          "actualSourceXM": {
+            "leading": 0.666,
+            "trailing": -0.672
+          },
+          "errorM": {
+            "leading": -1.602349,
+            "trailing": -1.289706
+          }
+        },
+        {
+          "halfSpanFraction": 0.85,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.26835,
+            "trailing": 0.617706
+          },
+          "actualSourceXM": {
+            "leading": 0.666,
+            "trailing": -0.672
+          },
+          "errorM": {
+            "leading": -1.60235,
+            "trailing": -1.289707
+          }
+        },
+        {
+          "halfSpanFraction": 0.95,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.013578,
+            "trailing": 0.886502
+          },
+          "actualSourceXM": {
+            "leading": 0.466456,
+            "trailing": -0.548383
+          },
+          "errorM": {
+            "leading": -1.547122,
+            "trailing": -1.434885
+          }
+        },
+        {
+          "halfSpanFraction": 0.95,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.013578,
+            "trailing": 0.886502
+          },
+          "actualSourceXM": {
+            "leading": 0.466455,
+            "trailing": -0.548384
+          },
+          "errorM": {
+            "leading": -1.547123,
+            "trailing": -1.434886
+          }
+        }
+      ]
+    },
+    {
+      "aircraftId": "a6m5-zero",
+      "glbSha256": "bded4aa8f87d95138c662654358ab268c24eb0733e348c18eabeabf29030ed1f",
+      "shapeSha256": "622d79503f3f7e6208c7fffb1898ddad265dd19becc2025374d2036cc7fde7e7",
+      "contentHash": "d5e2cc0463dafbd5631251bb8610361b676af6691b57c602480472079af384bc",
+      "expectedContentHash": "e0894bf498b0eedf4e471f661b60d8c8d272e533d753745bbdbb0a6ac72c099d",
+      "measured": {
+        "lengthM": 9.12,
+        "wingspanM": 11.0,
+        "heightM": 3.273756,
+        "triangles": 25770,
+        "meshes": 11,
+        "wingStationMaxAbsErrorM": 1.605963
+      },
+      "wingStations": [
+        {
+          "halfSpanFraction": 0.55,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.526259,
+            "trailing": 0.838796
+          },
+          "actualSourceXM": {
+            "leading": 1.1265,
+            "trailing": -0.4445
+          },
+          "errorM": {
+            "leading": -1.399759,
+            "trailing": -1.283295
+          }
+        },
+        {
+          "halfSpanFraction": 0.55,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.526259,
+            "trailing": 0.838796
+          },
+          "actualSourceXM": {
+            "leading": 1.1265,
+            "trailing": -0.4445
+          },
+          "errorM": {
+            "leading": -1.399759,
+            "trailing": -1.283296
+          }
+        },
+        {
+          "halfSpanFraction": 0.7,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.467471,
+            "trailing": 0.962555
+          },
+          "actualSourceXM": {
+            "leading": 0.936,
+            "trailing": -0.368
+          },
+          "errorM": {
+            "leading": -1.531471,
+            "trailing": -1.330555
+          }
+        },
+        {
+          "halfSpanFraction": 0.7,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.467471,
+            "trailing": 0.962555
+          },
+          "actualSourceXM": {
+            "leading": 0.936,
+            "trailing": -0.368
+          },
+          "errorM": {
+            "leading": -1.531472,
+            "trailing": -1.330555
+          }
+        },
+        {
+          "halfSpanFraction": 0.85,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.351463,
+            "trailing": 1.094466
+          },
+          "actualSourceXM": {
+            "leading": 0.7455,
+            "trailing": -0.2915
+          },
+          "errorM": {
+            "leading": -1.605962,
+            "trailing": -1.385966
+          }
+        },
+        {
+          "halfSpanFraction": 0.85,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.351463,
+            "trailing": 1.094466
+          },
+          "actualSourceXM": {
+            "leading": 0.7455,
+            "trailing": -0.2915
+          },
+          "errorM": {
+            "leading": -1.605963,
+            "trailing": -1.385966
+          }
+        },
+        {
+          "halfSpanFraction": 0.95,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.085693,
+            "trailing": 1.314014
+          },
+          "actualSourceXM": {
+            "leading": 0.576169,
+            "trailing": -0.1981
+          },
+          "errorM": {
+            "leading": -1.509524,
+            "trailing": -1.512114
+          }
+        },
+        {
+          "halfSpanFraction": 0.95,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.085693,
+            "trailing": 1.314014
+          },
+          "actualSourceXM": {
+            "leading": 0.576168,
+            "trailing": -0.198101
+          },
+          "errorM": {
+            "leading": -1.509525,
+            "trailing": -1.512115
+          }
+        }
+      ]
+    },
+    {
+      "aircraftId": "d4y2-judy",
+      "glbSha256": "c2e01d0b5031a83779c84c088629933b61aadce47280b0eb821358a2d2806b12",
+      "shapeSha256": "05ed7c79e5cf545722542bd217fb9ff18623ee92dee8c208902d4ca454348287",
+      "contentHash": "d5e2cc0463dafbd5631251bb8610361b676af6691b57c602480472079af384bc",
+      "expectedContentHash": "e0894bf498b0eedf4e471f661b60d8c8d272e533d753745bbdbb0a6ac72c099d",
+      "measured": {
+        "lengthM": 10.22,
+        "wingspanM": 11.5,
+        "heightM": 3.33425,
+        "triangles": 24906,
+        "meshes": 11,
+        "wingStationMaxAbsErrorM": 1.705308
+      },
+      "wingStations": [
+        {
+          "halfSpanFraction": 0.55,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.314506,
+            "trailing": 0.394977
+          },
+          "actualSourceXM": {
+            "leading": 0.84075,
+            "trailing": -0.79875
+          },
+          "errorM": {
+            "leading": -1.473755,
+            "trailing": -1.193727
+          }
+        },
+        {
+          "halfSpanFraction": 0.55,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.314506,
+            "trailing": 0.394977
+          },
+          "actualSourceXM": {
+            "leading": 0.84075,
+            "trailing": -0.79875
+          },
+          "errorM": {
+            "leading": -1.473756,
+            "trailing": -1.193728
+          }
+        },
+        {
+          "halfSpanFraction": 0.7,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.254196,
+            "trailing": 0.555479
+          },
+          "actualSourceXM": {
+            "leading": 0.6555,
+            "trailing": -0.7275
+          },
+          "errorM": {
+            "leading": -1.598695,
+            "trailing": -1.282979
+          }
+        },
+        {
+          "halfSpanFraction": 0.7,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.254196,
+            "trailing": 0.555479
+          },
+          "actualSourceXM": {
+            "leading": 0.6555,
+            "trailing": -0.7275
+          },
+          "errorM": {
+            "leading": -1.598696,
+            "trailing": -1.28298
+          }
+        },
+        {
+          "halfSpanFraction": 0.85,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.168272,
+            "trailing": 0.786761
+          },
+          "actualSourceXM": {
+            "leading": 0.47025,
+            "trailing": -0.65625
+          },
+          "errorM": {
+            "leading": -1.698022,
+            "trailing": -1.443011
+          }
+        },
+        {
+          "halfSpanFraction": 0.85,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.168272,
+            "trailing": 0.786761
+          },
+          "actualSourceXM": {
+            "leading": 0.47025,
+            "trailing": -0.65625
+          },
+          "errorM": {
+            "leading": -1.698023,
+            "trailing": -1.443012
+          }
+        },
+        {
+          "halfSpanFraction": 0.95,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.0049,
+            "trailing": 1.079365
+          },
+          "actualSourceXM": {
+            "leading": 0.299593,
+            "trailing": -0.561539
+          },
+          "errorM": {
+            "leading": -1.705307,
+            "trailing": -1.640904
+          }
+        },
+        {
+          "halfSpanFraction": 0.95,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.0049,
+            "trailing": 1.079365
+          },
+          "actualSourceXM": {
+            "leading": 0.299592,
+            "trailing": -0.56154
+          },
+          "errorM": {
+            "leading": -1.705308,
+            "trailing": -1.640905
+          }
+        }
+      ]
+    },
+    {
+      "aircraftId": "f4f-4-wildcat",
+      "glbSha256": "35791c1ef3e21098f68aa5226d945f976c0510022a4a2cd627a307bf903a681a",
+      "shapeSha256": "c7a5398f3108d1c5eec5c7f78d7ae417363596b9aabcac41ee0696f0943f1200",
+      "contentHash": "d5e2cc0463dafbd5631251bb8610361b676af6691b57c602480472079af384bc",
+      "expectedContentHash": "e0894bf498b0eedf4e471f661b60d8c8d272e533d753745bbdbb0a6ac72c099d",
+      "measured": {
+        "lengthM": 8.76,
+        "wingspanM": 11.58,
+        "heightM": 3.607556,
+        "triangles": 27614,
+        "meshes": 11,
+        "wingStationMaxAbsErrorM": 1.48331
+      },
+      "wingStations": [
+        {
+          "halfSpanFraction": 0.55,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.289129,
+            "trailing": 0.306353
+          },
+          "actualSourceXM": {
+            "leading": 1.119,
+            "trailing": -0.737
+          },
+          "errorM": {
+            "leading": -1.170128,
+            "trailing": -1.043353
+          }
+        },
+        {
+          "halfSpanFraction": 0.55,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.289129,
+            "trailing": 0.306353
+          },
+          "actualSourceXM": {
+            "leading": 1.119,
+            "trailing": -0.737
+          },
+          "errorM": {
+            "leading": -1.170129,
+            "trailing": -1.043354
+          }
+        },
+        {
+          "halfSpanFraction": 0.7,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.248614,
+            "trailing": 0.427816
+          },
+          "actualSourceXM": {
+            "leading": 0.966,
+            "trailing": -0.698
+          },
+          "errorM": {
+            "leading": -1.282613,
+            "trailing": -1.125815
+          }
+        },
+        {
+          "halfSpanFraction": 0.7,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.248614,
+            "trailing": 0.427816
+          },
+          "actualSourceXM": {
+            "leading": 0.966,
+            "trailing": -0.698
+          },
+          "errorM": {
+            "leading": -1.282614,
+            "trailing": -1.125816
+          }
+        },
+        {
+          "halfSpanFraction": 0.85,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.205,
+            "trailing": 0.531188
+          },
+          "actualSourceXM": {
+            "leading": 0.813,
+            "trailing": -0.659
+          },
+          "errorM": {
+            "leading": -1.392,
+            "trailing": -1.190187
+          }
+        },
+        {
+          "halfSpanFraction": 0.85,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.205,
+            "trailing": 0.531188
+          },
+          "actualSourceXM": {
+            "leading": 0.813,
+            "trailing": -0.659
+          },
+          "errorM": {
+            "leading": -1.392001,
+            "trailing": -1.190188
+          }
+        },
+        {
+          "halfSpanFraction": 0.95,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.192028,
+            "trailing": 0.58151
+          },
+          "actualSourceXM": {
+            "leading": 0.708719,
+            "trailing": -0.633
+          },
+          "errorM": {
+            "leading": -1.483309,
+            "trailing": -1.214509
+          }
+        },
+        {
+          "halfSpanFraction": 0.95,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.192028,
+            "trailing": 0.58151
+          },
+          "actualSourceXM": {
+            "leading": 0.708718,
+            "trailing": -0.633
+          },
+          "errorM": {
+            "leading": -1.48331,
+            "trailing": -1.21451
+          }
+        }
+      ]
+    },
+    {
+      "aircraftId": "tbd-1-devastator",
+      "glbSha256": "f974b9cc674cbd56cf50cf40c1b28ea5e418f79cafe950439c8893bdbadb298d",
+      "shapeSha256": "29153f60f93e61251d31f38de80041dcbc6010b895f850d65167884ee209af62",
+      "contentHash": "d5e2cc0463dafbd5631251bb8610361b676af6691b57c602480472079af384bc",
+      "expectedContentHash": "e0894bf498b0eedf4e471f661b60d8c8d272e533d753745bbdbb0a6ac72c099d",
+      "measured": {
+        "lengthM": 10.67,
+        "wingspanM": 15.24,
+        "heightM": 3.6332,
+        "triangles": 35010,
+        "meshes": 11,
+        "wingStationMaxAbsErrorM": 1.667297
+      },
+      "wingStations": [
+        {
+          "halfSpanFraction": 0.55,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.606389,
+            "trailing": -0.023697
+          },
+          "actualSourceXM": {
+            "leading": 1.16975,
+            "trailing": -0.82775
+          },
+          "errorM": {
+            "leading": -1.436638,
+            "trailing": -0.804052
+          }
+        },
+        {
+          "halfSpanFraction": 0.55,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.606389,
+            "trailing": -0.023697
+          },
+          "actualSourceXM": {
+            "leading": 1.16975,
+            "trailing": -0.82775
+          },
+          "errorM": {
+            "leading": -1.436639,
+            "trailing": -0.804053
+          }
+        },
+        {
+          "halfSpanFraction": 0.7,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.518608,
+            "trailing": 0.253157
+          },
+          "actualSourceXM": {
+            "leading": 0.9515,
+            "trailing": -0.7235
+          },
+          "errorM": {
+            "leading": -1.567107,
+            "trailing": -0.976657
+          }
+        },
+        {
+          "halfSpanFraction": 0.7,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.518608,
+            "trailing": 0.253157
+          },
+          "actualSourceXM": {
+            "leading": 0.9515,
+            "trailing": -0.7235
+          },
+          "errorM": {
+            "leading": -1.567108,
+            "trailing": -0.976658
+          }
+        },
+        {
+          "halfSpanFraction": 0.85,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.400547,
+            "trailing": 0.544599
+          },
+          "actualSourceXM": {
+            "leading": 0.733251,
+            "trailing": -0.61925
+          },
+          "errorM": {
+            "leading": -1.667296,
+            "trailing": -1.163848
+          }
+        },
+        {
+          "halfSpanFraction": 0.85,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.400547,
+            "trailing": 0.544599
+          },
+          "actualSourceXM": {
+            "leading": 0.73325,
+            "trailing": -0.61925
+          },
+          "errorM": {
+            "leading": -1.667297,
+            "trailing": -1.163849
+          }
+        },
+        {
+          "halfSpanFraction": 0.95,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.187059,
+            "trailing": 0.839496
+          },
+          "actualSourceXM": {
+            "leading": 0.531641,
+            "trailing": -0.493566
+          },
+          "errorM": {
+            "leading": -1.655418,
+            "trailing": -1.333062
+          }
+        },
+        {
+          "halfSpanFraction": 0.95,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.187059,
+            "trailing": 0.839496
+          },
+          "actualSourceXM": {
+            "leading": 0.53164,
+            "trailing": -0.493567
+          },
+          "errorM": {
+            "leading": -1.655419,
+            "trailing": -1.333063
+          }
+        }
+      ]
+    },
+    {
+      "aircraftId": "sb2c-4-helldiver",
+      "glbSha256": "9eb93a03748eca5b6590b3a3907779678732966ebc2ec5dc743baafd625bde73",
+      "shapeSha256": "416879dbe2021070e356179db0258194b10410f3ed1a15a957fb0e45d35d7d64",
+      "contentHash": "d5e2cc0463dafbd5631251bb8610361b676af6691b57c602480472079af384bc",
+      "expectedContentHash": "e0894bf498b0eedf4e471f661b60d8c8d272e533d753745bbdbb0a6ac72c099d",
+      "measured": {
+        "lengthM": 11.18,
+        "wingspanM": 15.16,
+        "heightM": 4.2542,
+        "triangles": 28954,
+        "meshes": 13,
+        "wingStationMaxAbsErrorM": 1.850624
+      },
+      "wingStations": [
+        {
+          "halfSpanFraction": 0.55,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.666765,
+            "trailing": 0.040239
+          },
+          "actualSourceXM": {
+            "leading": 1.2695,
+            "trailing": -0.8475
+          },
+          "errorM": {
+            "leading": -1.397265,
+            "trailing": -0.887739
+          }
+        },
+        {
+          "halfSpanFraction": 0.55,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.666765,
+            "trailing": 0.040239
+          },
+          "actualSourceXM": {
+            "leading": 1.2695,
+            "trailing": -0.8475
+          },
+          "errorM": {
+            "leading": -1.397266,
+            "trailing": -0.887739
+          }
+        },
+        {
+          "halfSpanFraction": 0.7,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.666765,
+            "trailing": 0.308912
+          },
+          "actualSourceXM": {
+            "leading": 1.058,
+            "trailing": -0.75
+          },
+          "errorM": {
+            "leading": -1.608765,
+            "trailing": -1.058912
+          }
+        },
+        {
+          "halfSpanFraction": 0.7,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.666765,
+            "trailing": 0.308912
+          },
+          "actualSourceXM": {
+            "leading": 1.058,
+            "trailing": -0.75
+          },
+          "errorM": {
+            "leading": -1.608766,
+            "trailing": -1.058913
+          }
+        },
+        {
+          "halfSpanFraction": 0.85,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.666765,
+            "trailing": 0.62908
+          },
+          "actualSourceXM": {
+            "leading": 0.8465,
+            "trailing": -0.6525
+          },
+          "errorM": {
+            "leading": -1.820265,
+            "trailing": -1.28158
+          }
+        },
+        {
+          "halfSpanFraction": 0.85,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.666765,
+            "trailing": 0.62908
+          },
+          "actualSourceXM": {
+            "leading": 0.8465,
+            "trailing": -0.652501
+          },
+          "errorM": {
+            "leading": -1.820266,
+            "trailing": -1.281581
+          }
+        },
+        {
+          "halfSpanFraction": 0.95,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.553962,
+            "trailing": 1.032531
+          },
+          "actualSourceXM": {
+            "leading": 0.703339,
+            "trailing": -0.587499
+          },
+          "errorM": {
+            "leading": -1.850623,
+            "trailing": -1.620031
+          }
+        },
+        {
+          "halfSpanFraction": 0.95,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.553962,
+            "trailing": 1.032531
+          },
+          "actualSourceXM": {
+            "leading": 0.703338,
+            "trailing": -0.587501
+          },
+          "errorM": {
+            "leading": -1.850624,
+            "trailing": -1.620032
+          }
+        }
+      ]
+    },
+    {
+      "aircraftId": "tbf-1c-avenger",
+      "glbSha256": "9869c99f9393bae6f0d76f0ade425cc3101c7d5fc084fe751f616e1df187dd47",
+      "shapeSha256": "8071c97877c6f62ceb6971cdf91a653cf0edde7dd11e34ae40af9c52bca29348",
+      "contentHash": "d5e2cc0463dafbd5631251bb8610361b676af6691b57c602480472079af384bc",
+      "expectedContentHash": "e0894bf498b0eedf4e471f661b60d8c8d272e533d753745bbdbb0a6ac72c099d",
+      "measured": {
+        "lengthM": 12.48,
+        "wingspanM": 16.51,
+        "heightM": 4.15,
+        "triangles": 28142,
+        "meshes": 12,
+        "wingStationMaxAbsErrorM": 1.465698
+      },
+      "wingStations": [
+        {
+          "halfSpanFraction": 0.55,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.689502,
+            "trailing": 0.116471
+          },
+          "actualSourceXM": {
+            "leading": 1.26025,
+            "trailing": -0.95825
+          },
+          "errorM": {
+            "leading": -1.429252,
+            "trailing": -1.074721
+          }
+        },
+        {
+          "halfSpanFraction": 0.55,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.689502,
+            "trailing": 0.116471
+          },
+          "actualSourceXM": {
+            "leading": 1.26025,
+            "trailing": -0.95825
+          },
+          "errorM": {
+            "leading": -1.429253,
+            "trailing": -1.074721
+          }
+        },
+        {
+          "halfSpanFraction": 0.7,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.484098,
+            "trailing": 0.370603
+          },
+          "actualSourceXM": {
+            "leading": 1.0285,
+            "trailing": -0.8405
+          },
+          "errorM": {
+            "leading": -1.455598,
+            "trailing": -1.211103
+          }
+        },
+        {
+          "halfSpanFraction": 0.7,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.484098,
+            "trailing": 0.370603
+          },
+          "actualSourceXM": {
+            "leading": 1.0285,
+            "trailing": -0.8405
+          },
+          "errorM": {
+            "leading": -1.455599,
+            "trailing": -1.211104
+          }
+        },
+        {
+          "halfSpanFraction": 0.85,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.261804,
+            "trailing": 0.630764
+          },
+          "actualSourceXM": {
+            "leading": 0.796751,
+            "trailing": -0.722749
+          },
+          "errorM": {
+            "leading": -1.465053,
+            "trailing": -1.353514
+          }
+        },
+        {
+          "halfSpanFraction": 0.85,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.261804,
+            "trailing": 0.630764
+          },
+          "actualSourceXM": {
+            "leading": 0.796749,
+            "trailing": -0.722751
+          },
+          "errorM": {
+            "leading": -1.465054,
+            "trailing": -1.353515
+          }
+        },
+        {
+          "halfSpanFraction": 0.95,
+          "side": "port",
+          "expectedSourceXM": {
+            "leading": 2.105809,
+            "trailing": 0.817256
+          },
+          "actualSourceXM": {
+            "leading": 0.640112,
+            "trailing": -0.644249
+          },
+          "errorM": {
+            "leading": -1.465697,
+            "trailing": -1.461506
+          }
+        },
+        {
+          "halfSpanFraction": 0.95,
+          "side": "starboard",
+          "expectedSourceXM": {
+            "leading": 2.105809,
+            "trailing": 0.817256
+          },
+          "actualSourceXM": {
+            "leading": 0.64011,
+            "trailing": -0.644251
+          },
+          "errorM": {
+            "leading": -1.465698,
+            "trailing": -1.461507
+          }
+        }
+      ]
+    }
+  ]
+}

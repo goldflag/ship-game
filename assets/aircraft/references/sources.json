@@ -1,0 +1,2322 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-09-05",
+  "purpose": "Retained dimension, three-view schematic and recognition references for independently authored WWII carrier-aircraft visual assets.",
+  "policy": "Real three-view drawings are retained and manually measured into the versioned shape specifications. Published drawing variants and uncertainties are recorded per aircraft. Production geometry, topology, UV layouts and paint textures are authored in this repository; no third-party 3D asset or image texture is imported. Museum restorations are comparison references, not automatic wartime evidence.",
+  "measurementConvention": "Meters. Length is the selected nominal overall aircraft length with propeller hub/spinner and rudder; span is wings spread. Source figures may use different aircraft attitudes, propeller positions, variant definitions, or rounding. Targets are not claims of engineering accuracy.",
+  "sources": [
+    {
+      "id": "nhhc-aircraft-markings",
+      "title": "Aircraft Markings",
+      "publisher": "Naval History and Heritage Command",
+      "url": "https://www.history.navy.mil/research/histories/naval-aviation-history/aircraft-markings.html",
+      "type": "government-history",
+      "use": "US national-insignia chronology and broad placement guidance.",
+      "facts": {
+        "redCenterRemoved": "May 1942",
+        "whiteSideBarsIntroduced": "June 1943",
+        "blueBorderReplacedRed": "September 1943",
+        "1942WingPositions": "both upper and both lower wings",
+        "fromFebruary1943WingPositions": "upper left and lower right"
+      },
+      "limits": "This establishes generic period convention, not the exact insignia dimensions or field repaint date for any individual aircraft."
+    },
+    {
+      "id": "nnam-a6m2",
+      "title": "A6M2 Zero",
+      "publisher": "National Naval Aviation Museum / Naval History and Heritage Command",
+      "url": "https://www.history.navy.mil/content/history/museums/nnam/explore/collections/aircraft/a/a6m2-zero0.html",
+      "type": "museum-collection",
+      "use": "A6M2 dimensions, configuration and historical photo links.",
+      "facts": {
+        "lengthAsPublished": "29 ft 8 11/16 in",
+        "spanAsPublished": "39 ft 4 7/16 in"
+      },
+      "limits": "The displayed museum airframe combines components from multiple recovered wrecks. Do not reproduce its restoration as a specific carrier fit."
+    },
+    {
+      "id": "nasm-a6m5",
+      "title": "Mitsubishi A6M5 Reisen (Zero Fighter) Model 52 ZEKE",
+      "publisher": "Smithsonian National Air and Space Museum",
+      "url": "https://airandspace.si.edu/collection-objects/mitsubishi-a6m5-reisen-zero-fighter-model-52-zeke/nasm_A19600335000",
+      "type": "museum-collection",
+      "use": "A6M5 proportions, three-blade propeller and museum photo gallery.",
+      "facts": {
+        "lengthM": 9.1,
+        "spanM": 11.0
+      },
+      "limits": "Rounded collection measurements. The original markings were removed in US custody; the current unit markings were selected during restoration."
+    },
+    {
+      "id": "jasdf-fuyo",
+      "title": "\u8299\u84c9\u90e8\u968a (Fuyo Unit), aircraft table on page 8",
+      "publisher": "Japan Air Self-Defense Force, Shizuhama Air Base / Ministry of Defense",
+      "url": "https://www.mod.go.jp/asdf/shizuhama/kichishoukai/huyoR6.4.11.pdf.pdf",
+      "type": "government-history",
+      "use": "D4Y2 Type 12 dimensions and A6M5-family dimensional cross-check.",
+      "facts": {
+        "d4yType12LengthM": 10.22,
+        "d4yType12SpanM": 11.5,
+        "zeroModel52cLengthM": 9.121,
+        "zeroModel52cSpanM": 11.0
+      },
+      "limits": "This unit history concerns land-based late-war operations, not a carrier air group. The Zero table specifies Model 52c, so its armament and finish must not be imported into a generic Model 52."
+    },
+    {
+      "id": "pof-d3a",
+      "title": "Aichi D3A2 Val",
+      "publisher": "Planes of Fame Air Museum",
+      "url": "https://planesoffame.org/aircraft/plane-D3A2",
+      "type": "museum-collection",
+      "use": "D3A recognition: elliptical wing planform, radial nose and dive brakes; distinguish the D3A2 restoration from a D3A1.",
+      "limits": "Collection entry is D3A2; its 47 ft 8 in span differs from the specialist 14.37 m figure. Use no unqualified D3A1 dimensional claim from this page."
+    },
+    {
+      "id": "combinedfleet-d3a",
+      "title": "Aichi D3A",
+      "publisher": "CombinedFleet, IJNAF reference by Joao Paulo Juliao Matsuura",
+      "url": "https://www.combinedfleet.com/ijna/d3a.htm",
+      "type": "specialist-secondary",
+      "use": "Provisional D3A1 nominal dimensions and three-blade propeller.",
+      "facts": {
+        "lengthM": 10.2,
+        "spanM": 14.37
+      },
+      "limits": "Secondary compilation, not a manufacturer drawing. Its scanned commercial drawings and illustrations are not downloaded or traced. Primary D3A1 dimensional confirmation remains open."
+    },
+    {
+      "id": "pham-b5n2",
+      "title": "Nakajima B5N2 Kate Type 97-3 Carrier Attack Aircraft at Pearl Harbor",
+      "publisher": "Pearl Harbor Aviation Museum",
+      "url": "https://www.pearlharboraviationmuseum.org/news/blog-archives/nakajima-b5n2-kate-type-97-3-carrier-attack-aircraft-at-pearl-harbor/",
+      "type": "museum-research",
+      "use": "B5N2 proportions, canopy, external ordnance and folding-wing explanation. Comparison table supplies rounded B6N2 dimensions.",
+      "facts": {
+        "b5n2LengthM": 10.3,
+        "b5n2SpanM": 15.5,
+        "b6n2LengthM": 10.9,
+        "b6n2SpanM": 14.9
+      },
+      "limits": "Modern research synthesis. Kate wings fold with overlap, not symmetrical horizontal rotation; a future folding animation needs detailed hinge evidence."
+    },
+    {
+      "id": "nasm-b6n2",
+      "title": "Nakajima B6N2 Tenzan (Heavenly Mountain) JILL",
+      "publisher": "Smithsonian National Air and Space Museum",
+      "url": "https://www.si.edu/object/nasm_A19810429000",
+      "type": "museum-collection",
+      "use": "Three-seat carrier torpedo-bomber role and distinctive forward-swept vertical tail.",
+      "limits": "Carrier service was restricted and much late service was land-based. This pack is not a single simultaneous historical carrier complement."
+    },
+    {
+      "id": "combinedfleet-b6n",
+      "title": "Nakajima B6N Tenzan",
+      "publisher": "CombinedFleet, IJNAF reference by Joao Paulo Juliao Matsuura",
+      "url": "https://www.combinedfleet.com/ijna/b6n.htm",
+      "type": "specialist-secondary",
+      "use": "Four-blade B6N2 propeller and finer nominal dimension cross-check.",
+      "facts": {
+        "lengthM": 10.87,
+        "spanM": 14.89
+      },
+      "limits": "Finer values differ slightly from the museum table's 10.9/14.9 m. Secondary compilation; no geometry or scanned artwork is used."
+    },
+    {
+      "id": "nnam-f4f",
+      "title": "F4F-3A Wildcat",
+      "publisher": "National Naval Aviation Museum / Naval History and Heritage Command",
+      "url": "https://www.history.navy.mil/content/history/museums/nnam/explore/collections/aircraft/f/f4f-3a-wildcat.html",
+      "type": "museum-collection",
+      "use": "Wildcat overall envelope and explanation of the F4F-4 folding-wing change.",
+      "facts": {
+        "lengthAsPublished": "28 ft 9 in",
+        "spanAsPublished": "38 ft"
+      },
+      "limits": "Page title is F4F-3A while narrative/specifications span multiple variants; primary F4F-4 arrangement verification remains open. Do not use taller-fin FM-2 pictures as F4F-4 tail geometry."
+    },
+    {
+      "id": "ww2museum-sbd3",
+      "title": "Douglas SBD Dauntless / SBD-3 BuNo 06508",
+      "publisher": "The National WWII Museum",
+      "url": "https://www.nationalww2museum.org/visit/museum-campus/us-freedom-pavilion/warbirds/douglas-sbd-dauntless",
+      "type": "museum-collection",
+      "use": "SBD-3 variant and rounded length. The collection aircraft briefly served aboard Enterprise in 1943.",
+      "facts": {
+        "lengthAsPublished": "33 ft",
+        "spanAsPublished": "42 ft"
+      },
+      "limits": "Figures are whole-foot approximations. No exact unit/serial livery is copied."
+    },
+    {
+      "id": "nnam-sbd",
+      "title": "SBD Dauntless (Sunken Treasure)",
+      "publisher": "National Naval Aviation Museum / Naval History and Heritage Command",
+      "url": "https://www.history.navy.mil/content/history/museums/nnam/explore/collections/aircraft/s/sbd-dauntless--sunken-treasure-.html",
+      "type": "museum-collection",
+      "use": "41 ft 6 in span, perforated dive-flap recognition and SBD family history.",
+      "facts": {
+        "lengthAsPublished": "32 ft 8 in",
+        "spanAsPublished": "41 ft 6 in"
+      },
+      "limits": "Exhibit is an SBD-4. Its stated length differs from the SBD-3 museum page; dimensional datum and propeller fit remain unresolved."
+    },
+    {
+      "id": "midway-tbd",
+      "title": "TBD Devastator",
+      "publisher": "USS Midway Museum",
+      "url": "https://www.midway.org/visit/aircraft-gallery/tbd-devastator",
+      "type": "museum-collection",
+      "use": "TBD dimensions and early carrier torpedo-bomber role.",
+      "facts": {
+        "lengthAsPublished": "35 ft",
+        "spanAsPublished": "50 ft"
+      },
+      "limits": "The displayed aircraft is a film replica; use published nominal dimensions, not replica surface or cockpit geometry."
+    },
+    {
+      "id": "boeing-tbd",
+      "title": "Select Products in Boeing History: TBD Devastator Torpedo Bomber, page 156",
+      "publisher": "The Boeing Company",
+      "url": "https://www.boeing.com/content/dam/boeing/v2/company/history/pdf/Boeing_Products.pdf",
+      "type": "manufacturer-history",
+      "use": "TBD dimension cross-check, enclosed three-person cockpit and hydraulically folding wings.",
+      "facts": {
+        "lengthAsPublished": "35 ft",
+        "spanAsPublished": "50 ft"
+      },
+      "limits": "Corporate historical summary; model does not claim detailed aerodynamic or systems reconstruction."
+    },
+    {
+      "id": "nnam-f6f5",
+      "title": "F6F-5 Hellcat",
+      "publisher": "National Naval Aviation Museum / Naval History and Heritage Command",
+      "url": "https://www.history.navy.mil/content/history/museums/nnam/explore/collections/aircraft/f/f6f-5-hellcat.html",
+      "type": "museum-collection",
+      "use": "F6F-5 dimensions and carrier-fighter silhouette.",
+      "facts": {
+        "lengthAsPublished": "33 ft 7 in",
+        "spanAsPublished": "42 ft 10 in"
+      },
+      "limits": "Collection finish depicts an ace's aircraft; no personal or exact unit markings are adopted."
+    },
+    {
+      "id": "nhhc-sb2c",
+      "title": "Dictionary of American Naval Aviation Squadrons, Volume I, SB2C/SBW/SBF Helldiver, pages 499-500",
+      "publisher": "Naval History and Heritage Command",
+      "url": "https://www.history.navy.mil/content/dam/nhhc/research/histories/naval-aviation/dictionary-of-american-naval-aviation-squadrons-volume-1/pdfs/app1-3.pdf",
+      "type": "government-history",
+      "use": "SB2C family envelope and SB2C-4 perforated flaps.",
+      "facts": {
+        "lengthAsPublished": "36 ft 8 in",
+        "spanAsPublished": "49 ft 9 in"
+      },
+      "limits": "Dimension table is labeled SB2C-5. Page describes differences from SB2C-4; common exterior envelope is an explicit cross-variant inference."
+    },
+    {
+      "id": "nnam-tbm",
+      "title": "TBM Avenger",
+      "publisher": "National Naval Aviation Museum / Naval History and Heritage Command",
+      "url": "https://www.history.navy.mil/content/history/museums/nnam/explore/collections/aircraft/t/tbm-avenger.html",
+      "type": "museum-collection",
+      "use": "Avenger family envelope, crew arrangement and dorsal turret.",
+      "facts": {
+        "lengthAsPublished": "40 ft 11 in",
+        "spanAsPublished": "54 ft 2 in"
+      },
+      "limits": "Later TBM example; TBF-1C cowl/intake and armament details require variant-specific drawings."
+    },
+    {
+      "id": "yanks-tbf1c",
+      "title": "Grumman TBF-1C Avenger",
+      "publisher": "Yanks Air Museum",
+      "url": "https://yanksair.org/exhibition/grumman-tbf-1c-avenger/",
+      "type": "museum-collection",
+      "use": "TBF-1C identification, dorsal-turret reference photograph and service association with Enterprise.",
+      "limits": "Restored surviving airframe. This entry is not a dimensional engineering drawing."
+    },
+    {
+      "id": "nasm-f4u1d",
+      "title": "Vought F4U-1D Corsair",
+      "publisher": "Smithsonian National Air and Space Museum",
+      "url": "https://airandspace.si.edu/collection-objects/vought-f4u-1d-corsair/nasm_A19610124000",
+      "type": "museum-collection",
+      "use": "Rounded dimensions, inverted gull wing, aft cockpit position and three-blade propeller.",
+      "facts": {
+        "lengthM": 10.2,
+        "spanM": 12.5
+      },
+      "limits": "The display finish represents a land-based Marine aircraft. A generic late-war Navy finish is authored instead. US carrier deployment belongs to the late-war part of this pack."
+    },
+    {
+      "id": "nhhc-enterprise-midway",
+      "title": "USS Enterprise Action Report, Battle of Midway",
+      "publisher": "Naval History and Heritage Command, original US Navy action report",
+      "url": "https://www.history.navy.mil/content/history/nhhc/research/archives/digital-exhibits-highlights/action-reports/wwii-battle-of-midway/uss-enterprise-action-report.html",
+      "type": "primary-wartime-record",
+      "use": "Direct evidence that F4F-4, SBD-3 and TBD-1 operated in Enterprise's Midway air group.",
+      "limits": "Not used for geometry or squadron markings; this pack includes additional eras and nations."
+    }
+  ],
+  "aircraft": [
+    {
+      "id": "a6m2-zero",
+      "designation": "Mitsubishi A6M2 Model 21 Zero",
+      "lengthM": 9.06,
+      "spanM": 12.0,
+      "sources": [
+        "nnam-a6m2"
+      ],
+      "recognitionTargets": [
+        "slender radial fuselage",
+        "rounded broad wing tips",
+        "framed single-seat canopy",
+        "three-blade propeller"
+      ],
+      "schemeIntent": "Early-war warm gray-green exterior, dark cowl and red hinomaru; generic aircraft."
+    },
+    {
+      "id": "d3a1-val",
+      "designation": "Aichi D3A1 Model 11 Val",
+      "lengthM": 10.2,
+      "spanM": 14.37,
+      "sources": [
+        "pof-d3a",
+        "combinedfleet-d3a"
+      ],
+      "recognitionTargets": [
+        "fixed spatted main gear",
+        "broad elliptical wings",
+        "two-seat framed canopy",
+        "radial nose",
+        "three-blade propeller"
+      ],
+      "schemeIntent": "Early-war warm gray exterior with dark cowl and red hinomaru; generic aircraft."
+    },
+    {
+      "id": "b5n2-kate",
+      "designation": "Nakajima B5N2 Kate",
+      "lengthM": 10.3,
+      "spanM": 15.5,
+      "sources": [
+        "pham-b5n2"
+      ],
+      "recognitionTargets": [
+        "long three-seat greenhouse canopy",
+        "broad tapered low wings",
+        "slender radial fuselage",
+        "external torpedo provision",
+        "three-blade propeller"
+      ],
+      "schemeIntent": "Dark green upper and pale gray lower surfaces with red hinomaru; generic aircraft, not a Pearl Harbor unit fit."
+    },
+    {
+      "id": "a6m5-zero",
+      "designation": "Mitsubishi A6M5 Model 52 Zero",
+      "lengthM": 9.12,
+      "spanM": 11.0,
+      "sources": [
+        "nasm-a6m5",
+        "jasdf-fuyo"
+      ],
+      "recognitionTargets": [
+        "shorter rounded wings than A6M2",
+        "radial nose with exhaust stubs",
+        "framed single-seat canopy",
+        "three-blade propeller"
+      ],
+      "schemeIntent": "Dark green upper and pale gray lower surfaces, red hinomaru, yellow inner leading-edge strips; generic late-war aircraft."
+    },
+    {
+      "id": "d4y2-judy",
+      "designation": "Yokosuka D4Y2 Type 12 Suisei Judy",
+      "lengthM": 10.22,
+      "spanM": 11.5,
+      "sources": [
+        "jasdf-fuyo"
+      ],
+      "recognitionTargets": [
+        "narrow liquid-cooled inline nose",
+        "ventral radiator",
+        "compact tapered wings",
+        "two-seat greenhouse canopy",
+        "three-blade propeller"
+      ],
+      "schemeIntent": "Dark green upper and pale gray lower surfaces, red hinomaru, yellow inner leading-edge strips; generic aircraft."
+    },
+    {
+      "id": "b6n2-jill",
+      "designation": "Nakajima B6N2 Tenzan Jill",
+      "lengthM": 10.9,
+      "spanM": 14.9,
+      "sources": [
+        "pham-b5n2",
+        "nasm-b6n2",
+        "combinedfleet-b6n"
+      ],
+      "recognitionTargets": [
+        "forward-swept vertical fin",
+        "long three-seat greenhouse canopy",
+        "large radial nose",
+        "four-blade propeller",
+        "external torpedo provision"
+      ],
+      "schemeIntent": "Dark green upper and pale gray lower surfaces, red hinomaru and yellow inner leading-edge strips; generic aircraft."
+    },
+    {
+      "id": "f4f-4-wildcat",
+      "designation": "Grumman F4F-4 Wildcat",
+      "lengthM": 8.76,
+      "spanM": 11.58,
+      "sources": [
+        "nnam-f4f",
+        "nhhc-enterprise-midway"
+      ],
+      "recognitionTargets": [
+        "short deep radial fuselage",
+        "squared wing tips",
+        "small framed canopy",
+        "narrow-track gear",
+        "three-blade propeller"
+      ],
+      "schemeIntent": "1942 blue-gray upper and light-gray lower surfaces; white star in blue disk without bars or red center."
+    },
+    {
+      "id": "sbd-3-dauntless",
+      "designation": "Douglas SBD-3 Dauntless",
+      "lengthM": 10.06,
+      "spanM": 12.65,
+      "sources": [
+        "ww2museum-sbd3",
+        "nnam-sbd",
+        "nhhc-enterprise-midway"
+      ],
+      "recognitionTargets": [
+        "long two-seat canopy",
+        "perforated dive flaps",
+        "tapered fixed wings",
+        "radial nose",
+        "three-blade propeller"
+      ],
+      "schemeIntent": "1942 blue-gray upper and light-gray lower surfaces; white star in blue disk without bars or red center."
+    },
+    {
+      "id": "tbd-1-devastator",
+      "designation": "Douglas TBD-1 Devastator",
+      "lengthM": 10.67,
+      "spanM": 15.24,
+      "sources": [
+        "midway-tbd",
+        "boeing-tbd",
+        "nhhc-enterprise-midway"
+      ],
+      "recognitionTargets": [
+        "long three-person greenhouse canopy",
+        "broad folding wings",
+        "radial nose",
+        "external torpedo provision",
+        "three-blade propeller"
+      ],
+      "schemeIntent": "1942 blue-gray upper and light-gray lower surfaces; white star in blue disk without bars or red center."
+    },
+    {
+      "id": "f6f-5-hellcat",
+      "designation": "Grumman F6F-5 Hellcat",
+      "lengthM": 10.24,
+      "spanM": 13.06,
+      "sources": [
+        "nnam-f6f5"
+      ],
+      "recognitionTargets": [
+        "large deep radial nose",
+        "broad tapered wings",
+        "high cockpit",
+        "three-blade propeller"
+      ],
+      "schemeIntent": "Late-war overall sea blue with white star-and-bars; generic aircraft."
+    },
+    {
+      "id": "sb2c-4-helldiver",
+      "designation": "Curtiss SB2C-4 Helldiver",
+      "lengthM": 11.18,
+      "spanM": 15.16,
+      "sources": [
+        "nhhc-sb2c"
+      ],
+      "recognitionTargets": [
+        "deep short-coupled fuselage",
+        "tall broad fin",
+        "long two-seat canopy",
+        "perforated dive flaps",
+        "four-blade propeller"
+      ],
+      "schemeIntent": "Late-war overall sea blue with white star-and-bars; generic aircraft."
+    },
+    {
+      "id": "tbf-1c-avenger",
+      "designation": "Grumman TBF-1C Avenger",
+      "lengthM": 12.48,
+      "spanM": 16.51,
+      "sources": [
+        "nnam-tbm",
+        "yanks-tbf1c"
+      ],
+      "recognitionTargets": [
+        "large deep bomb-bay belly",
+        "framed canopy and dorsal ball turret",
+        "broad folding wings",
+        "radial nose",
+        "three-blade propeller"
+      ],
+      "schemeIntent": "Midwar sea-blue upper, intermediate-blue sides and white underside with white star-and-bars; generic aircraft."
+    },
+    {
+      "id": "f4u-1d-corsair",
+      "designation": "Vought F4U-1D Corsair",
+      "lengthM": 10.2,
+      "spanM": 12.5,
+      "sources": [
+        "nasm-f4u1d"
+      ],
+      "recognitionTargets": [
+        "pronounced inverted gull wings",
+        "long radial nose",
+        "cockpit set well aft",
+        "large three-blade propeller"
+      ],
+      "schemeIntent": "Late-war overall sea blue with white star-and-bars; generic US carrier aircraft."
+    }
+  ],
+  "schemeConfidence": "Broad visual authoring guidance, with US insignia convention informed by nhhc-aircraft-markings. Exact pigments, gloss, factory demarcation, stencil placement, insignia dimensions, individual-aircraft repaint dates and unit variations are not validated. Read ../reports/discrepancies.md before assigning a historical carrier/date.",
+  "schematicRegister": [
+    {
+      "aircraftId": "a6m2-zero",
+      "shapePath": "assets/aircraft/shapes/a6m2-zero.json",
+      "reference": {
+        "sourceUrl": "https://www.combinedfleet.com/ijna/a6m.htm",
+        "imagePath": "assets/aircraft/references/schematics/a6m2-zero/three-view.png",
+        "sourceTitle": "Mitsubishi A6M2 three-view drawing, CombinedFleet IJNAF reference archive",
+        "variant": "A6M2 Model 21; the small upper nose is A6M1 and excluded",
+        "notes": [
+          "Manually digitised top/side silhouettes, independently registered to catalog length and wingspan.",
+          "Published reference drawing, not manufacturing geometry. Pixel rounding, scan distortion, hidden cross sections, canopy width and small details remain approximations.",
+          "Canopy lateral widths and hidden body contours are reconstructed inside the measured exterior envelope. Wing dihedral is digitised approximately from the front view, not an airfoil or load-bearing engineering specification."
+        ],
+        "registration": {
+          "top": {
+            "noseX": 33,
+            "tailX": 509,
+            "centerY": 478,
+            "portTipY": 159,
+            "starboardTipY": 794,
+            "imagePath": "assets/aircraft/references/schematics/a6m2-zero/three-view.png"
+          },
+          "side": {
+            "noseX": 283,
+            "tailX": 768,
+            "engineShaftY": 266,
+            "imagePath": "assets/aircraft/references/schematics/a6m2-zero/three-view.png"
+          },
+          "front": {
+            "leftTipX": 89,
+            "rightTipX": 722,
+            "centerX": 405,
+            "engineShaftY": 700,
+            "imagePath": "assets/aircraft/references/schematics/a6m2-zero/three-view.png",
+            "metersPerPixel": 0.01896,
+            "wingTipsCropped": false
+          }
+        }
+      }
+    },
+    {
+      "aircraftId": "a6m5-zero",
+      "shapePath": "assets/aircraft/shapes/a6m5-zero.json",
+      "reference": {
+        "sourceUrl": "https://rclibrary.co.uk/3view.asp?ID=13451",
+        "imagePath": "assets/aircraft/references/schematics/a6m5-zero/rc3v13451-thumb-large.jpg",
+        "sourceTitle": "Mitsubishi A6M5 Zero, Kalab, Modelar 3/1969 p.23 (RCLibrary 13451)",
+        "variant": "A6M5 Model 52; use complete lower half of top view",
+        "notes": [
+          "Manually digitised top/side silhouettes, independently registered to catalog length and wingspan.",
+          "Published reference drawing, not manufacturing geometry. Pixel rounding, scan distortion, hidden cross sections, canopy width and small details remain approximations.",
+          "Canopy lateral widths and hidden body contours are reconstructed inside the measured exterior envelope. Wing dihedral is digitised approximately from the front view, not an airfoil or load-bearing engineering specification.",
+          "RCLibrary PDF link returned HTTP 404. Original available 640-pixel plate preview retained, including creator and page credit; no claim of higher-resolution source. Front view wings are cropped; gear track uses the side-view pixel scale rather than cropped front extent."
+        ],
+        "registration": {
+          "top": {
+            "noseX": 46,
+            "tailX": 595,
+            "centerY": 414,
+            "portTipY": 86,
+            "starboardTipY": 742,
+            "imagePath": "assets/aircraft/references/schematics/a6m5-zero/rc3v13451-thumb-large.jpg"
+          },
+          "side": {
+            "noseX": 47,
+            "tailX": 595,
+            "engineShaftY": 146,
+            "imagePath": "assets/aircraft/references/schematics/a6m5-zero/rc3v13451-thumb-large.jpg"
+          },
+          "front": {
+            "leftTipX": 278,
+            "rightTipX": 570,
+            "centerX": 425,
+            "engineShaftY": 685,
+            "imagePath": "assets/aircraft/references/schematics/a6m5-zero/rc3v13451-thumb-large.jpg",
+            "metersPerPixel": 0.01664,
+            "wingTipsCropped": true
+          }
+        }
+      }
+    },
+    {
+      "aircraftId": "b5n2-kate",
+      "shapePath": "assets/aircraft/shapes/b5n2-kate.json",
+      "reference": {
+        "sourceUrl": "https://www.combinedfleet.com/ijna/b5n.htm",
+        "imagePath": "assets/aircraft/references/schematics/b5n2-kate/three-view.png",
+        "sourceTitle": "Nakajima B5N2 three-view drawing, CombinedFleet IJNAF reference archive",
+        "variant": "B5N2; upper partial B5N1 side view is excluded",
+        "notes": [
+          "Manually digitised top/side silhouettes, independently registered to catalog length and wingspan.",
+          "Published reference drawing, not manufacturing geometry. Pixel rounding, scan distortion, hidden cross sections, canopy width and small details remain approximations.",
+          "Canopy lateral widths and hidden body contours are reconstructed inside the measured exterior envelope. Wing dihedral is digitised approximately from the front view, not an airfoil or load-bearing engineering specification."
+        ],
+        "registration": {
+          "top": {
+            "noseX": 23,
+            "tailX": 535,
+            "centerY": 475,
+            "portTipY": 103,
+            "starboardTipY": 849,
+            "imagePath": "assets/aircraft/references/schematics/b5n2-kate/three-view.png"
+          },
+          "side": {
+            "noseX": 290,
+            "tailX": 801,
+            "engineShaftY": 242,
+            "imagePath": "assets/aircraft/references/schematics/b5n2-kate/three-view.png"
+          },
+          "front": {
+            "leftTipX": 55,
+            "rightTipX": 800,
+            "centerX": 428,
+            "engineShaftY": 702,
+            "imagePath": "assets/aircraft/references/schematics/b5n2-kate/three-view.png",
+            "metersPerPixel": 0.02081,
+            "wingTipsCropped": false
+          }
+        }
+      }
+    },
+    {
+      "aircraftId": "b6n2-jill",
+      "shapePath": "assets/aircraft/shapes/b6n2-jill.json",
+      "reference": {
+        "sourceUrl": "https://www.combinedfleet.com/ijna/b6n.htm",
+        "imagePath": "assets/aircraft/references/schematics/b6n2-jill/three-view.png",
+        "sourceTitle": "Nakajima B6N2 three-view drawing, CombinedFleet IJNAF reference archive",
+        "variant": "B6N2 Model 12",
+        "notes": [
+          "Manually digitised top/side silhouettes, independently registered to catalog length and wingspan.",
+          "Published reference drawing, not manufacturing geometry. Pixel rounding, scan distortion, hidden cross sections, canopy width and small details remain approximations.",
+          "Canopy lateral widths and hidden body contours are reconstructed inside the measured exterior envelope. Wing dihedral is digitised approximately from the front view, not an airfoil or load-bearing engineering specification."
+        ],
+        "registration": {
+          "top": {
+            "noseX": 28,
+            "tailX": 488,
+            "centerY": 357,
+            "portTipY": 46,
+            "starboardTipY": 669,
+            "imagePath": "assets/aircraft/references/schematics/b6n2-jill/three-view.png"
+          },
+          "side": {
+            "noseX": 271,
+            "tailX": 729,
+            "engineShaftY": 130,
+            "imagePath": "assets/aircraft/references/schematics/b6n2-jill/three-view.png"
+          },
+          "front": {
+            "leftTipX": 176,
+            "rightTipX": 800,
+            "centerX": 486,
+            "engineShaftY": 573,
+            "imagePath": "assets/aircraft/references/schematics/b6n2-jill/three-view.png",
+            "metersPerPixel": 0.02388,
+            "wingTipsCropped": false
+          }
+        }
+      }
+    },
+    {
+      "aircraftId": "d3a1-val",
+      "shapePath": "assets/aircraft/shapes/d3a1-val.json",
+      "reference": {
+        "sourceUrl": "https://www.combinedfleet.com/ijna/d3a.htm",
+        "imagePath": "assets/aircraft/references/schematics/d3a1-val/three-view.png",
+        "sourceTitle": "Aichi D3A1 three-view drawing, CombinedFleet IJNAF reference archive",
+        "variant": "D3A1 Model 11",
+        "notes": [
+          "Manually digitised top/side silhouettes, independently registered to catalog length and wingspan.",
+          "Published reference drawing, not manufacturing geometry. Pixel rounding, scan distortion, hidden cross sections, canopy width and small details remain approximations.",
+          "Canopy lateral widths and hidden body contours are reconstructed inside the measured exterior envelope. Wing dihedral is digitised approximately from the front view, not an airfoil or load-bearing engineering specification."
+        ],
+        "registration": {
+          "top": {
+            "noseX": 56,
+            "tailX": 466,
+            "centerY": 320,
+            "portTipY": 40,
+            "starboardTipY": 599,
+            "imagePath": "assets/aircraft/references/schematics/d3a1-val/three-view.png"
+          },
+          "side": {
+            "noseX": 309,
+            "tailX": 719,
+            "engineShaftY": 134,
+            "imagePath": "assets/aircraft/references/schematics/d3a1-val/three-view.png"
+          },
+          "front": {
+            "leftTipX": 197,
+            "rightTipX": 762,
+            "centerX": 479,
+            "engineShaftY": 491,
+            "imagePath": "assets/aircraft/references/schematics/d3a1-val/three-view.png",
+            "metersPerPixel": 0.02543,
+            "wingTipsCropped": false
+          }
+        }
+      }
+    },
+    {
+      "aircraftId": "d4y2-judy",
+      "shapePath": "assets/aircraft/shapes/d4y2-judy.json",
+      "reference": {
+        "sourceUrl": "https://www.gruppofalchi.com/files/Profile-Publications-Aircraft-241---Aichi-D3A-Yokosuka-D4Y.pdf",
+        "imagePath": "assets/aircraft/references/schematics/d4y2-judy/profile-241-page-17-measure.png",
+        "sourceTitle": "Yokosuka D4Y2-C, P. Endsleigh Castle, Aircraft Profile 241 plate (scan p.17)",
+        "variant": "D4Y2-C reconnaissance Model 1-2; external airframe used for D4Y2, bomber-bay internals not evidenced",
+        "notes": [
+          "Manually digitised top/side silhouettes, independently registered to catalog length and wingspan.",
+          "Published reference drawing, not manufacturing geometry. Pixel rounding, scan distortion, hidden cross sections, canopy width and small details remain approximations.",
+          "Canopy lateral widths and hidden body contours are reconstructed inside the measured exterior envelope. Wing dihedral is digitised approximately from the front view, not an airfoil or load-bearing engineering specification.",
+          "Plan registration: source PDF page 17 rendered at 2x (2064x2784), reduced to 1376x1856; crop [80,330,1270,1300], rotate +66 degrees, expand. No nonuniform plan warping.",
+          "Illustrated D4Y2-C uses inline Atsuta engine; D4Y3/4 radial drawings deliberately excluded. Chin radiator is separate from primary fuselage loft."
+        ],
+        "registration": {
+          "top": {
+            "noseX": 205,
+            "tailX": 1218,
+            "centerY": 654,
+            "portTipY": 62,
+            "starboardTipY": 1243,
+            "imagePath": "assets/aircraft/references/schematics/d4y2-judy/top-registered.png"
+          },
+          "side": {
+            "noseX": 190,
+            "tailX": 1216,
+            "engineShaftY": 1507,
+            "imagePath": "assets/aircraft/references/schematics/d4y2-judy/profile-241-page-17-measure.png"
+          },
+          "front": {
+            "leftTipX": 113,
+            "rightTipX": 1288,
+            "centerX": 702,
+            "engineShaftY": 195,
+            "imagePath": "assets/aircraft/references/schematics/d4y2-judy/profile-241-page-17-measure.png",
+            "metersPerPixel": 0.00979,
+            "wingTipsCropped": false
+          }
+        }
+      }
+    },
+    {
+      "aircraftId": "f4f-4-wildcat",
+      "shapePath": "assets/aircraft/shapes/f4f-4-wildcat.json",
+      "reference": {
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Grumman_F4F_Wildcat_3-view_line_drawing.svg",
+        "imagePath": "assets/aircraft/references/schematics/f4f-4-wildcat/threeview.png",
+        "sourceTitle": "Grumman F4F-4 Wildcat three-view orthographic drawing",
+        "variant": "F4F-4",
+        "author": "Kaboldy",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+        "originalPath": "assets/aircraft/references/schematics/f4f-4-wildcat/threeview.svg",
+        "notes": [
+          "Measured from the actual 960 \u00d7 1178 raster; the original SVG is retained. Modern reference drawing, not a Grumman manufacturing drawing.",
+          "The wing root is mid-fuselage, the fin has a curved leading edge and near-vertical aft face, and the main gear retracts into the fuselage.",
+          "Side/plan scale differs by under 1 percent; each axis registration uses documented catalog dimensions. Narrow-track gear tire position is a reconstruction from the visible retracted/front outlines, not a certified extension geometry."
+        ],
+        "registration": {
+          "side": {
+            "boundsPx": [
+              22,
+              0,
+              646,
+              330
+            ],
+            "nosePx": [
+              22,
+              169
+            ],
+            "tailPx": [
+              646,
+              169
+            ],
+            "shaftYPx": 169,
+            "metersPerPixel": 0.01404
+          },
+          "plan": {
+            "noseXPx": 22,
+            "tailXPx": 646,
+            "centerYPx": 737,
+            "halfSpanPx": 416,
+            "spanMetersPerPixel": 0.01392
+          },
+          "rawLandmarksPx": {
+            "fuselage": [
+              [
+                68,
+                32,
+                203,
+                128
+              ],
+              [
+                76,
+                40,
+                210,
+                124
+              ],
+              [
+                95,
+                47,
+                217,
+                119
+              ],
+              [
+                118,
+                50,
+                221,
+                115
+              ],
+              [
+                135,
+                53,
+                226,
+                113
+              ],
+              [
+                165,
+                54,
+                231,
+                111
+              ],
+              [
+                205,
+                53,
+                237,
+                108
+              ],
+              [
+                235,
+                52,
+                229,
+                113
+              ],
+              [
+                260,
+                51,
+                226,
+                117
+              ],
+              [
+                299,
+                49,
+                223,
+                89
+              ],
+              [
+                347,
+                44,
+                219,
+                96
+              ],
+              [
+                390,
+                37,
+                213,
+                103
+              ],
+              [
+                437,
+                31,
+                208,
+                116
+              ],
+              [
+                477,
+                25,
+                202,
+                123
+              ],
+              [
+                517,
+                19,
+                194,
+                122
+              ],
+              [
+                553,
+                14,
+                186,
+                127
+              ],
+              [
+                591,
+                8,
+                180,
+                143
+              ],
+              [
+                618,
+                4,
+                175,
+                156
+              ],
+              [
+                629,
+                1,
+                170,
+                163
+              ]
+            ],
+            "wing": [
+              [
+                0,
+                156,
+                350,
+                0.08
+              ],
+              [
+                55,
+                162,
+                339,
+                0.11
+              ],
+              [
+                112,
+                165,
+                330,
+                0.15
+              ],
+              [
+                170,
+                168,
+                321,
+                0.19
+              ],
+              [
+                230,
+                171,
+                312,
+                0.235
+              ],
+              [
+                295,
+                174,
+                303,
+                0.28
+              ],
+              [
+                355,
+                177,
+                296,
+                0.33
+              ],
+              [
+                402,
+                178,
+                292,
+                0.36
+              ],
+              [
+                409,
+                182,
+                285,
+                0.366
+              ],
+              [
+                414,
+                199,
+                258,
+                0.37
+              ],
+              [
+                416,
+                216,
+                220,
+                0.372
+              ]
+            ],
+            "horizontalTail": [
+              [
+                0,
+                532,
+                646,
+                0.58
+              ],
+              [
+                30,
+                543,
+                642,
+                0.58
+              ],
+              [
+                65,
+                553,
+                639,
+                0.58
+              ],
+              [
+                100,
+                565,
+                637,
+                0.58
+              ],
+              [
+                130,
+                574,
+                634,
+                0.58
+              ],
+              [
+                142,
+                581,
+                632,
+                0.58
+              ],
+              [
+                147,
+                592,
+                626,
+                0.58
+              ],
+              [
+                149,
+                607,
+                611,
+                0.58
+              ]
+            ],
+            "tailHalfSpanPx": 149,
+            "fin": [
+              [
+                481,
+                123
+              ],
+              [
+                503,
+                120
+              ],
+              [
+                520,
+                115
+              ],
+              [
+                537,
+                104
+              ],
+              [
+                547,
+                93
+              ],
+              [
+                559,
+                72
+              ],
+              [
+                572,
+                46
+              ],
+              [
+                581,
+                37
+              ],
+              [
+                593,
+                34
+              ],
+              [
+                616,
+                34
+              ],
+              [
+                628,
+                37
+              ],
+              [
+                637,
+                44
+              ],
+              [
+                640,
+                69
+              ],
+              [
+                643,
+                105
+              ],
+              [
+                646,
+                142
+              ],
+              [
+                628,
+                158
+              ],
+              [
+                628,
+                170
+              ],
+              [
+                604,
+                178
+              ],
+              [
+                596,
+                127
+              ],
+              [
+                552,
+                127
+              ]
+            ],
+            "canopy": [
+              [
+                210,
+                1,
+                111,
+                108
+              ],
+              [
+                223,
+                13,
+                115,
+                96
+              ],
+              [
+                235,
+                20,
+                118,
+                83
+              ],
+              [
+                245,
+                24,
+                120,
+                82
+              ],
+              [
+                259,
+                24,
+                120,
+                84
+              ],
+              [
+                279,
+                24,
+                119,
+                85
+              ],
+              [
+                294,
+                23,
+                118,
+                86
+              ],
+              [
+                299,
+                1,
+                117,
+                89
+              ]
+            ]
+          },
+          "method": "Manual visual landmark measurement of preserved orthographic raster; each view independently registered to catalog length/span. Fuselage cross sections use elliptical interpolation between side and plan envelopes. Hidden wing roots and canopy bases are interpolated; a drawing is not a manufacturing loft."
+        }
+      }
+    },
+    {
+      "aircraftId": "f4u-1d-corsair",
+      "shapePath": "assets/aircraft/shapes/f4u-1d-corsair.json",
+      "reference": {
+        "sourceUrl": "https://www.vought.org/photo/html/pdown.html",
+        "imagePath": "assets/aircraft/references/schematics/f4u-1d-corsair/vought-1532_016_22.png",
+        "sourceTitle": "Vought Heritage F4U-1D line drawing 1532_016",
+        "variant": "F4U-1D",
+        "author": "Vought aircraft archive, preserved by Vought Heritage",
+        "license": "Archive drawing; original attribution retained; reference use only, not included as an aircraft texture",
+        "originalPath": "assets/aircraft/references/schematics/f4u-1d-corsair/vought-1532_016_22.gif",
+        "downloadUrl": "https://www.vought.org/photo/html/pimages/down/1532_016_22.gif",
+        "supplementalSources": [
+          {
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Vought_F4U-1_Corsair_3-view.svg",
+            "imagePath": "assets/aircraft/references/schematics/f4u-1d-corsair/f4u-1-threeview.png",
+            "originalPath": "assets/aircraft/references/schematics/f4u-1d-corsair/f4u-1-threeview.svg",
+            "author": "Kaboldy",
+            "license": "CC BY-SA 3.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+            "use": "Panel detail, section topology and outline cross-check; caption gives F4U-1 family rather than exact -1D"
+          },
+          {
+            "sourceUrl": "https://airandspace.si.edu/collection-objects/vought-f4u-1d-corsair/nasm_A19610124000",
+            "use": "10.20 m length, 12.50 m span and later 13 ft 1 in propeller diameter; restored airframe dimensions."
+          }
+        ],
+        "notes": [
+          "Primary F4U-1D manufacturer/archive three-view visually inspected. Raster 1584 \u00d7 1016; measured original pixels are retained below.",
+          "Plan is rotated 90 degrees relative to side: converted plan x = 492 - original image y; span offset = original image x - 313.",
+          "The primary drawing labels 16 ft 6 in horizontal tail span and 12 ft 1 in landing-gear track; those values override measurement noise. Its 13 ft 4 in early propeller differs from later 13 ft 1 in Smithsonian example; the model uses the latter and records the variant difference.",
+          "Wing front contour measured against shaft at original image y=795: root at y=810, minimum at y=834 near x=411, tip near y=797. Mesh z is the airfoil midline, not its lower surface.",
+          "Fin and cockpit are separate from the tapered body. The late -1D clear sliding hood uses only end hoops and windshield framing; manufacturing sections, panel fasteners, and wheel extension kinematics remain approximate."
+        ],
+        "registration": {
+          "side": {
+            "boundsPx": [
+              868,
+              635,
+              1311,
+              887
+            ],
+            "nosePx": [
+              868,
+              793
+            ],
+            "tailPx": [
+              1311,
+              793
+            ],
+            "shaftYPx": 793,
+            "metersPerPixel": 0.02302
+          },
+          "plan": {
+            "noseXPx": 0,
+            "tailXPx": 432,
+            "centerYPx": 313,
+            "halfSpanPx": 274,
+            "spanMetersPerPixel": 0.02281,
+            "sourceTransform": "x=492-sourceY; span=sourceX-313"
+          },
+          "rawLandmarksPx": {
+            "fuselage": [
+              [
+                899,
+                25,
+                813,
+                773
+              ],
+              [
+                904,
+                30,
+                821,
+                766
+              ],
+              [
+                921,
+                32,
+                823,
+                765
+              ],
+              [
+                935,
+                32,
+                823,
+                764
+              ],
+              [
+                948,
+                33,
+                823,
+                763
+              ],
+              [
+                964,
+                33,
+                824,
+                762
+              ],
+              [
+                994,
+                32,
+                819,
+                760
+              ],
+              [
+                1037,
+                29,
+                818,
+                756
+              ],
+              [
+                1065,
+                27,
+                818,
+                766
+              ],
+              [
+                1083,
+                25,
+                818,
+                773
+              ],
+              [
+                1107,
+                22,
+                817,
+                749
+              ],
+              [
+                1137,
+                19,
+                814,
+                749
+              ],
+              [
+                1170,
+                16,
+                809,
+                752
+              ],
+              [
+                1209,
+                12,
+                802,
+                758
+              ],
+              [
+                1240,
+                9,
+                793,
+                768
+              ],
+              [
+                1272,
+                6,
+                784,
+                774
+              ],
+              [
+                1295,
+                3,
+                781,
+                775
+              ],
+              [
+                1311,
+                0.5,
+                778,
+                776
+              ]
+            ],
+            "wing": [
+              [
+                0,
+                94,
+                208,
+                -0.28
+              ],
+              [
+                33,
+                94,
+                208,
+                -0.38
+              ],
+              [
+                62,
+                94,
+                208,
+                -0.58
+              ],
+              [
+                98,
+                95,
+                208,
+                -0.75
+              ],
+              [
+                120,
+                96,
+                205,
+                -0.69
+              ],
+              [
+                160,
+                99,
+                200,
+                -0.54
+              ],
+              [
+                200,
+                103,
+                194,
+                -0.39
+              ],
+              [
+                235,
+                107,
+                186,
+                -0.26
+              ],
+              [
+                251,
+                114,
+                179,
+                -0.2
+              ],
+              [
+                261,
+                122,
+                168,
+                -0.155
+              ],
+              [
+                269,
+                133,
+                153,
+                -0.125
+              ],
+              [
+                273,
+                141,
+                143,
+                -0.105
+              ],
+              [
+                274,
+                142,
+                142.5,
+                -0.1
+              ]
+            ],
+            "horizontalTail": [
+              [
+                0,
+                362,
+                423,
+                0.43
+              ],
+              [
+                20,
+                365,
+                421,
+                0.43
+              ],
+              [
+                45,
+                369,
+                417,
+                0.43
+              ],
+              [
+                72,
+                374,
+                414,
+                0.43
+              ],
+              [
+                96,
+                380,
+                410,
+                0.43
+              ],
+              [
+                106,
+                385,
+                403,
+                0.43
+              ],
+              [
+                111,
+                392,
+                396,
+                0.43
+              ]
+            ],
+            "tailHalfSpanPx": 111,
+            "fin": [
+              [
+                1208,
+                758
+              ],
+              [
+                1212,
+                741
+              ],
+              [
+                1218,
+                718
+              ],
+              [
+                1223,
+                705
+              ],
+              [
+                1230,
+                699
+              ],
+              [
+                1239,
+                696
+              ],
+              [
+                1248,
+                698
+              ],
+              [
+                1258,
+                704
+              ],
+              [
+                1266,
+                715
+              ],
+              [
+                1270,
+                728
+              ],
+              [
+                1277,
+                754
+              ],
+              [
+                1281,
+                769
+              ],
+              [
+                1262,
+                769
+              ],
+              [
+                1234,
+                764
+              ],
+              [
+                1213,
+                761
+              ]
+            ],
+            "canopy": [
+              [
+                1037,
+                1,
+                757,
+                756
+              ],
+              [
+                1049,
+                12,
+                763,
+                747
+              ],
+              [
+                1064,
+                19,
+                767,
+                738
+              ],
+              [
+                1073,
+                21,
+                770,
+                738
+              ],
+              [
+                1083,
+                21,
+                772,
+                740
+              ],
+              [
+                1093,
+                21,
+                773,
+                744
+              ],
+              [
+                1101,
+                19,
+                771,
+                749
+              ],
+              [
+                1107,
+                1,
+                767,
+                749
+              ]
+            ]
+          },
+          "method": "Manual visual landmark measurement of preserved orthographic raster; each view independently registered to catalog length/span. Fuselage cross sections use elliptical interpolation between side and plan envelopes. Hidden wing roots and canopy bases are interpolated; a drawing is not a manufacturing loft.",
+          "front": {
+            "shaftPx": [
+              313,
+              795
+            ],
+            "wingRootPx": [
+              345,
+              810
+            ],
+            "gullBreakPx": [
+              411,
+              834
+            ],
+            "tipPx": [
+              584,
+              797
+            ],
+            "metersPerPixel": 0.02297794117647059
+          }
+        }
+      }
+    },
+    {
+      "aircraftId": "f6f-5-hellcat",
+      "shapePath": "assets/aircraft/shapes/f6f-5-hellcat.json",
+      "reference": {
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Grumman_F6F_Hellcat_3-view_line_drawing.svg",
+        "imagePath": "assets/aircraft/references/schematics/f6f-5-hellcat/line-threeview.png",
+        "sourceTitle": "Grumman F6F Hellcat three-view line drawing",
+        "variant": "F6F outline, cross-checked against exact F6F-5 drawing",
+        "author": "Kaboldy",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "originalPath": "assets/aircraft/references/schematics/f6f-5-hellcat/line-threeview.svg",
+        "supplementalSources": [
+          {
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Grumman_F6F-5_Hellcat_2002.png",
+            "imagePath": "assets/aircraft/references/schematics/f6f-5-hellcat/threeview.png",
+            "author": "Ssawka",
+            "license": "CC BY 2.5",
+            "licenseUrl": "https://creativecommons.org/licenses/by/2.5/"
+          }
+        ],
+        "notes": [
+          "Measured from actual 960 \u00d7 1167 raster and inspected exact F6F-5 2000 \u00d7 5008 plan/side/front drawing. Modern reference drawings, not a Grumman manufacturing loft.",
+          "The line drawing omits the -5 suffix; F6F-5 canopy lacks aft quarter windows and is modeled with its flat windscreen.",
+          "Large dorsal spine, deeper lower cowling/chin intake, broad root chord, rounded tips and separate curved fin distinguish this aircraft from the F4F. Gear coordinates are approximate deployed positions."
+        ],
+        "registration": {
+          "side": {
+            "boundsPx": [
+              17,
+              0,
+              652,
+              330
+            ],
+            "nosePx": [
+              17,
+              157
+            ],
+            "tailPx": [
+              652,
+              157
+            ],
+            "shaftYPx": 157,
+            "metersPerPixel": 0.01613
+          },
+          "plan": {
+            "noseXPx": 17,
+            "tailXPx": 652,
+            "centerYPx": 731,
+            "halfSpanPx": 411,
+            "spanMetersPerPixel": 0.01589
+          },
+          "rawLandmarksPx": {
+            "fuselage": [
+              [
+                55,
+                29,
+                201,
+                117
+              ],
+              [
+                63,
+                41,
+                209,
+                111
+              ],
+              [
+                76,
+                45,
+                212,
+                109
+              ],
+              [
+                119,
+                51,
+                218,
+                104
+              ],
+              [
+                142,
+                53,
+                221,
+                101
+              ],
+              [
+                179,
+                53,
+                221,
+                97
+              ],
+              [
+                200,
+                53,
+                221,
+                96
+              ],
+              [
+                221,
+                53,
+                221,
+                101
+              ],
+              [
+                248,
+                51,
+                221,
+                109
+              ],
+              [
+                274,
+                48,
+                220,
+                109
+              ],
+              [
+                295,
+                46,
+                220,
+                77
+              ],
+              [
+                329,
+                42,
+                218,
+                84
+              ],
+              [
+                374,
+                36,
+                216,
+                94
+              ],
+              [
+                420,
+                30,
+                211,
+                104
+              ],
+              [
+                470,
+                23,
+                206,
+                116
+              ],
+              [
+                509,
+                18,
+                202,
+                123
+              ],
+              [
+                538,
+                14,
+                199,
+                123
+              ],
+              [
+                571,
+                10,
+                194,
+                137
+              ],
+              [
+                610,
+                6,
+                190,
+                149
+              ],
+              [
+                640,
+                2,
+                184,
+                161
+              ]
+            ],
+            "wing": [
+              [
+                0,
+                154,
+                357,
+                -0.44
+              ],
+              [
+                51,
+                157,
+                347,
+                -0.43
+              ],
+              [
+                90,
+                161,
+                338,
+                -0.37
+              ],
+              [
+                133,
+                164,
+                330,
+                -0.3
+              ],
+              [
+                190,
+                170,
+                320,
+                -0.21
+              ],
+              [
+                250,
+                176,
+                308,
+                -0.1
+              ],
+              [
+                310,
+                181,
+                298,
+                0.01
+              ],
+              [
+                366,
+                185,
+                290,
+                0.105
+              ],
+              [
+                399,
+                187,
+                287,
+                0.164
+              ],
+              [
+                406,
+                194,
+                264,
+                0.178
+              ],
+              [
+                410,
+                218,
+                237,
+                0.185
+              ],
+              [
+                411,
+                227,
+                229,
+                0.187
+              ]
+            ],
+            "horizontalTail": [
+              [
+                0,
+                531,
+                652,
+                0.19
+              ],
+              [
+                30,
+                539,
+                639,
+                0.19
+              ],
+              [
+                65,
+                549,
+                639,
+                0.19
+              ],
+              [
+                100,
+                559,
+                639,
+                0.19
+              ],
+              [
+                136,
+                570,
+                638,
+                0.19
+              ],
+              [
+                160,
+                577,
+                629,
+                0.19
+              ],
+              [
+                177,
+                586,
+                616,
+                0.19
+              ],
+              [
+                182,
+                601,
+                605,
+                0.19
+              ]
+            ],
+            "tailHalfSpanPx": 182,
+            "fin": [
+              [
+                510,
+                123
+              ],
+              [
+                529,
+                123
+              ],
+              [
+                544,
+                119
+              ],
+              [
+                553,
+                108
+              ],
+              [
+                563,
+                88
+              ],
+              [
+                574,
+                64
+              ],
+              [
+                582,
+                50
+              ],
+              [
+                592,
+                42
+              ],
+              [
+                603,
+                40
+              ],
+              [
+                616,
+                42
+              ],
+              [
+                628,
+                46
+              ],
+              [
+                636,
+                55
+              ],
+              [
+                640,
+                81
+              ],
+              [
+                645,
+                124
+              ],
+              [
+                651,
+                165
+              ],
+              [
+                640,
+                170
+              ],
+              [
+                640,
+                184
+              ],
+              [
+                599,
+                192
+              ],
+              [
+                595,
+                148
+              ],
+              [
+                554,
+                141
+              ]
+            ],
+            "canopy": [
+              [
+                220,
+                1,
+                104,
+                101
+              ],
+              [
+                231,
+                13,
+                108,
+                86
+              ],
+              [
+                241,
+                20,
+                110,
+                73
+              ],
+              [
+                249,
+                23,
+                110,
+                68
+              ],
+              [
+                260,
+                23,
+                110,
+                67
+              ],
+              [
+                273,
+                24,
+                110,
+                68
+              ],
+              [
+                286,
+                23,
+                110,
+                70
+              ],
+              [
+                292,
+                1,
+                110,
+                73
+              ]
+            ]
+          },
+          "method": "Manual visual landmark measurement of preserved orthographic raster; each view independently registered to catalog length/span. Fuselage cross sections use elliptical interpolation between side and plan envelopes. Hidden wing roots and canopy bases are interpolated; a drawing is not a manufacturing loft."
+        }
+      }
+    },
+    {
+      "aircraftId": "sb2c-4-helldiver",
+      "shapePath": "assets/aircraft/shapes/sb2c-4-helldiver.json",
+      "reference": {
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Curtiss_SB2C_Helldiver_BuAer_3_side_view.jpg",
+        "imagePath": "assets/aircraft/references/schematics/sb2c-4-helldiver/buaer-sb2c-5.jpg",
+        "sourceTitle": "U.S. Navy BuAer SB2C Descriptive Arrangement from SB2C-5 characteristic sheet",
+        "variant": "Sheet labels SB2C-1/1C outline with SB2C-3/4/5 engine/propeller note; used for SB2C-4 principal airframe",
+        "license": "Public domain, U.S. Navy Bureau of Aeronautics",
+        "notes": [
+          "BuAer sheet is genuine but only 354 \u00d7 543 px; broad proportions are measured and small features require subsequent high-resolution maintenance-drawing corroboration.",
+          "Main wing has almost straight leading edge, strongly tapered trailing edge and full dihedral. Tall round-topped fin/rudder and deep bomb-bay fuselage distinguish the type.",
+          "Retained source explicitly notes four-blade 12 ft 2 in propeller for SB2C-3,4,5; main illustration uses earlier three-blade propeller. Recipe uses four blades.",
+          "SB2C-4 perforated dive-brake details, panel seams and canopy framing are reconstructed; factory sections not available."
+        ],
+        "registration": {
+          "imageSizePx": [
+            354,
+            543
+          ],
+          "side": {
+            "boundsPx": [
+              59,
+              406,
+              279,
+              503
+            ],
+            "noseXPx": 60,
+            "tailXPx": 278,
+            "shaftYPx": 470,
+            "noseX": 60,
+            "tailX": 278,
+            "engineShaftY": 470,
+            "imagePath": "assets/aircraft/references/schematics/sb2c-4-helldiver/buaer-sb2c-5.jpg"
+          },
+          "top": {
+            "boundsPx": [
+              18,
+              13,
+              315,
+              234
+            ],
+            "lengthAxis": "y",
+            "noseAxisPx": 232,
+            "tailAxisPx": 14,
+            "centerPx": 167,
+            "spanPx": 296,
+            "tailHalfSpanPx": 57
+          },
+          "front": {
+            "boundsPx": [
+              19,
+              257,
+              316,
+              354
+            ],
+            "centerXPx": 168,
+            "shaftYPx": 318,
+            "wingRootYPx": 327,
+            "wingTipYPx": 312
+          },
+          "estimatedPickingTolerancePx": 1.5,
+          "registrationNote": "Low resolution primary scan limits station precision to roughly 0.08 m. Side full level length 36 ft 8 in; top span 49 ft 8.75 in. Tail span reconstructed by span ratio.",
+          "plan": {
+            "noseX": 232,
+            "tailX": 14,
+            "centerY": 167,
+            "spanPx": 296,
+            "imagePath": "assets/aircraft/references/schematics/sb2c-4-helldiver/buaer-sb2c-5.jpg",
+            "sourceTransform": {
+              "operation": "transpose",
+              "description": "Reference original has nose down; transpose image so newX=oldY, newY=oldX; nose then points right."
+            }
+          }
+        }
+      }
+    },
+    {
+      "aircraftId": "sbd-3-dauntless",
+      "shapePath": "assets/aircraft/shapes/sbd-3-dauntless.json",
+      "reference": {
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Douglas_SBD-5_BuAer_3_view_drawing.jpg",
+        "imagePath": "assets/aircraft/references/schematics/sbd-3-dauntless/buaer-sbd-5.jpg",
+        "sourceTitle": "U.S. Navy BuAer SBD-5 & 6 Descriptive Arrangement, 1 June 1944",
+        "variant": "SBD-5/6 main airframe used for SBD-3; variant-specific intake and sight retained separately",
+        "license": "Public domain, U.S. Navy Bureau of Aeronautics",
+        "notes": [
+          "Primary retained SBD-5/6 drawing supplies common airframe, broad fixed inner wing, rounded tips and long curved dorsal-fin root; this does not certify an SBD-3-specific engine cowling.",
+          "SBD-3 upper carburetor intake and telescopic sight are explicit variant approximations; exact -3 cowling-panel stations remain unresolved.",
+          "No wing fold: the SBD had fixed wings. Perforated split dive brakes are a required visible distinguishing feature. Cross-sections, fillets and canopy curvature between measured silhouettes remain inferred."
+        ],
+        "registration": {
+          "imageSizePx": [
+            880,
+            1153
+          ],
+          "side": {
+            "boundsPx": [
+              184,
+              866,
+              688,
+              1085
+            ],
+            "noseXPx": 184,
+            "tailXPx": 687,
+            "shaftYPx": 981,
+            "noseX": 184,
+            "tailX": 687,
+            "engineShaftY": 981,
+            "imagePath": "assets/aircraft/references/schematics/sbd-3-dauntless/buaer-sbd-5.jpg"
+          },
+          "top": {
+            "boundsPx": [
+              117,
+              30,
+              752,
+              535
+            ],
+            "lengthAxis": "y",
+            "noseAxisPx": 534,
+            "tailAxisPx": 31,
+            "centerPx": 434,
+            "spanPx": 634,
+            "tailHalfSpanPx": 135
+          },
+          "front": {
+            "boundsPx": [
+              120,
+              584,
+              753,
+              800
+            ],
+            "centerXPx": 434,
+            "shaftYPx": 703,
+            "wingRootYPx": 736,
+            "wingTipYPx": 688
+          },
+          "estimatedPickingTolerancePx": 2,
+          "registrationNote": "Source side view has horizontal engine shaft with landing gear in airframe-level attitude. Top/side longitudinal scale agrees; tail span label 17 ft 9 in.",
+          "plan": {
+            "noseX": 534,
+            "tailX": 31,
+            "centerY": 434,
+            "spanPx": 634,
+            "imagePath": "assets/aircraft/references/schematics/sbd-3-dauntless/buaer-sbd-5.jpg",
+            "sourceTransform": {
+              "operation": "transpose",
+              "description": "Reference original has nose down; transpose image so newX=oldY, newY=oldX; nose then points right."
+            }
+          }
+        }
+      }
+    },
+    {
+      "aircraftId": "tbd-1-devastator",
+      "shapePath": "assets/aircraft/shapes/tbd-1-devastator.json",
+      "reference": {
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Douglas_TBD_Devastator_3-view.svg",
+        "imagePath": "assets/aircraft/references/schematics/tbd-1-devastator/commons-tbd.png",
+        "sourceTitle": "Douglas TBD Devastator three-view orthographic drawing, Kaboldy, 25 October 2011",
+        "variant": "Production TBD-1 with raised greenhouse canopy",
+        "license": "Reference only: Kaboldy, CC BY-SA 3.0 https://creativecommons.org/licenses/by-sa/3.0/; raster is unchanged conversion of retained original SVG. Sparse dimensional landmarks are factual measurements; independently constructed mesh topology.",
+        "notes": [
+          "Credited modern technical orthographic reference, not a factory drawing. Original SVG and an unchanged nominal raster are retained under source license.",
+          "Official NHHC Dictionary of American Naval Aviation Squadrons volume I page 511 confirms span 50 ft and length 35 ft; its original PDF now returns 404 and mirror 403 during acquisition, so it was not used as the measured raster.",
+          "Wing shape, long raised three-place greenhouse, very narrow tail fuselage and corrugated outer wing are measured or located from retained three-view. Small sections and extended gear geometry remain inferred."
+        ],
+        "registration": {
+          "imageSizePx": [
+            873,
+            1118
+          ],
+          "side": {
+            "boundsPx": [
+              279,
+              13,
+              862,
+              211
+            ],
+            "noseXPx": 860,
+            "tailXPx": 280,
+            "shaftYPx": 148,
+            "noseX": 860,
+            "tailX": 280,
+            "engineShaftY": 148,
+            "imagePath": "assets/aircraft/references/schematics/tbd-1-devastator/commons-tbd.png"
+          },
+          "top": {
+            "boundsPx": [
+              278,
+              292,
+              861,
+              1105
+            ],
+            "lengthAxis": "x",
+            "noseAxisPx": 860,
+            "tailAxisPx": 280,
+            "centerPx": 698,
+            "spanPx": 810,
+            "tailHalfSpanPx": 144
+          },
+          "front": {
+            "boundsPx": [
+              14,
+              292,
+              238,
+              1106
+            ],
+            "centerXPx": 146,
+            "shaftYPx": 698,
+            "note": "Front view is rotated 90 degrees: span runs vertically, height runs horizontally; main wing low at root with pronounced outer-panel dihedral."
+          },
+          "estimatedPickingTolerancePx": 2,
+          "registrationNote": "Original retained SVG rasterized at nominal size using MuPDF; geometric source paths are not imported. Top span and side length scales differ by 2.3 percent, registered independently.",
+          "plan": {
+            "noseX": 860,
+            "tailX": 280,
+            "centerY": 698,
+            "spanPx": 810,
+            "imagePath": "assets/aircraft/references/schematics/tbd-1-devastator/commons-tbd.png",
+            "sourceTransform": "identity"
+          }
+        }
+      }
+    },
+    {
+      "aircraftId": "tbf-1c-avenger",
+      "shapePath": "assets/aircraft/shapes/tbf-1c-avenger.json",
+      "reference": {
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Grumman_TBF-1_Avenger_BuAer_drawing.jpg",
+        "imagePath": "assets/aircraft/references/schematics/tbf-1c-avenger/buaer-tbf-1.jpg",
+        "sourceTitle": "U.S. Navy BuAer Descriptive Arrangement, 1 July 1943",
+        "variant": "MODEL TBF-1 & 1C; also TBM-1 & 1C",
+        "license": "Public domain, U.S. Navy Bureau of Aeronautics",
+        "notes": [
+          "The retained original sheet explicitly includes TBF-1C and wing-gun annotation; no variant extrapolation needed for principal silhouette.",
+          "Source dimensions include span 54 ft 2 in, tail span 20 ft 10 in, main tread 10 ft 6 in, propeller diameter 13 ft. Catalog length 12.48 m retained.",
+          "Fuselage under the canopy, hidden elliptic sections, root fairings, ventral glazing and turret depth remain reconstructed from orthographic silhouettes, not factory lofting."
+        ],
+        "registration": {
+          "imageSizePx": [
+            1134,
+            1810
+          ],
+          "side": {
+            "boundsPx": [
+              191,
+              1312,
+              951,
+              1623
+            ],
+            "noseXPx": 201,
+            "tailXPx": 946,
+            "shaftYPx": 1482,
+            "noseX": 201,
+            "tailX": 946,
+            "engineShaftY": 1482,
+            "imagePath": "assets/aircraft/references/schematics/tbf-1c-avenger/buaer-tbf-1.jpg"
+          },
+          "top": {
+            "boundsPx": [
+              83,
+              65,
+              1073,
+              798
+            ],
+            "lengthAxis": "y",
+            "noseAxisPx": 795,
+            "tailAxisPx": 68,
+            "centerPx": 578,
+            "spanPx": 987,
+            "tailHalfSpanPx": 190
+          },
+          "front": {
+            "boundsPx": [
+              77,
+              850,
+              1085,
+              1160
+            ],
+            "centerXPx": 576,
+            "shaftYPx": 1024,
+            "wingRootYPx": 1035,
+            "wingTipYPx": 989
+          },
+          "estimatedPickingTolerancePx": 3,
+          "registrationNote": "Top and side printing differ by ~2.6 percent in axial scale. Length and span registered independently; engine shaft horizontal in side drawing, ground line intentionally not used as flight datum.",
+          "plan": {
+            "noseX": 795,
+            "tailX": 68,
+            "centerY": 578,
+            "spanPx": 987,
+            "imagePath": "assets/aircraft/references/schematics/tbf-1c-avenger/buaer-tbf-1.jpg",
+            "sourceTransform": {
+              "operation": "transpose",
+              "description": "Reference original has nose down; transpose image so newX=oldY, newY=oldX; nose then points right."
+            }
+          }
+        }
+      }
+    }
+  ]
+}

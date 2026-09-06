@@ -1,0 +1,844 @@
+{
+  "schemaVersion": 1,
+  "id": "tbf-1c-avenger",
+  "reference": {
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Grumman_TBF-1_Avenger_BuAer_drawing.jpg",
+    "imagePath": "assets/aircraft/references/schematics/tbf-1c-avenger/buaer-tbf-1.jpg",
+    "sourceTitle": "U.S. Navy BuAer Descriptive Arrangement, 1 July 1943",
+    "variant": "MODEL TBF-1 & 1C; also TBM-1 & 1C",
+    "license": "Public domain, U.S. Navy Bureau of Aeronautics",
+    "notes": [
+      "The retained original sheet explicitly includes TBF-1C and wing-gun annotation; no variant extrapolation needed for principal silhouette.",
+      "Source dimensions include span 54 ft 2 in, tail span 20 ft 10 in, main tread 10 ft 6 in, propeller diameter 13 ft. Catalog length 12.48 m retained.",
+      "Fuselage under the canopy, hidden elliptic sections, root fairings, ventral glazing and turret depth remain reconstructed from orthographic silhouettes, not factory lofting."
+    ],
+    "registration": {
+      "imageSizePx": [
+        1134,
+        1810
+      ],
+      "side": {
+        "boundsPx": [
+          191,
+          1312,
+          951,
+          1623
+        ],
+        "noseXPx": 201,
+        "tailXPx": 946,
+        "shaftYPx": 1482,
+        "noseX": 201,
+        "tailX": 946,
+        "engineShaftY": 1482,
+        "imagePath": "assets/aircraft/references/schematics/tbf-1c-avenger/buaer-tbf-1.jpg"
+      },
+      "top": {
+        "boundsPx": [
+          83,
+          65,
+          1073,
+          798
+        ],
+        "lengthAxis": "y",
+        "noseAxisPx": 795,
+        "tailAxisPx": 68,
+        "centerPx": 578,
+        "spanPx": 987,
+        "tailHalfSpanPx": 190
+      },
+      "front": {
+        "boundsPx": [
+          77,
+          850,
+          1085,
+          1160
+        ],
+        "centerXPx": 576,
+        "shaftYPx": 1024,
+        "wingRootYPx": 1035,
+        "wingTipYPx": 989
+      },
+      "estimatedPickingTolerancePx": 3,
+      "registrationNote": "Top and side printing differ by ~2.6 percent in axial scale. Length and span registered independently; engine shaft horizontal in side drawing, ground line intentionally not used as flight datum.",
+      "plan": {
+        "noseX": 795,
+        "tailX": 68,
+        "centerY": 578,
+        "spanPx": 987,
+        "imagePath": "assets/aircraft/references/schematics/tbf-1c-avenger/buaer-tbf-1.jpg",
+        "sourceTransform": {
+          "operation": "transpose",
+          "description": "Reference original has nose down; transpose image so newX=oldY, newY=oldX; nose then points right."
+        }
+      }
+    }
+  },
+  "fuselage": [
+    [
+      0.05638,
+      0.6691,
+      -0.72032,
+      0.65332
+    ],
+    [
+      0.07114,
+      0.71928,
+      -0.82083,
+      0.75383
+    ],
+    [
+      0.13289,
+      0.75274,
+      -0.98835,
+      0.93809
+    ],
+    [
+      0.20537,
+      0.76946,
+      -1.05536,
+      1.08886
+    ],
+    [
+      0.24698,
+      0.76946,
+      -1.05536,
+      0.98835
+    ],
+    [
+      0.29396,
+      0.76946,
+      -1.07211,
+      0.87109
+    ],
+    [
+      0.35436,
+      0.76946,
+      -1.07211,
+      0.87109
+    ],
+    [
+      0.42148,
+      0.76946,
+      -1.07211,
+      0.85434
+    ],
+    [
+      0.48188,
+      0.73601,
+      -1.08886,
+      0.83758
+    ],
+    [
+      0.54228,
+      0.70255,
+      -1.08886,
+      0.98835
+    ],
+    [
+      0.60268,
+      0.63564,
+      -1.07211,
+      0.90459
+    ],
+    [
+      0.6698,
+      0.55201,
+      -0.98835,
+      0.93809
+    ],
+    [
+      0.73691,
+      0.46837,
+      -0.78733,
+      0.95485
+    ],
+    [
+      0.80403,
+      0.368,
+      -0.36854,
+      0.98835
+    ],
+    [
+      0.87114,
+      0.28437,
+      -0.23452,
+      0.87109
+    ],
+    [
+      0.92483,
+      0.16727,
+      -0.13401,
+      0.53605
+    ],
+    [
+      0.95168,
+      0.08364,
+      -0.0335,
+      0.30153
+    ],
+    [
+      0.95973,
+      0.01673,
+      0.06701,
+      0.11726
+    ]
+  ],
+  "wing": [
+    [
+      0.0,
+      0.24484,
+      0.53232,
+      -0.2
+    ],
+    [
+      0.09119,
+      0.24622,
+      0.53508,
+      -0.2
+    ],
+    [
+      0.23506,
+      0.24759,
+      0.53508,
+      -0.19
+    ],
+    [
+      0.38095,
+      0.2641,
+      0.51444,
+      -0.02
+    ],
+    [
+      0.52685,
+      0.28198,
+      0.49381,
+      0.12
+    ],
+    [
+      0.67882,
+      0.29849,
+      0.47318,
+      0.3
+    ],
+    [
+      0.82067,
+      0.31499,
+      0.45392,
+      0.44
+    ],
+    [
+      0.9382,
+      0.33012,
+      0.43604,
+      0.55
+    ],
+    [
+      0.98075,
+      0.33425,
+      0.43054,
+      0.59
+    ],
+    [
+      0.99291,
+      0.35213,
+      0.41953,
+      0.61
+    ],
+    [
+      1.0,
+      0.37689,
+      0.37689,
+      0.61
+    ]
+  ],
+  "horizontalTail": [
+    [
+      0.0,
+      0.82256,
+      0.91609,
+      0.85
+    ],
+    [
+      0.22105,
+      0.83219,
+      0.99862,
+      0.85
+    ],
+    [
+      0.44737,
+      0.84182,
+      0.99175,
+      0.85
+    ],
+    [
+      0.69474,
+      0.85144,
+      0.97799,
+      0.85
+    ],
+    [
+      0.84211,
+      0.8597,
+      0.95461,
+      0.85
+    ],
+    [
+      0.96316,
+      0.8652,
+      0.92572,
+      0.85
+    ],
+    [
+      1.0,
+      0.88996,
+      0.88996,
+      0.85
+    ]
+  ],
+  "tailSpan": 6.35643,
+  "fin": [
+    [
+      0.80537,
+      0.98835
+    ],
+    [
+      0.81879,
+      1.08886
+    ],
+    [
+      0.83087,
+      1.47415
+    ],
+    [
+      0.84698,
+      2.07721
+    ],
+    [
+      0.86174,
+      2.54626
+    ],
+    [
+      0.87383,
+      2.66352
+    ],
+    [
+      0.89128,
+      2.69702
+    ],
+    [
+      0.91409,
+      2.68027
+    ],
+    [
+      0.93826,
+      2.59651
+    ],
+    [
+      0.94899,
+      1.95995
+    ],
+    [
+      0.96242,
+      1.0386
+    ],
+    [
+      0.98121,
+      0.31828
+    ],
+    [
+      0.9557,
+      0.20102
+    ],
+    [
+      0.91544,
+      0.26803
+    ],
+    [
+      0.89396,
+      0.26803
+    ],
+    [
+      0.89396,
+      0.78733
+    ],
+    [
+      0.80537,
+      0.78733
+    ]
+  ],
+  "canopy": [
+    [
+      0.2349,
+      0.21746,
+      1.05536,
+      1.07211
+    ],
+    [
+      0.25101,
+      0.38473,
+      0.98835,
+      1.35689
+    ],
+    [
+      0.27114,
+      0.4851,
+      0.92134,
+      1.54115
+    ],
+    [
+      0.30738,
+      0.50182,
+      0.90459,
+      1.59141
+    ],
+    [
+      0.35839,
+      0.50182,
+      0.88784,
+      1.55791
+    ],
+    [
+      0.4094,
+      0.50182,
+      0.87109,
+      1.50765
+    ],
+    [
+      0.45772,
+      0.4851,
+      0.87109,
+      1.47415
+    ],
+    [
+      0.49128,
+      0.45164,
+      0.85434,
+      1.40714
+    ],
+    [
+      0.5047,
+      0.368,
+      0.85434,
+      0.90459
+    ]
+  ],
+  "cowling": {
+    "frontU": 0.05638,
+    "rearU": 0.20537,
+    "radiusM": 0.86
+  },
+  "propeller": {
+    "u": 0.03893,
+    "radiusM": 1.9812,
+    "blades": 3,
+    "spinnerLengthM": 0.38
+  },
+  "gear": {
+    "mainU": 0.28188,
+    "trackM": 3.2004,
+    "wheelRadiusM": 0.4318,
+    "wheelZM": -1.85944,
+    "tailU": 0.78389,
+    "tailWheelZM": -0.80408
+  },
+  "extras": {
+    "turretU": 0.533,
+    "turretZ": 0.98,
+    "seatUs": [
+      0.315
+    ],
+    "gunSpanFractions": [
+      0.28
+    ],
+    "antennaU": 0.34,
+    "antennaHeightM": 0.65,
+    "turret": {
+      "u": 0.533,
+      "centerZM": 0.98,
+      "radiusM": 0.43,
+      "gunLengthM": 1.04,
+      "note": "Distinct dorsal ball turret after canopy, not an extended greenhouse."
+    },
+    "canopyFrames": 8,
+    "dorsalSpine": {
+      "frontU": 0.57,
+      "rearU": 0.82,
+      "topZM": 1.03
+    },
+    "wingFoldSpanFraction": 0.245,
+    "wingSection": {
+      "root": "NACA 23015",
+      "tip": "NACA 23009"
+    },
+    "bombBay": {
+      "frontU": 0.17,
+      "rearU": 0.57,
+      "widthM": 1.12
+    },
+    "wingGuns": [
+      {
+        "spanFraction": 0.28,
+        "caliberMm": 12.7
+      }
+    ],
+    "antenna": {
+      "u": 0.34,
+      "heightM": 0.65
+    }
+  },
+  "measurement": {
+    "method": "Manual original raster pixel landmarks registered independently in top, side and front views. Linear metric conversion; intervening sections inferred.",
+    "lengthM": 12.48,
+    "wingspanM": 16.51,
+    "sideMetersPerPixel": 0.01675,
+    "topSpanMetersPerPixel": 0.01673,
+    "rawFuselagePixels": [
+      [
+        243,
+        40,
+        1525,
+        1443
+      ],
+      [
+        254,
+        43,
+        1531,
+        1437
+      ],
+      [
+        300,
+        45,
+        1541,
+        1426
+      ],
+      [
+        354,
+        46,
+        1545,
+        1417
+      ],
+      [
+        385,
+        46,
+        1545,
+        1423
+      ],
+      [
+        420,
+        46,
+        1546,
+        1430
+      ],
+      [
+        465,
+        46,
+        1546,
+        1430
+      ],
+      [
+        515,
+        46,
+        1546,
+        1431
+      ],
+      [
+        560,
+        44,
+        1547,
+        1432
+      ],
+      [
+        605,
+        42,
+        1547,
+        1423
+      ],
+      [
+        650,
+        38,
+        1546,
+        1428
+      ],
+      [
+        700,
+        33,
+        1541,
+        1426
+      ],
+      [
+        750,
+        28,
+        1529,
+        1425
+      ],
+      [
+        800,
+        22,
+        1504,
+        1423
+      ],
+      [
+        850,
+        17,
+        1496,
+        1430
+      ],
+      [
+        890,
+        10,
+        1490,
+        1450
+      ],
+      [
+        910,
+        5,
+        1484,
+        1464
+      ],
+      [
+        916,
+        1,
+        1478,
+        1475
+      ]
+    ],
+    "rawWingPixels": [
+      [
+        0,
+        617,
+        408,
+        -0.2
+      ],
+      [
+        45,
+        616,
+        406,
+        -0.2
+      ],
+      [
+        116,
+        615,
+        406,
+        -0.19
+      ],
+      [
+        188,
+        603,
+        421,
+        -0.02
+      ],
+      [
+        260,
+        590,
+        436,
+        0.12
+      ],
+      [
+        335,
+        578,
+        451,
+        0.3
+      ],
+      [
+        405,
+        566,
+        465,
+        0.44
+      ],
+      [
+        463,
+        555,
+        478,
+        0.55
+      ],
+      [
+        484,
+        552,
+        482,
+        0.59
+      ],
+      [
+        490,
+        539,
+        490,
+        0.61
+      ],
+      [
+        493.5,
+        521,
+        521,
+        0.61
+      ]
+    ],
+    "rawTailPixels": [
+      [
+        0,
+        197,
+        129,
+        0.85
+      ],
+      [
+        42,
+        190,
+        69,
+        0.85
+      ],
+      [
+        85,
+        183,
+        74,
+        0.85
+      ],
+      [
+        132,
+        176,
+        84,
+        0.85
+      ],
+      [
+        160,
+        170,
+        101,
+        0.85
+      ],
+      [
+        183,
+        166,
+        122,
+        0.85
+      ],
+      [
+        190,
+        148,
+        148,
+        0.85
+      ]
+    ],
+    "rawFinPixels": [
+      [
+        801,
+        1423
+      ],
+      [
+        811,
+        1417
+      ],
+      [
+        820,
+        1394
+      ],
+      [
+        832,
+        1358
+      ],
+      [
+        843,
+        1330
+      ],
+      [
+        852,
+        1323
+      ],
+      [
+        865,
+        1321
+      ],
+      [
+        882,
+        1322
+      ],
+      [
+        900,
+        1327
+      ],
+      [
+        908,
+        1365
+      ],
+      [
+        918,
+        1420
+      ],
+      [
+        932,
+        1463
+      ],
+      [
+        913,
+        1470
+      ],
+      [
+        883,
+        1466
+      ],
+      [
+        867,
+        1466
+      ],
+      [
+        867,
+        1435
+      ],
+      [
+        801,
+        1435
+      ]
+    ],
+    "rawCanopyPixels": [
+      [
+        376,
+        13,
+        1419,
+        1418
+      ],
+      [
+        388,
+        23,
+        1423,
+        1401
+      ],
+      [
+        403,
+        29,
+        1427,
+        1390
+      ],
+      [
+        430,
+        30,
+        1428,
+        1387
+      ],
+      [
+        468,
+        30,
+        1429,
+        1389
+      ],
+      [
+        506,
+        30,
+        1430,
+        1392
+      ],
+      [
+        542,
+        29,
+        1430,
+        1394
+      ],
+      [
+        567,
+        27,
+        1431,
+        1398
+      ],
+      [
+        577,
+        22,
+        1431,
+        1428
+      ]
+    ]
+  }
+}

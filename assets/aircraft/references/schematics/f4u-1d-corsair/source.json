@@ -1,0 +1,475 @@
+{
+  "schemaVersion": 1,
+  "aircraftId": "f4u-1d-corsair",
+  "retrievedAt": "2026-09-05",
+  "sources": [
+    {
+      "sourceUrl": "https://www.vought.org/photo/html/pdown.html",
+      "imagePath": "assets/aircraft/references/schematics/f4u-1d-corsair/vought-1532_016_22.png",
+      "sourceTitle": "Vought Heritage F4U-1D line drawing 1532_016",
+      "variant": "F4U-1D",
+      "author": "Vought aircraft archive, preserved by Vought Heritage",
+      "license": "Archive drawing; original attribution retained; reference use only, not included as an aircraft texture",
+      "originalPath": "assets/aircraft/references/schematics/f4u-1d-corsair/vought-1532_016_22.gif",
+      "downloadUrl": "https://www.vought.org/photo/html/pimages/down/1532_016_22.gif",
+      "supplementalSources": [
+        {
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Vought_F4U-1_Corsair_3-view.svg",
+          "imagePath": "assets/aircraft/references/schematics/f4u-1d-corsair/f4u-1-threeview.png",
+          "originalPath": "assets/aircraft/references/schematics/f4u-1d-corsair/f4u-1-threeview.svg",
+          "author": "Kaboldy",
+          "license": "CC BY-SA 3.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+          "use": "Panel detail, section topology and outline cross-check; caption gives F4U-1 family rather than exact -1D"
+        },
+        {
+          "sourceUrl": "https://airandspace.si.edu/collection-objects/vought-f4u-1d-corsair/nasm_A19610124000",
+          "use": "10.20 m length, 12.50 m span and later 13 ft 1 in propeller diameter; restored airframe dimensions."
+        }
+      ],
+      "notes": [
+        "Primary F4U-1D manufacturer/archive three-view visually inspected. Raster 1584 \u00d7 1016; measured original pixels are retained below.",
+        "Plan is rotated 90 degrees relative to side: converted plan x = 492 - original image y; span offset = original image x - 313.",
+        "The primary drawing labels 16 ft 6 in horizontal tail span and 12 ft 1 in landing-gear track; those values override measurement noise. Its 13 ft 4 in early propeller differs from later 13 ft 1 in Smithsonian example; the model uses the latter and records the variant difference.",
+        "Wing front contour measured against shaft at original image y=795: root at y=810, minimum at y=834 near x=411, tip near y=797. Mesh z is the airfoil midline, not its lower surface.",
+        "Fin and cockpit are separate from the tapered body. The late -1D clear sliding hood uses only end hoops and windshield framing; manufacturing sections, panel fasteners, and wheel extension kinematics remain approximate."
+      ],
+      "registration": {
+        "side": {
+          "boundsPx": [
+            868,
+            635,
+            1311,
+            887
+          ],
+          "nosePx": [
+            868,
+            793
+          ],
+          "tailPx": [
+            1311,
+            793
+          ],
+          "shaftYPx": 793,
+          "metersPerPixel": 0.02302
+        },
+        "plan": {
+          "noseXPx": 0,
+          "tailXPx": 432,
+          "centerYPx": 313,
+          "halfSpanPx": 274,
+          "spanMetersPerPixel": 0.02281,
+          "sourceTransform": "x=492-sourceY; span=sourceX-313"
+        },
+        "rawLandmarksPx": {
+          "fuselage": [
+            [
+              899,
+              25,
+              813,
+              773
+            ],
+            [
+              904,
+              30,
+              821,
+              766
+            ],
+            [
+              921,
+              32,
+              823,
+              765
+            ],
+            [
+              935,
+              32,
+              823,
+              764
+            ],
+            [
+              948,
+              33,
+              823,
+              763
+            ],
+            [
+              964,
+              33,
+              824,
+              762
+            ],
+            [
+              994,
+              32,
+              819,
+              760
+            ],
+            [
+              1037,
+              29,
+              818,
+              756
+            ],
+            [
+              1065,
+              27,
+              818,
+              766
+            ],
+            [
+              1083,
+              25,
+              818,
+              773
+            ],
+            [
+              1107,
+              22,
+              817,
+              749
+            ],
+            [
+              1137,
+              19,
+              814,
+              749
+            ],
+            [
+              1170,
+              16,
+              809,
+              752
+            ],
+            [
+              1209,
+              12,
+              802,
+              758
+            ],
+            [
+              1240,
+              9,
+              793,
+              768
+            ],
+            [
+              1272,
+              6,
+              784,
+              774
+            ],
+            [
+              1295,
+              3,
+              781,
+              775
+            ],
+            [
+              1311,
+              0.5,
+              778,
+              776
+            ]
+          ],
+          "wing": [
+            [
+              0,
+              94,
+              208,
+              -0.28
+            ],
+            [
+              33,
+              94,
+              208,
+              -0.38
+            ],
+            [
+              62,
+              94,
+              208,
+              -0.58
+            ],
+            [
+              98,
+              95,
+              208,
+              -0.75
+            ],
+            [
+              120,
+              96,
+              205,
+              -0.69
+            ],
+            [
+              160,
+              99,
+              200,
+              -0.54
+            ],
+            [
+              200,
+              103,
+              194,
+              -0.39
+            ],
+            [
+              235,
+              107,
+              186,
+              -0.26
+            ],
+            [
+              251,
+              114,
+              179,
+              -0.2
+            ],
+            [
+              261,
+              122,
+              168,
+              -0.155
+            ],
+            [
+              269,
+              133,
+              153,
+              -0.125
+            ],
+            [
+              273,
+              141,
+              143,
+              -0.105
+            ],
+            [
+              274,
+              142,
+              142.5,
+              -0.1
+            ]
+          ],
+          "horizontalTail": [
+            [
+              0,
+              362,
+              423,
+              0.43
+            ],
+            [
+              20,
+              365,
+              421,
+              0.43
+            ],
+            [
+              45,
+              369,
+              417,
+              0.43
+            ],
+            [
+              72,
+              374,
+              414,
+              0.43
+            ],
+            [
+              96,
+              380,
+              410,
+              0.43
+            ],
+            [
+              106,
+              385,
+              403,
+              0.43
+            ],
+            [
+              111,
+              392,
+              396,
+              0.43
+            ]
+          ],
+          "tailHalfSpanPx": 111,
+          "fin": [
+            [
+              1208,
+              758
+            ],
+            [
+              1212,
+              741
+            ],
+            [
+              1218,
+              718
+            ],
+            [
+              1223,
+              705
+            ],
+            [
+              1230,
+              699
+            ],
+            [
+              1239,
+              696
+            ],
+            [
+              1248,
+              698
+            ],
+            [
+              1258,
+              704
+            ],
+            [
+              1266,
+              715
+            ],
+            [
+              1270,
+              728
+            ],
+            [
+              1277,
+              754
+            ],
+            [
+              1281,
+              769
+            ],
+            [
+              1262,
+              769
+            ],
+            [
+              1234,
+              764
+            ],
+            [
+              1213,
+              761
+            ]
+          ],
+          "canopy": [
+            [
+              1037,
+              1,
+              757,
+              756
+            ],
+            [
+              1049,
+              12,
+              763,
+              747
+            ],
+            [
+              1064,
+              19,
+              767,
+              738
+            ],
+            [
+              1073,
+              21,
+              770,
+              738
+            ],
+            [
+              1083,
+              21,
+              772,
+              740
+            ],
+            [
+              1093,
+              21,
+              773,
+              744
+            ],
+            [
+              1101,
+              19,
+              771,
+              749
+            ],
+            [
+              1107,
+              1,
+              767,
+              749
+            ]
+          ]
+        },
+        "method": "Manual visual landmark measurement of preserved orthographic raster; each view independently registered to catalog length/span. Fuselage cross sections use elliptical interpolation between side and plan envelopes. Hidden wing roots and canopy bases are interpolated; a drawing is not a manufacturing loft.",
+        "front": {
+          "shaftPx": [
+            313,
+            795
+          ],
+          "wingRootPx": [
+            345,
+            810
+          ],
+          "gullBreakPx": [
+            411,
+            834
+          ],
+          "tipPx": [
+            584,
+            797
+          ],
+          "metersPerPixel": 0.02297794117647059
+        }
+      }
+    }
+  ],
+  "inspection": {
+    "status": "visually inspected actual source rasters and station overlays",
+    "overlay": "assets/aircraft/references/schematics/f4u-1d-corsair/registration-overlay.png",
+    "method": "Red planform edges, purple fin boundary, orange side body envelope, blue canopy envelope. Root and hidden hull lines are reconstructions."
+  },
+  "retainedFiles": [
+    {
+      "file": "measurement-side.png",
+      "sha256": "26c8d05696060cb9f66c89778dfabd821a5c9b26ed91930d885af8c72c4c10a9"
+    },
+    {
+      "file": "vought-1532_016_22.gif",
+      "sha256": "e736e108ed6e9bca0ed51107dd1669b598d82393b66c2d69bb05391930f0cca2"
+    },
+    {
+      "file": "f4u-1-threeview.svg",
+      "sha256": "717bba744ef5bcec4c70030ada07ca55f1c3af8666b5bb5b56264b5d96e78db9"
+    },
+    {
+      "file": "registration-overlay.png",
+      "sha256": "4fc3f99cfd64e7f5547fd2bd2c7c23e8c9df6a842dfb1894e374a549e6f298fe"
+    },
+    {
+      "file": "measurement-front.png",
+      "sha256": "9c3b6a00165546445aca9b099779404e03042fcd6869146d6ecc8e9bcfb6613e"
+    },
+    {
+      "file": "vought-1532_016_22.png",
+      "sha256": "c5464eaaac26ea0b1e1be7e7faae1b73876e305653fe4dddd7eb8cf7b16884dc"
+    },
+    {
+      "file": "f4u-1-threeview.png",
+      "sha256": "3f3c4bbbd15f2f5ff03198bbeb97ce0306288e88be81b85ed39886f9894213dc"
+    },
+    {
+      "file": "measurement-top.png",
+      "sha256": "af5f3abe2d0f0ffe208eb59ef18daec35a4f198ff5c046ac46028694083d2ab2"
+    }
+  ]
+}
