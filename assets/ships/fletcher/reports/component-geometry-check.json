@@ -1,7 +1,7 @@
 {
   "recipeSha256": "24757a9c2bdc625942cbfb8b67cbc1933adf29b063976593849b128b52453d01",
-  "sourceBlendSha256": "d2b2cf852ddb6bf7a1543a50e0d7b977d49cfacb7e689f7214d07222fd03c11a",
-  "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+  "sourceBlendSha256": "482524dbbc965168783781648556118acdbd112bb3783ceda880c2a6dffc87bd",
+  "contentHash": "21547dc10500b4bf4ce24f8709a5276f6db3f05958261afedcd6f1f5914ea62e",
   "closedBlades": [
     {
       "name": "propeller-port.blade-1",

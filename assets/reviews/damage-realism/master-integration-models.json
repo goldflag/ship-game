@@ -1,0 +1,42 @@
+[
+  {
+    "shipId": "bismarck",
+    "referenceCommit": "4f808b6",
+    "contentHash": "bba69db7f1a6b87663e9aaf6fbde5d8cd04e1b41d9d20b69a62504c9cc0307b7",
+    "sceneIdenticalExceptDefinitionHash": true,
+    "meshAndTextureBuffersIdentical": true,
+    "binaryBufferHash": "b4fc68162435bd31705d8285a7a1dea9f6451b943c30f3601602509f50f87f32"
+  },
+  {
+    "shipId": "yamato",
+    "referenceCommit": "4f808b6",
+    "contentHash": "52bc6ae075d608d78bde554345204b5fa824395fa2b0c59d7eab0195e31b9fc4",
+    "sceneIdenticalExceptDefinitionHash": true,
+    "meshAndTextureBuffersIdentical": true,
+    "binaryBufferHash": "8ab4b0ba964a9b76ce49ee5bd7f037fc0d19ce64910997bd00e2dc9f9e99f14e"
+  },
+  {
+    "shipId": "baltimore",
+    "referenceCommit": "4f808b6",
+    "contentHash": "7714f86beb0775f2b1620257f30efb1704437944de1e075dbe3e8122a3ff7da1",
+    "sceneIdenticalExceptDefinitionHash": true,
+    "meshAndTextureBuffersIdentical": true,
+    "binaryBufferHash": "0049fb8ec1851fb665f245486408c01c7d255024dc148900766e44158ade8031"
+  },
+  {
+    "shipId": "enterprise-cv6",
+    "referenceCommit": "4f808b6",
+    "contentHash": "29a1046939517642e8cdff7bd844e80ff030200003e886506c3541512c48a0d1",
+    "sceneIdenticalExceptDefinitionHash": true,
+    "meshAndTextureBuffersIdentical": true,
+    "binaryBufferHash": "a54c1b81dac1de86742d400ebac576bcd6c369c93189426b0045f54206e31e1f"
+  },
+  {
+    "shipId": "type-viic",
+    "referenceCommit": "d04f69e",
+    "contentHash": "50d60f41823e06dc6d9cbdfebbab37c9652b0864312bb8f21e91abdc35be5d53",
+    "sceneIdenticalExceptDefinitionHash": true,
+    "meshAndTextureBuffersIdentical": true,
+    "binaryBufferHash": "68fbf6652acc72eda44ea6eb02fa39ed0df170fa173d7545f8b3c76feadd3729"
+  }
+]

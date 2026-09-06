@@ -1,0 +1,84 @@
+[
+  {
+    "backend": "webgpu",
+    "contentHash": "ef5c6fefab2763a1ee2669c7a46c8afcc9f3df4bf625d8dcb47bc68b5f086068",
+    "kind": "articulation",
+    "mounts": 10,
+    "poses": [
+      {
+        "elevationFraction": 0,
+        "maxMuzzleErrorM": 0.0021606264682258102,
+        "recoilFraction": 0,
+        "trainFraction": -1
+      },
+      {
+        "elevationFraction": 0,
+        "maxMuzzleErrorM": 0.0021606264682259655,
+        "recoilFraction": 1,
+        "trainFraction": -1
+      },
+      {
+        "elevationFraction": 1,
+        "maxMuzzleErrorM": 0.002160644052370134,
+        "recoilFraction": 0,
+        "trainFraction": -1
+      },
+      {
+        "elevationFraction": 1,
+        "maxMuzzleErrorM": 0.002160644052370134,
+        "recoilFraction": 1,
+        "trainFraction": -1
+      },
+      {
+        "elevationFraction": 0,
+        "maxMuzzleErrorM": 0.002160560532326433,
+        "recoilFraction": 0,
+        "trainFraction": 0
+      },
+      {
+        "elevationFraction": 0,
+        "maxMuzzleErrorM": 0.002160560532326433,
+        "recoilFraction": 1,
+        "trainFraction": 0
+      },
+      {
+        "elevationFraction": 1,
+        "maxMuzzleErrorM": 0.0021606971466146875,
+        "recoilFraction": 0,
+        "trainFraction": 0
+      },
+      {
+        "elevationFraction": 1,
+        "maxMuzzleErrorM": 0.002160697146613799,
+        "recoilFraction": 1,
+        "trainFraction": 0
+      },
+      {
+        "elevationFraction": 0,
+        "maxMuzzleErrorM": 0.002166615737759897,
+        "recoilFraction": 0,
+        "trainFraction": 1
+      },
+      {
+        "elevationFraction": 0,
+        "maxMuzzleErrorM": 0.0021666157377656877,
+        "recoilFraction": 1,
+        "trainFraction": 1
+      },
+      {
+        "elevationFraction": 1,
+        "maxMuzzleErrorM": 0.0021659620129128193,
+        "recoilFraction": 0,
+        "trainFraction": 1
+      },
+      {
+        "elevationFraction": 1,
+        "maxMuzzleErrorM": 0.002165962012911933,
+        "recoilFraction": 1,
+        "trainFraction": 1
+      }
+    ],
+    "shipId": "bismarck",
+    "time": "2026-09-06T04:30:11.588Z"
+  }
+]

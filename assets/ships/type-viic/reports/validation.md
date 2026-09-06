@@ -1,3 +1,22 @@
+# U-570 fidelity validation · 6 September 2026
+
+Current export: `0cdcb80b8790f728b709cd73c96abb53655305d5c03259983b1f0b91594ffe63`.
+
+- `ship:compile`, `ship:build`, `ship:review`, `ship:compare` and the production build's `ship:check`: passed. Local Blender used; no Blender MCP tools available.
+- `bun test --timeout 60000`: **428 passed, 0 failed**, 54 files, 167,136 expectations (129.42 seconds).
+- `bun run build`: **passed**, including all fleet/aircraft checks, TypeScript and Vite. Existing large-chunk advisory remains; no build error.
+- Actual exported hull: 47,594 triangles, zero degenerate triangles, zero nonmanifold edges. Four primary dimensional targets, fourteen exported landmarks, six compound spaces and four structural probes pass. Full model: 80,300 triangles, 41 meshes, 2,391,124 bytes.
+- Twelve matched source/original/current views and five standard views inspected. In-game port, gun traverse/elevation/recoil, all eight submarine joints, torpedo launch, deck-gun fire, 50 m dive, 7 m recovery and battle reset inspected.
+- UI launch reduced torpedoes 14→13; deck-gun fire reduced main ammunition 220→219. The actual simulation reached 49.99988 m depth at 3.90977 m/s and returned to 7.0000015 m, with camera Y≈2.849499 m. Reset restored 220/1100 shells, 14 torpedoes and a zero-depth order.
+- Real WebGPU water visibility checks at 7/50/150 m passed: about 12.36% of frame pixels clearly distinguish the hull, against a 2% minimum. Surface and periscope absorption coefficients restored. Pinned visibility fixtures and the deliberately seeded stern articulation pose are labelled separately from UI battle records.
+- Portable review ZIP integrity passed (102 entries, about 50 MiB). Browser review: twelve views, historical overlay selectable, runtime gallery present, no broken loaded images or horizontal overflow. Port exposes the `Reference review` link.
+
+Evidence: [fidelity report](fidelity-01/README.md), [measurements](measurements.json), [runtime records](fidelity-01/runtime/review.json), [source register](../references/sources.json), [remaining discrepancies](discrepancies.md). Principal dimensions and dated fitting choices have primary evidence; export/test success does not certify complete historical accuracy.
+
+---
+
+The following is the preserved earlier feature validation, before the fidelity pass:
+
 # Type VIIC validation · 2026-09-05
 
 Playable generic 1941 Type VIIC for **surface combat**. Diving, sonar and depth charges are outside this update. Export and gameplay checks do not certify historical accuracy; see the [discrepancy register](discrepancies.md) and [retained references](../references/sources.json).
@@ -59,3 +78,9 @@ Integrated `origin/master` at `02008e4` before merging this feature. Preserved t
 The combined version passes **282 tests across 39 files**, 33,070 assertions, with `bun test --timeout 15000`; `bun run typecheck` and `bun run build` also pass. No asset recipe, compiler, blueprint or catalog changed during integration, so the previously built model/hash and articulation checks remain applicable.
 
 The actual port Statistics panel was opened in-game and showed five tubes, fourteen rounds, 533 mm diameter, 44 kn speed, 5 km range and 300 m arming distance at simulation tick zero. See [visible panel text](ui-port-statistics.json). Capturing this integrated panel timed out; no new screenshot is recorded.
+
+## Damage-realism integration, 2026-09-05
+
+The earlier combat screenshots above record the original hull-HP implementation. The combined version uses local module damage, positional flood openings, finite damage-control crews and permanent weapon loss. Torpedo hits cannot sink a hull by subtracting abstract HP or automatically detonate a magazine when its module reaches zero. Flooded supply spaces disable tubes until drained; loaded tubes preserve fighting strength after the deck guns are lost. Six module immersion cutoffs use the fleet's provisional 0.3 m estimate. The submarine retains its six-room waterplane/reserve-buoyancy approximation pending an authored stability profile.
+
+Rebuilt the model through `ship:build`, inspected its five fixed views, and verified mounted articulation at both traverse limits, full elevation and recoil. The maximum muzzle mismatch was 0.002 mm. Scene transforms, hierarchy, mesh and texture bytes match the original model; the definition hash changed for the compiler and module metadata. The final five-ship build passes. Torpedo coverage passes 24 tests, and all 373 combined test cases are verified; see the [integration report](../../../reviews/damage-realism/master-integration.md) for run details and evidence.

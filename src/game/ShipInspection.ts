@@ -1,8 +1,12 @@
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { positionWorld, float } from 'three/tsl';
+import { waterLevel as compartmentWaterLevel } from '../simulation/stability';
 import * as THREE from 'three/webgpu';
 import { materialColor, mix, normalFlat, uniform, vec3 } from 'three/tsl';
 import type { ShipDefinition } from '../ships/blueprint';
 import { inspectionColor, inspectionEntries, type InspectionMode, type InspectionEntry } from '../ships/inspection';
 import type { Combatant } from '../simulation/damage';
+import { equipmentCondition } from '../simulation/machinery';
 import { radians } from '../simulation/geometry';
 import { EXTERIOR_PLATING_REPLACEMENT_M } from '../simulation/structure';
 
@@ -15,7 +19,7 @@ export class ShipInspection {
   hoveredId?: string;
   private hoverColor = new THREE.Color('#ffffff');
   private armorShading = uniform(0);
-  private volumes: { entry: InspectionEntry; color: string; group: THREE.Group; fill: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial | THREE.MeshBasicNodeMaterial>; outline: THREE.LineSegments<THREE.EdgesGeometry, THREE.LineBasicMaterial>; water?: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial> }[] = [];
+  private volumes: { entry: InspectionEntry; color: string; group: THREE.Group; fill: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial | THREE.MeshBasicNodeMaterial>; outline: THREE.LineSegments<THREE.EdgesGeometry, THREE.LineBasicMaterial>; water?: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicNodeMaterial>; waterline?: { value: number } }[] = [];
   constructor(private definition: ShipDefinition) {
     this.entries = inspectionEntries(definition);
     this.root.name = 'Ship inspection'; this.root.visible = false;
@@ -29,7 +33,7 @@ export class ShipInspection {
     const shade = normalFlat.dot(vec3(-.55, .8, .7).normalize()).max(0).mul(.68).add(.32);
     const armorColor = materialColor.mul(mix(1, shade, this.armorShading));
     this.volumes = this.entries.map(entry => {
-      const geometry = entry.surface ? surfaceGeometry(entry, definition) : entry.plate ? plateGeometry(entry) : new THREE.BoxGeometry(...entry.size), group = new THREE.Group();
+      const geometry = entry.surface ? surfaceGeometry(entry, definition) : entry.plate ? plateGeometry(entry) : entry.cells ? cellGeometry(entry) : new THREE.BoxGeometry(...entry.size), group = new THREE.Group();
       group.position.fromArray(entry.anchor ?? entry.center); group.userData.inspectionId = entry.id;
       const color = inspectionColor(entry);
       const Material = entry.kind === 'armor' ? THREE.MeshBasicNodeMaterial : THREE.MeshBasicMaterial;
@@ -39,12 +43,15 @@ export class ShipInspection {
       const outline = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color, transparent: true, depthWrite: false, depthTest: entry.kind === 'armor', toneMapped: entry.kind !== 'armor' }));
       fill.renderOrder = 100; outline.renderOrder = 102;
       group.add(fill, outline); this.root.add(group);
-      let water: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial> | undefined;
+      let water: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicNodeMaterial> | undefined;
+      const waterline = uniform(0);
       if (entry.compartmentIndex !== undefined) {
-        water = new THREE.Mesh(geometry as THREE.BoxGeometry, new THREE.MeshBasicMaterial({ color: '#519fc0', transparent: true, opacity: .45, depthWrite: false, depthTest: false }));
+        const material = new THREE.MeshBasicNodeMaterial({ color: '#519fc0', transparent: true, depthWrite: false, depthTest: false });
+        material.opacityNode = positionWorld.y.lessThanEqual(waterline).select(float(.45), float(0));
+        water = new THREE.Mesh(geometry, material);
         water.renderOrder = 101; water.visible = false; group.add(water);
       }
-      return { entry, color, group, fill, outline, water };
+      return { entry, color, group, fill, outline, water, waterline };
     });
   }
   setMode(mode: InspectionMode | 'all', selectedId?: string): void {
@@ -81,12 +88,16 @@ export class ShipInspection {
     const candidates = this.volumes.filter(v => v.group.visible && this.inMode(v.entry));
     const hits = raycaster.intersectObjects(candidates.map(v => v.fill), false);
     const entryOf = (object?: THREE.Object3D) => candidates.find(v => v.fill === object)?.entry;
-    const nearest = hits[0];
+    // Compound residual spaces wrap the detailed room layout. Let the specific
+    // rooms and equipment remain hoverable through that context; the residual
+    // cells are still pickable alone, in empty areas, or after row isolation.
+    const nearest = this.mode === 'internals' && !this.selectedId
+      ? hits.find(hit => !entryOf(hit.object)?.cells) ?? hits[0] : hits[0];
     if (this.mode === 'armor' || !nearest) return entryOf(nearest?.object);
     // A compartment encloses its modules, so its near face is always the first hit. Prefer a
     // module struck before the ray leaves that compartment; deeper spaces stay behind it.
     const exit = hits.find(hit => hit.object === nearest.object && hit.distance > nearest.distance)?.distance ?? Infinity;
-    const module = hits.find(hit => hit.distance <= exit && entryOf(hit.object)?.moduleIndex !== undefined);
+    const module = hits.find(hit => hit.distance >= nearest.distance && hit.distance <= exit && entryOf(hit.object)?.moduleIndex !== undefined);
     return entryOf((module ?? nearest).object);
   }
   setHovered(id?: string): void {
@@ -114,18 +125,24 @@ export class ShipInspection {
   update(actor: Combatant): void {
     if (!this.root.visible) return;
     this.volumes.forEach(volume => {
-      const { entry, group, fill, water } = volume;
+      const { entry, group, fill, water, waterline } = volume;
       group.visible = this.inMode(entry) && (!this.selectedId || entry.id === this.selectedId);
       this.paint(volume);
       if (entry.moduleIndex !== undefined) {
         const condition = actor.damage.modules[entry.moduleIndex].hp / this.definition.modules[entry.moduleIndex].hp;
         if (condition < 1) { fill.material.color.set(condition <= 0 ? '#d36b4f' : '#dfbd83'); if (entry.id === this.hoveredId) fill.material.color.lerp(this.hoverColor, .3); }
+        if (equipmentCondition(actor, this.definition, this.definition.modules[entry.moduleIndex]).reason === 'flooded') fill.material.color.set('#519fc0');
       }
       if (entry.mountIndex !== undefined) group.rotation.y = -(radians(entry.bearingDeg!) + actor.mounts[entry.mountIndex].train);
       if (water && entry.compartmentIndex !== undefined) {
         const fraction = actor.damage.compartments[entry.compartmentIndex].waterM3 / entry.capacityM3!;
-        water.visible = fraction > .0001; water.scale.y = Math.max(.001, fraction);
-        water.position.y = -entry.size[1] / 2 + entry.size[1] * fraction / 2;
+        // Combat emphasizes consequences; the complete dry layout stays
+        // available in the port's Internals view and through selection.
+        const fire = actor.damage.control.rooms[entry.compartmentIndex].intensity;
+        if (fire > 0) { fill.material.color.set('#e69b57'); fill.material.opacity = .12; }
+        if (this.mode === 'all' && entry.id !== this.selectedId && fraction <= .0001 && fire <= 0) group.visible = false;
+        water.visible = fraction > .0001;
+        waterline!.value = compartmentWaterLevel(actor, this.definition, entry.compartmentIndex);
       }
     });
   }
@@ -196,4 +213,9 @@ function plateGeometry(entry: InspectionEntry): THREE.BufferGeometry {
   for (let i=1;i<n-1;i++) indices.push(0,i+1,i,n,n+i,n+i+1);
   for (let i=0;i<n;i++) { const j=(i+1)%n; indices.push(i,j,n+j,i,n+j,n+i); }
   const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));geometry.setIndex(indices);geometry.computeVertexNormals();return geometry;
+}
+
+function cellGeometry(entry: InspectionEntry): THREE.BufferGeometry {
+  const boxes = entry.cells!.map(c => new THREE.BoxGeometry(...c.size).translate(c.center[0] - entry.center[0], c.center[1] - entry.center[1], c.center[2] - entry.center[2]));
+  const geometry = mergeGeometries(boxes)!; boxes.forEach(b => b.dispose()); return geometry;
 }

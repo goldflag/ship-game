@@ -13414,7 +13414,21 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 1000 m, 10 m launch/sea target, nominal speed (508.570 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 508.569711
+        },
+        "he": {
+          "explosiveKg": 0.00984,
+          "fragmentPenetrationMm": 3.3333,
+          "damage": 1.2,
+          "stockFraction": 0.4,
+          "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
+        }
       }
     },
     {
@@ -13461,7 +13475,21 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 1000 m, 10 m launch/sea target, nominal speed (508.570 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 508.569711
+        },
+        "he": {
+          "explosiveKg": 0.00984,
+          "fragmentPenetrationMm": 3.3333,
+          "damage": 1.2,
+          "stockFraction": 0.4,
+          "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
+        }
       }
     },
     {
@@ -13508,7 +13536,21 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 1000 m, 10 m launch/sea target, nominal speed (508.570 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 508.569711
+        },
+        "he": {
+          "explosiveKg": 0.00984,
+          "fragmentPenetrationMm": 3.3333,
+          "damage": 1.2,
+          "stockFraction": 0.4,
+          "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
+        }
       }
     },
     {
@@ -13555,7 +13597,21 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 1000 m, 10 m launch/sea target, nominal speed (508.570 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 508.569711
+        },
+        "he": {
+          "explosiveKg": 0.00984,
+          "fragmentPenetrationMm": 3.3333,
+          "damage": 1.2,
+          "stockFraction": 0.4,
+          "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
+        }
       }
     },
     {
@@ -13602,7 +13658,21 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 1000 m, 10 m launch/sea target, nominal speed (508.570 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 508.569711
+        },
+        "he": {
+          "explosiveKg": 0.00984,
+          "fragmentPenetrationMm": 3.3333,
+          "damage": 1.2,
+          "stockFraction": 0.4,
+          "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
+        }
       }
     },
     {
@@ -13649,7 +13719,21 @@
         "caliberM": 0.02,
         "reloadSeconds": 0.45,
         "muzzleSpeed": 835,
-        "projectileMassKg": 0.123
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 1000 m, 10 m launch/sea target, nominal speed (508.570 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 508.569711
+        },
+        "he": {
+          "explosiveKg": 0.00984,
+          "fragmentPenetrationMm": 3.3333,
+          "damage": 1.2,
+          "stockFraction": 0.4,
+          "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
+        }
       }
     }
   ],
@@ -38113,5 +38197,5 @@
     "note": "Estimated structural steel for gameplay collision and inspection; not a verified armor schedule."
   },
   "compilerVersion": 1,
-  "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918"
+  "contentHash": "21547dc10500b4bf4ce24f8709a5276f6db3f05958261afedcd6f1f5914ea62e"
 }

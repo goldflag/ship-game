@@ -3,6 +3,7 @@ import { torpedoArcLabel } from './armament';
 import { maxHullIntegrity } from '../simulation/damage';
 import { KNOTS_PER_MPS } from '../simulation/ship';
 import { GRAVITY } from '../simulation/weapons';
+import { ballisticStep } from '../simulation/ballistics';
 
 /** One figure on the port statistics sheet. `text` values are names, not measurements. */
 export interface StatRow { label: string; value: string; unit?: string; help: string; text?: boolean }
@@ -30,7 +31,24 @@ const damagePerMinute = (mounts: ShipDefinition['mounts']) => mounts.reduce((n, 
 /** Flat-water range of the low ballistic arc, limited by elevation and the solver's range cap. */
 export function maximumRangeM(weapon: GunPart): number {
   const elevation = Math.min(weapon.elevationMaxDeg, 45) * Math.PI / 180;
-  return Math.min(MAX_BALLISTIC_RANGE_M, weapon.muzzleSpeed ** 2 * Math.sin(2 * elevation) / GRAVITY);
+  const drag = weapon.ballistics?.dragPerSecond ?? 0;
+  if (drag < 1e-8) return Math.min(MAX_BALLISTIC_RANGE_M, weapon.muzzleSpeed ** 2 * Math.sin(2 * elevation) / GRAVITY);
+  const rangeAt = (angle: number) => {
+    const velocity: [number, number, number] = [weapon.muzzleSpeed * Math.cos(angle), weapon.muzzleSpeed * Math.sin(angle), 0];
+    let low = 0, high = 180;
+    for (let i = 0; i < 32; i++) {
+      const time = (low + high) / 2;
+      if (ballisticStep([0, 0, 0], velocity, time, drag).position[1] > 0) low = time; else high = time;
+    }
+    return ballisticStep([0, 0, 0], velocity, (low + high) / 2, drag).position[0];
+  };
+  // Drag shifts the maximum below 45 degrees; search the permitted low arc.
+  let low = Math.max(0, weapon.elevationMinDeg) * Math.PI / 180, high = elevation;
+  for (let i = 0; i < 24; i++) {
+    const a = low + (high - low) / 3, b = high - (high - low) / 3;
+    if (rangeAt(a) < rangeAt(b)) low = a; else high = b;
+  }
+  return Math.min(MAX_BALLISTIC_RANGE_M, rangeAt((low + high) / 2));
 }
 const knots = (metersPerSecond: number) => metersPerSecond * KNOTS_PER_MPS;
 const format = (n: number, digits = 0) => n.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
@@ -46,7 +64,7 @@ export function shipScores(def: ShipDefinition): StatScore[] {
   const planRoot = Math.sqrt(def.hull.length * def.hull.beam);
   const score = (value: number) => Math.round(clamp(value, 0, 100));
   return [
-    { id: 'survivability', label: 'Survivability', score: score(70 * maxHullIntegrity(def) / r.hullIntegrity + 30 * armorMm / r.armorMm), help: `Hull integrity against ${format(r.hullIntegrity)} HP and thickest plate against ${r.armorMm} mm.` },
+    { id: 'survivability', label: 'Survivability', score: score(70 * maxHullIntegrity(def) / r.hullIntegrity + 30 * armorMm / r.armorMm), help: `Approximation from displacement and thickest plate against ${r.armorMm} mm. Flooding and stability determine whether the ship sinks.` },
     { id: 'artillery', label: 'Artillery', score: score(70 * damagePerMinute(main) / r.mainDamagePerMinute + 30 * penetration / r.penetrationMm), help: `Main battery damage per minute against ${format(r.mainDamagePerMinute)} and penetration against ${r.penetrationMm} mm.` },
     { id: 'airDefense', label: 'Air defense', score: score(100 * damagePerMinute(dualPurposeMounts(def)) / r.dualPurposeDamagePerMinute), help: `Damage per minute from guns of ${Math.round(r.dualPurposeCaliberM * 1000)} mm or less against ${format(r.dualPurposeDamagePerMinute)}. Ships without such guns score zero.` },
     { id: 'maneuverability', label: 'Maneuverability', score: score(40 * knots(def.handling.forwardSpeed) / r.speedKn + 60 * def.handling.maxYawRate / r.yawRateRadPerSecond), help: `Top speed against ${r.speedKn} kn and turning rate against ${(r.yawRateRadPerSecond * 180 / Math.PI).toFixed(1)}°/s.` },
@@ -60,12 +78,12 @@ function batteryRows(mounts: ShipDefinition['mounts'], withName: boolean): StatR
   return [
     ...(withName ? [{ label: weapon.name, value: layout, help: 'Mounts × barrels per mount.', text: true }] : [{ label: 'Layout', value: layout, help: 'Mounts × barrels per mount.' }]),
     { label: 'Reload', value: format(weapon.reloadSeconds, weapon.reloadSeconds < 10 ? 1 : 0), unit: 's', help: 'Seconds between salvos from one mount.' },
-    { label: 'Salvo damage', value: format(salvoDamage(weapon) * count), help: 'Damage if every barrel of this battery penetrates.' },
+    { label: 'Salvo damage', value: format(salvoDamage(weapon) * count), help: 'Nominal AP damage budget for the full battery. Actual damage depends on the penetration path and fuze burst.' },
     { label: 'Damage per minute', value: format(damagePerMinute(mounts)), help: 'Full-battery salvo damage times salvos per minute.' },
-    { label: 'Penetration', value: format(weapon.penetrationMm), unit: 'mm', help: 'Armor-piercing budget spent on each plate crossed. Simplified: no fuze or material model.' },
-    { label: 'Muzzle velocity', value: format(weapon.muzzleSpeed), unit: 'm/s', help: 'Shells leave the muzzle at this speed and fall under gravity.' },
+    { label: 'Penetration', value: format(weapon.penetrationMm), unit: 'mm', help: 'AP budget at the reference speed. Velocity, impact angle and plate material determine penetration; sufficient resistance arms the fuze.' },
+    { label: 'Muzzle velocity', value: format(weapon.muzzleSpeed), unit: 'm/s', help: 'Nominal launch speed before dispersion. Shells slow under drag and fall under gravity.' },
     { label: 'Shell mass', value: format(weapon.projectileMassKg, weapon.projectileMassKg < 10 ? 2 : 0), unit: 'kg', help: 'Projectile mass carried by each shot.' },
-    { label: 'Maximum range', value: format(maximumRangeM(weapon) / 1000, 1), unit: 'km', help: 'Flat-water range of the low ballistic arc at the highest permitted elevation, capped by the fire-control solver.' },
+    { label: 'Maximum range', value: format(maximumRangeM(weapon) / 1000, 1), unit: 'km', help: 'Maximum flat-water range with drag over the permitted low arc, capped by the fire-control solver.' },
     { label: 'Elevation', value: `${weapon.elevationMinDeg}° to ${weapon.elevationMaxDeg}°`, help: 'Barrel elevation limits.' },
     { label: 'Traverse', value: `±${weapon.traverseDeg}° · ${weapon.traverseRateDeg}°/s`, help: 'Training arc either side of the mount bearing and training speed.' },
     { label: 'Ammunition', value: format(mounts.reduce((n, m) => n + m.weapon.ammoPerBarrel * barrels(m.weapon), 0)), unit: 'rounds', help: 'Rounds for the whole battery. Firing a salvo spends one per barrel.' },
@@ -80,15 +98,15 @@ export function shipStatistics(def: ShipDefinition): StatSection[] {
   const engines = def.modules.filter(m => m.kind === 'engine').length, magazines = def.modules.filter(m => m.kind === 'magazine').length, steering = def.modules.filter(m => m.kind === 'steering').length;
   const floodingM3 = def.compartments.reduce((n, c) => n + c.capacityM3, 0), pumpM3PerMinute = def.compartments.reduce((n, c) => n + c.pumpM3PerSecond, 0) * 60;
   const survivability: StatSection = {
-    id: 'survivability', title: 'Survivability', headline: format(hp), headlineUnit: 'HP', headlineHelp: 'Hull integrity: 300 plus a square-root displacement bonus, rounded to 10. Armor and flooding resolve separately.',
+    id: 'survivability', title: 'Survivability', headline: format(hp), headlineUnit: 'condition points', headlineHelp: 'Full equipment condition on this ship’s damage-score scale. Buoyancy and stability determine sinking; permanently losing every weapon or its ammunition can end the fight while afloat.',
     rows: [
-      { label: 'Displacement', value: format(h.massKg / 1000), unit: 't', help: 'Standard-draft hull mass used for buoyancy and hit points.' },
-      { label: 'Reserve buoyancy', value: format(h.reserveBuoyancyM3), unit: 'm³', help: 'Floodwater the hull can take before it sinks.' },
+      { label: 'Displacement', value: format(h.massKg / 1000), unit: 't', help: 'Standard-draft hull mass used for buoyancy and loading.' },
+      { label: 'Reserve buoyancy', value: format(h.reserveBuoyancyM3), unit: 'm³', help: 'Nominal authored reserve. Ships with a stability profile use their actual hull geometry, loading and list to determine loss of flotation.' },
       { label: 'Compartments', value: format(def.compartments.length), help: 'Watertight spaces that can flood independently.' },
       { label: 'Flooding capacity', value: format(floodingM3), unit: 'm³', help: 'Total water the compartments can hold.' },
-      { label: 'Pumping', value: format(pumpM3PerMinute, 1), unit: 'm³/min', help: 'Combined pump rate across all compartments.' },
-      { label: 'Machinery modules', value: format(engines), help: 'Boiler, turbine and shaft modules. Each destroyed module removes a share of propulsion power.' },
-      { label: 'Magazines', value: format(magazines), help: 'Magazine modules. A destroyed magazine detonates, disables its linked mounts and opens a breach.' },
+      { label: 'Pumping', value: format(pumpM3PerMinute, 1), unit: 'm³/min', help: 'Fixed pumps across all compartments. Damage-control teams can add portable pumping after setup.' },
+      { label: 'Machinery modules', value: format(engines), help: 'Boiler, turbine and shaft modules. Damage and immersion affect their connected drive systems.' },
+      { label: 'Magazines', value: format(magazines), help: 'Loss or immersion cuts ammunition supply to linked mounts. Sufficient ignition can cause a magazine explosion.' },
       { label: 'Steering modules', value: format(steering), help: 'Steering gear modules. Damage reduces rudder authority.' },
       ...(def.structuralPlating ? [{ label: 'Hull plating', value: `${def.structuralPlating.hullMm} / ${def.structuralPlating.superstructureMm}`, unit: 'mm', help: 'Ordinary steel shell and deckhouse plating. Gameplay estimates that register hits outside the armor.' }] : []),
     ],
@@ -138,7 +156,8 @@ export function shipStatistics(def: ShipDefinition): StatSection[] {
         { label: 'Running depth', value: format(weapon.runningDepthM, 1), unit: 'm', help: 'Depth below the CPU sea datum, reached gradually after launch.' },
         { label: 'Arming distance', value: format(weapon.armingDistanceM), unit: 'm', help: 'Earlier contact is a harmless dud. Provisional game tuning.' },
         { label: 'Reload', value: group.every(t => t.ammo <= 1) ? 'No reloads carried' : format(weapon.reloadSeconds), unit: group.every(t => t.ammo <= 1) ? undefined : 's', help: 'Per-tube reloads only apply when spare torpedoes are carried. Provisional game tuning.' },
-        { label: 'Contact damage', value: format(weapon.damage), unit: 'HP', help: 'Direct hull damage from an armed hit, with flooding and possible module damage resolved separately.' },
+        { label: 'Module damage', value: format(weapon.damage * .5), unit: 'max', help: 'Maximum damage to one nearby module from an armed hit. Distance reduces damage, and remaining module condition caps it. The local flooding breach is resolved separately.' },
+        { label: 'Flood opening', value: format(weapon.breachAreaM2, 1), unit: 'm²', help: 'Local opening from an armed hit, capped at 4 m² per compartment across repeated strikes.' },
         { label: 'Tube bearings', value: def.torpedoLaunchers?.length ? `${def.torpedoLaunchers.length} trainable mounts` : [...new Set(group.map(t => `${t.bearingDeg}°`))].join(' / '), help: 'Bearings relative to the bow; trainable assemblies follow your aim.' },
         { label: 'Launch arcs', value: torpedoArcLabel(def), help: 'Permitted ship-relative launch bearings. Turning launchers must align first.' },
       ],
@@ -154,7 +173,8 @@ export function shipStatistics(def: ShipDefinition): StatSection[] {
         { label: 'Detonation depth', value: format(weapon.detonationDepthM), unit: 'm', help: 'Shallow gameplay setting below the CPU sea datum. Submarines currently operate on the surface.' },
         { label: 'Sink speed', value: format(weapon.sinkSpeed, 1), unit: 'm/s', help: 'Constant sinking speed after entering the water.' },
         { label: 'Blast radius', value: format(weapon.blastRadiusM), unit: 'm', help: 'Damage falls with distance to the submerged hull. Allies and the launching ship can be hit. Provisional tuning.' },
-        { label: 'Maximum damage', value: format(weapon.damage), unit: 'HP', help: 'At zero distance to the hull, before module effects; damage falls quadratically to zero at the radius.' },
+        { label: 'Module damage', value: format(weapon.damage * .5), unit: 'max', help: 'Maximum damage to one nearby module. Hull distance reduces blast strength quadratically; module distance and remaining condition further limit damage.' },
+        { label: 'Flood opening', value: format(weapon.breachAreaM2, 1), unit: 'm² max', help: 'Opening at zero hull distance; blast falloff reduces it. Repeated blasts share the 4 m² compartment cap.' },
         { label: 'Reload', value: format(weapon.reloadSeconds), unit: 's', help: 'Gameplay time to prepare another charge at a station with ammunition remaining.' },
       ] };
   });
@@ -177,7 +197,7 @@ export function shipStatistics(def: ShipDefinition): StatSection[] {
       { label: 'Beam', value: format(h.beam, 1), unit: 'm', help: 'Maximum breadth.' },
       { label: 'Draft', value: format(h.draft, 2), unit: 'm', help: 'Keel depth below the waterline at the standard datum.' },
       { label: 'Depth', value: format(h.depth, 1), unit: 'm', help: 'Keel to upper deck.' },
-      { label: 'Waterplane area', value: format(h.waterplaneAreaM2), unit: 'm²', help: 'Area of the hull at the waterline. Flooding changes draft by displaced volume over this area.' },
+      { label: 'Waterplane area', value: format(h.waterplaneAreaM2), unit: 'm²', help: 'Nominal waterline area. The stability model integrates the changing submerged hull as loading and list change.' },
       { label: 'Length to beam', value: format(h.length / h.beam, 2), help: 'Slender hulls make speed more cheaply and turn wider.' },
       { label: 'Mounts', value: format(def.mounts.length), help: 'Gun mounts of every battery.' },
     ],
@@ -188,5 +208,15 @@ export function shipStatistics(def: ShipDefinition): StatSection[] {
     rows: [], collapsed: true,
     notes: [{ label: 'Exterior', text: def.accuracy.exterior }, { label: 'Internals', text: def.accuracy.internals }, { label: 'Weapons', text: def.accuracy.weapons }],
   };
-  return [survivability, armor, ...(mainBattery ? [mainBattery] : []), ...(secondaryBattery ? [secondaryBattery] : []), ...torpedoBatteries, ...depthChargeBatteries, mobility, dimensions, modelBasis];
+  const s = def.submarine;
+  const diving: StatSection[] = s ? [{ id: 'diving', title: 'Diving', headline: format(knots(s.submergedHandling.forwardSpeed), 1), headlineUnit: 'kn submerged', headlineHelp: 'Full ahead on undamaged electric motors. Diving parameters are provisional gameplay tuning.', collapsed: true,
+    rows: [
+      { label: 'Periscope depth', value: format(s.periscopeDepthM), unit: 'm', help: 'Depth below the surfaced waterline datum; the raised scope remains above water.' },
+      { label: 'Operating limit', value: format(s.maxDepthM), unit: 'm', help: 'Maximum depth order. Pressure beyond this limit damages the hull.' },
+      { label: 'Torpedo launch limit', value: format(s.maxTorpedoDepthM), unit: 'm', help: 'Rise to this depth or less to use torpedoes. Guns require surfacing.' },
+      { label: 'Ballast capacity', value: format(s.ballastCapacityM3), unit: 'm³', help: 'Combined ballast and trim capacity in the simplified depth keeper. Separate from damage flooding.' },
+      { label: 'Maximum dive / rise', value: `${format(s.maxDiveSpeed, 1)} / ${format(s.maxRiseSpeed, 1)}`, unit: 'm/s', help: 'Vertical speed limits. Filling tanks takes time; planes help when underway.' },
+    ],
+  }] : [];
+  return [survivability, armor, ...(mainBattery ? [mainBattery] : []), ...(secondaryBattery ? [secondaryBattery] : []), ...torpedoBatteries, ...depthChargeBatteries, mobility, ...diving, dimensions, modelBasis];
 }

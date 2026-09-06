@@ -2,14 +2,14 @@
 
 The water starts from Water Pro 3.5.1's `blackFlag` preset. Sky Pro 2.2.0 supplies the live sky and reflections using its `partlyCloudy` preset. Configuration is in `src/game/Game.ts`; the defaults below refer to the shipped Black Flag preset, not any particular state of the interactive demo.
 
-The initial direction was a relatively restrained sea viewed from a camera hundreds of meters away, with a 250.5-meter ship as the scale reference. These are first-pass artistic and gameplay settings, not measurements or a calibrated North Atlantic sea state.
+The current direction is a relatively restrained sea viewed from a camera hundreds of meters away, with a 250.5-meter ship as the scale reference. These are first-pass artistic and gameplay settings, not measurements or a calibrated North Atlantic sea state.
 
 | Water parameter | Black Flag preset | Default game (Atlantic) | Intent |
 | --- | --- | --- | --- |
-| FFT amplitude multiplier | 1 | 0.75 | Reduce wave displacement for introductory sailing. This is not a wave height in meters. |
+| FFT amplitude multiplier | 1 | 0.45 | Keep wave displacement small beside the hull. This is not a wave height in meters. |
 | Wind speed | 15 | 9 | Lower wind-driven wave energy. |
-| Peak wavelength | 47 m | 65 m | Emphasize longer swells beside a large hull. |
-| Choppiness | 1.5 | 1.05 | Reduce sharp, horizontally displaced crests. |
+| Peak wavelength | 47 m | 28 m | Shorter surface waves give the hull a stronger sense of scale. |
+| Choppiness | 1.5 | 0.8 | Reduce sharp, horizontally displaced crests. |
 | Surface foam opacity | 0.30 | 0.13 | Less persistent white texture across the surface. |
 | Wave foam opacity | 0.60 | 0.45 | Retain whitecaps with less visual noise. |
 | Water fog fade | 300–1,210 m | 2,500–16,000 m | Longer sightlines for the distant chase camera and eventual naval encounters. |
@@ -20,13 +20,23 @@ The initial direction was a relatively restrained sea viewed from a camera hundr
 
 Base water colors remain the Black Flag colors: `waterColor #224659`, `transmissionColor #226755`, `absorptionColor #945b57`. The 1,024 m largest FFT tile, spectrum settings, foam textures, and Fresnel parameters are inherited. High water quality is the default, including the third ripple cascade and screen-space reflections.
 
-Fair mode uses amplitude 0.35, wind 5, wavelength 65 m. Heavy uses amplitude 1.4, wind 16, wavelength 100 m. All three currently share the same daylight/cloud setup; they change the sea, not the weather system.
+### Submerged camera visibility
+
+Black Flag's custom absorption coefficients remove over 99% of green/blue scene light along a 50 m underwater column, making the VIIC disappear at ordinary chase distances. `Game.frame` now scales those coefficients from their original values to 5% using a smooth transition as the camera moves from sea level to 2 m below it. This gives the underwater view 20 times the absorption distance while retaining the blue water color, refraction and distant haze. It is a gameplay visibility adjustment, not measured Atlantic water clarity.
+
+The original linear RGB coefficients are saved once after loading the preset. Each frame derives its values from that copy, so repeated dives cannot accumulate the adjustment. Surface, tactical and above-water periscope cameras restore the original coefficients. The change uses Water Pro's public color uniforms; simulation depth, waves and the vendored shader remain separate.
+
+The dev-only `/scripts/diagnostics/underwater-visibility.html?test` runs the actual `Game.frame` and GPU water pipeline at 7, 50 and 150 m. It compares visible-hull pixels with the same view without the hull, and checks surface/periscope restoration. `window.visibilityResult.passed` must be true. Add `&legacy` to restore the old coefficients as a negative control; its dive checks must fail. See the [before/after evidence](../assets/reviews/underwater-visibility/README.md).
+
+Fair mode uses amplitude 0.22, wind 5, wavelength 20 m. Heavy uses amplitude 0.95, wind 16, wavelength 50 m. The sheltered port uses amplitude 0.12, wind 4, wavelength 14 m. All use choppiness 0.8. Sea transitions refresh the initial spectrum so wavelength and wind take effect immediately. All three currently share the same daylight/cloud setup; they change the sea, not the weather system.
 
 Two wake generators sit 112 m forward and aft of the origin; their current configuration is described under **Ship wake** below. Buoyancy samples a 190 × 28 m footprint with 1.8 s smoothing and 0.45 rotation influence. These values were chosen for visually stable battleship motion, not hydrodynamic accuracy.
 
 The demo's image-based sky is replaced by Sky Pro's animated clouds and atmosphere. That changes what the water reflects even if its material settings stay the same. Cloud reflections are baked at width 384 with 16 cloud march steps and 8 skipped frames. The game uses ACES tone mapping and neutral exposure; it does not add the demo's optional bloom or film grain.
 
 Water Pro's `scene.fogNode` owns distance fog, including transparent effects and the ocean's sky-color blend. The final composition uses Water Pro's output directly, without Sky Pro's additional `applyTo` fog pass: that pass reads opaque depth behind transparent smoke and can erase it at the ocean horizon. Sky Pro still supplies the sky, clouds, lighting and reflections. See the [horizon regression review](../assets/effects/naval/reports/validation.md#horizon-smoke-cutoff-2026-09-05).
+
+The game requests reversed depth for centimeter-scale ship details at long battle ranges. Three.js gives the main scene pass a floating-point depth attachment, retaining the 0.5 m battle near plane and 60 km far plane. Sky Pro 2.2.0's sky and cirrus background shaders require their constant far-depth value to match the active backend (0 for reversed depth, 1 otherwise); volumetric clouds already project their hit distance through the camera. Water and smoke use Three.js's depth conversion nodes, which account for reversed depth. See the [distant ship depth review](../assets/reviews/ship-depth/README.md) for the GPU regression fixture and matching 24× captures.
 
 ## Ship wake
 
@@ -88,3 +98,19 @@ This was reproduced at a fixed camera and ocean tick. Reading the actual GPU spe
 The game now explicitly uses `1`. This is a workaround for the library's float hash-input construction; it does not patch the vendor bundle or eliminate the underlying FFT tile periodicity. Before adding arbitrary multiplayer match seeds, the library needs integer-safe seed mixing on both WebGPU and WebGL. A numeric match ID should not be passed directly into this version's seed option.
 
 The dev-only GPU regression harness is at `/scripts/diagnostics/ocean-spectrum.html` while `bun run dev` is running. It initializes the actual Game configuration, freezes the camera and ocean time, reads back the initial Fourier coefficients, and exposes `window.oceanDiagnostic.passed`. With the game seed it must pass; `?seed=1941` is the negative control and must fail. `?quality=medium` and `?quality=ultra` exercise the other supported cascade layouts. The diagnostic uses private buffer fields specific to Water Pro 3.5.1 and must be reviewed when upgrading that dependency. Vite's production build does not include this page.
+
+## Smaller wave scale
+
+The September 5 scale adjustment reduces Atlantic peak wavelength from 65 to 28 m, amplitude from 0.75 to 0.45, and choppiness from 1.05 to 0.8. Fair, Heavy, and port conditions receive the same artistic direction while retaining their relative intensity. Ship geometry, cameras, water colors and CPU combat are unchanged. See the [matching before/after views](../assets/reviews/ocean-scale/index.html).
+
+## World ocean maps
+
+Versioned map definitions live in `assets/maps/environments.v1.json`, consumed through `src/maps/catalog.ts`. Select a map and sea conditions in Custom battle. The existing `Atlantic` sea-state value is displayed as **Moderate**, so it is not confused with the North Atlantic map. Map and sea selections survive repeated battles during the current page session.
+
+Each map supplies custom water/absorption/transmission colors, wave and wind multipliers, wave-foam opacity, sun elevation/azimuth/intensity, cloud coverage/altitude/thickness, atmospheric scattering and fog. Fair/Moderate/Heavy retain the small-wave direction and multiply each map's wave scales. The port restores all overridden shader parameters on return, including color, cloud height and foam. Quality tiers retain their normal cascade layouts; map selection does not rebuild the water system.
+
+The [illustrated map guide](../assets/maps/review/index.html) records the four settings and their actual rendered views. These are independently authored, region-inspired gameplay landscapes, not surveyed coastlines or calibrated regional weather.
+
+Coastal maps widen a central clear lane according to the largest fleet, then place islands relative to the midpoint of the two spawn lines. The shared CPU island-height function drives the rendered mesh, chart outline, camera clearance, projectile contact and conservative hull clearance. Bots blend an outward course near shores. Land contact removes inward ship motion without grounding damage; full bathymetry, tides, beaching, route planning and terrain blast propagation are outside this first map implementation. Shells can fly over high ground and stop on it; torpedoes stop at submerged coastal slopes. Ground impacts currently reuse the small hard-surface impact effect.
+
+Original island recipes and capture scripts stay under `assets/maps/`. The renderer uses eroded heightfields with asymmetric ridges and connected drainage valleys, triplanar rock and vegetation textures, slope-dependent snow and rock, and clustered tree impostors. See the [terrain recipe and review notes](../assets/maps/terrain-notes.md). Terrain meshes are generated at launch and disposed when switching maps. The rendered land surface is a finite tessellation of the continuous CPU height function, so very close grazing contacts remain approximate. No ship model assets or CPU wave poses are changed.

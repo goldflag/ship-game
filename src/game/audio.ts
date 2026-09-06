@@ -50,15 +50,15 @@ export class CombatAudioEvents {
         shots.push(event);
         id = (event.shell?.caliberM ?? .38) < .2 ? 'secondary-gun' : (event.shell?.caliberM ?? .38) >= .42 ? 'main-gun-b' : 'main-gun-a';
       } else {
-        if (event.kind === 'sunk' || (event.kind === 'module' && !event.detonation)) continue;
+        if (event.kind === 'sunk' || ((event.kind === 'module' || event.kind === 'burst') && !event.detonation)) continue;
         const key = `${event.shell?.id ?? event.sequence}:${event.detonation ? 'detonation' : 'impact'}`;
         if (this.impacts.has(key)) continue;
         this.impacts.add(key);
         if (this.impacts.size > 512) this.impacts.delete(this.impacts.values().next().value!);
         id = event.detonation ? 'magazine-explosion' : event.kind === 'splash' ? 'splash' : event.kind === 'ricochet' ? 'ricochet' : 'armor-hit';
       }
-      cues.push({ id, position: event.position, gain: id === 'magazine-explosion' ? .9 : event.kind === 'shot' ? .7 : .8,
-        rate: .97 + (event.sequence % 7) * .01 });
+      cues.push({ id, position: event.position, gain: event.kind === 'burst' ? .35 : id === 'magazine-explosion' ? .9 : event.kind === 'shot' ? .7 : .8,
+        rate: (event.kind === 'burst' ? 1.17 : .97) + (event.sequence % 7) * .01 });
     }
     return cues;
   }

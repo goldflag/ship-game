@@ -1,0 +1,40 @@
+[
+  {
+    "view": "starboard",
+    "image": "yamato-1945-alexpl.png",
+    "sourceId": "alexpl-1945",
+    "crop": [
+      0,
+      950,
+      4177,
+      1850
+    ],
+    "originPixel": [
+      2042,
+      1660
+    ],
+    "pixelsPerMeter": 15.404,
+    "redistribute": true,
+    "credit": "Alexpl, Yamato1945.png, CC BY-SA 3.0 / GFDL; transformed registration licensed CC BY-SA 3.0.",
+    "note": "Secondary 1945 reconstruction, whole-sheet uniform scale from 263 m endpoints; inferred trial-waterline alignment. About \u00b11 m raster/datum uncertainty. Not primary offsets."
+  },
+  {
+    "view": "top",
+    "image": "yamato-1945-alexpl.png",
+    "sourceId": "alexpl-1945",
+    "crop": [
+      0,
+      0,
+      4177,
+      740
+    ],
+    "originPixel": [
+      2042,
+      390
+    ],
+    "pixelsPerMeter": 15.404,
+    "redistribute": true,
+    "credit": "Alexpl, Yamato1945.png, CC BY-SA 3.0 / GFDL; transformed registration licensed CC BY-SA 3.0.",
+    "note": "Same sheet scale; no independent lateral stretch. Remaining endpoint/plan/profile disagreement is retained."
+  }
+]

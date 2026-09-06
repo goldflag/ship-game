@@ -1,6 +1,9 @@
 {
+  "mapId": "north-atlantic",
+  "sea": "Fair",
+  "islands": [],
   "shipId": "fletcher",
-  "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+  "contentHash": "21547dc10500b4bf4ce24f8709a5276f6db3f05958261afedcd6f1f5914ea62e",
   "backend": "webgpu",
   "camera": {
     "mode": "Chase",
@@ -31,11 +34,11 @@
       0,
       0,
       0,
-      -1.0000083334027783,
+      0.000008333402778356486,
       -1,
       0,
       0,
-      -0.5000041667013891,
+      0.5000041667013891,
       0
     ],
     "matrixWorldInverse": [
@@ -57,10 +60,10 @@
       1.0000000000000002
     ]
   },
-  "tick": 463,
-  "battleSeed": 1391641647,
+  "tick": 465,
+  "battleSeed": 3515953330,
   "paused": false,
-  "fps": 85.83865005630656,
+  "fps": 82.1632457254659,
   "inspecting": false,
   "inPort": false,
   "effects": {
@@ -68,7 +71,7 @@
     "torpedoes": 0,
     "depthCharges": 3,
     "smoke": 0,
-    "spray": 968,
+    "spray": 950,
     "flashes": 0,
     "foam": 0,
     "particleCapacity": 2272
@@ -90,61 +93,81 @@
     }
   },
   "portInspection": "exterior",
-  "maxMuzzleErrorM": 0.0006809231029032058,
-  "maxTorpedoMuzzleErrorM": 0.000002416403365813662,
+  "maxMuzzleErrorM": 0.0006809231091749944,
+  "maxTorpedoMuzzleErrorM": 0.000002602025530318163,
   "torpedoLaunchers": [
     {
       "id": "torpedo-forward",
-      "train": 2.424262331019973
+      "train": 2.4347343065319382
     },
     {
       "id": "torpedo-aft",
-      "train": 2.424262331019973
+      "train": 2.4347343065319382
     }
   ],
   "depthCharges": [
     {
-      "id": 16,
+      "id": 6,
       "ownerId": "player",
       "position": [
-        37.854732218970256,
-        -9.297026222614123,
-        -24.459182403173752
+        37.855747148938875,
+        -9.380359555947456,
+        -24.460272437960047
       ],
       "submerged": true,
       "detonationDepthM": 10
     },
     {
-      "id": 17,
+      "id": 7,
       "ownerId": "player",
       "position": [
-        37.83913806336448,
-        -8.38035955594747,
-        -21.392208304982386
+        37.84096289235779,
+        -8.463692889280802,
+        -21.39419493547976
       ],
       "submerged": true,
       "detonationDepthM": 10
     },
     {
-      "id": 18,
+      "id": 8,
       "ownerId": "player",
       "position": [
-        37.511100003443715,
-        -7.4636928892808045,
-        -23.475580337132403
+        37.51438101884159,
+        -7.5470262226141385,
+        -23.47920039078806
       ],
       "submerged": true,
       "detonationDepthM": 10
     }
   ],
   "combat": {
+    "airContacts": [],
     "battery": "depth-charge",
-    "range": 169.4481904508081,
+    "range": 169.82296412284953,
     "ready": 5,
     "total": 8,
+    "ammunition": "ap",
+    "heSupported": false,
+    "ammunitionStock": {
+      "ap": 0,
+      "he": 0
+    },
+    "targetMounts": [
+      {
+        "id": "deck-gun",
+        "name": "8.8 cm deck gun",
+        "condition": 1
+      },
+      {
+        "id": "flak-gun",
+        "name": "2 cm aft platform gun",
+        "condition": 1
+      }
+    ],
     "targetId": "enemy-1",
     "targetName": "Type VIIC",
-    "targetRange": 169.4481904508081,
+    "targetDepthM": 0.00870461680564809,
+    "targetRange": 169.82296412284953,
     "battle": true,
     "result": "active",
     "playerSunk": false,
@@ -156,10 +179,12 @@
         "team": "friendly",
         "controller": "player",
         "x": 0,
-        "z": -105.59382222222074,
+        "z": -105.97273333333192,
         "heading": 0,
         "integrity": 1,
-        "sunk": false
+        "sunk": false,
+        "status": "operational",
+        "combatLost": false
       },
       {
         "id": "enemy-1",
@@ -170,14 +195,244 @@
         "x": 25,
         "z": 62,
         "heading": 1.5707963267948966,
-        "integrity": 0.973837072822239,
-        "sunk": false
+        "integrity": 0.9960766369885313,
+        "sunk": false,
+        "status": "operational",
+        "combatLost": false
       }
     ],
-    "targetIntegrity": 0.973837072822239,
-    "targetWater": 1.039725502572388,
+    "targetStatus": "operational",
+    "playerStatus": "operational",
+    "targetList": 0,
+    "targetTrim": 0.005810707555994067,
+    "targetDraftChange": 0.00870461680564809,
+    "control": {
+      "priority": "balanced",
+      "focus": "",
+      "spares": 0,
+      "rooms": [
+        {
+          "heat": 0,
+          "intensity": 0,
+          "fuel": 0
+        },
+        {
+          "heat": 0,
+          "intensity": 0,
+          "fuel": 0
+        },
+        {
+          "heat": 0,
+          "intensity": 0,
+          "fuel": 0
+        },
+        {
+          "heat": 0,
+          "intensity": 0,
+          "fuel": 0
+        },
+        {
+          "heat": 0,
+          "intensity": 0,
+          "fuel": 0
+        },
+        {
+          "heat": 0,
+          "intensity": 0,
+          "fuel": 0
+        },
+        {
+          "heat": 0,
+          "intensity": 0,
+          "fuel": 0
+        },
+        {
+          "heat": 0,
+          "intensity": 0,
+          "fuel": 0
+        },
+        {
+          "heat": 0,
+          "intensity": 0,
+          "fuel": 0
+        },
+        {
+          "heat": 0,
+          "intensity": 0,
+          "fuel": 0
+        }
+      ],
+      "mounts": [
+        {
+          "heat": 0,
+          "intensity": 0,
+          "fuel": 0
+        },
+        {
+          "heat": 0,
+          "intensity": 0,
+          "fuel": 0
+        },
+        {
+          "heat": 0,
+          "intensity": 0,
+          "fuel": 0
+        },
+        {
+          "heat": 0,
+          "intensity": 0,
+          "fuel": 0
+        },
+        {
+          "heat": 0,
+          "intensity": 0,
+          "fuel": 0
+        },
+        {
+          "heat": 0,
+          "intensity": 0,
+          "fuel": 0
+        },
+        {
+          "heat": 0,
+          "intensity": 0,
+          "fuel": 0
+        },
+        {
+          "heat": 0,
+          "intensity": 0,
+          "fuel": 0
+        },
+        {
+          "heat": 0,
+          "intensity": 0,
+          "fuel": 0
+        },
+        {
+          "heat": 0,
+          "intensity": 0,
+          "fuel": 0
+        },
+        {
+          "heat": 0,
+          "intensity": 0,
+          "fuel": 0
+        },
+        {
+          "heat": 0,
+          "intensity": 0,
+          "fuel": 0
+        }
+      ],
+      "teams": [],
+      "pumping": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "targetFires": 0,
+    "controlTargets": [
+      {
+        "id": "forepeak-space",
+        "name": "Forepeak"
+      },
+      {
+        "id": "forward-magazine-space",
+        "name": "Forward ammunition rooms"
+      },
+      {
+        "id": "boiler-forward-space",
+        "name": "Forward boiler room"
+      },
+      {
+        "id": "engine-forward-space",
+        "name": "Forward engine room"
+      },
+      {
+        "id": "boiler-aft-space",
+        "name": "After boiler room"
+      },
+      {
+        "id": "engine-aft-space",
+        "name": "After engine room"
+      },
+      {
+        "id": "aft-magazine-space",
+        "name": "After ammunition rooms"
+      },
+      {
+        "id": "steering-room-space",
+        "name": "Steering flat"
+      },
+      {
+        "id": "torpedo-magazine-space",
+        "name": "Torpedo ready service"
+      },
+      {
+        "id": "depth-charge-magazine-space",
+        "name": "Depth charge ready service"
+      },
+      {
+        "id": "gun-1",
+        "name": "Mount 51"
+      },
+      {
+        "id": "gun-2",
+        "name": "Mount 52"
+      },
+      {
+        "id": "gun-3",
+        "name": "Mount 53"
+      },
+      {
+        "id": "gun-4",
+        "name": "Mount 54"
+      },
+      {
+        "id": "gun-5",
+        "name": "Mount 55"
+      },
+      {
+        "id": "bofors-aft",
+        "name": "After 40 mm twin"
+      },
+      {
+        "id": "oerlikon-1",
+        "name": "20 mm station 1"
+      },
+      {
+        "id": "oerlikon-2",
+        "name": "20 mm station 2"
+      },
+      {
+        "id": "oerlikon-3",
+        "name": "20 mm station 3"
+      },
+      {
+        "id": "oerlikon-4",
+        "name": "20 mm station 4"
+      },
+      {
+        "id": "oerlikon-5",
+        "name": "20 mm station 5"
+      },
+      {
+        "id": "oerlikon-6",
+        "name": "20 mm station 6"
+      }
+    ],
+    "targetIntegrity": 0.9960766369885313,
+    "targetWater": 0.6610744629802052,
     "targetPower": 1,
-    "targetSteering": 0.950406951984834,
+    "targetSteering": 0.9562394125643883,
     "targetSunk": false,
     "targetUnderway": false,
     "mounts": [
@@ -220,21 +475,21 @@
         "id": "dc-thrower-starboard-1",
         "name": "Starboard K-gun 1",
         "status": "reloading",
-        "reload": 0.13333333333334962,
+        "reload": 0.1000000000000163,
         "ammo": 1
       },
       {
         "id": "dc-thrower-starboard-2",
         "name": "Starboard K-gun 2",
         "status": "reloading",
-        "reload": 0.5000000000000162,
+        "reload": 0.4666666666666829,
         "ammo": 1
       },
       {
         "id": "dc-thrower-starboard-3",
         "name": "Starboard K-gun 3",
         "status": "reloading",
-        "reload": 0.866666666666684,
+        "reload": 0.8333333333333506,
         "ammo": 1
       }
     ],
@@ -242,39 +497,52 @@
       {
         "id": "forward-torpedoes",
         "name": "Forward torpedo stowage",
-        "condition": 1
+        "condition": 1,
+        "availability": 1,
+        "reason": "operational"
       },
       {
         "id": "deck-magazine",
         "name": "Deck gun ammunition locker",
-        "condition": 1
+        "condition": 1,
+        "availability": 1,
+        "reason": "operational"
       },
       {
         "id": "diesels",
         "name": "Twin diesel engines",
-        "condition": 1
+        "condition": 1,
+        "availability": 1,
+        "reason": "operational"
       },
       {
         "id": "electric-motors",
         "name": "Twin electric motors",
-        "condition": 1
+        "condition": 1,
+        "availability": 1,
+        "reason": "operational"
       },
       {
         "id": "aft-torpedoes",
         "name": "Stern torpedo stowage",
-        "condition": 1
+        "condition": 1,
+        "availability": 1,
+        "reason": "operational"
       },
       {
         "id": "steering-gear",
         "name": "Rudder linkage",
-        "condition": 0.950406951984834
+        "condition": 0.9562394125643883,
+        "availability": 0.9562394125643883,
+        "reason": "damaged"
       }
     ],
     "playerIntegrity": 1,
     "playerMaxIntegrity": 600,
-    "playerDamageDealt": 11.773317229992472,
+    "playerDamageDealt": 1.7655133551609197,
     "playerFrags": 0,
     "playerWater": 0,
+    "shellHistory": [],
     "targetPosition": {
       "x": 25,
       "z": 62,
@@ -283,6 +551,7 @@
     "batteries": [
       {
         "battery": "main",
+        "ammunition": "ap",
         "ammo": 1800,
         "ready": 2,
         "total": 5,
@@ -290,6 +559,7 @@
       },
       {
         "battery": "secondary",
+        "ammunition": "ap",
         "ammo": 13200,
         "ready": 3,
         "total": 7,
@@ -297,6 +567,7 @@
       },
       {
         "battery": "torpedo",
+        "ammunition": "ap",
         "ammo": 10,
         "ready": 0,
         "total": 10,
@@ -304,10 +575,11 @@
       },
       {
         "battery": "depth-charge",
+        "ammunition": "ap",
         "ammo": 20,
         "ready": 5,
         "total": 8,
-        "reload": 0.13333333333334962
+        "reload": 0.1000000000000163
       }
     ],
     "message": "Fletcher · Depth charge detonated at 10 m"
@@ -320,18 +592,18 @@
       "controller": "player",
       "motion": {
         "id": "player",
-        "tick": 463,
+        "tick": 465,
         "x": 0,
         "y": 0,
-        "z": -105.59382222222074,
+        "z": -105.97273333333192,
         "roll": 0,
         "pitch": 0,
         "heading": 0,
-        "speed": 15.425333333332956,
+        "speed": 15.411999999999624,
         "swaySpeed": 0,
         "rudder": 0,
         "yawRate": 0,
-        "distance": 105.59382222222074
+        "distance": 105.97273333333192
       },
       "ammo": 15000,
       "integrity": 600
@@ -343,21 +615,29 @@
       "controller": "idle",
       "motion": {
         "id": "enemy-1",
-        "tick": 463,
+        "tick": 465,
         "x": 25,
-        "y": -0.004726025011692672,
+        "y": -0.00870461680564809,
         "z": 62,
         "roll": 0,
-        "pitch": 0.0005265870481403842,
+        "pitch": 0.00010141597872260924,
         "heading": 1.5707963267948966,
         "speed": 0,
         "swaySpeed": 0,
         "rudder": 0,
         "yawRate": 0,
-        "distance": 0
+        "distance": 0,
+        "verticalSpeed": -0.006359825780580568
+      },
+      "submarine": {
+        "targetDepthM": 0,
+        "ballastM3": 0,
+        "emergencyBlow": false,
+        "planes": -0.008231836404748935,
+        "trimPitch": -0.0002361381377207797
       },
       "ammo": 1320,
-      "integrity": 438.2266827700075
+      "integrity": 448.2344866448391
     }
   ],
   "renderedShips": [
@@ -374,6 +654,14 @@
       "impactDrawCalls": 0
     }
   ],
+  "renderedAircraft": {
+    "models": 0,
+    "instances": 0,
+    "batches": 0,
+    "payloads": 0
+  },
+  "aircraft": [],
+  "airReleases": [],
   "torpedoes": [],
   "events": [
     {
@@ -386,10 +674,10 @@
       "shipId": "player",
       "message": "Port K-gun 2 · depth charge away",
       "depthCharge": {
-        "id": 13,
+        "id": 3,
         "radiusM": 32
       },
-      "sequence": 24,
+      "sequence": 23,
       "tick": 44
     },
     {
@@ -402,10 +690,10 @@
       "shipId": "player",
       "message": "Depth charge entering water",
       "depthCharge": {
-        "id": 11,
+        "id": 1,
         "radiusM": 32
       },
-      "sequence": 25,
+      "sequence": 24,
       "tick": 48
     },
     {
@@ -418,10 +706,10 @@
       "shipId": "player",
       "message": "Port K-gun 3 · depth charge away",
       "depthCharge": {
-        "id": 14,
+        "id": 4,
         "radiusM": 32
       },
-      "sequence": 26,
+      "sequence": 25,
       "tick": 66
     },
     {
@@ -434,10 +722,10 @@
       "shipId": "player",
       "message": "Starboard stern rack · depth charge away",
       "depthCharge": {
-        "id": 15,
+        "id": 5,
         "radiusM": 32
       },
-      "sequence": 27,
+      "sequence": 26,
       "tick": 88
     },
     {
@@ -450,10 +738,10 @@
       "shipId": "player",
       "message": "Starboard K-gun 1 · depth charge away",
       "depthCharge": {
-        "id": 16,
+        "id": 6,
         "radiusM": 32
       },
-      "sequence": 28,
+      "sequence": 27,
       "tick": 110
     },
     {
@@ -466,10 +754,10 @@
       "shipId": "player",
       "message": "Starboard K-gun 2 · depth charge away",
       "depthCharge": {
-        "id": 17,
+        "id": 7,
         "radiusM": 32
       },
-      "sequence": 29,
+      "sequence": 28,
       "tick": 132
     },
     {
@@ -482,10 +770,10 @@
       "shipId": "player",
       "message": "Depth charge entering water",
       "depthCharge": {
-        "id": 15,
+        "id": 5,
         "radiusM": 32
       },
-      "sequence": 30,
+      "sequence": 29,
       "tick": 136
     },
     {
@@ -498,10 +786,10 @@
       "shipId": "player",
       "message": "Depth charge entering water",
       "depthCharge": {
-        "id": 12,
+        "id": 2,
         "radiusM": 32
       },
-      "sequence": 31,
+      "sequence": 30,
       "tick": 151
     },
     {
@@ -514,10 +802,10 @@
       "shipId": "player",
       "message": "Starboard K-gun 3 · depth charge away",
       "depthCharge": {
-        "id": 18,
+        "id": 8,
         "radiusM": 32
       },
-      "sequence": 32,
+      "sequence": 31,
       "tick": 154
     },
     {
@@ -530,10 +818,10 @@
       "shipId": "player",
       "message": "Depth charge entering water",
       "depthCharge": {
-        "id": 13,
+        "id": 3,
         "radiusM": 32
       },
-      "sequence": 33,
+      "sequence": 32,
       "tick": 173
     },
     {
@@ -546,10 +834,10 @@
       "shipId": "player",
       "message": "Depth charge entering water",
       "depthCharge": {
-        "id": 14,
+        "id": 4,
         "radiusM": 32
       },
-      "sequence": 34,
+      "sequence": 33,
       "tick": 195
     },
     {
@@ -562,10 +850,10 @@
       "shipId": "player",
       "message": "Depth charge entering water",
       "depthCharge": {
-        "id": 16,
+        "id": 6,
         "radiusM": 32
       },
-      "sequence": 35,
+      "sequence": 34,
       "tick": 239
     },
     {
@@ -578,10 +866,10 @@
       "shipId": "player",
       "message": "Depth charge entering water",
       "depthCharge": {
-        "id": 17,
+        "id": 7,
         "radiusM": 32
       },
-      "sequence": 36,
+      "sequence": 35,
       "tick": 261
     },
     {
@@ -594,10 +882,10 @@
       "shipId": "player",
       "message": "Depth charge entering water",
       "depthCharge": {
-        "id": 18,
+        "id": 8,
         "radiusM": 32
       },
-      "sequence": 37,
+      "sequence": 36,
       "tick": 283
     },
     {
@@ -610,10 +898,10 @@
       "shipId": "player",
       "message": "Depth charge detonated at 10 m",
       "depthCharge": {
-        "id": 11,
+        "id": 1,
         "radiusM": 32
       },
-      "sequence": 38,
+      "sequence": 37,
       "tick": 288
     },
     {
@@ -626,10 +914,10 @@
       "shipId": "enemy-1",
       "message": "Depth charge hit · Motor / stern torpedo room · flooding breach",
       "depthCharge": {
-        "id": 11,
+        "id": 1,
         "radiusM": 32
       },
-      "sequence": 39,
+      "sequence": 38,
       "tick": 288
     },
     {
@@ -642,10 +930,10 @@
       "shipId": "player",
       "message": "Depth charge detonated at 10 m",
       "depthCharge": {
-        "id": 15,
+        "id": 5,
         "radiusM": 32
       },
-      "sequence": 40,
+      "sequence": 39,
       "tick": 376
     },
     {
@@ -658,10 +946,10 @@
       "shipId": "player",
       "message": "Depth charge detonated at 10 m",
       "depthCharge": {
-        "id": 12,
+        "id": 2,
         "radiusM": 32
       },
-      "sequence": 41,
+      "sequence": 40,
       "tick": 391
     },
     {
@@ -674,10 +962,10 @@
       "shipId": "player",
       "message": "Depth charge detonated at 10 m",
       "depthCharge": {
-        "id": 13,
+        "id": 3,
         "radiusM": 32
       },
-      "sequence": 42,
+      "sequence": 41,
       "tick": 413
     },
     {
@@ -690,10 +978,10 @@
       "shipId": "player",
       "message": "Depth charge detonated at 10 m",
       "depthCharge": {
-        "id": 14,
+        "id": 4,
         "radiusM": 32
       },
-      "sequence": 43,
+      "sequence": 42,
       "tick": 435
     }
   ],
@@ -708,10 +996,10 @@
       "shipId": "player",
       "message": "Port stern rack · depth charge away",
       "depthCharge": {
-        "id": 11,
+        "id": 1,
         "radiusM": 32
       },
-      "sequence": 22,
+      "sequence": 21,
       "tick": 0
     },
     {
@@ -724,10 +1012,10 @@
       "shipId": "player",
       "message": "Port K-gun 1 · depth charge away",
       "depthCharge": {
-        "id": 12,
+        "id": 2,
         "radiusM": 32
       },
-      "sequence": 23,
+      "sequence": 22,
       "tick": 22
     },
     {
@@ -740,10 +1028,10 @@
       "shipId": "player",
       "message": "Port K-gun 2 · depth charge away",
       "depthCharge": {
-        "id": 13,
+        "id": 3,
         "radiusM": 32
       },
-      "sequence": 24,
+      "sequence": 23,
       "tick": 44
     },
     {
@@ -756,10 +1044,10 @@
       "shipId": "player",
       "message": "Depth charge entering water",
       "depthCharge": {
-        "id": 11,
+        "id": 1,
         "radiusM": 32
       },
-      "sequence": 25,
+      "sequence": 24,
       "tick": 48
     },
     {
@@ -772,10 +1060,10 @@
       "shipId": "player",
       "message": "Port K-gun 3 · depth charge away",
       "depthCharge": {
-        "id": 14,
+        "id": 4,
         "radiusM": 32
       },
-      "sequence": 26,
+      "sequence": 25,
       "tick": 66
     },
     {
@@ -788,10 +1076,10 @@
       "shipId": "player",
       "message": "Starboard stern rack · depth charge away",
       "depthCharge": {
-        "id": 15,
+        "id": 5,
         "radiusM": 32
       },
-      "sequence": 27,
+      "sequence": 26,
       "tick": 88
     },
     {
@@ -804,10 +1092,10 @@
       "shipId": "player",
       "message": "Starboard K-gun 1 · depth charge away",
       "depthCharge": {
-        "id": 16,
+        "id": 6,
         "radiusM": 32
       },
-      "sequence": 28,
+      "sequence": 27,
       "tick": 110
     },
     {
@@ -820,10 +1108,10 @@
       "shipId": "player",
       "message": "Starboard K-gun 2 · depth charge away",
       "depthCharge": {
-        "id": 17,
+        "id": 7,
         "radiusM": 32
       },
-      "sequence": 29,
+      "sequence": 28,
       "tick": 132
     },
     {
@@ -836,10 +1124,10 @@
       "shipId": "player",
       "message": "Depth charge entering water",
       "depthCharge": {
-        "id": 15,
+        "id": 5,
         "radiusM": 32
       },
-      "sequence": 30,
+      "sequence": 29,
       "tick": 136
     },
     {
@@ -852,10 +1140,10 @@
       "shipId": "player",
       "message": "Depth charge entering water",
       "depthCharge": {
-        "id": 12,
+        "id": 2,
         "radiusM": 32
       },
-      "sequence": 31,
+      "sequence": 30,
       "tick": 151
     },
     {
@@ -868,10 +1156,10 @@
       "shipId": "player",
       "message": "Starboard K-gun 3 · depth charge away",
       "depthCharge": {
-        "id": 18,
+        "id": 8,
         "radiusM": 32
       },
-      "sequence": 32,
+      "sequence": 31,
       "tick": 154
     },
     {
@@ -884,10 +1172,10 @@
       "shipId": "player",
       "message": "Depth charge entering water",
       "depthCharge": {
-        "id": 13,
+        "id": 3,
         "radiusM": 32
       },
-      "sequence": 33,
+      "sequence": 32,
       "tick": 173
     },
     {
@@ -900,10 +1188,10 @@
       "shipId": "player",
       "message": "Depth charge entering water",
       "depthCharge": {
-        "id": 14,
+        "id": 4,
         "radiusM": 32
       },
-      "sequence": 34,
+      "sequence": 33,
       "tick": 195
     },
     {
@@ -916,10 +1204,10 @@
       "shipId": "player",
       "message": "Depth charge entering water",
       "depthCharge": {
-        "id": 16,
+        "id": 6,
         "radiusM": 32
       },
-      "sequence": 35,
+      "sequence": 34,
       "tick": 239
     },
     {
@@ -932,10 +1220,10 @@
       "shipId": "player",
       "message": "Depth charge entering water",
       "depthCharge": {
-        "id": 17,
+        "id": 7,
         "radiusM": 32
       },
-      "sequence": 36,
+      "sequence": 35,
       "tick": 261
     },
     {
@@ -948,10 +1236,10 @@
       "shipId": "player",
       "message": "Depth charge entering water",
       "depthCharge": {
-        "id": 18,
+        "id": 8,
         "radiusM": 32
       },
-      "sequence": 37,
+      "sequence": 36,
       "tick": 283
     },
     {
@@ -964,10 +1252,10 @@
       "shipId": "player",
       "message": "Depth charge detonated at 10 m",
       "depthCharge": {
-        "id": 11,
+        "id": 1,
         "radiusM": 32
       },
-      "sequence": 38,
+      "sequence": 37,
       "tick": 288
     },
     {
@@ -980,10 +1268,10 @@
       "shipId": "enemy-1",
       "message": "Depth charge hit · Motor / stern torpedo room · flooding breach",
       "depthCharge": {
-        "id": 11,
+        "id": 1,
         "radiusM": 32
       },
-      "sequence": 39,
+      "sequence": 38,
       "tick": 288
     },
     {
@@ -996,10 +1284,10 @@
       "shipId": "player",
       "message": "Depth charge detonated at 10 m",
       "depthCharge": {
-        "id": 15,
+        "id": 5,
         "radiusM": 32
       },
-      "sequence": 40,
+      "sequence": 39,
       "tick": 376
     },
     {
@@ -1012,10 +1300,10 @@
       "shipId": "player",
       "message": "Depth charge detonated at 10 m",
       "depthCharge": {
-        "id": 12,
+        "id": 2,
         "radiusM": 32
       },
-      "sequence": 41,
+      "sequence": 40,
       "tick": 391
     },
     {
@@ -1028,10 +1316,10 @@
       "shipId": "player",
       "message": "Depth charge detonated at 10 m",
       "depthCharge": {
-        "id": 13,
+        "id": 3,
         "radiusM": 32
       },
-      "sequence": 42,
+      "sequence": 41,
       "tick": 413
     },
     {
@@ -1044,10 +1332,10 @@
       "shipId": "player",
       "message": "Depth charge detonated at 10 m",
       "depthCharge": {
-        "id": 14,
+        "id": 4,
         "radiusM": 32
       },
-      "sequence": 43,
+      "sequence": 42,
       "tick": 435
     }
   ]

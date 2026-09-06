@@ -49,6 +49,7 @@ async function port() {
   const game = Object.assign(Object.create(Game.prototype), {
     definition, simulation, playerView, targetView, fleetViews: [playerView, targetView], fleetModels: [loaded], loadedModel: loaded, scene, harbor, camera, rig,
     currentAim: [650, .5, -550], manualAim: true, shellFollow: new ShellFollow(),
+    aircraftView: { root: new Group(), async load() {}, diagnostics() { return {}; } },
     effects: { reset() {}, diagnostics() { return {}; } },
     shipLabels: { setFleet() {} },
     ship: new Group(), inPort: true, disposed: false, switchingShip: false,
@@ -107,7 +108,7 @@ test('failed ship loads preserve the old ship and allow retry', async () => {
     for (const id of ['yamato', 'baltimore', 'enterprise-cv6', 'type-viic', 'bismarck']) {
       await game.switchShip(shipPreset(id));
       expect(game.definition.id).toBe(id);
-      expect(scene.children).toHaveLength(3);
+      expect(scene.children).toHaveLength(4);
       expect(game.simulation.definition.id).toBe(id);
       expect(game.diagnostics().maxMuzzleErrorM).toBeLessThan(.025);
     }
@@ -134,11 +135,14 @@ test('battle loading binds each mixed fleet hull and selected target to its own 
   const { game, scene, harbor, rig } = await port();
   const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => model(String(url).split('/').pop()!.replace('.glb', '')));
   try {
-    await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck', 'bismarck'], enemies: ['yamato', 'enterprise-cv6'], spawnDistance: 7500 });
+    await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck', 'bismarck'], enemies: ['yamato', 'enterprise-cv6'], spawnDistance: 7500, mapId: 'pacific-islands', sea: 'Fair' });
     expect(loader).toHaveBeenCalledTimes(4);
     expect(scene.children).toContain(harbor);
-    expect(scene.children).toHaveLength(6);
+    expect(scene.children).toHaveLength(7);
     expect(game.simulation.actors).toHaveLength(5);
+    expect(game.diagnostics().mapId).toBe('pacific-islands');
+    expect(game.diagnostics().sea).toBe('Fair');
+    expect(game.simulation.islands).toHaveLength(3);
     expect(game.simulation.target.motion.z - game.simulation.ship.z).toBe(-7500);
     expect(game.simulation.ship.heading).toBe(0);
     expect(game.simulation.target.motion.heading).toBe(Math.PI);
@@ -149,7 +153,7 @@ test('battle loading binds each mixed fleet hull and selected target to its own 
     expect(game.diagnostics().combat.targetName).toBe(shipPreset('enterprise-cv6').name);
     // Returning to an ordinary port ship drops all old battle actors and bindings.
     await game.switchShip(shipPreset('bismarck'));
-    expect(scene.children).toHaveLength(3);
+    expect(scene.children).toHaveLength(4);
     expect(game.simulation.isBattle).toBe(false);
   } finally { loader.mockRestore(); rig.dispose(); }
 });
@@ -169,4 +173,18 @@ test('one failed fleet asset leaves the port intact and the same battle can be r
     await game.prepareBattle(setup);
     expect(game.simulation.actors).toHaveLength(4);
   } finally { loader.mockRestore(); rig.dispose(); }
+});
+
+test('failed aircraft loads leave the current port intact and allow another launch attempt', async () => {
+  const { game, scene, playerView, rig } = await port();
+  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => model(String(url).split('/').pop()!.replace('.glb', '')));
+  const view = (game as unknown as { aircraftView: { load(): Promise<void> } }).aircraftView;
+  const aircraftLoader = spyOn(view, 'load').mockRejectedValue(new Error('Aircraft unavailable'));
+  const setup = { playerShipId: 'enterprise-cv6', friendlyBots: [], enemies: ['enterprise-cv6'], spawnDistance: 5000 };
+  try {
+    await expect(game.prepareBattle(setup)).rejects.toThrow('Aircraft unavailable');
+    expect(game.definition.id).toBe('bismarck'); expect(scene.children).toContain(playerView.root);
+    aircraftLoader.mockResolvedValue();
+    await game.prepareBattle(setup); expect(game.definition.id).toBe('enterprise-cv6');
+  } finally { aircraftLoader.mockRestore(); loader.mockRestore(); rig.dispose(); }
 });

@@ -37,7 +37,7 @@ const modulesFor = (selectedShip: ShipDefinition) => {
       model: `${selectedShip.name} · ${selectedShip.configuration.match(/19\d{2}/)?.[0]}`,
       icon: "ship",
       detail:
-        destroyer ? "A light steel hull carries rapid-firing guns, torpedoes and depth charges." : submarine ? "An unarmored outer casing surrounds the pressure hull. This first version operates on the surface." : "A heavily armored citadel protects the ship’s vital compartments.",
+        destroyer ? "A light steel hull carries rapid-firing guns, torpedoes and depth charges." : submarine ? "An unarmored outer casing surrounds the pressure hull. Ballast and dive planes control depth; flooding remains a separate threat." : "A heavily armored citadel protects the ship’s vital compartments.",
       upgrade: "Reinforced compartmentation",
       stat: "Survivability",
       standard: String(survivability),
@@ -48,7 +48,7 @@ const modulesFor = (selectedShip: ShipDefinition) => {
       name: "Propulsion",
       model: submarine ? "Diesels and electric motors" : "Geared steam turbines",
       icon: "propeller",
-      detail: destroyer ? "Twin shafts and geared turbines drive a fast, responsive hull." : submarine ? "Twin shafts with diesel propulsion for surface operation." : "Three shafts deliver steady power for an Atlantic crossing.",
+      detail: destroyer ? "Twin shafts and geared turbines drive a fast, responsive hull." : submarine ? "Twin shafts use diesel power near the surface and electric motors underwater." : "Three shafts deliver steady power for an Atlantic crossing.",
       upgrade: "Turbine calibration",
       stat: "Engine response",
       standard: "34.0 s",

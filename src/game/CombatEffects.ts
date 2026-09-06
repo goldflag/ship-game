@@ -1,3 +1,4 @@
+import { localToWorld } from '../simulation/geometry';
 import * as THREE from 'three/webgpu';
 import { uniform, viewportDepthTexture } from 'three/tsl';
 import type { CombatEvent, CombatSimulation } from '../simulation/combat';
@@ -48,6 +49,7 @@ export class CombatEffects {
   private readonly turn = new THREE.Quaternion();
   private readonly inverse = new THREE.Quaternion();
   private sequence = 0;
+  private fireTick = -1;
   private lightCursor = 0;
   private shellCount = 0;
   private torpedoCount = 0;
@@ -89,6 +91,22 @@ export class CombatEffects {
       this.emit(event); emitted = true;
     }
     if (emitted) this.pools.forEach(pool => updatePool(pool, 0));
+    if (dt > 0 && sim.tick >= this.fireTick + 15) {
+      this.fireTick = sim.tick;
+      let count = 0;
+      for (const actor of sim.actors) for (let i = 0; i < actor.mounts.length && count < 32; i++) {
+        const intensity = actor.damage.control.mounts[i].intensity;
+        if (intensity <= 0 || actor.damage.sunk) continue;
+        count++;
+        const m = actor.definition.mounts[i];
+        this.position.fromArray(localToWorld([m.position[0], m.position[1] + m.weapon.gunhouseSize[2], m.position[2]], actor.motion));
+        const flame = this.fire.emit(this.position); flame.size = 2 * intensity; flame.growth = 2; flame.life = .6;
+        flame.velocity.set(0, 2, 0); flame.opacity = .6; flame.color.copy(WARM);
+        const smoke = this.smoke.emit(this.position); smoke.size = 3; smoke.growth = 2; smoke.life = 5;
+        smoke.velocity.set(0, 3, 0); smoke.opacity = .35 * intensity; smoke.color.copy(SMOKE).multiplyScalar(.4);
+      }
+      this.pools.forEach(pool => updatePool(pool, 0));
+    }
     this.updateShells(sim, camera);
     this.updateTorpedoes(sim);
     this.depthChargeCount = Math.min(sim.depthCharges.length, 128);
@@ -116,7 +134,8 @@ export class CombatEffects {
       this.dummy.position.addScaledVector(this.direction, -length / 2);
       this.dummy.position.y = .45;
       this.dummy.rotation.set(-Math.PI / 2, 0, Math.atan2(this.direction.x, -this.direction.z));
-      this.dummy.scale.set(2, length, 1);
+      const surface = THREE.MathUtils.clamp((t.position[1] + 6) / 4, 0, 1);
+      this.dummy.scale.set(2 * surface, length * surface, 1);
       this.dummy.updateMatrix(); this.torpedoWakes.setMatrixAt(i, this.dummy.matrix);
     }
     for (const mesh of [this.torpedoBodies, this.torpedoWakes]) {
@@ -173,6 +192,7 @@ export class CombatEffects {
       p.color.copy(WATER);
     } else if (event.kind === 'shot') this.muzzle(scale, random, event.shipId);
     else if (event.kind === 'splash') this.splash(scale, random);
+    else if (event.kind === 'burst' && event.detonation) this.shellBurst(event.blastRadiusM ?? 2, random);
     else if (event.detonation) this.detonation(scale, random, event.shipId);
     else if (event.normal) this.impact(event, scale, random);
     // Internal damage and sinking are state changes, not external fireballs.
@@ -210,7 +230,7 @@ export class CombatEffects {
       p.velocity.y += 2;
       p.size = (14 + random() * 9) * size; p.growth = (48 + random() * 24) * size; p.growthDecay = 2.6;
       p.diffusion = (.9 + random() * .6) * size;
-      p.life = 9 + random() * 3; p.drag = 2.3 + random() * .35;
+      p.life = 4.5 + random() * 1.5; p.drag = 2.3 + random() * .35;
       p.gravity = -1 - random() * 1.2; p.wind = .5 + random() * .25;
       p.heat = .85 + random() * .15; p.cooling = (.62 + random() * .2) * Math.sqrt(size);
       p.opacity = .92; p.density = 3.2 + random() * 1.1;
@@ -293,6 +313,24 @@ export class CombatEffects {
     }
   }
 
+  private shellBurst(radius: number, random: () => number): void {
+    const size = Math.max(.25, radius * .25);
+    this.illuminate(5000 * size, .15);
+    for (let i = 0; i < 6; i++) {
+      const p = this.fire.emit(this.position);
+      p.velocity.set((random() - .5) * size * 4, (random() - .5) * size * 4, (random() - .5) * size * 4);
+      p.size = size; p.growth = size; p.life = .15 + random() * .2; p.drag = 2;
+      p.color.set('#ffb56e'); p.opacity = .8;
+    }
+    for (let i = 0; i < 8; i++) {
+      const p = this.smoke.emit(this.position);
+      p.velocity.set((random() - .5) * size * 2, 1 + random() * size, (random() - .5) * size * 2);
+      p.size = size; p.growth = size * .3; p.life = 2 + random() * 2;
+      p.drag = 1; p.wind = .6; p.gravity = -.2; p.opacity = .55;
+      p.color.set('#55524e'); p.angle = random() * 6; p.spin = .1;
+    }
+  }
+
   private detonation(scale: number, random: () => number, sourceId: string): void {
     this.position.y = Math.max(this.position.y, 2);
     this.illuminate(150000 * scale);
@@ -312,7 +350,7 @@ export class CombatEffects {
   }
 
   reset(): void {
-    this.pools.forEach(pool => pool.reset()); this.shellCount = 0; this.torpedoCount = 0; this.depthChargeCount = 0;
+    this.pools.forEach(pool => pool.reset()); this.shellCount = 0; this.torpedoCount = 0; this.depthChargeCount = 0; this.fireTick = -1;
     for (const mesh of [this.projectiles, this.streaks, this.torpedoBodies, this.torpedoWakes, this.depthChargeBodies]) { mesh.instanceMatrix.array.fill(0); mesh.instanceMatrix.needsUpdate = true; }
     this.lights.forEach(item => { item.age = 1; item.light.intensity = 0; }); this.sequence = 0;
   }

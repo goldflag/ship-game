@@ -1,5 +1,7 @@
 # Ship pipeline and combat validation — 2026-09-05
 
+Latest: [fleet fidelity / five-preset master integration](fleet-fidelity-integration.md). The dated milestones below retain their original hashes, test totals and review scope.
+
 The implemented milestone is a local ship asset pipeline and singleplayer gunnery/damage trial. Historical accuracy approval, a construction UI and networked PvP are separate future milestones.
 
 ## Asset evidence
@@ -93,3 +95,83 @@ To repeat the GPU regression with `bun run dev` running, evaluate this in the ga
 ```js
 await import('/scripts/tests/combat-effects-browser.ts').then(m => m.checkCombatEffects());
 ```
+
+## Fleet fidelity 01 — 2026-09-05 Pacific
+
+Implemented the Yamato / Baltimore / Enterprise fidelity handoff from assigned master base `8e0be03`, preserving newer fleet, contact, shell-follow, audio and aircraft work. The [shared authoring/verification record](../assets/ships/fleet-fidelity/README.md) links per-vessel changes, exact hashes, source qualifications, twelve neutral matched views, five fixed views, decoded geometry and live evidence. This milestone supersedes earlier implementation-status notes for these ships, not their historical accuracy caveats.
+
+All three now share authored hull/deckhouse surfaces between rendering, CPU swept collision, sight picking and inspection. Original gunhouse facets, characteristic equipment, separately qualified protection and contained internal envelopes replace the earlier sparse/proxy portions. Corrections include Yamato's recurved bow air gap and port/starboard diagonals, Baltimore's broad transom cap and Enterprise's open hangar/elevator surfaces. Bismarck was rebuilt for shared recipe changes without editing its blueprint, exterior recipe or preserved baseline.
+
+- `bun test --timeout 20000`: **247 passed, 0 failed, 30,803 assertions across 36 files**. The new fleet structural regressions cover posed end/bridge hits, AP exits, air misses, dry high hits, inside-hull waterline traversal, breaches/flooding, effective armor and mixed-definition world-space effects. An HTTP regression reproduces and fixes review directory URLs falling through to Vite's game SPA; all four port links now use explicit `index.html`.
+- `bun run build`: all four asset/evidence and aircraft checks, TypeScript and Vite production build passed. The supplied large-bundle advisory remains. Local command logs are under `.build/fleet-fidelity/`.
+- All four `ship:compile`, `ship:build`, `ship:review` and `ship:compare` runs passed. All three upgraded presets passed full `ship:independence` builds with raw game references unavailable. Per-vessel dimensional audits and Yamato's selected component measurements pass. All models stay within 500k triangles / 30 MiB; Bismarck's historical ZIP remains close to the 100 MiB individual-file limit.
+- Current-hash WebGPU sweeps covered twelve train/elevation/recoil combinations for all four ships. Maximum muzzle discrepancy: Yamato 2.747 mm, Baltimore 1.317 mm, Enterprise 0.0324 mm and Bismarck 2.167 mm. All fixed and matched views were visually inspected; original before snapshots remain in assets.
+- Each target launched as player against a mixed three-ship enemy fleet, fired both batteries through the UI, used armor hover/internal selection and returned to tick 0 / Exterior / zero water. Separate, labeled live seeded trajectories exercised each definition's bow, stern, bridge, misses and valid waterline damage/flooding through the normal CPU/effects path. Enterprise's offset bridge camera remained correct. Exact events, ammo changes, seeds, captures and limitations are in the per-vessel records.
+
+Local Blender 5.2.0 LTS was used because no callable Blender MCP was available. Orca controlled only the assigned worktree's browser/terminal. Restricted historical scans were excluded from public packs. Direct canvas captures omit the HTML HUD and are distinguished from full UI screenshots and Blender renders. Roughly 20–54 port / 10–33 four-actor frame readings varied with desktop load, occlusion and effects: functional usability was exercised, but no controlled performance or maximum-fleet certification is claimed. Exact hull offsets, fitting locations, armor boundaries, rooms, capacities and hydrostatics remain qualified estimates in each discrepancy register.
+
+### Final evidence packaging
+
+The final production build passed after regenerating all four comparison packs. ZIP CRC checks and every published individual-file size check pass. Explicit historical redistribution allowlists pass for all three new packs; Bismarck retains its existing comparison policy. All new per-ship Markdown evidence links resolve locally.
+
+| Portable archive | Bytes | MiB |
+| --- | ---: | ---: |
+| Yamato | 45,964,184 | 43.83 |
+| Baltimore | 40,264,828 | 38.40 |
+| Enterprise CV-6 | 43,518,366 | 41.50 |
+| Bismarck | 104,061,929 | 99.24 |
+
+Orca verified the corrected explicit port link and Yamato's twelve before/after controls, two historical overlays, five sections and opacity values 0 / 0.25 / 0.75 / 1. The regenerated Yamato page also exposed its current runtime records/captures in the accessibility snapshot. A subsequent extra browser pass over lazy-loaded runtime images and the other two review pages could not finish: the desktop connection closed, and targeted tab recovery repeated the same error. The shared Orca app was not restarted. This limits the final interactive-page recheck, not the already completed exact-hash in-game articulation, firing, damage, inspection and reset trials. All four published review URLs additionally pass the real Vite HTTP regression, and final archive/freshness checks cover their files. The read-only review-control helper is retained under `assets/ships/fleet-fidelity/review-page.js` for repetition when the desktop host is available.
+## 2026-09-05 — damage realism step 1
+
+Baseline `45392d0`; the detailed [implementation and Fable review record](../assets/reviews/damage-realism/implementation.md) supersedes earlier damage-behavior observations. Hull/sea contact now uses authored hull sections, openings retain spatial locations with bounded clustering, shell histories explain hit outcomes, and sinking records its cause while retaining the structural fallback. 132 tests and the production build pass. Claude Fable accepted the implementation and verified the review fixes with no blockers. Live battle entry, firing and the new empty history state were exercised; populated-history visual acceptance remains pending because the background Orca tab cannot retain visible focus for screenshot capture.
+
+## Damage realism step 2 — 2026-09-05
+
+Supersedes earlier machinery/flooding behavior only. Explicit drive groups, equipment immersion and closed damageable boundaries now connect hull openings to capability loss. All four authored presets rebuilt and passed checks; 142 tests and the production build passed. Claude Fable accepted the corrected data and simulation in two review rounds. Fixed views and in-game articulation were inspected across the fleet. The controlled browser flooding replay shows 441.9 m³, 67% propulsion, two flooded boilers, and an inspectable 15-impact shell history. Desktop/phone panel bounds and scrolling passed. Stock Bismarck waterline shots still sink by the temporary structural fallback with zero water; end/upper/deep coverage and stability remain provisional. Full evidence, hashes, caveats and reviewer reports: [implementation record](../assets/reviews/damage-realism/implementation.md).
+
+### 2026-09-05 — damage realism step 3b
+
+Shared calibrated linear drag and seeded angular dispersion are implemented and accepted by Claude Fable. This supersedes the earlier zero-dispersion flight observations; impact penetration and AP bursts are still pending. 150 full tests plus the added schema test passed, along with production build and all four rebuilt preset checks. Twenty fixed views are pixel-identical to their previously inspected versions; live articulation stays within 2.75 mm. A mounted Game.fire() replay launched eight rounds and populated hit histories. See the [implementation record](../assets/reviews/damage-realism/implementation.md) and [Fable review](../assets/reviews/damage-realism/fable-step3b-review.md) for exact hashes, calibration limits, browser evidence and the next performance work.
+
+### 2026-09-05 — damage realism step 3c
+
+Impact-speed/material penetration, range spread from seeded muzzle-speed variation, impact-speed telemetry and cached aiming are accepted by Fable after the catalog reference-speed fix. All 156 tests, the production build and all four rebuilt preset checks pass. Fixed geometry views are unchanged; live articulation remains within 2.746 mm. The final browser replay shows eight launches and five target-hit histories; narrow-screen telemetry remains scrollable without overflow. The explicit legacy reference calibration retains a long-range immunity band; this is not a historical claim. AP deceleration/fuzes/bursts, damage control and stability still follow. See the [implementation record](../assets/reviews/damage-realism/implementation.md) for hashes, measurements and both Fable reviews.
+
+### 2026-09-05 — damage realism step 3d
+
+AP deceleration, arming/delay, lodged shells, turret continuation and protected local bursts are implemented. Fable accepted the behavior, requested cheaper burst queries, and accepted the optimized candidate filtering after 6,000 independent ray comparisons. Final 167 tests and the production build pass. All four local Blender builds/checks, unchanged fixed geometry views, in-game articulation and a populated fuze/exit-speed HUD replay pass. The small-screen panel remains scrollable. Calibration and known limitations, all hashes, browser evidence and both reviewer reports are retained in the [implementation record](../assets/reviews/damage-realism/implementation.md). HE, fire/crew response, protected magazine ignition and derived stability remain the following milestones.
+
+## Step 4a — ammunition choices (2026-09-05)
+
+AP/HE now have finite separate stocks within existing total capacity. Switching ammunition takes a complete load interval; firing consumes only the selected stock. Bots choose ammunition and equipment aim points through the same rules. HE bursts on first contact, uses the bounded protected burst queries, and can open penetrated thin exterior plating. Exact-face gunhouse and zero-distance portal contacts pay their protection. The gunnery instrument exposes shell type, stocks, load state and damaged gun mounts.
+
+Validation: 175 tests pass, production build passes (existing bundle-size warning). All four presets rebuilt and checked with local Blender; all 20 fixed views have unchanged decoded pixels, and live articulation errors remain at most 2.746 mm. The controlled live HE replay recorded an eight-round salvo after a full loading interval, unchanged AP stock, eight HE rounds consumed, and four damaged Enterprise gun mounts. Evidence is under `assets/reviews/damage-realism/browser/step4a-*.json`. The settled canvas PNG shows the subsequent port view, not the firing replay.
+
+HE fill, fragment resistance budget and stock split are explicitly provisional in the authoring recipe. AP and HE share the nominal gun flight envelope. No historical accuracy is inferred. User waived further reviews; this checkpoint has local test/build/browser validation and no Fable review verdict.
+
+## Step 4b — fires and damage control (2026-09-05)
+
+Versioned ship profiles now author abstract crew count, setup time, finite fuel, repair supplies, suppression, pumping, shoring and flash protection. Burst-delivered heat starts local compartment/gunhouse fires. Closed intact boundaries contain spread; water suppresses fire. Magazine ignition is thermal, with wet ammunition and feed-path attenuation, instead of an HP-zero explosion. An ignition consumes connected ammunition, disables the local mount and opens the hull and connected boundaries.
+
+Player and bot crews share timed jobs. Priority and focus controls direct suppression, small-hole shoring, isolation, portable pumps and repairs. Repairs consume supplies, stop at 60%, preserve zero-HP destruction, and never restore ammunition. Mount fires emit bounded visual flame/smoke; internal fires remain inspectable through telemetry.
+
+183 tests pass; production build passes with the existing bundle-size warning. All four presets rebuilt/reviewed with local Blender; all 20 fixed-view images have unchanged decoded RGB pixels. Live priority control and a 47-second fixed-tick replay extinguished the seeded fire and consumed repair supplies while the battle continued. Evidence: `browser/step4b-control.json`. Fire/crew units, accessibility thresholds, flash attenuation and pump performance are provisional game calibration, not historical specifications. No individual crew, ventilation or electrical network is claimed. Reviews waived by user.
+
+## Step 5 — hull-derived stability and loss conditions (2026-09-05)
+
+Hull-section clipping now derives displacement, buoyancy centers and finite-angle righting arms. The versioned loading profile records CG and a uniform calibration between stated mass and the modeled reference displacement. Added floodwater has a horizontal free surface and a moving centroid; no second free-surface penalty is applied. Hydrostatic forces update at 2 Hz with 60 Hz CPU pose integration. Portal pressure, immersion and breach flow share the waterplane; openings can drain outward as well as admit water.
+
+The original stability recipe adds residual compound spaces while preserving every earlier room/mount ID. Adaptive cells exclude retained room envelopes. Adjacent cells are merged without changing volume, then rounded to eight decimal places to keep files compact; fluid quadrature uses up to sixteen columns per cell. Final compound counts: Bismarck 3,648, Yamato 2,262, Baltimore 2,030 and Enterprise 3,570. Cell boundaries and capacity are validated, and the reference pipeline now measures/draws the actual cells. A cached hull-shell query supplies provisional steel coverage between explicit exterior plates, including deck, bottom and ends. Fallback contacts and opening assignments appear in the ledger.
+
+Universal HP sinking is retired. The old numeric field now summarizes equipment condition. Exhausting hull-derived buoyancy or sustained finite-angle capsize causes loss; surviving ships can be immobile, disarmed or disabled afloat. Permanent gun/ammunition loss removes a ship from fighting strength. Temporary equipment immersion remains recoverable. The HUD exposes these states, list, trim, draft change and causes.
+
+Validation: all 198 tests pass (120,973 assertions), including analytic box displacement/metacenter, free water, mirrored list, drainage, conservation, finite-angle capsize, all six exterior directions and buoyancy loss across all four presets, plus afloat battle loss/reset and existing gunnery protection/determinism. Production build passes with the existing large-chunk warning; merging cells reduced the new main bundle from 16.85 MB to 8.69 MB before compression. All four assets rebuilt and checked with local Blender. The 20 fixed review views remain pixel-identical to step 4b; only definition/source metadata and internal evidence changed.
+
+Physical limits: loading and GM, buoyancy scaling, residual subdivision, access routes, 85% permeability, fallback shell thickness, angular inertia/damping and capsize timing are declared game approximations. Water surfaces use bounded numerical quadrature. The existing explicit armor overlay is supplemented by hull-contact ledger evidence. No historical loading certification, regulatory compliance, trapped air, detailed downflooding apertures, dynamic CPU waves, underwater shock or hull fracture is claimed. User waived further reviews.
+
+Final live evidence: all four rebuilt presets passed full train/elevation/recoil inspection (maximum muzzle mismatch 2.746 mm). The Bismarck fixture carried 2,438.0 m³ of asymmetric water after 120 seconds, settled at about 11.95° list and 0.44 m added draft, and remained afloat with guns available after propulsion destruction. The actual WebGPU inspection and HUD report `immobile`; the figure is a controlled load, not a normal salvo or historical casualty. `browser/step5-flooding.*` records the image and state.
+
+The seeded 5v5 CPU run (10-second warmup, 60 measured seconds) averaged 1.52 ms per tick, with p95 2.26 ms, p99 2.92 ms and a 39.11 ms worst tick on this host. This excludes rendering and is not an FPS guarantee. Finite-angle dry curves and scenario state are in `browser/step5-scenarios.json`, reproducible with `stability-scenarios.ts`.
+
+The 390 × 844 live control check has no horizontal overflow; the 366 × 702 gunnery panel scrolls its expanded damage-control content. Dry loading is fixed during battle: expended ammunition and fuel do not yet change mass or CG.

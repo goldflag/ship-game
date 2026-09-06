@@ -20,7 +20,7 @@ test('ship labels follow camera projection and cull rear, offscreen and clipped 
   expect(projectShipLabel(new Vector3(0, 0, -5000), camera, 1600, 900)).toBeNull();
 });
 
-test('overhead HP numbers, meters and loss spans use each ship maximum', () => {
+test('overhead condition percentages, meters and loss spans use each ship maximum', () => {
   // Minimal DOM surface; exercise the actual label updates and Three.js projection.
   class Element {
     children: Element[] = [];
@@ -48,11 +48,11 @@ test('overhead HP numbers, meters and loss spans use each ship maximum', () => {
       const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
       const maxHp = actor.damage.maxIntegrity;
       labels.update(camera, 0);
-      expect(host.find('ship-label-health')!.textContent).toBe(`${maxHp} HP`);
+      expect(host.find('ship-label-health')!.textContent).toBe('100% · operational');
       expect(host.find('ship-label-meter')!.attributes.get('aria-valuemax')).toBe(String(maxHp));
       actor.damage.integrity *= .6;
       labels.update(camera, 1);
-      expect(host.find('ship-label-health')!.textContent).toBe(`${maxHp * .6} HP`);
+      expect(host.find('ship-label-health')!.textContent).toBe('60% · operational');
       expect(host.find('ship-label-fill')!.style.transform).toBe('scaleX(0.6)');
       expect(host.find('ship-label-loss')!.style.left).toBe('60%');
       expect(host.find('ship-label-loss')!.style.width).toBe('40%');

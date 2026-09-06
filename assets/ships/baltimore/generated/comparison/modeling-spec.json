@@ -1,0 +1,366 @@
+{
+  "schemaVersion": 1,
+  "revision": "fleet-fidelity-01",
+  "comparisonMode": "historical-before-after",
+  "runtimeReview": {
+    "contentHash": "0079ff92853af02a9f22fae2001babdc8a4d65940d79fe4eae9beb946b006887",
+    "note": "Preserved pre-master-integration WebGPU run. A newer export is not silently certified by these earlier captures; see the fleet integration report."
+  },
+  "configuration": "October 1943 exterior; 24 ft 2 in limiting keel draft, not navigational draft",
+  "authoringBoundary": "Original blueprint, catalog facets and deterministic recipes. Historical images are comparison evidence only; no game mesh/texture or reference attachment transforms enter authoring.",
+  "coordinates": {
+    "runtime": "metres; +X starboard, +Y up, -Z bow",
+    "blender": "metres; +X bow, +Y port, +Z up",
+    "conversion": "runtime = (-blenderY, blenderZ, -blenderX)",
+    "origin": "overall steel hull midpoint at declared reference waterline",
+    "waterlineY": 0,
+    "keelY": -7.366
+  },
+  "acceptance": [
+    {
+      "id": "length",
+      "metric": "hull.length",
+      "target": 205.2574,
+      "tolerance": 0.025,
+      "units": "m",
+      "sourceId": "navships-250-010",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.5
+    },
+    {
+      "id": "beam",
+      "metric": "hull.beam",
+      "target": 21.59,
+      "tolerance": 0.025,
+      "units": "m",
+      "sourceId": "navships-250-010",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.5
+    },
+    {
+      "id": "draft",
+      "metric": "hull.draft",
+      "target": 7.366,
+      "tolerance": 0.025,
+      "units": "m",
+      "sourceId": "navships-250-010",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.5
+    },
+    {
+      "id": "waterlineLength",
+      "metric": "hull.waterlineLength",
+      "target": 202.3872,
+      "tolerance": 0.005,
+      "units": "m",
+      "sourceId": "navships-250-010",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.5
+    }
+  ],
+  "landmarks": [
+    {
+      "id": "main-1-axis",
+      "runtime": [
+        0,
+        8.2804,
+        -57.424152
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "op1112-517",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "main-2-axis",
+      "runtime": [
+        0,
+        11.1379,
+        -44.326014
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "op1112-517",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "main-3-axis",
+      "runtime": [
+        0,
+        8.4328,
+        55.507351
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "op1112-517",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "secondary-51-axis",
+      "runtime": [
+        0,
+        10.05,
+        -30.269476
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "op1112-517",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "secondary-52-axis",
+      "runtime": [
+        -7.05,
+        7.949999999999999,
+        2.955068
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "op1112-517",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "secondary-53-axis",
+      "runtime": [
+        7.05,
+        7.949999999999999,
+        2.955068
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "op1112-517",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "secondary-54-axis",
+      "runtime": [
+        -7.05,
+        7.949999999999999,
+        8.705469
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "op1112-517",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "secondary-55-axis",
+      "runtime": [
+        7.05,
+        7.949999999999999,
+        8.705469
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "op1112-517",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "secondary-56-axis",
+      "runtime": [
+        0,
+        10.05,
+        42.24948
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "op1112-517",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    }
+  ],
+  "parameterGroups": [
+    {
+      "selector": "hull.sections",
+      "basis": "estimated",
+      "sourceIds": [
+        "navships-250-010"
+      ],
+      "note": "All 120 station and 13 section anchors retained; monotone fairing between qualified class observations. Exact CA-68 as-built offsets remain missing."
+    },
+    {
+      "selector": "structures / build.py fittings",
+      "basis": "estimated",
+      "sourceIds": [
+        "op1112-517",
+        "nh-91452",
+        "baltimore-bridge-1942"
+      ],
+      "note": "Substantive bridge, funnel and gallery faces shared by CPU/rendering. Small ladders, doors, optics, boat fittings and open lattice remain visual detail, not separate damage modules. Dated fit and source limitations retained."
+    },
+    {
+      "selector": "armor / gunhouseMesh / structuralPlating",
+      "basis": "estimated",
+      "sourceIds": [
+        "navships-250-010",
+        "fidelity-provisional-protection"
+      ],
+      "note": "Physical faceted protection replaces blanket boxes; nominal hull/structure steel is a gameplay estimate. Neither successful export nor plate labels certify a historical armor schedule."
+    },
+    {
+      "selector": "compartments / modules",
+      "basis": "estimated",
+      "sourceIds": [
+        "navships-250-010"
+      ],
+      "note": "Forward/after turbine units separated from two boiler-unit envelopes. Stable engine/magazine IDs preserved; end voids added for local flooding. Exact CA-68 internal subdivision and armor schedules remain unresolved."
+    }
+  ],
+  "probes": [
+    {
+      "id": "midship-belt",
+      "from": [
+        -45,
+        -0.5,
+        0
+      ],
+      "to": [
+        45,
+        -0.5,
+        0
+      ]
+    },
+    {
+      "id": "protected-deck",
+      "from": [
+        0,
+        60,
+        20
+      ],
+      "to": [
+        0,
+        -20,
+        20
+      ]
+    }
+  ],
+  "structuralProbes": [
+    {
+      "id": "bow",
+      "from": [
+        -45,
+        6,
+        -94.6287
+      ],
+      "to": [
+        45,
+        6,
+        -94.6287
+      ],
+      "expectHit": true
+    },
+    {
+      "id": "stern",
+      "from": [
+        -45,
+        3,
+        94.6287
+      ],
+      "to": [
+        45,
+        3,
+        94.6287
+      ],
+      "expectHit": true
+    },
+    {
+      "id": "bridge",
+      "from": [
+        -45,
+        16,
+        -20
+      ],
+      "to": [
+        45,
+        16,
+        -20
+      ],
+      "expectHit": true
+    },
+    {
+      "id": "empty-air",
+      "from": [
+        -45,
+        65,
+        0
+      ],
+      "to": [
+        45,
+        65,
+        0
+      ],
+      "expectHit": false
+    }
+  ],
+  "sectionStations": [
+    20.52574,
+    51.31435,
+    102.6287,
+    153.94305,
+    190.889382
+  ],
+  "historicalRegistrations": [
+    {
+      "view": "starboard",
+      "image": "navy-starboard-plan-1943.jpg",
+      "sourceId": "navy-camo-109723",
+      "crop": [
+        70,
+        275,
+        1415,
+        525
+      ],
+      "originPixel": [
+        752.5,
+        494
+      ],
+      "pixelsPerMeter": 6.2604320234008615,
+      "redistribute": true,
+      "credit": "U.S. Navy Bureau of Ships, 80-G-109723, 30 December 1943; U.S. government drawing.",
+      "note": "Uniform scale from retained hull endpoints. Vertical origin inferred using forward trunnion datum, not the lower camouflage edge. ±1 m registration uncertainty; later paint is not backdated."
+    },
+    {
+      "view": "top",
+      "image": "navy-starboard-plan-1943.jpg",
+      "sourceId": "navy-camo-109723",
+      "crop": [
+        70,
+        545,
+        1430,
+        704
+      ],
+      "originPixel": [
+        752.5,
+        624
+      ],
+      "pixelsPerMeter": 6.2604320234008615,
+      "redistribute": true,
+      "credit": "U.S. Navy Bureau of Ships, 80-G-109723, 30 December 1943; U.S. government drawing.",
+      "note": "Same scale as profile. Scan/plan mismatch is not corrected with independent stretching; up to 2 m endpoint uncertainty."
+    }
+  ],
+  "evidence": [
+    {
+      "image": "op1112-baltimore-turret.jpg",
+      "sourceId": "op1112-517",
+      "redistribute": true,
+      "caption": "Primary OP 1112 turret section. Trunnion, rear extent and roof height retained; width and protection schedule remain unresolved."
+    },
+    {
+      "image": "navy-profile-1943-09-10.jpg",
+      "sourceId": "nh-91452",
+      "redistribute": true,
+      "caption": "Dated 1943 Navy photograph: two funnels, mast/director order and pre-dazzle fit."
+    },
+    {
+      "image": "navy-bridge-plan-1942-preview.jpg",
+      "sourceId": "baltimore-bgp-preview",
+      "redistribute": false,
+      "caption": "Retained Baltimore bridge drawing preview; trace/registration records remain local. No archival scan is added to the public pack."
+    }
+  ],
+  "review": {
+    "title": "USS Baltimore · fidelity 01",
+    "intro": "Matched pre-pass and current exported geometry, documented dimensions, structural probes and historical evidence. Both authored stages use the same twelve fixed cameras.",
+    "limits": "No historical accuracy percentage. Exact offsets, many fitting locations, nominal plating and internal room boundaries remain approximations. See discrepancies.md and the source register. Raster overlays use one uniform scale per source sheet; unresolved source/datum mismatch remains visible."
+  }
+}

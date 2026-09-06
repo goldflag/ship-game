@@ -1,0 +1,20 @@
+[
+  {
+    "axis": "forward",
+    "deltaX": 0,
+    "deltaZ": 1.350884841043611,
+    "id": "gear.port"
+  },
+  {
+    "axis": "forward",
+    "deltaX": 0,
+    "deltaZ": -1.350884841043611,
+    "id": "gear.starboard"
+  },
+  {
+    "axis": "spanwise",
+    "deltaX": -0.6754424205218055,
+    "deltaZ": 0,
+    "id": "gear.tail"
+  }
+]

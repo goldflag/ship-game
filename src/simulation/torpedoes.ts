@@ -3,11 +3,13 @@ import type { FleetActor } from './battle';
 import { add, clamp, localToWorld, radians, rotate, scale, segmentBox, sub, worldToLocal, wrapAngle } from './geometry';
 import { motionVelocity } from './ship';
 import { structuralHits } from './structure';
+import { addBreach } from './damage';
+import { equipmentCondition } from './machinery';
 
 export type TubeDefinition = NonNullable<ShipDefinition['torpedoTubes']>[number];
 export interface TubeState {
   id: string; ammo: number; reload: number;
-  status: 'ready' | 'reloading' | 'turning' | 'out-of-arc' | 'out-of-range' | 'too-close' | 'disabled' | 'empty' | 'blocked';
+  status: 'ready' | 'reloading' | 'turning' | 'out-of-arc' | 'out-of-range' | 'too-close' | 'disabled' | 'empty' | 'blocked' | 'too-deep' | 'above-water';
 }
 export interface TorpedoLauncherState { id: string; train: number; }
 export interface Torpedo {
@@ -29,7 +31,8 @@ export function trainTorpedoLaunchers(actor: FleetActor, aimFor: (tube: TubeDefi
     const state = actor.torpedoLaunchers!.find(s => s.id === launcher.id)!;
     const tubes = actor.definition.torpedoTubes!.filter(t => t.launcherId === launcher.id);
     const tube = tubes.find(t => (actor.torpedoTubes?.find(s => s.id === t.id)?.ammo ?? 0) > 0) ?? tubes[0];
-    if (actor.damage.sunk || actor.damage.modules.find(m => m.id === tube.magazineId)?.hp === 0) continue;
+    const magazine = actor.definition.modules.find(m => m.id === tube.magazineId);
+    if (actor.damage.sunk || actor.damage.stability.combatLost || !magazine || equipmentCondition(actor, actor.definition, magazine).availability <= 0) continue;
     const aim = aimFor(tube);
     if (!aim?.every(Number.isFinite)) continue;
     const local = worldToLocal(aim, actor.motion);
@@ -58,12 +61,14 @@ export function tubeSolution(actor: FleetActor, tube: TubeDefinition, state: Tub
   const origin = localToWorld(tubeLocalPosition(actor, tube), actor.motion);
   const heading = Math.atan2(aim[0] - origin[0], origin[2] - aim[2]);
   const range = Math.hypot(aim[0] - origin[0], aim[2] - origin[2]);
-  const magazine = actor.damage.modules.find(m => m.id === tube.magazineId);
+  const magazine = actor.definition.modules.find(m => m.id === tube.magazineId);
   const launcher = actor.definition.torpedoLaunchers?.find(l => l.id === tube.launcherId);
   const train = actor.torpedoLaunchers?.find(l => l.id === tube.launcherId)?.train ?? radians(tube.bearingDeg);
   const relative = wrapAngle(heading - actor.motion.heading);
   const inArc = launcher ? launcher.launchArcsDeg.some(([a, b]) => relative >= radians(a) && relative <= radians(b)) : Math.abs(wrapAngle(relative - train)) <= radians(tube.arcDeg) + 1e-8;
-  state.status = actor.damage.sunk || magazine?.hp === 0 ? 'disabled' : state.ammo === 0 ? 'empty' :
+  state.status = actor.damage.sunk || actor.damage.stability.combatLost || !magazine || equipmentCondition(actor, actor.definition, magazine).availability <= 0 ? 'disabled' : state.ammo === 0 ? 'empty' :
+    actor.definition.submarine && -actor.motion.y > actor.definition.submarine.maxTorpedoDepthM ? 'too-deep' :
+    !launcher && origin[1] > 0 ? 'above-water' :
     !aim.every(Number.isFinite) || !inArc ? 'out-of-arc' :
     range < tube.weapon.armingDistanceM ? 'too-close' : range > tube.weapon.rangeM ? 'out-of-range' : state.reload > 0 ? 'reloading' :
     launcher && Math.abs(wrapAngle(relative - train)) > radians(tube.arcDeg) ? 'turning' : 'ready';
@@ -131,30 +136,22 @@ export function firstTorpedoHit(torpedo: Torpedo, from: Vec3, to: Vec3, actors: 
 
 /** Bounded contact blast and one local breach. These are explicit gameplay values. */
 export function damageTorpedoHit(torpedo: Torpedo, actor: FleetActor, point: Vec3): string {
-  return damageUnderwaterBlast(actor, point, torpedo.weapon, 'Torpedo hit');
+  return damageUnderwaterBlast(actor, point, torpedo.weapon, 'Torpedo hit', torpedo.id);
 }
 
 /** Common local underwater damage; callers own blast falloff, scoring and events. */
-export function damageUnderwaterBlast(actor: FleetActor, point: Vec3, w: { damage: number; breachAreaM2: number }, label: string): string {
+export function damageUnderwaterBlast(actor: FleetActor, point: Vec3, w: { damage: number; breachAreaM2: number }, label: string, projectileId: number): string {
   const def = actor.definition, damage = actor.damage;
-  damage.integrity = Math.max(0, damage.integrity - w.damage);
   const distanceTo = (box: { center: Vec3; size: Vec3 }) => Math.hypot(...point.map((v, i) => Math.max(0, Math.abs(v - box.center[i]) - box.size[i] / 2)));
-  const compartment = def.compartments.map((c, i) => ({ c, i, distance: distanceTo(c) })).sort((a, b) => a.distance - b.distance)[0];
+  const compartment = def.compartments.map((c, i) => ({ c, i, distance: Math.min(...(c.cells ?? [c]).map(distanceTo)) })).sort((a, b) => a.distance - b.distance)[0];
   if (compartment) {
     const state = damage.compartments[compartment.i];
-    state.breachAreaM2 = Math.min(4, state.breachAreaM2 + w.breachAreaM2);
-    state.breachHeight = Math.min(state.breachHeight, point[1]);
+    addBreach(state, point, w.breachAreaM2, projectileId);
   }
   const module = def.modules.map((m, i) => ({ m, i, distance: distanceTo(m) })).filter(m => m.distance < 8).sort((a, b) => a.distance - b.distance)[0];
   if (module) {
     const state = damage.modules[module.i];
     state.hp = Math.max(0, state.hp - w.damage * .5 * (1 - module.distance / 8));
-    if (state.hp === 0 && module.m.kind === 'magazine' && !state.detonated) {
-      state.detonated = true;
-      damage.integrity = Math.max(0, damage.integrity - 150);
-      const room = damage.compartments.find(c => c.id === module.m.compartmentId)!;
-      room.breachAreaM2 = Math.min(4, room.breachAreaM2 + 2); room.breachHeight = module.m.center[1];
-    }
   }
   return `${label}${compartment ? ` · ${compartment.c.name}` : ''} · flooding breach`;
 }

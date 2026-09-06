@@ -4,6 +4,9 @@ import { CombatSimulation } from './combat';
 import { BATTLE_SPAWN_DISTANCE, MIN_BATTLE_SPAWN_DISTANCE, MAX_BATTLE_SPAWN_DISTANCE, MAX_TEAM_SHIPS, validateBattleSetup } from './battle';
 import { botTarget, clearFiringLane } from './bots';
 import { localToWorld } from './geometry';
+import { compileShip } from '../ships/blueprint';
+import legacyYamato from '../../assets/ships/yamato/reports/fidelity-01/before/blueprint.json';
+import catalog from '../../assets/parts/guns.json';
 
 const stop = { throttle: 0, rudder: 0 };
 const intent = { aim: [0, .5, -5000] as [number, number, number], fire: false, battery: 'main' as const };
@@ -12,15 +15,17 @@ const fleet = () => new CombatSimulation(shipPreset('baltimore'), {
 });
 
 for (const spawnDistance of [MIN_BATTLE_SPAWN_DISTANCE, BATTLE_SPAWN_DISTANCE]) {
-  test(`Yamato survives an accurately aimed Bismarck salvo at ${spawnDistance} m with inspectable magazine damage`, () => {
+  test(`legacy Yamato survives an accurately aimed salvo at ${spawnDistance} m with bounded local damage`, () => {
+    // Freeze the deliberately exposed magazine geometry that reproduced the
+    // damage-budget bug. Current historical layout must not require explosions.
     const sim = new CombatSimulation(shipPreset('bismarck'), {
-      friendlyBots: [], enemies: [shipPreset('yamato')], spawnDistance,
+      friendlyBots: [], enemies: [compileShip(legacyYamato,catalog)], spawnDistance,
     });
     // Keep the worst-case damage regression independent of intentionally imperfect bot fire control.
     sim.target.controller = 'idle';
     for (let tick = 0; tick < 600; tick++) sim.step(stop, { ...intent, aim: sim.aimAt(), fire: true });
     expect(sim.events.some(e => e.kind === 'penetration' && e.shipId === sim.target.motion.id)).toBe(true);
-    expect(sim.target.damage.modules.filter(m => m.detonated).length).toBeGreaterThanOrEqual(2);
+    expect(sim.shellHistory.some(h => h.impacts.some(i => i.shipId === sim.target.motion.id && (i.damage ?? 0) > 0))).toBe(true);
     const moduleDamage = sim.target.damage.modules.reduce((sum, m, i) => sum + sim.target.definition.modules[i].hp - m.hp, 0);
     const openingShots = sim.events.filter(e => e.kind === 'shot' && e.shipId === sim.player.motion.id);
     expect(openingShots).toHaveLength(4);
@@ -29,8 +34,23 @@ for (const spawnDistance of [MIN_BATTLE_SPAWN_DISTANCE, BATTLE_SPAWN_DISTANCE]) 
     expect(sim.target.damage.integrity).toBeLessThan(sim.target.damage.maxIntegrity);
     expect(sim.target.damage.sunk).toBe(false);
     expect(sim.result).toBe('active');
-    expect(sim.target.damage.compartments.some(c => c.waterM3 > 0)).toBe(true);
-    expect(sim.target.mounts.filter(m => m.status === 'disabled').length).toBeGreaterThanOrEqual(2);
+    // Local magazine HP loss is no longer an automatic explosion or gun loss.
+    // Explicit submerged-hit/flood-space tests cover flooding independently.
+    expect(sim.target.damage.modules.every(m => !m.detonated)).toBe(true);
+    expect(sim.target.mounts.every(m => m.hp > 0)).toBe(true);
+  });
+  test(`current Yamato survives a damaging opening salvo at ${spawnDistance} m`,()=>{
+    const sim=new CombatSimulation(shipPreset('bismarck'),{friendlyBots:[],enemies:[shipPreset('yamato')],spawnDistance});
+    sim.target.controller='idle';
+    for(let tick=0;tick<600;tick++)sim.step(stop,{...intent,aim:sim.aimAt(),fire:true});
+    expect(sim.events.some(e=>e.kind==='penetration'&&e.shipId===sim.target.motion.id)).toBe(true);
+    expect(sim.target.damage.integrity).toBeGreaterThan(sim.target.damage.maxIntegrity/2);
+    expect(sim.target.damage.integrity).toBeLessThan(sim.target.damage.maxIntegrity);
+    expect(sim.target.damage.sunk).toBe(false);
+    expect(sim.result).toBe('active');
+    // These above-water entries and their local bursts damage equipment
+    // without requiring a fictitious flooded magazine.
+    expect(sim.target.damage.compartments.every(c=>c.waterM3===0)).toBe(true);
   });
 }
 
@@ -110,7 +130,7 @@ test('spawn distance accepts its limits and rejects invalid values at setup and 
   }
 });
 
-test('every bot maneuvers, fires both applicable batteries, reloads and damages opposing hulls', () => {
+test('every bot maneuvers, fires both applicable batteries, reloads and damages opposing equipment', () => {
   const sim = fleet();
   const initial = sim.actors.map(actor => actor.mounts.map(mount => mount.ammo));
   const shots = new Map<string, number>();
@@ -143,11 +163,15 @@ test('every bot maneuvers, fires both applicable batteries, reloads and damages 
   const friendly = sim.actors[1];
   for (const battery of ['main', 'secondary']) expect(friendly.definition.mounts.some((mount, i) => mount.battery === battery && friendly.mounts[i].ammo < initial[1][i])).toBe(true);
   expect(sim.player.mounts.map(mount => mount.ammo)).toEqual(initial[0]);
-  expect(sim.actors.some(actor => actor.team === 'friendly' && actor.damage.integrity < actor.damage.maxIntegrity)).toBe(true);
-  expect(sim.actors.some(actor => actor.team === 'enemy' && actor.damage.integrity < actor.damage.maxIntegrity)).toBe(true);
+  // HE aimed at exposed guns causes local equipment damage without spending
+  // a universal hull counter. Both fleets must cause local damage or openings.
+  expect(sim.actors.some(actor => actor.team === 'friendly' && (actor.mounts.some(m => m.hp < 100) || actor.damage.compartments.some(c => c.breachAreaM2 > 0) || actor.damage.modules.some((m, i) => m.hp < actor.definition.modules[i].hp)))).toBe(true);
+  expect(sim.actors.some(actor => actor.team === 'enemy' && (actor.mounts.some(m => m.hp < 100) || actor.damage.compartments.some(c => c.breachAreaM2 > 0) || actor.damage.modules.some((m, i) => m.hp < actor.definition.modules[i].hp)))).toBe(true);
   const carrier = sim.actors[3];
   carrier.definition.mounts.forEach((mount, i) => { if (mount.weapon.caliberM < .1) expect(carrier.mounts[i].ammo).toBe(initial[3][i]); });
-});
+// This is 90 simulated seconds of fleet behavior, not a wall-clock benchmark.
+// Leave headroom for concurrent renderer tests and shared development hosts.
+}, 20000);
 
 test('bots ignore allies, change targets after sinking and hold fire through friendly hulls', () => {
   const sim = fleet(), bot = sim.actors[1];

@@ -1,0 +1,101 @@
+{
+  "depth": {
+    "backend": "WebGPUBackend",
+    "pass": true,
+    "results": [
+      {
+        "order": 0,
+        "pass": true,
+        "pixel": [
+          0,
+          255,
+          0,
+          255
+        ],
+        "range": 1000
+      },
+      {
+        "order": 1,
+        "pass": true,
+        "pixel": [
+          0,
+          255,
+          0,
+          255
+        ],
+        "range": 1000
+      },
+      {
+        "order": 0,
+        "pass": true,
+        "pixel": [
+          0,
+          255,
+          0,
+          255
+        ],
+        "range": 5000
+      },
+      {
+        "order": 1,
+        "pass": true,
+        "pixel": [
+          0,
+          255,
+          0,
+          255
+        ],
+        "range": 5000
+      },
+      {
+        "order": 0,
+        "pass": true,
+        "pixel": [
+          0,
+          255,
+          0,
+          255
+        ],
+        "range": 10000
+      },
+      {
+        "order": 1,
+        "pass": true,
+        "pixel": [
+          0,
+          255,
+          0,
+          255
+        ],
+        "range": 10000
+      },
+      {
+        "order": 0,
+        "pass": true,
+        "pixel": [
+          0,
+          255,
+          0,
+          255
+        ],
+        "range": 20000
+      },
+      {
+        "order": 1,
+        "pass": true,
+        "pixel": [
+          0,
+          255,
+          0,
+          255
+        ],
+        "range": 20000
+      }
+    ],
+    "reversed": true
+  },
+  "sky": {
+    "maxDifference": 0,
+    "pass": true
+  }
+}

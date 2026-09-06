@@ -15,6 +15,14 @@ export interface DepthChargeLauncher {
   id: string; name: string; partId: string; position: Vec3; velocity: Vec3;
   ammo: number; magazineId: string;
 }
+export type Ammunition = 'ap' | 'he';
+export interface HEProjectile {
+  explosiveKg: number; fragmentPenetrationMm: number; damage: number; stockFraction: number; basis: string;
+}
+export interface APProjectile {
+  armingResistanceMm: number; fuzeDelaySeconds: number; explosiveKg: number;
+  fragmentPenetrationMm: number; basis: string;
+}
 /** Fixed tubes with a preset gyro course; no homing or render dependencies. */
 export interface TorpedoPart {
   id: string; name: string; kind: 'torpedo'; diameterM: number; lengthM: number;
@@ -37,6 +45,11 @@ export interface GunPart {
   elevationMinDeg: number; elevationMaxDeg: number; elevationRateDeg: number;
   reloadSeconds: number; muzzleSpeed: number; projectileMassKg: number;
   penetrationMm: number; damage: number; recoilM: number; ammoPerBarrel: number; armorMm: number;
+  /** Optional calibrated flight model; omitted v1 parts retain vacuum/no spread. */
+  ballistics?: { dragPerSecond: number; dispersionRad: number; muzzleSpeedSigmaFraction?: number; penetrationReferenceSpeedMps?: number; basis: string };
+  /** Omitted original v1 parts remain inert/contact-only projectiles. */
+  ap?: APProjectile;
+  he?: HEProjectile;
   /** Omitted in original v1 twin parts. Spacing is between adjacent barrel axes. */
   barrelCount?: 1 | 2 | 3 | 4;
   mountingStyle?: 'enclosed' | 'open-pedestal' | 'open-quad' | 'oerlikon';
@@ -69,6 +82,17 @@ export interface Handling {
   forwardSpeed: number; reverseSpeed: number; acceleration: number;
   braking: number; rudderRate: number; maxYawRate: number;
 }
+/** Optional diving equipment; all depths are below the surfaced waterline datum. */
+export interface SubmarineDefinition {
+  submergedHandling: Handling;
+  ballastCapacityM3: number; neutralBallastFraction: number;
+  floodRateM3PerSecond: number; blowRateM3PerSecond: number; emergencyBlowRateM3PerSecond: number;
+  maxDiveSpeed: number; maxRiseSpeed: number;
+  periscopeDepthM: number; maxDepthM: number; maxTorpedoDepthM: number;
+  periscopeEye: Vec3;
+  surfaceEngineIds: string[]; submergedEngineIds: string[];
+  appendages: { bowPlanes: string[]; sternPlanes: string[]; rudders: string[]; propellers: string[] };
+}
 export interface Hull {
   kind: 'authored-stations-v1'; length: number; beam: number; draft: number; depth: number;
   massKg: number; waterplaneAreaM2: number; reserveBuoyancyM3: number;
@@ -84,23 +108,63 @@ export interface AuthoredStructure {
 }
 export interface Module extends Volume {
   name: string; kind: 'engine' | 'steering' | 'magazine'; hp: number; compartmentId: string;
+  /** Water above the equipment's lower face disables it. Omit for sealed equipment. */
+  immersionToleranceM?: number;
+  role?: 'boiler' | 'turbine' | 'shaft' | 'combined-drive';
 }
-export interface Compartment extends Volume { name: string; capacityM3: number; pumpM3PerSecond: number; }
+export interface Compartment extends Volume {
+  name: string; capacityM3: number; pumpM3PerSecond: number;
+  /** Optional disjoint conservative cells, in ship coordinates, for compound voids. */
+  cells?: { center: Vec3; size: Vec3 }[];
+}
+export interface FloodConnection {
+  id?: string; fromId: string; toId: string; areaM2: number;
+  /** Omitted v1 connections preserve the original open-connection behavior. */
+  state?: 'open' | 'closed' | 'damaged'; position?: Vec3;
+  /** A hit on this protection surface can breach this boundary, within bounds. */
+  armorId?: string; bounds?: { center: Vec3; size: Vec3 }; thicknessMm?: number;
+}
+export interface PropulsionGroup {
+  id: string; share: number; boilerIds: string[]; driveIds: string[]; shaftIds: string[];
+}
 export interface Armor extends Volume {
   name: string; thicknessMm: number;
+  /** Exterior closed-box protection: both entry and exit can open the shell. */
+  exterior?: boolean;
   /** A convex, planar physical plate. Legacy volumes remain closed box shells. */
-  plate?: { vertices: Vec3[]; material: 'KC' | 'Wh' | 'Ww' | 'steel' | 'teak'; mountId?: string; exterior?: boolean };
+  plate?: { vertices: Vec3[]; material: 'KC' | 'Wh' | 'Ww' | 'steel' | 'teak'; mountId?: string; exterior?: boolean; surfaceId?: string };
   provenance?: { sourceId: string; basis: 'documented' | 'plan-measured' | 'estimated' | 'inferred'; note: string };
+}
+/** Versioned game calibration, not historical crew or thermal engineering data. */
+export interface DamageControlProfile {
+  version: 1; teams: number; setupSeconds: number; repairPoints: number;
+  roomFuelSeconds: number; mountFuelSeconds: number; suppressionPerSecond: number;
+  portablePumpM3PerSecond: number; repairHpPerSecond: number; repairCeiling: number;
+  patchM2PerSecond: number; maxPatchM2: number; flashProtection: number; basis: string;
+}
+export type AircraftRole = 'fighter' | 'dive-bomber' | 'torpedo-bomber';
+export interface AirWingDefinition {
+  version: 1; launchPosition: Vec3; recoveryPosition: Vec3; serviceModuleId: string;
+  launchIntervalSeconds: number; rearmSeconds: number;
+  squadrons: { id: string; name: string; modelId: string; role: AircraftRole; count: number }[];
 }
 export interface ShipBlueprint {
   schemaVersion: 1; id: string; name: string; configuration: string;
   coordinates: 'meters-y-up-bow-negative-z'; modelUrl: string;
+  damageControl?: DamageControlProfile;
+  stability?: { version: 1; dryCenterOfGravity: Vec3; buoyancyScale: number; shellThicknessMm: number; basis: string };
   hull: Hull; handling: Handling; mounts: Mount[]; armor: Armor[];
   torpedoTubes?: TorpedoTube[];
   torpedoLaunchers?: TorpedoLauncher[];
   depthChargeLaunchers?: DepthChargeLauncher[];
+  submarine?: SubmarineDefinition;
+  airWing?: AirWingDefinition;
   modules: Module[]; compartments: Compartment[];
-  connections: { fromId: string; toId: string; areaM2: number }[];
+  connections: FloodConnection[];
+  /** Additive v1 mechanics. Older definitions retain their provisional averages. */
+  propulsion?: { groups: PropulsionGroup[]; basis: string };
+  /** Explicit shell-to-space assignment; regions cover local shell surfaces. */
+  floodRegions?: (Volume & { compartmentId: string; face?: 'port' | 'starboard' | 'bow' | 'stern' })[];
   obstructions: Volume[];
   /** Gun sponsons can extend beyond the bare hull. */
   mountEnvelope?: { beam: number; length: number };
@@ -159,6 +223,13 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
   literal(b.coordinates, ['meters-y-up-bow-negative-z'], 'coordinates');
   const url = text(b.modelUrl, 'modelUrl');
   if (!/^\/models\/[a-z0-9-]+\.glb$/.test(url)) fail('modelUrl', 'expected a local /models/<id>.glb URL');
+  if (b.stability !== undefined) {
+    const s = record(b.stability, 'stability'); literal(s.version, [1], 'stability.version');
+    vector(s.dryCenterOfGravity, 'stability.dryCenterOfGravity');
+    numeric(s.buoyancyScale, 'stability.buoyancyScale', .1, 10);
+    numeric(s.shellThicknessMm, 'stability.shellThicknessMm', .001, 200);
+    text(s.basis, 'stability.basis');
+  }
   const h = record(b.hull, 'hull');
   literal(h.kind, ['authored-stations-v1'], 'hull.kind');
   ['length', 'beam', 'draft', 'depth', 'massKg', 'waterplaneAreaM2', 'reserveBuoyancyM3'].forEach(k => numeric(h[k], `hull.${k}`, .001));
@@ -246,6 +317,32 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     numeric(p.elevationMaxDeg, `${p.id}.elevationMaxDeg`, 0, 85);
     if ((p.muzzleForward as number) <= (p.trunnionForward as number)) fail(String(p.id), 'muzzle must be forward of the trunnion');
     if (!Number.isInteger(p.ammoPerBarrel)) fail(String(p.id), 'ammunition must be an integer');
+    if (p.ballistics !== undefined) {
+      const flight = record(p.ballistics, `${p.id}.ballistics`);
+      numeric(flight.dragPerSecond, 'ballistics.dragPerSecond', 0, .5);
+      numeric(flight.dispersionRad, 'ballistics.dispersionRad', 0, .02);
+      if (flight.muzzleSpeedSigmaFraction !== undefined) numeric(flight.muzzleSpeedSigmaFraction, 'ballistics.muzzleSpeedSigmaFraction', 0, .05);
+      if (flight.penetrationReferenceSpeedMps !== undefined) numeric(flight.penetrationReferenceSpeedMps, 'ballistics.penetrationReferenceSpeedMps', 1, 10000);
+      text(flight.basis, 'ballistics.basis');
+    }
+    if (p.ap !== undefined) {
+      const ap = record(p.ap, `${p.id}.ap`);
+      numeric(ap.armingResistanceMm, 'ap.armingResistanceMm', .001, 2000);
+      numeric(ap.fuzeDelaySeconds, 'ap.fuzeDelaySeconds', .001, .2);
+      numeric(ap.explosiveKg, 'ap.explosiveKg', .00001, 200);
+      numeric(ap.fragmentPenetrationMm, 'ap.fragmentPenetrationMm', .001, 200);
+      text(ap.basis, 'ap.basis');
+      if ((ap.explosiveKg as number) >= (p.projectileMassKg as number)) fail(`${p.id}.ap`, 'explosive filling must be less than projectile mass');
+    }
+    if (p.he !== undefined) {
+      const he = record(p.he, `${p.id}.he`);
+      numeric(he.explosiveKg, 'he.explosiveKg', .00001, 200);
+      numeric(he.fragmentPenetrationMm, 'he.fragmentPenetrationMm', .001, 200);
+      numeric(he.damage, 'he.damage', .00001, 10000);
+      numeric(he.stockFraction, 'he.stockFraction', 0, 1);
+      text(he.basis, 'he.basis');
+      if ((he.explosiveKg as number) >= (p.projectileMassKg as number)) fail(`${p.id}.he`, 'explosive filling must be less than projectile mass');
+    }
     if (p.barrelCount !== undefined) literal(p.barrelCount, [1, 2, 3, 4], `${p.id}.barrelCount`);
     if (p.mountingStyle !== undefined) literal(p.mountingStyle, ['enclosed', 'open-pedestal', 'open-quad', 'oerlikon'], `${p.id}.mountingStyle`);
     for (const k of ['barrelBaseRadius', 'rangefinderWidth', 'gunhouseBaseHeight', 'rollerRadius']) if (p[k] !== undefined) numeric(p[k], `${p.id}.${k}`, .001, 100);
@@ -268,6 +365,16 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
       if (!faces.length || [...edges.values()].some(e=>e.count!==2||e.winding!==0)) fail(String(p.id),'gunhouse facets must form a closed consistently wound enclosure');
     }
   });
+  if (b.damageControl !== undefined) {
+    const d = record(b.damageControl, 'damageControl');
+    literal(d.version, [1], 'damageControl.version'); text(d.basis, 'damageControl.basis');
+    const teams = numeric(d.teams, 'damageControl.teams', 0, 16);
+    if (!Number.isInteger(teams)) fail('damageControl.teams', 'expected integer');
+    for (const k of ['setupSeconds', 'roomFuelSeconds', 'mountFuelSeconds']) numeric(d[k], `damageControl.${k}`, .1, 3600);
+    numeric(d.repairPoints, 'damageControl.repairPoints', 0, 10000);
+    for (const k of ['suppressionPerSecond', 'portablePumpM3PerSecond', 'repairHpPerSecond', 'patchM2PerSecond', 'maxPatchM2']) numeric(d[k], `damageControl.${k}`, .000001, 10);
+    for (const k of ['repairCeiling', 'flashProtection']) numeric(d[k], `damageControl.${k}`, 0, 1);
+  }
   const mounts = list(b.mounts, 'mounts', 64).map((m, i) => record(m, `mounts[${i}]`));
   unique(mounts, 'mounts');
   mounts.forEach(m => {
@@ -285,14 +392,56 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     text(c.name, `${c.id}.name`);
     numeric(c.capacityM3, `${c.id}.capacityM3`, .001, (c.size as number[]).reduce((a, v) => a * v, 1));
     numeric(c.pumpM3PerSecond, `${c.id}.pumpM3PerSecond`, 0, 100);
+    if (c.cells !== undefined) {
+      const cells = list(c.cells, `${c.id}.cells`, 2048);
+      if (!cells.length) fail(String(c.id), 'compound space requires cells');
+      let volume = 0;
+      cells.forEach(value => {
+        const cell = record(value, 'cell'), center = vector(cell.center, 'cell.center'), size = vector(cell.size, 'cell.size', .001);
+        if (center.some((n, axis) => Math.abs(n - (c.center as number[])[axis]) + size[axis] / 2 > (c.size as number[])[axis] / 2 + 1e-6)) fail(String(c.id), 'cell outside compartment bounds');
+        volume += size[0] * size[1] * size[2];
+      });
+      if ((c.capacityM3 as number) > volume + 1e-6) fail(String(c.id), 'capacity exceeds compound volume');
+      const boxes = cells.map(value => value as { center: Vec3; size: Vec3 }).sort((a,b) => a.center[0]-a.size[0]/2-(b.center[0]-b.size[0]/2));
+      for (let i=0;i<boxes.length;i++) for(let j=i+1;j<boxes.length;j++) {
+        const a=boxes[i], b=boxes[j]; if(b.center[0]-b.size[0]/2 >= a.center[0]+a.size[0]/2-1e-6) break;
+        if(a.center.every((n,axis)=>Math.abs(n-b.center[axis])<(a.size[axis]+b.size[axis])/2-1e-6)) fail(String(c.id), 'compound cells overlap');
+      }
+    }
   });
   const modules = volumes(b.modules, 'modules');
   modules.forEach(m => {
     text(m.name, `${m.id}.name`); literal(m.kind, ['engine', 'steering', 'magazine'], `${m.id}.kind`);
     numeric(m.hp, `${m.id}.hp`, .001);
+    if (m.role !== undefined) {
+      literal(m.role, ['boiler', 'turbine', 'shaft', 'combined-drive'], `${m.id}.role`);
+      if (m.kind !== 'engine') fail(String(m.id), 'only propulsion equipment has a machinery role');
+    }
+    if (m.immersionToleranceM !== undefined) numeric(m.immersionToleranceM, `${m.id}.immersionToleranceM`, 0, (m.size as number[])[1]);
     if (!compartments.some(c => c.id === m.compartmentId)) fail(String(m.id), 'unknown compartment');
     const c = compartments.find(c => c.id === m.compartmentId)!;
     if ((m.center as number[]).some((n, i) => Math.abs(n - (c.center as number[])[i]) + (m.size as number[])[i] / 2 > (c.size as number[])[i] / 2 + 1e-6)) fail(String(m.id), 'module must fit its assigned compartment');
+  });
+  if (b.propulsion !== undefined) {
+    const propulsion = record(b.propulsion, 'propulsion');
+    text(propulsion.basis, 'propulsion.basis');
+    const groups = list(propulsion.groups, 'propulsion.groups', 16).map(g => record(g, 'propulsion group'));
+    if (!groups.length) fail('propulsion.groups', 'at least one drive group required');
+    unique(groups, 'propulsion.groups');
+    groups.forEach(g => {
+      numeric(g.share, `${g.id}.share`, .001, 1);
+      for (const key of ['boilerIds', 'driveIds', 'shaftIds']) {
+        const ids = list(g[key], `${g.id}.${key}`, 64);
+        if (key === 'driveIds' && !ids.length) fail(String(g.id), 'at least one drive required');
+        if (new Set(ids).size !== ids.length) fail(String(g.id), 'duplicate equipment dependency');
+        ids.forEach(id => { if (!modules.some(m => m.id === id && m.kind === 'engine')) fail(String(g.id), 'unknown propulsion equipment'); });
+      }
+    });
+    if (Math.abs(groups.reduce((n, g) => n + (g.share as number), 0) - 1) > 1e-6) fail('propulsion.groups', 'power shares must sum to one');
+  }
+  if (b.floodRegions !== undefined) volumes(b.floodRegions, 'floodRegions', 512).forEach(r => {
+    if (!compartments.some(c => c.id === r.compartmentId)) fail(String(r.id), 'unknown flooding compartment');
+    if (r.face !== undefined) literal(r.face, ['port', 'starboard', 'bow', 'stern'], `${r.id}.face`);
   });
   mounts.forEach(m => { if (m.magazineId !== undefined && !modules.some(module => module.id === m.magazineId && module.kind === 'magazine')) fail(String(m.id), 'unknown magazine connection'); });
   const torpedoes = list(catalog.torpedoes ?? [], 'torpedoes', 64).map(p => record(p, 'torpedo part'));
@@ -355,7 +504,7 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     if (!Number.isInteger(l.ammo)) fail(String(l.id), 'ammunition must be an integer');
     if (!modules.some(m => m.id === l.magazineId && m.kind === 'magazine')) fail(String(l.id), 'unknown magazine connection');
   });
-  const compiledArmor=[...list(b.armor,'armor',512),...mounts.flatMap(m=>{
+  const compiledArmor=[...list(b.armor,'armor',1024),...mounts.flatMap(m=>{
     const part=parts.find(p=>p.id===m.partId) as unknown as GunPart;
     if (!part.gunhouseMesh) return [];
     return part.gunhouseMesh.faces.map(face=>{
@@ -365,8 +514,9 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
         plate:{vertices,material:face.material,mountId:m.id},...(part.gunhouseMesh!.provenance?{provenance:part.gunhouseMesh!.provenance}:{})};
     });
   })];
-  volumes(compiledArmor, 'armor', 512).forEach(a => {
+  volumes(compiledArmor, 'armor', 2048).forEach(a => {
     text(a.name, `${a.id}.name`); numeric(a.thicknessMm, `${a.id}.thicknessMm`, .001, 2000);
+    if (a.exterior !== undefined) literal(a.exterior, [true, false], `${a.id}.exterior`);
     if (a.provenance !== undefined) {
       const p = record(a.provenance, `${a.id}.provenance`);
       id(p.sourceId, 'sourceId'); text(p.note, 'provenance.note');
@@ -376,6 +526,7 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
       const p = record(a.plate, `${a.id}.plate`);
       literal(p.material, ['KC', 'Wh', 'Ww', 'steel', 'teak'], 'plate.material');
       if (p.exterior !== undefined) literal(p.exterior, [true, false], 'plate.exterior');
+      if (p.surfaceId !== undefined) id(p.surfaceId, 'plate.surfaceId');
       if (p.mountId !== undefined && !mounts.some(m => m.id === p.mountId)) fail(String(a.id), 'unknown plate mount');
       const points = list(p.vertices, 'plate.vertices', 16).map(v => vector(v, 'plate vertex'));
       if (points.length < 3) fail(String(a.id), 'plate needs at least three vertices');
@@ -398,12 +549,68 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
   list(b.connections, 'connections', 512).forEach((v, i) => {
     const c = record(v, `connections[${i}]`);
     numeric(c.areaM2, `connections[${i}].areaM2`, 0, 100);
+    if (c.id !== undefined) id(c.id, `connections[${i}].id`);
+    if (c.state !== undefined) literal(c.state, ['open', 'closed', 'damaged'], `connections[${i}].state`);
+    if (c.position !== undefined) vector(c.position, `connections[${i}].position`);
+    if (c.thicknessMm !== undefined) {
+      numeric(c.thicknessMm, 'connection.thicknessMm', .001, 2000);
+      if (c.bounds === undefined || c.armorId !== undefined) fail('connections', 'standalone boundary thickness requires bounds and no armor link');
+    }
+    if (c.armorId !== undefined && !list(b.armor, 'armor', 1024).some(a => record(a, 'armor').id === c.armorId)) fail('connections', 'unknown boundary protection');
+    if (c.bounds !== undefined) { const bounds = record(c.bounds, 'connection.bounds'); vector(bounds.center, 'connection center'); vector(bounds.size, 'connection size', .001); }
     if (c.fromId === c.toId || !compartments.some(p => p.id === c.fromId) || !compartments.some(p => p.id === c.toId)) fail('connections', 'invalid compartment connection');
     const key = [c.fromId, c.toId].sort().join(':');
     if (connectionIds.has(key)) fail('connections', 'duplicate compartment connection');
     connectionIds.add(key);
   });
+  const namedConnections = list(b.connections, 'connections', 512).map(c => record(c, 'connection')).filter(c => c.id !== undefined);
+  unique(namedConnections, 'connections');
   const accuracy = record(b.accuracy, 'accuracy');
+  if (b.airWing !== undefined) {
+    const wing = record(b.airWing, 'airWing');
+    if (wing.version !== 1) fail('airWing.version', 'expected version 1');
+    for (const key of ['launchPosition', 'recoveryPosition']) {
+      const p = vector(wing[key], `airWing.${key}`);
+      if (Math.abs(p[0]) > (h.beam as number) / 2 || Math.abs(p[2]) > (h.length as number) / 2 || p[1] < 0 || p[1] > 40) fail(`airWing.${key}`, 'must be over the flight deck');
+    }
+    if (!modules.some(m => m.id === wing.serviceModuleId)) fail('airWing.serviceModuleId', 'unknown service module');
+    numeric(wing.launchIntervalSeconds, 'airWing.launchIntervalSeconds', 1, 60);
+    numeric(wing.rearmSeconds, 'airWing.rearmSeconds', 5, 600);
+    const squadrons = list(wing.squadrons, 'airWing.squadrons', 3).map(s => record(s, 'squadron'));
+    if (!squadrons.length) fail('airWing.squadrons', 'requires aircraft');
+    unique(squadrons, 'airWing.squadrons');
+    const models: Record<string, string> = { 'f4f-4-wildcat': 'fighter', 'sbd-3-dauntless': 'dive-bomber', 'tbd-1-devastator': 'torpedo-bomber' };
+    for (const squadron of squadrons) {
+      id(squadron.id, 'squadron.id'); text(squadron.name, 'squadron.name');
+      if (models[String(squadron.modelId)] !== squadron.role || !squadron.role) fail('squadron.modelId', 'unknown aircraft or incompatible role');
+      numeric(squadron.count, 'squadron.count', 1, 6);
+      if (!Number.isInteger(squadron.count)) fail('squadron.count', 'expected an integer');
+    }
+  }
+  if (b.submarine !== undefined) {
+    const s = record(b.submarine, 'submarine');
+    const handling = record(s.submergedHandling, 'submarine.submergedHandling');
+    ['forwardSpeed', 'reverseSpeed', 'acceleration', 'braking', 'rudderRate', 'maxYawRate'].forEach(k => numeric(handling[k], `submarine.submergedHandling.${k}`, .00001, 100));
+    ['ballastCapacityM3', 'floodRateM3PerSecond', 'blowRateM3PerSecond', 'emergencyBlowRateM3PerSecond'].forEach(k => numeric(s[k], `submarine.${k}`, .01, 10000));
+    numeric(s.neutralBallastFraction, 'submarine.neutralBallastFraction', .1, .95);
+    ['maxDiveSpeed', 'maxRiseSpeed'].forEach(k => numeric(s[k], `submarine.${k}`, .1, 10));
+    numeric(s.maxDepthM, 'submarine.maxDepthM', 10, 1000);
+    numeric(s.periscopeDepthM, 'submarine.periscopeDepthM', 1, s.maxDepthM as number);
+    numeric(s.maxTorpedoDepthM, 'submarine.maxTorpedoDepthM', s.periscopeDepthM as number, s.maxDepthM as number);
+    const eye = vector(s.periscopeEye, 'submarine.periscopeEye');
+    if (eye[1] <= (s.periscopeDepthM as number) || eye[1] > 30 || Math.abs(eye[0]) > (h.beam as number) / 2 || Math.abs(eye[2]) > (h.length as number) / 2) fail('submarine.periscopeEye', 'must lie over the hull and above water at periscope depth');
+    for (const key of ['surfaceEngineIds', 'submergedEngineIds']) {
+      const ids = list(s[key], `submarine.${key}`, 16);
+      if (!ids.length || new Set(ids).size !== ids.length) fail(`submarine.${key}`, 'requires distinct engine IDs');
+      ids.forEach(value => { id(value, key); if (!modules.some(m => m.id === value && m.kind === 'engine')) fail(`submarine.${key}`, 'unknown engine module'); });
+    }
+    const appendages = record(s.appendages, 'submarine.appendages'), joints = new Set<string>();
+    for (const key of ['bowPlanes', 'sternPlanes', 'rudders', 'propellers']) list(appendages[key], `submarine.appendages.${key}`, 8).forEach(value => {
+      const joint = text(value, 'appendage joint');
+      if (!/^[a-z][a-z0-9.-]{0,95}$/.test(joint) || joints.has(joint)) fail('submarine.appendages', 'requires distinct stable joint IDs');
+      joints.add(joint);
+    });
+  }
   ['exterior', 'internals', 'weapons'].forEach(k => text(accuracy[k], `accuracy.${k}`));
   const blueprint = structuredClone(input) as ShipBlueprint;
   const result: ShipDefinition = { ...blueprint, torpedoTubes: undefined, depthChargeLaunchers: undefined, armor:structuredClone(compiledArmor) as Armor[], compilerVersion: 1, mounts: blueprint.mounts.map(m => ({ ...m, weapon: structuredClone(parts.find(p => p.id === m.partId)) as unknown as GunPart })) };

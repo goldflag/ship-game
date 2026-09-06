@@ -1,0 +1,42 @@
+[
+  {
+    "id": "bismarck",
+    "contentHash": "0f7119971b043e76bfed1f972912c36593ab1e72198b65c1820ed49e7392a558",
+    "comparedTo": "31a84b5",
+    "sameBinaryData": true,
+    "sameJsonExceptDefinitionHash": true,
+    "binarySha256": "cfe360325041b6ac7e05a7728351d6ee3c13b7a2df844fbc1be2dd73d240e6c7"
+  },
+  {
+    "id": "yamato",
+    "contentHash": "b0bed026943cfd57d1dfc133c6d6703dfbf1ed477ec95cc83cf54b0ba8651aa4",
+    "comparedTo": "31a84b5",
+    "sameBinaryData": true,
+    "sameJsonExceptDefinitionHash": true,
+    "binarySha256": "21c6854ff5064ebdb5289f61bc2462ad09a92d2928877aabe6a7c8728fcf5420"
+  },
+  {
+    "id": "baltimore",
+    "contentHash": "161a0051b7b1cf58ba13baaabaa7c518efdfdb743cf5ff3efac262acf65c8154",
+    "comparedTo": "31a84b5",
+    "sameBinaryData": true,
+    "sameJsonExceptDefinitionHash": true,
+    "binarySha256": "31277aa6face9a3bfeb2ab1c9b9219ff2f0fdb18350534563d341b1c1b2920ed"
+  },
+  {
+    "id": "enterprise-cv6",
+    "contentHash": "ef914897ea8fdf958676af212c4e32b83d3f78ea1cbac1a46f22d620ce994094",
+    "comparedTo": "31a84b5",
+    "sameBinaryData": true,
+    "sameJsonExceptDefinitionHash": true,
+    "binarySha256": "ab72605bef0348b14cff53eea9d20301733a169d1cd94b0191de557862760893"
+  },
+  {
+    "id": "type-viic",
+    "contentHash": "2d15f3220ddd6d8456cbd80f79076f5c5905a928eb2473c94e7a70aa90425667",
+    "comparedTo": "31a84b5",
+    "sameBinaryData": true,
+    "sameJsonExceptDefinitionHash": true,
+    "binarySha256": "ff0c563bceff10f41339d6d323593703534780d5aaecddc19fed539d2418353f"
+  }
+]

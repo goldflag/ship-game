@@ -18,14 +18,14 @@ Nearest-opponent selection retains its 25% hysteresis. Bots do not have fleet co
 
 Ships with guns of at least 300 mm choose a preferred distance of 4.2–5.8 km; others choose 3.2–4.6 km. Bots approach beyond that distance, bring a broadside to bear nearby, and open the range when too close. Each crew chooses a side and small course offset, holds course/speed decisions for 22–38 seconds, and occasionally changes broadside. Hull avoidance still overrides the desired course near other ships.
 
-A loss of more than 15 structural HP between observations prompts an 8–14 second turn away at 85% throttle. Below 35% structural HP, the preferred engagement distance increases by 35%. These reactions are tactical heuristics, not incoming-shell prediction or coordinated retreat.
+A loss of more than 15 equipment condition points between observations prompts an 8–14 second turn away at 85% throttle. Below 35% equipment condition, the preferred engagement distance increases by 35%. These reactions are tactical heuristics, not incoming-shell prediction or coordinated retreat.
 
 Ships with functioning torpedo tubes and ammunition bring the nearest bow or stern tube bearing toward the observed intercept. Evasive turns and nearby-hull avoidance take precedence; without torpedo ammunition the controller returns to the gun engagement course.
 
 ## Reproduction and validation
 
-`BattleFleet.seed` accepts an unsigned 32-bit integer; renderer-free callers default to seed 1. Every bot stores serializable crew memory and its own generator state in `FleetActor.bot`. Aim queries do not advance randomness. Simulation ticks alone advance observation and decision timers, so pausing and display frame rate do not change the outcome.
+`BattleFleet.seed` accepts an unsigned 32-bit integer; renderer-free callers default to seed `0x6e617661`. Every bot stores serializable crew memory and its own generator state in `FleetActor.bot`. Aim queries do not advance randomness. Simulation ticks alone advance observation and decision timers, so pausing and display frame rate do not change the outcome. Ballistic lead includes drag and inherited ship velocity; ammunition selection follows the target's authored protection and remaining AP/HE stock.
 
 The browser chooses a fresh seed when preparing a battle. Development diagnostics expose it as `window.shipTrialDiagnostics().battleSeed`. `CombatSimulation.reset()` restores the initial seed and crew state. A new prepared battle receives a new seed.
 
-`bots.test.ts` covers opening grace, varied aim, observation delay after a course change, target reacquisition, seeded variation/replay and damage reactions. Fleet tests exercise actual fire, ammunition, reloads, damage, team rules and identical outcomes at different display frame rates. Worst-case magazine damage remains a separate accurately aimed firing test, independent of bot accuracy.
+`bots.test.ts` covers opening grace, varied aim, observation delay after a course change, target reacquisition, seeded variation/replay and damage reactions. Fleet tests exercise actual fire, ammunition, reloads, damage, team rules and identical outcomes at different display frame rates. Local damage from accurately aimed salvos is tested separately from bot accuracy.
