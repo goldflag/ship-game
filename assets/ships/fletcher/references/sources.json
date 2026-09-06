@@ -1,0 +1,150 @@
+{
+  "configuration": "July 1942-inspired early round bridge; ONI 1945 and GameModels3D later-fit features distinguished from dated photographs.",
+  "accessed": "2026-09-06",
+  "sources": [
+    {
+      "id": "nhhc-fletcher-danfs",
+      "title": "Fletcher I (DD-445), Dictionary of American Naval Fighting Ships",
+      "url": "https://www.history.navy.mil/research/histories/ship-histories/danfs/f/fletcher.html",
+      "supports": "Class, principal dimensions, 36 knot speed, five 5-inch guns, ten 21-inch tubes, six depth-charge projectors, two tracks. Search-index text was accessible; the direct page returned an error during local retrieval.",
+      "document": "Fletcher I (DD-445), Dictionary of American Naval Fighting Ships",
+      "status": "Context / access status recorded",
+      "limits": "Class, principal dimensions, 36 knot speed, five 5-inch guns, ten 21-inch tubes, six depth-charge projectors, two tracks. Search-index text was accessible; the direct page returned an error during local retrieval."
+    },
+    {
+      "id": "nara-19-n-31245",
+      "title": "USS Fletcher underway off New York, 18 July 1942",
+      "url": "https://www.history.navy.mil/content/history/nhhc/our-collections/photography/numerical-list-of-images/nara-series/19-n/19-N-30000/19-N-31245.html",
+      "mirror": "https://www.ibiblio.org/hyperwar/OnlineLibrary/photos/images/n30000/n31245.jpg",
+      "localFile": "19-n-31245.jpg",
+      "credit": "Bureau of Ships Collection, U.S. National Archives; US government photograph, mirrored by HyperWar/ibiblio.",
+      "supports": "Qualitative silhouette and early-war arrangement only. Unmatched perspective, not a dimensional tracing.",
+      "document": "USS Fletcher underway off New York, 18 July 1942",
+      "status": "Inspected",
+      "limits": "Qualitative silhouette and early-war arrangement only. Unmatched perspective, not a dimensional tracing."
+    },
+    {
+      "id": "buord-depth-charge-op747",
+      "title": "Depth Charges Marks 6 and 7, OP 747 (1943), Parts 1 and 5",
+      "url": "https://www.maritime.org/doc/depthcharge6/index.php",
+      "detailUrl": "https://www.maritime.org/doc/depthcharge6/part5.php",
+      "supports": "Historical Mk 6 identity, hydrostatic operation and nonconstant sinking behavior. Does not certify our shallow burst, reload, blast radius or damage values.",
+      "document": "Depth Charges Marks 6 and 7, OP 747 (1943), Parts 1 and 5",
+      "status": "Context / access status recorded",
+      "limits": "Historical Mk 6 identity, hydrostatic operation and nonconstant sinking behavior. Does not certify our shallow burst, reload, blast radius or damage values."
+    },
+    {
+      "id": "buord-projector-mark6",
+      "title": "Depth Charge Projector Mark 6, Mod 1 and Mod 2, OP 831",
+      "url": "https://www.maritime.org/doc/destroyer/depthprojector/index.php",
+      "supports": "K-gun/projector form and outward launch arrangement. Original geometry is simplified.",
+      "document": "Depth Charge Projector Mark 6, Mod 1 and Mod 2, OP 831",
+      "status": "Context / access status recorded",
+      "limits": "K-gun/projector form and outward launch arrangement. Original geometry is simplified."
+    },
+    {
+      "id": "usni-mk15",
+      "title": "A Massive Torpedo, Naval History Magazine (April 2019)",
+      "url": "https://www.usni.org/magazines/naval-history-magazine/2019/april/massive-torpedo",
+      "supports": "Secondary corroboration of Mk 15 fast setting: 6,000 yards at 45 knots; rounded to 5.5 km. Historical weapon reliability is not simulated.",
+      "document": "A Massive Torpedo, Naval History Magazine (April 2019)",
+      "status": "Context / access status recorded",
+      "limits": "Secondary corroboration of Mk 15 fast setting: 6,000 yards at 45 knots; rounded to 5.5 km. Historical weapon reliability is not simulated."
+    },
+    {
+      "id": "gm-pasd021",
+      "title": "Fletcher, World of Warships, GameModels3D",
+      "url": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasd021",
+      "accessed": "2026-09-06",
+      "supports": "Qualitative and registered raster comparison of silhouette, fittings density and assembly form. Game hull and late AA arrangement may differ from 1942 Fletcher. Never a production geometry or texture input.",
+      "document": "Fletcher, World of Warships, GameModels3D",
+      "status": "Inspected",
+      "limits": "Qualitative and registered raster comparison of silhouette, fittings density and assembly form. Game hull and late AA arrangement may differ from 1942 Fletcher. Never a production geometry or texture input."
+    },
+    {
+      "id": "oni-222-us-1945",
+      "title": "ONI 222-US United States Naval Vessels, Division of Naval Intelligence, issued 1 September 1945, printed pages 89\u201392",
+      "url": "https://www.ibiblio.org/hyperwar/NHC/NewPDFs/USN/ONI%20Recognition%20Manuals%20and%20other%20material/ONI%20222-US.United%20States.Naval.Vessels.pdf",
+      "localFile": "historical/oni-222-us-fletcher-extract.pdf",
+      "image": "historical/oni-222-us-1945-fletcher.png",
+      "credit": "United States Navy / Division of Naval Intelligence, public-domain government recognition publication; preserved scan via HyperWar/ibiblio.",
+      "supports": "Actual scanned side and deck plans inspected. Hull aspect, five 5-inch positions, two raised quintuple mounts, round bridge, funnel rake, stern arrangement. Recognition drawing is schematic and reflects a later AA fit, not a hull lines plan or July 1942 equipment schedule.",
+      "sha256FullDownloadedPdf": "327f7c4c9dc5672c699878cdabe187b7772085fcc97b892c2854ad7f45365745",
+      "document": "ONI 222-US United States Naval Vessels, Division of Naval Intelligence, issued 1 September 1945, printed pages 89\u201392",
+      "status": "Inspected",
+      "limits": "Actual scanned side and deck plans inspected. Hull aspect, five 5-inch positions, two raised quintuple mounts, round bridge, funnel rake, stern arrangement. Recognition drawing is schematic and reflects a later AA fit, not a hull lines plan or July 1942 equipment schedule."
+    },
+    {
+      "id": "nara-19-n-31243",
+      "title": "USS Fletcher maneuvering off New York, 18 July 1942",
+      "url": "https://www.history.navy.mil/content/history/nhhc/our-collections/photography/numerical-list-of-images/nara-series/19-n/19-N-30000/19-n-31243-uss-fletcher--dd-445-.html",
+      "mirror": "https://commons.wikimedia.org/wiki/File:USS_Fletcher_(DD-445)_off_New_York_in_1942.jpg",
+      "localFile": "historical/19-n-31243.jpg",
+      "credit": "Bureau of Ships / U.S. National Archives, US government photograph; original-resolution image preserved from Wikimedia Commons mirror.",
+      "supports": "Inspected original 4994\u00d73699 scan: rounded bridge and portlight band, pole mast, Mk37/Mk4 shape, high after AA tub, camouflage character, open funnel caps, boat davits, floats and depth charge arrangements. Perspective photograph is not a scale plan. The independently generated paint interprets its character, not its pixels or exact pattern.",
+      "document": "USS Fletcher maneuvering off New York, 18 July 1942",
+      "status": "Inspected",
+      "limits": "Inspected original 4994\u00d73699 scan: rounded bridge and portlight band, pole mast, Mk37/Mk4 shape, high after AA tub, camouflage character, open funnel caps, boat davits, floats and depth charge arrangements. Perspective photograph is not a scale plan. The independently generated paint interprets its character, not its pixels or exact pattern."
+    },
+    {
+      "id": "abbot-dd502-plan-access",
+      "title": "USS Sigsbee DD-502 general plans, 1944, Ed Zajkowski / HNSA scan listing",
+      "url": "https://abbot.us/dd502/",
+      "supports": "Source located but full Zoomify plates failed to load in browser and direct public PDF retrieval returned HTTP 403. Thumbnails inspected only; NOT used for dimensional measurements. Sigsbee is a sister ship with a different dated fit.",
+      "document": "USS Sigsbee DD-502 general plans, 1944, Ed Zajkowski / HNSA scan listing",
+      "status": "Context / access status recorded",
+      "limits": "Source located but full Zoomify plates failed to load in browser and direct public PDF retrieval returned HTTP 403. Thumbnails inspected only; NOT used for dimensional measurements. Sigsbee is a sister ship with a different dated fit."
+    },
+    {
+      "id": "abbot-biw-plan-access",
+      "title": "Bath Iron Works Fletcher-class original engineering drawing archive",
+      "url": "https://abbot.us/plans/",
+      "supports": "Archive index located; selected full-size hull drawing URL returned 404. NOT claimed as an inspected full construction plan or a basis for lines-plan accuracy.",
+      "document": "Bath Iron Works Fletcher-class original engineering drawing archive",
+      "status": "Context / access status recorded",
+      "limits": "Archive index located; selected full-size hull drawing URL returned 404. NOT claimed as an inspected full construction plan or a basis for lines-plan accuracy."
+    },
+    {
+      "id": "dhf-aa-photograph-index",
+      "title": "Early Fletcher armament and 20mm battery photographic indices",
+      "url": "https://destroyerhistory.org/fletcherclass/arm_1/",
+      "detailUrl": "https://destroyerhistory.org/fletcherclass/arm_7/",
+      "supports": "Locator and refit context for primary Navy photographs. The Fletcher 19-N-31245 caption here differs from NHHC date; use the archival identifier and NHHC date. Early high after gun tub and two forward/four waist 20mm arrangement interpreted from photographs; exact fittings remain open.",
+      "document": "Early Fletcher armament and 20mm battery photographic indices",
+      "status": "Context / access status recorded",
+      "limits": "Locator and refit context for primary Navy photographs. The Fletcher 19-N-31245 caption here differs from NHHC date; use the archival identifier and NHHC date. Early high after gun tub and two forward/four waist 20mm arrangement interpreted from photographs; exact fittings remain open."
+    },
+    {
+      "id": "op1112-mk30-mod18",
+      "title": "US Navy OP 1112 (2nd revision), p.288: 5-inch Mount Mark 30 Mod 18",
+      "url": "https://www.navweaps.com/Weapons/WNUS_5-38_mk12_30-18_pic.jpg",
+      "publisher": "US Navy Bureau of Ordnance; primary drawing reproduced by NavWeaps, credited to HNSA",
+      "document": "historical/op1112-mk30-mod18.jpg",
+      "supports": "Base-ring arrangement, fore/aft enclosure asymmetry, sloped roof, rounded plan corners, front slope and elevation envelope.",
+      "status": "Inspected the actual Navy plate, not just its caption.",
+      "limits": "Mod 18 is a general arrangement reference, not proof of exact DD-445 Mod 0 dimensions or outfit. Numeric authoring values are estimates; armor remains gameplay tuning."
+    },
+    {
+      "id": "all-hands-1952-propeller",
+      "title": "US Navy All Hands, October 1952, printed p.3: Lewis Hancock (DD-675) propeller replacement",
+      "url": "https://thenavycwo.com/the-archives/all-hands-magazine/send/16-all-hands-magazine/308-all-hands-october-1952",
+      "publisher": "US Navy Bureau of Naval Personnel; primary government magazine mirrored by The Navy CWO",
+      "document": "historical/all-hands-1952-propeller-extract.pdf",
+      "image": "historical/all-hands-1952-propeller.png",
+      "supports": "Broad, rounded three-bladed propeller form on a Fletcher-class ship.",
+      "status": "Read the caption and inspected PDF page 4 (printed p.3).",
+      "limits": "Postwar sister-ship photograph; no verified July 1942 Fletcher diameter, pitch distribution, section offsets or handedness measurements."
+    }
+  ],
+  "reviewed": "2026-09-06",
+  "revision3Review": {
+    "report": "../reports/shape-correction.md",
+    "method": "Sparse raster silhouette probes and matching side/top/end views; reference registration unchanged. No raw reference geometry read by ship authoring.",
+    "limits": "Reference datum and later outfit unverified; these are displayed-shape comparisons, not historical lines-plan measurements."
+  },
+  "revision4Review": {
+    "report": "../reports/components.md",
+    "method": "Original Mk30 catalog facets and analytic screw lofts; seventeen identical whole-model cameras, including seven component closeups. Navy primary-source plate and dry-dock photograph inspected.",
+    "limits": "Raster comparison and general-form interpretation, not imported game geometry or historical certification."
+  }
+}

@@ -1,0 +1,687 @@
+{
+  "audio": {
+    "failed": [],
+    "inPort": false,
+    "loaded": 0,
+    "paused": true,
+    "played": 0,
+    "settings": {
+      "effects": 0.8,
+      "interface": 0.65,
+      "master": 0.65,
+      "muted": true
+    },
+    "state": "locked",
+    "total": 13,
+    "voices": 0
+  },
+  "backend": "webgpu",
+  "battleSeed": 3776340689,
+  "camera": {
+    "aim": [
+      650,
+      0.5,
+      0
+    ],
+    "binoculars": false,
+    "fov": 52.00000000000001,
+    "magnification": 1,
+    "manualAim": false,
+    "matrixWorldInverse": [
+      0.6486084937999539,
+      -0.20833770316387262,
+      0.732053565807146,
+      0,
+      -5.551115123125783e-17,
+      0.9618081750309498,
+      0.2737243767800633,
+      0,
+      -0.7611222121121912,
+      -0.17753995573964795,
+      0.6238369517313067,
+      0,
+      9.133466545346334,
+      2.130479468875783,
+      -164.57837295980823,
+      1.0000000000000002
+    ],
+    "mode": "Chase",
+    "pointerLocked": false,
+    "position": [
+      115,
+      43,
+      110
+    ],
+    "projectionMatrix": [
+      1.28143990098706,
+      0,
+      0,
+      0,
+      0,
+      2.050303841579296,
+      0,
+      0,
+      0,
+      0,
+      -1.0000083334027783,
+      -1,
+      0,
+      0,
+      -0.5000041667013891,
+      0
+    ],
+    "shellFollow": "off"
+  },
+  "combat": {
+    "batteries": [
+      {
+        "ammo": 1800,
+        "battery": "main",
+        "ready": 5,
+        "reload": 0,
+        "total": 5
+      },
+      {
+        "ammo": 13200,
+        "battery": "secondary",
+        "ready": 4,
+        "reload": 0,
+        "total": 7
+      },
+      {
+        "ammo": 4,
+        "battery": "torpedo",
+        "ready": 0,
+        "reload": 0,
+        "total": 10
+      },
+      {
+        "ammo": 28,
+        "battery": "depth-charge",
+        "ready": 8,
+        "reload": 0,
+        "total": 8
+      }
+    ],
+    "battery": "torpedo",
+    "battle": true,
+    "contacts": [
+      {
+        "controller": "player",
+        "heading": 0,
+        "id": "player",
+        "integrity": 1,
+        "name": "Fletcher",
+        "shipId": "fletcher",
+        "sunk": false,
+        "team": "friendly",
+        "x": 0,
+        "z": -127.47599999999773
+      },
+      {
+        "controller": "idle",
+        "heading": 1.5707963267948966,
+        "id": "enemy-1",
+        "integrity": 1,
+        "name": "Type VIIC",
+        "shipId": "type-viic",
+        "sunk": false,
+        "team": "enemy",
+        "x": 650,
+        "z": 0
+      }
+    ],
+    "message": "Fletcher \u00b7 Aft tube 1 \u00b7 torpedo away",
+    "modules": [
+      {
+        "condition": 1,
+        "id": "forward-torpedoes",
+        "name": "Forward torpedo stowage"
+      },
+      {
+        "condition": 1,
+        "id": "deck-magazine",
+        "name": "Deck gun ammunition locker"
+      },
+      {
+        "condition": 1,
+        "id": "diesels",
+        "name": "Twin diesel engines"
+      },
+      {
+        "condition": 1,
+        "id": "electric-motors",
+        "name": "Twin electric motors"
+      },
+      {
+        "condition": 1,
+        "id": "aft-torpedoes",
+        "name": "Stern torpedo stowage"
+      },
+      {
+        "condition": 1,
+        "id": "steering-gear",
+        "name": "Rudder linkage"
+      }
+    ],
+    "mounts": [
+      {
+        "ammo": 0,
+        "id": "torpedo-forward-1",
+        "name": "Forward tube 1",
+        "reload": 0.10000000000000009,
+        "status": "empty"
+      },
+      {
+        "ammo": 0,
+        "id": "torpedo-forward-2",
+        "name": "Forward tube 2",
+        "reload": 0.10000000000000009,
+        "status": "empty"
+      },
+      {
+        "ammo": 0,
+        "id": "torpedo-forward-3",
+        "name": "Forward tube 3",
+        "reload": 0.10000000000000009,
+        "status": "empty"
+      },
+      {
+        "ammo": 0,
+        "id": "torpedo-forward-4",
+        "name": "Forward tube 4",
+        "reload": 0.10000000000000009,
+        "status": "empty"
+      },
+      {
+        "ammo": 0,
+        "id": "torpedo-forward-5",
+        "name": "Forward tube 5",
+        "reload": 0.10000000000000009,
+        "status": "empty"
+      },
+      {
+        "ammo": 0,
+        "id": "torpedo-aft-1",
+        "name": "Aft tube 1",
+        "reload": 0.10000000000000009,
+        "status": "empty"
+      },
+      {
+        "ammo": 1,
+        "id": "torpedo-aft-2",
+        "name": "Aft tube 2",
+        "reload": 0.10000000000000009,
+        "status": "reloading"
+      },
+      {
+        "ammo": 1,
+        "id": "torpedo-aft-3",
+        "name": "Aft tube 3",
+        "reload": 0.10000000000000009,
+        "status": "reloading"
+      },
+      {
+        "ammo": 1,
+        "id": "torpedo-aft-4",
+        "name": "Aft tube 4",
+        "reload": 0.10000000000000009,
+        "status": "reloading"
+      },
+      {
+        "ammo": 1,
+        "id": "torpedo-aft-5",
+        "name": "Aft tube 5",
+        "reload": 0.10000000000000009,
+        "status": "reloading"
+      }
+    ],
+    "playerDamageDealt": 0,
+    "playerFrags": 0,
+    "playerIntegrity": 1,
+    "playerMaxIntegrity": 600,
+    "playerSunk": false,
+    "playerWater": 0,
+    "range": 662.3821635400515,
+    "ready": 0,
+    "result": "active",
+    "targetId": "enemy-1",
+    "targetIntegrity": 1,
+    "targetName": "Type VIIC",
+    "targetPosition": {
+      "heading": 1.5707963267948966,
+      "x": 650,
+      "z": 0
+    },
+    "targetPower": 1,
+    "targetRange": 662.3821635400515,
+    "targetSteering": 1,
+    "targetSunk": false,
+    "targetUnderway": false,
+    "targetWater": 0,
+    "total": 10
+  },
+  "contentHash": "4d62de645ac3cfe900ed56f85aa4ffbcb5908728de932a8de00c58fd09e3c574",
+  "depthCharges": [],
+  "effects": {
+    "depthCharges": 0,
+    "flashes": 0,
+    "foam": 4,
+    "particleCapacity": 2272,
+    "shells": 0,
+    "smoke": 0,
+    "spray": 0,
+    "torpedoes": 6
+  },
+  "events": [
+    {
+      "kind": "torpedo-launch",
+      "message": "Forward tube 1 \u00b7 torpedo away",
+      "position": [
+        4.031935385544928,
+        3.85,
+        -82.71431601002799
+      ],
+      "sequence": 26,
+      "shipId": "player",
+      "tick": 360,
+      "torpedo": {
+        "diameterM": 0.533,
+        "id": 9,
+        "velocity": [
+          22.96251805382606,
+          0,
+          2.9402830863221583
+        ]
+      }
+    },
+    {
+      "kind": "torpedo-launch",
+      "message": "Forward tube 2 \u00b7 torpedo away",
+      "position": [
+        3.9522392634015127,
+        3.85,
+        -89.78132702478295
+      ],
+      "sequence": 27,
+      "shipId": "player",
+      "tick": 391,
+      "torpedo": {
+        "diameterM": 0.533,
+        "id": 10,
+        "velocity": [
+          22.92964229036512,
+          0,
+          3.186534863436981
+        ]
+      }
+    },
+    {
+      "kind": "torpedo-launch",
+      "message": "Forward tube 3 \u00b7 torpedo away",
+      "position": [
+        3.8568023207542796,
+        3.85,
+        -96.97794262669804
+      ],
+      "sequence": 28,
+      "shipId": "player",
+      "tick": 422,
+      "torpedo": {
+        "diameterM": 0.533,
+        "id": 11,
+        "velocity": [
+          22.8935830065286,
+          0,
+          3.4360379979250437
+        ]
+      }
+    },
+    {
+      "kind": "torpedo-launch",
+      "message": "Forward tube 4 \u00b7 torpedo away",
+      "position": [
+        3.7453501369860627,
+        3.85,
+        -104.30450566100272
+      ],
+      "sequence": 29,
+      "shipId": "player",
+      "tick": 453,
+      "torpedo": {
+        "diameterM": 0.533,
+        "id": 12,
+        "velocity": [
+          22.854243309399184,
+          0,
+          3.688639688934467
+        ]
+      }
+    },
+    {
+      "kind": "torpedo-launch",
+      "message": "Forward tube 5 \u00b7 torpedo away",
+      "position": [
+        3.6176293288743286,
+        3.85,
+        -111.76137150515632
+      ],
+      "sequence": 30,
+      "shipId": "player",
+      "tick": 484,
+      "torpedo": {
+        "diameterM": 0.533,
+        "id": 13,
+        "velocity": [
+          22.811531059327883,
+          0,
+          3.94417934801643
+        ]
+      }
+    },
+    {
+      "kind": "torpedo-launch",
+      "message": "Aft tube 1 \u00b7 torpedo away",
+      "position": [
+        4.059352040806546,
+        3.85,
+        -107.63415430143877
+      ],
+      "sequence": 31,
+      "shipId": "player",
+      "tick": 515,
+      "torpedo": {
+        "diameterM": 0.533,
+        "id": 14,
+        "velocity": [
+          22.835148999649157,
+          0,
+          3.8050584967674204
+        ]
+      }
+    }
+  ],
+  "fleet": [
+    {
+      "ammo": 15000,
+      "controller": "player",
+      "definitionId": "fletcher",
+      "id": "player",
+      "integrity": 600,
+      "motion": {
+        "distance": 127.47599999999773,
+        "heading": 0,
+        "id": "player",
+        "pitch": 0,
+        "roll": 0,
+        "rudder": 0,
+        "speed": 16.319999999999524,
+        "swaySpeed": 0,
+        "tick": 540,
+        "x": 0,
+        "y": 0,
+        "yawRate": 0,
+        "z": -127.47599999999773
+      },
+      "team": "friendly"
+    },
+    {
+      "ammo": 1320,
+      "controller": "idle",
+      "definitionId": "type-viic",
+      "id": "enemy-1",
+      "integrity": 450,
+      "motion": {
+        "distance": 0,
+        "heading": 1.5707963267948966,
+        "id": "enemy-1",
+        "pitch": 0,
+        "roll": 0,
+        "rudder": 0,
+        "speed": 0,
+        "swaySpeed": 0,
+        "tick": 540,
+        "x": 650,
+        "y": 0,
+        "yawRate": 0,
+        "z": 0
+      },
+      "team": "enemy"
+    }
+  ],
+  "fps": 13.789332563231433,
+  "inPort": false,
+  "inspecting": false,
+  "maxMuzzleErrorM": 0.0005996949049206368,
+  "maxTorpedoMuzzleErrorM": 2.4164033658146785e-06,
+  "paused": true,
+  "portInspection": "exterior",
+  "renderedShips": [
+    {
+      "id": "player",
+      "impactDrawCalls": 0,
+      "impactMarks": 0,
+      "visible": true
+    },
+    {
+      "id": "enemy-1",
+      "impactDrawCalls": 0,
+      "impactMarks": 0,
+      "visible": true
+    }
+  ],
+  "reviewEvents": [
+    {
+      "kind": "torpedo-launch",
+      "message": "Forward tube 1 \u00b7 torpedo away",
+      "position": [
+        4.031935385544928,
+        3.85,
+        -82.71431601002799
+      ],
+      "sequence": 26,
+      "shipId": "player",
+      "tick": 360,
+      "torpedo": {
+        "diameterM": 0.533,
+        "id": 9,
+        "velocity": [
+          22.96251805382606,
+          0,
+          2.9402830863221583
+        ]
+      }
+    },
+    {
+      "kind": "torpedo-launch",
+      "message": "Forward tube 2 \u00b7 torpedo away",
+      "position": [
+        3.9522392634015127,
+        3.85,
+        -89.78132702478295
+      ],
+      "sequence": 27,
+      "shipId": "player",
+      "tick": 391,
+      "torpedo": {
+        "diameterM": 0.533,
+        "id": 10,
+        "velocity": [
+          22.92964229036512,
+          0,
+          3.186534863436981
+        ]
+      }
+    },
+    {
+      "kind": "torpedo-launch",
+      "message": "Forward tube 3 \u00b7 torpedo away",
+      "position": [
+        3.8568023207542796,
+        3.85,
+        -96.97794262669804
+      ],
+      "sequence": 28,
+      "shipId": "player",
+      "tick": 422,
+      "torpedo": {
+        "diameterM": 0.533,
+        "id": 11,
+        "velocity": [
+          22.8935830065286,
+          0,
+          3.4360379979250437
+        ]
+      }
+    },
+    {
+      "kind": "torpedo-launch",
+      "message": "Forward tube 4 \u00b7 torpedo away",
+      "position": [
+        3.7453501369860627,
+        3.85,
+        -104.30450566100272
+      ],
+      "sequence": 29,
+      "shipId": "player",
+      "tick": 453,
+      "torpedo": {
+        "diameterM": 0.533,
+        "id": 12,
+        "velocity": [
+          22.854243309399184,
+          0,
+          3.688639688934467
+        ]
+      }
+    },
+    {
+      "kind": "torpedo-launch",
+      "message": "Forward tube 5 \u00b7 torpedo away",
+      "position": [
+        3.6176293288743286,
+        3.85,
+        -111.76137150515632
+      ],
+      "sequence": 30,
+      "shipId": "player",
+      "tick": 484,
+      "torpedo": {
+        "diameterM": 0.533,
+        "id": 13,
+        "velocity": [
+          22.811531059327883,
+          0,
+          3.94417934801643
+        ]
+      }
+    },
+    {
+      "kind": "torpedo-launch",
+      "message": "Aft tube 1 \u00b7 torpedo away",
+      "position": [
+        4.059352040806546,
+        3.85,
+        -107.63415430143877
+      ],
+      "sequence": 31,
+      "shipId": "player",
+      "tick": 515,
+      "torpedo": {
+        "diameterM": 0.533,
+        "id": 14,
+        "velocity": [
+          22.835148999649157,
+          0,
+          3.8050584967674204
+        ]
+      }
+    }
+  ],
+  "shipId": "fletcher",
+  "tick": 540,
+  "torpedoLaunchers": [
+    {
+      "id": "torpedo-forward",
+      "train": 1.7659364356429421
+    },
+    {
+      "id": "torpedo-aft",
+      "train": 1.7436329515369167
+    }
+  ],
+  "torpedoes": [
+    {
+      "armed": false,
+      "distance": 69.44999999999989,
+      "id": 9,
+      "ownerId": "player",
+      "position": [
+        72.91948954702303,
+        -1.3830499999999988,
+        -73.8934667510622
+      ],
+      "tubeId": "torpedo-forward-1"
+    },
+    {
+      "armed": false,
+      "distance": 57.489166666666534,
+      "id": 10,
+      "ownerId": "player",
+      "position": [
+        60.89418428447504,
+        -1.0730499999999985,
+        -81.86809878058057
+      ],
+      "tubeId": "torpedo-forward-2"
+    },
+    {
+      "armed": false,
+      "distance": 45.528333333333286,
+      "id": 11,
+      "ownerId": "player",
+      "position": [
+        48.8808489002606,
+        -0.7630499999999983,
+        -90.22040123077879
+      ],
+      "tubeId": "torpedo-forward-3"
+    },
+    {
+      "armed": false,
+      "distance": 33.56750000000004,
+      "id": 12,
+      "ownerId": "player",
+      "position": [
+        36.884002935614866,
+        -0.45304999999999807,
+        -98.95597811204749
+      ],
+      "tubeId": "torpedo-forward-4"
+    },
+    {
+      "armed": false,
+      "distance": 21.606666666666694,
+      "id": 13,
+      "ownerId": "player",
+      "position": [
+        24.90839165091366,
+        -0.1430499999999978,
+        -108.0801374470073
+      ],
+      "tubeId": "torpedo-forward-5"
+    },
+    {
+      "armed": false,
+      "distance": 9.645833333333336,
+      "id": 14,
+      "ownerId": "player",
+      "position": [
+        13.57399745732702,
+        2.9984375000000014,
+        -106.04871326111909
+      ],
+      "tubeId": "torpedo-aft-1"
+    }
+  ]
+}

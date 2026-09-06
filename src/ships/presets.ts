@@ -3,6 +3,7 @@ import yamato from '../../public/models/yamato.json';
 import baltimore from '../../public/models/baltimore.json';
 import enterprise from '../../public/models/enterprise-cv6.json';
 import viic from '../../public/models/type-viic.json';
+import fletcher from '../../public/models/fletcher.json';
 import libertyCargo from '../../public/models/liberty-cargo.json';
 import libertyCollier from '../../public/models/liberty-collier.json';
 import victoryCargo from '../../public/models/victory-cargo.json';
@@ -11,7 +12,7 @@ import type { ShipDefinition } from './blueprint';
 
 /** Historical presets share the same compiled definition and renderer contract. */
 export const shipPresets = { bismarck, yamato, baltimore, 'enterprise-cv6': enterprise, 'type-viic': viic,
-  'liberty-cargo': libertyCargo, 'liberty-collier': libertyCollier, 'victory-cargo': victoryCargo, 'flower-corvette': flower };
+  'liberty-cargo': libertyCargo, 'liberty-collier': libertyCollier, 'victory-cargo': victoryCargo, 'flower-corvette': flower, fletcher };
 const retiredPresetAliases: Record<string, keyof typeof shipPresets> = {
   'liberty-deck-cargo': 'liberty-collier', 'liberty-troopship': 'victory-cargo',
 };
