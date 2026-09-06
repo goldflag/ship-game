@@ -101,6 +101,57 @@ function sunDirection(elevation: number, azimuth: number) {
   return new Vector3(Math.sin(azimuth) * Math.cos(elevation), Math.sin(elevation), Math.cos(azimuth) * Math.cos(elevation));
 }
 
+test('port framing scales the aim point and camera offsets with the hull', () => {
+  const { camera, rig } = interactiveCamera();
+  const ship = { ...createShipState(), x: 240 };
+  rig.setInPort(true);
+  try {
+    for (const aspect of [16 / 9, .7]) {
+      camera.aspect = aspect;
+      camera.updateProjectionMatrix();
+      rig.setHullLength(250.5);
+      rig.update(ship, 0, 0, true);
+      const reference = [-.5, 0, .5].map(z => new Vector3(ship.x, 0, z * 250.5).project(camera));
+      rig.setHullLength(67.1);
+      rig.update(ship, 0, 0, true);
+      reference.forEach((expected, i) => {
+        const projected = new Vector3(ship.x, 0, (i - 1) * 67.1 / 2).project(camera);
+        expect(projected.x).toBeCloseTo(expected.x, 6);
+        expect(projected.y).toBeCloseTo(expected.y, 6);
+      });
+    }
+  } finally { rig.dispose(); }
+});
+
+test('port zoom stays proportional when switching very small and large hulls', () => {
+  const { camera, canvas, rig, drag } = interactiveCamera();
+  const ship = { ...createShipState(), x: 240 };
+  rig.setInPort(true);
+  drag(70, 40);
+  const bearing = rig.bearing;
+  const orbitRadius = () => Math.hypot(camera.position.x - ship.x, camera.position.z - ship.z);
+  try {
+    for (const zoom of [0, -100000, 100000]) {
+      rig.setHullLength(250.5);
+      canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY: zoom }));
+      rig.update(ship, 0, 0, true);
+      const relativeRadius = orbitRadius() / 250.5;
+      for (const length of [25, 67.1, 500, 250.5]) {
+        rig.setHullLength(length);
+        // A zero-delta wheel event must not jump to an unscaled zoom limit.
+        canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY: 0 }));
+        rig.update(ship, 0, 0, true);
+        expect(rig.bearing).toBe(bearing);
+        expect(orbitRadius() / length).toBeCloseTo(relativeRadius, 6);
+        expect(camera.position.y).toBeGreaterThanOrEqual(12);
+        const center = new Vector3(ship.x, 0, ship.z).project(camera);
+        expect(Math.abs(center.x)).toBeLessThan(.5);
+        expect(Math.abs(center.y)).toBeLessThan(.7);
+      }
+    }
+  } finally { rig.dispose(); }
+});
+
 test('shell camera follows flight without frame lag or changed aim, and restores binoculars', () => {
   const { camera, rig, drag } = interactiveCamera();
   const ship = createShipState();
