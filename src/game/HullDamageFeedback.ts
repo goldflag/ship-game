@@ -1,6 +1,6 @@
 export interface HullDamageCue {
   amount: number;
-  /** Hull HP immediately before this group of hits, on the 0–1000 scale. */
+  /** Absolute hull HP immediately before this group of hits. */
   fromHp: number;
   opacity: number;
 }
@@ -15,10 +15,10 @@ export class HullDamageFeedback {
   private hitTime = -Infinity;
   private time = 0;
 
-  constructor(hp = 1000) { this.hp = this.fromHp = hp; }
+  constructor(hp: number) { this.hp = this.fromHp = hp; }
 
   update(hp: number, time: number): HullDamageCue {
-    hp = Math.max(0, Math.min(1000, hp));
+    hp = Math.max(0, hp);
     if (time < this.time || hp > this.hp) {
       this.fromHp = hp;
       this.hitTime = -Infinity;
