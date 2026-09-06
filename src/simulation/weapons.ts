@@ -3,7 +3,7 @@ import { barrelIds, barrelOffset } from '../ships/blueprint';
 import { add, clamp, length, localToWorld, normalize, radians, rotate, segmentBox, sub, wrapAngle, worldToLocal, type Pose } from './geometry';
 export const GRAVITY = 9.81;
 export type MountDefinition = ShipDefinition['mounts'][number];
-export interface MountState { id: string; train: number; elevation: number; reload: number; ammo: number; hp: number; recoil: number; status: 'ready' | 'turning' | 'reloading' | 'blocked' | 'out-of-arc' | 'out-of-range' | 'empty' | 'disabled'; }
+export interface MountState { id: string; train: number; elevation: number; reload: number; ammo: number; hp: number; recoil: number; status: 'ready' | 'turning' | 'reloading' | 'blocked' | 'out-of-arc' | 'out-of-range' | 'empty' | 'disabled' | 'submerged'; }
 export const createMountState = (m: MountDefinition): MountState => ({ id: m.id, train: 0, elevation: radians(1), reload: 0, ammo: m.weapon.ammoPerBarrel * (m.weapon.barrelCount ?? 2), hp: 100, recoil: 0, status: 'turning' });
 export function muzzleLocal(m: MountDefinition, state: Pick<MountState, 'train' | 'elevation'>, barrel: number): Vec3 {
   const bearing = radians(m.bearingDeg) + state.train, w = m.weapon;
@@ -40,6 +40,7 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
   state.recoil = Math.max(0, state.recoil - dt / 1.4);
   if (state.hp <= 0) { state.status = 'disabled'; return false; }
   if (state.ammo < (m.weapon.barrelCount ?? 2)) { state.status = 'empty'; return false; }
+  if (definition.submarine && pose.y < -.5 || muzzleWorld(m, state, 0, pose)[1] <= 0) { state.status = 'submerged'; return false; }
   // Iterate from the actual muzzle so the long barrel offset doesn't bias close shots.
   let desiredTrain = state.train, desiredElevation = state.elevation;
   let reachable = true;

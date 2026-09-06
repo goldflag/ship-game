@@ -11,7 +11,8 @@
       "supports": [
         "Four bow tubes and one stern tube, 14 torpedoes in the surveyed load",
         "Diesels, electric motors, saddle tanks, deck fittings and compartment order",
-        "8.8 cm deck gun and 20 mm platform weapon"
+        "8.8 cm deck gun and 20 mm platform weapon",
+        "Approximately 8 kn maximum submerged speed in the captured-boat survey; the 7.6 kn nominal game setting is not a reproduction of this trial"
       ],
       "local": "U-570ONIReport.htm",
       "limits": "Survey dimensions and load are not a complete build specification; not every feature was directly measured."
@@ -61,6 +62,17 @@
         "44 knot / 5000 m fast setting, 533 mm diameter and approximately 7.16 m length"
       ],
       "limits": "Single selected game run mode; period reliability, gyro turn, speed settings, depth errors and detonator mechanisms are not recreated."
+    },
+    {
+      "id": "british-u570-1943",
+      "title": "British cumulative U-570 report (CB 04051/103)",
+      "url": "https://m.uboatarchive.net/U-570/U-570BritishReport.htm",
+      "kind": "Contemporary primary captured-boat report; web text reviewed 2026-09-05",
+      "supports": [
+        "Main ballast blown with compressed air during recovery",
+        "Diesel/electric propulsion and approximately 8 kn submerged speed"
+      ],
+      "limits": "No new local copy retained. Ballast tank volumes, control rates, safe depth and launch depth in this feature are game tuning, not measurements taken from this report."
     }
   ],
   "retainedHashes": {

@@ -104,7 +104,8 @@ export class CombatEffects {
       this.dummy.position.addScaledVector(this.direction, -length / 2);
       this.dummy.position.y = .45;
       this.dummy.rotation.set(-Math.PI / 2, 0, Math.atan2(this.direction.x, -this.direction.z));
-      this.dummy.scale.set(2, length, 1);
+      const surface = THREE.MathUtils.clamp((t.position[1] + 6) / 4, 0, 1);
+      this.dummy.scale.set(2 * surface, length * surface, 1);
       this.dummy.updateMatrix(); this.torpedoWakes.setMatrixAt(i, this.dummy.matrix);
     }
     for (const mesh of [this.torpedoBodies, this.torpedoWakes]) {
