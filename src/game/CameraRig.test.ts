@@ -188,24 +188,30 @@ test('shell camera follows flight without frame lag or changed aim, and restores
   rig.dispose();
 });
 
-test('port dragging reveals the sun without lowering the camera below its lowest orbit', () => {
-  const { camera, rig, drag } = interactiveCamera();
+test('upward port dragging stops at the lowest ship-focused orbit across hull sizes and zoom limits', () => {
+  const { camera, canvas, rig, drag } = interactiveCamera();
   const ship = { ...createShipState(), x: 240 };
-  const sun = sunDirection(36 * Math.PI / 180, 58 * Math.PI / 180);
   rig.setInPort(true);
   try {
-    drag((1.08 - Math.atan2(-sun.x, -sun.z)) / .005, -50);
-    rig.update(ship, ship.y, 0, true);
-    const lowestOrbit = camera.position.clone();
-    drag(0, -250);
-    rig.update(ship, ship.y, 0, true);
-    const projected = camera.position.clone().addScaledVector(sun, 10000).project(camera);
-    expect(Math.abs(projected.x)).toBeLessThan(.9);
-    expect(Math.abs(projected.y)).toBeLessThan(.9);
-    expect(projected.z).toBeGreaterThan(-1);
-    expect(projected.z).toBeLessThan(1);
-    expect(camera.position.distanceTo(lowestOrbit)).toBeLessThan(1e-9);
-    expect(Math.asin(camera.getWorldDirection(new Vector3()).y)).toBeLessThanOrEqual(Math.PI / 6 + 1e-9);
+    for (const length of [67.1, 250.5, 263]) for (const zoom of [-100000, 100000]) {
+      rig.setHullLength(length);
+      canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY: zoom }));
+      drag(0, -100000);
+      rig.update(ship, ship.y, 0, true);
+      const lowestOrbit = camera.position.clone(), direction = camera.getWorldDirection(new Vector3());
+      expect(direction.y).toBeLessThan(0);
+      expect(camera.position.y).toBeGreaterThanOrEqual(12);
+      const center = new Vector3(ship.x, 0, ship.z).project(camera);
+      expect(Math.abs(center.y)).toBeLessThan(1);
+      drag(0, -250);
+      rig.update(ship, ship.y, 0, true);
+      expect(camera.position.distanceTo(lowestOrbit)).toBeLessThan(1e-9);
+      expect(camera.getWorldDirection(new Vector3()).distanceTo(direction)).toBeLessThan(1e-9);
+      // Dragging back responds immediately, without unwinding past the limit.
+      drag(0, 20);
+      rig.update(ship, ship.y, 0, true);
+      expect(camera.getWorldDirection(new Vector3()).y).toBeLessThan(direction.y);
+    }
     rig.recenter();
     rig.update(ship, ship.y, 0, true);
     expect(camera.getWorldDirection(new Vector3()).y).toBeLessThan(0);
