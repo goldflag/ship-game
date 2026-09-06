@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { resolve } from 'node:path';
 import { shipPresets, shipReviewUrls } from './presets';
 
-test('every port review link serves its evidence page through the development server', async () => {
+test('every available port review link serves evidence without inventing packs for other presets', async () => {
   const { createServer } = await import('vite');
   const server = await createServer({
     configFile: false,
@@ -15,7 +15,9 @@ test('every port review link serves its evidence page through the development se
     await server.listen();
     const address = server.httpServer!.address();
     if (!address || typeof address === 'string') throw new Error('Missing review test server');
-    for (const id of Object.keys(shipPresets)) {
+    expect(shipReviewUrls['type-viic']).toBeUndefined();
+    for (const id of Object.keys(shipReviewUrls)) {
+      expect(Object.hasOwn(shipPresets, id)).toBe(true);
       const response = await fetch(`http://localhost:${address.port}${shipReviewUrls[id]}`);
       expect(response.ok).toBe(true);
       const page = await response.text();

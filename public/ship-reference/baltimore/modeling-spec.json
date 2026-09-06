@@ -2,6 +2,10 @@
   "schemaVersion": 1,
   "revision": "fleet-fidelity-01",
   "comparisonMode": "historical-before-after",
+  "runtimeReview": {
+    "contentHash": "0079ff92853af02a9f22fae2001babdc8a4d65940d79fe4eae9beb946b006887",
+    "note": "Preserved pre-master-integration WebGPU run. A newer export is not silently certified by these earlier captures; see the fleet integration report."
+  },
   "configuration": "October 1943 exterior; 24 ft 2 in limiting keel draft, not navigational draft",
   "authoringBoundary": "Original blueprint, catalog facets and deterministic recipes. Historical images are comparison evidence only; no game mesh/texture or reference attachment transforms enter authoring.",
   "coordinates": {

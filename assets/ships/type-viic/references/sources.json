@@ -1,0 +1,75 @@
+{
+  "configuration": "Generic early-war Type VIIC, 1941, informed by U-570; surfaced gameplay preset",
+  "accessed": "2026-09-05",
+  "acquisition": "U-boat Archive HTTPS certificate hostname validation failed with system curl; public reference-only files retrieved with a host-scoped curl -k fallback. Web tool independently exposed matching report contents. No game model files were used.",
+  "sources": [
+    {
+      "id": "oni-u570-1941",
+      "title": "ONI report on U-570, inspected September 23\u201326, 1941",
+      "url": "https://www.uboatarchive.net/U-570/U-570ONIReport.htm",
+      "kind": "Contemporary primary survey, September 28, 1941",
+      "supports": [
+        "Four bow tubes and one stern tube, 14 torpedoes in the surveyed load",
+        "Diesels, electric motors, saddle tanks, deck fittings and compartment order",
+        "8.8 cm deck gun and 20 mm platform weapon"
+      ],
+      "local": "U-570ONIReport.htm",
+      "limits": "Survey dimensions and load are not a complete build specification; not every feature was directly measured."
+    },
+    {
+      "id": "u570-general-plan",
+      "title": "General arrangement enclosure A to the ONI report",
+      "url": "https://www.uboatarchive.net/U-570/U-570GeneralPlan.htm",
+      "kind": "Contemporary primary drawing, reference raster",
+      "local": "U-570GeneralPlan.jpg",
+      "supports": [
+        "Qualitative profile, plan, tower and internal machinery order"
+      ],
+      "limits": "Used to guide independent station and fitting estimates; no calibrated tracing or station survey claimed."
+    },
+    {
+      "id": "u570-photos",
+      "title": "Photographs accompanying the U-570 survey",
+      "url": "https://www.uboatarchive.net/U-570/U-570Photographs.htm",
+      "kind": "Contemporary primary photographs",
+      "local": [
+        "U-570Photo1.jpg",
+        "U-570Photo2.jpg",
+        "U-570Photo9.jpg"
+      ],
+      "supports": [
+        "Narrow slotted wood deck, central rails, open bridge, tower fittings and deck gun"
+      ],
+      "limits": "Perspective inspection only; no unverified dimensional extraction."
+    },
+    {
+      "id": "viic-dimensions",
+      "title": "Type VIIC characteristics, uboat.net",
+      "url": "https://uboat.net/types/viic.htm?level=1",
+      "kind": "Secondary dimension cross-check",
+      "supports": [
+        "67.1 m overall length, 6.2 m beam, 4.74 m draft, 769 tonne surfaced displacement, 17.7 knot surface speed"
+      ],
+      "limits": "Nominal class envelope, not the measured loading state of the retained U-570 images."
+    },
+    {
+      "id": "g7a-performance",
+      "title": "G7a torpedo operating modes",
+      "url": "https://en.wikipedia.org/wiki/G7a_torpedo",
+      "kind": "Secondary performance cross-check",
+      "supports": [
+        "44 knot / 5000 m fast setting, 533 mm diameter and approximately 7.16 m length"
+      ],
+      "limits": "Single selected game run mode; period reliability, gyro turn, speed settings, depth errors and detonator mechanisms are not recreated."
+    }
+  ],
+  "retainedHashes": {
+    "U-570ONIReport.htm": "cb34c9f9506245e8f31b283016e8281822d81fffe6811e9b834a3ec1947fe078",
+    "U-570Photo9.jpg": "fc024c60db9f230b6b1b36883724ed03b05b232ec32e48e75213b33db6bd6280",
+    "U-570GeneralPlan.jpg": "1dcaa3394a9dd4a8be85842503fdfabe6e7bf9034ea4ede32c8ab3b629bf9f92",
+    "U-570Photographs.htm": "a40e90552eeabfe4472e5403f3ca57c4fabf96cff8f41a2f69b5b5871d2ae7f0",
+    "U-570GeneralPlan.htm": "d3ff6e608ba11c5b85bfc44c583812f49599bf3d6c862b0e1a3aa2c21d420de5",
+    "U-570Photo2.jpg": "58a79631325ad3505b79c915bf1a2e7b310169bbd7c13b033bb4786d04cd8a39",
+    "U-570Photo1.jpg": "25e0eff7f940090e4c39bb385526c8455bf1b6e2da4d427aff8028c90c7021ef"
+  }
+}

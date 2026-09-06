@@ -2,6 +2,10 @@
   "schemaVersion": 1,
   "revision": "fleet-fidelity-01",
   "comparisonMode": "historical-before-after",
+  "runtimeReview": {
+    "contentHash": "e968df81e5fbf119177548826b2dc4377f4a8e6ef3611b75984dadbe0d89e52d",
+    "note": "Preserved pre-master-integration WebGPU run. A newer export is not silently certified by these earlier captures; see the fleet integration report."
+  },
   "configuration": "June 1942/Midway; pre-bulge hull; 25 ft 11½ in reference draft",
   "authoringBoundary": "Original blueprint, catalog facets and deterministic recipes. Historical images are comparison evidence only; no game mesh/texture or reference attachment transforms enter authoring.",
   "coordinates": {

@@ -2,7 +2,7 @@
 
 Reviewed 2026-09-05 against the Bismarck custom battle in the local development game using Orca and the WebGPU renderer.
 
-The **Follow shells** control below the weapons bar and its rebindable **T** shortcut enable the camera. It observes a player shell's authoritative position and velocity, holds on its recorded impact for 1.1 seconds, and restores the previous camera and binocular magnification. Aim remains unchanged during flight. The option remains armed for later salvos; toggling off returns early. Opening inspection or changing camera clears it. Port transitions reset it.
+The **Follow shells** control below the weapons bar and its rebindable **T** shortcut enable the camera. It observes a player shell's authoritative position and velocity, holds on its first recorded ship strike or water impact for 1.1 seconds, and restores the previous camera and binocular magnification. Aim remains unchanged during flight. The option remains armed for later salvos; toggling off returns early. Opening inspection or changing camera clears it. Port transitions reset it. The [penetration follow-up](penetration-diagnosis.md) records the correction that keeps the camera at a ship strike while penetrating AP continues flying.
 
 ![Actual shell-follow view](flight.png)
 

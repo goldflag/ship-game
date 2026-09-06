@@ -1,5 +1,5 @@
 {
-  "contentHash": "e386fddd3669bac5b108603829564e96773463d4255fd37bac444015edf8db0a",
+  "contentHash": "dbb974b5b53a372340a739cc5dc79c5230540720328cacbc8de61ccadb624933",
   "hullBounds": [
     [
       -19.450002670288086,
@@ -64,6 +64,7 @@
       "articulationChecks": 9
     }
   ],
+  "torpedoTubes": [],
   "meshes": 110,
   "primitives": 343,
   "triangles": 264906,

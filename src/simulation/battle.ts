@@ -1,5 +1,7 @@
 import type { ShipDefinition } from '../ships/blueprint';
 import type { Combatant } from './damage';
+import type { TubeState } from './torpedoes';
+import type { BotState } from './bots';
 
 export const BATTLE_SPAWN_DISTANCE = 5000;
 export const MIN_BATTLE_SPAWN_DISTANCE = 1000;
@@ -8,12 +10,15 @@ export const MAX_TEAM_SHIPS = 30;
 export type Team = 'friendly' | 'enemy';
 export type BattleResult = 'active' | 'victory' | 'defeat' | 'draw';
 export interface BattleSetup { playerShipId: string; friendlyBots: string[]; enemies: string[]; spawnDistance: number; }
-export interface BattleFleet { friendlyBots: ShipDefinition[]; enemies: ShipDefinition[]; spawnDistance?: number; }
+export interface BattleFleet { friendlyBots: ShipDefinition[]; enemies: ShipDefinition[]; spawnDistance?: number; seed?: number; }
 export interface FleetActor extends Combatant {
   definition: ShipDefinition;
   team: Team;
   controller: 'player' | 'bot' | 'idle';
   targetId?: string;
+  torpedoTubes?: TubeState[];
+  tubeLaunchCooldown?: number;
+  bot?: BotState;
 }
 
 export function validateBattleSetup(setup: BattleSetup, availableIds: readonly string[]): void {

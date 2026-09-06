@@ -15,38 +15,40 @@ const fleet = () => new CombatSimulation(shipPreset('baltimore'), {
 });
 
 for (const spawnDistance of [MIN_BATTLE_SPAWN_DISTANCE, BATTLE_SPAWN_DISTANCE]) {
-  test(`legacy Yamato magazine-damage regression survives opening salvo at ${spawnDistance} m`, () => {
+  test(`legacy Yamato survives an accurately aimed salvo at ${spawnDistance} m with bounded magazine damage`, () => {
     // Freeze the deliberately exposed magazine geometry that reproduced the
     // damage-budget bug. Current historical layout must not require explosions.
-    const sim = new CombatSimulation(compileShip(legacyYamato,catalog), {
-      friendlyBots: [], enemies: [shipPreset('bismarck')], spawnDistance,
+    const sim = new CombatSimulation(shipPreset('bismarck'), {
+      friendlyBots: [], enemies: [compileShip(legacyYamato,catalog)], spawnDistance,
     });
-    // Exercise deployed bot aiming, shell flight, armor, magazines and flooding together.
-    for (let tick = 0; tick < 600; tick++) sim.step(stop, intent);
-    expect(sim.events.some(e => e.kind === 'penetration' && e.shipId === 'player')).toBe(true);
-    expect(sim.player.damage.modules.filter(m => m.detonated).length).toBeGreaterThanOrEqual(2);
-    const moduleDamage = sim.player.damage.modules.reduce((sum, m, i) => sum + sim.definition.modules[i].hp - m.hp, 0);
-    const openingShots = sim.events.filter(e => e.kind === 'shot' && e.shipId === sim.target.motion.id);
+    // Keep the worst-case damage regression independent of intentionally imperfect bot fire control.
+    sim.target.controller = 'idle';
+    for (let tick = 0; tick < 600; tick++) sim.step(stop, { ...intent, aim: sim.aimAt(), fire: true });
+    expect(sim.events.some(e => e.kind === 'penetration' && e.shipId === sim.target.motion.id)).toBe(true);
+    expect(sim.target.damage.modules.filter(m => m.detonated).length).toBeGreaterThanOrEqual(2);
+    const moduleDamage = sim.target.damage.modules.reduce((sum, m, i) => sum + sim.target.definition.modules[i].hp - m.hp, 0);
+    const openingShots = sim.events.filter(e => e.kind === 'shot' && e.shipId === sim.player.motion.id);
     expect(openingShots).toHaveLength(4);
-    expect(moduleDamage).toBeLessThanOrEqual(openingShots.length * sim.target.definition.mounts[0].weapon.damage);
-    expect(sim.player.damage.integrity).toBeGreaterThan(sim.player.damage.maxIntegrity / 2);
-    expect(sim.player.damage.integrity).toBeLessThan(sim.player.damage.maxIntegrity);
-    expect(sim.player.damage.sunk).toBe(false);
+    expect(moduleDamage).toBeLessThanOrEqual(openingShots.length * sim.definition.mounts[0].weapon.damage);
+    expect(sim.target.damage.integrity).toBeGreaterThan(sim.target.damage.maxIntegrity / 2);
+    expect(sim.target.damage.integrity).toBeLessThan(sim.target.damage.maxIntegrity);
+    expect(sim.target.damage.sunk).toBe(false);
     expect(sim.result).toBe('active');
-    expect(sim.player.damage.compartments.some(c => c.waterM3 > 0)).toBe(true);
-    expect(sim.player.mounts.filter(m => m.status === 'disabled').length).toBeGreaterThanOrEqual(2);
+    expect(sim.target.damage.compartments.some(c => c.waterM3 > 0)).toBe(true);
+    expect(sim.target.mounts.filter(m => m.status === 'disabled').length).toBeGreaterThanOrEqual(2);
   });
   test(`current Yamato survives a damaging opening salvo at ${spawnDistance} m`,()=>{
-    const sim=new CombatSimulation(shipPreset('yamato'),{friendlyBots:[],enemies:[shipPreset('bismarck')],spawnDistance});
-    for(let tick=0;tick<600;tick++)sim.step(stop,intent);
-    expect(sim.events.some(e=>e.kind==='penetration'&&e.shipId==='player')).toBe(true);
-    expect(sim.player.damage.integrity).toBeGreaterThan(sim.player.damage.maxIntegrity/2);
-    expect(sim.player.damage.integrity).toBeLessThan(sim.player.damage.maxIntegrity);
-    expect(sim.player.damage.sunk).toBe(false);
+    const sim=new CombatSimulation(shipPreset('bismarck'),{friendlyBots:[],enemies:[shipPreset('yamato')],spawnDistance});
+    sim.target.controller='idle';
+    for(let tick=0;tick<600;tick++)sim.step(stop,{...intent,aim:sim.aimAt(),fire:true});
+    expect(sim.events.some(e=>e.kind==='penetration'&&e.shipId===sim.target.motion.id)).toBe(true);
+    expect(sim.target.damage.integrity).toBeGreaterThan(sim.target.damage.maxIntegrity/2);
+    expect(sim.target.damage.integrity).toBeLessThan(sim.target.damage.maxIntegrity);
+    expect(sim.target.damage.sunk).toBe(false);
     expect(sim.result).toBe('active');
     // These bow entries are above the sea and stop at the new barbette. They
     // damage the hull without requiring a fictitious flooded magazine.
-    expect(sim.player.damage.compartments.every(c=>c.waterM3===0)).toBe(true);
+    expect(sim.target.damage.compartments.every(c=>c.waterM3===0)).toBe(true);
   });
 }
 

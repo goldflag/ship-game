@@ -2,6 +2,10 @@
   "schemaVersion": 1,
   "revision": "fleet-fidelity-01",
   "comparisonMode": "historical-before-after",
+  "runtimeReview": {
+    "contentHash": "e386fddd3669bac5b108603829564e96773463d4255fd37bac444015edf8db0a",
+    "note": "Preserved pre-master-integration WebGPU run. A newer export is not silently certified by these earlier captures; see the fleet integration report."
+  },
   "configuration": "7 April 1945 exterior; 10.4 m trial datum",
   "authoringBoundary": "Original blueprint, catalog facets and deterministic recipes. Historical images are comparison evidence only; no game mesh/texture or reference attachment transforms enter authoring.",
   "coordinates": {

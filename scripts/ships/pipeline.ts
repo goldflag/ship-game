@@ -122,9 +122,18 @@ function inspectGlb(bytes: Buffer, def: ShipDefinition) {
     }
     return { id: m.id, measuredPivot: center.toArray(), barrels: sides.length, articulationChecks: sides.length * 3 };
   });
+  const torpedoTubes = (def.torpedoTubes ?? []).map(tube => {
+    const frame = worlds.get(getIndex(`${tube.id}.muzzle`))!;
+    const position = new Vector3().setFromMatrixPosition(frame);
+    tube.position.forEach((n, i) => near(position.getComponent(i), n, `${tube.id} muzzle ${i}`));
+    const direction = new Vector3(0, 0, -1).transformDirection(frame);
+    const bearing = tube.bearingDeg * Math.PI / 180;
+    near(direction.distanceTo(new Vector3(Math.sin(bearing), 0, -Math.cos(bearing))), 0, `${tube.id} direction`, .001);
+    return { id: tube.id, measuredMuzzle: position.toArray(), direction: direction.toArray() };
+  });
   const triangles = gltf.meshes.reduce((total, m) => total + m.primitives.reduce((n, p) => n + gltf.accessors[p.indices ?? p.attributes.POSITION].count / 3, 0), 0);
   if (triangles > 500000 || bytes.length > 30 * 1024 * 1024) throw new Error('Ship exceeds initial 500k triangle / 30 MiB export guardrails');
-  return { contentHash, hullBounds: bounds.map(b => b.toArray()), mounts, meshes: gltf.meshes.length, primitives: gltf.meshes.reduce((n, m) => n + m.primitives.length, 0), triangles, bytes: bytes.length, result: 'passed', historicalAccuracy: 'not certified; see reference register and discrepancy report' };
+  return { contentHash, hullBounds: bounds.map(b => b.toArray()), mounts, torpedoTubes, meshes: gltf.meshes.length, primitives: gltf.meshes.reduce((n, m) => n + m.primitives.length, 0), triangles, bytes: bytes.length, result: 'passed', historicalAccuracy: 'not certified; see reference register and discrepancy report' };
 }
 
 async function runEvidence(action: 'compare' | 'check') {

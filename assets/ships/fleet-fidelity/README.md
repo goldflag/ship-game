@@ -1,5 +1,7 @@
 # Fleet fidelity 01 · original authoring record
 
+This record preserves the pre-integration milestone and its original reviewed hashes. See the [five-preset master integration report](../../../docs/fleet-fidelity-integration.md) for the later merged exports and their separate validation; earlier runtime captures are not re-labeled as current evidence.
+
 Targets: Yamato (7 April 1945 exterior / trial datum), Baltimore (October 1943 / limiting keel draft), Enterprise CV-6 (June 1942 / pre-bulge reference datum). The assigned workspace began at master `8e0be03`; Bismarck's baseline and other worktrees were not changed.
 
 `author.py` is the versioned, deterministic migration from each preserved `reports/fidelity-01/before/blueprint.json`. It records original lofts, substantive structure surfaces, protection, compartment arrangement and gunhouse facets in the blueprint/catalog. It is an explicit authoring tool, not a hidden build dependency. It does not read game geometry or textures. Re-running it intentionally replaces the three blueprints from the preserved inputs; edit this authoring record or the current blueprint deliberately, not both independently.
@@ -18,7 +20,7 @@ bun run ship:compile enterprise-cv6
 
 Production builds use each ship's `build.py` and the shared `scripts/ships/blender_fidelity.py` helpers. All significant loft/deckhouse surfaces derive from blueprint data; small fittings are original procedural geometry. Independent yaw/elevation/recoil/socket and elevator IDs are preserved. Runtime axes are +X starboard, +Y up, -Z bow; Blender axes are +X bow, +Y port, +Z up, with runtime = (-BlenderY, BlenderZ, -BlenderX).
 
-Use `ship:build`, `ship:check`, `ship:review`, `ship:compare` and `ship:independence` for each target. Shared `scripts/ships` changes invalidate all four presets, including Bismarck. Local Blender 5.2.0 LTS was used; no callable Blender MCP was available. Generated `.blend`, GLB and rendered views are outputs. Original sources, reference art and prior measurements remain under assets.
+Use `ship:build`, `ship:check`, `ship:review`, `ship:compare` and `ship:independence` for each target. Shared `scripts/ships` changes invalidate every registered preset, now five including Bismarck and Type VIIC after master integration. Local Blender 5.2.0 LTS was used; no callable Blender MCP was available. Generated `.blend`, GLB and rendered views are outputs. Original sources, reference art and prior measurements remain under assets.
 
 The historical-before-after review mode uses twelve identical original cameras, primary/qualified historical evidence, actual exported triangle measurements and CPU protection probes. Restricted scans stay local. Enterprise's discontinuous contract sheets are not mislabeled as a registered Midway plan. Review ZIPs include original inputs and all page dependencies, excluding rebuildable Blender scenes and restricted references.
 

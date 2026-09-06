@@ -1,5 +1,7 @@
 # Ship pipeline and combat validation — 2026-09-05
 
+Latest: [fleet fidelity / five-preset master integration](fleet-fidelity-integration.md). The dated milestones below retain their original hashes, test totals and review scope.
+
 The implemented milestone is a local ship asset pipeline and singleplayer gunnery/damage trial. Historical accuracy approval, a construction UI and networked PvP are separate future milestones.
 
 ## Asset evidence

@@ -1,0 +1,604 @@
+{
+  "bounds": [
+    {
+      "class": "fleet-armament",
+      "clientWidth": 296,
+      "name": "Weapons and gunnery",
+      "rect": {
+        "bottom": 886,
+        "height": 167,
+        "left": 420.5,
+        "right": 716.5,
+        "top": 719,
+        "width": 296,
+        "x": 420.5,
+        "y": 719
+      },
+      "scrollWidth": 296
+    },
+    {
+      "class": "fleet-weapon-slot",
+      "clientWidth": 41,
+      "name": "Select main AP battery \u00b7 220 shells \u00b7 1",
+      "rect": {
+        "bottom": 862,
+        "height": 58,
+        "left": 420.5,
+        "right": 463.6640625,
+        "top": 804,
+        "width": 43.1640625,
+        "x": 420.5,
+        "y": 804
+      },
+      "scrollWidth": 43
+    },
+    {
+      "class": "fleet-weapon-slot",
+      "clientWidth": 41,
+      "name": "Select secondary AP battery \u00b7 1100 shells \u00b7 2",
+      "rect": {
+        "bottom": 862,
+        "height": 58,
+        "left": 469.6640625,
+        "right": 512.8359375,
+        "top": 804,
+        "width": 43.171875,
+        "x": 469.6640625,
+        "y": 804
+      },
+      "scrollWidth": 43
+    },
+    {
+      "class": "fleet-weapon-slot",
+      "clientWidth": 41,
+      "name": "Select torpedoes \u00b7 13 torpedoes \u00b7 3",
+      "rect": {
+        "bottom": 862,
+        "height": 58,
+        "left": 518.8359375,
+        "right": 562,
+        "top": 804,
+        "width": 43.1640625,
+        "x": 518.8359375,
+        "y": 804
+      },
+      "scrollWidth": 43
+    },
+    {
+      "class": "fleet-weapon-slot fleet-utility-slot",
+      "clientWidth": 41,
+      "name": "Toggle binocular aiming \u00b7 Shift",
+      "rect": {
+        "bottom": 862,
+        "height": 58,
+        "left": 575,
+        "right": 618.171875,
+        "top": 804,
+        "width": 43.171875,
+        "x": 575,
+        "y": 804
+      },
+      "scrollWidth": 41
+    },
+    {
+      "class": "fleet-weapon-slot",
+      "clientWidth": 41,
+      "name": "Gunnery and target damage \u00b7 G",
+      "rect": {
+        "bottom": 862,
+        "height": 58,
+        "left": 624.171875,
+        "right": 667.3359375,
+        "top": 804,
+        "width": 43.1640625,
+        "x": 624.171875,
+        "y": 804
+      },
+      "scrollWidth": 41
+    },
+    {
+      "class": "fleet-weapon-slot fleet-fire-slot",
+      "clientWidth": 41,
+      "name": "Launch torpedo \u00b7 Left mouse or Q",
+      "rect": {
+        "bottom": 862,
+        "height": 58,
+        "left": 673.3359375,
+        "right": 716.5,
+        "top": 804,
+        "width": 43.1640625,
+        "x": 673.3359375,
+        "y": 804
+      },
+      "scrollWidth": 41
+    }
+  ],
+  "diagnostics": {
+    "audio": {
+      "failed": [],
+      "inPort": false,
+      "loaded": 13,
+      "paused": false,
+      "played": 9,
+      "settings": {
+        "effects": 0.8,
+        "interface": 0.65,
+        "master": 0.65,
+        "muted": false
+      },
+      "state": "running",
+      "total": 13,
+      "voices": 0
+    },
+    "backend": "webgpu",
+    "camera": {
+      "aim": [
+        7.848447291076683,
+        0.8714912053445936,
+        -4904.789028967235
+      ],
+      "binoculars": false,
+      "fov": 52.00000000000001,
+      "magnification": 1,
+      "manualAim": true,
+      "matrixWorldInverse": [
+        0.9999987197464202,
+        6.276350794862717e-06,
+        -0.001600145658377897,
+        0,
+        0,
+        0.9999923076262686,
+        0.003922331996444101,
+        0,
+        0.0016001579673910113,
+        -0.00392232697486452,
+        0.999991027382537,
+        0,
+        -2.7755575615628914e-17,
+        -20.109720075454675,
+        -120.82980646652074,
+        1
+      ],
+      "mode": "Chase",
+      "pointerLocked": false,
+      "position": [
+        -0.1932190745624646,
+        20.5835,
+        120.74984540938023
+      ],
+      "projectionMatrix": [
+        1.633751346060547,
+        0,
+        0,
+        0,
+        0,
+        2.050303841579296,
+        0,
+        0,
+        0,
+        0,
+        -1.0000083334027783,
+        -1,
+        0,
+        0,
+        -0.5000041667013891,
+        0
+      ],
+      "shellFollow": "off"
+    },
+    "combat": {
+      "batteries": [
+        {
+          "ammo": 220,
+          "battery": "main",
+          "ready": 1,
+          "reload": 0,
+          "total": 1
+        },
+        {
+          "ammo": 1100,
+          "battery": "secondary",
+          "ready": 0,
+          "reload": 0,
+          "total": 1
+        },
+        {
+          "ammo": 13,
+          "battery": "torpedo",
+          "ready": 3,
+          "reload": 42.916666666666785,
+          "total": 5
+        }
+      ],
+      "battery": "torpedo",
+      "battle": true,
+      "contacts": [
+        {
+          "controller": "player",
+          "heading": 0,
+          "id": "player",
+          "integrity": 1,
+          "name": "Type VIIC",
+          "shipId": "type-viic",
+          "sunk": false,
+          "team": "friendly",
+          "x": 0,
+          "z": 0
+        },
+        {
+          "controller": "bot",
+          "heading": 3.141689929402821,
+          "id": "enemy-1",
+          "integrity": 1,
+          "name": "Bismarck",
+          "shipId": "bismarck",
+          "sunk": false,
+          "targetId": "player",
+          "team": "enemy",
+          "x": -2.402951308494076e-05,
+          "z": -4999.291600000718
+        }
+      ],
+      "message": "Type VIIC \u00b7 Bow tube 1 \u00b7 torpedo away",
+      "modules": [
+        {
+          "condition": 1,
+          "id": "boiler-aft-port-equipment",
+          "name": "Aft port boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "condition": 1,
+          "id": "boiler-aft-center-equipment",
+          "name": "Aft center boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "condition": 1,
+          "id": "boiler-aft-starboard-equipment",
+          "name": "Aft starboard boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "condition": 1,
+          "id": "boiler-forward-port-equipment",
+          "name": "Forward port boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "condition": 1,
+          "id": "boiler-forward-center-equipment",
+          "name": "Forward center boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "condition": 1,
+          "id": "boiler-forward-starboard-equipment",
+          "name": "Forward starboard boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "condition": 1,
+          "id": "engine-port",
+          "name": "Port turbine room"
+        },
+        {
+          "condition": 1,
+          "id": "engine-starboard",
+          "name": "Starboard turbine room"
+        },
+        {
+          "condition": 1,
+          "id": "engine-center",
+          "name": "Center turbine room"
+        },
+        {
+          "condition": 1,
+          "id": "anton-magazine",
+          "name": "Anton propellant magazines"
+        },
+        {
+          "condition": 1,
+          "id": "bruno-magazine",
+          "name": "Bruno propellant magazines"
+        },
+        {
+          "condition": 1,
+          "id": "caesar-magazine",
+          "name": "C\u00e4sar propellant magazines"
+        },
+        {
+          "condition": 1,
+          "id": "dora-magazine",
+          "name": "Dora propellant magazines"
+        },
+        {
+          "condition": 1,
+          "id": "steering",
+          "name": "Steering gear room"
+        },
+        {
+          "condition": 1,
+          "id": "shaft-port-equipment",
+          "name": "Port shaft passage"
+        },
+        {
+          "condition": 1,
+          "id": "shaft-center-equipment",
+          "name": "Center shaft passage"
+        },
+        {
+          "condition": 1,
+          "id": "shaft-starboard-equipment",
+          "name": "Starboard shaft passage"
+        }
+      ],
+      "mounts": [
+        {
+          "ammo": 2,
+          "id": "bow-tube-1",
+          "name": "Bow tube 1",
+          "reload": 42.916666666666785,
+          "status": "reloading"
+        },
+        {
+          "ammo": 3,
+          "id": "bow-tube-2",
+          "name": "Bow tube 2",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 3,
+          "id": "bow-tube-3",
+          "name": "Bow tube 3",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 3,
+          "id": "bow-tube-4",
+          "name": "Bow tube 4",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 2,
+          "id": "stern-tube",
+          "name": "Stern tube 5",
+          "reload": 0,
+          "status": "out-of-arc"
+        }
+      ],
+      "playerDamageDealt": 0,
+      "playerFrags": 0,
+      "playerIntegrity": 1,
+      "playerMaxIntegrity": 450,
+      "playerSunk": false,
+      "playerWater": 0,
+      "range": 4904.795308348987,
+      "ready": 3,
+      "result": "active",
+      "targetId": "enemy-1",
+      "targetIntegrity": 1,
+      "targetName": "Bismarck",
+      "targetPosition": {
+        "heading": 3.141689929402821,
+        "x": -2.402951308494076e-05,
+        "z": -4999.291600000718
+      },
+      "targetPower": 1,
+      "targetRange": 4999.291600000718,
+      "targetSteering": 1,
+      "targetSunk": false,
+      "targetUnderway": false,
+      "targetWater": 0,
+      "total": 5
+    },
+    "contentHash": "790540939d476bf9503c191fbfd6d29a3f027941ebf4a4a9011a2f1c5885605b",
+    "effects": {
+      "flashes": 0,
+      "foam": 0,
+      "particleCapacity": 2272,
+      "shells": 4,
+      "smoke": 12,
+      "spray": 0,
+      "torpedoes": 1
+    },
+    "events": [
+      {
+        "kind": "torpedo-launch",
+        "message": "Bow tube 1 \u00b7 torpedo away",
+        "position": [
+          -0.43,
+          -1.1,
+          -30
+        ],
+        "sequence": 1,
+        "shipId": "player",
+        "tick": 0,
+        "torpedo": {
+          "diameterM": 0.533,
+          "id": 1,
+          "velocity": [
+            0.038439706394387055,
+            0,
+            -22.63550336078852
+          ]
+        }
+      },
+      {
+        "kind": "shot",
+        "message": "Bruno fired",
+        "position": [
+          1.8749997875307993,
+          12.919145774197647,
+          -4929.753979444505
+        ],
+        "sequence": 2,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 2,
+          "type": "AP",
+          "velocity": [
+            3.5324144382323116e-08,
+            27.187246278591545,
+            819.5958437389075
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 8
+      },
+      {
+        "kind": "shot",
+        "message": "Bruno fired",
+        "position": [
+          -1.8750002124692007,
+          12.919145774197647,
+          -4929.753979444343
+        ],
+        "sequence": 3,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 3,
+          "type": "AP",
+          "velocity": [
+            3.5324144382323116e-08,
+            27.187246278591545,
+            819.5958437389075
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 8
+      },
+      {
+        "kind": "shot",
+        "message": "Anton fired",
+        "position": [
+          1.8749995775629222,
+          9.133243550182975,
+          -4911.553587484018
+        ],
+        "sequence": 4,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 4,
+          "type": "AP",
+          "velocity": [
+            7.049074022706993e-08,
+            28.00421986926081,
+            819.5736676022142
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 9
+      },
+      {
+        "kind": "shot",
+        "message": "Anton fired",
+        "position": [
+          -1.8750004224370778,
+          9.133243550182975,
+          -4911.553587483694
+        ],
+        "sequence": 5,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 5,
+          "type": "AP",
+          "velocity": [
+            7.049074022706993e-08,
+            28.00421986926081,
+            819.5736676022142
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 9
+      }
+    ],
+    "fleet": [
+      {
+        "ammo": 1320,
+        "controller": "player",
+        "definitionId": "type-viic",
+        "id": "player",
+        "integrity": 450,
+        "motion": {
+          "distance": 0,
+          "heading": 0,
+          "id": "player",
+          "pitch": 0,
+          "roll": 0,
+          "rudder": 0,
+          "speed": 0,
+          "swaySpeed": 0,
+          "tick": 126,
+          "x": 0,
+          "y": 0,
+          "yawRate": 0,
+          "z": 0
+        },
+        "team": "friendly"
+      },
+      {
+        "ammo": 2756,
+        "controller": "bot",
+        "definitionId": "bismarck",
+        "id": "enemy-1",
+        "integrity": 1450,
+        "motion": {
+          "distance": 0.7084000000000005,
+          "heading": 3.141689929402821,
+          "id": "enemy-1",
+          "pitch": 0,
+          "roll": 0,
+          "rudder": 0.8820000000000007,
+          "speed": 0.6706666666666665,
+          "swaySpeed": 0,
+          "tick": 126,
+          "x": -2.402951308494076e-05,
+          "y": 0,
+          "yawRate": 0.00017484606124151578,
+          "z": -4999.291600000718
+        },
+        "targetId": "player",
+        "team": "enemy"
+      }
+    ],
+    "fps": 13.001917970819825,
+    "inPort": false,
+    "inspecting": false,
+    "maxMuzzleErrorM": 0.002161819901112658,
+    "paused": false,
+    "portInspection": "exterior",
+    "renderedShips": [
+      {
+        "id": "player",
+        "impactDrawCalls": 0,
+        "impactMarks": 0,
+        "visible": true
+      },
+      {
+        "id": "enemy-1",
+        "impactDrawCalls": 0,
+        "impactMarks": 0,
+        "visible": true
+      }
+    ],
+    "shipId": "type-viic",
+    "tick": 126,
+    "torpedoes": [
+      {
+        "armed": false,
+        "distance": 47.534625599999885,
+        "id": 1,
+        "ownerId": "player",
+        "position": [
+          -0.34927661657178616,
+          -2,
+          -77.53455705765583
+        ],
+        "tubeId": "bow-tube-1"
+      }
+    ]
+  },
+  "viewport": {
+    "dpr": 2,
+    "height": 906,
+    "width": 1137
+  }
+}

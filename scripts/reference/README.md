@@ -22,6 +22,8 @@ Specify `historicalRegistrations` as whole-sheet affine registrations (uniform p
 
 When `reports/fidelity-01/runtime/review.json` exists, the historical review validates every row's ship ID/content hash and includes its direct live-game PNGs and raw records. These are explicitly separate from neutral Blender renders. UI battery firing is distinguished from seeded CPU collision trajectories; canvas-only images omit the HTML HUD, and uncontrolled desktop frame readings are not performance certification. Restricted historical rasters still require an explicit redistribution opt-in; runtime screenshots do not relax that rule.
 
+Runtime evidence defaults to the current export. To preserve an earlier reviewed snapshot across a later rebuild, explicitly register its exact `runtimeReview.contentHash` and explanatory `note` in the modeling specification. Every row must match that registered ship/hash. A differing current hash produces a prominent historical-evidence warning; it never counts as a fresh runtime review. Do not rewrite timestamps or hashes on old captures.
+
 Open `/ship-reference/<ship-id>/index.html` explicitly in development. A bare directory URL can hit Vite's SPA fallback and show the game; port links and their HTTP regression use the explicit filename. Extracted ZIPs open directly with their included `index.html` and relative assets.
 
 `ship:independence` still performs a complete production build with the raw game cache unavailable. Run independence tests serially because they move the shared reference cache. Bismarck retains its existing game-raster comparison mode and preserved baseline.

@@ -1,6 +1,17 @@
 /** Editable authoring data. JSON only; no renderer or browser dependencies. */
 export type Vec3 = [number, number, number];
-export type Battery = 'main' | 'secondary';
+export type Battery = 'main' | 'secondary' | 'torpedo';
+/** Fixed tubes with a preset gyro course; no homing or render dependencies. */
+export interface TorpedoPart {
+  id: string; name: string; kind: 'torpedo'; diameterM: number; lengthM: number;
+  speed: number; rangeM: number; armingDistanceM: number; runningDepthM: number;
+  reloadSeconds: number; launchIntervalSeconds: number; damage: number; breachAreaM2: number;
+}
+export interface TorpedoTube {
+  id: string; name: string; partId: string; position: Vec3; bearingDeg: number;
+  /** Allowed gyro offset either side of the tube, in degrees. */
+  arcDeg: number; ammo: number; magazineId: string;
+}
 export interface Volume { id: string; center: Vec3; size: Vec3; }
 export interface AuthoredSurface { vertices: Vec3[]; triangles: [number, number, number][]; }
 export interface GunPart {
@@ -32,9 +43,9 @@ export const barrelIds = (weapon: GunPart): readonly string[] => {
   }
 };
 export const barrelOffset = (weapon: GunPart, index: number): number => (index - ((weapon.barrelCount ?? 2) - 1) / 2) * weapon.barrelSpacing;
-export interface PartCatalog { schemaVersion: 1; parts: GunPart[]; }
+export interface PartCatalog { schemaVersion: 1; parts: GunPart[]; torpedoes?: TorpedoPart[]; }
 export interface Mount {
-  id: string; name: string; partId: string; battery: Battery; position: Vec3;
+  id: string; name: string; partId: string; battery: Exclude<Battery, 'torpedo'>; position: Vec3;
   bearingDeg: number; rangefinder: boolean;
   magazineId?: string;
 }
@@ -69,6 +80,7 @@ export interface ShipBlueprint {
   schemaVersion: 1; id: string; name: string; configuration: string;
   coordinates: 'meters-y-up-bow-negative-z'; modelUrl: string;
   hull: Hull; handling: Handling; mounts: Mount[]; armor: Armor[];
+  torpedoTubes?: TorpedoTube[];
   modules: Module[]; compartments: Compartment[];
   connections: { fromId: string; toId: string; areaM2: number }[];
   obstructions: Volume[];
@@ -81,9 +93,10 @@ export interface ShipBlueprint {
   viewpoints?: { bridge: Vec3 };
   accuracy: { exterior: string; internals: string; weapons: string };
 }
-export interface ShipDefinition extends Omit<ShipBlueprint, 'mounts'> {
+export interface ShipDefinition extends Omit<ShipBlueprint, 'mounts' | 'torpedoTubes'> {
   compilerVersion: 1;
   mounts: (Mount & { weapon: GunPart })[];
+  torpedoTubes?: (TorpedoTube & { weapon: TorpedoPart })[];
 }
 
 const fail = (path: string, message: string): never => { throw new Error(`${path}: ${message}`); };
@@ -263,6 +276,27 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     if ((m.center as number[]).some((n, i) => Math.abs(n - (c.center as number[])[i]) + (m.size as number[])[i] / 2 > (c.size as number[])[i] / 2 + 1e-6)) fail(String(m.id), 'module must fit its assigned compartment');
   });
   mounts.forEach(m => { if (m.magazineId !== undefined && !modules.some(module => module.id === m.magazineId && module.kind === 'magazine')) fail(String(m.id), 'unknown magazine connection'); });
+  const torpedoes = list(catalog.torpedoes ?? [], 'torpedoes', 64).map(p => record(p, 'torpedo part'));
+  unique(torpedoes, 'torpedoes');
+  torpedoes.forEach(p => {
+    literal(p.kind, ['torpedo'], `${p.id}.kind`); text(p.name, `${p.id}.name`);
+    for (const key of ['diameterM', 'lengthM', 'speed', 'rangeM', 'armingDistanceM', 'runningDepthM', 'reloadSeconds', 'launchIntervalSeconds', 'damage', 'breachAreaM2']) numeric(p[key], `${p.id}.${key}`, .001, 100000);
+    if ((p.armingDistanceM as number) >= (p.rangeM as number)) fail(String(p.id), 'arming distance must be less than range');
+    if (parts.some(g => g.id === p.id)) fail(String(p.id), 'part ID already used by a gun');
+  });
+  const tubes = list(b.torpedoTubes ?? [], 'torpedoTubes', 32).map(t => record(t, 'torpedo tube'));
+  unique(tubes, 'torpedoTubes');
+  tubes.forEach(t => {
+    text(t.name, `${t.id}.name`); id(t.partId, `${t.id}.partId`);
+    if (!torpedoes.some(p => p.id === t.partId)) fail(String(t.id), 'unknown torpedo part');
+    if (mounts.some(m => m.id === t.id)) fail(String(t.id), 'tube ID already used by a gun mount');
+    const pos = vector(t.position, `${t.id}.position`);
+    if (Math.abs(pos[0]) > (h.beam as number) / 2 || Math.abs(pos[2]) > (h.length as number) / 2 || pos[1] > 0 || pos[1] < -(h.draft as number)) fail(String(t.id), 'tube muzzle must be within the submerged hull envelope');
+    numeric(t.bearingDeg, `${t.id}.bearingDeg`, -360, 360); numeric(t.arcDeg, `${t.id}.arcDeg`, 0, 45);
+    numeric(t.ammo, `${t.id}.ammo`, 0, 100);
+    if (!Number.isInteger(t.ammo)) fail(String(t.id), 'ammunition must be an integer');
+    if (!modules.some(m => m.id === t.magazineId && m.kind === 'magazine')) fail(String(t.id), 'unknown magazine connection');
+  });
   const compiledArmor=[...list(b.armor,'armor',512),...mounts.flatMap(m=>{
     const part=parts.find(p=>p.id===m.partId) as unknown as GunPart;
     if (!part.gunhouseMesh) return [];
@@ -314,7 +348,10 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
   const accuracy = record(b.accuracy, 'accuracy');
   ['exterior', 'internals', 'weapons'].forEach(k => text(accuracy[k], `accuracy.${k}`));
   const blueprint = structuredClone(input) as ShipBlueprint;
-  return { ...blueprint, armor:structuredClone(compiledArmor) as Armor[], compilerVersion: 1, mounts: blueprint.mounts.map(m => ({ ...m, weapon: structuredClone(parts.find(p => p.id === m.partId)) as unknown as GunPart })) };
+  const result: ShipDefinition = { ...blueprint, torpedoTubes: undefined, armor:structuredClone(compiledArmor) as Armor[], compilerVersion: 1, mounts: blueprint.mounts.map(m => ({ ...m, weapon: structuredClone(parts.find(p => p.id === m.partId)) as unknown as GunPart })) };
+  if (blueprint.torpedoTubes) result.torpedoTubes = blueprint.torpedoTubes.map(t => ({ ...t, weapon: structuredClone(torpedoes.find(p => p.id === t.partId)) as unknown as TorpedoPart }));
+  else delete result.torpedoTubes;
+  return result;
 }
 
 function validateTriangle(value: unknown, vertices: Vec3[], path: string): void {

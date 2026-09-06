@@ -656,8 +656,8 @@
       "massKg": 114000,
       "barbetteRadius": 2.5,
       "gunhouseSize": [
-        6.5,
-        5.2,
+        6.65,
+        5.1,
         2.6
       ],
       "pivotHeight": 1.15,
@@ -677,7 +677,356 @@
       "damage": 22,
       "recoilM": 0.55,
       "ammoPerBarrel": 150,
-      "armorMm": 80
+      "armorMm": 80,
+      "barrelBaseRadius": 0.25,
+      "rangefinderWidth": 6.5,
+      "rangefinderForward": -1.95,
+      "gunhouseMesh": {
+        "version": 1,
+        "vertices": [
+          [
+            -3.9,
+            -2.15,
+            0.25
+          ],
+          [
+            2.0,
+            -2.55,
+            0.25
+          ],
+          [
+            2.75,
+            -1.7,
+            0.25
+          ],
+          [
+            2.75,
+            1.7,
+            0.25
+          ],
+          [
+            2.0,
+            2.55,
+            0.25
+          ],
+          [
+            -3.9,
+            2.15,
+            0.25
+          ],
+          [
+            -3.82,
+            -2.02,
+            2.18
+          ],
+          [
+            -1.2,
+            -2.21,
+            2.6
+          ],
+          [
+            1.95,
+            -2.43,
+            2.08
+          ],
+          [
+            2.55,
+            -1.6,
+            1.85
+          ],
+          [
+            2.55,
+            1.6,
+            1.85
+          ],
+          [
+            1.95,
+            2.43,
+            2.08
+          ],
+          [
+            -1.2,
+            2.21,
+            2.6
+          ],
+          [
+            -3.82,
+            2.02,
+            2.18
+          ]
+        ],
+        "faces": [
+          {
+            "id": "floor-1",
+            "indices": [
+              5,
+              4,
+              3
+            ],
+            "thicknessMm": 80,
+            "material": "Wh",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-2",
+            "indices": [
+              5,
+              3,
+              2
+            ],
+            "thicknessMm": 80,
+            "material": "Wh",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-3",
+            "indices": [
+              5,
+              2,
+              1
+            ],
+            "thicknessMm": 80,
+            "material": "Wh",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-4",
+            "indices": [
+              5,
+              1,
+              0
+            ],
+            "thicknessMm": 80,
+            "material": "Wh",
+            "finish": "naval"
+          },
+          {
+            "id": "starboard-wall-1",
+            "indices": [
+              0,
+              1,
+              8
+            ],
+            "thicknessMm": 40,
+            "material": "Wh",
+            "finish": "naval"
+          },
+          {
+            "id": "starboard-wall-2",
+            "indices": [
+              0,
+              8,
+              7
+            ],
+            "thicknessMm": 40,
+            "material": "Wh",
+            "finish": "naval"
+          },
+          {
+            "id": "starboard-wall-3",
+            "indices": [
+              0,
+              7,
+              6
+            ],
+            "thicknessMm": 40,
+            "material": "Wh",
+            "finish": "naval"
+          },
+          {
+            "id": "starboard-cheek-1",
+            "indices": [
+              1,
+              2,
+              9
+            ],
+            "thicknessMm": 40,
+            "material": "Wh",
+            "finish": "naval"
+          },
+          {
+            "id": "starboard-cheek-2",
+            "indices": [
+              1,
+              9,
+              8
+            ],
+            "thicknessMm": 40,
+            "material": "Wh",
+            "finish": "naval"
+          },
+          {
+            "id": "front-1",
+            "indices": [
+              2,
+              3,
+              10
+            ],
+            "thicknessMm": 80,
+            "material": "Wh",
+            "finish": "naval"
+          },
+          {
+            "id": "front-2",
+            "indices": [
+              2,
+              10,
+              9
+            ],
+            "thicknessMm": 80,
+            "material": "Wh",
+            "finish": "naval"
+          },
+          {
+            "id": "port-cheek-1",
+            "indices": [
+              3,
+              4,
+              11
+            ],
+            "thicknessMm": 40,
+            "material": "Wh",
+            "finish": "naval"
+          },
+          {
+            "id": "port-cheek-2",
+            "indices": [
+              3,
+              11,
+              10
+            ],
+            "thicknessMm": 40,
+            "material": "Wh",
+            "finish": "naval"
+          },
+          {
+            "id": "port-wall-1",
+            "indices": [
+              4,
+              5,
+              13
+            ],
+            "thicknessMm": 40,
+            "material": "Wh",
+            "finish": "naval"
+          },
+          {
+            "id": "port-wall-2",
+            "indices": [
+              4,
+              13,
+              12
+            ],
+            "thicknessMm": 40,
+            "material": "Wh",
+            "finish": "naval"
+          },
+          {
+            "id": "port-wall-3",
+            "indices": [
+              4,
+              12,
+              11
+            ],
+            "thicknessMm": 40,
+            "material": "Wh",
+            "finish": "naval"
+          },
+          {
+            "id": "rear-1",
+            "indices": [
+              5,
+              0,
+              6
+            ],
+            "thicknessMm": 40,
+            "material": "Wh",
+            "finish": "naval"
+          },
+          {
+            "id": "rear-2",
+            "indices": [
+              5,
+              6,
+              13
+            ],
+            "thicknessMm": 40,
+            "material": "Wh",
+            "finish": "naval"
+          },
+          {
+            "id": "rear-roof-1",
+            "indices": [
+              6,
+              7,
+              12
+            ],
+            "thicknessMm": 20,
+            "material": "Wh",
+            "finish": "roof"
+          },
+          {
+            "id": "rear-roof-2",
+            "indices": [
+              6,
+              12,
+              13
+            ],
+            "thicknessMm": 20,
+            "material": "Wh",
+            "finish": "roof"
+          },
+          {
+            "id": "forward-roof-1",
+            "indices": [
+              7,
+              8,
+              11
+            ],
+            "thicknessMm": 35,
+            "material": "Wh",
+            "finish": "roof"
+          },
+          {
+            "id": "forward-roof-2",
+            "indices": [
+              7,
+              11,
+              12
+            ],
+            "thicknessMm": 35,
+            "material": "Wh",
+            "finish": "roof"
+          },
+          {
+            "id": "front-slope-1",
+            "indices": [
+              8,
+              9,
+              10
+            ],
+            "thicknessMm": 35,
+            "material": "Wh",
+            "finish": "roof"
+          },
+          {
+            "id": "front-slope-2",
+            "indices": [
+              8,
+              10,
+              11
+            ],
+            "thicknessMm": 35,
+            "material": "Wh",
+            "finish": "roof"
+          }
+        ],
+        "provenance": {
+          "sourceId": "kb-protection",
+          "basis": "estimated",
+          "note": "Original Drh LC/34 enclosure interpreted from the retained 24 May plan and archival profile: rear roof ridge, forward slopes and clipped front corners. Thickness families follow 150mmp.gif; facet boundaries and lower closure remain estimates."
+        }
+      }
     },
     {
       "id": "type94-460-triple",
@@ -2729,6 +3078,89 @@
           "note": "Original enclosure from retained section/photo evidence. Plate families are provisional where the primary plate schedule is absent; no uniform gunhouse box is added."
         }
       }
+    },
+    {
+      "id": "sk-c35-88-single",
+      "name": "8.8 cm SK C/35",
+      "kind": "gun",
+      "massKg": 776,
+      "barbetteRadius": 0.65,
+      "gunhouseSize": [
+        2.2,
+        1.45,
+        1.15
+      ],
+      "pivotHeight": 1.05,
+      "trunnionForward": 0.12,
+      "muzzleForward": 4.05,
+      "barrelSpacing": 0.1,
+      "caliberM": 0.088,
+      "traverseDeg": 155,
+      "traverseRateDeg": 15,
+      "elevationMinDeg": -10,
+      "elevationMaxDeg": 30,
+      "elevationRateDeg": 12,
+      "reloadSeconds": 6,
+      "muzzleSpeed": 700,
+      "projectileMassKg": 9,
+      "penetrationMm": 95,
+      "damage": 32,
+      "recoilM": 0.25,
+      "ammoPerBarrel": 220,
+      "armorMm": 1,
+      "barrelCount": 1,
+      "mountingStyle": "open-pedestal",
+      "barrelBaseRadius": 0.07479999999999999
+    },
+    {
+      "id": "flak-c30-20-single",
+      "name": "2 cm C/30",
+      "kind": "gun",
+      "massKg": 420,
+      "barbetteRadius": 0.35,
+      "gunhouseSize": [
+        0.9,
+        0.7,
+        1
+      ],
+      "pivotHeight": 0.95,
+      "trunnionForward": 0.12,
+      "muzzleForward": 1.6,
+      "barrelSpacing": 0.1,
+      "caliberM": 0.02,
+      "traverseDeg": 155,
+      "traverseRateDeg": 15,
+      "elevationMinDeg": -10,
+      "elevationMaxDeg": 80,
+      "elevationRateDeg": 12,
+      "reloadSeconds": 1.2,
+      "muzzleSpeed": 835,
+      "projectileMassKg": 0.12,
+      "penetrationMm": 20,
+      "damage": 5,
+      "recoilM": 0.06,
+      "ammoPerBarrel": 1100,
+      "armorMm": 1,
+      "barrelCount": 1,
+      "mountingStyle": "open-quad",
+      "barrelBaseRadius": 0.017
+    }
+  ],
+  "torpedoes": [
+    {
+      "id": "g7a-ti-fast",
+      "name": "53.3 cm G7a T I",
+      "kind": "torpedo",
+      "diameterM": 0.533,
+      "lengthM": 7.16,
+      "speed": 22.635536000000002,
+      "rangeM": 5000,
+      "armingDistanceM": 300,
+      "runningDepthM": 2,
+      "reloadSeconds": 45,
+      "launchIntervalSeconds": 0.7,
+      "damage": 340,
+      "breachAreaM2": 1.6
     }
   ]
 }

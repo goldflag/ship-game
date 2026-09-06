@@ -1,0 +1,30 @@
+bun test v1.3.3 (274e01c7)
+
+scripts/aircraft/glb.test.ts:
+(pass) aircraft GLB contract > measures exported binary geometry and exercises every independent control [3.99ms]
+(pass) aircraft GLB contract > rejects stale source hash and mismatched aircraft identity [0.34ms]
+(pass) aircraft GLB contract > rejects malformed and externally dependent files [0.62ms]
+(pass) aircraft GLB contract > checks actual vertex values instead of trusting accessor bounds [1.14ms]
+(pass) aircraft GLB contract > rejects out-of-bounds accessors [0.28ms]
+(pass) aircraft GLB contract > rejects duplicate IDs and multiply-parented nodes [0.21ms]
+(pass) aircraft GLB contract > rejects missing and detached moving geometry [0.48ms]
+(pass) aircraft GLB contract > rejects objects leaked from another interactive Blender scene [0.29ms]
+(pass) aircraft GLB contract > rejects backwards aircraft and swapped port/starboard controls [0.75ms]
+(pass) aircraft GLB contract > rejects dimensions outside the three percent allowance [0.38ms]
+(pass) aircraft GLB contract > production checks require a texture actually bound to finite UV geometry [0.70ms]
+(pass) aircraft GLB contract > rejects malformed UV accessors and broken embedded texture bindings [0.50ms]
+(pass) aircraft GLB contract > all three LOD binaries retain dimensions, source identity, textures and six independent controls [4.70ms]
+(pass) aircraft GLB contract > rejects identical, reversed and merely nominal LOD reductions [2.71ms]
+(pass) aircraft GLB contract > rejects collinear triangles from actual binary positions even when bounds agree [0.33ms]
+(pass) aircraft GLB contract > rejects zero/nonfinite normals, mismatched counts and missing production normals [0.70ms]
+(pass) measured aircraft shape contract > accepts retained measured source stations without requiring manufacturing sections [0.49ms]
+(pass) measured aircraft shape contract > rejects inverted canopy/body contours and negative widths before building [0.51ms]
+(pass) measured aircraft shape contract > rejects nonfinite, unordered, reversed chord and incomplete span stations [0.38ms]
+(pass) measured aircraft shape contract > requires a useful fin, valid fittings and named reference evidence [0.33ms]
+(pass) versioned aircraft catalog > accepts a WWII-era authored variant [0.13ms]
+(pass) versioned aircraft catalog > rejects incompatible schemas, duplicate IDs, path traversal, and invalid dimensions [0.14ms]
+
+ 22 pass
+ 0 fail
+ 58 expect() calls
+Ran 22 tests across 1 file. [62.00ms]

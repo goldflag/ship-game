@@ -111,9 +111,11 @@ runtimehtml=''
 runtime=source/'reports/fidelity-01/runtime'
 if (runtime/'review.json').exists():
     records=json.loads((runtime/'review.json').read_text())
-    if any(r['contentHash']!=auth['contentHash'] or r['shipId']!=ship for r in records):raise ValueError('Runtime record belongs to another export')
+    runtime_hash=spec.get('runtimeReview',{}).get('contentHash',auth['contentHash'])
+    if any(r['contentHash']!=runtime_hash or r['shipId']!=ship for r in records):raise ValueError('Runtime record differs from its explicitly registered export')
+    runtime_note='' if runtime_hash==auth['contentHash'] else f'<p class="note">Historical runtime evidence · reviewed export {esc(runtime_hash[:12])}, current export {esc(auth["contentHash"][:12])}. {esc(spec["runtimeReview"]["note"])}</p>'
     shutil.copyfile(runtime/'review.json',out/'runtime/review.json')
-    runtimehtml='<h2 id="runtime">Live game review</h2><p>Orca / WebGPU. UI battery firing and reset records are distinct from deliberately seeded structural shots. Canvas-only images omit the HTML HUD; they are direct live renderer captures, not Blender renders. Frame rates were affected by desktop load and tab occlusion; these are functional checks, not a performance certification. <a href="runtime/review.json">Exact-hash runtime records</a></p><div class="gallery">'
+    runtimehtml='<h2 id="runtime">Live game review</h2>'+runtime_note+'<p>Orca / WebGPU. UI battery firing and reset records are distinct from deliberately seeded structural shots. Canvas-only images omit the HTML HUD; they are direct live renderer captures, not Blender renders. Frame rates were affected by desktop load and tab occlusion; these are functional checks, not a performance certification. <a href="runtime/review.json">Exact-hash runtime records</a></p><div class="gallery">'
     for image in sorted(runtime.glob('*.png')):
         shutil.copyfile(image,out/'runtime'/image.name)
         runtimehtml+=f'<figure><a href="runtime/{image.name}"><img loading="lazy" src="runtime/{image.name}" alt="{esc(image.stem)}"></a><figcaption>{esc(image.stem.replace("-"," "))}</figcaption></figure>'

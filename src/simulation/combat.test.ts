@@ -180,12 +180,14 @@ test('shot and splash events retain matching caliber and independent velocity sn
   const shots = sim.events.filter(e => e.kind === 'shot');
   expect(shots.length).toBe(8);
   const velocity: Vec3 = [...shots[0].shell!.velocity];
+  expect(shots.every(e => e.shell?.type === 'AP')).toBe(true);
   for (let i = 0; i < 120; i++) sim.step(stop, { aim, fire: false, battery: 'main' });
   const splashes = sim.events.filter(e => e.kind === 'splash');
   expect(splashes.length).toBe(8);
   for (const shot of shots) {
     const splash = splashes.find(e => e.shell?.id === shot.shell?.id)!;
     expect(splash.shell!.caliberM).toBe(shot.shell!.caliberM);
+    expect(splash.shell!.type).toBe(shot.shell!.type);
     expect(splash.shell!.velocity[1]).toBeLessThan(shot.shell!.velocity[1]);
     expect(splash.position[1]).toBe(0);
   }
@@ -204,6 +206,12 @@ test('impact normals are in world coordinates and internal damage has no surface
   const localNormal = localEvents.find(e => e.kind === 'penetration')!.normal!;
   const origin = localToWorld([0, 0, 0], pose), expected = sub(localToWorld(localNormal, pose), origin);
   expect(length(sub(plate.normal!, expected))).toBeLessThan(1e-9);
+  const localImpact = localEvents.find(e => e.impact)?.impact!;
+  const impact = events.find(e => e.impact)?.impact!;
+  expect(length(sub(impact.position, localImpact.position))).toBeLessThan(1e-8);
+  expect(length(sub(impact.direction, localImpact.direction))).toBeLessThan(1e-8);
+  expect(impact.outcome).toBe('penetration');
+  expect(events.filter(e => e.kind === 'module').every(e => !e.impact)).toBe(true);
   // Exercise interior metadata without depending on a preset's penetration budget.
   const [x, y, z] = def.modules.find(m => m.kind === 'engine')!.center;
   hitShip(round(), localToWorld([x - .1, y, z], pose), localToWorld([x + .1, y, z], pose), sim.target, def, e => events.push(e));
@@ -214,6 +222,27 @@ test('destroyed propulsion prevents target acceleration', () => {
   def.modules.forEach((m, i) => { if (m.kind === 'engine') sim.target.damage.modules[i].hp = 0; });
   for (let i = 0; i < 600; i++) sim.step(stop, { aim: sim.aimAt(), fire: false, battery: 'main' });
   expect(sim.target.motion.speed).toBe(0);
+});
+
+test('surface evidence preserves ammunition and mount-local contact before later turret movement', () => {
+  const base = definition(), mount = base.mounts[0];
+  const def = { ...base, mounts: [mount], modules: [], compartments: [], connections: [], structures: [], structuralPlating: undefined,
+    armor: [{ id: 'test-turret-side', name: 'Test turret side', center: [2, 2, 0] as Vec3, size: [.1, 4, 4] as Vec3, thicknessMm: 100,
+      plate: { vertices: [[2, 0, -2], [2, 4, -2], [2, 4, 2], [2, 0, 2]] as Vec3[], material: 'steel' as const, mountId: mount.id } }] };
+  const sim = new CombatSimulation(def), events: DamageEvent[] = [];
+  Object.assign(sim.player.motion, { x: 50, y: -2, z: 90, heading: .8, roll: .1, pitch: -.12 });
+  sim.player.mounts[0].train = .7;
+  const mountPose = { x: mount.position[0], y: mount.position[1], z: mount.position[2], heading: mount.bearingDeg * Math.PI / 180 + .7, roll: 0, pitch: 0 };
+  const world = (point: Vec3) => localToWorld(localToWorld(point, mountPose), sim.player.motion);
+  hitShip({ ...round(), type: 'HE' }, world([8, 2, 0]), world([-8, 2, 0]), sim.player, def, e => events.push(e));
+  const strike = events.find(e => e.impact)!;
+  expect(strike.shell?.type).toBe('HE'); expect(strike.impact?.mountId).toBe(mount.id);
+  expect(length(sub(strike.impact!.position, [2, 2, 0]))).toBeLessThan(1e-8);
+  expect(length(sub(strike.impact!.direction, [-1, 0, 0]))).toBeLessThan(1e-8);
+  const snapshot = JSON.stringify(strike);
+  sim.player.mounts[0].train = -1; sim.player.motion.x += 100;
+  expect(JSON.stringify(strike)).toBe(snapshot);
+  expect(events.filter(e => e.kind === 'module').every(e => !e.impact)).toBe(true);
 });
 
 test('penetrating magazine hits detonate once and disable the connected battery mount', () => {
