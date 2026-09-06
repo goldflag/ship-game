@@ -5,38 +5,71 @@ import { compileShip, type Vec3 } from '../ships/blueprint';
 import { CombatSimulation } from './combat';
 import { hitShip, updateFlooding, type DamageEvent, type Shell } from './damage';
 import { length, localToWorld, segmentBox, sub, worldToLocal } from './geometry';
-import { GRAVITY, shotDirection, solveBallistic } from './weapons';
+import { GRAVITY, solveBallistic, updateMount } from './weapons';
 import { FIXED_DT } from './ship';
 
 const definition = () => compileShip(blueprint, catalog);
 const stop = { throttle: 0, rudder: 0 };
 const round = (penetrationMm = 1000): Shell => ({ id: 1, ownerId: 'player', position: [-100, .5, -21], velocity: [820, 0, 0], age: 0, penetrationMm, damage: 70, caliberM: .38, visited: [] });
 
-for (const aim of [[1800, 0, 0], [0, 0, 1800], [1800, 1000, 0], [40000, 0, 0]] as Vec3[]) {
-  test(`loaded guns fire at their current bearing before reaching reticle ${aim}`, () => {
+for (const aim of [[1800, 0, 0], [0, 0, 1800], [1800, 4000, 0], [40000, 0, 0]] as Vec3[]) {
+  test(`a click does not spend ammunition on guns unable to fire at ${aim}`, () => {
     const def = definition(), sim = new CombatSimulation(def);
     const mount = def.mounts[0], state = sim.player.mounts[0];
     sim.step(stop, { aim, fire: false, battery: 'main' });
     expect(Math.abs(state.train)).toBeLessThan(.01);
-    expect(state.status).toBe('ready');
+    expect(state.status).not.toBe('ready');
     const telemetry = sim.telemetry('main', aim);
-    expect(telemetry.ready).toBeGreaterThan(0);
+    expect(telemetry.ready).toBe(0);
     expect(telemetry.batteries[0].ready).toBe(telemetry.ready);
     const ammo = state.ammo;
     sim.requestFire();
     sim.step(stop, { aim, fire: false, battery: 'main' });
-    expect(state.ammo).toBe(ammo - 2);
-    expect(state.reload).toBe(mount.weapon.reloadSeconds);
-    expect(state.recoil).toBe(1);
-    expect(sim.events.filter(e => e.message === `${mount.name} fired`)).toHaveLength(2);
-    const direction = shotDirection(mount, state, sim.ship);
-    const shell = sim.shells[0];
-    direction.forEach((n, axis) => expect(shell.velocity[axis]).toBeCloseTo(n * mount.weapon.muzzleSpeed - (axis === 1 ? GRAVITY * FIXED_DT : 0), 6));
-    expect(shell.velocity[2]).toBeLessThan(-800);
-    sim.step(stop, { aim, fire: true, battery: 'main' });
-    expect(state.ammo).toBe(ammo - 2);
+    expect(state.ammo).toBe(ammo);
+    expect(state.reload).toBe(0);
+    expect(state.recoil).toBe(0);
+    expect(sim.events.filter(e => e.message === `${mount.name} fired`)).toHaveLength(0);
+    // A missed click is consumed; it must not fire later when aim becomes valid.
+    for (let i = 0; i < 1800; i++) sim.step(stop, { aim: [1800, .5, 0], fire: false, battery: 'main' });
+    expect(state.status).toBe('ready');
+    expect(state.ammo).toBe(ammo);
   });
 }
+
+test('Bismarck bow-on fire uses forward turrets and keeps unreachable rear turrets loaded', () => {
+  const sim = new CombatSimulation(definition()), aim: Vec3 = [0, .5, -5000];
+  sim.step(stop, { aim, fire: false, battery: 'main' });
+  expect(sim.player.mounts.slice(2, 4).map(m => m.status)).toEqual(['out-of-arc', 'out-of-arc']);
+  for (let i = 0; i < 3600; i++) sim.step(stop, { aim, fire: false, battery: 'main' });
+  expect(sim.telemetry('main', aim).ready).toBe(2);
+  sim.requestFire(); sim.step(stop, { aim, fire: false, battery: 'main' });
+  expect(sim.events.filter(e => e.kind === 'shot').map(e => e.message)).toEqual(['Anton fired', 'Anton fired', 'Bruno fired', 'Bruno fired']);
+  expect(sim.player.mounts.slice(2, 4).map(m => [m.status, m.ammo, m.reload])).toEqual([['out-of-arc', 240, 0], ['out-of-arc', 240, 0]]);
+  for (let i = 0; i < 1800; i++) sim.step(stop, { aim: [5000, .5, 0], fire: false, battery: 'main' });
+  expect(sim.telemetry('main', [5000, .5, 0]).ready).toBe(4);
+});
+
+test('held fire admits turrets as they align and release cancels later firing', () => {
+  for (const keepHolding of [false, true]) {
+    const sim = new CombatSimulation(definition()), aim: Vec3 = [5000, .5, 0];
+    // Forward turret already trained; the other three still have to traverse.
+    for (let i = 0; i < 1200; i++) updateMount(sim.definition.mounts[0], sim.player.mounts[0], sim.definition, sim.ship, aim, FIXED_DT);
+    sim.step(stop, { aim, fire: true, battery: 'main' });
+    expect(sim.events.filter(e => e.kind === 'shot')).toHaveLength(2);
+    for (let i = 0; i < 1020; i++) sim.step(stop, { aim, fire: keepHolding, battery: 'main' });
+    expect(sim.player.mounts.slice(0, 4).map(m => m.ammo)).toEqual(keepHolding ? [238, 238, 238, 238] : [238, 240, 240, 240]);
+  }
+});
+
+test('Bismarck rear barrels through the superstructure are blocked independently of target reachability', () => {
+  const sim = new CombatSimulation(definition());
+  for (const i of [2, 3]) {
+    const state = sim.player.mounts[i];
+    Object.assign(state, { train: -Math.PI, elevation: .01 });
+    updateMount(sim.definition.mounts[i], state, sim.definition, sim.ship, [0, .5, -5000], 0);
+    expect(state.status).toBe('blocked');
+  }
+});
 
 test('firing during traverse still respects obstructions, empty guns and disabled guns', () => {
   const def = definition(), sim = new CombatSimulation(def);
@@ -81,6 +114,24 @@ test('armor resolves before internal damage, and a surface/module is only charge
   hitShip(shell, from, to, sim.target, def, () => {});
   expect(sim.target.damage.modules[0].hp).toBe(hp);
 });
+test('a shell spends one internal damage budget across modules and tick boundaries', () => {
+  for (const split of [false, true]) {
+    const def = definition();
+    def.armor = []; def.mounts = []; delete def.structuralPlating;
+    def.modules = [30, 100, 100].map((hp, i) => ({
+      id: `engine-${i}`, name: `Engine ${i}`, kind: 'engine' as const,
+      center: [i * 20, 0, 0] as Vec3, size: [10, 10, 10] as Vec3, hp,
+      compartmentId: def.compartments[0].id,
+    }));
+    const sim = new CombatSimulation(def), shell = round();
+    const events: DamageEvent[] = [];
+    if (split) expect(hitShip(shell, [-20, 0, 0], [10, 0, 0], sim.player, def, e => events.push(e))).toBe(false);
+    expect(hitShip(shell, [split ? 10 : -20, 0, 0], [60, 0, 0], sim.player, def, e => events.push(e))).toBe(true);
+    expect(sim.player.damage.modules.map(m => m.hp)).toEqual([0, 60, 100]);
+    expect(events.filter(e => e.kind === 'module')).toHaveLength(2);
+  }
+});
+
 test('flood connections conserve water with pumps/leaks disabled and list follows the flooded side', () => {
   const def = definition();
   def.connections = [{ fromId:def.compartments[0].id, toId:def.compartments[2].id, areaM2:.05 }]; // Explicit damaged connection fixture.
@@ -103,7 +154,7 @@ test('aimed salvos obey reloads and ammunition while damaging the target', () =>
   expect(sim.player.mounts.slice(0, 4).every(m => m.ammo === 238)).toBe(true);
   expect(sim.target.damage.modules.find(m => m.id === 'engine-port')!.hp).toBe(140);
   expect(sim.events.some(e => e.kind === 'stopped' && e.message.includes('Turtleback'))).toBe(true);
-  expect(sim.target.damage.integrity).toBeLessThan(1000);
+  expect(sim.target.damage.integrity).toBeLessThan(sim.target.damage.maxIntegrity);
   expect(sim.target.damage.compartments.some(c => c.breachAreaM2 > 0)).toBe(true);
   for (let i = 0; i < 200; i++) sim.step(stop, { aim: [NaN, 0, 0], fire: true, battery: 'main' });
   expect(sim.events.filter(e => e.kind === 'shot').length).toBe(8);
@@ -120,7 +171,7 @@ test('reset replaces the trial target state without invalidating renderer bindin
   const sim = new CombatSimulation(definition()), target = sim.target;
   target.damage.integrity = 0; target.motion.y = -15;
   sim.resetTarget();
-  expect(sim.target).toBe(target); expect(target.damage.integrity).toBe(1000); expect(target.motion.y).toBe(0);
+  expect(sim.target).toBe(target); expect(target.damage.integrity).toBe(target.damage.maxIntegrity); expect(target.motion.y).toBe(0);
 });
 test('shot and splash events retain matching caliber and independent velocity snapshots', () => {
   const sim = new CombatSimulation(definition()), aim: Vec3 = [450, .5, 0];

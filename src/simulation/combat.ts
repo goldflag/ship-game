@@ -7,6 +7,7 @@ import { BATTLE_SPAWN_DISTANCE, deployment, MAX_TEAM_SHIPS, validateSpawnDistanc
 import { botAim, botGunRange, botHelm, botTarget, clearFiringLane, shipVelocity } from './bots';
 import { createDamage, hitShip, systemHealth, updateFlooding, type BallisticEffectData, type DamageEvent, type Shell } from './damage';
 import { resolveShipCollisions } from './collisions';
+import { mayReachHull, shellHullRadius } from './spatial';
 
 export interface CombatIntent { aim: Vec3; fire: boolean; battery: Battery; }
 export interface CombatEvent extends BallisticEffectData { sequence: number; tick: number; kind: DamageEvent['kind'] | 'shot' | 'splash'; position: Vec3; message: string; shipId: string; }
@@ -19,6 +20,7 @@ export interface CombatTelemetry {
   mounts: { id: string; name: string; status: string; reload: number; ammo: number }[];
   modules: { id: string; name: string; condition: number }[]; message: string;
   playerIntegrity: number;
+  playerMaxIntegrity: number;
   playerWater: number;
   playerDamageDealt: number;
   playerFrags: number;
@@ -147,7 +149,7 @@ export class CombatSimulation {
         const aim = actor === this.player ? intent.aim : target ? botAim(actor, target, m, state) : localToWorld([0, .5, -5000], actor.motion);
         const aligned = updateMount(m, state, def, actor.motion, aim, FIXED_DT, shipVelocity(actor));
         const inRange = target && Math.hypot(target.motion.x - actor.motion.x, target.motion.z - actor.motion.z) <= botGunRange(m);
-        const firing = actor === this.player ? (intent.fire || this.fireQueued) && m.battery === intent.battery : actor.controller === 'bot' && inRange && laneClear && aligned;
+        const firing = aligned && (actor === this.player ? (intent.fire || this.fireQueued) && m.battery === intent.battery : actor.controller === 'bot' && inRange && laneClear);
         const barrelCount = m.weapon.barrelCount ?? 2;
         if (!actor.damage.sunk && firing && state.status === 'ready' && this.shells.length <= 256 - barrelCount) {
           state.reload = m.weapon.reloadSeconds; state.ammo -= barrelCount; state.recoil = 1; state.status = 'reloading';
@@ -162,6 +164,7 @@ export class CombatSimulation {
       });
     }
     this.fireQueued = false;
+    const hullCandidates = this.shells.length ? this.actors.filter(actor => actor.motion.y > -40).map(actor => ({ actor, radius: shellHullRadius(actor.definition) })) : [];
     for (let i = this.shells.length - 1; i >= 0; i--) {
       const shell = this.shells[i];
       const from: Vec3 = [...shell.position];
@@ -175,7 +178,7 @@ export class CombatSimulation {
       const seaPoint = from[1] > 0 && to[1] <= 0 ? add(from, scale(sub(to, from), from[1] / (from[1] - to[1]))) : to;
       const crossingSea = from[1] > 0 && to[1] <= 0 && !insideHull(seaPoint);
       const end = crossingSea ? add(from, scale(sub(to, from), from[1] / (from[1] - to[1]))) : to;
-      const candidates = this.actors.filter(a => a.motion.id !== shell.ownerId && a.motion.y > -40).map(actor => {
+      const candidates = hullCandidates.filter(({ actor, radius }) => actor.motion.id !== shell.ownerId && mayReachHull(from, end, actor.motion, radius)).map(({ actor }) => {
         const def = actor.definition;
         const hit = segmentBox(worldToLocal(from, actor.motion), worldToLocal(end, actor.motion), { center: [0, 10, 0], size: [def.hull.beam + 30, 60, def.hull.length + 40] });
         return { actor, hit };
@@ -227,11 +230,12 @@ export class CombatSimulation {
       targetRange: Math.hypot(this.target.motion.x - this.ship.x, this.target.motion.z - this.ship.z),
       battle: this.isBattle, result: this.result, playerSunk: this.player.damage.sunk,
       contacts: this.actors.map(actor => ({ id: actor.motion.id, shipId: actor.definition.id, name: actor.definition.name, team: actor.team, controller: actor.controller,
-        targetId: actor.targetId, x: actor.motion.x, z: actor.motion.z, heading: actor.motion.heading, integrity: actor.damage.integrity / 1000, sunk: actor.damage.sunk })),
-      targetIntegrity: this.target.damage.integrity / 1000, targetWater: this.target.damage.compartments.reduce((n, c) => n + c.waterM3, 0),
+        targetId: actor.targetId, x: actor.motion.x, z: actor.motion.z, heading: actor.motion.heading, integrity: actor.damage.integrity / actor.damage.maxIntegrity, sunk: actor.damage.sunk })),
+      targetIntegrity: this.target.damage.integrity / this.target.damage.maxIntegrity, targetWater: this.target.damage.compartments.reduce((n, c) => n + c.waterM3, 0),
       targetPower: systemHealth(this.target, this.target.definition, 'engine'), targetSteering: systemHealth(this.target, this.target.definition, 'steering'), targetSunk: this.target.damage.sunk, targetUnderway: this.targetUnderway,
       mounts, modules: this.target.definition.modules.map((m, i) => ({ id: m.id, name: m.name, condition: this.target.damage.modules[i].hp / m.hp })),
-      playerIntegrity: this.player.damage.integrity / 1000,
+      playerIntegrity: this.player.damage.integrity / this.player.damage.maxIntegrity,
+      playerMaxIntegrity: this.player.damage.maxIntegrity,
       playerDamageDealt: this.playerDamageDealt, playerFrags: this.playerFrags,
       playerWater: this.player.damage.compartments.reduce((n, c) => n + c.waterM3, 0),
       targetPosition: { x: this.target.motion.x, z: this.target.motion.z, heading: this.target.motion.heading },
@@ -241,7 +245,7 @@ export class CombatSimulation {
         return { battery, ammo: states.reduce((n, m) => n + m.ammo, 0), ready: states.filter(m => m.status === 'ready').length, total: states.length,
           reload: reloading.length ? Math.min(...reloading.map(m => m.reload)) : 0 };
       }),
-      message: significant ? `${this.actors.find(actor => actor.motion.id === significant.shipId)?.definition.name ?? 'Ship'} · ${significant.message}` : 'Fire loaded guns at any time. Shells follow the barrels’ current aim.',
+      message: significant ? `${this.actors.find(actor => actor.motion.id === significant.shipId)?.definition.name ?? 'Ship'} · ${significant.message}` : 'Only aligned, loaded guns fire. Turn the ship to bring guns marked Out of arc onto the target.',
     };
   }
 }
