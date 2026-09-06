@@ -31,3 +31,33 @@ test('port renders only the player deck, follows its displayed pose, and retains
     view.update(sim, camera, false, true, roots); expect(view.root.visible).toBe(false);
   } finally { await view.dispose(); loader.mockRestore(); }
 });
+
+test('distant flying aircraft retain a silhouette across LODs, while deck, lost and hidden aircraft do not', async () => {
+  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async () => {
+    const scene = new Group(); scene.add(new Mesh(new BoxGeometry(12, .2, 8), new MeshBasicMaterial()));
+    return { scene } as Awaited<ReturnType<GLTFLoader['loadAsync']>>;
+  });
+  const view = new AircraftView();
+  try {
+    await view.load();
+    const sim = new CombatSimulation(shipPreset('enterprise-cv6'));
+    sim.aircraft.forEach(p => { p.phase = 'lost'; });
+    const plane = sim.player.airWing!.planes[0]; plane.phase = 'outbound';
+    plane.position = plane.previousPosition = [0, 300, 0];
+    const camera = new PerspectiveCamera(52, 1, .5, 60000);
+    const contacts = () => view.root.getObjectByName('Distant aircraft silhouettes') as InstancedMesh | undefined;
+    for (const distance of [100, 121, 401, 1500, 3000, 6000]) {
+      camera.position.set(0, 300, distance); camera.lookAt(0, 300, 0); camera.updateMatrixWorld(true);
+      view.update(sim, camera, true);
+      expect(view.diagnostics().instances).toBe(1);
+      if (distance >= 1500) expect(contacts()?.count).toBe(1);
+      else if (distance === 100) expect(contacts()?.visible).toBe(false);
+    }
+    camera.zoom = 24; camera.updateProjectionMatrix(); view.update(sim, camera, true);
+    expect(contacts()?.visible).toBe(false); // Binoculars resolve the actual model again.
+    camera.zoom = 1; camera.updateProjectionMatrix();
+    plane.phase = 'ready'; view.update(sim, camera, true); expect(contacts()?.visible).toBe(false);
+    plane.phase = 'lost'; view.update(sim, camera, true); expect(contacts()?.visible).toBe(false);
+    plane.phase = 'outbound'; view.update(sim, camera, false); expect(view.root.visible).toBe(false);
+  } finally { await view.dispose(); loader.mockRestore(); }
+});
