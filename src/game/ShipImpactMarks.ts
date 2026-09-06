@@ -96,7 +96,7 @@ export class ShipImpactMarks {
     for (const event of events) {
       if (event.sequence <= this.sequence) continue;
       this.sequence = event.sequence;
-      if (event.shipId === shipId && event.impact && event.shell) this.pending.push(event);
+      if (event.shipId === shipId && event.surfaceImpact && event.shell) this.pending.push(event);
     }
     if (this.pending.length > MAX_SHIP_IMPACT_MARKS) this.pending.splice(0, this.pending.length - MAX_SHIP_IMPACT_MARKS);
     if (!this.pending.length || (budget && budget.remainingMs <= 0)) return;
@@ -106,7 +106,7 @@ export class ShipImpactMarks {
     while (this.pending.length && performance.now() - started < available) {
       const event = this.pending.shift()!;
       if (!updated) { this.root.updateMatrixWorld(true); updated = true; }
-      const impact = event.impact!, shell = event.shell!;
+      const impact = event.surfaceImpact!, shell = event.shell!;
       const frame = impact.mountId ? this.mounts.get(impact.mountId) : this.root;
       if (!frame) continue;
       const point = new THREE.Vector3(...impact.position).applyMatrix4(frame.matrixWorld);

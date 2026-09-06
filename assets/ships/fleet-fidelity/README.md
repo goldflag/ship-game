@@ -2,6 +2,8 @@
 
 This record preserves the pre-integration milestone and its original reviewed hashes. See the [five-preset master integration report](../../../docs/fleet-fidelity-integration.md) for the later merged exports and their separate validation; earlier runtime captures are not re-labeled as current evidence.
 
+`integrate-damage.ts` records the one-time semantic integration with master `22ee7b2`: retain fidelity geometry and room IDs, apply the incoming AP/HE/ballistics catalog and machinery/crew metadata, then regenerate dependent flood spaces and loading using `assets/ships/author-flood-spaces.ts` and `author-stability.ts`. It reads explicitly named Git snapshots and only writes with `--write`. Replaying the older `author.py` alone removes these later extensions; normal builds use the current versioned blueprint and never run either migration.
+
 Targets: Yamato (7 April 1945 exterior / trial datum), Baltimore (October 1943 / limiting keel draft), Enterprise CV-6 (June 1942 / pre-bulge reference datum). The assigned workspace began at master `8e0be03`; Bismarck's baseline and other worktrees were not changed.
 
 `author.py` is the versioned, deterministic migration from each preserved `reports/fidelity-01/before/blueprint.json`. It records original lofts, substantive structure surfaces, protection, compartment arrangement and gunhouse facets in the blueprint/catalog. It is an explicit authoring tool, not a hidden build dependency. It does not read game geometry or textures. Re-running it intentionally replaces the three blueprints from the preserved inputs; edit this authoring record or the current blueprint deliberately, not both independently.

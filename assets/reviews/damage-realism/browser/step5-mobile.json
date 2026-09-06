@@ -1,0 +1,18 @@
+{
+  "clientHeight": 584,
+  "horizontalOverflow": false,
+  "overflow": "auto",
+  "panel": {
+    "height": 702,
+    "width": 366,
+    "x": 12,
+    "y": 84
+  },
+  "priorityControls": 2,
+  "scrollHeight": 1258,
+  "status": "immobile",
+  "viewport": {
+    "height": 844,
+    "width": 390
+  }
+}

@@ -1,0 +1,2135 @@
+{
+  "after": {
+    "focus": "",
+    "mounts": [
+      {
+        "fuel": 80.35925666666712,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 90,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 90,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 90,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 90,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 90,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 90,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 90,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 90,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 90,
+        "heat": 0,
+        "intensity": 0
+      }
+    ],
+    "priority": "fires",
+    "pumping": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rooms": [
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      }
+    ],
+    "spares": 158.56666666668616,
+    "teams": [
+      {
+        "index": 89,
+        "kind": "patch",
+        "setup": 0
+      },
+      {
+        "index": 91,
+        "kind": "patch",
+        "setup": 0
+      },
+      {
+        "index": 103,
+        "kind": "patch",
+        "setup": 0
+      }
+    ]
+  },
+  "during": {
+    "focus": "",
+    "mounts": [
+      {
+        "fuel": 83.0057000000004,
+        "heat": 0.9639999999999906,
+        "intensity": 0.9657999999999907
+      },
+      {
+        "fuel": 90,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 90,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 90,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 90,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 90,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 90,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 90,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 90,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 90,
+        "heat": 0,
+        "intensity": 0
+      }
+    ],
+    "priority": "fires",
+    "pumping": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rooms": [
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      },
+      {
+        "fuel": 180,
+        "heat": 0,
+        "intensity": 0
+      }
+    ],
+    "spares": 179.60000000000036,
+    "teams": [
+      {
+        "index": 0,
+        "kind": "fire-mount",
+        "setup": 0
+      },
+      {
+        "index": 1,
+        "kind": "repair-mount",
+        "setup": 0
+      },
+      null
+    ]
+  },
+  "fixture": "Controlled gunhouse fire and damaged gun, real priority selector, 47 seconds of fixed-tick combat",
+  "hash": "ce5ada83b58c8149d23322fa004b600802c1a6b964c71b2f5bc79c37919e09c1",
+  "hud": "Own damage control \u00b7 0 fires \u00b7 3/3 teams\nPriority\nBalanced\nFight fires\nContain flooding\nRepair equipment\nFocus\nAutomatic\nAft port boiler room \u00b7 two Wagner boilers\nAft center boiler room \u00b7 two Wagner boilers\nAft starboard boiler room \u00b7 two Wagner boilers\nForward port boiler room \u00b7 two Wagner boilers\nForward center boiler room \u00b7 two Wagner boilers\nForward starboard boiler room \u00b7 two Wagner boilers\nPort turbine room\nStarboard turbine room\nCenter turbine room\nAnton propellant magazines\nAnton shell rooms\nAnton handling space\nBruno propellant magazines\nBruno shell rooms\nBruno handling space\nC\u00e4sar propellant magazines\nC\u00e4sar shell rooms\nC\u00e4sar handling space\nDora propellant magazines\nDora shell rooms\nDora handling space\nSteering gear room\nPort shaft passage\nCenter shaft passage\nStarboard shaft passage\nPort fuel bunker envelope \u00b7 frame 90\nPort outer void \u00b7 frame 90\nStarboard fuel bunker envelope \u00b7 frame 90\nStarboard outer void \u00b7 frame 90\nPort fuel bunker envelope \u00b7 frame 120\nPort outer void \u00b7 frame 120\nStarboard fuel bunker envelope \u00b7 frame 120\nStarboard outer void \u00b7 frame 120\nPort fuel bunker envelope \u00b7 frame 150\nPort outer void \u00b7 frame 150\nStarboard fuel bunker envelope \u00b7 frame 150\nStarboard outer void \u00b7 frame 150\nSection XII auxiliary machinery\nForward void envelope\nPort outer space 2.1 \u00b7 estimated\nStarboard outer space 2.1 \u00b7 estimated\nPort outer space 2.2 \u00b7 estimated\nStarboard outer space 2.2 \u00b7 estimated\nPort outer space 2.3 \u00b7 estimated\nStarboard outer space 2.3 \u00b7 estimated\nPort outer space 2.4 \u00b7 estimated\nStarboard outer space 2.4 \u00b7 estimated\nPort outer space 2.5 \u00b7 estimated\nStarboard outer space 2.5 \u00b7 estimated\nPort outer space 2.6 \u00b7 estimated\nStarboard outer space 2.6 \u00b7 estimated\nPort outer space 3.1 \u00b7 estimated\nStarboard outer space 3.1 \u00b7 estimated\nPort outer space 3.2 \u00b7 estimated\nStarboard outer space 3.2 \u00b7 estimated\nPort outer space 3.3 \u00b7 estimated\nStarboard outer space 3.3 \u00b7 estimated\nPort outer space 3.4 \u00b7 estimated\nStarboard outer space 3.4 \u00b7 estimated\nPort outer space 3.5 \u00b7 estimated\nStarboard outer space 3.5 \u00b7 estimated\nPort outer space 3.6 \u00b7 estimated\nStarboard outer space 3.6 \u00b7 estimated\nPort outer space 4.1 \u00b7 estimated\nStarboard outer space 4.1 \u00b7 estimated\nPort outer space 4.2 \u00b7 estimated\nStarboard outer space 4.2 \u00b7 estimated\nPort outer space 4.3 \u00b7 estimated\nStarboard outer space 4.3 \u00b7 estimated\nPort outer space 4.4 \u00b7 estimated\nStarboard outer space 4.4 \u00b7 estimated\nPort outer space 4.5 \u00b7 estimated\nStarboard outer space 4.5 \u00b7 estimated\nPort outer space 4.6 \u00b7 estimated\nStarboard outer space 4.6 \u00b7 estimated\nPort outer space 5.3 \u00b7 estimated\nStarboard outer space 5.3 \u00b7 estimated\nPort outer space 5.4 \u00b7 estimated\nStarboard outer space 5.4 \u00b7 estimated\nPort outer space 5.5 \u00b7 estimated\nStarboard outer space 5.5 \u00b7 estimated\nPort outer space 5.6 \u00b7 estimated\nStarboard outer space 5.6 \u00b7 estimated\nPort outer space 6.1 \u00b7 estimated\nStarboard outer space 6.1 \u00b7 estimated\nPort outer space 6.2 \u00b7 estimated\nStarboard outer space 6.2 \u00b7 estimated\nPort outer space 6.3 \u00b7 estimated\nStarboard outer space 6.3 \u00b7 estimated\nPort outer space 6.4 \u00b7 estimated\nStarboard outer space 6.4 \u00b7 estimated\nPort outer space 6.5 \u00b7 estimated\nStarboard outer space 6.5 \u00b7 estimated\nPort outer space 6.6 \u00b7 estimated\nStarboard outer space 6.6 \u00b7 estimated\nPort outer space 7.1 \u00b7 estimated\nStarboard outer space 7.1 \u00b7 estimated\nPort outer space 7.2 \u00b7 estimated\nStarboard outer space 7.2 \u00b7 estimated\nPort outer space 7.3 \u00b7 estimated\nStarboard outer space 7.3 \u00b7 estimated\nPort outer space 7.4 \u00b7 estimated\nStarboard outer space 7.4 \u00b7 estimated\nPort outer space 7.5 \u00b7 estimated\nStarboard outer space 7.5 \u00b7 estimated\nPort outer space 7.6 \u00b7 estimated\nStarboard outer space 7.6 \u00b7 estimated\nPort outer space 8.1 \u00b7 estimated\nStarboard outer space 8.1 \u00b7 estimated\nPort outer space 8.2 \u00b7 estimated\nStarboard outer space 8.2 \u00b7 estimated\nPort outer space 8.3 \u00b7 estimated\nStarboard outer space 8.3 \u00b7 estimated\nPort outer space 8.4 \u00b7 estimated\nStarboard outer space 8.4 \u00b7 estimated\nPort outer space 8.5 \u00b7 estimated\nStarboard outer space 8.5 \u00b7 estimated\nPort outer space 8.6 \u00b7 estimated\nStarboard outer space 8.6 \u00b7 estimated\nPort outer space 9.4 \u00b7 estimated\nStarboard outer space 9.4 \u00b7 estimated\nPort outer space 9.5 \u00b7 estimated\nStarboard outer space 9.5 \u00b7 estimated\nPort outer space 9.6 \u00b7 estimated\nStarboard outer space 9.6 \u00b7 estimated\nPort outer space 10.1 \u00b7 estimated\nStarboard outer space 10.1 \u00b7 estimated\nPort outer space 10.2 \u00b7 estimated\nStarboard outer space 10.2 \u00b7 estimated\nPort outer space 10.3 \u00b7 estimated\nStarboard outer space 10.3 \u00b7 estimated\nPort outer space 10.4 \u00b7 estimated\nStarboard outer space 10.4 \u00b7 estimated\nPort outer space 10.5 \u00b7 estimated\nStarboard outer space 10.5 \u00b7 estimated\nPort outer space 10.6 \u00b7 estimated\nStarboard outer space 10.6 \u00b7 estimated\nPort outer space 11.2 \u00b7 estimated\nStarboard outer space 11.2 \u00b7 estimated\nPort outer space 11.3 \u00b7 estimated\nStarboard outer space 11.3 \u00b7 estimated\nPort outer space 11.4 \u00b7 estimated\nStarboard outer space 11.4 \u00b7 estimated\nPort outer space 11.5 \u00b7 estimated\nStarboard outer space 11.5 \u00b7 estimated\nPort outer space 11.6 \u00b7 estimated\nStarboard outer space 11.6 \u00b7 estimated\nPort outer space 12.6 \u00b7 estimated\nStarboard outer space 12.6 \u00b7 estimated\nBow end space 1 \u00b7 estimated\nBow end space 2 \u00b7 estimated\nBow end space 3 \u00b7 estimated\nBow end space 4 \u00b7 estimated\nBow end space 5 \u00b7 estimated\nBow end space 6 \u00b7 estimated\nStern end space 1 \u00b7 estimated\nStern end space 2 \u00b7 estimated\nStern end space 3 \u00b7 estimated\nStern end space 4 \u00b7 estimated\nStern end space 5 \u00b7 estimated\nStern end space 6 \u00b7 estimated\nAnton\nBruno\nC\u00e4sar\nDora\nStarboard Secondary 1\nStarboard Secondary 2\nStarboard Secondary 3\nPort Secondary 1\nPort Secondary 2\nPort Secondary 3\n\n159 repair supplies \u00b7 Repairs restore up to 60%; destroyed equipment stays lost. Crews shore small openings and pump accessible rooms.\n\nTeam 1\npatch\nTeam 2\npatch\nTeam 3\npatch",
+  "mounts": [
+    {
+      "aimCache": {
+        "elevation": 0.03724761505970148,
+        "point": [
+          -399.95482222821715,
+          0.5,
+          -4927.232936417091
+        ],
+        "time": 6.365137313440009,
+        "train": -1.6655199423418683
+      },
+      "ammo": 240,
+      "elevation": 0.03724761505970148,
+      "heAmmo": 96,
+      "hp": 92.28740533333253,
+      "id": "anton",
+      "loaded": "ap",
+      "recoil": 0,
+      "reload": 0,
+      "status": "ready",
+      "train": -1.6655199423418683
+    },
+    {
+      "aimCache": {
+        "elevation": 0.036462796892889365,
+        "point": [
+          -399.95482222821715,
+          0.5,
+          -4927.232936417091
+        ],
+        "time": 6.362625114619769,
+        "train": -1.6618580710480346
+      },
+      "ammo": 240,
+      "elevation": 0.036462796892889365,
+      "heAmmo": 96,
+      "hp": 23.733333333333917,
+      "id": "bruno",
+      "loaded": "ap",
+      "recoil": 0,
+      "reload": 0,
+      "status": "ready",
+      "train": -1.6618580710480346
+    }
+  ]
+}

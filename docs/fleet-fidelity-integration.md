@@ -1,6 +1,6 @@
 # Fleet fidelity integration — 2026-09-05 Pacific
 
-Integrates fidelity implementation `3def0ef` with master `d04f69e` in the fidelity worktree before advancing master. The original fidelity milestone is retained in [its authoring record](../assets/ships/fleet-fidelity/README.md); its hashes, live captures and test counts describe that earlier snapshot, not this merged export.
+Integrates fidelity implementation `3def0ef` with successive master checkpoints in the fidelity worktree before advancing master. The original fidelity milestone is retained in [its authoring record](../assets/ships/fleet-fidelity/README.md); its hashes, live captures and test counts describe that earlier snapshot, not subsequent merged exports.
 
 ## Conflict decisions
 
@@ -33,3 +33,43 @@ Master advanced to `22ee7b2` while this checkpoint was being validated, adding t
 | Type VIIC | `010f58b8ad5a443b63caf110d533ce521ef753efda3ff6972788db5b05530644` | 23,486 | 1,477,376 |
 
 Local Blender 5.2.0 LTS is used. Export success establishes dimensional, hierarchy and freshness consistency, not historical accuracy; each vessel's discrepancy register still applies.
+
+## Damage-model integration: master 22ee7b2
+
+The preceding checkpoint was committed as `31a84b5`. The next integration preserves master's local AP/HE damage, finite ammunition, crew repair, explicit machinery roles, closed watertight boundaries, compound flood spaces, finite-angle hydrostatics and condition-derived loss rules. Empty plating impacts consume penetration without manufacturing equipment damage. Above-water hull holes remain available for later immersion but stay dry; deckhouse strikes do not create sea openings.
+
+The versioned one-time recipe `assets/ships/fleet-fidelity/integrate-damage.ts` combines the retained original geometry/IDs with the incoming ballistics, equipment and boundary data. Existing flood-space and stability recipes regenerate dependent regions against the revised hulls and rooms. Bismarck's blueprint/exterior recipe and Type VIIC's blueprint match the integrated master; the Bismarck baseline remains untouched.
+
+| Preset | Named rooms retained | Total flood spaces | Closed connections | Buoyancy regions |
+| --- | ---: | ---: | ---: | ---: |
+| Yamato | 27 | 195 | 440 | 174 |
+| Baltimore | 10 | 120 | 255 | 142 |
+| Enterprise CV-6 | 8 | 135 | 261 | 153 |
+
+Yamato's four turbine equipment envelopes supply four equal combined-drive groups. Twelve boiler-room envelopes do not imply twelve separately damageable boiler modules; steam supply and shafts remain aggregated. The discrepancy registers qualify that approximation and all regenerated capacities, loading and mass distribution. These are not recovered historical damage-control or stability plans.
+
+### Integration regressions
+
+- Baltimore's first full build exported successfully but failed the independent space-clearance measurement: eight-decimal cell serialization placed forty terminal corners about five nanometres beyond the hull station. A targeted regression failed before the fix. The measurement now clamps only 0.1-micrometre endpoint drift and still rejects a real ten-micrometre overhang. Both regression tests (7,716 assertions), the original measurement and a fresh full Baltimore build pass. No hull/room geometry or ordinary clearance allowance was changed. Boundary-focused serialized-data tests would have prevented this numerical false rejection.
+- The first complete test run had 397 passes and one Yamato flooding timeout during concurrent rendering. Running the case alone exposed its obsolete shot station: `z=5` crosses boiler rooms, not the retained forward turbines at `z=34`. The fixture now derives the turbine station from its stable room ID. Its ten simulated minutes pass six assertions: damaged boundaries reach both forward rooms, both receive water, and both undamaged aft rooms remain dry. No production flooding rule was weakened. ID-relative test deployments avoid stale absolute coordinates after authoring changes.
+- Legacy and current Yamato salvo regressions remain separate; current structural-hit tests require local penetration evidence, dry above-water holes and intact empty-structure equipment condition. Historical runtime logs retain their originally reviewed hashes.
+
+### Current asset evidence
+
+All five full ship builds and fixed reviews pass, including Baltimore's post-fix rebuild. All four comparison packs are regenerated; section drawings depict individual compound cells rather than their enclosing bounding boxes. The three dimensional audits and Yamato component audit pass. All five new [fixed-view contact sheets](../assets/reviews/fleet-integration/damage-integration/) were visually inspected, preserving the previous checkpoint images. Geometry counts and GLB sizes are unchanged from the table above; shared damage metadata changes the content hashes below.
+
+| Preset | Damage-integration content hash |
+| --- | --- |
+| Bismarck | `0f7119971b043e76bfed1f972912c36593ab1e72198b65c1820ed49e7392a558` |
+| Yamato | `b0bed026943cfd57d1dfc133c6d6703dfbf1ed477ec95cc83cf54b0ba8651aa4` |
+| Baltimore | `161a0051b7b1cf58ba13baaabaa7c518efdfdb743cf5ff3efac262acf65c8154` |
+| Enterprise CV-6 | `ef914897ea8fdf958676af212c4e32b83d3f78ea1cbac1a46f22d620ce994094` |
+| Type VIIC | `2d15f3220ddd6d8456cbd80f79076f5c5905a928eb2473c94e7a70aa90425667` |
+
+All four ZIP CRC, individual-file size and historical redistribution checks pass. Archive bytes: Yamato 46,054,640; Baltimore 40,335,109; Enterprise 43,609,194; Bismarck 104,382,302 (99.55 MiB, still close to the 100 MiB limit).
+
+`bun test --timeout 60000`: **398 passed, 0 failed, 166,718 assertions across 51 files** after all models finished publishing. `bun run build` passes all five ship/evidence checks, all thirteen aircraft checks, TypeScript and production bundling. The existing large-bundle advisory remains. Command logs are retained under `.build/fleet-fidelity/merge-damage/verified-*.log`.
+
+The [geometry continuity audit](../assets/reviews/fleet-integration/damage-integration/geometry-continuity.json) compares each final GLB with `31a84b5`: all five binary chunks are identical, and every JSON field is identical except the scene's definition-hash metadata. This checks meshes, materials, hierarchy, sockets and transforms, not just counts. New CPU damage definitions are covered by the current tests above.
+
+At this checkpoint, twelve-frame-stepped WebGPU articulation checks completed for Bismarck and Yamato at the new hashes (maximum discrepancies 2.167 mm and 2.747 mm). A native Baltimore port screenshot was inspected with the new 120-space data visible. An extra forced-canvas capture hit a WebGPU texture-initialization error; subsequent Orca connections dropped and the game tab closed. No successful forced capture, Baltimore articulation sweep, or new mixed battle is claimed here. An HMR-stale helper returned a duplicate Yamato record during a Baltimore attempt; that incorrectly named temporary output was discarded, not certified as Baltimore evidence. Original completed trials retain their original hashes and scope.

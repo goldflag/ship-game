@@ -19,7 +19,8 @@ for (const [name, y, z] of [['bow',4,-115], ['stern',3,119], ['bridge',15,-18]] 
     sim.shells.push({...shell(),position:[-30,y,z]});
     for(let i=0;i<5;i++)sim.step({throttle:0,rudder:0},{aim:[0,0,0],fire:false,battery:'main'});
     expect(sim.events.some(e=>e.kind==='penetration'&&e.message.includes('plating'))).toBe(true);
-    expect(sim.target.damage.integrity).toBeLessThan(sim.target.damage.maxIntegrity);
+    expect(sim.events.some(e=>e.surfaceImpact && e.impact?.penetrationAfterMm! < e.impact?.penetrationBeforeMm!)).toBe(true);
+    expect(sim.target.damage.sunk).toBe(false);
     expect(sim.shells).toHaveLength(1);
   });
   test(`unarmored ${name} registers a swept hit and damage under the actual ship pose`, () => {
@@ -28,13 +29,13 @@ for (const [name, y, z] of [['bow',4,-115], ['stern',3,119], ['bridge',15,-18]] 
     const from=localToWorld([-30,y,z],sim.target.motion), to=localToWorld([30,y,z],sim.target.motion);
     expect(hitShip(round,from,to,sim.target,def,e=>events.push(e.message))).toBe(false); // AP can exit thin structure.
     expect(events.length).toBeGreaterThan(0);
-    expect(sim.target.damage.integrity).toBeLessThan(sim.target.damage.maxIntegrity);
+    expect(round.penetrationMm).toBeLessThan(1000);
     expect(round.penetrationMm).toBeGreaterThan(800);
     const integrity=sim.target.damage.integrity, penetration=round.penetrationMm;
     hitShip(round,from,to,sim.target,def,()=>{});
     expect(sim.target.damage.integrity).toBe(integrity);
     expect(round.penetrationMm).toBe(penetration);
-    expect(sim.target.damage.compartments.every(c=>c.breachAreaM2===0)).toBe(true);
+    expect(sim.target.damage.compartments.every(c=>c.waterM3===0)).toBe(true);
   });
 }
 
