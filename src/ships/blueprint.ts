@@ -87,9 +87,17 @@ export interface Armor extends Volume {
   plate?: { vertices: Vec3[]; material: 'KC' | 'Wh' | 'Ww' | 'steel' | 'teak'; mountId?: string; exterior?: boolean; surfaceId?: string };
   provenance?: { sourceId: string; basis: 'documented' | 'plan-measured' | 'estimated' | 'inferred'; note: string };
 }
+/** Versioned game calibration, not historical crew or thermal engineering data. */
+export interface DamageControlProfile {
+  version: 1; teams: number; setupSeconds: number; repairPoints: number;
+  roomFuelSeconds: number; mountFuelSeconds: number; suppressionPerSecond: number;
+  portablePumpM3PerSecond: number; repairHpPerSecond: number; repairCeiling: number;
+  patchM2PerSecond: number; maxPatchM2: number; flashProtection: number; basis: string;
+}
 export interface ShipBlueprint {
   schemaVersion: 1; id: string; name: string; configuration: string;
   coordinates: 'meters-y-up-bow-negative-z'; modelUrl: string;
+  damageControl?: DamageControlProfile;
   hull: Hull; handling: Handling; mounts: Mount[]; armor: Armor[];
   modules: Module[]; compartments: Compartment[];
   connections: FloodConnection[];
@@ -262,6 +270,16 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
       roof.forEach(v => vector(v, 'roof point'));
     }
   });
+  if (b.damageControl !== undefined) {
+    const d = record(b.damageControl, 'damageControl');
+    literal(d.version, [1], 'damageControl.version'); text(d.basis, 'damageControl.basis');
+    const teams = numeric(d.teams, 'damageControl.teams', 0, 16);
+    if (!Number.isInteger(teams)) fail('damageControl.teams', 'expected integer');
+    for (const k of ['setupSeconds', 'roomFuelSeconds', 'mountFuelSeconds']) numeric(d[k], `damageControl.${k}`, .1, 3600);
+    numeric(d.repairPoints, 'damageControl.repairPoints', 0, 10000);
+    for (const k of ['suppressionPerSecond', 'portablePumpM3PerSecond', 'repairHpPerSecond', 'patchM2PerSecond', 'maxPatchM2']) numeric(d[k], `damageControl.${k}`, .000001, 10);
+    for (const k of ['repairCeiling', 'flashProtection']) numeric(d[k], `damageControl.${k}`, 0, 1);
+  }
   const mounts = list(b.mounts, 'mounts', 64).map((m, i) => record(m, `mounts[${i}]`));
   unique(mounts, 'mounts');
   mounts.forEach(m => {
