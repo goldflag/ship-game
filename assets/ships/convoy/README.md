@@ -31,6 +31,8 @@ Add `--port-only` for the shorter inspection/articulation matrix, recorded separ
 
 See [validation](reports/validation.md) and each ship's discrepancy register. Passing exports are not historical certification.
 
+[Merge integration evidence](reports/merge-validation.md) records the subsequent fleet-pipeline rebuild. `bun assets/ships/convoy/verify-merge-continuity.ts <reviewed-commit>` checks that the rebuilt simulation definitions, scene hierarchy, geometry and materials still match the reviewed commit; only the definition stamp and at most 1e-7 UV float rounding may differ. It never rewrites old screenshot provenance.
+
 ## Retired revision 1
 
 `geometry-v1.py`, `author-blueprints.ts`, the deck-cargo/troopship originals and their generated models remain preserved but are no longer active presets. Their former public GLB/JSON/thumbnail files are archived under each ship's `retired-public/`, outside the game download. Old URL IDs resolve to the collier and Victory respectively. `reports/browser-v1/`, `validation-v1.md` and `sources-v1.json` record the superseded work; they do not validate revision 2.
