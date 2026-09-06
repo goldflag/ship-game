@@ -1,4 +1,6 @@
 import { AircraftView } from './AircraftView';
+import { oceanMap, DEFAULT_MAP, landHeight } from '../maps/catalog';
+import { createBattleLandscape, disposeBattleLandscape } from './BattleLandscape';
 import type { ControlPriority } from '../simulation/damageControl';
 import * as THREE from 'three/webgpu';
 import { float, mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
@@ -77,6 +79,8 @@ export class Game {
   chartSize = 2;
   gunneryOpen = false;
   private water?: WaterSystem;
+  private landscape?: THREE.Group;
+  private battleSea?: GameSettings['sea'];
   private surfaceWaterAbsorption = new THREE.Color();
   private sky?: SkySystem;
   private shipWake?: ShipWake;
@@ -302,9 +306,10 @@ export class Game {
     this.switchingShip = true;
     try {
       const definition = shipPreset(setup.playerShipId);
-      const simulation = new CombatSimulation(definition, { friendlyBots: setup.friendlyBots.map(shipPreset), enemies: setup.enemies.map(shipPreset), spawnDistance: setup.spawnDistance,
+      const simulation = new CombatSimulation(definition, { friendlyBots: setup.friendlyBots.map(shipPreset), enemies: setup.enemies.map(shipPreset), spawnDistance: setup.spawnDistance, mapId: setup.mapId,
         seed: crypto.getRandomValues(new Uint32Array(1))[0] });
       await this.replaceFleet(simulation, definition);
+      this.battleSea = setup.sea ?? this.settings?.sea ?? 'Atlantic';
     } finally { this.switchingShip = false; }
   }
 
@@ -453,7 +458,7 @@ export class Game {
           viewBearing: this.rig.bearing, chartSize: this.chartSize, gunneryOpen: this.gunneryOpen,
           shellFollow: this.shellFollow.phase,
           playerDamage,
-          fps: Math.round(this.fps), backend: this.water!.backend, trail: [...this.trail],
+          mapId: this.simulation.mapId, islands: this.simulation.islands, fps: Math.round(this.fps), backend: this.water!.backend, trail: [...this.trail],
           combat: this.simulation.telemetry(this.battery, aim), inspecting: this.inspecting, aimModule: this.manualAim ? 'point' : this.aimModule,
           aimMarker: this.projectAim(aim) });
       }
@@ -532,6 +537,8 @@ export class Game {
     this.camera.updateProjectionMatrix();
     this.rig.setHullLength(this.definition.hull.length);
     this.rig.setInPort(inPort);
+    if (!inPort) this.refreshLandscape();
+    if (this.landscape) this.landscape.visible = !inPort;
     if (this.harbor) this.harbor.visible = inPort;
     this.fleetViews.forEach(view => { view.root.visible = view === this.playerView || !inPort; view.inspect(false); });
     this.inspecting = false; this.targetView?.inspect(false); this.playerView?.inspect(false);
@@ -629,7 +636,7 @@ export class Game {
     return this.diagnostics();
   }
   diagnostics() {
-    return { shipId: this.definition.id, contentHash: this.definition.contentHash, backend: this.water?.backend,
+    return { mapId: this.simulation.mapId ?? DEFAULT_MAP, sea: this.battleSea ?? this.settings?.sea, islands: this.simulation.islands, shipId: this.definition.id, contentHash: this.definition.contentHash, backend: this.water?.backend,
       camera: { mode: this.rig.mode, binoculars: this.rig.binoculars, magnification: this.rig.magnification, fov: this.camera.fov,
         shellFollow: this.shellFollow.phase, followedShellId: this.shellFollow.shellId,
         pointerLocked: this.rig.pointerLocked, position: this.camera.position.toArray(), aim: this.currentAim, manualAim: this.manualAim,
@@ -661,40 +668,63 @@ export class Game {
     const point = new THREE.Vector3(...aim).project(this.camera);
     return { x: (point.x + 1) * 50, y: (1 - point.y) * 50, visible: point.z > -1 && point.z < 1 && Math.abs(point.x) < .94 && Math.abs(point.y) < .85 };
   }
+  private refreshLandscape(): void {
+    const mapId = this.simulation.mapId ?? DEFAULT_MAP;
+    const islands = this.simulation.islands ?? [];
+    const key = JSON.stringify([mapId, islands]);
+    if (this.landscape?.userData.mapKey === key) return;
+    if (this.landscape) { disposeBattleLandscape(this.landscape); this.landscape = undefined; }
+    if (islands.length) {
+      this.landscape = createBattleLandscape(oceanMap(mapId), islands, this.settings.quality);
+      this.landscape.userData.mapKey = key; this.scene.add(this.landscape);
+    }
+    this.rig.setBattleTerrain((x, z) => landHeight(islands, x, z));
+  }
   private updateSeaState(): void {
     if (!this.water) return;
-    // Breakwaters shelter the anchorage. Sailing restores the selected sea conditions.
-    // Shorter, lower crests keep the surface detail small beside the hull.
-    this.water.waves.amplitude.value = this.inPort ? .12 : this.settings.sea === 'Fair' ? .22 : this.settings.sea === 'Heavy' ? .95 : .45;
-    this.water.waves.windSpeed.value = this.inPort ? 4 : this.settings.sea === 'Fair' ? 5 : this.settings.sea === 'Heavy' ? 16 : 9;
-    this.water.waves.peakWavelength.value = this.inPort ? 14 : this.settings.sea === 'Fair' ? 20 : this.settings.sea === 'Heavy' ? 50 : 28;
+    const map = oceanMap(this.simulation.mapId ?? DEFAULT_MAP);
+    const sea = this.battleSea ?? this.settings.sea;
+    const amplitude = sea === 'Fair' ? .22 : sea === 'Heavy' ? .95 : .45;
+    const wind = sea === 'Fair' ? 5 : sea === 'Heavy' ? 16 : 9;
+    const wavelength = sea === 'Fair' ? 20 : sea === 'Heavy' ? 50 : 28;
+    // Retain the smaller wave scale across all oceans; port stays sheltered.
+    this.water.waves.amplitude.value = this.inPort ? .12 : amplitude * map.water.amplitudeScale;
+    this.water.waves.windSpeed.value = this.inPort ? 4 : wind * map.water.windScale;
+    this.water.waves.peakWavelength.value = this.inPort ? 14 : wavelength * map.water.wavelengthScale;
     this.water.waves.choppiness.value = .8;
-    // Wind and wavelength alter the initial spectrum, which must be rebuilt.
+    this.water.waves.windDirection.value = (this.inPort ? 35 : map.water.windDirection) * Math.PI / 180;
     this.water.waves.dirty = true;
+    const colors = this.inPort ? oceanMap(DEFAULT_MAP).water : map.water;
+    this.water.color.update({ waterColor: colors.waterColor, transmissionColor: colors.transmissionColor, absorptionColor: colors.absorptionColor });
+    this.surfaceWaterAbsorption.copy(this.water.color.absorptionColor);
+    this.water.foam.waves.opacity = this.inPort ? .45 : map.water.foam;
     this.effects.setWind(this.water.waves.windSpeed.value);
   }
   private updatePortLighting(): void {
     if(!this.sky)return;
-    this.sky.sun.setFromAngles(this.inPort ? 36 : 48, this.inPort ? 58 : 235);
-    this.sky.sun.peakIntensity=this.inPort ? 5 : 6.6;
+    const map = oceanMap(this.simulation.mapId ?? DEFAULT_MAP), sky = map.sky;
+    this.sky.sun.setFromAngles(this.inPort ? 36 : sky.elevation, this.inPort ? 58 : sky.azimuth);
+    this.sky.sun.peakIntensity=this.inPort ? 5 : sky.intensity;
     this.effects.setSun(this.sky.sun.direction.value);
-    this.sky.clouds.shape.coverage.value=this.inPort ? .38 : .4;
-    this.ambientLight.intensity = this.inPort ? 1.1 : .65;
+    this.sky.clouds.shape.altitude.value = this.inPort ? 1700 : sky.altitude;
+    this.sky.clouds.shape.thickness.value = this.inPort ? 2400 : sky.thickness;
+    this.sky.clouds.shape.coverage.value=this.inPort ? .38 : sky.coverage;
+    this.ambientLight.intensity = this.inPort ? 1.1 : sky.ambient;
     // Diffuse fill softens the dark blue dome toward the hills. Keep the port's
     // forward sun haze restrained so it cannot wash out the sky and reflections.
-    this.sky.atmosphere.turbidity.value = this.inPort ? 3.2 : 2.2;
-    this.sky.atmosphere.rayleigh.value = this.inPort ? .42 : .38;
-    this.sky.atmosphere.mieScatteringStrength.value = this.inPort ? .25 : .5;
-    this.sky.atmosphere.mieDirectionalG.value = this.inPort ? .6 : .72;
-    this.sky.atmosphere.skyMultipleScattering.value = this.inPort ? 1.4 : 1;
+    this.sky.atmosphere.turbidity.value = this.inPort ? 3.2 : sky.turbidity;
+    this.sky.atmosphere.rayleigh.value = this.inPort ? .42 : sky.rayleigh;
+    this.sky.atmosphere.mieScatteringStrength.value = this.inPort ? .25 : sky.mie;
+    this.sky.atmosphere.mieDirectionalG.value = this.inPort ? .6 : sky.mieG;
+    this.sky.atmosphere.skyMultipleScattering.value = this.inPort ? 1.4 : sky.multiple;
     // Water Pro owns scene.fogNode, including the water/sky horizon blend.
     // Its live uniforms must change with the scene; THREE.Fog is overridden.
     if (this.water) {
-      this.water.fog.color = this.inPort ? '#819aa5' : '#8b8f92';
-      this.water.fog.fadeStart = this.inPort ? 650 : 2500;
-      this.water.fog.fadeEnd = this.inPort ? 5600 : 16000;
+      this.water.fog.color = this.inPort ? '#819aa5' : map.fog.color;
+      this.water.fog.fadeStart = this.inPort ? 650 : map.fog.start;
+      this.water.fog.fadeEnd = this.inPort ? 5600 : map.fog.end;
       this.water.fog.fadePower = this.inPort ? .85 : 1.4;
-      this.water.fog.skyBlendDistance = this.inPort ? 2600 : 10000;
+      this.water.fog.skyBlendDistance = this.inPort ? 2600 : map.fog.skyBlend;
     }
   }
   cycleCamera(): void { this.stopShellFollow(); this.rig.cycle(); }
@@ -722,6 +752,7 @@ export class Game {
     this.armorOverlay?.dispose();
     this.shipWake?.dispose();
     await this.aircraftView.dispose();
+    if (this.landscape) disposeBattleLandscape(this.landscape);
     this.effects.dispose();
     this.water?.dispose();
     this.sky?.dispose();

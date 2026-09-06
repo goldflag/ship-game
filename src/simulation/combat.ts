@@ -1,4 +1,6 @@
 import { airServiceAvailable, airborne, createAirWing, launchSquadron, recallAircraft, stepAircraft, type AirRelease } from './aircraft';
+import { DEFAULT_MAP, mapIslands, type Island, type OceanMapId } from '../maps/catalog';
+import { avoidLand, firstLandHit, resolveLandContact } from './land';
 import { updateCapability, type VesselStatus } from './stability';
 import { directControl, updateDamageControl, type ControlPriority, type ControlState } from './damageControl';
 import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
@@ -50,6 +52,8 @@ export class CombatSimulation {
   readonly actors: FleetActor[];
   readonly isBattle: boolean;
   readonly spawnDistance: number;
+  readonly mapId: OceanMapId;
+  readonly islands: Island[];
   readonly seed: number;
   result: BattleResult = 'active';
   readonly shells: Shell[] = [];
@@ -78,6 +82,8 @@ export class CombatSimulation {
   constructor(readonly definition: ShipDefinition, fleet?: BattleFleet, seed = fleet?.seed ?? 0x6e617661) {
     this.isBattle = !!fleet;
     this.spawnDistance = fleet?.spawnDistance ?? BATTLE_SPAWN_DISTANCE;
+    this.mapId = fleet?.mapId ?? DEFAULT_MAP;
+    this.islands = mapIslands(this.mapId, this.spawnDistance, Math.max(1 + (fleet?.friendlyBots.length ?? 0), fleet?.enemies.length ?? 1));
     this.seed = seed;
     if (!Number.isInteger(this.seed) || this.seed < 0 || this.seed > 0xffffffff) throw new Error('Battle seed must be an unsigned 32-bit integer.');
     validateSpawnDistance(this.spawnDistance);
@@ -224,7 +230,7 @@ export class CombatSimulation {
         updateBot(actor, target, this.tick * FIXED_DT);
         actor.targetId = target?.motion.id;
         targets.set(actor, target);
-        commands.set(actor, botHelm(actor, target, this.actors));
+        commands.set(actor, avoidLand(actor, botHelm(actor, target, this.actors), this.islands));
       } else commands.set(actor, actor === this.player ? helm : { throttle: this.targetUnderway ? .25 : 0, rudder: 0 });
     }
     for (const actor of this.actors) {
@@ -233,6 +239,7 @@ export class CombatSimulation {
       stepShip(actor.motion, commands.get(actor)!, propulsion?.handling ?? def.handling, propulsion?.power ?? systemHealth(actor, def, 'engine'), systemHealth(actor, def, 'steering'));
     }
     resolveShipCollisions(this.actors);
+    for (const actor of this.actors) resolveLandContact(actor, this.islands);
     for (const actor of this.actors) {
       const def = actor.definition, target = targets.get(actor);
       const laneClear = target && clearFiringLane(actor, target, this.actors);
@@ -286,7 +293,7 @@ export class CombatSimulation {
     this.fireQueued = false;
     for (let i = this.shells.length - 1; i >= 0; i--) {
       const shell = this.shells[i];
-      const outcome = advanceProjectile(shell, this.actors, FIXED_DT, this.emit);
+      const outcome = advanceProjectile(shell, this.actors, FIXED_DT, this.emit, this.islands);
       if (outcome) {
         const history = this.history(shell.id);
         if (history.outcome === 'flying') history.outcome = outcome;
@@ -325,6 +332,12 @@ export class CombatSimulation {
       const hit = firstTorpedoHit(torpedo, from, to, this.actors);
       torpedo.age += FIXED_DT;
       const evidence = { id: torpedo.id, velocity: [...torpedo.velocity] as Vec3, diameterM: w.diameterM };
+      const land = firstLandHit(this.islands, from, to);
+      if (land && (!hit || land.t < hit.t)) {
+        this.emit({ kind: 'torpedo-expired', position: land.point, shipId: torpedo.ownerId, message: 'Torpedo struck the coast', torpedo: evidence });
+        this.torpedoes.splice(i, 1);
+        continue;
+      }
       if (hit) {
         const { actor, point } = hit, armed = torpedo.distance + travel * hit.t >= w.armingDistanceM;
         const hp = actor.damage.integrity, alreadyLost = actor.damage.sunk || actor.damage.stability.combatLost;
