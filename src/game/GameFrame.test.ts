@@ -48,6 +48,7 @@ async function frameHarness() {
     gunAim: { update(points: GunAimPoint[], _camera: PerspectiveCamera, visible: boolean) { gunAimFrames.push({ points, visible }); } },
     hitDirections: { update() {} },
     lastTime: 0, hudTime: Infinity, lastTrailTick: 0, trail: [], fps: 60, battery: 'main',
+    ammunition: { main: 'ap', secondary: 'ap' },
     paused: false, inPort: false, inspecting: false,
     input: { sample: () => helm, firing: false, setEnabled() {},
       setOrder: (order: number) => { helm.throttle = ENGINE_ORDERS[order]; },

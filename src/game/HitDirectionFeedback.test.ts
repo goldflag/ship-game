@@ -6,7 +6,7 @@ import { FIXED_DT } from '../simulation/ship';
 import { HitDirectionFeedback } from './HitDirectionFeedback';
 
 function fixture() {
-  const definition: ShipDefinition = { ...shipPreset('baltimore'), mounts: [], modules: [],
+  const definition: ShipDefinition = { ...shipPreset('baltimore'), mounts: [], modules: [], propulsion: undefined,
     armor: [{ id: 'hull', name: 'Hull', center: [0, 0, 0], size: [20, 10, 100], thicknessMm: 1000 }] };
   return new CombatSimulation(definition);
 }

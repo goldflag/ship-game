@@ -2,7 +2,8 @@ import type { Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { Combatant } from '../simulation/damage';
 import { add, scale } from '../simulation/geometry';
 import { motionVelocity } from '../simulation/ship';
-import { GRAVITY, muzzleCenterWorld, shotDirection, type MountState } from '../simulation/weapons';
+import { muzzleCenterWorld, shotDirection, type MountState } from '../simulation/weapons';
+import { ballisticStep } from '../simulation/ballistics';
 
 export interface GunAimPoint {
   id: string; number: number; name: string; point: Vec3;
@@ -19,9 +20,17 @@ export function gunAimPoints(actor: Combatant, definition: ShipDefinition, batte
     const state = actor.mounts[i], origin = muzzleCenterWorld(mount, state, actor.motion);
     const velocity = add(scale(shotDirection(mount, state, actor.motion), mount.weapon.muzzleSpeed), motionVelocity(actor.motion));
     const range = Math.hypot(aim[0] - origin[0], aim[2] - origin[2]);
-    const seaTime = (velocity[1] + Math.sqrt(velocity[1] ** 2 + 2 * GRAVITY * Math.max(0, origin[1]))) / GRAVITY;
-    const time = Math.min(60, seaTime, range / Math.max(.001, Math.hypot(velocity[0], velocity[2])));
-    const point = add(origin, add(scale(velocity, time), [0, -.5 * GRAVITY * time * time, 0]));
+    const drag = mount.weapon.ballistics?.dragPerSecond ?? 0;
+    const factor = range / Math.max(.001, Math.hypot(velocity[0], velocity[2]));
+    const rangeTime = drag > 1e-8 ? (factor * drag >= 1 ? Infinity : -Math.log1p(-factor * drag) / drag) : factor;
+    let low = 0, high = Math.min(180, rangeTime);
+    if (ballisticStep(origin, velocity, high, drag).position[1] < 0) {
+      for (let i = 0; i < 28; i++) {
+        const mid = (low + high) / 2;
+        if (ballisticStep(origin, velocity, mid, drag).position[1] >= 0) low = mid; else high = mid;
+      }
+    }
+    const point = ballisticStep(origin, velocity, high, drag).position;
     point[1] = Math.max(0, point[1]);
     return [{ id: mount.id, number: ++number, name: mount.name, point,
       aligned: state.status === 'ready' || state.status === 'reloading', status: state.status, reload: state.reload }];

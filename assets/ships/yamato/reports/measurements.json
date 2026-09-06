@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "contentHash": "dbb974b5b53a372340a739cc5dc79c5230540720328cacbc8de61ccadb624933",
-  "modelSha256": "d3d19308d37757633cfd211d6fbc4dd59b515436f7731bf4bcfadbd8fc44aa4b",
+  "contentHash": "b0bed026943cfd57d1dfc133c6d6703dfbf1ed477ec95cc83cf54b0ba8651aa4",
+  "modelSha256": "b3f569df07a989423ad3d7e2972fbd1701be247da699ab9c842572f48fcd9d14",
   "specRevision": "fleet-fidelity-01",
   "dimensions": [
     {
@@ -92,162 +92,1365 @@
   "spaces": [
     {
       "id": "engine-port-space",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "engine-starboard-space",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "steering-space",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "magazine-1-space",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "magazine-2-space",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "magazine-3-space",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "magazine-secondary-forward-space",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "magazine-secondary-aft-space",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "shell-room-1",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "shell-room-2",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "shell-room-3",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "engine-port-aft-space",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "engine-starboard-aft-space",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "boiler-1-1",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "boiler-1-2",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "boiler-1-3",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "boiler-1-4",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "boiler-2-1",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "boiler-2-2",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "boiler-2-3",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "boiler-2-4",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "boiler-3-1",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "boiler-3-2",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "boiler-3-3",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "boiler-3-4",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "forward-void",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "after-void",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-1-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-1-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-1-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-1-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-1-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-1-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-1-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-1-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-1-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-1-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-1-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-1-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-2-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-2-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-2-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-2-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-2-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-2-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-2-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-2-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-2-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-2-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-2-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-2-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-3-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-3-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-3-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-3-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-3-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-3-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-3-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-3-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-3-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-3-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-3-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-3-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-4-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-4-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-4-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-4-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-4-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-4-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-4-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-4-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-4-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-4-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-4-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-4-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-5-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-5-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-5-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-5-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-5-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-5-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-5-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-5-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-5-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-5-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-5-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-5-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-6-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-6-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-6-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-6-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-6-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-6-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-6-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-6-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-6-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-6-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-6-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-6-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-7-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-7-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-7-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-7-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-7-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-7-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-7-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-7-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-7-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-7-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-7-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-7-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-8-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-8-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-8-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-8-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-8-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-8-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-8-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-8-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-8-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-8-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-8-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-8-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-9-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-9-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-9-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-9-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-9-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-9-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-9-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-9-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-9-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-9-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-9-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-9-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-10-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-10-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-10-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-10-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-10-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-10-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-10-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-10-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-10-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-10-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-10-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-10-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-11-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-11-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-11-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-11-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-11-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-11-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-11-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-11-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-11-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-11-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-11-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-11-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-bow-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-bow-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-bow-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-bow-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-bow-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-bow-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-stern-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-stern-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-stern-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-stern-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-stern-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-stern-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-0-0",
+      "cells": 199,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-0-1",
+      "cells": 207,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-0-2",
+      "cells": 122,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-1-0",
+      "cells": 199,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-1-1",
+      "cells": 207,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-1-2",
+      "cells": 122,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-0-0",
+      "cells": 118,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-0-1",
+      "cells": 180,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-0-2",
+      "cells": 62,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-1-0",
+      "cells": 118,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-1-1",
+      "cells": 180,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-1-2",
+      "cells": 62,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-0-0",
+      "cells": 83,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-0-1",
+      "cells": 146,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-0-2",
+      "cells": 46,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-1-0",
+      "cells": 83,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-1-1",
+      "cells": 146,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-1-2",
+      "cells": 46,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-0-0",
+      "cells": 225,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-0-1",
+      "cells": 274,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-0-2",
+      "cells": 84,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-1-0",
+      "cells": 225,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-1-1",
+      "cells": 274,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-1-2",
+      "cells": 84,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
@@ -266,6 +1469,8 @@
         -0.5,
         0
       ],
+      "caliberM": 0.46,
+      "basis": "Geometric resistance probe at the stated caliber; no launch velocity, drag or fuze outcome.",
       "layers": [
         {
           "id": "belt--1-22",
@@ -321,6 +1526,8 @@
         -20,
         20
       ],
+      "caliberM": 0.46,
+      "basis": "Geometric resistance probe at the stated caliber; no launch velocity, drag or fuze outcome.",
       "layers": [
         {
           "id": "armored-deck",

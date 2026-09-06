@@ -46,7 +46,11 @@ test('trained turret centers stay on the reticle at every binocular magnificatio
 });
 
 test('aim circles agree with actual short-shot splashes, including inherited ship velocity', () => {
-  const sim = new CombatSimulation(shipPreset('bismarck'));
+  const definition = structuredClone(shipPreset('bismarck'));
+  // The circle predicts the nominal trajectory. Random shot spread has its
+  // own seeded distribution tests and must not bias this comparison.
+  definition.mounts.forEach(m => { if (m.weapon.ballistics) { m.weapon.ballistics.dispersionRad = 0; m.weapon.ballistics.muzzleSpeedSigmaFraction = 0; } });
+  const sim = new CombatSimulation(definition);
   const aim: Vec3 = [0, .5, -10000];
   Object.assign(sim.ship, { heading: .3, speed: 12, swaySpeed: 2 });
   // Fire at the current short-shot splash point so selective fire permits it.

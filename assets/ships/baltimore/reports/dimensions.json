@@ -1,6 +1,6 @@
 {
-  "definitionHash": "92a035d25954da79bdd212a7aef2b19770d661362abc255f83a151a3116e0461",
-  "glbSha256": "965b2e2288797d5a97f9023410da7cf162b4ac6e0487ef0196ef589ae2573911",
+  "definitionHash": "161a0051b7b1cf58ba13baaabaa7c518efdfdb743cf5ff3efac262acf65c8154",
+  "glbSha256": "2b8ebf5feca2ddd8cecb2f91e0758e3f222af8cdd2c8164fe7985bb627a713da",
   "method": "Decode GLB POSITION and index buffers, apply full scene transforms, intersect hull triangles with runtime Y=0. No accessor bounding-box metadata used.",
   "units": "meters",
   "envelope": {

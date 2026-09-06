@@ -1,5 +1,11 @@
 # Yamato discrepancy register
 
+## Damage-model integration, 2026-09-05 Pacific
+
+The fidelity geometry and 27 named room envelopes are retained while integrating master's damage model. Residual spaces and finite-angle buoyancy regions were regenerated around this hull and these rooms, not copied from the earlier geometry: 195 total spaces, 440 closed connections and 174 buoyancy regions. Room boundaries, permeability, capacities, reference loading and mass distribution remain estimated gameplay inputs, not an as-built damage-control or stability plan.
+
+The four retained turbine equipment envelopes now supply four equal combined-drive groups. The twelve boiler-room envelopes are not twelve separately damageable boiler modules; boiler supply and shafts remain aggregated into those drive groups. This supersedes the earlier two-group approximation below without claiming historical machinery routing. Gun ballistics, local AP/HE damage, crew repair and condition-derived loss rules follow the merged shared model. Original runtime captures below retain their original hashes; current integration evidence is recorded in `docs/fleet-fidelity-integration.md`.
+
 ## Fidelity 01, 2026-09-05
 
 This section supersedes the older implementation descriptions below, not their historical caveats. Current hashes and measured results live in `export.json`, `measurements.json` and `fidelity-01/README.md`.
@@ -58,3 +64,20 @@ The subsequent displacement-based hull HP change gives Yamato 1,750 HP from its 
 ## Visual review, build b81a8d55e9fd
 
 Profile, plan, quarter, bow and stern inspected. Corrected rear turret roof AA attachment, forefoot faceting, waterline width/length, unsupported stern AA, closed boat bays, screw diameter, rudder outline and single radar array. Bridge galleries, navigation glazing, conning tower, curved funnel uptake, six searchlight stations and rounded boat-bay ends have since been revised from museum references. Remaining visible discrepancies include simplified secondary gunhouses, AA shields, aft director, stern machinery and fittings, plus unverified positions and profiles across the model. Those are open historical/modeling work, not passed items.
+
+
+## 2026-09-05 — provisional flooding and machinery extension
+
+The versioned blueprint now records machinery dependencies, immersion thresholds, hull-side flood regions and additional outer spaces authored by `assets/ships/author-flood-spaces.ts`. New room boxes fit the reconstructed hull and exclude retained room envelopes; these tests do not establish historical subdivision. The strips, 72% floodable volume, pump rates, closed partition locations and nominal 5 mm unmeasured partitions are gameplay estimates. Existing physical protection is reused where it crosses a boundary; no initial open connection is asserted. Side coverage currently spans roughly -6 to +3 m, leaving end, upper-deck and deeper-bottom mapping incomplete. Exact steam routing, machinery vulnerability, free-surface stability and full damaged-hull flotation remain unresolved. See the damage-realism implementation record for validation and review status.
+
+### Step 2 review corrections — 2026-09-05
+
+Two retained combined-drive envelopes stand in for the boiler/turbine/shaft plant, with equal provisional power shares. This is not a recovered steam-routing plan. Original equipment and room IDs are retained, including Enterprise’s legacy engine-port ID for forward boilers.
+
+164 rooms, 162 exterior mapping regions, 365 closed boundaries (0 linked to existing plates; 358 estimated 5 mm partitions). Wing spaces now extend to neighboring retained room envelopes; the prior 2 m strip cap disconnected Yamato’s interior. Small centreline end pockets are conservative hull-inscribed flood volumes, not historical end-compartment plans. Their mapping regions approximate the surrounding end shell; full end volume, upper-deck and deep-bottom coverage remain required before replacing the sinking fallback.
+
+## 2026-09-05 — stability and residual flood coverage (supersedes the gameplay gaps above)
+
+The original `assets/ships/author-stability.ts` recipe preserves prior IDs and adds conservative compound flood cells excluding retained rooms. Adaptive cells approximate the remaining hull volume; cells grouped into a named space share a waterplane. Estimated 85% permeability and access partitions do not constitute historical subdivision. A CPU hull-shell query covers missing deck/bottom/end plating with provisional 12 mm steel and defers to nearby explicit exterior protection. The port overlay still displays explicit plates; fallback contacts are inspectable in the impact ledger.
+
+`stability.json` records modeled reference/full displacement, the stated mass mismatch, the uniform buoyancy scale, estimated CG and initial GM target (7% beam). Numerical station integration, sixteen-column water surfaces in box rooms, up to sixteen columns per compound cell, 2 Hz force updates and heuristic angular inertia/damping bound runtime cost. Capsize requires sustained inversion beyond 100 degrees with an outward/neutral arm. These are reproducible game approximations, not recovered loading or stability curves. No trapped air, detailed downflooding openings, free-surface waves, dynamic ocean forces, underwater shock or hull fracture is modeled. Finite local fire fuel, abstract crew rates and magazine flash protection are likewise provisional.

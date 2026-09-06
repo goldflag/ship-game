@@ -5,6 +5,7 @@ import { Matrix4, Quaternion, Vector3 } from 'three';
 import { barrelIds, compileShip, type Vec3 } from '../../src/ships/blueprint';
 import { protectionTrace } from '../../src/simulation/protection';
 import { structuralHits } from '../../src/simulation/structure';
+import { hullSectionHalfWidth } from './space-clearance';
 const root=resolve(import.meta.dir,'../..'), ship=process.argv[2] ?? 'bismarck';
 if (!/^[a-z][a-z0-9-]{0,63}$/.test(ship)) throw new Error('Invalid ship ID');
 const source=resolve(root,'assets/ships',ship);
@@ -64,29 +65,20 @@ for(const t of triangles){
 const edgeFailures=[...edges.entries()].filter(([,n])=>n!==2);
 const nonManifoldEdges=edgeFailures.length;
 const geometryDiagnostics={edgeFailures:edgeFailures.slice(0,12),degenerateTriangles:triangles.filter(t=>new Vector3().subVectors(t[1],t[0]).cross(new Vector3().subVectors(t[2],t[0])).length()<1e-7).slice(0,4).map(t=>t.map(v=>v.toArray()))};
-function halfWidth(s:number,y:number):number {
-  const sections=def.hull.sections!;let index=sections.findIndex((v,i)=>i<sections.length-1&&v.station<=s&&sections[i+1].station>=s);
-  if(index<0)return -1;
-  const a=sections[index],b=sections[index+1],t=(s-a.station)/(b.station-a.station);
-  const points=a.points.map((p,i)=>p.map((n,j)=>n+(b.points[i][j]-n)*t));
-  if(y<points[0][1]-.02 || y>points.at(-1)![1]+.02)return -1;
-  let width=0;
-  for(let i=0;i<points.length-1;i++){
-    const [x0,y0]=points[i],[x1,y1]=points[i+1];
-    if(y>=y0-.02&&y<=y1+.02)width=Math.max(width,Math.abs(y1-y0)<1e-8?Math.max(x0,x1):x0+(x1-x0)*(y-y0)/(y1-y0));
-  }
-  return width;
-}
+const halfWidth=(s:number,y:number)=>hullSectionHalfWidth(def.hull.sections!,s,y);
 const spaces=def.compartments.map(c=>{
   let outside=0,maxExcess=0;
-  for(let i=0;i<8;i++){
-    const p=c.center.map((v,j)=>v+c.size[j]/2*(i&(1<<j)?1:-1)) as Vec3;
+  for(const cell of c.cells ?? [c]) for(let i=0;i<8;i++){
+    const p=cell.center.map((v,j)=>v+cell.size[j]/2*(i&(1<<j)?1:-1)) as Vec3;
     const w=halfWidth(def.hull.length/2-p[2],p[1]);const excess=w<0?100:Math.abs(p[0])-w;
     if(excess>.25)outside++;maxExcess=Math.max(maxExcess,excess);
   }
-  return {id:c.id,passed:outside===0,outsideCorners:outside,maxExcessM:maxExcess};
+  return {id:c.id,cells:c.cells?.length ?? 1,passed:outside===0,outsideCorners:outside,maxExcessM:maxExcess};
 });
-const probes=spec.probes.map((p:{id:string;from:Vec3;to:Vec3})=>({...p,layers:protectionTrace(p.from,p.to,def)}));
+const probes=spec.probes.map((p:{id:string;from:Vec3;to:Vec3;caliberM?:number})=>{
+  const caliberM = p.caliberM ?? def.mounts.find(m=>m.battery==='main')!.weapon.caliberM;
+  return {...p,caliberM,basis:'Geometric resistance probe at the stated caliber; no launch velocity, drag or fuze outcome.',layers:protectionTrace(p.from,p.to,def,undefined,caliberM)};
+});
 const structuralProbes=(spec.structuralProbes??[]).map((p:{id:string;from:Vec3;to:Vec3;expectHit:boolean})=>{
   const hits=structuralHits(p.from,p.to,def);
   return {...p,hits:hits.map(h=>({id:h.surface.id,point:h.point,thicknessMm:h.surface.thicknessMm,hull:h.surface.hull})),passed:!!hits.length===p.expectHit};

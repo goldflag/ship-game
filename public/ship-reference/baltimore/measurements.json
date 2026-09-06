@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "contentHash": "92a035d25954da79bdd212a7aef2b19770d661362abc255f83a151a3116e0461",
-  "modelSha256": "965b2e2288797d5a97f9023410da7cf162b4ac6e0487ef0196ef589ae2573911",
+  "contentHash": "161a0051b7b1cf58ba13baaabaa7c518efdfdb743cf5ff3efac262acf65c8154",
+  "modelSha256": "2b8ebf5feca2ddd8cecb2f91e0758e3f222af8cdd2c8164fe7985bb627a713da",
   "specRevision": "fleet-fidelity-01",
   "dimensions": [
     {
@@ -66,60 +66,840 @@
   "spaces": [
     {
       "id": "bow",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "forward-magazine",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "forward-machinery",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "aft-machinery",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "aft-magazine",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "stern",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "boiler-unit-forward",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "boiler-unit-aft",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "forward-void",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "after-void",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-0-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-0-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-0-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-0-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-1-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-1-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-2-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-2-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-2-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-2-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-2-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-2-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-2-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-2-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-2-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-2-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-3-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-3-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-3-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-3-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-3-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-3-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-3-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-3-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-4-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-4-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-4-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-4-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-4-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-4-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-4-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-4-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-4-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-4-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-5-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-5-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-5-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-5-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-5-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-5-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-5-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-5-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-5-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-5-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-6-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-6-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-6-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-6-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-6-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-6-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-6-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-6-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-6-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-6-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-7-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-7-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-7-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-7-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-7-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-7-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-7-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-7-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-7-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-7-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-8-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-8-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-8-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-8-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-8-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-8-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-9-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-9-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-9-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-9-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-bow-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-bow-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-bow-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-bow-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-bow-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-bow-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-stern-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-stern-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-stern-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-stern-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-stern-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-stern-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-0-0",
+      "cells": 183,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-0-1",
+      "cells": 204,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-0-2",
+      "cells": 45,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-1-0",
+      "cells": 183,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-1-1",
+      "cells": 204,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-1-2",
+      "cells": 45,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-0-0",
+      "cells": 171,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-0-1",
+      "cells": 138,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-0-2",
+      "cells": 20,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-1-0",
+      "cells": 171,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-1-1",
+      "cells": 138,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-1-2",
+      "cells": 20,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-0-0",
+      "cells": 148,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-0-1",
+      "cells": 134,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 4.999998637345016e-9
+    },
+    {
+      "id": "reserve-cell-2-0-2",
+      "cells": 11,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-1-0",
+      "cells": 148,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-1-1",
+      "cells": 134,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 4.999998637345016e-9
+    },
+    {
+      "id": "reserve-cell-2-1-2",
+      "cells": 11,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-0-0",
+      "cells": 194,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-0-1",
+      "cells": 241,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-0-2",
+      "cells": 19,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-1-0",
+      "cells": 194,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-1-1",
+      "cells": 241,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-1-2",
+      "cells": 19,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
@@ -138,6 +918,8 @@
         -0.5,
         0
       ],
+      "caliberM": 0.2032,
+      "basis": "Geometric resistance probe at the stated caliber; no launch velocity, drag or fuze outcome.",
       "layers": [
         {
           "id": "belt--1-12-1",
@@ -193,6 +975,8 @@
         -20,
         20
       ],
+      "caliberM": 0.2032,
+      "basis": "Geometric resistance probe at the stated caliber; no launch velocity, drag or fuze outcome.",
       "layers": [
         {
           "id": "armored-deck",

@@ -1,0 +1,24 @@
+{
+  "allWaterFinite": true,
+  "combatLost": false,
+  "equipment": 471.6981132075472,
+  "fixture": "Controlled port-side residual-space flood at 10%, 120 seconds of CPU flooding, propulsion destroyed; afloat guns survive. Inspection uses the real WebGPU renderer.",
+  "hash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
+  "hud": "Gunnery\n4/4 ready\nFire\nQ\n38 cm main\n15 cm secondary\nAP \u00b7 576 rounds\nHE \u00b7 384 rounds\n\nAP penetrates armor before its delayed burst. HE bursts on contact against light protection. Changing type takes a full reload.\n\nAnton\nAP \u00b7 Ready\n240\nBruno\nAP \u00b7 Ready\n240\nC\u00e4sar\nAP \u00b7 Ready\n240\nDora\nAP \u00b7 Ready\n240\nOwn damage control \u00b7 0 fires \u00b7 0/3 teams\nAim at\nCenter sight \u00b7 Manual\nTarget waterline\nAft port boiler room \u00b7 two Wagner boilers\nAft center boiler room \u00b7 two Wagner boilers\nAft starboard boiler room \u00b7 two Wagner boilers\nForward port boiler room \u00b7 two Wagner boilers\nForward center boiler room \u00b7 two Wagner boilers\nForward starboard boiler room \u00b7 two Wagner boilers\nPort turbine room\nStarboard turbine room\nCenter turbine room\nAnton propellant magazines\nBruno propellant magazines\nC\u00e4sar propellant magazines\nDora propellant magazines\nSteering gear room\nPort shaft passage\nCenter shaft passage\nStarboard shaft passage\nAnton\nBruno\nC\u00e4sar\nDora\nStarboard Secondary 1\nStarboard Secondary 2\nStarboard Secondary 3\nPort Secondary 1\nPort Secondary 2\nPort Secondary 3\nBismarck \u00b7 immobile\n5.00 km\nEquipment\n47%\nPropulsion\n0%\nList / trim\n11.9\u00b0 / -0.0\u00b0\nDraft change\n0.44 m\nFires\n0\nFlooding\n2438.0 m\u00b3\n\nFire loaded guns at any time. Shells follow the barrels\u2019 current aim.\n\nRecent shell impacts \u00b7 0\nDamaged gun mounts \u00b7 0\nAft port boiler room \u00b7 two Wagner boilers\nDestroyed\nAft center boiler room \u00b7 two Wagner boilers\nDestroyed\nAft starboard boiler room \u00b7 two Wagner boilers\nDestroyed\nForward port boiler room \u00b7 two Wagner boilers\nDestroyed\nForward center boiler room \u00b7 two Wagner boilers\nDestroyed\nForward starboard boiler room \u00b7 two Wagner boilers\nDestroyed\nPort turbine room\nDestroyed\nStarboard turbine room\nDestroyed\nCenter turbine room\nDestroyed\nAnton propellant magazines\n100% available\nBruno propellant magazines\n100% available\nC\u00e4sar propellant magazines\n100% available\nDora propellant magazines\n100% available\nSteering gear room\n100% available\nPort shaft passage\nDestroyed\nCenter shaft passage\nDestroyed\nStarboard shaft passage\nDestroyed\n\nFlooded equipment can recover when drained. Destroyed equipment stays offline.\n\nAmber: armor \u00b7 Pale outlines: flooded spaces \u00b7 Blue: floodwater. The full dry layout is available in port.\n\nMouse aims the center sight. Hold left mouse or Q to fire. Shift opens binoculars; scroll adjusts magnification. Selecting a module tracks it until you move the mouse to aim again.\n\nReturn to ship",
+  "motion": {
+    "distance": 0,
+    "heading": 4.71238898038469,
+    "id": "enemy-1",
+    "pitch": -0.0003059318104671432,
+    "roll": 0.2085181952781874,
+    "rudder": 0,
+    "speed": 0,
+    "tick": 0,
+    "x": 0,
+    "y": -0.4422582259029151,
+    "yawRate": 0,
+    "z": -5000
+  },
+  "status": "immobile",
+  "waterM3": 2438.0314338160583
+}

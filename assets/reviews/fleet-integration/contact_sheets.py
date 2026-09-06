@@ -1,10 +1,15 @@
 """Index the merged exports' existing fixed review renders; retain older evidence."""
 import json
+import argparse
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 ROOT = Path(__file__).resolve().parents[3]
-OUTPUT = Path(__file__).resolve().parent
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--output-name', default='.', help='Evidence subdirectory beside this script')
+args = parser.parse_args()
+OUTPUT = Path(__file__).resolve().parent / args.output_name
+OUTPUT.mkdir(parents=True, exist_ok=True)
 try:
     FONT = ImageFont.truetype('/System/Library/Fonts/Supplemental/Arial.ttf', 23)
 except OSError:
