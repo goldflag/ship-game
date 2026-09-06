@@ -15,5 +15,5 @@ export const selectedShip = shipPreset(typeof window === 'undefined' ? null : ne
 /** Published authoring evidence is optional preset metadata, independent of combat. */
 export const shipReviewUrls: Partial<Record<string, string>> = Object.fromEntries(
   // Vite's SPA fallback serves the game for public directory URLs.
-  ['bismarck', 'yamato', 'baltimore', 'enterprise-cv6'].map(id => [id, `/ship-reference/${id}/index.html`]),
+  ['bismarck', 'yamato', 'baltimore', 'enterprise-cv6', 'type-viic'].map(id => [id, `/ship-reference/${id}/index.html`]),
 );

@@ -1,0 +1,110 @@
+{
+  "contentHash": "f38b819172189b7a8f3119a214ed6111e192ba06d5888198657440a435aa2106",
+  "hullBounds": [
+    [
+      -3.076575756072998,
+      -4.762499809265137,
+      -33.55022430419922
+    ],
+    [
+      3.076575517654419,
+      1.840000033378601,
+      33.55022430419922
+    ]
+  ],
+  "mounts": [
+    {
+      "id": "deck-gun",
+      "measuredPivot": [
+        0,
+        1.2552510499954224,
+        -7.929999828338623
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "flak-gun",
+      "measuredPivot": [
+        0,
+        3.7899999618530273,
+        0.8299999833106995
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    }
+  ],
+  "torpedoTubes": [
+    {
+      "id": "bow-tube-1",
+      "measuredMuzzle": [
+        -0.3799976408481598,
+        -0.9200000166893005,
+        -31
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "bow-tube-2",
+      "measuredMuzzle": [
+        0.38000234961509705,
+        -0.9200000166893005,
+        -31
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "bow-tube-3",
+      "measuredMuzzle": [
+        -0.37999773025512695,
+        -1.7999999523162842,
+        -30.149999618530273
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "bow-tube-4",
+      "measuredMuzzle": [
+        0.3800022602081299,
+        -1.7999999523162842,
+        -30.149999618530273
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "stern-tube",
+      "measuredMuzzle": [
+        -0.000002487655820004875,
+        -0.23999999463558197,
+        32.95000076293945
+      ],
+      "direction": [
+        -1.5099580252808492e-7,
+        0,
+        0.9999999999999887
+      ]
+    }
+  ],
+  "meshes": 41,
+  "primitives": 70,
+  "triangles": 80300,
+  "bytes": 2391124,
+  "result": "passed",
+  "historicalAccuracy": "not certified; see reference register and discrepancy report"
+}
