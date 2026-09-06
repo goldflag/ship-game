@@ -116,6 +116,7 @@ export class AircraftView {
       const controls = aircraftControls(plane, alpha), gear = 1 - controls.gear;
       for (const { object, id, rotation } of model.joints) {
         object.rotation.copy(rotation);
+        if (id.startsWith('wing.fold.')) object.rotateOnAxis(new THREE.Vector3().fromArray(object.userData.foldAxis), plane.wingFold * Number(object.userData.foldAngleDegrees) * Math.PI / 180);
         if (id === 'propeller.spin') object.rotateZ(controls.propeller);
         if (id.startsWith('gear.') && !object.userData.fixed && object.userData.articulation !== 'fixed') {
           const angle = gear * Math.PI * .43 * (id.endsWith('.port') ? 1 : -1) * (id.endsWith('.tail') ? .5 : 1);

@@ -16,6 +16,7 @@ export interface Aircraft {
   id: string; ownerId: string; team: Team; squadronId: string; modelId: string; role: AircraftRole;
   phase: FlightPhase; position: Vec3; previousPosition: Vec3; velocity: Vec3;
   heading: number; pitch: number; bank: number; hp: number; ammo: number; payload: boolean;
+  wingFold: number; // 0 flight-ready, 1 fully stowed; fixed wings always 0.
   deckPosition?: Vec3; timer: number; flightTime: number; cooldown: number; targetId?: string; kills: number;
   controls: FlightControls; previousControls?: FlightControls; previousAttitude?: FlightAttitude; pilot: AirPilot;
   deckSlot?: number; flightId?: string; recoveryRequestedAt?: number; lossReason?: string;
@@ -25,6 +26,8 @@ export interface Aircraft {
 }
 export interface AirWingState { planes: Aircraft[]; launchCooldown: number; flights: AirFlight[]; flightSequence: number; transferCooldown: number; }
 export interface AirRelease { id: number; ownerId: string; position: Vec3; velocity: Vec3; }
+export const hasFoldingWings = (modelId: string) => ['f4f-4-wildcat', 'tbd-1-devastator'].includes(modelId);
+const WING_FOLD_SECONDS = 4; // Gameplay timing; manual crew/hydraulic operation is abstracted.
 export const MAX_AIRBORNE = 144;
 export const deckClearance = (p: Aircraft) => p.role === 'fighter' ? 1.755 : p.role === 'dive-bomber' ? 1.941 : 2.24445;
 export const flightSize = (actor: FleetActor) => actor.definition.airWing?.flightSize ?? 3;
@@ -64,7 +67,7 @@ export function createAirWing(def: ShipDefinition, ownerId: string, team: Team):
   if (!def.airWing) return;
   const state: AirWingState = { launchCooldown: 0, flights: [], flightSequence: 0, transferCooldown: 0, planes: def.airWing.squadrons.flatMap(s => Array.from({ length: s.count }, (_, i) => ({
     id: `${ownerId}/${s.id}/${i + 1}`, ownerId, team, squadronId: s.id, modelId: s.modelId, role: s.role,
-    phase: 'ready' as const, position: [0, 0, 0] as Vec3, previousPosition: [0, 0, 0] as Vec3, velocity: [0, 0, 0] as Vec3,
+    phase: 'ready' as const, wingFold: hasFoldingWings(s.modelId) ? 1 : 0, position: [0, 0, 0] as Vec3, previousPosition: [0, 0, 0] as Vec3, velocity: [0, 0, 0] as Vec3,
     heading: 0, pitch: 0, bank: 0, hp: 100, ammo: s.role === 'fighter' ? 16 : 0, payload: s.role !== 'fighter', timer: 0, flightTime: 0, cooldown: 0, kills: 0,
     controls: initialFlightControls(), pilot: initialAirPilot(),
   }))) };
@@ -229,6 +232,8 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
     for (const [i, p] of state.planes.entries()) {
       p.cooldown = Math.max(0, p.cooldown - dt);
       if (p.phase === 'lost') continue;
+      const foldTarget = hasFoldingWings(p.modelId) && ['ready', 'queued', 'parking', 'rearming'].includes(p.phase) ? 1 : 0;
+      p.wingFold += Math.sign(foldTarget - p.wingFold) * Math.min(Math.abs(foldTarget - p.wingFold), dt / WING_FOLD_SECONDS);
       if (actor.damage.sunk && (onFlightDeck(p) || !airborne(p))) { p.hp = 0; p.phase = 'lost'; p.deckSlot = undefined; p.lossReason = 'Carrier lost'; continue; }
       if (p.phase === 'ready' || p.phase === 'queued' || p.phase === 'rearming') {
         if (p.deckSlot !== undefined) deckPose(p, actor, aircraftDeckSpot(actor, p));
@@ -242,6 +247,10 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
         } else continue;
       }
       if (p.phase === 'taxi' || p.phase === 'parking' || p.phase === 'rollout') {
+        if ((p.phase === 'taxi' && p.wingFold > 0) || (p.phase === 'parking' && hasFoldingWings(p.modelId) && p.wingFold < 1)) {
+          deckPose(p, actor, p.deckPosition!);
+          continue;
+        }
         if (p.phase === 'rollout') {
           p.timer += dt;
           const local = p.deckPosition!;
