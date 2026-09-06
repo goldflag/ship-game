@@ -152,7 +152,7 @@ export function botHelm(actor: FleetActor, target: FleetActor | undefined, actor
   const angle = evading ? Math.PI * .74 : range > preferredRange + 700 ? Math.PI / 3 : range < preferredRange - 900 ? Math.PI * .7 : Math.PI / 2;
   let heading = bearing + bot.side * (angle + bot.courseOffset);
   const tubes = (actor.definition.torpedoTubes ?? []).filter((t, i) => (actor.torpedoTubes?.[i].ammo ?? 0) > 0 && actor.damage.modules.find(m => m.id === t.magazineId)?.hp !== 0);
-  if (tubes.length && !evading) {
+  if (tubes.length && !evading && !actor.definition.torpedoLaunchers?.length) {
     const tube = tubes.reduce((a, b) => Math.abs(wrapAngle(bearing - actor.motion.heading - b.bearingDeg * Math.PI / 180)) < Math.abs(wrapAngle(bearing - actor.motion.heading - a.bearingDeg * Math.PI / 180)) ? b : a);
     const aim = botTorpedoAim(actor, tube);
     heading = (aim ? Math.atan2(aim[0] - actor.motion.x, actor.motion.z - aim[2]) : bearing) - tube.bearingDeg * Math.PI / 180;

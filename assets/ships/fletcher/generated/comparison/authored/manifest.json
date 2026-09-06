@@ -1,0 +1,1004 @@
+{
+  "schemaVersion": 1,
+  "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+  "modelSha256": "058f00a192b705fffaa085f69fe2d292f2e04593a3ad5daf6f008e0aae558e2c",
+  "capturePlanSha256": "b0b8d5e1b146b1f0dd65f31db59c32b7de19819c7a346e0efccac1491a4e1891",
+  "captures": [
+    {
+      "id": "starboard",
+      "position": [
+        0,
+        -250,
+        9
+      ],
+      "target": [
+        0,
+        0,
+        9
+      ],
+      "spanM": 128,
+      "resolution": [
+        2000,
+        700
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "starboard.png",
+      "imageSha256": "52d13994e17b587367109dec492b693e7146815b1badf6343940f46db4690e58",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.6292068494294654e-07,
+          -1.0,
+          -250.0
+        ],
+        [
+          0.0,
+          1.0,
+          -1.6292068494294654e-07,
+          9.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 15.625,
+      "source": {
+        "id": "fletcher",
+        "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+        "modelSha256": "058f00a192b705fffaa085f69fe2d292f2e04593a3ad5daf6f008e0aae558e2c"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "port",
+      "position": [
+        0,
+        250,
+        9
+      ],
+      "target": [
+        0,
+        0,
+        9
+      ],
+      "spanM": 128,
+      "resolution": [
+        2000,
+        700
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "port.png",
+      "imageSha256": "13bf8d77a4ec0f35869cc352a370ea7399d1da8e22f94b00e7840bb9f2168c7d",
+      "cameraMatrixWorld": [
+        [
+          -1.0,
+          1.5099581673894136e-07,
+          1.509957741063772e-07,
+          0.0
+        ],
+        [
+          1.5099580252808664e-07,
+          1.629206565212371e-07,
+          1.0,
+          250.0
+        ],
+        [
+          1.5099578831723193e-07,
+          1.0,
+          -1.6292068494294654e-07,
+          9.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 15.625,
+      "source": {
+        "id": "fletcher",
+        "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+        "modelSha256": "058f00a192b705fffaa085f69fe2d292f2e04593a3ad5daf6f008e0aae558e2c"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "top",
+      "position": [
+        0,
+        0,
+        250
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "spanM": 128,
+      "resolution": [
+        2000,
+        700
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "rotationEuler": [
+        0,
+        0,
+        0
+      ],
+      "image": "top.png",
+      "imageSha256": "812295478770b8ea4f769fecb39e5f2c4dc608bba986cf3845680f878cfeca62",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          250.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 15.625,
+      "source": {
+        "id": "fletcher",
+        "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+        "modelSha256": "058f00a192b705fffaa085f69fe2d292f2e04593a3ad5daf6f008e0aae558e2c"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bow",
+      "position": [
+        250,
+        0,
+        9
+      ],
+      "target": [
+        0,
+        0,
+        9
+      ],
+      "spanM": 33,
+      "resolution": [
+        900,
+        900
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "bow.png",
+      "imageSha256": "3f6fcc50c3727eaff8c9637547f23b53d95b4de69d265990ca7b3e9094f54b77",
+      "cameraMatrixWorld": [
+        [
+          -4.371138828673793e-08,
+          4.371138828673793e-08,
+          1.0,
+          250.0
+        ],
+        [
+          1.0,
+          1.910685676922942e-15,
+          4.371138828673793e-08,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          -4.371138828673793e-08,
+          9.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 27.272727272727273,
+      "source": {
+        "id": "fletcher",
+        "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+        "modelSha256": "058f00a192b705fffaa085f69fe2d292f2e04593a3ad5daf6f008e0aae558e2c"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "stern",
+      "position": [
+        -250,
+        0,
+        9
+      ],
+      "target": [
+        0,
+        0,
+        9
+      ],
+      "spanM": 33,
+      "resolution": [
+        900,
+        900
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "stern.png",
+      "imageSha256": "4487ae7f7302fa79ffbefec53a619f300beaf0228d5eda97979e0e3b5eb28702",
+      "cameraMatrixWorld": [
+        [
+          -4.371138828673793e-08,
+          -4.371138828673793e-08,
+          -1.0,
+          -250.0
+        ],
+        [
+          -1.0,
+          1.910685676922942e-15,
+          4.371138828673793e-08,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          -4.371138828673793e-08,
+          9.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 27.272727272727273,
+      "source": {
+        "id": "fletcher",
+        "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+        "modelSha256": "058f00a192b705fffaa085f69fe2d292f2e04593a3ad5daf6f008e0aae558e2c"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "quarter-bow",
+      "position": [
+        100,
+        -160,
+        90
+      ],
+      "target": [
+        0,
+        0,
+        6
+      ],
+      "spanM": 130,
+      "resolution": [
+        1800,
+        1000
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "quarter-bow.png",
+      "imageSha256": "0681bebf1e80544d2699bcbbb3e37e93b75221d47c1a5584f923689f237764d4",
+      "cameraMatrixWorld": [
+        [
+          0.847998321056366,
+          -0.21555793285369873,
+          0.4841834008693695,
+          100.0
+        ],
+        [
+          0.5299988985061646,
+          0.3448928892612457,
+          -0.7746935486793518,
+          -160.0
+        ],
+        [
+          -8.214201585587944e-08,
+          0.9135555028915405,
+          0.4067140817642212,
+          90.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 13.846153846153847,
+      "source": {
+        "id": "fletcher",
+        "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+        "modelSha256": "058f00a192b705fffaa085f69fe2d292f2e04593a3ad5daf6f008e0aae558e2c"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "quarter-stern",
+      "position": [
+        -100,
+        -160,
+        90
+      ],
+      "target": [
+        0,
+        0,
+        6
+      ],
+      "spanM": 130,
+      "resolution": [
+        1800,
+        1000
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "quarter-stern.png",
+      "imageSha256": "c0ef9de6427a646fdc3e4549205cb2bed5d324f7c92200b56af11c9a3904742d",
+      "cameraMatrixWorld": [
+        [
+          0.847998321056366,
+          0.21555793285369873,
+          -0.4841834008693695,
+          -100.0
+        ],
+        [
+          -0.5299988985061646,
+          0.3448928892612457,
+          -0.7746935486793518,
+          -160.0
+        ],
+        [
+          8.214201585587944e-08,
+          0.9135555028915405,
+          0.4067140817642212,
+          90.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 13.846153846153847,
+      "source": {
+        "id": "fletcher",
+        "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+        "modelSha256": "058f00a192b705fffaa085f69fe2d292f2e04593a3ad5daf6f008e0aae558e2c"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bridge",
+      "position": [
+        28,
+        -90,
+        27
+      ],
+      "target": [
+        22,
+        0,
+        8
+      ],
+      "spanM": 35,
+      "resolution": [
+        1400,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "bridge.png",
+      "imageSha256": "851a9a3cdb63e04ceffcc79f0de4e72db573799de151fe89342baecfe970079d",
+      "cameraMatrixWorld": [
+        [
+          0.9977851510047913,
+          -0.013710909523069859,
+          0.06509063392877579,
+          28.0
+        ],
+        [
+          0.06651902198791504,
+          0.20566362142562866,
+          -0.9763594269752502,
+          -90.0
+        ],
+        [
+          -1.0881942014151491e-09,
+          0.9785267114639282,
+          0.20612014830112457,
+          27.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 40.0,
+      "source": {
+        "id": "fletcher",
+        "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+        "modelSha256": "058f00a192b705fffaa085f69fe2d292f2e04593a3ad5daf6f008e0aae558e2c"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "funnels",
+      "position": [
+        4,
+        -95,
+        24
+      ],
+      "target": [
+        4,
+        0,
+        8
+      ],
+      "spanM": 38,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "funnels.png",
+      "imageSha256": "aefd2a4ca88f7945beb1d3dd55c31cb95c9b30b271d8c6ae416c5c82613fe843",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          4.0
+        ],
+        [
+          0.0,
+          0.16608202457427979,
+          -0.9861119389533997,
+          -95.0
+        ],
+        [
+          0.0,
+          0.9861119389533997,
+          0.16608202457427979,
+          24.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 42.10526315789474,
+      "source": {
+        "id": "fletcher",
+        "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+        "modelSha256": "058f00a192b705fffaa085f69fe2d292f2e04593a3ad5daf6f008e0aae558e2c"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "afterdeck",
+      "position": [
+        -35,
+        -75,
+        26
+      ],
+      "target": [
+        -30,
+        0,
+        4
+      ],
+      "spanM": 44,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "afterdeck.png",
+      "imageSha256": "2a068cff663b826857a315d530e835f178cf13d40fbbcb7f1d486f52ffdb2377",
+      "cameraMatrixWorld": [
+        [
+          0.9977851510047913,
+          0.018685143440961838,
+          -0.06384077668190002,
+          -35.0
+        ],
+        [
+          -0.06651901453733444,
+          0.2802771329879761,
+          -0.9576115608215332,
+          -75.0
+        ],
+        [
+          -7.296179216353949e-10,
+          0.959737241268158,
+          0.2808992862701416,
+          26.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 36.36363636363637,
+      "source": {
+        "id": "fletcher",
+        "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+        "modelSha256": "058f00a192b705fffaa085f69fe2d292f2e04593a3ad5daf6f008e0aae558e2c"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "turret-side",
+      "position": [
+        37.4,
+        -70,
+        7
+      ],
+      "target": [
+        37.4,
+        0,
+        7
+      ],
+      "spanM": 12,
+      "resolution": [
+        1600,
+        1200
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "turret-side.png",
+      "imageSha256": "088e1f0985869ceb23e006c047a58b09937a7c38398d1c78b8120c9001aadebd",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          37.400001525878906
+        ],
+        [
+          0.0,
+          -1.6292068494294654e-07,
+          -1.0,
+          -70.0
+        ],
+        [
+          0.0,
+          1.0,
+          -1.6292068494294654e-07,
+          7.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 133.33333333333334,
+      "source": {
+        "id": "fletcher",
+        "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+        "modelSha256": "058f00a192b705fffaa085f69fe2d292f2e04593a3ad5daf6f008e0aae558e2c"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "turret-front",
+      "position": [
+        110,
+        0,
+        7
+      ],
+      "target": [
+        37.4,
+        0,
+        7
+      ],
+      "spanM": 7,
+      "resolution": [
+        1200,
+        1200
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "turret-front.png",
+      "imageSha256": "5cd0fe6dded104ccc5f4687db259ea3588a7742079b82fa32aeb88dc15b90318",
+      "cameraMatrixWorld": [
+        [
+          -4.371138828673793e-08,
+          4.371138828673793e-08,
+          1.0,
+          110.0
+        ],
+        [
+          1.0,
+          1.910685676922942e-15,
+          4.371138828673793e-08,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          -4.371138828673793e-08,
+          7.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 171.42857142857142,
+      "source": {
+        "id": "fletcher",
+        "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+        "modelSha256": "058f00a192b705fffaa085f69fe2d292f2e04593a3ad5daf6f008e0aae558e2c"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "turret-quarter",
+      "position": [
+        55,
+        -23,
+        17
+      ],
+      "target": [
+        37.4,
+        0,
+        6.8
+      ],
+      "spanM": 11,
+      "resolution": [
+        1600,
+        1200
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "turret-quarter.png",
+      "imageSha256": "07cf7cf6b0545c42c2dd7766164d04e2d9f5ceb55a6d76e33ade72299cba570b",
+      "cameraMatrixWorld": [
+        [
+          0.7941617369651794,
+          -0.2018757462501526,
+          0.5731956958770752,
+          55.0
+        ],
+        [
+          0.6077064871788025,
+          0.26381489634513855,
+          -0.7490624785423279,
+          -23.0
+        ],
+        [
+          -2.4778067597708286e-08,
+          0.9432114958763123,
+          0.33219286799430847,
+          17.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 145.45454545454547,
+      "source": {
+        "id": "fletcher",
+        "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+        "modelSha256": "058f00a192b705fffaa085f69fe2d292f2e04593a3ad5daf6f008e0aae558e2c"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "turret-top",
+      "position": [
+        37.4,
+        0,
+        100
+      ],
+      "target": [
+        37.4,
+        0,
+        5.5
+      ],
+      "spanM": 10.5,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "rotationEuler": [
+        0,
+        0,
+        0
+      ],
+      "image": "turret-top.png",
+      "imageSha256": "c11ab4fa721f8944ba6e4282266e7441b0d2af00730c723b18536c71888831e9",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          37.400001525878906
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          100.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 152.38095238095238,
+      "source": {
+        "id": "fletcher",
+        "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+        "modelSha256": "058f00a192b705fffaa085f69fe2d292f2e04593a3ad5daf6f008e0aae558e2c"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "propellers-stern",
+      "position": [
+        -110,
+        0,
+        -3
+      ],
+      "target": [
+        -51,
+        0,
+        -3
+      ],
+      "spanM": 12,
+      "resolution": [
+        1600,
+        1000
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "propellers-stern.png",
+      "imageSha256": "e61ef8409d135a2909bcbca0b8d88dd00a15046439f79701cd0e68e21f9843ce",
+      "cameraMatrixWorld": [
+        [
+          -4.371138828673793e-08,
+          -4.371138828673793e-08,
+          -1.0,
+          -110.0
+        ],
+        [
+          -1.0,
+          1.910685676922942e-15,
+          4.371138828673793e-08,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          -4.371138828673793e-08,
+          -3.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 133.33333333333334,
+      "source": {
+        "id": "fletcher",
+        "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+        "modelSha256": "058f00a192b705fffaa085f69fe2d292f2e04593a3ad5daf6f008e0aae558e2c"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "propellers-side",
+      "position": [
+        -50,
+        -70,
+        -3
+      ],
+      "target": [
+        -50,
+        0,
+        -3
+      ],
+      "spanM": 18,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "propellers-side.png",
+      "imageSha256": "5e3580689abd2c41b90d00cfb3dcd06c5bf6c6022e1d86efd13ef8760e86463d",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -50.0
+        ],
+        [
+          0.0,
+          -1.6292068494294654e-07,
+          -1.0,
+          -70.0
+        ],
+        [
+          0.0,
+          1.0,
+          -1.6292068494294654e-07,
+          -3.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 88.88888888888889,
+      "source": {
+        "id": "fletcher",
+        "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+        "modelSha256": "058f00a192b705fffaa085f69fe2d292f2e04593a3ad5daf6f008e0aae558e2c"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "propellers-quarter",
+      "position": [
+        -75,
+        -30,
+        -12
+      ],
+      "target": [
+        -49,
+        0,
+        -3
+      ],
+      "spanM": 18,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "image": "propellers-quarter.png",
+      "imageSha256": "e6f282dfeaa9788e2e50ab95fe72a712269cf5428cf778bc57c3fb0ed6dd7689",
+      "cameraMatrixWorld": [
+        [
+          0.7556890845298767,
+          -0.14480264484882355,
+          -0.63872230052948,
+          -75.0
+        ],
+        [
+          -0.6549305319786072,
+          -0.1670801341533661,
+          -0.7369872331619263,
+          -30.0
+        ],
+        [
+          -1.0935532657185831e-07,
+          0.9752519726753235,
+          -0.22109630703926086,
+          -12.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 88.88888888888889,
+      "source": {
+        "id": "fletcher",
+        "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+        "modelSha256": "058f00a192b705fffaa085f69fe2d292f2e04593a3ad5daf6f008e0aae558e2c"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    }
+  ]
+}

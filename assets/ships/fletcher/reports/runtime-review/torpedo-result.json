@@ -1,0 +1,1205 @@
+{
+  "shipId": "fletcher",
+  "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+  "backend": "webgpu",
+  "camera": {
+    "mode": "Chase",
+    "binoculars": false,
+    "magnification": 1,
+    "fov": 52.00000000000001,
+    "shellFollow": "off",
+    "pointerLocked": true,
+    "position": [
+      115,
+      43,
+      110
+    ],
+    "aim": [
+      650,
+      0.5,
+      0
+    ],
+    "manualAim": false,
+    "projectionMatrix": [
+      1.28143990098706,
+      0,
+      0,
+      0,
+      0,
+      2.050303841579296,
+      0,
+      0,
+      0,
+      0,
+      -1.0000083334027783,
+      -1,
+      0,
+      0,
+      -0.5000041667013891,
+      0
+    ],
+    "matrixWorldInverse": [
+      0.6486084937999539,
+      -0.20833770316387262,
+      0.732053565807146,
+      0,
+      -5.551115123125783e-17,
+      0.9618081750309498,
+      0.2737243767800633,
+      0,
+      -0.7611222121121912,
+      -0.17753995573964795,
+      0.6238369517313067,
+      0,
+      9.133466545346334,
+      2.130479468875783,
+      -164.57837295980823,
+      1.0000000000000002
+    ]
+  },
+  "tick": 2723,
+  "battleSeed": 1391641647,
+  "paused": false,
+  "fps": 84.43971186917003,
+  "inspecting": false,
+  "inPort": false,
+  "effects": {
+    "shells": 0,
+    "torpedoes": 0,
+    "depthCharges": 0,
+    "smoke": 0,
+    "spray": 26,
+    "flashes": 0,
+    "foam": 0,
+    "particleCapacity": 2272
+  },
+  "audio": {
+    "state": "locked",
+    "loaded": 0,
+    "total": 13,
+    "failed": [],
+    "voices": 0,
+    "played": 0,
+    "inPort": false,
+    "paused": false,
+    "settings": {
+      "muted": true,
+      "master": 0.65,
+      "effects": 0.8,
+      "interface": 0.65
+    }
+  },
+  "portInspection": "exterior",
+  "maxMuzzleErrorM": 0.0006816921321606635,
+  "maxTorpedoMuzzleErrorM": 0.0000024164033658110096,
+  "torpedoLaunchers": [
+    {
+      "id": "torpedo-forward",
+      "train": 2.457955808505373
+    },
+    {
+      "id": "torpedo-aft",
+      "train": 2.449083786385515
+    }
+  ],
+  "depthCharges": [],
+  "combat": {
+    "battery": "torpedo",
+    "range": 1027.555251355602,
+    "ready": 0,
+    "total": 10,
+    "targetId": "enemy-1",
+    "targetName": "Type VIIC",
+    "targetRange": 1027.555251355602,
+    "battle": true,
+    "result": "victory",
+    "playerSunk": false,
+    "contacts": [
+      {
+        "id": "player",
+        "shipId": "fletcher",
+        "name": "Fletcher",
+        "team": "friendly",
+        "controller": "player",
+        "x": 0,
+        "z": -795.8453333333522,
+        "heading": 0,
+        "integrity": 1,
+        "sunk": false
+      },
+      {
+        "id": "enemy-1",
+        "shipId": "type-viic",
+        "name": "Type VIIC",
+        "team": "enemy",
+        "controller": "idle",
+        "x": 650,
+        "z": 0,
+        "heading": 1.5707963267948966,
+        "integrity": 0,
+        "sunk": true
+      }
+    ],
+    "targetIntegrity": 0,
+    "targetWater": 69.9998,
+    "targetPower": 0,
+    "targetSteering": 0,
+    "targetSunk": true,
+    "targetUnderway": false,
+    "mounts": [
+      {
+        "id": "torpedo-forward-1",
+        "name": "Forward tube 1",
+        "status": "empty",
+        "reload": 0,
+        "ammo": 0
+      },
+      {
+        "id": "torpedo-forward-2",
+        "name": "Forward tube 2",
+        "status": "empty",
+        "reload": 0,
+        "ammo": 0
+      },
+      {
+        "id": "torpedo-forward-3",
+        "name": "Forward tube 3",
+        "status": "empty",
+        "reload": 0,
+        "ammo": 0
+      },
+      {
+        "id": "torpedo-forward-4",
+        "name": "Forward tube 4",
+        "status": "empty",
+        "reload": 0,
+        "ammo": 0
+      },
+      {
+        "id": "torpedo-forward-5",
+        "name": "Forward tube 5",
+        "status": "empty",
+        "reload": 0,
+        "ammo": 0
+      },
+      {
+        "id": "torpedo-aft-1",
+        "name": "Aft tube 1",
+        "status": "empty",
+        "reload": 0,
+        "ammo": 0
+      },
+      {
+        "id": "torpedo-aft-2",
+        "name": "Aft tube 2",
+        "status": "empty",
+        "reload": 0,
+        "ammo": 0
+      },
+      {
+        "id": "torpedo-aft-3",
+        "name": "Aft tube 3",
+        "status": "empty",
+        "reload": 0,
+        "ammo": 0
+      },
+      {
+        "id": "torpedo-aft-4",
+        "name": "Aft tube 4",
+        "status": "empty",
+        "reload": 0,
+        "ammo": 0
+      },
+      {
+        "id": "torpedo-aft-5",
+        "name": "Aft tube 5",
+        "status": "empty",
+        "reload": 0,
+        "ammo": 0
+      }
+    ],
+    "modules": [
+      {
+        "id": "forward-torpedoes",
+        "name": "Forward torpedo stowage",
+        "condition": 1
+      },
+      {
+        "id": "deck-magazine",
+        "name": "Deck gun ammunition locker",
+        "condition": 1
+      },
+      {
+        "id": "diesels",
+        "name": "Twin diesel engines",
+        "condition": 0
+      },
+      {
+        "id": "electric-motors",
+        "name": "Twin electric motors",
+        "condition": 1
+      },
+      {
+        "id": "aft-torpedoes",
+        "name": "Stern torpedo stowage",
+        "condition": 1
+      },
+      {
+        "id": "steering-gear",
+        "name": "Rudder linkage",
+        "condition": 1
+      }
+    ],
+    "playerIntegrity": 1,
+    "playerMaxIntegrity": 600,
+    "playerDamageDealt": 450,
+    "playerFrags": 1,
+    "playerWater": 0,
+    "targetPosition": {
+      "x": 650,
+      "z": 0,
+      "heading": 1.5707963267948966
+    },
+    "batteries": [
+      {
+        "battery": "main",
+        "ammo": 1800,
+        "ready": 5,
+        "total": 5,
+        "reload": 0
+      },
+      {
+        "battery": "secondary",
+        "ammo": 13200,
+        "ready": 4,
+        "total": 7,
+        "reload": 0
+      },
+      {
+        "battery": "torpedo",
+        "ammo": 0,
+        "ready": 0,
+        "total": 10,
+        "reload": 0
+      },
+      {
+        "battery": "depth-charge",
+        "ammo": 28,
+        "ready": 8,
+        "total": 8,
+        "reload": 0
+      }
+    ],
+    "message": "Type VIIC · Torpedo hit · Diesel engine room · flooding breach"
+  },
+  "fleet": [
+    {
+      "id": "player",
+      "definitionId": "fletcher",
+      "team": "friendly",
+      "controller": "player",
+      "motion": {
+        "id": "player",
+        "tick": 2723,
+        "x": 0,
+        "y": 0,
+        "z": -795.8453333333522,
+        "roll": 0,
+        "pitch": 0,
+        "heading": 0,
+        "speed": 18.52,
+        "swaySpeed": 0,
+        "rudder": 0,
+        "yawRate": 0,
+        "distance": 795.8453333333522
+      },
+      "ammo": 15000,
+      "integrity": 600
+    },
+    {
+      "id": "enemy-1",
+      "definitionId": "type-viic",
+      "team": "enemy",
+      "controller": "idle",
+      "motion": {
+        "id": "enemy-1",
+        "tick": 2723,
+        "x": 650,
+        "y": -4.585509009467274,
+        "z": 0,
+        "roll": 0,
+        "pitch": 0.0011584113727053712,
+        "heading": 1.5707963267948966,
+        "speed": 0,
+        "swaySpeed": 0,
+        "rudder": 0,
+        "yawRate": 0,
+        "distance": 0
+      },
+      "ammo": 1320,
+      "integrity": 0
+    }
+  ],
+  "renderedShips": [
+    {
+      "id": "player",
+      "visible": true,
+      "impactMarks": 0,
+      "impactDrawCalls": 0
+    },
+    {
+      "id": "enemy-1",
+      "visible": true,
+      "impactMarks": 0,
+      "impactDrawCalls": 0
+    }
+  ],
+  "torpedoes": [],
+  "events": [
+    {
+      "kind": "torpedo-launch",
+      "position": [
+        3.6083917351304784,
+        6.52,
+        -106.62210528259769
+      ],
+      "shipId": "player",
+      "message": "Forward tube 2 · torpedo away",
+      "torpedo": {
+        "id": 2,
+        "velocity": [
+          22.84134708427512,
+          0,
+          3.7676734698851413
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 2,
+      "tick": 453
+    },
+    {
+      "kind": "torpedo-launch",
+      "position": [
+        3.4960031852427216,
+        6.52,
+        -114.06565086857537
+      ],
+      "shipId": "player",
+      "message": "Forward tube 3 · torpedo away",
+      "torpedo": {
+        "id": 3,
+        "velocity": [
+          22.79787992630113,
+          0,
+          4.02233400725947
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 3,
+      "tick": 484
+    },
+    {
+      "kind": "torpedo-launch",
+      "position": [
+        3.367362025258472,
+        6.52,
+        -121.63969939256707
+      ],
+      "shipId": "player",
+      "message": "Forward tube 4 · torpedo away",
+      "torpedo": {
+        "id": 4,
+        "velocity": [
+          22.7509629657599,
+          0,
+          4.279741128926065
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 4,
+      "tick": 515
+    },
+    {
+      "kind": "torpedo-launch",
+      "position": [
+        3.222251632534762,
+        6.52,
+        -129.34461945438176
+      ],
+      "shipId": "player",
+      "message": "Forward tube 5 · torpedo away",
+      "torpedo": {
+        "id": 5,
+        "velocity": [
+          22.700516413733624,
+          0,
+          4.539719655420385
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 5,
+      "tick": 546
+    },
+    {
+      "kind": "torpedo-launch",
+      "position": [
+        3.7321033313570418,
+        6.52,
+        -126.13704516083479
+      ],
+      "shipId": "player",
+      "message": "Aft tube 1 · torpedo away",
+      "torpedo": {
+        "id": 6,
+        "velocity": [
+          22.721269321008446,
+          0,
+          4.4346838040834875
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 6,
+      "tick": 577
+    },
+    {
+      "kind": "torpedo-launch",
+      "position": [
+        3.6081054646300474,
+        6.52,
+        -134.09275834139802
+      ],
+      "shipId": "player",
+      "message": "Aft tube 2 · torpedo away",
+      "torpedo": {
+        "id": 7,
+        "velocity": [
+          22.667395150659512,
+          0,
+          4.702307633902491
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 7,
+      "tick": 608
+    },
+    {
+      "kind": "torpedo-launch",
+      "position": [
+        3.467152740093517,
+        6.52,
+        -142.1795578775695
+      ],
+      "shipId": "player",
+      "message": "Aft tube 3 · torpedo away",
+      "torpedo": {
+        "id": 8,
+        "velocity": [
+          22.609742516384472,
+          0,
+          4.972126641870283
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 8,
+      "tick": 639
+    },
+    {
+      "kind": "torpedo-launch",
+      "position": [
+        3.3090763752542767,
+        6.52,
+        -150.39784260349722
+      ],
+      "shipId": "player",
+      "message": "Aft tube 4 · torpedo away",
+      "torpedo": {
+        "id": 9,
+        "velocity": [
+          22.548250404508934,
+          0,
+          5.2439397112822155
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 9,
+      "tick": 670
+    },
+    {
+      "kind": "torpedo-launch",
+      "position": [
+        3.133734667821531,
+        6.52,
+        -158.748018445913
+      ],
+      "shipId": "player",
+      "message": "Aft tube 5 · torpedo away",
+      "torpedo": {
+        "id": 10,
+        "velocity": [
+          22.48286578855782,
+          0,
+          5.517539844323396
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 10,
+      "tick": 701
+    },
+    {
+      "kind": "torpedo-hit",
+      "position": [
+        635.5944814353243,
+        -2,
+        -2.2135292315374557
+      ],
+      "shipId": "enemy-1",
+      "message": "Torpedo hit · Diesel engine room · flooding breach",
+      "torpedo": {
+        "id": 1,
+        "velocity": [
+          22.881449998424095,
+          0,
+          3.515927469334083
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 11,
+      "tick": 2078
+    },
+    {
+      "kind": "torpedo-hit",
+      "position": [
+        636.2355508274296,
+        -2,
+        -2.270441834434704
+      ],
+      "shipId": "enemy-1",
+      "message": "Torpedo hit · Diesel engine room · flooding breach",
+      "torpedo": {
+        "id": 2,
+        "velocity": [
+          22.84134708427512,
+          0,
+          3.7676734698851413
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 12,
+      "tick": 2114
+    },
+    {
+      "kind": "sunk",
+      "position": [
+        650,
+        -0.025509009467288915,
+        0
+      ],
+      "shipId": "enemy-1",
+      "message": "Type VIIC sinking",
+      "sequence": 13,
+      "tick": 2114
+    },
+    {
+      "kind": "torpedo-hit",
+      "position": [
+        636.5090336059416,
+        -2,
+        -2.3802727750609205
+      ],
+      "shipId": "enemy-1",
+      "message": "Torpedo hit · Diesel engine room · flooding breach",
+      "torpedo": {
+        "id": 3,
+        "velocity": [
+          22.79787992630113,
+          0,
+          4.02233400725947
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 14,
+      "tick": 2149
+    },
+    {
+      "kind": "torpedo-hit",
+      "position": [
+        636.7912652144917,
+        -2,
+        -2.484728475353136
+      ],
+      "shipId": "enemy-1",
+      "message": "Torpedo hit · Diesel engine room · flooding breach",
+      "torpedo": {
+        "id": 4,
+        "velocity": [
+          22.7509629657599,
+          0,
+          4.279741128926065
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 15,
+      "tick": 2185
+    },
+    {
+      "kind": "torpedo-hit",
+      "position": [
+        637.0610393306255,
+        -1.9999999999999996,
+        -2.5875734719403756
+      ],
+      "shipId": "enemy-1",
+      "message": "Torpedo hit · Diesel engine room · flooding breach",
+      "torpedo": {
+        "id": 5,
+        "velocity": [
+          22.700516413733624,
+          0,
+          4.539719655420385
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 16,
+      "tick": 2221
+    },
+    {
+      "kind": "torpedo-hit",
+      "position": [
+        636.6104207142074,
+        -2,
+        -2.613346532851586
+      ],
+      "shipId": "enemy-1",
+      "message": "Torpedo hit · Diesel engine room · flooding breach",
+      "torpedo": {
+        "id": 6,
+        "velocity": [
+          22.721269321008446,
+          0,
+          4.4346838040834875
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 17,
+      "tick": 2248
+    },
+    {
+      "kind": "torpedo-hit",
+      "position": [
+        636.8988735648071,
+        -2,
+        -2.7178035429073564
+      ],
+      "shipId": "enemy-1",
+      "message": "Torpedo hit · Diesel engine room · flooding breach",
+      "torpedo": {
+        "id": 7,
+        "velocity": [
+          22.667395150659512,
+          0,
+          4.702307633902491
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 18,
+      "tick": 2284
+    },
+    {
+      "kind": "torpedo-hit",
+      "position": [
+        637.1718770211824,
+        -2,
+        -2.8210428306211477
+      ],
+      "shipId": "enemy-1",
+      "message": "Torpedo hit · Diesel engine room · flooding breach",
+      "torpedo": {
+        "id": 8,
+        "velocity": [
+          22.609742516384472,
+          0,
+          4.972126641870283
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 19,
+      "tick": 2320
+    },
+    {
+      "kind": "torpedo-hit",
+      "position": [
+        637.4272574686092,
+        -2,
+        -2.9239831320504215
+      ],
+      "shipId": "enemy-1",
+      "message": "Torpedo hit · Diesel engine room · flooding breach",
+      "torpedo": {
+        "id": 9,
+        "velocity": [
+          22.548250404508934,
+          0,
+          5.2439397112822155
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 20,
+      "tick": 2357
+    },
+    {
+      "kind": "torpedo-hit",
+      "position": [
+        637.8506351072657,
+        -2,
+        -2.9815863115183885
+      ],
+      "shipId": "enemy-1",
+      "message": "Torpedo hit · Diesel engine room · flooding breach",
+      "torpedo": {
+        "id": 10,
+        "velocity": [
+          22.48286578855782,
+          0,
+          5.517539844323396
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 21,
+      "tick": 2394
+    }
+  ],
+  "reviewEvents": [
+    {
+      "kind": "torpedo-launch",
+      "position": [
+        3.7047671647896943,
+        6.52,
+        -99.30870476221929
+      ],
+      "shipId": "player",
+      "message": "Forward tube 1 · torpedo away",
+      "torpedo": {
+        "id": 1,
+        "velocity": [
+          22.881449998424095,
+          0,
+          3.515927469334083
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 1,
+      "tick": 422
+    },
+    {
+      "kind": "torpedo-launch",
+      "position": [
+        3.6083917351304784,
+        6.52,
+        -106.62210528259769
+      ],
+      "shipId": "player",
+      "message": "Forward tube 2 · torpedo away",
+      "torpedo": {
+        "id": 2,
+        "velocity": [
+          22.84134708427512,
+          0,
+          3.7676734698851413
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 2,
+      "tick": 453
+    },
+    {
+      "kind": "torpedo-launch",
+      "position": [
+        3.4960031852427216,
+        6.52,
+        -114.06565086857537
+      ],
+      "shipId": "player",
+      "message": "Forward tube 3 · torpedo away",
+      "torpedo": {
+        "id": 3,
+        "velocity": [
+          22.79787992630113,
+          0,
+          4.02233400725947
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 3,
+      "tick": 484
+    },
+    {
+      "kind": "torpedo-launch",
+      "position": [
+        3.367362025258472,
+        6.52,
+        -121.63969939256707
+      ],
+      "shipId": "player",
+      "message": "Forward tube 4 · torpedo away",
+      "torpedo": {
+        "id": 4,
+        "velocity": [
+          22.7509629657599,
+          0,
+          4.279741128926065
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 4,
+      "tick": 515
+    },
+    {
+      "kind": "torpedo-launch",
+      "position": [
+        3.222251632534762,
+        6.52,
+        -129.34461945438176
+      ],
+      "shipId": "player",
+      "message": "Forward tube 5 · torpedo away",
+      "torpedo": {
+        "id": 5,
+        "velocity": [
+          22.700516413733624,
+          0,
+          4.539719655420385
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 5,
+      "tick": 546
+    },
+    {
+      "kind": "torpedo-launch",
+      "position": [
+        3.7321033313570418,
+        6.52,
+        -126.13704516083479
+      ],
+      "shipId": "player",
+      "message": "Aft tube 1 · torpedo away",
+      "torpedo": {
+        "id": 6,
+        "velocity": [
+          22.721269321008446,
+          0,
+          4.4346838040834875
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 6,
+      "tick": 577
+    },
+    {
+      "kind": "torpedo-launch",
+      "position": [
+        3.6081054646300474,
+        6.52,
+        -134.09275834139802
+      ],
+      "shipId": "player",
+      "message": "Aft tube 2 · torpedo away",
+      "torpedo": {
+        "id": 7,
+        "velocity": [
+          22.667395150659512,
+          0,
+          4.702307633902491
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 7,
+      "tick": 608
+    },
+    {
+      "kind": "torpedo-launch",
+      "position": [
+        3.467152740093517,
+        6.52,
+        -142.1795578775695
+      ],
+      "shipId": "player",
+      "message": "Aft tube 3 · torpedo away",
+      "torpedo": {
+        "id": 8,
+        "velocity": [
+          22.609742516384472,
+          0,
+          4.972126641870283
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 8,
+      "tick": 639
+    },
+    {
+      "kind": "torpedo-launch",
+      "position": [
+        3.3090763752542767,
+        6.52,
+        -150.39784260349722
+      ],
+      "shipId": "player",
+      "message": "Aft tube 4 · torpedo away",
+      "torpedo": {
+        "id": 9,
+        "velocity": [
+          22.548250404508934,
+          0,
+          5.2439397112822155
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 9,
+      "tick": 670
+    },
+    {
+      "kind": "torpedo-launch",
+      "position": [
+        3.133734667821531,
+        6.52,
+        -158.748018445913
+      ],
+      "shipId": "player",
+      "message": "Aft tube 5 · torpedo away",
+      "torpedo": {
+        "id": 10,
+        "velocity": [
+          22.48286578855782,
+          0,
+          5.517539844323396
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 10,
+      "tick": 701
+    },
+    {
+      "kind": "torpedo-hit",
+      "position": [
+        635.5944814353243,
+        -2,
+        -2.2135292315374557
+      ],
+      "shipId": "enemy-1",
+      "message": "Torpedo hit · Diesel engine room · flooding breach",
+      "torpedo": {
+        "id": 1,
+        "velocity": [
+          22.881449998424095,
+          0,
+          3.515927469334083
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 11,
+      "tick": 2078
+    },
+    {
+      "kind": "torpedo-hit",
+      "position": [
+        636.2355508274296,
+        -2,
+        -2.270441834434704
+      ],
+      "shipId": "enemy-1",
+      "message": "Torpedo hit · Diesel engine room · flooding breach",
+      "torpedo": {
+        "id": 2,
+        "velocity": [
+          22.84134708427512,
+          0,
+          3.7676734698851413
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 12,
+      "tick": 2114
+    },
+    {
+      "kind": "sunk",
+      "position": [
+        650,
+        -0.025509009467288915,
+        0
+      ],
+      "shipId": "enemy-1",
+      "message": "Type VIIC sinking",
+      "sequence": 13,
+      "tick": 2114
+    },
+    {
+      "kind": "torpedo-hit",
+      "position": [
+        636.5090336059416,
+        -2,
+        -2.3802727750609205
+      ],
+      "shipId": "enemy-1",
+      "message": "Torpedo hit · Diesel engine room · flooding breach",
+      "torpedo": {
+        "id": 3,
+        "velocity": [
+          22.79787992630113,
+          0,
+          4.02233400725947
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 14,
+      "tick": 2149
+    },
+    {
+      "kind": "torpedo-hit",
+      "position": [
+        636.7912652144917,
+        -2,
+        -2.484728475353136
+      ],
+      "shipId": "enemy-1",
+      "message": "Torpedo hit · Diesel engine room · flooding breach",
+      "torpedo": {
+        "id": 4,
+        "velocity": [
+          22.7509629657599,
+          0,
+          4.279741128926065
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 15,
+      "tick": 2185
+    },
+    {
+      "kind": "torpedo-hit",
+      "position": [
+        637.0610393306255,
+        -1.9999999999999996,
+        -2.5875734719403756
+      ],
+      "shipId": "enemy-1",
+      "message": "Torpedo hit · Diesel engine room · flooding breach",
+      "torpedo": {
+        "id": 5,
+        "velocity": [
+          22.700516413733624,
+          0,
+          4.539719655420385
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 16,
+      "tick": 2221
+    },
+    {
+      "kind": "torpedo-hit",
+      "position": [
+        636.6104207142074,
+        -2,
+        -2.613346532851586
+      ],
+      "shipId": "enemy-1",
+      "message": "Torpedo hit · Diesel engine room · flooding breach",
+      "torpedo": {
+        "id": 6,
+        "velocity": [
+          22.721269321008446,
+          0,
+          4.4346838040834875
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 17,
+      "tick": 2248
+    },
+    {
+      "kind": "torpedo-hit",
+      "position": [
+        636.8988735648071,
+        -2,
+        -2.7178035429073564
+      ],
+      "shipId": "enemy-1",
+      "message": "Torpedo hit · Diesel engine room · flooding breach",
+      "torpedo": {
+        "id": 7,
+        "velocity": [
+          22.667395150659512,
+          0,
+          4.702307633902491
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 18,
+      "tick": 2284
+    },
+    {
+      "kind": "torpedo-hit",
+      "position": [
+        637.1718770211824,
+        -2,
+        -2.8210428306211477
+      ],
+      "shipId": "enemy-1",
+      "message": "Torpedo hit · Diesel engine room · flooding breach",
+      "torpedo": {
+        "id": 8,
+        "velocity": [
+          22.609742516384472,
+          0,
+          4.972126641870283
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 19,
+      "tick": 2320
+    },
+    {
+      "kind": "torpedo-hit",
+      "position": [
+        637.4272574686092,
+        -2,
+        -2.9239831320504215
+      ],
+      "shipId": "enemy-1",
+      "message": "Torpedo hit · Diesel engine room · flooding breach",
+      "torpedo": {
+        "id": 9,
+        "velocity": [
+          22.548250404508934,
+          0,
+          5.2439397112822155
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 20,
+      "tick": 2357
+    },
+    {
+      "kind": "torpedo-hit",
+      "position": [
+        637.8506351072657,
+        -2,
+        -2.9815863115183885
+      ],
+      "shipId": "enemy-1",
+      "message": "Torpedo hit · Diesel engine room · flooding breach",
+      "torpedo": {
+        "id": 10,
+        "velocity": [
+          22.48286578855782,
+          0,
+          5.517539844323396
+        ],
+        "diameterM": 0.533
+      },
+      "sequence": 21,
+      "tick": 2394
+    }
+  ]
+}

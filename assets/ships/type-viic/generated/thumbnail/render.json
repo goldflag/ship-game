@@ -1,7 +1,7 @@
 {
-  "contentHash": "790540939d476bf9503c191fbfd6d29a3f027941ebf4a4a9011a2f1c5885605b",
+  "contentHash": "9ea6cda9f697422f7f9120e57673cb28ab11700aee1f2876bb788e800070cdcf",
   "recipeHash": "256a1dc45e1c85022e44fb81b4bfe8f52c7059b64d36d447ac8cb2b66820355b",
-  "imageHash": "f9fde95290b24b1c0e9f6252d41a4cb41603acc7539f0784d61a29db99a28c78",
+  "imageHash": "ab78a590b75c2352322d01ed0029f2e64bf59d7b5fe29ec76fb85a746c71dbaa",
   "input": "validated runtime GLB",
   "importedAxes": "bow +Y, starboard +X, up +Z",
   "projection": "orthographic",

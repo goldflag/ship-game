@@ -1,0 +1,2013 @@
+{
+  "audio": {
+    "failed": [],
+    "inPort": false,
+    "loaded": 0,
+    "paused": true,
+    "played": 0,
+    "settings": {
+      "effects": 0.8,
+      "interface": 0.65,
+      "master": 0.65,
+      "muted": true
+    },
+    "state": "locked",
+    "total": 13,
+    "voices": 0
+  },
+  "backend": "webgpu",
+  "battleSeed": 3776340689,
+  "camera": {
+    "aim": [
+      250,
+      0.5,
+      0
+    ],
+    "binoculars": false,
+    "fov": 52.00000000000001,
+    "magnification": 1,
+    "manualAim": false,
+    "matrixWorldInverse": [
+      0.6486084937999539,
+      -0.20833770316387262,
+      0.732053565807146,
+      0,
+      -5.551115123125783e-17,
+      0.9618081750309498,
+      0.2737243767800633,
+      0,
+      -0.7611222121121912,
+      -0.17753995573964795,
+      0.6238369517313067,
+      0,
+      9.133466545346334,
+      2.130479468875783,
+      -164.57837295980823,
+      1.0000000000000002
+    ],
+    "mode": "Chase",
+    "pointerLocked": false,
+    "position": [
+      115,
+      43,
+      110
+    ],
+    "projectionMatrix": [
+      1.28143990098706,
+      0,
+      0,
+      0,
+      0,
+      2.050303841579296,
+      0,
+      0,
+      0,
+      0,
+      -1.0000083334027783,
+      -1,
+      0,
+      0,
+      -0.5000041667013891,
+      0
+    ],
+    "shellFollow": "off"
+  },
+  "combat": {
+    "batteries": [
+      {
+        "ammo": 1800,
+        "battery": "main",
+        "ready": 5,
+        "reload": 0,
+        "total": 5
+      },
+      {
+        "ammo": 13181,
+        "battery": "secondary",
+        "ready": 0,
+        "reload": 0.30000000000000004,
+        "total": 7
+      },
+      {
+        "ammo": 10,
+        "battery": "torpedo",
+        "ready": 0,
+        "reload": 0,
+        "total": 10
+      },
+      {
+        "ammo": 28,
+        "battery": "depth-charge",
+        "ready": 8,
+        "reload": 0,
+        "total": 8
+      }
+    ],
+    "battery": "secondary",
+    "battle": true,
+    "contacts": [
+      {
+        "controller": "player",
+        "heading": 0,
+        "id": "player",
+        "integrity": 1,
+        "name": "Fletcher",
+        "shipId": "fletcher",
+        "sunk": false,
+        "team": "friendly",
+        "x": 0,
+        "z": -80.66399999999896
+      },
+      {
+        "controller": "idle",
+        "heading": 1.5707963267948966,
+        "id": "enemy-1",
+        "integrity": 1,
+        "name": "Type VIIC",
+        "shipId": "type-viic",
+        "sunk": false,
+        "team": "enemy",
+        "x": 250,
+        "z": 0
+      }
+    ],
+    "message": "Type VIIC \u00b7 Stopped by Hull shell \u00b7 bow to stern plating",
+    "modules": [
+      {
+        "condition": 1,
+        "id": "forward-torpedoes",
+        "name": "Forward torpedo stowage"
+      },
+      {
+        "condition": 1,
+        "id": "deck-magazine",
+        "name": "Deck gun ammunition locker"
+      },
+      {
+        "condition": 1,
+        "id": "diesels",
+        "name": "Twin diesel engines"
+      },
+      {
+        "condition": 1,
+        "id": "electric-motors",
+        "name": "Twin electric motors"
+      },
+      {
+        "condition": 1,
+        "id": "aft-torpedoes",
+        "name": "Stern torpedo stowage"
+      },
+      {
+        "condition": 1,
+        "id": "steering-gear",
+        "name": "Rudder linkage"
+      }
+    ],
+    "mounts": [
+      {
+        "ammo": 2396,
+        "id": "bofors-aft",
+        "name": "After 40 mm twin",
+        "reload": 0.30000000000000004,
+        "status": "reloading"
+      },
+      {
+        "ammo": 1800,
+        "id": "oerlikon-1",
+        "name": "20 mm station 1",
+        "reload": 0,
+        "status": "turning"
+      },
+      {
+        "ammo": 1795,
+        "id": "oerlikon-2",
+        "name": "20 mm station 2",
+        "reload": 0.33333333333333337,
+        "status": "reloading"
+      },
+      {
+        "ammo": 1800,
+        "id": "oerlikon-3",
+        "name": "20 mm station 3",
+        "reload": 0,
+        "status": "blocked"
+      },
+      {
+        "ammo": 1795,
+        "id": "oerlikon-4",
+        "name": "20 mm station 4",
+        "reload": 0.33333333333333337,
+        "status": "reloading"
+      },
+      {
+        "ammo": 1800,
+        "id": "oerlikon-5",
+        "name": "20 mm station 5",
+        "reload": 0,
+        "status": "out-of-arc"
+      },
+      {
+        "ammo": 1795,
+        "id": "oerlikon-6",
+        "name": "20 mm station 6",
+        "reload": 0.33333333333333337,
+        "status": "reloading"
+      }
+    ],
+    "playerDamageDealt": 0,
+    "playerFrags": 0,
+    "playerIntegrity": 1,
+    "playerMaxIntegrity": 600,
+    "playerSunk": false,
+    "playerWater": 0,
+    "range": 262.6912272916624,
+    "ready": 0,
+    "result": "active",
+    "targetId": "enemy-1",
+    "targetIntegrity": 1,
+    "targetName": "Type VIIC",
+    "targetPosition": {
+      "heading": 1.5707963267948966,
+      "x": 250,
+      "z": 0
+    },
+    "targetPower": 1,
+    "targetRange": 262.6912272916624,
+    "targetSteering": 1,
+    "targetSunk": false,
+    "targetUnderway": false,
+    "targetWater": 0,
+    "total": 7
+  },
+  "contentHash": "4d62de645ac3cfe900ed56f85aa4ffbcb5908728de932a8de00c58fd09e3c574",
+  "depthCharges": [],
+  "effects": {
+    "depthCharges": 0,
+    "flashes": 114,
+    "foam": 0,
+    "particleCapacity": 2272,
+    "shells": 5,
+    "smoke": 183,
+    "spray": 0,
+    "torpedoes": 0
+  },
+  "events": [
+    {
+      "kind": "shot",
+      "message": "20 mm station 4 fired",
+      "position": [
+        5.422317115883027,
+        4.007459468990496,
+        -74.93621704833987
+      ],
+      "sequence": 71,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 31,
+        "type": "AP",
+        "velocity": [
+          794.1763742694995,
+          -9.878625842392264,
+          243.32789850294841
+        ]
+      },
+      "shipId": "player",
+      "tick": 296
+    },
+    {
+      "kind": "shot",
+      "message": "20 mm station 6 fired",
+      "position": [
+        5.4633895494955,
+        3.907287934899064,
+        -37.1035628467149
+      ],
+      "sequence": 72,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 32,
+        "type": "AP",
+        "velocity": [
+          823.2399738477505,
+          -10.013749395548416,
+          124.91028892392215
+        ]
+      },
+      "shipId": "player",
+      "tick": 296
+    },
+    {
+      "impact": {
+        "direction": [
+          0.14999565184930758,
+          -0.01526431212546983,
+          -0.9885688166241325
+        ],
+        "normal": [
+          -0.6503772685019502,
+          0.7579531842649758,
+          0.050163523386281085
+        ],
+        "outcome": "stopped",
+        "position": [
+          -2.308969091702986,
+          0.737015030869766,
+          15.217627205135424
+        ]
+      },
+      "kind": "stopped",
+      "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+      "normal": [
+        -0.05016352338628113,
+        0.7579531842649758,
+        -0.6503772685019502
+      ],
+      "position": [
+        234.78237279486459,
+        0.737015030869766,
+        -2.308969091702985
+      ],
+      "sequence": 73,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 32,
+        "type": "AP",
+        "velocity": [
+          823.2399738477505,
+          -12.79324939554843,
+          124.91028892392215
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 312
+    },
+    {
+      "impact": {
+        "direction": [
+          0.29291392528227467,
+          -0.015336042696142922,
+          -0.9560158148117383
+        ],
+        "normal": [
+          -0.6048346755514868,
+          0.7963267349924974,
+          0.00622465956634164
+        ],
+        "outcome": "stopped",
+        "position": [
+          -2.7848802084079214,
+          0.6467696584462027,
+          9.089325639539732
+        ]
+      },
+      "kind": "stopped",
+      "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+      "normal": [
+        -0.006224659566341677,
+        0.7963267349924974,
+        -0.6048346755514868
+      ],
+      "position": [
+        240.91067436046026,
+        0.6467696584462027,
+        -2.784880208407921
+      ],
+      "sequence": 74,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 31,
+        "type": "AP",
+        "velocity": [
+          794.1763742694995,
+          -12.82162584239228,
+          243.32789850294841
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 313
+    },
+    {
+      "impact": {
+        "direction": [
+          0.3301309117179179,
+          -0.03785922567487116,
+          -0.9431756252997612
+        ],
+        "normal": [
+          -0.5971108598139448,
+          0.8021248987690829,
+          0.007366672718373876
+        ],
+        "outcome": "stopped",
+        "position": [
+          -2.602237364918607,
+          0.7982068240044611,
+          7.434521436658487
+        ]
+      },
+      "kind": "stopped",
+      "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+      "normal": [
+        -0.007366672718373913,
+        0.8021248987690829,
+        -0.5971108598139448
+      ],
+      "position": [
+        242.56547856334151,
+        0.7982068240044611,
+        -2.6022373649186066
+      ],
+      "sequence": 75,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 30,
+        "type": "AP",
+        "velocity": [
+          783.073596824627,
+          -31.514453758427077,
+          274.09190136755404
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 314
+    },
+    {
+      "kind": "shot",
+      "message": "After 40 mm twin fired",
+      "position": [
+        2.702828058792617,
+        8.375797155500756,
+        -42.88716440999468
+      ],
+      "sequence": 76,
+      "shell": {
+        "caliberM": 0.04,
+        "id": 33,
+        "type": "AP",
+        "velocity": [
+          865.157459557217,
+          -26.149082401533374,
+          149.7192759032733
+        ]
+      },
+      "shipId": "player",
+      "tick": 316
+    },
+    {
+      "kind": "shot",
+      "message": "After 40 mm twin fired",
+      "position": [
+        2.600239838987808,
+        8.375797155500756,
+        -42.34681669124565
+      ],
+      "sequence": 77,
+      "shell": {
+        "caliberM": 0.04,
+        "id": 34,
+        "type": "AP",
+        "velocity": [
+          865.157459557217,
+          -26.149082401533374,
+          149.7192759032733
+        ]
+      },
+      "shipId": "player",
+      "tick": 316
+    },
+    {
+      "kind": "shot",
+      "message": "20 mm station 2 fired",
+      "position": [
+        4.596447584489333,
+        9.884307167932977,
+        -92.62884000617117
+      ],
+      "sequence": 78,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 35,
+        "type": "AP",
+        "velocity": [
+          775.8312781287049,
+          -28.116523373551505,
+          292.84152125333526
+        ]
+      },
+      "shipId": "player",
+      "tick": 324
+    },
+    {
+      "kind": "shot",
+      "message": "20 mm station 4 fired",
+      "position": [
+        5.412829986120249,
+        4.007598095882898,
+        -81.67111119980201
+      ],
+      "sequence": 79,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 36,
+        "type": "AP",
+        "velocity": [
+          787.4631949967176,
+          -9.769424469603905,
+          262.9450861951881
+        ]
+      },
+      "shipId": "player",
+      "tick": 324
+    },
+    {
+      "kind": "shot",
+      "message": "20 mm station 6 fired",
+      "position": [
+        5.457657649222147,
+        3.907368874033721,
+        -43.8351861013175
+      ],
+      "sequence": 80,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 37,
+        "type": "AP",
+        "velocity": [
+          819.1840314961039,
+          -9.94999073758781,
+          146.8420026700371
+        ]
+      },
+      "shipId": "player",
+      "tick": 324
+    },
+    {
+      "impact": {
+        "direction": [
+          0.17042789679069267,
+          -0.03283682041344584,
+          -0.9848228648953252
+        ],
+        "normal": [
+          -0.4739835204275883,
+          0.8796281470369129,
+          0.039924244557376865
+        ],
+        "outcome": "stopped",
+        "position": [
+          -2.048241498197668,
+          0.9819577564919513,
+          14.533198875227672
+        ]
+      },
+      "kind": "stopped",
+      "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+      "normal": [
+        -0.03992424455737689,
+        0.8796281470369129,
+        -0.4739835204275883
+      ],
+      "position": [
+        235.46680112477233,
+        0.9819577564919513,
+        -2.048241498197667
+      ],
+      "sequence": 81,
+      "shell": {
+        "caliberM": 0.04,
+        "id": 34,
+        "type": "AP",
+        "velocity": [
+          865.157459557217,
+          -28.928582401533358,
+          149.7192759032733
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 332
+    },
+    {
+      "impact": {
+        "direction": [
+          0.17042789679069267,
+          -0.03283682041344584,
+          -0.9848228648953252
+        ],
+        "normal": [
+          -0.6503772685019502,
+          0.7579531842649758,
+          0.050163523386281085
+        ],
+        "outcome": "stopped",
+        "position": [
+          -2.286611414413095,
+          0.9237748471363243,
+          12.685622597562961
+        ]
+      },
+      "kind": "stopped",
+      "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+      "normal": [
+        -0.05016352338628113,
+        0.7579531842649758,
+        -0.6503772685019502
+      ],
+      "position": [
+        237.31437740243703,
+        0.9237748471363243,
+        -2.2866114144130942
+      ],
+      "sequence": 82,
+      "shell": {
+        "caliberM": 0.04,
+        "id": 33,
+        "type": "AP",
+        "velocity": [
+          865.157459557217,
+          -28.928582401533358,
+          149.7192759032733
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 332
+    },
+    {
+      "impact": {
+        "direction": [
+          0.17642131536216007,
+          -0.015195455092632832,
+          -0.9841974484982233
+        ],
+        "normal": [
+          -0.5962529034530272,
+          0.800972368802765,
+          0.05409010573406806
+        ],
+        "outcome": "stopped",
+        "position": [
+          -2.464352712578513,
+          0.7146316456898558,
+          13.747845779558604
+        ]
+      },
+      "kind": "stopped",
+      "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+      "normal": [
+        -0.0540901057340681,
+        0.800972368802765,
+        -0.5962529034530272
+      ],
+      "position": [
+        236.25215422044138,
+        0.7146316456898558,
+        -2.464352712578512
+      ],
+      "sequence": 83,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 37,
+        "type": "AP",
+        "velocity": [
+          819.1840314961039,
+          -12.729490737587824,
+          146.8420026700371
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 340
+    },
+    {
+      "impact": {
+        "direction": [
+          0.31668687896970793,
+          -0.015212183406583988,
+          -0.9484081453490527
+        ],
+        "normal": [
+          -0.6048346755514868,
+          0.7963267349924974,
+          0.00622465956634164
+        ],
+        "outcome": "stopped",
+        "position": [
+          -2.8058618716506682,
+          0.6361986755946537,
+          8.402945738022908
+        ]
+      },
+      "kind": "stopped",
+      "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+      "normal": [
+        -0.006224659566341677,
+        0.7963267349924974,
+        -0.6048346755514868
+      ],
+      "position": [
+        241.5970542619771,
+        0.6361986755946537,
+        -2.805861871650668
+      ],
+      "sequence": 84,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 36,
+        "type": "AP",
+        "velocity": [
+          787.4631949967176,
+          -12.71242446960392,
+          262.9450861951881
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 341
+    },
+    {
+      "impact": {
+        "direction": [
+          0.352887680910349,
+          -0.037526685745772205,
+          -0.9349128475524624
+        ],
+        "normal": [
+          -0.6048346755514868,
+          0.7963267349924974,
+          0.00622465956634164
+        ],
+        "outcome": "stopped",
+        "position": [
+          -2.631511430930258,
+          0.7798107400565406,
+          6.971713385774866
+        ]
+      },
+      "kind": "stopped",
+      "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+      "normal": [
+        -0.006224659566341677,
+        0.7963267349924974,
+        -0.6048346755514868
+      ],
+      "position": [
+        243.02828661422512,
+        0.7798107400565406,
+        -2.6315114309302574
+      ],
+      "sequence": 85,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 35,
+        "type": "AP",
+        "velocity": [
+          775.8312781287049,
+          -31.223023373551488,
+          292.84152125333526
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 342
+    },
+    {
+      "kind": "shot",
+      "message": "After 40 mm twin fired",
+      "position": [
+        2.695026411406503,
+        8.37629048912194,
+        -50.38601099123625
+      ],
+      "sequence": 86,
+      "shell": {
+        "caliberM": 0.04,
+        "id": 38,
+        "type": "AP",
+        "velocity": [
+          860.0866999245209,
+          -25.975231633428063,
+          174.25873578886115
+        ]
+      },
+      "shipId": "player",
+      "tick": 347
+    },
+    {
+      "kind": "shot",
+      "message": "After 40 mm twin fired",
+      "position": [
+        2.576957482940834,
+        8.37629048912194,
+        -49.84883343387652
+      ],
+      "sequence": 87,
+      "shell": {
+        "caliberM": 0.04,
+        "id": 39,
+        "type": "AP",
+        "velocity": [
+          860.0866999245209,
+          -25.975231633428063,
+          174.25873578886115
+        ]
+      },
+      "shipId": "player",
+      "tick": 347
+    },
+    {
+      "kind": "shot",
+      "message": "20 mm station 2 fired",
+      "position": [
+        4.585600973476818,
+        9.884699549372279,
+        -99.4698408965608
+      ],
+      "sequence": 88,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 40,
+        "type": "AP",
+        "velocity": [
+          768.1573348144314,
+          -27.80743044731014,
+          311.34475353520276
+        ]
+      },
+      "shipId": "player",
+      "tick": 352
+    },
+    {
+      "kind": "shot",
+      "message": "20 mm station 4 fired",
+      "position": [
+        5.402662480334536,
+        4.007746977222766,
+        -88.5108377151031
+      ],
+      "sequence": 89,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 41,
+        "type": "AP",
+        "velocity": [
+          780.2685718947993,
+          -9.652145300934075,
+          282.3506823071246
+        ]
+      },
+      "shipId": "player",
+      "tick": 352
+    },
+    {
+      "kind": "shot",
+      "message": "20 mm station 6 fired",
+      "position": [
+        5.45104767243457,
+        3.9074623257052057,
+        -50.6713500695336
+      ],
+      "sequence": 90,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 42,
+        "type": "AP",
+        "velocity": [
+          814.5067531563768,
+          -9.8763755058048,
+          168.76850058083932
+        ]
+      },
+      "shipId": "player",
+      "tick": 352
+    }
+  ],
+  "fleet": [
+    {
+      "ammo": 14981,
+      "controller": "player",
+      "definitionId": "fletcher",
+      "id": "player",
+      "integrity": 600,
+      "motion": {
+        "distance": 80.66399999999896,
+        "heading": 0,
+        "id": "player",
+        "pitch": 0,
+        "roll": 0,
+        "rudder": 0,
+        "speed": 14.879999999999683,
+        "swaySpeed": 0,
+        "tick": 360,
+        "x": 0,
+        "y": 0,
+        "yawRate": 0,
+        "z": -80.66399999999896
+      },
+      "team": "friendly"
+    },
+    {
+      "ammo": 1320,
+      "controller": "idle",
+      "definitionId": "type-viic",
+      "id": "enemy-1",
+      "integrity": 450,
+      "motion": {
+        "distance": 0,
+        "heading": 1.5707963267948966,
+        "id": "enemy-1",
+        "pitch": 0,
+        "roll": 0,
+        "rudder": 0,
+        "speed": 0,
+        "swaySpeed": 0,
+        "tick": 360,
+        "x": 250,
+        "y": 0,
+        "yawRate": 0,
+        "z": 0
+      },
+      "team": "enemy"
+    }
+  ],
+  "fps": 18.69142543960453,
+  "inPort": false,
+  "inspecting": false,
+  "maxMuzzleErrorM": 0.0005994581877357882,
+  "maxTorpedoMuzzleErrorM": 2.4164033658146785e-06,
+  "paused": true,
+  "portInspection": "exterior",
+  "renderedShips": [
+    {
+      "id": "player",
+      "impactDrawCalls": 0,
+      "impactMarks": 0,
+      "visible": true
+    },
+    {
+      "id": "enemy-1",
+      "impactDrawCalls": 0,
+      "impactMarks": 0,
+      "visible": true
+    }
+  ],
+  "reviewEvents": [
+    {
+      "kind": "shot",
+      "message": "20 mm station 2 fired",
+      "position": [
+        4.625223846847883,
+        9.883268009848797,
+        -72.73490640138503
+      ],
+      "sequence": 58,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 24,
+        "type": "AP",
+        "velocity": [
+          796.1902505320904,
+          -28.935105449297847,
+          236.009681493378
+        ]
+      },
+      "shipId": "player",
+      "tick": 240
+    },
+    {
+      "kind": "shot",
+      "message": "20 mm station 4 fired",
+      "position": [
+        5.439161331892572,
+        4.0072140113827945,
+        -61.7806768804775
+      ],
+      "sequence": 59,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 25,
+        "type": "AP",
+        "velocity": [
+          806.09548665041,
+          -10.071981599402445,
+          203.63491409268292
+        ]
+      },
+      "shipId": "player",
+      "tick": 240
+    },
+    {
+      "kind": "shot",
+      "message": "20 mm station 6 fired",
+      "position": [
+        5.472229854166082,
+        3.9071632783308257,
+        -23.95362038825389
+      ],
+      "sequence": 60,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 26,
+        "type": "AP",
+        "velocity": [
+          829.4954478410467,
+          -10.11194584317049,
+          81.25629787652096
+        ]
+      },
+      "shipId": "player",
+      "tick": 240
+    },
+    {
+      "impact": {
+        "direction": [
+          0.09748054465525521,
+          -0.015367376563942993,
+          -0.9951187804233506
+        ],
+        "normal": [
+          -0.6479555272482544,
+          0.7551308739174255,
+          0.09965439260334509
+        ],
+        "outcome": "stopped",
+        "position": [
+          -1.8808055226636067,
+          0.7980816755522742,
+          19.20001179941525
+        ]
+      },
+      "kind": "stopped",
+      "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+      "normal": [
+        -0.09965439260334513,
+        0.7551308739174255,
+        -0.6479555272482544
+      ],
+      "position": [
+        230.79998820058475,
+        0.7980816755522742,
+        -1.8808055226636056
+      ],
+      "sequence": 61,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 26,
+        "type": "AP",
+        "velocity": [
+          829.4954478410467,
+          -12.891445843170505,
+          81.25629787652096
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 256
+    },
+    {
+      "impact": {
+        "direction": [
+          0.2448949881014455,
+          -0.015553735530869415,
+          -0.9694248429423648
+        ],
+        "normal": [
+          -0.5971108598139448,
+          0.8021248987690829,
+          0.007366672718373876
+        ],
+        "outcome": "stopped",
+        "position": [
+          -2.728113438808216,
+          0.6736010305436924,
+          10.79932936326931
+        ]
+      },
+      "kind": "stopped",
+      "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+      "normal": [
+        -0.007366672718373913,
+        0.8021248987690829,
+        -0.5971108598139448
+      ],
+      "position": [
+        239.20067063673068,
+        0.6736010305436924,
+        -2.7281134388082156
+      ],
+      "sequence": 62,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 25,
+        "type": "AP",
+        "velocity": [
+          806.09548665041,
+          -13.01498159940246,
+          203.63491409268292
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 257
+    },
+    {
+      "impact": {
+        "direction": [
+          0.28399254782592764,
+          -0.03826083717619979,
+          -0.9580628064578618
+        ],
+        "normal": [
+          -0.5971108598139448,
+          0.8021248987690829,
+          0.007366672718373876
+        ],
+        "outcome": "stopped",
+        "position": [
+          -2.5300243446796773,
+          0.8418548178468351,
+          8.535158898414844
+        ]
+      },
+      "kind": "stopped",
+      "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+      "normal": [
+        -0.007366672718373913,
+        0.8021248987690829,
+        -0.5971108598139448
+      ],
+      "position": [
+        241.46484110158517,
+        0.8418548178468351,
+        -2.530024344679677
+      ],
+      "sequence": 63,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 24,
+        "type": "AP",
+        "velocity": [
+          796.1902505320904,
+          -31.87810544929783,
+          236.009681493378
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 257
+    },
+    {
+      "kind": "shot",
+      "message": "20 mm station 2 fired",
+      "position": [
+        4.616283844806821,
+        9.883590570139637,
+        -79.26142856944858
+      ],
+      "sequence": 64,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 27,
+        "type": "AP",
+        "velocity": [
+          789.8652940011411,
+          -28.681013144720723,
+          255.13449579487508
+        ]
+      },
+      "shipId": "player",
+      "tick": 268
+    },
+    {
+      "kind": "shot",
+      "message": "20 mm station 4 fired",
+      "position": [
+        5.431100425495174,
+        4.007331371180268,
+        -68.30609351972574
+      ],
+      "sequence": 65,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 28,
+        "type": "AP",
+        "velocity": [
+          800.3915211145023,
+          -9.979533079694864,
+          223.5428082048163
+        ]
+      },
+      "shipId": "player",
+      "tick": 268
+    },
+    {
+      "kind": "shot",
+      "message": "20 mm station 6 fired",
+      "position": [
+        5.468244377143742,
+        3.9072194511236824,
+        -30.47640036058389
+      ],
+      "sequence": 66,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 29,
+        "type": "AP",
+        "velocity": [
+          826.6752910967409,
+          -10.067696520495476,
+          103.0299293956618
+        ]
+      },
+      "shipId": "player",
+      "tick": 268
+    },
+    {
+      "impact": {
+        "direction": [
+          0.1236603387340751,
+          -0.015321561900271091,
+          -0.9922063144150566
+        ],
+        "normal": [
+          -0.6503772685019502,
+          0.7579531842649758,
+          0.050163523386281085
+        ],
+        "outcome": "stopped",
+        "position": [
+          -2.130627214775523,
+          0.7657676298967759,
+          17.095413541271036
+        ]
+      },
+      "kind": "stopped",
+      "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+      "normal": [
+        -0.05016352338628113,
+        0.7579531842649758,
+        -0.6503772685019502
+      ],
+      "position": [
+        232.90458645872897,
+        0.7657676298967759,
+        -2.1306272147755223
+      ],
+      "sequence": 67,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 29,
+        "type": "AP",
+        "velocity": [
+          826.6752910967409,
+          -12.84719652049549,
+          103.0299293956618
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 284
+    },
+    {
+      "impact": {
+        "direction": [
+          0.2689652745411724,
+          -0.0154499479275995,
+          -0.9630259499099836
+        ],
+        "normal": [
+          -0.5971108598139448,
+          0.8021248987690829,
+          0.007366672718373876
+        ],
+        "outcome": "stopped",
+        "position": [
+          -2.758970871570657,
+          0.6590876762789037,
+          9.878454275243675
+        ]
+      },
+      "kind": "stopped",
+      "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+      "normal": [
+        -0.007366672718373913,
+        0.8021248987690829,
+        -0.5971108598139448
+      ],
+      "position": [
+        240.12154572475632,
+        0.6590876762789037,
+        -2.7589708715706567
+      ],
+      "sequence": 68,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 28,
+        "type": "AP",
+        "velocity": [
+          800.3915211145023,
+          -12.92253307969488,
+          223.5428082048163
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 285
+    },
+    {
+      "impact": {
+        "direction": [
+          0.3071489443858359,
+          -0.03816963931321089,
+          -0.9508956854447108
+        ],
+        "normal": [
+          -0.5971108598139448,
+          0.8021248987690829,
+          0.007366672718373876
+        ],
+        "outcome": "stopped",
+        "position": [
+          -2.568160692716117,
+          0.8188332459254803,
+          7.950708946058291
+        ]
+      },
+      "kind": "stopped",
+      "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+      "normal": [
+        -0.007366672718373913,
+        0.8021248987690829,
+        -0.5971108598139448
+      ],
+      "position": [
+        242.04929105394172,
+        0.8188332459254803,
+        -2.5681606927161167
+      ],
+      "sequence": 69,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 27,
+        "type": "AP",
+        "velocity": [
+          789.8652940011411,
+          -31.787513144720705,
+          255.13449579487508
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 286
+    },
+    {
+      "kind": "shot",
+      "message": "20 mm station 2 fired",
+      "position": [
+        4.60668416073117,
+        9.883937208402477,
+        -85.89272074913785
+      ],
+      "sequence": 70,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 30,
+        "type": "AP",
+        "velocity": [
+          783.073596824627,
+          -28.407953758427094,
+          274.09190136755404
+        ]
+      },
+      "shipId": "player",
+      "tick": 296
+    },
+    {
+      "kind": "shot",
+      "message": "20 mm station 4 fired",
+      "position": [
+        5.422317115883027,
+        4.007459468990496,
+        -74.93621704833987
+      ],
+      "sequence": 71,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 31,
+        "type": "AP",
+        "velocity": [
+          794.1763742694995,
+          -9.878625842392264,
+          243.32789850294841
+        ]
+      },
+      "shipId": "player",
+      "tick": 296
+    },
+    {
+      "kind": "shot",
+      "message": "20 mm station 6 fired",
+      "position": [
+        5.4633895494955,
+        3.907287934899064,
+        -37.1035628467149
+      ],
+      "sequence": 72,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 32,
+        "type": "AP",
+        "velocity": [
+          823.2399738477505,
+          -10.013749395548416,
+          124.91028892392215
+        ]
+      },
+      "shipId": "player",
+      "tick": 296
+    },
+    {
+      "impact": {
+        "direction": [
+          0.14999565184930758,
+          -0.01526431212546983,
+          -0.9885688166241325
+        ],
+        "normal": [
+          -0.6503772685019502,
+          0.7579531842649758,
+          0.050163523386281085
+        ],
+        "outcome": "stopped",
+        "position": [
+          -2.308969091702986,
+          0.737015030869766,
+          15.217627205135424
+        ]
+      },
+      "kind": "stopped",
+      "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+      "normal": [
+        -0.05016352338628113,
+        0.7579531842649758,
+        -0.6503772685019502
+      ],
+      "position": [
+        234.78237279486459,
+        0.737015030869766,
+        -2.308969091702985
+      ],
+      "sequence": 73,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 32,
+        "type": "AP",
+        "velocity": [
+          823.2399738477505,
+          -12.79324939554843,
+          124.91028892392215
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 312
+    },
+    {
+      "impact": {
+        "direction": [
+          0.29291392528227467,
+          -0.015336042696142922,
+          -0.9560158148117383
+        ],
+        "normal": [
+          -0.6048346755514868,
+          0.7963267349924974,
+          0.00622465956634164
+        ],
+        "outcome": "stopped",
+        "position": [
+          -2.7848802084079214,
+          0.6467696584462027,
+          9.089325639539732
+        ]
+      },
+      "kind": "stopped",
+      "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+      "normal": [
+        -0.006224659566341677,
+        0.7963267349924974,
+        -0.6048346755514868
+      ],
+      "position": [
+        240.91067436046026,
+        0.6467696584462027,
+        -2.784880208407921
+      ],
+      "sequence": 74,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 31,
+        "type": "AP",
+        "velocity": [
+          794.1763742694995,
+          -12.82162584239228,
+          243.32789850294841
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 313
+    },
+    {
+      "impact": {
+        "direction": [
+          0.3301309117179179,
+          -0.03785922567487116,
+          -0.9431756252997612
+        ],
+        "normal": [
+          -0.5971108598139448,
+          0.8021248987690829,
+          0.007366672718373876
+        ],
+        "outcome": "stopped",
+        "position": [
+          -2.602237364918607,
+          0.7982068240044611,
+          7.434521436658487
+        ]
+      },
+      "kind": "stopped",
+      "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+      "normal": [
+        -0.007366672718373913,
+        0.8021248987690829,
+        -0.5971108598139448
+      ],
+      "position": [
+        242.56547856334151,
+        0.7982068240044611,
+        -2.6022373649186066
+      ],
+      "sequence": 75,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 30,
+        "type": "AP",
+        "velocity": [
+          783.073596824627,
+          -31.514453758427077,
+          274.09190136755404
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 314
+    },
+    {
+      "kind": "shot",
+      "message": "After 40 mm twin fired",
+      "position": [
+        2.702828058792617,
+        8.375797155500756,
+        -42.88716440999468
+      ],
+      "sequence": 76,
+      "shell": {
+        "caliberM": 0.04,
+        "id": 33,
+        "type": "AP",
+        "velocity": [
+          865.157459557217,
+          -26.149082401533374,
+          149.7192759032733
+        ]
+      },
+      "shipId": "player",
+      "tick": 316
+    },
+    {
+      "kind": "shot",
+      "message": "After 40 mm twin fired",
+      "position": [
+        2.600239838987808,
+        8.375797155500756,
+        -42.34681669124565
+      ],
+      "sequence": 77,
+      "shell": {
+        "caliberM": 0.04,
+        "id": 34,
+        "type": "AP",
+        "velocity": [
+          865.157459557217,
+          -26.149082401533374,
+          149.7192759032733
+        ]
+      },
+      "shipId": "player",
+      "tick": 316
+    },
+    {
+      "kind": "shot",
+      "message": "20 mm station 2 fired",
+      "position": [
+        4.596447584489333,
+        9.884307167932977,
+        -92.62884000617117
+      ],
+      "sequence": 78,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 35,
+        "type": "AP",
+        "velocity": [
+          775.8312781287049,
+          -28.116523373551505,
+          292.84152125333526
+        ]
+      },
+      "shipId": "player",
+      "tick": 324
+    },
+    {
+      "kind": "shot",
+      "message": "20 mm station 4 fired",
+      "position": [
+        5.412829986120249,
+        4.007598095882898,
+        -81.67111119980201
+      ],
+      "sequence": 79,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 36,
+        "type": "AP",
+        "velocity": [
+          787.4631949967176,
+          -9.769424469603905,
+          262.9450861951881
+        ]
+      },
+      "shipId": "player",
+      "tick": 324
+    },
+    {
+      "kind": "shot",
+      "message": "20 mm station 6 fired",
+      "position": [
+        5.457657649222147,
+        3.907368874033721,
+        -43.8351861013175
+      ],
+      "sequence": 80,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 37,
+        "type": "AP",
+        "velocity": [
+          819.1840314961039,
+          -9.94999073758781,
+          146.8420026700371
+        ]
+      },
+      "shipId": "player",
+      "tick": 324
+    },
+    {
+      "impact": {
+        "direction": [
+          0.17042789679069267,
+          -0.03283682041344584,
+          -0.9848228648953252
+        ],
+        "normal": [
+          -0.4739835204275883,
+          0.8796281470369129,
+          0.039924244557376865
+        ],
+        "outcome": "stopped",
+        "position": [
+          -2.048241498197668,
+          0.9819577564919513,
+          14.533198875227672
+        ]
+      },
+      "kind": "stopped",
+      "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+      "normal": [
+        -0.03992424455737689,
+        0.8796281470369129,
+        -0.4739835204275883
+      ],
+      "position": [
+        235.46680112477233,
+        0.9819577564919513,
+        -2.048241498197667
+      ],
+      "sequence": 81,
+      "shell": {
+        "caliberM": 0.04,
+        "id": 34,
+        "type": "AP",
+        "velocity": [
+          865.157459557217,
+          -28.928582401533358,
+          149.7192759032733
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 332
+    },
+    {
+      "impact": {
+        "direction": [
+          0.17042789679069267,
+          -0.03283682041344584,
+          -0.9848228648953252
+        ],
+        "normal": [
+          -0.6503772685019502,
+          0.7579531842649758,
+          0.050163523386281085
+        ],
+        "outcome": "stopped",
+        "position": [
+          -2.286611414413095,
+          0.9237748471363243,
+          12.685622597562961
+        ]
+      },
+      "kind": "stopped",
+      "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+      "normal": [
+        -0.05016352338628113,
+        0.7579531842649758,
+        -0.6503772685019502
+      ],
+      "position": [
+        237.31437740243703,
+        0.9237748471363243,
+        -2.2866114144130942
+      ],
+      "sequence": 82,
+      "shell": {
+        "caliberM": 0.04,
+        "id": 33,
+        "type": "AP",
+        "velocity": [
+          865.157459557217,
+          -28.928582401533358,
+          149.7192759032733
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 332
+    },
+    {
+      "impact": {
+        "direction": [
+          0.17642131536216007,
+          -0.015195455092632832,
+          -0.9841974484982233
+        ],
+        "normal": [
+          -0.5962529034530272,
+          0.800972368802765,
+          0.05409010573406806
+        ],
+        "outcome": "stopped",
+        "position": [
+          -2.464352712578513,
+          0.7146316456898558,
+          13.747845779558604
+        ]
+      },
+      "kind": "stopped",
+      "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+      "normal": [
+        -0.0540901057340681,
+        0.800972368802765,
+        -0.5962529034530272
+      ],
+      "position": [
+        236.25215422044138,
+        0.7146316456898558,
+        -2.464352712578512
+      ],
+      "sequence": 83,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 37,
+        "type": "AP",
+        "velocity": [
+          819.1840314961039,
+          -12.729490737587824,
+          146.8420026700371
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 340
+    },
+    {
+      "impact": {
+        "direction": [
+          0.31668687896970793,
+          -0.015212183406583988,
+          -0.9484081453490527
+        ],
+        "normal": [
+          -0.6048346755514868,
+          0.7963267349924974,
+          0.00622465956634164
+        ],
+        "outcome": "stopped",
+        "position": [
+          -2.8058618716506682,
+          0.6361986755946537,
+          8.402945738022908
+        ]
+      },
+      "kind": "stopped",
+      "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+      "normal": [
+        -0.006224659566341677,
+        0.7963267349924974,
+        -0.6048346755514868
+      ],
+      "position": [
+        241.5970542619771,
+        0.6361986755946537,
+        -2.805861871650668
+      ],
+      "sequence": 84,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 36,
+        "type": "AP",
+        "velocity": [
+          787.4631949967176,
+          -12.71242446960392,
+          262.9450861951881
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 341
+    },
+    {
+      "impact": {
+        "direction": [
+          0.352887680910349,
+          -0.037526685745772205,
+          -0.9349128475524624
+        ],
+        "normal": [
+          -0.6048346755514868,
+          0.7963267349924974,
+          0.00622465956634164
+        ],
+        "outcome": "stopped",
+        "position": [
+          -2.631511430930258,
+          0.7798107400565406,
+          6.971713385774866
+        ]
+      },
+      "kind": "stopped",
+      "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+      "normal": [
+        -0.006224659566341677,
+        0.7963267349924974,
+        -0.6048346755514868
+      ],
+      "position": [
+        243.02828661422512,
+        0.7798107400565406,
+        -2.6315114309302574
+      ],
+      "sequence": 85,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 35,
+        "type": "AP",
+        "velocity": [
+          775.8312781287049,
+          -31.223023373551488,
+          292.84152125333526
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 342
+    },
+    {
+      "kind": "shot",
+      "message": "After 40 mm twin fired",
+      "position": [
+        2.695026411406503,
+        8.37629048912194,
+        -50.38601099123625
+      ],
+      "sequence": 86,
+      "shell": {
+        "caliberM": 0.04,
+        "id": 38,
+        "type": "AP",
+        "velocity": [
+          860.0866999245209,
+          -25.975231633428063,
+          174.25873578886115
+        ]
+      },
+      "shipId": "player",
+      "tick": 347
+    },
+    {
+      "kind": "shot",
+      "message": "After 40 mm twin fired",
+      "position": [
+        2.576957482940834,
+        8.37629048912194,
+        -49.84883343387652
+      ],
+      "sequence": 87,
+      "shell": {
+        "caliberM": 0.04,
+        "id": 39,
+        "type": "AP",
+        "velocity": [
+          860.0866999245209,
+          -25.975231633428063,
+          174.25873578886115
+        ]
+      },
+      "shipId": "player",
+      "tick": 347
+    },
+    {
+      "kind": "shot",
+      "message": "20 mm station 2 fired",
+      "position": [
+        4.585600973476818,
+        9.884699549372279,
+        -99.4698408965608
+      ],
+      "sequence": 88,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 40,
+        "type": "AP",
+        "velocity": [
+          768.1573348144314,
+          -27.80743044731014,
+          311.34475353520276
+        ]
+      },
+      "shipId": "player",
+      "tick": 352
+    },
+    {
+      "kind": "shot",
+      "message": "20 mm station 4 fired",
+      "position": [
+        5.402662480334536,
+        4.007746977222766,
+        -88.5108377151031
+      ],
+      "sequence": 89,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 41,
+        "type": "AP",
+        "velocity": [
+          780.2685718947993,
+          -9.652145300934075,
+          282.3506823071246
+        ]
+      },
+      "shipId": "player",
+      "tick": 352
+    },
+    {
+      "kind": "shot",
+      "message": "20 mm station 6 fired",
+      "position": [
+        5.45104767243457,
+        3.9074623257052057,
+        -50.6713500695336
+      ],
+      "sequence": 90,
+      "shell": {
+        "caliberM": 0.02,
+        "id": 42,
+        "type": "AP",
+        "velocity": [
+          814.5067531563768,
+          -9.8763755058048,
+          168.76850058083932
+        ]
+      },
+      "shipId": "player",
+      "tick": 352
+    }
+  ],
+  "shipId": "fletcher",
+  "tick": 360,
+  "torpedoLaunchers": [
+    {
+      "id": "torpedo-forward",
+      "train": 1.8849555921537586
+    },
+    {
+      "id": "torpedo-aft",
+      "train": 1.831388760009565
+    }
+  ],
+  "torpedoes": []
+}

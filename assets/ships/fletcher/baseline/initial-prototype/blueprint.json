@@ -1,0 +1,1625 @@
+{
+  "schemaVersion": 1,
+  "id": "fletcher",
+  "name": "Fletcher",
+  "configuration": "Fletcher class \u00b7 early-war 1942-inspired fit \u00b7 five 5-inch guns, ten torpedo tubes and eight depth-charge stations",
+  "coordinates": "meters-y-up-bow-negative-z",
+  "modelUrl": "/models/fletcher.glb",
+  "hull": {
+    "kind": "authored-stations-v1",
+    "length": 114.7,
+    "beam": 12.1,
+    "draft": 4.2,
+    "depth": 9,
+    "massKg": 2924000,
+    "waterplaneAreaM2": 1030,
+    "reserveBuoyancyM3": 1350,
+    "halfBreadths": [
+      [
+        0,
+        2.5
+      ],
+      [
+        3,
+        3.65
+      ],
+      [
+        9,
+        4.65
+      ],
+      [
+        18,
+        5.45
+      ],
+      [
+        30,
+        5.95
+      ],
+      [
+        43,
+        6.05
+      ],
+      [
+        58,
+        6.05
+      ],
+      [
+        73,
+        5.75
+      ],
+      [
+        85,
+        4.9
+      ],
+      [
+        95,
+        3.6
+      ],
+      [
+        104,
+        2.05
+      ],
+      [
+        110,
+        1.0
+      ],
+      [
+        114.7,
+        0
+      ]
+    ],
+    "deckHeights": [
+      [
+        0,
+        2.8
+      ],
+      [
+        65,
+        2.8
+      ],
+      [
+        88,
+        3.2
+      ],
+      [
+        102,
+        4.05
+      ],
+      [
+        114.7,
+        4.8
+      ]
+    ],
+    "keelHeights": [
+      [
+        0,
+        -0.65
+      ],
+      [
+        9,
+        -2.65
+      ],
+      [
+        23,
+        -4.2
+      ],
+      [
+        90,
+        -4.2
+      ],
+      [
+        106,
+        -2.3
+      ],
+      [
+        114.7,
+        -0.4
+      ]
+    ],
+    "sections": [
+      {
+        "station": 0,
+        "points": [
+          [
+            0,
+            -0.65
+          ],
+          [
+            1.3,
+            -0.585
+          ],
+          [
+            2.125,
+            -0.35750000000000004
+          ],
+          [
+            2.425,
+            -0.2
+          ],
+          [
+            2.5,
+            0
+          ],
+          [
+            2.5,
+            2.8
+          ]
+        ]
+      },
+      {
+        "station": 3,
+        "points": [
+          [
+            0,
+            -1.31667
+          ],
+          [
+            1.898,
+            -1.185
+          ],
+          [
+            3.1025,
+            -0.7241685000000001
+          ],
+          [
+            3.5405,
+            -0.2
+          ],
+          [
+            3.65,
+            0
+          ],
+          [
+            3.65,
+            2.8
+          ]
+        ]
+      },
+      {
+        "station": 9,
+        "points": [
+          [
+            0,
+            -2.65
+          ],
+          [
+            2.418,
+            -2.385
+          ],
+          [
+            3.9525,
+            -1.4575
+          ],
+          [
+            4.5105,
+            -0.2
+          ],
+          [
+            4.65,
+            0
+          ],
+          [
+            4.65,
+            2.8
+          ]
+        ]
+      },
+      {
+        "station": 18,
+        "points": [
+          [
+            0,
+            -3.64643
+          ],
+          [
+            2.834,
+            -3.28179
+          ],
+          [
+            4.6325,
+            -2.0055365000000003
+          ],
+          [
+            5.2865,
+            -0.2
+          ],
+          [
+            5.45,
+            0
+          ],
+          [
+            5.45,
+            2.8
+          ]
+        ]
+      },
+      {
+        "station": 30,
+        "points": [
+          [
+            0,
+            -4.2
+          ],
+          [
+            3.094,
+            -3.78
+          ],
+          [
+            5.0575,
+            -2.3100000000000005
+          ],
+          [
+            5.7715,
+            -0.2
+          ],
+          [
+            5.95,
+            0
+          ],
+          [
+            5.95,
+            2.8
+          ]
+        ]
+      },
+      {
+        "station": 43,
+        "points": [
+          [
+            0,
+            -4.2
+          ],
+          [
+            3.146,
+            -3.78
+          ],
+          [
+            5.1425,
+            -2.3100000000000005
+          ],
+          [
+            5.8685,
+            -0.2
+          ],
+          [
+            6.05,
+            0
+          ],
+          [
+            6.05,
+            2.8
+          ]
+        ]
+      },
+      {
+        "station": 58,
+        "points": [
+          [
+            0,
+            -4.2
+          ],
+          [
+            3.146,
+            -3.78
+          ],
+          [
+            5.1425,
+            -2.3100000000000005
+          ],
+          [
+            5.8685,
+            -0.2
+          ],
+          [
+            6.05,
+            0
+          ],
+          [
+            6.05,
+            2.8
+          ]
+        ]
+      },
+      {
+        "station": 73,
+        "points": [
+          [
+            0,
+            -4.2
+          ],
+          [
+            2.99,
+            -3.78
+          ],
+          [
+            4.8875,
+            -2.3100000000000005
+          ],
+          [
+            5.5775,
+            -0.2
+          ],
+          [
+            5.75,
+            0
+          ],
+          [
+            5.75,
+            2.93913
+          ]
+        ]
+      },
+      {
+        "station": 85,
+        "points": [
+          [
+            0,
+            -4.2
+          ],
+          [
+            2.548,
+            -3.78
+          ],
+          [
+            4.165,
+            -2.3100000000000005
+          ],
+          [
+            4.753,
+            -0.2
+          ],
+          [
+            4.9,
+            0
+          ],
+          [
+            4.9,
+            3.14783
+          ]
+        ]
+      },
+      {
+        "station": 95,
+        "points": [
+          [
+            0,
+            -3.60625
+          ],
+          [
+            1.872,
+            -3.24563
+          ],
+          [
+            3.06,
+            -1.9834375000000002
+          ],
+          [
+            3.492,
+            -0.2
+          ],
+          [
+            3.6,
+            0
+          ],
+          [
+            3.6,
+            3.625
+          ]
+        ]
+      },
+      {
+        "station": 104,
+        "points": [
+          [
+            0,
+            -2.5375
+          ],
+          [
+            1.066,
+            -2.28375
+          ],
+          [
+            1.7425,
+            -1.3956250000000001
+          ],
+          [
+            1.9885,
+            -0.2
+          ],
+          [
+            2.05,
+            0
+          ],
+          [
+            2.05,
+            4.16811
+          ]
+        ]
+      },
+      {
+        "station": 110,
+        "points": [
+          [
+            0,
+            -1.42644
+          ],
+          [
+            0.52,
+            -1.2838
+          ],
+          [
+            0.85,
+            -0.7845420000000001
+          ],
+          [
+            0.97,
+            -0.2
+          ],
+          [
+            1.0,
+            0
+          ],
+          [
+            1.0,
+            4.52244
+          ]
+        ]
+      },
+      {
+        "station": 114.7,
+        "points": [
+          [
+            0,
+            -0.4
+          ],
+          [
+            0.0,
+            -0.36
+          ],
+          [
+            0.0,
+            -0.22000000000000003
+          ],
+          [
+            0.0,
+            -0.2
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            4.8
+          ]
+        ]
+      }
+    ]
+  },
+  "handling": {
+    "forwardSpeed": 18.52,
+    "reverseSpeed": 5,
+    "acceleration": 0.48,
+    "braking": 0.4,
+    "rudderRate": 0.6,
+    "maxYawRate": 0.065
+  },
+  "mounts": [
+    {
+      "id": "gun-1",
+      "name": "Mount 51",
+      "partId": "us-5in38-mk30-single",
+      "battery": "main",
+      "position": [
+        0,
+        3.95,
+        -43
+      ],
+      "bearingDeg": 0,
+      "rangefinder": false,
+      "magazineId": "forward-magazine"
+    },
+    {
+      "id": "gun-2",
+      "name": "Mount 52",
+      "partId": "us-5in38-mk30-single",
+      "battery": "main",
+      "position": [
+        0,
+        5.8,
+        -30
+      ],
+      "bearingDeg": 0,
+      "rangefinder": false,
+      "magazineId": "forward-magazine"
+    },
+    {
+      "id": "gun-3",
+      "name": "Mount 53",
+      "partId": "us-5in38-mk30-single",
+      "battery": "main",
+      "position": [
+        0,
+        5.6,
+        21
+      ],
+      "bearingDeg": 0,
+      "rangefinder": false,
+      "magazineId": "aft-magazine"
+    },
+    {
+      "id": "gun-4",
+      "name": "Mount 54",
+      "partId": "us-5in38-mk30-single",
+      "battery": "main",
+      "position": [
+        0,
+        5.6,
+        33
+      ],
+      "bearingDeg": 180,
+      "rangefinder": false,
+      "magazineId": "aft-magazine"
+    },
+    {
+      "id": "gun-5",
+      "name": "Mount 55",
+      "partId": "us-5in38-mk30-single",
+      "battery": "main",
+      "position": [
+        0,
+        2.8,
+        45
+      ],
+      "bearingDeg": 180,
+      "rangefinder": false,
+      "magazineId": "aft-magazine"
+    },
+    {
+      "id": "bofors-aft",
+      "name": "After 40 mm twin",
+      "partId": "us-40mm-bofors-twin",
+      "battery": "secondary",
+      "position": [
+        0,
+        7.3,
+        27
+      ],
+      "bearingDeg": 180,
+      "rangefinder": false,
+      "magazineId": "aft-magazine"
+    },
+    {
+      "id": "oerlikon-1",
+      "name": "20 mm station 1",
+      "partId": "oerlikon-20mm-single",
+      "battery": "secondary",
+      "position": [
+        -3.5,
+        8.8,
+        -21
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "forward-magazine"
+    },
+    {
+      "id": "oerlikon-2",
+      "name": "20 mm station 2",
+      "partId": "oerlikon-20mm-single",
+      "battery": "secondary",
+      "position": [
+        3.5,
+        8.8,
+        -21
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "forward-magazine"
+    },
+    {
+      "id": "oerlikon-3",
+      "name": "20 mm station 3",
+      "partId": "oerlikon-20mm-single",
+      "battery": "secondary",
+      "position": [
+        -4.3,
+        2.9,
+        -10
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "forward-magazine"
+    },
+    {
+      "id": "oerlikon-4",
+      "name": "20 mm station 4",
+      "partId": "oerlikon-20mm-single",
+      "battery": "secondary",
+      "position": [
+        4.3,
+        2.9,
+        -10
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "forward-magazine"
+    },
+    {
+      "id": "oerlikon-5",
+      "name": "20 mm station 5",
+      "partId": "oerlikon-20mm-single",
+      "battery": "secondary",
+      "position": [
+        -4.3,
+        2.8,
+        28
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "aft-magazine"
+    },
+    {
+      "id": "oerlikon-6",
+      "name": "20 mm station 6",
+      "partId": "oerlikon-20mm-single",
+      "battery": "secondary",
+      "position": [
+        4.3,
+        2.8,
+        28
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "aft-magazine"
+    }
+  ],
+  "armor": [],
+  "compartments": [
+    {
+      "id": "forepeak-space",
+      "name": "Forepeak",
+      "center": [
+        0,
+        -0.6,
+        -49
+      ],
+      "size": [
+        3,
+        5,
+        10
+      ],
+      "capacityM3": 105,
+      "pumpM3PerSecond": 0.014
+    },
+    {
+      "id": "forward-magazine-space",
+      "name": "Forward ammunition rooms",
+      "center": [
+        0,
+        -0.6,
+        -34
+      ],
+      "size": [
+        6.4,
+        5,
+        15
+      ],
+      "capacityM3": 336,
+      "pumpM3PerSecond": 0.014
+    },
+    {
+      "id": "boiler-forward-space",
+      "name": "Forward boiler room",
+      "center": [
+        0,
+        -0.6,
+        -16
+      ],
+      "size": [
+        8,
+        5,
+        13
+      ],
+      "capacityM3": 364,
+      "pumpM3PerSecond": 0.014
+    },
+    {
+      "id": "engine-forward-space",
+      "name": "Forward engine room",
+      "center": [
+        0,
+        -0.6,
+        -2
+      ],
+      "size": [
+        8,
+        5,
+        13
+      ],
+      "capacityM3": 364,
+      "pumpM3PerSecond": 0.014
+    },
+    {
+      "id": "boiler-aft-space",
+      "name": "After boiler room",
+      "center": [
+        0,
+        -0.6,
+        12
+      ],
+      "size": [
+        8,
+        5,
+        13
+      ],
+      "capacityM3": 364,
+      "pumpM3PerSecond": 0.014
+    },
+    {
+      "id": "engine-aft-space",
+      "name": "After engine room",
+      "center": [
+        0,
+        -0.6,
+        25
+      ],
+      "size": [
+        7.4,
+        5,
+        11
+      ],
+      "capacityM3": 285,
+      "pumpM3PerSecond": 0.014
+    },
+    {
+      "id": "aft-magazine-space",
+      "name": "After ammunition rooms",
+      "center": [
+        0,
+        -0.6,
+        38
+      ],
+      "size": [
+        6,
+        5,
+        10
+      ],
+      "capacityM3": 210,
+      "pumpM3PerSecond": 0.014
+    },
+    {
+      "id": "steering-room-space",
+      "name": "Steering flat",
+      "center": [
+        0,
+        -0.6,
+        48
+      ],
+      "size": [
+        4.5,
+        5,
+        7
+      ],
+      "capacityM3": 110,
+      "pumpM3PerSecond": 0.014
+    },
+    {
+      "id": "torpedo-magazine-space",
+      "name": "Torpedo ready service",
+      "center": [
+        0,
+        3.3,
+        14
+      ],
+      "size": [
+        4.5,
+        1.2,
+        7
+      ],
+      "capacityM3": 1,
+      "pumpM3PerSecond": 0
+    },
+    {
+      "id": "depth-charge-magazine-space",
+      "name": "Depth charge ready service",
+      "center": [
+        0,
+        3.3,
+        51
+      ],
+      "size": [
+        5,
+        1.2,
+        4
+      ],
+      "capacityM3": 1,
+      "pumpM3PerSecond": 0
+    }
+  ],
+  "modules": [
+    {
+      "id": "forward-magazine",
+      "name": "Forward ammunition rooms",
+      "kind": "magazine",
+      "center": [
+        0,
+        -0.6,
+        -34
+      ],
+      "size": [
+        5.120000000000001,
+        3.2,
+        12.0
+      ],
+      "hp": 80,
+      "compartmentId": "forward-magazine-space"
+    },
+    {
+      "id": "boiler-forward",
+      "name": "Forward boiler room",
+      "kind": "engine",
+      "center": [
+        0,
+        -0.6,
+        -16
+      ],
+      "size": [
+        6.4,
+        3.2,
+        10.4
+      ],
+      "hp": 100,
+      "compartmentId": "boiler-forward-space"
+    },
+    {
+      "id": "engine-forward",
+      "name": "Forward engine room",
+      "kind": "engine",
+      "center": [
+        0,
+        -0.6,
+        -2
+      ],
+      "size": [
+        6.4,
+        3.2,
+        10.4
+      ],
+      "hp": 100,
+      "compartmentId": "engine-forward-space"
+    },
+    {
+      "id": "boiler-aft",
+      "name": "After boiler room",
+      "kind": "engine",
+      "center": [
+        0,
+        -0.6,
+        12
+      ],
+      "size": [
+        6.4,
+        3.2,
+        10.4
+      ],
+      "hp": 100,
+      "compartmentId": "boiler-aft-space"
+    },
+    {
+      "id": "engine-aft",
+      "name": "After engine room",
+      "kind": "engine",
+      "center": [
+        0,
+        -0.6,
+        25
+      ],
+      "size": [
+        5.920000000000001,
+        3.2,
+        8.8
+      ],
+      "hp": 100,
+      "compartmentId": "engine-aft-space"
+    },
+    {
+      "id": "aft-magazine",
+      "name": "After ammunition rooms",
+      "kind": "magazine",
+      "center": [
+        0,
+        -0.6,
+        38
+      ],
+      "size": [
+        4.800000000000001,
+        3.2,
+        8.0
+      ],
+      "hp": 80,
+      "compartmentId": "aft-magazine-space"
+    },
+    {
+      "id": "steering-room",
+      "name": "Steering flat",
+      "kind": "steering",
+      "center": [
+        0,
+        -0.6,
+        48
+      ],
+      "size": [
+        3.6,
+        3.2,
+        5.6000000000000005
+      ],
+      "hp": 80,
+      "compartmentId": "steering-room-space"
+    },
+    {
+      "id": "torpedo-magazine",
+      "name": "Torpedo ready service",
+      "kind": "magazine",
+      "center": [
+        0,
+        3.3,
+        14
+      ],
+      "size": [
+        4.05,
+        1.08,
+        6.3
+      ],
+      "hp": 90,
+      "compartmentId": "torpedo-magazine-space"
+    },
+    {
+      "id": "depth-charge-magazine",
+      "name": "Depth charge ready service",
+      "kind": "magazine",
+      "center": [
+        0,
+        3.3,
+        51
+      ],
+      "size": [
+        4.5,
+        1.08,
+        3.6
+      ],
+      "hp": 90,
+      "compartmentId": "depth-charge-magazine-space"
+    }
+  ],
+  "connections": [],
+  "obstructions": [
+    {
+      "id": "forward-deckhouse",
+      "center": [
+        0,
+        4.4,
+        -24.0
+      ],
+      "size": [
+        7.4,
+        2.8,
+        21.599999999999998
+      ]
+    },
+    {
+      "id": "bridge",
+      "center": [
+        0,
+        7.3,
+        -20.0
+      ],
+      "size": [
+        6.7,
+        3.0,
+        11.600000000000001
+      ]
+    },
+    {
+      "id": "pilot-house",
+      "center": [
+        0,
+        9.700000000000001,
+        -21.0
+      ],
+      "size": [
+        5.6,
+        1.8,
+        7.600000000000001
+      ]
+    },
+    {
+      "id": "forward-funnel",
+      "center": [
+        0,
+        7.15,
+        -8.0
+      ],
+      "size": [
+        3.4,
+        8.3,
+        6
+      ]
+    },
+    {
+      "id": "aft-funnel",
+      "center": [
+        0,
+        6.55,
+        6.0
+      ],
+      "size": [
+        3.2,
+        7.1,
+        6
+      ]
+    },
+    {
+      "id": "aft-deckhouse",
+      "center": [
+        0,
+        4.199999999999999,
+        27.5
+      ],
+      "size": [
+        6,
+        2.8,
+        17
+      ]
+    }
+  ],
+  "accuracy": {
+    "exterior": "Original early-war Fletcher-class interpretation. Principal dimensions and weapon counts sourced; hull sections, fittings and exact refit arrangement are approximate.",
+    "internals": "Provisional machinery, magazines, ready-service and flooding envelopes; not surveyed watertight subdivisions.",
+    "weapons": "Five articulated 127 mm guns; two trainable quintuple Mk 15 mounts with ten total rounds; two racks and six K-guns with 28 charges. Shallow 10 m blast, damage, reloads and arcs are gameplay tuning."
+  },
+  "viewpoints": {
+    "bridge": [
+      0,
+      10.6,
+      -20
+    ]
+  },
+  "structures": [
+    {
+      "id": "forward-deckhouse",
+      "name": "Forward deckhouse",
+      "footprint": [
+        [
+          -3.7,
+          -13.2
+        ],
+        [
+          -2.9000000000000004,
+          -14
+        ],
+        [
+          2.9000000000000004,
+          -14
+        ],
+        [
+          3.7,
+          -13.2
+        ],
+        [
+          3.7,
+          -34.8
+        ],
+        [
+          2.9000000000000004,
+          -34
+        ],
+        [
+          -2.9000000000000004,
+          -34
+        ],
+        [
+          -3.7,
+          -34.8
+        ]
+      ],
+      "baseY": 3,
+      "height": 2.8,
+      "material": "naval"
+    },
+    {
+      "id": "bridge",
+      "name": "Rounded bridge block",
+      "footprint": [
+        [
+          -3.35,
+          -14.2
+        ],
+        [
+          -2.55,
+          -15
+        ],
+        [
+          2.55,
+          -15
+        ],
+        [
+          3.35,
+          -14.2
+        ],
+        [
+          3.35,
+          -25.8
+        ],
+        [
+          2.55,
+          -25
+        ],
+        [
+          -2.55,
+          -25
+        ],
+        [
+          -3.35,
+          -25.8
+        ]
+      ],
+      "baseY": 5.8,
+      "height": 3.0,
+      "material": "naval"
+    },
+    {
+      "id": "pilot-house",
+      "name": "Pilot house",
+      "footprint": [
+        [
+          -2.8,
+          -17.2
+        ],
+        [
+          -1.9999999999999998,
+          -18
+        ],
+        [
+          1.9999999999999998,
+          -18
+        ],
+        [
+          2.8,
+          -17.2
+        ],
+        [
+          2.8,
+          -24.8
+        ],
+        [
+          1.9999999999999998,
+          -24
+        ],
+        [
+          -1.9999999999999998,
+          -24
+        ],
+        [
+          -2.8,
+          -24.8
+        ]
+      ],
+      "baseY": 8.8,
+      "height": 1.8,
+      "material": "naval"
+    },
+    {
+      "id": "forward-funnel",
+      "name": "Forward funnel",
+      "footprint": [
+        [
+          -1.7,
+          -5
+        ],
+        [
+          1.7,
+          -5
+        ],
+        [
+          1.7,
+          -11
+        ],
+        [
+          -1.7,
+          -11
+        ]
+      ],
+      "baseY": 3,
+      "height": 8.3,
+      "material": "naval"
+    },
+    {
+      "id": "aft-funnel",
+      "name": "Aft funnel",
+      "footprint": [
+        [
+          -1.6,
+          9
+        ],
+        [
+          1.6,
+          9
+        ],
+        [
+          1.6,
+          3
+        ],
+        [
+          -1.6,
+          3
+        ]
+      ],
+      "baseY": 3,
+      "height": 7.1,
+      "material": "naval"
+    },
+    {
+      "id": "aft-deckhouse",
+      "name": "After deckhouse",
+      "footprint": [
+        [
+          -3,
+          36
+        ],
+        [
+          3,
+          36
+        ],
+        [
+          3,
+          19
+        ],
+        [
+          -3,
+          19
+        ]
+      ],
+      "baseY": 2.8,
+      "height": 2.8,
+      "material": "naval"
+    }
+  ],
+  "torpedoLaunchers": [
+    {
+      "id": "torpedo-forward",
+      "name": "Forward quintuple torpedo mount",
+      "position": [
+        0,
+        3.0,
+        -1
+      ],
+      "traverseRateDeg": 18,
+      "launchArcsDeg": [
+        [
+          -140,
+          -40
+        ],
+        [
+          40,
+          140
+        ]
+      ]
+    },
+    {
+      "id": "torpedo-aft",
+      "name": "Aft quintuple torpedo mount",
+      "position": [
+        0,
+        3.0,
+        14
+      ],
+      "traverseRateDeg": 18,
+      "launchArcsDeg": [
+        [
+          -140,
+          -40
+        ],
+        [
+          40,
+          140
+        ]
+      ]
+    }
+  ],
+  "torpedoTubes": [
+    {
+      "id": "torpedo-forward-1",
+      "name": "Forward tube 1",
+      "partId": "us-mk15-fast",
+      "position": [
+        -1.3,
+        3.85,
+        -4.9
+      ],
+      "bearingDeg": 0,
+      "arcDeg": 2,
+      "ammo": 1,
+      "magazineId": "torpedo-magazine",
+      "launcherId": "torpedo-forward"
+    },
+    {
+      "id": "torpedo-forward-2",
+      "name": "Forward tube 2",
+      "partId": "us-mk15-fast",
+      "position": [
+        -0.65,
+        3.85,
+        -4.9
+      ],
+      "bearingDeg": 0,
+      "arcDeg": 2,
+      "ammo": 1,
+      "magazineId": "torpedo-magazine",
+      "launcherId": "torpedo-forward"
+    },
+    {
+      "id": "torpedo-forward-3",
+      "name": "Forward tube 3",
+      "partId": "us-mk15-fast",
+      "position": [
+        0.0,
+        3.85,
+        -4.9
+      ],
+      "bearingDeg": 0,
+      "arcDeg": 2,
+      "ammo": 1,
+      "magazineId": "torpedo-magazine",
+      "launcherId": "torpedo-forward"
+    },
+    {
+      "id": "torpedo-forward-4",
+      "name": "Forward tube 4",
+      "partId": "us-mk15-fast",
+      "position": [
+        0.65,
+        3.85,
+        -4.9
+      ],
+      "bearingDeg": 0,
+      "arcDeg": 2,
+      "ammo": 1,
+      "magazineId": "torpedo-magazine",
+      "launcherId": "torpedo-forward"
+    },
+    {
+      "id": "torpedo-forward-5",
+      "name": "Forward tube 5",
+      "partId": "us-mk15-fast",
+      "position": [
+        1.3,
+        3.85,
+        -4.9
+      ],
+      "bearingDeg": 0,
+      "arcDeg": 2,
+      "ammo": 1,
+      "magazineId": "torpedo-magazine",
+      "launcherId": "torpedo-forward"
+    },
+    {
+      "id": "torpedo-aft-1",
+      "name": "Aft tube 1",
+      "partId": "us-mk15-fast",
+      "position": [
+        -1.3,
+        3.85,
+        10.1
+      ],
+      "bearingDeg": 0,
+      "arcDeg": 2,
+      "ammo": 1,
+      "magazineId": "torpedo-magazine",
+      "launcherId": "torpedo-aft"
+    },
+    {
+      "id": "torpedo-aft-2",
+      "name": "Aft tube 2",
+      "partId": "us-mk15-fast",
+      "position": [
+        -0.65,
+        3.85,
+        10.1
+      ],
+      "bearingDeg": 0,
+      "arcDeg": 2,
+      "ammo": 1,
+      "magazineId": "torpedo-magazine",
+      "launcherId": "torpedo-aft"
+    },
+    {
+      "id": "torpedo-aft-3",
+      "name": "Aft tube 3",
+      "partId": "us-mk15-fast",
+      "position": [
+        0.0,
+        3.85,
+        10.1
+      ],
+      "bearingDeg": 0,
+      "arcDeg": 2,
+      "ammo": 1,
+      "magazineId": "torpedo-magazine",
+      "launcherId": "torpedo-aft"
+    },
+    {
+      "id": "torpedo-aft-4",
+      "name": "Aft tube 4",
+      "partId": "us-mk15-fast",
+      "position": [
+        0.65,
+        3.85,
+        10.1
+      ],
+      "bearingDeg": 0,
+      "arcDeg": 2,
+      "ammo": 1,
+      "magazineId": "torpedo-magazine",
+      "launcherId": "torpedo-aft"
+    },
+    {
+      "id": "torpedo-aft-5",
+      "name": "Aft tube 5",
+      "partId": "us-mk15-fast",
+      "position": [
+        1.3,
+        3.85,
+        10.1
+      ],
+      "bearingDeg": 0,
+      "arcDeg": 2,
+      "ammo": 1,
+      "magazineId": "torpedo-magazine",
+      "launcherId": "torpedo-aft"
+    }
+  ],
+  "depthChargeLaunchers": [
+    {
+      "id": "dc-rack-port",
+      "name": "Port stern rack",
+      "partId": "us-mk6-depth-charge",
+      "position": [
+        -2,
+        3.15,
+        55.8
+      ],
+      "velocity": [
+        0,
+        0,
+        2
+      ],
+      "ammo": 8,
+      "magazineId": "depth-charge-magazine"
+    },
+    {
+      "id": "dc-thrower-port-1",
+      "name": "Port K-gun 1",
+      "partId": "us-mk6-depth-charge",
+      "position": [
+        -4.4,
+        3.5,
+        36.5
+      ],
+      "velocity": [
+        -12,
+        9,
+        0
+      ],
+      "ammo": 2,
+      "magazineId": "depth-charge-magazine"
+    },
+    {
+      "id": "dc-thrower-port-2",
+      "name": "Port K-gun 2",
+      "partId": "us-mk6-depth-charge",
+      "position": [
+        -4.4,
+        3.5,
+        40
+      ],
+      "velocity": [
+        -12,
+        9,
+        0
+      ],
+      "ammo": 2,
+      "magazineId": "depth-charge-magazine"
+    },
+    {
+      "id": "dc-thrower-port-3",
+      "name": "Port K-gun 3",
+      "partId": "us-mk6-depth-charge",
+      "position": [
+        -4.4,
+        3.5,
+        43.5
+      ],
+      "velocity": [
+        -12,
+        9,
+        0
+      ],
+      "ammo": 2,
+      "magazineId": "depth-charge-magazine"
+    },
+    {
+      "id": "dc-rack-starboard",
+      "name": "Starboard stern rack",
+      "partId": "us-mk6-depth-charge",
+      "position": [
+        2,
+        3.15,
+        55.8
+      ],
+      "velocity": [
+        0,
+        0,
+        2
+      ],
+      "ammo": 8,
+      "magazineId": "depth-charge-magazine"
+    },
+    {
+      "id": "dc-thrower-starboard-1",
+      "name": "Starboard K-gun 1",
+      "partId": "us-mk6-depth-charge",
+      "position": [
+        4.4,
+        3.5,
+        36.5
+      ],
+      "velocity": [
+        12,
+        9,
+        0
+      ],
+      "ammo": 2,
+      "magazineId": "depth-charge-magazine"
+    },
+    {
+      "id": "dc-thrower-starboard-2",
+      "name": "Starboard K-gun 2",
+      "partId": "us-mk6-depth-charge",
+      "position": [
+        4.4,
+        3.5,
+        40
+      ],
+      "velocity": [
+        12,
+        9,
+        0
+      ],
+      "ammo": 2,
+      "magazineId": "depth-charge-magazine"
+    },
+    {
+      "id": "dc-thrower-starboard-3",
+      "name": "Starboard K-gun 3",
+      "partId": "us-mk6-depth-charge",
+      "position": [
+        4.4,
+        3.5,
+        43.5
+      ],
+      "velocity": [
+        12,
+        9,
+        0
+      ],
+      "ammo": 2,
+      "magazineId": "depth-charge-magazine"
+    }
+  ],
+  "structuralPlating": {
+    "hullMm": 12.7,
+    "superstructureMm": 6,
+    "note": "Estimated structural steel for gameplay collision and inspection; not a verified armor schedule."
+  }
+}

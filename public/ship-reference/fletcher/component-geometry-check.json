@@ -1,0 +1,92 @@
+{
+  "recipeSha256": "24757a9c2bdc625942cbfb8b67cbc1933adf29b063976593849b128b52453d01",
+  "sourceBlendSha256": "d2b2cf852ddb6bf7a1543a50e0d7b977d49cfacb7e689f7214d07222fd03c11a",
+  "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+  "closedBlades": [
+    {
+      "name": "propeller-port.blade-1",
+      "vertices": 2450,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "volumeM3": 0.1254034469097337
+    },
+    {
+      "name": "propeller-port.blade-2",
+      "vertices": 2450,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "volumeM3": 0.12540344762975392
+    },
+    {
+      "name": "propeller-port.blade-3",
+      "vertices": 2450,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "volumeM3": 0.125403448119778
+    },
+    {
+      "name": "propeller-starboard.blade-1",
+      "vertices": 2450,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "volumeM3": 0.12540344690973354
+    },
+    {
+      "name": "propeller-starboard.blade-2",
+      "vertices": 2450,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "volumeM3": 0.1254034476297541
+    },
+    {
+      "name": "propeller-starboard.blade-3",
+      "vertices": 2450,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "volumeM3": 0.12540344811977794
+    }
+  ],
+  "barrelClearanceSamples": [
+    {
+      "elevationDeg": -15,
+      "recoilM": 0,
+      "barrelSurfaceClearanceLowerBoundM": 0.2158390166759491
+    },
+    {
+      "elevationDeg": -15,
+      "recoilM": 0.38,
+      "barrelSurfaceClearanceLowerBoundM": 0.15991683626174927
+    },
+    {
+      "elevationDeg": 0,
+      "recoilM": 0,
+      "barrelSurfaceClearanceLowerBoundM": 0.48527272367477414
+    },
+    {
+      "elevationDeg": 0,
+      "recoilM": 0.38,
+      "barrelSurfaceClearanceLowerBoundM": 0.2819662275314331
+    },
+    {
+      "elevationDeg": 40,
+      "recoilM": 0,
+      "barrelSurfaceClearanceLowerBoundM": 0.659039575099945
+    },
+    {
+      "elevationDeg": 40,
+      "recoilM": 0.38,
+      "barrelSurfaceClearanceLowerBoundM": 0.36510558748245237
+    },
+    {
+      "elevationDeg": 85,
+      "recoilM": 0,
+      "barrelSurfaceClearanceLowerBoundM": 0.683187741279602
+    },
+    {
+      "elevationDeg": 85,
+      "recoilM": 0.38,
+      "barrelSurfaceClearanceLowerBoundM": 0.3813294949531555
+    }
+  ],
+  "limits": "Original component only; sparse conservative barrel-radius samples. Not an all-fittings collision proof or historical certification."
+}

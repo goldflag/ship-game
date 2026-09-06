@@ -51,3 +51,13 @@ describe('player keybindings', () => {
     expect(defaultKeybindings().fire[0]).toBe('KeyQ');
   });
 });
+
+test('older saves gain depth charges without taking an existing custom 4 binding', () => {
+  const saved: Partial<ReturnType<typeof defaultKeybindings>> = defaultKeybindings();
+  delete saved.depthCharges; saved.fire = ['Digit4', null];
+  const result = keybindingsOf(saved);
+  expect(result.fire).toEqual(['Digit4', null]);
+  expect(result.depthCharges[0]).not.toBe('Digit4');
+  expect(result.depthCharges[0]).not.toBeNull();
+  expect(keybindingsOf(result)).toEqual(result);
+});

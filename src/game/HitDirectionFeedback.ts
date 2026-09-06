@@ -27,8 +27,8 @@ export class HitDirectionFeedback {
     for (const event of simulation.events) {
       if (event.sequence <= this.sequence) continue;
       this.sequence = event.sequence;
-      if (event.shipId !== simulation.player.motion.id || !['penetration', 'stopped', 'ricochet', 'module', 'torpedo-hit'].includes(event.kind)) continue;
-      const shell = event.shell ?? event.torpedo, hitTime = event.tick * FIXED_DT;
+      if (event.shipId !== simulation.player.motion.id || !['penetration', 'stopped', 'ricochet', 'module', 'torpedo-hit', 'depth-charge-hit'].includes(event.kind)) continue;
+      const shell = event.shell ?? event.torpedo ?? (event.depthCharge ? { id: event.depthCharge.id, velocity: [simulation.ship.x - event.position[0], 0, simulation.ship.z - event.position[2]] } : undefined), hitTime = event.tick * FIXED_DT;
       if (!shell || this.seen.has(shell.id) || time - hitTime >= HOLD_SECONDS + FADE_SECONDS || !shell.velocity.every(Number.isFinite) || Math.hypot(shell.velocity[0], shell.velocity[2]) < .001) continue;
       this.seen.set(shell.id, hitTime);
       // One projectile can report several armor layers and modules.

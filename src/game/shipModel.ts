@@ -2,6 +2,7 @@ import type { ShipDefinition } from '../ships/blueprint';
 
 const identities: Record<string, { type: string; nation: string }> = {
   'type-viic': { type: 'Submarine', nation: 'Germany' },
+  fletcher: { type: 'Destroyer', nation: 'United States' },
   bismarck: { type: 'Battleship', nation: 'Germany' },
   yamato: { type: 'Battleship', nation: 'Japan' },
   baltimore: { type: 'Heavy cruiser', nation: 'United States' },

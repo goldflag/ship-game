@@ -129,3 +129,27 @@ test('fleet meshes reuse materials within each ship while inspection stays indep
   a.inspect(false);
   expect((materials(a)[0] as InstanceType<typeof MeshStandardMaterial>).opacity).toBe(.9);
 });
+
+test('Fletcher gun and torpedo joints follow interpolated CPU poses on both broadsides and after reset', async () => {
+  const source = await Bun.file(new URL('../../assets/ships/fletcher/blueprint.json', import.meta.url)).json();
+  const bytes = await Bun.file(new URL('../../public/models/fletcher.glb', import.meta.url)).arrayBuffer();
+  const chunkLength = new DataView(bytes).getUint32(12, true);
+  const gltf = JSON.parse(new TextDecoder().decode(new Uint8Array(bytes, 20, chunkLength)));
+  const nodes = gltf.nodes.map(({ mesh: _mesh, ...node }: { mesh?: number }) => node);
+  const model = await new GLTFLoader().parseAsync(JSON.stringify({ asset: gltf.asset, scene: gltf.scene, scenes: gltf.scenes, nodes }), '');
+  const sim = new CombatSimulation(compileShip(source, catalog)), view = new ShipView(model.scene, sim.definition, sim.player);
+  expect(view.muzzleErrors()).toHaveLength(13); expect(view.torpedoMuzzleErrors()).toHaveLength(10);
+  for (const train of [-2.44, 0, 2.44, 3.12, -3.12]) {
+    view.capturePreviousPose();
+    sim.player.torpedoLaunchers!.forEach(l => l.train = train);
+    sim.player.mounts.forEach(m => Object.assign(m, { train, elevation: .8, recoil: .6 }));
+    Object.assign(sim.ship, { x: 384, z: -240, heading: 1.4, roll: .07, pitch: -.03 });
+    for (const alpha of [0, .25, .5, .75, 1]) {
+      view.update(alpha);
+      expect(Math.max(...view.muzzleErrors())).toBeLessThan(.025);
+      expect(Math.max(...view.torpedoMuzzleErrors())).toBeLessThan(.025);
+    }
+  }
+  sim.reset(); view.snap();
+  expect(Math.max(...view.torpedoMuzzleErrors())).toBeLessThan(.025);
+});

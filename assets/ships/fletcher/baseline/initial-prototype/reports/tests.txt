@@ -1,0 +1,388 @@
+bun test v1.3.3 (274e01c7)
+
+scripts/aircraft/glb.test.ts:
+(pass) aircraft GLB contract > measures exported binary geometry and exercises every independent control [4.13ms]
+(pass) aircraft GLB contract > rejects stale source hash and mismatched aircraft identity [0.18ms]
+(pass) aircraft GLB contract > rejects malformed and externally dependent files [0.55ms]
+(pass) aircraft GLB contract > checks actual vertex values instead of trusting accessor bounds [1.06ms]
+(pass) aircraft GLB contract > rejects out-of-bounds accessors [0.26ms]
+(pass) aircraft GLB contract > rejects duplicate IDs and multiply-parented nodes [0.17ms]
+(pass) aircraft GLB contract > rejects missing and detached moving geometry [0.43ms]
+(pass) aircraft GLB contract > rejects objects leaked from another interactive Blender scene [0.33ms]
+(pass) aircraft GLB contract > rejects backwards aircraft and swapped port/starboard controls [0.91ms]
+(pass) aircraft GLB contract > rejects dimensions outside the three percent allowance [0.31ms]
+(pass) aircraft GLB contract > production checks require a texture actually bound to finite UV geometry [1.00ms]
+(pass) aircraft GLB contract > rejects malformed UV accessors and broken embedded texture bindings [0.50ms]
+(pass) aircraft GLB contract > all three LOD binaries retain dimensions, source identity, textures and six independent controls [2.51ms]
+(pass) aircraft GLB contract > rejects identical, reversed and merely nominal LOD reductions [3.07ms]
+(pass) aircraft GLB contract > rejects collinear triangles from actual binary positions even when bounds agree [0.65ms]
+(pass) aircraft GLB contract > rejects zero/nonfinite normals, mismatched counts and missing production normals [0.57ms]
+(pass) measured aircraft shape contract > accepts retained measured source stations without requiring manufacturing sections [0.38ms]
+(pass) measured aircraft shape contract > rejects inverted canopy/body contours and negative widths before building [0.11ms]
+(pass) measured aircraft shape contract > rejects nonfinite, unordered, reversed chord and incomplete span stations [0.25ms]
+(pass) measured aircraft shape contract > requires a useful fin, valid fittings and named reference evidence [0.26ms]
+(pass) versioned aircraft catalog > accepts a WWII-era authored variant
+(pass) versioned aircraft catalog > rejects incompatible schemas, duplicate IDs, path traversal, and invalid dimensions
+
+src/ships/inspection.test.ts:
+(pass) Bismarck transverse armor, including rendered thickness, fits inside the local hull section [249.64ms]
+(pass) inspection lists exactly the armor, mounts, modules and compartments used by each ship [26.21ms]
+(pass) inspection filters and highlights without changing combat state and follows moving gunhouses [123.42ms]
+(pass) returning to port resets both actors, ammunition, damage and shells while preserving view bindings [410.96ms]
+(pass) armor picking follows the ship transform, finds the nearest layer and excludes hidden plates [134.42ms]
+(pass) internals picking prefers modules over their enclosing compartments and highlights the hovered volume [116.71ms]
+(pass) hover highlights and outlines only its opaque plate, then clears without changing selection or combat [101.57ms]
+
+src/ships/blueprint.test.ts:
+(pass) blueprints round-trip through JSON and compile reusable mounts without mutating the source [10.38ms]
+(pass) rejects invalid IDs, missing parts, unsupported versions, invalid numbers and disconnected modules [29.66ms]
+(pass) changing a mount in the blueprint changes the compiled ship without ship-specific code [9.69ms]
+
+src/ships/statistics.test.ts:
+(pass) every preset prints a complete sheet whose figures come from the compiled definition [19.36ms]
+(pass) the VIIC statistics retain torpedo supply and launch limits alongside its guns [3.18ms]
+(pass) category scores stay within 0-100 and separate the presets by their simulation data [1.39ms]
+(pass) maximum range follows the low-arc solver: elevation limited, then capped at 30 km [0.02ms]
+
+src/schematic/schematic.test.ts:
+(pass) schematic preferences and units > untrusted saved preferences fall back per field, including prototype property names [0.06ms]
+(pass) schematic preferences and units > changing the output format preserves the drawing, while changing units replaces it [0.05ms]
+(pass) schematic preferences and units > imperial dimensions convert the geometry rather than only relabeling it [0.01ms]
+(pass) ship projections > bow is right in side and deck views, and bow/stern elevations face opposite ways [0.08ms]
+(pass) ship projections > the full hull fits every orthographic frame at one physical scale [0.11ms]
+(pass) ship projections > showcase has a single independent view and makes no shared-scale claim [0.02ms]
+
+src/simulation/protection.test.ts:
+(pass) plate crossings work in both directions, reject parallel paths and preserve the edge [0.11ms]
+(pass) Bismarck broadside crosses distinct belt, backing, support and turtleback before machinery [0.76ms]
+(pass) plunging shell meets spaced upper, battery and armored decks in order [0.20ms]
+(pass) one physical plate consumes its thickness once across adjacent ticks [24.02ms]
+(pass) turret plates follow the rear pivot and share collision/inspection local coordinates [0.83ms]
+(pass) secondary slopes leave air above the nose and retain distinct front and roof protection while trained [3.22ms]
+(pass) a shell at a coplanar plate seam crosses one layer, preserving spatially separated backing [27.40ms]
+(pass) nonplanar, concave, degenerate and unattached armor cannot enter the simulation [10.75ms]
+
+src/simulation/baltimore.test.ts:
+(pass) Baltimore trains three triple turrets, fires nine distinct shells, and holds during reload [617.46ms]
+(pass) Baltimore secondary broadside uses the four clear twin mounts and preserves main ammunition [528.06ms]
+
+src/simulation/collisions.test.ts:
+(pass) ramming a stationary broadside cannot sail through its hull [957.82ms]
+(pass) equal head-on impacts cancel closing speed without bounce or arbitrary spin [0.87ms]
+(pass) a heavier hull moves less and contact conserves linear momentum [1.67ms]
+(pass) glancing sides preserve travel along the hull and outward motion is never pulled back [0.47ms]
+(pass) an off-center ram turns the struck hull and dissipates kinetic energy [0.52ms]
+(pass) turning a stern into another ship creates contact even without forward motion [1.15ms]
+(pass) reverse propulsion cannot back through a broadside hull [97.43ms]
+(pass) bismarck can pass close alongside and its tapered ends don't collide like a box [0.49ms]
+(pass) yamato can pass close alongside and its tapered ends don't collide like a box [0.13ms]
+(pass) baltimore can pass close alongside and its tapered ends don't collide like a box [0.04ms]
+(pass) enterprise-cv6 can pass close alongside and its tapered ends don't collide like a box [0.08ms]
+(pass) allies, enemies and idle hulls collide; only wrecks below the other keel clear contact [1.52ms]
+(pass) ten-ship pile-ups and coincident spawns separate without invalid state [10.22ms]
+(pass) collision movement is deterministic across display rates and reset clears contact motion [262.24ms]
+(pass) collision drift moves the ship, settles in water and is included in gun velocity [0.84ms]
+
+src/simulation/ship.test.ts:
+(pass) ship simulation > stays still without propulsion, even with the rudder over [0.19ms]
+(pass) ship simulation > accelerates north and respects maximum speed [2.30ms]
+(pass) ship simulation > starboard turns east; port turns west [0.88ms]
+(pass) ship simulation > stop coasts down; astern reverses after braking [1.68ms]
+(pass) ship simulation > 30, 60, and 144 fps produce the same fixed-tick state [0.97ms]
+(pass) ship simulation > clamps invalid commands and tab-resume deltas [0.07ms]
+
+src/simulation/battle.test.ts:
+(pass) Yamato survives an accurately aimed Bismarck salvo at 1000 m with inspectable magazine damage [98.98ms]
+(pass) Yamato survives an accurately aimed Bismarck salvo at 5000 m with inspectable magazine damage [92.22ms]
+(pass) custom deployments use independent mixed ships, unique IDs and lines 5 km apart [1.29ms]
+(pass) custom distances deploy and reset every ship facing the opposing formation [2.87ms]
+(pass) fleet validation rejects empty enemies, unavailable presets and overfull teams [0.21ms]
+(pass) spawn distance accepts its limits and rejects invalid values at setup and simulation boundaries [0.13ms]
+(pass) every bot maneuvers, fires both applicable batteries, reloads and damages opposing hulls [4679.79ms]
+(pass) bots ignore allies, change targets after sinking and hold fire through friendly hulls [0.26ms]
+(pass) disabled propulsion and guns stop a bot moving and firing; sunk bots cease fire [944.84ms]
+(pass) target selection uses each enemy definition and rejects friendly IDs [0.47ms]
+(pass) battle results count all ships and resetting restores every actor without breaking bindings [3.16ms]
+(pass) bot combat produces identical outcomes at 30, 60 and 144 display fps [1451.99ms]
+
+src/simulation/structure.test.ts:
+(pass) fixed-tick shell flight registers unarmored bow contact [35.69ms]
+(pass) unarmored bow registers a swept hit and damage under the actual ship pose [28.17ms]
+(pass) fixed-tick shell flight registers unarmored stern contact [32.05ms]
+(pass) unarmored stern registers a swept hit and damage under the actual ship pose [26.11ms]
+(pass) fixed-tick shell flight registers unarmored bridge contact [31.34ms]
+(pass) unarmored bridge registers a swept hit and damage under the actual ship pose [26.92ms]
+(pass) aiming and inspection include the same unarmored bow surface as combat [26.94ms]
+(pass) thin underwater hull hits breach the forebody, while air above the sheer remains a miss [28.70ms]
+(pass) a shell crossing the waterline inside the hull continues through the interior [26.99ms]
+(pass) main gunhouse armor covers the rear overhang but leaves air outside its narrower sides [6.47ms]
+(pass) invalid or open component facets cannot become armor or enter the Blender recipe [1.37ms]
+(pass) the exterior belt replaces ordinary hull plating at the faired midship surface [26.80ms]
+(pass) mixed fleets use each hull definition for structural hits and waterline crossing [29.96ms]
+(pass) fleet sight aiming finds the nearer structural bow regardless of contact order [29.93ms]
+
+src/simulation/enterprise.test.ts:
+(pass) Enterprise uses the March 1942 count and preserves distinct single and quadruple muzzle axes [0.13ms]
+(pass) Enterprise main fires only aligned mounts and preserves ammunition on the opposite side [1062.31ms]
+(pass) Enterprise secondary fires only aligned mounts and preserves ammunition on the opposite side [918.03ms]
+(pass) invalid loft sections and structures cannot enter an Enterprise definition [2.90ms]
+
+src/simulation/torpedoes.test.ts:
+(pass) VIIC compiles five fixed tubes, fourteen rounds and independent original gun parts [0.80ms]
+(pass) rejects malformed tube connections, IDs, ammunition, launch geometry and weapon performance [2.78ms]
+(pass) click fires one bow tube; holding fires the remaining three at spaced intervals [5.93ms]
+(pass) stern tube fires astern and the four bow tubes preserve their rounds [0.20ms]
+(pass) unavailable shots are consumed, with explicit arc, range, arming and disabled states [0.32ms]
+(pass) reload completes independently of the sight, empty tubes stay empty and reset restores everything [3.84ms]
+(pass) torpedoes stay underwater at fixed speed, keep their launch course and expire at their range [8.87ms]
+(pass) swept torpedoes hit the nearest physical hull on either team and pass below deep wrecks [1.95ms]
+(pass) torpedoes strike each existing hull below its armor belt (%s) [25.75ms]
+(pass) torpedoes strike each existing hull below its armor belt (%s) [1.88ms]
+(pass) torpedoes strike each existing hull below its armor belt (%s) [7.40ms]
+(pass) torpedoes strike each existing hull below its armor belt (%s) [10.48ms]
+(pass) contact before arming is a dud; armed hits apply flooding and score only actual enemy damage [1.92ms]
+(pass) launched bow salvo can sink an opponent, earning one frag, then battle reset clears it [88.70ms]
+(pass) friendly torpedo damage and wreck hits do not add player score [1.11ms]
+(pass) bot lead intercepts a crossing target; friendly ships block the predicted torpedo lane [0.27ms]
+(pass) bot VIICs wait for target acquisition before using their tubes [46.54ms]
+(pass) bot torpedo lead uses delayed observations after a target changes course [6.69ms]
+(pass) VIIC deck and platform guns remain articulated and fire through the shared gun system [57.15ms]
+(pass) invalid intent shapes cannot launch torpedoes or poison the simulation [1.04ms]
+(pass) torpedo simulation is deterministic across display rates and remains renderer-free [33.22ms]
+
+src/simulation/fletcher.test.ts:
+(pass) Fletcher registers five single main guns, two quintuple torpedo mounts and 28 depth charges [2.01ms]
+(pass) rejects dangling launcher links, conflicting sockets, invalid release data and charge parts [3.92ms]
+(pass) trainable tubes preserve ammunition while turning or aiming through the superstructure sectors [75.16ms]
+(pass) both broadsides launch all ten rounds from the rotated sockets (%s) [177.93ms]
+(pass) both broadsides launch all ten rounds from the rotated sockets (%s) [160.10ms]
+(pass) depth charge click releases one; held fire spaces a pattern and respects reload/ammo [28.22ms]
+(pass) side throwers arc outward; charges splash then sink and burst at the authored depth [0.13ms]
+(pass) nearby blasts damage surfaced submarines, open breaches, credit score and spare distant hulls [0.64ms]
+(pass) blast falloff uses three-dimensional hull distance; allies and own ship can be damaged without score [0.44ms]
+(pass) charge damage earns a frag once and reset restores every weapon, pose and score [0.68ms]
+(pass) destroyed magazine, empty stations, sunk hull and full projectile pool cannot consume ammunition [1.06ms]
+(pass) bots recognize a close depth-charge pass and refuse to blast a friendly hull [0.27ms]
+
+src/simulation/combat.test.ts:
+(pass) a click does not spend ammunition on guns unable to fire at 1800,0,0 [403.99ms]
+(pass) a click does not spend ammunition on guns unable to fire at 0,0,1800 [357.40ms]
+(pass) a click does not spend ammunition on guns unable to fire at 1800,4000,0 [420.82ms]
+(pass) a click does not spend ammunition on guns unable to fire at 40000,0,0 [357.57ms]
+(pass) Bismarck bow-on fire uses forward turrets and keeps unreachable rear turrets loaded [990.09ms]
+(pass) held fire admits turrets as they align and release cancels later firing [444.29ms]
+(pass) Bismarck rear barrels through the superstructure are blocked independently of target reachability [6.42ms]
+(pass) firing during traverse still respects obstructions, empty guns and disabled guns [6.62ms]
+(pass) pose conversions preserve arbitrary points under heading, list and trim [0.04ms]
+(pass) swept collision catches a thin plate between ticks and rejects a parallel miss
+(pass) ballistic aim reaches its target under the flight integrator gravity [0.05ms]
+(pass) armor resolves before internal damage, and a surface/module is only charged once per shell [33.84ms]
+(pass) a shell spends one internal damage budget across modules and tick boundaries [17.22ms]
+(pass) flood connections conserve water with pumps/leaks disabled and list follows the flooded side [13.49ms]
+(pass) aimed salvos obey reloads and ammunition while damaging the target [1117.33ms]
+(pass) same commands at 30, 60 and 144 fps yield identical combat state [1093.62ms]
+(pass) reset replaces the trial target state without invalidating renderer bindings [9.99ms]
+(pass) shot and splash events retain matching caliber and independent velocity snapshots [468.16ms]
+(pass) impact normals are in world coordinates and internal damage has no surface normal [28.29ms]
+(pass) destroyed propulsion prevents target acceleration [136.32ms]
+(pass) surface evidence preserves ammunition and mount-local contact before later turret movement [6.39ms]
+(pass) penetrating magazine hits detonate once and disable the connected battery mount [381.88ms]
+(pass) exhausted reserve buoyancy causes sinking and target reset restores dry compartments [27.65ms]
+
+src/simulation/score.test.ts:
+(pass) score counts actual enemy HP loss, caps overkill and awards a sinking once [2.31ms]
+(pass) stopped rounds, allied hits and bot kills do not increase the player score [0.28ms]
+(pass) the final hostile damaging hit earns the frag, including delayed flooding [0.52ms]
+(pass) another shell in the lethal tick cannot take the frag from an already destroyed hull [0.20ms]
+
+src/simulation/bots.test.ts:
+(pass) bots give the player time to get underway before their opening shots [2290.00ms]
+(pass) gun crews choose different aim points and revise them during an engagement [198.75ms]
+(pass) a sudden course change takes time to enter a bot firing solution [14.48ms]
+(pass) switching targets requires a fresh solution and never spends ammunition during acquisition [361.20ms]
+(pass) an early target loss cannot shorten the opening acquisition window [136.19ms]
+(pass) battle seeds vary courses and opening shots while resets reproduce crew decisions [1649.36ms]
+(pass) taking damage prompts a sustained evasive helm order after a crew reaction [59.45ms]
+
+src/simulation/yamato.test.ts:
+(pass) Yamato has nine main guns with documented 3.50 metre adjacent bore spacing [0.11ms]
+(pass) a trained Yamato broadside fires nine distinct shells and debits three rounds per turret [705.62ms]
+(pass) unsupported or fractional barrel counts cannot enter a compiled ship [0.74ms]
+(pass) both Yamato secondary triples clear the hull on a broadside and reload together [737.17ms]
+
+src/simulation/spatial.test.ts:
+(pass) fleet shell rejection retains swept hits through rotated, listing and sinking hulls [1.99ms]
+
+src/simulation/health.test.ts:
+(pass) preset hull health scales with authored displacement [0.63ms]
+(pass) destroyer-sized custom hulls retain useful HP with diminishing gains from extra mass [0.55ms]
+(pass) mixed fleet telemetry and resets use each hull maximum [0.33ms]
+
+src/game/ShellFollow.test.ts:
+(pass) shell follow is opt-in, picks only the latest player shell and keeps that shell through the salvo [0.24ms]
+(pass) impact holds at the authoritative hit, freezes on pause, then waits for a fresh salvo [0.32ms]
+(pass) missing or reset projectiles release the camera without inventing an impact
+(pass) shell follow holds on the first bridge strike at 60 fps while combat resolves normally [10.65ms]
+(pass) shell follow holds on the first unarmored bow strike at 60 fps while combat resolves normally [4.55ms]
+(pass) shell follow holds on the first armored hull strike at 60 fps while combat resolves normally [2.39ms]
+(pass) shell follow holds on the first bridge strike at 10 fps while combat resolves normally [10.62ms]
+(pass) shell follow holds on the first unarmored bow strike at 10 fps while combat resolves normally [5.76ms]
+(pass) shell follow holds on the first armored hull strike at 10 fps while combat resolves normally [2.30ms]
+(pass) entry, exit and splash between frames keep the first strike and never resume the penetrating shell [0.10ms]
+
+src/game/gunAim.test.ts:
+(pass) loaded guns show their current direction before traversing and converge on the commanded aim [23.19ms]
+(pass) trained turret centers stay on the reticle at every binocular magnification [149.80ms]
+(pass) aim circles agree with actual short-shot splashes, including inherited ship velocity [45.42ms]
+(pass) moving and turning ship solutions line up and switching batteries preserves turret numbering [24.60ms]
+(pass) in-view circles use their actual projected position; off-screen and aft cues never mirror [0.57ms]
+(pass) converging guns retain separate readiness/countdowns and readable labels without moving their aim [0.40ms]
+
+src/game/ShipImpactMarks.test.ts:
+(pass) caliber, ammunition and penetration select distinct wound size and material [0.14ms]
+(pass) decals conform to the struck face, remain depth-tested and batch repeated salvos [33.16ms]
+(pass) mount-local hits follow rendered turret articulation and the hull pose [17.28ms]
+(pass) interior events, other ships and unmatched surfaces cannot leave floating marks [10.22ms]
+(pass) plate winding does not hide port-side strikes or exit wounds [10.55ms]
+(pass) the mark budget evicts old geometry, and clear permits a fresh battle sequence [17.02ms]
+(pass) a shared frame budget defers cosmetic marks without losing consumed events or replaying them [9.90ms]
+(pass) queued cosmetic marks remain bounded during sustained salvos [15.33ms]
+
+src/game/Game.test.ts:
+(pass) switching ships retains the port until loading completes, then frames the new hull with the same orbit [43.56ms]
+(pass) failed ship loads preserve the old ship and allow retry [51.49ms]
+(pass) a second request cannot replace an in-flight switch; disposed games never attach the result [9.27ms]
+(pass) battle loading binds each mixed fleet hull and selected target to its own exported joints [37.43ms]
+(pass) one failed fleet asset leaves the port intact and the same battle can be retried [25.87ms]
+
+src/game/FleetHud.test.tsx:
+React expects the `children` prop of <title> tags to be a string, number, bigint, or object with a novel `toString` method but found an Array with length 3 instead. Browsers treat all child Nodes of <title> tags as Text content and React expects to be able to convert `children` of <title> tags to a single string value which is why Arrays of length greater than 1 are not supported. When using JSX it can be common to combine text nodes and value nodes. For example: <title>hello {nameOfUser}</title>. While not immediately apparent, `children` in this case is an Array with length 2. If your `children` prop is using this form try rewriting it using a template string: <title>{`hello ${nameOfUser}`}</title>.
+React expects the `children` prop of <title> tags to be a string, number, bigint, or object with a novel `toString` method but found an Array with length 3 instead. Browsers treat all child Nodes of <title> tags as Text content and React expects to be able to convert `children` of <title> tags to a single string value which is why Arrays of length greater than 1 are not supported. When using JSX it can be common to combine text nodes and value nodes. For example: <title>hello {nameOfUser}</title>. While not immediately apparent, `children` in this case is an Array with length 2. If your `children` prop is using this form try rewriting it using a template string: <title>{`hello ${nameOfUser}`}</title>.
+(pass) the helm displays real current/max HP and proportional hit feedback for large and small hulls [24.22ms]
+React expects the `children` prop of <title> tags to be a string, number, bigint, or object with a novel `toString` method but found an Array with length 3 instead. Browsers treat all child Nodes of <title> tags as Text content and React expects to be able to convert `children` of <title> tags to a single string value which is why Arrays of length greater than 1 are not supported. When using JSX it can be common to combine text nodes and value nodes. For example: <title>hello {nameOfUser}</title>. While not immediately apparent, `children` in this case is an Array with length 2. If your `children` prop is using this form try rewriting it using a template string: <title>{`hello ${nameOfUser}`}</title>.
+React expects the `children` prop of <title> tags to be a string, number, bigint, or object with a novel `toString` method but found an Array with length 3 instead. Browsers treat all child Nodes of <title> tags as Text content and React expects to be able to convert `children` of <title> tags to a single string value which is why Arrays of length greater than 1 are not supported. When using JSX it can be common to combine text nodes and value nodes. For example: <title>hello {nameOfUser}</title>. While not immediately apparent, `children` in this case is an Array with length 2. If your `children` prop is using this form try rewriting it using a template string: <title>{`hello ${nameOfUser}`}</title>.
+React expects the `children` prop of <title> tags to be a string, number, bigint, or object with a novel `toString` method but found an Array with length 3 instead. Browsers treat all child Nodes of <title> tags as Text content and React expects to be able to convert `children` of <title> tags to a single string value which is why Arrays of length greater than 1 are not supported. When using JSX it can be common to combine text nodes and value nodes. For example: <title>hello {nameOfUser}</title>. While not immediately apparent, `children` in this case is an Array with length 2. If your `children` prop is using this form try rewriting it using a template string: <title>{`hello ${nameOfUser}`}</title>.
+(pass) Fletcher exposes live depth charge supply and broadside torpedo help, while gun-only ships keep their controls [5.73ms]
+
+src/game/CameraRig.test.ts:
+(pass) Chase camera keeps its ship offset steady when frame duration varies [0.82ms]
+(pass) Bridge camera keeps its ship offset steady when frame duration varies [0.39ms]
+(pass) Tactical camera keeps its ship offset steady when frame duration varies [0.22ms]
+(pass) Inspection camera keeps its ship offset steady when frame duration varies [0.39ms]
+(pass) switching the followed ship still eases the camera toward the new target [0.16ms]
+(pass) port preset switches keep both submarine and battleship hulls in view without resetting the orbit [0.21ms]
+(pass) submarine chase framing leaves the complete hull above the weapon instruments [0.19ms]
+(pass) shell camera follows flight without frame lag or changed aim, and restores binoculars [0.45ms]
+(pass) port dragging reveals the sun without lowering the camera below its lowest orbit [0.22ms]
+(pass) Chase mouse aiming reveals the sailing sun within a restrained upward tilt [0.28ms]
+(pass) Bridge mouse aiming reveals the sailing sun within a restrained upward tilt [0.22ms]
+(pass) Tactical mouse aiming reveals the sailing sun within a restrained upward tilt [0.08ms]
+(pass) Port camera stays above water through extreme input, zoom and sinking [3.14ms]
+(pass) Inspection camera stays above water through extreme input, zoom and sinking [0.63ms]
+(pass) Chase camera stays above water through extreme input, zoom and sinking [0.67ms]
+(pass) Bridge camera stays above water through extreme input, zoom and sinking [0.63ms]
+(pass) Tactical camera stays above water through extreme input, zoom and sinking [0.55ms]
+(pass) Binoculars camera stays above water through extreme input, zoom and sinking [0.75ms]
+
+src/game/aiming.test.ts:
+(pass) the sight selects the first target armor surface before the sea behind it [0.11ms]
+(pass) a sea sight points at the CPU waterline and horizon aim stays finite and bounded [0.08ms]
+(pass) manual fleet aiming chooses the closest hull even when a different enemy is selected [0.11ms]
+(pass) entering and leaving binoculars keeps a distant aim point centered and restores the field of view [0.25ms]
+(pass) turning the ship does not pull the sight off its world bearing [0.07ms]
+(pass) the sight intersects a sloped physical plate rather than its bounding box [0.04ms]
+
+src/game/ShipLabels.test.ts:
+(pass) ship labels follow camera projection and cull rear, offscreen and clipped ships [0.14ms]
+(pass) overhead HP numbers, meters and loss spans use each ship maximum [0.93ms]
+
+src/game/InputController.test.ts:
+(pass) keyboard gameplay controls > custom engine keys replace defaults and only notch once per press [0.72ms]
+(pass) keyboard gameplay controls > custom steering and firing hold until release and clear on a remap or pause [0.14ms]
+(pass) keyboard gameplay controls > view shortcuts honor custom bindings and keep Esc available [0.08ms]
+(pass) keyboard gameplay controls > shell follow toggles once per press, supports rebinding and is inactive while paused [0.15ms]
+(pass) keyboard gameplay controls > Shift taps toggle optics, Shift-plus resizes chart, and Ctrl holds the cursor [0.20ms]
+(pass) keyboard gameplay controls > battery, chart and gunnery bindings replace the new HUD defaults [0.19ms]
+(pass) keyboard gameplay controls > dialogs and browser shortcuts do not trigger or consume gameplay input [0.12ms]
+
+src/game/GameFrame.test.ts:
+(pass) turning through north takes the short heading path without changing authoritative combat state [56.61ms]
+(pass) firing enters shell view without feeding its camera into aim, freezes on pause and restores optics [357.74ms]
+(pass) target inspection follows the interpolated underway target and resets without a streak [14.96ms]
+(pass) pause holds the interpolated pose and resume continues without a tick-sized jump [12.26ms]
+(pass) manual aiming and binoculars keep the camera attached to the displayed ship at full speed [135.04ms]
+(pass) repositioning for port and launch clears the old ship poses [8.82ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.03333333333333333 [48.09ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.01694915254237288 [27.26ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.016666666666666666 [27.70ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.008333333333333333 [25.53ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.006944444444444444 [19.30ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.006944444444444444,0.02127659574468085,0.013888888888888888,0.043 [42.32ms]
+(pass) all fleet impact marks share one cosmetic work budget, renewed for each frame [8.03ms]
+
+src/game/HarborGeometry.test.ts:
+(pass) town walls have one visible surface at each facade bay [8.37ms]
+(pass) terrain roots match the rendered medium surface [234.41ms]
+(pass) terrain roots match the rendered high surface [399.52ms]
+
+src/game/CombatEffects.test.ts:
+(pass) optics hide existing and new own-ship smoke while other smoke remains and ages normally [59.55ms]
+(pass) spray reaches the same position at different frame rates and falls out at the sea [4.90ms]
+(pass) salvos are bounded, do not replay events, pause cleanly, and reset without ghosts [154.36ms]
+(pass) large-gun fire remains in the gas at 0.35 seconds and cools completely into smoke [45.93ms]
+(pass) water droplets stay round through their apex instead of rotating as long rods [50.39ms]
+(pass) billboards reorient while paused and expired storage is reused [2.59ms]
+(pass) the shell pool keeps its shader capacity through empty frames, salvos and resets [1599.99ms]
+
+src/game/audio.test.ts:
+(pass) simultaneous barrels share a turret boom while separate mounts and calibers keep their sound [0.34ms]
+(pass) one shell crossing several plates across frames sounds once; a magazine detonation remains audible [5.99ms]
+(pass) misses and ricochets are distinct, stale events are dropped, and resets do not replay history
+(pass) camera orientation controls stereo placement, with finite distance attenuation at the listener [0.24ms]
+(pass) invalid persisted audio values cannot make the mix NaN or exceed unity [0.05ms]
+(pass) every runtime sound has its generated original, prompt, and checked PCM output [10.15ms]
+
+src/game/HullDamageFeedback.test.ts:
+(pass) salvo losses combine, hold their original gold span, then fade in simulation time
+(pass) reset, healed hulls and a replacement fleet do not carry an old hit cue
+(pass) damage feedback preserves absolute losses above and below the former 1,000 HP cap
+
+src/game/SurfaceChunks.test.ts:
+(pass) chunked surface queries preserve dense indexed and non-indexed mesh hits after transforms [17.87ms]
+
+src/game/keybindings.test.ts:
+(pass) player keybindings > older saves gain shell follow without losing a custom T binding [0.38ms]
+(pass) player keybindings > round-trips customized primary and alternate bindings [0.29ms]
+(pass) player keybindings > rejects conflicts across actions and within alternate slots [0.18ms]
+(pass) player keybindings > keeps every action reachable and reserves menu navigation [0.05ms]
+(pass) player keybindings > recovers from malformed, duplicate, empty, or reserved saved controls [0.16ms]
+(pass) older saves gain depth charges without taking an existing custom 4 binding [0.14ms]
+
+src/game/WakeFoam.test.ts:
+(pass) impact foam reaches the ocean field while stopped, freezes on pause, and clears on reset [12.02ms]
+
+src/game/InspectionHover.test.ts:
+(pass) port armor hover clears during dragging, HUD occlusion, inspection exit and disposal [105.14ms]
+(pass) internals hover prefers the module inside an enclosing compartment and clears with the pointer [89.44ms]
+
+src/game/ShipView.test.ts:
+(pass) Baltimore exported hierarchy binds all 21 muzzles through train, pitch and recoil [7.80ms]
+(pass) actual exported joints follow authoritative muzzle positions through rear traverse and recoil [32.58ms]
+(pass) Enterprise single and quadruple exported guns align at their traverse and elevation limits [15.41ms]
+(pass) Yamato center and outer barrels remain aligned through fore and aft traverse, elevation and recoil [4.01ms]
+(pass) fleet exteriors defer inspection geometry until a ship is inspected [106.54ms]
+(pass) fleet meshes reuse materials within each ship while inspection stays independent [108.48ms]
+(pass) Fletcher gun and torpedo joints follow interpolated CPU poses on both broadsides and after reset [11.63ms]
+
+src/game/HitDirectionFeedback.test.ts:
+(pass) real stopped shells point toward their source without requiring hull damage or mutating combat [10.52ms]
+(pass) world bearings rotate with the camera and wrap correctly through north [0.14ms]
+(pass) layered damage reports count once and same-direction salvo hits share a cue [0.14ms]
+(pass) pause freezes cues, old events do not refresh them and battle resets clear them [0.37ms]
+(pass) splashes, other victims and events without a usable shell direction never show hit cues [0.12ms]
+(pass) crossfire remains bounded and replaces the oldest direction
+
+ 297 pass
+ 0 fail
+ 34336 expect() calls
+Ran 297 tests across 40 files. [31.44s]

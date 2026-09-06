@@ -1,6 +1,20 @@
 /** Editable authoring data. JSON only; no renderer or browser dependencies. */
 export type Vec3 = [number, number, number];
-export type Battery = 'main' | 'secondary' | 'torpedo';
+export type Battery = 'main' | 'secondary' | 'torpedo' | 'depth-charge';
+export interface TorpedoLauncher {
+  id: string; name: string; position: Vec3; traverseRateDeg: number;
+  /** Allowed ship-relative launch bearings; training can cross the excluded sectors. */
+  launchArcsDeg: [number, number][];
+}
+export interface DepthChargePart {
+  id: string; name: string; kind: 'depth-charge'; diameterM: number; lengthM: number;
+  sinkSpeed: number; detonationDepthM: number; blastRadiusM: number;
+  reloadSeconds: number; launchIntervalSeconds: number; damage: number; breachAreaM2: number;
+}
+export interface DepthChargeLauncher {
+  id: string; name: string; partId: string; position: Vec3; velocity: Vec3;
+  ammo: number; magazineId: string;
+}
 /** Fixed tubes with a preset gyro course; no homing or render dependencies. */
 export interface TorpedoPart {
   id: string; name: string; kind: 'torpedo'; diameterM: number; lengthM: number;
@@ -11,6 +25,8 @@ export interface TorpedoTube {
   id: string; name: string; partId: string; position: Vec3; bearingDeg: number;
   /** Allowed gyro offset either side of the tube, in degrees. */
   arcDeg: number; ammo: number; magazineId: string;
+  /** Position is the muzzle in the launcher's zero-bearing ship frame. */
+  launcherId?: string;
 }
 export interface Volume { id: string; center: Vec3; size: Vec3; }
 export interface AuthoredSurface { vertices: Vec3[]; triangles: [number, number, number][]; }
@@ -43,9 +59,9 @@ export const barrelIds = (weapon: GunPart): readonly string[] => {
   }
 };
 export const barrelOffset = (weapon: GunPart, index: number): number => (index - ((weapon.barrelCount ?? 2) - 1) / 2) * weapon.barrelSpacing;
-export interface PartCatalog { schemaVersion: 1; parts: GunPart[]; torpedoes?: TorpedoPart[]; }
+export interface PartCatalog { schemaVersion: 1; parts: GunPart[]; torpedoes?: TorpedoPart[]; depthCharges?: DepthChargePart[]; }
 export interface Mount {
-  id: string; name: string; partId: string; battery: Exclude<Battery, 'torpedo'>; position: Vec3;
+  id: string; name: string; partId: string; battery: 'main' | 'secondary'; position: Vec3;
   bearingDeg: number; rangefinder: boolean;
   magazineId?: string;
 }
@@ -81,6 +97,8 @@ export interface ShipBlueprint {
   coordinates: 'meters-y-up-bow-negative-z'; modelUrl: string;
   hull: Hull; handling: Handling; mounts: Mount[]; armor: Armor[];
   torpedoTubes?: TorpedoTube[];
+  torpedoLaunchers?: TorpedoLauncher[];
+  depthChargeLaunchers?: DepthChargeLauncher[];
   modules: Module[]; compartments: Compartment[];
   connections: { fromId: string; toId: string; areaM2: number }[];
   obstructions: Volume[];
@@ -93,10 +111,11 @@ export interface ShipBlueprint {
   viewpoints?: { bridge: Vec3 };
   accuracy: { exterior: string; internals: string; weapons: string };
 }
-export interface ShipDefinition extends Omit<ShipBlueprint, 'mounts' | 'torpedoTubes'> {
+export interface ShipDefinition extends Omit<ShipBlueprint, 'mounts' | 'torpedoTubes' | 'depthChargeLaunchers'> {
   compilerVersion: 1;
   mounts: (Mount & { weapon: GunPart })[];
   torpedoTubes?: (TorpedoTube & { weapon: TorpedoPart })[];
+  depthChargeLaunchers?: (DepthChargeLauncher & { weapon: DepthChargePart })[];
 }
 
 const fail = (path: string, message: string): never => { throw new Error(`${path}: ${message}`); };
@@ -284,6 +303,20 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     if ((p.armingDistanceM as number) >= (p.rangeM as number)) fail(String(p.id), 'arming distance must be less than range');
     if (parts.some(g => g.id === p.id)) fail(String(p.id), 'part ID already used by a gun');
   });
+  const launchers = list(b.torpedoLaunchers ?? [], 'torpedoLaunchers', 16).map(t => record(t, 'torpedo launcher'));
+  unique(launchers, 'torpedoLaunchers');
+  const deckPosition = (value: unknown, path: string) => {
+    const pos = vector(value, path);
+    if (Math.abs(pos[0]) > (h.beam as number) / 2 || Math.abs(pos[2]) > (h.length as number) / 2 || pos[1] < -(h.draft as number) || pos[1] > (h.depth as number) + 10) fail(path, 'weapon lies outside the hull envelope');
+    return pos;
+  };
+  launchers.forEach(l => {
+    text(l.name, `${l.id}.name`); deckPosition(l.position, `${l.id}.position`);
+    numeric(l.traverseRateDeg, `${l.id}.traverseRateDeg`, .1, 90);
+    const arcs = list(l.launchArcsDeg, 'launchArcsDeg', 8);
+    if (!arcs.length) fail(String(l.id), 'launcher needs a firing arc');
+    arcs.forEach(a => { const arc = list(a, 'launch arc', 2); if (arc.length !== 2 || numeric(arc[0], 'arc start', -180, 180) >= numeric(arc[1], 'arc end', -180, 180)) fail(String(l.id), 'expected ordered launch arc'); });
+  });
   const tubes = list(b.torpedoTubes ?? [], 'torpedoTubes', 32).map(t => record(t, 'torpedo tube'));
   unique(tubes, 'torpedoTubes');
   tubes.forEach(t => {
@@ -291,11 +324,36 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     if (!torpedoes.some(p => p.id === t.partId)) fail(String(t.id), 'unknown torpedo part');
     if (mounts.some(m => m.id === t.id)) fail(String(t.id), 'tube ID already used by a gun mount');
     const pos = vector(t.position, `${t.id}.position`);
-    if (Math.abs(pos[0]) > (h.beam as number) / 2 || Math.abs(pos[2]) > (h.length as number) / 2 || pos[1] > 0 || pos[1] < -(h.draft as number)) fail(String(t.id), 'tube muzzle must be within the submerged hull envelope');
+    if (t.launcherId !== undefined) {
+      if (!launchers.some(l => l.id === t.launcherId)) fail(String(t.id), 'unknown torpedo launcher');
+      deckPosition(pos, `${t.id}.position`);
+      if (t.bearingDeg !== 0) fail(String(t.id), 'trainable tube must use zero-bearing coordinates');
+    } else if (Math.abs(pos[0]) > (h.beam as number) / 2 || Math.abs(pos[2]) > (h.length as number) / 2 || pos[1] > 0 || pos[1] < -(h.draft as number)) fail(String(t.id), 'tube muzzle must be within the submerged hull envelope');
     numeric(t.bearingDeg, `${t.id}.bearingDeg`, -360, 360); numeric(t.arcDeg, `${t.id}.arcDeg`, 0, 45);
     numeric(t.ammo, `${t.id}.ammo`, 0, 100);
     if (!Number.isInteger(t.ammo)) fail(String(t.id), 'ammunition must be an integer');
     if (!modules.some(m => m.id === t.magazineId && m.kind === 'magazine')) fail(String(t.id), 'unknown magazine connection');
+  });
+  launchers.forEach(l => { if (!tubes.some(t => t.launcherId === l.id)) fail(String(l.id), 'launcher needs at least one tube'); });
+  const depthCharges = list(catalog.depthCharges ?? [], 'depthCharges', 64).map(p => record(p, 'depth charge part'));
+  unique([...parts, ...torpedoes, ...depthCharges], 'part catalog');
+  depthCharges.forEach(p => {
+    literal(p.kind, ['depth-charge'], `${p.id}.kind`); text(p.name, `${p.id}.name`);
+    for (const key of ['diameterM', 'lengthM', 'sinkSpeed', 'detonationDepthM', 'blastRadiusM', 'reloadSeconds', 'launchIntervalSeconds', 'damage', 'breachAreaM2']) numeric(p[key], `${p.id}.${key}`, .001, 10000);
+    numeric(p.detonationDepthM, 'detonationDepthM', 1, 300); numeric(p.sinkSpeed, 'sinkSpeed', .1, 20); numeric(p.blastRadiusM, 'blastRadiusM', 1, 200);
+  });
+  const depthLaunchers = list(b.depthChargeLaunchers ?? [], 'depthChargeLaunchers', 32).map(l => record(l, 'depth charge launcher'));
+  unique([...mounts, ...launchers, ...tubes, ...depthLaunchers], 'weapon assemblies');
+  depthLaunchers.forEach(l => {
+    text(l.name, `${l.id}.name`); id(l.partId, `${l.id}.partId`);
+    if (!depthCharges.some(p => p.id === l.partId)) fail(String(l.id), 'unknown depth charge part');
+    const pos = deckPosition(l.position, `${l.id}.position`);
+    if (pos[1] < 0) fail(String(l.id), 'depth charge release must be above water');
+    const velocity = vector(l.velocity, `${l.id}.velocity`);
+    if (Math.hypot(...velocity) > 50 || velocity[1] < 0) fail(String(l.id), 'invalid depth charge launch velocity');
+    numeric(l.ammo, `${l.id}.ammo`, 0, 100);
+    if (!Number.isInteger(l.ammo)) fail(String(l.id), 'ammunition must be an integer');
+    if (!modules.some(m => m.id === l.magazineId && m.kind === 'magazine')) fail(String(l.id), 'unknown magazine connection');
   });
   const compiledArmor=[...list(b.armor,'armor',512),...mounts.flatMap(m=>{
     const part=parts.find(p=>p.id===m.partId) as unknown as GunPart;
@@ -348,9 +406,11 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
   const accuracy = record(b.accuracy, 'accuracy');
   ['exterior', 'internals', 'weapons'].forEach(k => text(accuracy[k], `accuracy.${k}`));
   const blueprint = structuredClone(input) as ShipBlueprint;
-  const result: ShipDefinition = { ...blueprint, torpedoTubes: undefined, armor:structuredClone(compiledArmor) as Armor[], compilerVersion: 1, mounts: blueprint.mounts.map(m => ({ ...m, weapon: structuredClone(parts.find(p => p.id === m.partId)) as unknown as GunPart })) };
+  const result: ShipDefinition = { ...blueprint, torpedoTubes: undefined, depthChargeLaunchers: undefined, armor:structuredClone(compiledArmor) as Armor[], compilerVersion: 1, mounts: blueprint.mounts.map(m => ({ ...m, weapon: structuredClone(parts.find(p => p.id === m.partId)) as unknown as GunPart })) };
   if (blueprint.torpedoTubes) result.torpedoTubes = blueprint.torpedoTubes.map(t => ({ ...t, weapon: structuredClone(torpedoes.find(p => p.id === t.partId)) as unknown as TorpedoPart }));
   else delete result.torpedoTubes;
+  if (blueprint.depthChargeLaunchers) result.depthChargeLaunchers = blueprint.depthChargeLaunchers.map(l => ({ ...l, weapon: structuredClone(depthCharges.find(p => p.id === l.partId)) as unknown as DepthChargePart }));
+  else delete result.depthChargeLaunchers;
   return result;
 }
 
