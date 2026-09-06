@@ -158,7 +158,10 @@ export class ShipImpactMarks {
     }
     const batch = new THREE.Mesh(mergeGeometries(geometries)!, this.material);
     batch.name = 'Shell impact marks'; batch.visible = this.visible; batch.receiveShadow = true;
-    batch.renderOrder = 1; batch.raycast = () => {};
+    // Composite surface scars after opaque hulls but before transparent smoke
+    // and spray. Effect pools sort as a batch, so distance sorting alone cannot
+    // reliably place their individual plumes in front of these decals.
+    batch.renderOrder = -1; batch.raycast = () => {};
     receiver.add(batch); this.batches.set(receiver, batch);
   }
 
