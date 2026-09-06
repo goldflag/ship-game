@@ -215,7 +215,7 @@ export class CombatEffects {
       p.velocity.y += 2;
       p.size = (14 + random() * 9) * size; p.growth = (48 + random() * 24) * size; p.growthDecay = 2.6;
       p.diffusion = (.9 + random() * .6) * size;
-      p.life = 9 + random() * 3; p.drag = 2.3 + random() * .35;
+      p.life = 4.5 + random() * 1.5; p.drag = 2.3 + random() * .35;
       p.gravity = -1 - random() * 1.2; p.wind = .5 + random() * .25;
       p.heat = .85 + random() * .15; p.cooling = (.62 + random() * .2) * Math.sqrt(size);
       p.opacity = .92; p.density = 3.2 + random() * 1.1;
