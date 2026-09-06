@@ -4,7 +4,7 @@
 .ocean-viewport[data-ship-labels=false] .gun-aim-layer { visibility:hidden; }
 .gun-aim-marker { position:absolute; top:0; left:0; width:0; height:0; color:#e0c58d; }
 .gun-aim-circle { position:absolute; width:28px; height:28px; left:-14px; top:-14px; border:2px dashed currentColor; border-radius:50%; filter:drop-shadow(0 1px 2px #07131b); }
-.gun-aim-label { position:absolute; top:19px; left:0; padding:2px 5px; background:#0e2530e6; border-radius:2px; white-space:nowrap; font:500 11px/15px 'Barlow Condensed',sans-serif; }
+.gun-aim-label { position:absolute; top:19px; left:0; padding:2px 5px; background:transparent; text-shadow:0 1px 2px #07131b,0 2px 4px #07131b; border-radius:2px; white-space:nowrap; font:500 11px/15px 'Barlow Condensed',sans-serif; }
 .gun-aim-aligned { color:#86e4c5; }
 .gun-aim-aligned .gun-aim-circle { border-style:solid; }
 .gun-aim-reloading { color:#c1d0d4; }
