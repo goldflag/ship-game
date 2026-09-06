@@ -155,3 +155,13 @@ test('a recalled group waits its turn and all survivors recover on a stationary 
   sim.launchAircraft('vf-6'); run(65); sim.recallAircraft(); run(400);
   expect(sim.player.airWing!.planes.filter(p => p.squadronId === 'vf-6').every(p => p.phase === 'ready')).toBe(true);
 });
+
+test('a taxi aircraft clears the launch lane when the airborne limit fills', () => {
+  const { sim, context, run } = fixture();
+  sim.launchAircraft('vf-6'); run(1);
+  const plane = sim.player.airWing!.planes[0];
+  for (let i = 0; i < 144; i++) context.planes.push({ ...structuredClone(plane), id: `capacity/${i}`, phase: 'outbound' });
+  run(35);
+  expect(plane.phase).toBe('rearming');
+  expect(plane.deckPosition).toEqual(aircraftDeckSpot(sim.player, plane));
+});
