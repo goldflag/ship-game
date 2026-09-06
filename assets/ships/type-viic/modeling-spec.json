@@ -1,0 +1,412 @@
+{
+  "schemaVersion": 1,
+  "revision": "fidelity-01",
+  "comparisonMode": "historical-before-after",
+  "configuration": "U-570 as captured, August–September 1941 · raised periscopes; original reconstruction",
+  "authoringBoundary": "Original versioned blueprint, component catalog and local Blender recipe. Plans and photographs are dimensional/comparison evidence only; no third-party game meshes, materials or attachment transforms are inputs.",
+  "coordinates": {
+    "runtime": "metres; +X starboard, +Y up, -Z bow",
+    "blender": "metres; +X bow, +Y port, +Z up",
+    "conversion": "runtime = (-blenderY, blenderZ, -blenderX)",
+    "origin": "midpoint of overall length, British survey surfaced waterline datum; not a dynamically solved loading condition",
+    "waterlineY": 0,
+    "keelY": -4.7625
+  },
+  "acceptance": [
+    {
+      "id": "length",
+      "metric": "hull.length",
+      "target": 67.10045,
+      "tolerance": 0.015,
+      "units": "m",
+      "sourceId": "u570-docking-plate4",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.015
+    },
+    {
+      "id": "beam",
+      "metric": "hull.beam",
+      "target": 6.15315,
+      "tolerance": 0.015,
+      "units": "m",
+      "sourceId": "u570-docking-plate4",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.025
+    },
+    {
+      "id": "draft",
+      "metric": "hull.draft",
+      "target": 4.7625,
+      "tolerance": 0.015,
+      "units": "m",
+      "sourceId": "u570-docking-plate4",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.1
+    },
+    {
+      "id": "midshipDepth",
+      "metric": "hull.midshipDepth",
+      "target": 5.9817,
+      "tolerance": 0.015,
+      "units": "m",
+      "sourceId": "u570-docking-plate4",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.035
+    }
+  ],
+  "landmarks": [
+    {
+      "id": "deck-gun-axis",
+      "runtime": [
+        0,
+        2.305251,
+        -7.93
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-usn-plan",
+      "basis": "interpreted",
+      "evidenceUncertaintyM": 0.2,
+      "note": "Longitudinal axis read at x3190 / 2590 on retained 6238-pixel scan; elevation includes shared catalog part."
+    },
+    {
+      "id": "flak-gun-axis",
+      "runtime": [
+        0,
+        4.74,
+        0.83
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-usn-plan",
+      "basis": "interpreted",
+      "evidenceUncertaintyM": 0.2,
+      "note": "Tall fixed pedestal plus shared C/30 assembly; source barrel axis around scan y729. Longitudinal scan axis x2590."
+    },
+    {
+      "id": "attack-scope-eye",
+      "runtime": [
+        0,
+        9.8495,
+        -1.285
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-interrogation-1941",
+      "basis": "documented datum / interpreted placement",
+      "evidenceUncertaintyM": 0.08
+    },
+    {
+      "id": "observation-scope-eye",
+      "runtime": [
+        0,
+        7.14,
+        -3.695
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-usn-plan",
+      "basis": "documented datum / interpreted placement",
+      "evidenceUncertaintyM": 0.25
+    },
+    {
+      "id": "bridge-lip",
+      "runtime": [
+        0,
+        4.60375,
+        -3.3
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-docking-plate4",
+      "basis": "documented datum / interpreted placement",
+      "evidenceUncertaintyM": 0.035
+    },
+    {
+      "id": "saddle-maximum",
+      "runtime": [
+        -3.076575,
+        -0.82,
+        0
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-docking-plate4",
+      "basis": "documented datum / interpreted placement",
+      "evidenceUncertaintyM": 0.1
+    },
+    {
+      "id": "bow-plane-starboard",
+      "runtime": [
+        1.2,
+        -1.55,
+        -25.65
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-docking-plate4",
+      "basis": "interpreted",
+      "evidenceUncertaintyM": 0.2,
+      "note": "Fixed datum plus independent moving joint; tolerance validates export, not scan precision."
+    },
+    {
+      "id": "stern-plane-starboard",
+      "runtime": [
+        0.72,
+        -1.4,
+        26.5
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-docking-plate4",
+      "basis": "interpreted",
+      "evidenceUncertaintyM": 0.2,
+      "note": "Fixed datum plus independent moving joint; tolerance validates export, not scan precision."
+    },
+    {
+      "id": "propeller-starboard",
+      "runtime": [
+        1.1176,
+        -2.4412,
+        27.4
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-docking-plate4",
+      "basis": "interpreted",
+      "evidenceUncertaintyM": 0.2,
+      "note": "Fixed datum plus independent moving joint; tolerance validates export, not scan precision."
+    },
+    {
+      "id": "rudder-starboard",
+      "runtime": [
+        0.6223,
+        -1.75,
+        30.05
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-docking-plate4",
+      "basis": "interpreted",
+      "evidenceUncertaintyM": 0.2,
+      "note": "Fixed datum plus independent moving joint; tolerance validates export, not scan precision."
+    },
+    {
+      "id": "bow-plane-port",
+      "runtime": [
+        -1.2,
+        -1.55,
+        -25.65
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-docking-plate4",
+      "basis": "interpreted",
+      "evidenceUncertaintyM": 0.2,
+      "note": "Fixed datum plus independent moving joint; tolerance validates export, not scan precision."
+    },
+    {
+      "id": "stern-plane-port",
+      "runtime": [
+        -0.72,
+        -1.4,
+        26.5
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-docking-plate4",
+      "basis": "interpreted",
+      "evidenceUncertaintyM": 0.2,
+      "note": "Fixed datum plus independent moving joint; tolerance validates export, not scan precision."
+    },
+    {
+      "id": "propeller-port",
+      "runtime": [
+        -1.1176,
+        -2.4412,
+        27.4
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-docking-plate4",
+      "basis": "interpreted",
+      "evidenceUncertaintyM": 0.2,
+      "note": "Fixed datum plus independent moving joint; tolerance validates export, not scan precision."
+    },
+    {
+      "id": "rudder-port",
+      "runtime": [
+        -0.6223,
+        -1.75,
+        30.05
+      ],
+      "toleranceM": 0.005,
+      "sourceId": "u570-docking-plate4",
+      "basis": "interpreted",
+      "evidenceUncertaintyM": 0.2,
+      "note": "Fixed datum plus independent moving joint; tolerance validates export, not scan precision."
+    }
+  ],
+  "parameterGroups": [
+    {
+      "selector": "hull.sections",
+      "basis": "interpreted",
+      "sourceIds": [
+        "u570-docking-plate4",
+        "u570-usn-plan"
+      ],
+      "note": "Dimensioned midsection and original monotone interpolation through pressure-circle / saddle / casing controls. Not a recovered yard table of offsets. See authoring/offset-interpretation.json."
+    },
+    {
+      "selector": "structures / build.py fittings",
+      "basis": "interpreted",
+      "sourceIds": [
+        "u570-usn-plan",
+        "oni-u570-1941",
+        "u570-photos"
+      ],
+      "note": "As-captured 1941 fit takes precedence over generic drawing. No net cutter, snorkel or late-war wintergarten. Small fittings and slot counts remain estimates."
+    },
+    {
+      "selector": "compartments / modules / submarine / structuralPlating",
+      "basis": "gameplay approximation",
+      "sourceIds": [
+        "british-u570-1943"
+      ],
+      "note": "Conservative compound cells fit the rounded body. Single exterior damage envelope, capacity, pumping, buoyancy and dive controls are simplified."
+    }
+  ],
+  "probes": [
+    {
+      "id": "midship-skin",
+      "from": [
+        -8,
+        -1.8,
+        0
+      ],
+      "to": [
+        8,
+        -1.8,
+        0
+      ],
+      "caliberM": 0.088
+    }
+  ],
+  "structuralProbes": [
+    {
+      "id": "round-bilge",
+      "from": [
+        -8,
+        -3,
+        0
+      ],
+      "to": [
+        8,
+        -3,
+        0
+      ],
+      "expectHit": true
+    },
+    {
+      "id": "saddle-tank",
+      "from": [
+        -8,
+        -0.82,
+        0
+      ],
+      "to": [
+        8,
+        -0.82,
+        0
+      ],
+      "expectHit": true
+    },
+    {
+      "id": "bridge-wall",
+      "from": [
+        -8,
+        4,
+        -3
+      ],
+      "to": [
+        8,
+        4,
+        -3
+      ],
+      "expectHit": true
+    },
+    {
+      "id": "free-air",
+      "from": [
+        -8,
+        11,
+        0
+      ],
+      "to": [
+        8,
+        11,
+        0
+      ],
+      "expectHit": false
+    }
+  ],
+  "sectionStations": [
+    10,
+    18.55,
+    33.550225,
+    42,
+    57
+  ],
+  "historicalRegistrations": [
+    {
+      "view": "starboard",
+      "image": "u570-general-plan-1941.jpg",
+      "sourceId": "u570-usn-plan",
+      "crop": [
+        300,
+        390,
+        5010,
+        1400
+      ],
+      "originPixel": [
+        2647,
+        1054
+      ],
+      "pixelsPerMeter": 68.4645184942873,
+      "redistribute": true,
+      "credit": "U.S. Navy / David Taylor Model Basin redraw of captured general arrangement, retained by U-boat Archive; U.S. government archival drawing.",
+      "note": "Uniform scale from overall stern/bow scan endpoints x350/x4944; waterline inferred from the dimensioned pressure body and casing. Local scan/drawing mismatch approximately 0.15–0.3 m remains visible. Drawing is sectioned internally, has different scope extension, and depicts net cutters explicitly absent on captured U-570. No per-feature fitting or stretching."
+    },
+    {
+      "view": "top",
+      "image": "u570-general-plan-1941.jpg",
+      "sourceId": "u570-usn-plan",
+      "crop": [
+        300,
+        1485,
+        5010,
+        1900
+      ],
+      "originPixel": [
+        2647,
+        1692
+      ],
+      "pixelsPerMeter": 68.4645184942873,
+      "redistribute": true,
+      "credit": "U.S. Navy / David Taylor Model Basin redraw of captured general arrangement, retained by U-boat Archive; U.S. government archival drawing.",
+      "note": "Same whole-sheet scale as profile; deck plan centreline y1692. The casing deck, saddle width, AA basket and gun/tower axes can be compared. Image is not stretched independently to force beam agreement."
+    }
+  ],
+  "evidence": [
+    {
+      "image": "u570-docking-plan.jpg",
+      "sourceId": "u570-docking-plate4",
+      "redistribute": true,
+      "caption": "British as-fitted docking plan 1732Z/12: dimensioned circular midsection, saddle shoulders, keel, bridge height, shaft and rudder spacing. Later British fit is not used to add/remove 1941 German deck fittings."
+    },
+    {
+      "image": "U-570Photo1.jpg",
+      "sourceId": "u570-photos",
+      "redistribute": true,
+      "caption": "ONI survey photograph: as-captured bridge, narrow slotted deck and 8.8 cm gun. Photographic perspective is not treated as an orthographic measurement."
+    },
+    {
+      "image": "U-570Photo2.jpg",
+      "sourceId": "u570-photos",
+      "redistribute": true,
+      "caption": "ONI survey photograph looking forward: deck stowage covers, loading hatch, narrow rails and deck gun."
+    }
+  ],
+  "review": {
+    "title": "U-570 · Type VIIC fidelity review",
+    "intro": "The original and revised GLBs use the same twelve fixed cameras. Compare against the retained captured plan with one uniform source scale. Dimensions and landmarks are measured from the actual export.",
+    "limits": "Principal dimensions and the 1941 configuration have primary evidence. Intermediate hull offsets, exact paint, drainage counts, fittings, shutters and internal volumes remain approximations. Scans disagree locally and show different periscope extensions. No historical accuracy percentage or full pressure-hull engineering certification is claimed."
+  }
+}

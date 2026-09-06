@@ -292,18 +292,19 @@ test('VIIC chase follows underwater, scope eye breaks the surface at 7 m, and de
   camera.aspect = 390 / 844; camera.updateProjectionMatrix(); rig.update(ship, ship.y, 0, true);
   expect(Math.hypot(camera.position.x - ship.x, camera.position.z - ship.z)).toBeLessThan(60);
   rig.mode = 'Bridge'; rig.update(ship, ship.y, 0, true);
-  expect(camera.position.y).toBeCloseTo(1.4);
+  // Captured notebook: 14.612 m maximum eye above keel, survey draft 4.7625 m.
+  expect(camera.position.y).toBeCloseTo(14.612 - 4.7625 - 7);
   rig.binoculars = true; rig.update(ship, ship.y, 0, true);
-  expect(camera.position.y).toBeCloseTo(1.4);
+  expect(camera.position.y).toBeCloseTo(14.612 - 4.7625 - 7);
   ship.y = -50; rig.update(ship, ship.y, 0, true);
-  expect(camera.position.y).toBeCloseTo(-41.6);
+  expect(camera.position.y).toBeCloseTo(14.612 - 4.7625 - 50);
   // Submerged views still clear an island if the camera crosses its shore.
   rig.setBattleTerrain(() => 80);
   rig.update(ship, ship.y, 0, true);
   expect(camera.position.y).toBeGreaterThanOrEqual(92);
   rig.setBattleTerrain(() => 0);
   rig.update(ship, ship.y, 0, true);
-  expect(camera.position.y).toBeCloseTo(-41.6);
+  expect(camera.position.y).toBeCloseTo(14.612 - 4.7625 - 50);
   rig.binoculars = false; rig.mode = 'Tactical'; rig.update(ship, ship.y, 0, true);
   expect(camera.position.y).toBeGreaterThanOrEqual(12);
   rig.setInPort(true); ship.y = 0; rig.update(ship, 0, 0, true);
