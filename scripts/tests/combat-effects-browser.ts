@@ -104,7 +104,7 @@ export async function checkCombatEffects(forceWebGL = false) {
   camera.position.z = 20;
   const effects = new CombatEffects();
   scene.add(effects.root);
-  const sim = { shells: [], events: [] } as unknown as CombatSimulation;
+  const sim = { shells: [], torpedoes: [], actors: [], events: [], tick: 0 } as unknown as CombatSimulation;
   const frames: { shells: number; visible: number; draws: number }[] = [];
   try {
     // Match startup: warm the scene before firing, then render an empty pool.
@@ -129,11 +129,28 @@ export async function checkCombatEffects(forceWebGL = false) {
       const draws = renderer.info.render.drawCalls;
       frames.push({ shells: count, visible, draws });
       if (visible !== count) throw new Error(`Expected ${count} visible shells, got ${visible}: ${JSON.stringify(frames)}`);
-      // Five particle batches, shell bodies and streaks. A billboard must not
-      // acquire a second front/back submission as the salvos grow or reset.
-      if (draws > 7) throw new Error(`Effect draw budget exceeded: ${JSON.stringify(frames)}`);
+      // Five particle batches, shell bodies, streaks/glows, torpedo bodies and
+      // the existing two-sided wake (two draws). Shell billboards stay single-pass.
+      if (draws > 11) throw new Error(`Effect draw budget exceeded: ${JSON.stringify(frames)}`);
     }
-    return { backend: forceWebGL ? 'webgl2' : 'webgpu', frames };
+    // Check the trail itself, beyond the bright head/body covered by the grid.
+    sim.shells.splice(1);
+    Object.assign(sim.shells[0], { position: [0, 0, 0], velocity: [120, 0, 0], age: 1 });
+    effects.update(sim, 0, camera); renderer.render(scene, camera);
+    const flight = await renderer.readRenderTargetPixelsAsync(target, 0, 0, 512, 512);
+    let trailPixels = 0;
+    for (let y = 254; y <= 257; y++) for (let x = 128; x < 240; x++) {
+      if (flight[(y * 512 + x) * 4] > 20) trailPixels++;
+    }
+    if (trailPixels < 40) throw new Error(`Flight trail disappeared: ${trailPixels} visible pixels`);
+    sim.shells[0].velocity = [0, 0, -120];
+    effects.update(sim, 0, camera); renderer.render(scene, camera);
+    const endOn = await renderer.readRenderTargetPixelsAsync(target, 0, 0, 512, 512);
+    if (endOn[(256 * 512 + 256) * 4] < 100) throw new Error('End-on shell glow disappeared');
+    effects.reset(); renderer.render(scene, camera);
+    const reset = await renderer.readRenderTargetPixelsAsync(target, 0, 0, 512, 512);
+    for (let i = 0; i < reset.length; i += 4) if (reset[i] > 0) throw new Error('Reset left tracer pixels');
+    return { backend: forceWebGL ? 'webgl2' : 'webgpu', frames, trailPixels };
   } finally {
     target.dispose();
     effects.dispose();
