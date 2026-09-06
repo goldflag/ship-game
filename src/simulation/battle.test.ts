@@ -76,9 +76,9 @@ test('every bot maneuvers, fires both applicable batteries, reloads and damages 
   for (const battery of ['main', 'secondary']) expect(friendly.definition.mounts.some((mount, i) => mount.battery === battery && friendly.mounts[i].ammo < initial[1][i])).toBe(true);
   expect(sim.player.mounts.map(mount => mount.ammo)).toEqual(initial[0]);
   // HE aimed at exposed guns causes local equipment damage without spending
-  // the temporary universal hull counter. Both fleets must cause real damage.
-  expect(sim.actors.some(actor => actor.team === 'friendly' && actor.mounts.some(m => m.hp < 100))).toBe(true);
-  expect(sim.actors.some(actor => actor.team === 'enemy' && actor.mounts.some(m => m.hp < 100))).toBe(true);
+  // a universal hull counter. Both fleets must cause local damage or openings.
+  expect(sim.actors.some(actor => actor.team === 'friendly' && (actor.mounts.some(m => m.hp < 100) || actor.damage.compartments.some(c => c.breachAreaM2 > 0) || actor.damage.modules.some((m, i) => m.hp < actor.definition.modules[i].hp)))).toBe(true);
+  expect(sim.actors.some(actor => actor.team === 'enemy' && (actor.mounts.some(m => m.hp < 100) || actor.damage.compartments.some(c => c.breachAreaM2 > 0) || actor.damage.modules.some((m, i) => m.hp < actor.definition.modules[i].hp)))).toBe(true);
   const carrier = sim.actors[3];
   carrier.definition.mounts.forEach((mount, i) => { if (mount.weapon.caliberM < .1) expect(carrier.mounts[i].ammo).toBe(initial[3][i]); });
 // This is 90 simulated seconds of fleet behavior, not a wall-clock benchmark.

@@ -88,7 +88,7 @@ test('authored outer spaces fit the hull and never overlap retained room envelop
     for (const room of added) {
       for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1]) expect(hullContains(def.hull, [room.center[0] + sx * room.size[0] / 2, room.center[1] + sy * room.size[1] / 2, room.center[2] + sz * room.size[2] / 2])).toBe(true);
       for (const other of def.compartments.filter(c => c.id !== room.id)) {
-        const overlap = room.center.every((n, i) => Math.abs(n - other.center[i]) < (room.size[i] + other.size[i]) / 2 - 1e-6);
+        const overlap = (other.cells ?? [other]).some(cell => room.center.every((n, i) => Math.abs(n - cell.center[i]) < (room.size[i] + cell.size[i]) / 2 - 1e-6));
         expect(overlap).toBe(false);
       }
     }

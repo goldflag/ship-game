@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "contentHash": "ce5ada83b58c8149d23322fa004b600802c1a6b964c71b2f5bc79c37919e09c1",
-  "modelSha256": "5069e9b852c38376d2188760236da9d1442d2c69c65ed4a3a3b2c549e161d5dd",
+  "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
+  "modelSha256": "cf6ea33b8907c92dc9a39024433d784b69776c59483bfaeaa7ef229a44da1a9f",
   "specRevision": "independent-1941-01",
   "dimensions": [
     {
@@ -92,966 +92,1295 @@
   "spaces": [
     {
       "id": "boiler-aft-port",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "boiler-aft-center",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "boiler-aft-starboard",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "boiler-forward-port",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "boiler-forward-center",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "boiler-forward-starboard",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "turbine-port",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "turbine-starboard",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "turbine-center",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "anton-propellant",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "anton-shell-room",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "anton-handling",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "bruno-propellant",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "bruno-shell-room",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "bruno-handling",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "caesar-propellant",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "caesar-shell-room",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "caesar-handling",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "dora-propellant",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "dora-shell-room",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "dora-handling",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "steering-room",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "shaft-port",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "shaft-center",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "shaft-starboard",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "fuel-port-90",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "void-port-90",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "fuel-starboard-90",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "void-starboard-90",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "fuel-port-120",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "void-port-120",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "fuel-starboard-120",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "void-starboard-120",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "fuel-port-150",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "void-port-150",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "fuel-starboard-150",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "void-starboard-150",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "auxiliary-xii",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "forward-void",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-1-0",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-1-0",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-1-1",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-1-1",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-1-2",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-1-2",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-1-3",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-1-3",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-1-4",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-1-4",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-1-5",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-1-5",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-2-0",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-2-0",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-2-1",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-2-1",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-2-2",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-2-2",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-2-3",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-2-3",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-2-4",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-2-4",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-2-5",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-2-5",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-3-0",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-3-0",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-3-1",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-3-1",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-3-2",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-3-2",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-3-3",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-3-3",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-3-4",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-3-4",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-3-5",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-3-5",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-4-2",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-4-2",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-4-3",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-4-3",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-4-4",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-4-4",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-4-5",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-4-5",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-5-0",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-5-0",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-5-1",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-5-1",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-5-2",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-5-2",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-5-3",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-5-3",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-5-4",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-5-4",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-5-5",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-5-5",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-6-0",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-6-0",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-6-1",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-6-1",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-6-2",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-6-2",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-6-3",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-6-3",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-6-4",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-6-4",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-6-5",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-6-5",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-7-0",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-7-0",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-7-1",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-7-1",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-7-2",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-7-2",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-7-3",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-7-3",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-7-4",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-7-4",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-7-5",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-7-5",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-8-3",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-8-3",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-8-4",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-8-4",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-8-5",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-8-5",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-9-0",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-9-0",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-9-1",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-9-1",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-9-2",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-9-2",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-9-3",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-9-3",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-9-4",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-9-4",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-9-5",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-9-5",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-10-1",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-10-1",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-10-2",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-10-2",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-10-3",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-10-3",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-10-4",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-10-4",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-10-5",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-10-5",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-port-11-5",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-strip-starboard-11-5",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-end-bow-0",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-end-bow-1",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-end-bow-2",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-end-bow-3",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-end-bow-4",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-end-bow-5",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-end-stern-0",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-end-stern-1",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-end-stern-2",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-end-stern-3",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-end-stern-4",
+      "cells": 1,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0
     },
     {
       "id": "flood-end-stern-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-0-0",
+      "cells": 190,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-0-1",
+      "cells": 171,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-0-2",
+      "cells": 108,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-1-0",
+      "cells": 190,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-1-1",
+      "cells": 171,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-1-2",
+      "cells": 108,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-0-0",
+      "cells": 163,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-0-1",
+      "cells": 241,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-0-2",
+      "cells": 58,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-1-0",
+      "cells": 163,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-1-1",
+      "cells": 241,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-1-2",
+      "cells": 58,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-0-0",
+      "cells": 134,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-0-1",
+      "cells": 188,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-0-2",
+      "cells": 38,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-1-0",
+      "cells": 134,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-1-1",
+      "cells": 188,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-1-2",
+      "cells": 38,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-0-0",
+      "cells": 186,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-0-1",
+      "cells": 252,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-0-2",
+      "cells": 95,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-1-0",
+      "cells": 186,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-1-1",
+      "cells": 252,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-1-2",
+      "cells": 95,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0

@@ -1,6 +1,6 @@
-# Stability milestone — implementation notes, not shipped behavior
+# Stability milestone — implementation and reference notes
 
-The accepted step 5 remains pending. These notes prepare its physical model while gunfire and damage control are reviewed.
+Step 5 implements the selected hull/loading model. See the dated implementation record and per-ship stability reports for calibration and validation.
 
 ## Reference principles
 
@@ -18,4 +18,4 @@ Partially filled spaces can reduce stability as water moves during heel. That fr
 - Show afloat but disabled, progressive flooding and capsize distinctly. Validate alternative losses across all four presets before removing the fallback. Do not tune water thresholds or penetration merely to force a chosen duel duration.
 - Bound CPU cost using deterministic cached geometry and a documented update cadence. GPU ocean data remains visual-only.
 
-These are implementation decisions to test and review with Fable, not a claim of historical loading accuracy or regulatory compliance.
+These constraints guide the implementation; they do not claim historical loading accuracy or regulatory compliance. The user waived further agent reviews.

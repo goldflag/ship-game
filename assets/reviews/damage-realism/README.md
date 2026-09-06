@@ -81,3 +81,7 @@ Only this review record was added to the repository; no gameplay implementation 
 ## Review workflow update — 2026-09-05
 
 The user explicitly waived all further reviews. Continue the accepted implementation sequence with simulation tests, asset checks and live validation. No replacement reviewer or Fable approval gate is required.
+
+## Implementation status — 2026-09-05
+
+All five agreed milestones are implemented. The dated implementation record, per-ship stability reports, scenario harness and browser artifacts document the final behavior and remaining calibration limits. The user waived further agent reviews after step 4a; verification continues through tests, builds and live checks.

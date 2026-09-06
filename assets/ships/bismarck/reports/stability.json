@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "shipId": "bismarck",
+  "method": "Station polygon clipping and midpoint integration; conservative residual cells, 85% permeability",
+  "baselineVolumeM3": 53019.81534477369,
+  "fullHullVolumeM3": 91322.00006912388,
+  "statedMassKg": 43978000,
+  "geometricDisplacementKg": 54345310.72839303,
+  "buoyancyScale": 0.8092326533892359,
+  "dryCenterOfGravity": [
+    0,
+    2.508700011230303,
+    0.906180637686163
+  ],
+  "initialGM": 2.5200000000000005,
+  "floodCapacityM3": 69013.21459538203,
+  "reserveSpaces": 24,
+  "limitations": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Unmapped outer shell uses 12 mm steel. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
+}

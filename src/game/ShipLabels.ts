@@ -26,7 +26,7 @@ export class ShipLabels {
   constructor(host: HTMLElement) {
     this.root.className = 'ship-label-layer';
     this.root.setAttribute('role', 'group');
-    this.root.setAttribute('aria-label', 'Ship names and hull health');
+    this.root.setAttribute('aria-label', 'Ship names and equipment condition');
     host.appendChild(this.root);
   }
 
@@ -44,7 +44,7 @@ export class ShipLabels {
       const identity = `${actor.team === 'friendly' ? 'Ally' : 'Enemy'} ${actor.motion.id.split('-').at(-1)}`;
       const health = document.createElement('span'); health.className = 'ship-label-health';
       const meter = document.createElement('div'); meter.className = 'ship-label-meter';
-      meter.setAttribute('role', 'meter'); meter.setAttribute('aria-label', `${actor.definition.name}, ${identity}, hull health`);
+      meter.setAttribute('role', 'meter'); meter.setAttribute('aria-label', `${actor.definition.name}, ${identity}, equipment condition`);
       meter.setAttribute('aria-valuemin', '0'); meter.setAttribute('aria-valuemax', '1000');
       const fill = document.createElement('div'); meter.appendChild(fill);
       tag.append(name, meter, health); root.appendChild(tag); this.root.appendChild(root);
@@ -62,11 +62,12 @@ export class ShipLabels {
     for (const label of this.labels) {
       const { actor, view, root } = label;
       const hp = Math.round(MathUtils.clamp(actor.damage.integrity, 0, 1000));
-      if (label.hp !== hp || label.sunk !== actor.damage.sunk) {
+      if (label.hp !== hp || label.sunk !== actor.damage.sunk || label.health.dataset.status !== actor.damage.stability.status) {
+        label.health.dataset.status = actor.damage.stability.status;
         label.hp = hp; label.sunk = actor.damage.sunk;
-        label.health.textContent = `${hp} HP`;
+        label.health.textContent = `${Math.round(hp / 10)}% · ${actor.damage.stability.status}`;
         label.meter.setAttribute('aria-valuenow', String(hp));
-        label.meter.setAttribute('aria-valuetext', `${hp} of 1000 hull health${label.sunk ? ', sinking' : ''}`);
+        label.meter.setAttribute('aria-valuetext', `${Math.round(hp / 10)} percent equipment condition${label.sunk ? ', sinking' : ''}`);
         label.fill.style.transform = `scaleX(${hp / 1000})`;
         root.classList.toggle('ship-label-sinking', label.sunk);
       }

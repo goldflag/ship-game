@@ -1,6 +1,6 @@
 import { heatModule, heatMount } from './damageControl';
 import type { ShipDefinition, Vec3, Volume } from '../ships/blueprint';
-import { nearbyContacts, shipContacts, type Combatant, type DamageEvent, type Shell } from './damage';
+import { contactArmor, nearbyContacts, shipContacts, type Combatant, type DamageEvent, type Shell } from './damage';
 import { clamp, dot, length, localToWorld, normalize, segmentOverlapsBox, sub, worldToLocal } from './geometry';
 import { plateResponse } from './protection';
 
@@ -60,7 +60,7 @@ export function burstShell(shell: Shell, actors: (Combatant & { definition: Ship
             if (shield === actor && target.kind === 'module' && hit.index === target.index) continue;
             budget -= 50; blockedPressure = true;
           } else {
-            const armor = hit.kind === 'armor' ? protection.armor[hit.index] : undefined;
+            const armor = hit.kind === 'armor' ? contactArmor(protection,hit) : undefined;
             const thickness = armor?.thicknessMm ?? (hit.kind === 'mount' ? protection.mounts[hit.index].weapon.armorMm : protection.connections[hit.index].thicknessMm!);
             // A burst on/inside a portal's bounds has no entry normal or ray
             // length. Its direct fragments still pay normal plate resistance.

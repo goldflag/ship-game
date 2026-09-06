@@ -112,7 +112,7 @@ test('aimed salvos obey reloads and ammunition while damaging the target', () =>
   expect(sim.player.mounts.slice(0, 4).every(m => m.ammo === 238)).toBe(true);
   expect(sim.target.damage.modules.find(m => m.id === 'engine-port')!.hp).toBe(140);
   expect(sim.events.some(e => e.kind === 'stopped' && e.message.includes('Turtleback'))).toBe(true);
-  expect(sim.target.damage.integrity).toBeLessThan(1000);
+  expect(sim.target.damage.compartments.some(c => c.breachAreaM2 > 0)).toBe(true);
   expect(sim.target.damage.compartments.some(c => c.breachAreaM2 > 0)).toBe(true);
   for (let i = 0; i < 200; i++) sim.step(stop, { aim: [NaN, 0, 0], fire: true, battery: 'main' });
   expect(sim.events.filter(e => e.kind === 'shot').length).toBe(8);

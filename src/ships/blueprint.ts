@@ -68,7 +68,11 @@ export interface Module extends Volume {
   immersionToleranceM?: number;
   role?: 'boiler' | 'turbine' | 'shaft' | 'combined-drive';
 }
-export interface Compartment extends Volume { name: string; capacityM3: number; pumpM3PerSecond: number; }
+export interface Compartment extends Volume {
+  name: string; capacityM3: number; pumpM3PerSecond: number;
+  /** Optional disjoint conservative cells, in ship coordinates, for compound voids. */
+  cells?: { center: Vec3; size: Vec3 }[];
+}
 export interface FloodConnection {
   id?: string; fromId: string; toId: string; areaM2: number;
   /** Omitted v1 connections preserve the original open-connection behavior. */
@@ -98,6 +102,7 @@ export interface ShipBlueprint {
   schemaVersion: 1; id: string; name: string; configuration: string;
   coordinates: 'meters-y-up-bow-negative-z'; modelUrl: string;
   damageControl?: DamageControlProfile;
+  stability?: { version: 1; dryCenterOfGravity: Vec3; buoyancyScale: number; shellThicknessMm: number; basis: string };
   hull: Hull; handling: Handling; mounts: Mount[]; armor: Armor[];
   modules: Module[]; compartments: Compartment[];
   connections: FloodConnection[];
@@ -159,6 +164,13 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
   literal(b.coordinates, ['meters-y-up-bow-negative-z'], 'coordinates');
   const url = text(b.modelUrl, 'modelUrl');
   if (!/^\/models\/[a-z0-9-]+\.glb$/.test(url)) fail('modelUrl', 'expected a local /models/<id>.glb URL');
+  if (b.stability !== undefined) {
+    const s = record(b.stability, 'stability'); literal(s.version, [1], 'stability.version');
+    vector(s.dryCenterOfGravity, 'stability.dryCenterOfGravity');
+    numeric(s.buoyancyScale, 'stability.buoyancyScale', .1, 10);
+    numeric(s.shellThicknessMm, 'stability.shellThicknessMm', .001, 200);
+    text(s.basis, 'stability.basis');
+  }
   const h = record(b.hull, 'hull');
   literal(h.kind, ['authored-stations-v1'], 'hull.kind');
   ['length', 'beam', 'draft', 'depth', 'massKg', 'waterplaneAreaM2', 'reserveBuoyancyM3'].forEach(k => numeric(h[k], `hull.${k}`, .001));
@@ -297,6 +309,22 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     text(c.name, `${c.id}.name`);
     numeric(c.capacityM3, `${c.id}.capacityM3`, .001, (c.size as number[]).reduce((a, v) => a * v, 1));
     numeric(c.pumpM3PerSecond, `${c.id}.pumpM3PerSecond`, 0, 100);
+    if (c.cells !== undefined) {
+      const cells = list(c.cells, `${c.id}.cells`, 2048);
+      if (!cells.length) fail(String(c.id), 'compound space requires cells');
+      let volume = 0;
+      cells.forEach(value => {
+        const cell = record(value, 'cell'), center = vector(cell.center, 'cell.center'), size = vector(cell.size, 'cell.size', .001);
+        if (center.some((n, axis) => Math.abs(n - (c.center as number[])[axis]) + size[axis] / 2 > (c.size as number[])[axis] / 2 + 1e-6)) fail(String(c.id), 'cell outside compartment bounds');
+        volume += size[0] * size[1] * size[2];
+      });
+      if ((c.capacityM3 as number) > volume + 1e-6) fail(String(c.id), 'capacity exceeds compound volume');
+      const boxes = cells.map(value => value as { center: Vec3; size: Vec3 }).sort((a,b) => a.center[0]-a.size[0]/2-(b.center[0]-b.size[0]/2));
+      for (let i=0;i<boxes.length;i++) for(let j=i+1;j<boxes.length;j++) {
+        const a=boxes[i], b=boxes[j]; if(b.center[0]-b.size[0]/2 >= a.center[0]+a.size[0]/2-1e-6) break;
+        if(a.center.every((n,axis)=>Math.abs(n-b.center[axis])<(a.size[axis]+b.size[axis])/2-1e-6)) fail(String(c.id), 'compound cells overlap');
+      }
+    }
   });
   const modules = volumes(b.modules, 'modules');
   modules.forEach(m => {

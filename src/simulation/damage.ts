@@ -1,5 +1,7 @@
+import { hullContacts } from './hullContact';
+import { createStability, updateStability, waterLevel, type StabilityState } from './stability';
 import { createControl, heatModule, type ControlState } from './damageControl';
-import type { Ammunition, APProjectile, FloodConnection, HEProjectile, ShipDefinition, Vec3 } from '../ships/blueprint';
+import type { Ammunition, APProjectile, Armor, FloodConnection, HEProjectile, ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { ShipState } from './ship';
 import { plateHit, plateResponse, samePlateSeam } from './protection';
 import type { MountState } from './weapons';
@@ -9,7 +11,7 @@ export interface Breach { position: Vec3; areaM2: number; radiusM: number; shell
 export interface CompartmentState { id: string; waterM3: number; breachAreaM2: number; breaches: Breach[]; }
 export interface ConnectionState { id: string; state: 'open' | 'closed' | 'damaged'; damageAreaM2: number; fromIndex: number; toIndex: number; }
 export const connectionId = (c: FloodConnection) => c.id ?? `${c.fromId}:${c.toId}`;
-export type DefeatCause = 'structural-fallback' | 'flooding' | 'magazine';
+export type DefeatCause = 'structural-fallback' | 'flooding' | 'magazine' | 'capsize' | 'weapons-lost' | 'ammunition-exhausted';
 export interface ImpactRecord {
   shellId: number; shipId: string; targetId: string; targetName: string;
   /** Position is ship-local; DamageEvent.position is world-space. */
@@ -25,7 +27,7 @@ export interface ImpactRecord {
   breachAssignments?: { compartmentId: string; areaM2: number; position: Vec3 }[];
 }
 export interface DamageState {
-  control: ControlState;
+  control: ControlState; stability: StabilityState;
   integrity: number; modules: { id: string; hp: number; detonated: boolean; ignition: number }[];
   compartments: CompartmentState[]; connections: ConnectionState[]; sunk: boolean; defeatCause?: DefeatCause;
 }
@@ -50,7 +52,7 @@ export interface BallisticEffectData {
 }
 export interface DamageEvent extends BallisticEffectData { kind: 'penetration' | 'contact' | 'ricochet' | 'stopped' | 'module' | 'sunk' | 'burst'; position: Vec3; message: string; shipId: string; impact?: ImpactRecord; defeatCause?: DefeatCause; }
 export function createDamage(def: ShipDefinition): DamageState {
-  return { control: createControl(def), integrity: 1000, modules: def.modules.map(m => ({ id: m.id, hp: m.hp, detonated: false, ignition: 0 })), compartments: def.compartments.map(c => ({ id: c.id, waterM3: 0, breachAreaM2: 0, breaches: [] })), connections: def.connections.map(c => ({ id: connectionId(c), state: c.state ?? 'open', damageAreaM2: c.state === 'damaged' ? c.areaM2 : 0, fromIndex: def.compartments.findIndex(r => r.id === c.fromId), toIndex: def.compartments.findIndex(r => r.id === c.toId) })), sunk: false };
+  return { stability: createStability(), control: createControl(def), integrity: 1000, modules: def.modules.map(m => ({ id: m.id, hp: m.hp, detonated: false, ignition: 0 })), compartments: def.compartments.map(c => ({ id: c.id, waterM3: 0, breachAreaM2: 0, breaches: [] })), connections: def.connections.map(c => ({ id: connectionId(c), state: c.state ?? 'open', damageAreaM2: c.state === 'damaged' ? c.areaM2 : 0, fromIndex: def.compartments.findIndex(r => r.id === c.fromId), toIndex: def.compartments.findIndex(r => r.id === c.toId) })), sunk: false };
 }
 export function addBreach(state: CompartmentState, position: Vec3, areaM2: number, shellId: number, apertureRadiusM = Math.sqrt(areaM2 / Math.PI)): number {
   const added = Math.max(0, Math.min(areaM2, 4 - state.breachAreaM2));
@@ -72,19 +74,14 @@ export function addBreach(state: CompartmentState, position: Vec3, areaM2: numbe
   state.breachAreaM2 += added;
   return added;
 }
-function structuralDamage(state: DamageState, amount: number, cause: DefeatCause): void {
-  const before = state.integrity;
-  state.integrity = Math.max(0, before - amount);
-  if (before > 0 && state.integrity === 0) state.defeatCause = cause;
-}
 export { systemHealth } from './machinery';
 
 /** Split the same strip approximation used by inflow at authored room heights.
  * An opening across a watertight deck can reach the room below its center. */
 function exteriorBreaches(actor: Combatant, def: ShipDefinition, point: Vec3, normal: Vec3, shell: Shell): NonNullable<ImpactRecord['breachAssignments']> {
   const area = shell.caliberM ** 2, radius = Math.sqrt(area / Math.PI), bottom = point[1] - radius, top = point[1] + radius;
-  if (!def.floodRegions) {
-    const room = def.compartments.map((c, i) => ({ i, distance: Math.hypot(...point.map((n, axis) => Math.max(0, Math.abs(n - c.center[axis]) - c.size[axis] / 2))) })).sort((a, b) => a.distance - b.distance)[0];
+  if (!def.floodRegions || Math.abs(normal[1]) > .5) {
+    const room = def.compartments.map((c, i) => ({ i, distance: Math.min(...(c.cells ?? [c]).map(cell => Math.hypot(...point.map((n, axis) => Math.max(0, Math.abs(n - cell.center[axis]) - cell.size[axis] / 2))))) })).sort((a, b) => a.distance - b.distance)[0];
     if (!room) return [];
     const c = actor.damage.compartments[room.i];
     return [{ compartmentId: c.id, areaM2: addBreach(c, point, area, shell.id), position: [...point] }];
@@ -97,13 +94,21 @@ function exteriorBreaches(actor: Combatant, def: ShipDefinition, point: Vec3, no
   for (let i = 1; i < cuts.length; i++) {
     const position: Vec3 = [point[0], (cuts[i - 1] + cuts[i]) / 2, point[2]];
     const region = regions.find(r => contains(r, position));
-    if (!region) continue;
-    const c = actor.damage.compartments.find(c => c.id === region.compartmentId)!;
+    if (!region) {
+      const nearest = def.compartments.map((c, index) => ({ index, distance: Math.min(...(c.cells ?? [c]).map(cell => Math.hypot(...position.map((n, axis) => Math.max(0, Math.abs(n - cell.center[axis]) - cell.size[axis] / 2))))) })).sort((a,b) => a.distance-b.distance)[0];
+      if (nearest) { const c = actor.damage.compartments[nearest.index]; result.push({ compartmentId: c.id, areaM2: addBreach(c, position, area * (cuts[i] - cuts[i-1]) / (2 * radius), shell.id, (cuts[i]-cuts[i-1])/2), position }); }
+      continue;
+    }
+    const c = actor.damage.compartments.find(c => c.id === region.compartmentId);
+    if (!c) continue;
     result.push({ compartmentId: c.id, areaM2: addBreach(c, position, area * (cuts[i] - cuts[i - 1]) / (2 * radius), shell.id, (cuts[i] - cuts[i - 1]) / 2), position });
   }
   return result;
 }
 
+export function contactArmor(def: ShipDefinition, hit: ShipContact): Armor {
+  return hit.index >= 0 ? def.armor[hit.index] : { id: hit.key.split(":").slice(1).join("-"), name: 'Hull shell · estimated', thicknessMm: def.stability!.shellThicknessMm, center: hit.point, size: [.001, .001, .001], plate: { vertices: [], material: 'steel', exterior: true } };
+}
 export interface ShipContact { t: number; key: string; kind: 'armor' | 'module' | 'mount' | 'boundary'; index: number; point: Vec3; normal: Vec3; onEdge?: boolean; seamKeys?: string[]; }
 export interface ContactCandidates { armor: number[]; modules: number[]; connections: number[]; mounts: number[]; trains: number[]; }
 /** Build once for a local burst, retaining every volume that can intersect a ray
@@ -190,13 +195,30 @@ export function shipContacts(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor
       hits.push({ t: hit.exit, point: localToWorld(point, mountPose), normal: rotate(normal, mountPose), key: exitKey, kind: 'mount', index });
     }
   });
-  hits.sort((a, b) => a.t - b.t || Number(b.kind === 'armor') - Number(a.kind === 'armor') || (a.kind==='armor' && b.kind==='armor' ? def.armor[b.index].thicknessMm-def.armor[a.index].thicknessMm : 0) || a.key.localeCompare(b.key));
+  if (def.stability) {
+    const crossings = hullContacts(def.hull, from, to);
+    let previous: ShipContact | undefined;
+    for (const h of crossings) {
+      const key = `${actor.motion.id}:hull:${h.index}`;
+      if (shell.visited.includes(key)) continue;
+      const probeFrom = add(h.point, scale(h.normal, -5)), probeTo = add(h.point, scale(h.normal, 5));
+      const covered = def.armor.some(a => {
+        if (a.plate?.mountId || !(a.plate?.exterior || a.exterior || !a.plate) || ![0,1,2].every(i => Math.abs(a.center[i] - h.point[i]) <= a.size[i] / 2 + 5)) return false;
+        const p = a.plate ? plateHit(probeFrom, probeTo, a, def, trains) : segmentBox(probeFrom, probeTo, a);
+        return p && Math.abs(p.normal.reduce((n, v, i) => n + v * h.normal[i], 0)) > .5;
+      });
+      if (covered) continue;
+      if (previous && length(sub(previous.point, h.point)) < 1e-5) { (previous.seamKeys ??= []).push(key); continue; }
+      previous = { ...h, index: -1, key, kind: 'armor' }; hits.push(previous);
+    }
+  }
+  hits.sort((a, b) => a.t - b.t || Number(b.kind === 'armor') - Number(a.kind === 'armor') || (a.kind==='armor' && b.kind==='armor' ? contactArmor(def,b).thicknessMm-contactArmor(def,a).thicknessMm : 0) || a.key.localeCompare(b.key));
   const unique: ShipContact[] = [];
   for (const hit of hits) {
-    const a = hit.kind === 'armor' ? def.armor[hit.index] : undefined;
+    const a = hit.kind === 'armor' ? contactArmor(def,hit) : undefined;
     const previous = a?.plate && hit.onEdge ? unique.find(p => p.kind === 'armor' &&
-      def.armor[p.index].plate?.material === a.plate!.material && samePlateSeam(p, hit,
-        !!a.plate!.surfaceId && a.plate!.surfaceId === def.armor[p.index].plate?.surfaceId)) : undefined;
+      contactArmor(def,p).plate?.material === a.plate!.material && samePlateSeam(p, hit,
+        !!a.plate!.surfaceId && a.plate!.surfaceId === contactArmor(def,p).plate?.surfaceId)) : undefined;
     if (previous) (previous.seamKeys ??= []).push(hit.key); else unique.push(hit);
   }
   return unique;
@@ -209,7 +231,7 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
     shell.lastHitShipId = actor.motion.id;
     const position = localToWorld(hit.point, actor.motion);
     const boundary = def.connections[hit.index];
-    const target = hit.kind === 'armor' ? def.armor[hit.index] : hit.kind === 'module' ? def.modules[hit.index] : hit.kind === 'mount' ? def.mounts[hit.index] : { id: connectionId(boundary), name: `Watertight boundary ${connectionId(boundary)}` };
+    const target = hit.kind === 'armor' ? contactArmor(def,hit) : hit.kind === 'module' ? def.modules[hit.index] : hit.kind === 'mount' ? def.mounts[hit.index] : { id: connectionId(boundary), name: `Watertight boundary ${connectionId(boundary)}` };
     const evidence: ImpactRecord = { shellId: shell.id, shipId: actor.motion.id, targetId: target.id, targetName: target.name, kind: hit.kind, position: [...hit.point], impactSpeedMps: length(shell.velocity), penetrationBeforeMm: shell.penetrationMm, penetrationAfterMm: shell.penetrationMm, outcome: 'damaged' };
     const kineticDamage = shell.damage * (shell.ap ? .25 : 1);
     const arm = (resistance: number) => {
@@ -233,7 +255,7 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
     const stop = (kind: 'stopped' | 'ricochet', message: string) => {
       pay(shell.penetrationMm);
       if (shell.detonateAtAge !== undefined) {
-        const mountId = hit.kind === 'mount' ? def.mounts[hit.index].id : hit.kind === 'armor' ? def.armor[hit.index].plate?.mountId : undefined;
+        const mountId = hit.kind === 'mount' ? def.mounts[hit.index].id : hit.kind === 'armor' ? contactArmor(def,hit).plate?.mountId : undefined;
         const index = def.mounts.findIndex(m => m.id === mountId), mount = def.mounts[index];
         const point = mount ? worldToLocal(hit.point, { x: mount.position[0], y: mount.position[1], z: mount.position[2], heading: radians(mount.bearingDeg) + actor.mounts[index].train, roll: 0, pitch: 0 }) : [...hit.point] as Vec3;
         shell.lodged = { shipId: actor.motion.id, position: point, mountId };
@@ -246,7 +268,7 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
       evidence.outcome = 'detonation'; evidence.fuze = 'armed'; evidence.fuzeRemainingSeconds = 0;
       evidence.fragmentBudgetMm = shell.he.fragmentPenetrationMm;
       if (hit.kind === 'armor') {
-        const a = def.armor[hit.index], material = a.plate?.material ?? 'steel';
+        const a = contactArmor(def,hit), material = a.plate?.material ?? 'steel';
         // Direct contact provides normal fragment paths into the plate. Only a
         // defeated exterior sheet gets the existing caliber-area opening; this
         // does not assume a free blast path through its other protective layers.
@@ -262,7 +284,7 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
       return true;
     }
     if (hit.kind === 'armor') {
-      const a = def.armor[hit.index];
+      const a = contactArmor(def,hit);
       const cosine = Math.abs(direction.reduce((sum, n, i) => sum + n * hit.normal[i], 0));
       const response = plateResponse(a.thicknessMm, a.plate?.material ?? 'steel', cosine, shell.caliberM);
       const resistance = response.resistanceMm;
@@ -291,8 +313,7 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
         return false;
       }
       if (a.plate?.exterior || a.exterior || (a.exterior === undefined && !a.plate && hit.key.endsWith(':entry'))) {
-        evidence.damage = Math.min(actor.damage.integrity, shell.damage * .2);
-        structuralDamage(actor.damage, shell.damage * .2, 'structural-fallback');
+
         evidence.breachAssignments = exteriorBreaches(actor, def, hit.point, hit.normal, shell);
         evidence.compartmentId = evidence.breachAssignments[0]?.compartmentId;
         evidence.breachAreaM2 = evidence.breachAssignments.reduce((n, b) => n + b.areaM2, 0);
@@ -347,17 +368,26 @@ export function hitShip(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor: Com
 
 export function updateFlooding(actor: Combatant, def: ShipDefinition, dt: number): void {
   const damage = actor.damage;
+  updateStability(actor, def, dt);
   damage.compartments.forEach((state, i) => {
     const c = def.compartments[i];
     const inflow = state.breaches.reduce((sum, breach) => {
       const world = localToWorld(breach.position, actor.motion);
       const radius = breach.radiusM, bottom = world[1] - radius, top = world[1] + radius;
-      const wetted = clamp(-bottom / (2 * radius), 0, 1);
-      const internalY = localToWorld([breach.position[0], c.center[1] - c.size[1] / 2 + state.waterM3 / c.capacityM3 * c.size[1], breach.position[2]], actor.motion)[1];
-      // Uniform aperture strip approximation. Pressure uses the immersed part's
-      // center and the water surface in the compartment, never its center X/Z.
-      const head = Math.max(0, -Math.max((bottom + Math.min(top, 0)) / 2, internalY));
-      return sum + .6 * breach.areaM2 * wetted * Math.sqrt(2 * 9.81 * head);
+      const internalY = waterLevel(actor, def, i);
+      // Integrate the uniform aperture strip between pressure discontinuities.
+      // Water can enter or leave through the same opening as the ship heels.
+      const cuts = [bottom, top, ...[0, internalY].filter(y => y > bottom && y < top)].sort((a,b)=>a-b);
+      let flow = 0;
+      for (let j=1;j<cuts.length;j++) {
+        const a=cuts[j-1], b=cuts[j], mid=(a+b)/2;
+        if (mid < Math.min(0,internalY)) flow += Math.sign(-internalY) * Math.sqrt(Math.abs(internalY)) * (b-a);
+        else if (mid < Math.max(0,internalY)) {
+          const surface=Math.max(0,internalY), sign=internalY>0?-1:1;
+          flow += sign * 2/3 * (Math.max(0,surface-a)**1.5-Math.max(0,surface-b)**1.5);
+        }
+      }
+      return sum + .6 * breach.areaM2 / (2*radius) * Math.sqrt(2*9.81) * flow;
     }, 0);
     state.waterM3 = clamp(state.waterM3 + (inflow - c.pumpM3PerSecond - (damage.control.pumping[i] ?? 0)) * dt, 0, c.capacityM3);
   });
@@ -368,8 +398,7 @@ export function updateFlooding(actor: Combatant, def: ShipDefinition, dt: number
     const ai = state.fromIndex, bi = state.toIndex;
     const a = damage.compartments[ai], b = damage.compartments[bi], ac = def.compartments[ai], bc = def.compartments[bi];
     const portalY = connection.position ? localToWorld(connection.position, actor.motion)[1] : -Infinity;
-    const level = (room: typeof ac, water: number) => localToWorld([room.center[0], room.center[1] - room.size[1] / 2 + water / room.capacityM3 * room.size[1], room.center[2]], actor.motion)[1];
-    const ay = level(ac, a.waterM3), by = level(bc, b.waterM3);
+    const ay = waterLevel(actor, def, ai), by = waterLevel(actor, def, bi);
     const difference = connection.position ? Math.max(0, ay - portalY) - Math.max(0, by - portalY) : ay - by;
     const area = state.state === 'damaged' ? state.damageAreaM2 : connection.areaM2;
     const equalization = Math.abs(difference) / (ac.size[1] / ac.capacityM3 + bc.size[1] / bc.capacityM3);
@@ -378,11 +407,12 @@ export function updateFlooding(actor: Combatant, def: ShipDefinition, dt: number
     a.waterM3 -= amount; b.waterM3 += amount;
   });
   const water = damage.compartments.reduce((n, c) => n + c.waterM3, 0);
-  if (!damage.sunk && (damage.integrity <= 0 || water >= def.hull.reserveBuoyancyM3)) {
-    damage.defeatCause ??= damage.integrity <= 0 ? 'structural-fallback' : 'flooding';
+  if (!def.stability && !damage.sunk && water >= def.hull.reserveBuoyancyM3) {
+    damage.defeatCause ??= 'flooding';
     damage.sunk = true;
   }
   if (damage.sunk) { actor.motion.y = Math.max(-50, actor.motion.y - dt * .45); return; }
+  if (def.stability) return;
   actor.motion.y = -water / def.hull.waterplaneAreaM2;
   const totalMass = def.hull.massKg + water * 1000;
   actor.motion.roll = clamp(-damage.compartments.reduce((n, c, i) => n + c.waterM3 * 1000 * def.compartments[i].center[0], 0) / totalMass * .5, -.45, .45);

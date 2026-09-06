@@ -50,7 +50,7 @@ test('shells already underwater outside a hull cannot enter a submerged module o
   sim.shells.push(shell([-20, -1, -21], [1000, 0, 0]));
   sim.step({ throttle: 0, rudder: 0 }, quiet);
   expect(sim.shells).toHaveLength(0);
-  expect(actor.damage).toEqual(before);
+  expect(actor.damage.modules).toEqual(before.modules); expect(actor.damage.compartments).toEqual(before.compartments);
 });
 test('below-water penetrations admit water and preserve the port breach location under list', () => {
   const { def, actor } = fixture();
@@ -93,15 +93,13 @@ test('ordered hit evidence records resistance, damage, breach assignment and ter
     expect(impact.resistanceMm).toBeGreaterThanOrEqual(0);
   }
 });
-test('flooding and the temporary structural fallback retain stable causes', () => {
-  for (const cause of ['structural-fallback', 'flooding'] as const) {
-    const { def, actor } = fixture();
-    if (cause === 'flooding') def.compartments.forEach((c, i) => actor.damage.compartments[i].waterM3 = c.capacityM3);
-    else actor.damage.integrity = 0;
-    updateFlooding(actor, def, 1 / 60);
-    expect(actor.damage.sunk).toBe(true); expect(actor.damage.defeatCause).toBe(cause);
-    updateFlooding(actor, def, 1 / 60); expect(actor.damage.defeatCause).toBe(cause);
-  }
+test('flooding has a stable cause and zero global integrity no longer sinks a dry hull', () => {
+  const { def, actor } = fixture(); actor.damage.integrity = 0;
+  updateFlooding(actor, def, 1 / 60); expect(actor.damage.sunk).toBe(false);
+  def.compartments.forEach((c, i) => actor.damage.compartments[i].waterM3 = c.capacityM3);
+  for (let i=0;i<60;i++) updateFlooding(actor, def, 1/60);
+  expect(actor.damage.sunk).toBe(true); expect(actor.damage.defeatCause).toBe('flooding');
+  updateFlooding(actor, def, 1/60); expect(actor.damage.defeatCause).toBe('flooding');
 });
 test('small-caliber breach clusters have bounded cost and conserve opening area', () => {
   const { def, actor } = fixture(), c = actor.damage.compartments[0];

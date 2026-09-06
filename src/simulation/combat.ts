@@ -1,3 +1,4 @@
+import { updateCapability, type VesselStatus } from './stability';
 import { directControl, updateDamageControl, type ControlPriority, type ControlState } from './damageControl';
 import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { advanceProjectile } from './projectile';
@@ -16,10 +17,11 @@ export interface ShellHistory { shellId: number; ownerId: string; tick: number; 
 export interface CombatTelemetry {
   battery: Battery; range: number; ready: number; total: number; targetIntegrity: number; targetWater: number;
   ammunition: Ammunition; ammunitionStock: { ap: number; he: number }; heSupported: boolean;
+  targetStatus: VesselStatus; playerStatus: VesselStatus; targetList: number; targetTrim: number; targetDraftChange: number;
   control: ControlState; targetFires: number; controlTargets: { id: string; name: string }[];
   targetMounts: { id: string; name: string; condition: number }[];
   targetId: string; targetName: string; targetRange: number;
-  contacts: { id: string; name: string; shipId: string; team: Team; controller: FleetActor['controller']; targetId?: string; x: number; z: number; heading: number; integrity: number; sunk: boolean }[];
+  contacts: { id: string; name: string; shipId: string; team: Team; controller: FleetActor['controller']; targetId?: string; x: number; z: number; heading: number; integrity: number; sunk: boolean; status: VesselStatus; combatLost: boolean }[];
   battle: boolean; result: BattleResult; playerSunk: boolean;
   targetPower: number; targetSteering: number; targetSunk: boolean; targetUnderway: boolean;
   mounts: { id: string; name: string; status: string; reload: number; ammo: number; loaded: Ammunition }[];
@@ -221,11 +223,12 @@ export class CombatSimulation {
       updateDamageControl(actor, actor.definition, FIXED_DT, event => this.emit(event));
       const wasSunk = actor.damage.sunk;
       updateFlooding(actor, actor.definition, FIXED_DT);
+      updateCapability(actor, actor.definition);
       if (!wasSunk && actor.damage.sunk) this.emit({ kind: 'sunk', position: [actor.motion.x, actor.motion.y, actor.motion.z], shipId: actor.motion.id, defeatCause: actor.damage.defeatCause, message: `${actor.definition.name} sinking · ${actor.damage.defeatCause}` });
     }
     if (this.isBattle && this.result === 'active') {
-      const friendly = this.actors.some(actor => actor.team === 'friendly' && !actor.damage.sunk);
-      const enemy = this.actors.some(actor => actor.team === 'enemy' && !actor.damage.sunk);
+      const friendly = this.actors.some(actor => actor.team === 'friendly' && !actor.damage.sunk && !actor.damage.stability.combatLost);
+      const enemy = this.actors.some(actor => actor.team === 'enemy' && !actor.damage.sunk && !actor.damage.stability.combatLost);
       this.result = !friendly && !enemy ? 'draw' : !enemy ? 'victory' : !friendly ? 'defeat' : 'active';
     }
     this.tick++;
@@ -244,7 +247,8 @@ export class CombatSimulation {
       targetRange: Math.hypot(this.target.motion.x - this.ship.x, this.target.motion.z - this.ship.z),
       battle: this.isBattle, result: this.result, playerSunk: this.player.damage.sunk,
       contacts: this.actors.map(actor => ({ id: actor.motion.id, shipId: actor.definition.id, name: actor.definition.name, team: actor.team, controller: actor.controller,
-        targetId: actor.targetId, x: actor.motion.x, z: actor.motion.z, heading: actor.motion.heading, integrity: actor.damage.integrity / 1000, sunk: actor.damage.sunk })),
+        targetId: actor.targetId, x: actor.motion.x, z: actor.motion.z, heading: actor.motion.heading, integrity: actor.damage.integrity / 1000, sunk: actor.damage.sunk, status: actor.damage.stability.status, combatLost: actor.damage.stability.combatLost })),
+      targetStatus: this.target.damage.stability.status, playerStatus: this.player.damage.stability.status, targetList: this.target.motion.roll * 180 / Math.PI, targetTrim: this.target.motion.pitch * 180 / Math.PI, targetDraftChange: -this.target.motion.y,
       control: structuredClone(this.player.damage.control), targetFires: [...this.target.damage.control.rooms, ...this.target.damage.control.mounts].filter(f => f.intensity > 0).length,
       controlTargets: [...this.player.definition.compartments.map(c => ({ id: c.id, name: c.name })), ...this.player.definition.mounts.map(m => ({ id: m.id, name: m.name }))],
       targetIntegrity: this.target.damage.integrity / 1000, targetWater: this.target.damage.compartments.reduce((n, c) => n + c.waterM3, 0),
