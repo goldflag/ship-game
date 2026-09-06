@@ -1,0 +1,7 @@
+[
+  ".build/ships/type-viic/authoring-reads.json",
+  ".build/ships/type-viic/definition.json",
+  "assets/ships/type-viic/build.py",
+  "scripts/ships/__pycache__/blender_components.cpython-313.pyc",
+  "scripts/ships/__pycache__/blender_open_guns.cpython-313.pyc"
+]

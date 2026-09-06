@@ -19,3 +19,11 @@ Claude review requested in the workspace's “Claude aircraft review” terminal
 Claude's required findings were addressed: gear follows the published forward/spanwise axis and fixed-joint metadata (tail travel is halved), bot strikes skip lost/submerged targets before choosing a fallback, and README/air-operations docs explicitly identify the initial AA coverage gap (only Enterprise and Type VIIC have eligible light mounts). No unresearched AA batteries were added.
 
 Also raised the torpedo-release floor to 650 m, separated usable/recoverable air capability and excluded fighter-only survival from ship-battle victory, disabled strike launch controls for combat-lost targets, hid empty instance batches and bounded the tracer buffer. Added regression coverage for wreck-target fallback and fighter-only defeat. Other tuning/performance/mobile-layout suggestions in Claude's report remain follow-up work; this note does not recast the original review as unconditional approval.
+
+## Integration with master
+
+Merged the newer U-570/Type VIIC reconstruction from master. Regenerated its GLB, Blender source, thumbnail and comparison outputs with the shared compiler; the other four assets already match. Preserved the prior submarine runtime evidence with an explicit historical-export registration rather than changing its recorded hashes.
+
+Production build passes on the combined tree. The full post-merge run passed 438 tests and hit two fleet-loading version mismatches because it started before the Type VIIC publication completed. After publication, all six tests in `src/game/Game.test.ts` pass, including those two cases. The two new review regression tests also pass. This is a resolved test/publication race, not a relaxed version check.
+
+Fresh in-game Type VIIC review loaded export `f38b819172189b7a8f3119a214ed6111e192ba06d5888198657440a435aa2106`; maximum muzzle discrepancy at the articulation preview is 0.00000154 m. `merge-gear.json` records the actual aircraft renderer driving the published Wildcat main gear about its forward/Z axis and tail about its authored spanwise/X axis with half travel.

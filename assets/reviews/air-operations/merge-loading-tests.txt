@@ -1,0 +1,14 @@
+bun test v1.3.3 (274e01c7)
+
+src/game/Game.test.ts:
+(pass) switching ships retains the port until loading completes, then frames the new hull with the same orbit [158.37ms]
+(pass) failed ship loads preserve the old ship and allow retry [179.70ms]
+(pass) a second request cannot replace an in-flight switch; disposed games never attach the result [15.50ms]
+(pass) battle loading binds each mixed fleet hull and selected target to its own exported joints [52.33ms]
+(pass) one failed fleet asset leaves the port intact and the same battle can be retried [40.13ms]
+(pass) failed aircraft loads leave the current port intact and allow another launch attempt [32.16ms]
+
+ 6 pass
+ 0 fail
+ 64 expect() calls
+Ran 6 tests across 1 file. [652.00ms]

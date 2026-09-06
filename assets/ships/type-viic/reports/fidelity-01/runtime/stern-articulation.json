@@ -1,0 +1,528 @@
+{
+  "d": {
+    "backend": "webgpu",
+    "battleSeed": 1851881057,
+    "camera": {
+      "aim": [
+        1448.0490126405641,
+        0.5,
+        -4681.148796715469
+      ],
+      "binoculars": false,
+      "fov": 52.00000000000001,
+      "magnification": 1,
+      "manualAim": true,
+      "matrixWorldInverse": [
+        0.9553364891256061,
+        0.029502791919178276,
+        -0.2940438365518559,
+        0,
+        6.938893903907228e-18,
+        0.9950041652780257,
+        0.09983341664682814,
+        0,
+        0.2955202066613396,
+        -0.09537450575679463,
+        0.9505637859220634,
+        0,
+        2.220446049250313e-16,
+        50.688946025574374,
+        -39.42279610566223,
+        1
+      ],
+      "mode": "Chase",
+      "pointerLocked": false,
+      "position": [
+        -13.08749564170546,
+        -46.5,
+        42.308315492353856
+      ],
+      "projectionMatrix": [
+        1.633751346060547,
+        0,
+        0,
+        0,
+        0,
+        2.050303841579296,
+        0,
+        0,
+        0,
+        0,
+        8.333402778356486e-06,
+        -1,
+        0,
+        0,
+        0.5000041667013891,
+        0
+      ],
+      "shellFollow": "off"
+    },
+    "combat": {
+      "ammunition": "ap",
+      "ammunitionStock": {
+        "ap": 0,
+        "he": 0
+      },
+      "batteries": [
+        {
+          "ammo": 220,
+          "ammunition": "ap",
+          "battery": "main",
+          "ready": 0,
+          "reload": 0,
+          "total": 1
+        },
+        {
+          "ammo": 1100,
+          "ammunition": "ap",
+          "battery": "secondary",
+          "ready": 0,
+          "reload": 0,
+          "total": 1
+        },
+        {
+          "ammo": 14,
+          "ammunition": "ap",
+          "battery": "torpedo",
+          "ready": 5,
+          "reload": 0,
+          "total": 5
+        }
+      ],
+      "battery": "torpedo",
+      "battle": false,
+      "contacts": [
+        {
+          "combatLost": false,
+          "controller": "player",
+          "heading": 0,
+          "id": "player",
+          "integrity": 1,
+          "name": "Type VIIC",
+          "shipId": "type-viic",
+          "status": "operational",
+          "sunk": false,
+          "team": "friendly",
+          "x": 0,
+          "z": 0
+        },
+        {
+          "combatLost": false,
+          "controller": "idle",
+          "heading": 0,
+          "id": "target",
+          "integrity": 1,
+          "name": "Type VIIC",
+          "shipId": "type-viic",
+          "status": "operational",
+          "sunk": false,
+          "team": "enemy",
+          "x": 650,
+          "z": -550
+        }
+      ],
+      "control": {
+        "focus": "",
+        "mounts": [
+          {
+            "fuel": 0,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 0,
+            "heat": 0,
+            "intensity": 0
+          }
+        ],
+        "priority": "balanced",
+        "pumping": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "rooms": [
+          {
+            "fuel": 0,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 0,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 0,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 0,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 0,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 0,
+            "heat": 0,
+            "intensity": 0
+          }
+        ],
+        "spares": 0,
+        "teams": []
+      },
+      "controlTargets": [
+        {
+          "id": "forward-torpedo-room",
+          "name": "Forward torpedo room"
+        },
+        {
+          "id": "forward-accommodation",
+          "name": "Forward accommodation / battery"
+        },
+        {
+          "id": "control-room",
+          "name": "Control room"
+        },
+        {
+          "id": "aft-accommodation",
+          "name": "Aft accommodation / battery"
+        },
+        {
+          "id": "diesel-room",
+          "name": "Diesel engine room"
+        },
+        {
+          "id": "motor-room",
+          "name": "Motor / stern torpedo room"
+        },
+        {
+          "id": "deck-gun",
+          "name": "8.8 cm deck gun"
+        },
+        {
+          "id": "flak-gun",
+          "name": "2 cm aft platform gun"
+        }
+      ],
+      "heSupported": false,
+      "message": "Turn bow or stern toward the sight. Torpedoes keep their launch course; lead moving targets.",
+      "modules": [
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "forward-torpedoes",
+          "name": "Forward torpedo stowage",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "deck-magazine",
+          "name": "Deck gun ammunition locker",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "diesels",
+          "name": "Twin diesel engines",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "electric-motors",
+          "name": "Twin electric motors",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "aft-torpedoes",
+          "name": "Stern torpedo stowage",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "steering-gear",
+          "name": "Rudder linkage",
+          "reason": "operational"
+        }
+      ],
+      "mounts": [
+        {
+          "ammo": 3,
+          "id": "bow-tube-1",
+          "name": "Bow tube 1",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 3,
+          "id": "bow-tube-2",
+          "name": "Bow tube 2",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 3,
+          "id": "bow-tube-3",
+          "name": "Bow tube 3",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 3,
+          "id": "bow-tube-4",
+          "name": "Bow tube 4",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 2,
+          "id": "stern-tube",
+          "name": "Stern tube 5",
+          "reload": 0,
+          "status": "ready"
+        }
+      ],
+      "playerDamageDealt": 0,
+      "playerFrags": 0,
+      "playerIntegrity": 1,
+      "playerMaxIntegrity": 450,
+      "playerStatus": "operational",
+      "playerSunk": false,
+      "playerWater": 0,
+      "range": 4899.999999999999,
+      "ready": 5,
+      "result": "active",
+      "shellHistory": [],
+      "submarine": {
+        "ballastFraction": 0,
+        "ballastM3": 0,
+        "depthM": 50,
+        "emergencyBlow": false,
+        "maxDepthM": 150,
+        "maxTorpedoDepthM": 12,
+        "periscopeDepthM": 7,
+        "propulsion": "Electric",
+        "targetDepthM": 0,
+        "verticalSpeed": 0
+      },
+      "targetDepthM": 0,
+      "targetDraftChange": 0,
+      "targetFires": 0,
+      "targetId": "target",
+      "targetIntegrity": 1,
+      "targetList": 0,
+      "targetMounts": [
+        {
+          "condition": 1,
+          "id": "deck-gun",
+          "name": "8.8 cm deck gun"
+        },
+        {
+          "condition": 1,
+          "id": "flak-gun",
+          "name": "2 cm aft platform gun"
+        }
+      ],
+      "targetName": "Type VIIC",
+      "targetPosition": {
+        "heading": 0,
+        "x": 650,
+        "z": -550
+      },
+      "targetPower": 1,
+      "targetRange": 851.4693182963201,
+      "targetStatus": "operational",
+      "targetSteering": 1,
+      "targetSunk": false,
+      "targetTrim": 0,
+      "targetUnderway": false,
+      "targetWater": 0,
+      "total": 5
+    },
+    "contentHash": "0cdcb80b8790f728b709cd73c96abb53655305d5c03259983b1f0b91594ffe63",
+    "effects": {
+      "flashes": 0,
+      "foam": 0,
+      "particleCapacity": 2272,
+      "shells": 0,
+      "smoke": 0,
+      "spray": 0,
+      "torpedoes": 0
+    },
+    "events": [],
+    "fleet": [
+      {
+        "ammo": 1320,
+        "controller": "player",
+        "definitionId": "type-viic",
+        "id": "player",
+        "integrity": 450,
+        "motion": {
+          "distance": 80,
+          "heading": 0,
+          "id": "player",
+          "pitch": 0,
+          "roll": 0,
+          "rudder": 0.5,
+          "speed": 2,
+          "swaySpeed": 0,
+          "tick": 0,
+          "x": 0,
+          "y": -50,
+          "yawRate": 0,
+          "z": 0
+        },
+        "submarine": {
+          "ballastM3": 0,
+          "emergencyBlow": false,
+          "planes": 0.7,
+          "targetDepthM": 0,
+          "trimPitch": 0
+        },
+        "team": "friendly"
+      },
+      {
+        "ammo": 1320,
+        "controller": "idle",
+        "definitionId": "type-viic",
+        "id": "target",
+        "integrity": 450,
+        "motion": {
+          "distance": 0,
+          "heading": 0,
+          "id": "target",
+          "pitch": 0,
+          "roll": 0,
+          "rudder": 0,
+          "speed": 0,
+          "swaySpeed": 0,
+          "tick": 0,
+          "x": 650,
+          "y": 0,
+          "yawRate": 0,
+          "z": -550
+        },
+        "submarine": {
+          "ballastM3": 0,
+          "emergencyBlow": false,
+          "planes": 0,
+          "targetDepthM": 0,
+          "trimPitch": 0
+        },
+        "team": "enemy"
+      }
+    ],
+    "fps": 64.16837229353033,
+    "inPort": false,
+    "inspecting": false,
+    "maxMuzzleErrorM": 1.218999856131567e-06,
+    "paused": true,
+    "portInspection": "exterior",
+    "renderedShips": [
+      {
+        "id": "player",
+        "impactDrawCalls": 0,
+        "impactMarks": 0,
+        "visible": true
+      },
+      {
+        "id": "target",
+        "impactDrawCalls": 0,
+        "impactMarks": 0,
+        "visible": false
+      }
+    ],
+    "shipId": "type-viic",
+    "tick": 0,
+    "torpedoes": []
+  },
+  "fixture": "Deliberate animation pose: planes .7, rudder .5, speed 2, distance 80; actual Game.frame, ShipView and water rendering.",
+  "joints": [
+    {
+      "id": "bow-plane-port.pivot",
+      "rotation": [
+        -0.2443460952792061,
+        0,
+        0,
+        "XYZ"
+      ]
+    },
+    {
+      "id": "bow-plane-starboard.pivot",
+      "rotation": [
+        -0.2443460952792061,
+        0,
+        0,
+        "XYZ"
+      ]
+    },
+    {
+      "id": "propeller-port.pivot",
+      "rotation": [
+        0,
+        0,
+        -0.5132620651304889,
+        "XYZ"
+      ]
+    },
+    {
+      "id": "propeller-starboard.pivot",
+      "rotation": [
+        0,
+        0,
+        0.5132620651304889,
+        "XYZ"
+      ]
+    },
+    {
+      "id": "rudder-port.pivot",
+      "rotation": [
+        0,
+        -0.3054326190990076,
+        0,
+        "XYZ"
+      ]
+    },
+    {
+      "id": "rudder-starboard.pivot",
+      "rotation": [
+        0,
+        -0.3054326190990076,
+        0,
+        "XYZ"
+      ]
+    },
+    {
+      "id": "stern-plane-port.pivot",
+      "rotation": [
+        0.2443460952792061,
+        0,
+        0,
+        "XYZ"
+      ]
+    },
+    {
+      "id": "stern-plane-starboard.pivot",
+      "rotation": [
+        0.2443460952792061,
+        0,
+        0,
+        "XYZ"
+      ]
+    }
+  ]
+}
