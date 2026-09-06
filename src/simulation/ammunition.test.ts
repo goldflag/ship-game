@@ -18,6 +18,15 @@ test('AP and HE stocks are finite, share capacity, and switching never creates r
   expect(state.ammo).toBe(initial); expect(availableAmmunition(state, 'ap') + availableAmmunition(state, 'he')).toBe(initial);
 });
 
+test('an AP-only mount remains usable when its battery is ordered to load HE', () => {
+  const def = compileShip(blueprint, catalog), m = { ...def.mounts[0], weapon: { ...def.mounts[0].weapon, he: undefined } };
+  const state = createMountState(m);
+  selectAmmunition(m, state, 'he');
+  expect(state.loaded).toBe('ap');
+  expect(state.reload).toBe(0);
+  expect(availableAmmunition(state)).toBe(state.ammo);
+});
+
 test('the real fire loop waits for HE loading, consumes only HE, records type, and resets both stocks', () => {
   const def = compileShip(blueprint, catalog);
   def.mounts = [{ ...def.mounts[0], position: [0, 10, 0], bearingDeg: 90 }]; def.obstructions = [];
