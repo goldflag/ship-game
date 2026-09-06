@@ -1,0 +1,61 @@
+{
+  "contentHash": "0cdcb80b8790f728b709cd73c96abb53655305d5c03259983b1f0b91594ffe63",
+  "result": {
+    "dives": [
+      {
+        "absorption": [
+          0.014806913539376288,
+          0.005230824204104329,
+          0.004765373331110795
+        ],
+        "camera": [
+          -32.379741365596736,
+          -3.5,
+          30.21305100563782
+        ],
+        "clearHullFraction": 0.12370446615266098,
+        "depth": 7,
+        "passed": true
+      },
+      {
+        "absorption": [
+          0.014806913539376288,
+          0.005230824204104329,
+          0.004765373331110795
+        ],
+        "camera": [
+          -32.379741365596736,
+          -46.5,
+          30.21305100563782
+        ],
+        "clearHullFraction": 0.12365267716688354,
+        "depth": 50,
+        "passed": true
+      },
+      {
+        "absorption": [
+          0.014806913539376288,
+          0.005230824204104329,
+          0.004765373331110795
+        ],
+        "camera": [
+          -32.379741365596736,
+          -146.5,
+          30.21305100563782
+        ],
+        "clearHullFraction": 0.12359527770764686,
+        "depth": 150,
+        "passed": true
+      }
+    ],
+    "legacy": false,
+    "passed": true,
+    "quality": "high",
+    "recovery": {
+      "periscopeAboveWater": true,
+      "periscopeRestored": true,
+      "surfaceRestored": true
+    }
+  },
+  "shipId": "type-viic"
+}

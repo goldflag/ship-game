@@ -1,0 +1,709 @@
+{
+  "schemaVersion": 1,
+  "contentHash": "0cdcb80b8790f728b709cd73c96abb53655305d5c03259983b1f0b91594ffe63",
+  "modelSha256": "24d789404f4b174cb1f9211b16dfa4e003be08b13724306cd29c5abd5e00bf74",
+  "capturePlanSha256": "00c179eac8c66a561a896ac3a7da61c279abbbc3051822dd6023ee939bb54ef2",
+  "captures": [
+    {
+      "id": "starboard",
+      "position": [
+        0,
+        -140,
+        2
+      ],
+      "target": [
+        0,
+        0,
+        2
+      ],
+      "spanM": 74,
+      "resolution": [
+        1600,
+        500
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "starboard.png",
+      "imageSha256": "16dce6329e8fcdee15ffdc3eac66a325aab81d5d7c25d62e45886230f578894f",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.6292068494294654e-07,
+          -1.0,
+          -140.0
+        ],
+        [
+          0.0,
+          1.0,
+          -1.6292068494294654e-07,
+          2.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 21.62162162162162,
+      "source": {
+        "id": "type-viic",
+        "contentHash": "0cdcb80b8790f728b709cd73c96abb53655305d5c03259983b1f0b91594ffe63",
+        "modelSha256": "24d789404f4b174cb1f9211b16dfa4e003be08b13724306cd29c5abd5e00bf74"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "port",
+      "position": [
+        0,
+        140,
+        2
+      ],
+      "target": [
+        0,
+        0,
+        2
+      ],
+      "spanM": 74,
+      "resolution": [
+        1600,
+        500
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "port.png",
+      "imageSha256": "4712017b4947ae95e230a7b87e479300e59e0da7a37176dbd88b5f5c7dbf9259",
+      "cameraMatrixWorld": [
+        [
+          -1.0,
+          1.5099581673894136e-07,
+          1.509957741063772e-07,
+          0.0
+        ],
+        [
+          1.5099580252808664e-07,
+          1.629206565212371e-07,
+          1.0,
+          140.0
+        ],
+        [
+          1.5099578831723193e-07,
+          1.0,
+          -1.6292068494294654e-07,
+          2.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 21.62162162162162,
+      "source": {
+        "id": "type-viic",
+        "contentHash": "0cdcb80b8790f728b709cd73c96abb53655305d5c03259983b1f0b91594ffe63",
+        "modelSha256": "24d789404f4b174cb1f9211b16dfa4e003be08b13724306cd29c5abd5e00bf74"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "top",
+      "position": [
+        0,
+        0,
+        140
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "spanM": 74,
+      "resolution": [
+        1600,
+        500
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "rotationEuler": [
+        0,
+        0,
+        0
+      ],
+      "image": "top.png",
+      "imageSha256": "1ce8f6789d442222fe6656d854f261d495bf79725f62c4c7935cf6199d8a98b8",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          140.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 21.62162162162162,
+      "source": {
+        "id": "type-viic",
+        "contentHash": "0cdcb80b8790f728b709cd73c96abb53655305d5c03259983b1f0b91594ffe63",
+        "modelSha256": "24d789404f4b174cb1f9211b16dfa4e003be08b13724306cd29c5abd5e00bf74"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bow",
+      "position": [
+        140,
+        0,
+        2.5
+      ],
+      "target": [
+        0,
+        0,
+        2.5
+      ],
+      "spanM": 18,
+      "resolution": [
+        900,
+        900
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "bow.png",
+      "imageSha256": "97fefc0779b5594df07cd50b5c33cf5c42503ea9d5804e0143fbb78aed9e0a3a",
+      "cameraMatrixWorld": [
+        [
+          -4.371138828673793e-08,
+          4.371138828673793e-08,
+          1.0,
+          140.0
+        ],
+        [
+          1.0,
+          1.910685676922942e-15,
+          4.371138828673793e-08,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          -4.371138828673793e-08,
+          2.5
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 50.0,
+      "source": {
+        "id": "type-viic",
+        "contentHash": "0cdcb80b8790f728b709cd73c96abb53655305d5c03259983b1f0b91594ffe63",
+        "modelSha256": "24d789404f4b174cb1f9211b16dfa4e003be08b13724306cd29c5abd5e00bf74"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "stern",
+      "position": [
+        -140,
+        0,
+        2.5
+      ],
+      "target": [
+        0,
+        0,
+        2.5
+      ],
+      "spanM": 18,
+      "resolution": [
+        900,
+        900
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "stern.png",
+      "imageSha256": "ecd7b0dcbf02a2dbf8a5768f9ed80262dc3c3bf2b2b670b707f94a0bf6f2fc63",
+      "cameraMatrixWorld": [
+        [
+          -4.371138828673793e-08,
+          -4.371138828673793e-08,
+          -1.0,
+          -140.0
+        ],
+        [
+          -1.0,
+          1.910685676922942e-15,
+          4.371138828673793e-08,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          -4.371138828673793e-08,
+          2.5
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 50.0,
+      "source": {
+        "id": "type-viic",
+        "contentHash": "0cdcb80b8790f728b709cd73c96abb53655305d5c03259983b1f0b91594ffe63",
+        "modelSha256": "24d789404f4b174cb1f9211b16dfa4e003be08b13724306cd29c5abd5e00bf74"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "quarter-bow",
+      "position": [
+        62,
+        -90,
+        46
+      ],
+      "target": [
+        0,
+        0,
+        1.5
+      ],
+      "spanM": 76,
+      "resolution": [
+        1400,
+        850
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "quarter-bow.png",
+      "imageSha256": "a1620774c30424e103dcfd803da2fad7dc5571d490e344c7d7036608896b676e",
+      "cameraMatrixWorld": [
+        [
+          0.8235076069831848,
+          -0.21393948793411255,
+          0.5254189968109131,
+          62.0
+        ],
+        [
+          0.5673052072525024,
+          0.3105572760105133,
+          -0.7627050280570984,
+          -90.0
+        ],
+        [
+          4.1817994400616953e-08,
+          0.9261663556098938,
+          0.37711524963378906,
+          46.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 18.42105263157895,
+      "source": {
+        "id": "type-viic",
+        "contentHash": "0cdcb80b8790f728b709cd73c96abb53655305d5c03259983b1f0b91594ffe63",
+        "modelSha256": "24d789404f4b174cb1f9211b16dfa4e003be08b13724306cd29c5abd5e00bf74"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "quarter-stern",
+      "position": [
+        -70,
+        80,
+        45
+      ],
+      "target": [
+        0,
+        0,
+        1.5
+      ],
+      "spanM": 76,
+      "resolution": [
+        1400,
+        850
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "quarter-stern.png",
+      "imageSha256": "b6391ad65fe029e28f7ffdfe1a986eff852c2ad203319d735fdbd1cb28e4e0ad",
+      "cameraMatrixWorld": [
+        [
+          -0.7525768280029297,
+          0.24939538538455963,
+          -0.6094505786895752,
+          -70.0
+        ],
+        [
+          -0.6585044264793396,
+          -0.2850235104560852,
+          0.6965152621269226,
+          80.0
+        ],
+        [
+          -5.7557727473067644e-08,
+          0.9255071878433228,
+          0.37873005867004395,
+          45.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 18.42105263157895,
+      "source": {
+        "id": "type-viic",
+        "contentHash": "0cdcb80b8790f728b709cd73c96abb53655305d5c03259983b1f0b91594ffe63",
+        "modelSha256": "24d789404f4b174cb1f9211b16dfa4e003be08b13724306cd29c5abd5e00bf74"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bridge",
+      "position": [
+        13,
+        -18,
+        14
+      ],
+      "target": [
+        1.5,
+        0,
+        3
+      ],
+      "spanM": 17,
+      "resolution": [
+        1200,
+        950
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "bridge.png",
+      "imageSha256": "25d613c4a5deda5c2bad34b8bea70ec7b94e6e6db1f10060df3880913f22031a",
+      "cameraMatrixWorld": [
+        [
+          0.8426963090896606,
+          -0.24649442732334137,
+          0.47864747047424316,
+          13.0
+        ],
+        [
+          0.5383891463279724,
+          0.38581737875938416,
+          -0.7491875886917114,
+          -18.0
+        ],
+        [
+          4.900985572930949e-08,
+          0.889036238193512,
+          0.4578368365764618,
+          14.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 70.58823529411765,
+      "source": {
+        "id": "type-viic",
+        "contentHash": "0cdcb80b8790f728b709cd73c96abb53655305d5c03259983b1f0b91594ffe63",
+        "modelSha256": "24d789404f4b174cb1f9211b16dfa4e003be08b13724306cd29c5abd5e00bf74"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bridge-profile",
+      "position": [
+        1,
+        -70,
+        3
+      ],
+      "target": [
+        1,
+        0,
+        3
+      ],
+      "spanM": 19,
+      "resolution": [
+        1400,
+        1000
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "bridge-profile.png",
+      "imageSha256": "09b18dedd79b4cd4375843a48454ba693f3a5344311ede4531d8b81e227f5be1",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        [
+          0.0,
+          -1.6292068494294654e-07,
+          -1.0,
+          -70.0
+        ],
+        [
+          0.0,
+          1.0,
+          -1.6292068494294654e-07,
+          3.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 73.6842105263158,
+      "source": {
+        "id": "type-viic",
+        "contentHash": "0cdcb80b8790f728b709cd73c96abb53655305d5c03259983b1f0b91594ffe63",
+        "modelSha256": "24d789404f4b174cb1f9211b16dfa4e003be08b13724306cd29c5abd5e00bf74"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "forward-battery",
+      "position": [
+        15,
+        -14,
+        9
+      ],
+      "target": [
+        8,
+        0,
+        2.2
+      ],
+      "spanM": 12,
+      "resolution": [
+        1200,
+        900
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "forward-battery.png",
+      "imageSha256": "a6f6a650950040d908f45ecd332cbca3bb01bfe47b9268f504b5806f40e3ee56",
+      "cameraMatrixWorld": [
+        [
+          0.8944271802902222,
+          -0.17819614708423615,
+          0.41017818450927734,
+          15.0
+        ],
+        [
+          0.4472135901451111,
+          0.3563922941684723,
+          -0.8203563690185547,
+          -14.0
+        ],
+        [
+          -9.334911510450183e-09,
+          0.9171862602233887,
+          0.39845871925354004,
+          9.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 100.0,
+      "source": {
+        "id": "type-viic",
+        "contentHash": "0cdcb80b8790f728b709cd73c96abb53655305d5c03259983b1f0b91594ffe63",
+        "modelSha256": "24d789404f4b174cb1f9211b16dfa4e003be08b13724306cd29c5abd5e00bf74"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bow-profile",
+      "position": [
+        27,
+        -70,
+        -1
+      ],
+      "target": [
+        27,
+        0,
+        -1
+      ],
+      "spanM": 18,
+      "resolution": [
+        1200,
+        900
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "bow-profile.png",
+      "imageSha256": "309a7ff101ed5e76d0863b7d70bc1e3a2cc48c1f3696fad4d412b42d7dc16f1b",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          27.0
+        ],
+        [
+          0.0,
+          -1.6292068494294654e-07,
+          -1.0,
+          -70.0
+        ],
+        [
+          0.0,
+          1.0,
+          -1.6292068494294654e-07,
+          -1.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 66.66666666666667,
+      "source": {
+        "id": "type-viic",
+        "contentHash": "0cdcb80b8790f728b709cd73c96abb53655305d5c03259983b1f0b91594ffe63",
+        "modelSha256": "24d789404f4b174cb1f9211b16dfa4e003be08b13724306cd29c5abd5e00bf74"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "stern-equipment",
+      "position": [
+        -35,
+        -15,
+        6
+      ],
+      "target": [
+        -27,
+        0,
+        -1.8
+      ],
+      "spanM": 18,
+      "resolution": [
+        1200,
+        900
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "stern-equipment.png",
+      "imageSha256": "8bb3c20378b9f2a700b390587f30f6159a640bf789948a945358ea6bc279acba",
+      "cameraMatrixWorld": [
+        [
+          0.882352888584137,
+          0.19624607264995575,
+          -0.42771583795547485,
+          -35.0
+        ],
+        [
+          -0.4705883264541626,
+          0.3679613173007965,
+          -0.8019670248031616,
+          -15.0
+        ],
+        [
+          1.8438068849491174e-09,
+          0.9088960289955139,
+          0.41702285408973694,
+          6.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 66.66666666666667,
+      "source": {
+        "id": "type-viic",
+        "contentHash": "0cdcb80b8790f728b709cd73c96abb53655305d5c03259983b1f0b91594ffe63",
+        "modelSha256": "24d789404f4b174cb1f9211b16dfa4e003be08b13724306cd29c5abd5e00bf74"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    }
+  ]
+}

@@ -1,0 +1,252 @@
+{
+  "schemaVersion": 1,
+  "axes": "metres; +X bow +Y port +Z up",
+  "purpose": "Identical pre/post 1941 schematic fidelity cameras; uniform scale and neutral geometry lighting.",
+  "views": [
+    {
+      "id": "starboard",
+      "position": [
+        0,
+        -140,
+        2
+      ],
+      "target": [
+        0,
+        0,
+        2
+      ],
+      "spanM": 74,
+      "resolution": [
+        1600,
+        500
+      ],
+      "projection": "ORTHO",
+      "visibility": "all"
+    },
+    {
+      "id": "port",
+      "position": [
+        0,
+        140,
+        2
+      ],
+      "target": [
+        0,
+        0,
+        2
+      ],
+      "spanM": 74,
+      "resolution": [
+        1600,
+        500
+      ],
+      "projection": "ORTHO",
+      "visibility": "all"
+    },
+    {
+      "id": "top",
+      "position": [
+        0,
+        0,
+        140
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "spanM": 74,
+      "resolution": [
+        1600,
+        500
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "rotationEuler": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "bow",
+      "position": [
+        140,
+        0,
+        2.5
+      ],
+      "target": [
+        0,
+        0,
+        2.5
+      ],
+      "spanM": 18,
+      "resolution": [
+        900,
+        900
+      ],
+      "projection": "ORTHO",
+      "visibility": "all"
+    },
+    {
+      "id": "stern",
+      "position": [
+        -140,
+        0,
+        2.5
+      ],
+      "target": [
+        0,
+        0,
+        2.5
+      ],
+      "spanM": 18,
+      "resolution": [
+        900,
+        900
+      ],
+      "projection": "ORTHO",
+      "visibility": "all"
+    },
+    {
+      "id": "quarter-bow",
+      "position": [
+        62,
+        -90,
+        46
+      ],
+      "target": [
+        0,
+        0,
+        1.5
+      ],
+      "spanM": 76,
+      "resolution": [
+        1400,
+        850
+      ],
+      "projection": "ORTHO",
+      "visibility": "all"
+    },
+    {
+      "id": "quarter-stern",
+      "position": [
+        -70,
+        80,
+        45
+      ],
+      "target": [
+        0,
+        0,
+        1.5
+      ],
+      "spanM": 76,
+      "resolution": [
+        1400,
+        850
+      ],
+      "projection": "ORTHO",
+      "visibility": "all"
+    },
+    {
+      "id": "bridge",
+      "position": [
+        13,
+        -18,
+        14
+      ],
+      "target": [
+        1.5,
+        0,
+        3
+      ],
+      "spanM": 17,
+      "resolution": [
+        1200,
+        950
+      ],
+      "projection": "ORTHO",
+      "visibility": "all"
+    },
+    {
+      "id": "bridge-profile",
+      "position": [
+        1,
+        -70,
+        3
+      ],
+      "target": [
+        1,
+        0,
+        3
+      ],
+      "spanM": 19,
+      "resolution": [
+        1400,
+        1000
+      ],
+      "projection": "ORTHO",
+      "visibility": "all"
+    },
+    {
+      "id": "forward-battery",
+      "position": [
+        15,
+        -14,
+        9
+      ],
+      "target": [
+        8,
+        0,
+        2.2
+      ],
+      "spanM": 12,
+      "resolution": [
+        1200,
+        900
+      ],
+      "projection": "ORTHO",
+      "visibility": "all"
+    },
+    {
+      "id": "bow-profile",
+      "position": [
+        27,
+        -70,
+        -1
+      ],
+      "target": [
+        27,
+        0,
+        -1
+      ],
+      "spanM": 18,
+      "resolution": [
+        1200,
+        900
+      ],
+      "projection": "ORTHO",
+      "visibility": "all"
+    },
+    {
+      "id": "stern-equipment",
+      "position": [
+        -35,
+        -15,
+        6
+      ],
+      "target": [
+        -27,
+        0,
+        -1.8
+      ],
+      "spanM": 18,
+      "resolution": [
+        1200,
+        900
+      ],
+      "projection": "ORTHO",
+      "visibility": "all"
+    }
+  ]
+}
