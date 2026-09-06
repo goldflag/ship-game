@@ -28,6 +28,8 @@ The demo's image-based sky is replaced by Sky Pro's animated clouds and atmosphe
 
 Water Pro's `scene.fogNode` owns distance fog, including transparent effects and the ocean's sky-color blend. The final composition uses Water Pro's output directly, without Sky Pro's additional `applyTo` fog pass: that pass reads opaque depth behind transparent smoke and can erase it at the ocean horizon. Sky Pro still supplies the sky, clouds, lighting and reflections. See the [horizon regression review](../assets/effects/naval/reports/validation.md#horizon-smoke-cutoff-2026-09-05).
 
+The game requests reversed depth for centimeter-scale ship details at long battle ranges. Three.js gives the main scene pass a floating-point depth attachment, retaining the 0.5 m battle near plane and 60 km far plane. Sky Pro 2.2.0's sky and cirrus background shaders require their constant far-depth value to match the active backend (0 for reversed depth, 1 otherwise); volumetric clouds already project their hit distance through the camera. Water and smoke use Three.js's depth conversion nodes, which account for reversed depth. See the [distant ship depth review](../assets/reviews/ship-depth/README.md) for the GPU regression fixture and matching 24× captures.
+
 ## Ship wake
 
 `src/game/ShipWake.ts` combines Water Pro's wave displacement with the foam history in `src/game/WakeFoam.ts`. Both are sampled by the actual water material, so foam follows the ocean's displacement, lighting and bubble texture. There is no floating decal or flat plane above the sea.
