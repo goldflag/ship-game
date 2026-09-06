@@ -4,8 +4,9 @@ import type { Combatant } from './damage';
 import { flotation, hydrostatics, rightingArms } from './hydrostatics';
 import { levelAtVolume, waterBody, type WaterBody } from './floodwater';
 import { clamp, localToWorld } from './geometry';
+import { availableAmmunition, type MountDefinition, type MountState } from './weapons';
 
-export type VesselStatus = 'operational' | 'immobile' | 'disarmed' | 'disabled' | 'sinking' | 'capsized';
+export type VesselStatus = 'operational' | 'immobile' | 'disarmed' | 'disabled' | 'knocked-out' | 'sinking' | 'capsized';
 export interface StabilityState {
   elapsed: number; targetY: number; rollRate: number; pitchRate: number; capsizeSeconds: number; water: WaterBody[];
   rollArm: number; pitchArm: number; displacementM3: number; reserveM3: number; status: VesselStatus; combatLost: boolean;
@@ -55,15 +56,25 @@ export function updateCapability(actor: Combatant, def: ShipDefinition): void {
   const maximum = def.modules.reduce((n, m) => n + m.hp, 0) + def.mounts.length * 100;
   actor.damage.integrity = actor.damage.maxIntegrity * (maximum ? (actor.damage.modules.reduce((n, m) => n + m.hp, 0) + actor.mounts.reduce((n, m) => n + m.hp, 0)) / maximum : 1);
   if (actor.damage.sunk) { s.combatLost = true; if (s.status !== 'capsized') s.status = 'sinking'; return; }
+  // Main guns and torpedoes decide fighting strength. Secondary-only custom
+  // ships use their fitted guns; a surviving AA mount cannot save a battleship.
+  const hasPrimary = def.mounts.some(m => m.battery === 'main') || !!def.torpedoTubes?.length;
+  const guns = def.mounts.flatMap((m, i) => !hasPrimary || m.battery === 'main' ? [{ definition: m, state: actor.mounts[i] }] : []);
+  const hasSalvo = ({ definition: m, state }: { definition: MountDefinition; state: MountState }) =>
+    availableAmmunition(state, 'ap') >= (m.weapon.barrelCount ?? 2) || !!m.weapon.he && availableAmmunition(state, 'he') >= (m.weapon.barrelCount ?? 2);
+  const loadedGuns = guns.filter(g => g.state.hp > 0 && hasSalvo(g));
   const loadedTubes = (def.torpedoTubes ?? []).filter(t => (actor.torpedoTubes?.find(s => s.id === t.id)?.ammo ?? 0) > 0);
-  const usable = def.mounts.some((m, i) => actor.mounts[i].hp > 0 && actor.mounts[i].ammo > 0 && (!m.magazineId || equipmentCondition(actor, def, def.modules.find(mod => mod.id === m.magazineId)!).availability > 0)) ||
+  const usable = loadedGuns.some(({ definition: m }) => !m.magazineId || equipmentCondition(actor, def, def.modules.find(mod => mod.id === m.magazineId)!).availability > 0) ||
     loadedTubes.some(t => equipmentCondition(actor, def, def.modules.find(m => m.id === t.magazineId)!).availability > 0);
-  const recoverable = def.mounts.some((m, i) => actor.mounts[i].hp > 0 && actor.mounts[i].ammo > 0 && (!m.magazineId || actor.damage.modules.find(mod => mod.id === m.magazineId)!.hp > 0)) ||
+  const recoverable = loadedGuns.some(({ definition: m }) => !m.magazineId || actor.damage.modules.find(mod => mod.id === m.magazineId)!.hp > 0) ||
     loadedTubes.some(t => (actor.damage.modules.find(m => m.id === t.magazineId)?.hp ?? 0) > 0);
   const mobile = systemHealth(actor, def, 'engine') > .001;
-  s.status = usable ? (mobile ? 'operational' : 'immobile') : (mobile ? 'disarmed' : 'disabled');
-  // Temporary flooding can be pumped out. Only permanent loss of every weapon or
-  // its ammunition removes an afloat ship from the battle's fighting strength.
-  s.combatLost = !recoverable;
-  if (s.combatLost) actor.damage.defeatCause ??= actor.mounts.every(m => m.ammo === 0) && loadedTubes.length === 0 ? 'ammunition-exhausted' : 'weapons-lost';
+  // Flooded supplies may recover. Permanent primary-weapon loss is a knockout
+  // even while afloat, and stays final until the battle resets.
+  s.combatLost ||= !recoverable;
+  s.status = s.combatLost ? 'knocked-out' : usable ? (mobile ? 'operational' : 'immobile') : (mobile ? 'disarmed' : 'disabled');
+  if (s.combatLost) {
+    actor.damage.defeatCause ??= !guns.some(hasSalvo) && loadedTubes.length === 0 ? 'ammunition-exhausted' : 'weapons-lost';
+    actor.mounts.forEach(m => m.status = 'disabled');
+  }
 }
