@@ -1,0 +1,119 @@
+import { expect, test } from 'bun:test';
+import source from '../../assets/ships/enterprise-cv6/blueprint.json';
+import catalog from '../../assets/parts/guns.json';
+import { compileShip, type Vec3 } from '../ships/blueprint';
+import { CombatSimulation, type CombatEvent } from './combat';
+import { airborne, launchSquadron, recallAircraft, stepAircraft, type AirContext } from './aircraft';
+import { updateCapability } from './stability';
+const definition = compileShip(source, catalog);
+function fixture() {
+  const sim = new CombatSimulation(definition, { enemies: [definition], friendlyBots: [], spawnDistance: 5000 });
+  sim.target.controller = 'idle';
+  let id = 1000;
+  const events: Omit<CombatEvent, 'sequence' | 'tick'>[] = [];
+  const context: AirContext = { actors: sim.actors, planes: sim.aircraft, shells: sim.shells, torpedoes: sim.torpedoes, releases: sim.airReleases, nextId: () => ++id, emit: e => events.push(e) };
+  let time = 0;
+  const run = (seconds: number) => { for (let i = 0; i < seconds * 60; i++) { stepAircraft(context, 1 / 60, time); time += 1 / 60; } };
+  return { sim, context, events, run };
+}
+test('versioned air wing validation and unsupported model rejection', () => {
+  expect(definition.airWing?.squadrons).toHaveLength(3);
+  const invalid = structuredClone(source); invalid.airWing.squadrons[0].modelId = '../../bad';
+  expect(() => compileShip(invalid, catalog)).toThrow(/aircraft/);
+  invalid.airWing.squadrons[0].modelId = 'sbd-3-dauntless';
+  expect(() => compileShip(invalid, catalog)).toThrow(/role/);
+});
+test('launch queues three, spaces takeoffs, uses moving carrier datum, recall and reset', () => {
+  const { sim, run } = fixture();
+  sim.ship.x = 300;
+  expect(sim.launchAircraft('vf-6')).toBe(3);
+  run(1);
+  expect(sim.aircraft.filter(airborne)).toHaveLength(1);
+  expect(sim.aircraft.find(airborne)!.position[0]).toBeCloseTo(296, 2);
+  run(7);
+  expect(sim.aircraft.filter(airborne)).toHaveLength(3);
+  sim.recallAircraft();
+  expect(sim.aircraft.filter(airborne).every(p => p.phase === 'returning')).toBe(true);
+  sim.reset();
+  expect(sim.aircraft.every(p => p.phase === 'ready')).toBe(true);
+  expect(sim.airReleases).toHaveLength(0);
+});
+test('dive bombers release ballistic HE bombs with carrier ownership and recover', () => {
+  const { sim, run, events } = fixture();
+  sim.launchAircraft('vb-6'); run(210);
+  expect(events.filter(e => e.kind === 'bomb-release').length).toBeGreaterThan(0);
+  expect(sim.shells.every(s => s.ownerId === 'player' && s.ammunition === 'he' && s.he!.explosiveKg > 0)).toBe(true);
+  expect(events.filter(e => e.kind === 'aircraft-recovered').length).toBeGreaterThan(0);
+  expect(sim.player.airWing!.planes.filter(p => p.squadronId === 'vb-6' && p.phase === 'ready').length).toBeGreaterThan(3);
+});
+test('torpedo bombers create falling payloads then armed-distance water runners', () => {
+  const { sim, run, events } = fixture();
+  sim.launchAircraft('vt-6'); run(100);
+  expect(events.some(e => e.kind === 'aircraft-release')).toBe(true);
+  expect(sim.torpedoes.length).toBeGreaterThan(0);
+  expect(sim.torpedoes.every(t => t.ownerId === 'player' && t.position[1] < 0 && t.distance === 0 && t.weapon.armingDistanceM > 0)).toBe(true);
+});
+test('opposing fighters engage aircraft and shoot them down without friendly damage', () => {
+  const { sim, run, events } = fixture();
+  sim.target.controller = 'bot'; sim.launchAircraft('vf-6'); run(130);
+  expect(events.some(e => e.kind === 'aircraft-fire')).toBe(true);
+  expect(events.some(e => e.kind === 'aircraft-lost')).toBe(true);
+  expect(sim.aircraft.some(p => p.kills > 0)).toBe(true);
+});
+test('service loss blocks launches, submerged targets are rejected, aircraft preserve fighting capability', () => {
+  const { sim } = fixture();
+  sim.target.motion.y = -20;
+  expect(sim.launchAircraft('vt-6')).toBe(0);
+  sim.player.mounts.forEach(m => { m.hp = 0; }); updateCapability(sim.player, definition);
+  expect(sim.player.damage.stability.combatLost).toBe(false);
+  sim.player.damage.modules.find(m => m.id === definition.airWing!.serviceModuleId)!.hp = 0;
+  expect(sim.launchAircraft('vf-6')).toBe(0);
+  updateCapability(sim.player, definition);
+  expect(sim.player.damage.stability.combatLost).toBe(true);
+});
+test('recall cancels queued launches; port fixture cannot deploy', () => {
+  const { sim } = fixture();
+  launchSquadron(sim.player, 'vf-6'); recallAircraft(sim.player);
+  expect(sim.player.airWing!.planes.every(p => p.phase === 'ready')).toBe(true);
+  expect(new CombatSimulation(definition).launchAircraft('vf-6')).toBe(0);
+});
+test('fixed-tick combat integrates bot air operations and resets airborne payloads', () => {
+  const { sim } = fixture(); sim.target.controller = 'bot';
+  for (let i = 0; i < 400; i++) sim.step({ throttle: 0, rudder: 0 }, { aim: [0, 0, -5000] as Vec3, fire: false, battery: 'main' });
+  expect(sim.target.airWing!.planes.some(airborne)).toBe(true);
+  sim.reset(); expect(sim.aircraft.every(p => p.phase === 'ready')).toBe(true);
+});
+test('aircraft weapons resolve actual ship hits and score hostile damage through combat', () => {
+  const { sim } = fixture();
+  sim.launchAircraft('vb-6'); sim.launchAircraft('vt-6');
+  let bombHit = false, torpedoHit = false;
+  for (let i = 0; i < 110 * 60; i++) {
+    sim.step({ throttle: 0, rudder: 0 }, { aim: [0, 0, -5000], fire: false, battery: 'main' });
+    bombHit ||= sim.events.some(e => !!e.shell && e.shell.caliberM === .35 && !!e.impact);
+    torpedoHit ||= sim.events.some(e => e.kind === 'torpedo-hit');
+  }
+  expect(bombHit).toBe(true); expect(torpedoHit).toBe(true);
+  expect(sim.target.damage.compartments.some(c => c.breachAreaM2 > 0)).toBe(true);
+  expect(sim.telemetry('main', [0,0,-5000]).playerDamageDealt).toBeGreaterThan(0);
+});
+
+test('bot strike orders fall back from a lost or submerged target to a valid hostile ship', () => {
+  const { sim, context, run } = fixture();
+  const other = new CombatSimulation(definition).player;
+  other.motion.id = 'friendly-extra'; other.motion.x = 500;
+  context.actors.push(other);
+  sim.target.controller = 'bot'; sim.target.targetId = sim.player.motion.id;
+  sim.player.damage.sunk = true;
+  run(6);
+  const strikes = sim.target.airWing!.planes.filter(p => p.role !== 'fighter' && p.phase !== 'ready');
+  expect(strikes.length).toBeGreaterThan(0);
+  expect(strikes.every(p => p.targetId === other.motion.id)).toBe(true);
+});
+
+test('fighters alone cannot keep a carrier in a ship battle after all strike aircraft and guns are lost', () => {
+  const { sim } = fixture();
+  sim.player.mounts.forEach(m => { m.hp = 0; });
+  sim.player.airWing!.planes.filter(p => p.role !== 'fighter').forEach(p => { p.phase = 'lost'; });
+  updateCapability(sim.player, definition);
+  expect(sim.player.damage.stability.combatLost).toBe(true);
+});

@@ -1,6 +1,6 @@
 # WWII carrier aircraft
 
-Thirteen independently authored aircraft models for future air combat. Inspect them at **`/aircraft-review.html`** with the development server running. They remain standalone visual assets; they are not placed aboard Enterprise or registered as combat actors.
+Thirteen independently authored aircraft models for the aircraft inspector and carrier combat. Inspect them at **`/aircraft-review.html`** with the development server running. Enterprise deploys Wildcats, Dauntlesses and Devastators through its versioned air group. The other ten aircraft remain inspector assets.
 
 | Navy | Fighters | Dive bombers | Torpedo bombers |
 | --- | --- | --- | --- |
@@ -11,7 +11,7 @@ The second authoring pass replaces the initial shared silhouettes with thirteen 
 
 The [catalog](catalog.json) supplies the roster, nominal dimensions and finish selection. [build.py](build.py) builds the measured surfaces, open radial cowls, transparent canopy glazing, cockpit interiors, separate control surfaces and original UV-mapped paint. [detail_bombers.py](detail_bombers.py) adds the SBD-3 intake, SBD/TBD telescopic sights, rear defensive guns, Helldiver wing cannons and separate perforated upper/lower dive-brake plates. Brake apertures are physical holes, with inner faces and hinges; their counts are reduced for the game mesh.
 
-All authored geometry, packed materials and textures remain editable in `<id>/generated/source.blend`. Each aircraft exports three LODs: `model.glb`, `model-lod1.glb` and `model-lod2.glb`, with decimation targets of 100%, 45% and 20%. The 2048 px base-color atlas and 512 px roughness map are retained as PNGs and embedded in the GLBs. Runtime files and their URLs are published under `public/models/aircraft/`; catalog switch distances are suggestions for future renderer integration. The inspector supports manual LOD0/1/2 selection and split-brake deployment; automatic distance-based selection remains future renderer work.
+All authored geometry, packed materials and textures remain editable in `<id>/generated/source.blend`. Each aircraft exports three LODs: `model.glb`, `model-lod1.glb` and `model-lod2.glb`, with decimation targets of 100%, 45% and 20%. The 2048 px base-color atlas and 512 px roughness map are retained as PNGs and embedded in the GLBs. Runtime files and their URLs are published under `public/models/aircraft/`; catalog switch distances are suggestions for future renderer integration. The inspector supports manual LOD0/1/2 selection and split-brake deployment; the combat renderer selects detail automatically at 120/400 m.
 
 The common content hash covers the complete catalog, both recipe files and all thirteen shape JSONs. Referenced rasters have separate hashes in export reports. **Rebuild all models after changing any shared authoring input or shape specification.** Generated Blender and GLB files are outputs, not durable substitutes for the recipe.
 
@@ -43,6 +43,6 @@ Consult the [source register](references/sources.json), individual shape/referen
 
 ## Scope and remaining approximations
 
-Wings stay extended; wing-fold mechanisms are absent. The SBD has fixed wings. Gear travel and linkage clearance are approximate, and the neutral model combines a level engine-shaft attitude with extended landing gear rather than a supported tail-down deck stance. Payload sockets are empty; no carried bombs, torpedoes, crews, flight dynamics, damage model, takeoff or landing behavior are implemented.
+Wings stay extended; wing-fold mechanisms are absent. The SBD has fixed wings. Gear travel and linkage clearance are approximate, and the neutral model combines a level engine-shaft attitude with extended landing gear rather than a supported tail-down deck stance. Source payload sockets remain empty. Combat attaches simple payload visuals and provides approximate takeoff, landing, aircraft combat and damage; crews and aerodynamic flight dynamics remain absent. See [air operations](../../docs/air-operations.md).
 
 Cockpit interiors, canopy curvature, cross-sections between measured stations, surface details and generic period finishes are reconstructed. Reference quality and variant coverage differ: the Avenger Navy sheet explicitly covers TBF-1/1C, while the SBD and Helldiver use documented cross-variant interpretations; the TBD reference is a credited modern technical drawing. Other aircraft preserve their own drawing and variant limitations in their shape files. The fleet spans early and late WWII and does not represent one carrier air group or a single historical date.

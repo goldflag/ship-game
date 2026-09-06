@@ -126,6 +126,12 @@ export interface DamageControlProfile {
   portablePumpM3PerSecond: number; repairHpPerSecond: number; repairCeiling: number;
   patchM2PerSecond: number; maxPatchM2: number; flashProtection: number; basis: string;
 }
+export type AircraftRole = 'fighter' | 'dive-bomber' | 'torpedo-bomber';
+export interface AirWingDefinition {
+  version: 1; launchPosition: Vec3; recoveryPosition: Vec3; serviceModuleId: string;
+  launchIntervalSeconds: number; rearmSeconds: number;
+  squadrons: { id: string; name: string; modelId: string; role: AircraftRole; count: number }[];
+}
 export interface ShipBlueprint {
   schemaVersion: 1; id: string; name: string; configuration: string;
   coordinates: 'meters-y-up-bow-negative-z'; modelUrl: string;
@@ -134,6 +140,7 @@ export interface ShipBlueprint {
   hull: Hull; handling: Handling; mounts: Mount[]; armor: Armor[];
   torpedoTubes?: TorpedoTube[];
   submarine?: SubmarineDefinition;
+  airWing?: AirWingDefinition;
   modules: Module[]; compartments: Compartment[];
   connections: FloodConnection[];
   /** Additive v1 mechanics. Older definitions retain their provisional averages. */
@@ -501,6 +508,27 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
   const namedConnections = list(b.connections, 'connections', 512).map(c => record(c, 'connection')).filter(c => c.id !== undefined);
   unique(namedConnections, 'connections');
   const accuracy = record(b.accuracy, 'accuracy');
+  if (b.airWing !== undefined) {
+    const wing = record(b.airWing, 'airWing');
+    if (wing.version !== 1) fail('airWing.version', 'expected version 1');
+    for (const key of ['launchPosition', 'recoveryPosition']) {
+      const p = vector(wing[key], `airWing.${key}`);
+      if (Math.abs(p[0]) > (h.beam as number) / 2 || Math.abs(p[2]) > (h.length as number) / 2 || p[1] < 0 || p[1] > 40) fail(`airWing.${key}`, 'must be over the flight deck');
+    }
+    if (!modules.some(m => m.id === wing.serviceModuleId)) fail('airWing.serviceModuleId', 'unknown service module');
+    numeric(wing.launchIntervalSeconds, 'airWing.launchIntervalSeconds', 1, 60);
+    numeric(wing.rearmSeconds, 'airWing.rearmSeconds', 5, 600);
+    const squadrons = list(wing.squadrons, 'airWing.squadrons', 3).map(s => record(s, 'squadron'));
+    if (!squadrons.length) fail('airWing.squadrons', 'requires aircraft');
+    unique(squadrons, 'airWing.squadrons');
+    const models: Record<string, string> = { 'f4f-4-wildcat': 'fighter', 'sbd-3-dauntless': 'dive-bomber', 'tbd-1-devastator': 'torpedo-bomber' };
+    for (const squadron of squadrons) {
+      id(squadron.id, 'squadron.id'); text(squadron.name, 'squadron.name');
+      if (models[String(squadron.modelId)] !== squadron.role || !squadron.role) fail('squadron.modelId', 'unknown aircraft or incompatible role');
+      numeric(squadron.count, 'squadron.count', 1, 6);
+      if (!Number.isInteger(squadron.count)) fail('squadron.count', 'expected an integer');
+    }
+  }
   if (b.submarine !== undefined) {
     const s = record(b.submarine, 'submarine');
     const handling = record(s.submergedHandling, 'submarine.submergedHandling');

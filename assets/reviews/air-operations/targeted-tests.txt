@@ -1,0 +1,40 @@
+bun test v1.3.3 (274e01c7)
+
+src/simulation/aircraft.test.ts:
+(pass) versioned air wing validation and unsupported model rejection [21.85ms]
+(pass) launch queues three, spaces takeoffs, uses moving carrier datum, recall and reset [11.86ms]
+(pass) dive bombers release ballistic HE bombs with carrier ownership and recover [102.00ms]
+(pass) torpedo bombers create falling payloads then armed-distance water runners [61.02ms]
+(pass) opposing fighters engage aircraft and shoot them down without friendly damage [104.98ms]
+(pass) service loss blocks launches, submerged targets are rejected, aircraft preserve fighting capability [1.18ms]
+(pass) recall cancels queued launches; port fixture cannot deploy [0.73ms]
+(pass) fixed-tick combat integrates bot air operations and resets airborne payloads [244.90ms]
+(pass) aircraft weapons resolve actual ship hits and score hostile damage through combat [3719.97ms]
+
+src/game/Game.test.ts:
+(pass) switching ships retains the port until loading completes, then frames the new hull with the same orbit [137.85ms]
+(pass) failed ship loads preserve the old ship and allow retry [196.60ms]
+(pass) a second request cannot replace an in-flight switch; disposed games never attach the result [16.57ms]
+(pass) battle loading binds each mixed fleet hull and selected target to its own exported joints [48.91ms]
+(pass) one failed fleet asset leaves the port intact and the same battle can be retried [61.32ms]
+(pass) failed aircraft loads leave the current port intact and allow another launch attempt [56.18ms]
+
+src/game/GameFrame.test.ts:
+(pass) turning through north takes the short heading path without changing authoritative combat state [231.13ms]
+(pass) firing enters shell view without feeding its camera into aim, freezes on pause and restores optics [446.97ms]
+(pass) target inspection follows the interpolated underway target and resets without a streak [34.98ms]
+(pass) pause holds the interpolated pose and resume continues without a tick-sized jump [27.17ms]
+(pass) manual aiming and binoculars keep the camera attached to the displayed ship at full speed [208.35ms]
+(pass) repositioning for port and launch clears the old ship poses [17.85ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.03333333333333333 [172.59ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.01694915254237288 [63.36ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.016666666666666666 [58.84ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.008333333333333333 [36.49ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.006944444444444444 [41.33ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.006944444444444444,0.02127659574468085,0.013888888888888888,0.043 [85.40ms]
+(pass) all fleet impact marks share one cosmetic work budget, renewed for each frame [28.66ms]
+
+ 28 pass
+ 0 fail
+ 3095 expect() calls
+Ran 28 tests across 3 files. [6.43s]

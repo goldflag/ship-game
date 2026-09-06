@@ -19,6 +19,7 @@ export function NavigationChart({ data, onResize, bindings }: { data: Telemetry;
       <g clipPath={`url(#${clipId})`}>
         <path d="M110 110 57 8Q110-10 163 8Z" className="chart-view-cone" transform={`rotate(${(data.viewBearing ?? data.ship.heading) * 180 / Math.PI} 110 110)`}/>
         <polyline points={data.trail.map(p => point(p.x, p.z)).join(' ')} className="chart-trail"/>
+        {data.combat?.airContacts?.map(contact => <path key={contact.id} d="M-3 0h6M0-3v6" transform={`translate(${point(contact.x, contact.z)})`} stroke={contact.team === 'friendly' ? 'var(--fleet-active)' : '#ff9c8d'} strokeWidth="1.2"><title>{contact.team} aircraft</title></path>)}
         {BUOYS.map((buoy, i) => <circle key={i} cx={110 + (buoy.x - data.ship.x) * scale} cy={110 + (buoy.z - data.ship.z) * scale} r="2.5" fill={buoy.color} stroke="#d9eee6" strokeWidth=".6"/>)}
         {data.combat?.contacts.filter(contact => contact.id !== data.ship.id && !contact.sunk).map(contact => <g key={contact.id} transform={`translate(${point(contact.x, contact.z)})`}>
           <title>{contact.team === 'friendly' ? 'Friendly' : 'Enemy'} · {contact.name}</title>
