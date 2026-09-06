@@ -33,10 +33,6 @@
 .garage-ship-stats>div>strong { font-weight:500; }
 .garage-ship-stats i { grid-column:1/-1; height:3px; background:#c2d5da2b; }
 .garage-ship-stats i>b { display:block; height:100%; background:#d4dec9; }
-.garage-specs { border-top:1px solid var(--port-line); margin:23px 0 15px; padding-top:14px; }
-.garage-specs>div { display:flex; align-items:baseline; justify-content:space-between; margin-top:10px; font-size:11px; }
-.garage-specs dt { color:var(--port-muted); }
-.garage-specs dd { margin:0; }
 .garage-text-button { display:flex; align-items:center; justify-content:space-between; width:100%; gap:10px; font-size:11px!important; border:0; border-top:1px solid var(--port-line); background:transparent; color:var(--port-accent); padding:15px 0 3px; }
 .garage-text-button:hover { color:#ffe0ab; }
 .garage-subtle { color:var(--port-muted); font-size:12px; margin-top:9px!important; }
@@ -187,7 +183,6 @@
   .garage-classic-left { top:285px; width:186px; }
   .garage-daily-orders { display:none; }
   .garage-classic-details { top:207px; max-height:calc(100% - 399px); width:205px; padding:15px; }
-  .garage-classic-details .garage-specs { display:none; }
   .garage-ship-cards { gap:10px; }
   .garage-ship-cards>button { width:calc((100% - 30px)/4); }
   .garage-ship-cards .garage-ship-profile { width:90%; right:5%; }
@@ -256,6 +251,28 @@
 }
 @media(prefers-reduced-motion:reduce) { .garage * { animation:none!important; transition:none!important; } }
 
+/* Statistics sheet: category scores, then collapsible sections led by one headline figure each. */
+.port-statistics-active .garage-classic-details { width:262px; }
+.port-statistics { display:flex; flex-direction:column; }
+.port-statistics .garage-ship-stats { margin-bottom:6px; }
+.port-statistics .port-inspector-intro { margin:0 0 6px; }
+.port-stat-section { border-top:1px solid var(--port-line); }
+.port-stat-section>button { display:flex; align-items:center; gap:8px; width:100%; min-height:44px; padding:8px 0; text-align:left; color:var(--port-text); background:transparent; border:0; border-radius:0; }
+.port-stat-section>button:hover { background:#d0e4db12; }
+.port-stat-section>button>svg { color:var(--port-muted); transition:transform .15s; }
+.port-stat-section>button[aria-expanded=true]>svg { transform:rotate(90deg); }
+.port-stat-section>button>span { flex:1; min-width:0; font:500 13px/1.2 'Barlow Condensed',sans-serif; letter-spacing:.05em; text-transform:uppercase; color:#d1dddf; }
+.port-stat-section>button>strong { font:500 21px/1 'Barlow Condensed',sans-serif; color:var(--port-accent); white-space:nowrap; }
+.port-stat-section>button>strong>small { margin-left:4px; font:400 10px/1 'Barlow',sans-serif; color:var(--port-muted); }
+.port-stat-rows { display:grid; gap:7px; padding:2px 0 14px 22px; }
+.port-stat-row { display:flex; align-items:baseline; justify-content:space-between; gap:10px; font-size:11px; cursor:help; }
+.port-stat-row>span { color:var(--port-muted); }
+.port-stat-row>strong { font-weight:500; text-align:right; white-space:nowrap; }
+.port-stat-row>strong>small { margin-left:3px; font-size:10px; color:var(--port-muted); }
+.port-stat-row-text>strong { font-weight:400; white-space:normal; max-width:62%; overflow-wrap:anywhere; }
+.port-stat-note { font-size:11px; line-height:1.5; color:var(--port-muted); }
+.port-stat-note>b { font-weight:500; color:var(--port-text); }
+
 /* Model inspection shares the port's existing detail surface. */
 .port-model-views { display:flex; gap:2px; margin:-3px -4px 17px; border-bottom:1px solid #c9dce04a; }
 .port-model-views button { flex:1; min-width:0; min-height:40px; padding:8px 3px; font-size:11px!important; color:#c8d8db; background:transparent; border:0; border-bottom:2px solid transparent; border-radius:0; }
@@ -275,13 +292,14 @@
 .port-armor-legend-labels { display:flex; justify-content:space-between; gap:8px; }
 .port-armor-legend-ramp { height:6px; border-radius:1px; }
 .port-armor-legend small { font-size:inherit; line-height:1.5; }
-.port-armor-tooltip { position:fixed; z-index:5; width:260px; max-width:calc(100vw - 24px); padding:12px; background:#10232e; color:var(--port-text); border:1px solid var(--port-line); border-radius:2px; pointer-events:none; font-size:12px; line-height:1.4; }
-.port-armor-tooltip>strong { display:block; margin-bottom:10px; font-weight:500; overflow-wrap:anywhere; }
-.port-armor-tooltip dl { margin:0; display:grid; gap:5px; }
-.port-armor-tooltip dl>div { display:flex; justify-content:space-between; gap:12px; }
-.port-armor-tooltip dt { color:var(--port-muted); }
-.port-armor-tooltip dd { display:flex; align-items:center; gap:7px; margin:0; text-align:right; }
-.port-armor-tooltip dd i { width:7px; height:7px; border-radius:1px; flex-shrink:0; }
+.port-inspection-tooltip { position:fixed; z-index:5; width:260px; max-width:calc(100vw - 24px); padding:12px; background:#10232e; color:var(--port-text); border:1px solid var(--port-line); border-radius:2px; pointer-events:none; font-size:12px; line-height:1.4; }
+.port-inspection-tooltip>strong { display:block; margin-bottom:10px; font-weight:500; overflow-wrap:anywhere; }
+.port-inspection-tooltip dl { margin:0; display:grid; gap:5px; }
+.port-inspection-tooltip dl>div { display:flex; justify-content:space-between; gap:12px; }
+.port-inspection-tooltip dt { color:var(--port-muted); }
+.port-inspection-tooltip dd { display:flex; align-items:center; gap:7px; margin:0; text-align:right; }
+.port-inspection-tooltip dd i { width:7px; height:7px; border-radius:1px; flex-shrink:0; }
+.port-inspection-tooltip>small { display:block; margin-top:10px; color:var(--port-muted); font-size:11px; line-height:1.4; }
 .port-volume-list { display:flex; flex-direction:column; }
 .port-volume-list>button { display:flex; align-items:center; gap:9px; width:100%; min-height:48px; padding:8px 5px; text-align:left; background:transparent; border:0; border-bottom:1px solid #c9dce027; border-radius:0; }
 .port-volume-list>button:hover { background:#d0e4db12; }
@@ -297,6 +315,8 @@
 .port-inspection-note { margin:14px 5px 0; }
 @media(max-width:850px) { .port-inspection-active .garage-classic-details { width:265px; top:207px; max-height:calc(100% - 260px); } }
 @media(max-width:600px) {
+  .port-statistics-active .garage-classic-details { width:200px; }
+  .port-stat-rows { padding-left:14px; }
   .port-model-views { margin-bottom:13px; }
   .port-model-views button { min-height:44px; font-size:10px!important; }
   .port-inspection-active .garage-classic-details { top:auto; bottom:54px; left:18px; right:18px; width:auto; max-height:295px; padding:12px; }
