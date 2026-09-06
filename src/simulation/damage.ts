@@ -7,13 +7,15 @@ import { add, clamp, contains, length, localToWorld, normalize, radians, rotate,
 
 export interface CompartmentState { id: string; waterM3: number; breachAreaM2: number; breachHeight: number; }
 export interface DamageState {
-  integrity: number; modules: { id: string; hp: number; detonated: boolean }[];
+  integrity: number; maxIntegrity: number; modules: { id: string; hp: number; detonated: boolean }[];
   compartments: CompartmentState[]; sunk: boolean;
 }
 export interface Combatant { motion: ShipState; mounts: MountState[]; damage: DamageState; }
 export interface Shell {
   id: number; ownerId: string; position: Vec3; velocity: Vec3; age: number;
   penetrationMm: number; damage: number; caliberM: number; visited: string[];
+  /** Lazily initialized from damage; persists across module hits and fixed ticks. */
+  remainingModuleDamage?: number;
 }
 /** Serializable evidence for render-side effects; never feeds back into damage. */
 export interface BallisticEffectData {
@@ -22,8 +24,22 @@ export interface BallisticEffectData {
   detonation?: boolean;
 }
 export interface DamageEvent extends BallisticEffectData { kind: 'penetration' | 'ricochet' | 'stopped' | 'module' | 'sunk'; position: Vec3; message: string; shipId: string; }
+// Provisional absolute gameplay damage. Magazine loss
+// also disables linked mounts and opens a flooding breach; two losses in an
+// opening salvo must leave time to react with the coarse internal envelopes.
+const MAGAZINE_DETONATION_DAMAGE = 150;
+
+/** 300 base HP plus a square-root displacement bonus, rounded to 10 HP.
+ * A 70,000 tonne hull has 1,750 HP; small hulls retain useful endurance.
+ * Armor and flooding resolve separately. This is gameplay calibration. */
+export function maxHullIntegrity(def: ShipDefinition): number {
+  const sizeBonus = 1450 * Math.sqrt(def.hull.massKg / 70_000_000);
+  return Math.round((300 + sizeBonus) / 10) * 10;
+}
+
 export function createDamage(def: ShipDefinition): DamageState {
-  return { integrity: 1000, modules: def.modules.map(m => ({ id: m.id, hp: m.hp, detonated: false })), compartments: def.compartments.map(c => ({ id: c.id, waterM3: 0, breachAreaM2: 0, breachHeight: 0 })), sunk: false };
+  const maxIntegrity = maxHullIntegrity(def);
+  return { integrity: maxIntegrity, maxIntegrity, modules: def.modules.map(m => ({ id: m.id, hp: m.hp, detonated: false })), compartments: def.compartments.map(c => ({ id: c.id, waterM3: 0, breachAreaM2: 0, breachHeight: 0 })), sunk: false };
 }
 export function systemHealth(actor: Combatant, def: ShipDefinition, kind: 'engine' | 'steering'): number {
   const modules = def.modules.filter(m => m.kind === kind);
@@ -143,17 +159,21 @@ export function hitShip(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor: Com
     } else if (hit.kind === 'module') {
       const m = def.modules[hit.index], state = actor.damage.modules[hit.index];
       if (state.hp === 0) continue;
-      state.hp = Math.max(0, state.hp - shell.damage);
+      const remaining = shell.remainingModuleDamage ?? shell.damage;
+      const applied = Math.min(state.hp, remaining);
+      if (applied <= 0) return true;
+      state.hp -= applied;
+      shell.remainingModuleDamage = remaining - applied;
       report('module', `${m.name} ${state.hp === 0 ? 'disabled' : 'damaged'}`);
       if (m.kind === 'magazine' && state.hp === 0 && !state.detonated) {
         state.detonated = true;
-        actor.damage.integrity = Math.max(0, actor.damage.integrity - 450);
+        actor.damage.integrity = Math.max(0, actor.damage.integrity - MAGAZINE_DETONATION_DAMAGE);
         const c = actor.damage.compartments.find(c => c.id === m.compartmentId)!;
         c.breachAreaM2 = Math.min(4, c.breachAreaM2 + 2); c.breachHeight = m.center[1];
         report('module', `${m.name} detonation`, true);
       }
       shell.penetrationMm = Math.max(0, shell.penetrationMm - 50);
-      if (shell.penetrationMm === 0) return true;
+      if (shell.penetrationMm === 0 || shell.remainingModuleDamage === 0) return true;
     } else {
       const m = def.mounts[hit.index], state = actor.mounts[hit.index];
       if (shell.penetrationMm < m.weapon.armorMm) { report('stopped', `Stopped by ${m.name} armor`); return true; }

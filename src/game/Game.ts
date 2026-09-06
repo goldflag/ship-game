@@ -52,7 +52,7 @@ export class Game {
   private fleetViews: ShipView[] = [];
   private fleetModels: THREE.Group[] = [];
   private shipLabels: ShipLabels;
-  private playerDamageFeedback = new HullDamageFeedback();
+  private playerDamageFeedback: HullDamageFeedback;
   private gunAim: GunAimIndicators;
   private hitDirections: HitDirectionIndicators;
   private loadedModel?: THREE.Group;
@@ -93,6 +93,7 @@ export class Game {
   constructor(private host: HTMLElement, private settings: GameSettings, private callbacks: GameCallbacks, definition = selectedShip, readonly audio?: GameAudio) {
     this.definition = definition;
     this.simulation = new CombatSimulation(definition);
+    this.playerDamageFeedback = new HullDamageFeedback(this.simulation.player.damage.integrity);
     this.aimModule = definition.modules.find(m => m.kind === 'engine')?.id ?? '';
     this.renderer = new THREE.WebGPURenderer({ antialias: true, powerPreference: 'high-performance' });
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -311,6 +312,7 @@ export class Game {
       this.fleetViews.forEach(view => view.root.removeFromParent());
       this.scene.add(...views.map(view => view.root));
       this.definition = definition; this.simulation = simulation;
+      this.playerDamageFeedback = new HullDamageFeedback(simulation.player.damage.integrity);
       this.audio?.reset(simulation);
       this.fleetModels = [...models.values()]; this.loadedModel = models.get(definition.id);
       this.fleetViews = views; this.playerView = views[0];
