@@ -131,3 +131,11 @@ Final validation: **167 tests passed**, production build and all four local Blen
 | yamato | `940200f4357be4b88ad6051ebd6556a1aa989be0c307e33a7a9cd8c014ab5607` |
 | baltimore | `081812bbadd1b773c3aee8e848410e55923f22018754637c09ed2c92907bfd9d` |
 | enterprise-cv6 | `080eb386e89b02a29e3372ab71e36e821117ccbc8c19f0859527903fb00a5694` |
+
+## Step 4a — ammunition choices (2026-09-05)
+
+AP/HE now have finite separate stocks within existing total capacity. Switching ammunition takes a complete load interval; firing consumes only the selected stock. Bots choose ammunition and equipment aim points through the same rules. HE bursts on first contact, uses the bounded protected burst queries, and can open penetrated thin exterior plating. Exact-face gunhouse and zero-distance portal contacts pay their protection. The gunnery instrument exposes shell type, stocks, load state and damaged gun mounts.
+
+Validation: 175 tests pass, production build passes (existing bundle-size warning). All four presets rebuilt and checked with local Blender; all 20 fixed views have unchanged decoded pixels, and live articulation errors remain at most 2.746 mm. The controlled live HE replay recorded an eight-round salvo after a full loading interval, unchanged AP stock, eight HE rounds consumed, and four damaged Enterprise gun mounts. Evidence is under `assets/reviews/damage-realism/browser/step4a-*.json`. The settled canvas PNG shows the subsequent port view, not the firing replay.
+
+HE fill, fragment resistance budget and stock split are explicitly provisional in the authoring recipe. AP and HE share the nominal gun flight envelope. No historical accuracy is inferred. User waived further reviews; this checkpoint has local test/build/browser validation and no Fable review verdict.

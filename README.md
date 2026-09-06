@@ -28,7 +28,7 @@ Choose **Create schematic** beneath the ship’s name in port to preview a refer
 | Shift / right mouse | Toggle binocular aiming |
 | Scroll | Adjust camera distance, or 2×–12× binocular magnification |
 | Hold Ctrl | Release cursor to use HUD controls; release Ctrl to return to aiming |
-| 1 / 2 | Select main / secondary AP battery |
+| 1 / 2 | Select main / secondary battery |
 | − / + | Decrease / increase minimap size (numpad keys also work) |
 | G | Open / close gunnery and target damage |
 | C | Cycle chase, bridge, and tactical cameras |
@@ -111,3 +111,5 @@ Tests cover mixed-fleet deployment and loading, bot fire/reloads/damage/retarget
 The [implementation validation record](docs/ship-validation.md) lists the tested build, browser observations and remaining accuracy/visual checks.
 
 Three.js renderer reference: https://threejs.org/manual/en/webgpurenderer
+
+Gunnery now supports finite AP and HE stocks. Changing shell type takes a full reload. HE contact bursts affect locally exposed equipment through the same armor queries; its fill, fragment budget and stock split are provisional game calibration.

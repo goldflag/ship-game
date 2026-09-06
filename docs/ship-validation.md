@@ -113,3 +113,11 @@ Impact-speed/material penetration, range spread from seeded muzzle-speed variati
 ### 2026-09-05 — damage realism step 3d
 
 AP deceleration, arming/delay, lodged shells, turret continuation and protected local bursts are implemented. Fable accepted the behavior, requested cheaper burst queries, and accepted the optimized candidate filtering after 6,000 independent ray comparisons. Final 167 tests and the production build pass. All four local Blender builds/checks, unchanged fixed geometry views, in-game articulation and a populated fuze/exit-speed HUD replay pass. The small-screen panel remains scrollable. Calibration and known limitations, all hashes, browser evidence and both reviewer reports are retained in the [implementation record](../assets/reviews/damage-realism/implementation.md). HE, fire/crew response, protected magazine ignition and derived stability remain the following milestones.
+
+## Step 4a — ammunition choices (2026-09-05)
+
+AP/HE now have finite separate stocks within existing total capacity. Switching ammunition takes a complete load interval; firing consumes only the selected stock. Bots choose ammunition and equipment aim points through the same rules. HE bursts on first contact, uses the bounded protected burst queries, and can open penetrated thin exterior plating. Exact-face gunhouse and zero-distance portal contacts pay their protection. The gunnery instrument exposes shell type, stocks, load state and damaged gun mounts.
+
+Validation: 175 tests pass, production build passes (existing bundle-size warning). All four presets rebuilt and checked with local Blender; all 20 fixed views have unchanged decoded pixels, and live articulation errors remain at most 2.746 mm. The controlled live HE replay recorded an eight-round salvo after a full loading interval, unchanged AP stock, eight HE rounds consumed, and four damaged Enterprise gun mounts. Evidence is under `assets/reviews/damage-realism/browser/step4a-*.json`. The settled canvas PNG shows the subsequent port view, not the firing replay.
+
+HE fill, fragment resistance budget and stock split are explicitly provisional in the authoring recipe. AP and HE share the nominal gun flight envelope. No historical accuracy is inferred. User waived further reviews; this checkpoint has local test/build/browser validation and no Fable review verdict.

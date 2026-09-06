@@ -42,7 +42,7 @@ test('fleet validation rejects empty enemies, unavailable presets and overfull t
   expect(() => validateBattleSetup({ ...setup, enemies: Array(6).fill('bismarck') }, ids)).toThrow('up to 5');
 });
 
-test('every bot maneuvers, fires both applicable batteries, reloads and damages opposing hulls', () => {
+test('every bot maneuvers, fires both applicable batteries, reloads and damages opposing equipment', () => {
   const sim = fleet();
   const initial = sim.actors.map(actor => actor.mounts.map(mount => mount.ammo));
   const shots = new Map<string, number>();
@@ -75,8 +75,10 @@ test('every bot maneuvers, fires both applicable batteries, reloads and damages 
   const friendly = sim.actors[1];
   for (const battery of ['main', 'secondary']) expect(friendly.definition.mounts.some((mount, i) => mount.battery === battery && friendly.mounts[i].ammo < initial[1][i])).toBe(true);
   expect(sim.player.mounts.map(mount => mount.ammo)).toEqual(initial[0]);
-  expect(sim.actors.some(actor => actor.team === 'friendly' && actor.damage.integrity < 1000)).toBe(true);
-  expect(sim.actors.some(actor => actor.team === 'enemy' && actor.damage.integrity < 1000)).toBe(true);
+  // HE aimed at exposed guns causes local equipment damage without spending
+  // the temporary universal hull counter. Both fleets must cause real damage.
+  expect(sim.actors.some(actor => actor.team === 'friendly' && actor.mounts.some(m => m.hp < 100))).toBe(true);
+  expect(sim.actors.some(actor => actor.team === 'enemy' && actor.mounts.some(m => m.hp < 100))).toBe(true);
   const carrier = sim.actors[3];
   carrier.definition.mounts.forEach((mount, i) => { if (mount.weapon.caliberM < .1) expect(carrier.mounts[i].ammo).toBe(initial[3][i]); });
 // This is 90 simulated seconds of fleet behavior, not a wall-clock benchmark.

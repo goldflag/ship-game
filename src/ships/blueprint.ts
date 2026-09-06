@@ -1,6 +1,10 @@
 /** Editable authoring data. JSON only; no renderer or browser dependencies. */
 export type Vec3 = [number, number, number];
 export type Battery = 'main' | 'secondary';
+export type Ammunition = 'ap' | 'he';
+export interface HEProjectile {
+  explosiveKg: number; fragmentPenetrationMm: number; damage: number; stockFraction: number; basis: string;
+}
 export interface APProjectile {
   armingResistanceMm: number; fuzeDelaySeconds: number; explosiveKg: number;
   fragmentPenetrationMm: number; basis: string;
@@ -17,6 +21,7 @@ export interface GunPart {
   ballistics?: { dragPerSecond: number; dispersionRad: number; muzzleSpeedSigmaFraction?: number; penetrationReferenceSpeedMps?: number; basis: string };
   /** Omitted original v1 parts remain inert/contact-only projectiles. */
   ap?: APProjectile;
+  he?: HEProjectile;
   /** Omitted in original v1 twin parts. Spacing is between adjacent barrel axes. */
   barrelCount?: 1 | 2 | 3 | 4;
   mountingStyle?: 'enclosed' | 'open-pedestal' | 'open-quad' | 'oerlikon';
@@ -236,6 +241,15 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
       numeric(ap.fragmentPenetrationMm, 'ap.fragmentPenetrationMm', .001, 200);
       text(ap.basis, 'ap.basis');
       if ((ap.explosiveKg as number) >= (p.projectileMassKg as number)) fail(`${p.id}.ap`, 'explosive filling must be less than projectile mass');
+    }
+    if (p.he !== undefined) {
+      const he = record(p.he, `${p.id}.he`);
+      numeric(he.explosiveKg, 'he.explosiveKg', .00001, 200);
+      numeric(he.fragmentPenetrationMm, 'he.fragmentPenetrationMm', .001, 200);
+      numeric(he.damage, 'he.damage', .00001, 10000);
+      numeric(he.stockFraction, 'he.stockFraction', 0, 1);
+      text(he.basis, 'he.basis');
+      if ((he.explosiveKg as number) >= (p.projectileMassKg as number)) fail(`${p.id}.he`, 'explosive filling must be less than projectile mass');
     }
     if (p.barrelCount !== undefined) literal(p.barrelCount, [1, 2, 3, 4], `${p.id}.barrelCount`);
     if (p.mountingStyle !== undefined) literal(p.mountingStyle, ['enclosed', 'open-pedestal', 'open-quad', 'oerlikon'], `${p.id}.mountingStyle`);

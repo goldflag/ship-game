@@ -77,3 +77,7 @@ Orca run: `run_3b3c8ccd059f`.
 - Fable accepted the sequence and first bounded patch, requested explicit defeat-cause attribution from the start, and suggested prioritizing thin-plate behavior within step 3. Codex accepts those amendments. No unresolved disagreement blocks this plan.
 
 Only this review record was added to the repository; no gameplay implementation was changed during the review.
+
+## Review workflow update — 2026-09-05
+
+The user explicitly waived all further reviews. Continue the accepted implementation sequence with simulation tests, asset checks and live validation. No replacement reviewer or Fable approval gate is required.

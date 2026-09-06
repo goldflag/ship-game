@@ -1,0 +1,25 @@
+{
+  "clientHeight": 584,
+  "controls": [
+    {
+      "selected": "false",
+      "text": "AP \u00b7 576 rounds"
+    },
+    {
+      "selected": "true",
+      "text": "HE \u00b7 376 rounds"
+    }
+  ],
+  "damageText": "Damaged gun mounts \u00b7 4\nPort 5-inch 1\n64% condition\nPort 5-inch 2\n93% condition\nStbd 5-inch 1\n86% condition\nStbd 5-inch 2\n63% condition",
+  "documentWidth": 390,
+  "height": 844,
+  "overflowY": "auto",
+  "panel": {
+    "height": 702,
+    "width": 366,
+    "x": 12,
+    "y": 84
+  },
+  "scrollHeight": 1388,
+  "width": 390
+}

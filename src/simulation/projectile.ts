@@ -52,7 +52,7 @@ export function advanceProjectile(shell: Shell, actors: FleetActor[], dt: number
       shell.velocity = atHit.velocity; shell.age += elapsed; remaining -= elapsed;
       shell.position = localToWorld(nearest.hit.point, nearest.actor.motion);
       const stopped = resolveShipContact(shell, nearest.hit, nearest.actor, nearest.actor.definition, emit);
-      if (stopped && !shell.lodged) return 'stopped';
+      if (stopped && !shell.lodged && shell.detonateAtAge === undefined) return 'stopped';
       continue;
     }
     shell.penetrationMm = velocityPenetration(shell.penetrationMm, length(shell.velocity), length(flight.velocity));

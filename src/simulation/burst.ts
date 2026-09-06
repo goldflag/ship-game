@@ -8,8 +8,10 @@ import { plateResponse } from './protection';
  * One nearest-point ray per nearby equipment volume / watertight portal is an
  * explicit approximation: partial occlusion and detailed spall are not modeled. */
 export function burstShell(shell: Shell, actors: (Combatant & { definition: ShipDefinition })[], emit: (event: DamageEvent) => void): void {
-  if (!shell.ap) return;
-  const radius = clamp(3 * Math.cbrt(shell.ap.explosiveKg), .5, 15);
+  const charge = shell.he ?? shell.ap;
+  if (!charge) return;
+  const name = shell.he ? 'HE' : 'AP';
+  const radius = clamp(3 * Math.cbrt(charge.explosiveKg), .5, 15);
   let rays = 0;
   let burstShip = shell.lodged?.shipId ?? shell.lastHitShipId ?? '';
   const base = { shell: { id: shell.id, caliberM: shell.caliberM, velocity: [...shell.velocity] as Vec3 }, position: [...shell.position] as Vec3 };
@@ -44,7 +46,7 @@ export function burstShell(shell: Shell, actors: (Combatant & { definition: Ship
       const distance = target.distance;
       if (rays >= 128) break;
       rays++;
-      let budget = shell.ap.fragmentPenetrationMm, blockedPressure = false;
+      let budget = charge.fragmentPenetrationMm, blockedPressure = false;
       // Fresh visited set: armor crossed by the projectile still shields blast.
       const probe: Shell = { ...shell, visited: [] };
       const destination = localToWorld(target.point, actor.motion);
@@ -59,7 +61,10 @@ export function burstShell(shell: Shell, actors: (Combatant & { definition: Ship
           } else {
             const armor = hit.kind === 'armor' ? protection.armor[hit.index] : undefined;
             const thickness = armor?.thicknessMm ?? (hit.kind === 'mount' ? protection.mounts[hit.index].weapon.armorMm : protection.connections[hit.index].thicknessMm!);
-            const response = plateResponse(thickness, armor?.plate?.material ?? 'steel', Math.abs(dot(direction, hit.normal)), .01);
+            // A burst on/inside a portal's bounds has no entry normal or ray
+            // length. Its direct fragments still pay normal plate resistance.
+            const incidence = distance > 1e-8 && length(hit.normal) > 0 ? Math.abs(dot(direction, hit.normal)) : 1;
+            const response = plateResponse(thickness, armor?.plate?.material ?? 'steel', incidence, .01);
             budget -= response.resistanceMm;
             blockedPressure ||= response.resistanceMm > 0;
           }
@@ -68,8 +73,8 @@ export function burstShell(shell: Shell, actors: (Combatant & { definition: Ship
         if (budget <= 0) break;
       }
       if (budget <= 0) continue;
-      const exposure = blockedPressure ? .35 * budget / shell.ap.fragmentPenetrationMm : 1;
-      const amount = shell.damage * .75 * (1 - distance / radius) * exposure;
+      const exposure = blockedPressure ? .35 * budget / charge.fragmentPenetrationMm : 1;
+      const amount = (shell.he ? shell.he.damage : shell.damage * .75) * (1 - distance / radius) * exposure;
       let damage = 0, connectionIds: string[] | undefined;
       if (target.kind === 'module') {
         const state = actor.damage.modules[target.index]; damage = Math.min(state.hp, amount); state.hp -= damage;
@@ -82,16 +87,16 @@ export function burstShell(shell: Shell, actors: (Combatant & { definition: Ship
       }
       if (!damage && !connectionIds) continue;
       burstShip ||= actor.motion.id;
-      emit({ ...base, kind: 'burst', shipId: actor.motion.id, message: `AP burst · ${target.name}`,
+      emit({ ...base, kind: 'burst', shipId: actor.motion.id, message: `${name} burst · ${target.name}`,
         impact: { shellId: shell.id, shipId: actor.motion.id, targetId: target.id, targetName: target.name, kind: target.kind,
-          position: target.point, penetrationBeforeMm: shell.ap.fragmentPenetrationMm, penetrationAfterMm: Math.max(0, budget),
+          position: target.point, penetrationBeforeMm: charge.fragmentPenetrationMm, penetrationAfterMm: Math.max(0, budget),
           outcome: 'damaged', damage, connectionIds, fuze: 'armed', fuzeRemainingSeconds: 0 } });
       if (target.kind === 'module') checkMagazine(actor, def, target.index, shell, emit);
     }
   }
   const actor = actors.find(a => a.motion.id === burstShip);
-  emit({ ...base, kind: 'burst', shipId: burstShip, message: 'AP shell burst', detonation: true, blastRadiusM: radius,
-    impact: { shellId: shell.id, shipId: burstShip, targetId: 'ap-burst', targetName: actor ? 'AP shell burst' : 'Burst outside ship', kind: 'burst',
+  emit({ ...base, kind: 'burst', shipId: burstShip, message: `${name} shell burst`, detonation: true, blastRadiusM: radius,
+    impact: { shellId: shell.id, shipId: burstShip, targetId: `${name.toLowerCase()}-burst`, targetName: actor ? `${name} shell burst` : 'Burst outside ship', kind: 'burst',
       position: actor ? worldToLocal(shell.position, actor.motion) : [...shell.position], penetrationBeforeMm: shell.penetrationMm,
       penetrationAfterMm: 0, outcome: 'detonation', terminal: true, fuze: 'armed', fuzeRemainingSeconds: 0 } });
 }
