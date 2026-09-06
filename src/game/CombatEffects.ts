@@ -41,6 +41,7 @@ export class CombatEffects {
       blending: THREE.AdditiveBlending, alphaTest: .02, depthWrite: true, side: THREE.DoubleSide }), 256);
   private readonly torpedoBodies = new THREE.InstancedMesh(new THREE.CapsuleGeometry(.5, 1, 3, 8),
     new THREE.MeshBasicMaterial({ color: '#82948f' }), 128);
+  private readonly depthChargeBodies = new THREE.InstancedMesh(new THREE.CylinderGeometry(.5, .5, 1, 12), new THREE.MeshBasicMaterial({ color: '#7b8d88' }), 128);
   private readonly torpedoWakes = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1),
     new THREE.MeshBasicMaterial({ map: this.maps.foam, color: '#d7f1e7', transparent: true, opacity: .65, depthWrite: false, side: THREE.DoubleSide }), 128);
   private readonly lights = Array.from({ length: 4 }, () => ({ light: new THREE.PointLight('#ffd29a', 0, 145, 2), age: 1, power: 0, duration: .2 }));
@@ -59,6 +60,7 @@ export class CombatEffects {
   private lightCursor = 0;
   private shellCount = 0;
   private torpedoCount = 0;
+  private depthChargeCount = 0;
 
   constructor() {
     this.root.name = 'Combat effects';
@@ -68,8 +70,9 @@ export class CombatEffects {
     this.spouts.mesh.name = 'Aerated water volumes';
     this.spray.mesh.name = 'Water droplets and mist';
     this.pools.forEach(pool => this.root.add(pool.mesh));
+    this.depthChargeBodies.name = 'Depth charge bodies';
     this.torpedoBodies.name = 'Torpedo bodies'; this.torpedoWakes.name = 'Torpedo surface wakes';
-    for (const mesh of [this.projectiles, this.streaks, this.shellGlows, this.torpedoBodies, this.torpedoWakes]) {
+    for (const mesh of [this.projectiles, this.streaks, this.shellGlows, this.torpedoBodies, this.torpedoWakes, this.depthChargeBodies]) {
       mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
       mesh.frustumCulled = false; mesh.instanceMatrix.array.fill(0); this.root.add(mesh);
     }
@@ -113,6 +116,15 @@ export class CombatEffects {
     }
     this.updateShells(sim, camera);
     this.updateTorpedoes(sim);
+    this.depthChargeCount = Math.min(sim.depthCharges.length, 128);
+    sim.depthCharges.slice(0, 128).forEach((charge, i) => {
+      this.dummy.position.fromArray(charge.position);
+      this.dummy.rotation.set(Math.PI / 2, 0, charge.submerged ? 0 : charge.age * 2);
+      this.dummy.scale.set(charge.weapon.diameterM, charge.weapon.lengthM, charge.weapon.diameterM);
+      this.dummy.updateMatrix(); this.depthChargeBodies.setMatrixAt(i, this.dummy.matrix);
+    });
+    this.depthChargeBodies.instanceMatrix.array.fill(0, this.depthChargeCount * 16);
+    this.depthChargeBodies.instanceMatrix.needsUpdate = true;
   }
 
   private updateTorpedoes(sim: CombatSimulation): void {
@@ -196,7 +208,10 @@ export class CombatEffects {
     this.across.crossVectors(this.direction, UP).normalize();
     if (this.across.lengthSq() < .01) this.across.set(1, 0, 0);
     this.vertical.crossVectors(this.across, this.direction).normalize();
-    if (event.kind === 'torpedo-hit') {
+    if (event.kind === 'depth-charge-blast' || event.kind === 'depth-charge-splash') {
+      this.position.y = 0;
+      this.splash(event.kind === 'depth-charge-blast' ? 1.35 : .3, random);
+    } else if (event.kind === 'torpedo-hit') {
       this.position.y = 0;
       this.splash(1.7, random);
     } else if (event.kind === 'torpedo-launch' || event.kind === 'torpedo-dud') {
@@ -363,18 +378,18 @@ export class CombatEffects {
   }
 
   reset(): void {
-    this.pools.forEach(pool => pool.reset()); this.shellCount = 0; this.torpedoCount = 0; this.fireTick = -1;
-    for (const mesh of [this.projectiles, this.streaks, this.shellGlows, this.torpedoBodies, this.torpedoWakes]) { mesh.instanceMatrix.array.fill(0); mesh.instanceMatrix.needsUpdate = true; }
+    this.pools.forEach(pool => pool.reset()); this.shellCount = 0; this.torpedoCount = 0; this.depthChargeCount = 0; this.fireTick = -1;
+    for (const mesh of [this.projectiles, this.streaks, this.shellGlows, this.torpedoBodies, this.torpedoWakes, this.depthChargeBodies]) { mesh.instanceMatrix.array.fill(0); mesh.instanceMatrix.needsUpdate = true; }
     this.lights.forEach(item => { item.age = 1; item.light.intensity = 0; }); this.sequence = 0;
   }
   diagnostics() {
-    return { shells: this.shellCount, torpedoes: this.torpedoCount, smoke: this.smoke.count, spray: this.spray.count + this.spouts.count,
+    return { shells: this.shellCount, torpedoes: this.torpedoCount, depthCharges: this.depthChargeCount, smoke: this.smoke.count, spray: this.spray.count + this.spouts.count,
       flashes: this.fire.count, foam: this.foam.count,
       particleCapacity: this.pools.reduce((sum, pool) => sum + pool.capacity, 0) };
   }
   dispose(): void {
     this.root.removeFromParent(); this.pools.forEach(pool => pool.dispose());
-    for (const mesh of [this.projectiles, this.streaks, this.shellGlows, this.torpedoBodies, this.torpedoWakes]) { mesh.dispose(); mesh.geometry.dispose(); mesh.material.dispose(); }
+    for (const mesh of [this.projectiles, this.streaks, this.shellGlows, this.torpedoBodies, this.torpedoWakes, this.depthChargeBodies]) { mesh.dispose(); mesh.geometry.dispose(); mesh.material.dispose(); }
     Object.values(this.maps).forEach(map => map.dispose());
     this.volumeMap.dispose();
     this.volumeDepthTexture.dispose();

@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "contentHash": "21547dc10500b4bf4ce24f8709a5276f6db3f05958261afedcd6f1f5914ea62e",
+  "recipeSha256": "12c0dc7eaf6b73b0e8ba6e05918d62be5903f37cdff6f9ef51782d4dc9d7bdde",
+  "capturePlanSha256": "b0b8d5e1b146b1f0dd65f31db59c32b7de19819c7a346e0efccac1491a4e1891",
+  "modelSha256": "c92544f5a276dbb718e613dc7eddb7c7c6408ed990d3411bf6e7e460e16a3e62",
+  "referenceManifestSha256": "21a36233dd00e1e883612c9bd943069b1849557670f127f337fc8692bba43058",
+  "previousManifestSha256": "3de5f4181c5e8b3f801d6836b6be43043e9004bc7572c2a7b1a616ecae6424e0",
+  "authoredManifestSha256": "5bd4f980530ec0645d2a3d1e42eb4404a42e1f6785fb14955a4acca242dd56c2",
+  "groups": [
+    {
+      "name": "Bow stem position",
+      "samples": 5,
+      "previousRmsM": 8.357,
+      "currentRmsM": 0.2891
+    },
+    {
+      "name": "Forward lower profile",
+      "samples": 5,
+      "previousRmsM": 2.0119,
+      "currentRmsM": 0.3976
+    },
+    {
+      "name": "Foredeck half-breadth",
+      "samples": 3,
+      "previousRmsM": 0.4881,
+      "currentRmsM": 0.0905
+    },
+    {
+      "name": "Upper bridge solid width",
+      "samples": 5,
+      "previousRmsM": 3.8153,
+      "currentRmsM": 0.2821
+    }
+  ],
+  "probes": [
+    {
+      "probe": "stem-x-at-z--3",
+      "referenceM": 55.68,
+      "previousM": 39.168,
+      "currentM": 55.296,
+      "previousErrorM": 16.512,
+      "currentErrorM": 0.384
+    },
+    {
+      "probe": "stem-x-at-z--2",
+      "referenceM": 55.808,
+      "previousM": 47.296,
+      "currentM": 55.552,
+      "previousErrorM": 8.512,
+      "currentErrorM": 0.256
+    },
+    {
+      "probe": "stem-x-at-z-0",
+      "referenceM": 56.128,
+      "previousM": 54.272,
+      "currentM": 55.936,
+      "previousErrorM": 1.856,
+      "currentErrorM": 0.192
+    },
+    {
+      "probe": "stem-x-at-z-2",
+      "referenceM": 56.576,
+      "previousM": 55.808,
+      "currentM": 56.32,
+      "previousErrorM": 0.768,
+      "currentErrorM": 0.256
+    },
+    {
+      "probe": "stem-x-at-z-4",
+      "referenceM": 57.088,
+      "previousM": 56.832,
+      "currentM": 56.768,
+      "previousErrorM": 0.256,
+      "currentErrorM": 0.32
+    },
+    {
+      "probe": "forefoot-z-at-x-30",
+      "referenceM": -3.736,
+      "previousM": -3.672,
+      "currentM": -4.12,
+      "previousErrorM": 0.064,
+      "currentErrorM": 0.384
+    },
+    {
+      "probe": "forefoot-z-at-x-38",
+      "referenceM": -3.736,
+      "previousM": -3.16,
+      "currentM": -4.12,
+      "previousErrorM": 0.576,
+      "currentErrorM": 0.384
+    },
+    {
+      "probe": "forefoot-z-at-x-46",
+      "referenceM": -3.672,
+      "previousM": -2.2,
+      "currentM": -4.056,
+      "previousErrorM": 1.472,
+      "currentErrorM": 0.384
+    },
+    {
+      "probe": "forefoot-z-at-x-52",
+      "referenceM": -3.544,
+      "previousM": -1.048,
+      "currentM": -3.992,
+      "previousErrorM": 2.496,
+      "currentErrorM": 0.448
+    },
+    {
+      "probe": "forefoot-z-at-x-54",
+      "referenceM": -3.48,
+      "previousM": -0.088,
+      "currentM": -3.864,
+      "previousErrorM": 3.392,
+      "currentErrorM": 0.384
+    },
+    {
+      "probe": "foredeck-half-breadth-at-x-40",
+      "referenceM": 3.936,
+      "previousM": 3.648,
+      "currentM": 4.064,
+      "previousErrorM": 0.288,
+      "currentErrorM": 0.128
+    },
+    {
+      "probe": "foredeck-half-breadth-at-x-45",
+      "referenceM": 3.36,
+      "previousM": 2.848,
+      "currentM": 3.424,
+      "previousErrorM": 0.512,
+      "currentErrorM": 0.064
+    },
+    {
+      "probe": "foredeck-half-breadth-at-x-50",
+      "referenceM": 2.528,
+      "previousM": 1.92,
+      "currentM": 2.592,
+      "previousErrorM": 0.608,
+      "currentErrorM": 0.064
+    },
+    {
+      "probe": "bridge-solid-width-at-z-8.5",
+      "referenceM": 5.24333,
+      "previousM": 9.35,
+      "currentM": 5.24333,
+      "previousErrorM": 4.10667,
+      "currentErrorM": 0.0
+    },
+    {
+      "probe": "bridge-solid-width-at-z-9.5",
+      "referenceM": 10.37667,
+      "previousM": 5.53667,
+      "currentM": 10.15667,
+      "previousErrorM": 4.84,
+      "currentErrorM": 0.22
+    },
+    {
+      "probe": "bridge-solid-width-at-z-10.5",
+      "referenceM": 9.57,
+      "previousM": 5.53667,
+      "currentM": 10.15667,
+      "previousErrorM": 4.03333,
+      "currentErrorM": 0.58667
+    },
+    {
+      "probe": "bridge-solid-width-at-z-11",
+      "referenceM": 5.39,
+      "previousM": 3.08,
+      "currentM": 5.39,
+      "previousErrorM": 2.31,
+      "currentErrorM": 0.0
+    },
+    {
+      "probe": "bridge-solid-width-at-z-11.5",
+      "referenceM": 6.34333,
+      "previousM": 3.04333,
+      "currentM": 6.27,
+      "previousErrorM": 3.3,
+      "currentErrorM": 0.07333
+    }
+  ],
+  "limitations": [
+    "Sparse screen-space probes, not a full geometric similarity score.",
+    "Side/plan sampling is 0.064 m/pixel; bow sampling is 0.03667 m/pixel.",
+    "The unchanged global registration leaves the reference load datum unverified.",
+    "AA fit, antennas, individual fittings and gunhouses can still differ.",
+    "No reference vertices, topology or component transforms are read."
+  ]
+}

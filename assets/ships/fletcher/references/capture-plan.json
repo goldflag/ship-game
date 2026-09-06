@@ -1,0 +1,360 @@
+{
+  "schemaVersion": 1,
+  "axes": "metres; +X bow +Y port +Z up",
+  "registration": {
+    "uniformScale": 15,
+    "method": "One whole-model similarity registration, 15 m/viewer unit, following the WoWS viewer scale used by the shared reference stage. No component fitting. Source waterline and game refit remain unverified."
+  },
+  "views": [
+    {
+      "id": "starboard",
+      "position": [
+        0,
+        -250,
+        9
+      ],
+      "target": [
+        0,
+        0,
+        9
+      ],
+      "spanM": 128,
+      "resolution": [
+        2000,
+        700
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "port",
+      "position": [
+        0,
+        250,
+        9
+      ],
+      "target": [
+        0,
+        0,
+        9
+      ],
+      "spanM": 128,
+      "resolution": [
+        2000,
+        700
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "top",
+      "position": [
+        0,
+        0,
+        250
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "spanM": 128,
+      "resolution": [
+        2000,
+        700
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "rotationEuler": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "bow",
+      "position": [
+        250,
+        0,
+        9
+      ],
+      "target": [
+        0,
+        0,
+        9
+      ],
+      "spanM": 33,
+      "resolution": [
+        900,
+        900
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "stern",
+      "position": [
+        -250,
+        0,
+        9
+      ],
+      "target": [
+        0,
+        0,
+        9
+      ],
+      "spanM": 33,
+      "resolution": [
+        900,
+        900
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "quarter-bow",
+      "position": [
+        100,
+        -160,
+        90
+      ],
+      "target": [
+        0,
+        0,
+        6
+      ],
+      "spanM": 130,
+      "resolution": [
+        1800,
+        1000
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "quarter-stern",
+      "position": [
+        -100,
+        -160,
+        90
+      ],
+      "target": [
+        0,
+        0,
+        6
+      ],
+      "spanM": 130,
+      "resolution": [
+        1800,
+        1000
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "bridge",
+      "position": [
+        28,
+        -90,
+        27
+      ],
+      "target": [
+        22,
+        0,
+        8
+      ],
+      "spanM": 35,
+      "resolution": [
+        1400,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "funnels",
+      "position": [
+        4,
+        -95,
+        24
+      ],
+      "target": [
+        4,
+        0,
+        8
+      ],
+      "spanM": 38,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "afterdeck",
+      "position": [
+        -35,
+        -75,
+        26
+      ],
+      "target": [
+        -30,
+        0,
+        4
+      ],
+      "spanM": 44,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "turret-side",
+      "position": [
+        37.4,
+        -70,
+        7
+      ],
+      "target": [
+        37.4,
+        0,
+        7
+      ],
+      "spanM": 12,
+      "resolution": [
+        1600,
+        1200
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "turret-front",
+      "position": [
+        110,
+        0,
+        7
+      ],
+      "target": [
+        37.4,
+        0,
+        7
+      ],
+      "spanM": 7,
+      "resolution": [
+        1200,
+        1200
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "turret-quarter",
+      "position": [
+        55,
+        -23,
+        17
+      ],
+      "target": [
+        37.4,
+        0,
+        6.8
+      ],
+      "spanM": 11,
+      "resolution": [
+        1600,
+        1200
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "turret-top",
+      "position": [
+        37.4,
+        0,
+        100
+      ],
+      "target": [
+        37.4,
+        0,
+        5.5
+      ],
+      "spanM": 10.5,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO",
+      "rotationEuler": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "propellers-stern",
+      "position": [
+        -110,
+        0,
+        -3
+      ],
+      "target": [
+        -51,
+        0,
+        -3
+      ],
+      "spanM": 12,
+      "resolution": [
+        1600,
+        1000
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "propellers-side",
+      "position": [
+        -50,
+        -70,
+        -3
+      ],
+      "target": [
+        -50,
+        0,
+        -3
+      ],
+      "spanM": 18,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    },
+    {
+      "id": "propellers-quarter",
+      "position": [
+        -75,
+        -30,
+        -12
+      ],
+      "target": [
+        -49,
+        0,
+        -3
+      ],
+      "spanM": 18,
+      "resolution": [
+        1600,
+        1100
+      ],
+      "visibility": "all",
+      "projection": "ORTHO"
+    }
+  ]
+}

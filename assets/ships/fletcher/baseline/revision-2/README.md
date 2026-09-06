@@ -1,0 +1,27 @@
+# Fletcher-class destroyer
+
+An independently authored early-war 1942-inspired Fletcher preset, rebuilt against GameModels3D comparison rasters, original US Navy ONI side/deck drawings and July 1942 Bureau of Ships photographs through the shared version 1 blueprint pipeline. Select **Fletcher** in port or on either side of a custom battle.
+
+- Five articulated single 127 mm / 5-inch guns, plus one twin 40 mm and six single 20 mm mounts.
+- **3 — Torpedoes:** two trainable quintuple mounts, ten Mk 15 rounds total, without spare reloads. Bring either broadside 40–140° from the bow toward the sight; wait for the mounts to train, then press left mouse / Q for one tube, or hold for a spaced salvo. Runs are straight at about 45 kn for 5.5 km, at 2 m depth, arming after 300 m. Gunnery → Target waterline supplies lead.
+- **4 — Depth charges:** two stern racks and six side throwers, with 28 charges. Press left mouse / Q for one charge or hold to release a pattern. Charges enter the water, sink at 2.5 m/s, and burst at 10 m. Blast damage falls with distance to the submerged hull, within a 32 m radius. A close pass is required; keep moving clear. Your ship and allies can be damaged too.
+- Structural HP: 600 under the common displacement rule. Speed: 36 kn. All handling, damage, flooding, magazine health, depth-charge stocks and reloads are provisional game tuning.
+
+Depth charges are usable against nearby surface hulls, including the surfaced Type VIIC. This addition does not implement diving or sonar. The shallow depth and broad blast radius are explicit adaptations to the current surface-combat game.
+
+The hull is 114.7 × 12.1 m, with an approximate loaded 4.2 m draft and 2,924 tonne gameplay displacement. The revised exterior has a fair station hull, round bridge, raked open funnels, raised torpedo banks, detailed working decks and original camouflage. Sources support the class identity, principal dimensions and main weapon counts; the chosen load, hull offsets, armor and many fittings remain estimates. The light AA fit is inspired by early-war equipment, not certified to a specific day. Read the [source register](references/sources.json) and [discrepancies](reports/discrepancies.md).
+
+`blueprint.json`, `build.py` and the original catalog in `assets/parts/guns.json` are the durable sources. The GLB, thumbnail, Blender scene and fixed review images are reproducible outputs. No commercial game mesh or texture is used. Local Blender was used; Blender MCP was unavailable.
+
+```sh
+bun run ship:compile fletcher
+bun run ship:build fletcher
+bun run ship:check fletcher
+bun run ship:review fletcher
+bun test src/simulation/fletcher.test.ts src/game/ShipView.test.ts
+bun run build
+```
+
+The development-only `/scripts/diagnostics/fletcher.html` fixture loads the production model, ocean, Fleet HUD, damage and effects. Its `window.fletcherReview.setup('main' | 'secondary' | 'torpedo' | 'depth-charge')` and `advance(seconds, heldFire)` methods reproduce short weapon reviews. It remains outside the production entry point.
+
+See the [model revision report](reports/refit.md), [matching before/after and source review](generated/comparison/index.html), and [validation report](reports/validation.md). The local comparison page is served at `/ship-reference/fletcher/index.html`. Original prototype files and earlier gameplay/UI evidence are archived under `baseline/initial-prototype/`.

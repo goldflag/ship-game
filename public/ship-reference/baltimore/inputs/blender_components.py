@@ -69,7 +69,7 @@ def create_gun_mount(mount, collection, helpers, materials, deck_height):
     bore=spec['caliberM']/2
     gunz=zbase+spec['pivotHeight']
     elev=math.radians(1.0)
-    sides=['left','center','right'] if spec.get('barrelCount',2)==3 else ['left','right']
+    sides={1:['center'],2:['left','right'],3:['left','center','right'],4:['left-outer','left','right','right-outer']}[spec.get('barrelCount',2)]
     for index,side in enumerate(sides):
         barrel_before=set(bpy.context.scene.objects)
         gy=((len(sides)-1)/2-index)*spacing

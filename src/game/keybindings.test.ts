@@ -60,3 +60,13 @@ test('older custom controls survive new diving actions even when Z, X and B are 
   expect(loaded.dive).not.toContain('KeyZ'); expect(loaded.rise).not.toContain('KeyX'); expect(loaded.emergencyBlow).not.toContain('KeyB');
   expect(keybindingsOf(loaded)).toEqual(loaded);
 });
+
+test('older saves gain depth charges without taking an existing custom 4 binding', () => {
+  const saved: Partial<ReturnType<typeof defaultKeybindings>> = defaultKeybindings();
+  delete saved.depthCharges; saved.fire = ['Digit4', null];
+  const result = keybindingsOf(saved);
+  expect(result.fire).toEqual(['Digit4', null]);
+  expect(result.depthCharges[0]).not.toBe('Digit4');
+  expect(result.depthCharges[0]).not.toBeNull();
+  expect(keybindingsOf(result)).toEqual(result);
+});

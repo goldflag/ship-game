@@ -33,7 +33,12 @@ export class CombatAudioEvents {
       this.sequence = event.sequence;
       // Never burst old combat audio after loading, tab suspension or a slow frame.
       if (tick - event.tick > 12) continue;
-      if (event.kind === 'torpedo-expired') continue;
+      if (event.kind === 'torpedo-expired' || event.kind === 'depth-charge-hit') continue;
+      if (event.kind === 'depth-charge-blast' || event.kind === 'depth-charge-splash' || event.kind === 'depth-charge-launch') {
+        cues.push({ id: event.kind === 'depth-charge-blast' ? 'magazine-explosion' : event.kind === 'depth-charge-splash' ? 'splash' : 'reload', position: event.position, gain: event.kind === 'depth-charge-blast' ? .75 : .35, rate: .65 });
+        if (event.kind === 'depth-charge-blast') cues.push({ id: 'splash', position: event.position, gain: .7, rate: .7 });
+        continue;
+      }
       if (event.kind === 'torpedo-launch' || event.kind === 'torpedo-dud' || event.kind === 'torpedo-hit') {
         cues.push({ id: event.kind === 'torpedo-hit' ? 'magazine-explosion' : 'splash', position: event.position, gain: event.kind === 'torpedo-hit' ? .85 : .35, rate: .7 });
         if (event.kind === 'torpedo-hit') cues.push({ id: 'splash', position: event.position, gain: .8, rate: .8 });
