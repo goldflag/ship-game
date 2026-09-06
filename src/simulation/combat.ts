@@ -4,7 +4,7 @@ import { createShipState, FIXED_DT, stepShip, type HelmCommand } from './ship';
 import { add, clamp, localToWorld, scale, segmentBox, sub, worldToLocal } from './geometry';
 import { createMountState, GRAVITY, muzzleWorld, shotDirection, updateMount } from './weapons';
 import { BATTLE_SPAWN_DISTANCE, deployment, MAX_TEAM_SHIPS, validateSpawnDistance, type BattleFleet, type BattleResult, type FleetActor, type Team } from './battle';
-import { botAim, botGunRange, botHelm, botTarget, clearFiringLane, shipVelocity } from './bots';
+import { botAim, botDidFire, botGunRange, botHelm, botReadyToFire, botTarget, clearFiringLane, createBotState, shipVelocity, updateBot } from './bots';
 import { createDamage, hitShip, systemHealth, updateFlooding, type BallisticEffectData, type DamageEvent, type Shell } from './damage';
 import { resolveShipCollisions } from './collisions';
 import { mayReachHull, shellHullRadius } from './spatial';
@@ -33,6 +33,7 @@ export class CombatSimulation {
   readonly actors: FleetActor[];
   readonly isBattle: boolean;
   readonly spawnDistance: number;
+  readonly seed: number;
   result: BattleResult = 'active';
   readonly shells: Shell[] = [];
   readonly events: CombatEvent[] = [];
@@ -50,6 +51,8 @@ export class CombatSimulation {
   constructor(readonly definition: ShipDefinition, fleet?: BattleFleet) {
     this.isBattle = !!fleet;
     this.spawnDistance = fleet?.spawnDistance ?? BATTLE_SPAWN_DISTANCE;
+    this.seed = fleet?.seed ?? 1;
+    if (!Number.isInteger(this.seed) || this.seed < 0 || this.seed > 0xffffffff) throw new Error('Battle seed must be an unsigned 32-bit integer.');
     validateSpawnDistance(this.spawnDistance);
     if (fleet && (!fleet.enemies.length || fleet.enemies.length > MAX_TEAM_SHIPS || fleet.friendlyBots.length >= MAX_TEAM_SHIPS)) throw new Error(`Choose one to ${MAX_TEAM_SHIPS} ships per team.`);
     this.player = this.createActor('player', definition, 'friendly', 'player');
@@ -79,7 +82,8 @@ export class CombatSimulation {
     this.clearCombat(); this.tick = 0; this.accumulator = 0; this.result = 'active';
   }
   private createActor(id: string, definition: ShipDefinition, team: Team, controller: FleetActor['controller']): FleetActor {
-    return { definition, team, controller, motion: createShipState(id), mounts: definition.mounts.map(createMountState), damage: createDamage(definition) };
+    return { definition, team, controller, motion: createShipState(id), mounts: definition.mounts.map(createMountState), damage: createDamage(definition),
+      ...(controller === 'bot' ? { bot: createBotState(id, definition, this.seed) } : {}) };
   }
   private createTarget() {
     const target = this.createActor('target', this.definition, 'enemy', 'idle');
@@ -129,6 +133,7 @@ export class CombatSimulation {
     for (const actor of this.actors) {
       if (actor.controller === 'bot') {
         const target = botTarget(actor, this.actors);
+        updateBot(actor, target, this.tick * FIXED_DT);
         actor.targetId = target?.motion.id;
         targets.set(actor, target);
         commands.set(actor, botHelm(actor, target, this.actors));
@@ -149,10 +154,11 @@ export class CombatSimulation {
         const aim = actor === this.player ? intent.aim : target ? botAim(actor, target, m, state) : localToWorld([0, .5, -5000], actor.motion);
         const aligned = updateMount(m, state, def, actor.motion, aim, FIXED_DT, shipVelocity(actor));
         const inRange = target && Math.hypot(target.motion.x - actor.motion.x, target.motion.z - actor.motion.z) <= botGunRange(m);
-        const firing = aligned && (actor === this.player ? (intent.fire || this.fireQueued) && m.battery === intent.battery : actor.controller === 'bot' && inRange && laneClear);
+        const firing = aligned && (actor === this.player ? (intent.fire || this.fireQueued) && m.battery === intent.battery : actor.controller === 'bot' && inRange && laneClear && botReadyToFire(actor, m));
         const barrelCount = m.weapon.barrelCount ?? 2;
         if (!actor.damage.sunk && firing && state.status === 'ready' && this.shells.length <= 256 - barrelCount) {
           state.reload = m.weapon.reloadSeconds; state.ammo -= barrelCount; state.recoil = 1; state.status = 'reloading';
+          if (actor.controller === 'bot') botDidFire(actor, m);
           for (let barrel = 0; barrel < barrelCount; barrel++) {
             const position = muzzleWorld(m, state, barrel, actor.motion);
             const velocity = add(scale(shotDirection(m, state, actor.motion), m.weapon.muzzleSpeed), shipVelocity(actor));
