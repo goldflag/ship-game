@@ -1,5 +1,5 @@
 {
-  "contentHash": "35f5274eb8717c40592ca24436bab74bd5ee8f64aba7588e237f23fd5a0e0420",
+  "contentHash": "2333464e8822636f8d18520431bc6558664581988e9b9763a62cbb42a85443d4",
   "hullBounds": [
     [
       -19.450002670288086,
@@ -64,10 +64,11 @@
       "articulationChecks": 9
     }
   ],
-  "meshes": 104,
-  "primitives": 328,
-  "triangles": 141730,
-  "bytes": 4915160,
+  "torpedoTubes": [],
+  "meshes": 110,
+  "primitives": 343,
+  "triangles": 264906,
+  "bytes": 11623044,
   "result": "passed",
   "historicalAccuracy": "not certified; see reference register and discrepancy report"
 }

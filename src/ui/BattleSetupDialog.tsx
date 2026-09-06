@@ -84,7 +84,7 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, loading,
       <div className="battle-distance-limits" aria-hidden="true"><span>{MIN_BATTLE_SPAWN_DISTANCE / 1000} km</span><span>{MAX_BATTLE_SPAWN_DISTANCE / 1000} km</span></div>
       <p id="battle-spawn-description">Distance between the two formations. Both teams start facing each other.</p>
     </div>
-    <div className="battle-briefing"><Icon name="compass" size={21}/><p><strong>Open ocean</strong><span>Sink the opposing fleet to win.</span></p></div>
+    <div className="battle-briefing"><Icon name="compass" size={21}/><p><strong>Open ocean</strong><span>Defeat the opposing fleet to win.</span></p></div>
     {error && <p className="battle-error" role="alert">{error} Your fleet is kept here; try launching again.</p>}
     <footer><button className="secondary-button" disabled={loading} onClick={onClose}>Back to port</button><button className="primary-button" aria-busy={loading} disabled={loading || !setup.enemies.length} onClick={onLaunch}>{loading ? 'Preparing fleets…' : 'Start battle'}<Icon name="arrow" size={18}/></button></footer>
   </dialog>;

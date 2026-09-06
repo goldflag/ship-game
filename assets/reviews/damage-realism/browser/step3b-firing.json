@@ -1,0 +1,1736 @@
+{
+  "diagnostics": {
+    "audio": {
+      "failed": [],
+      "inPort": false,
+      "loaded": 13,
+      "paused": false,
+      "played": 7,
+      "settings": {
+        "effects": 0.8,
+        "interface": 0.65,
+        "master": 0.65,
+        "muted": false
+      },
+      "state": "running",
+      "total": 13,
+      "voices": 0
+    },
+    "backend": "webgpu",
+    "battleSeed": 2365007372,
+    "camera": {
+      "aim": [
+        -538.9206718460918,
+        0.5,
+        -4870.086214733547
+      ],
+      "binoculars": false,
+      "fov": 52.00000000000001,
+      "magnification": 1,
+      "manualAim": false,
+      "matrixWorldInverse": [
+        0.9999999949839619,
+        -2.2721164758431908e-06,
+        0.00010013448132509544,
+        0,
+        1.2705494208814509e-21,
+        0.9997426665645036,
+        0.022684811008606368,
+        0,
+        -0.00010016025590784842,
+        -0.022684810894818483,
+        0.9997426615497559,
+        0,
+        -7.04731412115578e-18,
+        -113.74213287363642,
+        -347.66968582262507,
+        1.0000000000000002
+      ],
+      "mode": "Chase",
+      "pointerLocked": false,
+      "position": [
+        0.034555288288207704,
+        121.59968433613112,
+        344.99999826946674
+      ],
+      "projectionMatrix": [
+        1.633751346060547,
+        0,
+        0,
+        0,
+        0,
+        2.050303841579296,
+        0,
+        0,
+        0,
+        0,
+        -1.0000083334027783,
+        -1,
+        0,
+        0,
+        -0.5000041667013891,
+        0
+      ]
+    },
+    "combat": {
+      "batteries": [
+        {
+          "ammo": 952,
+          "battery": "main",
+          "ready": 4,
+          "reload": 0,
+          "total": 4
+        },
+        {
+          "ammo": 1800,
+          "battery": "secondary",
+          "ready": 2,
+          "reload": 0,
+          "total": 6
+        }
+      ],
+      "battery": "main",
+      "battle": true,
+      "contacts": [
+        {
+          "controller": "player",
+          "heading": 1.5707963267948966,
+          "id": "player",
+          "integrity": 0.8328000000000001,
+          "name": "Bismarck",
+          "shipId": "bismarck",
+          "sunk": false,
+          "team": "friendly",
+          "x": 0,
+          "z": 0
+        },
+        {
+          "controller": "bot",
+          "heading": 4.32328914664215,
+          "id": "enemy-1",
+          "integrity": 0.916,
+          "name": "Bismarck",
+          "shipId": "bismarck",
+          "sunk": false,
+          "targetId": "player",
+          "team": "enemy",
+          "x": -471.2255180735908,
+          "z": -4897.84143358723
+        }
+      ],
+      "message": "Bismarck \u00b7 Stopped by Port Main Belt 2",
+      "modules": [
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-aft-port-equipment",
+          "name": "Aft port boiler room \u00b7 two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-aft-center-equipment",
+          "name": "Aft center boiler room \u00b7 two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-aft-starboard-equipment",
+          "name": "Aft starboard boiler room \u00b7 two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-forward-port-equipment",
+          "name": "Forward port boiler room \u00b7 two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-forward-center-equipment",
+          "name": "Forward center boiler room \u00b7 two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-forward-starboard-equipment",
+          "name": "Forward starboard boiler room \u00b7 two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "engine-port",
+          "name": "Port turbine room",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "engine-starboard",
+          "name": "Starboard turbine room",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "engine-center",
+          "name": "Center turbine room",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "anton-magazine",
+          "name": "Anton propellant magazines",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "bruno-magazine",
+          "name": "Bruno propellant magazines",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "caesar-magazine",
+          "name": "C\u00e4sar propellant magazines",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "dora-magazine",
+          "name": "Dora propellant magazines",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "steering",
+          "name": "Steering gear room",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "shaft-port-equipment",
+          "name": "Port shaft passage",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "shaft-center-equipment",
+          "name": "Center shaft passage",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "shaft-starboard-equipment",
+          "name": "Starboard shaft passage",
+          "reason": "operational"
+        }
+      ],
+      "mounts": [
+        {
+          "ammo": 238,
+          "id": "anton",
+          "name": "Anton",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 238,
+          "id": "bruno",
+          "name": "Bruno",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 238,
+          "id": "caesar",
+          "name": "C\u00e4sar",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 238,
+          "id": "dora",
+          "name": "Dora",
+          "reload": 0,
+          "status": "ready"
+        }
+      ],
+      "playerIntegrity": 0.8328000000000001,
+      "playerSunk": false,
+      "playerWater": 1.8119106074043152,
+      "range": 4899.813795388634,
+      "ready": 4,
+      "result": "active",
+      "shellHistory": [
+        {
+          "impacts": [
+            {
+              "breachAreaM2": 0.020847135997068975,
+              "breachAssignments": [
+                {
+                  "areaM2": 0.020847135997068975,
+                  "compartmentId": "flood-strip-port-5-5",
+                  "position": [
+                    -16.90312848462048,
+                    2.969048060588553,
+                    -4.841085251258735
+                  ]
+                }
+              ],
+              "compartmentId": "flood-strip-port-5-5",
+              "damage": 14,
+              "kind": "armor",
+              "material": "KC",
+              "obliquityDeg": 9.929614903156144,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 225.13360809360796,
+              "penetrationBeforeMm": 550,
+              "position": [
+                -16.90312848462048,
+                3.1524881629252537,
+                -4.841085251258735
+              ],
+              "resistanceMm": 324.86639190639204,
+              "shellId": 87,
+              "shipId": "enemy-1",
+              "targetId": "port-main-belt-2",
+              "targetName": "Port Main Belt 2",
+              "thicknessMm": 320
+            },
+            {
+              "kind": "armor",
+              "material": "teak",
+              "obliquityDeg": 9.929614903156144,
+              "outcome": "backing",
+              "penetrationAfterMm": 225.13360809360796,
+              "penetrationBeforeMm": 225.13360809360796,
+              "position": [
+                -16.718239768414037,
+                3.1443737386654975,
+                -4.809089020018573
+              ],
+              "resistanceMm": 0,
+              "shellId": 87,
+              "shipId": "enemy-1",
+              "targetId": "port-teak-backing-2",
+              "targetName": "Port Teak Backing 2",
+              "thicknessMm": 50
+            },
+            {
+              "kind": "armor",
+              "material": "steel",
+              "obliquityDeg": 9.929614903156144,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 204.82945859945846,
+              "penetrationBeforeMm": 225.13360809360796,
+              "position": [
+                -16.680262626706767,
+                3.142706992060791,
+                -4.802516821169242
+              ],
+              "resistanceMm": 20.304149494149502,
+              "shellId": 87,
+              "shipId": "enemy-1",
+              "targetId": "port-belt-support-2",
+              "targetName": "Port Belt Support 2",
+              "thicknessMm": 20
+            },
+            {
+              "kind": "armor",
+              "material": "Wh",
+              "obliquityDeg": 9.929614903156144,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 174.3732343582342,
+              "penetrationBeforeMm": 204.82945859945846,
+              "position": [
+                -11.506376768324264,
+                2.9156346980458805,
+                -3.9071412042486
+              ],
+              "resistanceMm": 30.456224241224252,
+              "shellId": 87,
+              "shipId": "enemy-1",
+              "targetId": "port-splinter-bulkhead-2",
+              "targetName": "Port Splinter Bulkhead 2",
+              "thicknessMm": 30
+            },
+            {
+              "kind": "armor",
+              "material": "Wh",
+              "obliquityDeg": 10.339918058164052,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 143.87799866452812,
+              "penetrationBeforeMm": 174.3732343582342,
+              "position": [
+                11.521591788401928,
+                1.9001369878899712,
+                0.467469735713092
+              ],
+              "resistanceMm": 30.4952356937061,
+              "shellId": 87,
+              "shipId": "enemy-1",
+              "targetId": "starboard-splinter-bulkhead-2",
+              "targetName": "Starboard Splinter Bulkhead 2",
+              "thicknessMm": 30
+            },
+            {
+              "kind": "armor",
+              "material": "steel",
+              "obliquityDeg": 10.339918058164052,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 123.54784153539072,
+              "penetrationBeforeMm": 143.87799866452812,
+              "position": [
+                16.701715655077017,
+                1.670426692792403,
+                1.3656414937554922
+              ],
+              "resistanceMm": 20.3301571291374,
+              "shellId": 87,
+              "shipId": "enemy-1",
+              "targetId": "starboard-belt-support-2",
+              "targetName": "Starboard Belt Support 2",
+              "thicknessMm": 20
+            },
+            {
+              "kind": "armor",
+              "material": "teak",
+              "obliquityDeg": 10.339918058164052,
+              "outcome": "backing",
+              "penetrationAfterMm": 123.54784153539072,
+              "penetrationBeforeMm": 123.54784153539072,
+              "position": [
+                16.73973858475321,
+                1.668740582841909,
+                1.3722342167235453
+              ],
+              "resistanceMm": 0,
+              "shellId": 87,
+              "shipId": "enemy-1",
+              "targetId": "starboard-teak-backing-2",
+              "targetName": "Starboard Teak Backing 2",
+              "thicknessMm": 50
+            },
+            {
+              "kind": "armor",
+              "material": "KC",
+              "obliquityDeg": 10.339918058164052,
+              "outcome": "stopped",
+              "penetrationAfterMm": 123.54784153539072,
+              "penetrationBeforeMm": 123.54784153539072,
+              "position": [
+                16.92485021607152,
+                1.6605318896618724,
+                1.404330368015383
+              ],
+              "resistanceMm": 325.2825140661984,
+              "shellId": 87,
+              "shipId": "enemy-1",
+              "targetId": "starboard-main-belt-2",
+              "targetName": "Starboard Main Belt 2",
+              "terminal": true,
+              "thicknessMm": 320
+            }
+          ],
+          "outcome": "stopped",
+          "ownerId": "player",
+          "shellId": 87,
+          "tick": 1800
+        },
+        {
+          "impacts": [
+            {
+              "breachAreaM2": 0.1444,
+              "breachAssignments": [
+                {
+                  "areaM2": 0.1444,
+                  "compartmentId": "flood-strip-port-6-4",
+                  "position": [
+                    -16.97367553331499,
+                    0.4420781798410033,
+                    15.442548252062378
+                  ]
+                }
+              ],
+              "compartmentId": "flood-strip-port-6-4",
+              "damage": 14,
+              "kind": "armor",
+              "material": "KC",
+              "obliquityDeg": 9.928108967456549,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 225.1351027536133,
+              "penetrationBeforeMm": 550,
+              "position": [
+                -16.97367553331499,
+                0.4420781798410033,
+                15.442548252062378
+              ],
+              "resistanceMm": 324.8648972463867,
+              "shellId": 86,
+              "shipId": "enemy-1",
+              "targetId": "port-main-belt-2",
+              "targetName": "Port Main Belt 2",
+              "thicknessMm": 320
+            },
+            {
+              "kind": "armor",
+              "material": "teak",
+              "obliquityDeg": 9.928108967456549,
+              "outcome": "backing",
+              "penetrationAfterMm": 225.1351027536133,
+              "penetrationBeforeMm": 225.1351027536133,
+              "position": [
+                -16.78878656597164,
+                0.4337090752382654,
+                15.474472276611817
+              ],
+              "resistanceMm": 0,
+              "shellId": 86,
+              "shipId": "enemy-1",
+              "targetId": "port-teak-backing-2",
+              "targetName": "Port Teak Backing 2",
+              "thicknessMm": 50
+            },
+            {
+              "kind": "armor",
+              "material": "steel",
+              "obliquityDeg": 9.928108967456549,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 204.83104667571413,
+              "penetrationBeforeMm": 225.1351027536133,
+              "position": [
+                -16.750809372679495,
+                0.43199001591445985,
+                15.481029643816566
+              ],
+              "resistanceMm": 20.30405607789917,
+              "shellId": 86,
+              "shipId": "enemy-1",
+              "targetId": "port-belt-support-2",
+              "targetName": "Port Belt Support 2",
+              "thicknessMm": 20
+            },
+            {
+              "kind": "armor",
+              "material": "Wh",
+              "obliquityDeg": 63.42374303911248,
+              "outcome": "stopped",
+              "penetrationAfterMm": 204.83104667571413,
+              "penetrationBeforeMm": 204.83104667571413,
+              "position": [
+                -13.12441986152046,
+                0.2678394255074061,
+                16.10718354279464
+              ],
+              "resistanceMm": 245.87130827766703,
+              "shellId": 86,
+              "shipId": "enemy-1",
+              "targetId": "port-turtleback-2",
+              "targetName": "Port Turtleback 2",
+              "terminal": true,
+              "thicknessMm": 110
+            }
+          ],
+          "outcome": "stopped",
+          "ownerId": "player",
+          "shellId": 86,
+          "tick": 1800
+        },
+        {
+          "impacts": [
+            {
+              "breachAreaM2": 0.14439999999999995,
+              "breachAssignments": [
+                {
+                  "areaM2": 0.14439999999999995,
+                  "compartmentId": "flood-strip-port-5-5",
+                  "position": [
+                    -16.910506351517963,
+                    2.5950320283067705,
+                    -2.7198066017031377
+                  ]
+                }
+              ],
+              "compartmentId": "flood-strip-port-5-5",
+              "damage": 14,
+              "kind": "armor",
+              "material": "KC",
+              "obliquityDeg": 9.763721733370557,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 225.29682826526465,
+              "penetrationBeforeMm": 550,
+              "position": [
+                -16.910506351517963,
+                2.5950320283067705,
+                -2.7198066017031377
+              ],
+              "resistanceMm": 324.70317173473535,
+              "shellId": 85,
+              "shipId": "enemy-1",
+              "targetId": "port-main-belt-2",
+              "targetName": "Port Main Belt 2",
+              "thicknessMm": 320
+            },
+            {
+              "kind": "armor",
+              "material": "teak",
+              "obliquityDeg": 9.763721733370557,
+              "outcome": "backing",
+              "penetrationAfterMm": 225.29682826526465,
+              "penetrationBeforeMm": 225.29682826526465,
+              "position": [
+                -16.72561549038206,
+                2.5867435024008247,
+                -2.688427078940443
+              ],
+              "resistanceMm": 0,
+              "shellId": 85,
+              "shipId": "enemy-1",
+              "targetId": "port-teak-backing-2",
+              "targetName": "Port Teak Backing 2",
+              "thicknessMm": 50
+            },
+            {
+              "kind": "armor",
+              "material": "steel",
+              "obliquityDeg": 9.763721733370557,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 205.0028800318437,
+              "penetrationBeforeMm": 225.29682826526465,
+              "position": [
+                -16.687637908094686,
+                2.5850409943769006,
+                -2.6819815553459434
+              ],
+              "resistanceMm": 20.29394823342096,
+              "shellId": 85,
+              "shipId": "enemy-1",
+              "targetId": "port-belt-support-2",
+              "targetName": "Port Belt Support 2",
+              "thicknessMm": 20
+            },
+            {
+              "kind": "armor",
+              "material": "Wh",
+              "obliquityDeg": 9.763721733370557,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 174.56195768171224,
+              "penetrationBeforeMm": 205.0028800318437,
+              "position": [
+                -11.513692026470038,
+                2.3530966775386197,
+                -1.8038637751163769
+              ],
+              "resistanceMm": 30.44092235013144,
+              "shellId": 85,
+              "shipId": "enemy-1",
+              "targetId": "port-splinter-bulkhead-2",
+              "targetName": "Port Splinter Bulkhead 2",
+              "thicknessMm": 30
+            },
+            {
+              "kind": "armor",
+              "material": "Wh",
+              "obliquityDeg": 10.173232187183652,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 144.08277098430924,
+              "penetrationBeforeMm": 174.56195768171224,
+              "position": [
+                11.528648613573012,
+                1.314939993226146,
+                2.496442713549545
+              ],
+              "resistanceMm": 30.47918669740302,
+              "shellId": 85,
+              "shipId": "enemy-1",
+              "targetId": "starboard-splinter-bulkhead-2",
+              "targetName": "Starboard Splinter Bulkhead 2",
+              "thicknessMm": 30
+            },
+            {
+              "kind": "armor",
+              "material": "steel",
+              "obliquityDeg": 10.173232187183652,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 123.76331318604056,
+              "penetrationBeforeMm": 144.08277098430924,
+              "position": [
+                16.708712306936917,
+                1.0803585904629514,
+                3.377313487168074
+              ],
+              "resistanceMm": 20.31945779826868,
+              "shellId": 85,
+              "shipId": "enemy-1",
+              "targetId": "starboard-belt-support-2",
+              "targetName": "Starboard Belt Support 2",
+              "thicknessMm": 20
+            },
+            {
+              "kind": "armor",
+              "material": "teak",
+              "obliquityDeg": 10.173232187183652,
+              "outcome": "backing",
+              "penetrationAfterMm": 123.76331318604056,
+              "penetrationBeforeMm": 123.76331318604056,
+              "position": [
+                16.746734794931477,
+                1.0786367258106426,
+                3.383779218170103
+              ],
+              "resistanceMm": 0,
+              "shellId": 85,
+              "shipId": "enemy-1",
+              "targetId": "starboard-teak-backing-2",
+              "targetName": "Starboard Teak Backing 2",
+              "thicknessMm": 50
+            },
+            {
+              "kind": "armor",
+              "material": "KC",
+              "obliquityDeg": 10.173232187183652,
+              "outcome": "stopped",
+              "penetrationAfterMm": 123.76331318604056,
+              "penetrationBeforeMm": 123.76331318604056,
+              "position": [
+                16.93184427595762,
+                1.0702539636875614,
+                3.415257119101034
+              ],
+              "resistanceMm": 325.1113247722989,
+              "shellId": 85,
+              "shipId": "enemy-1",
+              "targetId": "starboard-main-belt-2",
+              "targetName": "Starboard Main Belt 2",
+              "terminal": true,
+              "thicknessMm": 320
+            }
+          ],
+          "outcome": "stopped",
+          "ownerId": "player",
+          "shellId": 85,
+          "tick": 1800
+        },
+        {
+          "impacts": [
+            {
+              "breachAreaM2": 0,
+              "breachAssignments": [],
+              "damage": 14,
+              "kind": "armor",
+              "material": "KC",
+              "obliquityDeg": 8.604132247886028,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 403.3495361081084,
+              "penetrationBeforeMm": 550,
+              "position": [
+                -16.945611228160153,
+                5.48888111393843,
+                7.373520690738559
+              ],
+              "resistanceMm": 146.65046389189163,
+              "shellId": 84,
+              "shipId": "enemy-1",
+              "targetId": "port-upper-belt-2",
+              "targetName": "Port Upper Belt 2",
+              "thicknessMm": 145
+            },
+            {
+              "kind": "armor",
+              "material": "Wh",
+              "obliquityDeg": 8.616636631606337,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 373.0070581221494,
+              "penetrationBeforeMm": 403.3495361081084,
+              "position": [
+                -11.549060130766563,
+                5.251100493487206,
+                8.365146531246387
+              ],
+              "resistanceMm": 30.342477985959,
+              "shellId": 84,
+              "shipId": "enemy-1",
+              "targetId": "port-splinter-bulkhead-2",
+              "targetName": "Port Splinter Bulkhead 2",
+              "thicknessMm": 30
+            },
+            {
+              "kind": "armor",
+              "material": "Wh",
+              "obliquityDeg": 9.010961788466522,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 342.63218337314254,
+              "penetrationBeforeMm": 373.0070581221494,
+              "position": [
+                11.561673504732267,
+                4.225486959700055,
+                11.991734170208058
+              ],
+              "resistanceMm": 30.374874749006846,
+              "shellId": 84,
+              "shipId": "enemy-1",
+              "targetId": "starboard-splinter-bulkhead-2",
+              "targetName": "Starboard Splinter Bulkhead 2",
+              "thicknessMm": 30
+            },
+            {
+              "breachAreaM2": 0,
+              "breachAssignments": [],
+              "damage": 14,
+              "kind": "armor",
+              "material": "KC",
+              "obliquityDeg": 9.02336496985818,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 195.81524524270782,
+              "penetrationBeforeMm": 342.63218337314254,
+              "position": [
+                16.96514849977832,
+                3.983913921383629,
+                12.990862089011822
+              ],
+              "resistanceMm": 146.81693813043472,
+              "shellId": 84,
+              "shipId": "enemy-1",
+              "targetId": "starboard-upper-belt-2",
+              "targetName": "Starboard Upper Belt 2",
+              "thicknessMm": 145
+            }
+          ],
+          "outcome": "passed-through",
+          "ownerId": "player",
+          "shellId": 84,
+          "tick": 1800
+        },
+        {
+          "impacts": [
+            {
+              "breachAreaM2": 0.12473206521842876,
+              "breachAssignments": [
+                {
+                  "areaM2": 0.12473206521842876,
+                  "compartmentId": "flood-strip-port-6-5",
+                  "position": [
+                    -16.938371421223998,
+                    2.814809126498324,
+                    5.2919369357081925
+                  ]
+                }
+              ],
+              "compartmentId": "flood-strip-port-6-5",
+              "damage": 14,
+              "kind": "armor",
+              "material": "KC",
+              "obliquityDeg": 8.631711358782026,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 226.33398609580382,
+              "penetrationBeforeMm": 550,
+              "position": [
+                -16.938371421223998,
+                2.844010294744795,
+                5.2919369357081925
+              ],
+              "resistanceMm": 323.6660139041962,
+              "shellId": 83,
+              "shipId": "enemy-1",
+              "targetId": "port-main-belt-2",
+              "targetName": "Port Main Belt 2",
+              "thicknessMm": 320
+            },
+            {
+              "kind": "armor",
+              "material": "teak",
+              "obliquityDeg": 8.631711358781983,
+              "outcome": "backing",
+              "penetrationAfterMm": 226.33398609580382,
+              "penetrationBeforeMm": 226.33398609580382,
+              "position": [
+                -16.753467030193494,
+                2.8357671311787014,
+                5.319426353519091
+              ],
+              "resistanceMm": 0,
+              "shellId": 83,
+              "shipId": "enemy-1",
+              "targetId": "port-teak-backing-2",
+              "targetName": "Port Teak Backing 2",
+              "thicknessMm": 50
+            },
+            {
+              "kind": "armor",
+              "material": "steel",
+              "obliquityDeg": 8.631711358781983,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 206.10486022679157,
+              "penetrationBeforeMm": 226.33398609580382,
+              "position": [
+                -16.715486668792636,
+                2.834073940824585,
+                5.3250728285288975
+              ],
+              "resistanceMm": 20.22912586901226,
+              "shellId": 83,
+              "shipId": "enemy-1",
+              "targetId": "port-belt-support-2",
+              "targetName": "Port Belt Support 2",
+              "thicknessMm": 20
+            },
+            {
+              "kind": "armor",
+              "material": "Wh",
+              "obliquityDeg": 8.631711358782026,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 175.76117142327317,
+              "penetrationBeforeMm": 206.10486022679157,
+              "position": [
+                -11.541162169522803,
+                2.6033990338966526,
+                6.094330752891188
+              ],
+              "resistanceMm": 30.343688803518393,
+              "shellId": 83,
+              "shipId": "enemy-1",
+              "targetId": "port-splinter-bulkhead-2",
+              "targetName": "Port Splinter Bulkhead 2",
+              "thicknessMm": 30
+            },
+            {
+              "kind": "armor",
+              "material": "Wh",
+              "obliquityDeg": 9.03828048684314,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 145.38399636037917,
+              "penetrationBeforeMm": 175.76117142327317,
+              "position": [
+                11.554460461959653,
+                1.5659374539566147,
+                9.917845627017039
+              ],
+              "resistanceMm": 30.377175062893997,
+              "shellId": 83,
+              "shipId": "enemy-1",
+              "targetId": "starboard-splinter-bulkhead-2",
+              "targetName": "Starboard Splinter Bulkhead 2",
+              "thicknessMm": 30
+            },
+            {
+              "kind": "armor",
+              "material": "steel",
+              "obliquityDeg": 9.050708688077977,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 125.13184705730612,
+              "penetrationBeforeMm": 145.38399636037917,
+              "position": [
+                16.734826092448074,
+                1.3316240260012273,
+                10.885529131826608
+              ],
+              "resistanceMm": 20.252149303073054,
+              "shellId": 83,
+              "shipId": "enemy-1",
+              "targetId": "starboard-belt-support-2",
+              "targetName": "Starboard Belt Support 2",
+              "thicknessMm": 20
+            },
+            {
+              "kind": "armor",
+              "material": "teak",
+              "obliquityDeg": 9.050708688077977,
+              "outcome": "backing",
+              "penetrationAfterMm": 125.13184705730612,
+              "penetrationBeforeMm": 125.13184705730612,
+              "position": [
+                16.772845816634213,
+                1.3299031653841384,
+                10.891200214745114
+              ],
+              "resistanceMm": 0,
+              "shellId": 83,
+              "shipId": "enemy-1",
+              "targetId": "starboard-teak-backing-2",
+              "targetName": "Starboard Teak Backing 2",
+              "thicknessMm": 50
+            },
+            {
+              "kind": "armor",
+              "material": "KC",
+              "obliquityDeg": 9.050708688077977,
+              "outcome": "stopped",
+              "penetrationAfterMm": 125.13184705730612,
+              "penetrationBeforeMm": 125.13184705730612,
+              "position": [
+                16.95794184227726,
+                1.321525291327258,
+                10.918809434216781
+              ],
+              "resistanceMm": 324.03438884916886,
+              "shellId": 83,
+              "shipId": "enemy-1",
+              "targetId": "starboard-main-belt-2",
+              "targetName": "Starboard Main Belt 2",
+              "terminal": true,
+              "thicknessMm": 320
+            }
+          ],
+          "outcome": "stopped",
+          "ownerId": "player",
+          "shellId": 83,
+          "tick": 1800
+        }
+      ],
+      "targetId": "enemy-1",
+      "targetIntegrity": 0.916,
+      "targetName": "Bismarck",
+      "targetPosition": {
+        "heading": 4.32328914664215,
+        "x": -471.2255180735908,
+        "z": -4897.84143358723
+      },
+      "targetPower": 1,
+      "targetRange": 4920.457722351402,
+      "targetSteering": 1,
+      "targetSunk": false,
+      "targetUnderway": false,
+      "targetWater": 0,
+      "total": 4
+    },
+    "contentHash": "0af135349f720b7987f9d3a98372d69add111d4e801204ce367e056d7bfacc6e",
+    "effects": {
+      "flashes": 256,
+      "foam": 24,
+      "particleCapacity": 2272,
+      "shells": 12,
+      "smoke": 192,
+      "spray": 0
+    },
+    "events": [
+      {
+        "kind": "shot",
+        "message": "Port Secondary 2 fired",
+        "position": [
+          -354.032375060672,
+          7.359752119430917,
+          -4917.506892782374
+        ],
+        "sequence": 435,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 105,
+          "velocity": [
+            63.53120729762178,
+            34.84754825126513,
+            874.6661439189644
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 2943
+      },
+      {
+        "kind": "shot",
+        "message": "Port Secondary 2 fired",
+        "position": [
+          -355.77609726619954,
+          7.359752119430917,
+          -4917.358795280876
+        ],
+        "sequence": 436,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 106,
+          "velocity": [
+            62.58255997970212,
+            35.17535837509469,
+            874.7336316361436
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 2943
+      },
+      {
+        "kind": "shot",
+        "message": "Port Secondary 3 fired",
+        "position": [
+          -324.3974087118925,
+          7.360164804928881,
+          -4927.218491874597
+        ],
+        "sequence": 437,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 107,
+          "velocity": [
+            57.27192099871052,
+            32.87866949947685,
+            875.2615830709215
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 2947
+      },
+      {
+        "kind": "shot",
+        "message": "Port Secondary 3 fired",
+        "position": [
+          -326.1420085233225,
+          7.360164804928881,
+          -4927.081118303781
+        ],
+        "sequence": 438,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 108,
+          "velocity": [
+            56.98819894293738,
+            31.03785788929893,
+            875.3512448956928
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 2947
+      },
+      {
+        "kind": "shot",
+        "message": "Bruno fired",
+        "position": [
+          -461.0287954692733,
+          12.958489306817743,
+          -4883.211041299836
+        ],
+        "sequence": 439,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 109,
+          "velocity": [
+            77.73632793147073,
+            29.163709823935484,
+            818.7001802741042
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 3294
+      },
+      {
+        "kind": "shot",
+        "message": "Bruno fired",
+        "position": [
+          -464.7570368023291,
+          12.958489306817743,
+          -4882.807659889141
+        ],
+        "sequence": 440,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 110,
+          "velocity": [
+            76.58967211172933,
+            30.25818851383392,
+            818.7841405350871
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 3294
+      },
+      {
+        "kind": "shot",
+        "message": "Anton fired",
+        "position": [
+          -478.3844761324424,
+          9.168905180542296,
+          -4876.7518493034895
+        ],
+        "sequence": 441,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 111,
+          "velocity": [
+            81.29466083747809,
+            30.341792730299776,
+            818.26498759995
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 3296
+      },
+      {
+        "kind": "shot",
+        "message": "Anton fired",
+        "position": [
+          -482.111214950206,
+          9.168905180542296,
+          -4876.334814791519
+        ],
+        "sequence": 442,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 112,
+          "velocity": [
+            80.71242795944627,
+            30.218467544400053,
+            818.3352520783149
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 3296
+      },
+      {
+        "kind": "shot",
+        "message": "C\u00e4sar fired",
+        "position": [
+          -362.4702185468915,
+          12.961879394767761,
+          -4919.958240419727
+        ],
+        "sequence": 443,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 113,
+          "velocity": [
+            61.12056022924284,
+            29.447603831328557,
+            820.3558009401877
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 3317
+      },
+      {
+        "kind": "shot",
+        "message": "C\u00e4sar fired",
+        "position": [
+          -366.20600394321747,
+          12.961879394767761,
+          -4919.632038836964
+        ],
+        "sequence": 444,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 114,
+          "velocity": [
+            60.519260693123215,
+            30.04905622829534,
+            820.3866676954865
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 3317
+      },
+      {
+        "kind": "shot",
+        "message": "Dora fired",
+        "position": [
+          -345.851904858574,
+          8.774542601467477,
+          -4926.198475954811
+        ],
+        "sequence": 445,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 115,
+          "velocity": [
+            57.174262696809336,
+            30.6149461828587,
+            820.653749344715
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 3319
+      },
+      {
+        "kind": "shot",
+        "message": "Dora fired",
+        "position": [
+          -349.5887975348535,
+          8.774542601467477,
+          -4925.885213882468
+        ],
+        "sequence": 446,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 116,
+          "velocity": [
+            57.5396257880509,
+            29.473466187755186,
+            820.665233910781
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 3319
+      },
+      {
+        "kind": "splash",
+        "message": "Shell splash",
+        "position": [
+          -21.594721209404277,
+          0,
+          -249.16793584334042
+        ],
+        "sequence": 447,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 108,
+          "velocity": [
+            41.03454926975903,
+            -30.191271851476046,
+            630.2996840272793
+          ]
+        },
+        "shipId": "",
+        "tick": 3323
+      },
+      {
+        "kind": "splash",
+        "message": "Shell splash",
+        "position": [
+          -4.951288273157392,
+          0,
+          -45.26391089648408
+        ],
+        "sequence": 448,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 107,
+          "velocity": [
+            40.56187024057973,
+            -31.47286187441459,
+            619.8892256449095
+          ]
+        },
+        "shipId": "",
+        "tick": 3342
+      },
+      {
+        "kind": "splash",
+        "message": "Shell splash",
+        "position": [
+          15.895024979160503,
+          0,
+          175.4700281035718
+        ],
+        "sequence": 449,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 105,
+          "velocity": [
+            44.17922865436474,
+            -32.935453279883475,
+            608.2377025735187
+          ]
+        },
+        "shipId": "",
+        "tick": 3359
+      },
+      {
+        "kind": "splash",
+        "message": "Shell splash",
+        "position": [
+          11.150840008391762,
+          0,
+          211.27979814565134
+        ],
+        "sequence": 450,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 106,
+          "velocity": [
+            43.368157690377174,
+            -33.24658151057706,
+            606.1686528351762
+          ]
+        },
+        "shipId": "",
+        "tick": 3363
+      },
+      {
+        "kind": "shot",
+        "message": "Port Secondary 2 fired",
+        "position": [
+          -440.36234424697875,
+          7.3582326035556385,
+          -4886.315282356916
+        ],
+        "sequence": 451,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 117,
+          "velocity": [
+            79.48652306907738,
+            33.241399294640054,
+            873.8783478156873
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 3424
+      },
+      {
+        "kind": "shot",
+        "message": "Port Secondary 2 fired",
+        "position": [
+          -442.1031415850065,
+          7.3582326035556385,
+          -4886.136048911612
+        ],
+        "sequence": 452,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 118,
+          "velocity": [
+            78.86205544706218,
+            32.94486544714253,
+            873.9542251775375
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 3424
+      },
+      {
+        "kind": "shot",
+        "message": "Port Secondary 3 fired",
+        "position": [
+          -411.3470336384664,
+          7.358714166248873,
+          -4897.744593912296
+        ],
+        "sequence": 453,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 119,
+          "velocity": [
+            73.43378341918373,
+            35.09352125345771,
+            874.4176837664659
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 3428
+      },
+      {
+        "kind": "shot",
+        "message": "Port Secondary 3 fired",
+        "position": [
+          -413.0888940154539,
+          7.358714166248873,
+          -4897.576004389843
+        ],
+        "sequence": 454,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 120,
+          "velocity": [
+            74.072409176839,
+            34.707061626129395,
+            874.3711399962273
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 3428
+      }
+    ],
+    "fleet": [
+      {
+        "ammo": 2752,
+        "controller": "player",
+        "definitionId": "bismarck",
+        "id": "player",
+        "integrity": 832.8000000000001,
+        "motion": {
+          "distance": 0,
+          "heading": 1.5707963267948966,
+          "id": "player",
+          "pitch": 7.209770631585585e-06,
+          "roll": 0.000302839551678567,
+          "rudder": 0,
+          "speed": 0,
+          "tick": 3601,
+          "x": 0,
+          "y": -0.0003156638688857692,
+          "yawRate": 0,
+          "z": 0
+        },
+        "team": "friendly"
+      },
+      {
+        "ammo": 2708,
+        "controller": "bot",
+        "definitionId": "bismarck",
+        "id": "enemy-1",
+        "integrity": 916,
+        "motion": {
+          "distance": 485.3367916666821,
+          "heading": 4.32328914664215,
+          "id": "enemy-1",
+          "pitch": 0,
+          "roll": 0,
+          "rudder": -0.42898560652530043,
+          "speed": 11.5725,
+          "tick": 3601,
+          "x": -471.2255180735908,
+          "y": 0,
+          "yawRate": -0.006394367777773178,
+          "z": -4897.84143358723
+        },
+        "targetId": "player",
+        "team": "enemy"
+      }
+    ],
+    "fps": 25.36772240254885,
+    "inPort": false,
+    "inspecting": false,
+    "maxMuzzleErrorM": 0.0021680295954014206,
+    "paused": true,
+    "portInspection": "exterior",
+    "renderedShips": [
+      {
+        "id": "player",
+        "visible": true
+      },
+      {
+        "id": "enemy-1",
+        "visible": true
+      }
+    ],
+    "shipId": "bismarck",
+    "tick": 3601
+  },
+  "firstTick": [
+    {
+      "flight": {
+        "age": 0.016666666666666666,
+        "caliberM": 0.38,
+        "damage": 70,
+        "dragPerSecond": 0.0178,
+        "id": 81,
+        "ownerId": "player",
+        "penetrationMm": 550,
+        "position": [
+          66.43624484946912,
+          9.679372273952339,
+          -31.896139485896754
+        ],
+        "velocity": [
+          -44.1145908445509,
+          29.950254771035826,
+          -818.0148086124935
+        ],
+        "visited": []
+      },
+      "id": 81,
+      "launchVelocity": [
+        -44.12768011464718,
+        30.122665586290992,
+        -818.2575223398047
+      ]
+    },
+    {
+      "flight": {
+        "age": 0.016666666666666666,
+        "caliberM": 0.38,
+        "damage": 70,
+        "dragPerSecond": 0.0178,
+        "id": 82,
+        "ownerId": "player",
+        "penetrationMm": 550,
+        "position": [
+          70.16488747639367,
+          9.67224722262764,
+          -32.100719767976095
+        ],
+        "velocity": [
+          -45.058856409297476,
+          29.523269661696144,
+          -817.978946921348
+        ],
+        "visited": []
+      },
+      "id": 82,
+      "launchVelocity": [
+        -45.07222585306834,
+        29.695553785910633,
+        -818.2216500081125
+      ]
+    },
+    {
+      "flight": {
+        "age": 0.016666666666666666,
+        "caliberM": 0.38,
+        "damage": 70,
+        "dragPerSecond": 0.0178,
+        "id": 83,
+        "ownerId": "player",
+        "penetrationMm": 550,
+        "position": [
+          48.34557751008305,
+          13.470949030666059,
+          -31.90930506973034
+        ],
+        "velocity": [
+          -41.5459859694972,
+          30.10177294456771,
+          -818.1436956744751
+        ],
+        "visited": []
+      },
+      "id": 83,
+      "launchVelocity": [
+        -41.55831310710315,
+        30.274228716882657,
+        -818.3864476439536
+      ]
+    },
+    {
+      "flight": {
+        "age": 0.016666666666666666,
+        "caliberM": 0.38,
+        "damage": 70,
+        "dragPerSecond": 0.0178,
+        "id": 84,
+        "ownerId": "player",
+        "penetrationMm": 550,
+        "position": [
+          52.086042243859126,
+          13.478284502044275,
+          -32.10033038725584
+        ],
+        "velocity": [
+          -41.824382650764186,
+          30.542236993047513,
+          -818.1130980625073
+        ],
+        "visited": []
+      },
+      "id": 84,
+      "launchVelocity": [
+        -41.83679239163779,
+        30.71482345574829,
+        -818.3558409533478
+      ]
+    },
+    {
+      "flight": {
+        "age": 0.016666666666666666,
+        "caliberM": 0.38,
+        "damage": 70,
+        "dragPerSecond": 0.0178,
+        "id": 85,
+        "ownerId": "player",
+        "penetrationMm": 550,
+        "position": [
+          -60.97089429249166,
+          13.468825290871619,
+          -31.978261935664264
+        ],
+        "velocity": [
+          -24.74207848038576,
+          30.018707381922,
+          -818.8272262049372
+        ],
+        "visited": []
+      },
+      "id": 85,
+      "launchVelocity": [
+        -24.74941971923153,
+        30.191138507797653,
+        -819.0701809852219
+      ]
+    },
+    {
+      "flight": {
+        "age": 0.016666666666666666,
+        "caliberM": 0.38,
+        "damage": 70,
+        "dragPerSecond": 0.0178,
+        "id": 86,
+        "ownerId": "player",
+        "penetrationMm": 550,
+        "position": [
+          -57.18340532362177,
+          13.46323988197923,
+          -32.08852716923956
+        ],
+        "velocity": [
+          -22.398131744268664,
+          29.68370971612675,
+          -818.9069728697679
+        ],
+        "visited": []
+      },
+      "id": 86,
+      "launchVelocity": [
+        -22.404777509092504,
+        29.856041444618338,
+        -819.1499513117394
+      ]
+    },
+    {
+      "flight": {
+        "age": 0.016666666666666666,
+        "caliberM": 0.38,
+        "damage": 70,
+        "dragPerSecond": 0.0178,
+        "id": 87,
+        "ownerId": "player",
+        "penetrationMm": 550,
+        "position": [
+          -79.0596798001871,
+          9.293699970882054,
+          -31.986998011792053
+        ],
+        "velocity": [
+          -22.086288945426464,
+          30.799769817141758,
+          -818.8740039011974
+        ],
+        "visited": []
+      },
+      "id": 87,
+      "launchVelocity": [
+        -22.092842183162475,
+        30.972432692581016,
+        -819.116972560924
+      ]
+    },
+    {
+      "flight": {
+        "age": 0.016666666666666666,
+        "caliberM": 0.38,
+        "damage": 70,
+        "dragPerSecond": 0.0178,
+        "id": 88,
+        "ownerId": "player",
+        "penetrationMm": 550,
+        "position": [
+          -75.29415350751279,
+          9.282512871319588,
+          -32.083108385409844
+        ],
+        "velocity": [
+          -21.082266819455306,
+          30.12866691834787,
+          -818.9255675083809
+        ],
+        "visited": []
+      },
+      "id": 88,
+      "launchVelocity": [
+        -21.088522153107025,
+        30.301130670391977,
+        -819.1685514675803
+      ]
+    }
+  ],
+  "fixture": "Mounted game reset, 30 s alignment, Game.fire(), 30 s CPU replay with stock guns and bots; firstTick snapshots copied before continuing",
+  "hud": "Gunnery\n4/4 ready\nFire\nQ\n38 cm main\n15 cm secondary\nAnton\nReady\n238\nBruno\nReady\n238\nC\u00e4sar\nReady\n238\nDora\nReady\n238\nAim at\nCenter sight \u00b7 Manual\nTarget waterline\nAft port boiler room \u00b7 two Wagner boilers\nAft center boiler room \u00b7 two Wagner boilers\nAft starboard boiler room \u00b7 two Wagner boilers\nForward port boiler room \u00b7 two Wagner boilers\nForward center boiler room \u00b7 two Wagner boilers\nForward starboard boiler room \u00b7 two Wagner boilers\nPort turbine room\nStarboard turbine room\nCenter turbine room\nAnton propellant magazines\nBruno propellant magazines\nC\u00e4sar propellant magazines\nDora propellant magazines\nSteering gear room\nPort shaft passage\nCenter shaft passage\nStarboard shaft passage\nBismarck\n4.92 km\nStructure\n92%\nPropulsion\n100%\nFlooding\n0.0 m\u00b3\n\nBismarck \u00b7 Stopped by Port Main Belt 2\n\nRecent shell impacts \u00b7 5\n\nMouse aims the center sight. Hold left mouse or Q to fire. Shift opens binoculars; scroll adjusts magnification. Selecting a module tracks it until you move the mouse to aim again.\n\nInspect target"
+}

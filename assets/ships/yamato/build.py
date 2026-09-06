@@ -15,6 +15,7 @@ from mathutils import Vector
 ROOT=Path(__file__).resolve().parents[3]
 sys.path.insert(0,str(ROOT/'scripts/ships'))
 from blender_components import create_gun_mount
+from blender_fidelity import authored_hull, authored_structure, Fittings, loft_breadth
 D=json.loads(Path(os.environ['SHIP_DEFINITION']).read_text())
 OUT=Path(os.environ['SHIP_OUTPUT']);H=D['hull'];L=H['length']
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
@@ -95,36 +96,12 @@ def smooth_interp(st,t):
   if a<=t<=b:
    u=(t-a)/(b-a);return (2*u**3-3*u*u+1)*va+(u**3-2*u*u+u)*(b-a)*tangent[i]+(-2*u**3+3*u*u)*vb+(u**3-u*u)*(b-a)*tangent[i+1]
 
-# Lofted hull, with the forefoot cut back at the waterline and a lower bulb.
-# Section fullness is interpreted until original hull lines can be measured.
-stations=sorted(set([i*L/180 for i in range(181)]+[p[0] for k in ('halfBreadths','deckHeights','keelHeights') for p in H[k]]))
-vs=[];rings=[]
-for s in stations:
- x=s-L/2;w=breadth(x);zt=deck(x);zb=interp(H['keelHeights'],s)
- fore=max(0,min(1,(x-65)/60));stern=max(0,min(1,(-x-85)/44))
- # S-06-2 printed p.10 gives 36.9 m trial waterline beam. The shell flares
- # above it and encloses the underwater bulge; it is not a vertical box side.
- wl_ratio=36.9/H['beam']
- contour=[(1,zt),(.975,zt*.56),(wl_ratio-fore*.13,0),(.986-fore*.22,zb*.28),(.996-fore*.32,zb*.55),(.948-fore*.26,zb*.79),(.84-fore*.17,zb*.93),(.65-fore*.12,zb*.989),(.32,zb),(0,zb)]
- # Densify each vertical segment before bending the cutwater. Its silhouette
- # now follows the continuous curve instead of nine large straight edges.
- contour=[(a[0]+(b[0]-a[0])*i/4,a[1]+(b[1]-a[1])*i/4) for a,b in zip(contour,contour[1:]) for i in range(4)]+[contour[-1]]
- ring=[]
- for side in (1,-1):
-  points=contour if side==1 else list(reversed(contour[:-1]))
-  for width,z in points:
-   # Interpreted side-profile cutwater. The upper stem retains the 263 m datum.
-   cut=fore**5*smooth_interp([(-10.4,6.0),(-9.6,4.0),(-8.5,2.8),(-7.5,2.4),(-6,3.0),(-4,5.3),(-2,6.8),(0,7.0),(3,4.3),(6,1.8),(9.4,0)],z)
-   ring.append(len(vs));vs.append((x-cut,w*width*side,z))
- rings.append(ring)
-faces=[]
-for a,b in zip(rings,rings[1:]):
- for j in range(len(a)):faces.append((a[j],b[j],b[(j+1)%len(a)],a[(j+1)%len(a)]))
-faces.extend([tuple(reversed(rings[0])),tuple(rings[-1])])
-hull=mesh('Yamato hull envelope',vs,faces,hullgray,HULL,True);hull['nodeId']='hull.surface';hull['assemblyId']='hull';hull.data.materials.append(red)
-for p in hull.data.polygons:
- z=sum(hull.data.vertices[i].co.z for i in p.vertices)/len(p.vertices)
- if z<-.02:p.material_index=1
+# Hull and CPU hits share every original station, including the recurve.
+stations=[s['station'] for s in H['sections']]
+hull=authored_hull(H,mesh,HULL,[hullgray,red])
+S={s['id']:s for s in D['structures']}
+def structure(id,col=SUPER):
+ return authored_structure(S[id],mesh,dict(naval=naval,roof=roof),col)
 
 # Deck planks are an original material; steel strips and ends are separate meshes.
 for i,(sa,sb) in enumerate(zip(stations,stations[1:])):
@@ -133,7 +110,7 @@ for i,(sa,sb) in enumerate(zip(stations,stations[1:])):
  mesh('Deck surface',[(a,-wa,za),(b,-wb,zb),(b,wb,zb),(a,wa,za)],[(0,1,2,3)],material,DECK)
  for side in (-1,1):
   mesh('Steel deck margin',[(a,side*wa,za+.02),(b,side*wb,zb+.02),(b,side*max(0,wb-.55),zb+.02),(a,side*max(0,wa-.55),za+.02)],[(0,1,2,3)],roof,DECK)
-  if i%2==0 and wa>2:
+  if math.floor(sa/2.2)!=math.floor(sb/2.2) and wa>2:
    rod('Rail stanchion',(a,side*(wa-.15),za),(a,side*(wa-.15),za+.95),.033,edge,DECK,vertices=6)
   for h in (.4,.92):
    rod('Deck guard wire',(a,side*max(0,wa-.15),za+h),(b,side*max(0,wb-.15),zb+h),.014,wire,DECK,vertices=5)
@@ -142,6 +119,8 @@ for i,(sa,sb) in enumerate(zip(stations,stations[1:])):
 materials=dict(naval=naval,roof=roof,edge=edge,hullgray=hullgray,canvas=canvas,dark=dark)
 for mount in D['mounts']:
  create_gun_mount(mount,GUNS,dict(mesh=mesh,cyl=cyl,rod=rod,box=box),materials,deck)
+ gun_finish=Fittings(dict(mesh=mesh,cyl=cyl,rod=rod,box=box),dict(**materials,glass=glass),GUNS)
+ gun_finish.gun_details(mount)
 
 # Bridge outlines and gallery construction are original geometry interpreted
 # from the museum's bridge photograph. Elevations remain provisional (Y-07).
@@ -184,7 +163,7 @@ def bridge_windows(name,x,z,sx,sy,height=.72):
 
 # Broad machinery deck and compact tower; no Bismarck superstructure is reused.
 rounded('Central shelter deck',-19,0,8.515,55,21.5,2.285,naval,SUPER)
-prism('Forward bridge foundation',bridge_outline(-3.2,13.8,14.3),10.8,18.2,naval,SUPER)
+structure('bridge-foundation')
 # Rounded armored conning tower projects from the forward foundation.
 o=cyl('Forward conning tower',(3.0,0,13.6),4.2,5.2,hullgray,SUPER,48);o.scale.x=.86
 o=cyl('Conning tower roof',(3.0,0,16.25),4.3,.20,roof,SUPER,48);o.scale.x=.86
@@ -193,8 +172,8 @@ for i in range(13):
  p=(3+3.64*math.cos(a),4.23*math.sin(a),15.3)
  q=(3+3.67*math.cos(a),4.27*math.sin(a),15.3)
  rod('Conning tower vision slit',p,q,.10,dark,SUPER,vertices=8)
-prism('Bridge trunk lower',bridge_outline(-3,11,10.5),18.2,24.8,naval,SUPER)
-prism('Operations room tower',bridge_outline(-3.6,8,8.5),24.8,31.2,naval,SUPER)
+structure('bridge-trunk')
+structure('operations-tower')
 bridge_gallery('Lower bridge lookout',-1.5,18.3,17.8,16.6,.95)
 bridge_windows('Second navigation bridge',-2.3,21.15,13.4,12.9)
 bridge_gallery('Second bridge lookout',-2.3,22.0,14.3,14.2,1.0)
@@ -243,7 +222,7 @@ frings=[funnel_ring(*row,.25 if i==len(funnel_sections)-1 else 0) for i,row in e
 fv=[p for row in frings for p in row];ff=[]
 for j in range(len(frings)-1):
  for i in range(48):ff.append((j*48+i,j*48+(i+1)%48,(j+1)*48+(i+1)%48,(j+1)*48+i))
-mesh('Curved raked funnel uptake',fv,ff,naval,FUNNEL,True)
+structure('funnel-jacket',FUNNEL)
 cap=frings[-1];mesh('Funnel smoke opening',[(x,y,z-.14) for x,y,z in cap],[tuple(range(48))],dark,FUNNEL)
 for row in frings[1:]:
  for i in range(48):rod('Funnel shell band',row[i],row[(i+1)%48],.045,edge,FUNNEL,vertices=6)
@@ -327,6 +306,7 @@ def aa127(id,x,y,z,shield,bearing):
   rod(id+' 127 mm barrel',pt(.55,b,2.2),pt(4.8,b,3.9),.17,edge,AA,r2=.1,vertices=12)
  for ob in set(scene.objects)-before:ob['assemblyId']=id
 for side in (-1,1):
+ structure(f'aa-gallery-{side}',AA)
  for i,xx in enumerate((-9,-19.5,-30)):
   cyl('Raised HA sponson',(xx,side*12.1,10.75),3.05,5.1,naval,SUPER,28)
   aa127(f'ha-{side}-{i+1}',xx,side*12.1,13.3,True,side*90)
@@ -395,27 +375,8 @@ for y in (-.65,.65):
 rod('Crane support mast',(-106,0,8),(-105,0,14),.2,naval,AFT,vertices=12)
 rod('Crane hoist',(-105,0,14),(-128,0,10.4),.035,wire,AFT,vertices=6)
 rod('Crane hook line',(-128,0,10.4),(-128,0,7.0),.035,wire,AFT,vertices=6)
-# Actual side boat recesses cut into the authored hull, with an inboard back wall.
+# Boat-bay recesses are now part of hull.sections, shared with CPU hits.
 for side in (-1,1):
- # Rounded ends visible in the museum's stern view. The bay length, height
- # and inboard limit remain interpreted, not newly certified measurements.
- outline=[]
- for xc,start in ((-114.8,math.pi/2),(-83.2,-math.pi/2)):
-  for i in range(17):
-   a=start+i*math.pi/16;outline.append((xc+1.7*math.cos(a),4.2+1.7*math.sin(a)))
- n=len(outline);v=[(x,y,z) for y in (side*11,side*25) for x,z in outline]
- fs=[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
- cutter=mesh('Temporary rounded boat bay cutter',v,fs,dark,AFT)
- bpy.context.view_layer.update()
- modifier=hull.modifiers.new('Boat bay opening','BOOLEAN');modifier.operation='DIFFERENCE';modifier.solver='EXACT';modifier.object=cutter
- bpy.context.view_layer.objects.active=hull
- bpy.ops.object.modifier_apply(modifier=modifier.name)
- bpy.data.objects.remove(cutter,do_unlink=True)
- rounded('Boat recess back wall',-99,side*11.03,2.5,35,.08,3.4,dark,AFT)
- for j,x in enumerate((-105,-92)):
-  y=side*12.0;z=3.1;length=11 if j==0 else 9
-  outline=[(x-length/2,y),(x-length*.34,y-1.05),(x+length*.38,y-1.05),(x+length/2,y),(x+length*.38,y+1.05),(x-length*.34,y+1.05)]
-  prism('Motor launch hull',outline,z,z+1.0,naval,AFT);rounded('Motor launch cabin',x, y,z+1,4,1.5,.8,edge,AFT)
  for x in (-116,-110,-103,-96,-89,-82):rod('Boat bay frame',(x,side*14.0,2.6),(x,side*14.0,5.6),.065,edge,AFT,vertices=8)
 
 # Four screws and two rudders on the centreline in tandem.
@@ -455,9 +416,6 @@ for side in (-1,1):
 # Foredeck anchor gear and scattered fittings.
 for side in (-1,1):
  cyl('Anchor capstan',(95,side*3.5,deck(95)+.6),.9,1.2,edge,DECK,24)
- for i in range(46):
-  t=i/45;x=94+t*32;y=side*(3.5+t*1.4);z=deck(x)+.17
-  rod('Anchor chain link',(x-.21,y-.1,z),(x+.21,y+.1,z),.075,wire,DECK,vertices=6)
  rod('Anchor shank',(124,side*6.0,4.8),(121,side*6.7,3.6),.15,edge,DECK,vertices=12)
  for x in (70,83,103,115,-57,-78,-118):
   y=side*max(1,breadth(x)-1.2);z=deck(x)
@@ -481,6 +439,45 @@ for side in (-1,1):
   x=-119+i*2.65;y=side*(breadth(x)+.016);z=min(deck(x)-1.45,5.9)
   if -74<x<62 and i%3:continue
   rod('Hull scuttle',(x,y,z),(x,y+side*.055,z),.12,dark,HULL,vertices=10)
+# Reference-led service details: Kure bridge/forward-turret photographs, S-06-2
+# gallery arrangement and O-45 machinery. Dimensions remain authored estimates.
+fm=dict(**materials,glass=glass)
+fit=Fittings(dict(mesh=mesh,cyl=cyl,rod=rod,box=box),fm,SUPER)
+for side in [-1,1]:
+ fit.stairs('Lower bridge stair',(-8,side*6.1,18.5),(-4.5,side*6.1,22.15))
+ fit.stairs('Tower access stair',(-7.9,side*4.65,22.15),(-5.0,side*4.65,25.0),.68)
+ for x,z,w in [(-3,12.1,1.5),(-9,9.7,2.3),(-18,9.7,2.2),(-27,9.7,2.2),(-36,9.7,1.8)]:fit.vent('Shelter ventilation',x,side*(6.9 if x==-3 else 10.8),z,w,1.25)
+ for x in [-12,-34]:fit.door('Shelter access',x,side*10.8,8.7)
+ for x in [-32,-26,-20,-14,-8]:fit.knee('AA gallery bracket',x,side*16.5,side*20.1,8.5,1.2)
+ # Raised directors have sight slits and split hoods instead of blank drums.
+ for x,z in [(-38.6,23),(-3.2,37.5)]:
+  for dx in [-.65,.65]:box('Director optical slit',(x+dx,side*2.04,z),(.38,.035,.20),glass,SUPER)
+fit.col=FUNNEL
+for side in [-1,1]:
+ fit.ladder('Funnel inspection ladder',(-22,side*4.0,17),(-26.3,side*3.7,30.0),.62)
+ for x in [-30.8,-17.2]:
+  fit.vent('Funnel base air intake',x,side*3.85,13.4,2.0,1.7)
+fit.col=DECK
+for side in [-1,1]:
+ for x in [59,76,87,-57,-75]:fit.reel('Mooring line reel',x,side*min(12,breadth(x)-2),deck(x)+.12,.58,1.4)
+ for x in [82,-62]:
+  fit.door('Deck trunk access',x,side*3.2,deck(x),.7,1.2)
+  rounded('Companionway coaming',x,side*3.0,deck(x),1.5,1.1,1.3,naval,DECK)
+ # Chain links follow the rising forecastle; machinery has a warping head.
+ fit.chain('Bower anchor chain',(95,side*3.5,deck(95)+.18),(121,side*4.6,deck(121)+.18),.5)
+ for x in [95]:
+  cyl('Windlass gear casing',(x-1.1,side*3.5,deck(x)+.43),.68,.78,naval,DECK,32)
+  rod('Windlass axle',(x-1.1,side*2.65,deck(x)+.65),(x-1.1,side*4.35,deck(x)+.65),.18,edge,DECK,vertices=16)
+  fit.ring('Windlass brake wheel',(x-1.1,side*4.4,deck(x)+.65),.37,.043,'y')
+fit.col=AFT
+for side in [-1,1]:
+ fit.reel('Aircraft crane winch',-104,side*1.5,6.1,.52,1.2)
+ for i,x in enumerate([-105,-92]):fit.boat('Recessed motor launch',x,side*12.0,2.9,11 if i==0 else 9,2.0,i==0)
+ for x in [-122,-116]:
+  fit.ring('Catapult carriage wheel',(x,side*10.0,7.1),.21,.045,'y',segments=12)
+ for x in [-115,-108,-100,-92,-84]:
+  rod('Boat bay upper beam',(x,side*11,5.7),(x,side*15.8,5.7),.08,naval,AFT,vertices=8)
+ fit.ladder('Aircraft deck access',(-75,side*9,5.95),(-70,side*9,8.0),.7)
 scene['definitionHash']=D['contentHash'];scene['configuration']=D['configuration']
 scene['historicalAccuracy']='Unverified reconstruction; see discrepancy register'
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'source.blend'))

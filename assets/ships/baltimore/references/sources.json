@@ -290,6 +290,18 @@
       "sha256": {
         "navy-commissioning-1943-highres.jpg": "c99df17a0c24fb0cb18deecf8c4a23199ae5226d3b60a19f1458efe1c8f963ac"
       }
+    },
+    {
+      "id": "fidelity-provisional-protection",
+      "title": "Original fidelity-01 protection assumptions",
+      "url": "#evidence",
+      "type": "authoring estimate, not a historical source",
+      "status": "Nominal hull/deckhouse plating and unsourced local gunhouse plate families are explicit gameplay assumptions.",
+      "limitations": [
+        "Baltimore 152.4 mm belt and 63.5 mm deck are provisional retained families; Ships' Data 1945 is dimensional/armament evidence, not their armor schedule.",
+        "Local plate extents, barbette sectors, transverse closures and many plate grades await primary schedules.",
+        "No blanket box is added over closed original gunhouse facets."
+      ]
     }
   ]
 }
