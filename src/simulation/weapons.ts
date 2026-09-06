@@ -1,4 +1,4 @@
-import type { ShipDefinition, Vec3 } from '../ships/blueprint';
+import type { Ammunition, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { barrelIds, barrelOffset } from '../ships/blueprint';
 import { add, clamp, length, localToWorld, normalize, radians, rotate, segmentBox, sub, wrapAngle, worldToLocal, type Pose } from './geometry';
 import { GRAVITY, solveDragArc, travelFactor } from './ballistics';
@@ -6,11 +6,24 @@ export { GRAVITY } from './ballistics';
 export type MountDefinition = ShipDefinition['mounts'][number];
 export interface MountState {
   id: string; train: number; elevation: number; reload: number; ammo: number; hp: number; recoil: number;
+  /** Total rounds include the HE subset; rounds are consumed when fired. */
+  heAmmo: number; loaded: Ammunition;
   status: 'ready' | 'reloading' | 'blocked' | 'out-of-arc' | 'empty' | 'disabled';
   aimCache?: { time: number; train: number; elevation: number; point: Vec3 };
   leadCache?: { time: number; point: Vec3 };
 }
-export const createMountState = (m: MountDefinition): MountState => ({ id: m.id, train: 0, elevation: radians(1), reload: 0, ammo: m.weapon.ammoPerBarrel * (m.weapon.barrelCount ?? 2), hp: 100, recoil: 0, status: 'ready' });
+export const createMountState = (m: MountDefinition): MountState => ({ id: m.id, train: 0, elevation: radians(1), reload: 0,
+  ammo: m.weapon.ammoPerBarrel * (m.weapon.barrelCount ?? 2), heAmmo: Math.floor(m.weapon.ammoPerBarrel * (m.weapon.he?.stockFraction ?? 0)) * (m.weapon.barrelCount ?? 2),
+  loaded: 'ap', hp: 100, recoil: 0, status: 'ready' });
+export const availableAmmunition = (state: MountState, type = state.loaded): number => type === 'he' ? Math.max(0, Math.min(state.ammo, state.heAmmo)) : Math.max(0, state.ammo - state.heAmmo);
+/** Unloading returns the unfired round to its existing stock. Changing type
+ * always requires a complete load interval, including changing back mid-load. */
+export function selectAmmunition(m: MountDefinition, state: MountState, requested: Ammunition): void {
+  const type = requested;
+  if (state.loaded === type) return;
+  state.loaded = type; state.reload = Math.max(state.reload, m.weapon.reloadSeconds);
+  delete state.aimCache; delete state.leadCache;
+}
 export function muzzleLocal(m: MountDefinition, state: Pick<MountState, 'train' | 'elevation'>, barrel: number): Vec3 {
   const bearing = radians(m.bearingDeg) + state.train, w = m.weapon;
   const forward = w.trunnionForward + (w.muzzleForward - w.trunnionForward) * Math.cos(state.elevation);
@@ -38,7 +51,7 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
   state.reload = Math.max(0, state.reload - dt);
   state.recoil = Math.max(0, state.recoil - dt / 1.4);
   if (state.hp <= 0) { state.status = 'disabled'; return false; }
-  if (state.ammo < (m.weapon.barrelCount ?? 2)) { state.status = 'empty'; return false; }
+  if (availableAmmunition(state) < (m.weapon.barrelCount ?? 2)) { state.status = 'empty'; return false; }
   // Warm-start from the previous desired muzzle and flight time. Reacquisition
   // still converges in three iterations; continuous tracking needs only one.
   // Heading and inherited velocity are recomputed each tick, even for a cached

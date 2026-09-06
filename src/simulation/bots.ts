@@ -1,8 +1,8 @@
-import type { Vec3 } from '../ships/blueprint';
+import type { Ammunition, ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { FleetActor } from './battle';
 import type { HelmCommand } from './ship';
 import { add, clamp, localToWorld, scale, sub, wrapAngle } from './geometry';
-import { muzzleWorld, solveBallistic, type MountDefinition, type MountState } from './weapons';
+import { availableAmmunition, muzzleWorld, solveBallistic, type MountDefinition, type MountState } from './weapons';
 import { travelFactor } from './ballistics';
 
 export const shipVelocity = (actor: FleetActor): Vec3 => [Math.sin(actor.motion.heading) * actor.motion.speed, 0, -Math.cos(actor.motion.heading) * actor.motion.speed];
@@ -10,6 +10,19 @@ export const shipVelocity = (actor: FleetActor): Vec3 => [Math.sin(actor.motion.
  * range. Out-of-range mounts hold their train and acquire when entering range. */
 export const botGunRange = (mount: MountDefinition): number => mount.weapon.caliberM >= .2 ? 18000 : mount.weapon.caliberM >= .1 ? 8000 : mount.weapon.caliberM >= .03 ? 3500 : 1800;
 const distance = (a: FleetActor, b: FleetActor) => Math.hypot(a.motion.x - b.motion.x, a.motion.z - b.motion.z);
+const shellProtection = new WeakMap<ShipDefinition, number>();
+/** Simple ammunition doctrine from authored protection, never from ship names. */
+export function botAmmunition(target: FleetActor, mount: MountDefinition, state: MountState): Ammunition {
+  let protection = shellProtection.get(target.definition);
+  if (protection === undefined) {
+    protection = Math.max(0, ...target.definition.armor.filter(a => a.exterior || a.plate?.exterior).map(a => a.thicknessMm));
+    shellProtection.set(target.definition, protection);
+  }
+  const preferred = mount.weapon.he && (mount.weapon.caliberM < .2 || protection < 80) ? 'he' : 'ap';
+  const count = mount.weapon.barrelCount ?? 2;
+  if (availableAmmunition(state, preferred) >= count) return preferred;
+  return preferred === 'ap' && mount.weapon.he && availableAmmunition(state, 'he') >= count ? 'he' : 'ap';
+}
 
 /** Stable nearest-opponent selection, with hysteresis to prevent target flicker. */
 export function botTarget(actor: FleetActor, actors: readonly FleetActor[]): FleetActor | undefined {
@@ -44,7 +57,9 @@ export function botHelm(actor: FleetActor, target: FleetActor | undefined, actor
 
 /** Predict a moving target separately for every caliber and muzzle position. */
 export function botAim(actor: FleetActor, target: FleetActor, mount: MountDefinition, state: MountState): Vec3 {
-  const point = localToWorld([0, .8, 0], target.motion);
+  const exposed = state.loaded === 'he' ? target.definition.mounts.reduce<number>((best, m, i) => target.mounts[i].hp > 0 && (best < 0 || m.weapon.armorMm < target.definition.mounts[best].weapon.armorMm) ? i : best, -1) : -1;
+  const gun = target.definition.mounts[exposed];
+  const point = localToWorld(gun ? [gun.position[0], gun.position[1] + gun.weapon.gunhouseSize[2] / 2, gun.position[2]] : [0, .8, 0], target.motion);
   point[1] = Math.max(.5, point[1]);
   const from = muzzleWorld(mount, state, 0, actor.motion);
   const velocity = shipVelocity(target), inherited = shipVelocity(actor);

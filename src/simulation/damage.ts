@@ -1,4 +1,4 @@
-import type { APProjectile, FloodConnection, ShipDefinition, Vec3 } from '../ships/blueprint';
+import type { Ammunition, APProjectile, FloodConnection, HEProjectile, ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { ShipState } from './ship';
 import { plateHit, plateResponse, samePlateSeam } from './protection';
 import type { MountState } from './weapons';
@@ -14,6 +14,7 @@ export interface ImpactRecord {
   /** Position is ship-local; DamageEvent.position is world-space. */
   kind: 'armor' | 'module' | 'mount' | 'boundary' | 'burst'; position: Vec3;
   thicknessMm?: number; material?: string; obliquityDeg?: number; resistanceMm?: number;
+  fragmentBudgetMm?: number;
   impactSpeedMps?: number;
   exitSpeedMps?: number; fuze?: 'unarmed' | 'armed'; fuzeRemainingSeconds?: number;
   penetrationBeforeMm: number; penetrationAfterMm: number;
@@ -32,6 +33,7 @@ export interface Shell {
   penetrationMm: number; damage: number; caliberM: number; visited: string[];
   dragPerSecond?: number;
   ap?: APProjectile;
+  he?: HEProjectile; ammunition?: Ammunition;
   detonateAtAge?: number;
   lastHitShipId?: string;
   /** Position is ship-local, or mount-local when attached to an articulated gunhouse. */
@@ -39,12 +41,12 @@ export interface Shell {
 }
 /** Serializable evidence for render-side effects; never feeds back into damage. */
 export interface BallisticEffectData {
-  shell?: Pick<Shell, 'id' | 'caliberM' | 'velocity'>;
+  shell?: Pick<Shell, 'id' | 'caliberM' | 'velocity' | 'ammunition'>;
   normal?: Vec3;
   detonation?: boolean;
   blastRadiusM?: number;
 }
-export interface DamageEvent extends BallisticEffectData { kind: 'penetration' | 'ricochet' | 'stopped' | 'module' | 'sunk' | 'burst'; position: Vec3; message: string; shipId: string; impact?: ImpactRecord; defeatCause?: DefeatCause; }
+export interface DamageEvent extends BallisticEffectData { kind: 'penetration' | 'contact' | 'ricochet' | 'stopped' | 'module' | 'sunk' | 'burst'; position: Vec3; message: string; shipId: string; impact?: ImpactRecord; defeatCause?: DefeatCause; }
 export function createDamage(def: ShipDefinition): DamageState {
   return { integrity: 1000, modules: def.modules.map(m => ({ id: m.id, hp: m.hp, detonated: false })), compartments: def.compartments.map(c => ({ id: c.id, waterM3: 0, breachAreaM2: 0, breaches: [] })), connections: def.connections.map(c => ({ id: connectionId(c), state: c.state ?? 'open', damageAreaM2: c.state === 'damaged' ? c.areaM2 : 0, fromIndex: def.compartments.findIndex(r => r.id === c.fromId), toIndex: def.compartments.findIndex(r => r.id === c.toId) })), sunk: false };
 }
@@ -140,6 +142,12 @@ export function nearbyContacts(originWorld: Vec3, radius: number, actor: Combata
 function eachCandidate<T>(items: T[], indices: number[] | undefined, visit: (item: T, index: number) => void): void {
   if (indices) indices.forEach(i => visit(items[i], i)); else items.forEach(visit);
 }
+/** An origin exactly on an incoming box face still crosses that sheet. This
+ * matters for a fresh burst ray at a projectile's contact point. Visited keys
+ * prevent the original projectile paying the same face twice. */
+function entersBox(from: Vec3, to: Vec3, box: { center: Vec3; size: Vec3 }): boolean {
+  return !contains(box, from) || from.some((n, i) => Math.abs(Math.abs(n - box.center[i]) - box.size[i] / 2) < 1e-7 && (n - box.center[i]) * (to[i] - n) < 0);
+}
 /** Read-only ordered geometry query. Resolving a contact is separate so flight
  * can stop at that instant and recompute travel after the shell loses speed. */
 export function shipContacts(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor: Combatant, def: ShipDefinition, candidates?: ContactCandidates): ShipContact[] {
@@ -156,7 +164,7 @@ export function shipContacts(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor
     const hit = segmentBox(from, to, a);
     if (!hit) return;
     const entryKey = `${actor.motion.id}:armor:${a.id}:entry`;
-    if (!contains(a, from) && !shell.visited.includes(entryKey)) hits.push({ ...hit, key: entryKey, kind: 'armor', index });
+    if (entersBox(from, to, a) && !shell.visited.includes(entryKey)) hits.push({ ...hit, key: entryKey, kind: 'armor', index });
     const exitKey = `${actor.motion.id}:armor:${a.id}:exit`;
     if (hit.exit < 1 && !shell.visited.includes(exitKey)) {
       const point = add(from, sub(to, from).map(v => v * hit.exit) as Vec3);
@@ -184,7 +192,7 @@ export function shipContacts(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor
     const hit = segmentBox(a, b, box);
     if (!hit) return;
     const key = `${actor.motion.id}:mount:${m.id}:entry`;
-    if (!contains(box, a) && !shell.visited.includes(key)) hits.push({ ...hit, point: localToWorld(hit.point, mountPose), normal: rotate(hit.normal, mountPose), key, kind: 'mount', index });
+    if (entersBox(a, b, box) && !shell.visited.includes(key)) hits.push({ ...hit, point: localToWorld(hit.point, mountPose), normal: rotate(hit.normal, mountPose), key, kind: 'mount', index });
     const exitKey = `${actor.motion.id}:mount:${m.id}:exit`;
     if (hit.exit < 1 && !shell.visited.includes(exitKey)) {
       const point = add(a, scale(sub(b, a), hit.exit));
@@ -245,6 +253,26 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
       evidence.outcome = kind; evidence.terminal = !shell.lodged;
       shell.position = [...position]; report(kind, message); return true;
     };
+    if (shell.he) {
+      shell.detonateAtAge = shell.age;
+      evidence.outcome = 'detonation'; evidence.fuze = 'armed'; evidence.fuzeRemainingSeconds = 0;
+      evidence.fragmentBudgetMm = shell.he.fragmentPenetrationMm;
+      if (hit.kind === 'armor') {
+        const a = def.armor[hit.index], material = a.plate?.material ?? 'steel';
+        // Direct contact provides normal fragment paths into the plate. Only a
+        // defeated exterior sheet gets the existing caliber-area opening; this
+        // does not assume a free blast path through its other protective layers.
+        const resistance = plateResponse(a.thicknessMm, material, 1, .01).resistanceMm;
+        Object.assign(evidence, { thicknessMm: a.thicknessMm, material, resistanceMm: resistance });
+        if (shell.he.fragmentPenetrationMm > resistance && (a.plate?.exterior || a.exterior || (a.exterior === undefined && !a.plate && hit.key.endsWith(':entry')))) {
+          evidence.breachAssignments = exteriorBreaches(actor, def, hit.point, hit.normal, shell);
+          evidence.compartmentId = evidence.breachAssignments[0]?.compartmentId;
+          evidence.breachAreaM2 = evidence.breachAssignments.reduce((n, b) => n + b.areaM2, 0);
+        }
+      }
+      report('contact', `HE contact · ${target.name}`);
+      return true;
+    }
     if (hit.kind === 'armor') {
       const a = def.armor[hit.index];
       const cosine = Math.abs(direction.reduce((sum, n, i) => sum + n * hit.normal[i], 0));
@@ -320,7 +348,8 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
   return false;
 }
 
-/** Controlled through-shot utility and compatibility API. Combat flight resolves
+/** Controlled contact-only utility and compatibility API. Does not advance time
+ * or distribute burst damage. Live AP/HE use advanceProjectile, which resolves
  * these contacts individually and accounts for elapsed time between them. */
 export function hitShip(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor: Combatant, def: ShipDefinition, emit: (e: DamageEvent) => void): boolean {
   const direction = normalize(sub(worldToLocal(toWorld, actor.motion), worldToLocal(fromWorld, actor.motion)));

@@ -1,6 +1,6 @@
 import type { Game } from '../game/Game';
 import type { Telemetry } from '../game/types';
-import type { Battery } from '../ships/blueprint';
+import type { Ammunition, Battery } from '../ships/blueprint';
 import { Icon } from './Icons';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
 
@@ -16,15 +16,22 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
       <div className="battery-selector" role="group" aria-label="Battery selection">
         {(['main', 'secondary'] as Battery[]).map(battery => <button key={battery} aria-pressed={c.battery === battery} onClick={() => { if (game) game.battery = battery; }}>{Number(((game?.definition.mounts.find(m => m.battery === battery)?.weapon.caliberM ?? 0) * 100).toFixed(1))} cm {battery}</button>)}
       </div>
+      <div className="battery-selector" role="group" aria-label="Shell selection">
+        {(['ap', 'he'] as Ammunition[]).map(type => <button key={type} aria-pressed={c.ammunition === type} disabled={type === 'he' && !c.heSupported} onClick={() => { if (game) game.ammunition[game.battery] = type; }}>
+          {type.toUpperCase()} · {c.ammunitionStock[type]} rounds
+        </button>)}
+      </div>
+      <p className="gunnery-help">AP penetrates armor before its delayed burst. HE bursts on contact against light protection. Changing type takes a full reload.</p>
       <div className="mount-readiness" aria-label="Gun readiness">{c.mounts.map(m => <div key={m.id}>
         <span>{m.name.replace('Starboard Secondary ', 'Stbd ').replace('Port Secondary ', 'Port ')}</span>
-        <span className={m.status === 'ready' ? 'gun-ready' : ''}>{m.status === 'reloading' ? `${Math.ceil(m.reload)}s` : m.status.replaceAll('-', ' ')}</span>
+        <span className={m.status === 'ready' ? 'gun-ready' : ''}>{m.loaded.toUpperCase()} · {m.status === 'reloading' ? `${Math.ceil(m.reload)}s` : m.status.replaceAll('-', ' ')}</span>
         <small title="Shells remaining">{m.ammo}</small>
       </div>)}</div>
       <label className="aim-select">Aim at <select value={data.aimModule ?? ''} onChange={e => game?.selectAim(e.target.value)}>
         <option value="point">Center sight · Manual</option>
         <option value="">Target waterline</option>
         {c.modules.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+        <optgroup label="Gun mounts">{c.targetMounts.map(m => <option key={m.id} value={`mount:${m.id}`}>{m.name}{m.condition <= 0 ? ' · Disabled' : ''}</option>)}</optgroup>
       </select></label>
       <div className="target-condition"><strong>{c.targetName}{c.targetSunk ? ' · Sinking' : ''}</strong><span>{(c.targetRange / 1000).toFixed(2)} km</span></div>
       <dl className="damage-readout">
@@ -37,18 +44,24 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
       <details className="shell-history">
         <summary>Recent shell impacts · {c.shellHistory.length}</summary>
         {c.shellHistory.length === 0 ? <p>No hits recorded on this target.</p> : c.shellHistory.map(h => <details key={h.shellId}>
-          <summary>Shell {h.shellId} · {h.outcome.replace('internal', 'stopped inside')}</summary>
+          <summary>{h.ammunition.toUpperCase()} shell {h.shellId} · {h.outcome.replace('internal', 'stopped inside')}</summary>
           <ol>{h.impacts.map((impact, i) => <li key={i}>
             <strong>{impact.targetName} · {impact.outcome}</strong>
             {impact.impactSpeedMps !== undefined && <span>{impact.impactSpeedMps.toFixed(0)} m/s at impact</span>}
             {impact.exitSpeedMps !== undefined && <span>{impact.exitSpeedMps.toFixed(0)} m/s after contact</span>}
             {impact.fuze && <span>{impact.fuze === 'unarmed' ? 'Fuze unarmed' : `Fuze armed · ${((impact.fuzeRemainingSeconds ?? 0) * 1000).toFixed(1)} ms to burst`}</span>}
             {impact.thicknessMm !== undefined && <span>{impact.thicknessMm.toFixed(1)} mm {impact.material}{impact.obliquityDeg !== undefined ? ` · ${impact.obliquityDeg.toFixed(1)}° from normal` : ''}</span>}
+            {impact.fragmentBudgetMm !== undefined && <span>{impact.fragmentBudgetMm.toFixed(1)} mm fragment budget</span>}
             <span>{impact.resistanceMm !== undefined ? `${impact.resistanceMm.toFixed(1)} mm resistance · ` : ''}{impact.penetrationAfterMm.toFixed(1)} mm remaining</span>
             {!!impact.damage && <span>{impact.damage.toFixed(1)} damage</span>}
             {impact.breachAssignments ? impact.breachAssignments.filter(b => b.areaM2 > 0).map((b, index) => <span key={index}>{b.areaM2.toFixed(3)} m² opening · {b.compartmentId}</span>) : !!impact.breachAreaM2 && <span>{impact.breachAreaM2.toFixed(3)} m² opening · {impact.compartmentId ?? 'watertight boundary'}</span>}
           </li>)}</ol>
         </details>)}
+      </details>
+      <details className="shell-history">
+        <summary>Damaged gun mounts · {c.targetMounts.filter(m => m.condition < 1).length}</summary>
+        <div className="module-conditions">{c.targetMounts.filter(m => m.condition < 1).map(m => <div key={m.id}><span>{m.name}</span><strong>{m.condition <= 0 ? 'Disabled' : `${Math.round(m.condition * 100)}% condition`}</strong></div>)}</div>
+        {c.targetMounts.every(m => m.condition === 1) && <p>No gun damage recorded on this target.</p>}
       </details>
       {data.inspecting && <div className="module-conditions" aria-label="Internal module condition">{c.modules.map(m => <div key={m.id}><span>{m.name}</span><strong>{m.reason === 'flooded' ? 'Flooded · offline' : m.reason === 'destroyed' ? 'Destroyed' : `${Math.round(m.availability * 100)}% available`}</strong></div>)}<p>Flooded equipment can recover when drained. Destroyed equipment stays offline.</p><p>Amber: armor · Pale outlines: flooded spaces · Blue: floodwater. The full dry layout is available in port.</p></div>}
       <p className="gunnery-help">Mouse aims the center sight. Hold left mouse or {bindingLabel(bindings, 'fire')} to fire. Shift opens binoculars; scroll adjusts magnification. Selecting a module tracks it until you move the mouse to aim again.</p>

@@ -12,7 +12,7 @@ import { ShipLabels } from './ShipLabels';
 import { disposeObjects } from './disposeObjects';
 import { CombatEffects } from './CombatEffects';
 import type { GameAudio } from './GameAudio';
-import type { Battery, Vec3 } from '../ships/blueprint';
+import type { Ammunition, Battery, Vec3 } from '../ships/blueprint';
 import type { InspectionMode } from '../ships/inspection';
 import { selectedShip, shipPreset, shipPresets } from '../ships/presets';
 import { validateBattleSetup, type BattleSetup } from '../simulation/battle';
@@ -48,6 +48,7 @@ export class Game {
   private loadedModel?: THREE.Group;
   private effects = new CombatEffects();
   battery: Battery = 'main';
+  ammunition: Record<Battery, Ammunition> = { main: 'ap', secondary: 'ap' };
   aimModule: string;
   inspecting = false;
   private manualAim = true;
@@ -301,6 +302,7 @@ export class Game {
       this.shipLabels.setFleet(views, simulation.actors);
       this.articulationOriginal = undefined;
       this.battery = 'main'; this.manualAim = true; this.inspecting = false;
+      this.ammunition = { main: 'ap', secondary: 'ap' };
       this.gunneryOpen = false; this.effects.reset();
       this.currentAim = simulation.aimAt(undefined, this.battery);
       this.aimModule = simulation.target.definition.modules.find(m => m.kind === 'engine')?.id ?? '';
@@ -346,7 +348,7 @@ export class Game {
       this.rig.update(focus, focus.y, 0);
       const aim = this.manualAim ? this.inspecting ? this.currentAim : this.readSightAim() : this.simulation.aimAt(this.aimModule, this.battery);
       this.currentAim = aim;
-      if (!this.inPort) this.simulation.advance(dt, this.input.sample(), { aim, fire: this.input.firing || this.rig.firing, battery: this.battery }, () => {
+      if (!this.inPort) this.simulation.advance(dt, this.input.sample(), { aim, fire: this.input.firing || this.rig.firing, battery: this.battery, ammunition: this.ammunition[this.battery] }, () => {
         this.fleetViews.forEach(view => view.capturePreviousPose());
       });
       const alpha = this.inPort ? 1 : this.simulation.interpolationAlpha;
