@@ -13,4 +13,7 @@ export function shipPreset(id: string | null): ShipDefinition & { contentHash: s
 export const selectedShip = shipPreset(typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('ship'));
 
 /** Published authoring evidence is optional preset metadata, independent of combat. */
-export const shipReviewUrls: Partial<Record<string, string>> = { bismarck: '/ship-reference/bismarck/' };
+export const shipReviewUrls: Partial<Record<string, string>> = Object.fromEntries(
+  // Vite's SPA fallback serves the game for public directory URLs.
+  ['bismarck', 'yamato', 'baltimore', 'enterprise-cv6'].map(id => [id, `/ship-reference/${id}/index.html`]),
+);

@@ -192,5 +192,15 @@ export function shipStatistics(def: ShipDefinition): StatSection[] {
     rows: [], collapsed: true,
     notes: [{ label: 'Exterior', text: def.accuracy.exterior }, { label: 'Internals', text: def.accuracy.internals }, { label: 'Weapons', text: def.accuracy.weapons }],
   };
-  return [survivability, armor, ...(mainBattery ? [mainBattery] : []), ...(secondaryBattery ? [secondaryBattery] : []), ...torpedoBatteries, mobility, dimensions, modelBasis];
+  const s = def.submarine;
+  const diving: StatSection[] = s ? [{ id: 'diving', title: 'Diving', headline: format(knots(s.submergedHandling.forwardSpeed), 1), headlineUnit: 'kn submerged', headlineHelp: 'Full ahead on undamaged electric motors. Diving parameters are provisional gameplay tuning.', collapsed: true,
+    rows: [
+      { label: 'Periscope depth', value: format(s.periscopeDepthM), unit: 'm', help: 'Depth below the surfaced waterline datum; the raised scope remains above water.' },
+      { label: 'Operating limit', value: format(s.maxDepthM), unit: 'm', help: 'Maximum depth order. Pressure beyond this limit damages the hull.' },
+      { label: 'Torpedo launch limit', value: format(s.maxTorpedoDepthM), unit: 'm', help: 'Rise to this depth or less to use torpedoes. Guns require surfacing.' },
+      { label: 'Ballast capacity', value: format(s.ballastCapacityM3), unit: 'm³', help: 'Combined ballast and trim capacity in the simplified depth keeper. Separate from damage flooding.' },
+      { label: 'Maximum dive / rise', value: `${format(s.maxDiveSpeed, 1)} / ${format(s.maxRiseSpeed, 1)}`, unit: 'm/s', help: 'Vertical speed limits. Filling tanks takes time; planes help when underway.' },
+    ],
+  }] : [];
+  return [survivability, armor, ...(mainBattery ? [mainBattery] : []), ...(secondaryBattery ? [secondaryBattery] : []), ...torpedoBatteries, mobility, ...diving, dimensions, modelBasis];
 }

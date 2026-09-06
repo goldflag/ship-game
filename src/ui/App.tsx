@@ -77,15 +77,17 @@ export function App() {
     const reviewWindow = window as unknown as {
       shipTrialDiagnostics?: () => unknown;
       shipTrialArticulation?: (pose: Parameters<Game['previewArticulation']>[0]) => unknown;
+      shipTrialAdvance?: (seconds: number) => void;
     };
     if (import.meta.env.DEV) {
       reviewWindow.shipTrialDiagnostics = () => session.diagnostics();
       reviewWindow.shipTrialArticulation = pose => session.previewArticulation(pose);
+      reviewWindow.shipTrialAdvance = seconds => session.previewAdvance(seconds);
     }
     session.start();
     return () => {
       active = false; game.current = null;
-      if (import.meta.env.DEV) { delete reviewWindow.shipTrialDiagnostics; delete reviewWindow.shipTrialArticulation; }
+      if (import.meta.env.DEV) { delete reviewWindow.shipTrialDiagnostics; delete reviewWindow.shipTrialArticulation; delete reviewWindow.shipTrialAdvance; }
       void session.dispose();
     };
   }, [generation, settings]);

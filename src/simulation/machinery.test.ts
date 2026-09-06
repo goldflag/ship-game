@@ -97,11 +97,20 @@ test('authored outer spaces fit the hull and never overlap retained room envelop
 test('Yamato wing spaces connect damaged exterior openings to retained turbine rooms', () => {
   const def = compileShip(yamato, catalog), actor = new CombatSimulation(def).player;
   def.compartments.forEach(c => c.pumpM3PerSecond = 0);
-  const shell: Shell = { id: 1, ownerId: 'target', position: [-30, -2, 5], velocity: [820, 0, 0], age: 0, penetrationMm: 10000, damage: 1, caliberM: .38, visited: [] };
-  hitShip(shell, [-30, -2, 5], [30, -2, 5], actor, def, () => {});
+  // Follow the retained turbine room, not the pre-fidelity longitudinal station
+  // (z=5 now crosses boiler rooms, isolated from these turbines by closed walls).
+  const turbineZ = def.compartments.find(c => c.id === 'engine-port-space')!.center[2];
+  const shell: Shell = { id: 1, ownerId: 'target', position: [-30, -2, turbineZ], velocity: [820, 0, 0], age: 0, penetrationMm: 10000, damage: 1, caliberM: .38, visited: [] };
+  hitShip(shell, [-30, -2, turbineZ], [30, -2, turbineZ], actor, def, () => {});
+  for (const id of ['engine-port-space', 'engine-starboard-space']) {
+    expect(actor.damage.connections.some(c => c.state === 'damaged' &&
+      [c.fromIndex, c.toIndex].some(i => def.compartments[i].id === id))).toBe(true);
+  }
   for (let i = 0; i < 36000; i++) updateFlooding(actor, def, 1 / 60);
   expect(actor.damage.compartments.find(c => c.id === 'engine-port-space')!.waterM3).toBeGreaterThan(0);
   expect(actor.damage.compartments.find(c => c.id === 'engine-starboard-space')!.waterM3).toBeGreaterThan(0);
+  expect(actor.damage.compartments.find(c => c.id === 'engine-port-aft-space')!.waterM3).toBe(0);
+  expect(actor.damage.compartments.find(c => c.id === 'engine-starboard-aft-space')!.waterM3).toBe(0);
 });
 test('bow and stern penetrations create local openings on every supported preset', () => {
   for (const preset of [blueprint, yamato, baltimore, enterprise]) for (const sign of [-1, 1]) {

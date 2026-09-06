@@ -1,0 +1,264 @@
+{
+  "after": {
+    "absorption": [
+      0.014806913539376288,
+      0.005230824204104329,
+      0.004765373331110795
+    ],
+    "azimuth": 0.82,
+    "camera": [
+      -32.37952421528531,
+      -46.5,
+      30.212848385939257
+    ],
+    "depth": 50,
+    "fog": true,
+    "legacy": false,
+    "mode": "Chase",
+    "scale": 1,
+    "warp": true
+  },
+  "before": {
+    "absorption": [
+      0.29613827078752575,
+      0.10461648408208657,
+      0.09530746662221588
+    ],
+    "azimuth": 0.82,
+    "camera": [
+      -32.37952421528531,
+      -46.5,
+      30.212848385939257
+    ],
+    "depth": 50,
+    "fog": true,
+    "legacy": true,
+    "mode": "Chase",
+    "scale": 1,
+    "warp": true
+  },
+  "checks": {
+    "dives": [
+      {
+        "absorption": [
+          0.014806913539376288,
+          0.005230824204104329,
+          0.004765373331110795
+        ],
+        "camera": [
+          -32.37952421528531,
+          -3.5,
+          30.212848385939257
+        ],
+        "clearHullFraction": 0.126364693722096,
+        "depth": 7,
+        "passed": true
+      },
+      {
+        "absorption": [
+          0.014806913539376288,
+          0.005230824204104329,
+          0.004765373331110795
+        ],
+        "camera": [
+          -32.37952421528531,
+          -46.5,
+          30.212848385939257
+        ],
+        "clearHullFraction": 0.12624169488087456,
+        "depth": 50,
+        "passed": true
+      },
+      {
+        "absorption": [
+          0.014806913539376288,
+          0.005230824204104329,
+          0.004765373331110795
+        ],
+        "camera": [
+          -32.37952421528531,
+          -146.5,
+          30.212848385939257
+        ],
+        "clearHullFraction": 0.12625377897755594,
+        "depth": 150,
+        "passed": true
+      }
+    ],
+    "legacy": false,
+    "passed": true,
+    "quality": "high",
+    "recovery": {
+      "periscopeAboveWater": true,
+      "periscopeRestored": true,
+      "surfaceRestored": true
+    }
+  },
+  "periscope": {
+    "absorption": [
+      0.29613827078752575,
+      0.10461648408208657,
+      0.09530746662221588
+    ],
+    "azimuth": 0.82,
+    "camera": [
+      0,
+      1.4000000000000004,
+      -0.45
+    ],
+    "depth": 7,
+    "fog": true,
+    "legacy": false,
+    "mode": "Bridge",
+    "scale": 1,
+    "warp": true
+  },
+  "surface": {
+    "absorption": [
+      0.29613827078752575,
+      0.10461648408208657,
+      0.09530746662221588
+    ],
+    "azimuth": 0.82,
+    "camera": [
+      -88.28585893952265,
+      20.5835,
+      82.37821077997933
+    ],
+    "depth": 0,
+    "fog": true,
+    "legacy": false,
+    "mode": "Chase",
+    "scale": 1,
+    "warp": true
+  },
+  "negativeControl": {
+    "dives": [
+      {
+        "absorption": [
+          0.29613827078752575,
+          0.10461648408208657,
+          0.09530746662221588
+        ],
+        "camera": [
+          -32.37952421528531,
+          -3.5,
+          30.212848385939257
+        ],
+        "clearHullFraction": 0.0007284983999361269,
+        "depth": 7,
+        "passed": false
+      },
+      {
+        "absorption": [
+          0.29613827078752575,
+          0.10461648408208657,
+          0.09530746662221588
+        ],
+        "camera": [
+          -32.37952421528531,
+          -46.5,
+          30.212848385939257
+        ],
+        "clearHullFraction": 0.0007289299748176057,
+        "depth": 50,
+        "passed": false
+      },
+      {
+        "absorption": [
+          0.29613827078752575,
+          0.10461648408208657,
+          0.09530746662221588
+        ],
+        "camera": [
+          -32.37952421528531,
+          -146.5,
+          30.212848385939257
+        ],
+        "clearHullFraction": 0.0007284983999361269,
+        "depth": 150,
+        "passed": false
+      }
+    ],
+    "legacy": true,
+    "passed": false,
+    "quality": "high",
+    "recovery": {
+      "periscopeAboveWater": true,
+      "periscopeRestored": true,
+      "surfaceRestored": true
+    }
+  },
+  "liveGame": {
+    "camera": {
+      "aim": [
+        7.840774040215953,
+        0.5,
+        -4899.993726757459
+      ],
+      "binoculars": false,
+      "fov": 52.00000000000001,
+      "magnification": 1,
+      "manualAim": true,
+      "matrixWorldInverse": [
+        0.9999987197464202,
+        6.276350794862717e-06,
+        -0.001600145658377897,
+        0,
+        0,
+        0.9999923076262686,
+        0.003922331996444101,
+        0,
+        0.0016001579673910113,
+        -0.00392232697486452,
+        0.999991027382537,
+        0,
+        1.3931997916438732e-17,
+        46.67334669298628,
+        -44.1032708977275,
+        1
+      ],
+      "mode": "Chase",
+      "pointerLocked": false,
+      "position": [
+        -0.07086459574387834,
+        -46.49999999357023,
+        44.285943302689965
+      ],
+      "projectionMatrix": [
+        1.633751346060547,
+        0,
+        0,
+        0,
+        0,
+        2.050303841579296,
+        0,
+        0,
+        0,
+        0,
+        -1.0000083334027783,
+        -1,
+        0,
+        0,
+        -0.5000041667013891,
+        0
+      ],
+      "shellFollow": "off"
+    },
+    "tick": 9678,
+    "paused": false,
+    "inPort": false,
+    "submarine": {
+      "ballastFraction": 0.8500000000352972,
+      "ballastM3": 102.00000000423566,
+      "depthM": 49.99999999358867,
+      "emergencyBlow": false,
+      "maxDepthM": 150,
+      "maxTorpedoDepthM": 12,
+      "periscopeDepthM": 7,
+      "propulsion": "Electric",
+      "targetDepthM": 50,
+      "verticalSpeed": -1.293228107528975e-09
+    }
+  }
+}

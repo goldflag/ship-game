@@ -1,0 +1,1373 @@
+{
+  "schemaVersion": 1,
+  "contentHash": "90609df03cc5cf73dbf987d217ff009d9be1e64efe7620123610dc81553cdb58",
+  "modelSha256": "4944d3eea3f60b376a82a008cc6955bbb6a37e715c53822ca0470d97ceaff37d",
+  "specRevision": "fleet-fidelity-01",
+  "dimensions": [
+    {
+      "id": "length",
+      "metric": "hull.length",
+      "target": 205.2574,
+      "tolerance": 0.025,
+      "units": "m",
+      "sourceId": "navships-250-010",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.5,
+      "measured": 205.2574005126953,
+      "deviation": 5.126953226408659e-7,
+      "passed": true
+    },
+    {
+      "id": "beam",
+      "metric": "hull.beam",
+      "target": 21.59,
+      "tolerance": 0.025,
+      "units": "m",
+      "sourceId": "navships-250-010",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.5,
+      "measured": 21.590001106262207,
+      "deviation": 0.0000011062622071733585,
+      "passed": true
+    },
+    {
+      "id": "draft",
+      "metric": "hull.draft",
+      "target": 7.366,
+      "tolerance": 0.025,
+      "units": "m",
+      "sourceId": "navships-250-010",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.5,
+      "measured": 7.366000175476074,
+      "deviation": 1.754760745598105e-7,
+      "passed": true
+    },
+    {
+      "id": "waterlineLength",
+      "metric": "hull.waterlineLength",
+      "target": 202.3872,
+      "tolerance": 0.005,
+      "units": "m",
+      "sourceId": "navships-250-010",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.5,
+      "measured": 202.38719940185547,
+      "deviation": -5.981445383440587e-7,
+      "passed": true
+    }
+  ],
+  "geometry": {
+    "triangles": 19656,
+    "degenerate": 0,
+    "nonManifoldEdges": 0,
+    "watertight": true
+  },
+  "spaces": [
+    {
+      "id": "bow",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "forward-magazine",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "forward-machinery",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "aft-machinery",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "aft-magazine",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "stern",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "boiler-unit-forward",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "boiler-unit-aft",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "forward-void",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "after-void",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-0-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-0-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-0-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-0-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-1-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-1-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-2-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-2-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-2-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-2-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-2-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-2-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-2-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-2-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-2-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-2-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-3-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-3-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-3-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-3-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-3-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-3-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-3-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-3-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-4-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-4-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-4-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-4-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-4-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-4-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-4-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-4-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-4-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-4-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-5-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-5-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-5-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-5-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-5-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-5-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-5-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-5-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-5-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-5-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-6-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-6-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-6-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-6-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-6-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-6-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-6-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-6-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-6-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-6-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-7-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-7-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-7-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-7-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-7-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-7-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-7-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-7-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-7-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-7-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-8-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-8-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-8-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-8-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-8-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-8-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-9-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-9-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-9-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-9-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-bow-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-bow-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-bow-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-bow-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-bow-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-bow-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-stern-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-stern-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-stern-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-stern-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-stern-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-stern-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-0-0",
+      "cells": 183,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-0-1",
+      "cells": 204,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-0-2",
+      "cells": 45,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-1-0",
+      "cells": 183,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-1-1",
+      "cells": 204,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-1-2",
+      "cells": 45,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-0-0",
+      "cells": 171,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-0-1",
+      "cells": 138,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-0-2",
+      "cells": 20,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-1-0",
+      "cells": 171,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-1-1",
+      "cells": 138,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-1-2",
+      "cells": 20,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-0-0",
+      "cells": 148,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-0-1",
+      "cells": 134,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 4.999998637345016e-9
+    },
+    {
+      "id": "reserve-cell-2-0-2",
+      "cells": 11,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-1-0",
+      "cells": 148,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-1-1",
+      "cells": 134,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 4.999998637345016e-9
+    },
+    {
+      "id": "reserve-cell-2-1-2",
+      "cells": 11,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-0-0",
+      "cells": 194,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-0-1",
+      "cells": 241,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-0-2",
+      "cells": 19,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-1-0",
+      "cells": 194,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-1-1",
+      "cells": 241,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-1-2",
+      "cells": 19,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    }
+  ],
+  "probes": [
+    {
+      "id": "midship-belt",
+      "from": [
+        -45,
+        -0.5,
+        0
+      ],
+      "to": [
+        45,
+        -0.5,
+        0
+      ],
+      "caliberM": 0.2032,
+      "basis": "Geometric resistance probe at the stated caliber; no launch velocity, drag or fuze outcome.",
+      "layers": [
+        {
+          "id": "belt--1-12-1",
+          "name": "Port main belt",
+          "t": 0.3844172827291214,
+          "point": [
+            -10.402444554379073,
+            -0.5,
+            0
+          ],
+          "normal": [
+            0.9947311473854548,
+            0.10027126856834101,
+            0.021345189643383725
+          ],
+          "onEdge": false,
+          "thicknessMm": 152.4,
+          "material": "steel",
+          "resistanceMm": 153.20722629483075,
+          "ricochet": false
+        },
+        {
+          "id": "belt-1-12-1",
+          "name": "Starboard main belt",
+          "t": 0.6155827172708787,
+          "point": [
+            10.40244455437908,
+            -0.5,
+            0
+          ],
+          "normal": [
+            0.9947311473854548,
+            -0.10027126856834101,
+            -0.021345189643383725
+          ],
+          "onEdge": false,
+          "thicknessMm": 152.4,
+          "material": "steel",
+          "resistanceMm": 153.20722629483075,
+          "ricochet": false
+        }
+      ]
+    },
+    {
+      "id": "protected-deck",
+      "from": [
+        0,
+        60,
+        20
+      ],
+      "to": [
+        0,
+        -20,
+        20
+      ],
+      "caliberM": 0.2032,
+      "basis": "Geometric resistance probe at the stated caliber; no launch velocity, drag or fuze outcome.",
+      "layers": [
+        {
+          "id": "armored-deck",
+          "name": "Protective deck",
+          "t": 0.71375,
+          "point": [
+            0,
+            2.8999999999999986,
+            20
+          ],
+          "normal": [
+            0,
+            1,
+            0
+          ],
+          "onEdge": false,
+          "thicknessMm": 63.5,
+          "material": "steel",
+          "resistanceMm": 63.5,
+          "ricochet": false
+        }
+      ]
+    }
+  ],
+  "structuralProbes": [
+    {
+      "id": "bow",
+      "from": [
+        -45,
+        6,
+        -94.6287
+      ],
+      "to": [
+        45,
+        6,
+        -94.6287
+      ],
+      "expectHit": true,
+      "hits": [
+        {
+          "id": "hull",
+          "point": [
+            -1.5846920756348055,
+            6,
+            -94.6287
+          ],
+          "thicknessMm": 16,
+          "hull": true
+        },
+        {
+          "id": "hull",
+          "point": [
+            1.5846920756348055,
+            6,
+            -94.6287
+          ],
+          "thicknessMm": 16,
+          "hull": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "stern",
+      "from": [
+        -45,
+        3,
+        94.6287
+      ],
+      "to": [
+        45,
+        3,
+        94.6287
+      ],
+      "expectHit": true,
+      "hits": [
+        {
+          "id": "hull",
+          "point": [
+            -7.666667000000011,
+            3,
+            94.6287
+          ],
+          "thicknessMm": 16,
+          "hull": true
+        },
+        {
+          "id": "hull",
+          "point": [
+            -7.666666999999997,
+            3,
+            94.6287
+          ],
+          "thicknessMm": 16,
+          "hull": true
+        },
+        {
+          "id": "hull",
+          "point": [
+            7.666667000000004,
+            3,
+            94.6287
+          ],
+          "thicknessMm": 16,
+          "hull": true
+        },
+        {
+          "id": "hull",
+          "point": [
+            7.666667000000004,
+            3,
+            94.6287
+          ],
+          "thicknessMm": 16,
+          "hull": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "bridge",
+      "from": [
+        -45,
+        16,
+        -20
+      ],
+      "to": [
+        45,
+        16,
+        -20
+      ],
+      "expectHit": true,
+      "hits": [
+        {
+          "id": "bridge-pilot-house",
+          "point": [
+            -2.1466643708494573,
+            16,
+            -20
+          ],
+          "thicknessMm": 6,
+          "hull": false
+        },
+        {
+          "id": "bridge-pilot-house",
+          "point": [
+            2.1466643708494644,
+            16,
+            -20
+          ],
+          "thicknessMm": 6,
+          "hull": false
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "empty-air",
+      "from": [
+        -45,
+        65,
+        0
+      ],
+      "to": [
+        45,
+        65,
+        0
+      ],
+      "expectHit": false,
+      "hits": [],
+      "passed": true
+    }
+  ],
+  "landmarks": [
+    {
+      "id": "main-1-axis",
+      "runtime": [
+        0,
+        8.2804,
+        -57.424152
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "op1112-517",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        0.00000433540299127344,
+        8.280400276184082,
+        -57.42415237426758
+      ],
+      "deviationM": [
+        0.00000433540299127344,
+        2.761840818266137e-7,
+        -3.7426757870662186e-7
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "main-2-axis",
+      "runtime": [
+        0,
+        11.1379,
+        -44.326014
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "op1112-517",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        0.0000033465212254668586,
+        11.137900352478027,
+        -44.32601547241211
+      ],
+      "deviationM": [
+        0.0000033465212254668586,
+        3.5247802721016797e-7,
+        -0.0000014724121086828745
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "main-3-axis",
+      "runtime": [
+        0,
+        8.4328,
+        55.507351
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "op1112-517",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        -0.00000419068828705349,
+        8.43280029296875,
+        55.50735092163086
+      ],
+      "deviationM": [
+        -0.00000419068828705349,
+        2.929687497044142e-7,
+        -7.836914051040367e-8
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "secondary-51-axis",
+      "runtime": [
+        0,
+        10.05,
+        -30.269476
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "op1112-517",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        0.000002285281880176626,
+        10.050000190734863,
+        -30.26947593688965
+      ],
+      "deviationM": [
+        0.000002285281880176626,
+        1.9073486257070726e-7,
+        6.311035249950692e-8
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "secondary-52-axis",
+      "runtime": [
+        -7.05,
+        7.949999999999999,
+        2.955068
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "op1112-517",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        -7.050000190734863,
+        7.949999809265137,
+        2.9550676345825195
+      ],
+      "deviationM": [
+        -1.9073486345888568e-7,
+        -1.9073486257070726e-7,
+        -3.654174802747434e-7
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "secondary-53-axis",
+      "runtime": [
+        7.05,
+        7.949999999999999,
+        2.955068
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "op1112-517",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        7.050000190734863,
+        7.949999809265137,
+        2.955068588256836
+      ],
+      "deviationM": [
+        1.9073486345888568e-7,
+        -1.9073486257070726e-7,
+        5.882568361315066e-7
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "secondary-54-axis",
+      "runtime": [
+        -7.05,
+        7.949999999999999,
+        8.705469
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "op1112-517",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        -7.0500006675720215,
+        7.949999809265137,
+        8.70546817779541
+      ],
+      "deviationM": [
+        -6.675720216620107e-7,
+        -1.9073486257070726e-7,
+        -8.222045906336461e-7
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "secondary-55-axis",
+      "runtime": [
+        7.05,
+        7.949999999999999,
+        8.705469
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "op1112-517",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        7.049999713897705,
+        7.949999809265137,
+        8.705470085144043
+      ],
+      "deviationM": [
+        -2.861022947442393e-7,
+        -1.9073486257070726e-7,
+        0.0000010851440421788539
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "secondary-56-axis",
+      "runtime": [
+        0,
+        10.05,
+        42.24948
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "op1112-517",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        -0.00000318974707624875,
+        10.050000190734863,
+        42.249481201171875
+      ],
+      "deviationM": [
+        -0.00000318974707624875,
+        1.9073486257070726e-7,
+        0.0000012011718766302693
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    }
+  ],
+  "passed": true,
+  "historicalAccuracy": "Not certified. Tolerances validate authored targets; source uncertainty and discrepancies remain separate."
+}

@@ -12,6 +12,7 @@ import { dispersedDirection, dispersedSpeed, travelFactor, velocityPenetration }
 import { BATTLE_SPAWN_DISTANCE, deployment, MAX_TEAM_SHIPS, validateSpawnDistance, type BattleFleet, type BattleResult, type FleetActor, type Team } from './battle';
 import { botAim, botAmmunition, botDidFire, botGunRange, botHelm, botReadyToFire, botTarget, botTorpedoAim, clearFiringLane, createBotState, shipVelocity, updateBot } from './bots';
 import { clearTorpedoLane, createTubeState, damageTorpedoHit, firstTorpedoHit, torpedoIntercept, tubeSolution, type Torpedo } from './torpedoes';
+import { createSubmarineState, stepSubmarine, submarinePropulsion } from './submarine';
 import { resolveShipCollisions } from './collisions';
 import { createDamage, systemHealth, updateFlooding, type BallisticEffectData, type DamageEvent, type Shell, type ImpactRecord, type DefeatCause } from './damage';
 
@@ -25,6 +26,7 @@ export interface CombatTelemetry {
   control: ControlState; targetFires: number; controlTargets: { id: string; name: string }[];
   targetMounts: { id: string; name: string; condition: number }[];
   targetId: string; targetName: string; targetRange: number;
+  targetDepthM?: number;
   contacts: { id: string; name: string; shipId: string; team: Team; controller: FleetActor['controller']; targetId?: string; x: number; z: number; heading: number; integrity: number; sunk: boolean; status: VesselStatus; combatLost: boolean }[];
   battle: boolean; result: BattleResult; playerSunk: boolean;
   targetPower: number; targetSteering: number; targetSunk: boolean; targetUnderway: boolean;
@@ -33,6 +35,7 @@ export interface CombatTelemetry {
   playerIntegrity: number;
   playerMaxIntegrity: number;
   playerWater: number;
+  submarine?: { depthM: number; targetDepthM: number; verticalSpeed: number; ballastM3: number; ballastFraction: number; emergencyBlow: boolean; propulsion: 'Diesel' | 'Electric'; maxDepthM: number; periscopeDepthM: number; maxTorpedoDepthM: number };
   targetDefeatCause?: DefeatCause;
   shellHistory: ShellHistory[];
   playerDamageDealt: number;
@@ -107,6 +110,7 @@ export class CombatSimulation {
   private createActor(id: string, definition: ShipDefinition, team: Team, controller: FleetActor['controller']): FleetActor {
     return { definition, team, controller, motion: createShipState(id), mounts: definition.mounts.map(createMountState), damage: createDamage(definition),
       torpedoTubes: (definition.torpedoTubes ?? []).map(createTubeState), tubeLaunchCooldown: 0,
+      ...(definition.submarine ? { submarine: createSubmarineState() } : {}),
       ...(controller === 'bot' ? { bot: createBotState(id, definition, this.seed) } : {}) };
   }
   private createTarget() {
@@ -223,7 +227,8 @@ export class CombatSimulation {
     }
     for (const actor of this.actors) {
       const def = actor.definition;
-      stepShip(actor.motion, commands.get(actor)!, def.handling, systemHealth(actor, def, 'engine'), systemHealth(actor, def, 'steering'));
+      const propulsion = submarinePropulsion(actor, def);
+      stepShip(actor.motion, commands.get(actor)!, propulsion?.handling ?? def.handling, propulsion?.power ?? systemHealth(actor, def, 'engine'), systemHealth(actor, def, 'steering'));
     }
     resolveShipCollisions(this.actors);
     for (const actor of this.actors) resolveLandContact(actor, this.islands);
@@ -293,6 +298,7 @@ export class CombatSimulation {
       updateDamageControl(actor, actor.definition, FIXED_DT, event => this.emit(event));
       const wasSunk = actor.damage.sunk;
       updateFlooding(actor, actor.definition, FIXED_DT);
+      stepSubmarine(actor, actor.definition, commands.get(actor)!, FIXED_DT);
       updateCapability(actor, actor.definition);
       if ((actor.damage.sunk || actor.damage.stability.combatLost) && !this.creditedLosses.has(actor.motion.id)) {
         this.creditedLosses.add(actor.motion.id);
@@ -354,6 +360,7 @@ export class CombatSimulation {
       ammunitionStock: (battery === 'torpedo' ? [] : mounts).reduce((stock, m) => { const s = this.player.mounts.find(s => s.id === m.id)!; stock.ap += availableAmmunition(s, 'ap'); stock.he += availableAmmunition(s, 'he'); return stock; }, { ap: 0, he: 0 }),
       targetMounts: this.target.definition.mounts.map((m, i) => ({ id: m.id, name: m.name, condition: this.target.mounts[i].hp / 100 })),
       targetId: this.target.motion.id, targetName: this.target.definition.name,
+      ...(this.target.submarine ? { targetDepthM: Math.max(0, -this.target.motion.y) } : {}),
       targetRange: Math.hypot(this.target.motion.x - this.ship.x, this.target.motion.z - this.ship.z),
       battle: this.isBattle, result: this.result, playerSunk: this.player.damage.sunk,
       contacts: this.actors.map(actor => ({ id: actor.motion.id, shipId: actor.definition.id, name: actor.definition.name, team: actor.team, controller: actor.controller,
@@ -367,6 +374,13 @@ export class CombatSimulation {
       playerIntegrity: this.player.damage.integrity / this.player.damage.maxIntegrity,
       playerMaxIntegrity: this.player.damage.maxIntegrity, playerDamageDealt: this.playerDamageDealt, playerFrags: this.playerFrags,
       playerWater: this.player.damage.compartments.reduce((n, c) => n + c.waterM3, 0),
+      ...(this.player.submarine && this.definition.submarine ? { submarine: {
+        depthM: Math.max(0, -this.ship.y), targetDepthM: this.player.submarine.targetDepthM,
+        verticalSpeed: this.ship.verticalSpeed ?? 0, ballastM3: this.player.submarine.ballastM3,
+        ballastFraction: this.player.submarine.ballastM3 / this.definition.submarine.ballastCapacityM3,
+        emergencyBlow: this.player.submarine.emergencyBlow, propulsion: this.ship.y < -.5 ? 'Electric' as const : 'Diesel' as const,
+        maxDepthM: this.definition.submarine.maxDepthM, periscopeDepthM: this.definition.submarine.periscopeDepthM, maxTorpedoDepthM: this.definition.submarine.maxTorpedoDepthM,
+      } } : {}),
       targetDefeatCause: this.target.damage.defeatCause,
       shellHistory: this.shellHistory.filter(h => h.impacts.some(i => i.shipId === this.target.motion.id)).slice(-8).reverse().map(h => ({ ...h, impacts: h.impacts.filter(i => i.shipId === this.target.motion.id).map(i => ({ ...i, position: [...i.position] })) })),
       targetPosition: { x: this.target.motion.x, z: this.target.motion.z, heading: this.target.motion.heading },

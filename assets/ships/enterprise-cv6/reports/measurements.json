@@ -1,0 +1,2237 @@
+{
+  "schemaVersion": 1,
+  "contentHash": "9cd4b6e40f07716d9f28bbd7852ca341327745cc5a3244c96bc548e1b279b44b",
+  "modelSha256": "806789bed64aa2bbf95d232dcac602e50c1596bd6f6b6850596e671e47267c75",
+  "specRevision": "fleet-fidelity-01",
+  "dimensions": [
+    {
+      "id": "length",
+      "metric": "hull.length",
+      "target": 246.7356,
+      "tolerance": 0.025,
+      "units": "m",
+      "sourceId": "cv6-contract-1934",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.5,
+      "measured": 246.735595703125,
+      "deviation": -0.000004296875005138645,
+      "passed": true
+    },
+    {
+      "id": "beam",
+      "metric": "hull.beam",
+      "target": 28.0416,
+      "tolerance": 0.025,
+      "units": "m",
+      "sourceId": "cv6-contract-1934",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.5,
+      "measured": 28.04160785675049,
+      "deviation": 0.000007856750489310116,
+      "passed": true
+    },
+    {
+      "id": "draft",
+      "metric": "hull.draft",
+      "target": 7.9121,
+      "tolerance": 0.025,
+      "units": "m",
+      "sourceId": "cv6-contract-1934",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.5,
+      "measured": 7.912099838256836,
+      "deviation": -1.6174316375128228e-7,
+      "passed": true
+    }
+  ],
+  "geometry": {
+    "triangles": 10842,
+    "degenerate": 0,
+    "nonManifoldEdges": 0,
+    "watertight": true
+  },
+  "spaces": [
+    {
+      "id": "fore-magazine",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "boilers-forward",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "boilers-aft",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "turbines",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "aft-magazine",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "steering-space",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "forward-void",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "after-void",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-1-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-1-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-1-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-1-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-2-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-2-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-2-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-2-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-2-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-2-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-2-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-2-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-2-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-2-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-3-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-3-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-3-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-3-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-4-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-4-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-4-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-4-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-4-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-4-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-4-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-4-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-4-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-4-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-4-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-4-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-5-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-5-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-5-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-5-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-5-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-5-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-5-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-5-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-5-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-5-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-5-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-5-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-6-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-6-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-6-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-6-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-6-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-6-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-6-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-6-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-6-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-6-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-6-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-6-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-7-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-7-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-7-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-7-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-7-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-7-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-7-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-7-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-7-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-7-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-7-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-7-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-8-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-8-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-8-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-8-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-8-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-8-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-8-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-8-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-8-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-8-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-9-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-9-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-9-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-9-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-9-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-9-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-9-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-9-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-9-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-9-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-10-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-10-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-10-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-10-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-port-10-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-strip-starboard-10-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-bow-0",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-bow-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-bow-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-bow-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-bow-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-bow-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-stern-1",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-stern-2",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-stern-3",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-stern-4",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "flood-end-stern-5",
+      "cells": 1,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-0-0",
+      "cells": 140,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-0-1",
+      "cells": 224,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-0-2",
+      "cells": 228,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-1-0",
+      "cells": 140,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-1-1",
+      "cells": 224,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-1-2",
+      "cells": 228,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-0-0",
+      "cells": 232,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-0-1",
+      "cells": 211,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-0-2",
+      "cells": 48,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-1-0",
+      "cells": 232,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-1-1",
+      "cells": 211,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-1-2",
+      "cells": 48,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-0-0",
+      "cells": 238,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-0-1",
+      "cells": 121,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-0-2",
+      "cells": 9,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-1-0",
+      "cells": 238,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-1-1",
+      "cells": 121,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-1-2",
+      "cells": 9,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-0-0",
+      "cells": 170,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-0-1",
+      "cells": 361,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-0-2",
+      "cells": 91,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-1-0",
+      "cells": 170,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-1-1",
+      "cells": 361,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-1-2",
+      "cells": 91,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    }
+  ],
+  "probes": [
+    {
+      "id": "midship-belt",
+      "from": [
+        -45,
+        -0.5,
+        0
+      ],
+      "to": [
+        45,
+        -0.5,
+        0
+      ],
+      "caliberM": 0.127,
+      "basis": "Geometric resistance probe at the stated caliber; no launch velocity, drag or fuze outcome.",
+      "layers": [
+        {
+          "id": "band-4-belt--1-5-1",
+          "name": "Port main belt",
+          "t": 0.36095050650543875,
+          "point": [
+            -12.51445441451051,
+            -0.5,
+            0
+          ],
+          "normal": [
+            0.9997359201339122,
+            0.013668128850416548,
+            0.018473555362423268
+          ],
+          "onEdge": false,
+          "thicknessMm": 101.6,
+          "material": "steel",
+          "resistanceMm": 101.62683760166476,
+          "ricochet": false
+        },
+        {
+          "id": "band-4-belt-1-5-1",
+          "name": "Starboard main belt",
+          "t": 0.6390494934945612,
+          "point": [
+            12.51445441451051,
+            -0.5,
+            0
+          ],
+          "normal": [
+            0.9997359201339122,
+            -0.013668128850416548,
+            -0.018473555362423268
+          ],
+          "onEdge": false,
+          "thicknessMm": 101.6,
+          "material": "steel",
+          "resistanceMm": 101.62683760166476,
+          "ricochet": false
+        }
+      ]
+    },
+    {
+      "id": "protected-deck",
+      "from": [
+        0,
+        60,
+        20
+      ],
+      "to": [
+        0,
+        -20,
+        20
+      ],
+      "caliberM": 0.127,
+      "basis": "Geometric resistance probe at the stated caliber; no launch velocity, drag or fuze outcome.",
+      "layers": [
+        {
+          "id": "protective-deck",
+          "name": "Protective deck",
+          "t": 0.72375,
+          "point": [
+            0,
+            2.1000000000000014,
+            20
+          ],
+          "normal": [
+            0,
+            1,
+            0
+          ],
+          "onEdge": false,
+          "thicknessMm": 38.1,
+          "material": "steel",
+          "resistanceMm": 38.1,
+          "ricochet": false
+        }
+      ]
+    }
+  ],
+  "structuralProbes": [
+    {
+      "id": "bow",
+      "from": [
+        -45,
+        10,
+        -115.3678
+      ],
+      "to": [
+        45,
+        10,
+        -115.3678
+      ],
+      "expectHit": true,
+      "hits": [
+        {
+          "id": "hull",
+          "point": [
+            -5.9745750997248805,
+            10,
+            -115.3678
+          ],
+          "thicknessMm": 15.875,
+          "hull": true
+        },
+        {
+          "id": "hull",
+          "point": [
+            5.974575099724873,
+            10,
+            -115.3678
+          ],
+          "thicknessMm": 15.875,
+          "hull": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "stern",
+      "from": [
+        -45,
+        7,
+        115.3678
+      ],
+      "to": [
+        45,
+        7,
+        115.3678
+      ],
+      "expectHit": true,
+      "hits": [
+        {
+          "id": "hull",
+          "point": [
+            -8.272720696719205,
+            7,
+            115.3678
+          ],
+          "thicknessMm": 15.875,
+          "hull": true
+        },
+        {
+          "id": "hull",
+          "point": [
+            8.272720696719198,
+            7,
+            115.3678
+          ],
+          "thicknessMm": 15.875,
+          "hull": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "bridge",
+      "from": [
+        -45,
+        22,
+        -15
+      ],
+      "to": [
+        45,
+        22,
+        -15
+      ],
+      "expectHit": true,
+      "hits": [
+        {
+          "id": "flag-bridge",
+          "point": [
+            8.534399999999998,
+            22,
+            -15
+          ],
+          "thicknessMm": 6,
+          "hull": false
+        },
+        {
+          "id": "flag-bridge",
+          "point": [
+            13.563600000000001,
+            22,
+            -15
+          ],
+          "thicknessMm": 6,
+          "hull": false
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "empty-air",
+      "from": [
+        -45,
+        65,
+        0
+      ],
+      "to": [
+        45,
+        65,
+        0
+      ],
+      "expectHit": false,
+      "hits": [],
+      "passed": true
+    }
+  ],
+  "landmarks": [
+    {
+      "id": "five-inch-port-1-axis",
+      "runtime": [
+        -12.65,
+        15.991900000000001,
+        -82
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        -12.649993896484375,
+        15.991899490356445,
+        -82
+      ],
+      "deviationM": [
+        0.000006103515625355271,
+        -5.09643555801631e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "five-inch-port-2-axis",
+      "runtime": [
+        -12.65,
+        17.0919,
+        -74
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        -12.649993896484375,
+        17.091899871826172,
+        -74
+      ],
+      "deviationM": [
+        0.000006103515625355271,
+        -1.281738271075028e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "five-inch-port-3-axis",
+      "runtime": [
+        -12.65,
+        15.991900000000001,
+        99
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        -12.650007247924805,
+        15.991899490356445,
+        99
+      ],
+      "deviationM": [
+        -0.000007247924804332229,
+        -5.09643555801631e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "five-inch-port-4-axis",
+      "runtime": [
+        -12.65,
+        17.0919,
+        107
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        -12.650007247924805,
+        17.091899871826172,
+        107
+      ],
+      "deviationM": [
+        -0.000007247924804332229,
+        -1.281738271075028e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "five-inch-starboard-1-axis",
+      "runtime": [
+        12.65,
+        15.991900000000001,
+        -82
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        12.650005340576172,
+        15.991899490356445,
+        -82
+      ],
+      "deviationM": [
+        0.000005340576171519729,
+        -5.09643555801631e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "five-inch-starboard-2-axis",
+      "runtime": [
+        12.65,
+        17.0919,
+        -74
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        12.650005340576172,
+        17.091899871826172,
+        -74
+      ],
+      "deviationM": [
+        0.000005340576171519729,
+        -1.281738271075028e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "five-inch-starboard-3-axis",
+      "runtime": [
+        12.65,
+        15.991900000000001,
+        99
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        12.649991989135742,
+        15.991899490356445,
+        99
+      ],
+      "deviationM": [
+        -0.000008010864258167771,
+        -5.09643555801631e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "five-inch-starboard-4-axis",
+      "runtime": [
+        12.65,
+        17.0919,
+        107
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        12.649991989135742,
+        17.091899871826172,
+        107
+      ],
+      "deviationM": [
+        -0.000008010864258167771,
+        -1.281738271075028e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "quad-fore-lower-axis",
+      "runtime": [
+        11.8,
+        17.7419,
+        -38.4048
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        11.800003051757812,
+        17.741901397705078,
+        -38.40480041503906
+      ],
+      "deviationM": [
+        0.0000030517578117894573,
+        0.000001397705077010869,
+        -4.150390608970156e-7
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "quad-fore-upper-axis",
+      "runtime": [
+        10.4,
+        19.8755,
+        -35.9664
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        10.400002479553223,
+        19.875499725341797,
+        -35.966400146484375
+      ],
+      "deviationM": [
+        0.0000024795532223009786,
+        -2.746582019597099e-7,
+        -1.464843748522071e-7
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "quad-aft-lower-axis",
+      "runtime": [
+        12,
+        17.7419,
+        21.336
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        11.999998092651367,
+        17.741901397705078,
+        21.336000442504883
+      ],
+      "deviationM": [
+        -0.0000019073486328125,
+        0.000001397705077010869,
+        4.425048842904289e-7
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "quad-aft-upper-axis",
+      "runtime": [
+        10.5,
+        19.8755,
+        16.4592
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        10.499999046325684,
+        19.875499725341797,
+        16.459199905395508
+      ],
+      "deviationM": [
+        -9.5367431640625e-7,
+        -2.746582019597099e-7,
+        -9.460449135190174e-8
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-port-1-axis",
+      "runtime": [
+        -14.2,
+        16.9419,
+        116
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        -14.200008392333984,
+        16.9419002532959,
+        116
+      ],
+      "deviationM": [
+        -0.000008392333985085543,
+        2.532958980339117e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-port-2-axis",
+      "runtime": [
+        -14.2,
+        16.9419,
+        112
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        -14.200008392333984,
+        16.9419002532959,
+        112
+      ],
+      "deviationM": [
+        -0.000008392333985085543,
+        2.532958980339117e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-port-3-axis",
+      "runtime": [
+        -14.2,
+        16.9419,
+        66
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        -14.200004577636719,
+        16.9419002532959,
+        66
+      ],
+      "deviationM": [
+        -0.000004577636719460543,
+        2.532958980339117e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-port-4-axis",
+      "runtime": [
+        -14.2,
+        16.9419,
+        61
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        -14.200004577636719,
+        16.9419002532959,
+        61
+      ],
+      "deviationM": [
+        -0.000004577636719460543,
+        2.532958980339117e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-port-5-axis",
+      "runtime": [
+        -14.2,
+        16.9419,
+        56
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        -14.200003623962402,
+        16.9419002532959,
+        56
+      ],
+      "deviationM": [
+        -0.0000036239624030542927,
+        2.532958980339117e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-port-6-axis",
+      "runtime": [
+        -14.2,
+        16.9419,
+        51
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        -14.200003623962402,
+        16.9419002532959,
+        51
+      ],
+      "deviationM": [
+        -0.0000036239624030542927,
+        2.532958980339117e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-port-7-axis",
+      "runtime": [
+        -14.2,
+        16.9419,
+        46
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        -14.200003623962402,
+        16.9419002532959,
+        46
+      ],
+      "deviationM": [
+        -0.0000036239624030542927,
+        2.532958980339117e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-port-8-axis",
+      "runtime": [
+        -14.2,
+        16.9419,
+        41
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        -14.200002670288086,
+        16.9419002532959,
+        41
+      ],
+      "deviationM": [
+        -0.0000026702880866480427,
+        2.532958980339117e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-port-9-axis",
+      "runtime": [
+        -14.2,
+        16.9419,
+        -48
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        -14.199995994567871,
+        16.9419002532959,
+        -48
+      ],
+      "deviationM": [
+        0.000004005432128195707,
+        2.532958980339117e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-port-10-axis",
+      "runtime": [
+        -14.2,
+        16.9419,
+        -53
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        -14.199995994567871,
+        16.9419002532959,
+        -53
+      ],
+      "deviationM": [
+        0.000004005432128195707,
+        2.532958980339117e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-port-11-axis",
+      "runtime": [
+        -14.2,
+        16.9419,
+        -58
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        -14.199995040893555,
+        16.9419002532959,
+        -58
+      ],
+      "deviationM": [
+        0.000004959106444601957,
+        2.532958980339117e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-port-12-axis",
+      "runtime": [
+        -14.2,
+        16.9419,
+        -63
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        -14.199995040893555,
+        16.9419002532959,
+        -63
+      ],
+      "deviationM": [
+        0.000004959106444601957,
+        2.532958980339117e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-starboard-1-axis",
+      "runtime": [
+        14.2,
+        16.9419,
+        116
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        14.199991226196289,
+        16.9419002532959,
+        116
+      ],
+      "deviationM": [
+        -0.000008773803710226957,
+        2.532958980339117e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-starboard-2-axis",
+      "runtime": [
+        14.2,
+        16.9419,
+        112
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        14.199991226196289,
+        16.9419002532959,
+        112
+      ],
+      "deviationM": [
+        -0.000008773803710226957,
+        2.532958980339117e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-starboard-3-axis",
+      "runtime": [
+        14.2,
+        16.9419,
+        66
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        14.199995040893555,
+        16.9419002532959,
+        66
+      ],
+      "deviationM": [
+        -0.000004959106444601957,
+        2.532958980339117e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-starboard-4-axis",
+      "runtime": [
+        14.2,
+        16.9419,
+        61
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        14.199995040893555,
+        16.9419002532959,
+        61
+      ],
+      "deviationM": [
+        -0.000004959106444601957,
+        2.532958980339117e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-starboard-5-axis",
+      "runtime": [
+        14.2,
+        16.9419,
+        56
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        14.199995994567871,
+        16.9419002532959,
+        56
+      ],
+      "deviationM": [
+        -0.000004005432128195707,
+        2.532958980339117e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-starboard-6-axis",
+      "runtime": [
+        14.2,
+        16.9419,
+        51
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        14.199995994567871,
+        16.9419002532959,
+        51
+      ],
+      "deviationM": [
+        -0.000004005432128195707,
+        2.532958980339117e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-starboard-7-axis",
+      "runtime": [
+        14.2,
+        16.9419,
+        46
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        14.199995994567871,
+        16.9419002532959,
+        46
+      ],
+      "deviationM": [
+        -0.000004005432128195707,
+        2.532958980339117e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-starboard-8-axis",
+      "runtime": [
+        14.2,
+        16.9419,
+        41
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        14.199996948242188,
+        16.9419002532959,
+        41
+      ],
+      "deviationM": [
+        -0.0000030517578117894573,
+        2.532958980339117e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-starboard-9-axis",
+      "runtime": [
+        14.2,
+        16.9419,
+        -48
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        14.200003623962402,
+        16.9419002532959,
+        -48
+      ],
+      "deviationM": [
+        0.0000036239624030542927,
+        2.532958980339117e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-starboard-10-axis",
+      "runtime": [
+        14.2,
+        16.9419,
+        -53
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        14.200003623962402,
+        16.9419002532959,
+        -53
+      ],
+      "deviationM": [
+        0.0000036239624030542927,
+        2.532958980339117e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-starboard-11-axis",
+      "runtime": [
+        14.2,
+        16.9419,
+        -58
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        14.200004577636719,
+        16.9419002532959,
+        -58
+      ],
+      "deviationM": [
+        0.000004577636719460543,
+        2.532958980339117e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-starboard-12-axis",
+      "runtime": [
+        14.2,
+        16.9419,
+        -63
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        14.200004577636719,
+        16.9419002532959,
+        -63
+      ],
+      "deviationM": [
+        0.000004577636719460543,
+        2.532958980339117e-7,
+        0
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-island-1-axis",
+      "runtime": [
+        15.5,
+        17.591900000000003,
+        7
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        15.499999046325684,
+        17.591901779174805,
+        7.000000953674316
+      ],
+      "deviationM": [
+        -9.5367431640625e-7,
+        0.0000017791748021522835,
+        9.5367431640625e-7
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-island-2-axis",
+      "runtime": [
+        15.5,
+        17.591900000000003,
+        2
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        15.5,
+        17.591901779174805,
+        2.0000011920928955
+      ],
+      "deviationM": [
+        0,
+        0.0000017791748021522835,
+        0.0000011920928955078125
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-island-3-axis",
+      "runtime": [
+        15.5,
+        17.591900000000003,
+        -3
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        15.5,
+        17.591901779174805,
+        -2.9999988079071045
+      ],
+      "deviationM": [
+        0,
+        0.0000017791748021522835,
+        0.0000011920928955078125
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-island-4-axis",
+      "runtime": [
+        15.5,
+        17.591900000000003,
+        -8
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        15.500000953674316,
+        17.591901779174805,
+        -7.999999046325684
+      ],
+      "deviationM": [
+        9.5367431640625e-7,
+        0.0000017791748021522835,
+        9.5367431640625e-7
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-island-5-axis",
+      "runtime": [
+        15.5,
+        17.591900000000003,
+        -13
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        15.500000953674316,
+        17.591901779174805,
+        -12.999999046325684
+      ],
+      "deviationM": [
+        9.5367431640625e-7,
+        0.0000017791748021522835,
+        9.5367431640625e-7
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    },
+    {
+      "id": "oerlikon-island-6-axis",
+      "runtime": [
+        15.5,
+        17.591900000000003,
+        -18
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty.",
+      "measured": [
+        15.500000953674316,
+        17.591901779174805,
+        -17.999998092651367
+      ],
+      "deviationM": [
+        9.5367431640625e-7,
+        0.0000017791748021522835,
+        0.0000019073486328125
+      ],
+      "passed": true,
+      "status": "measured exported landmark or yaw centre and axis height"
+    }
+  ],
+  "passed": true,
+  "historicalAccuracy": "Not certified. Tolerances validate authored targets; source uncertainty and discrepancies remain separate."
+}
