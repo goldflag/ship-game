@@ -30,6 +30,16 @@ S-06-2 p.10 independently confirms 263 m LOA, 256 m waterline length, 36.9 m wat
 
 The museum director's [bridge reconstruction account](https://yamato-museum.com/note/post_14/) states that surviving drawings differ and that its own reconstruction is not 100%. The museum's [drawing guide](https://yamatomuseum.securesite.jp/et/?page_id=1142) describes the destruction of most originals and the later discovery of bridge drawings. No amount of successful export validation supplies that missing historical evidence.
 
+## Combat opening-salvo review, 2026-09-05
+
+The three main magazine envelopes are 9 m high, centered at Y=-2 m, and extend to Y=+2.5 m. These provisional boxes and the uniform 410 mm citadel proxy expose multiple magazines to bow-on shots aimed near the waterline. Their vertical boundaries and protection remain unresolved authoring work; the simulation correction does not establish historical accuracy.
+
+A renderer-free custom battle with stationary Yamato against one Bismarck reproduced sinking at 6.1 seconds from 5 km, and 1.25 seconds from 1 km. Two automatic 450 HP magazine explosions plus 112 HP of hull penetration damage exhausted the common 1,000 HP hull pool. Continuing with reduced explosion damage revealed that the same four shells could destroy four magazines by applying full module damage repeatedly along their paths.
+
+The shared simulation now spends a finite internal damage budget per shell and tunes each magazine explosion to 150 HP, retaining mount disablement and flooding. Replaying both distances leaves Yamato afloat at 10 seconds with 588/1,000 HP and two lost magazines. Regression coverage exercises actual bot deployment, aiming, shell flight, armor and damage at 1 km and 5 km. All 189 tests and `bun run build` pass. This is provisional gameplay tuning; the internal layout, penetration model and lack of gun dispersion still need separate review.
+
+The subsequent displacement-based hull HP change gives Yamato 1,750 HP from its authored 69,935 tonne mass. The later small-ship balance adjustment uses 300 base HP plus a square-root displacement bonus; Yamato remains at 1,750 HP. The same opening salvo now leaves 1,338 HP; the earlier 588/1,000 result above records the damage-rule correction before HP scaling. This formula changes gameplay endurance, not the unresolved magazine geometry.
+
 ## Visual review, build b81a8d55e9fd
 
 Profile, plan, quarter, bow and stern inspected. Corrected rear turret roof AA attachment, forefoot faceting, waterline width/length, unsupported stern AA, closed boat bays, screw diameter, rudder outline and single radar array. Bridge galleries, navigation glazing, conning tower, curved funnel uptake, six searchlight stations and rounded boat-bay ends have since been revised from museum references. Remaining visible discrepancies include simplified secondary gunhouses, AA shields, aft director, stern machinery and fittings, plus unverified positions and profiles across the model. Those are open historical/modeling work, not passed items.

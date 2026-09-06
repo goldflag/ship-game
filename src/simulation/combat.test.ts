@@ -114,6 +114,24 @@ test('armor resolves before internal damage, and a surface/module is only charge
   hitShip(shell, from, to, sim.target, def, () => {});
   expect(sim.target.damage.modules[0].hp).toBe(hp);
 });
+test('a shell spends one internal damage budget across modules and tick boundaries', () => {
+  for (const split of [false, true]) {
+    const def = definition();
+    def.armor = []; def.mounts = []; delete def.structuralPlating;
+    def.modules = [30, 100, 100].map((hp, i) => ({
+      id: `engine-${i}`, name: `Engine ${i}`, kind: 'engine' as const,
+      center: [i * 20, 0, 0] as Vec3, size: [10, 10, 10] as Vec3, hp,
+      compartmentId: def.compartments[0].id,
+    }));
+    const sim = new CombatSimulation(def), shell = round();
+    const events: DamageEvent[] = [];
+    if (split) expect(hitShip(shell, [-20, 0, 0], [10, 0, 0], sim.player, def, e => events.push(e))).toBe(false);
+    expect(hitShip(shell, [split ? 10 : -20, 0, 0], [60, 0, 0], sim.player, def, e => events.push(e))).toBe(true);
+    expect(sim.player.damage.modules.map(m => m.hp)).toEqual([0, 60, 100]);
+    expect(events.filter(e => e.kind === 'module')).toHaveLength(2);
+  }
+});
+
 test('flood connections conserve water with pumps/leaks disabled and list follows the flooded side', () => {
   const def = definition();
   def.connections = [{ fromId:def.compartments[0].id, toId:def.compartments[2].id, areaM2:.05 }]; // Explicit damaged connection fixture.
@@ -136,7 +154,7 @@ test('aimed salvos obey reloads and ammunition while damaging the target', () =>
   expect(sim.player.mounts.slice(0, 4).every(m => m.ammo === 238)).toBe(true);
   expect(sim.target.damage.modules.find(m => m.id === 'engine-port')!.hp).toBe(140);
   expect(sim.events.some(e => e.kind === 'stopped' && e.message.includes('Turtleback'))).toBe(true);
-  expect(sim.target.damage.integrity).toBeLessThan(1000);
+  expect(sim.target.damage.integrity).toBeLessThan(sim.target.damage.maxIntegrity);
   expect(sim.target.damage.compartments.some(c => c.breachAreaM2 > 0)).toBe(true);
   for (let i = 0; i < 200; i++) sim.step(stop, { aim: [NaN, 0, 0], fire: true, battery: 'main' });
   expect(sim.events.filter(e => e.kind === 'shot').length).toBe(8);
@@ -153,7 +171,7 @@ test('reset replaces the trial target state without invalidating renderer bindin
   const sim = new CombatSimulation(definition()), target = sim.target;
   target.damage.integrity = 0; target.motion.y = -15;
   sim.resetTarget();
-  expect(sim.target).toBe(target); expect(target.damage.integrity).toBe(1000); expect(target.motion.y).toBe(0);
+  expect(sim.target).toBe(target); expect(target.damage.integrity).toBe(target.damage.maxIntegrity); expect(target.motion.y).toBe(0);
 });
 test('shot and splash events retain matching caliber and independent velocity snapshots', () => {
   const sim = new CombatSimulation(definition()), aim: Vec3 = [450, .5, 0];
