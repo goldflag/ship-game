@@ -1,6 +1,6 @@
 // Fleet harbor. Progression, research, commander and refits are illustrative local state.
 import { useEffect, useState, type ReactNode } from "react";
-import { ArmorTooltip } from "./ArmorTooltip";
+import { InspectionTooltip } from "./InspectionTooltip";
 import { Icon } from "./Icons";
 import { SchematicDialog } from "./SchematicDialog";
 import "./Garage.css";
@@ -11,16 +11,19 @@ import type { ShipDefinition } from "../ships/blueprint";
 import { shipPresets, shipReviewUrls } from "../ships/presets";
 import type { InspectionMode } from "../ships/inspection";
 import { ModelViewControls, PortInspection } from "./PortInspection";
+import { HULL_REFIT_SURVIVABILITY_BONUS, ShipScores, ShipStatistics } from "./ShipStatistics";
+import { shipScores } from "../ships/statistics";
 
 type Section = "overview" | "equipment" | "commander" | "research";
 type ModuleId = "battery" | "hull" | "propulsion" | "director";
-const modulesFor = (selectedShip: ShipDefinition) =>
-  ({
+const modulesFor = (selectedShip: ShipDefinition) => {
+  const survivability = shipScores(selectedShip).find((s) => s.id === "survivability")!.score;
+  return {
     battery: {
       name: "Main battery",
-      model: selectedShip.mounts[0].weapon.name,
+      model: selectedShip.mounts[0]?.weapon.name ?? "No deck gun",
       icon: "turret",
-      detail: `${selectedShip.mounts.filter((m) => m.battery === "main").length} main battery mounts. Built for long-range engagements.`,
+      detail: `${selectedShip.mounts.filter((m) => m.battery === "main").length} main battery mounts.${selectedShip.torpedoTubes?.length ? " Deck gun for surface engagements; torpedoes are the primary striking arm." : " Built for long-range engagements."}`,
       upgrade: "Improved loading system",
       stat: "Reload time",
       standard: "26.0 s",
@@ -32,18 +35,18 @@ const modulesFor = (selectedShip: ShipDefinition) =>
       model: `${selectedShip.name} · ${selectedShip.configuration.match(/19\d{2}/)?.[0]}`,
       icon: "ship",
       detail:
-        "A heavily armored citadel protects the ship’s vital compartments.",
+        selectedShip.torpedoTubes?.length ? "An unarmored outer casing surrounds the pressure hull. This first version operates on the surface." : "A heavily armored citadel protects the ship’s vital compartments.",
       upgrade: "Reinforced compartmentation",
       stat: "Survivability",
-      standard: "84",
-      improved: "92",
+      standard: String(survivability),
+      improved: String(Math.min(100, survivability + HULL_REFIT_SURVIVABILITY_BONUS)),
       cost: 180000,
     },
     propulsion: {
       name: "Propulsion",
-      model: "Geared steam turbines",
+      model: selectedShip.torpedoTubes?.length ? "Diesels and electric motors" : "Geared steam turbines",
       icon: "propeller",
-      detail: "Three shafts deliver steady power for an Atlantic crossing.",
+      detail: selectedShip.torpedoTubes?.length ? "Twin shafts with diesel propulsion for surface operation." : "Three shafts deliver steady power for an Atlantic crossing.",
       upgrade: "Turbine calibration",
       stat: "Engine response",
       standard: "34.0 s",
@@ -62,7 +65,8 @@ const modulesFor = (selectedShip: ShipDefinition) =>
       improved: "80",
       cost: 110000,
     },
-  }) as const;
+  } as const;
+};
 const SHIPS = Object.values(shipPresets);
 type GarageGlyph =
   | "credits"
@@ -195,28 +199,6 @@ function ResourceWallet({ credits }: { credits: number }) {
     </div>
   );
 }
-function ShipStats({ improved = false }: { improved?: boolean }) {
-  return (
-    <div className="garage-ship-stats">
-      {[
-        ["Survivability", improved ? 92 : 84],
-        ["Artillery", 90],
-        ["Air defense", 58],
-        ["Maneuverability", 32],
-        ["Concealment", 43],
-      ].map(([label, value]) => (
-        <div key={label}>
-          <span>{label}</span>
-          <strong>{value}</strong>
-          <i>
-            <b style={{ width: `${value}%` }} />
-          </i>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 type GarageState = {
   inspection: InspectionMode;
   selectedVolume?: string;
@@ -383,6 +365,7 @@ function SideContent({ state }: { state: GarageState }) {
     return (
       <>
         <h2>Equipment</h2>
+        <ShipScores definition={selectedShip} hullRefit={state.fitted.hull} />
         <ModuleList state={state} />
         <RefitDetail state={state} />
       </>
@@ -418,31 +401,14 @@ function SideContent({ state }: { state: GarageState }) {
   return (
     <>
       <div className="garage-panel-title">
-        <h2>Ship characteristics</h2>
+        <h2>Statistics</h2>
         <span>VIII</span>
       </div>
-      <ShipStats improved={state.fitted.hull} />
-      <dl className="garage-specs">
-        <div>
-          <dt>Main battery</dt>
-          <dd>
-            {selectedShip.mounts
-              .filter((m) => m.battery === "main")
-              .reduce((n, m) => n + (m.weapon.barrelCount ?? 2), 0)}{" "}
-            × {Math.round(selectedShip.mounts[0].weapon.caliberM * 1000)} mm
-          </dd>
-        </div>
-        <div>
-          <dt>Length</dt>
-          <dd>{selectedShip.hull.length} m</dd>
-        </div>
-        <div>
-          <dt>Top speed</dt>
-          <dd>
-            {(selectedShip.handling.forwardSpeed * 1.943844).toFixed(1)} kn
-          </dd>
-        </div>
-      </dl>
+      <ShipStatistics
+        key={selectedShip.id}
+        definition={selectedShip}
+        hullRefit={state.fitted.hull}
+      />
       <button
         className="garage-text-button"
         onClick={() => state.setSection("equipment")}
@@ -494,7 +460,7 @@ function PortLayout({ state }: { state: GarageState }) {
   const SHIP_MODEL = shipModel(selectedShip);
   return (
     <div
-      className={`garage-layout garage-fleet-harbor ${state.inspection !== "exterior" ? "port-inspection-active" : ""}`}
+      className={`garage-layout garage-fleet-harbor ${state.inspection !== "exterior" ? "port-inspection-active" : state.section === "overview" ? "port-statistics-active" : ""}`}
     >
       <header className="garage-classic-header">
         <div className="garage-brand">
@@ -706,7 +672,7 @@ export function Garage({
     <div className="garage">
       <div className="garage-scene-shade" />
       <PortLayout state={state} />
-      <ArmorTooltip game={game} />
+      <InspectionTooltip game={game} />
       {schematic && <SchematicDialog onClose={() => setSchematic(false)} />}
       {(switching || switchError) && (
         <div className="garage-loading" role={switchError ? "alert" : "status"}>

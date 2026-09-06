@@ -1,0 +1,337 @@
+{
+  "audio": {
+    "failed": [],
+    "inPort": true,
+    "loaded": 13,
+    "paused": false,
+    "played": 4,
+    "settings": {
+      "effects": 0.8,
+      "interface": 0.65,
+      "master": 0.65,
+      "muted": false
+    },
+    "state": "running",
+    "total": 13,
+    "voices": 0
+  },
+  "backend": "webgpu",
+  "camera": {
+    "aim": [
+      270.8479991954886,
+      0.5,
+      -4.253383232964126
+    ],
+    "binoculars": false,
+    "fov": 52.00000000000001,
+    "magnification": 1,
+    "manualAim": true,
+    "matrixWorldInverse": [
+      0.32129634474976004,
+      -0.35611826392060897,
+      0.8774670597535926,
+      0,
+      -1.3877787807814457e-17,
+      0.9265964054541439,
+      0.37605731132296827,
+      0,
+      -0.9469787003150827,
+      -0.1208258395444923,
+      0.2977120381306831,
+      0,
+      6.0200788805745,
+      101.10526074199586,
+      -275.7126854182896,
+      1.0000000000000002
+    ],
+    "mode": "Chase",
+    "pointerLocked": false,
+    "position": [
+      276,
+      10,
+      100
+    ],
+    "projectionMatrix": [
+      1.633751346060547,
+      0,
+      0,
+      0,
+      0,
+      2.050303841579296,
+      0,
+      0,
+      0,
+      0,
+      -1.000050002500125,
+      -1,
+      0,
+      0,
+      -3.000150007500375,
+      0
+    ],
+    "shellFollow": "off"
+  },
+  "combat": {
+    "batteries": [
+      {
+        "ammo": 960,
+        "battery": "main",
+        "ready": 4,
+        "reload": 0,
+        "total": 4
+      },
+      {
+        "ammo": 1800,
+        "battery": "secondary",
+        "ready": 6,
+        "reload": 0,
+        "total": 6
+      }
+    ],
+    "battery": "main",
+    "battle": true,
+    "contacts": [
+      {
+        "controller": "player",
+        "heading": 0,
+        "id": "player",
+        "integrity": 1,
+        "name": "Bismarck",
+        "shipId": "bismarck",
+        "sunk": false,
+        "team": "friendly",
+        "x": 240,
+        "z": 0
+      },
+      {
+        "controller": "bot",
+        "heading": 3.141592653589793,
+        "id": "enemy-1",
+        "integrity": 1,
+        "name": "Bismarck",
+        "shipId": "bismarck",
+        "sunk": false,
+        "team": "enemy",
+        "x": 0,
+        "z": -1000
+      }
+    ],
+    "message": "Fire loaded guns at any time. Shells follow the barrels\u2019 current aim.",
+    "modules": [
+      {
+        "condition": 1,
+        "id": "boiler-aft-port-equipment",
+        "name": "Aft port boiler room \u00b7 two Wagner boilers"
+      },
+      {
+        "condition": 1,
+        "id": "boiler-aft-center-equipment",
+        "name": "Aft center boiler room \u00b7 two Wagner boilers"
+      },
+      {
+        "condition": 1,
+        "id": "boiler-aft-starboard-equipment",
+        "name": "Aft starboard boiler room \u00b7 two Wagner boilers"
+      },
+      {
+        "condition": 1,
+        "id": "boiler-forward-port-equipment",
+        "name": "Forward port boiler room \u00b7 two Wagner boilers"
+      },
+      {
+        "condition": 1,
+        "id": "boiler-forward-center-equipment",
+        "name": "Forward center boiler room \u00b7 two Wagner boilers"
+      },
+      {
+        "condition": 1,
+        "id": "boiler-forward-starboard-equipment",
+        "name": "Forward starboard boiler room \u00b7 two Wagner boilers"
+      },
+      {
+        "condition": 1,
+        "id": "engine-port",
+        "name": "Port turbine room"
+      },
+      {
+        "condition": 1,
+        "id": "engine-starboard",
+        "name": "Starboard turbine room"
+      },
+      {
+        "condition": 1,
+        "id": "engine-center",
+        "name": "Center turbine room"
+      },
+      {
+        "condition": 1,
+        "id": "anton-magazine",
+        "name": "Anton propellant magazines"
+      },
+      {
+        "condition": 1,
+        "id": "bruno-magazine",
+        "name": "Bruno propellant magazines"
+      },
+      {
+        "condition": 1,
+        "id": "caesar-magazine",
+        "name": "C\u00e4sar propellant magazines"
+      },
+      {
+        "condition": 1,
+        "id": "dora-magazine",
+        "name": "Dora propellant magazines"
+      },
+      {
+        "condition": 1,
+        "id": "steering",
+        "name": "Steering gear room"
+      },
+      {
+        "condition": 1,
+        "id": "shaft-port-equipment",
+        "name": "Port shaft passage"
+      },
+      {
+        "condition": 1,
+        "id": "shaft-center-equipment",
+        "name": "Center shaft passage"
+      },
+      {
+        "condition": 1,
+        "id": "shaft-starboard-equipment",
+        "name": "Starboard shaft passage"
+      }
+    ],
+    "mounts": [
+      {
+        "ammo": 240,
+        "id": "anton",
+        "name": "Anton",
+        "reload": 0,
+        "status": "ready"
+      },
+      {
+        "ammo": 240,
+        "id": "bruno",
+        "name": "Bruno",
+        "reload": 0,
+        "status": "ready"
+      },
+      {
+        "ammo": 240,
+        "id": "caesar",
+        "name": "C\u00e4sar",
+        "reload": 0,
+        "status": "ready"
+      },
+      {
+        "ammo": 240,
+        "id": "dora",
+        "name": "Dora",
+        "reload": 0,
+        "status": "ready"
+      }
+    ],
+    "playerDamageDealt": 0,
+    "playerFrags": 0,
+    "playerIntegrity": 1,
+    "playerSunk": false,
+    "playerWater": 0,
+    "range": 31.139851047995194,
+    "ready": 4,
+    "result": "active",
+    "targetId": "enemy-1",
+    "targetIntegrity": 1,
+    "targetName": "Bismarck",
+    "targetPosition": {
+      "heading": 3.141592653589793,
+      "x": 0,
+      "z": -1000
+    },
+    "targetPower": 1,
+    "targetRange": 1028.3968105745953,
+    "targetSteering": 1,
+    "targetSunk": false,
+    "targetUnderway": false,
+    "targetWater": 0,
+    "total": 4
+  },
+  "contentHash": "957a349026ab6dfccb0b6caa5469c6899066fe034d3e9563940ad0b8e336037b",
+  "effects": {
+    "flashes": 0,
+    "foam": 0,
+    "particleCapacity": 2272,
+    "shells": 0,
+    "smoke": 0,
+    "spray": 0
+  },
+  "events": [],
+  "fleet": [
+    {
+      "ammo": 2760,
+      "controller": "player",
+      "definitionId": "bismarck",
+      "id": "player",
+      "integrity": 1000,
+      "motion": {
+        "distance": 0,
+        "heading": 0,
+        "id": "player",
+        "pitch": 0,
+        "roll": 0,
+        "rudder": 0,
+        "speed": 0,
+        "swaySpeed": 0,
+        "tick": 0,
+        "x": 240,
+        "y": 0,
+        "yawRate": 0,
+        "z": 0
+      },
+      "team": "friendly"
+    },
+    {
+      "ammo": 2760,
+      "controller": "bot",
+      "definitionId": "bismarck",
+      "id": "enemy-1",
+      "integrity": 1000,
+      "motion": {
+        "distance": 0,
+        "heading": 3.141592653589793,
+        "id": "enemy-1",
+        "pitch": 0,
+        "roll": 0,
+        "rudder": 0,
+        "speed": 0,
+        "swaySpeed": 0,
+        "tick": 0,
+        "x": 0,
+        "y": 0,
+        "yawRate": 0,
+        "z": -1000
+      },
+      "team": "enemy"
+    }
+  ],
+  "fps": 239.9229136823124,
+  "inPort": true,
+  "inspecting": false,
+  "maxMuzzleErrorM": 0.0021605566983499656,
+  "paused": false,
+  "portInspection": "armor",
+  "renderedShips": [
+    {
+      "id": "player",
+      "visible": true
+    },
+    {
+      "id": "enemy-1",
+      "visible": false
+    }
+  ],
+  "shipId": "bismarck",
+  "tick": 0
+}
