@@ -1,0 +1,18 @@
+<!doctype html><html><meta charset="utf-8"><title>Aircraft distance regression</title><style>body{margin:0;background:#7893a8}canvas{display:block}</style><script type="module">
+import * as T from 'three/webgpu';
+import { AircraftView } from '/src/game/AircraftView.ts';
+import { CombatSimulation } from '/src/simulation/combat.ts';
+import { shipPreset } from '/src/ships/presets.ts';
+const renderer=new T.WebGPURenderer({antialias:true});renderer.setSize(1000,700);document.body.append(renderer.domElement);await renderer.init();
+const scene=new T.Scene();scene.background=new T.Color('#7893a8');scene.add(new T.HemisphereLight(0xffffff,0x536678,3));
+const sun=new T.DirectionalLight(0xffffff,3);sun.position.set(100,200,100);scene.add(sun);
+const camera=new T.PerspectiveCamera(52,1000/700,.5,60000);
+const sim=new CombatSimulation(shipPreset('enterprise-cv6'));sim.aircraft.forEach(p=>p.phase='lost');
+const plane=sim.player.airWing.planes[0];Object.assign(plane,{phase:'outbound',position:[0,300,0],previousPosition:[0,300,0],heading:0,pitch:0,bank:.2});plane.controls.gear=0;
+const view=new AircraftView();await view.load();view.resize(700);scene.add(view.root);
+let distance=120,model='f4f-4-wildcat',show=true,forcedDistance;
+renderer.setAnimationLoop(()=>{plane.modelId=model;camera.position.set(0,300,distance);camera.lookAt(0,300,0);camera.updateMatrixWorld();const lodCamera=camera.clone();if(forcedDistance!==undefined)lodCamera.position.set(0,300,forcedDistance);view.update(sim,lodCamera,show);renderer.render(scene,camera);});
+async function still(){for(let i=0;i<3;i++)await new Promise(requestAnimationFrame);return renderer.domElement.toDataURL('image/png');}
+async function pixels(){const source=new Image();source.src=await still();await source.decode();const c=document.createElement('canvas');c.width=1000;c.height=700;const ctx=c.getContext('2d');ctx.drawImage(source,0,0);return ctx.getImageData(0,0,1000,700).data;}
+window.aircraftDistanceReview={async sample(range,id='f4f-4-wildcat',lodDistance){distance=range;model=id;forcedDistance=lodDistance;show=false;const blank=await pixels();show=true;const drawn=await pixels();let changed=0,contrast=0;for(let i=0;i<drawn.length;i+=4){const d=Math.abs(drawn[i]-blank[i])+Math.abs(drawn[i+1]-blank[i+1])+Math.abs(drawn[i+2]-blank[i+2]);if(d>15)changed++;contrast+=d;}return{distance,model,forcedDistance,changed,contrast,instances:view.diagnostics(),image:await still()};},view,plane,sim,camera};
+</script></html>

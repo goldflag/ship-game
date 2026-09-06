@@ -1,0 +1,67 @@
+[
+  {
+    "backend": "webgpu",
+    "changed": 27,
+    "contrast": 1564,
+    "distance": 800,
+    "rendered": {
+      "batches": 27,
+      "contacts": 1,
+      "instances": 1,
+      "models": 9,
+      "payloads": 0
+    }
+  },
+  {
+    "backend": "webgpu",
+    "changed": 30,
+    "contrast": 2548,
+    "distance": 1500,
+    "rendered": {
+      "batches": 27,
+      "contacts": 1,
+      "instances": 1,
+      "models": 9,
+      "payloads": 0
+    }
+  },
+  {
+    "backend": "webgpu",
+    "changed": 31,
+    "contrast": 3353,
+    "distance": 3000,
+    "rendered": {
+      "batches": 27,
+      "contacts": 1,
+      "instances": 1,
+      "models": 9,
+      "payloads": 0
+    }
+  },
+  {
+    "backend": "webgpu",
+    "changed": 31,
+    "contrast": 3075,
+    "distance": 6000,
+    "rendered": {
+      "batches": 27,
+      "contacts": 1,
+      "instances": 1,
+      "models": 9,
+      "payloads": 0
+    }
+  },
+  {
+    "backend": "webgpu",
+    "changed": 26,
+    "contrast": 1635,
+    "distance": 10000,
+    "rendered": {
+      "batches": 27,
+      "contacts": 1,
+      "instances": 1,
+      "models": 9,
+      "payloads": 0
+    }
+  }
+]
