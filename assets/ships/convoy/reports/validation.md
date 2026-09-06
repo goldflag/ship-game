@@ -2,6 +2,8 @@
 
 Reviewed 6 September 2026. Active designs: EC2-S-C1 Liberty Cargo, EC2-S-AW1 Liberty Collier, VC2-S-AP2 Victory Cargo and Cobalt-1941 Flower Corvette. Victory is a separate class. Deck-cargo/troopship originals remain archived; they are no longer active or shipped in the public download.
 
+The following is the original pre-merge review. See [merge integration validation](merge-validation.md) for the subsequent rebuild against the newer fleet pipeline, current hashes, exact geometry-continuity evidence and updated test results. Earlier browser captures retain their original hashes; they are not relabeled as new runs.
+
 ## Model and schematic review
 
 All four shared-pipeline `ship:build` and `ship:check` operations passed using **local Blender 5.2**. No Blender MCP tools were exposed to the agent. The saved original recipes, blueprints, joint/socket hierarchy and coordinate conversion remain authoritative. No Bismarck baseline or renderer-free simulation implementation was changed.
@@ -13,7 +15,7 @@ All four shared-pipeline `ship:build` and `ship:check` operations passed using *
 | Victory Cargo | 105,512 | 4,510,152 | 10 / 10 |
 | Flower Corvette | 60,688 | 2,575,744 | 4 / 6 |
 
-Current definition/recipe hashes:
+Reviewed pre-merge definition/recipe hashes:
 
 ```text
 liberty-cargo    dc7cf7f609078887adae273a39e5470c91fd27f21742ebae1d4c188ed66d1794
