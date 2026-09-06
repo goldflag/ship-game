@@ -28,15 +28,16 @@ const score = (sim: CombatSimulation) => {
 
 test('score counts actual enemy HP loss, caps overkill and awards a sinking once', () => {
   const sim = fixture();
+  const maxHp = sim.target.damage.maxIntegrity;
   hit(sim, sim.target, sim.player);
   expect(score(sim)).toEqual([20, 0]);
   hit(sim, sim.target, sim.player, 10000);
-  expect(score(sim)).toEqual([1000, 1]);
+  expect(score(sim)).toEqual([maxHp, 1]);
   for (let i = 0; i < 30; i++) sim.step(helm, intent);
   hit(sim, sim.target, sim.player);
-  expect(score(sim)).toEqual([1000, 1]);
+  expect(score(sim)).toEqual([maxHp, 1]);
   sim.selectTarget('enemy-2');
-  expect(score(sim)).toEqual([1000, 1]);
+  expect(score(sim)).toEqual([maxHp, 1]);
   sim.reset();
   expect(score(sim)).toEqual([0, 0]);
 });
