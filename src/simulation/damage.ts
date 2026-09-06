@@ -401,9 +401,25 @@ export function updateFlooding(actor: Combatant, def: ShipDefinition, dt: number
     const ay = waterLevel(actor, def, ai), by = waterLevel(actor, def, bi);
     const difference = connection.position ? Math.max(0, ay - portalY) - Math.max(0, by - portalY) : ay - by;
     const area = state.state === 'damaged' ? state.damageAreaM2 : connection.areaM2;
-    const equalization = Math.abs(difference) / (ac.size[1] / ac.capacityM3 + bc.size[1] / bc.capacityM3);
-    const requested = Math.min(equalization, .6 * area * Math.sqrt(2 * 9.81 * Math.abs(difference)) * dt);
-    const amount = difference > 0 ? Math.min(requested, a.waterM3, bc.capacityM3 - b.waterM3) : -Math.min(requested, b.waterM3, ac.capacityM3 - a.waterM3);
+    const direction = Math.sign(difference);
+    let requested = Math.min(.6 * area * Math.sqrt(2 * 9.81 * Math.abs(difference)) * dt,
+      direction > 0 ? a.waterM3 : b.waterM3, direction > 0 ? bc.capacityM3 - b.waterM3 : ac.capacityM3 - a.waterM3);
+    const remainingHead = (transfer: number) => {
+      const from = waterLevel(actor, def, ai, a.waterM3 - direction * transfer);
+      const to = waterLevel(actor, def, bi, b.waterM3 + direction * transfer);
+      return direction * (connection.position ? Math.max(0, from - portalY) - Math.max(0, to - portalY) : from - to);
+    };
+    // Only solve when flow would overshoot. The upright bounding-box area is
+    // not the waterplane area of a heeled or compound compartment.
+    if (requested > 0 && remainingHead(requested) < 0) {
+      let low = 0, high = requested;
+      for (let j = 0; j < 28; j++) {
+        const mid = (low + high) / 2;
+        if (remainingHead(mid) >= 0) low = mid; else high = mid;
+      }
+      requested = low;
+    }
+    const amount = direction * requested;
     a.waterM3 -= amount; b.waterM3 += amount;
   });
   const water = damage.compartments.reduce((n, c) => n + c.waterM3, 0);
