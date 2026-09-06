@@ -4,6 +4,7 @@ import { FIXED_DT, motionVelocity, type HelmCommand } from './ship';
 import { add, clamp, length, localToWorld, scale, sub, wrapAngle, type Pose } from './geometry';
 import { availableAmmunition, muzzleCenterWorld, solveBallistic, type MountDefinition, type MountState } from './weapons';
 import { travelFactor } from './ballistics';
+import { torpedoIntercept, type TubeDefinition } from './torpedoes';
 
 export const shipVelocity = (actor: FleetActor): Vec3 => motionVelocity(actor.motion);
 /** Provisional bot engagement limits, in meters; small AA fittings wait for close range. */
@@ -124,9 +125,18 @@ export function updateBot(actor: FleetActor, target: FleetActor | undefined, tim
   }
 }
 
-export function botReadyToFire(actor: FleetActor, mount: MountDefinition): boolean {
+/** Without a gun mount, only the shared target-acquisition delay applies (fixed tubes). */
+export function botReadyToFire(actor: FleetActor, mount?: MountDefinition): boolean {
   const bot = actor.bot;
-  return !!bot?.track && bot.time >= bot.track.fireAt && bot.time >= bot.guns[mount.id].fireAt;
+  return !!bot?.track && bot.time >= bot.track.fireAt && (!mount || bot.time >= bot.guns[mount.id].fireAt);
+}
+
+/** Torpedo crews lead the same delayed target observations used by gun crews. */
+export function botTorpedoAim(actor: FleetActor, tube: TubeDefinition): Vec3 | null {
+  const bot = actor.bot, track = bot?.track;
+  if (!bot || !track) return null;
+  const point = add([track.pose.x, 0, track.pose.z], scale(track.velocity, bot.time - track.observedAt));
+  return torpedoIntercept(localToWorld(tube.position, actor.motion), point, track.velocity, tube.weapon.speed);
 }
 
 /** Crew cadence is additional to the shared physical reload and alignment checks. */
@@ -155,6 +165,12 @@ export function botHelm(actor: FleetActor, target: FleetActor | undefined, actor
   const evading = bot.time < bot.evadeUntil;
   const angle = evading ? Math.PI * .74 : range > preferredRange + 700 ? Math.PI / 3 : range < preferredRange - 900 ? Math.PI * .7 : Math.PI / 2;
   let heading = bearing + bot.side * (angle + bot.courseOffset);
+  const tubes = (actor.definition.torpedoTubes ?? []).filter((t, i) => (actor.torpedoTubes?.[i].ammo ?? 0) > 0 && actor.damage.modules.find(m => m.id === t.magazineId)?.hp !== 0);
+  if (tubes.length && !evading) {
+    const tube = tubes.reduce((a, b) => Math.abs(wrapAngle(bearing - actor.motion.heading - b.bearingDeg * Math.PI / 180)) < Math.abs(wrapAngle(bearing - actor.motion.heading - a.bearingDeg * Math.PI / 180)) ? b : a);
+    const aim = botTorpedoAim(actor, tube);
+    heading = (aim ? Math.atan2(aim[0] - actor.motion.x, actor.motion.z - aim[2]) : bearing) - tube.bearingDeg * Math.PI / 180;
+  }
   let x = Math.sin(heading), z = -Math.cos(heading);
   for (const other of actors) {
     if (other === actor || other.motion.y < -20) continue;

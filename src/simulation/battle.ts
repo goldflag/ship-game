@@ -1,5 +1,6 @@
 import type { ShipDefinition } from '../ships/blueprint';
 import type { Combatant } from './damage';
+import type { TubeState } from './torpedoes';
 import type { BotState } from './bots';
 
 export const BATTLE_SPAWN_DISTANCE = 5000;
@@ -15,6 +16,8 @@ export interface FleetActor extends Combatant {
   team: Team;
   controller: 'player' | 'bot' | 'idle';
   targetId?: string;
+  torpedoTubes?: TubeState[];
+  tubeLaunchCooldown?: number;
   bot?: BotState;
 }
 

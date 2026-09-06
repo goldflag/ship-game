@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, spyOn, test } from 'bun:test';
-import { Group, PerspectiveCamera, Scene } from 'three/webgpu';
+import { Group, PerspectiveCamera, Scene, Vector3 } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Game } from './Game';
 import { CameraRig } from './CameraRig';
@@ -57,26 +57,35 @@ async function port() {
   return { game, scene, harbor, camera, rig, playerView };
 }
 
-test('switching ships in port retains the scene, camera and old ship until loading completes', async () => {
+test('switching ships retains the port until loading completes, then frames the new hull with the same orbit', async () => {
   const { game, scene, harbor, camera, rig, playerView } = await port();
-  const next = await model('yamato');
+  const next = await model('type-viic');
   let finish!: (value: typeof next) => void;
   const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(() => new Promise(resolve => { finish = resolve; }));
   const position = camera.position.toArray();
   const rotation = camera.quaternion.toArray();
+  const bearing = rig.bearing;
   try {
-    const switching = game.switchShip(shipPreset('yamato'));
+    const switching = game.switchShip(shipPreset('type-viic'));
     expect(scene.children).toContain(playerView.root);
     expect(game.definition.id).toBe('bismarck');
-    finish(next);
-    await switching;
-    expect(game.definition.id).toBe('yamato');
-    expect(scene.children).toContain(harbor);
-    expect(scene.children).not.toContain(playerView.root);
-    expect(game.simulation.ship.x).toBe(240);
     rig.update(game.simulation.ship, 0, 1 / 60);
     expect(camera.position.toArray()).toEqual(position);
     expect(camera.quaternion.toArray()).toEqual(rotation);
+    finish(next);
+    await switching;
+    expect(game.definition.id).toBe('type-viic');
+    expect(scene.children).toContain(harbor);
+    expect(scene.children).not.toContain(playerView.root);
+    expect(game.simulation.ship.x).toBe(240);
+    rig.update(game.simulation.ship, 0, 0, true);
+    expect(rig.bearing).toBe(bearing);
+    expect(camera.position.distanceTo(new Vector3(240, 0, 0))).toBeLessThan(new Vector3(...position).distanceTo(new Vector3(240, 0, 0)));
+    for (const z of [-33.55, 33.55]) {
+      const projected = new Vector3(240, 0, z).project(camera);
+      expect(Math.abs(projected.x)).toBeLessThan(1);
+      expect(Math.abs(projected.y)).toBeLessThan(1);
+    }
     expect(game.diagnostics().maxMuzzleErrorM).toBeLessThan(.025);
   } finally { loader.mockRestore(); rig.dispose(); }
 });
@@ -95,7 +104,7 @@ test('failed ship loads preserve the old ship and allow retry', async () => {
     await expect(game.switchShip(shipPreset('yamato'))).rejects.toThrow('different versions');
     expect(scene.children).toContain(playerView.root);
     loader.mockImplementation(async url => model(String(url).split('/').pop()!.replace('.glb', '')));
-    for (const id of ['yamato', 'baltimore', 'enterprise-cv6', 'bismarck']) {
+    for (const id of ['yamato', 'baltimore', 'enterprise-cv6', 'type-viic', 'bismarck']) {
       await game.switchShip(shipPreset(id));
       expect(game.definition.id).toBe(id);
       expect(scene.children).toHaveLength(3);

@@ -12,7 +12,7 @@ test('shared drag solution reaches elevated and lowered targets and composes acr
   const from: Vec3 = [32, 14, -200];
   for (const gun of catalog.parts) for (const range of [100, 1000, 5000, 15000]) for (const height of [-10, 0, 60]) {
     const target: Vec3 = [from[0] + range, height, from[2] + range * .2];
-    const k = gun.ballistics.dragPerSecond;
+    const k = gun.ballistics?.dragPerSecond ?? 0;
     const solution = solveBallistic(from, target, gun.muzzleSpeed, k);
     if (!solution) { expect(range).toBeGreaterThan(1000); continue; }
     const v = scale(solution.direction, gun.muzzleSpeed);
@@ -74,7 +74,7 @@ test('battle reset repeats its seed and different seeds alter launches without c
 test('versioned gun calibration validates limits and preserves omitted-field compatibility', () => {
   for (const [field, invalid] of [['dragPerSecond', -.01], ['dragPerSecond', .51], ['dispersionRad', NaN], ['dispersionRad', .021], ['muzzleSpeedSigmaFraction', -.01], ['muzzleSpeedSigmaFraction', .051], ['penetrationReferenceSpeedMps', 0], ['penetrationReferenceSpeedMps', 10001], ['basis', '']] as const) {
     const parts = structuredClone(catalog);
-    Object.assign(parts.parts[0].ballistics, { [field]: invalid });
+    Object.assign(parts.parts[0].ballistics!, { [field]: invalid });
     expect(() => compileShip(blueprint, parts)).toThrow();
   }
   const legacy = structuredClone(catalog);

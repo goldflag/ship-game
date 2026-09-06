@@ -58,10 +58,15 @@ export class Game {
   private hitDirections: HitDirectionIndicators;
   private loadedModel?: THREE.Group;
   private effects = new CombatEffects();
-  battery: Battery = 'main';
   controlPriority: ControlPriority = 'balanced';
   controlFocus = '';
-  ammunition: Record<Battery, Ammunition> = { main: 'ap', secondary: 'ap' };
+  ammunition: Record<Battery, Ammunition> = { main: 'ap', secondary: 'ap', torpedo: 'ap' };
+  private selectedBattery: Battery = 'main';
+  get battery(): Battery { return this.selectedBattery; }
+  set battery(value: Battery) {
+    if (value === 'torpedo' && !this.definition.torpedoTubes?.length) return;
+    this.selectedBattery = value;
+  }
   aimModule: string;
   inspecting = false;
   private manualAim = true;
@@ -96,6 +101,7 @@ export class Game {
 
   constructor(private host: HTMLElement, private settings: GameSettings, private callbacks: GameCallbacks, definition = selectedShip, readonly audio?: GameAudio) {
     this.definition = definition;
+    this.battery = definition.torpedoTubes?.length ? 'torpedo' : 'main';
     this.simulation = new CombatSimulation(definition);
     this.playerDamageFeedback = new HullDamageFeedback(this.simulation.player.damage.integrity);
     this.aimModule = definition.modules.find(m => m.kind === 'engine')?.id ?? '';
@@ -113,6 +119,7 @@ export class Game {
       pause: () => this.setPaused(true), aim: () => { this.manualAim = true; }, optics: () => this.toggleBinoculars(),
     });
     this.inspectionHover = new InspectionHover(this.renderer.domElement, this.camera);
+    this.rig.setHullLength(definition.hull.length);
     this.input = new InputController({
       pause: () => { if (!this.inPort) this.setPaused(!this.paused); },
       camera: () => this.cycleCamera(), recenter: () => this.recenter(),
@@ -324,13 +331,14 @@ export class Game {
       this.targetView = views.find(view => view.actor === simulation.target);
       this.shipLabels.setFleet(views, simulation.actors);
       this.articulationOriginal = undefined;
-      this.battery = 'main'; this.manualAim = true; this.inspecting = false;
       this.controlPriority = 'balanced'; this.controlFocus = '';
-      this.ammunition = { main: 'ap', secondary: 'ap' };
+      this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap' };
+      this.battery = definition.torpedoTubes?.length ? 'torpedo' : 'main'; this.manualAim = true; this.inspecting = false;
       this.gunneryOpen = false; this.effects.reset();
       this.currentAim = simulation.aimAt(undefined, this.battery);
       this.aimModule = simulation.target.definition.modules.find(m => m.kind === 'engine')?.id ?? '';
       this.rig.setBridge(definition.viewpoints?.bridge);
+      this.rig.setHullLength(definition.hull.length);
       this.renderer.domElement.setAttribute('aria-label', `${definition.name} ocean scene. Drag to orbit; scroll to zoom.`);
       disposeObjects(...previous);
     } catch (error) {
@@ -489,10 +497,10 @@ export class Game {
     this.stopShellFollow();
     const leavingPort = this.inPort && !inPort;
     this.inPort = inPort;
-    // The garage camera stays at least 90 m from its target. A suitable near
-    // plane preserves depth precision on the town's distant architectural trim.
+    // A suitable near plane preserves depth precision on the town's distant trim.
     this.camera.near = inPort ? 3 : .5;
     this.camera.updateProjectionMatrix();
+    this.rig.setHullLength(this.definition.hull.length);
     this.rig.setInPort(inPort);
     if (this.harbor) this.harbor.visible = inPort;
     this.fleetViews.forEach(view => { view.root.visible = view === this.playerView || !inPort; view.inspect(false); });
@@ -551,6 +559,7 @@ export class Game {
     this.stopShellFollow();
     this.inspecting = !this.inspecting;
     this.targetView?.inspect(this.inspecting);
+    this.rig.setHullLength((this.inspecting ? this.simulation.target.definition : this.definition).hull.length);
     this.rig.setInspecting(this.inspecting);
     if (!this.inspecting) this.rig.aimAt(this.currentAim, this.simulation.ship);
   }
@@ -560,6 +569,7 @@ export class Game {
     this.targetView?.inspect(false);
     this.targetView = this.fleetViews.find(view => view.actor === this.simulation.target);
     this.targetView?.inspect(this.inspecting);
+    if (this.inspecting) this.rig.setHullLength(this.simulation.target.definition.hull.length);
     this.aimModule = ''; this.manualAim = false;
     this.currentAim = this.simulation.aimAt('', this.battery);
     if (!this.inspecting) this.rig.aimAt(this.currentAim, this.simulation.ship);
@@ -603,6 +613,7 @@ export class Game {
       fleet: this.simulation.actors.map(actor => ({ id: actor.motion.id, definitionId: actor.definition.id, team: actor.team, controller: actor.controller, targetId: actor.targetId, motion: { ...actor.motion }, ammo: actor.mounts.reduce((n, m) => n + m.ammo, 0), integrity: actor.damage.integrity })),
       renderedShips: this.fleetViews.map(view => ({ id: view.actor.motion.id, visible: view.root.visible,
         impactMarks: view.impactMarks.count, impactDrawCalls: view.impactMarks.drawCalls })),
+      torpedoes: this.simulation.torpedoes.map(t => ({ id: t.id, ownerId: t.ownerId, tubeId: t.tubeId, position: [...t.position], distance: t.distance, armed: t.distance >= t.weapon.armingDistanceM })),
       events: this.simulation.events.slice(-20) };
   }
   private projectAim(aim: Vec3): { x: number; y: number; visible: boolean } {

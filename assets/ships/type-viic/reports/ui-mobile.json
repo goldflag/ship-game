@@ -1,0 +1,1182 @@
+{
+  "bounds": [
+    {
+      "class": "fleet-armament",
+      "clientWidth": 310,
+      "name": "Weapons and gunnery",
+      "rect": {
+        "bottom": 267,
+        "height": 167,
+        "left": 40,
+        "right": 350,
+        "top": 100,
+        "width": 310,
+        "x": 40,
+        "y": 100
+      },
+      "scrollWidth": 310
+    },
+    {
+      "class": "fleet-weapon-slot",
+      "clientWidth": 44,
+      "name": "Select main AP battery \u00b7 220 shells \u00b7 1",
+      "rect": {
+        "bottom": 243,
+        "height": 58,
+        "left": 40,
+        "right": 85.5,
+        "top": 185,
+        "width": 45.5,
+        "x": 40,
+        "y": 185
+      },
+      "scrollWidth": 44
+    },
+    {
+      "class": "fleet-weapon-slot",
+      "clientWidth": 44,
+      "name": "Select secondary AP battery \u00b7 1100 shells \u00b7 2",
+      "rect": {
+        "bottom": 243,
+        "height": 58,
+        "left": 91.5,
+        "right": 137,
+        "top": 185,
+        "width": 45.5,
+        "x": 91.5,
+        "y": 185
+      },
+      "scrollWidth": 44
+    },
+    {
+      "class": "fleet-weapon-slot",
+      "clientWidth": 44,
+      "name": "Select torpedoes \u00b7 13 torpedoes \u00b7 3",
+      "rect": {
+        "bottom": 243,
+        "height": 58,
+        "left": 143,
+        "right": 188.5,
+        "top": 185,
+        "width": 45.5,
+        "x": 143,
+        "y": 185
+      },
+      "scrollWidth": 44
+    },
+    {
+      "class": "fleet-weapon-slot fleet-utility-slot",
+      "clientWidth": 44,
+      "name": "Toggle binocular aiming \u00b7 Shift",
+      "rect": {
+        "bottom": 243,
+        "height": 58,
+        "left": 201.5,
+        "right": 247,
+        "top": 185,
+        "width": 45.5,
+        "x": 201.5,
+        "y": 185
+      },
+      "scrollWidth": 44
+    },
+    {
+      "class": "fleet-weapon-slot",
+      "clientWidth": 44,
+      "name": "Gunnery and target damage \u00b7 G",
+      "rect": {
+        "bottom": 243,
+        "height": 58,
+        "left": 253,
+        "right": 298.5,
+        "top": 185,
+        "width": 45.5,
+        "x": 253,
+        "y": 185
+      },
+      "scrollWidth": 44
+    },
+    {
+      "class": "fleet-weapon-slot fleet-fire-slot",
+      "clientWidth": 44,
+      "name": "Launch torpedo \u00b7 Left mouse or Q",
+      "rect": {
+        "bottom": 243,
+        "height": 58,
+        "left": 304.5,
+        "right": 350,
+        "top": 185,
+        "width": 45.5,
+        "x": 304.5,
+        "y": 185
+      },
+      "scrollWidth": 44
+    },
+    {
+      "class": "gunnery",
+      "clientWidth": 364,
+      "name": "Gunnery and target damage",
+      "rect": {
+        "bottom": 665,
+        "height": 565,
+        "left": 12,
+        "right": 378,
+        "top": 100,
+        "width": 366,
+        "x": 12,
+        "y": 100
+      },
+      "scrollWidth": 364
+    }
+  ],
+  "diagnostics": {
+    "audio": {
+      "failed": [],
+      "inPort": false,
+      "loaded": 13,
+      "paused": false,
+      "played": 29,
+      "settings": {
+        "effects": 0.8,
+        "interface": 0.65,
+        "master": 0.65,
+        "muted": false
+      },
+      "state": "running",
+      "total": 13,
+      "voices": 0
+    },
+    "backend": "webgpu",
+    "camera": {
+      "aim": [
+        15.390025465874881,
+        0.5,
+        -9617.804039580185
+      ],
+      "binoculars": false,
+      "fov": 52.00000000000001,
+      "magnification": 1,
+      "manualAim": true,
+      "matrixWorldInverse": [
+        0.9999987197464202,
+        6.270475259464663e-06,
+        -0.0016001456814130875,
+        0,
+        -1.6940658945086007e-21,
+        0.9999923220218414,
+        0.003918660149340381,
+        0,
+        0.0016001579673910113,
+        -0.003918655132461698,
+        0.9999910417780913,
+        0,
+        1.1107651257113993e-16,
+        -38.18856911765961,
+        -313.73051837849096,
+        1
+      ],
+      "mode": "Chase",
+      "pointerLocked": false,
+      "position": [
+        -0.501775073632985,
+        39.41767918666171,
+        313.5780600785135
+      ],
+      "projectionMatrix": [
+        4.437067800751092,
+        0,
+        0,
+        0,
+        0,
+        2.050303841579296,
+        0,
+        0,
+        0,
+        0,
+        -1.0000083334027783,
+        -1,
+        0,
+        0,
+        -0.5000041667013891,
+        0
+      ],
+      "shellFollow": "off"
+    },
+    "combat": {
+      "batteries": [
+        {
+          "ammo": 220,
+          "battery": "main",
+          "ready": 1,
+          "reload": 0,
+          "total": 1
+        },
+        {
+          "ammo": 1100,
+          "battery": "secondary",
+          "ready": 0,
+          "reload": 0,
+          "total": 1
+        },
+        {
+          "ammo": 13,
+          "battery": "torpedo",
+          "ready": 0,
+          "reload": 15.883333333334976,
+          "total": 5
+        }
+      ],
+      "battery": "torpedo",
+      "battle": true,
+      "contacts": [
+        {
+          "controller": "player",
+          "heading": 0,
+          "id": "player",
+          "integrity": 0.9066666666666666,
+          "name": "Type VIIC",
+          "shipId": "type-viic",
+          "sunk": false,
+          "team": "friendly",
+          "x": 0,
+          "z": 0
+        },
+        {
+          "controller": "bot",
+          "heading": 3.283292366186668,
+          "id": "enemy-1",
+          "integrity": 1,
+          "name": "Bismarck",
+          "shipId": "bismarck",
+          "sunk": false,
+          "targetId": "player",
+          "team": "enemy",
+          "x": -9.120462039617212,
+          "z": -4864.587670583701
+        }
+      ],
+      "message": "Type VIIC \u00b7 Stopped by Hull shell \u00b7 bow to stern plating",
+      "modules": [
+        {
+          "condition": 1,
+          "id": "boiler-aft-port-equipment",
+          "name": "Aft port boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "condition": 1,
+          "id": "boiler-aft-center-equipment",
+          "name": "Aft center boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "condition": 1,
+          "id": "boiler-aft-starboard-equipment",
+          "name": "Aft starboard boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "condition": 1,
+          "id": "boiler-forward-port-equipment",
+          "name": "Forward port boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "condition": 1,
+          "id": "boiler-forward-center-equipment",
+          "name": "Forward center boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "condition": 1,
+          "id": "boiler-forward-starboard-equipment",
+          "name": "Forward starboard boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "condition": 1,
+          "id": "engine-port",
+          "name": "Port turbine room"
+        },
+        {
+          "condition": 1,
+          "id": "engine-starboard",
+          "name": "Starboard turbine room"
+        },
+        {
+          "condition": 1,
+          "id": "engine-center",
+          "name": "Center turbine room"
+        },
+        {
+          "condition": 1,
+          "id": "anton-magazine",
+          "name": "Anton propellant magazines"
+        },
+        {
+          "condition": 1,
+          "id": "bruno-magazine",
+          "name": "Bruno propellant magazines"
+        },
+        {
+          "condition": 1,
+          "id": "caesar-magazine",
+          "name": "C\u00e4sar propellant magazines"
+        },
+        {
+          "condition": 1,
+          "id": "dora-magazine",
+          "name": "Dora propellant magazines"
+        },
+        {
+          "condition": 1,
+          "id": "steering",
+          "name": "Steering gear room"
+        },
+        {
+          "condition": 1,
+          "id": "shaft-port-equipment",
+          "name": "Port shaft passage"
+        },
+        {
+          "condition": 1,
+          "id": "shaft-center-equipment",
+          "name": "Center shaft passage"
+        },
+        {
+          "condition": 1,
+          "id": "shaft-starboard-equipment",
+          "name": "Starboard shaft passage"
+        }
+      ],
+      "mounts": [
+        {
+          "ammo": 2,
+          "id": "bow-tube-1",
+          "name": "Bow tube 1",
+          "reload": 15.883333333334976,
+          "status": "out-of-range"
+        },
+        {
+          "ammo": 3,
+          "id": "bow-tube-2",
+          "name": "Bow tube 2",
+          "reload": 0,
+          "status": "out-of-range"
+        },
+        {
+          "ammo": 3,
+          "id": "bow-tube-3",
+          "name": "Bow tube 3",
+          "reload": 0,
+          "status": "out-of-range"
+        },
+        {
+          "ammo": 3,
+          "id": "bow-tube-4",
+          "name": "Bow tube 4",
+          "reload": 0,
+          "status": "out-of-range"
+        },
+        {
+          "ammo": 2,
+          "id": "stern-tube",
+          "name": "Stern tube 5",
+          "reload": 0,
+          "status": "out-of-arc"
+        }
+      ],
+      "playerDamageDealt": 0,
+      "playerFrags": 0,
+      "playerIntegrity": 0.9066666666666666,
+      "playerMaxIntegrity": 450,
+      "playerSunk": false,
+      "playerWater": 13.862958659469237,
+      "range": 9617.816352824002,
+      "ready": 0,
+      "result": "active",
+      "targetId": "enemy-1",
+      "targetIntegrity": 1,
+      "targetName": "Bismarck",
+      "targetPosition": {
+        "heading": 3.283292366186668,
+        "x": -9.120462039617212,
+        "z": -4864.587670583701
+      },
+      "targetPower": 1,
+      "targetRange": 4864.5962204095395,
+      "targetSteering": 1,
+      "targetSunk": false,
+      "targetUnderway": false,
+      "targetWater": 0,
+      "total": 5
+    },
+    "contentHash": "790540939d476bf9503c191fbfd6d29a3f027941ebf4a4a9011a2f1c5885605b",
+    "effects": {
+      "flashes": 0,
+      "foam": 0,
+      "particleCapacity": 2272,
+      "shells": 2,
+      "smoke": 78,
+      "spray": 457,
+      "torpedoes": 1
+    },
+    "events": [
+      {
+        "kind": "shot",
+        "message": "Anton fired",
+        "position": [
+          -4.410947639148927,
+          9.122070019060489,
+          -4846.641916366681
+        ],
+        "sequence": 20,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 10,
+          "type": "AP",
+          "velocity": [
+            1.0712734846777525,
+            27.356707818346393,
+            825.9813890258648
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 1209
+      },
+      {
+        "kind": "shot",
+        "message": "Anton fired",
+        "position": [
+          -8.160941542965457,
+          9.122070019060489,
+          -4846.635154611075
+        ],
+        "sequence": 21,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 11,
+          "type": "AP",
+          "velocity": [
+            1.0712734846777525,
+            27.356707818346393,
+            825.9813890258648
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 1209
+      },
+      {
+        "kind": "shot",
+        "message": "Port Secondary 2 fired",
+        "position": [
+          11.599753508914079,
+          7.31419811923204,
+          -4906.601175767159
+        ],
+        "sequence": 22,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 12,
+          "type": "AP",
+          "velocity": [
+            -1.9269145446746125,
+            26.122428059642793,
+            881.5691617646247
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 1308
+      },
+      {
+        "kind": "shot",
+        "message": "Port Secondary 2 fired",
+        "position": [
+          9.849755760369757,
+          7.31419811923204,
+          -4906.603982916925
+        ],
+        "sequence": 23,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 13,
+          "type": "AP",
+          "velocity": [
+            -1.9269145446746125,
+            26.122428059642793,
+            881.5691617646247
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 1308
+      },
+      {
+        "kind": "shot",
+        "message": "Port Secondary 1 fired",
+        "position": [
+          3.8700725350934295,
+          7.462581899401858,
+          -4871.062673254031
+        ],
+        "sequence": 24,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 14,
+          "type": "AP",
+          "velocity": [
+            -0.542492109194108,
+            25.86530217756826,
+            882.289279739062
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 1444
+      },
+      {
+        "kind": "shot",
+        "message": "Port Secondary 1 fired",
+        "position": [
+          2.1200725709007253,
+          7.462581899401858,
+          -4871.062319240569
+        ],
+        "sequence": 25,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 15,
+          "type": "AP",
+          "velocity": [
+            -0.542492109194108,
+            25.86530217756826,
+            882.289279739062
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 1444
+      },
+      {
+        "impact": {
+          "direction": [
+            0.0012961083046567224,
+            -0.03110084855513199,
+            0.9995154112480774
+          ],
+          "normal": [
+            -0.6208852558607081,
+            0.7831165646501185,
+            -0.03507057492228515
+          ],
+          "outcome": "penetration",
+          "position": [
+            -1.8916526947898364,
+            1.2116533500254254,
+            -12.84727207915728
+          ]
+        },
+        "kind": "penetration",
+        "message": "Penetrated Hull shell \u00b7 bow to stern plating",
+        "normal": [
+          -0.6208852558607081,
+          0.7832925473616928,
+          -0.030891492395364692
+        ],
+        "position": [
+          -1.8916526947898364,
+          1.2316999145554919,
+          -12.840624003208326
+        ],
+        "sequence": 26,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 11,
+          "type": "AP",
+          "velocity": [
+            1.0712734846777525,
+            -30.19529218165355,
+            825.9813890258648
+          ]
+        },
+        "shipId": "player",
+        "tick": 1560
+      },
+      {
+        "impact": {
+          "direction": [
+            0.0012961083046567226,
+            -0.03110084855513198,
+            0.9995154112480774
+          ],
+          "normal": [
+            0.524829788805428,
+            0.8507240957588941,
+            -0.028674129065444667
+          ],
+          "outcome": "penetration",
+          "position": [
+            1.8584420015513328,
+            1.209198697011936,
+            -12.776305911819422
+          ]
+        },
+        "kind": "penetration",
+        "message": "Penetrated Hull shell \u00b7 bow to stern plating",
+        "normal": [
+          0.524829788805428,
+          0.8508649856308035,
+          -0.024134394749866516
+        ],
+        "position": [
+          1.8584420015513328,
+          1.2288666324997608,
+          -12.76967194375383
+        ],
+        "sequence": 27,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 10,
+          "type": "AP",
+          "velocity": [
+            1.0712734846777525,
+            -30.19529218165355,
+            825.9813890258648
+          ]
+        },
+        "shipId": "player",
+        "tick": 1560
+      },
+      {
+        "impact": {
+          "direction": [
+            0.0010539735820335964,
+            -0.03193863204561757,
+            0.9994892760418909
+          ],
+          "normal": [
+            -0.6208852558607081,
+            0.7831165646501185,
+            -0.03507057492228515
+          ],
+          "outcome": "penetration",
+          "position": [
+            -1.8884195984227323,
+            1.219394918765366,
+            -12.73164326895102
+          ]
+        },
+        "kind": "penetration",
+        "message": "Penetrated Hull shell \u00b7 bow to stern plating",
+        "normal": [
+          -0.6208852558607081,
+          0.7832925473616928,
+          -0.030891492395364692
+        ],
+        "position": [
+          -1.8884195984227323,
+          1.238824396467477,
+          -12.724955531299354
+        ],
+        "sequence": 28,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 9,
+          "type": "AP",
+          "velocity": [
+            0.8711816286135677,
+            -30.889034023532442,
+            825.9939797006368
+          ]
+        },
+        "shipId": "player",
+        "tick": 1560
+      },
+      {
+        "impact": {
+          "direction": [
+            0.0010539735820335966,
+            -0.031938632045617574,
+            0.9994892760418909
+          ],
+          "normal": [
+            0.524829788805428,
+            0.8507240957588941,
+            -0.028674129065444667
+          ],
+          "outcome": "penetration",
+          "position": [
+            1.8617508728640841,
+            1.214060096550261,
+            -12.571511410643211
+          ]
+        },
+        "kind": "penetration",
+        "message": "Penetrated Hull shell \u00b7 bow to stern plating",
+        "normal": [
+          0.524829788805428,
+          0.8508649856308035,
+          -0.024134394749866516
+        ],
+        "position": [
+          1.8617508728640841,
+          1.2326352125121596,
+          -12.564854418326501
+        ],
+        "sequence": 29,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 8,
+          "type": "AP",
+          "velocity": [
+            0.8711816286135677,
+            -30.889034023532442,
+            825.9939797006368
+          ]
+        },
+        "shipId": "player",
+        "tick": 1560
+      },
+      {
+        "impact": {
+          "direction": [
+            0.0012960895212256222,
+            -0.031489440677313116,
+            0.999503244255757
+          ],
+          "normal": [
+            -0.9829254814860067,
+            0.11008765392643226,
+            0.14743882222290103
+          ],
+          "outcome": "penetration",
+          "position": [
+            -1.8458177886511098,
+            0.10549789060869397,
+            22.499109650671443
+          ]
+        },
+        "kind": "penetration",
+        "message": "Penetrated Hull shell \u00b7 bow to stern plating",
+        "normal": [
+          -0.9829254814860067,
+          0.10929840326339083,
+          0.14802485227006756
+        ],
+        "position": [
+          -1.8458177886511098,
+          -0.06325099541428045,
+          22.49935218384701
+        ],
+        "sequence": 30,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 11,
+          "type": "AP",
+          "velocity": [
+            1.0712734846777525,
+            -30.522292181653548,
+            825.9813890258648
+          ]
+        },
+        "shipId": "player",
+        "tick": 1562
+      },
+      {
+        "kind": "splash",
+        "message": "Shell splash",
+        "position": [
+          -1.8404279833667923,
+          0,
+          26.655040641550848
+        ],
+        "sequence": 31,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 11,
+          "type": "AP",
+          "velocity": [
+            1.0712734846777525,
+            -30.522292181653548,
+            825.9813890258648
+          ]
+        },
+        "shipId": "",
+        "tick": 1562
+      },
+      {
+        "impact": {
+          "direction": [
+            0.0012960895212256222,
+            -0.031489440677313116,
+            0.999503244255757
+          ],
+          "normal": [
+            0.9860801961337655,
+            0.07594654926744564,
+            0.14791202942006487
+          ],
+          "outcome": "penetration",
+          "position": [
+            1.903708789808891,
+            0.11681577703903007,
+            22.13196145778404
+          ]
+        },
+        "kind": "penetration",
+        "message": "Penetrated Hull shell \u00b7 bow to stern plating",
+        "normal": [
+          0.9860801961337655,
+          0.07515525775559269,
+          0.14831565670719024
+        ],
+        "position": [
+          1.903708789808891,
+          -0.04997181186977054,
+          22.13226969532689
+        ],
+        "sequence": 32,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 10,
+          "type": "AP",
+          "velocity": [
+            1.0712734846777525,
+            -30.522292181653548,
+            825.9813890258648
+          ]
+        },
+        "shipId": "player",
+        "tick": 1562
+      },
+      {
+        "kind": "splash",
+        "message": "Shell splash",
+        "position": [
+          1.9095659204497841,
+          0,
+          26.648278885945736
+        ],
+        "sequence": 33,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 10,
+          "type": "AP",
+          "velocity": [
+            1.0712734846777525,
+            -30.522292181653548,
+            825.9813890258648
+          ]
+        },
+        "shipId": "",
+        "tick": 1562
+      },
+      {
+        "impact": {
+          "direction": [
+            0.0010539579591191282,
+            -0.03232718336160517,
+            0.9994767843169373
+          ],
+          "normal": [
+            0.9860801961337655,
+            0.07594654926744564,
+            0.14791202942006487
+          ],
+          "outcome": "penetration",
+          "position": [
+            1.898394861484896,
+            0.09568258729653883,
+            22.17823864258611
+          ]
+        },
+        "kind": "penetration",
+        "message": "Penetrated Hull shell \u00b7 bow to stern plating",
+        "normal": [
+          0.9860801961337655,
+          0.07515525775559269,
+          0.14831565670719024
+        ],
+        "position": [
+          1.898394861484896,
+          -0.07135193202850312,
+          22.17843331741068
+        ],
+        "sequence": 34,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 8,
+          "type": "AP",
+          "velocity": [
+            0.8711816286135677,
+            -31.21603402353244,
+            825.9939797006368
+          ]
+        },
+        "shipId": "player",
+        "tick": 1562
+      },
+      {
+        "kind": "splash",
+        "message": "Shell splash",
+        "position": [
+          1.8984377689413798,
+          0,
+          22.21911519082927
+        ],
+        "sequence": 35,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 8,
+          "type": "AP",
+          "velocity": [
+            0.8711816286135677,
+            -31.21603402353244,
+            825.9939797006368
+          ]
+        },
+        "shipId": "",
+        "tick": 1562
+      },
+      {
+        "impact": {
+          "direction": [
+            0.0010539500860681655,
+            -0.032516380954969934,
+            0.9994706469720894
+          ],
+          "normal": [
+            -0.9829254814860067,
+            0.11008765392643226,
+            0.14743882222290103
+          ],
+          "outcome": "penetration",
+          "position": [
+            -1.8512918798283988,
+            0.08646016634908928,
+            22.476830543603352
+          ]
+        },
+        "kind": "penetration",
+        "message": "Penetrated Hull shell \u00b7 bow to stern plating",
+        "normal": [
+          -0.9829254814860067,
+          0.10929716520837715,
+          0.14802576641556306
+        ],
+        "position": [
+          -1.8512918798283988,
+          -0.08243447748585561,
+          22.476971405272955
+        ],
+        "sequence": 36,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 9,
+          "type": "AP",
+          "velocity": [
+            0.8711816286135677,
+            -31.37953402353244,
+            825.9939797006368
+          ]
+        },
+        "shipId": "player",
+        "tick": 1563
+      },
+      {
+        "kind": "splash",
+        "message": "Shell splash",
+        "position": [
+          -1.8370379881291967,
+          0,
+          35.99152261267488
+        ],
+        "sequence": 37,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 9,
+          "type": "AP",
+          "velocity": [
+            0.8711816286135677,
+            -31.37953402353244,
+            825.9939797006368
+          ]
+        },
+        "shipId": "",
+        "tick": 1563
+      },
+      {
+        "impact": {
+          "direction": [
+            -0.0021846521354258646,
+            -0.02594962087927459,
+            0.9996608647292686
+          ],
+          "normal": [
+            -0.8994284564218775,
+            0.4309761353688162,
+            -0.0727187907017088
+          ],
+          "outcome": "stopped",
+          "position": [
+            -0.8181109106540968,
+            1.4931792183365937,
+            -26.03265158391613
+          ]
+        },
+        "kind": "stopped",
+        "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+        "normal": [
+          -0.8994284564218775,
+          0.4314097180677204,
+          -0.07010069140378812
+        ],
+        "position": [
+          -0.8181109106540968,
+          1.5959343761836193,
+          -26.023105585225718
+        ],
+        "sequence": 38,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 13,
+          "type": "AP",
+          "velocity": [
+            -1.9269145446746125,
+            -28.323071940357167,
+            881.5691617646247
+          ]
+        },
+        "shipId": "player",
+        "tick": 1640
+      },
+      {
+        "impact": {
+          "direction": [
+            -0.0021846521354258646,
+            -0.02594962087927459,
+            0.9996608647292686
+          ],
+          "normal": [
+            0.7714844101841911,
+            0.6337193369370144,
+            -0.05667104053095871
+          ],
+          "outcome": "stopped",
+          "position": [
+            0.9275697396021823,
+            1.441917131134654,
+            -24.054411355037857
+          ]
+        },
+        "kind": "stopped",
+        "message": "Stopped by Hull shell \u00b7 bow to stern plating",
+        "normal": [
+          0.7714844101841911,
+          0.6340517453147878,
+          -0.05282224063803256
+        ],
+        "position": [
+          0.9275697396021823,
+          1.5326619477633403,
+          -24.045213069304168
+        ],
+        "sequence": 39,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 12,
+          "type": "AP",
+          "velocity": [
+            -1.9269145446746125,
+            -28.323071940357167,
+            881.5691617646247
+          ]
+        },
+        "shipId": "player",
+        "tick": 1640
+      }
+    ],
+    "fleet": [
+      {
+        "ammo": 1320,
+        "controller": "player",
+        "definitionId": "type-viic",
+        "id": "player",
+        "integrity": 408,
+        "motion": {
+          "distance": 0,
+          "heading": 0,
+          "id": "player",
+          "pitch": 0.006906130654656189,
+          "roll": 0,
+          "rudder": 0,
+          "speed": 0,
+          "swaySpeed": 0,
+          "tick": 1748,
+          "x": 0,
+          "y": -0.0630134484521329,
+          "yawRate": 0,
+          "z": 0
+        },
+        "team": "friendly"
+      },
+      {
+        "ammo": 2746,
+        "controller": "bot",
+        "definitionId": "bismarck",
+        "id": "enemy-1",
+        "integrity": 1450,
+        "motion": {
+          "distance": 135.83902222222355,
+          "heading": 3.283292366186668,
+          "id": "enemy-1",
+          "pitch": 0,
+          "roll": 0,
+          "rudder": 1,
+          "speed": 9.321333333333373,
+          "swaySpeed": 0,
+          "tick": 1748,
+          "x": -9.120462039617212,
+          "y": 0,
+          "yawRate": 0.010535579901673336,
+          "z": -4864.587670583701
+        },
+        "targetId": "player",
+        "team": "enemy"
+      }
+    ],
+    "fps": 12.001839039507049,
+    "inPort": false,
+    "inspecting": false,
+    "maxMuzzleErrorM": 0.0021666319615500206,
+    "paused": false,
+    "portInspection": "exterior",
+    "renderedShips": [
+      {
+        "id": "player",
+        "impactDrawCalls": 2,
+        "impactMarks": 16,
+        "visible": true
+      },
+      {
+        "id": "enemy-1",
+        "impactDrawCalls": 0,
+        "impactMarks": 0,
+        "visible": true
+      }
+    ],
+    "shipId": "type-viic",
+    "tick": 1748,
+    "torpedoes": [
+      {
+        "armed": true,
+        "distance": 659.4486154666724,
+        "id": 1,
+        "ownerId": "player",
+        "position": [
+          0.6898767796231364,
+          -2,
+          -689.447664577646
+        ],
+        "tubeId": "bow-tube-1"
+      }
+    ]
+  },
+  "text": "Bismarck\n1450 HP\n255\nW\n285\n300\n315\n330\n345\nN\n015\n030\n045\n060\n075\nE\n105\n000\u00b0\nCustom battle\n\nFriendly 1\nEnemy 1\n\nTarget\n1. Bismarck \u00b7 100%\n4.86 km \u00b7 Hold Ctrl to select a target\n12 FPS\nDamage\n0\nFrags\n0\nTYPE VIIC\n408 / 450\nN\nE\nS\nW\n1\n2\n3\n4\n5\n000\u00b0\n0.0\nkts\nFULL\n3/4\n1/2\n1/4\nSTOP\nFULL\nASTERN\nA / Left\nPORT\nSTBD\nD / Right\n\nFlooding \u00b7 13.9 m\u00b3\n\n1\n2\n3\n4\n5\n533 mm \u00b7 Torpedo tubes\n0/5 can fire\n\nBow / stern \u00b115\u00b0 \u00b7 5.0 km \u00b7 Arms at 300 m\n\nMAIN AP\n220\n1\nSEC. AP\n1100\n2\nTORPEDO\n13\n16s\n3\nBINOCULARS\nSHIFT\nGUNNERY\nG\nFIRE\nQ / LMB\nGunnery\n0/5 can fire\nLaunch\nQ\n8.8 cm main\n2 cm secondary\nTorpedo tubes\nBow tube 1\nOut Of Range\n2\nBow tube 2\nOut Of Range\n3\nBow tube 3\nOut Of Range\n3\nBow tube 4\nOut Of Range\n3\nStern tube 5\nOut Of Arc\n2\nAim at\nCenter sight \u00b7 Manual\nTarget waterline\nAft port boiler room \u00b7 two Wagner boilers\nAft center boiler room \u00b7 two Wagner boilers\nAft starboard boiler room \u00b7 two Wagner boilers\nForward port boiler room \u00b7 two Wagner boilers\nForward center boiler room \u00b7 two Wagner boilers\nForward starboard boiler room \u00b7 two Wagner boilers\nPort turbine room\nStarboard turbine room\nCenter turbine room\nAnton propellant magazines\nBruno propellant magazines\nC\u00e4sar propellant magazines\nDora propellant magazines\nSteering gear room\nPort shaft passage\nCenter shaft passage\nStarboard shaft passage\nBismarck\n4.86 km\nStructure\n100%\nPropulsion\n100%\nFlooding\n0.0 m\u00b3\n\nType VIIC \u00b7 Stopped by Hull shell \u00b7 bow to stern plating\n\nAim within the bow or stern arc. Each press launches one loaded tube; hold to launch in sequence. Torpedoes run straight. Target waterline computes a lead for the selected target.\n\nMouse aims the center sight. Hold left mouse or Q to fire. Shift opens binoculars; scroll adjusts magnification. Selecting a module tracks it until you move the mouse to aim again.\n\nInspect target\nN\nE\nW\nNORTH UP\n8 km\nSIZE",
+  "viewport": {
+    "dpr": 1,
+    "height": 844,
+    "width": 390
+  }
+}

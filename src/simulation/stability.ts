@@ -55,12 +55,15 @@ export function updateCapability(actor: Combatant, def: ShipDefinition): void {
   const maximum = def.modules.reduce((n, m) => n + m.hp, 0) + def.mounts.length * 100;
   actor.damage.integrity = actor.damage.maxIntegrity * (maximum ? (actor.damage.modules.reduce((n, m) => n + m.hp, 0) + actor.mounts.reduce((n, m) => n + m.hp, 0)) / maximum : 1);
   if (actor.damage.sunk) { s.combatLost = true; if (s.status !== 'capsized') s.status = 'sinking'; return; }
-  const usable = def.mounts.some((m, i) => actor.mounts[i].hp > 0 && actor.mounts[i].ammo > 0 && (!m.magazineId || equipmentCondition(actor, def, def.modules.find(mod => mod.id === m.magazineId)!).availability > 0));
-  const recoverable = def.mounts.some((m, i) => actor.mounts[i].hp > 0 && actor.mounts[i].ammo > 0 && (!m.magazineId || actor.damage.modules.find(mod => mod.id === m.magazineId)!.hp > 0));
+  const loadedTubes = (def.torpedoTubes ?? []).filter(t => (actor.torpedoTubes?.find(s => s.id === t.id)?.ammo ?? 0) > 0);
+  const usable = def.mounts.some((m, i) => actor.mounts[i].hp > 0 && actor.mounts[i].ammo > 0 && (!m.magazineId || equipmentCondition(actor, def, def.modules.find(mod => mod.id === m.magazineId)!).availability > 0)) ||
+    loadedTubes.some(t => equipmentCondition(actor, def, def.modules.find(m => m.id === t.magazineId)!).availability > 0);
+  const recoverable = def.mounts.some((m, i) => actor.mounts[i].hp > 0 && actor.mounts[i].ammo > 0 && (!m.magazineId || actor.damage.modules.find(mod => mod.id === m.magazineId)!.hp > 0)) ||
+    loadedTubes.some(t => (actor.damage.modules.find(m => m.id === t.magazineId)?.hp ?? 0) > 0);
   const mobile = systemHealth(actor, def, 'engine') > .001;
   s.status = usable ? (mobile ? 'operational' : 'immobile') : (mobile ? 'disarmed' : 'disabled');
-  // Temporary flooding can be pumped out. Only permanent loss of every gun or
+  // Temporary flooding can be pumped out. Only permanent loss of every weapon or
   // its ammunition removes an afloat ship from the battle's fighting strength.
   s.combatLost = !recoverable;
-  if (s.combatLost) actor.damage.defeatCause ??= actor.mounts.every(m => m.ammo === 0) ? 'ammunition-exhausted' : 'weapons-lost';
+  if (s.combatLost) actor.damage.defeatCause ??= actor.mounts.every(m => m.ammo === 0) && loadedTubes.length === 0 ? 'ammunition-exhausted' : 'weapons-lost';
 }

@@ -33,7 +33,7 @@ export interface DamageState {
   integrity: number; maxIntegrity: number; modules: { id: string; hp: number; detonated: boolean; ignition: number }[];
   compartments: CompartmentState[]; connections: ConnectionState[]; sunk: boolean; defeatCause?: DefeatCause;
 }
-export interface Combatant { motion: ShipState; mounts: MountState[]; damage: DamageState; }
+export interface Combatant { motion: ShipState; mounts: MountState[]; damage: DamageState; torpedoTubes?: { id: string; ammo: number }[]; }
 export type ShellType = 'AP' | 'HE';
 export interface SurfaceImpact {
   position: Vec3; normal: Vec3; direction: Vec3; mountId?: string;

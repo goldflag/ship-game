@@ -1,5 +1,5 @@
 {
-  "contentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+  "contentHash": "bba69db7f1a6b87663e9aaf6fbde5d8cd04e1b41d9d20b69a62504c9cc0307b7",
   "hullBounds": [
     [
       -18,
@@ -8,7 +8,7 @@
     ],
     [
       18,
-      8.350000381469727,
+      9.300000190734863,
       125.25
     ]
   ],
@@ -114,10 +114,11 @@
       "articulationChecks": 6
     }
   ],
-  "meshes": 64,
-  "primitives": 147,
-  "triangles": 59194,
-  "bytes": 1425652,
+  "torpedoTubes": [],
+  "meshes": 98,
+  "primitives": 286,
+  "triangles": 368428,
+  "bytes": 21897784,
   "result": "passed",
   "historicalAccuracy": "not certified; see reference register and discrepancy report"
 }
