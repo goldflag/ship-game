@@ -94051,12 +94051,12 @@
   "airWing": {
     "version": 1,
     "launchPosition": [
-      4,
+      0,
       16.5,
       70
     ],
     "recoveryPosition": [
-      4,
+      0,
       16.5,
       95
     ],
@@ -94088,5 +94088,5 @@
     ]
   },
   "compilerVersion": 1,
-  "contentHash": "026068f84d7d94c39c83be88b5e285e93a486a425af6ed6899e8e70aae08bc72"
+  "contentHash": "5f7975e4cd42b636e9927a146281f5ff827977b5a77e3399e137497367627287"
 }

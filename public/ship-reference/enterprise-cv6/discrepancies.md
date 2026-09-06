@@ -73,4 +73,4 @@ The original `assets/ships/author-stability.ts` recipe preserves prior IDs and a
 
 ### Visible deck operations
 
-The air-wing launch/recovery lane is at runtime X=4 m; parked aircraft use the port side at X=-7 m to avoid the modeled island. Spots and single-lane taxi/rollout timing are gameplay approximations. Unfolded wings may overlap the lane envelope; there is no deck collision solver, wing folding, physical arresting cable, or elevator simulation. Existing aircraft geometry is unchanged.
+The air-wing launch/recovery lane is at runtime X=0 m; parked aircraft use the port side at X=-4 m to avoid the modeled island. Spots and single-lane taxi/rollout timing are gameplay approximations. Unfolded wings may overlap the lane envelope; there is no deck collision solver, wing folding, physical arresting cable, or elevator simulation. Existing aircraft geometry is unchanged.

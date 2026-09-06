@@ -1,0 +1,18 @@
+bun test v1.3.3 (274e01c7)
+
+src/simulation/stability.test.ts:
+(pass) yamato: shell and flooding coverage include both sides, deck, bottom, bow and stern [5211.66ms]
+
+src/simulation/torpedoes.test.ts:
+
+src/simulation/bots.test.ts:
+(pass) bots give the player time to get underway before their opening shots [3063.70ms]
+
+src/simulation/machinery.test.ts:
+(pass) Yamato wing spaces connect damaged exterior openings to retained turbine rooms [13056.25ms]
+
+ 3 pass
+ 53 filtered out
+ 0 fail
+ 28 expect() calls
+Ran 3 tests across 4 files. [21.47s]
