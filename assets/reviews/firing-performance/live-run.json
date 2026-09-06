@@ -1,0 +1,23 @@
+{
+  "run": {
+    "effects": {
+      "flashes": 0,
+      "foam": 0,
+      "particleCapacity": 2272,
+      "shells": 188,
+      "smoke": 192,
+      "spray": 0
+    },
+    "impacts": 336,
+    "marks": 508,
+    "maxMarkMs": 4.4000000059604645,
+    "peakSmoke": 192,
+    "peakSpray": 616,
+    "queued": 0,
+    "renderedFrames": 900,
+    "shots": 414,
+    "splashes": 4,
+    "tick": 1800
+  },
+  "tick": 1800
+}

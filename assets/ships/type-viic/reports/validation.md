@@ -51,3 +51,11 @@ Independent finish-review disposition: **ship**.
 | Documentation | Resolved | PRODUCT.md and DESIGN.md describe surface operation, torpedoes, key 3 and the conditional sixth slot. |
 
 No open material findings within the reviewed fixes. Mobile capture verifies expanded Gunnery; unobscured mobile HUD remains unverified.
+
+## Master integration
+
+Integrated `origin/master` at `02008e4` before merging this feature. Preserved the new Statistics tab, inspection hover behavior, bounded impact-mark work, seeded bot crew model and first-strike shell-follow hold. The torpedo rows now live in the shared Statistics adapter, grouped by component. Submarine bots obey target-acquisition delays and delayed observations; evasive turns take precedence over bringing tubes to bear. Gun crews retain their own errors and firing cadence.
+
+The combined version passes **282 tests across 39 files**, 33,070 assertions, with `bun test --timeout 15000`; `bun run typecheck` and `bun run build` also pass. No asset recipe, compiler, blueprint or catalog changed during integration, so the previously built model/hash and articulation checks remain applicable.
+
+The actual port Statistics panel was opened in-game and showed five tubes, fourteen rounds, 533 mm diameter, 44 kn speed, 5 km range and 300 m arming distance at simulation tick zero. See [visible panel text](ui-port-statistics.json). Capturing this integrated panel timed out; no new screenshot is recorded.

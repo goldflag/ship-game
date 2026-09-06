@@ -32,3 +32,15 @@ f4u-1d-corsair: passed (LOD triangles 30,411 / 13,670 / 6,034, 1248 KiB base)
 (!) Some chunks are larger than 7000 kB after minification. Consider:
 ✓ built in 3.94s
 Exit 0
+
+Master integration (origin/master 02008e4)
+
+bun test --timeout 15000
+ 282 pass
+ 0 fail
+ 33070 expect() calls
+Ran 282 tests across 39 files. [29.34s]
+
+bun run typecheck: exit 0
+bun run build: exit 0; all five ship checks and aircraft checks passed.
+Vite game-bundle size warning remains.

@@ -25,7 +25,7 @@ Team-aware bots select living opponents, navigate, lead targets and fire main an
 
 Overhead labels on friendly and enemy bots show the ship name, live structural HP bar and current HP number without a background box or visible team/slot text. The player's own ship has no overhead label. Mint and salmon bars distinguish friendly and enemy ships. Labels follow the displayed hull poses directly and may overlap each other or the HUD. They hide outside the camera view, with the HUD or in port. Sinking labels retain the remaining structural HP, since flooding can sink a ship before its structure reaches zero.
 
-The port offers Exterior, Armor and Internals views for the loaded ship preset. The inspection list and 3D volumes share the combat definition, including gunhouse armor and flooding compartments. Selecting a space isolates it and shows its dimensions. Layouts remain provisional gameplay data, and inspection does not change the ship or advance combat.
+The port offers Statistics, Armor and Internals views for the loaded ship preset. Statistics prints category scores and a detailed sheet (survivability, armor, batteries, mobility, dimensions and model basis) read from the compiled combat definition. The inspection list and 3D volumes share the combat definition, including gunhouse armor and flooding compartments. Selecting a space isolates it and shows its dimensions. Layouts remain provisional gameplay data, and inspection does not change the ship or advance combat.
 
 Bot tactics, firing ranges and approximate armor/module damage are provisional gameplay tuning. Enterprise fights with its authored guns; aircraft operations and physical ship-to-ship collision response are not implemented. Networking and an in-game ship editor remain future work.
 

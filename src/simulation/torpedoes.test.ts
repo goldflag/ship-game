@@ -9,6 +9,7 @@ import { compileShip, type Vec3 } from '../ships/blueprint';
 import { CombatSimulation } from './combat';
 import { clearTorpedoLane, firstTorpedoHit, torpedoIntercept, type Torpedo, type TubeState } from './torpedoes';
 import { FIXED_DT } from './ship';
+import { botTorpedoAim } from './bots';
 
 const definition = compileShip(blueprint, catalog);
 const helm = { throttle: 0, rudder: 0 }, ahead: Vec3 = [0, 0, -1500];
@@ -156,11 +157,27 @@ test('bot lead intercepts a crossing target; friendly ships block the predicted 
   expect(clearTorpedoLane(sim.player, [0, -2, -30], [0, 0, -1000], 20, sim.actors)).toBe(true);
 });
 
-test('bot VIICs use their tubes against opponents and conserve them through friendly hulls', () => {
+test('bot VIICs wait for target acquisition before using their tubes', () => {
   const sim = new CombatSimulation(definition, { friendlyBots: [], enemies: [definition], spawnDistance: 1000 });
-  step(sim, 180);
+  step(sim, 8 * 60);
+  expect(sim.torpedoes).toHaveLength(0);
+  expect(sim.target.torpedoTubes!.reduce((n, t) => n + t.ammo, 0)).toBe(14);
+  step(sim, 12 * 60);
   expect(sim.torpedoes.some(t => t.ownerId === sim.target.motion.id)).toBe(true);
   expect(sim.target.torpedoTubes!.reduce((n, t) => n + t.ammo, 0)).toBeLessThan(14);
+});
+
+test('bot torpedo lead uses delayed observations after a target changes course', () => {
+  const sim = new CombatSimulation(definition, { friendlyBots: [], enemies: [definition], spawnDistance: 1000 });
+  const actor = sim.target, tube = definition.torpedoTubes![0];
+  step(sim, 1);
+  const before = botTorpedoAim(actor, tube)!;
+  sim.player.motion.heading = Math.PI / 2; sim.player.motion.speed = 8;
+  step(sim, 1);
+  const immediate = botTorpedoAim(actor, tube)!;
+  expect(Math.hypot(immediate[0] - before[0], immediate[2] - before[2])).toBeLessThan(1);
+  step(sim, 3 * 60);
+  expect(Math.abs(botTorpedoAim(actor, tube)![0] - before[0])).toBeGreaterThan(20);
 });
 
 test('VIIC deck and platform guns remain articulated and fire through the shared gun system', () => {
