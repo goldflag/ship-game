@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shell marks · runtime review</title>
+<style>
+  html,body{margin:0;background:#132d38;color:#edf1ec;font:14px sans-serif}
+  #scene{width:1280px;height:720px}canvas{display:block}
+  #status{position:fixed;left:20px;top:20px;max-width:800px;background:#132d38;padding:10px}
+</style>
+<div id="scene"></div><output id="status">Preparing ship impact review…</output>
+<script type="module">
+import { Game } from '/src/game/Game.ts';
+import { hitShip } from '/src/simulation/damage.ts';
+import { localToWorld } from '/src/simulation/geometry.ts';
+
+// Isolated developer fixture: real CPU collision outcomes and the production ship,
+// ocean, lighting and decal adapter. HE here exercises visuals only; playable guns fire AP.
+const status = document.querySelector('#status');
+let ready;
+const loaded = new Promise(resolve => ready = resolve);
+const game = new Game(document.querySelector('#scene'), {quality:'medium',sea:'Fair',resolution:1}, {
+  progress: label => status.textContent=label, ready,
+  telemetry:()=>{},pause:()=>{},hud:()=>{},error:message=>{status.textContent=message;window.reviewError=message;},
+});
+game.start(); await loaded;
+game.setInPort(false); game.setPaused(true); game.rig.update=()=>{};
+let sequence=0;
+function fire(from,to,caliberM,penetrationMm,type='AP') {
+  const pose=game.simulation.player.motion, events=[];
+  const a=localToWorld(from,pose),b=localToWorld(to,pose);
+  const velocity=b.map((n,i)=>(n-a[i])*10);
+  const shell={id:++sequence,ownerId:'target',position:a,velocity,age:1,penetrationMm,damage:70,caliberM,type,visited:[]};
+  hitShip(shell,a,b,game.simulation.player,game.definition,e=>events.push({...e,sequence:++sequence,tick:1}));
+  game.playerView.impactMarks.update(events,'player');
+  return events;
+}
+function prepare() {
+  game.simulation.reset(); game.effects.reset(); sequence=0;
+  game.simulation.player.motion.x=0; game.playerView.snap(); game.targetView.root.visible=false;
+  const events=[];
+  for(const [z,caliber,budget,type] of [[-18,.15,50,'AP'],[-10,.38,50,'AP'],[-2,.38,1500,'AP'],[6,.46,1500,'AP'],[14,.38,50,'HE']]) {
+    events.push(...fire([45,2,z],[-45,2,z],caliber,budget,type));
+  }
+  events.push(...fire([18,3,20],[13,3,62],.38,500));
+  game.camera.fov=45; game.camera.position.set(64,13,15); game.camera.lookAt(15,2,0);
+  game.camera.updateProjectionMatrix(); game.camera.updateMatrixWorld();
+  status.hidden=true;
+  return {marks:game.playerView.impactMarks.count,draws:game.playerView.impactMarks.drawCalls,
+    events:events.filter(e=>e.impact).map(e=>({kind:e.kind,position:e.impact.position,normal:e.impact.normal,type:e.shell.type,caliber:e.shell.caliberM}))};
+}
+async function still() {
+  // PassNode caches per animation frame: an immediate second pipeline.render()
+  // can return the previous camera/aspect. Let the actual game render settle.
+  for(let i=0;i<2;i++) { await new Promise(requestAnimationFrame); await game.frameTask; }
+  game.pipeline.render();
+  return game.renderer.domElement.toDataURL('image/png');
+}
+window.impactReview={game,fire,prepare,still,initial:prepare()};
+</script>
+</html>

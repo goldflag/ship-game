@@ -1,0 +1,24 @@
+{
+  "shipId": "type-viic",
+  "inPort": true,
+  "tick": 0,
+  "torpedoes": [],
+  "effects": {
+    "flashes": 0,
+    "foam": 0,
+    "particleCapacity": 2272,
+    "shells": 0,
+    "smoke": 0,
+    "spray": 0,
+    "torpedoes": 0
+  },
+  "events": [],
+  "torpedoBattery": {
+    "ammo": 14,
+    "battery": "torpedo",
+    "ready": 5,
+    "reload": 0,
+    "total": 5
+  },
+  "damage": 1
+}

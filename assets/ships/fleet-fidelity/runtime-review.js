@@ -55,15 +55,15 @@
         const clientX = rect.left + x * rect.width, clientY = rect.top + y * rect.height;
         if (document.elementFromPoint(clientX, clientY) !== canvas) continue;
         canvas.dispatchEvent(new PointerEvent('pointermove', { clientX, clientY, pointerType: 'mouse', bubbles: true }));
-        game.armorHover.update(game.playerView.inspection);
-        const hovered = game.diagnostics().hoveredArmor;
-        if (hovered) { await frame(); return record('armor-hover', { hovered, clientX, clientY, tooltip: document.getElementById('port-armor-tooltip')?.textContent }); }
+        game.inspectionHover.update(game.playerView.inspection);
+        const hovered = game.diagnostics().hoveredVolume;
+        if (hovered) { await frame(); return record('armor-hover', { hovered, clientX, clientY, tooltip: document.querySelector('[role="tooltip"]')?.textContent }); }
       }
       throw new Error('No visible armor hit in canvas review grid');
     },
     selection() {
       const d = game.diagnostics();
-      return record('inspection-selection', { mode: d.portInspection, selected: d.selectedVolume, hovered: d.hoveredArmor });
+      return record('inspection-selection', { mode: d.portInspection, selected: d.selectedVolume, hovered: d.hoveredVolume });
     },
     async shot(victimId, localFrom, localTo, penetrationMm = 2200) {
       if (game.inPort || game.paused) throw new Error('Launch and resume a battle first');

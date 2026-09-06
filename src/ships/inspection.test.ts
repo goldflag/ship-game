@@ -4,6 +4,38 @@ import { entriesForMode, inspectionEntries } from './inspection';
 import { ShipInspection } from '../game/ShipInspection';
 import { CombatSimulation } from '../simulation/combat';
 import { Group, Mesh, Raycaster, Vector3 } from 'three/webgpu';
+import { compileShip, type Vec3 } from './blueprint';
+import blueprint from '../../assets/ships/bismarck/blueprint.json';
+import catalog from '../../assets/parts/guns.json';
+import { insideHull } from '../simulation/structure';
+import { plateHit } from '../simulation/protection';
+
+test('Bismarck transverse armor, including rendered thickness, fits inside the local hull section', () => {
+  const def = compileShip(blueprint, catalog), view = new ShipInspection(def);
+  view.setMode('armor');
+  const bulkheads = def.armor.filter(a => /^(forward|aft)-transverse-/.test(a.id));
+  expect(bulkheads).toHaveLength(6);
+  const outside: string[] = [];
+  for (const plate of bulkheads) {
+    const group = view.root.children.find(c => c.userData.inspectionId === `armor:${plate.id}`)!;
+    const fill = group.children[0] as Mesh;
+    const positions = fill.geometry.getAttribute('position');
+    // Exercise the actual inspection solid, not just the zero-thickness blueprint.
+    for (let i = 0; i < positions.count; i++) {
+      const n = plate.plate!.vertices.length, next = Math.floor(i/n)*n + (i+1)%n;
+      const a = new Vector3().fromBufferAttribute(positions, i);
+      const b = new Vector3().fromBufferAttribute(positions, next);
+      for (const t of [0,.25,.5,.75]) {
+        const point = a.clone().lerp(b,t).add(group.position).toArray() as Vec3;
+        if (!insideHull(point, def)) outside.push(`${plate.id}: ${point.join(', ')}`);
+      }
+    }
+    // Shaping the edges must retain protection across the center of each layer.
+    const [x,y,z] = plate.center;
+    expect(plateHit([x,y,z-1], [x,y,z+1], plate, def, def.mounts.map(() => 0))).not.toBeNull();
+  }
+  expect(outside).toEqual([]);
+});
 
 test('inspection lists exactly the armor, mounts, modules and compartments used by each ship', () => {
   for (const id of Object.keys(shipPresets)) {
@@ -12,9 +44,14 @@ test('inspection lists exactly the armor, mounts, modules and compartments used 
     expect(entriesForMode(entries, 'armor').length).toBe(structureCount + def.armor.length + def.mounts.filter(m => !def.armor.some(a => a.plate?.mountId === m.id)).length);
     expect(entriesForMode(entries, 'internals').length).toBe(def.modules.length + def.compartments.length);
     expect(entriesForMode(entries, 'exterior')).toEqual([]);
-    const armor = entries.find(e => e.id === `armor:${def.armor[0].id}`)!;
-    expect(armor.thicknessMm).toBe(def.armor[0].thicknessMm);
-    expect(armor.size).toEqual(def.armor[0].size);
+    if (def.armor.length) {
+      const armor = entries.find(e => e.id === `armor:${def.armor[0].id}`)!;
+      expect(armor.thicknessMm).toBe(def.armor[0].thicknessMm);
+      expect(armor.size).toEqual(def.armor[0].size);
+    } else {
+      const hull = entries.find(e => e.id === 'structure:hull')!;
+      expect(hull.thicknessMm).toBe(def.structuralPlating!.hullMm);
+    }
     const gunhouse = entries.find(e => e.mountIndex === 0)!;
     expect(gunhouse.thicknessMm).toBeGreaterThan(0);
     expect(def.armor.some(a => a.plate?.mountId === def.mounts[0].id) ? gunhouse.plate : gunhouse.size).toBeDefined();
@@ -58,15 +95,42 @@ test('armor picking follows the ship transform, finds the nearest layer and excl
   view.setMode('armor'); view.update(sim.player); ship.updateMatrixWorld(true);
   const origin = ship.localToWorld(new Vector3(-40, 0, 0)), destination = ship.localToWorld(new Vector3(0, 0, 0));
   const ray = new Raycaster(origin, destination.sub(origin).normalize());
-  expect(view.pickArmor(ray)?.id).toBe('armor:port-main-belt-2');
+  expect(view.pick(ray)?.id).toBe('armor:port-main-belt-2');
   const bowOrigin = ship.localToWorld(new Vector3(-40, 4, -115)), bowEnd = ship.localToWorld(new Vector3(0, 4, -115));
-  expect(view.pickArmor(new Raycaster(bowOrigin, bowEnd.sub(bowOrigin).normalize()))?.id).toBe('structure:hull');
+  expect(view.pick(new Raycaster(bowOrigin, bowEnd.sub(bowOrigin).normalize()))?.id).toBe('structure:hull');
   view.setMode('armor', 'armor:port-belt-support-2'); view.update(sim.player);
-  expect(view.pickArmor(ray)?.id).toBe('armor:port-belt-support-2');
+  expect(view.pick(ray)?.id).toBe('armor:port-belt-support-2');
   view.setMode('internals'); view.update(sim.player);
-  expect(view.pickArmor(ray)).toBeUndefined();
+  expect(view.pick(ray)?.kind).not.toBe('armor');
   view.setMode('exterior');
-  expect(view.pickArmor(ray)).toBeUndefined();
+  expect(view.pick(ray)).toBeUndefined();
+});
+
+test('internals picking prefers modules over their enclosing compartments and highlights the hovered volume', () => {
+  const def = shipPreset('bismarck'), sim = new CombatSimulation(def), view = new ShipInspection(def);
+  const before = JSON.stringify(sim.player);
+  view.setMode('internals'); view.update(sim.player);
+  const engine = def.modules.find(m => m.kind === 'engine')!, [x, y, z] = engine.center;
+  const ray = new Raycaster(new Vector3(x, y + 50, z), new Vector3(0, -1, 0));
+  expect(view.pick(ray)?.id).toBe(`module:${engine.id}`);
+  // The shell room has no module of its own; the magazine module directly beneath it must not hijack the pick.
+  const shellRoom = def.compartments.find(c => c.id === 'anton-shell-room')!;
+  const picked = view.pick(new Raycaster(new Vector3(shellRoom.center[0], shellRoom.center[1] + 50, shellRoom.center[2]), new Vector3(0, -1, 0)));
+  expect(picked?.kind).toBe('compartment');
+  expect(Math.abs(picked!.center[2] - shellRoom.center[2])).toBeLessThan(picked!.size[2] / 2);
+  view.setHovered(`module:${engine.id}`); view.update(sim.player);
+  expect(view.hoveredId).toBe(`module:${engine.id}`);
+  const group = view.root.children.find(c => c.userData.inspectionId === `module:${engine.id}`)!;
+  const fill = group.children[0] as Mesh, outline = group.children[1] as Mesh;
+  expect((fill.material as import('three/webgpu').MeshBasicMaterial).opacity).toBeGreaterThan(.5);
+  expect((outline.material as import('three/webgpu').LineBasicMaterial).opacity).toBe(1);
+  // Armor entries are never hoverable in the internals view, and vice versa.
+  view.setHovered('armor:port-main-belt-2');
+  expect(view.hoveredId).toBeUndefined();
+  view.setMode('armor'); view.update(sim.player);
+  view.setHovered(`module:${engine.id}`);
+  expect(view.hoveredId).toBeUndefined();
+  expect(JSON.stringify(sim.player)).toBe(before);
 });
 
 test('hover highlights and outlines only its opaque plate, then clears without changing selection or combat', () => {

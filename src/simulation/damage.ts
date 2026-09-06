@@ -11,17 +11,27 @@ export interface DamageState {
   compartments: CompartmentState[]; sunk: boolean;
 }
 export interface Combatant { motion: ShipState; mounts: MountState[]; damage: DamageState; }
+export type ShellType = 'AP' | 'HE';
 export interface Shell {
   id: number; ownerId: string; position: Vec3; velocity: Vec3; age: number;
   penetrationMm: number; damage: number; caliberM: number; visited: string[];
   /** Lazily initialized from damage; persists across module hits and fixed ticks. */
   remainingModuleDamage?: number;
+  /** Omitted by older fixtures; current batteries fire AP. */
+  type?: ShellType;
+}
+/** A surface strike in ship-local or, when specified, mount-yaw-local coordinates. */
+export interface SurfaceImpact {
+  position: Vec3; normal: Vec3; direction: Vec3;
+  mountId?: string;
+  outcome: 'penetration' | 'stopped' | 'ricochet';
 }
 /** Serializable evidence for render-side effects; never feeds back into damage. */
 export interface BallisticEffectData {
-  shell?: Pick<Shell, 'id' | 'caliberM' | 'velocity'>;
+  shell?: Pick<Shell, 'id' | 'caliberM' | 'velocity' | 'type'>;
   normal?: Vec3;
   detonation?: boolean;
+  impact?: SurfaceImpact;
 }
 export interface DamageEvent extends BallisticEffectData { kind: 'penetration' | 'ricochet' | 'stopped' | 'module' | 'sunk'; position: Vec3; message: string; shipId: string; }
 // Provisional absolute gameplay damage. Magazine loss
@@ -104,12 +114,33 @@ export function hitShip(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor: Com
   for (const hit of hits) {
     shell.visited.push(hit.key);
     const position = localToWorld(hit.point, actor.motion);
-    const report = (kind: DamageEvent['kind'], message: string, detonation = false) => emit({
-      kind, position, message, shipId: actor.motion.id,
-      shell: { id: shell.id, caliberM: shell.caliberM, velocity: [...shell.velocity] },
-      ...(hit.kind === 'mount' || hit.kind === 'structure' || (hit.kind === 'armor' && kind !== 'module') ? { normal: rotate(hit.normal, actor.motion) } : {}),
-      ...(detonation ? { detonation: true } : {}),
-    });
+    const report = (kind: DamageEvent['kind'], message: string, detonation = false) => {
+      const armor = hit.kind === 'armor' ? def.armor[hit.index] : undefined;
+      const mountId = hit.kind === 'mount' ? def.mounts[hit.index].id : armor?.plate?.mountId;
+      const surface = hit.kind === 'structure' || hit.kind === 'mount' ||
+        (hit.kind === 'armor' && (!armor?.plate || armor.plate.exterior || mountId));
+      let impact: SurfaceImpact | undefined;
+      if (surface && !detonation && (kind === 'penetration' || kind === 'stopped' || kind === 'ricochet' || (kind === 'module' && hit.kind === 'mount'))) {
+        impact = { position: [...hit.point], normal: [...hit.normal], direction: [...direction],
+          outcome: kind === 'stopped' || kind === 'ricochet' ? kind : 'penetration' };
+        if (mountId) {
+          const index = def.mounts.findIndex(m => m.id === mountId), mount = def.mounts[index];
+          const pose = { x: mount.position[0], y: mount.position[1], z: mount.position[2],
+            heading: radians(mount.bearingDeg) + actor.mounts[index].train, roll: 0, pitch: 0 };
+          impact.position = worldToLocal(hit.point, pose);
+          impact.normal = worldToLocal(hit.normal, { ...pose, x: 0, y: 0, z: 0 });
+          impact.direction = worldToLocal(direction, { ...pose, x: 0, y: 0, z: 0 });
+          impact.mountId = mountId;
+        }
+      }
+      emit({
+        kind, position, message, shipId: actor.motion.id,
+        shell: { id: shell.id, caliberM: shell.caliberM, velocity: [...shell.velocity], type: shell.type ?? 'AP' },
+        ...(hit.kind === 'mount' || hit.kind === 'structure' || (hit.kind === 'armor' && kind !== 'module') ? { normal: rotate(hit.normal, actor.motion) } : {}),
+        ...(detonation ? { detonation: true } : {}),
+        ...(impact ? { impact } : {}),
+      });
+    };
     if (hit.kind === 'structure') {
       // Adjacent triangles describe one sheet. Keep both IDs visited at seams.
       if(crossedStructure.some(p=>p.surface===hit.surface&&length(sub(p.point,hit.point))<1e-5))continue;
