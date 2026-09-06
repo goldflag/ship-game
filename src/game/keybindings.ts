@@ -13,6 +13,7 @@ export const INPUT_ACTIONS = [
   { id: 'mainBattery', label: 'Select main battery', group: 'Gunnery' },
   { id: 'secondaryBattery', label: 'Select secondary battery', group: 'Gunnery' },
   { id: 'torpedoes', label: 'Select torpedoes', group: 'Gunnery' },
+  { id: 'depthCharges', label: 'Select depth charges', group: 'Gunnery' },
   { id: 'gunnery', label: 'Open / close gunnery', group: 'Gunnery' },
   { id: 'shellFollow', label: 'Toggle shell follow camera', group: 'Gunnery' },
   { id: 'camera', label: 'Cycle camera', group: 'View' },
@@ -34,6 +35,7 @@ export function defaultKeybindings(): Keybindings {
     recenter: ['KeyR', null], hud: ['KeyH', null], fullscreen: ['KeyF', null],
     mainBattery: ['Digit1', null], secondaryBattery: ['Digit2', null], gunnery: ['KeyG', null],
     shellFollow: ['KeyT', null], torpedoes: ['Digit3', null],
+    depthCharges: ['Digit4', null],
     dive: ['KeyZ', null], rise: ['KeyX', null], emergencyBlow: ['KeyB', null],
     chartLarger: ['Equal', 'NumpadAdd'], chartSmaller: ['Minus', 'NumpadSubtract'],
   };
@@ -86,7 +88,7 @@ export function keybindingsOf(value: unknown): Keybindings {
     result[id] = [pair[0], pair[1]];
   }
   // Add new actions to older saves without discarding existing custom controls.
-  const additions = ['shellFollow', 'torpedoes', 'dive', 'rise', 'emergencyBlow'];
+  const additions = ['shellFollow', 'torpedoes', 'depthCharges', 'dive', 'rise', 'emergencyBlow'];
   for (const id of [...missing.filter(id => !additions.includes(id)), ...missing.filter(id => additions.includes(id))]) {
     const preferred = defaults[id].filter((code): code is string => code !== null && !used.has(code));
     if (!additions.includes(id) && preferred.length !== defaults[id].filter(Boolean).length) return defaults;

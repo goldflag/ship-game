@@ -7,6 +7,7 @@ import { muzzleWorld, shotDirection } from '../simulation/weapons';
 import { ShipInspection } from './ShipInspection';
 import type { InspectionMode } from '../ships/inspection';
 import { ShipImpactMarks } from './ShipImpactMarks';
+import { tubeLocalPosition } from '../simulation/torpedoes';
 
 /** Renderer adapter. Simulation geometry and transforms come from the same definition. */
 export class ShipView {
@@ -19,6 +20,10 @@ export class ShipView {
   private motionSource: Combatant['motion'];
   private previousMounts: Combatant['mounts'];
   private renderedMounts: Combatant['mounts'];
+  private previousLaunchers: number[];
+  private renderedLaunchers: NonNullable<Combatant['torpedoLaunchers']>;
+  private launcherBindings: THREE.Object3D[];
+  private tubeBindings: THREE.Object3D[];
   get internals() { return this.inspection.root; }
   private bindings: { yaw: THREE.Object3D; elevation: THREE.Object3D[]; recoil: THREE.Object3D[]; muzzles: THREE.Object3D[] }[];
   private surfaces: { material: THREE.MeshStandardMaterial; opacity: number; transparent: boolean; depthWrite: boolean }[] = [];
@@ -31,6 +36,8 @@ export class ShipView {
     this.previousMotion = { ...actor.motion };
     this.previousMounts = actor.mounts.map(m => ({ ...m }));
     this.renderedMounts = actor.mounts.map(m => ({ ...m }));
+    this.previousLaunchers = (actor.torpedoLaunchers ?? []).map(l => l.train);
+    this.renderedLaunchers = (actor.torpedoLaunchers ?? []).map(l => ({ ...l }));
     this.root.name = actor.motion.id;
     this.inspection = new ShipInspection(definition);
     const nodes = new Map<string, THREE.Object3D>();
@@ -56,6 +63,8 @@ export class ShipView {
     });
     const node = (id: string) => { const n = nodes.get(id); if (!n) throw new Error(`Ship export is missing ${id}. Rebuild with bun run ship:build ${definition.id}`); return n; };
     this.bindings = definition.mounts.map(m => ({ yaw: node(`${m.id}.yaw`), elevation: barrelIds(m.weapon).map(side => node(`${m.id}.${side}.elevation`)), recoil: barrelIds(m.weapon).map(side => node(`${m.id}.${side}.recoil`)), muzzles: barrelIds(m.weapon).map(side => node(`${m.id}.${side}.muzzle`)) }));
+    this.launcherBindings = (definition.torpedoLaunchers ?? []).map(l => node(`${l.id}.yaw`));
+    this.tubeBindings = (definition.torpedoTubes ?? []).map(t => node(`${t.id}.muzzle`));
     if (definition.submarine) for (const kind of ['bowPlanes', 'sternPlanes', 'rudders', 'propellers'] as const) {
       this.appendages.push(...definition.submarine.appendages[kind].map((id, index) => ({ node: node(id), base: node(id).quaternion.clone(), kind, index })));
     }
@@ -87,11 +96,20 @@ export class ShipView {
       return node.getWorldPosition(new THREE.Vector3()).distanceTo(expected);
     }));
   }
+  torpedoMuzzleErrors(): number[] {
+    this.root.updateMatrixWorld(true);
+    return this.tubeBindings.map((node, i) => {
+      const local = tubeLocalPosition({ definition: this.definition, torpedoLaunchers: this.renderedLaunchers }, this.definition.torpedoTubes![i]);
+      const expected = this.root.localToWorld(new THREE.Vector3(...local));
+      return node.getWorldPosition(new THREE.Vector3()).distanceTo(expected);
+    });
+  }
   /** Capture before every fixed tick, including all ticks in a catch-up frame. */
   capturePreviousPose(): void {
     this.motionSource = this.actor.motion;
     Object.assign(this.previousMotion, this.actor.motion);
     this.previousMounts.forEach((m, i) => Object.assign(m, this.actor.mounts[i]));
+    this.previousLaunchers = (this.actor.torpedoLaunchers ?? []).map(l => l.train);
   }
   /** Teleports and port transitions must not interpolate across the old voyage. */
   snap(): void { this.capturePreviousPose(); this.update(); }
@@ -128,6 +146,11 @@ export class ShipView {
       b.yaw.rotation.set(0, -(radians(this.definition.mounts[i].bearingDeg) + mounts[i].train), 0);
       b.elevation.forEach(n => { n.rotation.set(mounts[i].elevation, 0, 0); });
       b.recoil.forEach(n => { n.position.z = mounts[i].recoil * this.definition.mounts[i].weapon.recoilM; });
+    });
+    this.launcherBindings.forEach((node, i) => {
+      const train = this.actor.torpedoLaunchers?.[i].train ?? 0, previous = this.previousLaunchers[i] ?? train;
+      this.renderedLaunchers[i].train = previous + wrapAngle(train - previous) * t;
+      node.rotation.set(0, -this.renderedLaunchers[i].train, 0);
     });
     this.appendages.forEach(({ node, base, kind, index }) => {
       node.quaternion.copy(base);

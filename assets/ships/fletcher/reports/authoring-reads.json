@@ -1,0 +1,7 @@
+[
+  ".build/ships/fletcher/authoring-reads.json",
+  ".build/ships/fletcher/definition.json",
+  "assets/ships/fletcher/build.py",
+  "scripts/ships/__pycache__/blender_components.cpython-313.pyc",
+  "scripts/ships/__pycache__/blender_open_guns.cpython-313.pyc"
+]

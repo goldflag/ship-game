@@ -1,0 +1,92 @@
+{
+  "id": "us-5in38-mk30-single",
+  "name": "5-inch/38 Mk 30 single mount",
+  "kind": "gun",
+  "barrelCount": 1,
+  "massKg": 18000,
+  "barbetteRadius": 1.22,
+  "gunhouseSize": [
+    3.6,
+    3.0,
+    2.55
+  ],
+  "pivotHeight": 1.55,
+  "trunnionForward": 0.8,
+  "muzzleForward": 4.7,
+  "barrelSpacing": 1,
+  "barrelBaseRadius": 0.195,
+  "caliberM": 0.127,
+  "traverseDeg": 160,
+  "traverseRateDeg": 25,
+  "elevationMinDeg": -15,
+  "elevationMaxDeg": 85,
+  "elevationRateDeg": 15,
+  "reloadSeconds": 4,
+  "muzzleSpeed": 792,
+  "projectileMassKg": 25,
+  "penetrationMm": 65,
+  "damage": 12,
+  "recoilM": 0.38,
+  "ammoPerBarrel": 360,
+  "armorMm": 12.7,
+  "gunhouseShape": {
+    "footprint": [
+      [
+        -1.9,
+        -1.5
+      ],
+      [
+        1.6,
+        -1.5
+      ],
+      [
+        1.9,
+        -1
+      ],
+      [
+        1.9,
+        1
+      ],
+      [
+        1.6,
+        1.5
+      ],
+      [
+        -1.9,
+        1.5
+      ]
+    ],
+    "roof": [
+      [
+        -1.8,
+        -1.4,
+        2.55
+      ],
+      [
+        0.8,
+        -1.4,
+        2.55
+      ],
+      [
+        1.6,
+        -0.95,
+        1.9
+      ],
+      [
+        1.6,
+        0.95,
+        1.9
+      ],
+      [
+        0.8,
+        1.4,
+        2.55
+      ],
+      [
+        -1.8,
+        1.4,
+        2.55
+      ]
+    ]
+  }
+}
