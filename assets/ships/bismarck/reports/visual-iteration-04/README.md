@@ -35,3 +35,5 @@ A 1 km Bismarck custom battle was launched through the game UI, then exercised w
 ## Master integration
 
 Integrated master `b7af06d` before merging. The containment regression now opens Armor mode through the public API, matching master's on-demand inspection construction. **206 tests passed, 0 failures, 30,632 assertions across 33 files**; `bun run build` passed all four asset checks, TypeScript and Vite. [Integrated tests](merge-tests.txt), [integrated build](merge-build.txt). The model hash above is unchanged; the browser captures record the earlier game revision used for the visual review.
+
+Also integrated the subsequent aircraft-only master update `8e0be03`. Ship authoring and simulation files were unchanged. All **22 aircraft tests passed** (58 assertions), and the updated production build passed all four ship checks, all thirteen aircraft checks, TypeScript and Vite. [Aircraft tests](merge-aircraft-tests.txt).

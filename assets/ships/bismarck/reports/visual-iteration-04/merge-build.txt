@@ -1,4 +1,4 @@
-$ bun run ship:check bismarck && bun run ship:check yamato && bun run ship:check baltimore && bun run ship:check enterprise-cv6 && tsc --noEmit && vite build
+$ bun run ship:check bismarck && bun run ship:check yamato && bun run ship:check baltimore && bun run ship:check enterprise-cv6 && bun run aircraft:check all && tsc --noEmit && vite build
 $ bun scripts/ships/pipeline.ts check bismarck
 Matched comparisons, probes, source pack and portable archive are current
 {
@@ -756,12 +756,27 @@ $ bun scripts/ships/pipeline.ts check "enterprise-cv6"
   "result": "passed",
   "historicalAccuracy": "not certified; see reference register and discrepancy report"
 }
+$ bun scripts/aircraft/pipeline.ts check all
+a6m2-zero: passed (LOD triangles 30,999 / 13,936 / 6,148, 1046 KiB base)
+d3a1-val: passed (LOD triangles 32,094 / 14,430 / 6,395, 1073 KiB base)
+b5n2-kate: passed (LOD triangles 31,458 / 14,143 / 6,243, 1135 KiB base)
+a6m5-zero: passed (LOD triangles 31,486 / 14,156 / 6,249, 1133 KiB base)
+d4y2-judy: passed (LOD triangles 28,252 / 12,700 / 5,616, 1058 KiB base)
+b6n2-jill: passed (LOD triangles 31,210 / 14,031 / 6,194, 1134 KiB base)
+f4f-4-wildcat: passed (LOD triangles 30,655 / 13,781 / 6,081, 1001 KiB base)
+sbd-3-dauntless: passed (LOD triangles 38,199 / 17,172 / 7,790, 1545 KiB base)
+tbd-1-devastator: passed (LOD triangles 33,575 / 15,095 / 6,664, 1072 KiB base)
+f6f-5-hellcat: passed (LOD triangles 31,955 / 14,366 / 6,341, 1285 KiB base)
+sb2c-4-helldiver: passed (LOD triangles 38,429 / 17,275 / 7,799, 1810 KiB base)
+tbf-1c-avenger: passed (LOD triangles 33,383 / 15,008 / 6,634, 1180 KiB base)
+f4u-1d-corsair: passed (LOD triangles 30,411 / 13,670 / 6,034, 1248 KiB base)
 vite v6.4.3 building for production...
 transforming...
-✓ 117 modules transformed.
+✓ 121 modules transformed.
 rendering chunks...
 computing gzip size...
-dist/index.html                                                   0.74 kB │ gzip:     0.41 kB
+dist/index.html                                                   0.82 kB │ gzip:     0.43 kB
+dist/aircraft-review.html                                         4.69 kB │ gzip:     1.49 kB
 dist/assets/data/baseShape16.bin                                 14.21 kB
 dist/assets/barlow-condensed-latin-500-normal-HIEiP5Ov.woff      18.60 kB
 dist/assets/barlow-condensed-latin-600-normal-BFJEwTuo.woff      18.89 kB
@@ -775,14 +790,17 @@ dist/assets/barlow-condensed-latin-600-normal-DepVgxBB.woff2     22.31 kB
 dist/assets/barlow-latin-600-normal-DILqtrty.woff2               22.77 kB
 dist/assets/data/baseShape32.bin                                113.24 kB
 dist/assets/data/baseShape64.bin                                908.29 kB
-dist/assets/index-CTVEiGOd.css                                   66.52 kB │ gzip:    13.26 kB
-dist/assets/render-DqWuks3g.js                                    7.43 kB │ gzip:     3.56 kB
+dist/assets/aircraftReview-B-FvKVDH.css                           7.16 kB │ gzip:     2.17 kB
+dist/assets/game-CTVEiGOd.css                                    66.52 kB │ gzip:    13.26 kB
+dist/assets/render-D5SycYX_.js                                    7.45 kB │ gzip:     3.57 kB
+dist/assets/aircraftReview-BhepOD6k.js                           32.06 kB │ gzip:     9.29 kB
 dist/assets/react-BYzzQ_KH.js                                   193.01 kB │ gzip:    60.33 kB
-dist/assets/three-engine-DabqF5l4.js                            925.46 kB │ gzip:   256.01 kB
-dist/assets/index-Be_JlnLO.js                                 7,179.34 kB │ gzip: 4,590.00 kB
+dist/assets/GLTFLoader-D4EenK1l.js                              399.10 kB │ gzip:   100.65 kB
+dist/assets/three-engine-Cj1u6Uxo.js                            933.99 kB │ gzip:   259.36 kB
+dist/assets/game-9EwPorAM.js                                  7,130.09 kB │ gzip: 4,575.55 kB
 
 (!) Some chunks are larger than 7000 kB after minification. Consider:
 - Using dynamic import() to code-split the application
 - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
-✓ built in 4.05s
+✓ built in 3.27s
