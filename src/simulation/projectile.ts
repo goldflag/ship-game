@@ -1,3 +1,5 @@
+import type { Island } from '../maps/catalog';
+import { firstLandHit } from './land';
 import type { Vec3 } from '../ships/blueprint';
 import type { FleetActor } from './battle';
 import { ballisticStep, travelFactor, velocityPenetration } from './ballistics';
@@ -10,7 +12,7 @@ import { mayReachHull, shellHullRadius } from './spatial';
 export type ProjectileEnd = 'burst' | 'stopped' | 'passed-through' | 'splash' | 'expired';
 /** Swept chords remain bounded to a CPU tick. Every contact splits elapsed time,
  * so residual speed and fuze delay affect travel during that same tick. */
-export function advanceProjectile(shell: Shell, actors: FleetActor[], dt: number, emit: (event: DamageEvent | { kind: 'splash'; shipId: string; position: Vec3; message: string; shell: Pick<Shell, 'id' | 'caliberM' | 'velocity' | 'type' | 'ammunition'> }) => void): ProjectileEnd | undefined {
+export function advanceProjectile(shell: Shell, actors: FleetActor[], dt: number, emit: (event: DamageEvent | { kind: 'splash'; shipId: string; position: Vec3; message: string; shell: Pick<Shell, 'id' | 'caliberM' | 'velocity' | 'type' | 'ammunition'> }) => void, islands: readonly Island[] = []): ProjectileEnd | undefined {
   const insideHull = (point: Vec3) => actors.some(a => a.motion.id !== shell.ownerId && hullContains(a.definition.hull, worldToLocal(point, a.motion)));
   let remaining = dt;
   for (let iteration = 0; iteration < 64; iteration++) {
@@ -44,6 +46,12 @@ export function advanceProjectile(shell: Shell, actors: FleetActor[], dt: number
       if (!segmentOverlapsBox(worldToLocal(from, actor.motion), worldToLocal(end, actor.motion), { center: [0, 10, 0], size: [def.hull.beam + 30, 60, def.hull.length + 40] })) continue;
       const hit = shipContacts(shell, from, end, actor, def)[0];
       if (hit && (!nearest || hit.t < nearest.hit.t)) nearest = { actor, hit };
+    }
+    const land = firstLandHit(islands, from, end);
+    if (land && (!nearest || land.t < nearest.hit.t)) {
+      shell.position = land.point;
+      emit({ kind: 'stopped', shipId: '', position: land.point, message: 'Shell struck the coast', normal: [0, 1, 0], shell: { id: shell.id, caliberM: shell.caliberM, velocity: [...shell.velocity], ammunition: shell.ammunition, type: shell.type ?? 'AP' } });
+      return 'stopped';
     }
     if (nearest) {
       const t = nearest.hit.t * (crossesSea ? fraction : 1);

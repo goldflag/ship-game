@@ -102,3 +102,15 @@ The dev-only GPU regression harness is at `/scripts/diagnostics/ocean-spectrum.h
 ## Smaller wave scale
 
 The September 5 scale adjustment reduces Atlantic peak wavelength from 65 to 28 m, amplitude from 0.75 to 0.45, and choppiness from 1.05 to 0.8. Fair, Heavy, and port conditions receive the same artistic direction while retaining their relative intensity. Ship geometry, cameras, water colors and CPU combat are unchanged. See the [matching before/after views](../assets/reviews/ocean-scale/index.html).
+
+## World ocean maps
+
+Versioned map definitions live in `assets/maps/environments.v1.json`, consumed through `src/maps/catalog.ts`. Select a map and sea conditions in Custom battle. The existing `Atlantic` sea-state value is displayed as **Moderate**, so it is not confused with the North Atlantic map. Map and sea selections survive repeated battles during the current page session.
+
+Each map supplies custom water/absorption/transmission colors, wave and wind multipliers, wave-foam opacity, sun elevation/azimuth/intensity, cloud coverage/altitude/thickness, atmospheric scattering and fog. Fair/Moderate/Heavy retain the small-wave direction and multiply each map's wave scales. The port restores all overridden shader parameters on return, including color, cloud height and foam. Quality tiers retain their normal cascade layouts; map selection does not rebuild the water system.
+
+The [illustrated map guide](../assets/maps/review/index.html) records the four settings and their actual rendered views. These are independently authored, region-inspired gameplay landscapes, not surveyed coastlines or calibrated regional weather.
+
+Coastal maps widen a central clear lane according to the largest fleet, then place islands relative to the midpoint of the two spawn lines. The shared CPU island-height function drives the rendered mesh, chart outline, camera clearance, projectile contact and conservative hull clearance. Bots blend an outward course near shores. Land contact removes inward ship motion without grounding damage; full bathymetry, tides, beaching, route planning and terrain blast propagation are outside this first map implementation. Shells can fly over high ground and stop on it; torpedoes stop at submerged coastal slopes. Ground impacts currently reuse the small hard-surface impact effect.
+
+Original island recipes and capture scripts stay under `assets/maps/`. The renderer uses eroded heightfields with asymmetric ridges and connected drainage valleys, triplanar rock and vegetation textures, slope-dependent snow and rock, and clustered tree impostors. See the [terrain recipe and review notes](../assets/maps/terrain-notes.md). Terrain meshes are generated at launch and disposed when switching maps. The rendered land surface is a finite tessellation of the continuous CPU height function, so very close grazing contacts remain approximate. No ship model assets or CPU wave poses are changed.
