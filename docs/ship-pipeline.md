@@ -27,6 +27,8 @@ Port thumbnails are checked-in transparent 600 × 180 PNGs at `public/models/<sh
 
 Commands that write the same staging directory use a lock with process information. If a process is forcibly interrupted, confirm it has stopped before removing `.build/ships/<id>.lock`. Builds also reject authoring inputs that change while Blender is running. `ship:review` reads the retained generated Blender source and saves camera settings alongside its five images, so review works after a clean checkout.
 
+Presets may share original text recipes under `assets/` using an optional `recipe-inputs.json`: `{ "version": 1, "files": ["assets/ships/convoy/geometry-v2.py"] }`. The register and every listed file enter the content hash and the pre-publication change check. Reference folders, baselines and parent traversal are rejected. Rebuild each listed consumer when its shared recipe changes. Liberty Cargo, the machinery-aft Liberty Collier, Victory Cargo and the Cobalt-1941 Flower register the same original component recipe and plans-v2.json measurements; they retain separate versioned blueprints, compiled definitions and generated sources. Original schematic scans and provenance remain under assets/ships/convoy/references/plans/.
+
 ## Repository layout
 
 ```text
