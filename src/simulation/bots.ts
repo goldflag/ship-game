@@ -1,14 +1,28 @@
-import type { ShipDefinition, Vec3 } from '../ships/blueprint';
+import type { Ammunition, ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { FleetActor } from './battle';
 import { FIXED_DT, motionVelocity, type HelmCommand } from './ship';
-import { add, clamp, localToWorld, scale, sub, wrapAngle, type Pose } from './geometry';
-import { muzzleCenterWorld, solveBallistic, type MountDefinition, type MountState } from './weapons';
+import { add, clamp, length, localToWorld, scale, sub, wrapAngle, type Pose } from './geometry';
+import { availableAmmunition, muzzleCenterWorld, solveBallistic, type MountDefinition, type MountState } from './weapons';
+import { travelFactor } from './ballistics';
 import { torpedoIntercept, type TubeDefinition } from './torpedoes';
 
 export const shipVelocity = (actor: FleetActor): Vec3 => motionVelocity(actor.motion);
 /** Provisional bot engagement limits, in meters; small AA fittings wait for close range. */
 export const botGunRange = (mount: MountDefinition): number => mount.weapon.caliberM >= .2 ? 18000 : mount.weapon.caliberM >= .1 ? 8000 : mount.weapon.caliberM >= .03 ? 3500 : 1800;
 const distance = (a: FleetActor, b: FleetActor) => Math.hypot(a.motion.x - b.motion.x, a.motion.z - b.motion.z);
+const shellProtection = new WeakMap<ShipDefinition, number>();
+/** Simple ammunition doctrine from authored protection, never from ship names. */
+export function botAmmunition(target: FleetActor, mount: MountDefinition, state: MountState): Ammunition {
+  let protection = shellProtection.get(target.definition);
+  if (protection === undefined) {
+    protection = Math.max(0, ...target.definition.armor.filter(a => a.exterior || a.plate?.exterior).map(a => a.thicknessMm));
+    shellProtection.set(target.definition, protection);
+  }
+  const preferred = mount.weapon.he && (mount.weapon.caliberM < .2 || protection < 80) ? 'he' : 'ap';
+  const count = mount.weapon.barrelCount ?? 2;
+  if (availableAmmunition(state, preferred) >= count) return preferred;
+  return preferred === 'ap' && mount.weapon.he && availableAmmunition(state, 'he') >= count ? 'he' : 'ap';
+}
 
 interface GunOrder { fireAt: number; alongHull: number; height: number; acrossError: number; rangeError: number; }
 interface TargetTrack {
@@ -135,7 +149,7 @@ export function botDidFire(actor: FleetActor, mount: MountDefinition): void {
 
 /** Stable nearest-opponent selection, with hysteresis to prevent target flicker. */
 export function botTarget(actor: FleetActor, actors: readonly FleetActor[]): FleetActor | undefined {
-  const enemies = actors.filter(other => other.team !== actor.team && !other.damage.sunk);
+  const enemies = actors.filter(other => other.team !== actor.team && !other.damage.sunk && !other.damage.stability.combatLost);
   const nearest = enemies.reduce<FleetActor | undefined>((best, other) => !best || distance(actor, other) < distance(actor, best) ? other : best, undefined);
   const previous = enemies.find(other => other.motion.id === actor.targetId);
   return previous && nearest && distance(actor, previous) <= distance(actor, nearest) * 1.25 ? previous : nearest;
@@ -183,11 +197,11 @@ export function botHelm(actor: FleetActor, target: FleetActor | undefined, actor
 
 /** Lead the last observed track. Aim errors persist between salvos and shrink as tracking settles. */
 export function botAim(actor: FleetActor, target: FleetActor, mount: MountDefinition, state: MountState): Vec3 {
-  const bot = actor.bot!, track = bot.track, gun = bot.guns[mount.id];
+  const bot = actor.bot, track = bot?.track, gun = bot?.guns[mount.id] ?? { alongHull: 0, height: .8, rangeError: 0, acrossError: 0 };
   const pose = track?.pose ?? target.motion;
   const velocity = track?.velocity ?? shipVelocity(target), inherited = shipVelocity(actor);
   const alongHull = ((track?.focus ?? 1) - 1) * .23 + gun.alongHull;
-  const point = add(localToWorld([0, gun.height + (mount.battery === 'secondary' ? 2 : 0), alongHull * target.definition.hull.length], pose), scale(velocity, bot.time - (track?.observedAt ?? bot.time)));
+  const point = add(localToWorld([0, gun.height + (mount.battery === 'secondary' ? 2 : 0), alongHull * target.definition.hull.length], pose), scale(velocity, (bot?.time ?? 0) - (track?.observedAt ?? bot?.time ?? 0)));
   point[1] = Math.max(.5, point[1]);
   const from = muzzleCenterWorld(mount, state, actor.motion);
   const dx = point[0] - from[0], dz = point[2] - from[2];
@@ -195,12 +209,15 @@ export function botAim(actor: FleetActor, target: FleetActor, mount: MountDefini
   const error = (4 + range * .003) * (1 + 3 * (1 - (track?.quality ?? 0)));
   point[0] += (dx * gun.rangeError - dz * gun.acrossError * .6) / range * error;
   point[2] += (dz * gun.rangeError + dx * gun.acrossError * .6) / range * error;
-  let time = Math.hypot(point[0] - from[0], point[2] - from[2]) / mount.weapon.muzzleSpeed;
-  for (let i = 0; i < 3; i++) {
-    const solution = solveBallistic(from, add(point, scale(sub(velocity, inherited), time)), mount.weapon.muzzleSpeed);
+  const cached = state.leadCache && length(sub(point, state.leadCache.point)) < 10 ? state.leadCache : undefined;
+  let time = cached?.time ?? Math.hypot(point[0] - from[0], point[2] - from[2]) / mount.weapon.muzzleSpeed;
+  const drag = mount.weapon.ballistics?.dragPerSecond ?? 0;
+  for (let i = 0; i < (cached ? 1 : 3); i++) {
+    const solution = solveBallistic(from, sub(add(point, scale(velocity, time)), scale(inherited, travelFactor(time, drag))), mount.weapon.muzzleSpeed, drag);
     if (!solution) break;
     time = solution.time;
   }
+  state.leadCache = { time, point: [...point] };
   return add(point, scale(velocity, time));
 }
 

@@ -1,0 +1,3324 @@
+[
+  {
+    "backend": "webgpu",
+    "contentHash": "e968df81e5fbf119177548826b2dc4377f4a8e6ef3611b75984dadbe0d89e52d",
+    "kind": "articulation",
+    "mounts": 42,
+    "poses": [
+      {
+        "elevationFraction": 0,
+        "maxMuzzleErrorM": 0.0000323503731027707,
+        "recoilFraction": 0,
+        "trainFraction": -1
+      },
+      {
+        "elevationFraction": 0,
+        "maxMuzzleErrorM": 0.0000323503731027707,
+        "recoilFraction": 1,
+        "trainFraction": -1
+      },
+      {
+        "elevationFraction": 1,
+        "maxMuzzleErrorM": 0.00003225235557352997,
+        "recoilFraction": 0,
+        "trainFraction": -1
+      },
+      {
+        "elevationFraction": 1,
+        "maxMuzzleErrorM": 0.00003225235557352997,
+        "recoilFraction": 1,
+        "trainFraction": -1
+      },
+      {
+        "elevationFraction": 0,
+        "maxMuzzleErrorM": 0.00003021119333964585,
+        "recoilFraction": 0,
+        "trainFraction": 0
+      },
+      {
+        "elevationFraction": 0,
+        "maxMuzzleErrorM": 0.00003021119333964585,
+        "recoilFraction": 1,
+        "trainFraction": 0
+      },
+      {
+        "elevationFraction": 1,
+        "maxMuzzleErrorM": 0.00003021119333964585,
+        "recoilFraction": 0,
+        "trainFraction": 0
+      },
+      {
+        "elevationFraction": 1,
+        "maxMuzzleErrorM": 0.00003021119333964585,
+        "recoilFraction": 1,
+        "trainFraction": 0
+      },
+      {
+        "elevationFraction": 0,
+        "maxMuzzleErrorM": 0.00003021119333964585,
+        "recoilFraction": 0,
+        "trainFraction": 1
+      },
+      {
+        "elevationFraction": 0,
+        "maxMuzzleErrorM": 0.00003021119333964585,
+        "recoilFraction": 1,
+        "trainFraction": 1
+      },
+      {
+        "elevationFraction": 1,
+        "maxMuzzleErrorM": 0.00003021119333964585,
+        "recoilFraction": 0,
+        "trainFraction": 1
+      },
+      {
+        "elevationFraction": 1,
+        "maxMuzzleErrorM": 0.00003021119333964585,
+        "recoilFraction": 1,
+        "trainFraction": 1
+      }
+    ],
+    "shipId": "enterprise-cv6",
+    "time": "2026-09-06T04:27:06.083Z"
+  },
+  {
+    "backend": "webgpu",
+    "clientX": 631.0350000000003,
+    "clientY": 366.93,
+    "contentHash": "e968df81e5fbf119177548826b2dc4377f4a8e6ef3611b75984dadbe0d89e52d",
+    "hovered": "structure:flight-deck",
+    "kind": "armor-hover",
+    "shipId": "enterprise-cv6",
+    "time": "2026-09-06T04:27:52.417Z"
+  },
+  {
+    "backend": "webgpu",
+    "contentHash": "e968df81e5fbf119177548826b2dc4377f4a8e6ef3611b75984dadbe0d89e52d",
+    "kind": "inspection-selection",
+    "mode": "internals",
+    "selected": "module:steering-space-module",
+    "shipId": "enterprise-cv6",
+    "time": "2026-09-06T04:27:54.644Z"
+  },
+  {
+    "backend": "webgpu",
+    "contentHash": "e968df81e5fbf119177548826b2dc4377f4a8e6ef3611b75984dadbe0d89e52d",
+    "fleet": [
+      {
+        "ammo": 69680,
+        "controller": "player",
+        "definitionId": "enterprise-cv6",
+        "id": "player",
+        "integrity": 1180,
+        "motion": {
+          "distance": 0,
+          "heading": 1.5707963267948966,
+          "id": "player",
+          "pitch": 0,
+          "roll": 0,
+          "rudder": 0,
+          "speed": 0,
+          "swaySpeed": 0,
+          "tick": 6,
+          "x": 0,
+          "y": 0,
+          "yawRate": 0,
+          "z": 0
+        },
+        "team": "friendly"
+      },
+      {
+        "ammo": 1800,
+        "controller": "idle",
+        "definitionId": "yamato",
+        "id": "enemy-1",
+        "integrity": 1750,
+        "motion": {
+          "distance": 0.0009666666666666666,
+          "heading": 3.1415926540587247,
+          "id": "enemy-1",
+          "pitch": 0,
+          "roll": 0,
+          "rudder": 0.034999999999999996,
+          "speed": 0,
+          "swaySpeed": 0,
+          "tick": 6,
+          "x": -2.159752870785214e-13,
+          "y": 0,
+          "yawRate": 1.2955997179184823e-8,
+          "z": -999.9990333333334
+        },
+        "targetId": "player",
+        "team": "enemy"
+      },
+      {
+        "ammo": 5670,
+        "controller": "idle",
+        "definitionId": "baltimore",
+        "id": "enemy-2",
+        "integrity": 1020,
+        "motion": {
+          "distance": 0.001,
+          "heading": 3.1415926530694396,
+          "id": "enemy-2",
+          "pitch": 0,
+          "roll": 0,
+          "rudder": -0.034,
+          "speed": 0,
+          "swaySpeed": 0,
+          "tick": 6,
+          "x": 650.0000000000002,
+          "y": 0,
+          "yawRate": -1.4286806579895634e-8,
+          "z": -999.9989999999999
+        },
+        "targetId": "player",
+        "team": "enemy"
+      },
+      {
+        "ammo": 69680,
+        "controller": "idle",
+        "definitionId": "enterprise-cv6",
+        "id": "enemy-3",
+        "integrity": 1180,
+        "motion": {
+          "distance": 0.0012166666666666667,
+          "heading": 3.1415926543371047,
+          "id": "enemy-3",
+          "pitch": 0,
+          "roll": 0,
+          "rudder": 0.04,
+          "speed": 0,
+          "swaySpeed": 0,
+          "tick": 6,
+          "x": -650.0000000000003,
+          "y": 0,
+          "yawRate": 2.1005309726755547e-8,
+          "z": -999.9987833333334
+        },
+        "targetId": "player",
+        "team": "enemy"
+      }
+    ],
+    "kind": "seeded-broadside-deployment",
+    "shipId": "enterprise-cv6",
+    "time": "2026-09-06T04:27:56.909Z"
+  },
+  {
+    "after": 2876,
+    "backend": "webgpu",
+    "battery": "main",
+    "before": 2880,
+    "contentHash": "e968df81e5fbf119177548826b2dc4377f4a8e6ef3611b75984dadbe0d89e52d",
+    "effects": {
+      "flashes": 12,
+      "foam": 0,
+      "particleCapacity": 2272,
+      "shells": 4,
+      "smoke": 12,
+      "spray": 0
+    },
+    "events": [
+      {
+        "kind": "shot",
+        "message": "Port 5-inch 1 fired",
+        "position": [
+          81.62922063563417,
+          15.958227462329956,
+          -17.1144956949579
+        ],
+        "sequence": 1,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 1,
+          "velocity": [
+            -65.5483788712504,
+            -6.304645350986785,
+            -789.257664818245
+          ]
+        },
+        "shipId": "player",
+        "tick": 162
+      },
+      {
+        "kind": "shot",
+        "message": "Port 5-inch 2 fired",
+        "position": [
+          73.6651843512949,
+          17.053465032917387,
+          -17.11729604180887
+        ],
+        "sequence": 2,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 2,
+          "velocity": [
+            -59.19048725158957,
+            -7.196334262276245,
+            -789.7523023025036
+          ]
+        },
+        "shipId": "player",
+        "tick": 162
+      },
+      {
+        "kind": "shot",
+        "message": "Port 5-inch 3 fired",
+        "position": [
+          -98.55305160448515,
+          15.958382234293339,
+          -17.10751582082294
+        ],
+        "sequence": 3,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 3,
+          "velocity": [
+            79.01395292140988,
+            -6.275666770609045,
+            -788.0237377454549
+          ]
+        },
+        "shipId": "player",
+        "tick": 162
+      },
+      {
+        "kind": "shot",
+        "message": "Port 5-inch 4 fired",
+        "position": [
+          -106.5173425023573,
+          17.05377964517455,
+          -17.10375153017395
+        ],
+        "sequence": 4,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 4,
+          "velocity": [
+            85.3267571115846,
+            -7.137428137530714,
+            -787.3578612298236
+          ]
+        },
+        "shipId": "player",
+        "tick": 162
+      }
+    ],
+    "kind": "UI-battery-fire",
+    "muzzleErrorM": 0.002743533852032044,
+    "shipId": "enterprise-cv6",
+    "time": "2026-09-06T04:28:24.128Z"
+  },
+  {
+    "after": 66788,
+    "backend": "webgpu",
+    "battery": "secondary",
+    "before": 66800,
+    "contentHash": "e968df81e5fbf119177548826b2dc4377f4a8e6ef3611b75984dadbe0d89e52d",
+    "effects": {
+      "flashes": 36,
+      "foam": 0,
+      "particleCapacity": 2272,
+      "shells": 16,
+      "smoke": 48,
+      "spray": 0
+    },
+    "events": [
+      {
+        "kind": "shot",
+        "message": "Port 5-inch 1 fired",
+        "position": [
+          81.62922063563417,
+          15.958227462329956,
+          -17.1144956949579
+        ],
+        "sequence": 1,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 1,
+          "velocity": [
+            -65.5483788712504,
+            -6.304645350986785,
+            -789.257664818245
+          ]
+        },
+        "shipId": "player",
+        "tick": 162
+      },
+      {
+        "kind": "shot",
+        "message": "Port 5-inch 2 fired",
+        "position": [
+          73.6651843512949,
+          17.053465032917387,
+          -17.11729604180887
+        ],
+        "sequence": 2,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 2,
+          "velocity": [
+            -59.19048725158957,
+            -7.196334262276245,
+            -789.7523023025036
+          ]
+        },
+        "shipId": "player",
+        "tick": 162
+      },
+      {
+        "kind": "shot",
+        "message": "Port 5-inch 3 fired",
+        "position": [
+          -98.55305160448515,
+          15.958382234293339,
+          -17.10751582082294
+        ],
+        "sequence": 3,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 3,
+          "velocity": [
+            79.01395292140988,
+            -6.275666770609045,
+            -788.0237377454549
+          ]
+        },
+        "shipId": "player",
+        "tick": 162
+      },
+      {
+        "kind": "shot",
+        "message": "Port 5-inch 4 fired",
+        "position": [
+          -106.5173425023573,
+          17.05377964517455,
+          -17.10375153017395
+        ],
+        "sequence": 4,
+        "shell": {
+          "caliberM": 0.127,
+          "id": 4,
+          "velocity": [
+            85.3267571115846,
+            -7.137428137530714,
+            -787.3578612298236
+          ]
+        },
+        "shipId": "player",
+        "tick": 162
+      },
+      {
+        "kind": "shot",
+        "message": "Port 20 mm 1 fired",
+        "position": [
+          -115.86210531092189,
+          16.93172594875549,
+          -15.371865958577564
+        ],
+        "sequence": 5,
+        "shell": {
+          "caliberM": 0.02,
+          "id": 5,
+          "velocity": [
+            97.5775643938043,
+            -8.014464895439483,
+            -829.240247020978
+          ]
+        },
+        "shipId": "player",
+        "tick": 180
+      },
+      {
+        "kind": "shot",
+        "message": "Port 20 mm 2 fired",
+        "position": [
+          -111.86679864967066,
+          16.931714390962533,
+          -15.372408592797816
+        ],
+        "sequence": 6,
+        "shell": {
+          "caliberM": 0.02,
+          "id": 6,
+          "velocity": [
+            94.25644517254773,
+            -8.02356938328822,
+            -829.6242190761948
+          ]
+        },
+        "shipId": "player",
+        "tick": 180
+      },
+      {
+        "kind": "shot",
+        "message": "Port 20 mm 3 fired",
+        "position": [
+          -65.92117789930279,
+          16.931610043354645,
+          -15.377314404130544
+        ],
+        "sequence": 7,
+        "shell": {
+          "caliberM": 0.02,
+          "id": 7,
+          "velocity": [
+            55.77638872231787,
+            -8.105767734783303,
+            -833.0956073527975
+          ]
+        },
+        "shipId": "player",
+        "tick": 180
+      },
+      {
+        "kind": "shot",
+        "message": "Port 20 mm 4 fired",
+        "position": [
+          -60.92712556878248,
+          16.9316019069088,
+          -15.377697440146687
+        ],
+        "sequence": 8,
+        "shell": {
+          "caliberM": 0.02,
+          "id": 8,
+          "velocity": [
+            51.567676282862344,
+            -8.112177104860676,
+            -833.3666464080533
+          ]
+        },
+        "shipId": "player",
+        "tick": 180
+      },
+      {
+        "kind": "shot",
+        "message": "Port 20 mm 5 fired",
+        "position": [
+          -55.93307881830358,
+          16.93159440547672,
+          -15.378050646890305
+        ],
+        "sequence": 9,
+        "shell": {
+          "caliberM": 0.02,
+          "id": 9,
+          "velocity": [
+            47.355015365354326,
+            -8.118086251828391,
+            -833.6165780473389
+          ]
+        },
+        "shipId": "player",
+        "tick": 180
+      },
+      {
+        "kind": "shot",
+        "message": "Port 20 mm 6 fired",
+        "position": [
+          -50.93903719817124,
+          16.931587540441306,
+          -15.378373943374196
+        ],
+        "sequence": 10,
+        "shell": {
+          "caliberM": 0.02,
+          "id": 10,
+          "velocity": [
+            43.138724177310245,
+            -8.123494086327824,
+            -833.84534496523
+          ]
+        },
+        "shipId": "player",
+        "tick": 180
+      },
+      {
+        "kind": "shot",
+        "message": "Port 20 mm 7 fired",
+        "position": [
+          -45.94500025673283,
+          16.93158131307011,
+          -15.378667255355582
+        ],
+        "sequence": 11,
+        "shell": {
+          "caliberM": 0.02,
+          "id": 11,
+          "velocity": [
+            38.9191223115568,
+            -8.128399609863703,
+            -834.0528946285604
+          ]
+        },
+        "shipId": "player",
+        "tick": 180
+      },
+      {
+        "kind": "shot",
+        "message": "Port 20 mm 8 fired",
+        "position": [
+          -40.95096754054701,
+          16.931575724514648,
+          -15.378930515383258
+        ],
+        "sequence": 12,
+        "shell": {
+          "caliberM": 0.02,
+          "id": 12,
+          "velocity": [
+            34.696530626579445,
+            -8.132801915348061,
+            -834.2391793097976
+          ]
+        },
+        "shipId": "player",
+        "tick": 180
+      },
+      {
+        "kind": "shot",
+        "message": "Port 20 mm 9 fired",
+        "position": [
+          47.94261450084708,
+          16.931583727422577,
+          -15.378553533172864
+        ],
+        "sequence": 13,
+        "shell": {
+          "caliberM": 0.02,
+          "id": 13,
+          "velocity": [
+            -40.60733983119042,
+            -8.126497737875027,
+            -833.9724239963517
+          ]
+        },
+        "shipId": "player",
+        "tick": 180
+      },
+      {
+        "kind": "shot",
+        "message": "Port 20 mm 10 fired",
+        "position": [
+          52.93665325944646,
+          16.931590210004156,
+          -15.378248218914996
+        ],
+        "sequence": 14,
+        "shell": {
+          "caliberM": 0.02,
+          "id": 14,
+          "velocity": [
+            -44.82565586069508,
+            -8.121391175971294,
+            -833.7563814340646
+          ]
+        },
+        "shipId": "player",
+        "tick": 180
+      },
+      {
+        "kind": "shot",
+        "message": "Port 20 mm 11 fired",
+        "position": [
+          57.930696877624975,
+          16.931597329756816,
+          -15.37791294903929
+        ],
+        "sequence": 15,
+        "shell": {
+          "caliberM": 0.02,
+          "id": 15,
+          "velocity": [
+            -49.040533216751754,
+            -8.115782691564664,
+            -833.5191420556098
+          ]
+        },
+        "shipId": "player",
+        "tick": 180
+      },
+      {
+        "kind": "shot",
+        "message": "Port 20 mm 12 fired",
+        "position": [
+          62.92474580627234,
+          16.931605085366783,
+          -15.377547800492191
+        ],
+        "sequence": 16,
+        "shell": {
+          "caliberM": 0.02,
+          "id": 16,
+          "velocity": [
+            -53.251652846372046,
+            -8.109673319561221,
+            -833.2607603072279
+          ]
+        },
+        "shipId": "player",
+        "tick": 180
+      }
+    ],
+    "kind": "UI-battery-fire",
+    "muzzleErrorM": 0.0027435338520369603,
+    "shipId": "enterprise-cv6",
+    "time": "2026-09-06T04:28:25.770Z"
+  },
+  {
+    "backend": "webgpu",
+    "contentHash": "e968df81e5fbf119177548826b2dc4377f4a8e6ef3611b75984dadbe0d89e52d",
+    "diagnostics": {
+      "audio": {
+        "failed": [],
+        "inPort": false,
+        "loaded": 13,
+        "paused": false,
+        "played": 178,
+        "settings": {
+          "effects": 0.8,
+          "interface": 0.65,
+          "master": 0.65,
+          "muted": false
+        },
+        "state": "running",
+        "total": 13,
+        "voices": 5
+      },
+      "backend": "webgpu",
+      "camera": {
+        "aim": [
+          -2.159752870785214e-13,
+          0.5,
+          -999.9990333333334
+        ],
+        "binoculars": false,
+        "fov": 52.00000000000001,
+        "magnification": 1,
+        "manualAim": false,
+        "matrixWorldInverse": [
+          1,
+          -1.9367492621136827e-17,
+          2.151053579976837e-16,
+          0,
+          0,
+          0.9959711269387005,
+          0.08967449082350765,
+          0,
+          -2.159754958548341e-16,
+          -0.08967449082350765,
+          0.9959711269387005,
+          0,
+          3.94430452610506e-31,
+          -90.17238970163584,
+          -354.51445687799014,
+          1
+        ],
+        "mode": "Chase",
+        "pointerLocked": false,
+        "position": [
+          7.451154606991774e-14,
+          121.60000000000001,
+          345
+        ],
+        "projectionMatrix": [
+          1.633751346060547,
+          0,
+          0,
+          0,
+          0,
+          2.050303841579296,
+          0,
+          0,
+          0,
+          0,
+          -1.0000083334027783,
+          -1,
+          0,
+          0,
+          -0.5000041667013891,
+          0
+        ],
+        "shellFollow": "off"
+      },
+      "combat": {
+        "batteries": [
+          {
+            "ammo": 2876,
+            "battery": "main",
+            "ready": 0,
+            "reload": 3.4166666666666687,
+            "total": 8
+          },
+          {
+            "ammo": 66788,
+            "battery": "secondary",
+            "ready": 0,
+            "reload": 0.16666666666666674,
+            "total": 34
+          }
+        ],
+        "battery": "secondary",
+        "battle": true,
+        "contacts": [
+          {
+            "controller": "player",
+            "heading": 1.5707963267948966,
+            "id": "player",
+            "integrity": 1,
+            "name": "USS Enterprise (CV-6)",
+            "shipId": "enterprise-cv6",
+            "sunk": false,
+            "team": "friendly",
+            "x": 0,
+            "z": 0
+          },
+          {
+            "controller": "idle",
+            "heading": 3.1415926768773286,
+            "id": "enemy-1",
+            "integrity": 1,
+            "name": "Yamato",
+            "shipId": "yamato",
+            "sunk": false,
+            "targetId": "player",
+            "team": "enemy",
+            "x": -2.159752870785214e-13,
+            "z": -999.9990333333334
+          },
+          {
+            "controller": "idle",
+            "heading": 3.141592627906988,
+            "id": "enemy-2",
+            "integrity": 1,
+            "name": "USS Baltimore",
+            "shipId": "baltimore",
+            "sunk": false,
+            "targetId": "player",
+            "team": "enemy",
+            "x": 650.0000000000002,
+            "z": -999.9989999999999
+          },
+          {
+            "controller": "idle",
+            "heading": 3.1415926913324412,
+            "id": "enemy-3",
+            "integrity": 1,
+            "name": "USS Enterprise (CV-6)",
+            "shipId": "enterprise-cv6",
+            "sunk": false,
+            "targetId": "player",
+            "team": "enemy",
+            "x": -650.0000000000003,
+            "z": -999.9987833333334
+          }
+        ],
+        "message": "Only aligned, loaded guns fire. Turn the ship to bring guns marked Out of arc onto the target.",
+        "modules": [
+          {
+            "condition": 1,
+            "id": "engine-port",
+            "name": "Port forward turbines"
+          },
+          {
+            "condition": 1,
+            "id": "engine-starboard",
+            "name": "Starboard forward turbines"
+          },
+          {
+            "condition": 1,
+            "id": "steering",
+            "name": "Steering machinery"
+          },
+          {
+            "condition": 1,
+            "id": "magazine-1",
+            "name": "No. 1 propellant magazine"
+          },
+          {
+            "condition": 1,
+            "id": "magazine-2",
+            "name": "No. 2 propellant magazine"
+          },
+          {
+            "condition": 1,
+            "id": "magazine-3",
+            "name": "No. 3 propellant magazine"
+          },
+          {
+            "condition": 1,
+            "id": "magazine-secondary-forward",
+            "name": "Forward secondary magazine"
+          },
+          {
+            "condition": 1,
+            "id": "magazine-secondary-aft",
+            "name": "Aft secondary magazine"
+          },
+          {
+            "condition": 1,
+            "id": "engine-port-aft",
+            "name": "Port after turbines"
+          },
+          {
+            "condition": 1,
+            "id": "engine-starboard-aft",
+            "name": "Starboard after turbines"
+          }
+        ],
+        "mounts": [
+          {
+            "ammo": 3200,
+            "id": "quad-fore-lower",
+            "name": "1.1-inch fore-lower",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 3200,
+            "id": "quad-fore-upper",
+            "name": "1.1-inch fore-upper",
+            "reload": 0,
+            "status": "blocked"
+          },
+          {
+            "ammo": 3200,
+            "id": "quad-aft-lower",
+            "name": "1.1-inch aft-lower",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 3200,
+            "id": "quad-aft-upper",
+            "name": "1.1-inch aft-upper",
+            "reload": 0,
+            "status": "blocked"
+          },
+          {
+            "ammo": 1799,
+            "id": "oerlikon-port-1",
+            "name": "Port 20 mm 1",
+            "reload": 0.16666666666666674,
+            "status": "reloading"
+          },
+          {
+            "ammo": 1799,
+            "id": "oerlikon-port-2",
+            "name": "Port 20 mm 2",
+            "reload": 0.16666666666666674,
+            "status": "reloading"
+          },
+          {
+            "ammo": 1799,
+            "id": "oerlikon-port-3",
+            "name": "Port 20 mm 3",
+            "reload": 0.16666666666666674,
+            "status": "reloading"
+          },
+          {
+            "ammo": 1799,
+            "id": "oerlikon-port-4",
+            "name": "Port 20 mm 4",
+            "reload": 0.16666666666666674,
+            "status": "reloading"
+          },
+          {
+            "ammo": 1799,
+            "id": "oerlikon-port-5",
+            "name": "Port 20 mm 5",
+            "reload": 0.16666666666666674,
+            "status": "reloading"
+          },
+          {
+            "ammo": 1799,
+            "id": "oerlikon-port-6",
+            "name": "Port 20 mm 6",
+            "reload": 0.16666666666666674,
+            "status": "reloading"
+          },
+          {
+            "ammo": 1799,
+            "id": "oerlikon-port-7",
+            "name": "Port 20 mm 7",
+            "reload": 0.16666666666666674,
+            "status": "reloading"
+          },
+          {
+            "ammo": 1799,
+            "id": "oerlikon-port-8",
+            "name": "Port 20 mm 8",
+            "reload": 0.16666666666666674,
+            "status": "reloading"
+          },
+          {
+            "ammo": 1799,
+            "id": "oerlikon-port-9",
+            "name": "Port 20 mm 9",
+            "reload": 0.16666666666666674,
+            "status": "reloading"
+          },
+          {
+            "ammo": 1799,
+            "id": "oerlikon-port-10",
+            "name": "Port 20 mm 10",
+            "reload": 0.16666666666666674,
+            "status": "reloading"
+          },
+          {
+            "ammo": 1799,
+            "id": "oerlikon-port-11",
+            "name": "Port 20 mm 11",
+            "reload": 0.16666666666666674,
+            "status": "reloading"
+          },
+          {
+            "ammo": 1799,
+            "id": "oerlikon-port-12",
+            "name": "Port 20 mm 12",
+            "reload": 0.16666666666666674,
+            "status": "reloading"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-1",
+            "name": "Starboard 20 mm 1",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-2",
+            "name": "Starboard 20 mm 2",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-3",
+            "name": "Starboard 20 mm 3",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-4",
+            "name": "Starboard 20 mm 4",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-5",
+            "name": "Starboard 20 mm 5",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-6",
+            "name": "Starboard 20 mm 6",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-7",
+            "name": "Starboard 20 mm 7",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-8",
+            "name": "Starboard 20 mm 8",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-9",
+            "name": "Starboard 20 mm 9",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-10",
+            "name": "Starboard 20 mm 10",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-11",
+            "name": "Starboard 20 mm 11",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-12",
+            "name": "Starboard 20 mm 12",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-island-1",
+            "name": "Island 20 mm 1",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-island-2",
+            "name": "Island 20 mm 2",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-island-3",
+            "name": "Island 20 mm 3",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-island-4",
+            "name": "Island 20 mm 4",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-island-5",
+            "name": "Island 20 mm 5",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-island-6",
+            "name": "Island 20 mm 6",
+            "reload": 0,
+            "status": "out-of-arc"
+          }
+        ],
+        "playerDamageDealt": 0,
+        "playerFrags": 0,
+        "playerIntegrity": 1,
+        "playerMaxIntegrity": 1180,
+        "playerSunk": false,
+        "playerWater": 0,
+        "range": 999.9990333333334,
+        "ready": 0,
+        "result": "active",
+        "targetId": "enemy-1",
+        "targetIntegrity": 1,
+        "targetName": "Yamato",
+        "targetPosition": {
+          "heading": 3.1415926768773286,
+          "x": -2.159752870785214e-13,
+          "z": -999.9990333333334
+        },
+        "targetPower": 1,
+        "targetRange": 999.9990333333334,
+        "targetSteering": 1,
+        "targetSunk": false,
+        "targetUnderway": false,
+        "targetWater": 0,
+        "total": 34
+      },
+      "contentHash": "e968df81e5fbf119177548826b2dc4377f4a8e6ef3611b75984dadbe0d89e52d",
+      "effects": {
+        "flashes": 12,
+        "foam": 0,
+        "particleCapacity": 2272,
+        "shells": 16,
+        "smoke": 48,
+        "spray": 0
+      },
+      "events": [
+        {
+          "kind": "shot",
+          "message": "Port 5-inch 1 fired",
+          "position": [
+            81.62922063563417,
+            15.958227462329956,
+            -17.1144956949579
+          ],
+          "sequence": 1,
+          "shell": {
+            "caliberM": 0.127,
+            "id": 1,
+            "velocity": [
+              -65.5483788712504,
+              -6.304645350986785,
+              -789.257664818245
+            ]
+          },
+          "shipId": "player",
+          "tick": 162
+        },
+        {
+          "kind": "shot",
+          "message": "Port 5-inch 2 fired",
+          "position": [
+            73.6651843512949,
+            17.053465032917387,
+            -17.11729604180887
+          ],
+          "sequence": 2,
+          "shell": {
+            "caliberM": 0.127,
+            "id": 2,
+            "velocity": [
+              -59.19048725158957,
+              -7.196334262276245,
+              -789.7523023025036
+            ]
+          },
+          "shipId": "player",
+          "tick": 162
+        },
+        {
+          "kind": "shot",
+          "message": "Port 5-inch 3 fired",
+          "position": [
+            -98.55305160448515,
+            15.958382234293339,
+            -17.10751582082294
+          ],
+          "sequence": 3,
+          "shell": {
+            "caliberM": 0.127,
+            "id": 3,
+            "velocity": [
+              79.01395292140988,
+              -6.275666770609045,
+              -788.0237377454549
+            ]
+          },
+          "shipId": "player",
+          "tick": 162
+        },
+        {
+          "kind": "shot",
+          "message": "Port 5-inch 4 fired",
+          "position": [
+            -106.5173425023573,
+            17.05377964517455,
+            -17.10375153017395
+          ],
+          "sequence": 4,
+          "shell": {
+            "caliberM": 0.127,
+            "id": 4,
+            "velocity": [
+              85.3267571115846,
+              -7.137428137530714,
+              -787.3578612298236
+            ]
+          },
+          "shipId": "player",
+          "tick": 162
+        },
+        {
+          "kind": "shot",
+          "message": "Port 20 mm 1 fired",
+          "position": [
+            -115.86210531092189,
+            16.93172594875549,
+            -15.371865958577564
+          ],
+          "sequence": 5,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 5,
+            "velocity": [
+              97.5775643938043,
+              -8.014464895439483,
+              -829.240247020978
+            ]
+          },
+          "shipId": "player",
+          "tick": 180
+        },
+        {
+          "kind": "shot",
+          "message": "Port 20 mm 2 fired",
+          "position": [
+            -111.86679864967066,
+            16.931714390962533,
+            -15.372408592797816
+          ],
+          "sequence": 6,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 6,
+            "velocity": [
+              94.25644517254773,
+              -8.02356938328822,
+              -829.6242190761948
+            ]
+          },
+          "shipId": "player",
+          "tick": 180
+        },
+        {
+          "kind": "shot",
+          "message": "Port 20 mm 3 fired",
+          "position": [
+            -65.92117789930279,
+            16.931610043354645,
+            -15.377314404130544
+          ],
+          "sequence": 7,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 7,
+            "velocity": [
+              55.77638872231787,
+              -8.105767734783303,
+              -833.0956073527975
+            ]
+          },
+          "shipId": "player",
+          "tick": 180
+        },
+        {
+          "kind": "shot",
+          "message": "Port 20 mm 4 fired",
+          "position": [
+            -60.92712556878248,
+            16.9316019069088,
+            -15.377697440146687
+          ],
+          "sequence": 8,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 8,
+            "velocity": [
+              51.567676282862344,
+              -8.112177104860676,
+              -833.3666464080533
+            ]
+          },
+          "shipId": "player",
+          "tick": 180
+        },
+        {
+          "kind": "shot",
+          "message": "Port 20 mm 5 fired",
+          "position": [
+            -55.93307881830358,
+            16.93159440547672,
+            -15.378050646890305
+          ],
+          "sequence": 9,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 9,
+            "velocity": [
+              47.355015365354326,
+              -8.118086251828391,
+              -833.6165780473389
+            ]
+          },
+          "shipId": "player",
+          "tick": 180
+        },
+        {
+          "kind": "shot",
+          "message": "Port 20 mm 6 fired",
+          "position": [
+            -50.93903719817124,
+            16.931587540441306,
+            -15.378373943374196
+          ],
+          "sequence": 10,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 10,
+            "velocity": [
+              43.138724177310245,
+              -8.123494086327824,
+              -833.84534496523
+            ]
+          },
+          "shipId": "player",
+          "tick": 180
+        },
+        {
+          "kind": "shot",
+          "message": "Port 20 mm 7 fired",
+          "position": [
+            -45.94500025673283,
+            16.93158131307011,
+            -15.378667255355582
+          ],
+          "sequence": 11,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 11,
+            "velocity": [
+              38.9191223115568,
+              -8.128399609863703,
+              -834.0528946285604
+            ]
+          },
+          "shipId": "player",
+          "tick": 180
+        },
+        {
+          "kind": "shot",
+          "message": "Port 20 mm 8 fired",
+          "position": [
+            -40.95096754054701,
+            16.931575724514648,
+            -15.378930515383258
+          ],
+          "sequence": 12,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 12,
+            "velocity": [
+              34.696530626579445,
+              -8.132801915348061,
+              -834.2391793097976
+            ]
+          },
+          "shipId": "player",
+          "tick": 180
+        },
+        {
+          "kind": "shot",
+          "message": "Port 20 mm 9 fired",
+          "position": [
+            47.94261450084708,
+            16.931583727422577,
+            -15.378553533172864
+          ],
+          "sequence": 13,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 13,
+            "velocity": [
+              -40.60733983119042,
+              -8.126497737875027,
+              -833.9724239963517
+            ]
+          },
+          "shipId": "player",
+          "tick": 180
+        },
+        {
+          "kind": "shot",
+          "message": "Port 20 mm 10 fired",
+          "position": [
+            52.93665325944646,
+            16.931590210004156,
+            -15.378248218914996
+          ],
+          "sequence": 14,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 14,
+            "velocity": [
+              -44.82565586069508,
+              -8.121391175971294,
+              -833.7563814340646
+            ]
+          },
+          "shipId": "player",
+          "tick": 180
+        },
+        {
+          "kind": "shot",
+          "message": "Port 20 mm 11 fired",
+          "position": [
+            57.930696877624975,
+            16.931597329756816,
+            -15.37791294903929
+          ],
+          "sequence": 15,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 15,
+            "velocity": [
+              -49.040533216751754,
+              -8.115782691564664,
+              -833.5191420556098
+            ]
+          },
+          "shipId": "player",
+          "tick": 180
+        },
+        {
+          "kind": "shot",
+          "message": "Port 20 mm 12 fired",
+          "position": [
+            62.92474580627234,
+            16.931605085366783,
+            -15.377547800492191
+          ],
+          "sequence": 16,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 16,
+            "velocity": [
+              -53.251652846372046,
+              -8.109673319561221,
+              -833.2607603072279
+            ]
+          },
+          "shipId": "player",
+          "tick": 180
+        }
+      ],
+      "fleet": [
+        {
+          "ammo": 69664,
+          "controller": "player",
+          "definitionId": "enterprise-cv6",
+          "id": "player",
+          "integrity": 1180,
+          "motion": {
+            "distance": 0,
+            "heading": 1.5707963267948966,
+            "id": "player",
+            "pitch": 0,
+            "roll": 0,
+            "rudder": 0,
+            "speed": 0,
+            "swaySpeed": 0,
+            "tick": 198,
+            "x": 0,
+            "y": 0,
+            "yawRate": 0,
+            "z": 0
+          },
+          "team": "friendly"
+        },
+        {
+          "ammo": 1800,
+          "controller": "idle",
+          "definitionId": "yamato",
+          "id": "enemy-1",
+          "integrity": 1750,
+          "motion": {
+            "distance": 0.0009666666666666666,
+            "heading": 3.1415926768773286,
+            "id": "enemy-1",
+            "pitch": 0,
+            "roll": 0,
+            "rudder": 0,
+            "speed": 0,
+            "swaySpeed": 0,
+            "tick": 198,
+            "x": -2.159752870785214e-13,
+            "y": 0,
+            "yawRate": 3.415163777868585e-9,
+            "z": -999.9990333333334
+          },
+          "targetId": "player",
+          "team": "enemy"
+        },
+        {
+          "ammo": 5670,
+          "controller": "idle",
+          "definitionId": "baltimore",
+          "id": "enemy-2",
+          "integrity": 1020,
+          "motion": {
+            "distance": 0.001,
+            "heading": 3.141592627906988,
+            "id": "enemy-2",
+            "pitch": 0,
+            "roll": 0,
+            "rudder": 0,
+            "speed": 0,
+            "swaySpeed": 0,
+            "tick": 198,
+            "x": 650.0000000000002,
+            "y": 0,
+            "yawRate": -3.765961327273464e-9,
+            "z": -999.9989999999999
+          },
+          "targetId": "player",
+          "team": "enemy"
+        },
+        {
+          "ammo": 69680,
+          "controller": "idle",
+          "definitionId": "enterprise-cv6",
+          "id": "enemy-3",
+          "integrity": 1180,
+          "motion": {
+            "distance": 0.0012166666666666667,
+            "heading": 3.1415926913324412,
+            "id": "enemy-3",
+            "pitch": 0,
+            "roll": 0,
+            "rudder": 0,
+            "speed": 0,
+            "swaySpeed": 0,
+            "tick": 198,
+            "x": -650.0000000000003,
+            "y": 0,
+            "yawRate": 5.536939529207255e-9,
+            "z": -999.9987833333334
+          },
+          "targetId": "player",
+          "team": "enemy"
+        }
+      ],
+      "fps": 11.217963274470486,
+      "inPort": false,
+      "inspecting": false,
+      "maxMuzzleErrorM": 0.0027435338520398,
+      "paused": false,
+      "portInspection": "exterior",
+      "renderedShips": [
+        {
+          "id": "player",
+          "visible": true
+        },
+        {
+          "id": "enemy-1",
+          "visible": true
+        },
+        {
+          "id": "enemy-2",
+          "visible": true
+        },
+        {
+          "id": "enemy-3",
+          "visible": true
+        }
+      ],
+      "shipId": "enterprise-cv6",
+      "tick": 198
+    },
+    "kind": "settled-state",
+    "shipId": "enterprise-cv6",
+    "time": "2026-09-06T04:28:27.728Z"
+  },
+  {
+    "backend": "webgpu",
+    "contentHash": "e968df81e5fbf119177548826b2dc4377f4a8e6ef3611b75984dadbe0d89e52d",
+    "diagnostics": {
+      "audio": {
+        "failed": [],
+        "inPort": false,
+        "loaded": 13,
+        "paused": false,
+        "played": 195,
+        "settings": {
+          "effects": 0.8,
+          "interface": 0.65,
+          "master": 0.65,
+          "muted": false
+        },
+        "state": "running",
+        "total": 13,
+        "voices": 0
+      },
+      "backend": "webgpu",
+      "camera": {
+        "aim": [
+          -2.159752870785214e-13,
+          0.5,
+          -999.9990333333334
+        ],
+        "binoculars": false,
+        "fov": 52.00000000000001,
+        "magnification": 1,
+        "manualAim": false,
+        "matrixWorldInverse": [
+          6.661858402169619e-16,
+          0.024997395914712322,
+          -0.9996875162757027,
+          0,
+          -6.246522281364222e-18,
+          0.9996875162757026,
+          0.024997395914712322,
+          0,
+          1.0000000000000002,
+          -1.1449066490737447e-17,
+          6.660557495083673e-16,
+          0,
+          -11.04900000000002,
+          -25.726124971436796,
+          33.62694174072951,
+          1
+        ],
+        "mode": "Bridge",
+        "pointerLocked": false,
+        "position": [
+          34.25952,
+          24.8775,
+          11.048999999999998
+        ],
+        "projectionMatrix": [
+          1.633751346060547,
+          0,
+          0,
+          0,
+          0,
+          2.050303841579296,
+          0,
+          0,
+          0,
+          0,
+          -1.0000083334027783,
+          -1,
+          0,
+          0,
+          -0.5000041667013891,
+          0
+        ],
+        "shellFollow": "off"
+      },
+      "combat": {
+        "batteries": [
+          {
+            "ammo": 2876,
+            "battery": "main",
+            "ready": 4,
+            "reload": 0,
+            "total": 8
+          },
+          {
+            "ammo": 66788,
+            "battery": "secondary",
+            "ready": 12,
+            "reload": 0,
+            "total": 34
+          }
+        ],
+        "battery": "secondary",
+        "battle": true,
+        "contacts": [
+          {
+            "controller": "player",
+            "heading": 1.5707963267948966,
+            "id": "player",
+            "integrity": 1,
+            "name": "USS Enterprise (CV-6)",
+            "shipId": "enterprise-cv6",
+            "sunk": false,
+            "team": "friendly",
+            "x": 0,
+            "z": 0
+          },
+          {
+            "controller": "idle",
+            "heading": 3.1415926849076534,
+            "id": "enemy-1",
+            "integrity": 1,
+            "name": "Yamato",
+            "shipId": "yamato",
+            "sunk": false,
+            "targetId": "player",
+            "team": "enemy",
+            "x": -2.159752870785214e-13,
+            "z": -999.9990333333334
+          },
+          {
+            "controller": "idle",
+            "heading": 3.141592619051824,
+            "id": "enemy-2",
+            "integrity": 1,
+            "name": "USS Baltimore",
+            "shipId": "baltimore",
+            "sunk": false,
+            "targetId": "player",
+            "team": "enemy",
+            "x": 650.0000000000002,
+            "z": -999.9989999999999
+          },
+          {
+            "controller": "idle",
+            "heading": 3.1415927043518472,
+            "id": "enemy-3",
+            "integrity": 1,
+            "name": "USS Enterprise (CV-6)",
+            "shipId": "enterprise-cv6",
+            "sunk": false,
+            "targetId": "player",
+            "team": "enemy",
+            "x": -650.0000000000003,
+            "z": -999.9987833333334
+          }
+        ],
+        "message": "Yamato · Stopped by Hull shell · bow to stern plating",
+        "modules": [
+          {
+            "condition": 1,
+            "id": "engine-port",
+            "name": "Port forward turbines"
+          },
+          {
+            "condition": 1,
+            "id": "engine-starboard",
+            "name": "Starboard forward turbines"
+          },
+          {
+            "condition": 1,
+            "id": "steering",
+            "name": "Steering machinery"
+          },
+          {
+            "condition": 1,
+            "id": "magazine-1",
+            "name": "No. 1 propellant magazine"
+          },
+          {
+            "condition": 1,
+            "id": "magazine-2",
+            "name": "No. 2 propellant magazine"
+          },
+          {
+            "condition": 1,
+            "id": "magazine-3",
+            "name": "No. 3 propellant magazine"
+          },
+          {
+            "condition": 1,
+            "id": "magazine-secondary-forward",
+            "name": "Forward secondary magazine"
+          },
+          {
+            "condition": 1,
+            "id": "magazine-secondary-aft",
+            "name": "Aft secondary magazine"
+          },
+          {
+            "condition": 1,
+            "id": "engine-port-aft",
+            "name": "Port after turbines"
+          },
+          {
+            "condition": 1,
+            "id": "engine-starboard-aft",
+            "name": "Starboard after turbines"
+          }
+        ],
+        "mounts": [
+          {
+            "ammo": 3200,
+            "id": "quad-fore-lower",
+            "name": "1.1-inch fore-lower",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 3200,
+            "id": "quad-fore-upper",
+            "name": "1.1-inch fore-upper",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 3200,
+            "id": "quad-aft-lower",
+            "name": "1.1-inch aft-lower",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 3200,
+            "id": "quad-aft-upper",
+            "name": "1.1-inch aft-upper",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 1799,
+            "id": "oerlikon-port-1",
+            "name": "Port 20 mm 1",
+            "reload": 0,
+            "status": "ready"
+          },
+          {
+            "ammo": 1799,
+            "id": "oerlikon-port-2",
+            "name": "Port 20 mm 2",
+            "reload": 0,
+            "status": "ready"
+          },
+          {
+            "ammo": 1799,
+            "id": "oerlikon-port-3",
+            "name": "Port 20 mm 3",
+            "reload": 0,
+            "status": "ready"
+          },
+          {
+            "ammo": 1799,
+            "id": "oerlikon-port-4",
+            "name": "Port 20 mm 4",
+            "reload": 0,
+            "status": "ready"
+          },
+          {
+            "ammo": 1799,
+            "id": "oerlikon-port-5",
+            "name": "Port 20 mm 5",
+            "reload": 0,
+            "status": "ready"
+          },
+          {
+            "ammo": 1799,
+            "id": "oerlikon-port-6",
+            "name": "Port 20 mm 6",
+            "reload": 0,
+            "status": "ready"
+          },
+          {
+            "ammo": 1799,
+            "id": "oerlikon-port-7",
+            "name": "Port 20 mm 7",
+            "reload": 0,
+            "status": "ready"
+          },
+          {
+            "ammo": 1799,
+            "id": "oerlikon-port-8",
+            "name": "Port 20 mm 8",
+            "reload": 0,
+            "status": "ready"
+          },
+          {
+            "ammo": 1799,
+            "id": "oerlikon-port-9",
+            "name": "Port 20 mm 9",
+            "reload": 0,
+            "status": "ready"
+          },
+          {
+            "ammo": 1799,
+            "id": "oerlikon-port-10",
+            "name": "Port 20 mm 10",
+            "reload": 0,
+            "status": "ready"
+          },
+          {
+            "ammo": 1799,
+            "id": "oerlikon-port-11",
+            "name": "Port 20 mm 11",
+            "reload": 0,
+            "status": "ready"
+          },
+          {
+            "ammo": 1799,
+            "id": "oerlikon-port-12",
+            "name": "Port 20 mm 12",
+            "reload": 0,
+            "status": "ready"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-1",
+            "name": "Starboard 20 mm 1",
+            "reload": 0,
+            "status": "blocked"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-2",
+            "name": "Starboard 20 mm 2",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-3",
+            "name": "Starboard 20 mm 3",
+            "reload": 0,
+            "status": "blocked"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-4",
+            "name": "Starboard 20 mm 4",
+            "reload": 0,
+            "status": "blocked"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-5",
+            "name": "Starboard 20 mm 5",
+            "reload": 0,
+            "status": "blocked"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-6",
+            "name": "Starboard 20 mm 6",
+            "reload": 0,
+            "status": "blocked"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-7",
+            "name": "Starboard 20 mm 7",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-8",
+            "name": "Starboard 20 mm 8",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-9",
+            "name": "Starboard 20 mm 9",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-10",
+            "name": "Starboard 20 mm 10",
+            "reload": 0,
+            "status": "out-of-arc"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-11",
+            "name": "Starboard 20 mm 11",
+            "reload": 0,
+            "status": "blocked"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-12",
+            "name": "Starboard 20 mm 12",
+            "reload": 0,
+            "status": "blocked"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-island-1",
+            "name": "Island 20 mm 1",
+            "reload": 0,
+            "status": "blocked"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-island-2",
+            "name": "Island 20 mm 2",
+            "reload": 0,
+            "status": "blocked"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-island-3",
+            "name": "Island 20 mm 3",
+            "reload": 0,
+            "status": "blocked"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-island-4",
+            "name": "Island 20 mm 4",
+            "reload": 0,
+            "status": "blocked"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-island-5",
+            "name": "Island 20 mm 5",
+            "reload": 0,
+            "status": "blocked"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-island-6",
+            "name": "Island 20 mm 6",
+            "reload": 0,
+            "status": "blocked"
+          }
+        ],
+        "playerDamageDealt": 0,
+        "playerFrags": 0,
+        "playerIntegrity": 1,
+        "playerMaxIntegrity": 1180,
+        "playerSunk": false,
+        "playerWater": 0,
+        "range": 999.9990333333334,
+        "ready": 12,
+        "result": "active",
+        "targetId": "enemy-1",
+        "targetIntegrity": 1,
+        "targetName": "Yamato",
+        "targetPosition": {
+          "heading": 3.1415926849076534,
+          "x": -2.159752870785214e-13,
+          "z": -999.9990333333334
+        },
+        "targetPower": 1,
+        "targetRange": 999.9990333333334,
+        "targetSteering": 1,
+        "targetSunk": false,
+        "targetUnderway": false,
+        "targetWater": 0,
+        "total": 34
+      },
+      "contentHash": "e968df81e5fbf119177548826b2dc4377f4a8e6ef3611b75984dadbe0d89e52d",
+      "effects": {
+        "flashes": 0,
+        "foam": 0,
+        "particleCapacity": 2272,
+        "shells": 0,
+        "smoke": 38,
+        "spray": 0
+      },
+      "events": [
+        {
+          "kind": "shot",
+          "message": "Port 20 mm 9 fired",
+          "position": [
+            47.94261450084708,
+            16.931583727422577,
+            -15.378553533172864
+          ],
+          "sequence": 13,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 13,
+            "velocity": [
+              -40.60733983119042,
+              -8.126497737875027,
+              -833.9724239963517
+            ]
+          },
+          "shipId": "player",
+          "tick": 180
+        },
+        {
+          "kind": "shot",
+          "message": "Port 20 mm 10 fired",
+          "position": [
+            52.93665325944646,
+            16.931590210004156,
+            -15.378248218914996
+          ],
+          "sequence": 14,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 14,
+            "velocity": [
+              -44.82565586069508,
+              -8.121391175971294,
+              -833.7563814340646
+            ]
+          },
+          "shipId": "player",
+          "tick": 180
+        },
+        {
+          "kind": "shot",
+          "message": "Port 20 mm 11 fired",
+          "position": [
+            57.930696877624975,
+            16.931597329756816,
+            -15.37791294903929
+          ],
+          "sequence": 15,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 15,
+            "velocity": [
+              -49.040533216751754,
+              -8.115782691564664,
+              -833.5191420556098
+            ]
+          },
+          "shipId": "player",
+          "tick": 180
+        },
+        {
+          "kind": "shot",
+          "message": "Port 20 mm 12 fired",
+          "position": [
+            62.92474580627234,
+            16.931605085366783,
+            -15.377547800492191
+          ],
+          "sequence": 16,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 16,
+            "velocity": [
+              -53.251652846372046,
+              -8.109673319561221,
+              -833.2607603072279
+            ]
+          },
+          "shipId": "player",
+          "tick": 180
+        },
+        {
+          "kind": "stopped",
+          "message": "Stopped by Hull shell · bow to stern plating",
+          "normal": [
+            0.986219879925934,
+            -0.06811536274715617,
+            0.1507668590795057
+          ],
+          "position": [
+            8.123510795855367,
+            3.070528674964545,
+            -891.6106477716917
+          ],
+          "sequence": 17,
+          "shell": {
+            "caliberM": 0.127,
+            "id": 2,
+            "velocity": [
+              -59.19048725158957,
+              -18.150834262276277,
+              -789.7523023025036
+            ]
+          },
+          "shipId": "enemy-1",
+          "tick": 228
+        },
+        {
+          "kind": "stopped",
+          "message": "Stopped by Hull shell · bow to stern plating",
+          "normal": [
+            0.982367188720748,
+            -0.06803629984893661,
+            0.1741429539997518
+          ],
+          "position": [
+            8.700201828224086,
+            2.8716605724071282,
+            -895.2412788833092
+          ],
+          "sequence": 18,
+          "shell": {
+            "caliberM": 0.127,
+            "id": 1,
+            "velocity": [
+              -65.5483788712504,
+              -17.25914535098682,
+              -789.257664818245
+            ]
+          },
+          "shipId": "enemy-1",
+          "tick": 228
+        },
+        {
+          "kind": "stopped",
+          "message": "Stopped by Hull shell · bow to stern plating",
+          "normal": [
+            -0.9757369015180425,
+            -0.0726151797144002,
+            0.2065539510418895
+          ],
+          "position": [
+            -10.426419597925129,
+            2.7950003960774463,
+            -903.7886098647407
+          ],
+          "sequence": 19,
+          "shell": {
+            "caliberM": 0.127,
+            "id": 4,
+            "velocity": [
+              85.3267571115846,
+              -18.255428137530743,
+              -787.3578612298236
+            ]
+          },
+          "shipId": "enemy-1",
+          "tick": 229
+        },
+        {
+          "kind": "stopped",
+          "message": "Stopped by Hull shell · bow to stern plating",
+          "normal": [
+            -0.9757696455352923,
+            -0.07068734890524664,
+            0.20706737443807482
+          ],
+          "position": [
+            -9.894946959768076,
+            2.740986741743427,
+            -901.3145250948379
+          ],
+          "sequence": 20,
+          "shell": {
+            "caliberM": 0.127,
+            "id": 3,
+            "velocity": [
+              79.01395292140988,
+              -17.39366677060908,
+              -788.0237377454549
+            ]
+          },
+          "shipId": "enemy-1",
+          "tick": 229
+        },
+        {
+          "kind": "stopped",
+          "message": "Stopped by Hull shell · bow to stern plating",
+          "normal": [
+            -0.6634244032580987,
+            -0.3266512562304853,
+            0.6731768103289665
+          ],
+          "position": [
+            -5.152562809198308,
+            3.318892257162566,
+            -876.1114373211925
+          ],
+          "sequence": 21,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 12,
+            "velocity": [
+              34.696530626579445,
+              -18.26980191534809,
+              -834.2391793097976
+            ]
+          },
+          "shipId": "enemy-1",
+          "tick": 241
+        },
+        {
+          "kind": "stopped",
+          "message": "Stopped by Hull shell · bow to stern plating",
+          "normal": [
+            -0.8411061717047502,
+            -0.2354819423695969,
+            0.48691751122548566
+          ],
+          "position": [
+            -5.742604775124899,
+            3.301340518461754,
+            -876.9326368956333
+          ],
+          "sequence": 22,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 11,
+            "velocity": [
+              38.9191223115568,
+              -18.26539960986373,
+              -834.0528946285604
+            ]
+          },
+          "shipId": "enemy-1",
+          "tick": 241
+        },
+        {
+          "kind": "stopped",
+          "message": "Stopped by Hull shell · bow to stern plating",
+          "normal": [
+            0.984474220915269,
+            -0.07765754086537165,
+            0.1574160560426322
+          ],
+          "position": [
+            7.280778226882764,
+            3.1017077763531886,
+            -886.072300984512
+          ],
+          "sequence": 23,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 16,
+            "velocity": [
+              -53.251652846372046,
+              -18.41017331956125,
+              -833.2607603072279
+            ]
+          },
+          "shipId": "enemy-1",
+          "tick": 242
+        },
+        {
+          "kind": "stopped",
+          "message": "Stopped by Hull shell · bow to stern plating",
+          "normal": [
+            0.979377284057289,
+            -0.08876369942059047,
+            0.1814969452573218
+          ],
+          "position": [
+            6.848592570915394,
+            3.1557179232304495,
+            -883.5966896074386
+          ],
+          "sequence": 24,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 15,
+            "velocity": [
+              -49.040533216751754,
+              -18.416282691564692,
+              -833.5191420556098
+            ]
+          },
+          "shipId": "enemy-1",
+          "tick": 242
+        },
+        {
+          "kind": "stopped",
+          "message": "Stopped by Hull shell · bow to stern plating",
+          "normal": [
+            0.9874393679295269,
+            -0.08234611526061307,
+            0.13484291588519606
+          ],
+          "position": [
+            6.401335420090746,
+            3.213876359101509,
+            -880.9343112735538
+          ],
+          "sequence": 25,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 14,
+            "velocity": [
+              -44.82565586069508,
+              -18.42189117597132,
+              -833.7563814340646
+            ]
+          },
+          "shipId": "enemy-1",
+          "tick": 242
+        },
+        {
+          "kind": "stopped",
+          "message": "Stopped by Hull shell · bow to stern plating",
+          "normal": [
+            0.9471997849759579,
+            -0.16762237325161947,
+            0.2733410092302164
+          ],
+          "position": [
+            5.9672312417498015,
+            3.2902176578381495,
+            -877.4471418792864
+          ],
+          "sequence": 26,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 13,
+            "velocity": [
+              -40.60733983119042,
+              -18.426997737875055,
+              -833.9724239963517
+            ]
+          },
+          "shipId": "enemy-1",
+          "tick": 242
+        },
+        {
+          "kind": "stopped",
+          "message": "Stopped by Hull shell · bow to stern plating",
+          "normal": [
+            -0.9925568314990347,
+            -0.07232664655826608,
+            0.09797853051680516
+          ],
+          "position": [
+            -6.235835709818463,
+            3.246065083964747,
+            -879.464115396792
+          ],
+          "sequence": 27,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 10,
+            "velocity": [
+              43.138724177310245,
+              -18.423994086327852,
+              -833.84534496523
+            ]
+          },
+          "shipId": "enemy-1",
+          "tick": 242
+        },
+        {
+          "kind": "stopped",
+          "message": "Stopped by Hull shell · bow to stern plating",
+          "normal": [
+            -0.9797614993931708,
+            -0.0895880394205295,
+            0.1790010823979328
+          ],
+          "position": [
+            -6.668922928414443,
+            3.1774246630738148,
+            -882.602287329654
+          ],
+          "sequence": 28,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 9,
+            "velocity": [
+              47.355015365354326,
+              -18.41858625182842,
+              -833.6165780473389
+            ]
+          },
+          "shipId": "enemy-1",
+          "tick": 242
+        },
+        {
+          "kind": "stopped",
+          "message": "Stopped by Hull shell · bow to stern plating",
+          "normal": [
+            -0.9820019815991312,
+            -0.08398092019788717,
+            0.16917243622439135
+          ],
+          "position": [
+            -7.112024819364733,
+            3.123700626445731,
+            -885.0641613337735
+          ],
+          "sequence": 29,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 8,
+            "velocity": [
+              51.567676282862344,
+              -18.412677104860705,
+              -833.3666464080533
+            ]
+          },
+          "shipId": "enemy-1",
+          "tick": 242
+        },
+        {
+          "kind": "stopped",
+          "message": "Stopped by Hull shell · bow to stern plating",
+          "normal": [
+            -0.9858707312471161,
+            -0.07349273193727342,
+            0.15052481397654183
+          ],
+          "position": [
+            -7.5233385603311325,
+            3.06777800254735,
+            -887.6278230270557
+          ],
+          "sequence": 30,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 7,
+            "velocity": [
+              55.77638872231787,
+              -18.40626773478333,
+              -833.0956073527975
+            ]
+          },
+          "shipId": "enemy-1",
+          "tick": 242
+        },
+        {
+          "kind": "stopped",
+          "message": "Stopped by Hull shell · bow to stern plating",
+          "normal": [
+            -0.9763155193866393,
+            -0.07379139150826332,
+            0.20337855625426934
+          ],
+          "position": [
+            -10.75107482296788,
+            2.6790589177675965,
+            -905.3704693353309
+          ],
+          "sequence": 31,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 6,
+            "velocity": [
+              94.25644517254773,
+              -18.651069383288245,
+              -829.6242190761948
+            ]
+          },
+          "shipId": "enemy-1",
+          "tick": 244
+        },
+        {
+          "kind": "stopped",
+          "message": "Stopped by Hull shell · bow to stern plating",
+          "normal": [
+            -0.9767122637399639,
+            -0.0755527650987775,
+            0.20081069081571365
+          ],
+          "position": [
+            -10.99532194440633,
+            2.6530297305456054,
+            -906.557845885191
+          ],
+          "sequence": 32,
+          "shell": {
+            "caliberM": 0.02,
+            "id": 5,
+            "velocity": [
+              97.5775643938043,
+              -18.64196489543951,
+              -829.240247020978
+            ]
+          },
+          "shipId": "enemy-1",
+          "tick": 244
+        }
+      ],
+      "fleet": [
+        {
+          "ammo": 69664,
+          "controller": "player",
+          "definitionId": "enterprise-cv6",
+          "id": "player",
+          "integrity": 1180,
+          "motion": {
+            "distance": 0,
+            "heading": 1.5707963267948966,
+            "id": "player",
+            "pitch": 0,
+            "roll": 0,
+            "rudder": 0,
+            "speed": 0,
+            "swaySpeed": 0,
+            "tick": 786,
+            "x": 0,
+            "y": 0,
+            "yawRate": 0,
+            "z": 0
+          },
+          "team": "friendly"
+        },
+        {
+          "ammo": 1800,
+          "controller": "idle",
+          "definitionId": "yamato",
+          "id": "enemy-1",
+          "integrity": 1750,
+          "motion": {
+            "distance": 0.0009666666666666666,
+            "heading": 3.1415926849076534,
+            "id": "enemy-1",
+            "pitch": 0,
+            "roll": 0,
+            "rudder": 0,
+            "speed": 0,
+            "swaySpeed": 0,
+            "tick": 786,
+            "x": -2.159752870785214e-13,
+            "y": 0,
+            "yawRate": 5.7549612156548086e-11,
+            "z": -999.9990333333334
+          },
+          "targetId": "player",
+          "team": "enemy"
+        },
+        {
+          "ammo": 5670,
+          "controller": "idle",
+          "definitionId": "baltimore",
+          "id": "enemy-2",
+          "integrity": 1020,
+          "motion": {
+            "distance": 0.001,
+            "heading": 3.141592619051824,
+            "id": "enemy-2",
+            "pitch": 0,
+            "roll": 0,
+            "rudder": 0,
+            "speed": 0,
+            "swaySpeed": 0,
+            "tick": 786,
+            "x": 650.0000000000002,
+            "y": 0,
+            "yawRate": -6.346097226306616e-11,
+            "z": -999.9989999999999
+          },
+          "targetId": "player",
+          "team": "enemy"
+        },
+        {
+          "ammo": 69680,
+          "controller": "idle",
+          "definitionId": "enterprise-cv6",
+          "id": "enemy-3",
+          "integrity": 1180,
+          "motion": {
+            "distance": 0.0012166666666666667,
+            "heading": 3.1415927043518472,
+            "id": "enemy-3",
+            "pitch": 0,
+            "roll": 0,
+            "rudder": 0,
+            "speed": 0,
+            "swaySpeed": 0,
+            "tick": 786,
+            "x": -650.0000000000003,
+            "y": 0,
+            "yawRate": 9.330408237083344e-11,
+            "z": -999.9987833333334
+          },
+          "targetId": "player",
+          "team": "enemy"
+        }
+      ],
+      "fps": 10.02229538781214,
+      "inPort": false,
+      "inspecting": false,
+      "maxMuzzleErrorM": 0.0027435338520727186,
+      "paused": false,
+      "portInspection": "exterior",
+      "renderedShips": [
+        {
+          "id": "player",
+          "visible": true
+        },
+        {
+          "id": "enemy-1",
+          "visible": true
+        },
+        {
+          "id": "enemy-2",
+          "visible": true
+        },
+        {
+          "id": "enemy-3",
+          "visible": true
+        }
+      ],
+      "shipId": "enterprise-cv6",
+      "tick": 786
+    },
+    "kind": "settled-state",
+    "shipId": "enterprise-cv6",
+    "time": "2026-09-06T04:30:06.779Z"
+  },
+  {
+    "backend": "webgpu",
+    "contentHash": "e968df81e5fbf119177548826b2dc4377f4a8e6ef3611b75984dadbe0d89e52d",
+    "diagnostics": {
+      "audio": {
+        "failed": [],
+        "inPort": true,
+        "loaded": 13,
+        "paused": false,
+        "played": 197,
+        "settings": {
+          "effects": 0.8,
+          "interface": 0.65,
+          "master": 0.65,
+          "muted": false
+        },
+        "state": "running",
+        "total": 13,
+        "voices": 0
+      },
+      "backend": "webgpu",
+      "camera": {
+        "aim": [
+          1062.540104561763,
+          0.5,
+          -169.122091235264
+        ],
+        "binoculars": false,
+        "fov": 52.00000000000001,
+        "magnification": 1,
+        "manualAim": true,
+        "matrixWorldInverse": [
+          0.9865512727994344,
+          0.05108462927419861,
+          -0.1552641194537025,
+          0,
+          6.938893903907228e-18,
+          0.9499059831858194,
+          0.31253579492240857,
+          0,
+          0.163452091261678,
+          -0.3083325862760852,
+          0.9371309567517683,
+          0,
+          -232.6860031903223,
+          -38.96674534642619,
+          -42.00947902651472,
+          1
+        ],
+        "mode": "Chase",
+        "pointerLocked": false,
+        "position": [
+          225.02470958030943,
+          50.144210471676445,
+          65.38667973011555
+        ],
+        "projectionMatrix": [
+          1.633751346060547,
+          0,
+          0,
+          0,
+          0,
+          2.050303841579296,
+          0,
+          0,
+          0,
+          0,
+          -1.000050002500125,
+          -1,
+          0,
+          0,
+          -3.000150007500375,
+          0
+        ],
+        "shellFollow": "off"
+      },
+      "combat": {
+        "batteries": [
+          {
+            "ammo": 2880,
+            "battery": "main",
+            "ready": 0,
+            "reload": 0,
+            "total": 8
+          },
+          {
+            "ammo": 66800,
+            "battery": "secondary",
+            "ready": 0,
+            "reload": 0,
+            "total": 34
+          }
+        ],
+        "battery": "secondary",
+        "battle": true,
+        "contacts": [
+          {
+            "controller": "player",
+            "heading": 0,
+            "id": "player",
+            "integrity": 1,
+            "name": "USS Enterprise (CV-6)",
+            "shipId": "enterprise-cv6",
+            "sunk": false,
+            "team": "friendly",
+            "x": 240,
+            "z": 0
+          },
+          {
+            "controller": "idle",
+            "heading": 3.141592653589793,
+            "id": "enemy-1",
+            "integrity": 1,
+            "name": "Yamato",
+            "shipId": "yamato",
+            "sunk": false,
+            "team": "enemy",
+            "x": 0,
+            "z": -1000
+          },
+          {
+            "controller": "idle",
+            "heading": 3.141592653589793,
+            "id": "enemy-2",
+            "integrity": 1,
+            "name": "USS Baltimore",
+            "shipId": "baltimore",
+            "sunk": false,
+            "team": "enemy",
+            "x": 650,
+            "z": -1000
+          },
+          {
+            "controller": "idle",
+            "heading": 3.141592653589793,
+            "id": "enemy-3",
+            "integrity": 1,
+            "name": "USS Enterprise (CV-6)",
+            "shipId": "enterprise-cv6",
+            "sunk": false,
+            "team": "enemy",
+            "x": -650,
+            "z": -1000
+          }
+        ],
+        "message": "Only aligned, loaded guns fire. Turn the ship to bring guns marked Out of arc onto the target.",
+        "modules": [
+          {
+            "condition": 1,
+            "id": "engine-port",
+            "name": "Port forward turbines"
+          },
+          {
+            "condition": 1,
+            "id": "engine-starboard",
+            "name": "Starboard forward turbines"
+          },
+          {
+            "condition": 1,
+            "id": "steering",
+            "name": "Steering machinery"
+          },
+          {
+            "condition": 1,
+            "id": "magazine-1",
+            "name": "No. 1 propellant magazine"
+          },
+          {
+            "condition": 1,
+            "id": "magazine-2",
+            "name": "No. 2 propellant magazine"
+          },
+          {
+            "condition": 1,
+            "id": "magazine-3",
+            "name": "No. 3 propellant magazine"
+          },
+          {
+            "condition": 1,
+            "id": "magazine-secondary-forward",
+            "name": "Forward secondary magazine"
+          },
+          {
+            "condition": 1,
+            "id": "magazine-secondary-aft",
+            "name": "Aft secondary magazine"
+          },
+          {
+            "condition": 1,
+            "id": "engine-port-aft",
+            "name": "Port after turbines"
+          },
+          {
+            "condition": 1,
+            "id": "engine-starboard-aft",
+            "name": "Starboard after turbines"
+          }
+        ],
+        "mounts": [
+          {
+            "ammo": 3200,
+            "id": "quad-fore-lower",
+            "name": "1.1-inch fore-lower",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 3200,
+            "id": "quad-fore-upper",
+            "name": "1.1-inch fore-upper",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 3200,
+            "id": "quad-aft-lower",
+            "name": "1.1-inch aft-lower",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 3200,
+            "id": "quad-aft-upper",
+            "name": "1.1-inch aft-upper",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-port-1",
+            "name": "Port 20 mm 1",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-port-2",
+            "name": "Port 20 mm 2",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-port-3",
+            "name": "Port 20 mm 3",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-port-4",
+            "name": "Port 20 mm 4",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-port-5",
+            "name": "Port 20 mm 5",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-port-6",
+            "name": "Port 20 mm 6",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-port-7",
+            "name": "Port 20 mm 7",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-port-8",
+            "name": "Port 20 mm 8",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-port-9",
+            "name": "Port 20 mm 9",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-port-10",
+            "name": "Port 20 mm 10",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-port-11",
+            "name": "Port 20 mm 11",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-port-12",
+            "name": "Port 20 mm 12",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-1",
+            "name": "Starboard 20 mm 1",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-2",
+            "name": "Starboard 20 mm 2",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-3",
+            "name": "Starboard 20 mm 3",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-4",
+            "name": "Starboard 20 mm 4",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-5",
+            "name": "Starboard 20 mm 5",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-6",
+            "name": "Starboard 20 mm 6",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-7",
+            "name": "Starboard 20 mm 7",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-8",
+            "name": "Starboard 20 mm 8",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-9",
+            "name": "Starboard 20 mm 9",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-10",
+            "name": "Starboard 20 mm 10",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-11",
+            "name": "Starboard 20 mm 11",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-starboard-12",
+            "name": "Starboard 20 mm 12",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-island-1",
+            "name": "Island 20 mm 1",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-island-2",
+            "name": "Island 20 mm 2",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-island-3",
+            "name": "Island 20 mm 3",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-island-4",
+            "name": "Island 20 mm 4",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-island-5",
+            "name": "Island 20 mm 5",
+            "reload": 0,
+            "status": "turning"
+          },
+          {
+            "ammo": 1800,
+            "id": "oerlikon-island-6",
+            "name": "Island 20 mm 6",
+            "reload": 0,
+            "status": "turning"
+          }
+        ],
+        "playerDamageDealt": 0,
+        "playerFrags": 0,
+        "playerIntegrity": 1,
+        "playerMaxIntegrity": 1180,
+        "playerSunk": false,
+        "playerWater": 0,
+        "range": 839.746691185065,
+        "ready": 0,
+        "result": "active",
+        "targetId": "enemy-1",
+        "targetIntegrity": 1,
+        "targetName": "Yamato",
+        "targetPosition": {
+          "heading": 3.141592653589793,
+          "x": 0,
+          "z": -1000
+        },
+        "targetPower": 1,
+        "targetRange": 1028.3968105745953,
+        "targetSteering": 1,
+        "targetSunk": false,
+        "targetUnderway": false,
+        "targetWater": 0,
+        "total": 34
+      },
+      "contentHash": "e968df81e5fbf119177548826b2dc4377f4a8e6ef3611b75984dadbe0d89e52d",
+      "effects": {
+        "flashes": 0,
+        "foam": 0,
+        "particleCapacity": 2272,
+        "shells": 0,
+        "smoke": 0,
+        "spray": 0
+      },
+      "events": [],
+      "fleet": [
+        {
+          "ammo": 69680,
+          "controller": "player",
+          "definitionId": "enterprise-cv6",
+          "id": "player",
+          "integrity": 1180,
+          "motion": {
+            "distance": 0,
+            "heading": 0,
+            "id": "player",
+            "pitch": 0,
+            "roll": 0,
+            "rudder": 0,
+            "speed": 0,
+            "swaySpeed": 0,
+            "tick": 0,
+            "x": 240,
+            "y": 0,
+            "yawRate": 0,
+            "z": 0
+          },
+          "team": "friendly"
+        },
+        {
+          "ammo": 1800,
+          "controller": "idle",
+          "definitionId": "yamato",
+          "id": "enemy-1",
+          "integrity": 1750,
+          "motion": {
+            "distance": 0,
+            "heading": 3.141592653589793,
+            "id": "enemy-1",
+            "pitch": 0,
+            "roll": 0,
+            "rudder": 0,
+            "speed": 0,
+            "swaySpeed": 0,
+            "tick": 0,
+            "x": 0,
+            "y": 0,
+            "yawRate": 0,
+            "z": -1000
+          },
+          "team": "enemy"
+        },
+        {
+          "ammo": 5670,
+          "controller": "idle",
+          "definitionId": "baltimore",
+          "id": "enemy-2",
+          "integrity": 1020,
+          "motion": {
+            "distance": 0,
+            "heading": 3.141592653589793,
+            "id": "enemy-2",
+            "pitch": 0,
+            "roll": 0,
+            "rudder": 0,
+            "speed": 0,
+            "swaySpeed": 0,
+            "tick": 0,
+            "x": 650,
+            "y": 0,
+            "yawRate": 0,
+            "z": -1000
+          },
+          "team": "enemy"
+        },
+        {
+          "ammo": 69680,
+          "controller": "idle",
+          "definitionId": "enterprise-cv6",
+          "id": "enemy-3",
+          "integrity": 1180,
+          "motion": {
+            "distance": 0,
+            "heading": 3.141592653589793,
+            "id": "enemy-3",
+            "pitch": 0,
+            "roll": 0,
+            "rudder": 0,
+            "speed": 0,
+            "swaySpeed": 0,
+            "tick": 0,
+            "x": -650,
+            "y": 0,
+            "yawRate": 0,
+            "z": -1000
+          },
+          "team": "enemy"
+        }
+      ],
+      "fps": 10.01972553223136,
+      "inPort": true,
+      "inspecting": false,
+      "maxMuzzleErrorM": 0.0027435334140913635,
+      "paused": false,
+      "portInspection": "exterior",
+      "renderedShips": [
+        {
+          "id": "player",
+          "visible": true
+        },
+        {
+          "id": "enemy-1",
+          "visible": false
+        },
+        {
+          "id": "enemy-2",
+          "visible": false
+        },
+        {
+          "id": "enemy-3",
+          "visible": false
+        }
+      ],
+      "shipId": "enterprise-cv6",
+      "tick": 0
+    },
+    "kind": "settled-state",
+    "shipId": "enterprise-cv6",
+    "time": "2026-09-06T04:30:09.824Z"
+  },
+  {
+    "backend": "webgpu",
+    "clientX": 511.6500000000002,
+    "clientY": 462.0600000000001,
+    "contentHash": "e968df81e5fbf119177548826b2dc4377f4a8e6ef3611b75984dadbe0d89e52d",
+    "hovered": "structure:funnel",
+    "kind": "armor-hover",
+    "shipId": "enterprise-cv6",
+    "time": "2026-09-06T04:51:00.544Z",
+    "tooltip": "Three-uptake funnel casingThickness6 mmDimensions4.8 × 10.8 × 18.9 mBasisestimated"
+  }
+]
