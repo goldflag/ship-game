@@ -9,6 +9,7 @@ The luminous pixels write depth with a small alpha cutoff. This is required for 
 Validated with 52 combat, AP projectile, shell-follow and effects tests, plus `bun run build` (the existing large-bundle warning remains). The [WebGPU/WebGL results](tracer-browser.json) cover empty frames, up to 256 shells, visible flight trails, end-on glows and pixel-free reset at a fixed 11-draw effects budget including existing torpedo effects.
 
 Inspected actual Bismarck [main](tracer-main.png) and [secondary](tracer-secondary.png) salvos over the ocean through `scripts/diagnostics/combat-effects.html`: medium quality, Fair sea, 0.4 seconds after firing, camera `[460, 105, 440]` looking at `[260, 18, 0]`, 52° vertical FOV. Screenshots retain the final render; the preview's intermittent tab/capture resets required recapturing. The camera scaling, muzzle-age limit, pause and lodged-round behavior also have automated coverage.
+The [September 6 horizon and dissipation correction](horizon-order.md) shortens firing smoke to 4.5–6 seconds and preserves smoke/splash visibility when reversed-depth draw sorting would otherwise paint the ocean over them. Earlier recipes and captures below remain historical review evidence.
 
 The September 2026 effects use directional muzzle ignition, large hot-gas volumes, drifting propellant smoke, local light, velocity-aligned shell streaks, armor sparks, aerated water columns, falling spray and lingering surface foam. Internal module damage alone does not create an exterior explosion; magazine detonation has an explicit event flag.
 

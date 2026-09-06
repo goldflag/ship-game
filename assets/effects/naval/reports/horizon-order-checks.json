@@ -1,0 +1,248 @@
+{
+  "horizon": [
+    {
+      "checkedRows": 38,
+      "effect": "smoke",
+      "height": 1080,
+      "minimumContrast": 0.41290033738650733,
+      "range": 5000,
+      "width": 1920
+    },
+    {
+      "checkedRows": 38,
+      "effect": "splash",
+      "height": 1080,
+      "minimumContrast": 0.3548706388511221,
+      "range": 5000,
+      "width": 1920
+    },
+    {
+      "checkedRows": 38,
+      "effect": "smoke",
+      "height": 1080,
+      "minimumContrast": 0.08370321361885272,
+      "range": 20000,
+      "width": 1920
+    },
+    {
+      "checkedRows": 38,
+      "effect": "splash",
+      "height": 1080,
+      "minimumContrast": 0.1201777111873718,
+      "range": 20000,
+      "width": 1920
+    }
+  ],
+  "volumes": [
+    {
+      "backend": "webgpu",
+      "effect": "smoke",
+      "frames": [
+        {
+          "draws": 1,
+          "view": "outside",
+          "visiblePixels": 15102
+        },
+        {
+          "draws": 2,
+          "view": "in front of horizon",
+          "visiblePixels": 15102
+        },
+        {
+          "draws": 2,
+          "view": "behind opaque surface",
+          "visiblePixels": 0
+        },
+        {
+          "draws": 1,
+          "view": "reverse oblique",
+          "visiblePixels": 15656
+        },
+        {
+          "draws": 1,
+          "view": "inside",
+          "visiblePixels": 65536
+        },
+        {
+          "draws": 1,
+          "view": "reset",
+          "visiblePixels": 0
+        }
+      ],
+      "reversedDepth": false
+    },
+    {
+      "backend": "webgpu",
+      "effect": "water",
+      "frames": [
+        {
+          "draws": 1,
+          "view": "outside",
+          "visiblePixels": 15075
+        },
+        {
+          "draws": 2,
+          "view": "in front of horizon",
+          "visiblePixels": 15075
+        },
+        {
+          "draws": 2,
+          "view": "behind opaque surface",
+          "visiblePixels": 0
+        },
+        {
+          "draws": 1,
+          "view": "reverse oblique",
+          "visiblePixels": 15643
+        },
+        {
+          "draws": 1,
+          "view": "inside",
+          "visiblePixels": 65536
+        },
+        {
+          "draws": 1,
+          "view": "reset",
+          "visiblePixels": 0
+        }
+      ],
+      "reversedDepth": false
+    },
+    {
+      "backend": "webgpu",
+      "effect": "smoke",
+      "frames": [
+        {
+          "draws": 1,
+          "view": "outside",
+          "visiblePixels": 15102
+        },
+        {
+          "draws": 2,
+          "view": "in front of horizon",
+          "visiblePixels": 15102
+        },
+        {
+          "draws": 2,
+          "view": "behind opaque surface",
+          "visiblePixels": 0
+        },
+        {
+          "draws": 1,
+          "view": "reverse oblique",
+          "visiblePixels": 15656
+        },
+        {
+          "draws": 1,
+          "view": "inside",
+          "visiblePixels": 65536
+        },
+        {
+          "draws": 1,
+          "view": "reset",
+          "visiblePixels": 0
+        }
+      ],
+      "reversedDepth": true
+    },
+    {
+      "backend": "webgpu",
+      "effect": "water",
+      "frames": [
+        {
+          "draws": 1,
+          "view": "outside",
+          "visiblePixels": 15075
+        },
+        {
+          "draws": 2,
+          "view": "in front of horizon",
+          "visiblePixels": 15075
+        },
+        {
+          "draws": 2,
+          "view": "behind opaque surface",
+          "visiblePixels": 0
+        },
+        {
+          "draws": 1,
+          "view": "reverse oblique",
+          "visiblePixels": 15643
+        },
+        {
+          "draws": 1,
+          "view": "inside",
+          "visiblePixels": 65536
+        },
+        {
+          "draws": 1,
+          "view": "reset",
+          "visiblePixels": 0
+        }
+      ],
+      "reversedDepth": true
+    }
+  ],
+  "atlanticHorizon": {
+    "checkedRows": 38,
+    "effect": "smoke",
+    "height": 1080,
+    "minimumContrast": 0.22643092050661856,
+    "range": 5000,
+    "width": 1920
+  },
+  "lifetime": [
+    {
+      "age": 0.35,
+      "effects": {
+        "flashes": 0,
+        "foam": 8,
+        "particleCapacity": 2272,
+        "shells": 8,
+        "smoke": 24,
+        "spray": 0,
+        "torpedoes": 0
+      }
+    },
+    {
+      "age": 1,
+      "effects": {
+        "flashes": 0,
+        "foam": 0,
+        "particleCapacity": 2272,
+        "shells": 8,
+        "smoke": 24,
+        "spray": 0,
+        "torpedoes": 0
+      }
+    },
+    {
+      "age": 4,
+      "effects": {
+        "flashes": 0,
+        "foam": 0,
+        "particleCapacity": 2272,
+        "shells": 0,
+        "smoke": 24,
+        "spray": 947,
+        "torpedoes": 0
+      }
+    },
+    {
+      "age": 6,
+      "effects": {
+        "flashes": 0,
+        "foam": 0,
+        "particleCapacity": 2272,
+        "shells": 0,
+        "smoke": 0,
+        "spray": 316,
+        "torpedoes": 0
+      }
+    }
+  ],
+  "horizonMetric": "Maximum RGB difference per row against the same paused frame with the tested volume batch hidden; threshold 0.02.",
+  "defaultSortNegativeControl": {
+    "expectedFailure": "Distant transparent water erased nearby gas: [{\"view\":\"outside\",\"visiblePixels\":15102,\"draws\":1},{\"view\":\"in front of horizon\",\"visiblePixels\":8030,\"draws\":2}]"
+  }
+}
