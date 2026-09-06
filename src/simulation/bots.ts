@@ -34,6 +34,7 @@ export interface BotState {
   randomState: number; time: number; reactionSeconds: number; preferredRange: number;
   side: number; courseOffset: number; cruiseThrottle: number; maneuverAt: number;
   evadeUntil: number; lastIntegrity: number; openingFireAt?: number;
+  submergedUntil?: number;
   track?: TargetTrack;
   guns: Record<string, GunOrder>;
 }
@@ -183,7 +184,14 @@ export function botHelm(actor: FleetActor, target: FleetActor | undefined, actor
     }
   }
   heading = Math.atan2(x, -z);
+  // Surface while the tubes facing the opponent reload: deck guns can contribute
+  // and opponents get an attack window. Dive again for the next torpedo approach.
+  const loadedAttackTubes = tubes.some(t => Math.abs(wrapAngle(bearing - actor.motion.heading - t.bearingDeg * Math.PI / 180)) < Math.PI / 2
+    && (actor.torpedoTubes?.find(state => state.id === t.id)?.reload ?? 0) <= 0);
+  if (actor.submarine && loadedAttackTubes && range < 5500 && actor.submarine.targetDepthM === 0) bot.submergedUntil = bot.time + 40;
+  const dive = tubes.length && range < 5500 && (loadedAttackTubes || bot.time < (bot.submergedUntil ?? 0));
   return { throttle: evading ? .85 : range > preferredRange + 700 ? .8 : bot.cruiseThrottle,
+    ...(actor.definition.submarine ? { depthM: dive ? actor.definition.submarine.periscopeDepthM : 0 } : {}),
     rudder: clamp(wrapAngle(heading - actor.motion.heading) * 2 - actor.motion.yawRate * 5, -1, 1) };
 }
 

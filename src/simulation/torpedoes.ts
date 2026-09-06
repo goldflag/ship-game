@@ -9,7 +9,7 @@ import { equipmentCondition } from './machinery';
 export type TubeDefinition = NonNullable<ShipDefinition['torpedoTubes']>[number];
 export interface TubeState {
   id: string; ammo: number; reload: number;
-  status: 'ready' | 'reloading' | 'out-of-arc' | 'out-of-range' | 'too-close' | 'disabled' | 'empty' | 'blocked';
+  status: 'ready' | 'reloading' | 'out-of-arc' | 'out-of-range' | 'too-close' | 'disabled' | 'empty' | 'blocked' | 'too-deep' | 'above-water';
 }
 export interface Torpedo {
   id: number; ownerId: string; tubeId: string; position: Vec3; velocity: Vec3;
@@ -39,6 +39,8 @@ export function tubeSolution(actor: FleetActor, tube: TubeDefinition, state: Tub
   const range = Math.hypot(aim[0] - origin[0], aim[2] - origin[2]);
   const magazine = actor.definition.modules.find(m => m.id === tube.magazineId);
   state.status = actor.damage.sunk || actor.damage.stability.combatLost || !magazine || equipmentCondition(actor, actor.definition, magazine).availability <= 0 ? 'disabled' : state.ammo === 0 ? 'empty' :
+    actor.definition.submarine && -actor.motion.y > actor.definition.submarine.maxTorpedoDepthM ? 'too-deep' :
+    origin[1] > 0 ? 'above-water' :
     !aim.every(Number.isFinite) || Math.abs(wrapAngle(heading - actor.motion.heading - radians(tube.bearingDeg))) > radians(tube.arcDeg) + 1e-8 ? 'out-of-arc' :
     range < tube.weapon.armingDistanceM ? 'too-close' : range > tube.weapon.rangeM ? 'out-of-range' : state.reload > 0 ? 'reloading' : 'ready';
   return { origin, heading, range };

@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "contentHash": "dbb974b5b53a372340a739cc5dc79c5230540720328cacbc8de61ccadb624933",
+  "passed": true,
+  "rawCacheAvailableDuringBuild": false,
+  "cacheMovedForTest": false,
+  "command": "bun run ship:build yamato",
+  "authoringReadAudit": ".build/ships/yamato/authoring-reads.json",
+  "note": "Full original asset build and raster comparison succeeded without the raw game cache. Python authoring reads additionally reject raw model formats and cache paths."
+}

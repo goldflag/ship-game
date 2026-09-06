@@ -1,0 +1,30 @@
+{
+  "cssSource": "https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600&display=swap",
+  "fontLicense": "SIL Open Font License 1.1; original notices retained",
+  "files": [
+    {
+      "file": "barlow-0.ttf",
+      "source": "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7EPCw.ttf"
+    },
+    {
+      "file": "barlow-1.ttf",
+      "source": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3_-gc4A.ttf"
+    },
+    {
+      "file": "barlow-2.ttf",
+      "source": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8c4A.ttf"
+    },
+    {
+      "file": "barlow-3.ttf",
+      "source": "https://fonts.gstatic.com/s/barlowcondensed/v13/HTxwL3I-JCGChYJ8VI-L6OO_au7B4873_3E.ttf"
+    },
+    {
+      "file": "Barlow-OFL.txt",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/barlow/OFL.txt"
+    },
+    {
+      "file": "BarlowCondensed-OFL.txt",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/barlowcondensed/OFL.txt"
+    }
+  ]
+}

@@ -7,6 +7,7 @@ import { ENGINE_LABELS, KNOTS_PER_MPS } from '../simulation/ship';
 import { Icon } from './Icons';
 import { NavigationChart } from './NavigationChart';
 import { GunneryPanel } from './GunneryPanel';
+import { DepthControl } from './DepthControl';
 import { useShip } from './ShipContext';
 import './FleetHud.css';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
@@ -135,7 +136,7 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
       <h2>{data.combat.result === 'active' ? 'Custom battle' : data.combat.result === 'victory' ? 'Victory' : data.combat.result === 'defeat' ? 'Defeat' : 'Draw'}</h2>
       <p><span>Friendly <strong>{data.combat.contacts.filter(c => c.team === 'friendly' && !c.sunk && !c.combatLost).length}</strong></span><span>Enemy <strong>{data.combat.contacts.filter(c => c.team === 'enemy' && !c.sunk && !c.combatLost).length}</strong></span></p>
       <label>Target<select aria-label="Enemy target" value={data.combat.targetId} onChange={event => game?.selectTarget(event.target.value)}>{data.combat.contacts.filter(c => c.team === 'enemy').map((contact, index) => <option key={contact.id} value={contact.id}>{index + 1}. {contact.name} · {`${contact.status.replaceAll('-', ' ')} · ${Math.round(contact.integrity * 100)}%`}</option>)}</select></label>
-      <small>{data.combat.result !== 'active' ? 'Battle ended · Esc to return to port' : data.combat.playerSunk ? 'Your ship is sinking. Friendly bots are still fighting.' : data.combat.playerStatus === 'knocked-out' ? 'Your ship is knocked out. Friendly bots are still fighting.' : `${(data.combat.targetRange / 1000).toFixed(2)} km · Hold Ctrl to select a target`}</small>
+      <small>{data.combat.result !== 'active' ? 'Battle ended · Esc to return to port' : data.combat.playerSunk ? 'Your ship is sinking. Friendly bots are still fighting.' : `${(data.combat.targetRange / 1000).toFixed(2)} km · Hold Ctrl to select a target`}</small>
     </section>}
     <div className="fleet-top-actions"><span className="fleet-fps" aria-label={`${data.fps} frames per second`}><strong>{data.fps || '—'}</strong> FPS</span><button className="icon-button" aria-label="Pause and settings" title="Pause · Esc" onClick={() => game?.setPaused(true)}><Icon name="pause" size={17}/></button></div>
     {data.combat?.battle && <dl className="fleet-score" aria-label="Your battle score">
@@ -169,6 +170,7 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
     </section>
 
     <ActiveArmament data={data} game={game} visible={visible} bindings={bindings}/>
+    {data.combat?.submarine && <DepthControl combat={data.combat} game={game} bindings={bindings}/>}
     {(data.gunneryOpen || data.inspecting) && <GunneryPanel bindings={bindings} data={data} game={game} expanded={!!data.gunneryOpen} onExpand={value => game?.setGunneryOpen(value)}/>}
     {data.binoculars && data.aimModule !== 'point' && data.aimMarker?.visible && <div className="aim-marker" aria-hidden="true" style={{ left: `${data.aimMarker.x}%`, top: `${data.aimMarker.y}%` }}><span/><small>TRACKED AIM</small></div>}
     <aside className="fleet-map-area" aria-label="Navigation minimap"><NavigationChart bindings={bindings} data={data} onResize={direction => game?.resizeChart(direction)}/></aside>

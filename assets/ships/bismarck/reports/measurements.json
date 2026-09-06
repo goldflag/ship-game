@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "contentHash": "bba69db7f1a6b87663e9aaf6fbde5d8cd04e1b41d9d20b69a62504c9cc0307b7",
-  "modelSha256": "4b482edd5c01f7960e4bba02e59f94a08962b83db546d4fd032b9795469e7ba8",
+  "contentHash": "664376490248177c1f0bdf6990f7726f8ece0302bfd3c9622bb04d07c581667d",
+  "modelSha256": "52fce53c4c59b92e4d44272ba82db05aa7e2136699bfd577ac04471804a1da2c",
   "specRevision": "independent-1941-04",
   "dimensions": [
     {
@@ -1661,6 +1661,7 @@
       ]
     }
   ],
+  "structuralProbes": [],
   "landmarks": [
     {
       "id": "anton-axis",

@@ -28,7 +28,21 @@ test('the helm displays current/max HP and proportional hit feedback for large a
   }
 });
 
-test('an afloat knockout remains visible while the surviving friendly fleet fights', () => {
+test('VIIC depth instruments show real orders, ballast and recovery instructions only when fitted', () => {
+  for (const id of ['type-viic', 'bismarck']) {
+    const def = shipPreset(id), sim = new CombatSimulation(def);
+    if (sim.player.submarine) { sim.player.submarine.targetDepthM = 50; sim.player.submarine.ballastM3 = 102; sim.ship.y = -50; }
+    const data: Telemetry = { ship: sim.ship, order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat: sim.telemetry('torpedo', [0, 0, -1500]) };
+    const html = renderToStaticMarkup(<ShipContext.Provider value={def}><FleetHud data={data} game={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
+    if (id === 'type-viic') {
+      expect(html).toContain('aria-label="Depth and ballast"'); expect(html).toContain('Ordered 50 m');
+      expect(html).toContain('Ballast 85%'); expect(html).toContain('Torpedoes: rise to 12 m or less');
+      expect(html).toContain('Emergency blow'); expect(html).toContain('Periscope');
+    } else expect(html).not.toContain('aria-label="Depth and ballast"');
+  }
+});
+
+test('main battery loss leaves an armed ship in its fleet without an extra status label', () => {
   const definition = shipPreset('bismarck'), sim = new CombatSimulation(definition, { friendlyBots: [definition], enemies: [definition] });
   definition.mounts.forEach((m, i) => { if (m.battery === 'main') sim.player.mounts[i].hp = 0; });
   updateCapability(sim.player, definition);
@@ -36,7 +50,7 @@ test('an afloat knockout remains visible while the surviving friendly fleet figh
   const html = renderToStaticMarkup(<ShipContext.Provider value={definition}>
     <FleetHud data={data} game={null} visible bindings={defaultKeybindings()}/>
   </ShipContext.Provider>);
-  expect(html).toContain('Your ship is knocked out. Friendly bots are still fighting.');
-  expect(html).toContain('Afloat · knocked out');
-  expect(html).toContain('Friendly <strong>1</strong>');
+  expect(html).not.toContain('knocked out');
+  expect(html).not.toContain('crippled');
+  expect(html).toContain('Friendly <strong>2</strong>');
 });
