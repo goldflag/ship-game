@@ -7,7 +7,7 @@ import type { ShellView } from './ShellFollow';
 
 export type CameraMode = 'Chase' | 'Bridge' | 'Tactical';
 const NORMAL_FOV = 52;
-const MAGNIFICATIONS = [2, 4, 6, 8, 12];
+const MAGNIFICATIONS = [2, 4, 6, 8, 12, 16, 24];
 const MIN_ORBIT_ELEVATION = .08;
 const MAX_UPWARD_TILT = Math.PI / 6;
 const CAMERA_CLEARANCE = 12;
@@ -23,6 +23,7 @@ export class CameraRig {
   private hullScale = 1;
   private hullLength = 250.5;
   private submarine?: SubmarineDefinition;
+  private portHullScale = 1;
   private dragging = false;
   private inPort = false;
   private enabled = true;
@@ -67,7 +68,7 @@ export class CameraRig {
       const dy = locked ? e.movementY : e.clientY - this.previous.y;
       if (this.inPort || this.inspecting) {
         this.azimuth -= dx * .005;
-        this.elevation = MathUtils.clamp(this.elevation + dy * .003, -MAX_UPWARD_TILT, 1.35);
+        this.elevation = MathUtils.clamp(this.elevation + dy * .003, this.inPort ? MIN_ORBIT_ELEVATION : -MAX_UPWARD_TILT, 1.35);
       } else {
         // Angular sensitivity follows the visible field of view at every magnification.
         const sensitivity = .0025 * Math.tan(this.camera.fov * Math.PI / 360) / Math.tan(NORMAL_FOV * Math.PI / 360);
@@ -98,7 +99,7 @@ export class CameraRig {
       if (this.binoculars) {
         this.zoomIndex = MathUtils.clamp(this.zoomIndex + Math.sign(-e.deltaY), 0, MAGNIFICATIONS.length - 1);
         this.updateProjection();
-      } else this.distance = MathUtils.clamp(this.distance * Math.exp(e.deltaY * .001), (this.inPort ? 90 : 185) * this.hullScale, this.inPort ? 650 : 1400);
+      } else this.distance = MathUtils.clamp(this.distance * Math.exp(e.deltaY * .001), (this.inPort ? 90 : 185) * this.distanceScale, this.inPort ? 650 * this.portHullScale : 1400);
     }, { ...options, passive: false });
     canvas.addEventListener('contextmenu', e => e.preventDefault(), options);
   }
@@ -187,16 +188,20 @@ export class CameraRig {
     this.updateProjection();
     this.azimuth = inPort ? 1.08 : .82;
     this.elevation = inPort ? PORT_ELEVATION : .1;
-    this.distance = (inPort ? 325 : 345) * this.hullScale;
+    this.distance = (inPort ? 325 : 345) * this.distanceScale;
     this.releasePointer();
   }
   /** Preserve relative zoom and orbit when switching between differently sized hulls. */
   setHullLength(length: number): void {
     this.hullLength = length;
-    const scale = MathUtils.clamp(length / 250.5, .35, 1.5);
-    this.distance *= scale / this.hullScale;
-    this.hullScale = scale;
+    const previousScale = this.distanceScale;
+    // Port framing follows the actual hull size, including boats below the
+    // combat camera's minimum scale. Water/terrain clearance is applied later.
+    this.portHullScale = length / 250.5;
+    this.hullScale = MathUtils.clamp(this.portHullScale, .35, 1.5);
+    this.distance *= this.distanceScale / previousScale;
   }
+  private get distanceScale(): number { return this.inPort ? this.portHullScale : this.hullScale; }
   private constrainCameraHeight(position: Vector3): void {
     if (this.submarine && !this.inPort && !this.shellView && (this.mode !== 'Tactical' || this.inspecting)) return;
     const ground = this.inPort ? Math.max(0, terrainHeight(position.x, position.z)) : 0;
@@ -227,19 +232,20 @@ export class CameraRig {
     this.followedPosition.set(ship.x, height, ship.z);
     this.followedShipId = ship.id;
     if (this.inPort || this.inspecting) {
-      this.target.set(ship.x + Math.sin(ship.heading) * 25, height + 20, ship.z - Math.cos(ship.heading) * 25);
+      const framingScale = this.inPort ? this.portHullScale : 1;
+      this.target.set(ship.x + Math.sin(ship.heading) * 25 * framingScale, height + 20 * framingScale, ship.z - Math.cos(ship.heading) * 25 * framingScale);
       const distance = this.distance * Math.max(1, 1.1 / this.camera.aspect);
       const angle = this.azimuth - ship.heading;
-      // Below the lowest orbit, upward dragging tilts the view toward the sky
-      // while the camera stays in place above the water.
+      // Port stays aimed at the ship. Combat inspection can tilt toward the sky
+      // below the lowest orbit while the camera stays above the water.
       const orbitElevation = Math.max(this.elevation, MIN_ORBIT_ELEVATION);
       const radius = Math.cos(orbitElevation) * distance;
-      this.desired.set(ship.x + Math.sin(angle) * radius, height + Math.sin(orbitElevation) * distance + 15, ship.z + Math.cos(angle) * radius);
+      this.desired.set(ship.x + Math.sin(angle) * radius, height + Math.sin(orbitElevation) * distance + 15 * framingScale, ship.z + Math.cos(angle) * radius);
       this.constrainCameraHeight(this.desired);
       this.camera.position.lerp(this.desired, snap ? 1 : 1 - Math.exp(-5 * dt));
       this.constrainCameraHeight(this.camera.position);
       this.look.copy(this.target);
-      if (this.elevation < MIN_ORBIT_ELEVATION) {
+      if (!this.inPort && this.elevation < MIN_ORBIT_ELEVATION) {
         this.look.sub(this.camera.position);
         const horizontalDistance = Math.hypot(this.look.x, this.look.z);
         const pitch = Math.min(MAX_UPWARD_TILT, Math.atan2(this.look.y, horizontalDistance) + MIN_ORBIT_ELEVATION - this.elevation);

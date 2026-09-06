@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test } from 'bun:test';
-import { Group, PerspectiveCamera } from 'three/webgpu';
+import { Color, Group, PerspectiveCamera } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { CombatSimulation } from '../simulation/combat';
 import { ENGINE_ORDERS, FIXED_DT } from '../simulation/ship';
@@ -48,11 +48,14 @@ async function frameHarness() {
     gunAim: { update(points: GunAimPoint[], _camera: PerspectiveCamera, visible: boolean) { gunAimFrames.push({ points, visible }); } },
     hitDirections: { update() {} },
     lastTime: 0, hudTime: Infinity, lastTrailTick: 0, trail: [], fps: 60, battery: 'main',
+    ammunition: { main: 'ap', secondary: 'ap' },
     paused: false, inPort: false, inspecting: false,
     input: { sample: () => helm, firing: false, setEnabled() {},
       setOrder: (order: number) => { helm.throttle = ENGINE_ORDERS[order]; },
       setRudder: (rudder: number) => { helm.rudder = rudder; } },
-    effects: { update() {}, reset() {} }, sky: { update() {} }, water: { async update() {} },
+    effects: { update() {}, reset() {} }, sky: { update() {} },
+    surfaceWaterAbsorption: new Color(.296, .105, .095),
+    water: { color: { absorptionColor: new Color(.296, .105, .095) }, async update() {} },
     shipWake: { update: (ship: { z: number }) => wakePositions.push(ship.z), reset() {} },
     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {},
     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },

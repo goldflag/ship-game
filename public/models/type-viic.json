@@ -977,7 +977,8 @@
         7.2
       ],
       "hp": 100,
-      "compartmentId": "forward-torpedo-room"
+      "compartmentId": "forward-torpedo-room",
+      "immersionToleranceM": 0.3
     },
     {
       "id": "deck-magazine",
@@ -994,7 +995,8 @@
         2
       ],
       "hp": 55,
-      "compartmentId": "forward-accommodation"
+      "compartmentId": "forward-accommodation",
+      "immersionToleranceM": 0.3
     },
     {
       "id": "diesels",
@@ -1011,7 +1013,8 @@
         6.4
       ],
       "hp": 140,
-      "compartmentId": "diesel-room"
+      "compartmentId": "diesel-room",
+      "immersionToleranceM": 0.3
     },
     {
       "id": "electric-motors",
@@ -1028,7 +1031,8 @@
         2.5
       ],
       "hp": 90,
-      "compartmentId": "motor-room"
+      "compartmentId": "motor-room",
+      "immersionToleranceM": 0.3
     },
     {
       "id": "aft-torpedoes",
@@ -1045,7 +1049,8 @@
         3.4
       ],
       "hp": 75,
-      "compartmentId": "motor-room"
+      "compartmentId": "motor-room",
+      "immersionToleranceM": 0.3
     },
     {
       "id": "steering-gear",
@@ -1062,7 +1067,8 @@
         1.6
       ],
       "hp": 65,
-      "compartmentId": "motor-room"
+      "compartmentId": "motor-room",
+      "immersionToleranceM": 0.3
     }
   ],
   "connections": [],
@@ -1342,5 +1348,5 @@
     }
   },
   "compilerVersion": 1,
-  "contentHash": "987607e23ae05981f7aec30c1d5e61f26314257605705cbd3ebdabb403e95d51"
+  "contentHash": "8f3d1334a5fffe612c679cfe1704930802a725f477c59e702086e07da195aa01"
 }

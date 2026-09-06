@@ -54,8 +54,10 @@ test('category scores stay within 0-100 and separate the presets by their simula
 
 test('maximum range follows the low-arc solver: elevation limited, then capped at 30 km', () => {
   const bismarck = shipPreset('bismarck').mounts[0].weapon;
-  expect(maximumRangeM(bismarck)).toBe(30000);
+  expect(maximumRangeM(bismarck)).toBeLessThanOrEqual(30000);
   // Elevation above 45° never extends the low arc past its 45° maximum.
-  expect(maximumRangeM({ ...bismarck, muzzleSpeed: 400, elevationMaxDeg: 85 })).toBeCloseTo(400 ** 2 / 9.81, 3);
-  expect(maximumRangeM({ ...bismarck, muzzleSpeed: 400, elevationMaxDeg: 30 })).toBeCloseTo(400 ** 2 * Math.sin(Math.PI / 3) / 9.81, 3);
+  expect(maximumRangeM({ ...bismarck, ballistics: undefined, muzzleSpeed: 400, elevationMaxDeg: 85 })).toBeCloseTo(400 ** 2 / 9.81, 3);
+  expect(maximumRangeM({ ...bismarck, ballistics: undefined, muzzleSpeed: 400, elevationMaxDeg: 30 })).toBeCloseTo(400 ** 2 * Math.sin(Math.PI / 3) / 9.81, 3);
+  const slow = { ...bismarck, muzzleSpeed: 400 };
+  expect(maximumRangeM(slow)).toBeLessThan(maximumRangeM({ ...slow, ballistics: undefined }));
 });

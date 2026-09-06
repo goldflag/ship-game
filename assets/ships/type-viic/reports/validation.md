@@ -59,3 +59,9 @@ Integrated `origin/master` at `02008e4` before merging this feature. Preserved t
 The combined version passes **282 tests across 39 files**, 33,070 assertions, with `bun test --timeout 15000`; `bun run typecheck` and `bun run build` also pass. No asset recipe, compiler, blueprint or catalog changed during integration, so the previously built model/hash and articulation checks remain applicable.
 
 The actual port Statistics panel was opened in-game and showed five tubes, fourteen rounds, 533 mm diameter, 44 kn speed, 5 km range and 300 m arming distance at simulation tick zero. See [visible panel text](ui-port-statistics.json). Capturing this integrated panel timed out; no new screenshot is recorded.
+
+## Damage-realism integration, 2026-09-05
+
+The earlier combat screenshots above record the original hull-HP implementation. The combined version uses local module damage, positional flood openings, finite damage-control crews and permanent weapon loss. Torpedo hits cannot sink a hull by subtracting abstract HP or automatically detonate a magazine when its module reaches zero. Flooded supply spaces disable tubes until drained; loaded tubes preserve fighting strength after the deck guns are lost. Six module immersion cutoffs use the fleet's provisional 0.3 m estimate. The submarine retains its six-room waterplane/reserve-buoyancy approximation pending an authored stability profile.
+
+Rebuilt the model through `ship:build`, inspected its five fixed views, and verified mounted articulation at both traverse limits, full elevation and recoil. The maximum muzzle mismatch was 0.002 mm. Scene transforms, hierarchy, mesh and texture bytes match the original model; the definition hash changed for the compiler and module metadata. The final five-ship build passes. Torpedo coverage passes 24 tests, and all 373 combined test cases are verified; see the [integration report](../../../reviews/damage-realism/master-integration.md) for run details and evidence.

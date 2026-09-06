@@ -6,7 +6,10 @@ import { compileShip, type Vec3 } from '../ships/blueprint';
 import { CombatSimulation } from './combat';
 import { orderDepth, submarinePropulsion } from './submarine';
 import { FIXED_DT, motionVelocity, type HelmCommand } from './ship';
-import { updateFlooding } from './damage';
+import { addBreach, updateFlooding } from './damage';
+import { equipmentCondition, systemHealth } from './machinery';
+import { updateCapability } from './stability';
+import { hydrostatics } from './hydrostatics';
 import { firstTorpedoHit, tubeSolution, type Torpedo } from './torpedoes';
 import { resolveShipCollisions } from './collisions';
 
@@ -70,6 +73,44 @@ test('submerged propulsion uses electric motors and its lower speed, independent
   expect(motionVelocity({ ...sim.ship, verticalSpeed: -.3 })[1]).toBe(-.3);
 });
 
+test('flooded electric machinery stops submerged propulsion and recovers only while undamaged', () => {
+  const sim = new CombatSimulation(definition), actor = sim.player;
+  actor.motion.y = -7;
+  const motor = definition.modules.find(m => m.id === 'electric-motors')!;
+  const room = definition.compartments.find(c => c.id === motor.compartmentId)!;
+  const water = actor.damage.compartments.find(c => c.id === room.id)!;
+  water.waterM3 = room.capacityM3;
+  expect(equipmentCondition(actor, definition, motor).reason).toBe('flooded');
+  expect(submarinePropulsion(actor, definition)!.power).toBe(0);
+  expect(systemHealth(actor, definition, 'engine')).toBe(0);
+  updateCapability(actor, definition);
+  expect(actor.damage.stability.status).toBe('immobile');
+  expect(actor.damage.stability.combatLost).toBe(false);
+  water.waterM3 = 0;
+  expect(submarinePropulsion(actor, definition)!.power).toBe(1);
+  actor.damage.modules.find(m => m.id === motor.id)!.hp = 0;
+  expect(submarinePropulsion(actor, definition)!.power).toBe(0);
+});
+
+test('an optional hull stability profile does not force a commanded dive back to the waterline', () => {
+  const def = structuredClone(definition);
+  const full = hydrostatics(def.hull, -20);
+  def.stability = { ...compileShip(battleship, catalog).stability!,
+    buoyancyScale: def.hull.massKg / (1025 * hydrostatics(def.hull, 0).volume),
+    dryCenterOfGravity: [full.center[0], full.center[1] - .3, full.center[2]],
+  };
+  const sim = new CombatSimulation(def);
+  orderDepth(sim.player, def, 7);
+  run(sim, 120, { throttle: 0, rudder: 0 });
+  expect(sim.ship.y).toBeCloseTo(-7, 1);
+  expect(sim.player.damage.sunk).toBe(false);
+  expect(Math.abs(sim.ship.pitch)).toBeLessThanOrEqual(.3);
+  orderDepth(sim.player, def, 50);
+  run(sim, 150, { throttle: 0, rudder: 0 });
+  expect(sim.ship.y).toBeCloseTo(-50, 1);
+  expect(sim.player.damage.sunk).toBe(false);
+});
+
 test('submerged guns preserve ammunition; shallow torpedoes hit a surface hull while deep launches are blocked', () => {
   const sim = new CombatSimulation(definition, { friendlyBots: [], enemies: [compileShip(battleship, catalog)], spawnDistance: 1000 });
   sim.target.controller = 'idle';
@@ -83,7 +124,7 @@ test('submerged guns preserve ammunition; shallow torpedoes hit a surface hull w
   expect(sim.torpedoes[0].position[1]).toBeLessThan(-7);
   run(sim, 50, { throttle: 0, rudder: 0 });
   expect(sim.events.some(e => e.kind === 'torpedo-hit')).toBe(true);
-  expect(sim.target.damage.integrity).toBeLessThan(sim.target.damage.maxIntegrity);
+  expect(sim.target.damage.compartments.some(c => c.breachAreaM2 > 0 && c.waterM3 > 0)).toBe(true);
   orderDepth(sim.player, definition, 50); run(sim, 150, { throttle: 0, rudder: 0 });
   const rounds = sim.player.torpedoTubes!.map(t => t.ammo);
   sim.requestFire(); run(sim, FIXED_DT);
@@ -100,7 +141,7 @@ test('diving hulls pass below surface hulls and shallow torpedoes, with depth-aw
   resolveShipCollisions(sim.actors);
   expect(sim.ship.x).toBe(0); expect(sim.ship.z).toBe(0);
   const shallow = new CombatSimulation(definition).player, deep = sim.player;
-  for (const actor of [shallow, deep]) { actor.damage.compartments[0].breachAreaM2 = .01; actor.damage.compartments[0].breachHeight = -1; updateFlooding(actor, definition, 1); }
+  for (const actor of [shallow, deep]) { addBreach(actor.damage.compartments[0], [0, -1, definition.compartments[0].center[2]], .01, 1); updateFlooding(actor, definition, 1); }
   expect(deep.damage.compartments[0].waterM3).toBeGreaterThan(shallow.damage.compartments[0].waterM3);
   expect(deep.motion.y).toBe(-50);
   deep.damage.sunk = true; deep.motion.y = -90;
@@ -146,11 +187,15 @@ test('blueprint rejects unsafe or disconnected diving equipment', () => {
 });
 
 
-test('pressure damages an uncontrollably deep boat; exposed tube mouths cannot launch into air', () => {
+test('excess pressure creates persistent flooding; exposed tube mouths cannot launch into air', () => {
   const sim = new CombatSimulation(definition);
   sim.ship.y = -170; sim.player.submarine!.ballastM3 = 120;
   orderDepth(sim.player, definition, 150); run(sim, 1);
-  expect(sim.player.damage.integrity).toBeLessThan(sim.player.damage.maxIntegrity);
+  expect(sim.player.damage.compartments.some(c => c.breachAreaM2 > 0 && c.waterM3 > 0)).toBe(true);
+  const breached = sim.player.damage.compartments.find(c => c.breachAreaM2 > 0)!;
+  const opening = breached.breachAreaM2;
+  orderDepth(sim.player, definition, 0, true);
+  expect(breached.breachAreaM2).toBe(opening);
   const tube = definition.torpedoTubes![0], state = sim.player.torpedoTubes![0];
   sim.ship.y = 0; sim.ship.pitch = .14;
   tubeSolution(sim.player, tube, state, aim, FIXED_DT);

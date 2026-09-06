@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "contentHash": "5449db2f2a955b2eb33ef52a4ee32ece530a65528db760007f37fcc016522c68",
+  "passed": true,
+  "rawCacheAvailableDuringBuild": false,
+  "cacheMovedForTest": false,
+  "command": "bun run ship:build enterprise-cv6",
+  "authoringReadAudit": ".build/ships/enterprise-cv6/authoring-reads.json",
+  "note": "Full original asset build and raster comparison succeeded without the raw game cache. Python authoring reads additionally reject raw model formats and cache paths."
+}

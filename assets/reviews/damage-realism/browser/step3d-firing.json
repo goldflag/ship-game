@@ -1,0 +1,2196 @@
+{
+  "diagnostics": {
+    "audio": {
+      "failed": [],
+      "inPort": false,
+      "loaded": 13,
+      "paused": false,
+      "played": 7,
+      "settings": {
+        "effects": 0.8,
+        "interface": 0.65,
+        "master": 0.65,
+        "muted": false
+      },
+      "state": "running",
+      "total": 13,
+      "voices": 0
+    },
+    "backend": "webgpu",
+    "battleSeed": 2556354472,
+    "camera": {
+      "aim": [
+        -538.920661327699,
+        0.499948198051304,
+        -4870.086192189333
+      ],
+      "binoculars": false,
+      "fov": 52.00000000000001,
+      "magnification": 1,
+      "manualAim": false,
+      "matrixWorldInverse": [
+        0.9999999949839619,
+        -2.2721164758431908e-06,
+        0.00010013448132509544,
+        0,
+        1.2705494208814509e-21,
+        0.9997426665645036,
+        0.022684811008606368,
+        0,
+        -0.00010016025590784842,
+        -0.022684810894818483,
+        0.9997426615497559,
+        0,
+        -6.993104012531505e-18,
+        -113.74244845627445,
+        -347.66969298340024,
+        1.0000000000000002
+      ],
+      "mode": "Chase",
+      "pointerLocked": false,
+      "position": [
+        0.034555288288207704,
+        121.60000000000001,
+        344.99999826946674
+      ],
+      "projectionMatrix": [
+        1.633751346060547,
+        0,
+        0,
+        0,
+        0,
+        2.050303841579296,
+        0,
+        0,
+        0,
+        0,
+        -1.0000083334027783,
+        -1,
+        0,
+        0,
+        -0.5000041667013891,
+        0
+      ]
+    },
+    "combat": {
+      "batteries": [
+        {
+          "ammo": 952,
+          "battery": "main",
+          "ready": 4,
+          "reload": 0,
+          "total": 4
+        },
+        {
+          "ammo": 1800,
+          "battery": "secondary",
+          "ready": 2,
+          "reload": 0,
+          "total": 6
+        }
+      ],
+      "battery": "main",
+      "battle": true,
+      "contacts": [
+        {
+          "controller": "player",
+          "heading": 1.5707963267948966,
+          "id": "player",
+          "integrity": 0.8372,
+          "name": "Bismarck",
+          "shipId": "bismarck",
+          "sunk": false,
+          "team": "friendly",
+          "x": 0,
+          "z": 0
+        },
+        {
+          "controller": "bot",
+          "heading": 4.32328914664215,
+          "id": "enemy-1",
+          "integrity": 0.902,
+          "name": "Bismarck",
+          "shipId": "bismarck",
+          "sunk": false,
+          "targetId": "player",
+          "team": "enemy",
+          "x": -471.2255180735908,
+          "z": -4897.84143358723
+        }
+      ],
+      "message": "Bismarck \u00b7 AP shell burst",
+      "modules": [
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-aft-port-equipment",
+          "name": "Aft port boiler room \u00b7 two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-aft-center-equipment",
+          "name": "Aft center boiler room \u00b7 two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-aft-starboard-equipment",
+          "name": "Aft starboard boiler room \u00b7 two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-forward-port-equipment",
+          "name": "Forward port boiler room \u00b7 two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-forward-center-equipment",
+          "name": "Forward center boiler room \u00b7 two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-forward-starboard-equipment",
+          "name": "Forward starboard boiler room \u00b7 two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "engine-port",
+          "name": "Port turbine room",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "engine-starboard",
+          "name": "Starboard turbine room",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "engine-center",
+          "name": "Center turbine room",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "anton-magazine",
+          "name": "Anton propellant magazines",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "bruno-magazine",
+          "name": "Bruno propellant magazines",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "caesar-magazine",
+          "name": "C\u00e4sar propellant magazines",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "dora-magazine",
+          "name": "Dora propellant magazines",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "steering",
+          "name": "Steering gear room",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "shaft-port-equipment",
+          "name": "Port shaft passage",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "shaft-center-equipment",
+          "name": "Center shaft passage",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "shaft-starboard-equipment",
+          "name": "Starboard shaft passage",
+          "reason": "operational"
+        }
+      ],
+      "mounts": [
+        {
+          "ammo": 238,
+          "id": "anton",
+          "name": "Anton",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 238,
+          "id": "bruno",
+          "name": "Bruno",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 238,
+          "id": "caesar",
+          "name": "C\u00e4sar",
+          "reload": 0,
+          "status": "ready"
+        },
+        {
+          "ammo": 238,
+          "id": "dora",
+          "name": "Dora",
+          "reload": 0,
+          "status": "ready"
+        }
+      ],
+      "playerIntegrity": 0.8372,
+      "playerSunk": false,
+      "playerWater": 0,
+      "range": 4899.8137718243015,
+      "ready": 4,
+      "result": "active",
+      "shellHistory": [
+        {
+          "impacts": [
+            {
+              "breachAreaM2": 0,
+              "breachAssignments": [],
+              "damage": 14,
+              "exitSpeedMps": 568.0489138171041,
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0.03500000000000014,
+              "impactSpeedMps": 729.4434846595859,
+              "kind": "armor",
+              "material": "KC",
+              "obliquityDeg": 9.94032300165913,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 386.2714360797439,
+              "penetrationBeforeMm": 548.202329073735,
+              "position": [
+                -16.917118182186776,
+                3.5878223782221417,
+                -0.8187781029364337
+              ],
+              "resistanceMm": 161.93089299399108,
+              "shellId": 28,
+              "shipId": "enemy-1",
+              "targetId": "port-upper-belt-2",
+              "targetName": "Port Upper Belt 2",
+              "thicknessMm": 145
+            },
+            {
+              "exitSpeedMps": 535.5868181904843,
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0.0253481241084188,
+              "impactSpeedMps": 567.9554376449447,
+              "kind": "armor",
+              "material": "Wh",
+              "obliquityDeg": 9.942687509673217,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 355.7250085531827,
+              "penetrationBeforeMm": 386.1824501132005,
+              "position": [
+                -11.52036968500009,
+                3.349904996903228,
+                0.11609149998543855
+              ],
+              "resistanceMm": 30.457441560017784,
+              "shellId": 28,
+              "shipId": "enemy-1",
+              "targetId": "port-splinter-bulkhead-2",
+              "targetName": "Port Splinter Bulkhead 2",
+              "thicknessMm": 30
+            },
+            {
+              "exitSpeedMps": 399.1559938067723,
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0.02192684799356126,
+              "impactSpeedMps": 535.5556627713938,
+              "kind": "armor",
+              "material": "steel",
+              "obliquityDeg": 87.5047007535282,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 235.6960390465241,
+              "penetrationBeforeMm": 355.6960390465241,
+              "position": [
+                -9.716699525037347,
+                3.27,
+                0.6198619777696157
+              ],
+              "resistanceMm": 120,
+              "shellId": 28,
+              "shipId": "enemy-1",
+              "targetId": "battery-deck-2",
+              "targetName": "Battery Deck 2",
+              "thicknessMm": 12
+            },
+            {
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0,
+              "kind": "burst",
+              "outcome": "detonation",
+              "penetrationAfterMm": 0,
+              "penetrationBeforeMm": 235.5750728696414,
+              "position": [
+                -1.103340274283293,
+                2.886666826933192,
+                2.306123342922931
+              ],
+              "shellId": 28,
+              "shipId": "enemy-1",
+              "targetId": "ap-burst",
+              "targetName": "AP shell burst",
+              "terminal": true
+            }
+          ],
+          "outcome": "burst",
+          "ownerId": "player",
+          "shellId": 28,
+          "tick": 1800
+        },
+        {
+          "impacts": [
+            {
+              "breachAreaM2": 0.1444,
+              "breachAssignments": [
+                {
+                  "areaM2": 0.025894919915208103,
+                  "compartmentId": "flood-strip-port-6-3",
+                  "position": [
+                    -16.937842063166723,
+                    -0.038446431797273056,
+                    5.139736311805815
+                  ]
+                },
+                {
+                  "areaM2": 0.11850508008479191,
+                  "compartmentId": "flood-strip-port-6-4",
+                  "position": [
+                    -16.937842063166723,
+                    0.17594560995087435,
+                    5.139736311805815
+                  ]
+                }
+              ],
+              "compartmentId": "flood-strip-port-6-3",
+              "damage": 14,
+              "exitSpeedMps": 347.70166222798224,
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0.03500000000000014,
+              "impactSpeedMps": 732.8214368810279,
+              "kind": "armor",
+              "material": "KC",
+              "obliquityDeg": 10.039301854715278,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 194.28623870075882,
+              "penetrationBeforeMm": 551.7597269290029,
+              "position": [
+                -16.937842063166723,
+                0.1374991781536013,
+                5.139736311805815
+              ],
+              "resistanceMm": 357.4734882282441,
+              "shellId": 27,
+              "shipId": "enemy-1",
+              "targetId": "port-main-belt-2",
+              "targetName": "Port Main Belt 2",
+              "thicknessMm": 320
+            },
+            {
+              "exitSpeedMps": 347.6985494024503,
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0.0344596618916988,
+              "impactSpeedMps": 347.6985494024503,
+              "kind": "armor",
+              "material": "teak",
+              "obliquityDeg": 10.039517204615253,
+              "outcome": "backing",
+              "penetrationAfterMm": 194.28380359789327,
+              "penetrationBeforeMm": 194.28380359789327,
+              "position": [
+                -16.75295458282328,
+                0.12929105831452503,
+                5.172087877430695
+              ],
+              "resistanceMm": 0,
+              "shellId": 27,
+              "shipId": "enemy-1",
+              "targetId": "port-teak-backing-2",
+              "targetName": "Port Teak Backing 2",
+              "thicknessMm": 50
+            },
+            {
+              "exitSpeedMps": 321.3277476876951,
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0.03434867288012722,
+              "impactSpeedMps": 347.69791002124504,
+              "kind": "armor",
+              "material": "steel",
+              "obliquityDeg": 10.039561447854188,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 173.9722934825069,
+              "penetrationBeforeMm": 194.28330342349264,
+              "position": [
+                -16.714977694968947,
+                0.12760477196105816,
+                5.178733063883385
+              ],
+              "resistanceMm": 20.31100994098574,
+              "shellId": 27,
+              "shipId": "enemy-1",
+              "targetId": "port-belt-support-2",
+              "targetName": "Port Belt Support 2",
+              "thicknessMm": 20
+            },
+            {
+              "exitSpeedMps": 0,
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0.02479580454802921,
+              "impactSpeedMps": 321.2772180410228,
+              "kind": "armor",
+              "material": "Wh",
+              "obliquityDeg": 63.469435421881904,
+              "outcome": "stopped",
+              "penetrationAfterMm": 0,
+              "penetrationBeforeMm": 173.9339940360964,
+              "position": [
+                -13.695373663562425,
+                -0.007170009404355873,
+                5.8979355108857305
+              ],
+              "resistanceMm": 246.26397700671006,
+              "shellId": 27,
+              "shipId": "enemy-1",
+              "targetId": "port-turtleback-2",
+              "targetName": "Port Turtleback 2",
+              "terminal": false,
+              "thicknessMm": 110
+            },
+            {
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0,
+              "kind": "burst",
+              "outcome": "detonation",
+              "penetrationAfterMm": 0,
+              "penetrationBeforeMm": 0,
+              "position": [
+                -13.695373663562501,
+                -0.007170009404355873,
+                5.897935510885714
+              ],
+              "shellId": 27,
+              "shipId": "enemy-1",
+              "targetId": "ap-burst",
+              "targetName": "AP shell burst",
+              "terminal": true
+            }
+          ],
+          "outcome": "burst",
+          "ownerId": "player",
+          "shellId": 27,
+          "tick": 1800
+        },
+        {
+          "impacts": [
+            {
+              "breachAreaM2": 0.00530313989645037,
+              "breachAssignments": [
+                {
+                  "areaM2": 0.00530313989645037,
+                  "compartmentId": "flood-strip-port-6-5",
+                  "position": [
+                    -16.954821190309772,
+                    2.992126378185069,
+                    10.02156196644484
+                  ]
+                }
+              ],
+              "compartmentId": "flood-strip-port-6-5",
+              "damage": 14,
+              "exitSpeedMps": 342.47695765722034,
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0.03500000000000014,
+              "impactSpeedMps": 728.7771226941295,
+              "kind": "armor",
+              "material": "KC",
+              "obliquityDeg": 9.871688770055933,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 190.2113669187451,
+              "penetrationBeforeMm": 547.501345092323,
+              "position": [
+                -16.954821190309772,
+                3.198644798118285,
+                10.02156196644484
+              ],
+              "resistanceMm": 357.28997817357794,
+              "shellId": 26,
+              "shipId": "enemy-1",
+              "targetId": "port-main-belt-2",
+              "targetName": "Port Main Belt 2",
+              "thicknessMm": 320
+            },
+            {
+              "exitSpeedMps": 342.47385365510905,
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0.03445170026595257,
+              "impactSpeedMps": 342.47385365510905,
+              "kind": "armor",
+              "material": "teak",
+              "obliquityDeg": 9.871918026327254,
+              "outcome": "backing",
+              "penetrationAfterMm": 190.2089533794938,
+              "penetrationBeforeMm": 190.2089533794938,
+              "position": [
+                -16.76993158942452,
+                3.1903165975568273,
+                10.053303835509924
+              ],
+              "resistanceMm": 0,
+              "shellId": 26,
+              "shipId": "enemy-1",
+              "targetId": "port-teak-backing-2",
+              "targetName": "Port Teak Backing 2",
+              "thicknessMm": 50
+            },
+            {
+              "exitSpeedMps": 315.947523547758,
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0.03433907587431584,
+              "impactSpeedMps": 342.47321608673474,
+              "kind": "armor",
+              "material": "steel",
+              "obliquityDeg": 9.871965126700918,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 169.90787365345807,
+              "penetrationBeforeMm": 190.20845763468458,
+              "position": [
+                -16.731954265999438,
+                3.1886056372476634,
+                10.059823786993553
+              ],
+              "resistanceMm": 20.3005839812265,
+              "shellId": 26,
+              "shipId": "enemy-1",
+              "targetId": "port-belt-support-2",
+              "targetName": "Port Belt Support 2",
+              "thicknessMm": 20
+            },
+            {
+              "exitSpeedMps": 274.2840032705794,
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0.017701294455680028,
+              "impactSpeedMps": 315.86124768135414,
+              "kind": "armor",
+              "material": "Wh",
+              "obliquityDeg": 9.888447029964214,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 139.39052001582016,
+              "penetrationBeforeMm": 169.84292170352163,
+              "position": [
+                -11.558708663229396,
+                2.9540912615582067,
+                11.1392852080959
+              ],
+              "resistanceMm": 30.452401687701467,
+              "shellId": 26,
+              "shipId": "enemy-1",
+              "targetId": "port-splinter-bulkhead-2",
+              "targetName": "Port Splinter Bulkhead 2",
+              "thicknessMm": 30
+            },
+            {
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0,
+              "kind": "burst",
+              "outcome": "detonation",
+              "penetrationAfterMm": 0,
+              "penetrationBeforeMm": 139.33462613211935,
+              "position": [
+                -6.781160741995857,
+                2.7347794670524896,
+                12.152401269534819
+              ],
+              "shellId": 26,
+              "shipId": "enemy-1",
+              "targetId": "ap-burst",
+              "targetName": "AP shell burst",
+              "terminal": true
+            }
+          ],
+          "outcome": "burst",
+          "ownerId": "player",
+          "shellId": 26,
+          "tick": 1800
+        },
+        {
+          "impacts": [
+            {
+              "breachAreaM2": 0.1444,
+              "breachAssignments": [
+                {
+                  "areaM2": 0.1444,
+                  "compartmentId": "flood-strip-port-6-4",
+                  "position": [
+                    -16.942574703118925,
+                    0.5296043382138516,
+                    6.50046133248393
+                  ]
+                }
+              ],
+              "compartmentId": "flood-strip-port-6-4",
+              "damage": 14,
+              "exitSpeedMps": 347.4793057029369,
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0.03500000000000014,
+              "impactSpeedMps": 732.480368985066,
+              "kind": "armor",
+              "material": "KC",
+              "obliquityDeg": 9.86979827060231,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 194.11231545546377,
+              "penetrationBeforeMm": 551.4002423380238,
+              "position": [
+                -16.942574703118925,
+                0.5296043382138516,
+                6.50046133248393
+              ],
+              "resistanceMm": 357.28792688256,
+              "shellId": 25,
+              "shipId": "enemy-1",
+              "targetId": "port-main-belt-2",
+              "targetName": "Port Main Belt 2",
+              "thicknessMm": 320
+            },
+            {
+              "exitSpeedMps": 347.4761989390465,
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0.03445959678625066,
+              "impactSpeedMps": 347.4761989390465,
+              "kind": "armor",
+              "material": "teak",
+              "obliquityDeg": 9.870021634893487,
+              "outcome": "backing",
+              "penetrationAfterMm": 194.1098857163061,
+              "penetrationBeforeMm": 194.1098857163061,
+              "position": [
+                -16.75768505802186,
+                0.5212142936578706,
+                6.5321904898030425
+              ],
+              "resistanceMm": 0,
+              "shellId": 25,
+              "shipId": "enemy-1",
+              "targetId": "port-teak-backing-2",
+              "targetName": "Port Teak Backing 2",
+              "thicknessMm": 50
+            },
+            {
+              "exitSpeedMps": 321.11218138499447,
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0.03434859440151161,
+              "impactSpeedMps": 347.47556080294333,
+              "kind": "armor",
+              "material": "steel",
+              "obliquityDeg": 9.870067524471903,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 173.8089196543264,
+              "penetrationBeforeMm": 194.10938664364065,
+              "position": [
+                -16.719707725515434,
+                0.5194906388685484,
+                6.538707830225354
+              ],
+              "resistanceMm": 20.30046698931426,
+              "shellId": 25,
+              "shipId": "enemy-1",
+              "targetId": "port-belt-support-2",
+              "targetName": "Port Belt Support 2",
+              "thicknessMm": 20
+            },
+            {
+              "exitSpeedMps": 0,
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0.022326405980239272,
+              "impactSpeedMps": 321.04873791089585,
+              "kind": "armor",
+              "material": "Wh",
+              "obliquityDeg": 63.40358256186084,
+              "outcome": "stopped",
+              "penetrationAfterMm": 0,
+              "penetrationBeforeMm": 173.76084533882093,
+              "position": [
+                -12.919027792481943,
+                0.34691523372072963,
+                7.190947556531759
+              ],
+              "resistanceMm": 245.6985017543703,
+              "shellId": 25,
+              "shipId": "enemy-1",
+              "targetId": "port-turtleback-2",
+              "targetName": "Port Turtleback 2",
+              "terminal": false,
+              "thicknessMm": 110
+            },
+            {
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0,
+              "kind": "burst",
+              "outcome": "detonation",
+              "penetrationAfterMm": 0,
+              "penetrationBeforeMm": 0,
+              "position": [
+                -12.919027792482114,
+                0.34691523372072963,
+                7.190947556531738
+              ],
+              "shellId": 25,
+              "shipId": "enemy-1",
+              "targetId": "ap-burst",
+              "targetName": "AP shell burst",
+              "terminal": true
+            }
+          ],
+          "outcome": "burst",
+          "ownerId": "player",
+          "shellId": 25,
+          "tick": 1800
+        },
+        {
+          "impacts": [
+            {
+              "breachAreaM2": 0.1444,
+              "connectionIds": [
+                "partition-5084e95c5ba1"
+              ],
+              "exitSpeedMps": 707.6107892853339,
+              "fuze": "unarmed",
+              "impactSpeedMps": 731.5020054956917,
+              "kind": "boundary",
+              "material": "steel",
+              "outcome": "penetrated",
+              "penetrationAfterMm": 525.3694215381266,
+              "penetrationBeforeMm": 550.3694215381266,
+              "position": [
+                -17.339158752864122,
+                2.4577313534953555,
+                -1.4899999999999993
+              ],
+              "resistanceMm": 25,
+              "shellId": 23,
+              "shipId": "enemy-1",
+              "targetId": "partition-5084e95c5ba1",
+              "targetName": "Watertight boundary partition-5084e95c5ba1",
+              "thicknessMm": 5
+            },
+            {
+              "breachAreaM2": 0.14439999999999995,
+              "breachAssignments": [
+                {
+                  "areaM2": 0.14439999999999995,
+                  "compartmentId": "flood-strip-port-5-5",
+                  "position": [
+                    -16.915000948731254,
+                    2.4387527069257957,
+                    -1.4275234473186638
+                  ]
+                }
+              ],
+              "compartmentId": "flood-strip-port-5-5",
+              "damage": 14,
+              "exitSpeedMps": 315.2672529442841,
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0.03500000000000014,
+              "impactSpeedMps": 707.6034132860677,
+              "kind": "armor",
+              "material": "KC",
+              "obliquityDeg": 8.560599929403285,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 169.39593119322365,
+              "penetrationBeforeMm": 525.3617546638693,
+              "position": [
+                -16.915000948731254,
+                2.4387527069257957,
+                -1.4275234473186638
+              ],
+              "resistanceMm": 355.96582347064566,
+              "shellId": 23,
+              "shipId": "enemy-1",
+              "targetId": "port-main-belt-2",
+              "targetName": "Port Main Belt 2",
+              "thicknessMm": 320
+            },
+            {
+              "exitSpeedMps": 315.2641802094421,
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0.034406585475003304,
+              "impactSpeedMps": 315.2641802094421,
+              "kind": "armor",
+              "material": "teak",
+              "obliquityDeg": 8.560910619455028,
+              "outcome": "backing",
+              "penetrationAfterMm": 169.39361978642657,
+              "penetrationBeforeMm": 169.39361978642657,
+              "position": [
+                -16.73009567533971,
+                2.4304715483212282,
+                -1.4002877252794625
+              ],
+              "resistanceMm": 0,
+              "shellId": 23,
+              "shipId": "enemy-1",
+              "targetId": "port-teak-backing-2",
+              "targetName": "Port Teak Backing 2",
+              "thicknessMm": 50
+            },
+            {
+              "exitSpeedMps": 287.8925044449253,
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0.03428469414793778,
+              "impactSpeedMps": 315.2635490663776,
+              "kind": "armor",
+              "material": "steel",
+              "obliquityDeg": 8.560974452269393,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 149.1677942413139,
+              "penetrationBeforeMm": 169.39314502208262,
+              "position": [
+                -16.692115132697122,
+                2.428770198777431,
+                -1.3946933607524945
+              ],
+              "resistanceMm": 20.2253507807687,
+              "shellId": 23,
+              "shipId": "enemy-1",
+              "targetId": "port-belt-support-2",
+              "targetName": "Port Belt Support 2",
+              "thicknessMm": 20
+            },
+            {
+              "exitSpeedMps": 244.64104290085373,
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0.016099529391934375,
+              "impactSpeedMps": 287.807272490816,
+              "kind": "armor",
+              "material": "Wh",
+              "obliquityDeg": 8.580262110488245,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 118.76640593478231,
+              "penetrationBeforeMm": 149.10597132694994,
+              "position": [
+                -11.518429929680096,
+                2.1955302831157706,
+                -0.4416254665633137
+              ],
+              "resistanceMm": 30.33956539216763,
+              "shellId": 23,
+              "shipId": "enemy-1",
+              "targetId": "port-splinter-bulkhead-2",
+              "targetName": "Port Splinter Bulkhead 2",
+              "thicknessMm": 30
+            },
+            {
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0,
+              "kind": "burst",
+              "outcome": "detonation",
+              "penetrationAfterMm": 0,
+              "penetrationBeforeMm": 118.72361286178007,
+              "position": [
+                -7.626457412461714,
+                2.0176826884655714,
+                0.32393560136441435
+              ],
+              "shellId": 23,
+              "shipId": "enemy-1",
+              "targetId": "ap-burst",
+              "targetName": "AP shell burst",
+              "terminal": true
+            }
+          ],
+          "outcome": "burst",
+          "ownerId": "player",
+          "shellId": 23,
+          "tick": 1800
+        },
+        {
+          "impacts": [
+            {
+              "breachAreaM2": 0,
+              "breachAssignments": [],
+              "damage": 14,
+              "exitSpeedMps": 571.0593428928008,
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0.03500000000000014,
+              "impactSpeedMps": 731.5298004667335,
+              "kind": "armor",
+              "material": "KC",
+              "obliquityDeg": 8.468766710550575,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 389.1403854417414,
+              "penetrationBeforeMm": 550.398699196395,
+              "position": [
+                -16.969817842321394,
+                5.464705296093207,
+                14.33338788701266
+              ],
+              "resistanceMm": 161.2583137546536,
+              "shellId": 22,
+              "shipId": "enemy-1",
+              "targetId": "port-upper-belt-2",
+              "targetName": "Port Upper Belt 2",
+              "thicknessMm": 145
+            },
+            {
+              "exitSpeedMps": 538.8037541629228,
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0.025435760691554066,
+              "impactSpeedMps": 570.9661589224554,
+              "kind": "armor",
+              "material": "Wh",
+              "obliquityDeg": 8.480296270814947,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 358.71986314622006,
+              "penetrationBeforeMm": 389.05148986830005,
+              "position": [
+                -11.573223871125673,
+                5.229952115847727,
+                15.312686684712258
+              ],
+              "resistanceMm": 30.331626722080017,
+              "shellId": 22,
+              "shipId": "enemy-1",
+              "targetId": "port-splinter-bulkhead-2",
+              "targetName": "Port Splinter Bulkhead 2",
+              "thicknessMm": 30
+            },
+            {
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0,
+              "kind": "burst",
+              "outcome": "detonation",
+              "penetrationAfterMm": 0,
+              "penetrationBeforeMm": 358.502608898078,
+              "position": [
+                1.966351871579621,
+                4.637539275958633,
+                17.67895937516524
+              ],
+              "shellId": 22,
+              "shipId": "enemy-1",
+              "targetId": "ap-burst",
+              "targetName": "AP shell burst",
+              "terminal": true
+            }
+          ],
+          "outcome": "burst",
+          "ownerId": "player",
+          "shellId": 22,
+          "tick": 1800
+        },
+        {
+          "impacts": [
+            {
+              "breachAreaM2": 0,
+              "breachAssignments": [],
+              "damage": 14,
+              "exitSpeedMps": 572.5404618853553,
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0.03500000000000014,
+              "impactSpeedMps": 732.8334328700493,
+              "kind": "armor",
+              "material": "KC",
+              "obliquityDeg": 8.372599270427575,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 390.55412091449256,
+              "penetrationBeforeMm": 551.772371885808,
+              "position": [
+                -16.92530440526766,
+                3.9322087061751803,
+                1.534918498436303
+              ],
+              "resistanceMm": 161.2182509713154,
+              "shellId": 21,
+              "shipId": "enemy-1",
+              "targetId": "port-upper-belt-2",
+              "targetName": "Port Upper Belt 2",
+              "thicknessMm": 145
+            },
+            {
+              "exitSpeedMps": 540.3284373423356,
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0.025465996271687885,
+              "impactSpeedMps": 572.4473352634993,
+              "kind": "armor",
+              "material": "Wh",
+              "obliquityDeg": 8.375338261258209,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 360.14179256003473,
+              "penetrationBeforeMm": 390.4651879443669,
+              "position": [
+                -11.528010673623061,
+                3.696899292017187,
+                2.313022706881438
+              ],
+              "resistanceMm": 30.323395384332184,
+              "shellId": 21,
+              "shipId": "enemy-1",
+              "targetId": "port-splinter-bulkhead-2",
+              "targetName": "Port Splinter Bulkhead 2",
+              "thicknessMm": 30
+            },
+            {
+              "exitSpeedMps": 404.3312962819179,
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0.0072334940325067265,
+              "impactSpeedMps": 540.1608554419141,
+              "kind": "armor",
+              "material": "steel",
+              "obliquityDeg": 87.50767268998085,
+              "outcome": "penetrated",
+              "penetrationAfterMm": 239.9854259927858,
+              "penetrationBeforeMm": 359.9854259927858,
+              "position": [
+                -1.7885407531438462,
+                3.27,
+                3.909792974560003
+              ],
+              "resistanceMm": 120,
+              "shellId": 21,
+              "shipId": "enemy-1",
+              "targetId": "battery-deck-2",
+              "targetName": "Battery Deck 2",
+              "thicknessMm": 12
+            },
+            {
+              "fuze": "armed",
+              "fuzeRemainingSeconds": 0,
+              "kind": "burst",
+              "outcome": "detonation",
+              "penetrationAfterMm": 0,
+              "penetrationBeforeMm": 239.94473942322273,
+              "position": [
+                1.1025719665394373,
+                3.142567999197107,
+                4.520219658214418
+              ],
+              "shellId": 21,
+              "shipId": "enemy-1",
+              "targetId": "ap-burst",
+              "targetName": "AP shell burst",
+              "terminal": true
+            }
+          ],
+          "outcome": "burst",
+          "ownerId": "player",
+          "shellId": 21,
+          "tick": 1800
+        }
+      ],
+      "targetId": "enemy-1",
+      "targetIntegrity": 0.902,
+      "targetName": "Bismarck",
+      "targetPosition": {
+        "heading": 4.32328914664215,
+        "x": -471.2255180735908,
+        "z": -4897.84143358723
+      },
+      "targetPower": 1,
+      "targetRange": 4920.457722351402,
+      "targetSteering": 1,
+      "targetSunk": false,
+      "targetUnderway": false,
+      "targetWater": 0.29733963913562544,
+      "total": 4
+    },
+    "contentHash": "3f9d3af5e736f374952d7021cd61d20bbdcd351d0af8fbcc5ea090be75fc7624",
+    "effects": {
+      "flashes": 256,
+      "foam": 24,
+      "particleCapacity": 2272,
+      "shells": 12,
+      "smoke": 192,
+      "spray": 0
+    },
+    "events": [
+      {
+        "kind": "shot",
+        "message": "Bruno fired",
+        "position": [
+          -464.7568618917395,
+          12.958358191243544,
+          -4882.807210400217
+        ],
+        "sequence": 173,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 50,
+          "velocity": [
+            76.58121079991146,
+            28.975306366006468,
+            817.5842988899392
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 3294
+      },
+      {
+        "kind": "shot",
+        "message": "Anton fired",
+        "position": [
+          -478.3843551692289,
+          9.16875166038015,
+          -4876.751534766185
+        ],
+        "sequence": 174,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 51,
+          "velocity": [
+            80.88260012081703,
+            28.326195686403686,
+            819.051966354893
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 3296
+      },
+      {
+        "kind": "shot",
+        "message": "Anton fired",
+        "position": [
+          -482.11109419582215,
+          9.168790290834806,
+          -4876.334502122169
+        ],
+        "sequence": 175,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 52,
+          "velocity": [
+            81.0691150301149,
+            30.14551278792485,
+            824.108543438246
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 3296
+      },
+      {
+        "kind": "shot",
+        "message": "C\u00e4sar fired",
+        "position": [
+          -362.47003895229386,
+          12.961601446082161,
+          -4919.957780115025
+        ],
+        "sequence": 176,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 53,
+          "velocity": [
+            60.32717922955415,
+            29.281398279632977,
+            817.8168771556732
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 3317
+      },
+      {
+        "kind": "shot",
+        "message": "C\u00e4sar fired",
+        "position": [
+          -366.20582453342337,
+          12.961644642500564,
+          -4919.631580651569
+        ],
+        "sequence": 177,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 54,
+          "velocity": [
+            61.51417504293563,
+            28.247144163465578,
+            818.1685407550971
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 3317
+      },
+      {
+        "kind": "shot",
+        "message": "Dora fired",
+        "position": [
+          -345.8517869878648,
+          8.774246918704005,
+          -4926.198169962436
+        ],
+        "sequence": 178,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 55,
+          "velocity": [
+            57.28760082828303,
+            30.75612603986338,
+            821.9975862734162
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 3319
+      },
+      {
+        "kind": "shot",
+        "message": "Dora fired",
+        "position": [
+          -349.58867984424603,
+          8.774290719015656,
+          -4925.88491004159
+        ],
+        "sequence": 179,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 56,
+          "velocity": [
+            56.718707884916554,
+            30.24587364339739,
+            820.55944339869
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 3319
+      },
+      {
+        "kind": "splash",
+        "message": "Shell splash",
+        "position": [
+          -10.772600730677127,
+          0,
+          -165.227291502152
+        ],
+        "sequence": 180,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 47,
+          "velocity": [
+            40.95173818825349,
+            -30.870973408529142,
+            621.7998168060859
+          ]
+        },
+        "shipId": "",
+        "tick": 3333
+      },
+      {
+        "kind": "splash",
+        "message": "Shell splash",
+        "position": [
+          -8.985089209928468,
+          0,
+          -94.4352586601711
+        ],
+        "sequence": 181,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 48,
+          "velocity": [
+            40.86541370049674,
+            -31.113229673906993,
+            622.6826268608762
+          ]
+        },
+        "shipId": "",
+        "tick": 3337
+      },
+      {
+        "impact": {
+          "exitSpeedMps": 0,
+          "fuze": "armed",
+          "fuzeRemainingSeconds": 0.019999999999999574,
+          "impactSpeedMps": 619.5801763575812,
+          "kind": "armor",
+          "material": "KC",
+          "obliquityDeg": 5.184242133135779,
+          "outcome": "stopped",
+          "penetrationAfterMm": 0,
+          "penetrationBeforeMm": 162.0867343023666,
+          "position": [
+            -16.938246882387716,
+            1.1033687148450066,
+            5.256129624717936
+          ],
+          "resistanceMm": 353.44584539889235,
+          "shellId": 46,
+          "shipId": "player",
+          "targetId": "port-main-belt-2",
+          "targetName": "Port Main Belt 2",
+          "terminal": false,
+          "thicknessMm": 320
+        },
+        "kind": "stopped",
+        "message": "Stopped by Port Main Belt 2",
+        "normal": [
+          -0.0034780071329080548,
+          0,
+          0.9999939517149009
+        ],
+        "position": [
+          -5.2561296247179365,
+          1.1033687148450066,
+          -16.938246882387716
+        ],
+        "sequence": 182,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 46,
+          "velocity": [
+            0,
+            0,
+            0
+          ]
+        },
+        "shipId": "player",
+        "tick": 3341
+      },
+      {
+        "impact": {
+          "connectionIds": [
+            "partition-9e07ea10b417"
+          ],
+          "damage": 0,
+          "fuze": "armed",
+          "fuzeRemainingSeconds": 0,
+          "kind": "boundary",
+          "outcome": "damaged",
+          "penetrationAfterMm": 7,
+          "penetrationBeforeMm": 12,
+          "position": [
+            -16.938246882387716,
+            1.4449999999999998,
+            5.256129624717936
+          ],
+          "shellId": 46,
+          "shipId": "player",
+          "targetId": "partition-9e07ea10b417",
+          "targetName": "Watertight boundary"
+        },
+        "kind": "burst",
+        "message": "AP burst \u00b7 Watertight boundary",
+        "position": [
+          -5.2561296247179365,
+          1.1033687148450066,
+          -16.938246882387716
+        ],
+        "sequence": 183,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 46,
+          "velocity": [
+            0,
+            0,
+            0
+          ]
+        },
+        "shipId": "player",
+        "tick": 3342
+      },
+      {
+        "impact": {
+          "connectionIds": [
+            "partition-889393feef6e"
+          ],
+          "damage": 0,
+          "fuze": "armed",
+          "fuzeRemainingSeconds": 0,
+          "kind": "boundary",
+          "outcome": "damaged",
+          "penetrationAfterMm": 7,
+          "penetrationBeforeMm": 12,
+          "position": [
+            -16.938246882387716,
+            0.055000000000000014,
+            5.256129624717936
+          ],
+          "shellId": 46,
+          "shipId": "player",
+          "targetId": "partition-889393feef6e",
+          "targetName": "Watertight boundary"
+        },
+        "kind": "burst",
+        "message": "AP burst \u00b7 Watertight boundary",
+        "position": [
+          -5.2561296247179365,
+          1.1033687148450066,
+          -16.938246882387716
+        ],
+        "sequence": 184,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 46,
+          "velocity": [
+            0,
+            0,
+            0
+          ]
+        },
+        "shipId": "player",
+        "tick": 3342
+      },
+      {
+        "impact": {
+          "connectionIds": [
+            "partition-1a9c1ff2c160"
+          ],
+          "damage": 0,
+          "fuze": "armed",
+          "fuzeRemainingSeconds": 0,
+          "kind": "boundary",
+          "outcome": "damaged",
+          "penetrationAfterMm": 2,
+          "penetrationBeforeMm": 12,
+          "position": [
+            -16.938246882387716,
+            -1.4449999999999998,
+            5.256129624717936
+          ],
+          "shellId": 46,
+          "shipId": "player",
+          "targetId": "partition-1a9c1ff2c160",
+          "targetName": "Watertight boundary"
+        },
+        "kind": "burst",
+        "message": "AP burst \u00b7 Watertight boundary",
+        "position": [
+          -5.2561296247179365,
+          1.1033687148450066,
+          -16.938246882387716
+        ],
+        "sequence": 185,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 46,
+          "velocity": [
+            0,
+            0,
+            0
+          ]
+        },
+        "shipId": "player",
+        "tick": 3342
+      },
+      {
+        "blastRadiusM": 3.1270439961074183,
+        "detonation": true,
+        "impact": {
+          "fuze": "armed",
+          "fuzeRemainingSeconds": 0,
+          "kind": "burst",
+          "outcome": "detonation",
+          "penetrationAfterMm": 0,
+          "penetrationBeforeMm": 0,
+          "position": [
+            -16.938246882387716,
+            1.1033687148450066,
+            5.256129624717936
+          ],
+          "shellId": 46,
+          "shipId": "player",
+          "targetId": "ap-burst",
+          "targetName": "AP shell burst",
+          "terminal": true
+        },
+        "kind": "burst",
+        "message": "AP shell burst",
+        "position": [
+          -5.2561296247179365,
+          1.1033687148450066,
+          -16.938246882387716
+        ],
+        "sequence": 186,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 46,
+          "velocity": [
+            0,
+            0,
+            0
+          ]
+        },
+        "shipId": "player",
+        "tick": 3342
+      },
+      {
+        "impact": {
+          "breachAreaM2": 0,
+          "breachAssignments": [],
+          "damage": 4.4,
+          "exitSpeedMps": 18.135186337706596,
+          "fuze": "armed",
+          "fuzeRemainingSeconds": 0.019999999999999574,
+          "impactSpeedMps": 617.479584757682,
+          "kind": "armor",
+          "material": "KC",
+          "obliquityDeg": 5.21310362581068,
+          "outcome": "penetrated",
+          "penetrationAfterMm": 1.155425063254711,
+          "penetrationBeforeMm": 161.317914011692,
+          "position": [
+            -16.919363772670692,
+            3.6129508140029487,
+            -0.17312764388457896
+          ],
+          "resistanceMm": 160.1624889484373,
+          "shellId": 45,
+          "shipId": "player",
+          "targetId": "port-upper-belt-2",
+          "targetName": "Port Upper Belt 2",
+          "thicknessMm": 145
+        },
+        "kind": "penetration",
+        "message": "Penetrated Port Upper Belt 2",
+        "normal": [
+          -0.003478007132908055,
+          0,
+          0.9999939517149009
+        ],
+        "position": [
+          0.17312764388457794,
+          3.6129508140029487,
+          -16.919363772670692
+        ],
+        "sequence": 187,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 45,
+          "velocity": [
+            1.3056922000928333,
+            -0.9177760874737243,
+            18.064823232880475
+          ]
+        },
+        "shipId": "player",
+        "tick": 3342
+      },
+      {
+        "blastRadiusM": 3.1270439961074183,
+        "detonation": true,
+        "impact": {
+          "fuze": "armed",
+          "fuzeRemainingSeconds": 0,
+          "kind": "burst",
+          "outcome": "detonation",
+          "penetrationAfterMm": 0,
+          "penetrationBeforeMm": 1.1547145304235802,
+          "position": [
+            -16.55825609188455,
+            3.592643566855182,
+            -0.19922784293540008
+          ],
+          "shellId": 45,
+          "shipId": "player",
+          "targetId": "ap-burst",
+          "targetName": "AP shell burst",
+          "terminal": true
+        },
+        "kind": "burst",
+        "message": "AP shell burst",
+        "position": [
+          0.19922784293539905,
+          3.592643566855182,
+          -16.55825609188455
+        ],
+        "sequence": 188,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 45,
+          "velocity": [
+            1.3043279426884467,
+            -1.1129146276653064,
+            18.045948134405783
+          ]
+        },
+        "shipId": "player",
+        "tick": 3343
+      },
+      {
+        "kind": "shot",
+        "message": "Port Secondary 2 fired",
+        "position": [
+          -440.3622259486239,
+          7.357460606056957,
+          -4886.314994848502
+        ],
+        "sequence": 189,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 57,
+          "velocity": [
+            79.5690017708034,
+            33.749570857902725,
+            872.9914248743856
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 3424
+      },
+      {
+        "kind": "shot",
+        "message": "Port Secondary 2 fired",
+        "position": [
+          -442.1030233639371,
+          7.357482438166944,
+          -4886.135762155161
+        ],
+        "sequence": 190,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 58,
+          "velocity": [
+            78.7970400089022,
+            32.15150881299153,
+            872.6659207756155
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 3424
+      },
+      {
+        "kind": "shot",
+        "message": "Port Secondary 3 fired",
+        "position": [
+          -411.3469148977136,
+          7.357913005449864,
+          -4897.744305512784
+        ],
+        "sequence": 191,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 59,
+          "velocity": [
+            73.94795108869519,
+            34.15079432294756,
+            873.2251981595714
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 3428
+      },
+      {
+        "kind": "shot",
+        "message": "Port Secondary 3 fired",
+        "position": [
+          -413.0887753503245,
+          7.357935387645666,
+          -4897.575716773157
+        ],
+        "sequence": 192,
+        "shell": {
+          "caliberM": 0.15,
+          "id": 60,
+          "velocity": [
+            73.09796553849176,
+            33.041385536265004,
+            877.5636296002613
+          ]
+        },
+        "shipId": "enemy-1",
+        "tick": 3428
+      }
+    ],
+    "fleet": [
+      {
+        "ammo": 2752,
+        "controller": "player",
+        "definitionId": "bismarck",
+        "id": "player",
+        "integrity": 837.2,
+        "motion": {
+          "distance": 0,
+          "heading": 1.5707963267948966,
+          "id": "player",
+          "pitch": 0,
+          "roll": 0,
+          "rudder": 0,
+          "speed": 0,
+          "tick": 3601,
+          "x": 0,
+          "y": 0,
+          "yawRate": 0,
+          "z": 0
+        },
+        "team": "friendly"
+      },
+      {
+        "ammo": 2708,
+        "controller": "bot",
+        "definitionId": "bismarck",
+        "id": "enemy-1",
+        "integrity": 902,
+        "motion": {
+          "distance": 485.3367916666821,
+          "heading": 4.32328914664215,
+          "id": "enemy-1",
+          "pitch": 1.1831844340602529e-06,
+          "roll": 4.969853576119449e-05,
+          "rudder": -0.42898560652530043,
+          "speed": 11.5725,
+          "tick": 3601,
+          "x": -471.2255180735908,
+          "y": -5.180133085986506e-05,
+          "yawRate": -0.006394367777773178,
+          "z": -4897.84143358723
+        },
+        "targetId": "player",
+        "team": "enemy"
+      }
+    ],
+    "fps": 39.97878005627192,
+    "inPort": false,
+    "inspecting": false,
+    "maxMuzzleErrorM": 0.002168029584974158,
+    "paused": true,
+    "portInspection": "exterior",
+    "renderedShips": [
+      {
+        "id": "player",
+        "visible": true
+      },
+      {
+        "id": "enemy-1",
+        "visible": true
+      }
+    ],
+    "shipId": "bismarck",
+    "tick": 3601
+  },
+  "firstTick": [
+    {
+      "launch": {
+        "kind": "shot",
+        "message": "Anton fired",
+        "position": [
+          67.17160832744395,
+          9.178996931457155,
+          -18.259971769661288
+        ],
+        "sequence": 71,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 21,
+          "velocity": [
+            -45.21258146172921,
+            31.04767582280844,
+            -819.0487892530077
+          ]
+        },
+        "shipId": "player",
+        "tick": 1800
+      },
+      "shell": {
+        "age": 0.016666666666666666,
+        "ap": {
+          "armingResistanceMm": 63.3333,
+          "basis": "Provisional AP game calibration, not historical fuze/filler data. Arming requires caliber/6 equivalent resistance in one non-ricochet contact; delay 35 ms at >=200 mm, otherwise 20 ms; fill 2.5% of projectile mass; fragment budget 8% of caliber in mm. Smaller AA AP remains inert. See assets/parts/author-ap.ts; blast radius and damage are bounded approximations.",
+          "explosiveKg": 20,
+          "fragmentPenetrationMm": 30.4,
+          "fuzeDelaySeconds": 0.035
+        },
+        "caliberM": 0.38,
+        "damage": 70,
+        "dragPerSecond": 0.0178,
+        "id": 21,
+        "ownerId": "player",
+        "penetrationMm": 646.4894729946612,
+        "position": [
+          66.41817706757787,
+          9.695019080732456,
+          -31.908760253482562
+        ],
+        "velocity": [
+          -45.19917038530359,
+          30.874990628551338,
+          -818.8058408179957
+        ],
+        "visited": []
+      }
+    },
+    {
+      "launch": {
+        "kind": "shot",
+        "message": "Anton fired",
+        "position": [
+          70.91599103548958,
+          9.178996931457155,
+          -18.465150071849376
+        ],
+        "sequence": 72,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 22,
+          "velocity": [
+            -43.66947212765132,
+            31.36840052188348,
+            -817.8649380450964
+          ]
+        },
+        "shipId": "player",
+        "tick": 1800
+      },
+      "shell": {
+        "age": 0.016666666666666666,
+        "ap": {
+          "armingResistanceMm": 63.3333,
+          "basis": "Provisional AP game calibration, not historical fuze/filler data. Arming requires caliber/6 equivalent resistance in one non-ricochet contact; delay 35 ms at >=200 mm, otherwise 20 ms; fill 2.5% of projectile mass; fragment budget 8% of caliber in mm. Smaller AA AP remains inert. See assets/parts/author-ap.ts; blast radius and damage are bounded approximations.",
+          "explosiveKg": 20,
+          "fragmentPenetrationMm": 30.4,
+          "fuzeDelaySeconds": 0.035
+        },
+        "caliberM": 0.38,
+        "damage": 70,
+        "dragPerSecond": 0.0178,
+        "id": 22,
+        "ownerId": "player",
+        "penetrationMm": 645.1086563788695,
+        "position": [
+          70.18827444999283,
+          9.700363699559382,
+          -32.094210628659326
+        ],
+        "velocity": [
+          -43.65651877242947,
+          31.19562019341126,
+          -817.6223407671852
+        ],
+        "visited": []
+      }
+    },
+    {
+      "launch": {
+        "kind": "shot",
+        "message": "Bruno fired",
+        "position": [
+          49.038130437645044,
+          12.968076738709827,
+          -18.27074076570706
+        ],
+        "sequence": 73,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 23,
+          "velocity": [
+            -42.62920100912515,
+            30.224235145774195,
+            -817.7844514826879
+          ]
+        },
+        "shipId": "player",
+        "tick": 1800
+      },
+      "shell": {
+        "age": 0.016666666666666666,
+        "ap": {
+          "armingResistanceMm": 63.3333,
+          "basis": "Provisional AP game calibration, not historical fuze/filler data. Arming requires caliber/6 equivalent resistance in one non-ricochet contact; delay 35 ms at >=200 mm, otherwise 20 ms; fill 2.5% of projectile mass; fragment budget 8% of caliber in mm. Smaller AA AP remains inert. See assets/parts/author-ap.ts; blast radius and damage are bounded approximations.",
+          "explosiveKg": 20,
+          "fragmentPenetrationMm": 30.4,
+          "fuzeDelaySeconds": 0.035
+        },
+        "caliberM": 0.38,
+        "damage": 70,
+        "dragPerSecond": 0.0178,
+        "id": 23,
+        "ownerId": "player",
+        "penetrationMm": 644.912682736382,
+        "position": [
+          48.327749132596665,
+          13.47037691222827,
+          -31.898460078771194
+        ],
+        "velocity": [
+          -42.61655622189529,
+          30.051794202685564,
+          -817.5418780789154
+        ],
+        "visited": []
+      }
+    },
+    {
+      "launch": {
+        "kind": "shot",
+        "message": "Bruno fired",
+        "position": [
+          52.78323579055571,
+          12.968076738709827,
+          -18.462276390591548
+        ],
+        "sequence": 74,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 24,
+          "velocity": [
+            -42.54616685812334,
+            29.789615719621413,
+            -817.5758089869183
+          ]
+        },
+        "shipId": "player",
+        "tick": 1800
+      },
+      "shell": {
+        "age": 0.016666666666666666,
+        "ap": {
+          "armingResistanceMm": 63.3333,
+          "basis": "Provisional AP game calibration, not historical fuze/filler data. Arming requires caliber/6 equivalent resistance in one non-ricochet contact; delay 35 ms at >=200 mm, otherwise 20 ms; fill 2.5% of projectile mass; fragment budget 8% of caliber in mm. Smaller AA AP remains inert. See assets/parts/author-ap.ts; blast radius and damage are bounded approximations.",
+          "explosiveKg": 20,
+          "fragmentPenetrationMm": 30.4,
+          "fuzeDelaySeconds": 0.035
+        },
+        "caliberM": 0.38,
+        "damage": 70,
+        "dragPerSecond": 0.0178,
+        "id": 24,
+        "ownerId": "player",
+        "penetrationMm": 644.6610771711945,
+        "position": [
+          52.07423818276545,
+          13.463134329495281,
+          -32.086518844485795
+        ],
+        "velocity": [
+          -42.533546700704676,
+          29.61730369450543,
+          -817.333297471239
+        ],
+        "visited": []
+      }
+    },
+    {
+      "launch": {
+        "kind": "shot",
+        "message": "C\u00e4sar fired",
+        "position": [
+          -60.55844832467749,
+          12.967510941669719,
+          -18.32830372041816
+        ],
+        "sequence": 75,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 25,
+          "velocity": [
+            -23.253913430557628,
+            29.843588190386164,
+            -819.4837411045856
+          ]
+        },
+        "shipId": "player",
+        "tick": 1800
+      },
+      "shell": {
+        "age": 0.016666666666666666,
+        "ap": {
+          "armingResistanceMm": 63.3333,
+          "basis": "Provisional AP game calibration, not historical fuze/filler data. Arming requires caliber/6 equivalent resistance in one non-ricochet contact; delay 35 ms at >=200 mm, otherwise 20 ms; fill 2.5% of projectile mass; fragment budget 8% of caliber in mm. Smaller AA AP remains inert. See assets/parts/author-ap.ts; blast radius and damage are bounded approximations.",
+          "explosiveKg": 20,
+          "fragmentPenetrationMm": 30.4,
+          "fuzeDelaySeconds": 0.035
+        },
+        "caliberM": 0.38,
+        "damage": 70,
+        "dragPerSecond": 0.0178,
+        "id": 25,
+        "ownerId": "player",
+        "penetrationMm": 645.9093270866495,
+        "position": [
+          -60.94595606536317,
+          13.463467940215837,
+          -31.984340326574426
+        ],
+        "velocity": [
+          -23.24701579277342,
+          29.671260155812043,
+          -819.2406636529961
+        ],
+        "visited": []
+      }
+    },
+    {
+      "launch": {
+        "kind": "shot",
+        "message": "C\u00e4sar fired",
+        "position": [
+          -56.810030944082136,
+          12.967510941669719,
+          -18.43724012778807
+        ],
+        "sequence": 76,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 26,
+          "velocity": [
+            -23.226077967925207,
+            30.45270264804494,
+            -815.7972517317716
+          ]
+        },
+        "shipId": "player",
+        "tick": 1800
+      },
+      "shell": {
+        "age": 0.016666666666666666,
+        "ap": {
+          "armingResistanceMm": 63.3333,
+          "basis": "Provisional AP game calibration, not historical fuze/filler data. Arming requires caliber/6 equivalent resistance in one non-ricochet contact; delay 35 ms at >=200 mm, otherwise 20 ms; fill 2.5% of projectile mass; fragment budget 8% of caliber in mm. Smaller AA AP remains inert. See assets/parts/author-ap.ts; blast radius and damage are bounded approximations.",
+          "explosiveKg": 20,
+          "fragmentPenetrationMm": 30.4,
+          "fuzeDelaySeconds": 0.035
+        },
+        "caliberM": 0.38,
+        "damage": 70,
+        "dragPerSecond": 0.0178,
+        "id": 26,
+        "ownerId": "player",
+        "penetrationMm": 641.877405083138,
+        "position": [
+          -57.19707482919925,
+          13.473618342126088,
+          -32.0318443573172
+        ],
+        "velocity": [
+          -23.21918858677012,
+          30.280193936316817,
+          -815.555267776486
+        ],
+        "visited": []
+      }
+    },
+    {
+      "launch": {
+        "kind": "shot",
+        "message": "Dora fired",
+        "position": [
+          -78.69151013581217,
+          8.779394601134562,
+          -18.33653431100996
+        ],
+        "sequence": 77,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 27,
+          "velocity": [
+            -20.45093113523154,
+            30.452207155644007,
+            -819.9132766363514
+          ]
+        },
+        "shipId": "player",
+        "tick": 1800
+      },
+      "shell": {
+        "age": 0.016666666666666666,
+        "ap": {
+          "armingResistanceMm": 63.3333,
+          "basis": "Provisional AP game calibration, not historical fuze/filler data. Arming requires caliber/6 equivalent resistance in one non-ricochet contact; delay 35 ms at >=200 mm, otherwise 20 ms; fill 2.5% of projectile mass; fragment budget 8% of caliber in mm. Smaller AA AP remains inert. See assets/parts/author-ap.ts; blast radius and damage are bounded approximations.",
+          "explosiveKg": 20,
+          "fragmentPenetrationMm": 30.4,
+          "fuzeDelaySeconds": 0.035
+        },
+        "caliberM": 0.38,
+        "damage": 70,
+        "dragPerSecond": 0.0178,
+        "id": 27,
+        "ownerId": "player",
+        "penetrationMm": 646.3245879976355,
+        "position": [
+          -79.03230843381898,
+          9.285493744609095,
+          -31.99972878089337
+        ],
+        "velocity": [
+          -20.444864925527018,
+          30.27969859089016,
+          -819.6700717747874
+        ],
+        "visited": []
+      }
+    },
+    {
+      "launch": {
+        "kind": "shot",
+        "message": "Dora fired",
+        "position": [
+          -74.94272004077976,
+          8.779394601134562,
+          -18.431785680485053
+        ],
+        "sequence": 78,
+        "shell": {
+          "caliberM": 0.38,
+          "id": 28,
+          "velocity": [
+            -22.017242803355142,
+            31.16276644644547,
+            -816.4883177790412
+          ]
+        },
+        "shipId": "player",
+        "tick": 1800
+      },
+      "shell": {
+        "age": 0.016666666666666666,
+        "ap": {
+          "armingResistanceMm": 63.3333,
+          "basis": "Provisional AP game calibration, not historical fuze/filler data. Arming requires caliber/6 equivalent resistance in one non-ricochet contact; delay 35 ms at >=200 mm, otherwise 20 ms; fill 2.5% of projectile mass; fragment budget 8% of caliber in mm. Smaller AA AP remains inert. See assets/parts/author-ap.ts; blast radius and damage are bounded approximations.",
+          "explosiveKg": 20,
+          "fragmentPenetrationMm": 30.4,
+          "fuzeDelaySeconds": 0.035
+        },
+        "caliberM": 0.38,
+        "damage": 70,
+        "dragPerSecond": 0.0178,
+        "id": 28,
+        "ownerId": "player",
+        "penetrationMm": 642.6295811808764,
+        "position": [
+          -75.30961966136769,
+          9.297334642969018,
+          -32.03790596916877
+        ],
+        "velocity": [
+          -22.010711990108675,
+          30.990047113700815,
+          -816.2461288379026
+        ],
+        "visited": []
+      }
+    }
+  ],
+  "fixture": "Stock salvo through Game.fire(), 30 s aiming / 30 s post-shot CPU replay; not an FPS test",
+  "hud": "Gunnery\n4/4 ready\nFire\nQ\n38 cm main\n15 cm secondary\nAnton\nReady\n238\nBruno\nReady\n238\nC\u00e4sar\nReady\n238\nDora\nReady\n238\nAim at\nCenter sight \u00b7 Manual\nTarget waterline\nAft port boiler room \u00b7 two Wagner boilers\nAft center boiler room \u00b7 two Wagner boilers\nAft starboard boiler room \u00b7 two Wagner boilers\nForward port boiler room \u00b7 two Wagner boilers\nForward center boiler room \u00b7 two Wagner boilers\nForward starboard boiler room \u00b7 two Wagner boilers\nPort turbine room\nStarboard turbine room\nCenter turbine room\nAnton propellant magazines\nBruno propellant magazines\nC\u00e4sar propellant magazines\nDora propellant magazines\nSteering gear room\nPort shaft passage\nCenter shaft passage\nStarboard shaft passage\nBismarck\n4.92 km\nStructure\n90%\nPropulsion\n100%\nFlooding\n0.3 m\u00b3\n\nBismarck \u00b7 AP shell burst\n\nRecent shell impacts \u00b7 7\nShell 28 \u00b7 burst\nPort Upper Belt 2 \u00b7 penetrated\n729 m/s at impact\n568 m/s after contact\nFuze armed \u00b7 35.0 ms to burst\n145.0 mm KC \u00b7 9.9\u00b0 from normal\n161.9 mm resistance \u00b7 386.3 mm remaining\n14.0 damage\nPort Splinter Bulkhead 2 \u00b7 penetrated\n568 m/s at impact\n536 m/s after contact\nFuze armed \u00b7 25.3 ms to burst\n30.0 mm Wh \u00b7 9.9\u00b0 from normal\n30.5 mm resistance \u00b7 355.7 mm remaining\nBattery Deck 2 \u00b7 penetrated\n536 m/s at impact\n399 m/s after contact\nFuze armed \u00b7 21.9 ms to burst\n12.0 mm steel \u00b7 87.5\u00b0 from normal\n120.0 mm resistance \u00b7 235.7 mm remaining\nAP shell burst \u00b7 detonation\nFuze armed \u00b7 0.0 ms to burst\n0.0 mm remaining\nShell 27 \u00b7 burst\nPort Main Belt 2 \u00b7 penetrated\n733 m/s at impact\n348 m/s after contact\nFuze armed \u00b7 35.0 ms to burst\n320.0 mm KC \u00b7 10.0\u00b0 from normal\n357.5 mm resistance \u00b7 194.3 mm remaining\n14.0 damage\n0.026 m\u00b2 opening \u00b7 flood-strip-port-6-3\n0.119 m\u00b2 opening \u00b7 flood-strip-port-6-4\nPort Teak Backing 2 \u00b7 backing\n348 m/s at impact\n348 m/s after contact\nFuze armed \u00b7 34.5 ms to burst\n50.0 mm teak \u00b7 10.0\u00b0 from normal\n0.0 mm resistance \u00b7 194.3 mm remaining\nPort Belt Support 2 \u00b7 penetrated\n348 m/s at impact\n321 m/s after contact\nFuze armed \u00b7 34.3 ms to burst\n20.0 mm steel \u00b7 10.0\u00b0 from normal\n20.3 mm resistance \u00b7 174.0 mm remaining\nPort Turtleback 2 \u00b7 stopped\n321 m/s at impact\n0 m/s after contact\nFuze armed \u00b7 24.8 ms to burst\n110.0 mm Wh \u00b7 63.5\u00b0 from normal\n246.3 mm resistance \u00b7 0.0 mm remaining\nAP shell burst \u00b7 detonation\nFuze armed \u00b7 0.0 ms to burst\n0.0 mm remaining\nShell 26 \u00b7 burst\nPort Main Belt 2 \u00b7 penetrated\n729 m/s at impact\n342 m/s after contact\nFuze armed \u00b7 35.0 ms to burst\n320.0 mm KC \u00b7 9.9\u00b0 from normal\n357.3 mm resistance \u00b7 190.2 mm remaining\n14.0 damage\n0.005 m\u00b2 opening \u00b7 flood-strip-port-6-5\nPort Teak Backing 2 \u00b7 backing\n342 m/s at impact\n342 m/s after contact\nFuze armed \u00b7 34.5 ms to burst\n50.0 mm teak \u00b7 9.9\u00b0 from normal\n0.0 mm resistance \u00b7 190.2 mm remaining\nPort Belt Support 2 \u00b7 penetrated\n342 m/s at impact\n316 m/s after contact\nFuze armed \u00b7 34.3 ms to burst\n20.0 mm steel \u00b7 9.9\u00b0 from normal\n20.3 mm resistance \u00b7 169.9 mm remaining\nPort Splinter Bulkhead 2 \u00b7 penetrated\n316 m/s at impact\n274 m/s after contact\nFuze armed \u00b7 17.7 ms to burst\n30.0 mm Wh \u00b7 9.9\u00b0 from normal\n30.5 mm resistance \u00b7 139.4 mm remaining\nAP shell burst \u00b7 detonation\nFuze armed \u00b7 0.0 ms to burst\n0.0 mm remaining\nShell 25 \u00b7 burst\nPort Main Belt 2 \u00b7 penetrated\n732 m/s at impact\n347 m/s after contact\nFuze armed \u00b7 35.0 ms to burst\n320.0 mm KC \u00b7 9.9\u00b0 from normal\n357.3 mm resistance \u00b7 194.1 mm remaining\n14.0 damage\n0.144 m\u00b2 opening \u00b7 flood-strip-port-6-4\nPort Teak Backing 2 \u00b7 backing\n347 m/s at impact\n347 m/s after contact\nFuze armed \u00b7 34.5 ms to burst\n50.0 mm teak \u00b7 9.9\u00b0 from normal\n0.0 mm resistance \u00b7 194.1 mm remaining\nPort Belt Support 2 \u00b7 penetrated\n347 m/s at impact\n321 m/s after contact\nFuze armed \u00b7 34.3 ms to burst\n20.0 mm steel \u00b7 9.9\u00b0 from normal\n20.3 mm resistance \u00b7 173.8 mm remaining\nPort Turtleback 2 \u00b7 stopped\n321 m/s at impact\n0 m/s after contact\nFuze armed \u00b7 22.3 ms to burst\n110.0 mm Wh \u00b7 63.4\u00b0 from normal\n245.7 mm resistance \u00b7 0.0 mm remaining\nAP shell burst \u00b7 detonation\nFuze armed \u00b7 0.0 ms to burst\n0.0 mm remaining\nShell 23 \u00b7 burst\nWatertight boundary partition-5084e95c5ba1 \u00b7 penetrated\n732 m/s at impact\n708 m/s after contact\nFuze unarmed\n5.0 mm steel\n25.0 mm resistance \u00b7 525.4 mm remaining\n0.144 m\u00b2 opening \u00b7 watertight boundary\nPort Main Belt 2 \u00b7 penetrated\n708 m/s at impact\n315 m/s after contact\nFuze armed \u00b7 35.0 ms to burst\n320.0 mm KC \u00b7 8.6\u00b0 from normal\n356.0 mm resistance \u00b7 169.4 mm remaining\n14.0 damage\n0.144 m\u00b2 opening \u00b7 flood-strip-port-5-5\nPort Teak Backing 2 \u00b7 backing\n315 m/s at impact\n315 m/s after contact\nFuze armed \u00b7 34.4 ms to burst\n50.0 mm teak \u00b7 8.6\u00b0 from normal\n0.0 mm resistance \u00b7 169.4 mm remaining\nPort Belt Support 2 \u00b7 penetrated\n315 m/s at impact\n288 m/s after contact\nFuze armed \u00b7 34.3 ms to burst\n20.0 mm steel \u00b7 8.6\u00b0 from normal\n20.2 mm resistance \u00b7 149.2 mm remaining\nPort Splinter Bulkhead 2 \u00b7 penetrated\n288 m/s at impact\n245 m/s after contact\nFuze armed \u00b7 16.1 ms to burst\n30.0 mm Wh \u00b7 8.6\u00b0 from normal\n30.3 mm resistance \u00b7 118.8 mm remaining\nAP shell burst \u00b7 detonation\nFuze armed \u00b7 0.0 ms to burst\n0.0 mm remaining\nShell 22 \u00b7 burst\nPort Upper Belt 2 \u00b7 penetrated\n732 m/s at impact\n571 m/s after contact\nFuze armed \u00b7 35.0 ms to burst\n145.0 mm KC \u00b7 8.5\u00b0 from normal\n161.3 mm resistance \u00b7 389.1 mm remaining\n14.0 damage\nPort Splinter Bulkhead 2 \u00b7 penetrated\n571 m/s at impact\n539 m/s after contact\nFuze armed \u00b7 25.4 ms to burst\n30.0 mm Wh \u00b7 8.5\u00b0 from normal\n30.3 mm resistance \u00b7 358.7 mm remaining\nAP shell burst \u00b7 detonation\nFuze armed \u00b7 0.0 ms to burst\n0.0 mm remaining\nShell 21 \u00b7 burst\nPort Upper Belt 2 \u00b7 penetrated\n733 m/s at impact\n573 m/s after contact\nFuze armed \u00b7 35.0 ms to burst\n145.0 mm KC \u00b7 8.4\u00b0 from normal\n161.2 mm resistance \u00b7 390.6 mm remaining\n14.0 damage\nPort Splinter Bulkhead 2 \u00b7 penetrated\n572 m/s at impact\n540 m/s after contact\nFuze armed \u00b7 25.5 ms to burst\n30.0 mm Wh \u00b7 8.4\u00b0 from normal\n30.3 mm resistance \u00b7 360.1 mm remaining\nBattery Deck 2 \u00b7 penetrated\n540 m/s at impact\n404 m/s after contact\nFuze armed \u00b7 7.2 ms to burst\n12.0 mm steel \u00b7 87.5\u00b0 from normal\n120.0 mm resistance \u00b7 240.0 mm remaining\nAP shell burst \u00b7 detonation\nFuze armed \u00b7 0.0 ms to burst\n0.0 mm remaining\n\nMouse aims the center sight. Hold left mouse or Q to fire. Shift opens binoculars; scroll adjusts magnification. Selecting a module tracks it until you move the mouse to aim again.\n\nInspect target"
+}

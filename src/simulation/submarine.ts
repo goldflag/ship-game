@@ -1,5 +1,7 @@
 import type { Handling, ShipDefinition } from '../ships/blueprint';
 import type { Combatant } from './damage';
+import { addBreach } from './damage';
+import { systemHealth } from './machinery';
 import type { HelmCommand } from './ship';
 import { clamp } from './geometry';
 
@@ -25,12 +27,7 @@ export function submarinePropulsion(actor: Combatant, def: ShipDefinition): { ha
   const equipment = def.submarine;
   if (!equipment) return undefined;
   const submerged = actor.motion.y < -.5;
-  const ids = submerged ? equipment.submergedEngineIds : equipment.surfaceEngineIds;
-  const power = actor.damage.sunk ? 0 : ids.reduce((sum, id) => {
-    const module = def.modules.find(m => m.id === id)!;
-    return sum + clamp((actor.damage.modules.find(m => m.id === id)?.hp ?? 0) / module.hp, 0, 1);
-  }, 0) / ids.length;
-  return { handling: submerged ? equipment.submergedHandling : def.handling, power };
+  return { handling: submerged ? equipment.submergedHandling : def.handling, power: systemHealth(actor, def, 'engine') };
 }
 
 /** A bounded ballast/plane depth keeper, separate from irreversible damage flooding.
@@ -61,10 +58,17 @@ export function stepSubmarine(actor: Combatant, def: ShipDefinition, command: He
   motion.y = -nextDepth;
   motion.verticalSpeed = nextDepth === 0 ? 0 : -nextSpeed;
   const pitch = -clamp(nextSpeed / Math.max(3, Math.abs(motion.speed)) * .24, -.14, .14);
+  const previousTrim = s.trimPitch;
   s.trimPitch += (pitch - s.trimPitch) * (1 - Math.exp(-dt / 2));
   // updateFlooding computed the damage trim immediately before this step.
-  motion.pitch = clamp(motion.pitch + s.trimPitch, -.3, .3);
+  // A stability profile integrates its own pitch, so only add the trim change.
+  motion.pitch = clamp(motion.pitch + s.trimPitch - (def.stability ? previousTrim : 0), -.3, .3);
   if (nextDepth === 0 && s.ballastM3 < .01) s.emergencyBlow = false;
-  // A damaged boat can pass the commanded depth limit; excess pressure costs HP.
-  if (nextDepth > equipment.maxDepthM) actor.damage.integrity = Math.max(0, actor.damage.integrity - (nextDepth - equipment.maxDepthM) * .5 * dt);
+  // Excess pressure opens a persistent keel breach beside the central room.
+  // Use shared flooding rather than the retired universal hull-HP sinking pool.
+  if (nextDepth > equipment.maxDepthM && def.compartments.length) {
+    const index = def.compartments.reduce((nearest, room, i) => Math.abs(room.center[2]) < Math.abs(def.compartments[nearest].center[2]) ? i : nearest, 0);
+    const room = def.compartments[index];
+    addBreach(actor.damage.compartments[index], [0, -def.hull.draft, room.center[2]], (nextDepth - equipment.maxDepthM) * .0001 * dt, -1, .05);
+  }
 }

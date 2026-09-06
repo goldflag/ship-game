@@ -1,5 +1,6 @@
+import type { ControlPriority } from '../simulation/damageControl';
 import * as THREE from 'three/webgpu';
-import { mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
+import { float, mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
 import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { WaterSystem, getPresetParams } from '../../vendor/threejs-water-pro/build/index.js';
@@ -18,7 +19,7 @@ import { gunAimPoints } from './gunAim';
 import { disposeObjects } from './disposeObjects';
 import { CombatEffects } from './CombatEffects';
 import type { GameAudio } from './GameAudio';
-import type { Battery, Vec3 } from '../ships/blueprint';
+import type { Ammunition, Battery, Vec3 } from '../ships/blueprint';
 import type { InspectionMode } from '../ships/inspection';
 import { selectedShip, shipPreset, shipPresets } from '../ships/presets';
 import { validateBattleSetup, type BattleSetup } from '../simulation/battle';
@@ -58,6 +59,9 @@ export class Game {
   private hitDirections: HitDirectionIndicators;
   private loadedModel?: THREE.Group;
   private effects = new CombatEffects();
+  controlPriority: ControlPriority = 'balanced';
+  controlFocus = '';
+  ammunition: Record<Battery, Ammunition> = { main: 'ap', secondary: 'ap', torpedo: 'ap' };
   private selectedBattery: Battery = 'main';
   get battery(): Battery { return this.selectedBattery; }
   set battery(value: Battery) {
@@ -103,7 +107,10 @@ export class Game {
     this.simulation = new CombatSimulation(definition);
     this.playerDamageFeedback = new HullDamageFeedback(this.simulation.player.damage.integrity);
     this.aimModule = definition.modules.find(m => m.kind === 'engine')?.id ?? '';
-    this.renderer = new THREE.WebGPURenderer({ antialias: true, powerPreference: 'high-performance' });
+    // Centimeter-scale fittings must remain distinct at 20 km, even with the
+    // close near plane needed by bridge and shell-follow views. The scene pass
+    // uses floating-point reversed depth; TSL's depth readers use the same mapping.
+    this.renderer = new THREE.WebGPURenderer({ antialias: true, powerPreference: 'high-performance', reversedDepthBuffer: true });
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1;
     this.renderer.shadowMap.enabled = true;
@@ -189,10 +196,6 @@ export class Game {
     params.foam.waves.opacity = 0.45;
     params.postProcessing.underwaterParticles.enabled = false;
     params.spray.enabled = false;
-    params.waves.fft.amplitude = this.settings.sea === 'Fair' ? 0.35 : this.settings.sea === 'Heavy' ? 1.4 : 0.75;
-    params.waves.fft.windSpeed = this.settings.sea === 'Fair' ? 5 : this.settings.sea === 'Heavy' ? 16 : 9;
-    params.waves.fft.peakWavelength = this.settings.sea === 'Heavy' ? 100 : 65;
-    params.waves.fft.choppiness = 1.05;
     this.water.loadPreset(params);
     this.surfaceWaterAbsorption.copy(this.water.color.absorptionColor);
     this.updateSeaState();
@@ -201,6 +204,12 @@ export class Game {
     this.sky = await SkySystem.create({ renderer: this.renderer, camera: this.camera, scene: this.scene,
       quality: this.settings.quality === 'ultra' ? 'high' : 'medium', cloudRenderingMode: 'dynamic', godRays: false });
     this.assertActive();
+    // Sky Pro's background shaders hard-code far depth as 1. Match the active
+    // backend's depth convention so cirrus cannot paint over opaque ships.
+    // Volumetric clouds already project their hit distance through the camera.
+    const skyDepth = float(this.renderer.reversedDepthBuffer ? 0 : 1);
+    this.sky.pipeline.sky.material.depthNode = skyDepth;
+    this.sky.pipeline.cirrus.material.depthNode = skyDepth;
     await this.sky.applyPreset(SKY_PRESETS.partlyCloudy);
     this.assertActive();
     // Shared cloud shape; updatePortLighting supplies each scene's daylight.
@@ -332,6 +341,8 @@ export class Game {
       this.targetView = views.find(view => view.actor === simulation.target);
       this.shipLabels.setFleet(views, simulation.actors);
       this.articulationOriginal = undefined;
+      this.controlPriority = 'balanced'; this.controlFocus = '';
+      this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap' };
       this.battery = definition.torpedoTubes?.length ? 'torpedo' : 'main'; this.manualAim = true; this.inspecting = false;
       this.gunneryOpen = false; this.effects.reset();
       this.currentAim = simulation.aimAt(undefined, this.battery);
@@ -381,7 +392,7 @@ export class Game {
       this.rig.update(focus, focus.y, 0);
       const aim = this.manualAim ? this.inspecting || this.shellFollow.view ? this.currentAim : this.readSightAim() : this.simulation.aimAt(this.aimModule, this.battery);
       this.currentAim = aim;
-      if (!this.inPort) this.simulation.advance(dt, this.input.sample(), { aim, fire: this.input.firing || this.rig.firing, battery: this.battery }, () => {
+      if (!this.inPort) this.simulation.advance(dt, this.input.sample(), { aim, fire: this.input.firing || this.rig.firing, battery: this.battery, ammunition: this.ammunition[this.battery], controlPriority: this.controlPriority, controlFocus: this.controlFocus }, () => {
         this.fleetViews.forEach(view => view.capturePreviousPose());
       });
       const alpha = this.inPort ? 1 : this.simulation.interpolationAlpha;
@@ -644,8 +655,13 @@ export class Game {
   private updateSeaState(): void {
     if (!this.water) return;
     // Breakwaters shelter the anchorage. Sailing restores the selected sea conditions.
-    this.water.waves.amplitude.value = this.inPort ? .18 : this.settings.sea === 'Fair' ? .35 : this.settings.sea === 'Heavy' ? 1.4 : .75;
+    // Shorter, lower crests keep the surface detail small beside the hull.
+    this.water.waves.amplitude.value = this.inPort ? .12 : this.settings.sea === 'Fair' ? .22 : this.settings.sea === 'Heavy' ? .95 : .45;
     this.water.waves.windSpeed.value = this.inPort ? 4 : this.settings.sea === 'Fair' ? 5 : this.settings.sea === 'Heavy' ? 16 : 9;
+    this.water.waves.peakWavelength.value = this.inPort ? 14 : this.settings.sea === 'Fair' ? 20 : this.settings.sea === 'Heavy' ? 50 : 28;
+    this.water.waves.choppiness.value = .8;
+    // Wind and wavelength alter the initial spectrum, which must be rebuilt.
+    this.water.waves.dirty = true;
     this.effects.setWind(this.water.waves.windSpeed.value);
   }
   private updatePortLighting(): void {

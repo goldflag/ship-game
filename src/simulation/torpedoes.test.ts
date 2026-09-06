@@ -7,9 +7,12 @@ import enterprise from '../../assets/ships/enterprise-cv6/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
 import { compileShip, type Vec3 } from '../ships/blueprint';
 import { CombatSimulation } from './combat';
-import { clearTorpedoLane, firstTorpedoHit, torpedoIntercept, type Torpedo, type TubeState } from './torpedoes';
+import { clearTorpedoLane, damageTorpedoHit, firstTorpedoHit, torpedoIntercept, type Torpedo, type TubeState } from './torpedoes';
 import { FIXED_DT } from './ship';
 import { botTorpedoAim } from './bots';
+import { localToWorld, normalize, scale, sub } from './geometry';
+import type { FleetActor } from './battle';
+import { updateCapability } from './stability';
 
 const definition = compileShip(blueprint, catalog);
 const helm = { throttle: 0, rudder: 0 }, ahead: Vec3 = [0, 0, -1500];
@@ -17,6 +20,12 @@ const intent = (aim: Vec3 = ahead, fire = false) => ({ aim, fire, battery: 'torp
 const rounds = (sim: CombatSimulation) => sim.player.torpedoTubes!.reduce((n, t) => n + t.ammo, 0);
 const step = (sim: CombatSimulation, ticks: number, aim = ahead, fire = false) => { for (let i = 0; i < ticks; i++) sim.step(helm, intent(aim, fire)); };
 const projectile = (ownerId = 'player', distance = 400): Torpedo => ({ id: 1, ownerId, tubeId: 'bow-tube-1', position: [0, -2, -400], velocity: [0, 0, -definition.torpedoTubes![0].weapon.speed], distance, age: 0, weapon: definition.torpedoTubes![0].weapon });
+const broadsideRound = (actor: FleetActor, station: number): Torpedo => {
+  const t = projectile();
+  t.position = localToWorld([-4, -2, station], actor.motion);
+  t.velocity = scale(normalize(sub(localToWorld([4, -2, station], actor.motion), t.position)), t.weapon.speed);
+  return t;
+};
 
 test('VIIC compiles five fixed tubes, fourteen rounds and independent original gun parts', () => {
   expect(definition.torpedoTubes).toHaveLength(5);
@@ -117,19 +126,27 @@ test('contact before arming is a dud; armed hits apply flooding and score only a
   sim.torpedoes.push(t); step(sim, 15);
   expect(sim.target.damage.integrity).toBe(sim.target.damage.maxIntegrity);
   expect(sim.events.some(e => e.kind === 'torpedo-dud')).toBe(true);
-  const armed = projectile(); armed.position = [-4, -2, -600]; armed.velocity = [armed.weapon.speed, 0, 0];
+  const armed = broadsideRound(sim.target, 11.3);
   sim.torpedoes.push(armed); step(sim, 15);
   expect(sim.target.damage.integrity).toBeLessThan(sim.target.damage.maxIntegrity);
   expect(sim.target.damage.compartments.some(c => c.breachAreaM2 > 0 && c.waterM3 > 0)).toBe(true);
   const data = sim.telemetry('torpedo', ahead);
-  expect(data.playerDamageDealt).toBe(sim.target.damage.maxIntegrity - sim.target.damage.integrity);
+  expect(data.playerDamageDealt).toBeGreaterThan(0);
+  expect(data.playerDamageDealt).toBeCloseTo(sim.target.damage.maxIntegrity - sim.target.damage.integrity, 1);
 });
 
 test('launched bow salvo can sink an opponent, earning one frag, then battle reset clears it', () => {
   const sim = new CombatSimulation(definition, { friendlyBots: [], enemies: [definition], spawnDistance: 1000 });
   sim.target.controller = 'idle';
   step(sim, 180, [0, 0, -1000], true); step(sim, 2700, [0, 0, -1000]);
+  // Repeated bow hits flood one isolated room; equipment points cannot sink it.
+  expect(sim.target.damage.sunk).toBe(false);
+  expect(sim.target.damage.compartments.some(c => c.waterM3 > 0)).toBe(true);
+  // Separate armed hits open enough other spaces to exhaust reserve buoyancy.
+  sim.torpedoes.push(...[-1.3, 11.3].map(z => broadsideRound(sim.target, z)));
+  step(sim, 9000, [0, 0, -1000]);
   expect(sim.target.damage.sunk).toBe(true); expect(sim.result).toBe('victory');
+  expect(sim.target.damage.defeatCause).toBe('flooding');
   expect(sim.telemetry('torpedo', ahead).playerFrags).toBe(1);
   expect(sim.telemetry('torpedo', ahead).playerDamageDealt).toBeLessThanOrEqual(sim.target.damage.maxIntegrity);
   sim.reset(); expect(sim.result).toBe('active'); expect(rounds(sim)).toBe(14);
@@ -139,10 +156,57 @@ test('launched bow salvo can sink an opponent, earning one frag, then battle res
 test('friendly torpedo damage and wreck hits do not add player score', () => {
   const sim = new CombatSimulation(definition, { friendlyBots: [definition], enemies: [definition], spawnDistance: 1000 });
   const ally = sim.actors[1]; ally.controller = 'idle'; ally.motion.x = 0; ally.motion.z = -600; sim.target.controller = 'idle';
-  const t = projectile(); t.position = [-4, -2, -600]; t.velocity = [t.weapon.speed, 0, 0];
+  const t = broadsideRound(ally, 11.3);
   sim.torpedoes.push(t); step(sim, 15);
   expect(ally.damage.integrity).toBeLessThan(ally.damage.maxIntegrity);
   expect(sim.telemetry('torpedo', ahead).playerDamageDealt).toBe(0);
+});
+
+test('torpedo openings retain their position and magazine damage does not invent a detonation', () => {
+  const sim = new CombatSimulation(definition), point: Vec3 = [-2, -2, -22];
+  const before = sim.target.damage.integrity;
+  damageTorpedoHit(projectile(), sim.target, point);
+  const room = sim.target.damage.compartments.find(c => c.id === 'forward-torpedo-room')!;
+  expect(room.breaches).toEqual([expect.objectContaining({ position: point, areaM2: 1.6, shellId: 1 })]);
+  expect(sim.target.damage.modules.find(m => m.id === 'forward-torpedoes')).toMatchObject({ hp: 0, detonated: false });
+  expect(sim.target.damage.integrity).toBe(before);
+  updateCapability(sim.target, definition);
+  expect(sim.target.damage.integrity).toBeLessThan(before);
+  for (let i = 0; i < 10; i++) damageTorpedoHit(projectile(), sim.target, point);
+  expect(room.breachAreaM2).toBe(4);
+  expect(room.breaches.reduce((n, b) => n + b.areaM2, 0)).toBe(4);
+});
+
+test('loaded tubes preserve fighting strength after gun loss and recover after magazine flooding', () => {
+  const sim = new CombatSimulation(definition);
+  sim.player.mounts.forEach(m => m.hp = 0);
+  updateCapability(sim.player, definition);
+  expect(sim.player.damage.stability.combatLost).toBe(false);
+  const room = sim.player.damage.compartments.find(c => c.id === 'forward-torpedo-room')!;
+  room.waterM3 = definition.compartments.find(c => c.id === room.id)!.capacityM3;
+  step(sim, 1, ahead, true);
+  expect(sim.player.torpedoTubes![0].status).toBe('disabled');
+  expect(rounds(sim)).toBe(14);
+  room.waterM3 = 0;
+  step(sim, 1, ahead, true);
+  expect(rounds(sim)).toBe(13);
+  expect(sim.player.damage.stability.combatLost).toBe(false);
+  sim.player.torpedoTubes!.forEach(t => t.ammo = 0);
+  updateCapability(sim.player, definition);
+  expect(sim.player.damage.stability.combatLost).toBe(true);
+});
+
+test('torpedoes cannot score against an already disarmed afloat opponent', () => {
+  const sim = new CombatSimulation(definition);
+  sim.target.mounts.forEach(m => m.hp = 0);
+  sim.target.torpedoTubes!.forEach(t => t.ammo = 0);
+  updateCapability(sim.target, definition);
+  expect(sim.target.damage.stability.combatLost).toBe(true);
+  sim.torpedoes.push(broadsideRound(sim.target, 11.3));
+  step(sim, 15);
+  expect(sim.events.some(e => e.kind === 'torpedo-hit')).toBe(true);
+  expect(sim.telemetry('torpedo', ahead).playerDamageDealt).toBe(0);
+  expect(sim.telemetry('torpedo', ahead).playerFrags).toBe(0);
 });
 
 test('bot lead intercepts a crossing target; friendly ships block the predicted torpedo lane', () => {

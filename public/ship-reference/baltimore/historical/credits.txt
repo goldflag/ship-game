@@ -1,0 +1,4 @@
+U.S. Navy Bureau of Ships, 80-G-109723, 30 December 1943; U.S. government drawing. Uniform scale from retained hull endpoints. Vertical origin inferred using forward trunnion datum, not the lower camouflage edge. ±1 m registration uncertainty; later paint is not backdated.
+
+U.S. Navy Bureau of Ships, 80-G-109723, 30 December 1943; U.S. government drawing. Same scale as profile. Scan/plan mismatch is not corrected with independent stretching; up to 2 m endpoint uncertainty.
+See sources.json for original archival credits. Restricted scans excluded.

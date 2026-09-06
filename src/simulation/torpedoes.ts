@@ -3,6 +3,8 @@ import type { FleetActor } from './battle';
 import { add, clamp, localToWorld, radians, scale, segmentBox, worldToLocal, wrapAngle } from './geometry';
 import { motionVelocity } from './ship';
 import { structuralHits } from './structure';
+import { addBreach } from './damage';
+import { equipmentCondition } from './machinery';
 
 export type TubeDefinition = NonNullable<ShipDefinition['torpedoTubes']>[number];
 export interface TubeState {
@@ -35,8 +37,8 @@ export function tubeSolution(actor: FleetActor, tube: TubeDefinition, state: Tub
   const origin = localToWorld(tube.position, actor.motion);
   const heading = Math.atan2(aim[0] - origin[0], origin[2] - aim[2]);
   const range = Math.hypot(aim[0] - origin[0], aim[2] - origin[2]);
-  const magazine = actor.damage.modules.find(m => m.id === tube.magazineId);
-  state.status = actor.damage.sunk || magazine?.hp === 0 ? 'disabled' : state.ammo === 0 ? 'empty' :
+  const magazine = actor.definition.modules.find(m => m.id === tube.magazineId);
+  state.status = actor.damage.sunk || actor.damage.stability.combatLost || !magazine || equipmentCondition(actor, actor.definition, magazine).availability <= 0 ? 'disabled' : state.ammo === 0 ? 'empty' :
     actor.definition.submarine && -actor.motion.y > actor.definition.submarine.maxTorpedoDepthM ? 'too-deep' :
     origin[1] > 0 ? 'above-water' :
     !aim.every(Number.isFinite) || Math.abs(wrapAngle(heading - actor.motion.heading - radians(tube.bearingDeg))) > radians(tube.arcDeg) + 1e-8 ? 'out-of-arc' :
@@ -106,24 +108,16 @@ export function firstTorpedoHit(torpedo: Torpedo, from: Vec3, to: Vec3, actors: 
 /** Bounded contact blast and one local breach. These are explicit gameplay values. */
 export function damageTorpedoHit(torpedo: Torpedo, actor: FleetActor, point: Vec3): string {
   const def = actor.definition, damage = actor.damage, w = torpedo.weapon;
-  damage.integrity = Math.max(0, damage.integrity - w.damage);
   const distanceTo = (box: { center: Vec3; size: Vec3 }) => Math.hypot(...point.map((v, i) => Math.max(0, Math.abs(v - box.center[i]) - box.size[i] / 2)));
-  const compartment = def.compartments.map((c, i) => ({ c, i, distance: distanceTo(c) })).sort((a, b) => a.distance - b.distance)[0];
+  const compartment = def.compartments.map((c, i) => ({ c, i, distance: Math.min(...(c.cells ?? [c]).map(distanceTo)) })).sort((a, b) => a.distance - b.distance)[0];
   if (compartment) {
     const state = damage.compartments[compartment.i];
-    state.breachAreaM2 = Math.min(4, state.breachAreaM2 + w.breachAreaM2);
-    state.breachHeight = Math.min(state.breachHeight, point[1]);
+    addBreach(state, point, w.breachAreaM2, torpedo.id);
   }
   const module = def.modules.map((m, i) => ({ m, i, distance: distanceTo(m) })).filter(m => m.distance < 8).sort((a, b) => a.distance - b.distance)[0];
   if (module) {
     const state = damage.modules[module.i];
     state.hp = Math.max(0, state.hp - w.damage * .5 * (1 - module.distance / 8));
-    if (state.hp === 0 && module.m.kind === 'magazine' && !state.detonated) {
-      state.detonated = true;
-      damage.integrity = Math.max(0, damage.integrity - 150);
-      const room = damage.compartments.find(c => c.id === module.m.compartmentId)!;
-      room.breachAreaM2 = Math.min(4, room.breachAreaM2 + 2); room.breachHeight = module.m.center[1];
-    }
   }
   return `Torpedo hit${compartment ? ` · ${compartment.c.name}` : ''} · flooding breach`;
 }

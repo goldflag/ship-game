@@ -1,0 +1,17 @@
+{
+  "armedLabels": 31,
+  "clientHeight": 584,
+  "documentWidth": 390,
+  "exitSpeedLabels": 25,
+  "fuzeLabels": 32,
+  "height": 844,
+  "overflowY": "auto",
+  "panel": {
+    "height": 702,
+    "width": 366,
+    "x": 12,
+    "y": 84
+  },
+  "scrollHeight": 4128,
+  "width": 390
+}

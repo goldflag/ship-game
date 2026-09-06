@@ -18,6 +18,7 @@ export const ARMOR_COLOR_STOPS = [
 export interface InspectionEntry {
   id: string; name: string; kind: InspectionKind; center: Vec3; size: Vec3;
   plate?: Armor['plate']; provenance?: Armor['provenance']; anchor?: Vec3;
+  cells?: { center: Vec3; size: Vec3 }[];
   surface?: AuthoredSurface;
   thicknessMm?: number; capacityM3?: number; pumpM3PerSecond?: number; hp?: number;
   /** Name of the compartment housing a module. */
@@ -58,7 +59,7 @@ export function inspectionEntries(def: ShipDefinition): InspectionEntry[] {
       size: [m.weapon.gunhouseSize[1], m.weapon.gunhouseSize[2], m.weapon.gunhouseSize[0]] as Vec3, thicknessMm: m.weapon.armorMm,
     }]),
     ...def.modules.map((m, moduleIndex) => ({ id: `module:${m.id}`, name: m.name, kind: m.kind, center: m.center, size: m.size, hp: m.hp, moduleIndex, within: def.compartments.find(c => c.id === m.compartmentId)?.name })),
-    ...def.compartments.map((c, compartmentIndex) => ({ id: `compartment:${c.id}`, name: c.name, kind: 'compartment' as const, center: c.center, size: c.size, capacityM3: c.capacityM3, pumpM3PerSecond: c.pumpM3PerSecond, compartmentIndex })),
+    ...def.compartments.map((c, compartmentIndex) => ({ id: `compartment:${c.id}`, name: c.name, kind: 'compartment' as const, center: c.center, size: c.size, cells: c.cells, capacityM3: c.capacityM3, pumpM3PerSecond: c.pumpM3PerSecond, compartmentIndex })),
   ];
 }
 export function entriesForMode(entries: InspectionEntry[], mode: InspectionMode) {
