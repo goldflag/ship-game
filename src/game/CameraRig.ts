@@ -7,7 +7,7 @@ import type { ShellView } from './ShellFollow';
 
 export type CameraMode = 'Chase' | 'Bridge' | 'Tactical';
 const NORMAL_FOV = 52;
-const MAGNIFICATIONS = [2, 4, 6, 8, 12];
+const MAGNIFICATIONS = [2, 4, 6, 8, 12, 16, 24];
 const MIN_ORBIT_ELEVATION = .08;
 const MAX_UPWARD_TILT = Math.PI / 6;
 const CAMERA_CLEARANCE = 12;

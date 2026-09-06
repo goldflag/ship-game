@@ -139,7 +139,7 @@ Mouse movement aims through the centered sailing sight while the cursor is captu
 
 ### Ship condition and helm
 
-The lower-left group combines the ship silhouette and name, live equipment-condition percentage and its bar, a circular compass with ship heading, camera bearing and selected-battery gun marks, speed in knots, a vertical engine telegraph and the rudder indicator. Equipment condition is derived from surviving modules and gun mounts; flooding and stability determine sinking separately. The selected engine order has an ivory pointer and fill; W/S step the order, Space stops, and A/D steer. Flooding appears with its measured volume when present. Coarse pointers expose hold-to-steer controls.
+The lower-left group combines the ship silhouette and name, live current / maximum HP and its proportional bar, a circular compass with ship heading, camera bearing and selected-battery gun marks, speed in knots, a vertical engine telegraph and the rudder indicator. HP represents equipment condition derived from surviving modules and gun mounts; flooding and stability determine sinking separately. The selected engine order has an ivory pointer and fill; W/S step the order, Space stops, and A/D steer. Flooding appears with its measured volume when present. Coarse pointers expose hold-to-steer controls.
 
 ### Navigation minimap
 

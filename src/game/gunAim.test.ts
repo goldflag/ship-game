@@ -35,7 +35,7 @@ test('trained turret centers stay on the reticle at every binocular magnificatio
     const sim = new CombatSimulation(shipPreset(shipId)), aim: Vec3 = [shipId === 'enterprise-cv6' ? -1800 : 1800, .5, 0];
     const mount = sim.definition.mounts[0], state = sim.player.mounts[0];
     for (let i = 0; i < 3600; i++) updateMount(mount, state, sim.definition, sim.ship, aim, FIXED_DT);
-    for (const zoom of [1, 2, 4, 6, 8, 12]) {
+    for (const zoom of [1, 2, 4, 6, 8, 12, 16, 24]) {
       const camera = new PerspectiveCamera(2 * Math.atan(Math.tan(52 * Math.PI / 360) / zoom) * 180 / Math.PI, 1.6, .25, 60000);
       camera.position.set(0, 36, 0); camera.lookAt(new Vector3(...aim)); camera.updateMatrixWorld();
       const point = gunAimPoints(sim.player, sim.definition, 'main', aim)[0];
