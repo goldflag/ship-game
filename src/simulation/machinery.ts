@@ -1,3 +1,5 @@
+import { waterLevel } from './stability';
+import { localToWorld } from './geometry';
 import type { Module, ShipDefinition } from '../ships/blueprint';
 import type { Combatant } from './damage';
 
@@ -8,8 +10,8 @@ export function equipmentCondition(actor: Combatant, def: ShipDefinition, module
   if (module.immersionToleranceM !== undefined) {
     const room = def.compartments.find(c => c.id === module.compartmentId)!;
     const water = actor.damage.compartments.find(c => c.id === room.id)!.waterM3;
-    const waterHeight = room.center[1] - room.size[1] / 2 + water / room.capacityM3 * room.size[1];
-    if (water > 0 && waterHeight >= module.center[1] - module.size[1] / 2 + module.immersionToleranceM) return { availability: 0, reason: 'flooded' };
+    const waterHeight = waterLevel(actor, def, def.compartments.indexOf(room));
+    if (water > 0 && waterHeight >= localToWorld([module.center[0], module.center[1] - module.size[1] / 2 + module.immersionToleranceM, module.center[2]], actor.motion)[1]) return { availability: 0, reason: 'flooded' };
   }
   return { availability: hp / module.hp, reason: hp < module.hp ? 'damaged' : 'operational' };
 }

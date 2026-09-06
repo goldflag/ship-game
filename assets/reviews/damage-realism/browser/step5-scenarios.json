@@ -1,0 +1,737 @@
+{
+  "fixture": "Seeded 5v5 mixed fleet; 10 seconds warmup, 60 measured seconds; CPU only, excluding rendering. Host timing is observational.",
+  "curves": [
+    {
+      "shipId": "bismarck",
+      "calibration": {
+        "version": 1,
+        "dryCenterOfGravity": [
+          0,
+          2.508700011230303,
+          0.906180637686163
+        ],
+        "buoyancyScale": 0.8092326533892359,
+        "shellThicknessMm": 12,
+        "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Unmapped outer shell uses 12 mm steel. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
+      },
+      "samples": [
+        {
+          "degrees": 0,
+          "rightingArmM": -8.074163663177665e-17,
+          "draftOffsetM": 0.0000023158639669418334
+        },
+        {
+          "degrees": 5,
+          "rightingArmM": 0.2237801728623083,
+          "draftOffsetM": -0.0035224290937185287
+        },
+        {
+          "degrees": 10,
+          "rightingArmM": 0.46732692017548455,
+          "draftOffsetM": -0.014166139885783195
+        },
+        {
+          "degrees": 15,
+          "rightingArmM": 0.750433576611454,
+          "draftOffsetM": -0.032322513386607174
+        },
+        {
+          "degrees": 20,
+          "rightingArmM": 1.0663609958457023,
+          "draftOffsetM": -0.0513728103786707
+        },
+        {
+          "degrees": 25,
+          "rightingArmM": 1.213404314909642,
+          "draftOffsetM": -0.00905734397470951
+        },
+        {
+          "degrees": 30,
+          "rightingArmM": 1.1860518351647527,
+          "draftOffsetM": 0.10302584029734134
+        },
+        {
+          "degrees": 35,
+          "rightingArmM": 1.0205508894691016,
+          "draftOffsetM": 0.2595828761905432
+        },
+        {
+          "degrees": 40,
+          "rightingArmM": 0.7471215359127987,
+          "draftOffsetM": 0.4391179143637419
+        },
+        {
+          "degrees": 45,
+          "rightingArmM": 0.3968424737710454,
+          "draftOffsetM": 0.6317839012295008
+        },
+        {
+          "degrees": 50,
+          "rightingArmM": -0.012603408000660066,
+          "draftOffsetM": 0.8256124518066645
+        },
+        {
+          "degrees": 55,
+          "rightingArmM": -0.4632793257411967,
+          "draftOffsetM": 1.015114968493581
+        },
+        {
+          "degrees": 60,
+          "rightingArmM": -0.9400977762312992,
+          "draftOffsetM": 1.1982210689038038
+        },
+        {
+          "degrees": 65,
+          "rightingArmM": -1.430935861782864,
+          "draftOffsetM": 1.3730271128565072
+        },
+        {
+          "degrees": 70,
+          "rightingArmM": -1.9258887469050345,
+          "draftOffsetM": 1.538083369508386
+        },
+        {
+          "degrees": 75,
+          "rightingArmM": -2.4167055542101616,
+          "draftOffsetM": 1.6925098105520013
+        },
+        {
+          "degrees": 80,
+          "rightingArmM": -2.896651138517068,
+          "draftOffsetM": 1.8365056002885105
+        },
+        {
+          "degrees": 85,
+          "rightingArmM": -3.3600451540326377,
+          "draftOffsetM": 1.9708581324666739
+        },
+        {
+          "degrees": 90,
+          "rightingArmM": -3.800755484782988,
+          "draftOffsetM": 2.0944557923823597
+        },
+        {
+          "degrees": 95,
+          "rightingArmM": -4.212479416104542,
+          "draftOffsetM": 2.206173070147634
+        },
+        {
+          "degrees": 100,
+          "rightingArmM": -4.590251079246853,
+          "draftOffsetM": 2.3058756456524128
+        },
+        {
+          "degrees": 105,
+          "rightingArmM": -4.928545340700377,
+          "draftOffsetM": 2.3908771166950467
+        },
+        {
+          "degrees": 110,
+          "rightingArmM": -5.2221631537842885,
+          "draftOffsetM": 2.460742100849747
+        },
+        {
+          "degrees": 115,
+          "rightingArmM": -5.465338566372031,
+          "draftOffsetM": 2.5147989975661034
+        },
+        {
+          "degrees": 120,
+          "rightingArmM": -5.6519207469956605,
+          "draftOffsetM": 2.5520288266986606
+        },
+        {
+          "degrees": 125,
+          "rightingArmM": -5.77473432944303,
+          "draftOffsetM": 2.5722741094976667
+        },
+        {
+          "degrees": 130,
+          "rightingArmM": -5.824624719174375,
+          "draftOffsetM": 2.5756923247128727
+        },
+        {
+          "degrees": 135,
+          "rightingArmM": -5.788714592874129,
+          "draftOffsetM": 2.5626725374907258
+        },
+        {
+          "degrees": 140,
+          "rightingArmM": -5.648078964460329,
+          "draftOffsetM": 2.53437731154263
+        }
+      ]
+    },
+    {
+      "shipId": "yamato",
+      "calibration": {
+        "version": 1,
+        "dryCenterOfGravity": [
+          0,
+          1.8890662123933635,
+          1.0875106578300275
+        ],
+        "buoyancyScale": 0.8372481388387262,
+        "shellThicknessMm": 12,
+        "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Unmapped outer shell uses 12 mm steel. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
+      },
+      "samples": [
+        {
+          "degrees": 0,
+          "rightingArmM": 5.0878352771899025e-17,
+          "draftOffsetM": 0.0000024677440524101255
+        },
+        {
+          "degrees": 5,
+          "rightingArmM": 0.24056910530699702,
+          "draftOffsetM": 0.0000024677440524101255
+        },
+        {
+          "degrees": 10,
+          "rightingArmM": 0.49910928601694654,
+          "draftOffsetM": 0.0000024677440524101255
+        },
+        {
+          "degrees": 15,
+          "rightingArmM": 0.7951731291672579,
+          "draftOffsetM": 0.0000024677440524101255
+        },
+        {
+          "degrees": 20,
+          "rightingArmM": 1.1497270380399316,
+          "draftOffsetM": 0.0010438557341694832
+        },
+        {
+          "degrees": 25,
+          "rightingArmM": 1.5397501941425948,
+          "draftOffsetM": 0.02941304136067629
+        },
+        {
+          "degrees": 30,
+          "rightingArmM": 1.7986246938413313,
+          "draftOffsetM": 0.17391426209360358
+        },
+        {
+          "degrees": 35,
+          "rightingArmM": 1.8265514597614974,
+          "draftOffsetM": 0.3783372439071535
+        },
+        {
+          "degrees": 40,
+          "rightingArmM": 1.6560874677785318,
+          "draftOffsetM": 0.5899462964013218
+        },
+        {
+          "degrees": 45,
+          "rightingArmM": 1.3523359761905334,
+          "draftOffsetM": 0.7989592821523546
+        },
+        {
+          "degrees": 50,
+          "rightingArmM": 0.9592300155325981,
+          "draftOffsetM": 1.0038560708239674
+        },
+        {
+          "degrees": 55,
+          "rightingArmM": 0.5044863841292386,
+          "draftOffsetM": 1.2047106947377326
+        },
+        {
+          "degrees": 60,
+          "rightingArmM": 0.007783118243654075,
+          "draftOffsetM": 1.4004176045581695
+        },
+        {
+          "degrees": 65,
+          "rightingArmM": -0.5160205649514176,
+          "draftOffsetM": 1.588484378792345
+        },
+        {
+          "degrees": 70,
+          "rightingArmM": -1.0556132626270085,
+          "draftOffsetM": 1.7663494991138577
+        },
+        {
+          "degrees": 75,
+          "rightingArmM": -1.6015680316929342,
+          "draftOffsetM": 1.9315205440297725
+        },
+        {
+          "degrees": 80,
+          "rightingArmM": -2.145249816524685,
+          "draftOffsetM": 2.0826994801685217
+        },
+        {
+          "degrees": 85,
+          "rightingArmM": -2.67889682227492,
+          "draftOffsetM": 2.2188350485637782
+        },
+        {
+          "degrees": 90,
+          "rightingArmM": -3.195093650367794,
+          "draftOffsetM": 2.3385008931532507
+        },
+        {
+          "degrees": 95,
+          "rightingArmM": -3.6870242117167606,
+          "draftOffsetM": 2.4407000453397627
+        },
+        {
+          "degrees": 100,
+          "rightingArmM": -4.148067748268264,
+          "draftOffsetM": 2.5248451820388436
+        },
+        {
+          "degrees": 105,
+          "rightingArmM": -4.571657020329891,
+          "draftOffsetM": 2.590669786892831
+        },
+        {
+          "degrees": 110,
+          "rightingArmM": -4.9510246696477,
+          "draftOffsetM": 2.6381195695325728
+        },
+        {
+          "degrees": 115,
+          "rightingArmM": -5.279036610015579,
+          "draftOffsetM": 2.6672981752082707
+        },
+        {
+          "degrees": 120,
+          "rightingArmM": -5.548200700908181,
+          "draftOffsetM": 2.6796911858394727
+        },
+        {
+          "degrees": 125,
+          "rightingArmM": -5.74896036543071,
+          "draftOffsetM": 2.6764732475951307
+        },
+        {
+          "degrees": 130,
+          "rightingArmM": -5.868551369683878,
+          "draftOffsetM": 2.6584439095482226
+        },
+        {
+          "degrees": 135,
+          "rightingArmM": -5.888835889297853,
+          "draftOffsetM": 2.6261362044140695
+        },
+        {
+          "degrees": 140,
+          "rightingArmM": -5.7840019965124245,
+          "draftOffsetM": 2.579076325334608
+        }
+      ]
+    },
+    {
+      "shipId": "baltimore",
+      "calibration": {
+        "version": 1,
+        "dryCenterOfGravity": [
+          0,
+          0.6300077227073968,
+          8.192563507029314
+        ],
+        "buoyancyScale": 0.9543036418776695,
+        "shellThicknessMm": 12,
+        "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Unmapped outer shell uses 12 mm steel. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
+      },
+      "samples": [
+        {
+          "degrees": 0,
+          "rightingArmM": 1.1529631790133243e-17,
+          "draftOffsetM": 0.0000018741145730018614
+        },
+        {
+          "degrees": 5,
+          "rightingArmM": 0.13264227122057526,
+          "draftOffsetM": -0.0032553370133042332
+        },
+        {
+          "degrees": 10,
+          "rightingArmM": 0.2717558230025934,
+          "draftOffsetM": -0.012802076648175714
+        },
+        {
+          "degrees": 15,
+          "rightingArmM": 0.4181038364841514,
+          "draftOffsetM": -0.03185057716816664
+        },
+        {
+          "degrees": 20,
+          "rightingArmM": 0.5627060517582047,
+          "draftOffsetM": -0.06936285446137189
+        },
+        {
+          "degrees": 25,
+          "rightingArmM": 0.711412045302212,
+          "draftOffsetM": -0.12768904820233581
+        },
+        {
+          "degrees": 30,
+          "rightingArmM": 0.8692855830378927,
+          "draftOffsetM": -0.2103337526425719
+        },
+        {
+          "degrees": 35,
+          "rightingArmM": 1.010669923662594,
+          "draftOffsetM": -0.3042831161871552
+        },
+        {
+          "degrees": 40,
+          "rightingArmM": 1.0865337416037255,
+          "draftOffsetM": -0.3842178509548305
+        },
+        {
+          "degrees": 45,
+          "rightingArmM": 1.0951861646772658,
+          "draftOffsetM": -0.4475591752931475
+        },
+        {
+          "degrees": 50,
+          "rightingArmM": 1.043748506484795,
+          "draftOffsetM": -0.4956676963821053
+        },
+        {
+          "degrees": 55,
+          "rightingArmM": 0.9432129502301805,
+          "draftOffsetM": -0.5311334405615926
+        },
+        {
+          "degrees": 60,
+          "rightingArmM": 0.8056326693418787,
+          "draftOffsetM": -0.5552158128246666
+        },
+        {
+          "degrees": 65,
+          "rightingArmM": 0.640761681955659,
+          "draftOffsetM": -0.5692004557684063
+        },
+        {
+          "degrees": 70,
+          "rightingArmM": 0.45704451923938794,
+          "draftOffsetM": -0.5740319231376051
+        },
+        {
+          "degrees": 75,
+          "rightingArmM": 0.26122128293969926,
+          "draftOffsetM": -0.570928389404714
+        },
+        {
+          "degrees": 80,
+          "rightingArmM": 0.059677484126656744,
+          "draftOffsetM": -0.5609168693557381
+        },
+        {
+          "degrees": 85,
+          "rightingArmM": -0.14167750788376726,
+          "draftOffsetM": -0.5451780551716685
+        },
+        {
+          "degrees": 90,
+          "rightingArmM": -0.34151111965483183,
+          "draftOffsetM": -0.5288994959905744
+        },
+        {
+          "degrees": 95,
+          "rightingArmM": -0.5413871089558606,
+          "draftOffsetM": -0.5183857132360339
+        },
+        {
+          "degrees": 100,
+          "rightingArmM": -0.7398483375621545,
+          "draftOffsetM": -0.5099746870324016
+        },
+        {
+          "degrees": 105,
+          "rightingArmM": -0.9336670333497211,
+          "draftOffsetM": -0.5015149338498711
+        },
+        {
+          "degrees": 110,
+          "rightingArmM": -1.1179711352093418,
+          "draftOffsetM": -0.49335129076987494
+        },
+        {
+          "degrees": 115,
+          "rightingArmM": -1.2867817578040879,
+          "draftOffsetM": -0.48589606299847354
+        },
+        {
+          "degrees": 120,
+          "rightingArmM": -1.4335650547679277,
+          "draftOffsetM": -0.4800000985518097
+        },
+        {
+          "degrees": 125,
+          "rightingArmM": -1.5508848360090268,
+          "draftOffsetM": -0.4769340471103787
+        },
+        {
+          "degrees": 130,
+          "rightingArmM": -1.629866716349388,
+          "draftOffsetM": -0.4785382891848682
+        },
+        {
+          "degrees": 135,
+          "rightingArmM": -1.6623989405671278,
+          "draftOffsetM": -0.4891007989183067
+        },
+        {
+          "degrees": 140,
+          "rightingArmM": -1.6386318250526946,
+          "draftOffsetM": -0.513453043679893
+        }
+      ]
+    },
+    {
+      "shipId": "enterprise-cv6",
+      "calibration": {
+        "version": 1,
+        "dryCenterOfGravity": [
+          0,
+          1.2687229640541724,
+          2.8600793199395835
+        ],
+        "buoyancyScale": 0.997449681765242,
+        "shellThicknessMm": 12,
+        "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Unmapped outer shell uses 12 mm steel. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
+      },
+      "samples": [
+        {
+          "degrees": 0,
+          "rightingArmM": 2.5954724796837183e-18,
+          "draftOffsetM": 0.000002247760444879532
+        },
+        {
+          "degrees": 5,
+          "rightingArmM": 0.17192052898447024,
+          "draftOffsetM": -0.008543737450987101
+        },
+        {
+          "degrees": 10,
+          "rightingArmM": 0.35072988563748175,
+          "draftOffsetM": -0.03767021729573607
+        },
+        {
+          "degrees": 15,
+          "rightingArmM": 0.5510381407348752,
+          "draftOffsetM": -0.08878428981229664
+        },
+        {
+          "degrees": 20,
+          "rightingArmM": 0.7825701198835863,
+          "draftOffsetM": -0.16602632974013687
+        },
+        {
+          "degrees": 25,
+          "rightingArmM": 1.0685831904829501,
+          "draftOffsetM": -0.28000576637908814
+        },
+        {
+          "degrees": 30,
+          "rightingArmM": 1.4254498937135596,
+          "draftOffsetM": -0.44807980588451024
+        },
+        {
+          "degrees": 35,
+          "rightingArmM": 1.8257675406727518,
+          "draftOffsetM": -0.6762095089562237
+        },
+        {
+          "degrees": 40,
+          "rightingArmM": 2.073155767634435,
+          "draftOffsetM": -0.8922282787509264
+        },
+        {
+          "degrees": 45,
+          "rightingArmM": 2.194138040769995,
+          "draftOffsetM": -1.0990582038469614
+        },
+        {
+          "degrees": 50,
+          "rightingArmM": 2.223193147847267,
+          "draftOffsetM": -1.3001338622041048
+        },
+        {
+          "degrees": 55,
+          "rightingArmM": 2.17368386843437,
+          "draftOffsetM": -1.488257924877852
+        },
+        {
+          "degrees": 60,
+          "rightingArmM": 2.061207384151605,
+          "draftOffsetM": -1.6585887158699335
+        },
+        {
+          "degrees": 65,
+          "rightingArmM": 1.9010658533571598,
+          "draftOffsetM": -1.8086402121283114
+        },
+        {
+          "degrees": 70,
+          "rightingArmM": 1.703825512663799,
+          "draftOffsetM": -1.9386326941765843
+        },
+        {
+          "degrees": 75,
+          "rightingArmM": 1.4726776661115355,
+          "draftOffsetM": -2.0518703698687255
+        },
+        {
+          "degrees": 80,
+          "rightingArmM": 1.205939821125252,
+          "draftOffsetM": -2.1569306930623946
+        },
+        {
+          "degrees": 85,
+          "rightingArmM": 0.9059269461087627,
+          "draftOffsetM": -2.259401596223563
+        },
+        {
+          "degrees": 90,
+          "rightingArmM": 0.5767959196807455,
+          "draftOffsetM": -2.363499877946824
+        },
+        {
+          "degrees": 95,
+          "rightingArmM": 0.2329231191054768,
+          "draftOffsetM": -2.463300441699475
+        },
+        {
+          "degrees": 100,
+          "rightingArmM": -0.11519284631552518,
+          "draftOffsetM": -2.555921658591181
+        },
+        {
+          "degrees": 105,
+          "rightingArmM": -0.4586695456748091,
+          "draftOffsetM": -2.6394619232855745
+        },
+        {
+          "degrees": 110,
+          "rightingArmM": -0.789263449893078,
+          "draftOffsetM": -2.7128108421228823
+        },
+        {
+          "degrees": 115,
+          "rightingArmM": -1.097766983070456,
+          "draftOffsetM": -2.775298582490534
+        },
+        {
+          "degrees": 120,
+          "rightingArmM": -1.374142874444852,
+          "draftOffsetM": -2.827212857725471
+        },
+        {
+          "degrees": 125,
+          "rightingArmM": -1.6078647727528772,
+          "draftOffsetM": -2.8695247003398836
+        },
+        {
+          "degrees": 130,
+          "rightingArmM": -1.7876914107096407,
+          "draftOffsetM": -2.905776580794901
+        },
+        {
+          "degrees": 135,
+          "rightingArmM": -1.9033046903568325,
+          "draftOffsetM": -2.939852629139274
+        },
+        {
+          "degrees": 140,
+          "rightingArmM": -1.9483893382132385,
+          "draftOffsetM": -2.9804202096484604
+        }
+      ]
+    }
+  ],
+  "timing": {
+    "meanMs": 1.5165768780555529,
+    "p95Ms": 2.2557920000003833,
+    "p99Ms": 2.9232090000000426,
+    "worstMs": 39.113374999999905
+  },
+  "fleet": [
+    {
+      "shipId": "bismarck",
+      "team": "friendly",
+      "status": "operational",
+      "waterM3": 0,
+      "equipment": 0.9944968553459119,
+      "ammo": 2760
+    },
+    {
+      "shipId": "yamato",
+      "team": "friendly",
+      "status": "operational",
+      "waterM3": 0,
+      "equipment": 0.8199022312998798,
+      "ammo": 1761
+    },
+    {
+      "shipId": "baltimore",
+      "team": "friendly",
+      "status": "operational",
+      "waterM3": 0,
+      "equipment": 1,
+      "ammo": 5498
+    },
+    {
+      "shipId": "enterprise-cv6",
+      "team": "friendly",
+      "status": "operational",
+      "waterM3": 0,
+      "equipment": 0.9958988629163864,
+      "ammo": 69612
+    },
+    {
+      "shipId": "bismarck",
+      "team": "friendly",
+      "status": "operational",
+      "waterM3": 0.07471108052271493,
+      "equipment": 1,
+      "ammo": 2704
+    },
+    {
+      "shipId": "bismarck",
+      "team": "enemy",
+      "status": "operational",
+      "waterM3": 0,
+      "equipment": 1,
+      "ammo": 2704
+    },
+    {
+      "shipId": "yamato",
+      "team": "enemy",
+      "status": "operational",
+      "waterM3": 0,
+      "equipment": 0.8378761059779881,
+      "ammo": 1761
+    },
+    {
+      "shipId": "baltimore",
+      "team": "enemy",
+      "status": "operational",
+      "waterM3": 0,
+      "equipment": 0.999460748321606,
+      "ammo": 5498
+    },
+    {
+      "shipId": "enterprise-cv6",
+      "team": "enemy",
+      "status": "operational",
+      "waterM3": 0,
+      "equipment": 0.9977480911388186,
+      "ammo": 69612
+    },
+    {
+      "shipId": "bismarck",
+      "team": "enemy",
+      "status": "operational",
+      "waterM3": 0,
+      "equipment": 1,
+      "ammo": 2704
+    }
+  ]
+}

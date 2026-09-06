@@ -1,0 +1,62 @@
+[
+  {
+    "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
+    "maxMuzzleErrorM": 0.002160644052370134,
+    "shipId": "bismarck",
+    "trainFraction": -1
+  },
+  {
+    "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
+    "maxMuzzleErrorM": 0.002165962012911933,
+    "shipId": "bismarck",
+    "trainFraction": 1
+  },
+  {
+    "contentHash": "799a3eaa75d239d13f28e458e1d9564b1daa41783fbe62b4f59fb189a2dd7437",
+    "maxMuzzleErrorM": 0.0027435334140913635,
+    "shipId": "yamato",
+    "trainFraction": -1
+  },
+  {
+    "contentHash": "799a3eaa75d239d13f28e458e1d9564b1daa41783fbe62b4f59fb189a2dd7437",
+    "maxMuzzleErrorM": 0.00274611857590037,
+    "shipId": "yamato",
+    "trainFraction": 1
+  },
+  {
+    "contentHash": "5c544087c5207f8075d05282852b30d1ad8b8d2d98b1e679d865bb11c0aa5681",
+    "maxMuzzleErrorM": 0.0013164041414398498,
+    "shipId": "baltimore",
+    "trainFraction": -1
+  },
+  {
+    "contentHash": "5c544087c5207f8075d05282852b30d1ad8b8d2d98b1e679d865bb11c0aa5681",
+    "maxMuzzleErrorM": 0.0013164041414398498,
+    "shipId": "baltimore",
+    "trainFraction": 1
+  },
+  {
+    "contentHash": "2b7b3bd26e123922985ca06a381e8a36edff58c85c535620686398f7563d1a26",
+    "maxMuzzleErrorM": 3.225235557352997e-05,
+    "shipId": "enterprise-cv6",
+    "trainFraction": -1
+  },
+  {
+    "contentHash": "2b7b3bd26e123922985ca06a381e8a36edff58c85c535620686398f7563d1a26",
+    "maxMuzzleErrorM": 3.021119333964585e-05,
+    "shipId": "enterprise-cv6",
+    "trainFraction": 1
+  },
+  {
+    "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
+    "maxMuzzleErrorM": 0.002160644052370134,
+    "shipId": "bismarck",
+    "trainFraction": -1
+  },
+  {
+    "contentHash": "df0f2b0731bb2afe8db2fca34801fc633d87d95aace0c860117876155ca322c1",
+    "maxMuzzleErrorM": 0.002165962012911933,
+    "shipId": "bismarck",
+    "trainFraction": 1
+  }
+]

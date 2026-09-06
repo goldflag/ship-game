@@ -46,10 +46,12 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
         {c.modules.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
         <optgroup label="Gun mounts">{c.targetMounts.map(m => <option key={m.id} value={`mount:${m.id}`}>{m.name}{m.condition <= 0 ? ' · Disabled' : ''}</option>)}</optgroup>
       </select></label>
-      <div className="target-condition"><strong>{c.targetName}{c.targetSunk ? ' · Sinking' : ''}</strong><span>{(c.targetRange / 1000).toFixed(2)} km</span></div>
+      <div className="target-condition"><strong>{c.targetName}{` · ${c.targetStatus}`}</strong><span>{(c.targetRange / 1000).toFixed(2)} km</span></div>
       <dl className="damage-readout">
-        <div><dt>Structure</dt><dd>{Math.round(c.targetIntegrity * 100)}%</dd></div>
+        <div><dt>Equipment</dt><dd>{Math.round(c.targetIntegrity * 100)}%</dd></div>
         <div><dt>Propulsion</dt><dd>{Math.round(c.targetPower * 100)}%</dd></div>
+        <div><dt>List / trim</dt><dd>{c.targetList.toFixed(1)}° / {c.targetTrim.toFixed(1)}°</dd></div>
+        <div><dt>Draft change</dt><dd>{c.targetDraftChange.toFixed(2)} m</dd></div>
         <div><dt>Fires</dt><dd>{c.targetFires}</dd></div>
         <div><dt>Flooding</dt><dd>{c.targetWater.toFixed(1)} m³</dd></div>
       </dl>

@@ -26,7 +26,7 @@ export function botAmmunition(target: FleetActor, mount: MountDefinition, state:
 
 /** Stable nearest-opponent selection, with hysteresis to prevent target flicker. */
 export function botTarget(actor: FleetActor, actors: readonly FleetActor[]): FleetActor | undefined {
-  const enemies = actors.filter(other => other.team !== actor.team && !other.damage.sunk);
+  const enemies = actors.filter(other => other.team !== actor.team && !other.damage.sunk && !other.damage.stability.combatLost);
   const nearest = enemies.reduce<FleetActor | undefined>((best, other) => !best || distance(actor, other) < distance(actor, best) ? other : best, undefined);
   const previous = enemies.find(other => other.motion.id === actor.targetId);
   return previous && nearest && distance(actor, previous) <= distance(actor, nearest) * 1.25 ? previous : nearest;
