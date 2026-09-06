@@ -61,6 +61,7 @@ export class Game {
   get battery(): Battery { return this.selectedBattery; }
   set battery(value: Battery) {
     if (value === 'torpedo' && !this.definition.torpedoTubes?.length) return;
+    if (value === 'depth-charge' && !this.definition.depthChargeLaunchers?.length) return;
     this.selectedBattery = value;
   }
   aimModule: string;
@@ -94,6 +95,7 @@ export class Game {
   private initialization?: Promise<void>;
   private frameTask?: Promise<void>;
   private articulationOriginal?: CombatSimulation['player']['mounts'];
+  private articulationLaunchers?: CombatSimulation['player']['torpedoLaunchers'];
 
   constructor(private host: HTMLElement, private settings: GameSettings, private callbacks: GameCallbacks, definition = selectedShip, readonly audio?: GameAudio) {
     this.definition = definition;
@@ -571,6 +573,8 @@ export class Game {
   private restoreArticulation(): void {
     if (this.articulationOriginal) {
       this.simulation.player.mounts.forEach((m, i) => Object.assign(m, this.articulationOriginal![i]));
+      this.simulation.player.torpedoLaunchers?.forEach((l, i) => Object.assign(l, this.articulationLaunchers?.[i]));
+      this.articulationLaunchers = undefined;
       this.articulationOriginal = undefined;
       this.playerView?.update();
     }
@@ -582,6 +586,8 @@ export class Game {
     else {
       if (![pose.trainFraction, pose.elevationFraction, pose.recoilFraction].every(Number.isFinite)) throw new Error('Review fractions must be finite.');
       this.articulationOriginal ??= structuredClone(this.simulation.player.mounts);
+      this.articulationLaunchers ??= structuredClone(this.simulation.player.torpedoLaunchers);
+      this.simulation.player.torpedoLaunchers?.forEach(l => { l.train = THREE.MathUtils.clamp(pose.trainFraction, -1, 1) * 140 * Math.PI / 180; });
       this.simulation.player.mounts.forEach((state, i) => {
         const w = this.definition.mounts[i].weapon;
         state.train = THREE.MathUtils.clamp(pose.trainFraction, -1, 1) * w.traverseDeg * Math.PI / 180;
@@ -603,6 +609,9 @@ export class Game {
       audio: this.audio?.diagnostics(),
       portInspection: this.playerView?.inspection.mode, selectedVolume: this.playerView?.inspection.selectedId, hoveredVolume: this.playerView?.inspection.hoveredId,
       maxMuzzleErrorM: Math.max(0, ...this.fleetViews.flatMap(view => view.muzzleErrors())),
+      maxTorpedoMuzzleErrorM: Math.max(0, ...this.fleetViews.flatMap(view => view.torpedoMuzzleErrors())),
+      torpedoLaunchers: this.simulation.player.torpedoLaunchers,
+      depthCharges: this.simulation.depthCharges.map(c => ({ id: c.id, ownerId: c.ownerId, position: [...c.position], submerged: c.submerged, detonationDepthM: c.weapon.detonationDepthM })),
       combat: this.simulation.telemetry(this.battery, this.currentAim),
       fleet: this.simulation.actors.map(actor => ({ id: actor.motion.id, definitionId: actor.definition.id, team: actor.team, controller: actor.controller, targetId: actor.targetId, motion: { ...actor.motion }, ammo: actor.mounts.reduce((n, m) => n + m.ammo, 0), integrity: actor.damage.integrity })),
       renderedShips: this.fleetViews.map(view => ({ id: view.actor.motion.id, visible: view.root.visible,

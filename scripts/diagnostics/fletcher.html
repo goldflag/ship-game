@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fletcher weapons · runtime review</title>
+<style>html,body,#scene{margin:0;width:100%;height:100%;overflow:hidden;background:#132d38}#hud{position:fixed;inset:0;pointer-events:none}#status{position:fixed;top:20px;left:20px;color:white}</style>
+<div id="scene"></div><div id="hud"></div><output id="status">Preparing Fletcher…</output>
+<script type="module">
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import { Game } from '/src/game/Game.ts';
+import { GameAudio } from '/src/game/GameAudio.ts';
+import { shipPreset } from '/src/ships/presets.ts';
+import { ShipContext } from '/src/ui/ShipContext.ts';
+import { FleetHud } from '/src/ui/FleetHud.tsx';
+import { defaultKeybindings } from '/src/game/keybindings.ts';
+import '/src/ui/styles.css';
+import '/src/ui/ShipLabels.css';
+import '/src/ui/GunAimIndicators.css';
+import '/src/ui/HitDirectionIndicators.css';
+import '@fontsource/barlow/400.css';
+import '@fontsource/barlow/500.css';
+import '@fontsource/barlow/600.css';
+import '@fontsource/barlow-condensed/500.css';
+import '@fontsource/barlow-condensed/600.css';
+const definition=shipPreset('fletcher'), status=document.querySelector('#status');
+const hud=createRoot(document.querySelector('#hud')), bindings=defaultKeybindings();
+let ready, game; const loaded=new Promise(resolve=>ready=resolve);
+const audio = new GameAudio({muted:true,master:.65,effects:.8,interface:.65});
+const paint=()=>hud.render(React.createElement(ShipContext.Provider,{value:definition},React.createElement(FleetHud,{game,bindings,visible:true,data:{ship:game.simulation.ship,order:5,camera:'Chase',fps:60,backend:game.water?.backend??'webgpu',trail:[],pointerLocked:true,combat:game.simulation.telemetry(game.battery,game.currentAim)}})));
+game=new Game(document.querySelector('#scene'),{quality:'medium',sea:'Fair',resolution:1},{progress:label=>status.textContent=label,ready,telemetry:()=>{},pause:()=>{},hud:()=>{},error:message=>{window.reviewError=message;status.textContent=message;}},definition,audio);
+window.reviewGame=game;game.start();await loaded;
+try {
+game.setInPort(true);
+await game.prepareBattle({playerShipId:'fletcher',friendlyBots:[],enemies:['type-viic'],spawnDistance:1000});
+game.setInPort(false);game.setPaused(true);game.rig.update=()=>{};
+const events=[];
+function setup(mode='depth-charge') {
+ game.simulation.reset();game.effects.reset();events.length=0;
+ const sim=game.simulation;sim.actors.forEach(a=>{if(a!==sim.player)a.controller='idle';});
+ Object.assign(sim.ship,{x:0,z:0,heading:0,speed:12});
+ Object.assign(sim.target.motion,{x:mode==='torpedo'?650:25,z:mode==='torpedo'?0:62,heading:Math.PI/2});
+ game.battery=mode;game.manualAim=false;game.aimModule='';game.currentAim=[sim.target.motion.x,.5,sim.target.motion.z];
+ game.camera.position.set(115,43,110);game.camera.lookAt(0,0,12);game.camera.updateProjectionMatrix();game.camera.updateMatrixWorld();
+ game.fleetViews.forEach(v=>v.snap());paint();return game.diagnostics();
+}
+function advance(seconds,fire=false) {
+ const sim=game.simulation;
+ for(let i=0;i<Math.round(seconds*60);i++) {
+  sim.step({throttle:1,rudder:0},{battery:game.battery,aim:game.currentAim,fire});
+  for(const event of sim.events)if(!events.some(e=>e.sequence===event.sequence))events.push(event);
+  game.effects.update(sim,1/60,game.camera);
+ }
+ game.fleetViews.forEach(v=>v.snap());paint();return {...game.diagnostics(),reviewEvents:events};
+}
+window.fletcherReview={game,setup,advance,paint,events};setup();status.hidden=true;
+window.reviewReady=true;
+} catch(error) {window.reviewError=error.message;status.textContent=error.stack;throw error;}
+</script>
+</html>

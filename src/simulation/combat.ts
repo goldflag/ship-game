@@ -8,12 +8,14 @@ import { botAim, botDidFire, botGunRange, botHelm, botReadyToFire, botTarget, bo
 import { createDamage, hitShip, systemHealth, updateFlooding, type BallisticEffectData, type DamageEvent, type Shell } from './damage';
 import { resolveShipCollisions } from './collisions';
 import { mayReachHull, shellHullRadius } from './spatial';
-import { clearTorpedoLane, createTubeState, damageTorpedoHit, firstTorpedoHit, torpedoIntercept, tubeSolution, type Torpedo } from './torpedoes';
+import { clearTorpedoLane, createTubeState, damageTorpedoHit, firstTorpedoHit, torpedoIntercept, trainTorpedoLaunchers, tubeLocalPosition, tubeSolution, type Torpedo } from './torpedoes';
+import { botShouldDropDepthCharge, createDepthChargeLauncherState, damageDepthCharge, launchDepthCharge, stepDepthCharge, updateDepthChargeLauncher, type DepthCharge } from './depthCharges';
 
 export interface CombatIntent { aim: Vec3; fire: boolean; battery: Battery; }
 export interface CombatEvent extends BallisticEffectData {
-  sequence: number; tick: number; kind: DamageEvent['kind'] | 'shot' | 'splash' | 'torpedo-launch' | 'torpedo-hit' | 'torpedo-dud' | 'torpedo-expired'; position: Vec3; message: string; shipId: string;
+  sequence: number; tick: number; kind: DamageEvent['kind'] | 'shot' | 'splash' | 'torpedo-launch' | 'torpedo-hit' | 'torpedo-dud' | 'torpedo-expired' | 'depth-charge-launch' | 'depth-charge-splash' | 'depth-charge-blast' | 'depth-charge-hit'; position: Vec3; message: string; shipId: string;
   torpedo?: { id: number; velocity: Vec3; diameterM: number };
+  depthCharge?: { id: number; radiusM: number };
 }
 export interface CombatTelemetry {
   battery: Battery; range: number; ready: number; total: number; targetIntegrity: number; targetWater: number;
@@ -41,6 +43,7 @@ export class CombatSimulation {
   result: BattleResult = 'active';
   readonly shells: Shell[] = [];
   readonly torpedoes: Torpedo[] = [];
+  readonly depthCharges: DepthCharge[] = [];
   readonly events: CombatEvent[] = [];
   targetUnderway = false;
   tick = 0;
@@ -89,6 +92,8 @@ export class CombatSimulation {
   private createActor(id: string, definition: ShipDefinition, team: Team, controller: FleetActor['controller']): FleetActor {
     return { definition, team, controller, motion: createShipState(id), mounts: definition.mounts.map(createMountState), damage: createDamage(definition),
       torpedoTubes: (definition.torpedoTubes ?? []).map(createTubeState), tubeLaunchCooldown: 0,
+      torpedoLaunchers: (definition.torpedoLaunchers ?? []).map(l => ({ id: l.id, train: 0 })),
+      depthChargeLaunchers: (definition.depthChargeLaunchers ?? []).map(createDepthChargeLauncherState), depthChargeCooldown: 0,
       ...(controller === 'bot' ? { bot: createBotState(id, definition, this.seed) } : {}) };
   }
   private createTarget() {
@@ -97,7 +102,7 @@ export class CombatSimulation {
     return target;
   }
   private clearCombat(): void {
-    this.targetUnderway = false; this.shells.length = 0; this.torpedoes.length = 0;
+    this.targetUnderway = false; this.shells.length = 0; this.torpedoes.length = 0; this.depthCharges.length = 0;
     this.events.length = 0; this.fireQueued = false;
     this.playerDamageDealt = 0; this.playerFrags = 0; this.lastDamager.clear();
   }
@@ -115,7 +120,7 @@ export class CombatSimulation {
     const aim = localToWorld(m ? [m.center[0], .5, m.center[2]] : [0, .5, 0], this.target.motion);
     if (battery === 'torpedo' && this.definition.torpedoTubes?.length) {
       const tube = this.definition.torpedoTubes[0];
-      return torpedoIntercept(localToWorld(tube.position, this.ship), aim, shipVelocity(this.target), tube.weapon.speed) ?? aim;
+      return torpedoIntercept(localToWorld(tubeLocalPosition(this.player, tube), this.ship), aim, shipVelocity(this.target), tube.weapon.speed) ?? aim;
     }
     const speed = this.definition.mounts.find(m => m.battery === battery)?.weapon.muzzleSpeed ?? 820;
     const time = Math.hypot(aim[0] - this.ship.x, aim[2] - this.ship.z) / speed;
@@ -179,11 +184,13 @@ export class CombatSimulation {
         }
       });
       actor.tubeLaunchCooldown = Math.max(0, (actor.tubeLaunchCooldown ?? 0) - FIXED_DT);
+      const torpedoAim = (tube: NonNullable<ShipDefinition['torpedoTubes']>[number]) => actor === this.player ? (aimValid ? intent.aim : null) : target ? botTorpedoAim(actor, tube) : null;
+      trainTorpedoLaunchers(actor, torpedoAim, FIXED_DT);
       (def.torpedoTubes ?? []).forEach((tube, i) => {
         const state = actor.torpedoTubes![i];
-        const origin = localToWorld(tube.position, actor.motion);
-        const aim = actor === this.player ? (aimValid ? intent.aim : null) : target ? botTorpedoAim(actor, tube) : null;
+        const aim = torpedoAim(tube);
         const solution = tubeSolution(actor, tube, state, aim ?? [NaN, 0, NaN], FIXED_DT);
+        const origin = solution.origin;
         if (state.status === 'ready' && actor.tubeLaunchCooldown! > 0) state.status = 'reloading';
         if (state.status === 'ready' && actor.controller === 'bot' && aim && !clearTorpedoLane(actor, origin, aim, tube.weapon.speed, this.actors)) state.status = 'blocked';
         const fire = actor === this.player ? aimValid && intent.battery === 'torpedo' && (intent.fire || this.fireQueued) : actor.controller === 'bot' && !!target && botReadyToFire(actor);
@@ -191,9 +198,22 @@ export class CombatSimulation {
         const velocity: Vec3 = [Math.sin(solution.heading) * tube.weapon.speed, 0, -Math.cos(solution.heading) * tube.weapon.speed];
         const torpedo: Torpedo = { id: ++this.shellSequence, ownerId: actor.motion.id, tubeId: tube.id, position: origin, velocity, age: 0, distance: 0, weapon: tube.weapon };
         this.torpedoes.push(torpedo);
-        state.ammo--; state.reload = tube.weapon.reloadSeconds; state.status = 'reloading';
+        state.ammo--; state.reload = state.ammo ? tube.weapon.reloadSeconds : 0; state.status = state.ammo ? 'reloading' : 'empty';
         actor.tubeLaunchCooldown = tube.weapon.launchIntervalSeconds;
         this.emit({ kind: 'torpedo-launch', position: [...origin], shipId: actor.motion.id, message: `${tube.name} · torpedo away`, torpedo: { id: torpedo.id, velocity: [...velocity], diameterM: tube.weapon.diameterM } });
+      });
+      actor.depthChargeCooldown = Math.max(0, (actor.depthChargeCooldown ?? 0) - FIXED_DT);
+      (def.depthChargeLaunchers ?? []).forEach((launcher, i) => {
+        const state = actor.depthChargeLaunchers![i];
+        updateDepthChargeLauncher(actor, launcher, state, FIXED_DT);
+        if (state.status !== 'ready' || this.depthCharges.length >= 128) return;
+        const fire = actor === this.player ? intent.battery === 'depth-charge' && (intent.fire || this.fireQueued) : actor.controller === 'bot' && target && botReadyToFire(actor) && botShouldDropDepthCharge(actor, target, launcher, this.actors);
+        if (!fire) return;
+        const charge = launchDepthCharge(actor, launcher, ++this.shellSequence);
+        this.depthCharges.push(charge);
+        state.ammo--; state.reload = state.ammo ? launcher.weapon.reloadSeconds : 0; state.status = state.ammo ? 'reloading' : 'empty';
+        actor.depthChargeCooldown = launcher.weapon.launchIntervalSeconds;
+        this.emit({ kind: 'depth-charge-launch', position: [...charge.position], shipId: actor.motion.id, message: `${launcher.name} · depth charge away`, depthCharge: { id: charge.id, radiusM: charge.weapon.blastRadiusM } });
       });
     }
     this.fireQueued = false;
@@ -238,6 +258,7 @@ export class CombatSimulation {
       if (ended || shell.age > 60) this.shells.splice(i, 1);
     }
     this.stepTorpedoes();
+    this.stepDepthCharges();
     for (const actor of this.actors) {
       const wasSunk = actor.damage.sunk;
       updateFlooding(actor, actor.definition, FIXED_DT);
@@ -259,7 +280,10 @@ export class CombatSimulation {
       const travel = Math.min(w.speed * FIXED_DT, w.rangeM - torpedo.distance);
       const to = add(from, scale(torpedo.velocity, travel / w.speed));
       // A simple depth keeper settles from the tube datum onto the selected fixed run depth.
-      to[1] += clamp(-w.runningDepthM - to[1], -.6 * FIXED_DT, .6 * FIXED_DT);
+      if (from[1] > 0) {
+        to[1] = Math.max(-w.runningDepthM, from[1] + torpedo.velocity[1] * FIXED_DT - .5 * GRAVITY * FIXED_DT ** 2);
+        torpedo.velocity[1] = to[1] > 0 ? torpedo.velocity[1] - GRAVITY * FIXED_DT : 0;
+      } else to[1] += clamp(-w.runningDepthM - to[1], -.6 * FIXED_DT, .6 * FIXED_DT);
       const hit = firstTorpedoHit(torpedo, from, to, this.actors);
       torpedo.age += FIXED_DT;
       const evidence = { id: torpedo.id, velocity: [...torpedo.velocity] as Vec3, diameterM: w.diameterM };
@@ -279,15 +303,39 @@ export class CombatSimulation {
       if (hit || torpedo.distance >= w.rangeM - 1e-6) this.torpedoes.splice(i, 1);
     }
   }
+  private stepDepthCharges(): void {
+    for (let i = this.depthCharges.length - 1; i >= 0; i--) {
+      const charge = this.depthCharges[i], result = stepDepthCharge(charge, FIXED_DT);
+      const evidence = { id: charge.id, radiusM: charge.weapon.blastRadiusM };
+      if (result.splash) this.emit({ kind: 'depth-charge-splash', position: result.splash, shipId: charge.ownerId, message: 'Depth charge entering water', depthCharge: evidence });
+      if (!result.detonated) continue;
+      this.emit({ kind: 'depth-charge-blast', position: [...charge.position], shipId: charge.ownerId, message: `Depth charge detonated at ${charge.weapon.detonationDepthM} m`, depthCharge: evidence });
+      const owner = this.actors.find(a => a.motion.id === charge.ownerId);
+      for (const actor of this.actors) {
+        const hp = actor.damage.integrity;
+        const message = damageDepthCharge(charge, actor);
+        if (!message) continue;
+        if (!actor.damage.sunk && hp > 0 && owner && owner.team !== actor.team) {
+          if (owner === this.player) this.playerDamageDealt += Math.max(0, hp - actor.damage.integrity);
+          this.lastDamager.set(actor.motion.id, owner.motion.id);
+        }
+        this.emit({ kind: 'depth-charge-hit', position: [...charge.position], shipId: actor.motion.id, message, depthCharge: evidence });
+      }
+      this.depthCharges.splice(i, 1);
+    }
+  }
   telemetry(battery: Battery, aim: Vec3): CombatTelemetry {
-    const mounts = battery === 'torpedo' ? (this.definition.torpedoTubes ?? []).map((tube, i) => {
+    const mounts = battery === 'depth-charge' ? (this.definition.depthChargeLaunchers ?? []).map((l, i) => {
+      const s = this.player.depthChargeLaunchers![i];
+      return { id: l.id, name: l.name, status: s.status, reload: Math.max(s.reload, this.player.depthChargeCooldown ?? 0), ammo: s.ammo };
+    }) : battery === 'torpedo' ? (this.definition.torpedoTubes ?? []).map((tube, i) => {
       const s = this.player.torpedoTubes![i];
       return { id: tube.id, name: tube.name, status: s.status, reload: Math.max(s.reload, this.player.tubeLaunchCooldown ?? 0), ammo: s.ammo };
     }) : this.definition.mounts.filter(m => m.battery === battery).map(m => {
       const s = this.player.mounts.find(s => s.id === m.id)!;
       return { id: m.id, name: m.name, status: s.status, reload: s.reload, ammo: s.ammo };
     });
-    const significant = [...this.events].reverse().find(e => ['module', 'sunk', 'stopped', 'ricochet', 'penetration', 'torpedo-launch', 'torpedo-hit', 'torpedo-dud', 'torpedo-expired'].includes(e.kind));
+    const significant = [...this.events].reverse().find(e => ['module', 'sunk', 'stopped', 'ricochet', 'penetration', 'torpedo-launch', 'torpedo-hit', 'torpedo-dud', 'torpedo-expired', 'depth-charge-launch', 'depth-charge-blast', 'depth-charge-hit'].includes(e.kind));
     return { battery, range: Math.hypot(aim[0] - this.ship.x, aim[2] - this.ship.z), ready: mounts.filter(m => m.status === 'ready').length, total: mounts.length,
       targetId: this.target.motion.id, targetName: this.target.definition.name,
       targetRange: Math.hypot(this.target.motion.x - this.ship.x, this.target.motion.z - this.ship.z),
@@ -302,13 +350,13 @@ export class CombatSimulation {
       playerDamageDealt: this.playerDamageDealt, playerFrags: this.playerFrags,
       playerWater: this.player.damage.compartments.reduce((n, c) => n + c.waterM3, 0),
       targetPosition: { x: this.target.motion.x, z: this.target.motion.z, heading: this.target.motion.heading },
-      batteries: (['main', 'secondary', ...(this.definition.torpedoTubes?.length ? ['torpedo'] : [])] as Battery[]).map(battery => {
-        const states = battery === 'torpedo' ? this.player.torpedoTubes! : this.definition.mounts.filter(m => m.battery === battery).map(m => this.player.mounts.find(s => s.id === m.id)!);
+      batteries: (['main', 'secondary', ...(this.definition.torpedoTubes?.length ? ['torpedo'] : []), ...(this.definition.depthChargeLaunchers?.length ? ['depth-charge'] : [])] as Battery[]).map(battery => {
+        const states = battery === 'depth-charge' ? this.player.depthChargeLaunchers! : battery === 'torpedo' ? this.player.torpedoTubes! : this.definition.mounts.filter(m => m.battery === battery).map(m => this.player.mounts.find(s => s.id === m.id)!);
         const reloading = states.filter(m => m.reload > 0);
         return { battery, ammo: states.reduce((n, m) => n + m.ammo, 0), ready: states.filter(m => m.status === 'ready').length, total: states.length,
           reload: reloading.length ? Math.min(...reloading.map(m => m.reload)) : 0 };
       }),
-      message: significant ? `${this.actors.find(actor => actor.motion.id === significant.shipId)?.definition.name ?? 'Ship'} · ${significant.message}` : battery === 'torpedo' ? 'Turn bow or stern toward the sight. Torpedoes keep their launch course; lead moving targets.' : 'Only aligned, loaded guns fire. Turn the ship to bring guns marked Out of arc onto the target.',
+      message: significant ? `${this.actors.find(actor => actor.motion.id === significant.shipId)?.definition.name ?? 'Ship'} · ${significant.message}` : battery === 'depth-charge' ? 'Drop during a close pass. Charges sink before exploding; keep moving clear of the blast.' : battery === 'torpedo' ? `${this.definition.torpedoLaunchers?.length ? 'Bring a broadside toward the sight.' : 'Turn bow or stern toward the sight.'} Torpedoes keep their launch course; lead moving targets.` : 'Only aligned, loaded guns fire. Turn the ship to bring guns marked Out of arc onto the target.',
     };
   }
 }
