@@ -1,0 +1,65 @@
+{
+  "contentHash": "28c076b7e85bf142e6ebcb70ccc1fc6287ef8b6a3f2ce8ad2b666d24e059a65a",
+  "hullBounds": [
+    [
+      -5.029200553894043,
+      -3.505199909210205,
+      -31.242000579833984
+    ],
+    [
+      5.029200077056885,
+      4.880000114440918,
+      31.242000579833984
+    ]
+  ],
+  "mounts": [
+    {
+      "id": "fore-4in",
+      "measuredPivot": [
+        0,
+        5.400000095367432,
+        -16.799999237060547
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "aft-pompom",
+      "measuredPivot": [
+        0,
+        5.039999961853027,
+        16.799999237060547
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bridge-starboard",
+      "measuredPivot": [
+        3.1000006198883057,
+        6.849999904632568,
+        -7.900000095367432
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "bridge-port",
+      "measuredPivot": [
+        -3.099999189376831,
+        6.849999904632568,
+        -7.900000095367432
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    }
+  ],
+  "torpedoTubes": [],
+  "depthChargeLaunchers": [],
+  "meshes": 64,
+  "primitives": 131,
+  "triangles": 60688,
+  "bytes": 2575744,
+  "result": "passed",
+  "historicalAccuracy": "not certified; see reference register and discrepancy report"
+}

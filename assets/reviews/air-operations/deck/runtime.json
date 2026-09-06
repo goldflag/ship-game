@@ -1,0 +1,11 @@
+{
+  "id": "a32daa12-5f84-43b6-b387-c9170390ff37",
+  "ok": true,
+  "result": {
+    "result": "{\"hash\":\"026068f84d7d94c39c83be88b5e285e93a486a425af6ed6899e8e70aae08bc72\",\"planes\":[{\"id\":\"player/vf-6/1\",\"phase\":\"ready\"},{\"id\":\"player/vf-6/2\",\"phase\":\"ready\"},{\"id\":\"player/vf-6/3\",\"phase\":\"ready\"},{\"id\":\"player/vf-6/4\",\"phase\":\"ready\"},{\"id\":\"player/vf-6/5\",\"phase\":\"ready\"},{\"id\":\"player/vf-6/6\",\"phase\":\"ready\"},{\"id\":\"player/vb-6/1\",\"phase\":\"ready\"},{\"id\":\"player/vb-6/2\",\"phase\":\"ready\"},{\"id\":\"player/vb-6/3\",\"phase\":\"ready\"},{\"id\":\"player/vb-6/4\",\"phase\":\"ready\"},{\"id\":\"player/vb-6/5\",\"phase\":\"ready\"},{\"id\":\"player/vb-6/6\",\"phase\":\"ready\"},{\"id\":\"player/vt-6/1\",\"phase\":\"ready\"},{\"id\":\"player/vt-6/2\",\"phase\":\"ready\"},{\"id\":\"player/vt-6/3\",\"phase\":\"ready\"},{\"id\":\"player/vt-6/4\",\"phase\":\"ready\"},{\"id\":\"player/vt-6/5\",\"phase\":\"ready\"},{\"id\":\"player/vt-6/6\",\"phase\":\"ready\"}],\"recovered\":3}",
+    "origin": "http://127.0.0.1:5251/scripts/diagnostics/carrier-deck.html"
+  },
+  "_meta": {
+    "runtimeId": "ddeb9046-2fba-425a-ab05-8e6acf1a4049"
+  }
+}

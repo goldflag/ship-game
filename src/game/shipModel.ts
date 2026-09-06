@@ -7,6 +7,10 @@ const identities: Record<string, { type: string; nation: string }> = {
   yamato: { type: 'Battleship', nation: 'Japan' },
   baltimore: { type: 'Heavy cruiser', nation: 'United States' },
   'enterprise-cv6': { type: 'Aircraft carrier', nation: 'United States' },
+  'liberty-cargo': { type: 'Cargo ship', nation: 'United States' },
+  'liberty-collier': { type: 'Coal carrier', nation: 'United States' },
+  'victory-cargo': { type: 'Cargo ship', nation: 'United States' },
+  'flower-corvette': { type: 'Corvette', nation: 'Canada' },
 };
 export function shipIdentity(id: string) {
   return identities[id] ?? { type: 'Ship', nation: '' };
