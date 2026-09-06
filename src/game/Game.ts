@@ -71,6 +71,7 @@ export class Game {
   chartSize = 2;
   gunneryOpen = false;
   private water?: WaterSystem;
+  private surfaceWaterAbsorption = new THREE.Color();
   private sky?: SkySystem;
   private shipWake?: ShipWake;
   private pipeline?: THREE.RenderPipeline;
@@ -193,6 +194,7 @@ export class Game {
     params.waves.fft.peakWavelength = this.settings.sea === 'Heavy' ? 100 : 65;
     params.waves.fft.choppiness = 1.05;
     this.water.loadPreset(params);
+    this.surfaceWaterAbsorption.copy(this.water.color.absorptionColor);
     this.updateSeaState();
 
     this.callbacks.progress('Lighting the sky', 0.59);
@@ -407,6 +409,13 @@ export class Game {
       this.harbor?.update(dt, this.camera);
       this.shipWake!.update(this.playerView!.motion, dt, this.simulation.events);
       this.sky!.update(dt);
+      // Black Flag's absorption loses >99% of green/blue light over 50 m,
+      // hiding even our own submarine. Ease to a 20× longer visibility range
+      // over the first 2 m of camera submersion; keep distant water hazy and
+      // restore the exact surface preset when the camera comes back up.
+      const submergedView = THREE.MathUtils.smoothstep(-this.camera.position.y, 0, 2);
+      this.water!.color.absorptionColor.copy(this.surfaceWaterAbsorption)
+        .multiplyScalar(THREE.MathUtils.lerp(1, .05, submergedView));
       // Fixed-step mode with zero delta renders without stepping the wake's
       // leapfrog/foam integrators. Host-clock update(0) would still step them.
       this.water!.deterministic = this.paused;

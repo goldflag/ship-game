@@ -20,6 +20,14 @@ The initial direction was a relatively restrained sea viewed from a camera hundr
 
 Base water colors remain the Black Flag colors: `waterColor #224659`, `transmissionColor #226755`, `absorptionColor #945b57`. The 1,024 m largest FFT tile, spectrum settings, foam textures, and Fresnel parameters are inherited. High water quality is the default, including the third ripple cascade and screen-space reflections.
 
+### Submerged camera visibility
+
+Black Flag's custom absorption coefficients remove over 99% of green/blue scene light along a 50 m underwater column, making the VIIC disappear at ordinary chase distances. `Game.frame` now scales those coefficients from their original values to 5% using a smooth transition as the camera moves from sea level to 2 m below it. This gives the underwater view 20 times the absorption distance while retaining the blue water color, refraction and distant haze. It is a gameplay visibility adjustment, not measured Atlantic water clarity.
+
+The original linear RGB coefficients are saved once after loading the preset. Each frame derives its values from that copy, so repeated dives cannot accumulate the adjustment. Surface, tactical and above-water periscope cameras restore the original coefficients. The change uses Water Pro's public color uniforms; simulation depth, waves and the vendored shader remain separate.
+
+The dev-only `/scripts/diagnostics/underwater-visibility.html?test` runs the actual `Game.frame` and GPU water pipeline at 7, 50 and 150 m. It compares visible-hull pixels with the same view without the hull, and checks surface/periscope restoration. `window.visibilityResult.passed` must be true. Add `&legacy` to restore the old coefficients as a negative control; its dive checks must fail. See the [before/after evidence](../assets/reviews/underwater-visibility/README.md).
+
 Fair mode uses amplitude 0.35, wind 5, wavelength 65 m. Heavy uses amplitude 1.4, wind 16, wavelength 100 m. All three currently share the same daylight/cloud setup; they change the sea, not the weather system.
 
 Two wake generators sit 112 m forward and aft of the origin; their current configuration is described under **Ship wake** below. Buoyancy samples a 190 × 28 m footprint with 1.8 s smoothing and 0.45 rotation influence. These values were chosen for visually stable battleship motion, not hydrodynamic accuracy.
