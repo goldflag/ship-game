@@ -18,8 +18,8 @@
       110
     ],
     "aim": [
-      24.99995256075367,
-      0.48688601066490284,
+      24.999952119886554,
+      0.4876811697243683,
       62
     ],
     "manualAim": false,
@@ -60,10 +60,10 @@
       1.0000000000000002
     ]
   },
-  "tick": 792,
-  "battleSeed": 954282929,
+  "tick": 787,
+  "battleSeed": 176879701,
   "paused": false,
-  "fps": 72.08955241006207,
+  "fps": 39.719585018429,
   "inspecting": false,
   "inPort": false,
   "effects": {
@@ -93,23 +93,23 @@
     }
   },
   "portInspection": "exterior",
-  "maxMuzzleErrorM": 0.000680924058242831,
-  "maxTorpedoMuzzleErrorM": 0.0000026020255293434435,
+  "maxMuzzleErrorM": 0.0006809240524230036,
+  "maxTorpedoMuzzleErrorM": 0.0000026020255294545916,
   "torpedoLaunchers": [
     {
       "id": "torpedo-forward",
-      "train": 3.0453579737595575
+      "train": 3.0450239420021834
     },
     {
       "id": "torpedo-aft",
-      "train": 3.0397713675821176
+      "train": 3.039397491561491
     }
   ],
   "depthCharges": [],
   "combat": {
     "airContacts": [],
     "battery": "depth-charge",
-    "range": 258.1918526015405,
+    "range": 257.29472495696047,
     "ready": 8,
     "total": 8,
     "ammunition": "ap",
@@ -132,8 +132,8 @@
     ],
     "targetId": "enemy-1",
     "targetName": "Type VIIC",
-    "targetDepthM": 0.03161586791629132,
-    "targetRange": 258.1918571949466,
+    "targetDepthM": 0.03132251351427844,
+    "targetRange": 257.29472960921936,
     "battle": true,
     "result": "active",
     "playerSunk": false,
@@ -145,7 +145,7 @@
         "team": "friendly",
         "controller": "player",
         "x": 0,
-        "z": -194.9786666666626,
+        "z": -194.07728888888474,
         "heading": 0,
         "integrity": 1,
         "sunk": false,
@@ -161,7 +161,7 @@
         "x": 25,
         "z": 62,
         "heading": 1.5707963267948966,
-        "integrity": 0.9960766369885313,
+        "integrity": 0.9774968960110403,
         "sunk": false,
         "status": "operational",
         "combatLost": false
@@ -170,8 +170,8 @@
     "targetStatus": "operational",
     "playerStatus": "operational",
     "targetList": 0,
-    "targetTrim": 0.04013288589979352,
-    "targetDraftChange": 0.03161586791629132,
+    "targetTrim": 0.0396230230533344,
+    "targetDraftChange": 0.03132251351427844,
     "control": {
       "priority": "balanced",
       "focus": "",
@@ -395,8 +395,9 @@
         "name": "20 mm station 6"
       }
     ],
-    "targetIntegrity": 0.9960766369885313,
-    "targetWater": 1.8925616086917836,
+    "targetIntegrity": 0.9774968960110403,
+    "targetWater": 1.873618434509887,
+    "targetEquipmentIntegrity": 0.9960766369885313,
     "targetPower": 1,
     "targetSteering": 0.9562394125643883,
     "targetSunk": false,
@@ -505,7 +506,7 @@
     ],
     "playerIntegrity": 1,
     "playerMaxIntegrity": 600,
-    "playerDamageDealt": 1.7655133551609197,
+    "playerDamageDealt": 10.126396795031894,
     "playerFrags": 0,
     "playerWater": 0,
     "shellHistory": [],
@@ -558,18 +559,18 @@
       "controller": "player",
       "motion": {
         "id": "player",
-        "tick": 792,
+        "tick": 787,
         "x": 0,
         "y": 0,
-        "z": -194.9786666666626,
+        "z": -194.07728888888474,
         "roll": 0,
         "pitch": 0,
         "heading": 0,
-        "speed": 17.63199999999938,
+        "speed": 17.66533333333271,
         "swaySpeed": 0,
         "rudder": 0,
         "yawRate": 0,
-        "distance": 194.9786666666626
+        "distance": 194.07728888888474
       },
       "ammo": 15000,
       "integrity": 600
@@ -581,29 +582,29 @@
       "controller": "idle",
       "motion": {
         "id": "enemy-1",
-        "tick": 792,
+        "tick": 787,
         "x": 25,
-        "y": -0.03161586791629132,
+        "y": -0.03132251351427844,
         "z": 62,
         "roll": 0,
-        "pitch": 0.0007004509972786039,
+        "pitch": 0.0006915522118743021,
         "heading": 1.5707963267948966,
         "speed": 0,
         "swaySpeed": 0,
         "rudder": 0,
         "yawRate": 0,
         "distance": 0,
-        "verticalSpeed": -0.003562271236450058
+        "verticalSpeed": -0.0034574715170457735
       },
       "submarine": {
         "targetDepthM": 0,
         "ballastM3": 0,
         "emergencyBlow": false,
-        "planes": -0.010483647072812274,
-        "trimPitch": -0.00026437438729089326
+        "planes": -0.010314952554498366,
+        "trimPitch": -0.0002636394397192869
       },
       "ammo": 1320,
-      "integrity": 448.2344866448391
+      "integrity": 439.8736032049681
     }
   ],
   "renderedShips": [
@@ -643,7 +644,7 @@
         "id": 5,
         "radiusM": 32
       },
-      "sequence": 26,
+      "sequence": 27,
       "tick": 88
     },
     {
@@ -659,7 +660,7 @@
         "id": 6,
         "radiusM": 32
       },
-      "sequence": 27,
+      "sequence": 28,
       "tick": 110
     },
     {
@@ -675,7 +676,7 @@
         "id": 7,
         "radiusM": 32
       },
-      "sequence": 28,
+      "sequence": 29,
       "tick": 132
     },
     {
@@ -691,7 +692,7 @@
         "id": 5,
         "radiusM": 32
       },
-      "sequence": 29,
+      "sequence": 30,
       "tick": 136
     },
     {
@@ -707,7 +708,7 @@
         "id": 2,
         "radiusM": 32
       },
-      "sequence": 30,
+      "sequence": 31,
       "tick": 151
     },
     {
@@ -723,7 +724,7 @@
         "id": 8,
         "radiusM": 32
       },
-      "sequence": 31,
+      "sequence": 32,
       "tick": 154
     },
     {
@@ -739,7 +740,7 @@
         "id": 3,
         "radiusM": 32
       },
-      "sequence": 32,
+      "sequence": 33,
       "tick": 173
     },
     {
@@ -755,7 +756,7 @@
         "id": 4,
         "radiusM": 32
       },
-      "sequence": 33,
+      "sequence": 34,
       "tick": 195
     },
     {
@@ -771,7 +772,7 @@
         "id": 6,
         "radiusM": 32
       },
-      "sequence": 34,
+      "sequence": 35,
       "tick": 239
     },
     {
@@ -787,7 +788,7 @@
         "id": 7,
         "radiusM": 32
       },
-      "sequence": 35,
+      "sequence": 36,
       "tick": 261
     },
     {
@@ -803,7 +804,7 @@
         "id": 8,
         "radiusM": 32
       },
-      "sequence": 36,
+      "sequence": 37,
       "tick": 283
     },
     {
@@ -819,7 +820,7 @@
         "id": 1,
         "radiusM": 32
       },
-      "sequence": 37,
+      "sequence": 38,
       "tick": 288
     },
     {
@@ -835,7 +836,7 @@
         "id": 1,
         "radiusM": 32
       },
-      "sequence": 38,
+      "sequence": 39,
       "tick": 288
     },
     {
@@ -851,7 +852,7 @@
         "id": 5,
         "radiusM": 32
       },
-      "sequence": 39,
+      "sequence": 40,
       "tick": 376
     },
     {
@@ -867,7 +868,7 @@
         "id": 2,
         "radiusM": 32
       },
-      "sequence": 40,
+      "sequence": 41,
       "tick": 391
     },
     {
@@ -883,7 +884,7 @@
         "id": 3,
         "radiusM": 32
       },
-      "sequence": 41,
+      "sequence": 42,
       "tick": 413
     },
     {
@@ -899,7 +900,7 @@
         "id": 4,
         "radiusM": 32
       },
-      "sequence": 42,
+      "sequence": 43,
       "tick": 435
     },
     {
@@ -915,7 +916,7 @@
         "id": 6,
         "radiusM": 32
       },
-      "sequence": 43,
+      "sequence": 44,
       "tick": 479
     },
     {
@@ -931,7 +932,7 @@
         "id": 7,
         "radiusM": 32
       },
-      "sequence": 44,
+      "sequence": 45,
       "tick": 501
     },
     {
@@ -947,7 +948,7 @@
         "id": 8,
         "radiusM": 32
       },
-      "sequence": 45,
+      "sequence": 46,
       "tick": 523
     }
   ],
@@ -965,7 +966,7 @@
         "id": 1,
         "radiusM": 32
       },
-      "sequence": 21,
+      "sequence": 22,
       "tick": 0
     },
     {
@@ -981,7 +982,7 @@
         "id": 2,
         "radiusM": 32
       },
-      "sequence": 22,
+      "sequence": 23,
       "tick": 22
     },
     {
@@ -997,7 +998,7 @@
         "id": 3,
         "radiusM": 32
       },
-      "sequence": 23,
+      "sequence": 24,
       "tick": 44
     },
     {
@@ -1013,7 +1014,7 @@
         "id": 1,
         "radiusM": 32
       },
-      "sequence": 24,
+      "sequence": 25,
       "tick": 48
     },
     {
@@ -1029,7 +1030,7 @@
         "id": 4,
         "radiusM": 32
       },
-      "sequence": 25,
+      "sequence": 26,
       "tick": 66
     },
     {
@@ -1045,7 +1046,7 @@
         "id": 5,
         "radiusM": 32
       },
-      "sequence": 26,
+      "sequence": 27,
       "tick": 88
     },
     {
@@ -1061,7 +1062,7 @@
         "id": 6,
         "radiusM": 32
       },
-      "sequence": 27,
+      "sequence": 28,
       "tick": 110
     },
     {
@@ -1077,7 +1078,7 @@
         "id": 7,
         "radiusM": 32
       },
-      "sequence": 28,
+      "sequence": 29,
       "tick": 132
     },
     {
@@ -1093,7 +1094,7 @@
         "id": 5,
         "radiusM": 32
       },
-      "sequence": 29,
+      "sequence": 30,
       "tick": 136
     },
     {
@@ -1109,7 +1110,7 @@
         "id": 2,
         "radiusM": 32
       },
-      "sequence": 30,
+      "sequence": 31,
       "tick": 151
     },
     {
@@ -1125,7 +1126,7 @@
         "id": 8,
         "radiusM": 32
       },
-      "sequence": 31,
+      "sequence": 32,
       "tick": 154
     },
     {
@@ -1141,7 +1142,7 @@
         "id": 3,
         "radiusM": 32
       },
-      "sequence": 32,
+      "sequence": 33,
       "tick": 173
     },
     {
@@ -1157,7 +1158,7 @@
         "id": 4,
         "radiusM": 32
       },
-      "sequence": 33,
+      "sequence": 34,
       "tick": 195
     },
     {
@@ -1173,7 +1174,7 @@
         "id": 6,
         "radiusM": 32
       },
-      "sequence": 34,
+      "sequence": 35,
       "tick": 239
     },
     {
@@ -1189,7 +1190,7 @@
         "id": 7,
         "radiusM": 32
       },
-      "sequence": 35,
+      "sequence": 36,
       "tick": 261
     },
     {
@@ -1205,7 +1206,7 @@
         "id": 8,
         "radiusM": 32
       },
-      "sequence": 36,
+      "sequence": 37,
       "tick": 283
     },
     {
@@ -1221,7 +1222,7 @@
         "id": 1,
         "radiusM": 32
       },
-      "sequence": 37,
+      "sequence": 38,
       "tick": 288
     },
     {
@@ -1237,7 +1238,7 @@
         "id": 1,
         "radiusM": 32
       },
-      "sequence": 38,
+      "sequence": 39,
       "tick": 288
     },
     {
@@ -1253,7 +1254,7 @@
         "id": 5,
         "radiusM": 32
       },
-      "sequence": 39,
+      "sequence": 40,
       "tick": 376
     },
     {
@@ -1269,7 +1270,7 @@
         "id": 2,
         "radiusM": 32
       },
-      "sequence": 40,
+      "sequence": 41,
       "tick": 391
     },
     {
@@ -1285,7 +1286,7 @@
         "id": 3,
         "radiusM": 32
       },
-      "sequence": 41,
+      "sequence": 42,
       "tick": 413
     },
     {
@@ -1301,7 +1302,7 @@
         "id": 4,
         "radiusM": 32
       },
-      "sequence": 42,
+      "sequence": 43,
       "tick": 435
     },
     {
@@ -1317,7 +1318,7 @@
         "id": 6,
         "radiusM": 32
       },
-      "sequence": 43,
+      "sequence": 44,
       "tick": 479
     },
     {
@@ -1333,7 +1334,7 @@
         "id": 7,
         "radiusM": 32
       },
-      "sequence": 44,
+      "sequence": 45,
       "tick": 501
     },
     {
@@ -1349,7 +1350,7 @@
         "id": 8,
         "radiusM": 32
       },
-      "sequence": 45,
+      "sequence": 46,
       "tick": 523
     }
   ]

@@ -60,10 +60,10 @@
       1.0000000000000002
     ]
   },
-  "tick": 466,
-  "battleSeed": 954282929,
+  "tick": 463,
+  "battleSeed": 176879701,
   "paused": false,
-  "fps": 82.17096556482363,
+  "fps": 42.7973900982021,
   "inspecting": false,
   "inPort": false,
   "effects": {
@@ -71,7 +71,7 @@
     "torpedoes": 0,
     "depthCharges": 3,
     "smoke": 0,
-    "spray": 945,
+    "spray": 968,
     "flashes": 0,
     "foam": 0,
     "particleCapacity": 2272
@@ -93,16 +93,16 @@
     }
   },
   "portInspection": "exterior",
-  "maxMuzzleErrorM": 0.0006809231123132687,
-  "maxTorpedoMuzzleErrorM": 0.0000026020255288020306,
+  "maxMuzzleErrorM": 0.0006809231029045015,
+  "maxTorpedoMuzzleErrorM": 0.000002602025531238263,
   "torpedoLaunchers": [
     {
       "id": "torpedo-forward",
-      "train": 2.439970294287921
+      "train": 2.424262331019973
     },
     {
       "id": "torpedo-aft",
-      "train": 2.439970294287921
+      "train": 2.424262331019973
     }
   ],
   "depthCharges": [
@@ -110,9 +110,9 @@
       "id": 6,
       "ownerId": "player",
       "position": [
-        37.85623467260046,
-        -9.422026222614122,
-        -24.46079603837259
+        37.854732218970256,
+        -9.297026222614123,
+        -24.459182403173752
       ],
       "submerged": true,
       "detonationDepthM": 10
@@ -121,9 +121,9 @@
       "id": 7,
       "ownerId": "player",
       "position": [
-        37.84183945265267,
-        -8.505359555947468,
-        -21.395149217454126
+        37.83913806336448,
+        -8.38035955594747,
+        -21.392208304982386
       ],
       "submerged": true,
       "detonationDepthM": 10
@@ -132,9 +132,9 @@
       "id": 8,
       "ownerId": "player",
       "position": [
-        37.51595706121885,
-        -7.588692889280805,
-        -23.48093929087763
+        37.511100003443715,
+        -7.4636928892808045,
+        -23.475580337132403
       ],
       "submerged": true,
       "detonationDepthM": 10
@@ -143,7 +143,7 @@
   "combat": {
     "airContacts": [],
     "battery": "depth-charge",
-    "range": 170.01019298226416,
+    "range": 169.4481904508081,
     "ready": 5,
     "total": 8,
     "ammunition": "ap",
@@ -166,8 +166,8 @@
     ],
     "targetId": "enemy-1",
     "targetName": "Type VIIC",
-    "targetDepthM": 0.008810931741141474,
-    "targetRange": 170.01019298226416,
+    "targetDepthM": 0.00849295070816005,
+    "targetRange": 169.4481904508081,
     "battle": true,
     "result": "active",
     "playerSunk": false,
@@ -179,7 +179,7 @@
         "team": "friendly",
         "controller": "player",
         "x": 0,
-        "z": -106.16202222222084,
+        "z": -105.59382222222074,
         "heading": 0,
         "integrity": 1,
         "sunk": false,
@@ -195,7 +195,7 @@
         "x": 25,
         "z": 62,
         "heading": 1.5707963267948966,
-        "integrity": 0.9960766369885313,
+        "integrity": 0.9774968960110403,
         "sunk": false,
         "status": "operational",
         "combatLost": false
@@ -204,8 +204,8 @@
     "targetStatus": "operational",
     "playerStatus": "operational",
     "targetList": 0,
-    "targetTrim": 0.005789741490099547,
-    "targetDraftChange": 0.008810931741141474,
+    "targetTrim": 0.005853704233584325,
+    "targetDraftChange": 0.00849295070816005,
     "control": {
       "priority": "balanced",
       "focus": "",
@@ -429,8 +429,9 @@
         "name": "20 mm station 6"
       }
     ],
-    "targetIntegrity": 0.9960766369885313,
-    "targetWater": 0.6648170327461549,
+    "targetIntegrity": 0.9774968960110403,
+    "targetWater": 0.6535896669242252,
+    "targetEquipmentIntegrity": 0.9960766369885313,
     "targetPower": 1,
     "targetSteering": 0.9562394125643883,
     "targetSunk": false,
@@ -475,21 +476,21 @@
         "id": "dc-thrower-starboard-1",
         "name": "Starboard K-gun 1",
         "status": "reloading",
-        "reload": 0.08333333333334964,
+        "reload": 0.13333333333334962,
         "ammo": 1
       },
       {
         "id": "dc-thrower-starboard-2",
         "name": "Starboard K-gun 2",
         "status": "reloading",
-        "reload": 0.4500000000000162,
+        "reload": 0.5000000000000162,
         "ammo": 1
       },
       {
         "id": "dc-thrower-starboard-3",
         "name": "Starboard K-gun 3",
         "status": "reloading",
-        "reload": 0.8166666666666839,
+        "reload": 0.866666666666684,
         "ammo": 1
       }
     ],
@@ -539,7 +540,7 @@
     ],
     "playerIntegrity": 1,
     "playerMaxIntegrity": 600,
-    "playerDamageDealt": 1.7655133551609197,
+    "playerDamageDealt": 10.126396795031894,
     "playerFrags": 0,
     "playerWater": 0,
     "shellHistory": [],
@@ -579,7 +580,7 @@
         "ammo": 20,
         "ready": 5,
         "total": 8,
-        "reload": 0.08333333333334964
+        "reload": 0.13333333333334962
       }
     ],
     "message": "Fletcher · Depth charge detonated at 10 m"
@@ -592,18 +593,18 @@
       "controller": "player",
       "motion": {
         "id": "player",
-        "tick": 466,
+        "tick": 463,
         "x": 0,
         "y": 0,
-        "z": -106.16202222222084,
+        "z": -105.59382222222074,
         "roll": 0,
         "pitch": 0,
         "heading": 0,
-        "speed": 15.405333333332958,
+        "speed": 15.425333333332956,
         "swaySpeed": 0,
         "rudder": 0,
         "yawRate": 0,
-        "distance": 106.16202222222084
+        "distance": 105.59382222222074
       },
       "ammo": 15000,
       "integrity": 600
@@ -615,29 +616,29 @@
       "controller": "idle",
       "motion": {
         "id": "enemy-1",
-        "tick": 466,
+        "tick": 463,
         "x": 25,
-        "y": -0.008810931741141474,
+        "y": -0.00849295070816005,
         "z": 62,
         "roll": 0,
-        "pitch": 0.00010105005184155976,
+        "pitch": 0.00010216641231397769,
         "heading": 1.5707963267948966,
         "speed": 0,
         "swaySpeed": 0,
         "rudder": 0,
         "yawRate": 0,
         "distance": 0,
-        "verticalSpeed": -0.0063788961296030785
+        "verticalSpeed": -0.006319840956431949
       },
       "submarine": {
         "targetDepthM": 0,
         "ballastM3": 0,
         "emergencyBlow": false,
-        "planes": -0.008274841477823147,
-        "trimPitch": -0.00023841342380036075
+        "planes": -0.008144206962489686,
+        "trimPitch": -0.00023156910526137684
       },
       "ammo": 1320,
-      "integrity": 448.2344866448391
+      "integrity": 439.8736032049681
     }
   ],
   "renderedShips": [
@@ -677,7 +678,7 @@
         "id": 3,
         "radiusM": 32
       },
-      "sequence": 23,
+      "sequence": 24,
       "tick": 44
     },
     {
@@ -693,7 +694,7 @@
         "id": 1,
         "radiusM": 32
       },
-      "sequence": 24,
+      "sequence": 25,
       "tick": 48
     },
     {
@@ -709,7 +710,7 @@
         "id": 4,
         "radiusM": 32
       },
-      "sequence": 25,
+      "sequence": 26,
       "tick": 66
     },
     {
@@ -725,7 +726,7 @@
         "id": 5,
         "radiusM": 32
       },
-      "sequence": 26,
+      "sequence": 27,
       "tick": 88
     },
     {
@@ -741,7 +742,7 @@
         "id": 6,
         "radiusM": 32
       },
-      "sequence": 27,
+      "sequence": 28,
       "tick": 110
     },
     {
@@ -757,7 +758,7 @@
         "id": 7,
         "radiusM": 32
       },
-      "sequence": 28,
+      "sequence": 29,
       "tick": 132
     },
     {
@@ -773,7 +774,7 @@
         "id": 5,
         "radiusM": 32
       },
-      "sequence": 29,
+      "sequence": 30,
       "tick": 136
     },
     {
@@ -789,7 +790,7 @@
         "id": 2,
         "radiusM": 32
       },
-      "sequence": 30,
+      "sequence": 31,
       "tick": 151
     },
     {
@@ -805,7 +806,7 @@
         "id": 8,
         "radiusM": 32
       },
-      "sequence": 31,
+      "sequence": 32,
       "tick": 154
     },
     {
@@ -821,7 +822,7 @@
         "id": 3,
         "radiusM": 32
       },
-      "sequence": 32,
+      "sequence": 33,
       "tick": 173
     },
     {
@@ -837,7 +838,7 @@
         "id": 4,
         "radiusM": 32
       },
-      "sequence": 33,
+      "sequence": 34,
       "tick": 195
     },
     {
@@ -853,7 +854,7 @@
         "id": 6,
         "radiusM": 32
       },
-      "sequence": 34,
+      "sequence": 35,
       "tick": 239
     },
     {
@@ -869,7 +870,7 @@
         "id": 7,
         "radiusM": 32
       },
-      "sequence": 35,
+      "sequence": 36,
       "tick": 261
     },
     {
@@ -885,7 +886,7 @@
         "id": 8,
         "radiusM": 32
       },
-      "sequence": 36,
+      "sequence": 37,
       "tick": 283
     },
     {
@@ -901,7 +902,7 @@
         "id": 1,
         "radiusM": 32
       },
-      "sequence": 37,
+      "sequence": 38,
       "tick": 288
     },
     {
@@ -917,7 +918,7 @@
         "id": 1,
         "radiusM": 32
       },
-      "sequence": 38,
+      "sequence": 39,
       "tick": 288
     },
     {
@@ -933,7 +934,7 @@
         "id": 5,
         "radiusM": 32
       },
-      "sequence": 39,
+      "sequence": 40,
       "tick": 376
     },
     {
@@ -949,7 +950,7 @@
         "id": 2,
         "radiusM": 32
       },
-      "sequence": 40,
+      "sequence": 41,
       "tick": 391
     },
     {
@@ -965,7 +966,7 @@
         "id": 3,
         "radiusM": 32
       },
-      "sequence": 41,
+      "sequence": 42,
       "tick": 413
     },
     {
@@ -981,7 +982,7 @@
         "id": 4,
         "radiusM": 32
       },
-      "sequence": 42,
+      "sequence": 43,
       "tick": 435
     }
   ],
@@ -999,7 +1000,7 @@
         "id": 1,
         "radiusM": 32
       },
-      "sequence": 21,
+      "sequence": 22,
       "tick": 0
     },
     {
@@ -1015,7 +1016,7 @@
         "id": 2,
         "radiusM": 32
       },
-      "sequence": 22,
+      "sequence": 23,
       "tick": 22
     },
     {
@@ -1031,7 +1032,7 @@
         "id": 3,
         "radiusM": 32
       },
-      "sequence": 23,
+      "sequence": 24,
       "tick": 44
     },
     {
@@ -1047,7 +1048,7 @@
         "id": 1,
         "radiusM": 32
       },
-      "sequence": 24,
+      "sequence": 25,
       "tick": 48
     },
     {
@@ -1063,7 +1064,7 @@
         "id": 4,
         "radiusM": 32
       },
-      "sequence": 25,
+      "sequence": 26,
       "tick": 66
     },
     {
@@ -1079,7 +1080,7 @@
         "id": 5,
         "radiusM": 32
       },
-      "sequence": 26,
+      "sequence": 27,
       "tick": 88
     },
     {
@@ -1095,7 +1096,7 @@
         "id": 6,
         "radiusM": 32
       },
-      "sequence": 27,
+      "sequence": 28,
       "tick": 110
     },
     {
@@ -1111,7 +1112,7 @@
         "id": 7,
         "radiusM": 32
       },
-      "sequence": 28,
+      "sequence": 29,
       "tick": 132
     },
     {
@@ -1127,7 +1128,7 @@
         "id": 5,
         "radiusM": 32
       },
-      "sequence": 29,
+      "sequence": 30,
       "tick": 136
     },
     {
@@ -1143,7 +1144,7 @@
         "id": 2,
         "radiusM": 32
       },
-      "sequence": 30,
+      "sequence": 31,
       "tick": 151
     },
     {
@@ -1159,7 +1160,7 @@
         "id": 8,
         "radiusM": 32
       },
-      "sequence": 31,
+      "sequence": 32,
       "tick": 154
     },
     {
@@ -1175,7 +1176,7 @@
         "id": 3,
         "radiusM": 32
       },
-      "sequence": 32,
+      "sequence": 33,
       "tick": 173
     },
     {
@@ -1191,7 +1192,7 @@
         "id": 4,
         "radiusM": 32
       },
-      "sequence": 33,
+      "sequence": 34,
       "tick": 195
     },
     {
@@ -1207,7 +1208,7 @@
         "id": 6,
         "radiusM": 32
       },
-      "sequence": 34,
+      "sequence": 35,
       "tick": 239
     },
     {
@@ -1223,7 +1224,7 @@
         "id": 7,
         "radiusM": 32
       },
-      "sequence": 35,
+      "sequence": 36,
       "tick": 261
     },
     {
@@ -1239,7 +1240,7 @@
         "id": 8,
         "radiusM": 32
       },
-      "sequence": 36,
+      "sequence": 37,
       "tick": 283
     },
     {
@@ -1255,7 +1256,7 @@
         "id": 1,
         "radiusM": 32
       },
-      "sequence": 37,
+      "sequence": 38,
       "tick": 288
     },
     {
@@ -1271,7 +1272,7 @@
         "id": 1,
         "radiusM": 32
       },
-      "sequence": 38,
+      "sequence": 39,
       "tick": 288
     },
     {
@@ -1287,7 +1288,7 @@
         "id": 5,
         "radiusM": 32
       },
-      "sequence": 39,
+      "sequence": 40,
       "tick": 376
     },
     {
@@ -1303,7 +1304,7 @@
         "id": 2,
         "radiusM": 32
       },
-      "sequence": 40,
+      "sequence": 41,
       "tick": 391
     },
     {
@@ -1319,7 +1320,7 @@
         "id": 3,
         "radiusM": 32
       },
-      "sequence": 41,
+      "sequence": 42,
       "tick": 413
     },
     {
@@ -1335,7 +1336,7 @@
         "id": 4,
         "radiusM": 32
       },
-      "sequence": 42,
+      "sequence": 43,
       "tick": 435
     }
   ]

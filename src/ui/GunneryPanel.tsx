@@ -37,7 +37,7 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
         <label className="aim-select">Focus <select value={c.control.focus} onChange={e => { if (game) game.controlFocus = e.target.value; }}>
           <option value="">Automatic</option>{c.controlTargets.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select></label>
-        <p className="gunnery-help">{c.control.spares.toFixed(0)} repair supplies · Repairs restore up to 60%; destroyed equipment stays lost. Crews shore small openings and pump accessible rooms.</p>
+        <p className="gunnery-help">{c.control.spares.toFixed(0)} repair supplies · Repairs restore equipment up to 60%, without restoring hull HP. Destroyed equipment stays lost. Crews shore small openings and pump accessible rooms.</p>
         <div className="module-conditions">{c.control.teams.map((job, i) => <div key={i}><span>Team {i + 1}</span><strong>{job ? `${job.kind.replaceAll('-', ' ')}${job.setup > 0 ? ` · ${Math.ceil(job.setup)}s setup` : ''}` : 'Available'}</strong></div>)}</div>
         <div className="module-conditions">{[...c.control.rooms.map((f, i) => ({ f, name: c.controlTargets[i]?.name })), ...c.control.mounts.map((f, i) => ({ f, name: c.controlTargets[c.control.rooms.length + i]?.name }))].filter(({ f }) => f.intensity > 0).map(({ f, name }, i) => <div key={i}><span>{name}</span><strong>Fire · {Math.round(f.intensity * 100)}%</strong></div>)}</div>
       </details>
@@ -50,7 +50,8 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
       <div className="target-condition"><strong>{c.targetName}{` · ${c.targetStatus.replaceAll('-', ' ')}`}</strong><span>{(c.targetRange / 1000).toFixed(2)} km</span></div>
       <dl className="damage-readout">
         {c.targetDepthM !== undefined && <div><dt>Depth</dt><dd>{c.targetDepthM.toFixed(1)} m</dd></div>}
-        <div><dt>Equipment</dt><dd>{Math.round(c.targetIntegrity * 100)}%</dd></div>
+        <div><dt>Hull</dt><dd>{Math.round(c.targetIntegrity * 100)}%</dd></div>
+        <div><dt>Equipment</dt><dd>{Math.round(c.targetEquipmentIntegrity * 100)}%</dd></div>
         <div><dt>Propulsion</dt><dd>{Math.round(c.targetPower * 100)}%</dd></div>
         <div><dt>List / trim</dt><dd>{c.targetList.toFixed(1)}° / {c.targetTrim.toFixed(1)}°</dd></div>
         <div><dt>Draft change</dt><dd>{c.targetDraftChange.toFixed(2)} m</dd></div>
@@ -71,7 +72,8 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
             {impact.thicknessMm !== undefined && <span>{impact.thicknessMm.toFixed(1)} mm {impact.material}{impact.obliquityDeg !== undefined ? ` · ${impact.obliquityDeg.toFixed(1)}° from normal` : ''}</span>}
             {impact.fragmentBudgetMm !== undefined && <span>{impact.fragmentBudgetMm.toFixed(1)} mm fragment budget</span>}
             <span>{impact.resistanceMm !== undefined ? `${impact.resistanceMm.toFixed(1)} mm resistance · ` : ''}{impact.penetrationAfterMm.toFixed(1)} mm remaining</span>
-            {!!impact.damage && <span>{impact.damage.toFixed(1)} damage</span>}
+            {!!impact.hullDamage && <span>{impact.hullDamage.toFixed(1)} hull damage</span>}
+            {!!impact.damage && <span>{impact.damage.toFixed(1)} equipment damage</span>}
             {impact.breachAssignments ? impact.breachAssignments.filter(b => b.areaM2 > 0).map((b, index) => <span key={index}>{b.areaM2.toFixed(3)} m² opening · {b.compartmentId}</span>) : !!impact.breachAreaM2 && <span>{impact.breachAreaM2.toFixed(3)} m² opening · {impact.compartmentId ?? 'watertight boundary'}</span>}
           </li>)}</ol>
         </details>)}
@@ -85,7 +87,7 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
       {c.battery === 'torpedo' && <p className="gunnery-help">Aim within the launch arcs: {game ? torpedoArcLabel(game.definition) : 'see weapon instrument'}. Each press launches one loaded tube; hold to launch in sequence. Torpedoes run straight. Target waterline computes a lead for the selected target.</p>}
       {c.battery === 'depth-charge' && <p className="gunnery-help">Each press releases one charge from a ready stern rack or side thrower; hold for a pattern. Charges sink to {game?.definition.depthChargeLaunchers?.[0].weapon.detonationDepthM ?? 10} m before exploding. Pass close to the target and keep moving. Blasts can damage your own ship and allies.</p>}
       <p className="gunnery-help">Mouse aims the center sight. Hold left mouse or {bindingLabel(bindings, 'fire')} to fire. Shift opens binoculars; scroll adjusts magnification. Selecting a module tracks it until you move the mouse to aim again.</p>
-      <p className="gunnery-help">Aim AP at turrets or magazines to disable weapons. Surviving guns keep fighting; flooding can sink the ship.</p>
+      <p className="gunnery-help">Penetrating hits reduce hull HP. Aim at turrets or machinery to disable them. Hull failure or flooding can sink a ship.</p>
     </div><div className="target-actions">
       <button aria-pressed={!!data.inspecting} onClick={() => { game?.inspectTarget(); if (window.innerWidth <= 760) onExpand(false); }}>{data.inspecting ? 'Return to ship' : 'Inspect target'}</button>
     </div></>}

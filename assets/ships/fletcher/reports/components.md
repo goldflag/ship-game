@@ -22,11 +22,11 @@ Exact Mod 0 plate curvature, outfit details, propeller diameter/pitch distributi
 
 ## Verification
 
-Final model: `76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918` — 302,822 triangles, 86 meshes, 12,572,908 bytes.
+Final model: `21547dc10500b4bf4ce24f8709a5276f6db3f05958261afedcd6f1f5914ea62e` — 302,822 triangles, 86 meshes, 12,572,908 bytes.
 
 The shared `ship:build`, `ship:check` and `ship:review` pipeline passed. All five fixed views and the matching side/front/top/quarter turret and stern/side/quarter propeller views were inspected. Local Blender 5.2 was used; no Blender MCP tools were exposed.
 
-All 297 tests passed (34,346 assertions). The final GLB passed 18 articulation poses in isolated Chromium/WebGPU; maximum gun muzzle disagreement was 0.683 mm and torpedo disagreement 0.00242 mm. Ten torpedoes launched and hit; eight depth charges launched and detonated. No page errors were reported by the isolated browser.
+The geometry-authoring pass had 297 passing tests (34,346 assertions); current master integration is recorded in [merge-validation.md](merge-validation.md). The final GLB passed 18 articulation poses in isolated Chromium/WebGPU; maximum gun muzzle disagreement was 0.683 mm and torpedo disagreement 0.00261 mm. Ten torpedoes launched and hit; eight depth charges launched and detonated. No page errors were reported by the isolated browser.
 
 Additional closeups show neutral, -15° and +85° elevation with recoil, plus both loaded propellers. Propeller inspection temporarily hides sea and other ship meshes; manually rotating the two pivots by opposite 60° about their shaft axes preserves their origins and axes. This verifies independent geometry, not new sailing animation. Orca passed an initial articulation review of this geometry before the final metadata update. Its embedded tab became unavailable during capture; the remaining images were taken in a fresh isolated Chromium instance, not by attaching to Orca's browser.
 

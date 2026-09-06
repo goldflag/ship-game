@@ -2,6 +2,7 @@ import { hullContacts } from './hullContact';
 import { structuralHits, EXTERIOR_PLATING_REPLACEMENT_M } from './structure';
 import { createStability, updateStability, waterLevel, type StabilityState } from './stability';
 import { createControl, heatModule, type ControlState } from './damageControl';
+import { damageShellHull, HULL_DAMAGE, penetrationHullDamage } from './durability';
 import type { Ammunition, APProjectile, Armor, FloodConnection, HEProjectile, ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { ShipState } from './ship';
 import { plateHit, plateResponse, samePlateSeam } from './protection';
@@ -12,7 +13,7 @@ export interface Breach { position: Vec3; areaM2: number; radiusM: number; shell
 export interface CompartmentState { id: string; waterM3: number; breachAreaM2: number; breaches: Breach[]; }
 export interface ConnectionState { id: string; state: 'open' | 'closed' | 'damaged'; damageAreaM2: number; fromIndex: number; toIndex: number; }
 export const connectionId = (c: FloodConnection) => c.id ?? `${c.fromId}:${c.toId}`;
-export type DefeatCause = 'structural-fallback' | 'flooding' | 'magazine' | 'capsize' | 'weapons-lost' | 'ammunition-exhausted';
+export type DefeatCause = 'structural-fallback' | 'hull-failure' | 'flooding' | 'magazine' | 'capsize' | 'weapons-lost' | 'ammunition-exhausted';
 export interface ImpactRecord {
   shellId: number; shipId: string; targetId: string; targetName: string;
   /** Position is ship-local; DamageEvent.position is world-space. */
@@ -24,12 +25,14 @@ export interface ImpactRecord {
   penetrationBeforeMm: number; penetrationAfterMm: number;
   outcome: 'penetrated' | 'ricochet' | 'stopped' | 'damaged' | 'destroyed' | 'detonation' | 'backing';
   damage?: number; compartmentId?: string; breachAreaM2?: number; terminal?: boolean;
+  /** Actual gameplay HP lost, distinct from the local equipment damage above. */
+  hullDamage?: number;
   connectionIds?: string[];
   breachAssignments?: { compartmentId: string; areaM2: number; position: Vec3 }[];
 }
 export interface DamageState {
   control: ControlState; stability: StabilityState;
-  /** Equipment condition on the ship's display scale; never a buoyancy pool. */
+  /** Gameplay hull durability. Equipment HP and physical flooding are separate. */
   integrity: number; maxIntegrity: number; modules: { id: string; hp: number; detonated: boolean; ignition: number }[];
   compartments: CompartmentState[]; connections: ConnectionState[]; sunk: boolean; defeatCause?: DefeatCause;
 }
@@ -47,6 +50,8 @@ export interface Shell {
   he?: HEProjectile; ammunition?: Ammunition;
   type?: ShellType;
   remainingModuleDamage?: number;
+  /** Per-victim hull damage already paid by this projectile. */
+  hullDamage?: Record<string, number>;
   detonateAtAge?: number;
   lastHitShipId?: string;
   /** Position is ship-local, or mount-local when attached to an articulated gunhouse. */
@@ -61,7 +66,7 @@ export interface BallisticEffectData {
   blastRadiusM?: number;
 }
 export interface DamageEvent extends BallisticEffectData { kind: 'penetration' | 'contact' | 'ricochet' | 'stopped' | 'module' | 'sunk' | 'burst'; position: Vec3; message: string; shipId: string; impact?: ImpactRecord; defeatCause?: DefeatCause; }
-/** Historical API name retained for the HUD scale. Sinking is hydrostatic. */
+/** Displacement-based gameplay durability, shared by every blueprint. */
 export function maxHullIntegrity(def: ShipDefinition): number {
   return Math.round((300 + 1450 * Math.sqrt(def.hull.massKg / 70_000_000)) / 10) * 10;
 }
@@ -280,7 +285,9 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
       shell.penetrationMm = Math.max(0, before - resistance);
       shell.velocity = shell.penetrationMm > 0 && before > 0 ? scale(shell.velocity, (shell.penetrationMm / before) ** (1 / 1.4)) : [0, 0, 0];
     };
-    const report = (kind: DamageEvent['kind'], message: string, detonation = false) => emit({
+    const report = (kind: DamageEvent['kind'], message: string, detonation = false) => {
+      if ((evidence.damage ?? 0) > 0) evidence.hullDamage = (evidence.hullDamage ?? 0) + damageShellHull(shell, actor, shell.damage * HULL_DAMAGE.equipment);
+      emit({
       kind, position, message, shipId: actor.motion.id,
       impact: { ...evidence, penetrationAfterMm: shell.penetrationMm, exitSpeedMps: length(shell.velocity),
         ...(shell.ap ? { fuze: shell.detonateAtAge === undefined ? 'unarmed' as const : 'armed' as const,
@@ -289,13 +296,17 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
       surfaceImpact: surfaceEvidence(kind),
       ...(hit.kind === 'mount' || (hit.kind === 'armor' && kind !== 'module' && evidence.outcome !== 'backing') ? { normal: rotate(hit.normal, actor.motion) } : {}),
       ...(detonation ? { detonation: true } : {}),
-    });
+      });
+    };
     const stop = (kind: 'stopped' | 'ricochet', message: string) => {
       pay(shell.penetrationMm);
       if (shell.detonateAtAge !== undefined) {
         const mountId = hit.kind === 'mount' ? def.mounts[hit.index].id : hit.kind === 'armor' ? contactArmor(def,hit).plate?.mountId : undefined;
         const index = def.mounts.findIndex(m => m.id === mountId), mount = def.mounts[index];
-        const point = mount ? worldToLocal(hit.point, { x: mount.position[0], y: mount.position[1], z: mount.position[2], heading: radians(mount.bearingDeg) + actor.mounts[index].train, roll: 0, pitch: 0 }) : [...hit.point] as Vec3;
+        // Keep the burst on the incoming side. An origin exactly on the plate
+        // makes fresh blast rays pay that armor in both directions.
+        const origin = add(hit.point, scale(direction, -1e-4));
+        const point = mount ? worldToLocal(origin, { x: mount.position[0], y: mount.position[1], z: mount.position[2], heading: radians(mount.bearingDeg) + actor.mounts[index].train, roll: 0, pitch: 0 }) : origin;
         shell.lodged = { shipId: actor.motion.id, position: point, mountId };
       }
       evidence.outcome = kind; evidence.terminal = !shell.lodged;
@@ -312,6 +323,8 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
         // does not assume a free blast path through its other protective layers.
         const resistance = plateResponse(a.thicknessMm, material, 1, .01).resistanceMm;
         Object.assign(evidence, { thicknessMm: a.thicknessMm, material, resistanceMm: resistance });
+        if (shell.he.fragmentPenetrationMm > resistance && resistance > 0)
+          evidence.hullDamage = damageShellHull(shell, actor, shell.he.damage * HULL_DAMAGE.hePenetration);
         if (shell.he.fragmentPenetrationMm > resistance && (a.plate?.exterior || a.exterior || (a.exterior === undefined && !a.plate && hit.key.endsWith(':entry')))) {
           evidence.breachAssignments = exteriorBreaches(actor, def, hit.point, hit.normal, shell);
           evidence.compartmentId = evidence.breachAssignments[0]?.compartmentId;
@@ -333,6 +346,7 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
       if (shell.penetrationMm <= resistance) return stop('stopped', `Stopped by ${a.name}`);
       pay(resistance);
       evidence.outcome = 'penetrated';
+      evidence.hullDamage = damageShellHull(shell, actor, penetrationHullDamage(shell, resistance));
       def.connections.forEach((connection, i) => {
         if (connection.armorId !== a.id || (connection.bounds && !contains(connection.bounds, hit.point))) return;
         const state = actor.damage.connections[i];
@@ -406,6 +420,10 @@ export function hitShip(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor: Com
 
 export function updateFlooding(actor: Combatant, def: ShipDefinition, dt: number): void {
   const damage = actor.damage;
+  if (!damage.sunk && damage.integrity <= 0) {
+    damage.sunk = true;
+    damage.defeatCause = 'hull-failure';
+  }
   updateStability(actor, def, dt);
   damage.compartments.forEach((state, i) => {
     const c = def.compartments[i];

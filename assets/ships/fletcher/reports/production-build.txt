@@ -1,8 +1,8 @@
-$ bun run ship:check bismarck && bun run ship:check yamato && bun run ship:check baltimore && bun run ship:check enterprise-cv6 && bun run ship:check type-viic && bun run ship:check fletcher && bun run aircraft:check all && tsc --noEmit && vite build
+$ bun run ship:check bismarck && bun run ship:check yamato && bun run ship:check baltimore && bun run ship:check enterprise-cv6 && bun run ship:check type-viic && bun run ship:check liberty-cargo && bun run ship:check liberty-collier && bun run ship:check victory-cargo && bun run ship:check flower-corvette && bun run ship:check fletcher && bun run aircraft:check all && tsc --noEmit && vite build
 $ bun scripts/ships/pipeline.ts check bismarck
 Matched comparisons, probes, source pack and portable archive are current
 {
-  "contentHash": "f70db5ac23faddb38012509862a0d38294035364d950209b56650f274f07ac29",
+  "contentHash": "084c4a1d3f58b7419bdc5d6bdf061cf6c8076e2e64aac4d108810ca3df8b0bc4",
   "hullBounds": [
     [
       -18,
@@ -127,8 +127,9 @@ Matched comparisons, probes, source pack and portable archive are current
   "historicalAccuracy": "not certified; see reference register and discrepancy report"
 }
 $ bun scripts/ships/pipeline.ts check yamato
+Matched comparisons, probes, source pack and portable archive are current
 {
-  "contentHash": "163092b8762131d6f22b17e7d3ff69fe985b7c28c4aa3661cc19470a5b6b019d",
+  "contentHash": "6403e9243c0d1d5c7ef893faec26249e5fdb254964ace8256f313f3a797c76e7",
   "hullBounds": [
     [
       -19.450002670288086,
@@ -195,16 +196,17 @@ $ bun scripts/ships/pipeline.ts check yamato
   ],
   "torpedoTubes": [],
   "depthChargeLaunchers": [],
-  "meshes": 104,
-  "primitives": 328,
-  "triangles": 141730,
-  "bytes": 4915160,
+  "meshes": 110,
+  "primitives": 343,
+  "triangles": 264906,
+  "bytes": 11623044,
   "result": "passed",
   "historicalAccuracy": "not certified; see reference register and discrepancy report"
 }
 $ bun scripts/ships/pipeline.ts check baltimore
+Matched comparisons, probes, source pack and portable archive are current
 {
-  "contentHash": "35c847887cdb69604c44bb97c8c572b75577c2dc1a57e58cb78980917d0b7738",
+  "contentHash": "99381546c2522dd03f50710cb4e82ea37bddc8f598b983b03bc19309f22ffdb4",
   "hullBounds": [
     [
       -10.795001983642578,
@@ -311,16 +313,17 @@ $ bun scripts/ships/pipeline.ts check baltimore
   ],
   "torpedoTubes": [],
   "depthChargeLaunchers": [],
-  "meshes": 122,
-  "primitives": 346,
-  "triangles": 109820,
-  "bytes": 3674064,
+  "meshes": 126,
+  "primitives": 370,
+  "triangles": 260522,
+  "bytes": 8587524,
   "result": "passed",
   "historicalAccuracy": "not certified; see reference register and discrepancy report"
 }
 $ bun scripts/ships/pipeline.ts check "enterprise-cv6"
+Matched comparisons, probes, source pack and portable archive are current
 {
-  "contentHash": "e92889c41c480da6238655e8998db7e5a398dfcdc46de1d17e32cfa5a758b00b",
+  "contentHash": "82b4c348b74b465a6611bb4e09875bdda56fab60d1c38033fa91e91fd44bfa1c",
   "hullBounds": [
     [
       -14.02080249786377,
@@ -757,26 +760,27 @@ $ bun scripts/ships/pipeline.ts check "enterprise-cv6"
   ],
   "torpedoTubes": [],
   "depthChargeLaunchers": [],
-  "meshes": 192,
-  "primitives": 385,
-  "triangles": 147596,
-  "bytes": 5340344,
+  "meshes": 222,
+  "primitives": 419,
+  "triangles": 206818,
+  "bytes": 7512012,
   "result": "passed",
   "historicalAccuracy": "not certified; see reference register and discrepancy report"
 }
 $ bun scripts/ships/pipeline.ts check type-viic
+Matched comparisons, probes, source pack and portable archive are current
 {
-  "contentHash": "9ea6cda9f697422f7f9120e57673cb28ab11700aee1f2876bb788e800070cdcf",
+  "contentHash": "2ea7b9072cc4bf61a13fdf275e8859edbe5fc50c2a4598ae05b0a86fd058feb0",
   "hullBounds": [
     [
-      -3.1000001430511475,
-      -4.739999771118164,
-      -33.54999923706055
+      -3.076575756072998,
+      -4.762499809265137,
+      -33.55022430419922
     ],
     [
-      3.1000001430511475,
-      2,
-      33.54999923706055
+      3.076575517654419,
+      1.840000033378601,
+      33.55022430419922
     ]
   ],
   "mounts": [
@@ -784,8 +788,8 @@ $ bun scripts/ships/pipeline.ts check type-viic
       "id": "deck-gun",
       "measuredPivot": [
         0,
-        1.4700000286102295,
-        -8.399999618530273
+        1.2552510499954224,
+        -7.929999828338623
       ],
       "barrels": 1,
       "articulationChecks": 3
@@ -794,8 +798,8 @@ $ bun scripts/ships/pipeline.ts check type-viic
       "id": "flak-gun",
       "measuredPivot": [
         0,
-        4.25,
-        2.799999952316284
+        3.7899999618530273,
+        0.8299999833106995
       ],
       "barrels": 1,
       "articulationChecks": 3
@@ -805,9 +809,9 @@ $ bun scripts/ships/pipeline.ts check type-viic
     {
       "id": "bow-tube-1",
       "measuredMuzzle": [
-        -0.4299977421760559,
-        -1.100000023841858,
-        -30
+        -0.3799976408481598,
+        -0.9200000166893005,
+        -31
       ],
       "direction": [
         0,
@@ -818,9 +822,9 @@ $ bun scripts/ships/pipeline.ts check type-viic
     {
       "id": "bow-tube-2",
       "measuredMuzzle": [
-        0.43000227212905884,
-        -1.100000023841858,
-        -30
+        0.38000234961509705,
+        -0.9200000166893005,
+        -31
       ],
       "direction": [
         0,
@@ -831,9 +835,9 @@ $ bun scripts/ships/pipeline.ts check type-viic
     {
       "id": "bow-tube-3",
       "measuredMuzzle": [
-        -0.4299977421760559,
-        -2.049999952316284,
-        -30
+        -0.37999773025512695,
+        -1.7999999523162842,
+        -30.149999618530273
       ],
       "direction": [
         0,
@@ -844,9 +848,9 @@ $ bun scripts/ships/pipeline.ts check type-viic
     {
       "id": "bow-tube-4",
       "measuredMuzzle": [
-        0.43000227212905884,
-        -2.049999952316284,
-        -30
+        0.3800022602081299,
+        -1.7999999523162842,
+        -30.149999618530273
       ],
       "direction": [
         0,
@@ -857,9 +861,9 @@ $ bun scripts/ships/pipeline.ts check type-viic
     {
       "id": "stern-tube",
       "measuredMuzzle": [
-        -0.0000024159328404493863,
-        -1.2000000476837158,
-        32
+        -0.000002487655820004875,
+        -0.23999999463558197,
+        32.95000076293945
       ],
       "direction": [
         -1.5099580252808492e-7,
@@ -869,16 +873,440 @@ $ bun scripts/ships/pipeline.ts check type-viic
     }
   ],
   "depthChargeLaunchers": [],
-  "meshes": 32,
-  "primitives": 55,
-  "triangles": 23486,
-  "bytes": 1477376,
+  "meshes": 41,
+  "primitives": 70,
+  "triangles": 80300,
+  "bytes": 2391124,
+  "result": "passed",
+  "historicalAccuracy": "not certified; see reference register and discrepancy report"
+}
+$ bun scripts/ships/pipeline.ts check liberty-cargo
+{
+  "contentHash": "f2bad808e08b0deef4dcc8b3962ac8f5fd82531687dbf9815648c8b79d5bd879",
+  "hullBounds": [
+    [
+      -8.664576530456543,
+      -8.43280029296875,
+      -67.28459930419922
+    ],
+    [
+      8.664575576782227,
+      5.849999904632568,
+      67.28459930419922
+    ]
+  ],
+  "mounts": [
+    {
+      "id": "aft-5in",
+      "measuredPivot": [
+        -0.000004620471827365691,
+        7.128288269042969,
+        61.20000076293945
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "fore-3in",
+      "measuredPivot": [
+        0.000004663298568630125,
+        6.68874979019165,
+        -61.76726150512695
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bow-aa-starboard",
+      "measuredPivot": [
+        4.600004196166992,
+        5.942500114440918,
+        -54.635093688964844
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bridge-aa-starboard-1",
+      "measuredPivot": [
+        5.90000057220459,
+        10.776399612426758,
+        -7.749999523162842
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bridge-aa-starboard-2",
+      "measuredPivot": [
+        5.90000057220459,
+        10.776399612426758,
+        -3.84999942779541
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "aft-aa-starboard",
+      "measuredPivot": [
+        5.399996280670166,
+        6.363789081573486,
+        53.5
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bow-aa-port",
+      "measuredPivot": [
+        -4.5999956130981445,
+        5.942500114440918,
+        -54.635093688964844
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bridge-aa-port-1",
+      "measuredPivot": [
+        -5.899999618530273,
+        10.776399612426758,
+        -7.750000476837158
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bridge-aa-port-2",
+      "measuredPivot": [
+        -5.899999618530273,
+        10.776399612426758,
+        -3.8500003814697266
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "aft-aa-port",
+      "measuredPivot": [
+        -5.400003910064697,
+        6.363789081573486,
+        53.5
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    }
+  ],
+  "torpedoTubes": [],
+  "depthChargeLaunchers": [],
+  "meshes": 81,
+  "primitives": 171,
+  "triangles": 95100,
+  "bytes": 4059692,
+  "result": "passed",
+  "historicalAccuracy": "not certified; see reference register and discrepancy report"
+}
+$ bun scripts/ships/pipeline.ts check liberty-collier
+{
+  "contentHash": "f9208d581b206aa3ce0c3099a09859cfa6886aa01e2d113c21a5c891400126c3",
+  "hullBounds": [
+    [
+      -8.664576530456543,
+      -8.719599723815918,
+      -67.61479949951172
+    ],
+    [
+      8.664575576782227,
+      5.559999942779541,
+      67.61479949951172
+    ]
+  ],
+  "mounts": [
+    {
+      "id": "aft-5in",
+      "measuredPivot": [
+        -0.00000470351915282663,
+        6.800000190734863,
+        62.29999923706055
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "fore-3in",
+      "measuredPivot": [
+        0.000004686183729063487,
+        6.398749828338623,
+        -62.07038497924805
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bow-aa-starboard",
+      "measuredPivot": [
+        4.600004196166992,
+        5.652500152587891,
+        -54.90321731567383
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bridge-aa-starboard-1",
+      "measuredPivot": [
+        5.050002098083496,
+        10.739999771118164,
+        -24
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "aft-aa-starboard",
+      "measuredPivot": [
+        5.399997234344482,
+        5.650000095367432,
+        39
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bow-aa-port",
+      "measuredPivot": [
+        -4.5999956130981445,
+        5.652500152587891,
+        -54.90321731567383
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bridge-aa-port-1",
+      "measuredPivot": [
+        -5.0499982833862305,
+        10.739999771118164,
+        -24
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "aft-aa-port",
+      "measuredPivot": [
+        -5.400002956390381,
+        5.650000095367432,
+        39
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    }
+  ],
+  "torpedoTubes": [],
+  "depthChargeLaunchers": [],
+  "meshes": 69,
+  "primitives": 157,
+  "triangles": 78560,
+  "bytes": 3453624,
+  "result": "passed",
+  "historicalAccuracy": "not certified; see reference register and discrepancy report"
+}
+$ bun scripts/ships/pipeline.ts check victory-cargo
+{
+  "contentHash": "8d9cbfbc4efdf1313f229471a218feca09d91110eaeea8a68eec8aada99ee90a",
+  "hullBounds": [
+    [
+      -9.44880199432373,
+      -8.686800003051758,
+      -69.38009643554688
+    ],
+    [
+      9.448801040649414,
+      8.399999618530273,
+      69.38009643554688
+    ]
+  ],
+  "mounts": [
+    {
+      "id": "aft-5in",
+      "measuredPivot": [
+        -0.000004907363745587645,
+        7.701189041137695,
+        65
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "fore-3in",
+      "measuredPivot": [
+        0.000004808531684830086,
+        9.119166374206543,
+        -63.69093322753906
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bow-aa-starboard",
+      "measuredPivot": [
+        4.600004196166992,
+        8.390909194946289,
+        -56.336639404296875
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bridge-aa-starboard-1",
+      "measuredPivot": [
+        5.90000057220459,
+        13.353296279907227,
+        -5.34999942779541
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bridge-aa-starboard-2",
+      "measuredPivot": [
+        5.899999141693115,
+        10.773296356201172,
+        10.399999618530273
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "aft-aa-starboard",
+      "measuredPivot": [
+        5.399996280670166,
+        7.068498134613037,
+        53.5
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bow-aa-port",
+      "measuredPivot": [
+        -4.5999956130981445,
+        8.390909194946289,
+        -56.336639404296875
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bridge-aa-port-1",
+      "measuredPivot": [
+        -5.899999618530273,
+        13.353296279907227,
+        -5.350000381469727
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bridge-aa-port-2",
+      "measuredPivot": [
+        -5.900001049041748,
+        10.773296356201172,
+        10.399999618530273
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "aft-aa-port",
+      "measuredPivot": [
+        -5.400003910064697,
+        7.068498134613037,
+        53.5
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    }
+  ],
+  "torpedoTubes": [],
+  "depthChargeLaunchers": [],
+  "meshes": 91,
+  "primitives": 193,
+  "triangles": 105512,
+  "bytes": 4510152,
+  "result": "passed",
+  "historicalAccuracy": "not certified; see reference register and discrepancy report"
+}
+$ bun scripts/ships/pipeline.ts check flower-corvette
+{
+  "contentHash": "28c076b7e85bf142e6ebcb70ccc1fc6287ef8b6a3f2ce8ad2b666d24e059a65a",
+  "hullBounds": [
+    [
+      -5.029200553894043,
+      -3.505199909210205,
+      -31.242000579833984
+    ],
+    [
+      5.029200077056885,
+      4.880000114440918,
+      31.242000579833984
+    ]
+  ],
+  "mounts": [
+    {
+      "id": "fore-4in",
+      "measuredPivot": [
+        0,
+        5.400000095367432,
+        -16.799999237060547
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "aft-pompom",
+      "measuredPivot": [
+        0,
+        5.039999961853027,
+        16.799999237060547
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bridge-starboard",
+      "measuredPivot": [
+        3.1000006198883057,
+        6.849999904632568,
+        -7.900000095367432
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "bridge-port",
+      "measuredPivot": [
+        -3.099999189376831,
+        6.849999904632568,
+        -7.900000095367432
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    }
+  ],
+  "torpedoTubes": [],
+  "depthChargeLaunchers": [],
+  "meshes": 64,
+  "primitives": 131,
+  "triangles": 60688,
+  "bytes": 2575744,
   "result": "passed",
   "historicalAccuracy": "not certified; see reference register and discrepancy report"
 }
 $ bun scripts/ships/pipeline.ts check fletcher
 {
-  "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+  "contentHash": "21547dc10500b4bf4ce24f8709a5276f6db3f05958261afedcd6f1f5914ea62e",
   "hullBounds": [
     [
       -6.0500006675720215,
@@ -1234,35 +1662,35 @@ tbf-1c-avenger: passed (LOD triangles 33,383 / 15,008 / 6,634, 1180 KiB base)
 f4u-1d-corsair: passed (LOD triangles 30,411 / 13,670 / 6,034, 1248 KiB base)
 vite v6.4.3 building for production...
 transforming...
-✓ 132 modules transformed.
+✓ 161 modules transformed.
 rendering chunks...
 computing gzip size...
-dist/index.html                                                   0.82 kB │ gzip:     0.43 kB
-dist/aircraft-review.html                                         4.69 kB │ gzip:     1.49 kB
-dist/assets/data/baseShape16.bin                                 14.21 kB
-dist/assets/barlow-condensed-latin-500-normal-HIEiP5Ov.woff      18.60 kB
-dist/assets/barlow-condensed-latin-600-normal-BFJEwTuo.woff      18.89 kB
-dist/assets/barlow-latin-500-normal-C1h8hMer.woff                19.52 kB
-dist/assets/barlow-latin-400-normal-fsAxiSwU.woff                19.58 kB
-dist/assets/barlow-latin-600-normal-CNwfPWQD.woff                19.88 kB
-dist/assets/barlow-condensed-latin-500-normal-BgYH2mbd.woff2     21.42 kB
-dist/assets/barlow-latin-500-normal-BPAOfeC8.woff2               22.01 kB
-dist/assets/barlow-latin-400-normal-qiz4-Cze.woff2               22.20 kB
-dist/assets/barlow-condensed-latin-600-normal-DepVgxBB.woff2     22.31 kB
-dist/assets/barlow-latin-600-normal-DILqtrty.woff2               22.77 kB
-dist/assets/data/baseShape32.bin                                113.24 kB
-dist/assets/data/baseShape64.bin                                908.29 kB
-dist/assets/aircraftReview-B-FvKVDH.css                           7.16 kB │ gzip:     2.17 kB
-dist/assets/game-DPnXXcuf.css                                    69.48 kB │ gzip:    13.74 kB
-dist/assets/render-B8DmcLmJ.js                                    7.45 kB │ gzip:     3.57 kB
-dist/assets/aircraftReview-D_MNAoJq.js                           32.06 kB │ gzip:     9.29 kB
-dist/assets/react-BYzzQ_KH.js                                   193.01 kB │ gzip:    60.33 kB
-dist/assets/GLTFLoader-D8lsevl2.js                              399.10 kB │ gzip:   100.65 kB
-dist/assets/three-engine-TQNI8Ta4.js                            933.99 kB │ gzip:   259.36 kB
-dist/assets/game-Cwv7dmkN.js                                  7,573.19 kB │ gzip: 4,628.37 kB
+dist/index.html                                                    0.82 kB │ gzip:     0.43 kB
+dist/aircraft-review.html                                          4.69 kB │ gzip:     1.50 kB
+dist/assets/data/baseShape16.bin                                  14.21 kB
+dist/assets/barlow-condensed-latin-500-normal-HIEiP5Ov.woff       18.60 kB
+dist/assets/barlow-condensed-latin-600-normal-BFJEwTuo.woff       18.89 kB
+dist/assets/barlow-latin-500-normal-C1h8hMer.woff                 19.52 kB
+dist/assets/barlow-latin-400-normal-fsAxiSwU.woff                 19.58 kB
+dist/assets/barlow-latin-600-normal-CNwfPWQD.woff                 19.88 kB
+dist/assets/barlow-condensed-latin-500-normal-BgYH2mbd.woff2      21.42 kB
+dist/assets/barlow-latin-500-normal-BPAOfeC8.woff2                22.01 kB
+dist/assets/barlow-latin-400-normal-qiz4-Cze.woff2                22.20 kB
+dist/assets/barlow-condensed-latin-600-normal-DepVgxBB.woff2      22.31 kB
+dist/assets/barlow-latin-600-normal-DILqtrty.woff2                22.77 kB
+dist/assets/data/baseShape32.bin                                 113.24 kB
+dist/assets/data/baseShape64.bin                                 908.29 kB
+dist/assets/aircraftReview-B-FvKVDH.css                            7.16 kB │ gzip:     2.17 kB
+dist/assets/game-BaT_hf6p.css                                     77.43 kB │ gzip:    15.02 kB
+dist/assets/render-J77RQdLB.js                                     7.45 kB │ gzip:     3.58 kB
+dist/assets/aircraftReview-DTp8veSg.js                            32.06 kB │ gzip:     9.29 kB
+dist/assets/react-BYzzQ_KH.js                                    193.01 kB │ gzip:    60.33 kB
+dist/assets/GLTFLoader-EMeb_5GX.js                               399.08 kB │ gzip:   100.63 kB
+dist/assets/three-engine-BMShqAqZ.js                             934.01 kB │ gzip:   259.37 kB
+dist/assets/game-kQPCmY8l.js                                  11,403.30 kB │ gzip: 5,253.95 kB
 
 (!) Some chunks are larger than 7000 kB after minification. Consider:
 - Using dynamic import() to code-split the application
 - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
-✓ built in 3.48s
+✓ built in 4.64s

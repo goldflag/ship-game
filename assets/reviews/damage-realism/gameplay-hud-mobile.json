@@ -1,0 +1,28 @@
+{
+  "actions": {
+    "bottom": 781,
+    "height": 54,
+    "left": 13,
+    "right": 377,
+    "top": 727,
+    "width": 364,
+    "x": 13,
+    "y": 727
+  },
+  "readout": "Hull\n75%\nEquipment\n100%\nPropulsion\n100%\nList / trim\n0.0\u00b0 / 0.0\u00b0\nDraft change\n0.00 m\nFires\n0\nFlooding\n0.0 m\u00b3",
+  "rect": {
+    "bottom": 543.5,
+    "height": 33,
+    "left": 27,
+    "right": 363,
+    "top": 510.5,
+    "width": 336,
+    "x": 27,
+    "y": 510.5
+  },
+  "scrollWidth": 390,
+  "viewport": [
+    390,
+    844
+  ]
+}

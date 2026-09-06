@@ -61,9 +61,9 @@
     ]
   },
   "tick": 168,
-  "battleSeed": 954282929,
+  "battleSeed": 176879701,
   "paused": false,
-  "fps": 80.05070254619174,
+  "fps": 43.016833891316985,
   "inspecting": false,
   "inPort": false,
   "effects": {
@@ -71,7 +71,7 @@
     "torpedoes": 0,
     "depthCharges": 8,
     "smoke": 0,
-    "spray": 411,
+    "spray": 405,
     "flashes": 0,
     "foam": 0,
     "particleCapacity": 2272
@@ -486,6 +486,7 @@
     ],
     "targetIntegrity": 1,
     "targetWater": 0,
+    "targetEquipmentIntegrity": 1,
     "targetPower": 1,
     "targetSteering": 1,
     "targetSunk": false,
@@ -732,7 +733,7 @@
         "id": 1,
         "radiusM": 32
       },
-      "sequence": 21,
+      "sequence": 22,
       "tick": 0
     },
     {
@@ -748,7 +749,7 @@
         "id": 2,
         "radiusM": 32
       },
-      "sequence": 22,
+      "sequence": 23,
       "tick": 22
     },
     {
@@ -764,7 +765,7 @@
         "id": 3,
         "radiusM": 32
       },
-      "sequence": 23,
+      "sequence": 24,
       "tick": 44
     },
     {
@@ -780,7 +781,7 @@
         "id": 1,
         "radiusM": 32
       },
-      "sequence": 24,
+      "sequence": 25,
       "tick": 48
     },
     {
@@ -796,7 +797,7 @@
         "id": 4,
         "radiusM": 32
       },
-      "sequence": 25,
+      "sequence": 26,
       "tick": 66
     },
     {
@@ -812,7 +813,7 @@
         "id": 5,
         "radiusM": 32
       },
-      "sequence": 26,
+      "sequence": 27,
       "tick": 88
     },
     {
@@ -828,7 +829,7 @@
         "id": 6,
         "radiusM": 32
       },
-      "sequence": 27,
+      "sequence": 28,
       "tick": 110
     },
     {
@@ -844,7 +845,7 @@
         "id": 7,
         "radiusM": 32
       },
-      "sequence": 28,
+      "sequence": 29,
       "tick": 132
     },
     {
@@ -860,7 +861,7 @@
         "id": 5,
         "radiusM": 32
       },
-      "sequence": 29,
+      "sequence": 30,
       "tick": 136
     },
     {
@@ -876,7 +877,7 @@
         "id": 2,
         "radiusM": 32
       },
-      "sequence": 30,
+      "sequence": 31,
       "tick": 151
     },
     {
@@ -892,7 +893,7 @@
         "id": 8,
         "radiusM": 32
       },
-      "sequence": 31,
+      "sequence": 32,
       "tick": 154
     }
   ],
@@ -910,7 +911,7 @@
         "id": 1,
         "radiusM": 32
       },
-      "sequence": 21,
+      "sequence": 22,
       "tick": 0
     },
     {
@@ -926,7 +927,7 @@
         "id": 2,
         "radiusM": 32
       },
-      "sequence": 22,
+      "sequence": 23,
       "tick": 22
     },
     {
@@ -942,7 +943,7 @@
         "id": 3,
         "radiusM": 32
       },
-      "sequence": 23,
+      "sequence": 24,
       "tick": 44
     },
     {
@@ -958,7 +959,7 @@
         "id": 1,
         "radiusM": 32
       },
-      "sequence": 24,
+      "sequence": 25,
       "tick": 48
     },
     {
@@ -974,7 +975,7 @@
         "id": 4,
         "radiusM": 32
       },
-      "sequence": 25,
+      "sequence": 26,
       "tick": 66
     },
     {
@@ -990,7 +991,7 @@
         "id": 5,
         "radiusM": 32
       },
-      "sequence": 26,
+      "sequence": 27,
       "tick": 88
     },
     {
@@ -1006,7 +1007,7 @@
         "id": 6,
         "radiusM": 32
       },
-      "sequence": 27,
+      "sequence": 28,
       "tick": 110
     },
     {
@@ -1022,7 +1023,7 @@
         "id": 7,
         "radiusM": 32
       },
-      "sequence": 28,
+      "sequence": 29,
       "tick": 132
     },
     {
@@ -1038,7 +1039,7 @@
         "id": 5,
         "radiusM": 32
       },
-      "sequence": 29,
+      "sequence": 30,
       "tick": 136
     },
     {
@@ -1054,7 +1055,7 @@
         "id": 2,
         "radiusM": 32
       },
-      "sequence": 30,
+      "sequence": 31,
       "tick": 151
     },
     {
@@ -1070,7 +1071,7 @@
         "id": 8,
         "radiusM": 32
       },
-      "sequence": 31,
+      "sequence": 32,
       "tick": 154
     }
   ]

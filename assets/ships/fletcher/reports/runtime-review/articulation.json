@@ -73,9 +73,9 @@
           ]
         },
         "tick": 0,
-        "battleSeed": 954282929,
+        "battleSeed": 176879701,
         "paused": true,
-        "fps": 63.50506902592863,
+        "fps": 63.38735278474558,
         "inspecting": false,
         "inPort": true,
         "effects": {
@@ -409,6 +409,7 @@
           ],
           "targetIntegrity": 1,
           "targetWater": 0,
+          "targetEquipmentIntegrity": 1,
           "targetPower": 1,
           "targetSteering": 1,
           "targetSunk": false,
@@ -712,9 +713,9 @@
           ]
         },
         "tick": 0,
-        "battleSeed": 954282929,
+        "battleSeed": 176879701,
         "paused": true,
-        "fps": 67.23900364301396,
+        "fps": 61.750499803715385,
         "inspecting": false,
         "inPort": true,
         "effects": {
@@ -1048,6 +1049,7 @@
           ],
           "targetIntegrity": 1,
           "targetWater": 0,
+          "targetEquipmentIntegrity": 1,
           "targetPower": 1,
           "targetSteering": 1,
           "targetSunk": false,
@@ -1351,9 +1353,9 @@
           ]
         },
         "tick": 0,
-        "battleSeed": 954282929,
+        "battleSeed": 176879701,
         "paused": true,
-        "fps": 84.54821999410844,
+        "fps": 53.88656235704504,
         "inspecting": false,
         "inPort": true,
         "effects": {
@@ -1687,6 +1689,7 @@
           ],
           "targetIntegrity": 1,
           "targetWater": 0,
+          "targetEquipmentIntegrity": 1,
           "targetPower": 1,
           "targetSteering": 1,
           "targetSunk": false,
@@ -1990,9 +1993,9 @@
           ]
         },
         "tick": 0,
-        "battleSeed": 954282929,
+        "battleSeed": 176879701,
         "paused": true,
-        "fps": 85.16155610315357,
+        "fps": 53.56768276866873,
         "inspecting": false,
         "inPort": true,
         "effects": {
@@ -2326,6 +2329,7 @@
           ],
           "targetIntegrity": 1,
           "targetWater": 0,
+          "targetEquipmentIntegrity": 1,
           "targetPower": 1,
           "targetSteering": 1,
           "targetSunk": false,
@@ -2629,9 +2633,9 @@
           ]
         },
         "tick": 0,
-        "battleSeed": 954282929,
+        "battleSeed": 176879701,
         "paused": true,
-        "fps": 83.98848409048793,
+        "fps": 52.53050997891727,
         "inspecting": false,
         "inPort": true,
         "effects": {
@@ -2965,6 +2969,7 @@
           ],
           "targetIntegrity": 1,
           "targetWater": 0,
+          "targetEquipmentIntegrity": 1,
           "targetPower": 1,
           "targetSteering": 1,
           "targetSunk": false,
@@ -3268,9 +3273,9 @@
           ]
         },
         "tick": 0,
-        "battleSeed": 954282929,
+        "battleSeed": 176879701,
         "paused": true,
-        "fps": 82.62639845709471,
+        "fps": 51.37383969791197,
         "inspecting": false,
         "inPort": true,
         "effects": {
@@ -3604,6 +3609,7 @@
           ],
           "targetIntegrity": 1,
           "targetWater": 0,
+          "targetEquipmentIntegrity": 1,
           "targetPower": 1,
           "targetSteering": 1,
           "targetSunk": false,
@@ -3907,9 +3913,9 @@
           ]
         },
         "tick": 0,
-        "battleSeed": 954282929,
+        "battleSeed": 176879701,
         "paused": true,
-        "fps": 82.91115108733419,
+        "fps": 48.180772776263304,
         "inspecting": false,
         "inPort": true,
         "effects": {
@@ -4243,6 +4249,7 @@
           ],
           "targetIntegrity": 1,
           "targetWater": 0,
+          "targetEquipmentIntegrity": 1,
           "targetPower": 1,
           "targetSteering": 1,
           "targetSunk": false,
@@ -4546,9 +4553,9 @@
           ]
         },
         "tick": 0,
-        "battleSeed": 954282929,
+        "battleSeed": 176879701,
         "paused": true,
-        "fps": 81.40910878426229,
+        "fps": 48.446306484876864,
         "inspecting": false,
         "inPort": true,
         "effects": {
@@ -4882,6 +4889,7 @@
           ],
           "targetIntegrity": 1,
           "targetWater": 0,
+          "targetEquipmentIntegrity": 1,
           "targetPower": 1,
           "targetSteering": 1,
           "targetSunk": false,
@@ -5185,9 +5193,9 @@
           ]
         },
         "tick": 0,
-        "battleSeed": 954282929,
+        "battleSeed": 176879701,
         "paused": true,
-        "fps": 80.52506270994357,
+        "fps": 47.75900315323662,
         "inspecting": false,
         "inPort": true,
         "effects": {
@@ -5521,6 +5529,7 @@
           ],
           "targetIntegrity": 1,
           "targetWater": 0,
+          "targetEquipmentIntegrity": 1,
           "targetPower": 1,
           "targetSteering": 1,
           "targetSunk": false,
@@ -5824,9 +5833,9 @@
           ]
         },
         "tick": 0,
-        "battleSeed": 954282929,
+        "battleSeed": 176879701,
         "paused": true,
-        "fps": 80.20219779703838,
+        "fps": 47.39382308657597,
         "inspecting": false,
         "inPort": true,
         "effects": {
@@ -6160,6 +6169,7 @@
           ],
           "targetIntegrity": 1,
           "targetWater": 0,
+          "targetEquipmentIntegrity": 1,
           "targetPower": 1,
           "targetSteering": 1,
           "targetSunk": false,
@@ -6463,9 +6473,9 @@
           ]
         },
         "tick": 0,
-        "battleSeed": 954282929,
+        "battleSeed": 176879701,
         "paused": true,
-        "fps": 79.22517704022768,
+        "fps": 46.80947826019533,
         "inspecting": false,
         "inPort": true,
         "effects": {
@@ -6799,6 +6809,7 @@
           ],
           "targetIntegrity": 1,
           "targetWater": 0,
+          "targetEquipmentIntegrity": 1,
           "targetPower": 1,
           "targetSteering": 1,
           "targetSunk": false,
@@ -7102,9 +7113,9 @@
           ]
         },
         "tick": 0,
-        "battleSeed": 954282929,
+        "battleSeed": 176879701,
         "paused": true,
-        "fps": 78.76796876692038,
+        "fps": 46.95745576483387,
         "inspecting": false,
         "inPort": true,
         "effects": {
@@ -7438,6 +7449,7 @@
           ],
           "targetIntegrity": 1,
           "targetWater": 0,
+          "targetEquipmentIntegrity": 1,
           "targetPower": 1,
           "targetSteering": 1,
           "targetSunk": false,
@@ -7741,9 +7753,9 @@
           ]
         },
         "tick": 0,
-        "battleSeed": 954282929,
+        "battleSeed": 176879701,
         "paused": true,
-        "fps": 77.93155910595782,
+        "fps": 47.407797528030635,
         "inspecting": false,
         "inPort": true,
         "effects": {
@@ -8077,6 +8089,7 @@
           ],
           "targetIntegrity": 1,
           "targetWater": 0,
+          "targetEquipmentIntegrity": 1,
           "targetPower": 1,
           "targetSteering": 1,
           "targetSunk": false,
@@ -8380,9 +8393,9 @@
           ]
         },
         "tick": 0,
-        "battleSeed": 954282929,
+        "battleSeed": 176879701,
         "paused": true,
-        "fps": 78.70804216089384,
+        "fps": 46.55391399934056,
         "inspecting": false,
         "inPort": true,
         "effects": {
@@ -8716,6 +8729,7 @@
           ],
           "targetIntegrity": 1,
           "targetWater": 0,
+          "targetEquipmentIntegrity": 1,
           "targetPower": 1,
           "targetSteering": 1,
           "targetSunk": false,
@@ -9019,9 +9033,9 @@
           ]
         },
         "tick": 0,
-        "battleSeed": 954282929,
+        "battleSeed": 176879701,
         "paused": true,
-        "fps": 79.71710752305486,
+        "fps": 47.24015706075005,
         "inspecting": false,
         "inPort": true,
         "effects": {
@@ -9355,6 +9369,7 @@
           ],
           "targetIntegrity": 1,
           "targetWater": 0,
+          "targetEquipmentIntegrity": 1,
           "targetPower": 1,
           "targetSteering": 1,
           "targetSunk": false,
@@ -9658,9 +9673,9 @@
           ]
         },
         "tick": 0,
-        "battleSeed": 954282929,
+        "battleSeed": 176879701,
         "paused": true,
-        "fps": 78.86422583728363,
+        "fps": 47.185712000515544,
         "inspecting": false,
         "inPort": true,
         "effects": {
@@ -9994,6 +10009,7 @@
           ],
           "targetIntegrity": 1,
           "targetWater": 0,
+          "targetEquipmentIntegrity": 1,
           "targetPower": 1,
           "targetSteering": 1,
           "targetSunk": false,
@@ -10297,9 +10313,9 @@
           ]
         },
         "tick": 0,
-        "battleSeed": 954282929,
+        "battleSeed": 176879701,
         "paused": true,
-        "fps": 78.30525008642402,
+        "fps": 46.61166773099694,
         "inspecting": false,
         "inPort": true,
         "effects": {
@@ -10633,6 +10649,7 @@
           ],
           "targetIntegrity": 1,
           "targetWater": 0,
+          "targetEquipmentIntegrity": 1,
           "targetPower": 1,
           "targetSteering": 1,
           "targetSunk": false,
@@ -10936,9 +10953,9 @@
           ]
         },
         "tick": 0,
-        "battleSeed": 954282929,
+        "battleSeed": 176879701,
         "paused": true,
-        "fps": 79.44781976970458,
+        "fps": 46.131716337823484,
         "inspecting": false,
         "inPort": true,
         "effects": {
@@ -11272,6 +11289,7 @@
           ],
           "targetIntegrity": 1,
           "targetWater": 0,
+          "targetEquipmentIntegrity": 1,
           "targetPower": 1,
           "targetSteering": 1,
           "targetSunk": false,

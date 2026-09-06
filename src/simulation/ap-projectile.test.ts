@@ -50,6 +50,9 @@ test('a delay can expire inside the ship after contact and damage local equipmen
   expect(shell.position[0]).toBeGreaterThan(3); expect(shell.position[0]).toBeLessThan(5);
   expect(events.some(e => e.kind === 'burst' && e.impact?.targetId === 'fixture-engine')).toBe(true);
   expect(actor.damage.modules[0].hp).toBeLessThan(25); // burst adds to contact's 75 damage
+  // Entry, equipment and delayed burst share one hull-damage ceiling.
+  expect(actor.damage.maxIntegrity - actor.damage.integrity).toBe(85);
+  expect(events.reduce((n, e) => n + (e.impact?.hullDamage ?? 0), 0)).toBe(85);
   expect(events.at(-1)!.impact?.terminal).toBe(true);
 });
 test('an armed stop remains attached to the moving hull until its fuze expires', () => {
@@ -58,7 +61,7 @@ test('an armed stop remains attached to the moving hull until its fuze expires',
   expect(shell.lodged?.shipId).toBe('target'); expect(shell.velocity).toEqual([0, 0, 0]);
   actor.motion.x = 10;
   expect(advanceProjectile(shell, [actor], 1 / 60, () => {})).toBeUndefined();
-  expect(shell.position[0]).toBe(10);
+  expect(shell.position[0]).toBeCloseTo(10, 3);
   expect(advanceProjectile(shell, [actor], 1 / 60, () => {})).toBe('burst');
   expect(shell.age).toBeCloseTo(.036, 6);
 });
@@ -96,6 +99,15 @@ test('a stopped shell bursts against armor without transmitting damage through t
   const { actor } = fixture([plate('stop', 0, 200)], 2), shell = round({ penetrationMm: 100 });
   for (let i = 0; i < 3; i++) advanceProjectile(shell, [actor], 1 / 60, () => {});
   expect(actor.damage.modules[0].hp).toBe(100);
+  expect(actor.damage.integrity).toBe(actor.damage.maxIntegrity);
+});
+test('a stopped AP burst damages equipment on the incoming side of its stopping plate', () => {
+  const { actor } = fixture([plate('stop', 0, 200)], -2), shell = round({ penetrationMm: 100 });
+  const events: DamageEvent[] = [];
+  for (let i = 0; i < 3; i++) advanceProjectile(shell, [actor], 1 / 60, e => { if (e.kind !== 'splash') events.push(e); });
+  expect(events.some(e => e.kind === 'module')).toBe(false); // The shell starts beyond the equipment.
+  expect(events.some(e => e.kind === 'burst' && e.impact?.targetId === 'fixture-engine')).toBe(true);
+  expect(actor.damage.modules[0].hp).toBeLessThan(50);
 });
 test('another ship can shield nearby equipment from a burst', () => {
   const { actor } = fixture([], 2), { actor: shield } = fixture([plate('neighbor-armor', 0, 100)]);

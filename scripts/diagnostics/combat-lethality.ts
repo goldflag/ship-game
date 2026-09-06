@@ -5,6 +5,7 @@
 import { CombatSimulation } from '../../src/simulation/combat';
 import { shipPreset } from '../../src/ships/presets';
 import { equipmentCondition, systemHealth } from '../../src/simulation/machinery';
+import { equipmentIntegrity } from '../../src/simulation/durability';
 
 const seeds = process.argv.length > 2 ? process.argv.slice(2).map(Number) : [12345];
 if (seeds.some(seed => !Number.isInteger(seed) || seed < 0 || seed > 0xffffffff)) throw new Error('Supply unsigned 32-bit seeds.');
@@ -39,11 +40,12 @@ for (const seed of seeds) for (const config of cases) {
       if (e.kind === 'stopped' || e.kind === 'ricochet') stops[e.impact?.targetName ?? e.kind] = (stops[e.impact?.targetName ?? e.kind] ?? 0) + 1;
     }
     seconds = (tick + 1) / 60;
-    if ((tick + 1) % 3600 === 0) checkpoints.push({ seconds, fired, hits: hits.size, equipment: sim.target.damage.integrity / sim.target.damage.maxIntegrity, water: sim.target.damage.compartments.reduce((n, c) => n + c.waterM3, 0), power: systemHealth(sim.target, target, 'engine') });
+    if ((tick + 1) % 3600 === 0) checkpoints.push({ seconds, fired, hits: hits.size, hull: sim.target.damage.integrity / sim.target.damage.maxIntegrity, equipment: equipmentIntegrity(sim.target, target), water: sim.target.damage.compartments.reduce((n, c) => n + c.waterM3, 0), power: systemHealth(sim.target, target, 'engine') });
     if (sim.target.damage.sunk || sim.target.damage.stability.combatLost) break;
   }
   console.log(JSON.stringify({ attacker: 'bismarck', ...config, rangeM: 5000, seed, seconds, fired, hits: hits.size, penetratingShells: penetrating.size, damagingShells: damaging.size, rawEquipmentDamage,
-    equipmentPercent: sim.target.damage.integrity / sim.target.damage.maxIntegrity * 100,
+    hullPercent: sim.target.damage.integrity / sim.target.damage.maxIntegrity * 100, equipmentPercent: equipmentIntegrity(sim.target, target) * 100,
+    damagePoints: sim.telemetry('main', [0, 0, 0]).playerDamageDealt, defeatCause: sim.target.damage.defeatCause,
     waterM3: sim.target.damage.compartments.reduce((n, c) => n + c.waterM3, 0), power: systemHealth(sim.target, target, 'engine'), status: sim.target.damage.stability.status,
     combatLost: sim.target.damage.stability.combatLost, sunk: sim.target.damage.sunk, mounts: sim.target.mounts.map(m => ({ id: m.id, hp: m.hp })), stops, checkpoints }));
 }

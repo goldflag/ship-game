@@ -61,9 +61,9 @@
     ]
   },
   "tick": 0,
-  "battleSeed": 954282929,
+  "battleSeed": 176879701,
   "paused": false,
-  "fps": 69.26811124794875,
+  "fps": 39.332002818893,
   "inspecting": false,
   "inPort": false,
   "effects": {
@@ -397,6 +397,7 @@
     ],
     "targetIntegrity": 1,
     "targetWater": 0,
+    "targetEquipmentIntegrity": 1,
     "targetPower": 1,
     "targetSteering": 1,
     "targetSunk": false,

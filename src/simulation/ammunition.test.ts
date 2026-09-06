@@ -58,6 +58,9 @@ test('HE bursts at its first physical contact and cannot transmit damage through
     expect(events.filter(e => e.kind === 'contact')).toHaveLength(1);
     expect(events.some(e => e.kind === 'penetration')).toBe(false);
     expect(shell.position[0]).toBe(thickness ? 0 : 1.5);
+    const hullDamage = sim.target.damage.maxIntegrity - sim.target.damage.integrity;
+    if (thickness === 320) expect(hullDamage).toBe(0);
+    else { expect(hullDamage).toBeGreaterThan(0); expect(hullDamage).toBeLessThanOrEqual(shell.he!.damage * .5); }
     return 100 - sim.target.damage.modules[0].hp;
   });
   expect(damages[0]).toBe(100); expect(damages[1]).toBeGreaterThan(0); expect(damages[1]).toBeLessThan(damages[0]); expect(damages[2]).toBe(0);

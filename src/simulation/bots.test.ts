@@ -106,7 +106,7 @@ test('taking damage prompts a sustained evasive helm order after a crew reaction
   bot.mounts.forEach(mount => { mount.reload = 120; });
   for (let tick = 0; tick < 3 * 60; tick++) sim.step(stop, intent);
   const before = botHelm(bot, sim.player, sim.actors);
-  bot.damage.modules[0].hp -= 40;
+  bot.damage.integrity -= 40;
   sim.step(stop, intent);
   expect(botHelm(bot, sim.player, sim.actors)).toEqual(before);
   for (let tick = 0; tick < 2 * 60; tick++) sim.step(stop, intent);

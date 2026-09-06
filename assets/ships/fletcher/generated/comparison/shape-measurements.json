@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+  "contentHash": "21547dc10500b4bf4ce24f8709a5276f6db3f05958261afedcd6f1f5914ea62e",
   "recipeSha256": "12c0dc7eaf6b73b0e8ba6e05918d62be5903f37cdff6f9ef51782d4dc9d7bdde",
   "capturePlanSha256": "b0b8d5e1b146b1f0dd65f31db59c32b7de19819c7a346e0efccac1491a4e1891",
-  "modelSha256": "058f00a192b705fffaa085f69fe2d292f2e04593a3ad5daf6f008e0aae558e2c",
+  "modelSha256": "c92544f5a276dbb718e613dc7eddb7c7c6408ed990d3411bf6e7e460e16a3e62",
   "referenceManifestSha256": "21a36233dd00e1e883612c9bd943069b1849557670f127f337fc8692bba43058",
   "previousManifestSha256": "3de5f4181c5e8b3f801d6836b6be43043e9004bc7572c2a7b1a616ecae6424e0",
-  "authoredManifestSha256": "1a79fc910fa7040859419fe0a17127aaf0ce479b6e23a9fbb7a81ebb36ace7d9",
+  "authoredManifestSha256": "5bd4f980530ec0645d2a3d1e42eb4404a42e1f6785fb14955a4acca242dd56c2",
   "groups": [
     {
       "name": "Bow stem position",
