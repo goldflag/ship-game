@@ -3,7 +3,7 @@ import source from '../../assets/ships/enterprise-cv6/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
 import { compileShip, type Vec3 } from '../ships/blueprint';
 import { CombatSimulation, type CombatEvent } from './combat';
-import { airborne, launchSquadron, recallAircraft, stepAircraft, type AirContext } from './aircraft';
+import { airborne, launchSquadron, recallAircraft, stepAircraft, aircraftDeckSpot, onFlightDeck, type AirContext } from './aircraft';
 import { updateCapability } from './stability';
 const definition = compileShip(source, catalog);
 function fixture() {
@@ -28,9 +28,9 @@ test('launch queues three, spaces takeoffs, uses moving carrier datum, recall an
   sim.ship.x = 300;
   expect(sim.launchAircraft('vf-6')).toBe(3);
   run(1);
-  expect(sim.aircraft.filter(airborne)).toHaveLength(1);
-  expect(sim.aircraft.find(airborne)!.position[0]).toBeCloseTo(296, 2);
-  run(7);
+  expect(sim.player.airWing!.planes.filter(p => p.phase === 'taxi')).toHaveLength(1);
+  expect(sim.aircraft.filter(airborne)).toHaveLength(0);
+  run(60);
   expect(sim.aircraft.filter(airborne)).toHaveLength(3);
   sim.recallAircraft();
   expect(sim.aircraft.filter(airborne).every(p => p.phase === 'returning')).toBe(true);
@@ -79,7 +79,7 @@ test('recall cancels queued launches; port fixture cannot deploy', () => {
 });
 test('fixed-tick combat integrates bot air operations and resets airborne payloads', () => {
   const { sim } = fixture(); sim.target.controller = 'bot';
-  for (let i = 0; i < 400; i++) sim.step({ throttle: 0, rudder: 0 }, { aim: [0, 0, -5000] as Vec3, fire: false, battery: 'main' });
+  for (let i = 0; i < 1800; i++) sim.step({ throttle: 0, rudder: 0 }, { aim: [0, 0, -5000] as Vec3, fire: false, battery: 'main' });
   expect(sim.target.airWing!.planes.some(airborne)).toBe(true);
   sim.reset(); expect(sim.aircraft.every(p => p.phase === 'ready')).toBe(true);
 });
@@ -87,7 +87,7 @@ test('aircraft weapons resolve actual ship hits and score hostile damage through
   const { sim } = fixture();
   sim.launchAircraft('vb-6'); sim.launchAircraft('vt-6');
   let bombHit = false, torpedoHit = false;
-  for (let i = 0; i < 110 * 60; i++) {
+  for (let i = 0; i < 200 * 60; i++) {
     sim.step({ throttle: 0, rudder: 0 }, { aim: [0, 0, -5000], fire: false, battery: 'main' });
     bombHit ||= sim.events.some(e => !!e.shell && e.shell.caliberM === .35 && !!e.impact);
     torpedoHit ||= sim.events.some(e => e.kind === 'torpedo-hit');
@@ -95,7 +95,7 @@ test('aircraft weapons resolve actual ship hits and score hostile damage through
   expect(bombHit).toBe(true); expect(torpedoHit).toBe(true);
   expect(sim.target.damage.compartments.some(c => c.breachAreaM2 > 0)).toBe(true);
   expect(sim.telemetry('main', [0,0,-5000]).playerDamageDealt).toBeGreaterThan(0);
-});
+}, 30000);
 
 test('bot strike orders fall back from a lost or submerged target to a valid hostile ship', () => {
   const { sim, context, run } = fixture();
@@ -116,4 +116,42 @@ test('fighters alone cannot keep a carrier in a ship battle after all strike air
   sim.player.airWing!.planes.filter(p => p.role !== 'fighter').forEach(p => { p.phase = 'lost'; });
   updateCapability(sim.player, definition);
   expect(sim.player.damage.stability.combatLost).toBe(true);
+});
+
+
+test('deck aircraft occupy distinct stable spots and taxi continuously before takeoff', () => {
+  const { sim, run } = fixture();
+  run(1 / 60);
+  const planes = sim.player.airWing!.planes;
+  expect(new Set(planes.map(p => p.position.join(','))).size).toBe(18);
+  const first = planes[0]; const parked = [...first.position];
+  sim.launchAircraft('vf-6'); run(1 / 60);
+  expect(first.phase).toBe('taxi');
+  expect(Math.hypot(...first.position.map((v, i) => v - parked[i]))).toBeLessThan(.3);
+  expect(onFlightDeck(first)).toBe(true);
+  sim.recallAircraft(); run(25);
+  expect(first.phase).toBe('rearming');
+  expect(first.deckPosition).toEqual(aircraftDeckSpot(sim.player, first));
+});
+
+test('recovery reaches the deck, rolls to a stop, parks and rearms without disappearing', () => {
+  const { sim, run, events } = fixture();
+  const p = sim.player.airWing!.planes[0];
+  p.phase = 'landing'; p.position = [0, 20, 120]; p.previousPosition = [...p.position];
+  let touched = false, parked = false, largestStep = 0;
+  for (let i = 0; i < 90 * 60; i++) {
+    const previous = [...p.position]; run(1 / 60);
+    largestStep = Math.max(largestStep, Math.hypot(...p.position.map((v, j) => v - previous[j])));
+    touched ||= String(p.phase) === 'rollout'; parked ||= String(p.phase) === 'parking';
+  }
+  expect(touched).toBe(true); expect(parked).toBe(true);
+  expect(largestStep).toBeLessThan(1);
+  expect(String(p.phase)).toBe('ready'); expect(p.hp).toBe(100);
+  expect(events.filter(e => e.kind === 'aircraft-recovered')).toHaveLength(1);
+});
+
+test('a recalled group waits its turn and all survivors recover on a stationary carrier', () => {
+  const { sim, run } = fixture();
+  sim.launchAircraft('vf-6'); run(65); sim.recallAircraft(); run(400);
+  expect(sim.player.airWing!.planes.filter(p => p.squadronId === 'vf-6').every(p => p.phase === 'ready')).toBe(true);
 });

@@ -1,0 +1,48 @@
+bun test v1.3.3 (274e01c7)
+
+src/simulation/aircraft.test.ts:
+(pass) versioned air wing validation and unsupported model rejection [28.35ms]
+(pass) launch queues three, spaces takeoffs, uses moving carrier datum, recall and reset [60.22ms]
+(pass) dive bombers release ballistic HE bombs with carrier ownership and recover [150.27ms]
+(pass) torpedo bombers create falling payloads then armed-distance water runners [77.63ms]
+(pass) opposing fighters engage aircraft and shoot them down without friendly damage [122.23ms]
+(pass) service loss blocks launches, submerged targets are rejected, aircraft preserve fighting capability [1.12ms]
+(pass) recall cancels queued launches; port fixture cannot deploy [0.93ms]
+(pass) fixed-tick combat integrates bot air operations and resets airborne payloads [1238.13ms]
+(pass) aircraft weapons resolve actual ship hits and score hostile damage through combat [8173.41ms]
+(pass) bot strike orders fall back from a lost or submerged target to a valid hostile ship [5.28ms]
+(pass) fighters alone cannot keep a carrier in a ship battle after all strike aircraft and guns are lost [0.73ms]
+(pass) deck aircraft occupy distinct stable spots and taxi continuously before takeoff [19.17ms]
+(pass) recovery reaches the deck, rolls to a stop, parks and rearms without disappearing [54.02ms]
+
+src/game/Game.test.ts:
+(pass) switching ships retains the port until loading completes, then frames the new hull with the same orbit [215.52ms]
+(pass) failed ship loads preserve the old ship and allow retry [211.82ms]
+(pass) a second request cannot replace an in-flight switch; disposed games never attach the result [19.23ms]
+(pass) battle loading binds each mixed fleet hull and selected target to its own exported joints [58.71ms]
+(pass) one failed fleet asset leaves the port intact and the same battle can be retried [45.04ms]
+(pass) failed aircraft loads leave the current port intact and allow another launch attempt [43.14ms]
+
+src/game/AircraftView.test.ts:
+(pass) port renders only the player deck, follows its displayed pose, and retains parked battle aircraft [7.90ms]
+
+src/game/GameFrame.test.ts:
+(pass) map and port transitions restore their own absorption after underwater attenuation [24.13ms]
+(pass) turning through north takes the short heading path without changing authoritative combat state [251.60ms]
+(pass) firing enters shell view without feeding its camera into aim, freezes on pause and restores optics [577.43ms]
+(pass) target inspection follows the interpolated underway target and resets without a streak [38.81ms]
+(pass) pause holds the interpolated pose and resume continues without a tick-sized jump [15.15ms]
+(pass) manual aiming and binoculars keep the camera attached to the displayed ship at full speed [188.56ms]
+(pass) repositioning for port and launch clears the old ship poses [15.75ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.03333333333333333 [110.93ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.01694915254237288 [71.50ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.016666666666666666 [68.44ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.008333333333333333 [40.14ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.006944444444444444 [45.17ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.006944444444444444,0.02127659574468085,0.013888888888888888,0.043 [78.16ms]
+(pass) all fleet impact marks share one cosmetic work budget, renewed for each frame [28.44ms]
+
+ 34 pass
+ 0 fail
+ 3141 expect() calls
+Ran 34 tests across 4 files. [12.40s]
