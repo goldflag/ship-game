@@ -109,7 +109,11 @@ export class ShipView {
       Object.assign(m, currentMount);
       // Mount train is a bounded interval; wrapping would cross forbidden arcs.
       for (const key of ['train', 'elevation', 'recoil'] as const) {
-        m[key] = THREE.MathUtils.lerp(previousMount[key], currentMount[key], t);
+        // A gun can be disabled after it trained in the current tick. Stop at
+        // the authoritative angle immediately instead of finishing that turn
+        // across later display frames. Recoil may still settle independently.
+        const stopped = key !== 'recoil' && (currentMount.hp <= 0 || currentMount.status === 'disabled' || this.actor.damage.sunk);
+        m[key] = stopped ? currentMount[key] : THREE.MathUtils.lerp(previousMount[key], currentMount[key], t);
       }
     });
     this.root.position.set(motion.x, motion.y, motion.z);

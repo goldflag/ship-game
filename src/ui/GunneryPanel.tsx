@@ -56,7 +56,7 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
         <div><dt>Flooding</dt><dd>{c.targetWater.toFixed(1)} m³</dd></div>
       </dl>
       <p className="damage-message" role="status">{c.message}</p>
-      {c.targetDefeatCause && <p className="damage-message">Loss cause: {c.targetDefeatCause === 'weapons-lost' ? 'Primary weapons destroyed' : c.targetDefeatCause === 'ammunition-exhausted' ? 'Primary ammunition exhausted' : c.targetDefeatCause.replaceAll('-', ' ')}</p>}
+      {c.targetDefeatCause && <p className="damage-message">Loss cause: {c.targetDefeatCause.replaceAll('-', ' ')}</p>}
       <details className="shell-history">
         <summary>Recent shell impacts · {c.shellHistory.length}</summary>
         {c.shellHistory.length === 0 ? <p>No hits recorded on this target.</p> : c.shellHistory.map(h => <details key={h.shellId}>
@@ -82,7 +82,7 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
       {data.inspecting && <div className="module-conditions" aria-label="Internal module condition">{c.modules.map(m => <div key={m.id}><span>{m.name}</span><strong>{m.reason === 'flooded' ? 'Flooded · offline' : m.reason === 'destroyed' ? 'Destroyed' : `${Math.round(m.availability * 100)}% available`}</strong></div>)}<p>Flooded equipment can recover when drained. Destroyed equipment stays offline.</p><p>Amber: armor · Pale outlines: flooded spaces · Blue: floodwater. The full dry layout is available in port.</p></div>}
       {c.battery === 'torpedo' && <p className="gunnery-help">Aim within the bow or stern arc. Each press launches one loaded tube; hold to launch in sequence. Torpedoes run straight. Target waterline computes a lead for the selected target.</p>}
       <p className="gunnery-help">Mouse aims the center sight. Hold left mouse or {bindingLabel(bindings, 'fire')} to fire. Shift opens binoculars; scroll adjusts magnification. Selecting a module tracks it until you move the mouse to aim again.</p>
-      <p className="gunnery-help">Aim AP at main turrets or magazines to knock out a ship. Losing all main guns and torpedoes takes it out of battle even while afloat. Flooding can still sink it.</p>
+      <p className="gunnery-help">Aim AP at turrets or magazines to disable weapons. Surviving guns keep fighting; flooding can sink the ship.</p>
     </div><div className="target-actions">
       <button aria-pressed={!!data.inspecting} onClick={() => { game?.inspectTarget(); if (window.innerWidth <= 760) onExpand(false); }}>{data.inspecting ? 'Return to ship' : 'Inspect target'}</button>
     </div></>}
