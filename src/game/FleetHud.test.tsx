@@ -28,7 +28,7 @@ test('the helm displays current/max HP and proportional hit feedback for large a
   }
 });
 
-test('an afloat knockout remains visible while the surviving friendly fleet fights', () => {
+test('main battery loss leaves an armed ship in its fleet without an extra status label', () => {
   const definition = shipPreset('bismarck'), sim = new CombatSimulation(definition, { friendlyBots: [definition], enemies: [definition] });
   definition.mounts.forEach((m, i) => { if (m.battery === 'main') sim.player.mounts[i].hp = 0; });
   updateCapability(sim.player, definition);
@@ -36,7 +36,7 @@ test('an afloat knockout remains visible while the surviving friendly fleet figh
   const html = renderToStaticMarkup(<ShipContext.Provider value={definition}>
     <FleetHud data={data} game={null} visible bindings={defaultKeybindings()}/>
   </ShipContext.Provider>);
-  expect(html).toContain('Your ship is knocked out. Friendly bots are still fighting.');
-  expect(html).toContain('Afloat · knocked out');
-  expect(html).toContain('Friendly <strong>1</strong>');
+  expect(html).not.toContain('knocked out');
+  expect(html).not.toContain('crippled');
+  expect(html).toContain('Friendly <strong>2</strong>');
 });

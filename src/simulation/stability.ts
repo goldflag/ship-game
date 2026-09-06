@@ -6,7 +6,7 @@ import { levelAtVolume, waterBody, type WaterBody } from './floodwater';
 import { clamp, localToWorld } from './geometry';
 import { availableAmmunition, type MountDefinition, type MountState } from './weapons';
 
-export type VesselStatus = 'operational' | 'immobile' | 'disarmed' | 'disabled' | 'knocked-out' | 'sinking' | 'capsized';
+export type VesselStatus = 'operational' | 'immobile' | 'disarmed' | 'disabled' | 'sinking' | 'capsized';
 export interface StabilityState {
   elapsed: number; targetY: number; rollRate: number; pitchRate: number; capsizeSeconds: number; water: WaterBody[];
   rollArm: number; pitchArm: number; displacementM3: number; reserveM3: number; status: VesselStatus; combatLost: boolean;
@@ -55,11 +55,13 @@ export function updateCapability(actor: Combatant, def: ShipDefinition): void {
   const s = actor.damage.stability;
   const maximum = def.modules.reduce((n, m) => n + m.hp, 0) + def.mounts.length * 100;
   actor.damage.integrity = actor.damage.maxIntegrity * (maximum ? (actor.damage.modules.reduce((n, m) => n + m.hp, 0) + actor.mounts.reduce((n, m) => n + m.hp, 0)) / maximum : 1);
-  if (actor.damage.sunk) { s.combatLost = true; if (s.status !== 'capsized') s.status = 'sinking'; return; }
-  // Main guns and torpedoes decide fighting strength. Secondary-only custom
-  // ships use their fitted guns; a surviving AA mount cannot save a battleship.
-  const hasPrimary = def.mounts.some(m => m.battery === 'main') || !!def.torpedoTubes?.length;
-  const guns = def.mounts.flatMap((m, i) => !hasPrimary || m.battery === 'main' ? [{ definition: m, state: actor.mounts[i] }] : []);
+  if (actor.damage.sunk) {
+    s.combatLost = true; if (s.status !== 'capsized') s.status = 'sinking';
+    actor.mounts.forEach(m => m.status = 'disabled');
+    return;
+  }
+  // Every surviving weapon counts, including secondaries after main-gun loss.
+  const guns = def.mounts.map((m, i) => ({ definition: m, state: actor.mounts[i] }));
   const hasSalvo = ({ definition: m, state }: { definition: MountDefinition; state: MountState }) =>
     availableAmmunition(state, 'ap') >= (m.weapon.barrelCount ?? 2) || !!m.weapon.he && availableAmmunition(state, 'he') >= (m.weapon.barrelCount ?? 2);
   const loadedGuns = guns.filter(g => g.state.hp > 0 && hasSalvo(g));
@@ -69,12 +71,16 @@ export function updateCapability(actor: Combatant, def: ShipDefinition): void {
   const recoverable = loadedGuns.some(({ definition: m }) => !m.magazineId || actor.damage.modules.find(mod => mod.id === m.magazineId)!.hp > 0) ||
     loadedTubes.some(t => (actor.damage.modules.find(m => m.id === t.magazineId)?.hp ?? 0) > 0);
   const mobile = systemHealth(actor, def, 'engine') > .001;
-  // Flooded supplies may recover. Permanent primary-weapon loss is a knockout
-  // even while afloat, and stays final until the battle resets.
+  // Flooded supplies may recover. Only permanent loss of all weapons/ammunition
+  // removes an afloat ship from the battle, until reset.
   s.combatLost ||= !recoverable;
-  s.status = s.combatLost ? 'knocked-out' : usable ? (mobile ? 'operational' : 'immobile') : (mobile ? 'disarmed' : 'disabled');
+  s.status = usable ? (mobile ? 'operational' : 'immobile') : (mobile ? 'disarmed' : 'disabled');
   if (s.combatLost) {
     actor.damage.defeatCause ??= !guns.some(hasSalvo) && loadedTubes.length === 0 ? 'ammunition-exhausted' : 'weapons-lost';
-    actor.mounts.forEach(m => m.status = 'disabled');
   }
+  // Hits resolve after gun training. Publish individual failures immediately so
+  // the HUD and renderer do not spend another tick treating them as turning.
+  guns.forEach(({ definition: m, state }) => {
+    if (s.combatLost || state.hp <= 0 || m.magazineId && equipmentCondition(actor, def, def.modules.find(mod => mod.id === m.magazineId)!).availability === 0) state.status = 'disabled';
+  });
 }
