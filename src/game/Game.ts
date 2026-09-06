@@ -1,3 +1,4 @@
+import { AircraftView } from './AircraftView';
 import type { ControlPriority } from '../simulation/damageControl';
 import * as THREE from 'three/webgpu';
 import { float, mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
@@ -59,6 +60,7 @@ export class Game {
   private hitDirections: HitDirectionIndicators;
   private loadedModel?: THREE.Group;
   private effects = new CombatEffects();
+  private aircraftView = new AircraftView();
   controlPriority: ControlPriority = 'balanced';
   controlFocus = '';
   ammunition: Record<Battery, Ammunition> = { main: 'ap', secondary: 'ap', torpedo: 'ap' };
@@ -321,6 +323,7 @@ export class Game {
       }));
       const failure = loads.find(result => result.status === 'rejected');
       if (failure?.status === 'rejected') throw failure.reason;
+      if (simulation.actors.some(a => a.definition.airWing)) await this.aircraftView.load();
       this.assertActive();
       if (!this.inPort) throw new Error('Return to port before changing fleets.');
       for (const actor of simulation.actors) {
@@ -332,7 +335,7 @@ export class Game {
       }
       const previous = [...this.fleetModels, ...this.fleetViews.map(view => view.root)];
       this.fleetViews.forEach(view => { view.impactMarks.dispose(); view.root.removeFromParent(); });
-      this.scene.add(...views.map(view => view.root));
+      this.scene.add(...views.map(view => view.root), this.aircraftView.root);
       this.definition = definition; this.simulation = simulation;
       this.playerDamageFeedback = new HullDamageFeedback(simulation.player.damage.integrity);
       this.audio?.reset(simulation);
@@ -413,6 +416,7 @@ export class Game {
       this.gunAim.update(showGunAim ? gunAimPoints(this.simulation.player, this.definition, this.battery, aim) : [], this.camera, showGunAim);
       this.hitDirections.update(this.simulation, this.camera, !this.inPort);
       this.inspectionHover?.update(this.inPort && !this.paused && !this.switchingShip ? this.playerView?.inspection : undefined);
+      this.aircraftView.update(this.simulation, this.camera, !this.inPort);
       this.effects.update(this.simulation, dt, this.camera, this.rig.binoculars && !this.shellFollow.view);
       this.audio?.update(this.simulation, this.input.order, this.battery,
         this.camera.position.toArray(), new THREE.Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0).toArray());
@@ -493,6 +497,8 @@ export class Game {
     this.callbacks.pause(paused);
   }
   capturePointer(): void { this.rig.capturePointer(); }
+  launchAircraft(squadronId: string): void { if (!this.inPort && !this.paused) this.simulation.launchAircraft(squadronId); }
+  recallAircraft(): void { if (!this.inPort && !this.paused) this.simulation.recallAircraft(); }
   setDepth(depthM: number, emergency = false): void {
     if (this.inPort || this.paused || this.simulation.player.damage.sunk) return;
     orderDepth(this.simulation.player, this.definition, depthM, emergency);
@@ -637,6 +643,9 @@ export class Game {
       fleet: this.simulation.actors.map(actor => ({ id: actor.motion.id, definitionId: actor.definition.id, team: actor.team, controller: actor.controller, targetId: actor.targetId, motion: { ...actor.motion }, submarine: actor.submarine ? { ...actor.submarine } : undefined, ammo: actor.mounts.reduce((n, m) => n + m.ammo, 0), integrity: actor.damage.integrity })),
       renderedShips: this.fleetViews.map(view => ({ id: view.actor.motion.id, visible: view.root.visible,
         impactMarks: view.impactMarks.count, impactDrawCalls: view.impactMarks.drawCalls })),
+      renderedAircraft: this.aircraftView.diagnostics(),
+      aircraft: this.simulation.aircraft.map(p => ({ ...p, position: [...p.position] })),
+      airReleases: this.simulation.airReleases.map(p => ({ ...p })),
       torpedoes: this.simulation.torpedoes.map(t => ({ id: t.id, ownerId: t.ownerId, tubeId: t.tubeId, position: [...t.position], distance: t.distance, armed: t.distance >= t.weapon.armingDistanceM })),
       events: this.simulation.events.slice(-20) };
   }
@@ -712,6 +721,7 @@ export class Game {
     this.scenePass?.dispose();
     this.armorOverlay?.dispose();
     this.shipWake?.dispose();
+    await this.aircraftView.dispose();
     this.effects.dispose();
     this.water?.dispose();
     this.sky?.dispose();

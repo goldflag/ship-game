@@ -1,0 +1,68 @@
+[
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/bill/orca/workspaces/ship-game/thornyhead/src/ui/FlightControl.css",
+    "line": 4,
+    "snippet": "font-size: 12px is off the DESIGN.md type ramp",
+    "ignoreValue": "12px"
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/bill/orca/workspaces/ship-game/thornyhead/src/ui/FlightControl.css",
+    "line": 7,
+    "snippet": "font-size: 13px is off the DESIGN.md type ramp",
+    "ignoreValue": "13px"
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/bill/orca/workspaces/ship-game/thornyhead/src/ui/FlightControl.css",
+    "line": 10,
+    "snippet": "Undocumented color #233e4a is outside DESIGN.md colors",
+    "ignoreValue": "#233e4a"
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/bill/orca/workspaces/ship-game/thornyhead/src/ui/FlightControl.css",
+    "line": 11,
+    "snippet": "Undocumented color #315365 is outside DESIGN.md colors",
+    "ignoreValue": "#315365"
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/bill/orca/workspaces/ship-game/thornyhead/src/ui/FlightControl.css",
+    "line": 15,
+    "snippet": "Undocumented color #ffb5a6 is outside DESIGN.md colors",
+    "ignoreValue": "#ffb5a6"
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/bill/orca/workspaces/ship-game/thornyhead/src/ui/FlightControl.css",
+    "line": 15,
+    "snippet": "font-size: 12px is off the DESIGN.md type ramp",
+    "ignoreValue": "12px"
+  }
+]

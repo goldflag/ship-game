@@ -1,3 +1,4 @@
+import { airServiceAvailable, airborne, createAirWing, launchSquadron, recallAircraft, stepAircraft, type AirRelease } from './aircraft';
 import { updateCapability, type VesselStatus } from './stability';
 import { directControl, updateDamageControl, type ControlPriority, type ControlState } from './damageControl';
 import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
@@ -15,9 +16,11 @@ import { resolveShipCollisions } from './collisions';
 import { createDamage, systemHealth, updateFlooding, type BallisticEffectData, type DamageEvent, type Shell, type ImpactRecord, type DefeatCause } from './damage';
 
 export interface CombatIntent { aim: Vec3; fire: boolean; battery: Battery; ammunition?: Ammunition; controlPriority?: ControlPriority; controlFocus?: string; }
-export interface CombatEvent extends BallisticEffectData { sequence: number; tick: number; kind: DamageEvent['kind'] | 'shot' | 'splash' | 'torpedo-launch' | 'torpedo-hit' | 'torpedo-dud' | 'torpedo-expired'; torpedo?: { id: number; velocity: Vec3; diameterM: number }; position: Vec3; message: string; shipId: string; impact?: ImpactRecord; defeatCause?: DefeatCause; }
+export interface CombatEvent extends BallisticEffectData { sequence: number; tick: number; kind: DamageEvent['kind'] | 'shot' | 'splash' | 'torpedo-launch' | 'torpedo-hit' | 'torpedo-dud' | 'torpedo-expired' | 'aircraft-launch' | 'aircraft-recovered' | 'aircraft-lost' | 'aircraft-fire' | 'aircraft-release' | 'bomb-release'; aircraft?: { id: string; target?: Vec3 }; torpedo?: { id: number; velocity: Vec3; diameterM: number }; position: Vec3; message: string; shipId: string; impact?: ImpactRecord; defeatCause?: DefeatCause; }
 export interface ShellHistory { shellId: number; ownerId: string; tick: number; ammunition: Ammunition; impacts: ImpactRecord[]; outcome: 'flying' | 'splash' | 'passed-through' | 'expired' | 'stopped' | 'ricochet' | 'internal' | 'burst'; }
 export interface CombatTelemetry {
+  airWing?: { available: boolean; squadrons: { id: string; name: string; role: string; ready: number; queued: number; airborne: number; rearming: number; lost: number; rearmSeconds: number; kills: number }[]; flights: { id: string; modelId: string; phase: string; hp: number; payload: boolean; ammo: number }[] };
+  airContacts?: { id: string; team: Team; x: number; z: number }[];
   battery: Battery; range: number; ready: number; total: number; targetIntegrity: number; targetWater: number;
   ammunition: Ammunition; ammunitionStock: { ap: number; he: number }; heSupported: boolean;
   targetStatus: VesselStatus; playerStatus: VesselStatus; targetList: number; targetTrim: number; targetDraftChange: number;
@@ -51,6 +54,10 @@ export class CombatSimulation {
   result: BattleResult = 'active';
   readonly shells: Shell[] = [];
   readonly torpedoes: Torpedo[] = [];
+  readonly airReleases: AirRelease[] = [];
+  get aircraft() { return this.actors.flatMap(a => a.airWing?.planes ?? []); }
+  launchAircraft(squadronId: string) { return this.isBattle && this.result === 'active' ? launchSquadron(this.player, squadronId, this.target) : 0; }
+  recallAircraft() { recallAircraft(this.player); }
   readonly events: CombatEvent[] = [];
   /** In-flight histories plus the last 16 completed shells per owner. */
   readonly shellHistory: ShellHistory[] = [];
@@ -102,7 +109,7 @@ export class CombatSimulation {
     this.clearCombat(); this.tick = 0; this.accumulator = 0; this.result = 'active';
   }
   private createActor(id: string, definition: ShipDefinition, team: Team, controller: FleetActor['controller']): FleetActor {
-    return { definition, team, controller, motion: createShipState(id), mounts: definition.mounts.map(createMountState), damage: createDamage(definition),
+    return { definition, team, controller, airWing: createAirWing(definition, id, team), motion: createShipState(id), mounts: definition.mounts.map(createMountState), damage: createDamage(definition),
       torpedoTubes: (definition.torpedoTubes ?? []).map(createTubeState), tubeLaunchCooldown: 0,
       ...(definition.submarine ? { submarine: createSubmarineState() } : {}),
       ...(controller === 'bot' ? { bot: createBotState(id, definition, this.seed) } : {}) };
@@ -116,6 +123,7 @@ export class CombatSimulation {
     this.shellSequence = 0;
     this.dispersionSequence = 0;
     this.ammunitionSelection = { main: 'ap', secondary: 'ap', torpedo: 'ap' };
+    this.airReleases.length = 0;
     this.targetUnderway = false; this.shells.length = 0; this.torpedoes.length = 0;
     this.events.length = 0; this.shellHistory.length = 0; this.fireQueued = false;
     this.playerDamageDealt = 0; this.playerFrags = 0; this.lastDamager.clear(); this.creditedLosses.clear();
@@ -152,7 +160,7 @@ export class CombatSimulation {
   private emit = (event: Omit<CombatEvent, 'sequence' | 'tick'>): void => {
     if (event.shell) {
       const history = this.history(event.shell.id, event.kind === 'shot' ? event.shipId : undefined);
-      if (event.kind === 'shot') history.ammunition = event.shell.ammunition ?? 'ap';
+      if (event.kind === 'shot' || event.kind === 'bomb-release') history.ammunition = event.shell.ammunition ?? 'ap';
       if (event.impact) history.impacts.push(event.impact);
       if (event.impact) {
         const victim = this.actors.find(a => a.motion.id === event.shipId);
@@ -274,6 +282,7 @@ export class CombatSimulation {
         this.emit({ kind: 'torpedo-launch', position: [...origin], shipId: actor.motion.id, message: `${tube.name} · torpedo away`, torpedo: { id: torpedo.id, velocity: [...velocity], diameterM: tube.weapon.diameterM } });
       });
     }
+    if (this.isBattle && this.result === 'active') stepAircraft({ actors: this.actors, planes: this.aircraft, shells: this.shells, torpedoes: this.torpedoes, releases: this.airReleases, nextId: () => ++this.shellSequence, emit: this.emit }, FIXED_DT, this.tick * FIXED_DT);
     this.fireQueued = false;
     for (let i = this.shells.length - 1; i >= 0; i--) {
       const shell = this.shells[i];
@@ -342,7 +351,13 @@ export class CombatSimulation {
       return { id: m.id, name: m.name, status: s.status, reload: s.reload, ammo: s.ammo, loaded: s.loaded };
     });
     const significant = [...this.events].reverse().find(e => ['module', 'sunk', 'stopped', 'ricochet', 'penetration', 'contact', 'burst', 'torpedo-launch', 'torpedo-hit', 'torpedo-dud', 'torpedo-expired'].includes(e.kind));
-    return { battery, range: Math.hypot(aim[0] - this.ship.x, aim[2] - this.ship.z), ready: mounts.filter(m => m.status === 'ready').length, total: mounts.length,
+    return {
+      ...(this.player.airWing ? { airWing: { available: airServiceAvailable(this.player) && this.result === 'active', squadrons: this.definition.airWing!.squadrons.map(s => {
+        const planes = this.player.airWing!.planes.filter(p => p.squadronId === s.id);
+        return { id: s.id, name: s.name, role: s.role, ready: planes.filter(p => p.phase === 'ready').length, queued: planes.filter(p => p.phase === 'queued').length, airborne: planes.filter(airborne).length, rearming: planes.filter(p => p.phase === 'rearming').length, lost: planes.filter(p => p.phase === 'lost').length, rearmSeconds: Math.ceil(Math.max(0, ...planes.filter(p => p.phase === 'rearming').map(p => p.timer))), kills: planes.reduce((n,p) => n+p.kills,0) };
+      }), flights: this.player.airWing.planes.filter(airborne).map(p => ({ id: p.id, modelId: p.modelId, phase: p.phase, hp: p.hp, payload: p.payload, ammo: p.ammo })) } } : {}),
+      airContacts: this.aircraft.filter(airborne).map(p => ({ id: p.id, team: p.team, x: p.position[0], z: p.position[2] })),
+      battery, range: Math.hypot(aim[0] - this.ship.x, aim[2] - this.ship.z), ready: mounts.filter(m => m.status === 'ready').length, total: mounts.length,
       ammunition: this.ammunitionSelection[battery], heSupported: this.definition.mounts.some(m => m.battery === battery && m.weapon.he !== undefined),
       ammunitionStock: (battery === 'torpedo' ? [] : mounts).reduce((stock, m) => { const s = this.player.mounts.find(s => s.id === m.id)!; stock.ap += availableAmmunition(s, 'ap'); stock.he += availableAmmunition(s, 'he'); return stock; }, { ap: 0, he: 0 }),
       targetMounts: this.target.definition.mounts.map((m, i) => ({ id: m.id, name: m.name, condition: this.target.mounts[i].hp / 100 })),
