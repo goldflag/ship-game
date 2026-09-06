@@ -1,0 +1,1168 @@
+{
+  "schemaVersion": 1,
+  "id": "yamato",
+  "name": "Yamato",
+  "configuration": "7 April 1945 exterior fit; 10.4 m trial waterline datum; reconstruction under dimensional review",
+  "coordinates": "meters-y-up-bow-negative-z",
+  "modelUrl": "/models/yamato.glb",
+  "hull": {
+    "kind": "authored-stations-v1",
+    "length": 263,
+    "beam": 38.9,
+    "draft": 10.4,
+    "depth": 18.915,
+    "massKg": 69935000,
+    "waterplaneAreaM2": 7620,
+    "reserveBuoyancyM3": 14500,
+    "halfBreadths": [
+      [
+        0,
+        0
+      ],
+      [
+        2,
+        2.4
+      ],
+      [
+        5,
+        4.9
+      ],
+      [
+        10,
+        7.1
+      ],
+      [
+        15,
+        8.8
+      ],
+      [
+        20,
+        10.1
+      ],
+      [
+        25,
+        11.6
+      ],
+      [
+        32,
+        13.8
+      ],
+      [
+        40,
+        16
+      ],
+      [
+        50,
+        17.6
+      ],
+      [
+        65,
+        18.75
+      ],
+      [
+        80,
+        19.2
+      ],
+      [
+        100,
+        19.45
+      ],
+      [
+        120,
+        19.45
+      ],
+      [
+        140,
+        19.45
+      ],
+      [
+        155,
+        19.2
+      ],
+      [
+        170,
+        18.5
+      ],
+      [
+        185,
+        17.5
+      ],
+      [
+        200,
+        15.8
+      ],
+      [
+        215,
+        13.5
+      ],
+      [
+        225,
+        11.4
+      ],
+      [
+        237,
+        9
+      ],
+      [
+        248,
+        7.45
+      ],
+      [
+        254,
+        6.6
+      ],
+      [
+        257,
+        6.35
+      ],
+      [
+        258,
+        6.26118
+      ],
+      [
+        259,
+        5.98684
+      ],
+      [
+        260,
+        5.49926
+      ],
+      [
+        261,
+        4.73301
+      ],
+      [
+        261.5,
+        4.20013
+      ],
+      [
+        262,
+        3.51009
+      ],
+      [
+        262.5,
+        2.53779
+      ],
+      [
+        262.8,
+        1.62584
+      ],
+      [
+        263,
+        0
+      ]
+    ],
+    "deckHeights": [
+      [
+        0,
+        5.7
+      ],
+      [
+        12,
+        5.4
+      ],
+      [
+        30,
+        5.6
+      ],
+      [
+        48,
+        7.7
+      ],
+      [
+        65,
+        8.1
+      ],
+      [
+        100,
+        8.515
+      ],
+      [
+        140,
+        8.515
+      ],
+      [
+        155,
+        8.515
+      ],
+      [
+        160,
+        6.9
+      ],
+      [
+        173,
+        6
+      ],
+      [
+        183,
+        5.9
+      ],
+      [
+        195,
+        6.15
+      ],
+      [
+        211,
+        6.7
+      ],
+      [
+        228,
+        7.35
+      ],
+      [
+        244,
+        8.05
+      ],
+      [
+        255,
+        8.85
+      ],
+      [
+        263,
+        9.4
+      ]
+    ],
+    "keelHeights": [
+      [
+        0,
+        -2.2
+      ],
+      [
+        4,
+        -2.8
+      ],
+      [
+        11,
+        -4.5
+      ],
+      [
+        20,
+        -7.1
+      ],
+      [
+        30,
+        -9.2
+      ],
+      [
+        45,
+        -10.4
+      ],
+      [
+        110,
+        -10.4
+      ],
+      [
+        180,
+        -10.4
+      ],
+      [
+        230,
+        -10.4
+      ],
+      [
+        250,
+        -10.4
+      ],
+      [
+        258,
+        -10.4
+      ],
+      [
+        263,
+        -10.4
+      ]
+    ]
+  },
+  "handling": {
+    "forwardSpeed": 13.89,
+    "reverseSpeed": 3.5,
+    "acceleration": 0.16,
+    "braking": 0.18,
+    "rudderRate": 0.35,
+    "maxYawRate": 0.018
+  },
+  "mounts": [
+    {
+      "id": "main-1",
+      "name": "No. 1",
+      "partId": "type94-460-triple",
+      "battery": "main",
+      "position": [
+        0,
+        3.6,
+        -50.8
+      ],
+      "bearingDeg": 0,
+      "rangefinder": true,
+      "magazineId": "magazine-1",
+      "weapon": {
+        "id": "type94-460-triple",
+        "name": "46 cm Type 94 triple mount",
+        "kind": "gun",
+        "barrelCount": 3,
+        "massKg": 2510000,
+        "barbetteRadius": 7.1,
+        "gunhouseSize": [
+          14.6,
+          13.4,
+          6.7
+        ],
+        "pivotHeight": 4.4,
+        "trunnionForward": 3.25,
+        "muzzleForward": 21.15,
+        "barrelSpacing": 3.5,
+        "barrelBaseRadius": 0.89,
+        "rangefinderWidth": 15,
+        "caliberM": 0.46,
+        "traverseDeg": 150,
+        "traverseRateDeg": 2,
+        "elevationMinDeg": -5,
+        "elevationMaxDeg": 45,
+        "elevationRateDeg": 8,
+        "reloadSeconds": 30,
+        "muzzleSpeed": 780,
+        "projectileMassKg": 1460,
+        "penetrationMm": 650,
+        "damage": 110,
+        "recoilM": 1.43,
+        "ammoPerBarrel": 100,
+        "armorMm": 410,
+        "gunhouseShape": {
+          "footprint": [
+            [
+              -7.7,
+              -4.7
+            ],
+            [
+              -5.8,
+              -6.7
+            ],
+            [
+              4.7,
+              -6.7
+            ],
+            [
+              6.9,
+              -4.8
+            ],
+            [
+              6.9,
+              4.8
+            ],
+            [
+              4.7,
+              6.7
+            ],
+            [
+              -5.8,
+              6.7
+            ],
+            [
+              -7.7,
+              4.7
+            ]
+          ],
+          "roof": [
+            [
+              -7.1,
+              -4.4,
+              6.55
+            ],
+            [
+              -5.5,
+              -6,
+              6.7
+            ],
+            [
+              2.5,
+              -6,
+              6.25
+            ],
+            [
+              6.9,
+              -4.8,
+              2.45
+            ],
+            [
+              6.9,
+              4.8,
+              2.45
+            ],
+            [
+              2.5,
+              6,
+              6.25
+            ],
+            [
+              -5.5,
+              6,
+              6.7
+            ],
+            [
+              -7.1,
+              4.4,
+              6.55
+            ]
+          ]
+        },
+        "gunhouseBaseHeight": 2.4,
+        "rollerRadius": 6.525
+      }
+    },
+    {
+      "id": "main-2",
+      "name": "No. 2",
+      "partId": "type94-460-triple",
+      "battery": "main",
+      "position": [
+        0,
+        6.8,
+        -28
+      ],
+      "bearingDeg": 0,
+      "rangefinder": true,
+      "magazineId": "magazine-2",
+      "weapon": {
+        "id": "type94-460-triple",
+        "name": "46 cm Type 94 triple mount",
+        "kind": "gun",
+        "barrelCount": 3,
+        "massKg": 2510000,
+        "barbetteRadius": 7.1,
+        "gunhouseSize": [
+          14.6,
+          13.4,
+          6.7
+        ],
+        "pivotHeight": 4.4,
+        "trunnionForward": 3.25,
+        "muzzleForward": 21.15,
+        "barrelSpacing": 3.5,
+        "barrelBaseRadius": 0.89,
+        "rangefinderWidth": 15,
+        "caliberM": 0.46,
+        "traverseDeg": 150,
+        "traverseRateDeg": 2,
+        "elevationMinDeg": -5,
+        "elevationMaxDeg": 45,
+        "elevationRateDeg": 8,
+        "reloadSeconds": 30,
+        "muzzleSpeed": 780,
+        "projectileMassKg": 1460,
+        "penetrationMm": 650,
+        "damage": 110,
+        "recoilM": 1.43,
+        "ammoPerBarrel": 100,
+        "armorMm": 410,
+        "gunhouseShape": {
+          "footprint": [
+            [
+              -7.7,
+              -4.7
+            ],
+            [
+              -5.8,
+              -6.7
+            ],
+            [
+              4.7,
+              -6.7
+            ],
+            [
+              6.9,
+              -4.8
+            ],
+            [
+              6.9,
+              4.8
+            ],
+            [
+              4.7,
+              6.7
+            ],
+            [
+              -5.8,
+              6.7
+            ],
+            [
+              -7.7,
+              4.7
+            ]
+          ],
+          "roof": [
+            [
+              -7.1,
+              -4.4,
+              6.55
+            ],
+            [
+              -5.5,
+              -6,
+              6.7
+            ],
+            [
+              2.5,
+              -6,
+              6.25
+            ],
+            [
+              6.9,
+              -4.8,
+              2.45
+            ],
+            [
+              6.9,
+              4.8,
+              2.45
+            ],
+            [
+              2.5,
+              6,
+              6.25
+            ],
+            [
+              -5.5,
+              6,
+              6.7
+            ],
+            [
+              -7.1,
+              4.4,
+              6.55
+            ]
+          ]
+        },
+        "gunhouseBaseHeight": 2.4,
+        "rollerRadius": 6.525
+      }
+    },
+    {
+      "id": "main-3",
+      "name": "No. 3",
+      "partId": "type94-460-triple",
+      "battery": "main",
+      "position": [
+        0,
+        4.7,
+        64.7
+      ],
+      "bearingDeg": 180,
+      "rangefinder": true,
+      "magazineId": "magazine-3",
+      "weapon": {
+        "id": "type94-460-triple",
+        "name": "46 cm Type 94 triple mount",
+        "kind": "gun",
+        "barrelCount": 3,
+        "massKg": 2510000,
+        "barbetteRadius": 7.1,
+        "gunhouseSize": [
+          14.6,
+          13.4,
+          6.7
+        ],
+        "pivotHeight": 4.4,
+        "trunnionForward": 3.25,
+        "muzzleForward": 21.15,
+        "barrelSpacing": 3.5,
+        "barrelBaseRadius": 0.89,
+        "rangefinderWidth": 15,
+        "caliberM": 0.46,
+        "traverseDeg": 150,
+        "traverseRateDeg": 2,
+        "elevationMinDeg": -5,
+        "elevationMaxDeg": 45,
+        "elevationRateDeg": 8,
+        "reloadSeconds": 30,
+        "muzzleSpeed": 780,
+        "projectileMassKg": 1460,
+        "penetrationMm": 650,
+        "damage": 110,
+        "recoilM": 1.43,
+        "ammoPerBarrel": 100,
+        "armorMm": 410,
+        "gunhouseShape": {
+          "footprint": [
+            [
+              -7.7,
+              -4.7
+            ],
+            [
+              -5.8,
+              -6.7
+            ],
+            [
+              4.7,
+              -6.7
+            ],
+            [
+              6.9,
+              -4.8
+            ],
+            [
+              6.9,
+              4.8
+            ],
+            [
+              4.7,
+              6.7
+            ],
+            [
+              -5.8,
+              6.7
+            ],
+            [
+              -7.7,
+              4.7
+            ]
+          ],
+          "roof": [
+            [
+              -7.1,
+              -4.4,
+              6.55
+            ],
+            [
+              -5.5,
+              -6,
+              6.7
+            ],
+            [
+              2.5,
+              -6,
+              6.25
+            ],
+            [
+              6.9,
+              -4.8,
+              2.45
+            ],
+            [
+              6.9,
+              4.8,
+              2.45
+            ],
+            [
+              2.5,
+              6,
+              6.25
+            ],
+            [
+              -5.5,
+              6,
+              6.7
+            ],
+            [
+              -7.1,
+              4.4,
+              6.55
+            ]
+          ]
+        },
+        "gunhouseBaseHeight": 2.4,
+        "rollerRadius": 6.525
+      }
+    },
+    {
+      "id": "secondary-forward",
+      "name": "Forward 15.5 cm",
+      "partId": "type3-155-triple",
+      "battery": "secondary",
+      "position": [
+        0,
+        13,
+        -10
+      ],
+      "bearingDeg": 0,
+      "rangefinder": true,
+      "magazineId": "magazine-secondary-forward",
+      "weapon": {
+        "id": "type3-155-triple",
+        "name": "15.5 cm Type 3 triple mount",
+        "kind": "gun",
+        "barrelCount": 3,
+        "massKg": 177000,
+        "barbetteRadius": 3,
+        "gunhouseSize": [
+          6.4,
+          6.9,
+          3.15
+        ],
+        "pivotHeight": 1.85,
+        "trunnionForward": 2.2,
+        "muzzleForward": 9.6,
+        "barrelSpacing": 1.55,
+        "barrelBaseRadius": 0.3,
+        "rangefinderWidth": 8,
+        "caliberM": 0.155,
+        "traverseDeg": 150,
+        "traverseRateDeg": 6,
+        "elevationMinDeg": -7,
+        "elevationMaxDeg": 55,
+        "elevationRateDeg": 10,
+        "reloadSeconds": 12,
+        "muzzleSpeed": 920,
+        "projectileMassKg": 55.87,
+        "penetrationMm": 170,
+        "damage": 26,
+        "recoilM": 0.6,
+        "ammoPerBarrel": 150,
+        "armorMm": 25
+      }
+    },
+    {
+      "id": "secondary-aft",
+      "name": "Aft 15.5 cm",
+      "partId": "type3-155-triple",
+      "battery": "secondary",
+      "position": [
+        0,
+        11.6,
+        46.8
+      ],
+      "bearingDeg": 180,
+      "rangefinder": true,
+      "magazineId": "magazine-secondary-aft",
+      "weapon": {
+        "id": "type3-155-triple",
+        "name": "15.5 cm Type 3 triple mount",
+        "kind": "gun",
+        "barrelCount": 3,
+        "massKg": 177000,
+        "barbetteRadius": 3,
+        "gunhouseSize": [
+          6.4,
+          6.9,
+          3.15
+        ],
+        "pivotHeight": 1.85,
+        "trunnionForward": 2.2,
+        "muzzleForward": 9.6,
+        "barrelSpacing": 1.55,
+        "barrelBaseRadius": 0.3,
+        "rangefinderWidth": 8,
+        "caliberM": 0.155,
+        "traverseDeg": 150,
+        "traverseRateDeg": 6,
+        "elevationMinDeg": -7,
+        "elevationMaxDeg": 55,
+        "elevationRateDeg": 10,
+        "reloadSeconds": 12,
+        "muzzleSpeed": 920,
+        "projectileMassKg": 55.87,
+        "penetrationMm": 170,
+        "damage": 26,
+        "recoilM": 0.6,
+        "ammoPerBarrel": 150,
+        "armorMm": 25
+      }
+    }
+  ],
+  "armor": [
+    {
+      "id": "citadel-belt",
+      "name": "Citadel protection (uniform proxy)",
+      "center": [
+        0,
+        -1,
+        4
+      ],
+      "size": [
+        37,
+        14,
+        150
+      ],
+      "thicknessMm": 410
+    },
+    {
+      "id": "bow-plating",
+      "name": "Bow plating",
+      "center": [
+        0,
+        0,
+        -99
+      ],
+      "size": [
+        17,
+        12,
+        46
+      ],
+      "thicknessMm": 35
+    },
+    {
+      "id": "stern-plating",
+      "name": "Stern plating",
+      "center": [
+        0,
+        0,
+        107
+      ],
+      "size": [
+        17,
+        10,
+        42
+      ],
+      "thicknessMm": 35
+    }
+  ],
+  "compartments": [
+    {
+      "id": "engine-port-space",
+      "name": "Port turbines compartment",
+      "center": [
+        -8,
+        -3,
+        5
+      ],
+      "size": [
+        13,
+        12,
+        31
+      ],
+      "capacityM3": 3482,
+      "pumpM3PerSecond": 0.035
+    },
+    {
+      "id": "engine-starboard-space",
+      "name": "Starboard turbines compartment",
+      "center": [
+        8,
+        -3,
+        5
+      ],
+      "size": [
+        13,
+        12,
+        31
+      ],
+      "capacityM3": 3482,
+      "pumpM3PerSecond": 0.035
+    },
+    {
+      "id": "steering-space",
+      "name": "Steering machinery compartment",
+      "center": [
+        0,
+        -1,
+        109
+      ],
+      "size": [
+        9,
+        7,
+        12
+      ],
+      "capacityM3": 544,
+      "pumpM3PerSecond": 0.035
+    },
+    {
+      "id": "magazine-1-space",
+      "name": "No. 1 magazine compartment",
+      "center": [
+        0,
+        -2,
+        -50.8
+      ],
+      "size": [
+        16,
+        14,
+        19
+      ],
+      "capacityM3": 3064,
+      "pumpM3PerSecond": 0.035
+    },
+    {
+      "id": "magazine-2-space",
+      "name": "No. 2 magazine compartment",
+      "center": [
+        0,
+        -2,
+        -28
+      ],
+      "size": [
+        16,
+        14,
+        19
+      ],
+      "capacityM3": 3064,
+      "pumpM3PerSecond": 0.035
+    },
+    {
+      "id": "magazine-3-space",
+      "name": "No. 3 magazine compartment",
+      "center": [
+        0,
+        -2,
+        64.7
+      ],
+      "size": [
+        16,
+        14,
+        19
+      ],
+      "capacityM3": 3064,
+      "pumpM3PerSecond": 0.035
+    },
+    {
+      "id": "magazine-secondary-forward-space",
+      "name": "Forward secondary magazine compartment",
+      "center": [
+        0,
+        -2,
+        -10
+      ],
+      "size": [
+        9,
+        12,
+        10
+      ],
+      "capacityM3": 778,
+      "pumpM3PerSecond": 0.035
+    },
+    {
+      "id": "magazine-secondary-aft-space",
+      "name": "Aft secondary magazine compartment",
+      "center": [
+        0,
+        -2,
+        46.8
+      ],
+      "size": [
+        9,
+        12,
+        10
+      ],
+      "capacityM3": 778,
+      "pumpM3PerSecond": 0.035
+    }
+  ],
+  "modules": [
+    {
+      "id": "engine-port",
+      "name": "Port turbines",
+      "kind": "engine",
+      "center": [
+        -8,
+        -3,
+        5
+      ],
+      "size": [
+        10,
+        7,
+        25
+      ],
+      "hp": 180,
+      "compartmentId": "engine-port-space"
+    },
+    {
+      "id": "engine-starboard",
+      "name": "Starboard turbines",
+      "kind": "engine",
+      "center": [
+        8,
+        -3,
+        5
+      ],
+      "size": [
+        10,
+        7,
+        25
+      ],
+      "hp": 180,
+      "compartmentId": "engine-starboard-space"
+    },
+    {
+      "id": "steering",
+      "name": "Steering machinery",
+      "kind": "steering",
+      "center": [
+        0,
+        -1,
+        109
+      ],
+      "size": [
+        6,
+        4,
+        8
+      ],
+      "hp": 120,
+      "compartmentId": "steering-space"
+    },
+    {
+      "id": "magazine-1",
+      "name": "No. 1 magazine",
+      "kind": "magazine",
+      "center": [
+        0,
+        -2,
+        -50.8
+      ],
+      "size": [
+        12,
+        9,
+        15
+      ],
+      "hp": 120,
+      "compartmentId": "magazine-1-space"
+    },
+    {
+      "id": "magazine-2",
+      "name": "No. 2 magazine",
+      "kind": "magazine",
+      "center": [
+        0,
+        -2,
+        -28
+      ],
+      "size": [
+        12,
+        9,
+        15
+      ],
+      "hp": 120,
+      "compartmentId": "magazine-2-space"
+    },
+    {
+      "id": "magazine-3",
+      "name": "No. 3 magazine",
+      "kind": "magazine",
+      "center": [
+        0,
+        -2,
+        64.7
+      ],
+      "size": [
+        12,
+        9,
+        15
+      ],
+      "hp": 120,
+      "compartmentId": "magazine-3-space"
+    },
+    {
+      "id": "magazine-secondary-forward",
+      "name": "Forward secondary magazine",
+      "kind": "magazine",
+      "center": [
+        0,
+        -2,
+        -10
+      ],
+      "size": [
+        7,
+        8,
+        8
+      ],
+      "hp": 120,
+      "compartmentId": "magazine-secondary-forward-space"
+    },
+    {
+      "id": "magazine-secondary-aft",
+      "name": "Aft secondary magazine",
+      "kind": "magazine",
+      "center": [
+        0,
+        -2,
+        46.8
+      ],
+      "size": [
+        7,
+        8,
+        8
+      ],
+      "hp": 120,
+      "compartmentId": "magazine-secondary-aft-space"
+    }
+  ],
+  "connections": [
+    {
+      "fromId": "engine-port-space",
+      "toId": "engine-starboard-space",
+      "areaM2": 0.03
+    },
+    {
+      "fromId": "engine-starboard-space",
+      "toId": "steering-space",
+      "areaM2": 0.03
+    },
+    {
+      "fromId": "steering-space",
+      "toId": "magazine-1-space",
+      "areaM2": 0.03
+    },
+    {
+      "fromId": "magazine-1-space",
+      "toId": "magazine-2-space",
+      "areaM2": 0.03
+    },
+    {
+      "fromId": "magazine-2-space",
+      "toId": "magazine-3-space",
+      "areaM2": 0.03
+    },
+    {
+      "fromId": "magazine-3-space",
+      "toId": "magazine-secondary-forward-space",
+      "areaM2": 0.03
+    },
+    {
+      "fromId": "magazine-secondary-forward-space",
+      "toId": "magazine-secondary-aft-space",
+      "areaM2": 0.03
+    }
+  ],
+  "obstructions": [
+    {
+      "id": "bridge-block",
+      "center": [
+        0,
+        21,
+        3
+      ],
+      "size": [
+        11,
+        26,
+        12
+      ]
+    },
+    {
+      "id": "funnel-block",
+      "center": [
+        0,
+        20,
+        23
+      ],
+      "size": [
+        8,
+        23,
+        15
+      ]
+    },
+    {
+      "id": "aft-director-block",
+      "center": [
+        0,
+        16,
+        39
+      ],
+      "size": [
+        8,
+        17,
+        9
+      ]
+    }
+  ],
+  "accuracy": {
+    "exterior": "263 m LOA / 38.9 m beam. Original reconstruction; station offsets, hull sections and fittings remain under review. See references/sources.json and reports/discrepancies.md.",
+    "internals": "Provisional gameplay compartments, armor proxies and calibrated buoyancy; not historical internal subdivisions.",
+    "weapons": "46 cm triple geometry uses USNTMJ O-45(N) measured spacing, roller path and trunnion dimensions. Secondary shapes and exterior station measurements remain interpreted; combat is approximate."
+  },
+  "viewpoints": {
+    "bridge": [
+      0,
+      32.4,
+      -1.6
+    ]
+  },
+  "compilerVersion": 1,
+  "contentHash": "35f5274eb8717c40592ca24436bab74bd5ee8f64aba7588e237f23fd5a0e0420"
+}
