@@ -1,17 +1,17 @@
 import type { Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
-import { hullContains } from './hull';
+import { advanceProjectile } from './projectile';
 import { equipmentCondition, type EquipmentCondition } from './machinery';
 import { createShipState, FIXED_DT, stepShip, type HelmCommand } from './ship';
-import { add, clamp, length, localToWorld, scale, segmentBox, sub, worldToLocal } from './geometry';
+import { add, clamp, length, localToWorld, scale, sub } from './geometry';
 import { createMountState, muzzleWorld, shotDirection, solveBallistic, updateMount } from './weapons';
-import { ballisticStep, dispersedDirection, dispersedSpeed, travelFactor, velocityPenetration } from './ballistics';
+import { dispersedDirection, dispersedSpeed, travelFactor, velocityPenetration } from './ballistics';
 import { deployment, MAX_TEAM_SHIPS, type BattleFleet, type BattleResult, type FleetActor, type Team } from './battle';
 import { botAim, botGunRange, botHelm, botTarget, clearFiringLane, shipVelocity } from './bots';
-import { createDamage, hitShip, systemHealth, updateFlooding, type BallisticEffectData, type DamageEvent, type Shell, type ImpactRecord, type DefeatCause } from './damage';
+import { createDamage, systemHealth, updateFlooding, type BallisticEffectData, type DamageEvent, type Shell, type ImpactRecord, type DefeatCause } from './damage';
 
 export interface CombatIntent { aim: Vec3; fire: boolean; battery: Battery; }
 export interface CombatEvent extends BallisticEffectData { sequence: number; tick: number; kind: DamageEvent['kind'] | 'shot' | 'splash'; position: Vec3; message: string; shipId: string; impact?: ImpactRecord; defeatCause?: DefeatCause; }
-export interface ShellHistory { shellId: number; ownerId: string; tick: number; impacts: ImpactRecord[]; outcome: 'flying' | 'splash' | 'passed-through' | 'expired' | 'stopped' | 'ricochet' | 'internal'; }
+export interface ShellHistory { shellId: number; ownerId: string; tick: number; impacts: ImpactRecord[]; outcome: 'flying' | 'splash' | 'passed-through' | 'expired' | 'stopped' | 'ricochet' | 'internal' | 'burst'; }
 export interface CombatTelemetry {
   battery: Battery; range: number; ready: number; total: number; targetIntegrity: number; targetWater: number;
   targetId: string; targetName: string; targetRange: number;
@@ -117,7 +117,7 @@ export class CombatSimulation {
       const history = this.history(event.shell.id, event.kind === 'shot' ? event.shipId : undefined);
       if (event.impact) history.impacts.push(event.impact);
       if (event.kind === 'splash') history.outcome = history.impacts.length ? 'passed-through' : 'splash';
-      else if (event.impact?.terminal) history.outcome = event.kind === 'stopped' || event.kind === 'ricochet' ? event.kind : 'internal';
+      else if (event.impact?.terminal) history.outcome = event.kind === 'stopped' || event.kind === 'ricochet' || event.kind === 'burst' ? event.kind : 'internal';
     }
     this.events.push({ ...event, sequence: ++this.eventSequence, tick: this.tick });
     if (this.events.length > 128) this.events.shift();
@@ -186,7 +186,7 @@ export class CombatSimulation {
             const direction = dispersedDirection(shotDirection(m, state, actor.motion), m.weapon.ballistics?.dispersionRad ?? 0, this.seed, shot);
             const speed = dispersedSpeed(m.weapon.muzzleSpeed, m.weapon.ballistics?.muzzleSpeedSigmaFraction ?? 0, this.seed, shot);
             const velocity = add(scale(direction, speed), shipVelocity(actor));
-            this.shells.push({ id: ++this.shellSequence, ownerId: actor.motion.id, position, velocity, age: 0, penetrationMm: velocityPenetration(m.weapon.penetrationMm, m.weapon.ballistics?.penetrationReferenceSpeedMps ?? m.weapon.muzzleSpeed, length(velocity)), damage: m.weapon.damage, caliberM: m.weapon.caliberM, visited: [], dragPerSecond: m.weapon.ballistics?.dragPerSecond ?? 0 });
+            this.shells.push({ id: ++this.shellSequence, ownerId: actor.motion.id, position, velocity, age: 0, penetrationMm: velocityPenetration(m.weapon.penetrationMm, m.weapon.ballistics?.penetrationReferenceSpeedMps ?? m.weapon.muzzleSpeed, length(velocity)), damage: m.weapon.damage, caliberM: m.weapon.caliberM, visited: [], ap: m.weapon.ap, dragPerSecond: m.weapon.ballistics?.dragPerSecond ?? 0 });
             this.emit({ kind: 'shot', position: [...position], shipId: actor.motion.id, message: `${m.name} fired`,
               shell: { id: this.shellSequence, caliberM: m.weapon.caliberM, velocity: [...velocity] } });
           }
@@ -196,41 +196,12 @@ export class CombatSimulation {
     this.fireQueued = false;
     for (let i = this.shells.length - 1; i >= 0; i--) {
       const shell = this.shells[i];
-      const from: Vec3 = [...shell.position];
-      const flight = ballisticStep(from, shell.velocity, FIXED_DT, shell.dragPerSecond ?? 0), to = flight.position;
-      shell.penetrationMm = velocityPenetration(shell.penetrationMm, length(shell.velocity), length(flight.velocity));
-      shell.velocity = flight.velocity; shell.age += FIXED_DT;
-      let ended = false;
-      // Bound each swept segment to the first sea contact, so submerged modules can't
-      // be hit by shells that already splashed down outside the hull.
-      const insideHull = (point: Vec3) => this.actors.some(actor => actor.motion.id !== shell.ownerId && hullContains(actor.definition.hull, worldToLocal(point, actor.motion)));
-      // An underwater shell outside a hull has already entered the sea. This
-      // also prevents a long swept segment from re-entering a submerged hull.
-      if (from[1] <= 0 && !insideHull(from)) {
+      const outcome = advanceProjectile(shell, this.actors, FIXED_DT, this.emit);
+      if (outcome) {
         const history = this.history(shell.id);
-        history.outcome = history.impacts.length ? 'passed-through' : 'splash';
-        this.shells.splice(i, 1); continue;
+        if (history.outcome === 'flying') history.outcome = outcome;
+        this.shells.splice(i, 1);
       }
-      const seaPoint = from[1] > 0 && to[1] <= 0 ? add(from, scale(sub(to, from), from[1] / (from[1] - to[1]))) : to;
-      const crossingSea = from[1] > 0 && to[1] <= 0 && !insideHull(seaPoint);
-      const end = crossingSea ? add(from, scale(sub(to, from), from[1] / (from[1] - to[1]))) : to;
-      const candidates = this.actors.filter(a => a.motion.id !== shell.ownerId && a.motion.y > -40).map(actor => {
-        const def = actor.definition;
-        const hit = segmentBox(worldToLocal(from, actor.motion), worldToLocal(end, actor.motion), { center: [0, 10, 0], size: [def.hull.beam + 30, 60, def.hull.length + 40] });
-        return { actor, hit };
-      }).filter(c => c.hit).sort((a, b) => a.hit!.t - b.hit!.t);
-      for (const { actor } of candidates) if (hitShip(shell, from, end, actor, actor.definition, this.emit)) { ended = true; break; }
-      if (!ended && (crossingSea || (to[1] < 0 && !insideHull(to)))) {
-        const history = this.history(shell.id);
-        history.outcome = history.impacts.length ? 'passed-through' : 'splash';
-        // A keel exit ends underwater. Do not put a surface splash through the hull.
-        if (!insideHull([end[0], 0, end[2]])) this.emit({ kind: 'splash', position: [end[0], 0, end[2]], shipId: '', message: 'Shell splash',
-          shell: { id: shell.id, caliberM: shell.caliberM, velocity: [...shell.velocity] } });
-        ended = true;
-      }
-      shell.position = to;
-      if (!ended && shell.age > 180) this.history(shell.id).outcome = 'expired';
-      if (ended || shell.age > 180) this.shells.splice(i, 1);
     }
     this.pruneHistory();
     for (const actor of this.actors) {
@@ -250,7 +221,7 @@ export class CombatSimulation {
       const s = this.player.mounts.find(s => s.id === m.id)!;
       return { id: m.id, name: m.name, status: s.status, reload: s.reload, ammo: s.ammo };
     });
-    const significant = [...this.events].reverse().find(e => ['module', 'sunk', 'stopped', 'ricochet', 'penetration'].includes(e.kind));
+    const significant = [...this.events].reverse().find(e => ['module', 'sunk', 'stopped', 'ricochet', 'penetration', 'burst'].includes(e.kind));
     return { battery, range: Math.hypot(aim[0] - this.ship.x, aim[2] - this.ship.z), ready: mounts.filter(m => m.status === 'ready').length, total: mounts.length,
       targetId: this.target.motion.id, targetName: this.target.definition.name,
       targetRange: Math.hypot(this.target.motion.x - this.ship.x, this.target.motion.z - this.ship.z),

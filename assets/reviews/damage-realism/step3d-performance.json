@@ -1,0 +1,49 @@
+{
+  "fixture": "Bismarck burst costs exclude actor construction; 50 warmups, 100 measured samples/location. Fleet: two seed5 60s mixed5v5 CPU runs. Host load varies; not render FPS.",
+  "burstCosts": [
+    {
+      "label": "boiler",
+      "meanMs": 0.0947374599999997,
+      "p50Ms": 0.08387500000000614,
+      "p99Ms": 0.23849999999999483
+    },
+    {
+      "label": "wing",
+      "meanMs": 0.1736233800000008,
+      "p50Ms": 0.1564999999999941,
+      "p99Ms": 0.843874999999997
+    },
+    {
+      "label": "turret",
+      "meanMs": 0.0783132800000007,
+      "p50Ms": 0.068458000000021,
+      "p99Ms": 0.27600000000001046
+    },
+    {
+      "label": "outside",
+      "meanMs": 0.047629140000001374,
+      "p50Ms": 0.04316599999998516,
+      "p99Ms": 0.13220799999999144
+    }
+  ],
+  "fleet": [
+    {
+      "meanMs": 1.716,
+      "maxMs": 13.38,
+      "ticksOver4ms": 9,
+      "bursts": 175
+    },
+    {
+      "meanMs": 1.706,
+      "maxMs": 5.63,
+      "ticksOver4ms": 7,
+      "bursts": 175
+    }
+  ],
+  "behaviorComparison": {
+    "samples": 200,
+    "presets": 4,
+    "sameOutput": true,
+    "sha256": "bee5f3d748b58a5667d70f7ccdf53bd2d749153d4dadb72ba7d3b99b1d1e7531"
+  }
+}
