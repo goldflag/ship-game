@@ -118,6 +118,7 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
   const rudder = Math.round(data.ship.rudder * 35);
   const integrity = Math.max(0, Math.min(1, data.combat?.playerIntegrity ?? 1));
   const maxIntegrity = data.combat?.playerMaxIntegrity ?? maxHullIntegrity(selectedShip);
+  const hp = Math.round(integrity * maxIntegrity);
   const damage = data.playerDamage;
   const steer = (event: PointerEvent<HTMLButtonElement>, value: number) => {
     event.currentTarget.setPointerCapture(event.pointerId); game?.input.setRudder(value);
@@ -155,8 +156,8 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
     <section className="fleet-ship" aria-label="Ship condition and helm">
       {damage && damage.amount > 0 && <p className="fleet-hit-notice" role="status" style={{ opacity: damage.opacity }}><strong>−{Math.max(1, Math.round(damage.amount)).toLocaleString()}</strong><span>Equipment damaged</span></p>}
       <svg className="fleet-ship-silhouette" viewBox="0 0 180 34" fill="currentColor" aria-hidden="true"><path d="m3 24 8 8h151l14-10-27 2v-5h-17v-6h-12V9h-8V4h-2v5h-8v7H85V9H73V5h-2v4H60v9H42v5H27v-5H15v6Zm35-7h20v2H38Zm94-5h25v2h-25Z"/></svg>
-      <div className="fleet-ship-name"><h1>{selectedShip.name.toUpperCase()}</h1><span className="fleet-hp" aria-label={`Equipment condition ${Math.round(integrity * 100)} percent`}><strong>{Math.round(integrity * 100)}%</strong><span> condition</span></span></div>
-      <div className="fleet-health-track" role="meter" aria-label="Equipment condition" aria-valuenow={Math.round(integrity * 100)} aria-valuemin={0} aria-valuemax={100}><i style={{ width: `${integrity * 100}%` }}/>{damage && damage.amount > 0 && <b className="fleet-health-loss" style={{ left: `${integrity * 100}%`, width: `${damage.amount / maxIntegrity * 100}%`, opacity: damage.opacity }}/>}</div>
+      <div className="fleet-ship-name"><h1>{selectedShip.name.toUpperCase()}</h1><span className="fleet-hp" aria-label={`${hp} of ${maxIntegrity} HP`}><strong>{hp.toLocaleString()}</strong><span> / {maxIntegrity.toLocaleString()} HP</span></span></div>
+      <div className="fleet-health-track" role="meter" aria-label="HP" aria-valuenow={hp} aria-valuemin={0} aria-valuemax={maxIntegrity}><i style={{ width: `${integrity * 100}%` }}/>{damage && damage.amount > 0 && <b className="fleet-health-loss" style={{ left: `${integrity * 100}%`, width: `${damage.amount / maxIntegrity * 100}%`, opacity: damage.opacity }}/>}</div>
       <div className="fleet-navigation"><ShipBearing data={data}/><div className="fleet-engine">
         <div className="fleet-speed"><strong>{speed}</strong><span>kts</span></div>
         <div className="fleet-throttle" role="group" aria-label="Engine telegraph">{[{ label: 'FULL', index: 5 }, { label: '3/4', index: 4 }, { label: '1/2', index: 3 }, { label: '1/4', index: 2 }, { label: 'STOP', index: 1 }, { label: 'FULL', index: 0 }].map(({ label, index }) => <button key={index} aria-label={`Engine ${ENGINE_LABELS[index].toLowerCase()}`} title={ENGINE_LABELS[index]} aria-pressed={data.order === index} onClick={event => { game?.input.setOrder(index); event.currentTarget.blur(); }}><span>{label}</span>{index === 0 && <small>ASTERN</small>}</button>)}</div>
