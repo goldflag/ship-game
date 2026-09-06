@@ -119,6 +119,7 @@ export class CombatEffects {
     this.vertical.crossVectors(this.across, this.direction).normalize();
     if (event.kind === 'shot') this.muzzle(scale, random);
     else if (event.kind === 'splash') this.splash(scale, random);
+    else if (event.kind === 'burst' && event.detonation) this.shellBurst(event.blastRadiusM ?? 2, random);
     else if (event.detonation) this.detonation(scale, random);
     else if (event.normal) this.impact(event, scale, random);
     // Internal damage and sinking are state changes, not external fireballs.
@@ -236,6 +237,24 @@ export class CombatEffects {
       p.size = (1.5 + random() * 3) * size; p.growth = 1.3 * size;
       p.life = 2 + random() * 2; p.drag = 1; p.wind = .55;
       p.color.set('#73746f'); p.opacity = .65; p.angle = random() * 6; p.spin = .12;
+    }
+  }
+
+  private shellBurst(radius: number, random: () => number): void {
+    const size = Math.max(.25, radius * .25);
+    this.illuminate(5000 * size, .15);
+    for (let i = 0; i < 6; i++) {
+      const p = this.fire.emit(this.position);
+      p.velocity.set((random() - .5) * size * 4, (random() - .5) * size * 4, (random() - .5) * size * 4);
+      p.size = size; p.growth = size; p.life = .15 + random() * .2; p.drag = 2;
+      p.color.set('#ffb56e'); p.opacity = .8;
+    }
+    for (let i = 0; i < 8; i++) {
+      const p = this.smoke.emit(this.position);
+      p.velocity.set((random() - .5) * size * 2, 1 + random() * size, (random() - .5) * size * 2);
+      p.size = size; p.growth = size * .3; p.life = 2 + random() * 2;
+      p.drag = 1; p.wind = .6; p.gravity = -.2; p.opacity = .55;
+      p.color.set('#55524e'); p.angle = random() * 6; p.spin = .1;
     }
   }
 
