@@ -20,3 +20,15 @@ The center stays clear and markers do not intercept input. The overlay is a sibl
 [Initial interaction capture](interactions-initial.json) verifies east-facing camera labels, H hiding/restoring the layer, unchanged opacity at a paused tick, expiry and hidden visibility. These checks preceded the layering adjustment.
 
 Initial mobile inspection showed the left arc partly covered by the target selector. The final code attaches the marker layer beside the viewport at z-index 2 and extends H's visibility selector to that sibling. The subsequent screenshot attempt returned a port view after hot reload, then Orca reported `runtime_unavailable` during reload. Those port captures were discarded. Final layering is covered by source review and a passing build, but a current screenshot confirmation is unavailable.
+
+## Independent finish review
+
+Disposition: **ship**. No material fixes identified. Preserve the clear sight, salmon damage language, actual-camera bearing, simulation-timed fading and pointer-transparent overlay.
+
+| Contract | Verdict |
+| --- | --- |
+| Clear sight, visible sea and geometric direction | Match in supplied desktop capture |
+| Existing typography and instrument materials | Match |
+| Camera bearing, hit filtering and cue lifecycle | Match in source, tests and interaction evidence |
+| H/port visibility and input pass-through | Match in source; initial interactions verified before relocation |
+| Mobile layering correction | Acceptable in source; final screenshot unverified |
