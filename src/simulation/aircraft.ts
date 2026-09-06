@@ -6,6 +6,8 @@ import { add, clamp, dot, length, localToWorld, normalize, scale, sub, wrapAngle
 import { equipmentCondition } from './machinery';
 import { motionVelocity } from './ship';
 import { clearTorpedoLane, torpedoIntercept, type Torpedo } from './torpedoes';
+import { flyAircraft as fly, initialFlightControls, stepFlightMechanisms, TAKEOFF_ROLL_SECONDS, TAKEOFF_CLIMB_SECONDS, type FlightAttitude, type FlightControls } from './aircraftFlight';
+import { clearFighterLane, fighterGunAim, fighterTarget, initialAirPilot, orbitPoint, steerFighter, strikeIngress, type AirPilot } from './aircraftTactics';
 
 export type FlightPhase = 'ready' | 'queued' | 'taxi' | 'takeoff' | 'outbound' | 'attack' | 'returning' | 'landing' | 'rollout' | 'parking' | 'rearming' | 'lost';
 export interface Aircraft {
@@ -13,6 +15,7 @@ export interface Aircraft {
   phase: FlightPhase; position: Vec3; previousPosition: Vec3; velocity: Vec3;
   heading: number; pitch: number; bank: number; hp: number; ammo: number; payload: boolean;
   deckPosition?: Vec3; timer: number; flightTime: number; cooldown: number; targetId?: string; kills: number;
+  controls: FlightControls; previousControls?: FlightControls; previousAttitude?: FlightAttitude; pilot: AirPilot;
 }
 export interface AirWingState { planes: Aircraft[]; launchCooldown: number; }
 export interface AirRelease { id: number; ownerId: string; position: Vec3; velocity: Vec3; }
@@ -28,7 +31,12 @@ export function aircraftDeckSpot(actor: FleetActor, plane: Aircraft): Vec3 {
   return [wing.launchPosition[0] - 4, wing.launchPosition[1] + deckClearance(plane),
     wing.recoveryPosition[2] - 15 - span + (count > 1 ? index * span / (count - 1) : 0)];
 }
-export const onFlightDeck = (p: Aircraft) => ['ready', 'queued', 'taxi', 'rollout', 'parking', 'rearming'].includes(p.phase) || (p.phase === 'takeoff' && p.timer < 4.5);
+export const onFlightDeck = (p: Aircraft) => ['ready', 'queued', 'taxi', 'rollout', 'parking', 'rearming'].includes(p.phase) || (p.phase === 'takeoff' && p.timer <= TAKEOFF_ROLL_SECONDS);
+// Keep the next taxi off the centerline until the departing plane is beyond the bow.
+const occupiesLaunchLane = (p: Aircraft) => ['taxi', 'landing', 'rollout', 'parking'].includes(p.phase)
+  || (p.phase === 'takeoff' && p.timer < TAKEOFF_ROLL_SECONDS + 1);
+const TAKEOFF_ACCELERATION = 2 * 140 / TAKEOFF_ROLL_SECONDS ** 2;
+const LAUNCH_TAXI_SPEED = 22;
 function deckPose(p: Aircraft, actor: FleetActor, local: Vec3) {
   p.deckPosition = [...local]; p.position = localToWorld(local, actor.motion);
   p.heading = actor.motion.heading; p.pitch = actor.motion.pitch; p.bank = actor.motion.roll;
@@ -48,6 +56,7 @@ export function createAirWing(def: ShipDefinition, ownerId: string, team: Team):
     id: `${ownerId}/${s.id}/${i + 1}`, ownerId, team, squadronId: s.id, modelId: s.modelId, role: s.role,
     phase: 'ready' as const, position: [0, 0, 0] as Vec3, previousPosition: [0, 0, 0] as Vec3, velocity: [0, 0, 0] as Vec3,
     heading: 0, pitch: 0, bank: 0, hp: 100, ammo: s.role === 'fighter' ? 16 : 0, payload: s.role !== 'fighter', timer: 0, flightTime: 0, cooldown: 0, kills: 0,
+    controls: initialFlightControls(), pilot: initialAirPilot(),
   }))) };
 }
 export function airServiceAvailable(actor: FleetActor): boolean {
@@ -59,7 +68,7 @@ export function launchSquadron(actor: FleetActor, squadronId: string, target?: F
   if (!airServiceAvailable(actor)) return 0;
   const planes = actor.airWing?.planes.filter(p => p.squadronId === squadronId && p.phase === 'ready').slice(0, 3) ?? [];
   if (planes.some(p => p.role !== 'fighter') && (!target || target.team === actor.team || target.damage.sunk || target.damage.stability.combatLost || target.motion.y < -8)) return 0;
-  for (const plane of planes) { plane.phase = 'queued'; plane.targetId = target?.motion.id; }
+  for (const plane of planes) { plane.phase = 'queued'; plane.targetId = target?.motion.id; plane.pilot = initialAirPilot(); }
   return planes.length;
 }
 export function recallAircraft(actor: FleetActor): void {
@@ -78,19 +87,19 @@ export interface AirContext {
   actors: FleetActor[]; planes: Aircraft[]; shells: Shell[]; torpedoes: Torpedo[]; releases: AirRelease[];
   nextId: () => number; emit: (e: Omit<CombatEvent, 'sequence' | 'tick'>) => void;
 }
-function fly(p: Aircraft, point: Vec3, speed: number, dt: number) {
-  const desired = Math.atan2(point[0] - p.position[0], p.position[2] - point[2]);
-  const turn = clamp(wrapAngle(desired - p.heading), -dt * (p.role === 'fighter' ? .75 : .38), dt * (p.role === 'fighter' ? .75 : .38));
-  p.heading = wrapAngle(p.heading + turn); p.bank = clamp(-turn / dt * .8, -.8, .8);
-  const vertical = clamp((point[1] - p.position[1]) * .5, -32, 22);
-  p.velocity = [Math.sin(p.heading) * speed, vertical, -Math.cos(p.heading) * speed];
-  p.pitch = Math.atan2(vertical, speed); p.position = add(p.position, scale(p.velocity, dt));
-}
 function lose(p: Aircraft, ctx: AirContext) {
   p.hp = 0; p.phase = 'lost';
   ctx.emit({ kind: 'aircraft-lost', position: [...p.position], shipId: p.ownerId, message: `${p.modelId} shot down`, aircraft: { id: p.id } });
 }
 export function stepAircraft(ctx: AirContext, dt: number, time: number) {
+  if (dt <= 0) return;
+  // Snapshot the whole group before any fighter can change another plane's state.
+  for (const p of ctx.planes) {
+    p.previousPosition = [...p.position];
+    p.previousAttitude = { heading: p.heading, pitch: p.pitch, bank: p.bank };
+    p.previousControls = { ...p.controls };
+    stepFlightMechanisms(p, dt, onFlightDeck(p));
+  }
   let flying = ctx.planes.filter(airborne).length;
   for (const actor of ctx.actors) {
     const state = actor.airWing, wing = actor.definition.airWing;
@@ -102,7 +111,7 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
       for (const squadron of wing.squadrons) if (!state.planes.some(p => p.squadronId === squadron.id && !['ready', 'rearming', 'lost'].includes(p.phase))) launchSquadron(actor, squadron.id, target);
     }
     for (const [i, p] of state.planes.entries()) {
-      p.previousPosition = [...p.position]; p.cooldown = Math.max(0, p.cooldown - dt);
+      p.cooldown = Math.max(0, p.cooldown - dt);
       if (p.phase === 'lost') continue;
       if (actor.damage.sunk && (onFlightDeck(p) || !airborne(p))) { p.hp = 0; p.phase = 'lost'; continue; }
       if (p.phase === 'ready' || p.phase === 'queued' || p.phase === 'rearming') {
@@ -112,7 +121,7 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
           if (p.timer <= 0) { p.phase = 'ready'; p.ammo = p.role === 'fighter' ? 16 : 0; p.payload = p.role !== 'fighter'; p.hp = 100; }
         }
         if (p.phase === 'queued' && state.launchCooldown <= 0 && flying < MAX_AIRBORNE && airServiceAvailable(actor)
-          && !state.planes.some(other => ['taxi', 'takeoff', 'landing', 'rollout', 'parking'].includes(other.phase))) {
+          && !state.planes.some(occupiesLaunchLane)) {
           p.phase = 'taxi'; p.timer = 0; p.flightTime = 0;
         } else continue;
       }
@@ -129,7 +138,7 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
           const waypoint: Vec3 = p.phase === 'parking'
             ? (Math.abs(current[2] - destination[2]) > .1 ? [current[0], destination[1], destination[2]] : destination)
             : (Math.abs(current[0] - destination[0]) > .1 ? [destination[0], destination[1], current[2]] : destination);
-          const arrived = taxi(p, actor, waypoint, 12, dt) && length(sub(waypoint, destination)) < .1;
+          const arrived = taxi(p, actor, waypoint, p.phase === 'taxi' ? LAUNCH_TAXI_SPEED : 12, dt) && length(sub(waypoint, destination)) < .1;
           if (arrived && p.phase === 'parking') { p.phase = 'rearming'; p.timer = wing.rearmSeconds; }
           else if (arrived && (!airServiceAvailable(actor) || flying >= MAX_AIRBORNE)) { p.phase = 'parking'; }
           else if (arrived) {
@@ -154,57 +163,89 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
       }
       if (p.hp <= 0) { lose(p, ctx); continue; }
       if (p.phase === 'takeoff') {
-        if (p.timer <= 4.5) {
-          const local: Vec3 = [wing.launchPosition[0], wing.launchPosition[1] + deckClearance(p), wing.launchPosition[2] - 7 * p.timer * p.timer];
+        if (p.timer <= TAKEOFF_ROLL_SECONDS) {
+          const local: Vec3 = [wing.launchPosition[0], wing.launchPosition[1] + deckClearance(p), wing.launchPosition[2] - .5 * TAKEOFF_ACCELERATION * p.timer * p.timer];
           deckPose(p, actor, local);
+          p.velocity = add(motionVelocity(actor.motion), [Math.sin(p.heading) * TAKEOFF_ACCELERATION * p.timer, 0, -Math.cos(p.heading) * TAKEOFF_ACCELERATION * p.timer]);
         } else {
           const point = localToWorld([wing.launchPosition[0], wing.launchPosition[1] + deckClearance(p) + 80, -600], actor.motion);
-          fly(p, point, 70 + (p.timer - 4.5) * 5, dt);
+          fly(p, point, 78 + (p.timer - TAKEOFF_ROLL_SECONDS) * 5, dt);
         }
-        if (p.timer > 8) { p.phase = 'outbound'; p.timer = 0; p.deckPosition = undefined; }
+        if (p.timer > TAKEOFF_ROLL_SECONDS + TAKEOFF_CLIMB_SECONDS) { p.phase = 'outbound'; p.timer = 0; p.deckPosition = undefined; }
         continue;
       }
       if (p.phase === 'returning' || p.phase === 'landing') {
         if (actor.damage.sunk) { fly(p, [carrier[0], 180, carrier[2]], 80, dt); continue; }
-        const approach = localToWorld([wing.recoveryPosition[0], wing.recoveryPosition[1] + 45, wing.recoveryPosition[2] + 450], actor.motion);
-        const busy = state.planes.some(other => other !== p && ['taxi', 'takeoff', 'landing', 'rollout', 'parking'].includes(other.phase));
-        if (p.phase === 'returning' && length(sub(p.position, approach)) < 90 && !busy && airServiceAvailable(actor)) p.phase = 'landing';
-        if (p.phase === 'landing' && !airServiceAvailable(actor)) p.phase = 'returning';
-        if (p.phase === 'landing') {
-          // Guided final approach reaches the actual tyre datum; no 30 m recovery pop.
-          const delta = sub(carrier, p.position), distance = length(delta);
-          const velocity = scale(normalize(delta), 40);
-          p.velocity = add(velocity, motionVelocity(actor.motion));
-          p.heading = wrapAngle(p.heading + clamp(wrapAngle(actor.motion.heading - p.heading), -dt, dt));
-          p.pitch = Math.atan2(velocity[1], Math.hypot(velocity[0], velocity[2])); p.bank *= Math.max(0, 1 - dt * 3);
-          p.position = add(p.position, scale(p.velocity, dt));
-          if (distance <= 40 * dt + .25) {
-            p.phase = 'rollout'; p.timer = 0; flying--;
-            deckPose(p, actor, add(wing.recoveryPosition, [0, deckClearance(p), 0]));
-            ctx.emit({ kind: 'aircraft-recovered', position: [...p.position], shipId: p.ownerId, message: `${p.modelId} landed`, aircraft: { id: p.id } });
+        const local = worldToLocal(p.position, actor.motion);
+        const aft = local[2] - wing.recoveryPosition[2];
+        const approach = localToWorld([wing.recoveryPosition[0], wing.recoveryPosition[1] + 150, wing.recoveryPosition[2] + 2600], actor.motion);
+        const busy = state.planes.some(other => other !== p && occupiesLaunchLane(other));
+        const available = !busy && airServiceAvailable(actor);
+        if (p.phase === 'returning') {
+          if (!available) {
+            p.pilot.recoveryStage = 'marshal';
+            const anchor = localToWorld([850, 220 + (i % 3) * 45, wing.recoveryPosition[2] + 1600], actor.motion);
+            fly(p, orbitPoint(p, anchor, 650 + (i % 3) * 90), 70, dt);
+          } else {
+            // Capture the extended centerline well astern before descending.
+            if (length(sub(p.position, approach)) < 400) p.pilot.recoveryStage = 'final';
+            if (p.pilot.recoveryStage === 'final') {
+              const intercept = localToWorld([wing.recoveryPosition[0], wing.recoveryPosition[1] + 120, wing.recoveryPosition[2] + Math.max(450, aft - 350)], actor.motion);
+              fly(p, intercept, 55 + Math.max(0, actor.motion.speed), dt);
+              if (aft > 550 && Math.abs(local[0] - wing.recoveryPosition[0]) < 70
+                && Math.abs(wrapAngle(p.heading - actor.motion.heading)) < .2) p.phase = 'landing';
+              else if (aft < 500) p.pilot.recoveryStage = 'marshal';
+            } else fly(p, approach, 70, dt);
           }
-        } else fly(p, approach, 85, dt);
+        } else if (!airServiceAvailable(actor)) {
+          p.phase = 'returning'; p.pilot.recoveryStage = 'marshal';
+          fly(p, approach, 70, dt);
+        } else {
+          // Follow a shallow glide path through the wire datum. Extending the path
+          // below the deck prevents an asymptotic hover just above the tyres.
+          const lookAhead = 140;
+          const nextAft = aft - lookAhead;
+          const height = nextAft * .06;
+          const leadSeconds = lookAhead / Math.max(20, length(p.velocity) - actor.motion.speed);
+          const aim = add(localToWorld([wing.recoveryPosition[0], wing.recoveryPosition[1] + deckClearance(p) + height, wing.recoveryPosition[2] + nextAft], actor.motion), scale(motionVelocity(actor.motion), leadSeconds));
+          fly(p, aim, 40 + Math.max(0, actor.motion.speed), dt, { landing: true });
+          const next = worldToLocal(p.position, actor.motion);
+          const deckY = wing.recoveryPosition[1] + deckClearance(p);
+          if (next[2] <= wing.recoveryPosition[2] + 12 && next[2] >= wing.recoveryPosition[2] - 30
+            && Math.abs(next[0] - wing.recoveryPosition[0]) < 7 && Math.abs(next[1] - deckY) < .35
+            && Math.abs(wrapAngle(p.heading - actor.motion.heading)) < .12) {
+            p.phase = 'rollout'; p.timer = 0; flying--;
+            deckPose(p, actor, [next[0], deckY, next[2]]);
+            ctx.emit({ kind: 'aircraft-recovered', position: [...p.position], shipId: p.ownerId, message: `${p.modelId} landed`, aircraft: { id: p.id } });
+          } else if (next[2] < wing.recoveryPosition[2] - 30 || (aft < 250 && Math.abs(next[0] - wing.recoveryPosition[0]) > 30)) {
+            p.phase = 'returning'; p.pilot.recoveryStage = 'marshal';
+          }
+        }
         continue;
       }
       if (p.role === 'fighter') {
-        const hostile = ctx.planes.filter(other => other.team !== p.team && airborne(other) && other.hp > 0)
-          .map(other => ({ other, distance: length(sub(other.position, p.position)) })).filter(v => v.distance < 6000).sort((a, b) => a.distance - b.distance)[0];
-        if (!p.ammo || p.flightTime > 160) { p.phase = 'returning'; continue; }
+        if (!p.ammo || p.flightTime > 260) { p.phase = 'returning'; continue; }
+        const hostile = fighterTarget(p, ctx.planes, carrier, dt);
         if (hostile) {
           p.phase = 'attack';
-          const aim = add(hostile.other.position, scale(hostile.other.velocity, Math.min(2, hostile.distance / 300)));
-          fly(p, aim, 110, dt);
-          if (hostile.distance < 650 && dot(normalize(p.velocity), normalize(sub(hostile.other.position, p.position))) > .55 && p.cooldown <= 0) {
-            p.ammo--; p.cooldown = .65; hostile.other.hp -= 18;
-            ctx.emit({ kind: 'aircraft-fire', position: [...p.position], shipId: p.ownerId, message: 'Fighter guns', aircraft: { id: p.id, target: [...hostile.other.position] } });
-            if (hostile.other.hp <= 0) { p.kills++; lose(hostile.other, ctx); }
+          const pursuing = steerFighter(p, hostile, ctx.planes, dt);
+          const gun = fighterGunAim(p, hostile);
+          const onAim = pursuing && gun.distance > 80 && gun.distance < 600 && gun.alignment > .996
+            && clearFighterLane(p, gun.point, ctx.planes);
+          p.pilot.aimTime = onAim ? p.pilot.aimTime + dt : 0;
+          if (onAim && p.pilot.aimTime >= .12 && p.cooldown <= 0) {
+            p.ammo--; p.cooldown = .4;
+            hostile.hp -= 22 * clamp((gun.alignment - .996) / .004, .3, 1) * clamp(1.3 - gun.distance / 900, .5, 1);
+            ctx.emit({ kind: 'aircraft-fire', position: [...p.position], shipId: p.ownerId, message: 'Fighter guns', aircraft: { id: p.id, target: gun.point } });
+            if (hostile.hp <= 0) { p.kills++; lose(hostile, ctx); }
           }
         } else {
-          p.phase = 'outbound';
-          const target = ctx.actors.find(a => a.motion.id === p.targetId && !a.damage.sunk);
-          const anchor: Vec3 = target ? [(carrier[0] + target.motion.x) / 2, 350, (carrier[2] + target.motion.z) / 2] : [carrier[0], 350, carrier[2]];
-          const angle = time * .12 + i * 2;
-          fly(p, add(anchor, [Math.sin(angle) * 600, i * 12, Math.cos(angle) * 600]), 100, dt);
+          p.phase = 'outbound'; p.pilot.aimTime = 0;
+          const target = ctx.actors.find(a => a.motion.id === p.targetId && a.team !== p.team && !a.damage.sunk && !a.damage.stability.combatLost);
+          const toward = target ? sub([target.motion.x, 0, target.motion.z], [carrier[0], 0, carrier[2]]) : [0, 0, 0] as Vec3;
+          const offset = scale(normalize(toward), Math.min(2000, length(toward) / 2));
+          const anchor = add([carrier[0], 420 + (i % 3) * 35, carrier[2]], offset);
+          fly(p, orbitPoint(p, anchor, 850 + (i % 3) * 100), 95, dt);
         }
         continue;
       }
@@ -212,30 +253,59 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
       if (!target || !p.payload) { p.phase = 'returning'; continue; }
       const targetPoint: Vec3 = [target.motion.x, Math.max(0, target.motion.y + target.definition.hull.depth - target.definition.hull.draft), target.motion.z];
       const distance = Math.hypot(targetPoint[0] - p.position[0], targetPoint[2] - p.position[2]);
-      p.phase = distance < 1800 ? 'attack' : 'outbound';
+      const ingress = strikeIngress(p, target, targetPoint);
+      const heading = p.pilot.attackHeading!;
+      const forward: Vec3 = [Math.sin(heading), 0, -Math.cos(heading)];
+      if (p.pilot.attackStage === 'egress') {
+        const exit = add(targetPoint, scale(forward, 2200)); exit[1] = 350;
+        fly(p, exit, 95, dt);
+        if (distance > 1800) {
+          if (++p.pilot.attempts >= 2) p.phase = 'returning';
+          else p.pilot.attackStage = 'ingress';
+        }
+        continue;
+      }
+      if (p.pilot.attackStage === 'ingress') {
+        p.phase = 'outbound';
+        // The last two aircraft trail the leader's approach with separate heights.
+        ingress[1] += (i % 3) * (p.role === 'dive-bomber' ? 30 : 12);
+        fly(p, ingress, p.role === 'dive-bomber' ? 95 : 80, dt);
+        if (Math.hypot(p.position[0] - ingress[0], p.position[2] - ingress[2]) < 240 && Math.abs(p.position[1] - ingress[1]) < 120) p.pilot.attackStage = 'run';
+        continue;
+      }
+      p.phase = 'attack';
       if (p.role === 'dive-bomber') {
-        const height = Math.max(0, p.position[1] - targetPoint[1]);
+        const height = Math.max(0, p.position[1] - 1 - targetPoint[1]);
         const fall = (p.velocity[1] + Math.sqrt(p.velocity[1] ** 2 + 19.62 * height)) / 9.81;
         const aim = add(targetPoint, scale(motionVelocity(target.motion), fall));
-        fly(p, [aim[0], distance < 1600 ? 160 : 520, aim[2]], 90, dt);
-        const landing = add(p.position, scale(p.velocity, fall));
-        const error = Math.hypot(landing[0] - aim[0], landing[2] - aim[2]);
-        if (p.phase === 'attack' && error < 18 && p.position[1] > targetPoint[1] + 40 && ctx.shells.length < 256) {
+        fly(p, [aim[0], targetPoint[1], aim[2]], 104, dt, { dive: true, bankLimit: .5 });
+        // Recompute after movement: the released body inherits this exact velocity.
+        const releaseHeight = Math.max(0, p.position[1] - 1 - targetPoint[1]);
+        const releaseFall = (p.velocity[1] + Math.sqrt(p.velocity[1] ** 2 + 19.62 * releaseHeight)) / 9.81;
+        const landing = add(p.position, scale(p.velocity, releaseFall));
+        const impactAim = add(targetPoint, scale(motionVelocity(target.motion), releaseFall));
+        const error = Math.hypot(landing[0] - impactAim[0], landing[2] - impactAim[2]);
+        if (error < 22 && p.pitch < -.25 && p.position[1] > targetPoint[1] + 90 && ctx.shells.length < 256) {
           const id = ctx.nextId();
           ctx.shells.push({ id, ownerId: p.ownerId, position: add(p.position, [0, -1, 0]), velocity: [...p.velocity], age: 0, penetrationMm: 0, damage: 380, caliberM: .35, visited: [], ammunition: 'he', type: 'HE', he: { explosiveKg: 120, fragmentPenetrationMm: 75, damage: 380, stockFraction: 1, basis: 'Provisional 500 lb gameplay bomb; contact fuze' } });
           p.payload = false; p.phase = 'returning';
           ctx.emit({ kind: 'bomb-release', position: [...p.position], shipId: p.ownerId, message: 'Bomb away', shell: { id, caliberM: .35, velocity: [...p.velocity], ammunition: 'he', type: 'HE' }, aircraft: { id: p.id } });
-        }
+        } else if (p.position[1] < targetPoint[1] + 100 || dot(sub(targetPoint, p.position), forward) < -100) p.pilot.attackStage = 'egress';
       } else {
-        const aim = torpedoIntercept(p.position, targetPoint, motionVelocity(target.motion), AIR_TORPEDO.speed) ?? targetPoint;
-        fly(p, [aim[0], distance < 2000 ? 20 : 260, aim[2]], 75, dt);
-        const aligned = dot(normalize([p.velocity[0], 0, p.velocity[2]]), normalize([aim[0] - p.position[0], 0, aim[2] - p.position[2]])) > .998;
-        if (distance < 900 && distance > 650 && p.position[1] < 35 && aligned && ctx.releases.length + ctx.torpedoes.length < 128 && clearTorpedoLane(actor, p.position, aim, AIR_TORPEDO.speed, ctx.actors)) {
+        // Include the airborne travel before solving the slower underwater run.
+        const fall = (-3 + Math.sqrt(9 + 19.62 * Math.max(0, p.position[1]))) / 9.81;
+        const waterEntry = add(p.position, scale([p.velocity[0], 0, p.velocity[2]], fall));
+        const futureTarget = add(targetPoint, scale(motionVelocity(target.motion), fall));
+        const aim = torpedoIntercept(waterEntry, futureTarget, motionVelocity(target.motion), AIR_TORPEDO.speed) ?? futureTarget;
+        fly(p, [aim[0], 26, aim[2]], 70, dt, { bankLimit: distance > 1600 ? .72 : .35, altitudeLookahead: 450 });
+        const aligned = dot(normalize([p.velocity[0], 0, p.velocity[2]]), normalize([aim[0] - p.position[0], 0, aim[2] - p.position[2]])) > .999;
+        if (distance < 1050 && distance > 650 && p.position[1] < 38 && p.position[1] > 15 && Math.abs(p.bank) < .12 && Math.abs(p.pitch) < .08 && aligned
+          && ctx.releases.length + ctx.torpedoes.length < 128 && clearTorpedoLane(actor, waterEntry, aim, AIR_TORPEDO.speed, ctx.actors)) {
           ctx.releases.push({ id: ctx.nextId(), ownerId: p.ownerId, position: [...p.position], velocity: [p.velocity[0], -3, p.velocity[2]] });
           p.payload = false; p.phase = 'returning';
           ctx.emit({ kind: 'aircraft-release', position: [...p.position], shipId: p.ownerId, message: 'Torpedo away', aircraft: { id: p.id } });
         }
-        if (distance < 300) p.phase = 'returning'; // Abort unsafe, unaligned runs with payload retained.
+        if (distance < 550 && p.payload) p.pilot.attackStage = 'egress';
       }
     }
   }

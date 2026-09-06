@@ -488,6 +488,7 @@ export class Game {
     this.camera.updateProjectionMatrix();
     this.water?.resize(width, height);
     this.shipLabels.resize(width, height);
+    this.aircraftView.resize(height);
     this.gunAim.resize(width, height);
     this.sky?.resize(width, height);
     this.resizePending = false;
