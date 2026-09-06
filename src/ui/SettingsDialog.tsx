@@ -77,7 +77,7 @@ export function SettingsDialog({ settings, bindings, audioSettings, onAudioChang
         <p className="settings-description">Prepare the scene for your next voyage.</p>
         <label className="setting-row">Ocean detail<select value={draft.quality} onChange={event => setDraft({ ...draft, quality: event.target.value as GameSettings['quality'] })}><option value="medium">Medium</option><option value="high">High</option><option value="ultra">Ultra</option></select></label>
         <label className="setting-row">Render scale<select value={draft.resolution} onChange={event => setDraft({ ...draft, resolution: Number(event.target.value) })}><option value={0.65}>65%</option><option value={0.8}>80%</option><option value={1}>100%</option></select></label>
-        <label className="setting-row">Sea conditions<select value={draft.sea} onChange={event => setDraft({ ...draft, sea: event.target.value as GameSettings['sea'] })}><option>Fair</option><option>Atlantic</option><option>Heavy</option></select></label>
+        <label className="setting-row">Sea conditions<select value={draft.sea} onChange={event => setDraft({ ...draft, sea: event.target.value as GameSettings['sea'] })}><option>Fair</option><option value="Atlantic">Moderate</option><option>Heavy</option></select></label>
         <p className="settings-note">Applying these settings ends the current trial and reloads the scene in port. Lower detail or render scale can improve performance.</p>
         <button className="primary-button" disabled={!changed} onClick={() => onApply(draft)}>Apply & reload port <Icon name="arrow" size={17}/></button>
       </section> : section === 'sound' ? <section aria-label="Sound settings">
