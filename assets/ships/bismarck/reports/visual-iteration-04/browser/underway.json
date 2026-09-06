@@ -1,0 +1,820 @@
+{
+  "audio": {
+    "failed": [],
+    "inPort": false,
+    "loaded": 13,
+    "paused": true,
+    "played": 3,
+    "settings": {
+      "effects": 0.8,
+      "interface": 0.65,
+      "master": 0.65,
+      "muted": false
+    },
+    "state": "running",
+    "total": 13,
+    "voices": 0
+  },
+  "backend": "webgpu",
+  "camera": {
+    "aim": [
+      7.506834412739559,
+      6.04973801234101,
+      -937.8851244416487
+    ],
+    "binoculars": false,
+    "fov": 52.00000000000001,
+    "magnification": 1,
+    "manualAim": true,
+    "matrixWorldInverse": [
+      0.7514402250505252,
+      -0.17922560631568643,
+      0.634992732412577,
+      0,
+      0,
+      0.9624001262658705,
+      0.2716357799764913,
+      0,
+      -0.6598011732150952,
+      -0.20411805163730956,
+      0.7231861674698795,
+      0,
+      -384.32179668884714,
+      -96.13246408442483,
+      27.676381858642884,
+      1
+    ],
+    "mode": "Chase",
+    "pointerLocked": false,
+    "position": [
+      253.99115689382398,
+      85,
+      -293.2135201412259
+    ],
+    "projectionMatrix": [
+      1.633751346060547,
+      0,
+      0,
+      0,
+      0,
+      2.050303841579296,
+      0,
+      0,
+      0,
+      0,
+      -1.0000083334027783,
+      -1,
+      0,
+      0,
+      -0.5000041667013891,
+      0
+    ],
+    "shellFollow": "off"
+  },
+  "combat": {
+    "batteries": [
+      {
+        "ammo": 952,
+        "battery": "main",
+        "ready": 4,
+        "reload": 0,
+        "total": 4
+      },
+      {
+        "ammo": 1772,
+        "battery": "secondary",
+        "ready": 0,
+        "reload": 2.3333333333333535,
+        "total": 6
+      }
+    ],
+    "battery": "main",
+    "battle": true,
+    "contacts": [
+      {
+        "controller": "player",
+        "heading": 0.3436460082364192,
+        "id": "player",
+        "integrity": 0.8147999999999995,
+        "name": "Bismarck",
+        "shipId": "bismarck",
+        "sunk": false,
+        "team": "friendly",
+        "x": 73.99115689382397,
+        "z": -483.2135201412259
+      },
+      {
+        "controller": "bot",
+        "heading": 3.6690214395506047,
+        "id": "enemy-1",
+        "integrity": 0.9455999999999994,
+        "name": "Bismarck",
+        "shipId": "bismarck",
+        "sunk": false,
+        "targetId": "player",
+        "team": "enemy",
+        "x": -111.1285156010786,
+        "z": -572.5402306294728
+      }
+    ],
+    "message": "Bismarck \u00b7 Stopped by Port Main Belt 2",
+    "modules": [
+      {
+        "condition": 1,
+        "id": "boiler-aft-port-equipment",
+        "name": "Aft port boiler room \u00b7 two Wagner boilers"
+      },
+      {
+        "condition": 1,
+        "id": "boiler-aft-center-equipment",
+        "name": "Aft center boiler room \u00b7 two Wagner boilers"
+      },
+      {
+        "condition": 1,
+        "id": "boiler-aft-starboard-equipment",
+        "name": "Aft starboard boiler room \u00b7 two Wagner boilers"
+      },
+      {
+        "condition": 1,
+        "id": "boiler-forward-port-equipment",
+        "name": "Forward port boiler room \u00b7 two Wagner boilers"
+      },
+      {
+        "condition": 1,
+        "id": "boiler-forward-center-equipment",
+        "name": "Forward center boiler room \u00b7 two Wagner boilers"
+      },
+      {
+        "condition": 1,
+        "id": "boiler-forward-starboard-equipment",
+        "name": "Forward starboard boiler room \u00b7 two Wagner boilers"
+      },
+      {
+        "condition": 1,
+        "id": "engine-port",
+        "name": "Port turbine room"
+      },
+      {
+        "condition": 1,
+        "id": "engine-starboard",
+        "name": "Starboard turbine room"
+      },
+      {
+        "condition": 1,
+        "id": "engine-center",
+        "name": "Center turbine room"
+      },
+      {
+        "condition": 1,
+        "id": "anton-magazine",
+        "name": "Anton propellant magazines"
+      },
+      {
+        "condition": 1,
+        "id": "bruno-magazine",
+        "name": "Bruno propellant magazines"
+      },
+      {
+        "condition": 1,
+        "id": "caesar-magazine",
+        "name": "C\u00e4sar propellant magazines"
+      },
+      {
+        "condition": 1,
+        "id": "dora-magazine",
+        "name": "Dora propellant magazines"
+      },
+      {
+        "condition": 1,
+        "id": "steering",
+        "name": "Steering gear room"
+      },
+      {
+        "condition": 1,
+        "id": "shaft-port-equipment",
+        "name": "Port shaft passage"
+      },
+      {
+        "condition": 1,
+        "id": "shaft-center-equipment",
+        "name": "Center shaft passage"
+      },
+      {
+        "condition": 1,
+        "id": "shaft-starboard-equipment",
+        "name": "Starboard shaft passage"
+      }
+    ],
+    "mounts": [
+      {
+        "ammo": 238,
+        "id": "anton",
+        "name": "Anton",
+        "reload": 0,
+        "status": "ready"
+      },
+      {
+        "ammo": 238,
+        "id": "bruno",
+        "name": "Bruno",
+        "reload": 0,
+        "status": "ready"
+      },
+      {
+        "ammo": 238,
+        "id": "caesar",
+        "name": "C\u00e4sar",
+        "reload": 0,
+        "status": "ready"
+      },
+      {
+        "ammo": 238,
+        "id": "dora",
+        "name": "Dora",
+        "reload": 0,
+        "status": "ready"
+      }
+    ],
+    "playerDamageDealt": 54.400000000000546,
+    "playerFrags": 0,
+    "playerIntegrity": 0.8147999999999995,
+    "playerSunk": false,
+    "playerWater": 0,
+    "range": 459.50672779937514,
+    "ready": 4,
+    "result": "active",
+    "targetId": "enemy-1",
+    "targetIntegrity": 0.9455999999999994,
+    "targetName": "Bismarck",
+    "targetPosition": {
+      "heading": 3.6690214395506047,
+      "x": -111.1285156010786,
+      "z": -572.5402306294728
+    },
+    "targetPower": 1,
+    "targetRange": 205.54453130957066,
+    "targetSteering": 1,
+    "targetSunk": false,
+    "targetUnderway": false,
+    "targetWater": 0,
+    "total": 4
+  },
+  "contentHash": "957a349026ab6dfccb0b6caa5469c6899066fe034d3e9563940ad0b8e336037b",
+  "effects": {
+    "flashes": 0,
+    "foam": 0,
+    "particleCapacity": 2272,
+    "shells": 0,
+    "smoke": 0,
+    "spray": 0
+  },
+  "events": [
+    {
+      "kind": "stopped",
+      "message": "Stopped by Port Main Belt 2",
+      "normal": [
+        -0.8872494743742709,
+        0,
+        -0.46128989824467215
+      ],
+      "position": [
+        -70.61289178272287,
+        0.8966771697765844,
+        -611.7663402677452
+      ],
+      "sequence": 219,
+      "shell": {
+        "caliberM": 0.15,
+        "id": 75,
+        "velocity": [
+          -383.7326315174739,
+          -25.486555871942638,
+          -795.0954018022869
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 3874
+    },
+    {
+      "kind": "shot",
+      "message": "Port Secondary 1 fired",
+      "position": [
+        -88.58850377135009,
+        7.137384595062997,
+        -575.1763671297821
+      ],
+      "sequence": 220,
+      "shell": {
+        "caliberM": 0.15,
+        "id": 79,
+        "velocity": [
+          607.8666238360896,
+          -25.870632603614172,
+          632.2706967826996
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 3875
+    },
+    {
+      "kind": "shot",
+      "message": "Port Secondary 1 fired",
+      "position": [
+        -89.83987843181782,
+        7.137384595062997,
+        -573.9530268422336
+      ],
+      "sequence": 221,
+      "shell": {
+        "caliberM": 0.15,
+        "id": 80,
+        "velocity": [
+          607.8666238360896,
+          -25.870632603614172,
+          632.2706967826996
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 3875
+    },
+    {
+      "kind": "penetration",
+      "message": "Penetrated Hull shell \u00b7 bow to stern plating",
+      "normal": [
+        -0.9427958181233932,
+        0.03316831349486645,
+        -0.3317166084309737
+      ],
+      "position": [
+        39.471091020451865,
+        1.422039640133648,
+        -439.8567778703072
+      ],
+      "sequence": 222,
+      "shell": {
+        "caliberM": 0.15,
+        "id": 78,
+        "velocity": [
+          539.0747480341647,
+          -26.81987969009272,
+          692.8671449042139
+        ]
+      },
+      "shipId": "player",
+      "tick": 3876
+    },
+    {
+      "kind": "stopped",
+      "message": "Stopped by Port Main Belt 2",
+      "normal": [
+        0.9429052271023818,
+        0,
+        0.3330611545992808
+      ],
+      "position": [
+        40.95640320545442,
+        1.4164468742820728,
+        -440.7974823624192
+      ],
+      "sequence": 223,
+      "shell": {
+        "caliberM": 0.15,
+        "id": 77,
+        "velocity": [
+          539.0747480341647,
+          -26.81987969009272,
+          692.8671449042139
+        ]
+      },
+      "shipId": "player",
+      "tick": 3876
+    },
+    {
+      "kind": "stopped",
+      "message": "Stopped by Port Main Belt 2",
+      "normal": [
+        0.942885690651574,
+        0,
+        0.3331164576608375
+      ],
+      "position": [
+        40.26400005943117,
+        1.3825195849893193,
+        -438.83766016165964
+      ],
+      "sequence": 224,
+      "shell": {
+        "caliberM": 0.15,
+        "id": 78,
+        "velocity": [
+          539.0747480341647,
+          -26.98337969009272,
+          692.8671449042139
+        ]
+      },
+      "shipId": "player",
+      "tick": 3877
+    },
+    {
+      "kind": "stopped",
+      "message": "Stopped by Port Main Belt 2",
+      "normal": [
+        0.9426974439524386,
+        0,
+        0.33364881112561917
+      ],
+      "position": [
+        40.20758230000565,
+        1.3779097574639398,
+        -438.68453966518064
+      ],
+      "sequence": 225,
+      "shell": {
+        "caliberM": 0.15,
+        "id": 80,
+        "velocity": [
+          607.8666238360896,
+          -27.99613260361416,
+          632.2706967826996
+        ]
+      },
+      "shipId": "player",
+      "tick": 3887
+    },
+    {
+      "kind": "stopped",
+      "message": "Stopped by Port Main Belt 2",
+      "normal": [
+        0.9426974439524386,
+        0,
+        0.33364881112561917
+      ],
+      "position": [
+        40.86077368763985,
+        1.4053794623139628,
+        -440.53007854019455
+      ],
+      "sequence": 226,
+      "shell": {
+        "caliberM": 0.15,
+        "id": 79,
+        "velocity": [
+          607.8666238360896,
+          -27.99613260361416,
+          632.2706967826996
+        ]
+      },
+      "shipId": "player",
+      "tick": 3887
+    },
+    {
+      "kind": "shot",
+      "message": "Port Secondary 1 fired",
+      "position": [
+        53.2104803677861,
+        7.114972909571594,
+        -477.3314562218293
+      ],
+      "sequence": 227,
+      "shell": {
+        "caliberM": 0.15,
+        "id": 81,
+        "velocity": [
+          -630.3056265115403,
+          -29.43612802270102,
+          -613.0607153691341
+        ]
+      },
+      "shipId": "player",
+      "tick": 3980
+    },
+    {
+      "kind": "shot",
+      "message": "Port Secondary 1 fired",
+      "position": [
+        54.41546711411671,
+        7.114972909571594,
+        -478.60051372295663
+      ],
+      "sequence": 228,
+      "shell": {
+        "caliberM": 0.15,
+        "id": 82,
+        "velocity": [
+          -630.3056265115403,
+          -29.43612802270102,
+          -613.0607153691341
+        ]
+      },
+      "shipId": "player",
+      "tick": 3980
+    },
+    {
+      "kind": "stopped",
+      "message": "Stopped by Port Main Belt 2",
+      "normal": [
+        -0.8784766926366154,
+        0,
+        -0.4777852033018955
+      ],
+      "position": [
+        -74.41515115111581,
+        0.8932282150684597,
+        -603.9063775342249
+      ],
+      "sequence": 229,
+      "shell": {
+        "caliberM": 0.15,
+        "id": 82,
+        "velocity": [
+          -630.3056265115403,
+          -31.561628022701008,
+          -613.0607153691341
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 3992
+    },
+    {
+      "kind": "stopped",
+      "message": "Stopped by Port Main Belt 2",
+      "normal": [
+        -0.8784766926366154,
+        0,
+        -0.4777852033018955
+      ],
+      "position": [
+        -75.28346481706443,
+        0.9100429586756357,
+        -602.3098581942324
+      ],
+      "sequence": 230,
+      "shell": {
+        "caliberM": 0.15,
+        "id": 81,
+        "velocity": [
+          -630.3056265115403,
+          -31.561628022701008,
+          -613.0607153691341
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 3992
+    },
+    {
+      "kind": "shot",
+      "message": "Port Secondary 3 fired",
+      "position": [
+        -69.6694318021199,
+        6.986513102604773,
+        -602.0485574798977
+      ],
+      "sequence": 231,
+      "shell": {
+        "caliberM": 0.15,
+        "id": 83,
+        "velocity": [
+          581.5287828402262,
+          -26.009279131058754,
+          656.7543402291252
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 4015
+    },
+    {
+      "kind": "shot",
+      "message": "Port Secondary 3 fired",
+      "position": [
+        -70.96996147476979,
+        6.986513102604773,
+        -600.8776080486424
+      ],
+      "sequence": 232,
+      "shell": {
+        "caliberM": 0.15,
+        "id": 84,
+        "velocity": [
+          581.5287828402262,
+          -26.009279131058754,
+          656.7543402291252
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 4015
+    },
+    {
+      "kind": "stopped",
+      "message": "Stopped by Port Main Belt 2",
+      "normal": [
+        0.9410573282088907,
+        0,
+        0.3382471064537649
+      ],
+      "position": [
+        49.486115158530865,
+        1.3882452608756142,
+        -464.8395417133638
+      ],
+      "sequence": 233,
+      "shell": {
+        "caliberM": 0.15,
+        "id": 84,
+        "velocity": [
+          581.5287828402262,
+          -28.134779131058743,
+          656.7543402291252
+        ]
+      },
+      "shipId": "player",
+      "tick": 4027
+    },
+    {
+      "kind": "stopped",
+      "message": "Stopped by Port Main Belt 2",
+      "normal": [
+        0.9410573282088907,
+        0,
+        0.3382471064537649
+      ],
+      "position": [
+        50.160971741606645,
+        1.4184278174854807,
+        -466.71710022273805
+      ],
+      "sequence": 234,
+      "shell": {
+        "caliberM": 0.15,
+        "id": 83,
+        "velocity": [
+          581.5287828402262,
+          -28.134779131058743,
+          656.7543402291252
+        ]
+      },
+      "shipId": "player",
+      "tick": 4027
+    },
+    {
+      "kind": "shot",
+      "message": "Port Secondary 2 fired",
+      "position": [
+        53.92198663742312,
+        6.954936361695775,
+        -493.2994259997687
+      ],
+      "sequence": 235,
+      "shell": {
+        "caliberM": 0.15,
+        "id": 85,
+        "velocity": [
+          -737.3276140527323,
+          -31.032851548399478,
+          -474.8457175087479
+        ]
+      },
+      "shipId": "player",
+      "tick": 4167
+    },
+    {
+      "kind": "shot",
+      "message": "Port Secondary 2 fired",
+      "position": [
+        54.85046868477929,
+        6.954936361695775,
+        -494.78280763904337
+      ],
+      "sequence": 236,
+      "shell": {
+        "caliberM": 0.15,
+        "id": 86,
+        "velocity": [
+          -737.3276140527323,
+          -31.032851548399478,
+          -474.8457175087479
+        ]
+      },
+      "shipId": "player",
+      "tick": 4167
+    },
+    {
+      "kind": "stopped",
+      "message": "Stopped by Port Main Belt 2",
+      "normal": [
+        -0.8640270272814539,
+        0,
+        -0.5034454251725541
+      ],
+      "position": [
+        -84.54924136392573,
+        0.9122107722206453,
+        -584.5574940565995
+      ],
+      "sequence": 237,
+      "shell": {
+        "caliberM": 0.15,
+        "id": 86,
+        "velocity": [
+          -737.3276140527323,
+          -32.99485154839947,
+          -474.8457175087479
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 4178
+    },
+    {
+      "kind": "stopped",
+      "message": "Stopped by Port Main Belt 2",
+      "normal": [
+        -0.8640270272814539,
+        0,
+        -0.5034454251725541
+      ],
+      "position": [
+        -85.43107341268397,
+        0.9142931520363788,
+        -583.0440693921705
+      ],
+      "sequence": 238,
+      "shell": {
+        "caliberM": 0.15,
+        "id": 85,
+        "velocity": [
+          -737.3276140527323,
+          -32.99485154839947,
+          -474.8457175087479
+        ]
+      },
+      "shipId": "enemy-1",
+      "tick": 4178
+    }
+  ],
+  "fleet": [
+    {
+      "ammo": 2724,
+      "controller": "player",
+      "definitionId": "bismarck",
+      "id": "player",
+      "integrity": 814.7999999999995,
+      "motion": {
+        "distance": 493.03490833335366,
+        "heading": 0.3436460082364192,
+        "id": "player",
+        "pitch": 0,
+        "roll": 0,
+        "rudder": 0,
+        "speed": 11.5725,
+        "swaySpeed": 0,
+        "tick": 4200,
+        "x": 73.99115689382397,
+        "y": 0,
+        "yawRate": 0.00037610245130403165,
+        "z": -483.2135201412259
+      },
+      "team": "friendly"
+    },
+    {
+      "ammo": 2710,
+      "controller": "bot",
+      "definitionId": "bismarck",
+      "id": "enemy-1",
+      "integrity": 945.5999999999995,
+      "motion": {
+        "distance": 447.08023333331323,
+        "heading": 3.6690214395506047,
+        "id": "enemy-1",
+        "pitch": 0,
+        "roll": 0,
+        "rudder": 1,
+        "speed": 7.715,
+        "swaySpeed": 0,
+        "tick": 4200,
+        "x": -111.1285156010786,
+        "y": 0,
+        "yawRate": 0.009499999995314057,
+        "z": -572.5402306294728
+      },
+      "targetId": "player",
+      "team": "enemy"
+    }
+  ],
+  "fps": 206.7676432549795,
+  "inPort": false,
+  "inspecting": false,
+  "maxMuzzleErrorM": 0.002168033188974802,
+  "paused": true,
+  "portInspection": "exterior",
+  "renderedShips": [
+    {
+      "id": "player",
+      "visible": true
+    },
+    {
+      "id": "enemy-1",
+      "visible": true
+    }
+  ],
+  "shipId": "bismarck",
+  "tick": 4200
+}
