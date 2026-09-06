@@ -1,6 +1,6 @@
 import type { ControlPriority } from '../simulation/damageControl';
 import * as THREE from 'three/webgpu';
-import { mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
+import { float, mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
 import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { WaterSystem, getPresetParams } from '../../vendor/threejs-water-pro/build/index.js';
@@ -105,7 +105,10 @@ export class Game {
     this.simulation = new CombatSimulation(definition);
     this.playerDamageFeedback = new HullDamageFeedback(this.simulation.player.damage.integrity);
     this.aimModule = definition.modules.find(m => m.kind === 'engine')?.id ?? '';
-    this.renderer = new THREE.WebGPURenderer({ antialias: true, powerPreference: 'high-performance' });
+    // Centimeter-scale fittings must remain distinct at 20 km, even with the
+    // close near plane needed by bridge and shell-follow views. The scene pass
+    // uses floating-point reversed depth; TSL's depth readers use the same mapping.
+    this.renderer = new THREE.WebGPURenderer({ antialias: true, powerPreference: 'high-performance', reversedDepthBuffer: true });
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1;
     this.renderer.shadowMap.enabled = true;
@@ -200,6 +203,12 @@ export class Game {
     this.sky = await SkySystem.create({ renderer: this.renderer, camera: this.camera, scene: this.scene,
       quality: this.settings.quality === 'ultra' ? 'high' : 'medium', cloudRenderingMode: 'dynamic', godRays: false });
     this.assertActive();
+    // Sky Pro's background shaders hard-code far depth as 1. Match the active
+    // backend's depth convention so cirrus cannot paint over opaque ships.
+    // Volumetric clouds already project their hit distance through the camera.
+    const skyDepth = float(this.renderer.reversedDepthBuffer ? 0 : 1);
+    this.sky.pipeline.sky.material.depthNode = skyDepth;
+    this.sky.pipeline.cirrus.material.depthNode = skyDepth;
     await this.sky.applyPreset(SKY_PRESETS.partlyCloudy);
     this.assertActive();
     // Shared cloud shape; updatePortLighting supplies each scene's daylight.
