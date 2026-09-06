@@ -298,6 +298,13 @@ test('VIIC chase follows underwater, scope eye breaks the surface at 7 m, and de
   expect(camera.position.y).toBeCloseTo(14.612 - 4.7625 - 7);
   ship.y = -50; rig.update(ship, ship.y, 0, true);
   expect(camera.position.y).toBeCloseTo(14.612 - 4.7625 - 50);
+  // Submerged views still clear an island if the camera crosses its shore.
+  rig.setBattleTerrain(() => 80);
+  rig.update(ship, ship.y, 0, true);
+  expect(camera.position.y).toBeGreaterThanOrEqual(92);
+  rig.setBattleTerrain(() => 0);
+  rig.update(ship, ship.y, 0, true);
+  expect(camera.position.y).toBeCloseTo(14.612 - 4.7625 - 50);
   rig.binoculars = false; rig.mode = 'Tactical'; rig.update(ship, ship.y, 0, true);
   expect(camera.position.y).toBeGreaterThanOrEqual(12);
   rig.setInPort(true); ship.y = 0; rig.update(ship, 0, 0, true);
