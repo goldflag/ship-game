@@ -56,6 +56,43 @@ async function still() {
   game.pipeline.render();
   return game.renderer.domElement.toDataURL('image/png');
 }
-window.impactReview={game,fire,prepare,still,initial:prepare()};
+async function checkSmokeOcclusion() {
+  prepare();
+  const marks=game.playerView.impactMarks, smoke=game.effects.smoke;
+  // Freeze one production smoke volume in front of the scars, independent of
+  // muzzle direction and random battle timing. Leave its normal draw order intact.
+  const plume=smoke.emit(game.camera.position.clone().set(36,6,5));
+  Object.assign(plume,{size:38,life:20,age:1,density:30,opacity:1});
+  plume.color.set('#b9b6ae');
+  smoke.update(0,game.camera,game.effects.wind);
+  async function pixels(showMarks,showSmoke) {
+    marks.setVisible(showMarks); smoke.mesh.visible=showSmoke;
+    const image=new Image(); image.src=await still(); await image.decode();
+    const canvas=document.createElement('canvas'); canvas.width=image.width; canvas.height=image.height;
+    const context=canvas.getContext('2d'); context.drawImage(image,0,0);
+    return context.getImageData(0,0,canvas.width,canvas.height).data;
+  }
+  try {
+    const clear=await pixels(false,false), marked=await pixels(true,false);
+    const smokeOnly=await pixels(false,true), smokyMarks=await pixels(true,true);
+    plume.position.x=-36; smoke.update(0,game.camera,game.effects.wind);
+    const rearSmoke=await pixels(false,true), rearMarks=await pixels(true,true);
+    let clearDifference=0, smokyDifference=0, rearDifference=0, samples=0;
+    for(let i=0;i<clear.length;i+=4) {
+      const difference=Math.abs(clear[i]-marked[i])+Math.abs(clear[i+1]-marked[i+1])+Math.abs(clear[i+2]-marked[i+2]);
+      if(difference<60) continue;
+      samples++; clearDifference+=difference;
+      smokyDifference+=Math.abs(smokeOnly[i]-smokyMarks[i])+Math.abs(smokeOnly[i+1]-smokyMarks[i+1])+Math.abs(smokeOnly[i+2]-smokyMarks[i+2]);
+      rearDifference+=Math.abs(rearSmoke[i]-rearMarks[i])+Math.abs(rearSmoke[i+1]-rearMarks[i+1])+Math.abs(rearSmoke[i+2]-rearMarks[i+2]);
+    }
+    const contrastRatio=smokyDifference/Math.max(1,clearDifference);
+    const rearContrastRatio=rearDifference/Math.max(1,clearDifference);
+    return {pass:samples>20&&contrastRatio<.2&&rearContrastRatio>.8,samples,contrastRatio,rearContrastRatio};
+  } finally {
+    plume.position.x=36; smoke.update(0,game.camera,game.effects.wind);
+    marks.setVisible(true); smoke.mesh.visible=true;
+  }
+}
+window.impactReview={game,fire,prepare,still,checkSmokeOcclusion,initial:prepare()};
 </script>
 </html>

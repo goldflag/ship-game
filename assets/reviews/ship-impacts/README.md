@@ -27,6 +27,14 @@ Final captures show the actual WebGPU `Game` ocean scene: [desktop](desktop.png)
 
 Independent final reviewer disposition: **ship**.
 
+### Smoke occlusion regression
+
+Surface scars now draw before transparent effects, so firing smoke and spray blend over them. Opaque hull depth still clips volumes behind the ship. The explicit order also handles pooled smoke whose shared sort position differs from its individual plumes.
+
+In the development fixture, run `await impactReview.checkSmokeOcclusion()` to compare scar pixels with no smoke, dense foreground smoke, and smoke behind the hull. Before the fix, foreground scar contrast was 2.61× the clear view; after the fix it was 0.087×, while rear smoke preserved 1.00× contrast (2,548 sampled pixels). The check requires visible clear-view scars, foreground contrast below 0.2×, and rear contrast above 0.8×. It leaves the foreground plume visible for inspection.
+
+Validation: all 333 simulation/game tests passed, and `bun run build` passed with the existing large-chunk warning.
+
 | Review finding | Final verdict |
 | --- | --- |
 | Stopped AP resembled penetration | Resolved: brighter, closed steel centers distinguish stopped rounds from dark punctures. |
