@@ -1,0 +1,98 @@
+[
+  {
+    "file": "pacific-islands-detail.png",
+    "calls": 4606,
+    "clouds": true,
+    "errors": [],
+    "island": "western-ridge",
+    "triangles": 852534
+  },
+  {
+    "file": "pacific-islands-survey-0.png",
+    "calls": 6208,
+    "clouds": false,
+    "errors": [],
+    "island": "western-ridge",
+    "triangles": 1957812
+  },
+  {
+    "file": "pacific-islands-survey-1.png",
+    "calls": 7828,
+    "clouds": false,
+    "errors": [],
+    "island": "eastern-isle",
+    "triangles": 3709708
+  },
+  {
+    "file": "pacific-islands-survey-2.png",
+    "calls": 9448,
+    "clouds": false,
+    "errors": [],
+    "island": "northern-isle",
+    "triangles": 2512564
+  },
+  {
+    "file": "arctic-passage-detail.png",
+    "calls": 11121,
+    "clouds": true,
+    "errors": [],
+    "island": "west-headland",
+    "triangles": 578582
+  },
+  {
+    "file": "arctic-passage-survey-0.png",
+    "calls": 12723,
+    "clouds": false,
+    "errors": [],
+    "island": "west-headland",
+    "triangles": 1684436
+  },
+  {
+    "file": "arctic-passage-survey-1.png",
+    "calls": 14343,
+    "clouds": false,
+    "errors": [],
+    "island": "east-headland",
+    "triangles": 3142380
+  },
+  {
+    "file": "arctic-passage-survey-2.png",
+    "calls": 15943,
+    "clouds": false,
+    "errors": [],
+    "island": "outer-skerry",
+    "triangles": 3142380
+  },
+  {
+    "file": "indian-volcanic-coast-detail.png",
+    "calls": 17636,
+    "clouds": true,
+    "errors": [],
+    "island": "main-volcano",
+    "triangles": 959158
+  },
+  {
+    "file": "indian-volcanic-coast-survey-0.png",
+    "calls": 19238,
+    "clouds": false,
+    "errors": [],
+    "island": "main-volcano",
+    "triangles": 2463708
+  },
+  {
+    "file": "indian-volcanic-coast-survey-1.png",
+    "calls": 20838,
+    "clouds": false,
+    "errors": [],
+    "island": "basalt-isle",
+    "triangles": 2463708
+  },
+  {
+    "file": "indian-volcanic-coast-survey-2.png",
+    "calls": 22458,
+    "clouds": false,
+    "errors": [],
+    "island": "distant-ridge",
+    "triangles": 2728956
+  }
+]

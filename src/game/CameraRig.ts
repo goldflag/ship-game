@@ -198,8 +198,10 @@ export class CameraRig {
     this.distance *= this.distanceScale / previousScale;
   }
   private get distanceScale(): number { return this.inPort ? this.portHullScale : this.hullScale; }
+  private battleTerrain: (x: number, z: number) => number = () => 0;
+  setBattleTerrain(height: (x: number, z: number) => number): void { this.battleTerrain = height; }
   private constrainCameraHeight(position: Vector3): void {
-    const ground = this.inPort ? Math.max(0, terrainHeight(position.x, position.z)) : 0;
+    const ground = this.inPort ? Math.max(0, terrainHeight(position.x, position.z)) : Math.max(0, this.battleTerrain(position.x, position.z));
     position.y = Math.max(position.y, ground + CAMERA_CLEARANCE);
   }
   update(ship: ShipState, height: number, dt: number, snap = false): void {

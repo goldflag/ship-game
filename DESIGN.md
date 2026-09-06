@@ -129,6 +129,12 @@ Controls use restrained corners: 2 px on port instruments and the mouse-capture 
 
 ## Components
 
+### Battle landscapes
+
+Ocean regions frame original fictional landscapes: asymmetric eroded mountain ranges, recessed volcanic cones, irregular coves and headlands. Snow gathers on gentler upper slopes while steep faces expose rock; tropical beaches occupy low sheltered coves. Dense forest groves use grounded trees with varied crown proportions and muted foliage, preserving the scale of the ships and surrounding mountains. Land, water and atmospheric haze share each map's lighting, with the sea and naval instruments remaining clearly visible.
+
+Treat these as authored game environments, with no claim of geographic accuracy or photorealism. Keep generation details in the terrain notes rather than player controls. The durable map recipes and review evidence live under `assets/maps/`; `assets/maps/review/landforms.html` compares the fixed views, and `assets/maps/terrain-notes.md` records construction and capture limitations.
+
 ### Commands and navigation
 
 Set sail is a solid brass command. Secondary actions use transparent or maritime fills and fine borders. Selected model views use a brass underline; selected Fleet action battery controls use mint borders and keycaps. Buttons expose visible focus rings; Fleet action uses a mint 2 px outline with 3 px offset. Engine orders, camera, chart range, pause, fullscreen and HUD visibility remain functional. The native pause dialog contains focus; hidden instruments are inert. Reduced-motion preference removes interface transitions and the port entrance animation.
