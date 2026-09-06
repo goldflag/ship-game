@@ -11,6 +11,7 @@ import { Game } from './Game';
 import { ShipView } from './ShipView';
 import { HullDamageFeedback } from './HullDamageFeedback';
 import type { GunAimPoint } from './gunAim';
+import { OCEAN_MAPS, DEFAULT_MAP, oceanMap } from '../maps/catalog';
 
 const globals = ['window', 'document'] as const;
 let originals: (PropertyDescriptor | undefined)[];
@@ -64,6 +65,31 @@ async function frameHarness() {
     manualAim: boolean; currentAim: number[]; paused: boolean; inspecting: boolean };
   return { game, simulation, playerView, targetView, camera, rig, helm, wakePositions, focusPositions, gunAimFrames };
 }
+
+test('map and port transitions restore their own absorption after underwater attenuation', async () => {
+  const { game, simulation } = await frameHarness();
+  const absorptionColor = new Color();
+  const water = {
+    color: { absorptionColor, update(colors: { absorptionColor: string }) { absorptionColor.set(colors.absorptionColor); } },
+    waves: Object.fromEntries(['amplitude', 'windSpeed', 'peakWavelength', 'choppiness', 'windDirection'].map(key => [key, { value: 0 }])),
+    foam: { waves: { opacity: 0 } }, async update() {},
+  };
+  Object.assign(game, { water, settings: { sea: 'Moderate' } });
+  const effects = (game as unknown as { effects: object }).effects;
+  Object.assign(effects, { setWind() {} });
+  const applySea = (Game.prototype as unknown as { updateSeaState(): void }).updateSeaState;
+  for (const map of OCEAN_MAPS) {
+    Object.assign(simulation, { mapId: map.id });
+    for (const inPort of [false, true]) {
+      Object.assign(game, { inPort });
+      applySea.call(game);
+      const expected = new Color((inPort ? oceanMap(DEFAULT_MAP) : map).water.absorptionColor);
+      absorptionColor.multiplyScalar(.05);
+      await game.frame(16);
+      expect(absorptionColor.toArray()).toEqual(expected.toArray());
+    }
+  }
+});
 
 test('turning through north takes the short heading path without changing authoritative combat state', async () => {
   const { game, simulation, playerView, helm } = await frameHarness();

@@ -891,7 +891,7 @@ tbf-1c-avenger: passed (LOD triangles 33,383 / 15,008 / 6,634, 1180 KiB base)
 f4u-1d-corsair: passed (LOD triangles 30,411 / 13,670 / 6,034, 1248 KiB base)
 vite v6.4.3 building for production...
 transforming...
-✓ 146 modules transformed.
+✓ 151 modules transformed.
 rendering chunks...
 computing gzip size...
 dist/index.html                                                    0.82 kB │ gzip:     0.43 kB
@@ -910,16 +910,16 @@ dist/assets/barlow-latin-600-normal-DILqtrty.woff2                22.77 kB
 dist/assets/data/baseShape32.bin                                 113.24 kB
 dist/assets/data/baseShape64.bin                                 908.29 kB
 dist/assets/aircraftReview-B-FvKVDH.css                            7.16 kB │ gzip:     2.17 kB
-dist/assets/game-C9tUlUbX.css                                     74.32 kB │ gzip:    14.52 kB
-dist/assets/render-dFUaxP1d.js                                     7.45 kB │ gzip:     3.57 kB
-dist/assets/aircraftReview-CRc8uxoZ.js                            32.06 kB │ gzip:     9.29 kB
+dist/assets/game-D-Qz1fxE.css                                     76.18 kB │ gzip:    14.82 kB
+dist/assets/render-CkypR2d_.js                                     7.45 kB │ gzip:     3.57 kB
+dist/assets/aircraftReview-D86Ust1G.js                            32.06 kB │ gzip:     9.29 kB
 dist/assets/react-BYzzQ_KH.js                                    193.01 kB │ gzip:    60.33 kB
-dist/assets/GLTFLoader-CYS0GzAL.js                               399.09 kB │ gzip:   100.64 kB
-dist/assets/three-engine-C4AHshH8.js                             933.99 kB │ gzip:   259.36 kB
-dist/assets/game-C_01wjRn.js                                  10,581.94 kB │ gzip: 5,116.58 kB
+dist/assets/GLTFLoader-B7dfnVHv.js                               399.08 kB │ gzip:   100.63 kB
+dist/assets/three-engine-D6OXyMg-.js                             933.99 kB │ gzip:   259.37 kB
+dist/assets/game-CjriVOtd.js                                  10,598.26 kB │ gzip: 5,119.00 kB
 
 (!) Some chunks are larger than 7000 kB after minification. Consider:
 - Using dynamic import() to code-split the application
 - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
-✓ built in 5.75s
+✓ built in 5.57s

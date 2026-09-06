@@ -1,0 +1,26 @@
+[
+  {
+    "backend": "webgpu",
+    "errors": [],
+    "islands": 0,
+    "mapId": "north-atlantic"
+  },
+  {
+    "backend": "webgpu",
+    "errors": [],
+    "islands": 3,
+    "mapId": "pacific-islands"
+  },
+  {
+    "backend": "webgpu",
+    "errors": [],
+    "islands": 3,
+    "mapId": "arctic-passage"
+  },
+  {
+    "backend": "webgpu",
+    "errors": [],
+    "islands": 3,
+    "mapId": "indian-volcanic-coast"
+  }
+]

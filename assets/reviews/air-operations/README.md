@@ -27,3 +27,5 @@ Merged the newer U-570/Type VIIC reconstruction from master. Regenerated its GLB
 Production build passes on the combined tree. The full post-merge run passed 438 tests and hit two fleet-loading version mismatches because it started before the Type VIIC publication completed. After publication, all six tests in `src/game/Game.test.ts` pass, including those two cases. The two new review regression tests also pass. This is a resolved test/publication race, not a relaxed version check.
 
 Fresh in-game Type VIIC review loaded export `f38b819172189b7a8f3119a214ed6111e192ba06d5888198657440a435aa2106`; maximum muzzle discrepancy at the articulation preview is 0.00000154 m. `merge-gear.json` records the actual aircraft renderer driving the published Wildcat main gear about its forward/Z axis and tail about its authored spanwise/X axis with half travel.
+
+Remote master gained the regional-ocean-map merge during integration. Preserved both map and aircraft imports/lifecycles; shared shell and torpedo terrain handling remains in place. On that final combined tree, all 36 targeted aircraft, land/map, fleet-loading and frame tests pass; production build passes again.
