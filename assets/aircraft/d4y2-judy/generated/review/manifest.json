@@ -1,38 +1,38 @@
 {
   "schemaVersion": 1,
-  "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
-  "modelHash": "23b3253415d2e0dc0f8a66a417cbac9fbfe84fb572844d46159a5541cdd6ed3a",
+  "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+  "modelHash": "df1dcd2ac2becd9c618e6c2226a83a284b2d5d9e9a2af9cacc66daa809ac95de",
   "images": {
     "quarter": {
-      "sha256": "a854f74b1f5ccafec0269cebb7303148c40b28b9ebb926592b5307de5094b2ff",
+      "sha256": "9c4311fd74cac6de2000564e54ed62dbc68ed02e1d32cccf1a22a2fa5efeb492",
       "width": 1400,
       "height": 1050
     },
     "top": {
-      "sha256": "2914392b9b254a8cd603cb995f7c0be107a904097881e011b658dd68278e43c3",
+      "sha256": "79c1bb7dc426b7b30d2ef4017fce8a844863773474428c2cd80c2468cdd28fbe",
       "width": 1400,
       "height": 1050
     },
     "side": {
-      "sha256": "c068e5ceb86573d5043eec5c4cb1340356177ec6c387b6dff3b0ffdffc29abc4",
+      "sha256": "fcfa9939b4628b1a10e66d020b358c788f79ffa0edf6d55a635d9f89d436d7ad",
       "width": 1400,
       "height": 1050
     },
     "front": {
-      "sha256": "009f988f7ccf83cbd34aa5775bd30cf2650ea63708fef7230e831d12da399b9b",
+      "sha256": "52fa8aded3ad1d9845d8739906fdd2bcd90da556fe07d3cb843bc57bbc514467",
       "width": 1400,
       "height": 1050
     },
     "rear": {
-      "sha256": "f0c74c95445932c04d8b68d55418cff500cd79f5fcba392ef3794746207fc75c",
+      "sha256": "87efdeaf0e9eb1aab00cfeaa7adbd7159f168ad11b3d0fb9205d0c2255e4dc0e",
       "width": 1400,
       "height": 1050
     },
     "articulated": {
-      "sha256": "6258343d6473bdf457ec9027a085dea86a734a09b326584cd71888e8dbe14f37",
+      "sha256": "438ec9ea17dd1b8a0e4fadff12e84762ff144a1e2f529024849bef1c403daa04",
       "width": 1400,
       "height": 1050
     }
   },
-  "camerasHash": "835008583d8eb95ff3200bc94bd9e5b62a8e8fc5c2ddfbfe9890d61e899c5a5f"
+  "camerasHash": "ae33dfc6c5bb5b7285de48343c403b1161bde93b84798b42a535e74352bd8a8f"
 }

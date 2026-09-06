@@ -1,5 +1,5 @@
 import { expect, spyOn, test } from 'bun:test';
-import { BoxGeometry, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, PerspectiveCamera } from 'three/webgpu';
+import { BoxGeometry, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, PerspectiveCamera, Vector3 } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { AircraftView } from './AircraftView';
 import { CombatSimulation } from '../simulation/combat';
@@ -108,4 +108,36 @@ test('bombs retain their release attitude, interpolate ballistics and never draw
     sim.shells.length = 0; view.update(sim, camera, true);
     expect(view.diagnostics().bombs).toBe(0); expect([...bombs.instanceMatrix.array].every(n => n === 0)).toBe(true);
   } finally { effects.dispose(); await view.dispose(); }
+});
+
+test('fold joints retain full-size geometry and independent per-plane poses across every LOD', async () => {
+  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async () => {
+    const scene = new Group(), wing = new Group();
+    wing.userData = { nodeId: 'wing.fold.port', foldAxis: [0, 0, -1], foldAngleDegrees: 90 };
+    wing.add(new Mesh(new BoxGeometry(), new MeshBasicMaterial())); scene.add(wing);
+    return { scene } as Awaited<ReturnType<GLTFLoader['loadAsync']>>;
+  });
+  const view = new AircraftView();
+  try {
+    await view.load();
+    const sim = new CombatSimulation(shipPreset('enterprise-cv6'));
+    const planes = sim.player.airWing!.planes;
+    for (const plane of sim.aircraft) plane.phase = 'lost';
+    for (const plane of planes.slice(0, 2)) plane.phase = 'ready';
+    planes[0].wingFold = .5; planes[1].wingFold = 1;
+    const carrier = new Group(); carrier.updateMatrixWorld(true);
+    const roots = new Map([['player', carrier]]), camera = new PerspectiveCamera();
+    for (const distance of [40, 220, 600]) {
+      camera.position.set(0, distance, -90); view.update(sim, camera, true, true, roots);
+      const batch = view.root.children.find(c => c instanceof InstancedMesh && c.count === 2) as InstancedMesh;
+      expect(batch).toBeDefined();
+      for (let i = 0; i < 2; i++) {
+        const actual = new Matrix4(); batch.getMatrixAt(i, actual);
+        const expected = new Matrix4().makeTranslation(...aircraftDeckSpot(sim.player, planes[i]))
+          .multiply(new Matrix4().makeRotationZ(-planes[i].wingFold * Math.PI / 2));
+        actual.elements.forEach((value, n) => expect(value).toBeCloseTo(expected.elements[n], 4));
+        expect(new Vector3().setFromMatrixColumn(actual, 0).length()).toBeCloseTo(1, 5);
+      }
+    }
+  } finally { await view.dispose(); loader.mockRestore(); }
 });
