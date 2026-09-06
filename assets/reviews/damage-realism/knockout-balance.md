@@ -1,5 +1,7 @@
 # Faster combat knockouts
 
+**Historical experiment, superseded:** the primary-armament knockout rule from `67f5fc3` was subsequently removed at the user's request. Stronger AP damage remains. Surviving secondary guns keep fighting and no replacement status was added. The measurements below describe that earlier rule only; see [current behavior](disabled-turrets.md).
+
 AP equipment strikes now spend 75% of nominal damage, up from 25%, across one shared projectile path. For Bismarck's 70-damage AP, that changes direct equipment damage from 17.5 to 52.5. Two clean penetrations can disable a 100-HP turret before burst damage or crew repairs. Entry and exit contacts do not multiply this budget. Armor, fuze timing, protected bursts, physical breaches and the flooding solver retain their existing rules.
 
 Afloat defeat now requires permanent loss of the authored primary armament: main guns and torpedoes, including their magazine supply or usable ammunition. Secondaries cannot prolong a battleship's participation after that loss. A custom ship with only secondary guns uses those guns as its primary armament. Enough AP or HE for a complete mount salvo counts, regardless of which type is currently loaded. Temporary magazine flooding remains recoverable. Immobilization alone still allows fighting.
