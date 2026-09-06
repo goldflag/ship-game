@@ -121,7 +121,7 @@ Armor and Internals reuse the right detail surface, hiding the commander/orders,
 
 ## Elevation & Depth
 
-Translucent maritime surfaces, fine borders and edge shading provide separation from the live scene. Soft text shadows maintain contrast over water; diffuse shadows lift the pause dialog and primary port action. Inspection fades the actual exterior model. Port armor uses opaque plates with their own depth buffer, so near plates hide deeper layers while remaining visible through the hull and sea. Internals and combat inspection retain translucent volumes so submerged spaces remain inspectable.
+Translucent maritime surfaces, fine borders and edge shading provide separation from the live scene. Soft text shadows maintain contrast over water; diffuse shadows lift the pause dialog and primary port action. Inspection fades the actual exterior model. Port armor uses opaque plates with their own depth buffer, so near plates hide deeper layers while remaining visible through the hull and sea. A neutral upper-left light follows the inspection camera, with ambient fill keeping shaded faces readable. Shading preserves thickness hues and crisp plate edges without harbor exposure or glare. Internals and combat inspection retain translucent volumes so submerged spaces remain inspectable.
 
 ## Shapes
 
@@ -155,11 +155,13 @@ Hovering a visible armor plate lightens it, adds a white outline and opens a com
 
 ### Live gunnery
 
-The armament group shows circular reload progress and readiness for each selected-battery mount, with mount numbers, remaining seconds or a ready-gun mark. Its heading pairs caliber and battery name with a ready/total count. The five slots contain main AP, secondary AP, binoculars, gunnery and fire. Ammunition illustrations are independently authored SVG assets, and both battery shell totals come from live simulation telemetry. Keyboard 1/2 selects main or secondary AP; Q or left mouse fires ready guns. Fire is disabled when no selected guns are ready.
+The armament group shows circular reload progress and readiness for each selected-battery mount, with mount numbers, remaining seconds or a ready-gun mark. Its heading pairs caliber and battery name with a can-fire/total count. Only aligned, loaded, unobstructed mounts count; unavailable mounts show a cross. Gun-aim circles distinguish Turning, Out of arc, Out of range and Blocked, and any visible seconds are labeled Reload. The circles and firing use the same eligibility state. The five slots contain main AP, secondary AP, binoculars, gunnery and fire. Ammunition illustrations are independently authored SVG assets, and both battery shell totals come from live simulation telemetry. Keyboard 1/2 selects main or secondary AP; Q or left mouse fires ready guns. Fire is disabled when no selected guns are ready.
 
 G opens gunnery and releases the cursor for aim selection, trial-target condition, flooding, inspection and reset. Keep inspection exit controls reachable when details collapse. Only implemented combat features appear as live telemetry. Do not fill spare weapon slots with unsupported ammunition or consumables.
 
 ### Hull damage feedback and score
+
+Incoming shell hits add a salmon arc and outward tip around the sight, pointing toward the source relative to the active camera. Bearings stay attached to the incoming direction as the camera turns, including binocular and shell-follow views. Armor stops and ricochets count even without hull HP loss. Nearby directions combine; at most six cues remain visible. Each holds for 1.2 seconds and fades over one second of simulation time, so pause freezes it. Keep the sight center clear, use a dark stroke for contrast over sky and sea, and follow H and port visibility.
 
 Damage gold marks actual hull HP lost beside overhead ship labels and in the vacated section of their bars. Hits within 0.35 seconds combine into one salvo number; the segment holds for one second after the latest hit and fades over 0.6 seconds. Simulation time freezes these cues during pause. The player's lower-left hull instrument uses the same gold segment and a numeric “Hull hit” notice above it, accompanied by a translucent red perimeter cue with a clear center. Feedback uses opacity only, without camera shake or movement.
 
