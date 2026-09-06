@@ -12,24 +12,25 @@ const fleet = () => new CombatSimulation(shipPreset('baltimore'), {
 });
 
 for (const spawnDistance of [MIN_BATTLE_SPAWN_DISTANCE, BATTLE_SPAWN_DISTANCE]) {
-  test(`Yamato survives Bismarck's opening salvo at ${spawnDistance} m with inspectable magazine damage`, () => {
-    const sim = new CombatSimulation(shipPreset('yamato'), {
-      friendlyBots: [], enemies: [shipPreset('bismarck')], spawnDistance,
+  test(`Yamato survives an accurately aimed Bismarck salvo at ${spawnDistance} m with inspectable magazine damage`, () => {
+    const sim = new CombatSimulation(shipPreset('bismarck'), {
+      friendlyBots: [], enemies: [shipPreset('yamato')], spawnDistance,
     });
-    // Exercise deployed bot aiming, shell flight, armor, magazines and flooding together.
-    for (let tick = 0; tick < 600; tick++) sim.step(stop, intent);
-    expect(sim.events.some(e => e.kind === 'penetration' && e.shipId === 'player')).toBe(true);
-    expect(sim.player.damage.modules.filter(m => m.detonated).length).toBeGreaterThanOrEqual(2);
-    const moduleDamage = sim.player.damage.modules.reduce((sum, m, i) => sum + sim.definition.modules[i].hp - m.hp, 0);
-    const openingShots = sim.events.filter(e => e.kind === 'shot' && e.shipId === sim.target.motion.id);
+    // Keep the worst-case damage regression independent of intentionally imperfect bot fire control.
+    sim.target.controller = 'idle';
+    for (let tick = 0; tick < 600; tick++) sim.step(stop, { ...intent, aim: sim.aimAt(), fire: true });
+    expect(sim.events.some(e => e.kind === 'penetration' && e.shipId === sim.target.motion.id)).toBe(true);
+    expect(sim.target.damage.modules.filter(m => m.detonated).length).toBeGreaterThanOrEqual(2);
+    const moduleDamage = sim.target.damage.modules.reduce((sum, m, i) => sum + sim.target.definition.modules[i].hp - m.hp, 0);
+    const openingShots = sim.events.filter(e => e.kind === 'shot' && e.shipId === sim.player.motion.id);
     expect(openingShots).toHaveLength(4);
-    expect(moduleDamage).toBeLessThanOrEqual(openingShots.length * sim.target.definition.mounts[0].weapon.damage);
-    expect(sim.player.damage.integrity).toBeGreaterThan(sim.player.damage.maxIntegrity / 2);
-    expect(sim.player.damage.integrity).toBeLessThan(sim.player.damage.maxIntegrity);
-    expect(sim.player.damage.sunk).toBe(false);
+    expect(moduleDamage).toBeLessThanOrEqual(openingShots.length * sim.definition.mounts[0].weapon.damage);
+    expect(sim.target.damage.integrity).toBeGreaterThan(sim.target.damage.maxIntegrity / 2);
+    expect(sim.target.damage.integrity).toBeLessThan(sim.target.damage.maxIntegrity);
+    expect(sim.target.damage.sunk).toBe(false);
     expect(sim.result).toBe('active');
-    expect(sim.player.damage.compartments.some(c => c.waterM3 > 0)).toBe(true);
-    expect(sim.player.mounts.filter(m => m.status === 'disabled').length).toBeGreaterThanOrEqual(2);
+    expect(sim.target.damage.compartments.some(c => c.waterM3 > 0)).toBe(true);
+    expect(sim.target.mounts.filter(m => m.status === 'disabled').length).toBeGreaterThanOrEqual(2);
   });
 }
 
