@@ -7,7 +7,7 @@ import type { FleetActor } from './battle';
 
 const helm = { throttle: 0, rudder: 0 };
 const intent = { aim: [0, 0, -5000] as [number, number, number], fire: false, battery: 'main' as const };
-function fixture() {
+function fixture(withSecondary = false) {
   // A single gun isolates equipment loss and permanent disarmament. The shell
   // also opens a thin hull sheet, which can earn a later flooding loss.
   const base = shipPreset('baltimore'), mount = base.mounts[0];
@@ -16,6 +16,7 @@ function fixture() {
     hull: { ...base.hull, reserveBuoyancyM3: 500 }, connections: [],
     compartments: [{ id: 'room', name: 'Room', center: [0, 0, 0], size: [20, 10, 100], capacityM3: 1000, pumpM3PerSecond: 0 }],
     armor: [{ id: 'hull', name: 'Hull', center: [0, 0, 0], size: [20, 10, 100], thicknessMm: 1 }] };
+  if (withSecondary) definition.mounts.push({ ...definition.mounts[0], id: 'secondary', battery: 'secondary', position: [0, 10, 40] });
   const sim = new CombatSimulation(definition, { friendlyBots: [definition], enemies: [definition, definition] });
   sim.actors.filter(a => a !== sim.player).forEach(a => a.controller = 'idle');
   return sim;
@@ -45,6 +46,19 @@ test('score counts actual enemy equipment loss, caps overkill and awards permane
   expect(score(sim)).toEqual([maxHp, 1]);
   sim.reset();
   expect(score(sim)).toEqual([0, 0]);
+});
+
+test('primary knockout earns one frag with intact secondaries; subsequent sinking cannot award another', () => {
+  const sim = fixture(true);
+  hit(sim, sim.target, sim.player, 10000);
+  expect(sim.target.damage.sunk).toBe(false);
+  expect(sim.target.damage.stability.status).toBe('knocked-out');
+  expect(sim.target.mounts[1].hp).toBe(100);
+  expect(score(sim)).toEqual([sim.target.damage.maxIntegrity * .5, 1]);
+  sim.target.damage.compartments[0].waterM3 = 1000;
+  sim.step(helm, intent);
+  expect(sim.target.damage.sunk).toBe(true);
+  expect(score(sim)).toEqual([sim.target.damage.maxIntegrity * .5, 1]);
 });
 
 test('stopped rounds, allied hits and bot kills do not increase the player score', () => {
