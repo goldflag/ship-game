@@ -93,3 +93,32 @@ test('Gunnery separates penetrating hull damage from surviving equipment', () =>
   expect(html).toContain('45.5 hull damage');
   expect(html).toContain('without restoring hull HP');
 });
+
+test('battle reports distinguish weapons, incoming hits, duplicate ships, damaged ships and permanent losses', () => {
+  const definition = shipPreset('bismarck');
+  const sim = new CombatSimulation(definition, { friendlyBots: [definition], enemies: [definition, definition] });
+  sim.actors[1].damage.integrity *= .5;
+  sim.target.damage.stability.combatLost = true;
+  sim.target.damage.stability.status = 'disarmed';
+  const combat = sim.telemetry('secondary', [0, 0, -5000]);
+  combat.damageLog = [
+    { id: 2, tick: 3720, sourceId: 'enemy-2', targetId: 'player', weapon: '150 mm HE · Secondary', damage: 21, hits: 2 },
+    { id: 1, tick: 3600, sourceId: 'player', targetId: 'enemy-1', weapon: '380 mm AP · Main', damage: 364, hits: 8 },
+  ];
+  const data: Telemetry = { ship: sim.ship, order: 0, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat };
+  const html = renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={data} game={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
+  expect(html).toContain('Friendly fleet: 2 of 2 in action, 1 damaged, 0 lost');
+  expect(html).toContain('Enemy fleet: 1 of 2 in action, 0 damaged, 1 lost');
+  expect(html).toContain('Bismarck (You)');
+  expect(html).toContain('Bismarck #2');
+  expect(html).toContain('Lost · disarmed');
+  expect(html).toContain('1:02 · Taken 21 HP');
+  expect(html).toContain('150 mm HE · Secondary');
+  expect(html).toContain('From Bismarck #2 · 2 hits');
+  expect(html).toContain('380 mm AP · Main');
+  expect(html).toContain('To Bismarck #1 · 8 hits');
+  expect(html.indexOf('Your battle score')).toBeLessThan(html.indexOf('Damage log'));
+  combat.damageLog = [];
+  const empty = renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={data} game={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
+  expect(empty).not.toContain('class="fleet-damage-log"');
+});

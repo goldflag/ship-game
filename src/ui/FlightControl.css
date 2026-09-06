@@ -1,4 +1,4 @@
-.fleet-flight { position:absolute; top:180px; left:var(--fleet-edge); width:252px; max-height:calc(100vh - 440px); overflow:auto; padding:12px; pointer-events:auto; color:#f0f5f3; background:#10252eeb; border:1px solid var(--fleet-line); border-radius:3px; font-variant-numeric:tabular-nums; }
+.fleet-flight { position:absolute; top:180px; left:var(--fleet-edge); width:252px; max-height:calc(100vh - 440px); overflow:auto; padding:12px; pointer-events:auto; color:#f0f5f3; background:transparent; border:1px solid var(--fleet-line); border-radius:3px; font-variant-numeric:tabular-nums; }
 .fleet-flight header,.fleet-flight footer { display:flex; align-items:center; justify-content:space-between; gap:8px; }
 .fleet-flight h2 { margin:0; font:500 21px 'Barlow Condensed',sans-serif; }
 .fleet-flight header span { color:var(--fleet-active); font-size:12px; }
@@ -7,8 +7,8 @@
 .fleet-flight-squadron strong,.fleet-flight-squadron span { display:block; font-size:13px; }
 .fleet-flight-squadron span { margin-top:2px; font-size:11px; color:var(--fleet-muted); }
 .fleet-flight-squadron p { grid-column:1/-1; margin:0; font-size:11px; line-height:1.4; }
-.fleet-flight button { min-height:34px; padding:6px 9px; border:1px solid var(--fleet-line); border-radius:2px; background:#233e4a; color:#edf5f2; font:500 12px 'Barlow',sans-serif; }
-.fleet-flight button:hover:not(:disabled) { background:#315365; }
+.fleet-flight button { min-height:34px; padding:6px 9px; border:1px solid var(--fleet-line); border-radius:2px; background:transparent; color:#edf5f2; font:500 12px 'Barlow',sans-serif; }
+.fleet-flight button:hover:not(:disabled) { background:transparent; }
 .fleet-flight button:disabled { opacity:.45; cursor:default; }
 .fleet-flight button:focus-visible,.fleet-flight summary:focus-visible { outline:2px solid var(--fleet-gold); outline-offset:2px; }
 .fleet-flight footer { margin-top:8px; font-size:11px; color:var(--fleet-muted); }
@@ -24,7 +24,7 @@
 .fleet-flight li > span { flex-basis:100%; }
 .fleet-flight button[aria-pressed="true"] { border-color:var(--fleet-active); color:var(--fleet-active); }
 .fleet-aircraft-status { pointer-events:auto; }
-.fleet-aircraft-status button { padding:7px 12px; border:1px solid var(--fleet-line); border-radius:2px; background:#233e4a; color:#edf5f2; cursor:pointer; }
+.fleet-aircraft-status button { padding:7px 12px; border:1px solid var(--fleet-line); border-radius:2px; background:transparent; color:#edf5f2; cursor:pointer; }
 .fleet-aircraft-status button:focus-visible { outline:2px solid var(--fleet-gold); outline-offset:2px; }
 
 @media (max-width:600px) { .fleet-aircraft-status { display:grid; width:min(240px, 90vw); white-space:normal; } .fleet-aircraft-status span { display:none; } }

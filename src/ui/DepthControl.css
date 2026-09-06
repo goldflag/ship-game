@@ -1,4 +1,4 @@
-.fleet-depth { position:absolute; left:var(--fleet-edge); bottom:calc(var(--fleet-bottom) + 286px); width:240px; pointer-events:auto; padding:12px; background:#10252eeb; border:1px solid var(--fleet-line); border-radius:3px; font-variant-numeric:tabular-nums; }
+.fleet-depth { position:absolute; left:var(--fleet-edge); bottom:calc(var(--fleet-bottom) + 286px); width:240px; pointer-events:auto; padding:12px; background:transparent; border:1px solid var(--fleet-line); border-radius:3px; font-variant-numeric:tabular-nums; }
 .fleet-depth-reading { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
 .fleet-depth h2 { margin:0; font:500 21px/1 'Barlow Condensed',sans-serif; }
 .fleet-depth-reading strong { font:500 28px/1 'Barlow Condensed',sans-serif; }
@@ -12,9 +12,9 @@
 .fleet-depth fieldset { border:0; margin:0; padding:0; min-width:0; }
 .fleet-depth legend { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 .fleet-depth-presets,.fleet-depth-adjust { display:flex; gap:4px; margin-top:5px; }
-.fleet-depth button { flex:1; min-width:0; min-height:34px; padding:5px 3px; border:1px solid var(--fleet-line); border-radius:2px; background:#233e4a; color:#edf5f2; font:500 11px 'Barlow',sans-serif; }
-.fleet-depth button:hover:not(:disabled) { background:#315365; }
-.fleet-depth button[aria-pressed=true] { color:var(--fleet-active); border-color:var(--fleet-active); background:#173e42; }
+.fleet-depth button { flex:1; min-width:0; min-height:34px; padding:5px 3px; border:1px solid var(--fleet-line); border-radius:2px; background:transparent; color:#edf5f2; font:500 11px 'Barlow',sans-serif; }
+.fleet-depth button:hover:not(:disabled) { background:transparent; }
+.fleet-depth button[aria-pressed=true] { color:var(--fleet-active); border-color:var(--fleet-active); background:transparent; }
 .fleet-depth button:disabled { opacity:.45; cursor:default; }
 .fleet-depth button:focus-visible { outline:2px solid var(--fleet-gold); outline-offset:2px; }
 .fleet-depth kbd { font:inherit; color:var(--fleet-muted); margin-left:3px; }
