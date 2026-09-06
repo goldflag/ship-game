@@ -38,13 +38,17 @@ export class ShellFollow {
         if (this.impactTime === 0) { this.view = undefined; this.shellId = undefined; }
         return;
       }
-      const shell = shells.find(shell => shell.id === this.shellId && shell.ownerId === ownerId);
-      if (shell) { this.view = { position: [...shell.position], velocity: [...shell.velocity] }; return; }
-      const impact = [...events].reverse().find(event => event.shell?.id === this.shellId && event.kind !== 'shot');
+      // Penetrating AP can survive a strike and splash far beyond the ship. Hold
+      // on its first contact, including when several crossings arrive in one frame.
+      const impact = events.find(event => event.shell?.id === this.shellId && event.kind !== 'shot');
       if (impact?.shell) {
         this.view = { position: [...impact.position], velocity: [...impact.shell.velocity] };
         this.impactTime = 1.1;
-      } else { this.view = undefined; this.shellId = undefined; }
+      } else {
+        const shell = shells.find(shell => shell.id === this.shellId && shell.ownerId === ownerId);
+        if (shell) this.view = { position: [...shell.position], velocity: [...shell.velocity] };
+        else { this.view = undefined; this.shellId = undefined; }
+      }
       return;
     }
     if (newest) {
