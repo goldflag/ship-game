@@ -251,7 +251,10 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
     const boundary = def.connections[hit.index];
     const target = hit.kind === 'armor' ? contactArmor(def,hit) : hit.kind === 'module' ? def.modules[hit.index] : hit.kind === 'mount' ? def.mounts[hit.index] : { id: connectionId(boundary), name: `Watertight boundary ${connectionId(boundary)}` };
     const evidence: ImpactRecord = { shellId: shell.id, shipId: actor.motion.id, targetId: target.id, targetName: target.name, kind: hit.kind, position: [...hit.point], impactSpeedMps: length(shell.velocity), penetrationBeforeMm: shell.penetrationMm, penetrationAfterMm: shell.penetrationMm, outcome: 'damaged' };
-    const kineticDamage = shell.damage * (shell.ap ? .25 : 1);
+    // A successful AP equipment strike must be consequential even when its
+    // delayed burst occurs elsewhere. Share this budget across the whole path;
+    // turret exit plates and downstream modules cannot multiply direct damage.
+    const kineticDamage = shell.damage * (shell.ap ? .75 : 1);
     const incomingVelocity: Vec3 = [...shell.velocity];
     const damageEquipment = (hp: number) => {
       const amount = Math.min(hp, shell.remainingModuleDamage ?? kineticDamage);

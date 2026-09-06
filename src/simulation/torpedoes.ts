@@ -38,7 +38,7 @@ export function tubeSolution(actor: FleetActor, tube: TubeDefinition, state: Tub
   const heading = Math.atan2(aim[0] - origin[0], origin[2] - aim[2]);
   const range = Math.hypot(aim[0] - origin[0], aim[2] - origin[2]);
   const magazine = actor.definition.modules.find(m => m.id === tube.magazineId);
-  state.status = actor.damage.sunk || !magazine || equipmentCondition(actor, actor.definition, magazine).availability <= 0 ? 'disabled' : state.ammo === 0 ? 'empty' :
+  state.status = actor.damage.sunk || actor.damage.stability.combatLost || !magazine || equipmentCondition(actor, actor.definition, magazine).availability <= 0 ? 'disabled' : state.ammo === 0 ? 'empty' :
     !aim.every(Number.isFinite) || Math.abs(wrapAngle(heading - actor.motion.heading - radians(tube.bearingDeg))) > radians(tube.arcDeg) + 1e-8 ? 'out-of-arc' :
     range < tube.weapon.armingDistanceM ? 'too-close' : range > tube.weapon.rangeM ? 'out-of-range' : state.reload > 0 ? 'reloading' : 'ready';
   return { origin, heading, range };

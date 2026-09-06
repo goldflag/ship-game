@@ -49,7 +49,7 @@ test('a delay can expire inside the ship after contact and damage local equipmen
   expect(shell.age).toBeCloseTo(.006, 6);
   expect(shell.position[0]).toBeGreaterThan(3); expect(shell.position[0]).toBeLessThan(5);
   expect(events.some(e => e.kind === 'burst' && e.impact?.targetId === 'fixture-engine')).toBe(true);
-  expect(actor.damage.modules[0].hp).toBeLessThan(75); // more than contact's 25 damage
+  expect(actor.damage.modules[0].hp).toBeLessThan(25); // burst adds to contact's 75 damage
   expect(events.at(-1)!.impact?.terminal).toBe(true);
 });
 test('an armed stop remains attached to the moving hull until its fuze expires', () => {
@@ -81,7 +81,7 @@ test('turret entry and exit both resist a shell, while equipment is damaged only
   const before = actor.mounts[0].hp, events: DamageEvent[] = [];
   hitShip(shell, shell.position, [8, 5, 0], actor, def, e => events.push(e));
   expect(events.filter(e => e.impact?.kind === 'mount')).toHaveLength(2);
-  expect(actor.mounts[0].hp).toBe(before - 25); expect(actor.damage.modules[0].hp).toBe(100);
+  expect(actor.mounts[0].hp).toBe(before - 75); expect(actor.damage.modules[0].hp).toBe(100);
   expect(shell.penetrationMm).toBe(750);
 });
 test('intervening armor blocks blast and fragments; thin steel permits reduced fragment damage', () => {

@@ -74,10 +74,20 @@ The [geometry continuity audit](../assets/reviews/fleet-integration/damage-integ
 
 At this checkpoint, twelve-frame-stepped WebGPU articulation checks completed for Bismarck and Yamato at the new hashes (maximum discrepancies 2.167 mm and 2.747 mm). A native Baltimore port screenshot was inspected with the new 120-space data visible. An extra forced-canvas capture hit a WebGPU texture-initialization error; subsequent Orca connections dropped and the game tab closed. No successful forced capture, Baltimore articulation sweep, or new mixed battle is claimed here. An HMR-stale helper returned a duplicate Yamato record during a Baltimore attempt; that incorrectly named temporary output was discarded, not certified as Baltimore evidence. Original completed trials retain their original hashes and scope.
 
-## Latest committed master integration: 43662ad
+## HUD/optics checkpoint: master 43662ad
 
 The damage integration was committed as `71d71c5`. Master's two later committed HUD/optics updates merge cleanly: 16×/24× binocular settings and current/maximum equipment-derived HP display are retained. This does not restore universal hull-HP sinking. No asset inputs change.
 
 The complete suite passes again: **398 tests, 0 failures, 166,728 assertions across 51 files**, using `bun test --timeout 60000`. The full production build passes five ship/evidence checks, thirteen aircraft checks, TypeScript and bundling; the existing bundle-size advisory remains. Logs are `.build/fleet-fidelity/merge-damage/latest-*.log`.
 
 After restarting only this worktree's preview server to clear its stale public-JSON HMR state and opening a fresh game tab, twelve loaded-game joint combinations pass for Baltimore (maximum discrepancy 1.317 mm), Enterprise (0.0324 mm) and Type VIIC (0.0020 mm). These follow-ups explicitly check synchronous mounted transforms; they do not claim a rendered frame between every pose. Each JSON identifies the current export and this method separately from the frame-stepped Bismarck/Yamato checks. All five current exports therefore have loaded-game joint evidence, with the review methods qualified individually.
+
+## Camera/knockout checkpoint: master 1cf301c
+
+The HUD/optics checkpoint was committed as `edd4231`. Master then committed its pending work and became clean. Both newer commits merge without conflicts: `67f5fc3` makes direct AP equipment hits spend one shared 75%-nominal-damage budget and latches permanent primary-armament knockout; `1cf301c` retains ship-focused port elevation limits, reversed floating-point depth, sky/cirrus depth compatibility and impact marks behind transparent smoke.
+
+The 42 focused battle, fleet-structure, score and knockout tests pass without further changes to the fidelity damage fixtures (15,081 assertions). No definitions, geometry, recipes or comparison inputs changed, so another model rebuild is unnecessary. The merged pipeline documentation now correctly describes the current/maximum HP display. The incoming knockout balance measurements retain their original definitions and are not presented as new timing measurements on the fidelity fleet.
+
+A fresh WebGPU Type VIIC port instance after the depth change loads its current hash at tick 0, with maximum traverse/elevation/recoil preview error 0.00194 mm. No additional live mixed-battle or controlled performance result is claimed for this integration.
+
+`bun test --timeout 60000` passes **405 tests, 0 failures, 166,800 assertions across 52 files**. The complete production build passes all five ship/evidence checks, thirteen aircraft checks, TypeScript and bundling. Logs are `.build/fleet-fidelity/merge-damage/final-master-*.log`. The additional Type VIIC native screenshot still shows the loading screen, so it is retained as a loading-state capture, not visual acceptance of the depth change.
