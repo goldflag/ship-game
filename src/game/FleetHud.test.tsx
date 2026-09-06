@@ -7,6 +7,7 @@ import { ShipContext } from '../ui/ShipContext';
 import { defaultKeybindings } from './keybindings';
 import type { Telemetry } from './types';
 import { updateCapability } from '../simulation/stability';
+import { GunneryPanel } from '../ui/GunneryPanel';
 
 test('the helm displays current/max HP and proportional hit feedback for large and small hulls', () => {
   for (const id of ['yamato', 'baltimore']) {
@@ -53,4 +54,23 @@ test('main battery loss leaves an armed ship in its fleet without an extra statu
   expect(html).not.toContain('knocked out');
   expect(html).not.toContain('crippled');
   expect(html).toContain('Friendly <strong>2</strong>');
+});
+
+test('Gunnery separates penetrating hull damage from surviving equipment', () => {
+  const definition = shipPreset('bismarck'), sim = new CombatSimulation(definition);
+  sim.target.controller = 'idle';
+  Object.assign(sim.target.motion, { x: 0, z: 0, heading: 0 });
+  sim.player.motion.x = -5000;
+  const weapon = definition.mounts[0].weapon;
+  sim.shells.push({ id: 900, ownerId: 'player', position: [-20, .5, -21], velocity: [730, -35, 0],
+    age: 0, penetrationMm: 550, damage: weapon.damage, caliberM: weapon.caliberM, ap: weapon.ap, visited: [] });
+  for (let i = 0; i < 30; i++) sim.step({ throttle: 0, rudder: 0 }, { aim: [0, .5, 0], fire: false, battery: 'main' });
+  const data: Telemetry = { ship: sim.ship, order: 0, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat: sim.telemetry('main', [0, .5, 0]) };
+  expect(data.combat!.targetIntegrity).toBeLessThan(1);
+  expect(data.combat!.targetEquipmentIntegrity).toBe(1);
+  const html = renderToStaticMarkup(<GunneryPanel data={data} game={null} expanded onExpand={() => {}} bindings={defaultKeybindings()}/>);
+  expect(html).toContain('<dt>Hull</dt><dd>97%</dd>');
+  expect(html).toContain('<dt>Equipment</dt><dd>100%</dd>');
+  expect(html).toContain('45.5 hull damage');
+  expect(html).toContain('without restoring hull HP');
 });
