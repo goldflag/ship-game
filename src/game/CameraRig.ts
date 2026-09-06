@@ -66,7 +66,7 @@ export class CameraRig {
       const dy = locked ? e.movementY : e.clientY - this.previous.y;
       if (this.inPort || this.inspecting) {
         this.azimuth -= dx * .005;
-        this.elevation = MathUtils.clamp(this.elevation + dy * .003, -MAX_UPWARD_TILT, 1.35);
+        this.elevation = MathUtils.clamp(this.elevation + dy * .003, this.inPort ? MIN_ORBIT_ELEVATION : -MAX_UPWARD_TILT, 1.35);
       } else {
         // Angular sensitivity follows the visible field of view at every magnification.
         const sensitivity = .0025 * Math.tan(this.camera.fov * Math.PI / 360) / Math.tan(NORMAL_FOV * Math.PI / 360);
@@ -231,8 +231,8 @@ export class CameraRig {
       this.target.set(ship.x + Math.sin(ship.heading) * 25 * framingScale, height + 20 * framingScale, ship.z - Math.cos(ship.heading) * 25 * framingScale);
       const distance = this.distance * Math.max(1, 1.1 / this.camera.aspect);
       const angle = this.azimuth - ship.heading;
-      // Below the lowest orbit, upward dragging tilts the view toward the sky
-      // while the camera stays in place above the water.
+      // Port stays aimed at the ship. Combat inspection can tilt toward the sky
+      // below the lowest orbit while the camera stays above the water.
       const orbitElevation = Math.max(this.elevation, MIN_ORBIT_ELEVATION);
       const radius = Math.cos(orbitElevation) * distance;
       this.desired.set(ship.x + Math.sin(angle) * radius, height + Math.sin(orbitElevation) * distance + 15 * framingScale, ship.z + Math.cos(angle) * radius);
@@ -240,7 +240,7 @@ export class CameraRig {
       this.camera.position.lerp(this.desired, snap ? 1 : 1 - Math.exp(-5 * dt));
       this.constrainCameraHeight(this.camera.position);
       this.look.copy(this.target);
-      if (this.elevation < MIN_ORBIT_ELEVATION) {
+      if (!this.inPort && this.elevation < MIN_ORBIT_ELEVATION) {
         this.look.sub(this.camera.position);
         const horizontalDistance = Math.hypot(this.look.x, this.look.z);
         const pitch = Math.min(MAX_UPWARD_TILT, Math.atan2(this.look.y, horizontalDistance) + MIN_ORBIT_ELEVATION - this.elevation);

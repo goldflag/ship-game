@@ -21,3 +21,5 @@ The previous [knockout measurements](knockout-balance.md) remain as historical e
 No ship definitions, models or recipes changed. Joint behavior was checked against the existing exported models; no asset rebuild is required.
 
 Validation: `bun run test` passed all 388 tests across 50 files. `bun run build` passed the five ship checks, aircraft checks, TypeScript and Vite. The existing large-bundle warning remains.
+
+After integrating the concurrent camera/rendering update `1cf301c`, all 35 affected camera, gun-aim, HUD and exported-joint checks passed, and the production build passed again.
