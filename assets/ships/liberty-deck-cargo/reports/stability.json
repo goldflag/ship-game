@@ -1,0 +1,17 @@
+{
+  "configuration": "EC2-S-C1 Liberty, 1943–44 representative vehicle deck cargo fit",
+  "draftM": 8.46,
+  "massKg": 14478000,
+  "geometryDisplacementM3": 12926.110337030348,
+  "fullEnvelopeM3": 18710.742747070697,
+  "reserveM3": 5784.632410040349,
+  "buoyancyScale": 1.0927400184969756,
+  "estimatedGmM": 1.1,
+  "dryCenterOfGravity": [
+    0,
+    -1.9606042535955883,
+    2.902367029161271
+  ],
+  "floodCapacityM3": 12342.598282095774,
+  "basis": "Uniform displacement calibration at the declared draft. Estimated initial GM 1.1 m; longitudinal CG aligned to upright buoyancy center. Not an historical stability curve."
+}

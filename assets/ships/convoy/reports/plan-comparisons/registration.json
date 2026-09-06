@@ -1,0 +1,44 @@
+[
+  {
+    "id": "flower-corvette",
+    "contentHash": "e667b8ae2dca5baa7493c047eb106d2c3557bdd8ac6d1605fc0c2c75a4b322d2",
+    "source": "references/plans/cobalt-1941-builders.pdf",
+    "raster": "cobalt-sheet-1.png",
+    "pixelsPerMeter": 24.918379105050892,
+    "renderScaleM": 76.17889565687913,
+    "uniformResizeFactor": 1.1864091261138932,
+    "translationPixels": [
+      -50,
+      33
+    ],
+    "limitations": "Side elevation only; does not certify transverse sections, armament, paint, loading or internals. Scan skew is not rectified."
+  },
+  {
+    "id": "liberty-cargo",
+    "contentHash": "7f550a85e52db6553dd6bc90a1bdc77ac0810145971a8e65719daf3887938430",
+    "source": "references/plans/liberty-thomas-sully-builders.pdf",
+    "raster": "liberty-sheet-1.png",
+    "pixelsPerMeter": 8.43432226690803,
+    "renderScaleM": 148.02612000000002,
+    "uniformResizeFactor": 0.7803125000000002,
+    "translationPixels": [
+      -17,
+      18
+    ],
+    "limitations": "Side elevation only; does not certify transverse sections, armament, paint, loading or internals. Scan skew is not rectified."
+  },
+  {
+    "id": "victory-cargo",
+    "contentHash": "1b7774a4768bd2a4063e17ded52f5ccc28c00383db1416d8243f8cc0f326612c",
+    "source": "references/plans/winthrop-victory-haer-2010.pdf",
+    "raster": "victory-sheet-2.png",
+    "pixelsPerMeter": 10.255101967278803,
+    "renderScaleM": 152.63622,
+    "uniformResizeFactor": 0.9783125000000003,
+    "translationPixels": [
+      123,
+      62
+    ],
+    "limitations": "Side elevation only; does not certify transverse sections, armament, paint, loading or internals. Scan skew is not rectified."
+  }
+]

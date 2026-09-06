@@ -1,0 +1,36 @@
+{
+  "configuration": "Representative EC2-S-C1 Liberty 1943–44",
+  "sources": [
+    {
+      "id": "nps-liberty-dimensions",
+      "url": "https://www.nps.gov/places/ss-jeremiah-o-brien.htm",
+      "title": "National Park Service — SS Jeremiah O’Brien",
+      "supports": "441 ft 6 in overall length and 56 ft beam. Published tonnage lacks a precise loading/unit pairing; game displacement is an explicit estimate.",
+      "accessed": "2026-09-05"
+    },
+    {
+      "id": "john-brown-fit",
+      "url": "https://www.ssjohnwbrown.org/ship-history",
+      "title": "Project Liberty Ship — ship history",
+      "supports": "Five-hold cargo/troop role, two boilers and single reciprocating drive. Cargo defensive fit: aft 5-inch, forward 3-inch, eight 20 mm; limited troop conversion adds two aft 3-inch guns. This representative preset is not a named Brown reconstruction.",
+      "accessed": "2026-09-05"
+    },
+    {
+      "id": "nps-liberty-photo",
+      "url": "https://www.nps.gov/articles/liberty-ships-and-victory-ships-america-s-lifeline-in-war-teaching-with-historic-places.htm",
+      "title": "NPS / Library of Congress — Patrick Henry, 1941, Photo 4",
+      "file": "../../convoy/references/liberty-underway-nps.jpg",
+      "supports": "Qualitative hull, three mast and deckhouse silhouette. Early unarmed, light-load photograph; does not verify the late-war armament or loaded waterline.",
+      "usage": "Reference only. Library of Congress image credited by NPS; not a texture or geometric build input.",
+      "accessed": "2026-09-05"
+    },
+    {
+      "id": "usmm-cargo",
+      "url": "https://www.usmm.org/libertyships.html",
+      "title": "American Merchant Marine at War — Liberty ships",
+      "supports": "11-knot service speed and carried deck equipment. The eight independently authored vehicle shapes are a representative deck load, not a sourced manifest.",
+      "accessed": "2026-09-05"
+    }
+  ],
+  "independence": "Only original recipe, blueprint and component catalog feed the production model. No GameModels3D or other game assets used."
+}

@@ -1,0 +1,2786 @@
+[
+  {
+    "id": "flower-corvette",
+    "hash": "aa3e59df91488f75f02b1bd6bef3c078a8a723cf1dc0391938d03fb414d54ff9",
+    "backend": "webgpu",
+    "portFps": 77.3914428268536,
+    "initialTick": 0,
+    "portSnapshot": {
+      "url": "http://127.0.0.1:5297/assets/ships/convoy/review-browser.html?ship=flower-corvette&result=http%3A%2F%2F127.0.0.1%3A56936%2Fresult%3Ftoken%3Df0c3c189-1c8d-43e9-aeb2-ed1f8eb1743b",
+      "text": "FLEET COMMAND\nPort\nEquipment\nCommander\nFleet\nCUSTOM BATTLE\n2,450,000\n12,400\nCAPTAIN 08\nFLOWER CORVETTE\nVIII\nCorvette\nCanada · 1941\n\nREADY FOR BATTLE\n\nCreate schematic\nOTTO REIMANN\nCommander · Level 8\n2 skill points available\nDaily orders\nA captain’s first command\n\nGet underway and put your ship through her paces.\n\nBattles completed\n0 / 1\n25,000 credits\nStatistics\nArmor\nInternals\nStatistics\nVIII\nSurvivability\n20\nArtillery\n7\nAir defense\n9\nManeuverability\n58\nConcealment\n100\n\nFigures come from the combat definition of this ship. Hover a row for its meaning.\n\nSURVIVABILITY\n490condition points\nDisplacement\n1,170t\nReserve buoyancy\n1,503m³\nCompartments\n8\nFlooding capacity\n1,707m³\nPumping\n8.6m³/min\nMachinery modules\n4\nMagazines\n2\nSteering modules\n1\nHull plating\n8 / 5mm\nARMOR\n0mm\nArmor volumes\n0\nMain gunhouse\n6mm\nMAIN BATTERY\n102mm\nGun\nBL 4-inch Mk IX shielded gun\nLayout\n1 × 1\nReload\n6.0s\nSalvo damage\n12\nDamage per minute\n120\nPenetration\n55mm\nMuzzle velocity\n732m/s\nShell mass\n14kg\nMaximum range\n9.7km\nElevation\n-10° to 30°\nTraverse\n±145° · 18°/s\nAmmunition\n240rounds\nGunhouse armor\n6mm\nSECONDARY BATTERY\n5barrels\nMOBILITY\n16.0kn\nAstern\n4.7kn\nTime to full speed\n37s\nStopping time\n46s\nRudder shift\n7.1s\nTurning rate\n2.01°/s\nTurning circle\n470m\nMachinery spaces\n4\nDIMENSIONS\n62.5m\nMODEL BASIS\n15volumes\nConfigure ship\nBattleship\nBismarck\nAVAILABLE\nBattleship\nYamato\nAVAILABLE\nHeavy cruiser\nUSS Baltimore\nAVAILABLE\nAircraft carrier\nUSS Enterprise (CV-6)\nAVAILABLE\nSubmarine\nType VIIC\nAVAILABLE\nCargo ship\nLiberty Cargo\nAVAILABLE\nCoal carrier\nLiberty Collier\nAVAILABLE\nCargo ship\nVictory Cargo\nAVAILABLE\nCorvette\nFlower Corvette\nIN PORT\n82 FPS",
+      "buttons": [
+        {
+          "name": "Port",
+          "disabled": false
+        },
+        {
+          "name": "Equipment",
+          "disabled": false
+        },
+        {
+          "name": "Commander",
+          "disabled": false
+        },
+        {
+          "name": "Fleet",
+          "disabled": false
+        },
+        {
+          "name": "CUSTOM BATTLE",
+          "disabled": false
+        },
+        {
+          "name": "Port settings",
+          "disabled": false
+        },
+        {
+          "name": "Create schematic",
+          "disabled": false
+        },
+        {
+          "name": "OTTO REIMANNCommander · Level 82 skill points available",
+          "disabled": false
+        },
+        {
+          "name": "Statistics",
+          "disabled": false
+        },
+        {
+          "name": "Armor",
+          "disabled": false
+        },
+        {
+          "name": "Internals",
+          "disabled": false
+        },
+        {
+          "name": "Survivability490condition points",
+          "disabled": false
+        },
+        {
+          "name": "Armor0mm",
+          "disabled": false
+        },
+        {
+          "name": "Main battery102mm",
+          "disabled": false
+        },
+        {
+          "name": "Secondary battery5barrels",
+          "disabled": false
+        },
+        {
+          "name": "Mobility16.0kn",
+          "disabled": false
+        },
+        {
+          "name": "Dimensions62.5m",
+          "disabled": false
+        },
+        {
+          "name": "Model basis15volumes",
+          "disabled": false
+        },
+        {
+          "name": "Configure ship",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Bismarck",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Yamato",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Baltimore",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Enterprise (CV-6)",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Type VIIC",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Collier",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Victory Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Flower Corvette",
+          "disabled": false
+        },
+        {
+          "name": "Close menu",
+          "disabled": false
+        },
+        {
+          "name": "Back to port",
+          "disabled": false
+        },
+        {
+          "name": "Settings",
+          "disabled": false
+        },
+        {
+          "name": "Close game",
+          "disabled": false
+        }
+      ]
+    },
+    "articulation": [
+      {
+        "train": -1,
+        "elevation": 0,
+        "recoil": 0,
+        "maxMuzzleErrorM": 0.0000025511848343630287
+      },
+      {
+        "train": 1,
+        "elevation": 1,
+        "recoil": 1,
+        "maxMuzzleErrorM": 0.0000025511848343630287
+      }
+    ],
+    "armorSnapshot": {
+      "url": "http://127.0.0.1:5297/assets/ships/convoy/review-browser.html?ship=flower-corvette&result=http%3A%2F%2F127.0.0.1%3A56936%2Fresult%3Ftoken%3Df0c3c189-1c8d-43e9-aeb2-ed1f8eb1743b",
+      "text": "FLEET COMMAND\nPort\nEquipment\nCommander\nFleet\nCUSTOM BATTLE\n2,450,000\n12,400\nCAPTAIN 08\nFLOWER CORVETTE\nVIII\nCorvette\nCanada · 1941\n\nREADY FOR BATTLE\n\nCreate schematic\nStatistics\nArmor\nInternals\nArmor model\n15 surfaces\n\nHover a plate for details. Select a row to isolate it.\n\nGreen · thinner\nRed · thicker\n0 mm\n200 mm\n400+ mm\nFind armor or space\nHull shell · bow to stern\nStructural steel · estimated\n8 mm\nEngine and boiler casing\nStructural steel · estimated\n5 mm\nWheelhouse and wireless office\nStructural steel · estimated\n5 mm\nOpen compass platform\nStructural steel · estimated\n5 mm\nUpper conning shelter\nStructural steel · estimated\n5 mm\nSignal lockers and ladder trunk\nStructural steel · estimated\n5 mm\nRaised boiler ventilator casing\nStructural steel · estimated\n5 mm\nCircular funnel\nStructural steel · estimated\n5 mm\nAft gun platform\nStructural steel · estimated\n5 mm\nDinghy platform\nStructural steel · estimated\n5 mm\nDinghy platform\nStructural steel · estimated\n5 mm\nForward 4-inch\nGunhouse armor\n6 mm\nAft pom-pom\nGunhouse armor\n3 mm\nStarboard twin Lewis\nGunhouse armor\n1 mm\nPort twin Lewis\nGunhouse armor\n1 mm\n\nHull and deckhouse plating also registers hits. Opaque surfaces hide inner layers; isolate a row to inspect them.\n\n77 FPS",
+      "buttons": [
+        {
+          "name": "Port",
+          "disabled": false
+        },
+        {
+          "name": "Equipment",
+          "disabled": false
+        },
+        {
+          "name": "Commander",
+          "disabled": false
+        },
+        {
+          "name": "Fleet",
+          "disabled": false
+        },
+        {
+          "name": "CUSTOM BATTLE",
+          "disabled": false
+        },
+        {
+          "name": "Port settings",
+          "disabled": false
+        },
+        {
+          "name": "Create schematic",
+          "disabled": false
+        },
+        {
+          "name": "OTTO REIMANNCommander · Level 82 skill points available",
+          "disabled": false
+        },
+        {
+          "name": "Statistics",
+          "disabled": false
+        },
+        {
+          "name": "Armor",
+          "disabled": false
+        },
+        {
+          "name": "Internals",
+          "disabled": false
+        },
+        {
+          "name": "Hull shell · bow to sternStructural steel · estimated8 mm",
+          "disabled": false
+        },
+        {
+          "name": "Engine and boiler casingStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Wheelhouse and wireless officeStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Open compass platformStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Upper conning shelterStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Signal lockers and ladder trunkStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Raised boiler ventilator casingStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Circular funnelStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Aft gun platformStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Dinghy platformStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Dinghy platformStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Forward 4-inchGunhouse armor6 mm",
+          "disabled": false
+        },
+        {
+          "name": "Aft pom-pomGunhouse armor3 mm",
+          "disabled": false
+        },
+        {
+          "name": "Starboard twin LewisGunhouse armor1 mm",
+          "disabled": false
+        },
+        {
+          "name": "Port twin LewisGunhouse armor1 mm",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Bismarck",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Yamato",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Baltimore",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Enterprise (CV-6)",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Type VIIC",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Collier",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Victory Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Flower Corvette",
+          "disabled": false
+        },
+        {
+          "name": "Close menu",
+          "disabled": false
+        },
+        {
+          "name": "Back to port",
+          "disabled": false
+        },
+        {
+          "name": "Settings",
+          "disabled": false
+        },
+        {
+          "name": "Close game",
+          "disabled": false
+        }
+      ]
+    },
+    "internalsSnapshot": {
+      "url": "http://127.0.0.1:5297/assets/ships/convoy/review-browser.html?ship=flower-corvette&result=http%3A%2F%2F127.0.0.1%3A56936%2Fresult%3Ftoken%3Df0c3c189-1c8d-43e9-aeb2-ed1f8eb1743b",
+      "text": "FLEET COMMAND\nPort\nEquipment\nCommander\nFleet\nCUSTOM BATTLE\n2,450,000\n12,400\nCAPTAIN 08\nFLOWER CORVETTE\nVIII\nCorvette\nCanada · 1941\n\nREADY FOR BATTLE\n\nCreate schematic\nStatistics\nArmor\nInternals\nInternal layout\n15 spaces\n\nProvisional layout. Hover a module or compartment for details. Select a row to isolate it.\n\nFind armor or space\nPort boiler\nMachinery\n100 HP\nStarboard boiler\nMachinery\n100 HP\nTriple-expansion engine\nMachinery\n100 HP\nSingle shaft\nMachinery\n100 HP\nSteering gear\nSteering gear\n80 HP\nForward ammunition\nMagazine\n80 HP\nAft ammunition\nMagazine\n80 HP\nForepeak\nCompartment\n39 m³\nForward magazine\nCompartment\n220 m³\nForward mess\nCompartment\n353 m³\nBoiler room\nCompartment\n544 m³\nEngine room\nCompartment\n316 m³\nAft magazine\nCompartment\n114 m³\nSteering and shaft tunnel\nCompartment\n108 m³\nAfterpeak\nCompartment\n15 m³\n\nOutlines show compartments; blue fill shows floodwater.\n\n77 FPS",
+      "buttons": [
+        {
+          "name": "Port",
+          "disabled": false
+        },
+        {
+          "name": "Equipment",
+          "disabled": false
+        },
+        {
+          "name": "Commander",
+          "disabled": false
+        },
+        {
+          "name": "Fleet",
+          "disabled": false
+        },
+        {
+          "name": "CUSTOM BATTLE",
+          "disabled": false
+        },
+        {
+          "name": "Port settings",
+          "disabled": false
+        },
+        {
+          "name": "Create schematic",
+          "disabled": false
+        },
+        {
+          "name": "OTTO REIMANNCommander · Level 82 skill points available",
+          "disabled": false
+        },
+        {
+          "name": "Statistics",
+          "disabled": false
+        },
+        {
+          "name": "Armor",
+          "disabled": false
+        },
+        {
+          "name": "Internals",
+          "disabled": false
+        },
+        {
+          "name": "Port boilerMachinery100 HP",
+          "disabled": false
+        },
+        {
+          "name": "Starboard boilerMachinery100 HP",
+          "disabled": false
+        },
+        {
+          "name": "Triple-expansion engineMachinery100 HP",
+          "disabled": false
+        },
+        {
+          "name": "Single shaftMachinery100 HP",
+          "disabled": false
+        },
+        {
+          "name": "Steering gearSteering gear80 HP",
+          "disabled": false
+        },
+        {
+          "name": "Forward ammunitionMagazine80 HP",
+          "disabled": false
+        },
+        {
+          "name": "Aft ammunitionMagazine80 HP",
+          "disabled": false
+        },
+        {
+          "name": "ForepeakCompartment39 m³",
+          "disabled": false
+        },
+        {
+          "name": "Forward magazineCompartment220 m³",
+          "disabled": false
+        },
+        {
+          "name": "Forward messCompartment353 m³",
+          "disabled": false
+        },
+        {
+          "name": "Boiler roomCompartment544 m³",
+          "disabled": false
+        },
+        {
+          "name": "Engine roomCompartment316 m³",
+          "disabled": false
+        },
+        {
+          "name": "Aft magazineCompartment114 m³",
+          "disabled": false
+        },
+        {
+          "name": "Steering and shaft tunnelCompartment108 m³",
+          "disabled": false
+        },
+        {
+          "name": "AfterpeakCompartment15 m³",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Bismarck",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Yamato",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Baltimore",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Enterprise (CV-6)",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Type VIIC",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Collier",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Victory Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Flower Corvette",
+          "disabled": false
+        },
+        {
+          "name": "Close menu",
+          "disabled": false
+        },
+        {
+          "name": "Back to port",
+          "disabled": false
+        },
+        {
+          "name": "Settings",
+          "disabled": false
+        },
+        {
+          "name": "Close game",
+          "disabled": false
+        }
+      ]
+    },
+    "isolatedVolume": "module:main-engine",
+    "isolatedSnapshot": {
+      "url": "http://127.0.0.1:5297/assets/ships/convoy/review-browser.html?ship=flower-corvette&result=http%3A%2F%2F127.0.0.1%3A56936%2Fresult%3Ftoken%3Df0c3c189-1c8d-43e9-aeb2-ed1f8eb1743b",
+      "text": "FLEET COMMAND\nPort\nEquipment\nCommander\nFleet\nCUSTOM BATTLE\n2,450,000\n12,400\nCAPTAIN 08\nFLOWER CORVETTE\nVIII\nCorvette\nCanada · 1941\n\nREADY FOR BATTLE\n\nCreate schematic\nStatistics\nArmor\nInternals\nInternal layout\n15 spaces\n\nProvisional layout. Hover a module or compartment for details. Select a row to isolate it.\n\nFind armor or space\nPort boiler\nMachinery\n100 HP\nStarboard boiler\nMachinery\n100 HP\nTriple-expansion engine\nMachinery\n100 HP\nSingle shaft\nMachinery\n100 HP\nSteering gear\nSteering gear\n80 HP\nForward ammunition\nMagazine\n80 HP\nAft ammunition\nMagazine\n80 HP\nForepeak\nCompartment\n39 m³\nForward magazine\nCompartment\n220 m³\nForward mess\nCompartment\n353 m³\nBoiler room\nCompartment\n544 m³\nEngine room\nCompartment\n316 m³\nAft magazine\nCompartment\n114 m³\nSteering and shaft tunnel\nCompartment\n108 m³\nAfterpeak\nCompartment\n15 m³\n\nOutlines show compartments; blue fill shows floodwater.\n\nTriple-expansion engine\n2.2 × 1.4 × 2.0 m\nClear selection\n72 FPS",
+      "buttons": [
+        {
+          "name": "Port",
+          "disabled": false
+        },
+        {
+          "name": "Equipment",
+          "disabled": false
+        },
+        {
+          "name": "Commander",
+          "disabled": false
+        },
+        {
+          "name": "Fleet",
+          "disabled": false
+        },
+        {
+          "name": "CUSTOM BATTLE",
+          "disabled": false
+        },
+        {
+          "name": "Port settings",
+          "disabled": false
+        },
+        {
+          "name": "Create schematic",
+          "disabled": false
+        },
+        {
+          "name": "OTTO REIMANNCommander · Level 82 skill points available",
+          "disabled": false
+        },
+        {
+          "name": "Statistics",
+          "disabled": false
+        },
+        {
+          "name": "Armor",
+          "disabled": false
+        },
+        {
+          "name": "Internals",
+          "disabled": false
+        },
+        {
+          "name": "Port boilerMachinery100 HP",
+          "disabled": false
+        },
+        {
+          "name": "Starboard boilerMachinery100 HP",
+          "disabled": false
+        },
+        {
+          "name": "Triple-expansion engineMachinery100 HP",
+          "disabled": false
+        },
+        {
+          "name": "Single shaftMachinery100 HP",
+          "disabled": false
+        },
+        {
+          "name": "Steering gearSteering gear80 HP",
+          "disabled": false
+        },
+        {
+          "name": "Forward ammunitionMagazine80 HP",
+          "disabled": false
+        },
+        {
+          "name": "Aft ammunitionMagazine80 HP",
+          "disabled": false
+        },
+        {
+          "name": "ForepeakCompartment39 m³",
+          "disabled": false
+        },
+        {
+          "name": "Forward magazineCompartment220 m³",
+          "disabled": false
+        },
+        {
+          "name": "Forward messCompartment353 m³",
+          "disabled": false
+        },
+        {
+          "name": "Boiler roomCompartment544 m³",
+          "disabled": false
+        },
+        {
+          "name": "Engine roomCompartment316 m³",
+          "disabled": false
+        },
+        {
+          "name": "Aft magazineCompartment114 m³",
+          "disabled": false
+        },
+        {
+          "name": "Steering and shaft tunnelCompartment108 m³",
+          "disabled": false
+        },
+        {
+          "name": "AfterpeakCompartment15 m³",
+          "disabled": false
+        },
+        {
+          "name": "Clear selection",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Bismarck",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Yamato",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Baltimore",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Enterprise (CV-6)",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Type VIIC",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Collier",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Victory Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Flower Corvette",
+          "disabled": false
+        },
+        {
+          "name": "Close menu",
+          "disabled": false
+        },
+        {
+          "name": "Back to port",
+          "disabled": false
+        },
+        {
+          "name": "Settings",
+          "disabled": false
+        },
+        {
+          "name": "Close game",
+          "disabled": false
+        }
+      ]
+    },
+    "finalTick": 0
+  },
+  {
+    "id": "liberty-cargo",
+    "hash": "169612f56018ae7f55088ced02df784f8338fecad4dcec9a3e74a99a004ad1b0",
+    "backend": "webgpu",
+    "portFps": 60.00780020211525,
+    "initialTick": 0,
+    "portSnapshot": {
+      "url": "http://127.0.0.1:5297/assets/ships/convoy/review-browser.html?ship=liberty-cargo&result=http%3A%2F%2F127.0.0.1%3A56936%2Fresult%3Ftoken%3Df0c3c189-1c8d-43e9-aeb2-ed1f8eb1743b",
+      "text": "FLEET COMMAND\nPort\nEquipment\nCommander\nFleet\nCUSTOM BATTLE\n2,450,000\n12,400\nCAPTAIN 08\nLIBERTY CARGO\nVIII\nCargo ship\nUnited States · 1941\n\nREADY FOR BATTLE\n\nCreate schematic\nOTTO REIMANN\nCommander · Level 8\n2 skill points available\nDaily orders\nA captain’s first command\n\nGet underway and put your ship through her paces.\n\nBattles completed\n0 / 1\n25,000 credits\nStatistics\nArmor\nInternals\nStatistics\nVIII\nSurvivability\n38\nArtillery\n8\nAir defense\n15\nManeuverability\n28\nConcealment\n100\n\nFigures come from the combat definition of this ship. Hover a row for its meaning.\n\nSURVIVABILITY\n960condition points\nDisplacement\n14,478t\nReserve buoyancy\n6,121m³\nCompartments\n12\nFlooding capacity\n12,247m³\nPumping\n10.0m³/min\nMachinery modules\n4\nMagazines\n2\nSteering modules\n1\nHull plating\n14 / 5mm\nARMOR\n0mm\nArmor volumes\n0\nMain gunhouse\n6mm\nMAIN BATTERY\n127mm\nGun\n5-inch/38 Mk 21 open mount\nLayout\n1 × 1\nReload\n4.0s\nSalvo damage\n10\nDamage per minute\n150\nPenetration\n65mm\nMuzzle velocity\n792m/s\nShell mass\n25kg\nMaximum range\n11.1km\nElevation\n-10° to 85°\nTraverse\n±160° · 15°/s\nAmmunition\n360rounds\nGunhouse armor\n6mm\nSECONDARY BATTERY\n9barrels\nMOBILITY\n11.0kn\nAstern\n3.3kn\nTime to full speed\n87s\nStopping time\n75s\nRudder shift\n14.3s\nTurning rate\n0.80°/s\nTurning circle\n808m\nMachinery spaces\n4\nDIMENSIONS\n134.6m\nMODEL BASIS\n19volumes\nConfigure ship\nBattleship\nBismarck\nAVAILABLE\nBattleship\nYamato\nAVAILABLE\nHeavy cruiser\nUSS Baltimore\nAVAILABLE\nAircraft carrier\nUSS Enterprise (CV-6)\nAVAILABLE\nSubmarine\nType VIIC\nAVAILABLE\nCargo ship\nLiberty Cargo\nIN PORT\nCoal carrier\nLiberty Collier\nAVAILABLE\nCargo ship\nVictory Cargo\nAVAILABLE\nCorvette\nFlower Corvette\nAVAILABLE\n60 FPS",
+      "buttons": [
+        {
+          "name": "Port",
+          "disabled": false
+        },
+        {
+          "name": "Equipment",
+          "disabled": false
+        },
+        {
+          "name": "Commander",
+          "disabled": false
+        },
+        {
+          "name": "Fleet",
+          "disabled": false
+        },
+        {
+          "name": "CUSTOM BATTLE",
+          "disabled": false
+        },
+        {
+          "name": "Port settings",
+          "disabled": false
+        },
+        {
+          "name": "Create schematic",
+          "disabled": false
+        },
+        {
+          "name": "OTTO REIMANNCommander · Level 82 skill points available",
+          "disabled": false
+        },
+        {
+          "name": "Statistics",
+          "disabled": false
+        },
+        {
+          "name": "Armor",
+          "disabled": false
+        },
+        {
+          "name": "Internals",
+          "disabled": false
+        },
+        {
+          "name": "Survivability960condition points",
+          "disabled": false
+        },
+        {
+          "name": "Armor0mm",
+          "disabled": false
+        },
+        {
+          "name": "Main battery127mm",
+          "disabled": false
+        },
+        {
+          "name": "Secondary battery9barrels",
+          "disabled": false
+        },
+        {
+          "name": "Mobility11.0kn",
+          "disabled": false
+        },
+        {
+          "name": "Dimensions134.6m",
+          "disabled": false
+        },
+        {
+          "name": "Model basis19volumes",
+          "disabled": false
+        },
+        {
+          "name": "Configure ship",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Bismarck",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Yamato",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Baltimore",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Enterprise (CV-6)",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Type VIIC",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Collier",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Victory Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Flower Corvette",
+          "disabled": false
+        },
+        {
+          "name": "Close menu",
+          "disabled": false
+        },
+        {
+          "name": "Back to port",
+          "disabled": false
+        },
+        {
+          "name": "Settings",
+          "disabled": false
+        },
+        {
+          "name": "Close game",
+          "disabled": false
+        }
+      ]
+    },
+    "articulation": [
+      {
+        "train": -1,
+        "elevation": 0,
+        "recoil": 0,
+        "maxMuzzleErrorM": 0.00001611329781968769
+      },
+      {
+        "train": 1,
+        "elevation": 1,
+        "recoil": 1,
+        "maxMuzzleErrorM": 0.000014911710852805898
+      }
+    ],
+    "armorSnapshot": {
+      "url": "http://127.0.0.1:5297/assets/ships/convoy/review-browser.html?ship=liberty-cargo&result=http%3A%2F%2F127.0.0.1%3A56936%2Fresult%3Ftoken%3Df0c3c189-1c8d-43e9-aeb2-ed1f8eb1743b",
+      "text": "FLEET COMMAND\nPort\nEquipment\nCommander\nFleet\nCUSTOM BATTLE\n2,450,000\n12,400\nCAPTAIN 08\nLIBERTY CARGO\nVIII\nCargo ship\nUnited States · 1941\n\nREADY FOR BATTLE\n\nCreate schematic\nStatistics\nArmor\nInternals\nArmor model\n22 surfaces\n\nHover a plate for details. Select a row to isolate it.\n\nGreen · thinner\nRed · thicker\n0 mm\n200 mm\n400+ mm\nFind armor or space\nHull shell · bow to stern\nStructural steel · estimated\n14 mm\nAccommodation block\nStructural steel · estimated\n5 mm\nBoat deck house\nStructural steel · estimated\n5 mm\nNavigation bridge\nStructural steel · estimated\n5 mm\nFlying bridge\nStructural steel · estimated\n5 mm\nFunnel jacket\nStructural steel · estimated\n5 mm\nNo. 1 cargo hatch\nStructural steel · estimated\n5 mm\nNo. 2 cargo hatch\nStructural steel · estimated\n5 mm\nNo. 3 cargo hatch\nStructural steel · estimated\n5 mm\nNo. 4 cargo hatch\nStructural steel · estimated\n5 mm\nNo. 5 cargo hatch\nStructural steel · estimated\n5 mm\nArmed guard quarters\nStructural steel · estimated\n5 mm\nStern 5-inch\nGunhouse armor\n6 mm\nBow 3-inch\nGunhouse armor\n4 mm\nBow starboard Oerlikon\nGunhouse armor\n6 mm\nBridge starboard 1\nGunhouse armor\n6 mm\nBridge starboard 2\nGunhouse armor\n6 mm\nAft starboard Oerlikon\nGunhouse armor\n6 mm\nBow port Oerlikon\nGunhouse armor\n6 mm\nBridge port 1\nGunhouse armor\n6 mm\nBridge port 2\nGunhouse armor\n6 mm\nAft port Oerlikon\nGunhouse armor\n6 mm\n\nHull and deckhouse plating also registers hits. Opaque surfaces hide inner layers; isolate a row to inspect them.\n\n60 FPS",
+      "buttons": [
+        {
+          "name": "Port",
+          "disabled": false
+        },
+        {
+          "name": "Equipment",
+          "disabled": false
+        },
+        {
+          "name": "Commander",
+          "disabled": false
+        },
+        {
+          "name": "Fleet",
+          "disabled": false
+        },
+        {
+          "name": "CUSTOM BATTLE",
+          "disabled": false
+        },
+        {
+          "name": "Port settings",
+          "disabled": false
+        },
+        {
+          "name": "Create schematic",
+          "disabled": false
+        },
+        {
+          "name": "OTTO REIMANNCommander · Level 82 skill points available",
+          "disabled": false
+        },
+        {
+          "name": "Statistics",
+          "disabled": false
+        },
+        {
+          "name": "Armor",
+          "disabled": false
+        },
+        {
+          "name": "Internals",
+          "disabled": false
+        },
+        {
+          "name": "Hull shell · bow to sternStructural steel · estimated14 mm",
+          "disabled": false
+        },
+        {
+          "name": "Accommodation blockStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Boat deck houseStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Navigation bridgeStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Flying bridgeStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Funnel jacketStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "No. 1 cargo hatchStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "No. 2 cargo hatchStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "No. 3 cargo hatchStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "No. 4 cargo hatchStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "No. 5 cargo hatchStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Armed guard quartersStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Stern 5-inchGunhouse armor6 mm",
+          "disabled": false
+        },
+        {
+          "name": "Bow 3-inchGunhouse armor4 mm",
+          "disabled": false
+        },
+        {
+          "name": "Bow starboard OerlikonGunhouse armor6 mm",
+          "disabled": false
+        },
+        {
+          "name": "Bridge starboard 1Gunhouse armor6 mm",
+          "disabled": false
+        },
+        {
+          "name": "Bridge starboard 2Gunhouse armor6 mm",
+          "disabled": false
+        },
+        {
+          "name": "Aft starboard OerlikonGunhouse armor6 mm",
+          "disabled": false
+        },
+        {
+          "name": "Bow port OerlikonGunhouse armor6 mm",
+          "disabled": false
+        },
+        {
+          "name": "Bridge port 1Gunhouse armor6 mm",
+          "disabled": false
+        },
+        {
+          "name": "Bridge port 2Gunhouse armor6 mm",
+          "disabled": false
+        },
+        {
+          "name": "Aft port OerlikonGunhouse armor6 mm",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Bismarck",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Yamato",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Baltimore",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Enterprise (CV-6)",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Type VIIC",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Collier",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Victory Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Flower Corvette",
+          "disabled": false
+        },
+        {
+          "name": "Close menu",
+          "disabled": false
+        },
+        {
+          "name": "Back to port",
+          "disabled": false
+        },
+        {
+          "name": "Settings",
+          "disabled": false
+        },
+        {
+          "name": "Close game",
+          "disabled": false
+        }
+      ]
+    },
+    "internalsSnapshot": {
+      "url": "http://127.0.0.1:5297/assets/ships/convoy/review-browser.html?ship=liberty-cargo&result=http%3A%2F%2F127.0.0.1%3A56936%2Fresult%3Ftoken%3Df0c3c189-1c8d-43e9-aeb2-ed1f8eb1743b",
+      "text": "FLEET COMMAND\nPort\nEquipment\nCommander\nFleet\nCUSTOM BATTLE\n2,450,000\n12,400\nCAPTAIN 08\nLIBERTY CARGO\nVIII\nCargo ship\nUnited States · 1941\n\nREADY FOR BATTLE\n\nCreate schematic\nStatistics\nArmor\nInternals\nInternal layout\n19 spaces\n\nProvisional layout. Hover a module or compartment for details. Select a row to isolate it.\n\nFind armor or space\nPort boiler\nMachinery\n200 HP\nStarboard boiler\nMachinery\n200 HP\nTriple-expansion engine\nMachinery\n200 HP\nSingle shaft\nMachinery\n200 HP\nSteering gear\nSteering gear\n80 HP\nForward ammunition\nMagazine\n80 HP\nAft ammunition\nMagazine\n80 HP\nForepeak\nCompartment\n95 m³\nForward magazine\nCompartment\n263 m³\nNo. 1 hold\nCompartment\n837 m³\nNo. 2 hold\nCompartment\n1,678 m³\nNo. 3 hold\nCompartment\n1,275 m³\nTwo-boiler room\nCompartment\n1,934 m³\nTriple-expansion engine room\nCompartment\n1,719 m³\nNo. 4 hold\nCompartment\n2,472 m³\nNo. 5 hold\nCompartment\n1,230 m³\nArmed guard magazine\nCompartment\n533 m³\nSteering and shaft tunnel\nCompartment\n176 m³\nAfterpeak\nCompartment\n35 m³\n\nOutlines show compartments; blue fill shows floodwater.\n\n60 FPS",
+      "buttons": [
+        {
+          "name": "Port",
+          "disabled": false
+        },
+        {
+          "name": "Equipment",
+          "disabled": false
+        },
+        {
+          "name": "Commander",
+          "disabled": false
+        },
+        {
+          "name": "Fleet",
+          "disabled": false
+        },
+        {
+          "name": "CUSTOM BATTLE",
+          "disabled": false
+        },
+        {
+          "name": "Port settings",
+          "disabled": false
+        },
+        {
+          "name": "Create schematic",
+          "disabled": false
+        },
+        {
+          "name": "OTTO REIMANNCommander · Level 82 skill points available",
+          "disabled": false
+        },
+        {
+          "name": "Statistics",
+          "disabled": false
+        },
+        {
+          "name": "Armor",
+          "disabled": false
+        },
+        {
+          "name": "Internals",
+          "disabled": false
+        },
+        {
+          "name": "Port boilerMachinery200 HP",
+          "disabled": false
+        },
+        {
+          "name": "Starboard boilerMachinery200 HP",
+          "disabled": false
+        },
+        {
+          "name": "Triple-expansion engineMachinery200 HP",
+          "disabled": false
+        },
+        {
+          "name": "Single shaftMachinery200 HP",
+          "disabled": false
+        },
+        {
+          "name": "Steering gearSteering gear80 HP",
+          "disabled": false
+        },
+        {
+          "name": "Forward ammunitionMagazine80 HP",
+          "disabled": false
+        },
+        {
+          "name": "Aft ammunitionMagazine80 HP",
+          "disabled": false
+        },
+        {
+          "name": "ForepeakCompartment95 m³",
+          "disabled": false
+        },
+        {
+          "name": "Forward magazineCompartment263 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 1 holdCompartment837 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 2 holdCompartment1,678 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 3 holdCompartment1,275 m³",
+          "disabled": false
+        },
+        {
+          "name": "Two-boiler roomCompartment1,934 m³",
+          "disabled": false
+        },
+        {
+          "name": "Triple-expansion engine roomCompartment1,719 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 4 holdCompartment2,472 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 5 holdCompartment1,230 m³",
+          "disabled": false
+        },
+        {
+          "name": "Armed guard magazineCompartment533 m³",
+          "disabled": false
+        },
+        {
+          "name": "Steering and shaft tunnelCompartment176 m³",
+          "disabled": false
+        },
+        {
+          "name": "AfterpeakCompartment35 m³",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Bismarck",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Yamato",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Baltimore",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Enterprise (CV-6)",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Type VIIC",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Collier",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Victory Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Flower Corvette",
+          "disabled": false
+        },
+        {
+          "name": "Close menu",
+          "disabled": false
+        },
+        {
+          "name": "Back to port",
+          "disabled": false
+        },
+        {
+          "name": "Settings",
+          "disabled": false
+        },
+        {
+          "name": "Close game",
+          "disabled": false
+        }
+      ]
+    },
+    "isolatedVolume": "module:main-engine",
+    "isolatedSnapshot": {
+      "url": "http://127.0.0.1:5297/assets/ships/convoy/review-browser.html?ship=liberty-cargo&result=http%3A%2F%2F127.0.0.1%3A56936%2Fresult%3Ftoken%3Df0c3c189-1c8d-43e9-aeb2-ed1f8eb1743b",
+      "text": "FLEET COMMAND\nPort\nEquipment\nCommander\nFleet\nCUSTOM BATTLE\n2,450,000\n12,400\nCAPTAIN 08\nLIBERTY CARGO\nVIII\nCargo ship\nUnited States · 1941\n\nREADY FOR BATTLE\n\nCreate schematic\nStatistics\nArmor\nInternals\nInternal layout\n19 spaces\n\nProvisional layout. Hover a module or compartment for details. Select a row to isolate it.\n\nFind armor or space\nPort boiler\nMachinery\n200 HP\nStarboard boiler\nMachinery\n200 HP\nTriple-expansion engine\nMachinery\n200 HP\nSingle shaft\nMachinery\n200 HP\nSteering gear\nSteering gear\n80 HP\nForward ammunition\nMagazine\n80 HP\nAft ammunition\nMagazine\n80 HP\nForepeak\nCompartment\n95 m³\nForward magazine\nCompartment\n263 m³\nNo. 1 hold\nCompartment\n837 m³\nNo. 2 hold\nCompartment\n1,678 m³\nNo. 3 hold\nCompartment\n1,275 m³\nTwo-boiler room\nCompartment\n1,934 m³\nTriple-expansion engine room\nCompartment\n1,719 m³\nNo. 4 hold\nCompartment\n2,472 m³\nNo. 5 hold\nCompartment\n1,230 m³\nArmed guard magazine\nCompartment\n533 m³\nSteering and shaft tunnel\nCompartment\n176 m³\nAfterpeak\nCompartment\n35 m³\n\nOutlines show compartments; blue fill shows floodwater.\n\nTriple-expansion engine\n4.0 × 2.8 × 4.5 m\nClear selection\n58 FPS",
+      "buttons": [
+        {
+          "name": "Port",
+          "disabled": false
+        },
+        {
+          "name": "Equipment",
+          "disabled": false
+        },
+        {
+          "name": "Commander",
+          "disabled": false
+        },
+        {
+          "name": "Fleet",
+          "disabled": false
+        },
+        {
+          "name": "CUSTOM BATTLE",
+          "disabled": false
+        },
+        {
+          "name": "Port settings",
+          "disabled": false
+        },
+        {
+          "name": "Create schematic",
+          "disabled": false
+        },
+        {
+          "name": "OTTO REIMANNCommander · Level 82 skill points available",
+          "disabled": false
+        },
+        {
+          "name": "Statistics",
+          "disabled": false
+        },
+        {
+          "name": "Armor",
+          "disabled": false
+        },
+        {
+          "name": "Internals",
+          "disabled": false
+        },
+        {
+          "name": "Port boilerMachinery200 HP",
+          "disabled": false
+        },
+        {
+          "name": "Starboard boilerMachinery200 HP",
+          "disabled": false
+        },
+        {
+          "name": "Triple-expansion engineMachinery200 HP",
+          "disabled": false
+        },
+        {
+          "name": "Single shaftMachinery200 HP",
+          "disabled": false
+        },
+        {
+          "name": "Steering gearSteering gear80 HP",
+          "disabled": false
+        },
+        {
+          "name": "Forward ammunitionMagazine80 HP",
+          "disabled": false
+        },
+        {
+          "name": "Aft ammunitionMagazine80 HP",
+          "disabled": false
+        },
+        {
+          "name": "ForepeakCompartment95 m³",
+          "disabled": false
+        },
+        {
+          "name": "Forward magazineCompartment263 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 1 holdCompartment837 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 2 holdCompartment1,678 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 3 holdCompartment1,275 m³",
+          "disabled": false
+        },
+        {
+          "name": "Two-boiler roomCompartment1,934 m³",
+          "disabled": false
+        },
+        {
+          "name": "Triple-expansion engine roomCompartment1,719 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 4 holdCompartment2,472 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 5 holdCompartment1,230 m³",
+          "disabled": false
+        },
+        {
+          "name": "Armed guard magazineCompartment533 m³",
+          "disabled": false
+        },
+        {
+          "name": "Steering and shaft tunnelCompartment176 m³",
+          "disabled": false
+        },
+        {
+          "name": "AfterpeakCompartment35 m³",
+          "disabled": false
+        },
+        {
+          "name": "Clear selection",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Bismarck",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Yamato",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Baltimore",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Enterprise (CV-6)",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Type VIIC",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Collier",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Victory Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Flower Corvette",
+          "disabled": false
+        },
+        {
+          "name": "Close menu",
+          "disabled": false
+        },
+        {
+          "name": "Back to port",
+          "disabled": false
+        },
+        {
+          "name": "Settings",
+          "disabled": false
+        },
+        {
+          "name": "Close game",
+          "disabled": false
+        }
+      ]
+    },
+    "finalTick": 0
+  },
+  {
+    "id": "liberty-collier",
+    "hash": "fcf878f0c3f6a8cc062ee9cd495841f2cb13439c4b651a01a273f409cc3236a2",
+    "backend": "webgpu",
+    "portFps": 59.48994976637319,
+    "initialTick": 0,
+    "portSnapshot": {
+      "url": "http://127.0.0.1:5297/assets/ships/convoy/review-browser.html?ship=liberty-collier&result=http%3A%2F%2F127.0.0.1%3A56936%2Fresult%3Ftoken%3Df0c3c189-1c8d-43e9-aeb2-ed1f8eb1743b",
+      "text": "FLEET COMMAND\nPort\nEquipment\nCommander\nFleet\nCUSTOM BATTLE\n2,450,000\n12,400\nCAPTAIN 08\nLIBERTY COLLIER\nVIII\nCoal carrier\nUnited States · 1945\n\nREADY FOR BATTLE\n\nCreate schematic\nOTTO REIMANN\nCommander · Level 8\n2 skill points available\nDaily orders\nA captain’s first command\n\nGet underway and put your ship through her paces.\n\nBattles completed\n0 / 1\n25,000 credits\nStatistics\nArmor\nInternals\nStatistics\nVIII\nSurvivability\n39\nArtillery\n8\nAir defense\n12\nManeuverability\n28\nConcealment\n100\n\nFigures come from the combat definition of this ship. Hover a row for its meaning.\n\nSURVIVABILITY\n970condition points\nDisplacement\n14,967t\nReserve buoyancy\n5,642m³\nCompartments\n12\nFlooding capacity\n11,807m³\nPumping\n10.0m³/min\nMachinery modules\n4\nMagazines\n2\nSteering modules\n1\nHull plating\n14 / 5mm\nARMOR\n0mm\nArmor volumes\n0\nMain gunhouse\n6mm\nMAIN BATTERY\n127mm\nGun\n5-inch/38 Mk 21 open mount\nLayout\n1 × 1\nReload\n4.0s\nSalvo damage\n10\nDamage per minute\n150\nPenetration\n65mm\nMuzzle velocity\n792m/s\nShell mass\n25kg\nMaximum range\n11.1km\nElevation\n-10° to 85°\nTraverse\n±160° · 15°/s\nAmmunition\n360rounds\nGunhouse armor\n6mm\nSECONDARY BATTERY\n7barrels\nMOBILITY\n11.0kn\nAstern\n3.3kn\nTime to full speed\n87s\nStopping time\n75s\nRudder shift\n14.3s\nTurning rate\n0.80°/s\nTurning circle\n808m\nMachinery spaces\n4\nDIMENSIONS\n135.2m\nMODEL BASIS\n19volumes\nConfigure ship\nBattleship\nBismarck\nAVAILABLE\nBattleship\nYamato\nAVAILABLE\nHeavy cruiser\nUSS Baltimore\nAVAILABLE\nAircraft carrier\nUSS Enterprise (CV-6)\nAVAILABLE\nSubmarine\nType VIIC\nAVAILABLE\nCargo ship\nLiberty Cargo\nAVAILABLE\nCoal carrier\nLiberty Collier\nIN PORT\nCargo ship\nVictory Cargo\nAVAILABLE\nCorvette\nFlower Corvette\nAVAILABLE\n59 FPS",
+      "buttons": [
+        {
+          "name": "Port",
+          "disabled": false
+        },
+        {
+          "name": "Equipment",
+          "disabled": false
+        },
+        {
+          "name": "Commander",
+          "disabled": false
+        },
+        {
+          "name": "Fleet",
+          "disabled": false
+        },
+        {
+          "name": "CUSTOM BATTLE",
+          "disabled": false
+        },
+        {
+          "name": "Port settings",
+          "disabled": false
+        },
+        {
+          "name": "Create schematic",
+          "disabled": false
+        },
+        {
+          "name": "OTTO REIMANNCommander · Level 82 skill points available",
+          "disabled": false
+        },
+        {
+          "name": "Statistics",
+          "disabled": false
+        },
+        {
+          "name": "Armor",
+          "disabled": false
+        },
+        {
+          "name": "Internals",
+          "disabled": false
+        },
+        {
+          "name": "Survivability970condition points",
+          "disabled": false
+        },
+        {
+          "name": "Armor0mm",
+          "disabled": false
+        },
+        {
+          "name": "Main battery127mm",
+          "disabled": false
+        },
+        {
+          "name": "Secondary battery7barrels",
+          "disabled": false
+        },
+        {
+          "name": "Mobility11.0kn",
+          "disabled": false
+        },
+        {
+          "name": "Dimensions135.2m",
+          "disabled": false
+        },
+        {
+          "name": "Model basis19volumes",
+          "disabled": false
+        },
+        {
+          "name": "Configure ship",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Bismarck",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Yamato",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Baltimore",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Enterprise (CV-6)",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Type VIIC",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Collier",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Victory Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Flower Corvette",
+          "disabled": false
+        },
+        {
+          "name": "Close menu",
+          "disabled": false
+        },
+        {
+          "name": "Back to port",
+          "disabled": false
+        },
+        {
+          "name": "Settings",
+          "disabled": false
+        },
+        {
+          "name": "Close game",
+          "disabled": false
+        }
+      ]
+    },
+    "articulation": [
+      {
+        "train": -1,
+        "elevation": 0,
+        "recoil": 0,
+        "maxMuzzleErrorM": 0.000009630974455288338
+      },
+      {
+        "train": 1,
+        "elevation": 1,
+        "recoil": 1,
+        "maxMuzzleErrorM": 0.00000881693979987827
+      }
+    ],
+    "armorSnapshot": {
+      "url": "http://127.0.0.1:5297/assets/ships/convoy/review-browser.html?ship=liberty-collier&result=http%3A%2F%2F127.0.0.1%3A56936%2Fresult%3Ftoken%3Df0c3c189-1c8d-43e9-aeb2-ed1f8eb1743b",
+      "text": "FLEET COMMAND\nPort\nEquipment\nCommander\nFleet\nCUSTOM BATTLE\n2,450,000\n12,400\nCAPTAIN 08\nLIBERTY COLLIER\nVIII\nCoal carrier\nUnited States · 1945\n\nREADY FOR BATTLE\n\nCreate schematic\nStatistics\nArmor\nInternals\nArmor model\n26 surfaces\n\nHover a plate for details. Select a row to isolate it.\n\nGreen · thinner\nRed · thicker\n0 mm\n200 mm\n400+ mm\nFind armor or space\nHull shell · bow to stern\nStructural steel · estimated\n14 mm\nLong machinery poop and accommodation\nStructural steel · estimated\n5 mm\nEngineers boat-deck house\nStructural steel · estimated\n5 mm\nAft funnel\nStructural steel · estimated\n5 mm\nDetached navigation house\nStructural steel · estimated\n5 mm\nNavigation accommodation\nStructural steel · estimated\n5 mm\nNavigation bridge\nStructural steel · estimated\n5 mm\nFlying bridge\nStructural steel · estimated\n5 mm\nHold 1 steel hatch 1\nStructural steel · estimated\n5 mm\nHold 1 steel hatch 2\nStructural steel · estimated\n5 mm\nHold 2 steel hatch 1\nStructural steel · estimated\n5 mm\nHold 2 steel hatch 2\nStructural steel · estimated\n5 mm\nHold 3 steel hatch 1\nStructural steel · estimated\n5 mm\nHold 3 steel hatch 2\nStructural steel · estimated\n5 mm\nHold 4 steel hatch 1\nStructural steel · estimated\n5 mm\nHold 4 steel hatch 2\nStructural steel · estimated\n5 mm\nHold 5 steel hatch 1\nStructural steel · estimated\n5 mm\nHold 5 steel hatch 2\nStructural steel · estimated\n5 mm\nStern 5-inch\nGunhouse armor\n6 mm\nBow 3-inch\nGunhouse armor\n4 mm\nBow starboard Oerlikon\nGunhouse armor\n6 mm\nBridge starboard 1\nGunhouse armor\n6 mm\nAft starboard Oerlikon\nGunhouse armor\n6 mm\nBow port Oerlikon\nGunhouse armor\n6 mm\nBridge port 1\nGunhouse armor\n6 mm\nAft port Oerlikon\nGunhouse armor\n6 mm\n\nHull and deckhouse plating also registers hits. Opaque surfaces hide inner layers; isolate a row to inspect them.\n\n59 FPS",
+      "buttons": [
+        {
+          "name": "Port",
+          "disabled": false
+        },
+        {
+          "name": "Equipment",
+          "disabled": false
+        },
+        {
+          "name": "Commander",
+          "disabled": false
+        },
+        {
+          "name": "Fleet",
+          "disabled": false
+        },
+        {
+          "name": "CUSTOM BATTLE",
+          "disabled": false
+        },
+        {
+          "name": "Port settings",
+          "disabled": false
+        },
+        {
+          "name": "Create schematic",
+          "disabled": false
+        },
+        {
+          "name": "OTTO REIMANNCommander · Level 82 skill points available",
+          "disabled": false
+        },
+        {
+          "name": "Statistics",
+          "disabled": false
+        },
+        {
+          "name": "Armor",
+          "disabled": false
+        },
+        {
+          "name": "Internals",
+          "disabled": false
+        },
+        {
+          "name": "Hull shell · bow to sternStructural steel · estimated14 mm",
+          "disabled": false
+        },
+        {
+          "name": "Long machinery poop and accommodationStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Engineers boat-deck houseStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Aft funnelStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Detached navigation houseStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Navigation accommodationStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Navigation bridgeStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Flying bridgeStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Hold 1 steel hatch 1Structural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Hold 1 steel hatch 2Structural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Hold 2 steel hatch 1Structural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Hold 2 steel hatch 2Structural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Hold 3 steel hatch 1Structural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Hold 3 steel hatch 2Structural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Hold 4 steel hatch 1Structural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Hold 4 steel hatch 2Structural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Hold 5 steel hatch 1Structural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Hold 5 steel hatch 2Structural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Stern 5-inchGunhouse armor6 mm",
+          "disabled": false
+        },
+        {
+          "name": "Bow 3-inchGunhouse armor4 mm",
+          "disabled": false
+        },
+        {
+          "name": "Bow starboard OerlikonGunhouse armor6 mm",
+          "disabled": false
+        },
+        {
+          "name": "Bridge starboard 1Gunhouse armor6 mm",
+          "disabled": false
+        },
+        {
+          "name": "Aft starboard OerlikonGunhouse armor6 mm",
+          "disabled": false
+        },
+        {
+          "name": "Bow port OerlikonGunhouse armor6 mm",
+          "disabled": false
+        },
+        {
+          "name": "Bridge port 1Gunhouse armor6 mm",
+          "disabled": false
+        },
+        {
+          "name": "Aft port OerlikonGunhouse armor6 mm",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Bismarck",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Yamato",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Baltimore",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Enterprise (CV-6)",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Type VIIC",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Collier",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Victory Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Flower Corvette",
+          "disabled": false
+        },
+        {
+          "name": "Close menu",
+          "disabled": false
+        },
+        {
+          "name": "Back to port",
+          "disabled": false
+        },
+        {
+          "name": "Settings",
+          "disabled": false
+        },
+        {
+          "name": "Close game",
+          "disabled": false
+        }
+      ]
+    },
+    "internalsSnapshot": {
+      "url": "http://127.0.0.1:5297/assets/ships/convoy/review-browser.html?ship=liberty-collier&result=http%3A%2F%2F127.0.0.1%3A56936%2Fresult%3Ftoken%3Df0c3c189-1c8d-43e9-aeb2-ed1f8eb1743b",
+      "text": "FLEET COMMAND\nPort\nEquipment\nCommander\nFleet\nCUSTOM BATTLE\n2,450,000\n12,400\nCAPTAIN 08\nLIBERTY COLLIER\nVIII\nCoal carrier\nUnited States · 1945\n\nREADY FOR BATTLE\n\nCreate schematic\nStatistics\nArmor\nInternals\nInternal layout\n19 spaces\n\nProvisional layout. Hover a module or compartment for details. Select a row to isolate it.\n\nFind armor or space\nPort boiler\nMachinery\n200 HP\nStarboard boiler\nMachinery\n200 HP\nTriple-expansion engine\nMachinery\n200 HP\nSingle shaft\nMachinery\n200 HP\nSteering gear\nSteering gear\n80 HP\nForward ammunition\nMagazine\n80 HP\nAft ammunition\nMagazine\n80 HP\nForepeak\nCompartment\n75 m³\nForward magazine\nCompartment\n122 m³\nNo. 1 coal hold\nCompartment\n665 m³\nNo. 2 coal hold\nCompartment\n1,678 m³\nNo. 3 coal hold\nCompartment\n2,361 m³\nNo. 4 coal hold\nCompartment\n2,316 m³\nNo. 5 coal hold\nCompartment\n2,165 m³\nAft triple-expansion engine room\nCompartment\n1,426 m³\nAft raised boiler room\nCompartment\n602 m³\nArmed guard magazine\nCompartment\n257 m³\nSteering and shaft tunnel\nCompartment\n119 m³\nAfterpeak\nCompartment\n21 m³\n\nOutlines show compartments; blue fill shows floodwater.\n\n60 FPS",
+      "buttons": [
+        {
+          "name": "Port",
+          "disabled": false
+        },
+        {
+          "name": "Equipment",
+          "disabled": false
+        },
+        {
+          "name": "Commander",
+          "disabled": false
+        },
+        {
+          "name": "Fleet",
+          "disabled": false
+        },
+        {
+          "name": "CUSTOM BATTLE",
+          "disabled": false
+        },
+        {
+          "name": "Port settings",
+          "disabled": false
+        },
+        {
+          "name": "Create schematic",
+          "disabled": false
+        },
+        {
+          "name": "OTTO REIMANNCommander · Level 82 skill points available",
+          "disabled": false
+        },
+        {
+          "name": "Statistics",
+          "disabled": false
+        },
+        {
+          "name": "Armor",
+          "disabled": false
+        },
+        {
+          "name": "Internals",
+          "disabled": false
+        },
+        {
+          "name": "Port boilerMachinery200 HP",
+          "disabled": false
+        },
+        {
+          "name": "Starboard boilerMachinery200 HP",
+          "disabled": false
+        },
+        {
+          "name": "Triple-expansion engineMachinery200 HP",
+          "disabled": false
+        },
+        {
+          "name": "Single shaftMachinery200 HP",
+          "disabled": false
+        },
+        {
+          "name": "Steering gearSteering gear80 HP",
+          "disabled": false
+        },
+        {
+          "name": "Forward ammunitionMagazine80 HP",
+          "disabled": false
+        },
+        {
+          "name": "Aft ammunitionMagazine80 HP",
+          "disabled": false
+        },
+        {
+          "name": "ForepeakCompartment75 m³",
+          "disabled": false
+        },
+        {
+          "name": "Forward magazineCompartment122 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 1 coal holdCompartment665 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 2 coal holdCompartment1,678 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 3 coal holdCompartment2,361 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 4 coal holdCompartment2,316 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 5 coal holdCompartment2,165 m³",
+          "disabled": false
+        },
+        {
+          "name": "Aft triple-expansion engine roomCompartment1,426 m³",
+          "disabled": false
+        },
+        {
+          "name": "Aft raised boiler roomCompartment602 m³",
+          "disabled": false
+        },
+        {
+          "name": "Armed guard magazineCompartment257 m³",
+          "disabled": false
+        },
+        {
+          "name": "Steering and shaft tunnelCompartment119 m³",
+          "disabled": false
+        },
+        {
+          "name": "AfterpeakCompartment21 m³",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Bismarck",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Yamato",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Baltimore",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Enterprise (CV-6)",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Type VIIC",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Collier",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Victory Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Flower Corvette",
+          "disabled": false
+        },
+        {
+          "name": "Close menu",
+          "disabled": false
+        },
+        {
+          "name": "Back to port",
+          "disabled": false
+        },
+        {
+          "name": "Settings",
+          "disabled": false
+        },
+        {
+          "name": "Close game",
+          "disabled": false
+        }
+      ]
+    },
+    "isolatedVolume": "module:main-engine",
+    "isolatedSnapshot": {
+      "url": "http://127.0.0.1:5297/assets/ships/convoy/review-browser.html?ship=liberty-collier&result=http%3A%2F%2F127.0.0.1%3A56936%2Fresult%3Ftoken%3Df0c3c189-1c8d-43e9-aeb2-ed1f8eb1743b",
+      "text": "FLEET COMMAND\nPort\nEquipment\nCommander\nFleet\nCUSTOM BATTLE\n2,450,000\n12,400\nCAPTAIN 08\nLIBERTY COLLIER\nVIII\nCoal carrier\nUnited States · 1945\n\nREADY FOR BATTLE\n\nCreate schematic\nStatistics\nArmor\nInternals\nInternal layout\n19 spaces\n\nProvisional layout. Hover a module or compartment for details. Select a row to isolate it.\n\nFind armor or space\nPort boiler\nMachinery\n200 HP\nStarboard boiler\nMachinery\n200 HP\nTriple-expansion engine\nMachinery\n200 HP\nSingle shaft\nMachinery\n200 HP\nSteering gear\nSteering gear\n80 HP\nForward ammunition\nMagazine\n80 HP\nAft ammunition\nMagazine\n80 HP\nForepeak\nCompartment\n75 m³\nForward magazine\nCompartment\n122 m³\nNo. 1 coal hold\nCompartment\n665 m³\nNo. 2 coal hold\nCompartment\n1,678 m³\nNo. 3 coal hold\nCompartment\n2,361 m³\nNo. 4 coal hold\nCompartment\n2,316 m³\nNo. 5 coal hold\nCompartment\n2,165 m³\nAft triple-expansion engine room\nCompartment\n1,426 m³\nAft raised boiler room\nCompartment\n602 m³\nArmed guard magazine\nCompartment\n257 m³\nSteering and shaft tunnel\nCompartment\n119 m³\nAfterpeak\nCompartment\n21 m³\n\nOutlines show compartments; blue fill shows floodwater.\n\nTriple-expansion engine\n4.0 × 2.8 × 4.5 m\nClear selection\n56 FPS",
+      "buttons": [
+        {
+          "name": "Port",
+          "disabled": false
+        },
+        {
+          "name": "Equipment",
+          "disabled": false
+        },
+        {
+          "name": "Commander",
+          "disabled": false
+        },
+        {
+          "name": "Fleet",
+          "disabled": false
+        },
+        {
+          "name": "CUSTOM BATTLE",
+          "disabled": false
+        },
+        {
+          "name": "Port settings",
+          "disabled": false
+        },
+        {
+          "name": "Create schematic",
+          "disabled": false
+        },
+        {
+          "name": "OTTO REIMANNCommander · Level 82 skill points available",
+          "disabled": false
+        },
+        {
+          "name": "Statistics",
+          "disabled": false
+        },
+        {
+          "name": "Armor",
+          "disabled": false
+        },
+        {
+          "name": "Internals",
+          "disabled": false
+        },
+        {
+          "name": "Port boilerMachinery200 HP",
+          "disabled": false
+        },
+        {
+          "name": "Starboard boilerMachinery200 HP",
+          "disabled": false
+        },
+        {
+          "name": "Triple-expansion engineMachinery200 HP",
+          "disabled": false
+        },
+        {
+          "name": "Single shaftMachinery200 HP",
+          "disabled": false
+        },
+        {
+          "name": "Steering gearSteering gear80 HP",
+          "disabled": false
+        },
+        {
+          "name": "Forward ammunitionMagazine80 HP",
+          "disabled": false
+        },
+        {
+          "name": "Aft ammunitionMagazine80 HP",
+          "disabled": false
+        },
+        {
+          "name": "ForepeakCompartment75 m³",
+          "disabled": false
+        },
+        {
+          "name": "Forward magazineCompartment122 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 1 coal holdCompartment665 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 2 coal holdCompartment1,678 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 3 coal holdCompartment2,361 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 4 coal holdCompartment2,316 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 5 coal holdCompartment2,165 m³",
+          "disabled": false
+        },
+        {
+          "name": "Aft triple-expansion engine roomCompartment1,426 m³",
+          "disabled": false
+        },
+        {
+          "name": "Aft raised boiler roomCompartment602 m³",
+          "disabled": false
+        },
+        {
+          "name": "Armed guard magazineCompartment257 m³",
+          "disabled": false
+        },
+        {
+          "name": "Steering and shaft tunnelCompartment119 m³",
+          "disabled": false
+        },
+        {
+          "name": "AfterpeakCompartment21 m³",
+          "disabled": false
+        },
+        {
+          "name": "Clear selection",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Bismarck",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Yamato",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Baltimore",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Enterprise (CV-6)",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Type VIIC",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Collier",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Victory Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Flower Corvette",
+          "disabled": false
+        },
+        {
+          "name": "Close menu",
+          "disabled": false
+        },
+        {
+          "name": "Back to port",
+          "disabled": false
+        },
+        {
+          "name": "Settings",
+          "disabled": false
+        },
+        {
+          "name": "Close game",
+          "disabled": false
+        }
+      ]
+    },
+    "finalTick": 0
+  },
+  {
+    "id": "victory-cargo",
+    "hash": "ed2f52b0cb50d318eb5301dd3b6c0c511edcd128a55e7180cd9b1fdcd610344b",
+    "backend": "webgpu",
+    "portFps": 59.71284083127898,
+    "initialTick": 0,
+    "portSnapshot": {
+      "url": "http://127.0.0.1:5297/assets/ships/convoy/review-browser.html?ship=victory-cargo&result=http%3A%2F%2F127.0.0.1%3A56936%2Fresult%3Ftoken%3Df0c3c189-1c8d-43e9-aeb2-ed1f8eb1743b",
+      "text": "FLEET COMMAND\nPort\nEquipment\nCommander\nFleet\nCUSTOM BATTLE\n2,450,000\n12,400\nCAPTAIN 08\nVICTORY CARGO\nVIII\nCargo ship\nUnited States · 1945\n\nREADY FOR BATTLE\n\nCreate schematic\nOTTO REIMANN\nCommander · Level 8\n2 skill points available\nDaily orders\nA captain’s first command\n\nGet underway and put your ship through her paces.\n\nBattles completed\n0 / 1\n25,000 credits\nStatistics\nArmor\nInternals\nStatistics\nVIII\nSurvivability\n39\nArtillery\n8\nAir defense\n15\nManeuverability\n32\nConcealment\n98\n\nFigures come from the combat definition of this ship. Hover a row for its meaning.\n\nSURVIVABILITY\n980condition points\nDisplacement\n15,500t\nReserve buoyancy\n8,264m³\nCompartments\n12\nFlooding capacity\n14,517m³\nPumping\n10.0m³/min\nMachinery modules\n4\nMagazines\n2\nSteering modules\n1\nHull plating\n14 / 5mm\nARMOR\n0mm\nArmor volumes\n0\nMain gunhouse\n6mm\nMAIN BATTERY\n127mm\nGun\n5-inch/38 Mk 21 open mount\nLayout\n1 × 1\nReload\n4.0s\nSalvo damage\n10\nDamage per minute\n150\nPenetration\n65mm\nMuzzle velocity\n792m/s\nShell mass\n25kg\nMaximum range\n11.1km\nElevation\n-10° to 85°\nTraverse\n±160° · 15°/s\nAmmunition\n360rounds\nGunhouse armor\n6mm\nSECONDARY BATTERY\n9barrels\nMOBILITY\n15.0kn\nAstern\n3.3kn\nTime to full speed\n77s\nStopping time\n103s\nRudder shift\n14.3s\nTurning rate\n0.80°/s\nTurning circle\n1,102m\nMachinery spaces\n4\nDIMENSIONS\n138.8m\nMODEL BASIS\n19volumes\nConfigure ship\nBattleship\nBismarck\nAVAILABLE\nBattleship\nYamato\nAVAILABLE\nHeavy cruiser\nUSS Baltimore\nAVAILABLE\nAircraft carrier\nUSS Enterprise (CV-6)\nAVAILABLE\nSubmarine\nType VIIC\nAVAILABLE\nCargo ship\nLiberty Cargo\nAVAILABLE\nCoal carrier\nLiberty Collier\nAVAILABLE\nCargo ship\nVictory Cargo\nIN PORT\nCorvette\nFlower Corvette\nAVAILABLE\n60 FPS",
+      "buttons": [
+        {
+          "name": "Port",
+          "disabled": false
+        },
+        {
+          "name": "Equipment",
+          "disabled": false
+        },
+        {
+          "name": "Commander",
+          "disabled": false
+        },
+        {
+          "name": "Fleet",
+          "disabled": false
+        },
+        {
+          "name": "CUSTOM BATTLE",
+          "disabled": false
+        },
+        {
+          "name": "Port settings",
+          "disabled": false
+        },
+        {
+          "name": "Create schematic",
+          "disabled": false
+        },
+        {
+          "name": "OTTO REIMANNCommander · Level 82 skill points available",
+          "disabled": false
+        },
+        {
+          "name": "Statistics",
+          "disabled": false
+        },
+        {
+          "name": "Armor",
+          "disabled": false
+        },
+        {
+          "name": "Internals",
+          "disabled": false
+        },
+        {
+          "name": "Survivability980condition points",
+          "disabled": false
+        },
+        {
+          "name": "Armor0mm",
+          "disabled": false
+        },
+        {
+          "name": "Main battery127mm",
+          "disabled": false
+        },
+        {
+          "name": "Secondary battery9barrels",
+          "disabled": false
+        },
+        {
+          "name": "Mobility15.0kn",
+          "disabled": false
+        },
+        {
+          "name": "Dimensions138.8m",
+          "disabled": false
+        },
+        {
+          "name": "Model basis19volumes",
+          "disabled": false
+        },
+        {
+          "name": "Configure ship",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Bismarck",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Yamato",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Baltimore",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Enterprise (CV-6)",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Type VIIC",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Collier",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Victory Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Flower Corvette",
+          "disabled": false
+        },
+        {
+          "name": "Close menu",
+          "disabled": false
+        },
+        {
+          "name": "Back to port",
+          "disabled": false
+        },
+        {
+          "name": "Settings",
+          "disabled": false
+        },
+        {
+          "name": "Close game",
+          "disabled": false
+        }
+      ]
+    },
+    "articulation": [
+      {
+        "train": -1,
+        "elevation": 0,
+        "recoil": 0,
+        "maxMuzzleErrorM": 0.000016167598921758237
+      },
+      {
+        "train": 1,
+        "elevation": 1,
+        "recoil": 1,
+        "maxMuzzleErrorM": 0.000014852154980808385
+      }
+    ],
+    "armorSnapshot": {
+      "url": "http://127.0.0.1:5297/assets/ships/convoy/review-browser.html?ship=victory-cargo&result=http%3A%2F%2F127.0.0.1%3A56936%2Fresult%3Ftoken%3Df0c3c189-1c8d-43e9-aeb2-ed1f8eb1743b",
+      "text": "FLEET COMMAND\nPort\nEquipment\nCommander\nFleet\nCUSTOM BATTLE\n2,450,000\n12,400\nCAPTAIN 08\nVICTORY CARGO\nVIII\nCargo ship\nUnited States · 1945\n\nREADY FOR BATTLE\n\nCreate schematic\nStatistics\nArmor\nInternals\nArmor model\n22 surfaces\n\nHover a plate for details. Select a row to isolate it.\n\nGreen · thinner\nRed · thicker\n0 mm\n200 mm\n400+ mm\nFind armor or space\nHull shell · bow to stern\nStructural steel · estimated\n14 mm\nAccommodation block\nStructural steel · estimated\n5 mm\nBoat deck house\nStructural steel · estimated\n5 mm\nNavigation bridge\nStructural steel · estimated\n5 mm\nFlying bridge\nStructural steel · estimated\n5 mm\nFunnel jacket\nStructural steel · estimated\n5 mm\nNo. 1 cargo hatch\nStructural steel · estimated\n5 mm\nNo. 2 cargo hatch\nStructural steel · estimated\n5 mm\nNo. 3 cargo hatch\nStructural steel · estimated\n5 mm\nNo. 4 cargo hatch\nStructural steel · estimated\n5 mm\nNo. 5 cargo hatch\nStructural steel · estimated\n5 mm\nArmed guard quarters\nStructural steel · estimated\n5 mm\nStern 5-inch\nGunhouse armor\n6 mm\nBow 3-inch\nGunhouse armor\n4 mm\nBow starboard Oerlikon\nGunhouse armor\n6 mm\nBridge starboard 1\nGunhouse armor\n6 mm\nBridge starboard 2\nGunhouse armor\n6 mm\nAft starboard Oerlikon\nGunhouse armor\n6 mm\nBow port Oerlikon\nGunhouse armor\n6 mm\nBridge port 1\nGunhouse armor\n6 mm\nBridge port 2\nGunhouse armor\n6 mm\nAft port Oerlikon\nGunhouse armor\n6 mm\n\nHull and deckhouse plating also registers hits. Opaque surfaces hide inner layers; isolate a row to inspect them.\n\n60 FPS",
+      "buttons": [
+        {
+          "name": "Port",
+          "disabled": false
+        },
+        {
+          "name": "Equipment",
+          "disabled": false
+        },
+        {
+          "name": "Commander",
+          "disabled": false
+        },
+        {
+          "name": "Fleet",
+          "disabled": false
+        },
+        {
+          "name": "CUSTOM BATTLE",
+          "disabled": false
+        },
+        {
+          "name": "Port settings",
+          "disabled": false
+        },
+        {
+          "name": "Create schematic",
+          "disabled": false
+        },
+        {
+          "name": "OTTO REIMANNCommander · Level 82 skill points available",
+          "disabled": false
+        },
+        {
+          "name": "Statistics",
+          "disabled": false
+        },
+        {
+          "name": "Armor",
+          "disabled": false
+        },
+        {
+          "name": "Internals",
+          "disabled": false
+        },
+        {
+          "name": "Hull shell · bow to sternStructural steel · estimated14 mm",
+          "disabled": false
+        },
+        {
+          "name": "Accommodation blockStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Boat deck houseStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Navigation bridgeStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Flying bridgeStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Funnel jacketStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "No. 1 cargo hatchStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "No. 2 cargo hatchStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "No. 3 cargo hatchStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "No. 4 cargo hatchStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "No. 5 cargo hatchStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Armed guard quartersStructural steel · estimated5 mm",
+          "disabled": false
+        },
+        {
+          "name": "Stern 5-inchGunhouse armor6 mm",
+          "disabled": false
+        },
+        {
+          "name": "Bow 3-inchGunhouse armor4 mm",
+          "disabled": false
+        },
+        {
+          "name": "Bow starboard OerlikonGunhouse armor6 mm",
+          "disabled": false
+        },
+        {
+          "name": "Bridge starboard 1Gunhouse armor6 mm",
+          "disabled": false
+        },
+        {
+          "name": "Bridge starboard 2Gunhouse armor6 mm",
+          "disabled": false
+        },
+        {
+          "name": "Aft starboard OerlikonGunhouse armor6 mm",
+          "disabled": false
+        },
+        {
+          "name": "Bow port OerlikonGunhouse armor6 mm",
+          "disabled": false
+        },
+        {
+          "name": "Bridge port 1Gunhouse armor6 mm",
+          "disabled": false
+        },
+        {
+          "name": "Bridge port 2Gunhouse armor6 mm",
+          "disabled": false
+        },
+        {
+          "name": "Aft port OerlikonGunhouse armor6 mm",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Bismarck",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Yamato",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Baltimore",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Enterprise (CV-6)",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Type VIIC",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Collier",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Victory Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Flower Corvette",
+          "disabled": false
+        },
+        {
+          "name": "Close menu",
+          "disabled": false
+        },
+        {
+          "name": "Back to port",
+          "disabled": false
+        },
+        {
+          "name": "Settings",
+          "disabled": false
+        },
+        {
+          "name": "Close game",
+          "disabled": false
+        }
+      ]
+    },
+    "internalsSnapshot": {
+      "url": "http://127.0.0.1:5297/assets/ships/convoy/review-browser.html?ship=victory-cargo&result=http%3A%2F%2F127.0.0.1%3A56936%2Fresult%3Ftoken%3Df0c3c189-1c8d-43e9-aeb2-ed1f8eb1743b",
+      "text": "FLEET COMMAND\nPort\nEquipment\nCommander\nFleet\nCUSTOM BATTLE\n2,450,000\n12,400\nCAPTAIN 08\nVICTORY CARGO\nVIII\nCargo ship\nUnited States · 1945\n\nREADY FOR BATTLE\n\nCreate schematic\nStatistics\nArmor\nInternals\nInternal layout\n19 spaces\n\nProvisional layout. Hover a module or compartment for details. Select a row to isolate it.\n\nFind armor or space\nPort boiler\nMachinery\n200 HP\nStarboard boiler\nMachinery\n200 HP\nGeared steam turbine\nMachinery\n200 HP\nSingle shaft\nMachinery\n200 HP\nSteering gear\nSteering gear\n80 HP\nForward ammunition\nMagazine\n80 HP\nAft ammunition\nMagazine\n80 HP\nForepeak\nCompartment\n171 m³\nForward magazine\nCompartment\n389 m³\nNo. 1 hold\nCompartment\n1,131 m³\nNo. 2 hold\nCompartment\n1,909 m³\nNo. 3 hold\nCompartment\n1,439 m³\nTwo-boiler room\nCompartment\n2,173 m³\nGeared turbine engine room\nCompartment\n1,932 m³\nNo. 4 hold\nCompartment\n2,777 m³\nNo. 5 hold\nCompartment\n1,573 m³\nArmed guard magazine\nCompartment\n720 m³\nSteering and shaft tunnel\nCompartment\n258 m³\nAfterpeak\nCompartment\n45 m³\n\nOutlines show compartments; blue fill shows floodwater.\n\n60 FPS",
+      "buttons": [
+        {
+          "name": "Port",
+          "disabled": false
+        },
+        {
+          "name": "Equipment",
+          "disabled": false
+        },
+        {
+          "name": "Commander",
+          "disabled": false
+        },
+        {
+          "name": "Fleet",
+          "disabled": false
+        },
+        {
+          "name": "CUSTOM BATTLE",
+          "disabled": false
+        },
+        {
+          "name": "Port settings",
+          "disabled": false
+        },
+        {
+          "name": "Create schematic",
+          "disabled": false
+        },
+        {
+          "name": "OTTO REIMANNCommander · Level 82 skill points available",
+          "disabled": false
+        },
+        {
+          "name": "Statistics",
+          "disabled": false
+        },
+        {
+          "name": "Armor",
+          "disabled": false
+        },
+        {
+          "name": "Internals",
+          "disabled": false
+        },
+        {
+          "name": "Port boilerMachinery200 HP",
+          "disabled": false
+        },
+        {
+          "name": "Starboard boilerMachinery200 HP",
+          "disabled": false
+        },
+        {
+          "name": "Geared steam turbineMachinery200 HP",
+          "disabled": false
+        },
+        {
+          "name": "Single shaftMachinery200 HP",
+          "disabled": false
+        },
+        {
+          "name": "Steering gearSteering gear80 HP",
+          "disabled": false
+        },
+        {
+          "name": "Forward ammunitionMagazine80 HP",
+          "disabled": false
+        },
+        {
+          "name": "Aft ammunitionMagazine80 HP",
+          "disabled": false
+        },
+        {
+          "name": "ForepeakCompartment171 m³",
+          "disabled": false
+        },
+        {
+          "name": "Forward magazineCompartment389 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 1 holdCompartment1,131 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 2 holdCompartment1,909 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 3 holdCompartment1,439 m³",
+          "disabled": false
+        },
+        {
+          "name": "Two-boiler roomCompartment2,173 m³",
+          "disabled": false
+        },
+        {
+          "name": "Geared turbine engine roomCompartment1,932 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 4 holdCompartment2,777 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 5 holdCompartment1,573 m³",
+          "disabled": false
+        },
+        {
+          "name": "Armed guard magazineCompartment720 m³",
+          "disabled": false
+        },
+        {
+          "name": "Steering and shaft tunnelCompartment258 m³",
+          "disabled": false
+        },
+        {
+          "name": "AfterpeakCompartment45 m³",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Bismarck",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Yamato",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Baltimore",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Enterprise (CV-6)",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Type VIIC",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Collier",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Victory Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Flower Corvette",
+          "disabled": false
+        },
+        {
+          "name": "Close menu",
+          "disabled": false
+        },
+        {
+          "name": "Back to port",
+          "disabled": false
+        },
+        {
+          "name": "Settings",
+          "disabled": false
+        },
+        {
+          "name": "Close game",
+          "disabled": false
+        }
+      ]
+    },
+    "isolatedVolume": "module:main-engine",
+    "isolatedSnapshot": {
+      "url": "http://127.0.0.1:5297/assets/ships/convoy/review-browser.html?ship=victory-cargo&result=http%3A%2F%2F127.0.0.1%3A56936%2Fresult%3Ftoken%3Df0c3c189-1c8d-43e9-aeb2-ed1f8eb1743b",
+      "text": "FLEET COMMAND\nPort\nEquipment\nCommander\nFleet\nCUSTOM BATTLE\n2,450,000\n12,400\nCAPTAIN 08\nVICTORY CARGO\nVIII\nCargo ship\nUnited States · 1945\n\nREADY FOR BATTLE\n\nCreate schematic\nStatistics\nArmor\nInternals\nInternal layout\n19 spaces\n\nProvisional layout. Hover a module or compartment for details. Select a row to isolate it.\n\nFind armor or space\nPort boiler\nMachinery\n200 HP\nStarboard boiler\nMachinery\n200 HP\nGeared steam turbine\nMachinery\n200 HP\nSingle shaft\nMachinery\n200 HP\nSteering gear\nSteering gear\n80 HP\nForward ammunition\nMagazine\n80 HP\nAft ammunition\nMagazine\n80 HP\nForepeak\nCompartment\n171 m³\nForward magazine\nCompartment\n389 m³\nNo. 1 hold\nCompartment\n1,131 m³\nNo. 2 hold\nCompartment\n1,909 m³\nNo. 3 hold\nCompartment\n1,439 m³\nTwo-boiler room\nCompartment\n2,173 m³\nGeared turbine engine room\nCompartment\n1,932 m³\nNo. 4 hold\nCompartment\n2,777 m³\nNo. 5 hold\nCompartment\n1,573 m³\nArmed guard magazine\nCompartment\n720 m³\nSteering and shaft tunnel\nCompartment\n258 m³\nAfterpeak\nCompartment\n45 m³\n\nOutlines show compartments; blue fill shows floodwater.\n\nGeared steam turbine\n4.0 × 2.8 × 4.5 m\nClear selection\n56 FPS",
+      "buttons": [
+        {
+          "name": "Port",
+          "disabled": false
+        },
+        {
+          "name": "Equipment",
+          "disabled": false
+        },
+        {
+          "name": "Commander",
+          "disabled": false
+        },
+        {
+          "name": "Fleet",
+          "disabled": false
+        },
+        {
+          "name": "CUSTOM BATTLE",
+          "disabled": false
+        },
+        {
+          "name": "Port settings",
+          "disabled": false
+        },
+        {
+          "name": "Create schematic",
+          "disabled": false
+        },
+        {
+          "name": "OTTO REIMANNCommander · Level 82 skill points available",
+          "disabled": false
+        },
+        {
+          "name": "Statistics",
+          "disabled": false
+        },
+        {
+          "name": "Armor",
+          "disabled": false
+        },
+        {
+          "name": "Internals",
+          "disabled": false
+        },
+        {
+          "name": "Port boilerMachinery200 HP",
+          "disabled": false
+        },
+        {
+          "name": "Starboard boilerMachinery200 HP",
+          "disabled": false
+        },
+        {
+          "name": "Geared steam turbineMachinery200 HP",
+          "disabled": false
+        },
+        {
+          "name": "Single shaftMachinery200 HP",
+          "disabled": false
+        },
+        {
+          "name": "Steering gearSteering gear80 HP",
+          "disabled": false
+        },
+        {
+          "name": "Forward ammunitionMagazine80 HP",
+          "disabled": false
+        },
+        {
+          "name": "Aft ammunitionMagazine80 HP",
+          "disabled": false
+        },
+        {
+          "name": "ForepeakCompartment171 m³",
+          "disabled": false
+        },
+        {
+          "name": "Forward magazineCompartment389 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 1 holdCompartment1,131 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 2 holdCompartment1,909 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 3 holdCompartment1,439 m³",
+          "disabled": false
+        },
+        {
+          "name": "Two-boiler roomCompartment2,173 m³",
+          "disabled": false
+        },
+        {
+          "name": "Geared turbine engine roomCompartment1,932 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 4 holdCompartment2,777 m³",
+          "disabled": false
+        },
+        {
+          "name": "No. 5 holdCompartment1,573 m³",
+          "disabled": false
+        },
+        {
+          "name": "Armed guard magazineCompartment720 m³",
+          "disabled": false
+        },
+        {
+          "name": "Steering and shaft tunnelCompartment258 m³",
+          "disabled": false
+        },
+        {
+          "name": "AfterpeakCompartment45 m³",
+          "disabled": false
+        },
+        {
+          "name": "Clear selection",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Bismarck",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Yamato",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Baltimore",
+          "disabled": false
+        },
+        {
+          "name": "Inspect USS Enterprise (CV-6)",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Type VIIC",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Liberty Collier",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Victory Cargo",
+          "disabled": false
+        },
+        {
+          "name": "Inspect Flower Corvette",
+          "disabled": false
+        },
+        {
+          "name": "Close menu",
+          "disabled": false
+        },
+        {
+          "name": "Back to port",
+          "disabled": false
+        },
+        {
+          "name": "Settings",
+          "disabled": false
+        },
+        {
+          "name": "Close game",
+          "disabled": false
+        }
+      ]
+    },
+    "finalTick": 0
+  }
+]

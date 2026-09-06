@@ -29,7 +29,7 @@ export class ShipView {
   private surfaces: { material: THREE.MeshStandardMaterial; opacity: number; transparent: boolean; depthWrite: boolean }[] = [];
   private inspecting = false;
   private appendages: { node: THREE.Object3D; base: THREE.Quaternion; kind: keyof NonNullable<ShipDefinition['submarine']>['appendages']; index: number }[] = [];
-  constructor(model: THREE.Group, readonly definition: ShipDefinition, readonly actor: Combatant) {
+  constructor(model: THREE.Group, readonly definition: ShipDefinition, readonly actor: Combatant, reversedDepthBuffer = false) {
     this.motionSource = actor.motion;
     this.damageSource = actor.damage;
     this.motion = { ...actor.motion };
@@ -69,7 +69,7 @@ export class ShipView {
       this.appendages.push(...definition.submarine.appendages[kind].map((id, index) => ({ node: node(id), base: node(id).quaternion.clone(), kind, index })));
     }
     this.root.add(model, this.internals);
-    this.impactMarks = new ShipImpactMarks(this.root, model, new Map(definition.mounts.map((m, i) => [m.id, this.bindings[i].yaw])));
+    this.impactMarks = new ShipImpactMarks(this.root, model, new Map(definition.mounts.map((m, i) => [m.id, this.bindings[i].yaw])), reversedDepthBuffer);
     this.update();
   }
   inspect(enabled: boolean): void { this.setInspection(enabled ? 'all' : 'exterior'); }

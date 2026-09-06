@@ -20,16 +20,21 @@ const modulesFor = (selectedShip: ShipDefinition) => {
   const submarine = shipIdentity(selectedShip.id).type === "Submarine";
   const destroyer = shipIdentity(selectedShip.id).type === "Destroyer";
   const survivability = shipScores(selectedShip).find((s) => s.id === "survivability")!.score;
+  const main = selectedShip.mounts.find(m => m.battery === 'main');
+  const drives = selectedShip.propulsion?.groups.flatMap(g => g.driveIds) ?? [];
+  const machinery = selectedShip.modules.find(m => drives.includes(m.id));
+  const shafts = new Set(selectedShip.propulsion?.groups.flatMap(g => g.shaftIds) ?? []).size;
+  const armored = selectedShip.armor.some(a => !a.plate?.mountId && a.thicknessMm >= 50);
   return {
     battery: {
       name: "Main battery",
-      model: selectedShip.mounts[0]?.weapon.name ?? "No deck gun",
+      model: main?.weapon.name ?? "No deck gun",
       icon: "turret",
-      detail: `${selectedShip.mounts.filter((m) => m.battery === "main").length} main battery mounts.${submarine ? " Deck gun for surface engagements; torpedoes are the primary striking arm." : " Built for long-range engagements."}`,
+      detail: `${selectedShip.mounts.filter((m) => m.battery === "main").length} main battery mounts.${submarine ? " Deck gun for surface engagements; torpedoes are the primary striking arm." : " Train the guns into arc for surface fire."}`,
       upgrade: "Improved loading system",
       stat: "Reload time",
-      standard: "26.0 s",
-      improved: "23.4 s",
+      standard: `${(main?.weapon.reloadSeconds ?? 0).toFixed(1)} s`,
+      improved: `${((main?.weapon.reloadSeconds ?? 0) * .9).toFixed(1)} s`,
       cost: 125000,
     },
     hull: {
@@ -37,7 +42,7 @@ const modulesFor = (selectedShip: ShipDefinition) => {
       model: `${selectedShip.name} · ${selectedShip.configuration.match(/19\d{2}/)?.[0]}`,
       icon: "ship",
       detail:
-        destroyer ? "A light steel hull carries rapid-firing guns, torpedoes and depth charges." : submarine ? "An unarmored outer casing surrounds the pressure hull. Ballast and dive planes control depth; flooding remains a separate threat." : "A heavily armored citadel protects the ship’s vital compartments.",
+        destroyer ? "A light steel hull carries rapid-firing guns, torpedoes and depth charges." : submarine ? "An unarmored outer casing surrounds the pressure hull. Ballast and dive planes control depth; flooding remains a separate threat." : armored ? "Armor protects vital compartments. Inspect the protection and internal layout in port." : "Ordinary steel plating surrounds the watertight spaces. Inspect machinery, ammunition and flooding compartments in port.",
       upgrade: "Reinforced compartmentation",
       stat: "Survivability",
       standard: String(survivability),
@@ -46,10 +51,10 @@ const modulesFor = (selectedShip: ShipDefinition) => {
     },
     propulsion: {
       name: "Propulsion",
-      model: submarine ? "Diesels and electric motors" : "Geared steam turbines",
+      model: machinery?.name ?? (submarine ? "Diesels and electric motors" : destroyer ? "Geared steam turbines" : "Steam propulsion"),
       icon: "propeller",
-      detail: destroyer ? "Twin shafts and geared turbines drive a fast, responsive hull." : submarine ? "Twin shafts use diesel power near the surface and electric motors underwater." : "Three shafts deliver steady power for an Atlantic crossing.",
-      upgrade: "Turbine calibration",
+      detail: destroyer ? "Twin shafts and geared turbines drive a fast, responsive hull." : submarine ? "Twin shafts use diesels on the surface and electric motors underwater." : shafts ? `${shafts} ${shafts === 1 ? 'shaft supplies' : 'shafts supply'} propulsion. Machinery damage and flooding reduce available power.` : "Machinery damage and flooding reduce available propulsion power.",
+      upgrade: "Engine calibration",
       stat: "Engine response",
       standard: "34.0 s",
       improved: "30.6 s",

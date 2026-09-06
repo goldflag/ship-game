@@ -1,13 +1,16 @@
 {
-  "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+  "contentHash": "21547dc10500b4bf4ce24f8709a5276f6db3f05958261afedcd6f1f5914ea62e",
   "browser": "151.0.7922.34",
   "backend": "webgpu",
   "poses": [
     {
       "label": "neutral",
       "diagnostics": {
+        "mapId": "north-atlantic",
+        "sea": "Fair",
+        "islands": [],
         "shipId": "fletcher",
-        "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+        "contentHash": "21547dc10500b4bf4ce24f8709a5276f6db3f05958261afedcd6f1f5914ea62e",
         "backend": "webgpu",
         "camera": {
           "mode": "Chase",
@@ -38,11 +41,11 @@
             0,
             0,
             0,
-            -1.000050002500125,
+            0.00005000250012500625,
             -1,
             0,
             0,
-            -3.000150007500375,
+            3.000150007500375,
             0
           ],
           "matrixWorldInverse": [
@@ -65,9 +68,9 @@
           ]
         },
         "tick": 0,
-        "battleSeed": 2838915466,
+        "battleSeed": 3323989277,
         "paused": true,
-        "fps": 74.2063916804113,
+        "fps": 86.5411319118209,
         "inspecting": false,
         "inPort": true,
         "effects": {
@@ -98,7 +101,7 @@
         },
         "portInspection": "exterior",
         "maxMuzzleErrorM": 0.0006805869411612592,
-        "maxTorpedoMuzzleErrorM": 0.0000024164033658146785,
+        "maxTorpedoMuzzleErrorM": 0.0000026020255178476953,
         "torpedoLaunchers": [
           {
             "id": "torpedo-forward",
@@ -111,12 +114,32 @@
         ],
         "depthCharges": [],
         "combat": {
+          "airContacts": [],
           "battery": "depth-charge",
           "range": 27.760133284982622,
           "ready": 8,
           "total": 8,
+          "ammunition": "ap",
+          "heSupported": false,
+          "ammunitionStock": {
+            "ap": 0,
+            "he": 0
+          },
+          "targetMounts": [
+            {
+              "id": "deck-gun",
+              "name": "8.8 cm deck gun",
+              "condition": 1
+            },
+            {
+              "id": "flak-gun",
+              "name": "2 cm aft platform gun",
+              "condition": 1
+            }
+          ],
           "targetId": "enemy-1",
           "targetName": "Type VIIC",
+          "targetDepthM": 0,
           "targetRange": 1028.3968105745953,
           "battle": true,
           "result": "active",
@@ -132,7 +155,9 @@
               "z": 0,
               "heading": 0,
               "integrity": 1,
-              "sunk": false
+              "sunk": false,
+              "status": "operational",
+              "combatLost": false
             },
             {
               "id": "enemy-1",
@@ -144,7 +169,237 @@
               "z": -1000,
               "heading": 3.141592653589793,
               "integrity": 1,
-              "sunk": false
+              "sunk": false,
+              "status": "operational",
+              "combatLost": false
+            }
+          ],
+          "targetStatus": "operational",
+          "playerStatus": "operational",
+          "targetList": 0,
+          "targetTrim": 0,
+          "targetDraftChange": 0,
+          "control": {
+            "priority": "balanced",
+            "focus": "",
+            "spares": 0,
+            "rooms": [
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              }
+            ],
+            "mounts": [
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              }
+            ],
+            "teams": [],
+            "pumping": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          "targetFires": 0,
+          "controlTargets": [
+            {
+              "id": "forepeak-space",
+              "name": "Forepeak"
+            },
+            {
+              "id": "forward-magazine-space",
+              "name": "Forward ammunition rooms"
+            },
+            {
+              "id": "boiler-forward-space",
+              "name": "Forward boiler room"
+            },
+            {
+              "id": "engine-forward-space",
+              "name": "Forward engine room"
+            },
+            {
+              "id": "boiler-aft-space",
+              "name": "After boiler room"
+            },
+            {
+              "id": "engine-aft-space",
+              "name": "After engine room"
+            },
+            {
+              "id": "aft-magazine-space",
+              "name": "After ammunition rooms"
+            },
+            {
+              "id": "steering-room-space",
+              "name": "Steering flat"
+            },
+            {
+              "id": "torpedo-magazine-space",
+              "name": "Torpedo ready service"
+            },
+            {
+              "id": "depth-charge-magazine-space",
+              "name": "Depth charge ready service"
+            },
+            {
+              "id": "gun-1",
+              "name": "Mount 51"
+            },
+            {
+              "id": "gun-2",
+              "name": "Mount 52"
+            },
+            {
+              "id": "gun-3",
+              "name": "Mount 53"
+            },
+            {
+              "id": "gun-4",
+              "name": "Mount 54"
+            },
+            {
+              "id": "gun-5",
+              "name": "Mount 55"
+            },
+            {
+              "id": "bofors-aft",
+              "name": "After 40 mm twin"
+            },
+            {
+              "id": "oerlikon-1",
+              "name": "20 mm station 1"
+            },
+            {
+              "id": "oerlikon-2",
+              "name": "20 mm station 2"
+            },
+            {
+              "id": "oerlikon-3",
+              "name": "20 mm station 3"
+            },
+            {
+              "id": "oerlikon-4",
+              "name": "20 mm station 4"
+            },
+            {
+              "id": "oerlikon-5",
+              "name": "20 mm station 5"
+            },
+            {
+              "id": "oerlikon-6",
+              "name": "20 mm station 6"
             }
           ],
           "targetIntegrity": 1,
@@ -215,32 +470,44 @@
             {
               "id": "forward-torpedoes",
               "name": "Forward torpedo stowage",
-              "condition": 1
+              "condition": 1,
+              "availability": 1,
+              "reason": "operational"
             },
             {
               "id": "deck-magazine",
               "name": "Deck gun ammunition locker",
-              "condition": 1
+              "condition": 1,
+              "availability": 1,
+              "reason": "operational"
             },
             {
               "id": "diesels",
               "name": "Twin diesel engines",
-              "condition": 1
+              "condition": 1,
+              "availability": 1,
+              "reason": "operational"
             },
             {
               "id": "electric-motors",
               "name": "Twin electric motors",
-              "condition": 1
+              "condition": 1,
+              "availability": 1,
+              "reason": "operational"
             },
             {
               "id": "aft-torpedoes",
               "name": "Stern torpedo stowage",
-              "condition": 1
+              "condition": 1,
+              "availability": 1,
+              "reason": "operational"
             },
             {
               "id": "steering-gear",
               "name": "Rudder linkage",
-              "condition": 1
+              "condition": 1,
+              "availability": 1,
+              "reason": "operational"
             }
           ],
           "playerIntegrity": 1,
@@ -248,6 +515,7 @@
           "playerDamageDealt": 0,
           "playerFrags": 0,
           "playerWater": 0,
+          "shellHistory": [],
           "targetPosition": {
             "x": 0,
             "z": -1000,
@@ -256,6 +524,7 @@
           "batteries": [
             {
               "battery": "main",
+              "ammunition": "ap",
               "ammo": 1800,
               "ready": 0,
               "total": 5,
@@ -263,6 +532,7 @@
             },
             {
               "battery": "secondary",
+              "ammunition": "ap",
               "ammo": 13200,
               "ready": 0,
               "total": 7,
@@ -270,6 +540,7 @@
             },
             {
               "battery": "torpedo",
+              "ammunition": "ap",
               "ammo": 10,
               "ready": 10,
               "total": 10,
@@ -277,6 +548,7 @@
             },
             {
               "battery": "depth-charge",
+              "ammunition": "ap",
               "ammo": 28,
               "ready": 8,
               "total": 8,
@@ -329,6 +601,13 @@
               "yawRate": 0,
               "distance": 0
             },
+            "submarine": {
+              "targetDepthM": 0,
+              "ballastM3": 0,
+              "emergencyBlow": false,
+              "planes": 0,
+              "trimPitch": 0
+            },
             "ammo": 1320,
             "integrity": 450
           }
@@ -347,6 +626,14 @@
             "impactDrawCalls": 0
           }
         ],
+        "renderedAircraft": {
+          "models": 0,
+          "instances": 0,
+          "batches": 0,
+          "payloads": 0
+        },
+        "aircraft": [],
+        "airReleases": [],
         "torpedoes": [],
         "events": []
       },
@@ -356,8 +643,11 @@
     {
       "label": "low-recoil",
       "diagnostics": {
+        "mapId": "north-atlantic",
+        "sea": "Fair",
+        "islands": [],
         "shipId": "fletcher",
-        "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+        "contentHash": "21547dc10500b4bf4ce24f8709a5276f6db3f05958261afedcd6f1f5914ea62e",
         "backend": "webgpu",
         "camera": {
           "mode": "Chase",
@@ -388,11 +678,11 @@
             0,
             0,
             0,
-            -1.000050002500125,
+            0.00005000250012500625,
             -1,
             0,
             0,
-            -3.000150007500375,
+            3.000150007500375,
             0
           ],
           "matrixWorldInverse": [
@@ -415,9 +705,9 @@
           ]
         },
         "tick": 0,
-        "battleSeed": 2838915466,
+        "battleSeed": 3323989277,
         "paused": true,
-        "fps": 65.84166063425681,
+        "fps": 94.48130617046476,
         "inspecting": false,
         "inPort": true,
         "effects": {
@@ -448,7 +738,7 @@
         },
         "portInspection": "exterior",
         "maxMuzzleErrorM": 0.0006805625250862776,
-        "maxTorpedoMuzzleErrorM": 0.0000024164033658146785,
+        "maxTorpedoMuzzleErrorM": 0.0000026020255178476953,
         "torpedoLaunchers": [
           {
             "id": "torpedo-forward",
@@ -461,12 +751,32 @@
         ],
         "depthCharges": [],
         "combat": {
+          "airContacts": [],
           "battery": "depth-charge",
           "range": 27.760133284982622,
           "ready": 8,
           "total": 8,
+          "ammunition": "ap",
+          "heSupported": false,
+          "ammunitionStock": {
+            "ap": 0,
+            "he": 0
+          },
+          "targetMounts": [
+            {
+              "id": "deck-gun",
+              "name": "8.8 cm deck gun",
+              "condition": 1
+            },
+            {
+              "id": "flak-gun",
+              "name": "2 cm aft platform gun",
+              "condition": 1
+            }
+          ],
           "targetId": "enemy-1",
           "targetName": "Type VIIC",
+          "targetDepthM": 0,
           "targetRange": 1028.3968105745953,
           "battle": true,
           "result": "active",
@@ -482,7 +792,9 @@
               "z": 0,
               "heading": 0,
               "integrity": 1,
-              "sunk": false
+              "sunk": false,
+              "status": "operational",
+              "combatLost": false
             },
             {
               "id": "enemy-1",
@@ -494,7 +806,237 @@
               "z": -1000,
               "heading": 3.141592653589793,
               "integrity": 1,
-              "sunk": false
+              "sunk": false,
+              "status": "operational",
+              "combatLost": false
+            }
+          ],
+          "targetStatus": "operational",
+          "playerStatus": "operational",
+          "targetList": 0,
+          "targetTrim": 0,
+          "targetDraftChange": 0,
+          "control": {
+            "priority": "balanced",
+            "focus": "",
+            "spares": 0,
+            "rooms": [
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              }
+            ],
+            "mounts": [
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              }
+            ],
+            "teams": [],
+            "pumping": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          "targetFires": 0,
+          "controlTargets": [
+            {
+              "id": "forepeak-space",
+              "name": "Forepeak"
+            },
+            {
+              "id": "forward-magazine-space",
+              "name": "Forward ammunition rooms"
+            },
+            {
+              "id": "boiler-forward-space",
+              "name": "Forward boiler room"
+            },
+            {
+              "id": "engine-forward-space",
+              "name": "Forward engine room"
+            },
+            {
+              "id": "boiler-aft-space",
+              "name": "After boiler room"
+            },
+            {
+              "id": "engine-aft-space",
+              "name": "After engine room"
+            },
+            {
+              "id": "aft-magazine-space",
+              "name": "After ammunition rooms"
+            },
+            {
+              "id": "steering-room-space",
+              "name": "Steering flat"
+            },
+            {
+              "id": "torpedo-magazine-space",
+              "name": "Torpedo ready service"
+            },
+            {
+              "id": "depth-charge-magazine-space",
+              "name": "Depth charge ready service"
+            },
+            {
+              "id": "gun-1",
+              "name": "Mount 51"
+            },
+            {
+              "id": "gun-2",
+              "name": "Mount 52"
+            },
+            {
+              "id": "gun-3",
+              "name": "Mount 53"
+            },
+            {
+              "id": "gun-4",
+              "name": "Mount 54"
+            },
+            {
+              "id": "gun-5",
+              "name": "Mount 55"
+            },
+            {
+              "id": "bofors-aft",
+              "name": "After 40 mm twin"
+            },
+            {
+              "id": "oerlikon-1",
+              "name": "20 mm station 1"
+            },
+            {
+              "id": "oerlikon-2",
+              "name": "20 mm station 2"
+            },
+            {
+              "id": "oerlikon-3",
+              "name": "20 mm station 3"
+            },
+            {
+              "id": "oerlikon-4",
+              "name": "20 mm station 4"
+            },
+            {
+              "id": "oerlikon-5",
+              "name": "20 mm station 5"
+            },
+            {
+              "id": "oerlikon-6",
+              "name": "20 mm station 6"
             }
           ],
           "targetIntegrity": 1,
@@ -565,32 +1107,44 @@
             {
               "id": "forward-torpedoes",
               "name": "Forward torpedo stowage",
-              "condition": 1
+              "condition": 1,
+              "availability": 1,
+              "reason": "operational"
             },
             {
               "id": "deck-magazine",
               "name": "Deck gun ammunition locker",
-              "condition": 1
+              "condition": 1,
+              "availability": 1,
+              "reason": "operational"
             },
             {
               "id": "diesels",
               "name": "Twin diesel engines",
-              "condition": 1
+              "condition": 1,
+              "availability": 1,
+              "reason": "operational"
             },
             {
               "id": "electric-motors",
               "name": "Twin electric motors",
-              "condition": 1
+              "condition": 1,
+              "availability": 1,
+              "reason": "operational"
             },
             {
               "id": "aft-torpedoes",
               "name": "Stern torpedo stowage",
-              "condition": 1
+              "condition": 1,
+              "availability": 1,
+              "reason": "operational"
             },
             {
               "id": "steering-gear",
               "name": "Rudder linkage",
-              "condition": 1
+              "condition": 1,
+              "availability": 1,
+              "reason": "operational"
             }
           ],
           "playerIntegrity": 1,
@@ -598,6 +1152,7 @@
           "playerDamageDealt": 0,
           "playerFrags": 0,
           "playerWater": 0,
+          "shellHistory": [],
           "targetPosition": {
             "x": 0,
             "z": -1000,
@@ -606,6 +1161,7 @@
           "batteries": [
             {
               "battery": "main",
+              "ammunition": "ap",
               "ammo": 1800,
               "ready": 0,
               "total": 5,
@@ -613,6 +1169,7 @@
             },
             {
               "battery": "secondary",
+              "ammunition": "ap",
               "ammo": 13200,
               "ready": 0,
               "total": 7,
@@ -620,6 +1177,7 @@
             },
             {
               "battery": "torpedo",
+              "ammunition": "ap",
               "ammo": 10,
               "ready": 10,
               "total": 10,
@@ -627,6 +1185,7 @@
             },
             {
               "battery": "depth-charge",
+              "ammunition": "ap",
               "ammo": 28,
               "ready": 8,
               "total": 8,
@@ -679,6 +1238,13 @@
               "yawRate": 0,
               "distance": 0
             },
+            "submarine": {
+              "targetDepthM": 0,
+              "ballastM3": 0,
+              "emergencyBlow": false,
+              "planes": 0,
+              "trimPitch": 0
+            },
             "ammo": 1320,
             "integrity": 450
           }
@@ -697,6 +1263,14 @@
             "impactDrawCalls": 0
           }
         ],
+        "renderedAircraft": {
+          "models": 0,
+          "instances": 0,
+          "batches": 0,
+          "payloads": 0
+        },
+        "aircraft": [],
+        "airReleases": [],
         "torpedoes": [],
         "events": []
       },
@@ -706,8 +1280,11 @@
     {
       "label": "high-recoil",
       "diagnostics": {
+        "mapId": "north-atlantic",
+        "sea": "Fair",
+        "islands": [],
         "shipId": "fletcher",
-        "contentHash": "76f1404e1846501996245cade4b0c6081c1c4bbfdf21ea20eeadaaece516a918",
+        "contentHash": "21547dc10500b4bf4ce24f8709a5276f6db3f05958261afedcd6f1f5914ea62e",
         "backend": "webgpu",
         "camera": {
           "mode": "Chase",
@@ -738,11 +1315,11 @@
             0,
             0,
             0,
-            -1.000050002500125,
+            0.00005000250012500625,
             -1,
             0,
             0,
-            -3.000150007500375,
+            3.000150007500375,
             0
           ],
           "matrixWorldInverse": [
@@ -765,9 +1342,9 @@
           ]
         },
         "tick": 0,
-        "battleSeed": 2838915466,
+        "battleSeed": 3323989277,
         "paused": true,
-        "fps": 63.606745215444185,
+        "fps": 94.22552938508392,
         "inspecting": false,
         "inPort": true,
         "effects": {
@@ -798,7 +1375,7 @@
         },
         "portInspection": "exterior",
         "maxMuzzleErrorM": 0.0006802350673599303,
-        "maxTorpedoMuzzleErrorM": 0.0000024164033658146785,
+        "maxTorpedoMuzzleErrorM": 0.0000026020255178476953,
         "torpedoLaunchers": [
           {
             "id": "torpedo-forward",
@@ -811,12 +1388,32 @@
         ],
         "depthCharges": [],
         "combat": {
+          "airContacts": [],
           "battery": "depth-charge",
           "range": 27.760133284982622,
           "ready": 8,
           "total": 8,
+          "ammunition": "ap",
+          "heSupported": false,
+          "ammunitionStock": {
+            "ap": 0,
+            "he": 0
+          },
+          "targetMounts": [
+            {
+              "id": "deck-gun",
+              "name": "8.8 cm deck gun",
+              "condition": 1
+            },
+            {
+              "id": "flak-gun",
+              "name": "2 cm aft platform gun",
+              "condition": 1
+            }
+          ],
           "targetId": "enemy-1",
           "targetName": "Type VIIC",
+          "targetDepthM": 0,
           "targetRange": 1028.3968105745953,
           "battle": true,
           "result": "active",
@@ -832,7 +1429,9 @@
               "z": 0,
               "heading": 0,
               "integrity": 1,
-              "sunk": false
+              "sunk": false,
+              "status": "operational",
+              "combatLost": false
             },
             {
               "id": "enemy-1",
@@ -844,7 +1443,237 @@
               "z": -1000,
               "heading": 3.141592653589793,
               "integrity": 1,
-              "sunk": false
+              "sunk": false,
+              "status": "operational",
+              "combatLost": false
+            }
+          ],
+          "targetStatus": "operational",
+          "playerStatus": "operational",
+          "targetList": 0,
+          "targetTrim": 0,
+          "targetDraftChange": 0,
+          "control": {
+            "priority": "balanced",
+            "focus": "",
+            "spares": 0,
+            "rooms": [
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              }
+            ],
+            "mounts": [
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              },
+              {
+                "heat": 0,
+                "intensity": 0,
+                "fuel": 0
+              }
+            ],
+            "teams": [],
+            "pumping": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          "targetFires": 0,
+          "controlTargets": [
+            {
+              "id": "forepeak-space",
+              "name": "Forepeak"
+            },
+            {
+              "id": "forward-magazine-space",
+              "name": "Forward ammunition rooms"
+            },
+            {
+              "id": "boiler-forward-space",
+              "name": "Forward boiler room"
+            },
+            {
+              "id": "engine-forward-space",
+              "name": "Forward engine room"
+            },
+            {
+              "id": "boiler-aft-space",
+              "name": "After boiler room"
+            },
+            {
+              "id": "engine-aft-space",
+              "name": "After engine room"
+            },
+            {
+              "id": "aft-magazine-space",
+              "name": "After ammunition rooms"
+            },
+            {
+              "id": "steering-room-space",
+              "name": "Steering flat"
+            },
+            {
+              "id": "torpedo-magazine-space",
+              "name": "Torpedo ready service"
+            },
+            {
+              "id": "depth-charge-magazine-space",
+              "name": "Depth charge ready service"
+            },
+            {
+              "id": "gun-1",
+              "name": "Mount 51"
+            },
+            {
+              "id": "gun-2",
+              "name": "Mount 52"
+            },
+            {
+              "id": "gun-3",
+              "name": "Mount 53"
+            },
+            {
+              "id": "gun-4",
+              "name": "Mount 54"
+            },
+            {
+              "id": "gun-5",
+              "name": "Mount 55"
+            },
+            {
+              "id": "bofors-aft",
+              "name": "After 40 mm twin"
+            },
+            {
+              "id": "oerlikon-1",
+              "name": "20 mm station 1"
+            },
+            {
+              "id": "oerlikon-2",
+              "name": "20 mm station 2"
+            },
+            {
+              "id": "oerlikon-3",
+              "name": "20 mm station 3"
+            },
+            {
+              "id": "oerlikon-4",
+              "name": "20 mm station 4"
+            },
+            {
+              "id": "oerlikon-5",
+              "name": "20 mm station 5"
+            },
+            {
+              "id": "oerlikon-6",
+              "name": "20 mm station 6"
             }
           ],
           "targetIntegrity": 1,
@@ -915,32 +1744,44 @@
             {
               "id": "forward-torpedoes",
               "name": "Forward torpedo stowage",
-              "condition": 1
+              "condition": 1,
+              "availability": 1,
+              "reason": "operational"
             },
             {
               "id": "deck-magazine",
               "name": "Deck gun ammunition locker",
-              "condition": 1
+              "condition": 1,
+              "availability": 1,
+              "reason": "operational"
             },
             {
               "id": "diesels",
               "name": "Twin diesel engines",
-              "condition": 1
+              "condition": 1,
+              "availability": 1,
+              "reason": "operational"
             },
             {
               "id": "electric-motors",
               "name": "Twin electric motors",
-              "condition": 1
+              "condition": 1,
+              "availability": 1,
+              "reason": "operational"
             },
             {
               "id": "aft-torpedoes",
               "name": "Stern torpedo stowage",
-              "condition": 1
+              "condition": 1,
+              "availability": 1,
+              "reason": "operational"
             },
             {
               "id": "steering-gear",
               "name": "Rudder linkage",
-              "condition": 1
+              "condition": 1,
+              "availability": 1,
+              "reason": "operational"
             }
           ],
           "playerIntegrity": 1,
@@ -948,6 +1789,7 @@
           "playerDamageDealt": 0,
           "playerFrags": 0,
           "playerWater": 0,
+          "shellHistory": [],
           "targetPosition": {
             "x": 0,
             "z": -1000,
@@ -956,6 +1798,7 @@
           "batteries": [
             {
               "battery": "main",
+              "ammunition": "ap",
               "ammo": 1800,
               "ready": 0,
               "total": 5,
@@ -963,6 +1806,7 @@
             },
             {
               "battery": "secondary",
+              "ammunition": "ap",
               "ammo": 13200,
               "ready": 0,
               "total": 7,
@@ -970,6 +1814,7 @@
             },
             {
               "battery": "torpedo",
+              "ammunition": "ap",
               "ammo": 10,
               "ready": 10,
               "total": 10,
@@ -977,6 +1822,7 @@
             },
             {
               "battery": "depth-charge",
+              "ammunition": "ap",
               "ammo": 28,
               "ready": 8,
               "total": 8,
@@ -1029,6 +1875,13 @@
               "yawRate": 0,
               "distance": 0
             },
+            "submarine": {
+              "targetDepthM": 0,
+              "ballastM3": 0,
+              "emergencyBlow": false,
+              "planes": 0,
+              "trimPitch": 0
+            },
             "ammo": 1320,
             "integrity": 450
           }
@@ -1047,6 +1900,14 @@
             "impactDrawCalls": 0
           }
         ],
+        "renderedAircraft": {
+          "models": 0,
+          "instances": 0,
+          "batches": 0,
+          "payloads": 0
+        },
+        "aircraft": [],
+        "airReleases": [],
         "torpedoes": [],
         "events": []
       },

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Convoy integration review</title></head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script type="module">
+      import { reviewInBrowser } from './review-browser.ts';
+      const query = new URLSearchParams(location.search);
+      const endpoint = query.get('result');
+      if (endpoint && /^http:\/\/127\.0\.0\.1:\d+\/result\?token=[a-f0-9-]+$/.test(endpoint)) {
+        try {
+          const result = await reviewInBrowser();
+          await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: result });
+        } catch (error) {
+          await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: String(error), stack: error.stack }) });
+        }
+      }
+    </script>
+  </body>
+</html>

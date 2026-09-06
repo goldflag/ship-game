@@ -20,3 +20,11 @@
 @media (max-width:1100px) { .fleet-flight { width:218px; max-height:calc(100vh - 390px); } }
 @media (max-width:600px) { .fleet-flight { top:260px; left:auto; right:10px; width:min(180px, calc(50vw - 22px)); max-height:max(110px, calc(100vh - 535px)); padding:9px; } .fleet-flight footer span { display:none; } }
 @media (max-height:620px) and (min-width:601px) { .fleet-flight { top:100px; max-height:calc(100vh - 335px); width:218px; } }
+
+.fleet-flight li > span { flex-basis:100%; }
+.fleet-flight button[aria-pressed="true"] { border-color:var(--fleet-active); color:var(--fleet-active); }
+.fleet-aircraft-status { pointer-events:auto; }
+.fleet-aircraft-status button { padding:7px 12px; border:1px solid var(--fleet-line); border-radius:2px; background:#233e4a; color:#edf5f2; cursor:pointer; }
+.fleet-aircraft-status button:focus-visible { outline:2px solid var(--fleet-gold); outline-offset:2px; }
+
+@media (max-width:600px) { .fleet-aircraft-status { display:grid; width:min(240px, 90vw); white-space:normal; } .fleet-aircraft-status span { display:none; } }

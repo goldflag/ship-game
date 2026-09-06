@@ -1,16 +1,26 @@
 import { expect, test } from 'bun:test';
-import { Group, PerspectiveCamera, Vector3 } from 'three/webgpu';
+import { Group, PerspectiveCamera, Vector3, WebGLCoordinateSystem, WebGPUCoordinateSystem } from 'three/webgpu';
 import { shipPreset } from '../ships/presets';
 import { CombatSimulation } from '../simulation/combat';
 import { projectShipLabel, ShipLabels } from './ShipLabels';
 import type { ShipView } from './ShipView';
 
-test('ship labels follow camera projection and cull rear, offscreen and clipped ships', () => {
+test.each([
+  { backend: 'WebGL', coordinateSystem: WebGLCoordinateSystem, reversedDepth: false },
+  { backend: 'WebGPU', coordinateSystem: WebGPUCoordinateSystem, reversedDepth: false },
+  { backend: 'WebGL', coordinateSystem: WebGLCoordinateSystem, reversedDepth: true },
+  { backend: 'WebGPU', coordinateSystem: WebGPUCoordinateSystem, reversedDepth: true },
+])('ship labels cull rear, offscreen and clipped ships ($backend, reversed depth: $reversedDepth)', ({ coordinateSystem, reversedDepth }) => {
   const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
+  camera.coordinateSystem = coordinateSystem;
+  // Match the camera state set by WebGPURenderer before updating labels.
+  Reflect.set(camera, '_reversedDepth', reversedDepth);
+  camera.updateProjectionMatrix();
   camera.updateMatrixWorld();
   expect(projectShipLabel(new Vector3(0, 0, -5000), camera, 1600, 900)).toEqual({ x: 800, y: 450 });
   expect(projectShipLabel(new Vector3(0, 0, 5000), camera, 1600, 900)).toBeNull();
   expect(projectShipLabel(new Vector3(0, 0, -.1), camera, 1600, 900)).toBeNull();
+  expect(projectShipLabel(new Vector3(0, 0, -.4), camera, 1600, 900)).toBeNull();
   expect(projectShipLabel(new Vector3(0, 0, -70000), camera, 1600, 900)).toBeNull();
   expect(projectShipLabel(new Vector3(9000, 0, -5000), camera, 1600, 900)).toBeNull();
   const above = projectShipLabel(new Vector3(0, 60, -5000), camera, 1600, 900)!;
@@ -46,8 +56,13 @@ test('overhead condition percentages, meters and loss spans use each ship maximu
       const host = new Element(), labels = new ShipLabels(host as unknown as HTMLElement);
       labels.setFleet([view], [actor]); labels.resize(1600, 900);
       const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
+      camera.coordinateSystem = WebGPUCoordinateSystem;
+      Reflect.set(camera, '_reversedDepth', true);
+      camera.updateProjectionMatrix();
       const maxHp = actor.damage.maxIntegrity;
       labels.update(camera, 0);
+      const label = host.find('ship-label ship-label-enemy')!;
+      expect(label.hidden).toBe(false);
       expect(host.find('ship-label-health')!.textContent).toBe('100% · operational');
       expect(host.find('ship-label-meter')!.attributes.get('aria-valuemax')).toBe(String(maxHp));
       actor.damage.integrity *= .6;
@@ -56,6 +71,12 @@ test('overhead condition percentages, meters and loss spans use each ship maximu
       expect(host.find('ship-label-fill')!.style.transform).toBe('scaleX(0.6)');
       expect(host.find('ship-label-loss')!.style.left).toBe('60%');
       expect(host.find('ship-label-loss')!.style.width).toBe('40%');
+      camera.lookAt(0, 0, 5000);
+      labels.update(camera, 1);
+      expect(label.hidden).toBe(true);
+      camera.lookAt(0, 0, -5000);
+      labels.update(camera, 1);
+      expect(label.hidden).toBe(false);
     }
   } finally {
     if (original) Object.defineProperty(globalThis, 'document', original);

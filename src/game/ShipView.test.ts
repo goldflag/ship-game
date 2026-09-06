@@ -38,6 +38,25 @@ test('a turret disabled during a tick stops its rendered traverse and elevation 
   }
 });
 
+for (const id of ['liberty-cargo', 'liberty-collier', 'victory-cargo', 'flower-corvette']) {
+  test(`${id}: exported guns follow full train/elevation/recoil and preserve appendage pivots`, async () => {
+    const source=await Bun.file(`assets/ships/${id}/blueprint.json`).json();
+    const bytes=await Bun.file(`public/models/${id}.glb`).arrayBuffer();
+    const gltf=JSON.parse(new TextDecoder().decode(new Uint8Array(bytes,20,new DataView(bytes).getUint32(12,true))));
+    const nodes=gltf.nodes.map(({mesh:_mesh,...node}:{mesh?:number})=>node);
+    const model=await new GLTFLoader().parseAsync(JSON.stringify({asset:gltf.asset,scene:gltf.scene,scenes:gltf.scenes,nodes}),'');
+    const sim=new CombatSimulation(compileShip(source,catalog)),view=new ShipView(model.scene,sim.definition,sim.player);
+    const stableIds=new Set<string>();model.scene.traverse(o=>{if(o.userData.nodeId)stableIds.add(o.userData.nodeId);});
+    for(const node of ['hull.surface','propeller-main.pivot','rudder-main.pivot'])expect(stableIds.has(node)).toBe(true);
+    expect(view.muzzleErrors()).toHaveLength(sim.definition.mounts.reduce((n,m)=>n+(m.weapon.barrelCount??2),0));
+    for(const train of [-1,0,1])for(const elevation of [0,.5,1])for(const recoil of [0,1]) {
+      Object.assign(sim.player.motion,{x:123,y:-.7,z:-461,heading:2.6,roll:.09,pitch:-.035});
+      sim.player.mounts.forEach((m,i)=>{const w=sim.definition.mounts[i].weapon;Object.assign(m,{train:train*w.traverseDeg*Math.PI/180,elevation:(w.elevationMinDeg+(w.elevationMaxDeg-w.elevationMinDeg)*elevation)*Math.PI/180,recoil});});
+      view.update();expect(Math.max(...view.muzzleErrors())).toBeLessThan(.025);
+    }
+  });
+}
+
 test('Baltimore exported hierarchy binds all 21 muzzles through train, pitch and recoil', async () => {
   const source = await Bun.file(new URL('../../assets/ships/baltimore/blueprint.json', import.meta.url)).json();
   const bytes = await Bun.file(new URL('../../public/models/baltimore.glb', import.meta.url)).arrayBuffer();

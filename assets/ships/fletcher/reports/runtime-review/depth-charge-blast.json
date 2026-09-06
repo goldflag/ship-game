@@ -60,10 +60,10 @@
       1.0000000000000002
     ]
   },
-  "tick": 465,
-  "battleSeed": 3515953330,
+  "tick": 466,
+  "battleSeed": 954282929,
   "paused": false,
-  "fps": 82.1632457254659,
+  "fps": 82.17096556482363,
   "inspecting": false,
   "inPort": false,
   "effects": {
@@ -71,7 +71,7 @@
     "torpedoes": 0,
     "depthCharges": 3,
     "smoke": 0,
-    "spray": 950,
+    "spray": 945,
     "flashes": 0,
     "foam": 0,
     "particleCapacity": 2272
@@ -93,16 +93,16 @@
     }
   },
   "portInspection": "exterior",
-  "maxMuzzleErrorM": 0.0006809231091749944,
-  "maxTorpedoMuzzleErrorM": 0.000002602025530318163,
+  "maxMuzzleErrorM": 0.0006809231123132687,
+  "maxTorpedoMuzzleErrorM": 0.0000026020255288020306,
   "torpedoLaunchers": [
     {
       "id": "torpedo-forward",
-      "train": 2.4347343065319382
+      "train": 2.439970294287921
     },
     {
       "id": "torpedo-aft",
-      "train": 2.4347343065319382
+      "train": 2.439970294287921
     }
   ],
   "depthCharges": [
@@ -110,9 +110,9 @@
       "id": 6,
       "ownerId": "player",
       "position": [
-        37.855747148938875,
-        -9.380359555947456,
-        -24.460272437960047
+        37.85623467260046,
+        -9.422026222614122,
+        -24.46079603837259
       ],
       "submerged": true,
       "detonationDepthM": 10
@@ -121,9 +121,9 @@
       "id": 7,
       "ownerId": "player",
       "position": [
-        37.84096289235779,
-        -8.463692889280802,
-        -21.39419493547976
+        37.84183945265267,
+        -8.505359555947468,
+        -21.395149217454126
       ],
       "submerged": true,
       "detonationDepthM": 10
@@ -132,9 +132,9 @@
       "id": 8,
       "ownerId": "player",
       "position": [
-        37.51438101884159,
-        -7.5470262226141385,
-        -23.47920039078806
+        37.51595706121885,
+        -7.588692889280805,
+        -23.48093929087763
       ],
       "submerged": true,
       "detonationDepthM": 10
@@ -143,7 +143,7 @@
   "combat": {
     "airContacts": [],
     "battery": "depth-charge",
-    "range": 169.82296412284953,
+    "range": 170.01019298226416,
     "ready": 5,
     "total": 8,
     "ammunition": "ap",
@@ -166,8 +166,8 @@
     ],
     "targetId": "enemy-1",
     "targetName": "Type VIIC",
-    "targetDepthM": 0.00870461680564809,
-    "targetRange": 169.82296412284953,
+    "targetDepthM": 0.008810931741141474,
+    "targetRange": 170.01019298226416,
     "battle": true,
     "result": "active",
     "playerSunk": false,
@@ -179,7 +179,7 @@
         "team": "friendly",
         "controller": "player",
         "x": 0,
-        "z": -105.97273333333192,
+        "z": -106.16202222222084,
         "heading": 0,
         "integrity": 1,
         "sunk": false,
@@ -204,8 +204,8 @@
     "targetStatus": "operational",
     "playerStatus": "operational",
     "targetList": 0,
-    "targetTrim": 0.005810707555994067,
-    "targetDraftChange": 0.00870461680564809,
+    "targetTrim": 0.005789741490099547,
+    "targetDraftChange": 0.008810931741141474,
     "control": {
       "priority": "balanced",
       "focus": "",
@@ -430,7 +430,7 @@
       }
     ],
     "targetIntegrity": 0.9960766369885313,
-    "targetWater": 0.6610744629802052,
+    "targetWater": 0.6648170327461549,
     "targetPower": 1,
     "targetSteering": 0.9562394125643883,
     "targetSunk": false,
@@ -475,21 +475,21 @@
         "id": "dc-thrower-starboard-1",
         "name": "Starboard K-gun 1",
         "status": "reloading",
-        "reload": 0.1000000000000163,
+        "reload": 0.08333333333334964,
         "ammo": 1
       },
       {
         "id": "dc-thrower-starboard-2",
         "name": "Starboard K-gun 2",
         "status": "reloading",
-        "reload": 0.4666666666666829,
+        "reload": 0.4500000000000162,
         "ammo": 1
       },
       {
         "id": "dc-thrower-starboard-3",
         "name": "Starboard K-gun 3",
         "status": "reloading",
-        "reload": 0.8333333333333506,
+        "reload": 0.8166666666666839,
         "ammo": 1
       }
     ],
@@ -579,7 +579,7 @@
         "ammo": 20,
         "ready": 5,
         "total": 8,
-        "reload": 0.1000000000000163
+        "reload": 0.08333333333334964
       }
     ],
     "message": "Fletcher · Depth charge detonated at 10 m"
@@ -592,18 +592,18 @@
       "controller": "player",
       "motion": {
         "id": "player",
-        "tick": 465,
+        "tick": 466,
         "x": 0,
         "y": 0,
-        "z": -105.97273333333192,
+        "z": -106.16202222222084,
         "roll": 0,
         "pitch": 0,
         "heading": 0,
-        "speed": 15.411999999999624,
+        "speed": 15.405333333332958,
         "swaySpeed": 0,
         "rudder": 0,
         "yawRate": 0,
-        "distance": 105.97273333333192
+        "distance": 106.16202222222084
       },
       "ammo": 15000,
       "integrity": 600
@@ -615,26 +615,26 @@
       "controller": "idle",
       "motion": {
         "id": "enemy-1",
-        "tick": 465,
+        "tick": 466,
         "x": 25,
-        "y": -0.00870461680564809,
+        "y": -0.008810931741141474,
         "z": 62,
         "roll": 0,
-        "pitch": 0.00010141597872260924,
+        "pitch": 0.00010105005184155976,
         "heading": 1.5707963267948966,
         "speed": 0,
         "swaySpeed": 0,
         "rudder": 0,
         "yawRate": 0,
         "distance": 0,
-        "verticalSpeed": -0.006359825780580568
+        "verticalSpeed": -0.0063788961296030785
       },
       "submarine": {
         "targetDepthM": 0,
         "ballastM3": 0,
         "emergencyBlow": false,
-        "planes": -0.008231836404748935,
-        "trimPitch": -0.0002361381377207797
+        "planes": -0.008274841477823147,
+        "trimPitch": -0.00023841342380036075
       },
       "ammo": 1320,
       "integrity": 448.2344866448391

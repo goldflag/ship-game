@@ -15,7 +15,19 @@ const blueprint = JSON.parse(await readFile(join(sourceDir, 'blueprint.json'), '
 const definition = compileShip(blueprint, catalog);
 if (definition.id !== shipId || definition.modelUrl !== `/models/${shipId}.glb`) throw new Error('Ship ID, directory and model URL must agree');
 const pythonRecipes = (await readdir(join(root, 'scripts/ships'))).filter(p => p.endsWith('.py')).sort().map(p => `scripts/ships/${p}`);
-const recipe = await Promise.all(['src/ships/blueprint.ts', ...pythonRecipes, `assets/ships/${shipId}/build.py`].map(p => readFile(join(root, p), 'utf8')));
+// Optional versioned original components are shared only by their declared consumers.
+// Include the register itself so adding/removing dependencies also invalidates exports.
+const inputRegister = `assets/ships/${shipId}/recipe-inputs.json`;
+async function recipeInputs() {
+  if (!existsSync(join(root, inputRegister))) return [];
+  const register = JSON.parse(await readFile(join(root, inputRegister), 'utf8'));
+  if (register.version !== 1 || !Array.isArray(register.files) || register.files.some((p: unknown) => typeof p !== 'string' || !/^assets\/[a-zA-Z0-9_./-]+$/.test(p) || p.split('/').includes('..') || p.includes('/baseline/') || p.includes('/references/'))) throw new Error('Invalid original recipe input register');
+  return [inputRegister, ...register.files as string[]];
+}
+async function readRecipes() {
+  return Promise.all(['src/ships/blueprint.ts', ...pythonRecipes, `assets/ships/${shipId}/build.py`, ...await recipeInputs()].map(p => readFile(join(root, p), 'utf8')));
+}
+const recipe = await readRecipes();
 const contentHash = createHash('sha256').update(JSON.stringify([definition, ...recipe])).digest('hex');
 const published = { ...definition, contentHash };
 const outputDir = join(root, 'public/models');
@@ -229,7 +241,7 @@ if (action === 'check') {
   await runBlender(join(root, 'scripts/ships/export.py'));
   const report = inspectGlb(await readFile(join(stage, 'model.glb')), definition);
   const latestDefinition = compileShip(JSON.parse(await readFile(join(sourceDir, 'blueprint.json'), 'utf8')), JSON.parse(await readFile(join(root, 'assets/parts/guns.json'), 'utf8')));
-  const latestRecipes = await Promise.all(['src/ships/blueprint.ts', ...pythonRecipes, `assets/ships/${shipId}/build.py`].map(p => readFile(join(root, p), 'utf8')));
+  const latestRecipes = await readRecipes();
   if (createHash('sha256').update(JSON.stringify([latestDefinition, ...latestRecipes])).digest('hex') !== contentHash) throw new Error('Authoring inputs changed during the build. Re-run ship:build before publishing.');
   // Publish only validated output. Rename temporary siblings to avoid partial file writes.
   const products = [[join(stage, 'model.glb'), join(outputDir, `${shipId}.glb`)], [join(stage, 'definition.json'), join(outputDir, `${shipId}.json`)], [join(stage, 'source.blend'), join(sourceDir, 'generated/source.blend')]];

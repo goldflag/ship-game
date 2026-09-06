@@ -1,0 +1,22 @@
+bun test v1.3.3 (274e01c7)
+
+src/simulation/aircraft.test.ts:
+(pass) versioned air wing validation and unsupported model rejection [22.56ms]
+(pass) launch queues three, spaces takeoffs, uses moving carrier datum, recall and reset [47.50ms]
+(pass) dive bombers release ballistic HE bombs with carrier ownership and recover [132.24ms]
+(pass) torpedo bombers create falling payloads then armed-distance water runners [66.24ms]
+(pass) opposing fighters engage aircraft and shoot them down without friendly damage [99.50ms]
+(pass) service loss blocks launches, submerged targets are rejected, aircraft preserve fighting capability [1.30ms]
+(pass) recall cancels queued launches; port fixture cannot deploy [0.63ms]
+(pass) fixed-tick combat integrates bot air operations and resets airborne payloads [852.40ms]
+(pass) aircraft weapons resolve actual ship hits and score hostile damage through combat [6328.92ms]
+(pass) bot strike orders fall back from a lost or submerged target to a valid hostile ship [3.69ms]
+(pass) fighters alone cannot keep a carrier in a ship battle after all strike aircraft and guns are lost [0.54ms]
+(pass) deck aircraft occupy distinct stable spots and taxi continuously before takeoff [13.37ms]
+(pass) recovery reaches the deck, rolls to a stop, parks and rearms without disappearing [41.10ms]
+(pass) a recalled group waits its turn and all survivors recover on a stationary carrier [181.61ms]
+
+ 14 pass
+ 0 fail
+ 48 expect() calls
+Ran 14 tests across 1 file. [7.88s]
