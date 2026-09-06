@@ -93,6 +93,11 @@ test('large-gun fire remains in the gas at 0.35 seconds and cools completely int
   effects.update(sim, .65, camera);
   for (let i = 0; i < effects.diagnostics().smoke; i++) expect(state.getZ(i)).toBe(0);
   expect(effects.diagnostics().smoke).toBeGreaterThan(0);
+  effects.update(sim, 3, camera);
+  const opacity = mesh.geometry.getAttribute('effectOpacity');
+  for (let i = 0; i < effects.diagnostics().smoke; i++) expect(opacity.getX(i)).toBeLessThan(.4);
+  effects.update(sim, 2, camera);
+  expect(effects.diagnostics().smoke).toBe(0);
   effects.dispose();
 });
 

@@ -24,6 +24,10 @@ const game = new Game(document.querySelector('#scene'), { quality:'medium', sea:
 game.start();
 await loaded;
 game.setInPort(false); game.setPaused(true);
+// Review frames are explicit: background RAF throttling must not return a stale
+// scene pass after changing the camera or a material during a comparison.
+game.scheduleFrame = () => {};
+cancelAnimationFrame(game.raf); await game.frameTask; cancelAnimationFrame(game.raf);
 let recording = false;
 const setPaused = game.setPaused.bind(game);
 // Recording continues if the owner moves focus to the editor. Normal game focus
@@ -33,25 +37,30 @@ game.rig.update = () => {}; // Fixed, repeatable review cameras, local to this p
 const stop = { throttle:0, rudder:0 };
 let aim, battery, elapsed = 0;
 
-function prepare(scene = 'broadside', secondary = false) {
+function prepare(scene = 'broadside', secondary = false, range = 5000) {
   game.setPaused(true); game.simulation.reset(); game.effects.reset(); game.shipWake.reset();
   battery = secondary ? 'secondary' : 'main';
   game.battery = battery;
   const target = game.simulation.target.motion;
+  const horizon = scene === 'horizon' || scene === 'horizon-splash';
+  const splash = scene === 'splash' || scene === 'horizon-splash';
   aim = scene === 'armor' ? game.simulation.aimAt('engine-port', battery)
-    : scene === 'splash' ? [330, .5, -35] : [850, .5, 0];
+    : splash ? [330, .5, -35] : [850, .5, 0];
   game.manualAim = true; game.currentAim = aim; game.readSightAim = () => aim;
   const sim = game.simulation;
   sim.eventSequence = 0; sim.shellSequence = 0; // Repeatable visual seed in this isolated review.
   // Train normally through the CPU mount rules. No synthetic shot or impact events.
   for (let i = 0; i < 2100; i++) sim.step(stop, { aim, battery, fire:false });
-  game.camera.fov = scene === 'horizon' ? 4.33 : 52;
+  // Keep the apparent size fixed when checking horizon composition at 5–20 km.
+  game.camera.fov = horizon ? 2 * Math.atan(Math.tan(4.33 * Math.PI / 360) * 5000 / range) * 180 / Math.PI : 52;
   game.camera.updateProjectionMatrix();
-  game.camera.position.set(...(scene === 'horizon' ? [5000, 18, 0]
+  game.camera.position.set(...(scene === 'horizon-splash' ? [range + 330, 18, -35]
+    : scene === 'horizon' ? [range, 18, 0]
     : scene === 'splash' ? [480, 64, 125]
     : scene === 'smoke' ? [145, 58, -150]
     : scene === 'armor' ? [target.x - 200, 55, target.z + 95] : [210, 82, 155]));
-  game.camera.lookAt(...(scene === 'horizon' ? [0, 18, 0]
+  game.camera.lookAt(...(scene === 'horizon-splash' ? [330, 18, -35]
+    : scene === 'horizon' ? [0, 18, 0]
     : scene === 'splash' ? [325, 13, -35]
     : scene === 'smoke' ? [45, 18, -55]
     : scene === 'armor' ? [target.x, 8, target.z - 20] : [0, 15, -6]));
@@ -74,11 +83,15 @@ function advance(seconds) {
   return game.diagnostics();
 }
 
-const nextFrame = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+const nextFrame = async () => {
+  game.renderer._nodes.nodeFrame.update();
+  await game.frame(performance.now());
+  if (window.reviewError) throw new Error(window.reviewError);
+};
 window.review = {
   game, prepare, advance,
-  async still(scene, time, secondary = false) {
-    prepare(scene, secondary); advance(time); await nextFrame(); return game.diagnostics();
+  async still(scene, time, secondary = false, range = 5000) {
+    prepare(scene, secondary, range); advance(time); await nextFrame(); return game.diagnostics();
   },
   async capture() { await nextFrame(); return game.renderer.domElement.toDataURL('image/png'); },
   async record(scene, duration = 8, secondary = false) {
