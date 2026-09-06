@@ -1,0 +1,12 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Aircraft visibility · ocean regression</title><style>body{margin:0}#scene{width:1000px;height:700px}canvas{display:block}</style><div id="scene"></div><script type="module">
+import { Game } from '/src/game/Game.ts';
+import { shipPreset } from '/src/ships/presets.ts';
+let ready;const loaded=new Promise(resolve=>ready=resolve);
+const game=new Game(document.querySelector('#scene'),{quality:'medium',sea:'Fair',resolution:1},{progress:message=>window.reviewProgress=message,ready,telemetry:()=>{},pause:()=>{},hud:()=>{},error:message=>window.reviewError=message},shipPreset('enterprise-cv6'));
+window.oceanGame=game;game.start();await loaded;game.setInPort(false);game.setPaused(true);game.rig.update=()=>{};
+game.simulation.aircraft.forEach(p=>p.phase='lost');const plane=game.simulation.player.airWing.planes[0];plane.controls.gear=0;
+game.camera.position.set(0,300,0);game.camera.lookAt(0,300,-3000);game.camera.updateMatrixWorld(true);
+async function still(){for(let i=0;i<3;i++){await new Promise(requestAnimationFrame);await game.frameTask;}game.pipeline.render();return game.renderer.domElement.toDataURL('image/png');}
+async function pixels(){const source=new Image();source.src=await still();await source.decode();const c=document.createElement('canvas');c.width=source.width;c.height=source.height;const ctx=c.getContext('2d');ctx.drawImage(source,0,0);return ctx.getImageData(0,0,c.width,c.height).data;}
+window.oceanAircraftReview={game,async sample(distance){plane.phase='lost';const blank=await pixels();Object.assign(plane,{phase:'outbound',position:[0,300,-distance],previousPosition:[0,300,-distance],bank:.2,heading:0,pitch:0});const drawn=await pixels();let changed=0,contrast=0;const w=game.renderer.domElement.width,h=game.renderer.domElement.height;for(let y=Math.floor(h/2)-16;y<Math.floor(h/2)+16;y++)for(let x=Math.floor(w/2)-16;x<Math.floor(w/2)+16;x++){const i=(y*w+x)*4;const d=Math.abs(drawn[i]-blank[i])+Math.abs(drawn[i+1]-blank[i+1])+Math.abs(drawn[i+2]-blank[i+2]);if(d>15)changed++;contrast+=d;}return{distance,changed,contrast,rendered:game.aircraftView.diagnostics(),backend:game.diagnostics().backend,image:await still()};}};
+</script></html>

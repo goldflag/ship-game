@@ -1,0 +1,76 @@
+{"t":0,"phase":"taxi","pos":[-3.8,18.4,-41],"heading":1.57,"pitch":0,"bank":0,"hp":100,"payload":true}
+event 10 aircraft-launch player/vb-6/1
+{"t":15,"phase":"takeoff","pos":[0,23.7,-132.3],"heading":0,"pitch":0.16,"bank":0,"hp":100,"payload":true}
+event 26 aircraft-launch player/vb-6/2
+{"t":30,"phase":"outbound","stage":"ingress","pos":[0,250.3,-1400.9],"heading":0,"pitch":0.18,"bank":0,"hp":100,"payload":true}
+event 42 aircraft-launch player/vb-6/3
+{"t":45,"phase":"outbound","stage":"ingress","pos":[0,491,-2723.6],"heading":0,"pitch":0.18,"bank":0,"hp":100,"payload":true}
+{"t":60,"phase":"outbound","stage":"ingress","pos":[-33,730.5,-4036.7],"heading":-0.31,"pitch":0.18,"bank":0.85,"hp":100,"payload":true}
+{"t":75,"phase":"outbound","stage":"ingress","pos":[-1145.2,827.8,-4381.9],"heading":-2.18,"pitch":0.02,"bank":0.85,"hp":96,"payload":true}
+{"t":90,"phase":"outbound","stage":"ingress","pos":[-1211.4,841.6,-3184.1],"heading":2.29,"pitch":0.01,"bank":0.85,"hp":96,"payload":true}
+{"t":105,"phase":"outbound","stage":"ingress","pos":[-30.7,848.6,-3410.5],"heading":0.48,"pitch":0,"bank":0.85,"hp":96,"payload":true}
+event 120 bomb-release player/vb-6/1
+{"t":120,"phase":"returning","stage":"run","pos":[27.9,165.3,-4747.2],"heading":-0.11,"pitch":-0.48,"bank":0.02,"hp":82,"payload":false}
+{"t":135,"phase":"returning","stage":"run","pos":[-712.3,109.2,-5291],"heading":-2.23,"pitch":0.01,"bank":0.85,"hp":41,"payload":false}
+event 137 bomb-release player/vb-6/2
+{"t":150,"phase":"returning","stage":"run","pos":[-824,116.5,-4313.4],"heading":3.03,"pitch":0.01,"bank":0.01,"hp":23,"payload":false}
+event 152 bomb-release player/vb-6/3
+{"t":165,"phase":"returning","stage":"run","pos":[-702.1,123.9,-3273.8],"heading":3.02,"pitch":0.01,"bank":0,"hp":23,"payload":false}
+{"t":180,"phase":"returning","stage":"run","pos":[-579.8,131.3,-2234.2],"heading":3.02,"pitch":0.01,"bank":0,"hp":23,"payload":false}
+{"t":195,"phase":"returning","stage":"run","pos":[-457.5,138.7,-1194.6],"heading":3.02,"pitch":0.01,"bank":0,"hp":23,"payload":false}
+{"t":210,"phase":"returning","stage":"run","pos":[-335.2,146.2,-155],"heading":3.02,"pitch":0.01,"bank":0,"hp":23,"payload":false}
+{"t":225,"phase":"returning","stage":"run","pos":[-213,153.6,884.6],"heading":3.02,"pitch":0.01,"bank":0,"hp":23,"payload":false}
+{"t":240,"phase":"returning","stage":"run","pos":[-90.7,161,1924.3],"heading":3.02,"pitch":0.01,"bank":0,"hp":23,"payload":false}
+{"t":255,"phase":"returning","stage":"run","recovery":"final","pos":[297.9,143.1,2605.4],"heading":1.27,"pitch":-0.01,"bank":0.85,"hp":23,"payload":false}
+{"t":270,"phase":"returning","stage":"run","recovery":"final","pos":[211.6,137.9,1971.6],"heading":-0.65,"pitch":0,"bank":-0.27,"hp":23,"payload":false}
+{"t":285,"phase":"landing","stage":"run","recovery":"final","pos":[-3.3,93.2,1268.9],"heading":-0.02,"pitch":-0.09,"bank":-0.09,"hp":23,"payload":false}
+{"t":300,"phase":"landing","stage":"run","recovery":"final","pos":[0.2,51.3,641.1],"heading":0,"pitch":-0.06,"bank":0,"hp":23,"payload":false}
+event 313 aircraft-recovered player/vb-6/1
+{"t":315,"phase":"rollout","stage":"run","recovery":"final","pos":[0,18.4,53.7],"heading":0,"pitch":0,"bank":0,"hp":23,"payload":false}
+{"t":330,"phase":"rearming","stage":"run","recovery":"final","pos":[-4,18.4,-41],"heading":0,"pitch":0,"bank":0,"hp":23,"payload":false}
+{"t":345,"phase":"rearming","stage":"run","recovery":"final","pos":[-4,18.4,-41],"heading":0,"pitch":0,"bank":0,"hp":23,"payload":false}
+{"t":360,"phase":"ready","stage":"run","recovery":"final","pos":[-4,18.4,-41],"heading":0,"pitch":0,"bank":0,"hp":100,"payload":true}
+{"t":375,"phase":"ready","stage":"run","recovery":"final","pos":[-4,18.4,-41],"heading":0,"pitch":0,"bank":0,"hp":100,"payload":true}
+{"t":390,"phase":"ready","stage":"run","recovery":"final","pos":[-4,18.4,-41],"heading":0,"pitch":0,"bank":0,"hp":100,"payload":true}
+{"t":405,"phase":"ready","stage":"run","recovery":"final","pos":[-4,18.4,-41],"heading":0,"pitch":0,"bank":0,"hp":100,"payload":true}
+event 410 aircraft-recovered player/vb-6/2
+{"t":420,"phase":"ready","stage":"run","recovery":"final","pos":[-4,18.4,-41],"heading":0,"pitch":0,"bank":0,"hp":100,"payload":true}
+{"t":435,"phase":"ready","stage":"run","recovery":"final","pos":[-4,18.4,-41],"heading":0,"pitch":0,"bank":0,"hp":100,"payload":true}
+{"t":450,"phase":"ready","stage":"run","recovery":"final","pos":[-4,18.4,-41],"heading":0,"pitch":0,"bank":0,"hp":100,"payload":true}
+{"t":465,"phase":"ready","stage":"run","recovery":"final","pos":[-4,18.4,-41],"heading":0,"pitch":0,"bank":0,"hp":100,"payload":true}
+{"t":480,"phase":"ready","stage":"run","recovery":"final","pos":[-4,18.4,-41],"heading":0,"pitch":0,"bank":0,"hp":100,"payload":true}
+{"t":495,"phase":"ready","stage":"run","recovery":"final","pos":[-4,18.4,-41],"heading":0,"pitch":0,"bank":0,"hp":100,"payload":true}
+{"t":510,"phase":"ready","stage":"run","recovery":"final","pos":[-4,18.4,-41],"heading":0,"pitch":0,"bank":0,"hp":100,"payload":true}
+event 514 aircraft-recovered player/vb-6/3
+{"t":525,"phase":"ready","stage":"run","recovery":"final","pos":[-4,18.4,-41],"heading":0,"pitch":0,"bank":0,"hp":100,"payload":true}
+{"t":540,"phase":"ready","stage":"run","recovery":"final","pos":[-4,18.4,-41],"heading":0,"pitch":0,"bank":0,"hp":100,"payload":true}
+{"t":555,"phase":"ready","stage":"run","recovery":"final","pos":[-4,18.4,-41],"heading":0,"pitch":0,"bank":0,"hp":100,"payload":true}
+{"t":570,"phase":"ready","stage":"run","recovery":"final","pos":[-4,18.4,-41],"heading":0,"pitch":0,"bank":0,"hp":100,"payload":true}
+{"t":585,"phase":"ready","stage":"run","recovery":"final","pos":[-4,18.4,-41],"heading":0,"pitch":0,"bank":0,"hp":100,"payload":true}
+final [
+  {
+    id: "player/vb-6/1",
+    phase: "ready",
+    hp: 100,
+  }, {
+    id: "player/vb-6/2",
+    phase: "ready",
+    hp: 100,
+  }, {
+    id: "player/vb-6/3",
+    phase: "ready",
+    hp: 100,
+  }, {
+    id: "player/vb-6/4",
+    phase: "ready",
+    hp: 100,
+  }, {
+    id: "player/vb-6/5",
+    phase: "ready",
+    hp: 100,
+  }, {
+    id: "player/vb-6/6",
+    phase: "ready",
+    hp: 100,
+  }
+]
