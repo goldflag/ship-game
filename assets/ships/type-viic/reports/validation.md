@@ -1,3 +1,22 @@
+# U-570 fidelity validation · 6 September 2026
+
+Current export: `0cdcb80b8790f728b709cd73c96abb53655305d5c03259983b1f0b91594ffe63`.
+
+- `ship:compile`, `ship:build`, `ship:review`, `ship:compare` and the production build's `ship:check`: passed. Local Blender used; no Blender MCP tools available.
+- `bun test --timeout 60000`: **428 passed, 0 failed**, 54 files, 167,136 expectations (129.42 seconds).
+- `bun run build`: **passed**, including all fleet/aircraft checks, TypeScript and Vite. Existing large-chunk advisory remains; no build error.
+- Actual exported hull: 47,594 triangles, zero degenerate triangles, zero nonmanifold edges. Four primary dimensional targets, fourteen exported landmarks, six compound spaces and four structural probes pass. Full model: 80,300 triangles, 41 meshes, 2,391,124 bytes.
+- Twelve matched source/original/current views and five standard views inspected. In-game port, gun traverse/elevation/recoil, all eight submarine joints, torpedo launch, deck-gun fire, 50 m dive, 7 m recovery and battle reset inspected.
+- UI launch reduced torpedoes 14→13; deck-gun fire reduced main ammunition 220→219. The actual simulation reached 49.99988 m depth at 3.90977 m/s and returned to 7.0000015 m, with camera Y≈2.849499 m. Reset restored 220/1100 shells, 14 torpedoes and a zero-depth order.
+- Real WebGPU water visibility checks at 7/50/150 m passed: about 12.36% of frame pixels clearly distinguish the hull, against a 2% minimum. Surface and periscope absorption coefficients restored. Pinned visibility fixtures and the deliberately seeded stern articulation pose are labelled separately from UI battle records.
+- Portable review ZIP integrity passed (102 entries, about 50 MiB). Browser review: twelve views, historical overlay selectable, runtime gallery present, no broken loaded images or horizontal overflow. Port exposes the `Reference review` link.
+
+Evidence: [fidelity report](fidelity-01/README.md), [measurements](measurements.json), [runtime records](fidelity-01/runtime/review.json), [source register](../references/sources.json), [remaining discrepancies](discrepancies.md). Principal dimensions and dated fitting choices have primary evidence; export/test success does not certify complete historical accuracy.
+
+---
+
+The following is the preserved earlier feature validation, before the fidelity pass:
+
 # Type VIIC validation · 2026-09-05
 
 Playable generic 1941 Type VIIC for **surface combat**. Diving, sonar and depth charges are outside this update. Export and gameplay checks do not certify historical accuracy; see the [discrepancy register](discrepancies.md) and [retained references](../references/sources.json).

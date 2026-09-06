@@ -1,0 +1,4 @@
+U.S. Navy / David Taylor Model Basin redraw of captured general arrangement, retained by U-boat Archive; U.S. government archival drawing. Uniform scale from overall stern/bow scan endpoints x350/x4944; waterline inferred from the dimensioned pressure body and casing. Local scan/drawing mismatch approximately 0.15–0.3 m remains visible. Drawing is sectioned internally, has different scope extension, and depicts net cutters explicitly absent on captured U-570. No per-feature fitting or stretching.
+
+U.S. Navy / David Taylor Model Basin redraw of captured general arrangement, retained by U-boat Archive; U.S. government archival drawing. Same whole-sheet scale as profile; deck plan centreline y1692. The casing deck, saddle width, AA basket and gun/tower axes can be compared. Image is not stretched independently to force beam agreement.
+See sources.json for original archival credits. Restricted scans excluded.
