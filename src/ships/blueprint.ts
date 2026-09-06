@@ -1,6 +1,10 @@
 /** Editable authoring data. JSON only; no renderer or browser dependencies. */
 export type Vec3 = [number, number, number];
 export type Battery = 'main' | 'secondary';
+export interface APProjectile {
+  armingResistanceMm: number; fuzeDelaySeconds: number; explosiveKg: number;
+  fragmentPenetrationMm: number; basis: string;
+}
 export interface Volume { id: string; center: Vec3; size: Vec3; }
 export interface GunPart {
   id: string; name: string; kind: 'gun'; massKg: number; barbetteRadius: number;
@@ -11,6 +15,8 @@ export interface GunPart {
   penetrationMm: number; damage: number; recoilM: number; ammoPerBarrel: number; armorMm: number;
   /** Optional calibrated flight model; omitted v1 parts retain vacuum/no spread. */
   ballistics?: { dragPerSecond: number; dispersionRad: number; muzzleSpeedSigmaFraction?: number; penetrationReferenceSpeedMps?: number; basis: string };
+  /** Omitted original v1 parts remain inert/contact-only projectiles. */
+  ap?: APProjectile;
   /** Omitted in original v1 twin parts. Spacing is between adjacent barrel axes. */
   barrelCount?: 1 | 2 | 3 | 4;
   mountingStyle?: 'enclosed' | 'open-pedestal' | 'open-quad' | 'oerlikon';
@@ -221,6 +227,15 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
       if (flight.muzzleSpeedSigmaFraction !== undefined) numeric(flight.muzzleSpeedSigmaFraction, 'ballistics.muzzleSpeedSigmaFraction', 0, .05);
       if (flight.penetrationReferenceSpeedMps !== undefined) numeric(flight.penetrationReferenceSpeedMps, 'ballistics.penetrationReferenceSpeedMps', 1, 10000);
       text(flight.basis, 'ballistics.basis');
+    }
+    if (p.ap !== undefined) {
+      const ap = record(p.ap, `${p.id}.ap`);
+      numeric(ap.armingResistanceMm, 'ap.armingResistanceMm', .001, 2000);
+      numeric(ap.fuzeDelaySeconds, 'ap.fuzeDelaySeconds', .001, .2);
+      numeric(ap.explosiveKg, 'ap.explosiveKg', .00001, 200);
+      numeric(ap.fragmentPenetrationMm, 'ap.fragmentPenetrationMm', .001, 200);
+      text(ap.basis, 'ap.basis');
+      if ((ap.explosiveKg as number) >= (p.projectileMassKg as number)) fail(`${p.id}.ap`, 'explosive filling must be less than projectile mass');
     }
     if (p.barrelCount !== undefined) literal(p.barrelCount, [1, 2, 3, 4], `${p.id}.barrelCount`);
     if (p.mountingStyle !== undefined) literal(p.mountingStyle, ['enclosed', 'open-pedestal', 'open-quad', 'oerlikon'], `${p.id}.mountingStyle`);

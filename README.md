@@ -70,7 +70,7 @@ Sound uses an [original ElevenLabs-generated naval set](assets/audio/naval/READM
 - `src/schematic/`: orthographic model rendering and image export. Projection and filenames use the loaded preset and the pipeline's runtime axes.
 - `vendor/`: supplied proprietary Pro runtime bundles and licenses. Their original terms remain in force.
 
-Combat is an accessible simulation prototype: approximate AP penetration through physical plates (Bismarck) or legacy armor volumes, internal module failures, magazine events, compartment flooding, and sinking. The internal layout and performance values are provisional gameplay data. Networking, player shipbuilding, aircraft, crew, full physical hydrostatics, detailed HE/AP fuzes, and hull fracture remain future work. Fittings outside the compiled mount catalog, propellers and rudders remain visual.
+Combat is an accessible simulation prototype: approximate AP penetration through physical plates (Bismarck) or legacy armor volumes, velocity-aware penetration, AP arming/delay and protected local bursts, internal module failures, magazine events, compartment flooding, and sinking. The internal layout and performance values are provisional gameplay data. Networking, player shipbuilding, aircraft, crew, derived stability, HE and damage control, detailed spall, and hull fracture remain future work. Fittings outside the compiled mount catalog, propellers and rudders remain visual.
 
 The shared simulation is ready to host outside the browser, but multiplayer transport and server command validation are not implemented. The gameplay sea is flat; GPU waves do not move combat hulls independently of their hitboxes.
 

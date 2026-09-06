@@ -115,6 +115,13 @@
         "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 5000 m, 10 m launch/sea target, nominal speed (731.151 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
         "muzzleSpeedSigmaFraction": 0.003,
         "penetrationReferenceSpeedMps": 731.151256
+      },
+      "ap": {
+        "armingResistanceMm": 63.3333,
+        "fuzeDelaySeconds": 0.035,
+        "explosiveKg": 20,
+        "fragmentPenetrationMm": 30.4,
+        "basis": "Provisional AP game calibration, not historical fuze/filler data. Arming requires caliber/6 equivalent resistance in one non-ricochet contact; delay 35 ms at >=200 mm, otherwise 20 ms; fill 2.5% of projectile mass; fragment budget 8% of caliber in mm. Smaller AA AP remains inert. See assets/parts/author-ap.ts; blast radius and damage are bounded approximations."
       }
     },
     {
@@ -152,6 +159,13 @@
         "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 5000 m, 10 m launch/sea target, nominal speed (613.872 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
         "muzzleSpeedSigmaFraction": 0.003,
         "penetrationReferenceSpeedMps": 613.872076
+      },
+      "ap": {
+        "armingResistanceMm": 25,
+        "fuzeDelaySeconds": 0.02,
+        "explosiveKg": 1.1325,
+        "fragmentPenetrationMm": 12,
+        "basis": "Provisional AP game calibration, not historical fuze/filler data. Arming requires caliber/6 equivalent resistance in one non-ricochet contact; delay 35 ms at >=200 mm, otherwise 20 ms; fill 2.5% of projectile mass; fragment budget 8% of caliber in mm. Smaller AA AP remains inert. See assets/parts/author-ap.ts; blast radius and damage are bounded approximations."
       }
     },
     {
@@ -272,6 +286,13 @@
         "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 5000 m, 10 m launch/sea target, nominal speed (712.154 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
         "muzzleSpeedSigmaFraction": 0.003,
         "penetrationReferenceSpeedMps": 712.153543
+      },
+      "ap": {
+        "armingResistanceMm": 76.6667,
+        "fuzeDelaySeconds": 0.035,
+        "explosiveKg": 36.5,
+        "fragmentPenetrationMm": 36.8,
+        "basis": "Provisional AP game calibration, not historical fuze/filler data. Arming requires caliber/6 equivalent resistance in one non-ricochet contact; delay 35 ms at >=200 mm, otherwise 20 ms; fill 2.5% of projectile mass; fragment budget 8% of caliber in mm. Smaller AA AP remains inert. See assets/parts/author-ap.ts; blast radius and damage are bounded approximations."
       }
     },
     {
@@ -312,6 +333,13 @@
         "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 5000 m, 10 m launch/sea target, nominal speed (682.283 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
         "muzzleSpeedSigmaFraction": 0.003,
         "penetrationReferenceSpeedMps": 682.282768
+      },
+      "ap": {
+        "armingResistanceMm": 25.8333,
+        "fuzeDelaySeconds": 0.02,
+        "explosiveKg": 1.3967,
+        "fragmentPenetrationMm": 12.4,
+        "basis": "Provisional AP game calibration, not historical fuze/filler data. Arming requires caliber/6 equivalent resistance in one non-ricochet contact; delay 35 ms at >=200 mm, otherwise 20 ms; fill 2.5% of projectile mass; fragment budget 8% of caliber in mm. Smaller AA AP remains inert. See assets/parts/author-ap.ts; blast radius and damage are bounded approximations."
       }
     },
     {
@@ -352,6 +380,13 @@
         "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 5000 m, 10 m launch/sea target, nominal speed (485.109 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
         "muzzleSpeedSigmaFraction": 0.003,
         "penetrationReferenceSpeedMps": 485.108815
+      },
+      "ap": {
+        "armingResistanceMm": 21.1667,
+        "fuzeDelaySeconds": 0.02,
+        "explosiveKg": 0.625,
+        "fragmentPenetrationMm": 10.16,
+        "basis": "Provisional AP game calibration, not historical fuze/filler data. Arming requires caliber/6 equivalent resistance in one non-ricochet contact; delay 35 ms at >=200 mm, otherwise 20 ms; fill 2.5% of projectile mass; fragment budget 8% of caliber in mm. Smaller AA AP remains inert. See assets/parts/author-ap.ts; blast radius and damage are bounded approximations."
       }
     },
     {
@@ -534,6 +569,13 @@
         "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 5000 m, 10 m launch/sea target, nominal speed (637.693 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
         "muzzleSpeedSigmaFraction": 0.003,
         "penetrationReferenceSpeedMps": 637.693031
+      },
+      "ap": {
+        "armingResistanceMm": 33.8667,
+        "fuzeDelaySeconds": 0.035,
+        "explosiveKg": 3.7988,
+        "fragmentPenetrationMm": 16.256,
+        "basis": "Provisional AP game calibration, not historical fuze/filler data. Arming requires caliber/6 equivalent resistance in one non-ricochet contact; delay 35 ms at >=200 mm, otherwise 20 ms; fill 2.5% of projectile mass; fragment budget 8% of caliber in mm. Smaller AA AP remains inert. See assets/parts/author-ap.ts; blast radius and damage are bounded approximations."
       }
     },
     {
@@ -615,6 +657,13 @@
         "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 5000 m, 10 m launch/sea target, nominal speed (485.109 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
         "muzzleSpeedSigmaFraction": 0.003,
         "penetrationReferenceSpeedMps": 485.108815
+      },
+      "ap": {
+        "armingResistanceMm": 21.1667,
+        "fuzeDelaySeconds": 0.02,
+        "explosiveKg": 0.625,
+        "fragmentPenetrationMm": 10.16,
+        "basis": "Provisional AP game calibration, not historical fuze/filler data. Arming requires caliber/6 equivalent resistance in one non-ricochet contact; delay 35 ms at >=200 mm, otherwise 20 ms; fill 2.5% of projectile mass; fragment budget 8% of caliber in mm. Smaller AA AP remains inert. See assets/parts/author-ap.ts; blast radius and damage are bounded approximations."
       }
     }
   ]
