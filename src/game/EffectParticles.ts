@@ -199,8 +199,10 @@ export class EffectParticlePool {
           // Inside the volume, every screen ray may intersect gas. Cover the
           // viewport at a valid clip depth; the shader still uses the real sphere.
           this.dummy.quaternion.copy(camera.quaternion);
-          this.dummy.position.set(0, 0, 0).unproject(camera);
-          this.direction.set(1, 1, 0).unproject(camera).sub(this.dummy.position).applyQuaternion(this.cameraInverse);
+          // Mid-clip depth stays inside the frustum with standard AND reversed
+          // depth; zero lies on the far plane when reversed depth is active.
+          this.dummy.position.set(0, 0, .5).unproject(camera);
+          this.direction.set(1, 1, .5).unproject(camera).sub(this.dummy.position).applyQuaternion(this.cameraInverse);
           this.dummy.scale.set(Math.abs(this.direction.x) * 2, Math.abs(this.direction.y) * 2, 1);
         }
       }

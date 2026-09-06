@@ -1,5 +1,7 @@
 # Naval firing and shell effects
 
+The [September 6 horizon and dissipation correction](horizon-order.md) shortens firing smoke to 4.5–6 seconds and preserves smoke/splash visibility when reversed-depth draw sorting would otherwise paint the ocean over them. Earlier recipes and captures below remain historical review evidence.
+
 The September 2026 effects use directional muzzle ignition, large hot-gas volumes, drifting propellant smoke, local light, velocity-aligned shell streaks, armor sparks, aerated water columns, falling spray and lingering surface foam. Internal module damage alone does not create an exterior explosion; magazine detonation has an explicit event flag.
 
 The follow-up revision addresses the Iowa firing reference and the rigid spray problem. Main-gun gas now starts 14–23 m across per lobe, expands quickly with a decaying expansion rate, and cools over 0.62–0.82 seconds. A full Bismarck salvo uses 24 overlapping gas volumes. Water columns use eight expanding volume lobes plus 132 round droplets per shell; water particles never align with velocity, so there is no rod that reverses direction at the apex.
