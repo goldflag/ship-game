@@ -70,3 +70,7 @@ The original `assets/ships/author-stability.ts` recipe preserves prior IDs and a
 - Aircraft HP, fighter bursts, speed/turn/climb, generous interception, abstract light-gun AA and payload strength are provisional. AA checks surviving supplied mounts but does not train barrels or consume their surface-gunnery stock. Bomb contact explosions reuse the HE solver; Mark 13-like water runs use deliberately improved gameplay speed/reliability and omit historical failure modes.
 - Service uses the existing forward magazine as a provisional flight-service dependency. Losing that module prevents resupply; equipped airborne aircraft may still fight. A sunk carrier still counts as a ship loss for victory, even with aircraft airborne. Fuel timeout is an abstract endurance limit; there is no rescue or diversion.
 - No aircraft mesh/texture authoring changes were made for this integration. Successful export and tests do not establish historical accuracy.
+
+### Visible deck operations
+
+The air-wing launch/recovery lane is at runtime X=4 m; parked aircraft use the port side at X=-7 m to avoid the modeled island. Spots and single-lane taxi/rollout timing are gameplay approximations. Unfolded wings may overlap the lane envelope; there is no deck collision solver, wing folding, physical arresting cable, or elevator simulation. Existing aircraft geometry is unchanged.
