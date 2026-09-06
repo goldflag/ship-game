@@ -3,19 +3,26 @@
 .battle-setup-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; }
 .battle-setup h2 { margin:0; font:500 34px/1.15 'Barlow Condensed',sans-serif; }
 .battle-setup-heading+p { color:var(--muted); margin:10px 0 28px; line-height:1.5; }
-.battle-builder { display:grid; grid-template-columns:minmax(250px,300px) minmax(0,1fr); gap:28px; margin:0; padding:0; border:0; min-width:0; align-items:start; }
+.battle-builder { display:grid; grid-template-columns:minmax(280px,340px) minmax(0,1fr); gap:28px; margin:0; padding:0; border:0; min-width:0; align-items:start; }
 .battle-builder section { min-width:0; }
 .battle-builder header { display:flex; align-items:baseline; justify-content:space-between; gap:10px; padding-bottom:12px; border-bottom:1px solid var(--line); }
 .battle-builder h3 { margin:0; font:500 23px/1.2 'Barlow Condensed',sans-serif; }
 .battle-builder header>span { color:var(--muted); font-size:12px; }
-.battle-catalog { position:sticky; top:0; }
-.battle-catalog-list { list-style:none; margin:0; padding:0; }
-.battle-catalog-list li { display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-areas:'thumb thumb' 'name size' 'actions actions'; row-gap:3px; column-gap:10px; align-items:baseline; padding:14px 0; border-bottom:1px solid var(--line); }
-.battle-catalog-list img { grid-area:thumb; width:100%; height:44px; margin-bottom:6px; object-fit:contain; }
-.battle-catalog-list strong { grid-area:name; font:500 19px/1.2 'Barlow Condensed',sans-serif; }
+.battle-catalog { min-width:0; }
+.battle-catalog-filter { display:grid; gap:6px; margin:12px 0 4px; }
+.battle-catalog-filter label { color:var(--muted); font-size:12px; }
+.battle-catalog-filter>div { display:flex; gap:8px; }
+.battle-catalog-filter input { min-width:0; width:100%; min-height:36px; padding:8px 10px; border:1px solid var(--line); border-radius:3px; background:#0e2530; color:#edf1ec; font:inherit; }
+.battle-catalog-filter input::placeholder { color:var(--muted); }
+.battle-catalog-filter button { border:0; padding:0 6px; background:transparent; color:var(--accent); cursor:pointer; font:inherit; }
+.battle-catalog-filter :focus-visible,.battle-catalog-actions button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.battle-catalog-list { list-style:none; margin:0; padding:0 6px 0 0; max-height: min(400px,45dvh); overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; scrollbar-gutter:stable; }
+.battle-catalog-list li { display:grid; grid-template-columns:72px minmax(0,1fr); grid-template-areas:'thumb name' 'thumb size' 'actions actions'; row-gap:2px; column-gap:10px; align-items:center; padding:9px 0; border-bottom:1px solid var(--line); }
+.battle-catalog-list img { grid-area:thumb; width:72px; height:30px; object-fit:contain; }
+.battle-catalog-list strong { grid-area:name; font:500 18px/1.2 'Barlow Condensed',sans-serif; overflow-wrap:anywhere; }
 .battle-catalog-list small { grid-area:size; color:var(--muted); font-size:12px; white-space:nowrap; }
 .battle-catalog-commanded strong { color:var(--accent); }
-.battle-catalog-actions { grid-area:actions; display:grid; grid-template-columns:auto 1fr 1fr; gap:6px; margin-top:8px; }
+.battle-catalog-actions { grid-area:actions; display:grid; grid-template-columns:auto 1fr 1fr; gap:6px; margin-top:5px; }
 .battle-catalog-actions button { display:inline-flex; align-items:center; justify-content:center; gap:5px; min-height:32px; padding:5px 10px; color:#edf1ec; background:transparent; border:1px solid var(--line); border-radius:3px; font:500 12px/1 'Barlow',sans-serif; cursor:pointer; }
 .battle-catalog-actions button:hover:not(:disabled) { background:#d9eeed1f; border-color:#d9eeed88; }
 .battle-catalog-actions button[aria-pressed="true"] { color:var(--accent); border-color:var(--accent); }
@@ -49,12 +56,10 @@
 .battle-sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 @media (max-width:900px) {
   .battle-builder { grid-template-columns:1fr; }
-  .battle-catalog { position:static; }
-  .battle-catalog-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); column-gap:20px; }
+
 }
 @media (max-width:650px) {
   .battle-setup { padding:20px; }
-  .battle-catalog-list { grid-template-columns:1fr; }
   .battle-rosters { grid-template-columns:1fr; gap:28px; }
   .battle-roster li { grid-template-columns:90px minmax(0,1fr) 36px; }
   .battle-roster img { width:90px; }
