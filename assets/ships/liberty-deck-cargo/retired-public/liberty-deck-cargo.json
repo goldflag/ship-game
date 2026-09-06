@@ -1,0 +1,8495 @@
+{
+  "schemaVersion": 1,
+  "id": "liberty-deck-cargo",
+  "name": "Liberty Deck Cargo",
+  "configuration": "EC2-S-C1 Liberty, 1943–44 representative vehicle deck cargo fit",
+  "coordinates": "meters-y-up-bow-negative-z",
+  "modelUrl": "/models/liberty-deck-cargo.glb",
+  "hull": {
+    "kind": "authored-stations-v1",
+    "length": 134.5692,
+    "beam": 17.0688,
+    "draft": 8.46,
+    "depth": 13.3,
+    "massKg": 14478000,
+    "waterplaneAreaM2": 1841.33306889,
+    "reserveBuoyancyM3": 5784.63241004,
+    "halfBreadths": [
+      [
+        0,
+        0
+      ],
+      [
+        2.4222456,
+        1.536192
+      ],
+      [
+        5.382768,
+        3.669792
+      ],
+      [
+        10.09269,
+        5.462016
+      ],
+      [
+        16.148304,
+        6.998208
+      ],
+      [
+        24.222456,
+        8.022336
+      ],
+      [
+        33.6423,
+        8.491728
+      ],
+      [
+        43.062144,
+        8.5344
+      ],
+      [
+        53.82768,
+        8.5344
+      ],
+      [
+        63.247524,
+        8.5344
+      ],
+      [
+        67.2846,
+        8.5344
+      ],
+      [
+        71.321676,
+        8.5344
+      ],
+      [
+        76.704444,
+        8.5344
+      ],
+      [
+        83.432904,
+        8.37922909
+      ],
+      [
+        91.507056,
+        8.193024
+      ],
+      [
+        100.9269,
+        7.510272
+      ],
+      [
+        110.346744,
+        6.315456
+      ],
+      [
+        118.420896,
+        4.69392
+      ],
+      [
+        125.149356,
+        2.901696
+      ],
+      [
+        129.859278,
+        1.450848
+      ],
+      [
+        132.550662,
+        0.469392
+      ],
+      [
+        134.5692,
+        0
+      ]
+    ],
+    "deckHeights": [
+      [
+        0,
+        4.1
+      ],
+      [
+        2.4222456,
+        3.974
+      ],
+      [
+        5.382768,
+        3.82
+      ],
+      [
+        10.09269,
+        3.575
+      ],
+      [
+        16.148304,
+        3.26
+      ],
+      [
+        24.222456,
+        3.05
+      ],
+      [
+        33.6423,
+        3.05
+      ],
+      [
+        43.062144,
+        3.05
+      ],
+      [
+        53.82768,
+        3.05
+      ],
+      [
+        63.247524,
+        3.05
+      ],
+      [
+        67.2846,
+        3.05
+      ],
+      [
+        71.321676,
+        3.05
+      ],
+      [
+        76.704444,
+        3.05
+      ],
+      [
+        83.432904,
+        3.07272727
+      ],
+      [
+        91.507056,
+        3.14090909
+      ],
+      [
+        100.9269,
+        3.22045455
+      ],
+      [
+        110.346744,
+        3.3
+      ],
+      [
+        118.420896,
+        3.81333333
+      ],
+      [
+        125.149356,
+        4.24111111
+      ],
+      [
+        129.859278,
+        4.54055556
+      ],
+      [
+        132.550662,
+        4.71166667
+      ],
+      [
+        134.5692,
+        4.84
+      ]
+    ],
+    "keelHeights": [
+      [
+        0,
+        -1
+      ],
+      [
+        2.4222456,
+        -2.119
+      ],
+      [
+        5.382768,
+        -3.48666667
+      ],
+      [
+        10.09269,
+        -5.6625
+      ],
+      [
+        16.148304,
+        -8.46
+      ],
+      [
+        24.222456,
+        -8.46
+      ],
+      [
+        33.6423,
+        -8.46
+      ],
+      [
+        43.062144,
+        -8.46
+      ],
+      [
+        53.82768,
+        -8.46
+      ],
+      [
+        63.247524,
+        -8.46
+      ],
+      [
+        67.2846,
+        -8.46
+      ],
+      [
+        71.321676,
+        -8.46
+      ],
+      [
+        76.704444,
+        -8.46
+      ],
+      [
+        83.432904,
+        -8.46
+      ],
+      [
+        91.507056,
+        -8.46
+      ],
+      [
+        100.9269,
+        -8.46
+      ],
+      [
+        110.346744,
+        -8.46
+      ],
+      [
+        118.420896,
+        -8.46
+      ],
+      [
+        125.149356,
+        -5.31
+      ],
+      [
+        129.859278,
+        -3.105
+      ],
+      [
+        132.550662,
+        -1.845
+      ],
+      [
+        134.5692,
+        -0.9
+      ]
+    ],
+    "sections": [
+      {
+        "station": 0,
+        "points": [
+          [
+            0,
+            -1
+          ],
+          [
+            0,
+            -0.98
+          ],
+          [
+            0,
+            -0.86
+          ],
+          [
+            0,
+            -0.62
+          ],
+          [
+            0,
+            -0.31
+          ],
+          [
+            0,
+            -0.3
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0.45
+          ],
+          [
+            0,
+            2.665
+          ],
+          [
+            0,
+            4.1
+          ]
+        ]
+      },
+      {
+        "station": 2.4222456,
+        "points": [
+          [
+            0,
+            -2.119
+          ],
+          [
+            0.6144768,
+            -2.07662
+          ],
+          [
+            1.0753344,
+            -1.82234
+          ],
+          [
+            1.3825728,
+            -1.31378
+          ],
+          [
+            1.51314912,
+            -0.6357
+          ],
+          [
+            1.536192,
+            -0.3
+          ],
+          [
+            1.536192,
+            0
+          ],
+          [
+            1.52851104,
+            0.45
+          ],
+          [
+            1.50546816,
+            2.5831
+          ],
+          [
+            1.47474432,
+            3.974
+          ]
+        ]
+      },
+      {
+        "station": 5.382768,
+        "points": [
+          [
+            0,
+            -3.48666667
+          ],
+          [
+            1.4679168,
+            -3.41693333
+          ],
+          [
+            2.5688544,
+            -2.99853333
+          ],
+          [
+            3.3028128,
+            -2.16173333
+          ],
+          [
+            3.61474512,
+            -1.046
+          ],
+          [
+            3.669792,
+            -0.3
+          ],
+          [
+            3.669792,
+            0
+          ],
+          [
+            3.65144304,
+            0.45
+          ],
+          [
+            3.59639616,
+            2.483
+          ],
+          [
+            3.52300032,
+            3.82
+          ]
+        ]
+      },
+      {
+        "station": 10.09269,
+        "points": [
+          [
+            0,
+            -5.6625
+          ],
+          [
+            2.1848064,
+            -5.54925
+          ],
+          [
+            3.8234112,
+            -4.86975
+          ],
+          [
+            4.9158144,
+            -3.51075
+          ],
+          [
+            5.38008576,
+            -1.69875
+          ],
+          [
+            5.462016,
+            -0.3
+          ],
+          [
+            5.462016,
+            0
+          ],
+          [
+            5.43470592,
+            0.45
+          ],
+          [
+            5.35277568,
+            2.32375
+          ],
+          [
+            5.24353536,
+            3.575
+          ]
+        ]
+      },
+      {
+        "station": 16.148304,
+        "points": [
+          [
+            0,
+            -8.46
+          ],
+          [
+            2.7992832,
+            -8.2908
+          ],
+          [
+            4.8987456,
+            -7.2756
+          ],
+          [
+            6.2983872,
+            -5.2452
+          ],
+          [
+            6.89323488,
+            -2.538
+          ],
+          [
+            6.998208,
+            -0.3
+          ],
+          [
+            6.998208,
+            0
+          ],
+          [
+            6.96321696,
+            0.45
+          ],
+          [
+            6.85824384,
+            2.119
+          ],
+          [
+            6.71827968,
+            3.26
+          ]
+        ]
+      },
+      {
+        "station": 24.222456,
+        "points": [
+          [
+            0,
+            -8.46
+          ],
+          [
+            3.2089344,
+            -8.2908
+          ],
+          [
+            5.6156352,
+            -7.2756
+          ],
+          [
+            7.2201024,
+            -5.2452
+          ],
+          [
+            7.90200096,
+            -2.538
+          ],
+          [
+            8.022336,
+            -0.3
+          ],
+          [
+            8.022336,
+            0
+          ],
+          [
+            7.98222432,
+            0.45
+          ],
+          [
+            7.86188928,
+            1.9825
+          ],
+          [
+            7.70144256,
+            3.05
+          ]
+        ]
+      },
+      {
+        "station": 33.6423,
+        "points": [
+          [
+            0,
+            -8.46
+          ],
+          [
+            3.3966912,
+            -8.2908
+          ],
+          [
+            5.9442096,
+            -7.2756
+          ],
+          [
+            7.6425552,
+            -5.2452
+          ],
+          [
+            8.36435208,
+            -2.538
+          ],
+          [
+            8.491728,
+            -0.3
+          ],
+          [
+            8.491728,
+            0
+          ],
+          [
+            8.44926936,
+            0.45
+          ],
+          [
+            8.32189344,
+            1.9825
+          ],
+          [
+            8.15205888,
+            3.05
+          ]
+        ]
+      },
+      {
+        "station": 43.062144,
+        "points": [
+          [
+            0,
+            -8.46
+          ],
+          [
+            3.41376,
+            -8.2908
+          ],
+          [
+            5.97408,
+            -7.2756
+          ],
+          [
+            7.68096,
+            -5.2452
+          ],
+          [
+            8.406384,
+            -2.538
+          ],
+          [
+            8.5344,
+            -0.3
+          ],
+          [
+            8.5344,
+            0
+          ],
+          [
+            8.491728,
+            0.45
+          ],
+          [
+            8.363712,
+            1.9825
+          ],
+          [
+            8.193024,
+            3.05
+          ]
+        ]
+      },
+      {
+        "station": 53.82768,
+        "points": [
+          [
+            0,
+            -8.46
+          ],
+          [
+            3.41376,
+            -8.2908
+          ],
+          [
+            5.97408,
+            -7.2756
+          ],
+          [
+            7.68096,
+            -5.2452
+          ],
+          [
+            8.406384,
+            -2.538
+          ],
+          [
+            8.5344,
+            -0.3
+          ],
+          [
+            8.5344,
+            0
+          ],
+          [
+            8.491728,
+            0.45
+          ],
+          [
+            8.363712,
+            1.9825
+          ],
+          [
+            8.193024,
+            3.05
+          ]
+        ]
+      },
+      {
+        "station": 63.247524,
+        "points": [
+          [
+            0,
+            -8.46
+          ],
+          [
+            3.41376,
+            -8.2908
+          ],
+          [
+            5.97408,
+            -7.2756
+          ],
+          [
+            7.68096,
+            -5.2452
+          ],
+          [
+            8.406384,
+            -2.538
+          ],
+          [
+            8.5344,
+            -0.3
+          ],
+          [
+            8.5344,
+            0
+          ],
+          [
+            8.491728,
+            0.45
+          ],
+          [
+            8.363712,
+            1.9825
+          ],
+          [
+            8.193024,
+            3.05
+          ]
+        ]
+      },
+      {
+        "station": 67.2846,
+        "points": [
+          [
+            0,
+            -8.46
+          ],
+          [
+            3.41376,
+            -8.2908
+          ],
+          [
+            5.97408,
+            -7.2756
+          ],
+          [
+            7.68096,
+            -5.2452
+          ],
+          [
+            8.406384,
+            -2.538
+          ],
+          [
+            8.5344,
+            -0.3
+          ],
+          [
+            8.5344,
+            0
+          ],
+          [
+            8.491728,
+            0.45
+          ],
+          [
+            8.363712,
+            1.9825
+          ],
+          [
+            8.193024,
+            3.05
+          ]
+        ]
+      },
+      {
+        "station": 71.321676,
+        "points": [
+          [
+            0,
+            -8.46
+          ],
+          [
+            3.41376,
+            -8.2908
+          ],
+          [
+            5.97408,
+            -7.2756
+          ],
+          [
+            7.68096,
+            -5.2452
+          ],
+          [
+            8.406384,
+            -2.538
+          ],
+          [
+            8.5344,
+            -0.3
+          ],
+          [
+            8.5344,
+            0
+          ],
+          [
+            8.491728,
+            0.45
+          ],
+          [
+            8.363712,
+            1.9825
+          ],
+          [
+            8.193024,
+            3.05
+          ]
+        ]
+      },
+      {
+        "station": 76.704444,
+        "points": [
+          [
+            0,
+            -8.46
+          ],
+          [
+            3.41376,
+            -8.2908
+          ],
+          [
+            5.97408,
+            -7.2756
+          ],
+          [
+            7.68096,
+            -5.2452
+          ],
+          [
+            8.406384,
+            -2.538
+          ],
+          [
+            8.5344,
+            -0.3
+          ],
+          [
+            8.5344,
+            0
+          ],
+          [
+            8.491728,
+            0.45
+          ],
+          [
+            8.363712,
+            1.9825
+          ],
+          [
+            8.193024,
+            3.05
+          ]
+        ]
+      },
+      {
+        "station": 83.432904,
+        "points": [
+          [
+            0,
+            -8.46
+          ],
+          [
+            3.35169164,
+            -8.2908
+          ],
+          [
+            5.86546036,
+            -7.2756
+          ],
+          [
+            7.54130618,
+            -5.2452
+          ],
+          [
+            8.25354065,
+            -2.538
+          ],
+          [
+            8.37922909,
+            -0.3
+          ],
+          [
+            8.37922909,
+            0
+          ],
+          [
+            8.33733295,
+            0.45
+          ],
+          [
+            8.21164451,
+            1.99727273
+          ],
+          [
+            8.04405993,
+            3.07272727
+          ]
+        ]
+      },
+      {
+        "station": 91.507056,
+        "points": [
+          [
+            0,
+            -8.46
+          ],
+          [
+            3.2772096,
+            -8.2908
+          ],
+          [
+            5.7351168,
+            -7.2756
+          ],
+          [
+            7.3737216,
+            -5.2452
+          ],
+          [
+            8.07012864,
+            -2.538
+          ],
+          [
+            8.193024,
+            -0.3
+          ],
+          [
+            8.193024,
+            0
+          ],
+          [
+            8.15205888,
+            0.45
+          ],
+          [
+            8.02916352,
+            2.04159091
+          ],
+          [
+            7.86530304,
+            3.14090909
+          ]
+        ]
+      },
+      {
+        "station": 100.9269,
+        "points": [
+          [
+            0,
+            -8.46
+          ],
+          [
+            3.0041088,
+            -8.2908
+          ],
+          [
+            5.2571904,
+            -7.2756
+          ],
+          [
+            6.7592448,
+            -5.2452
+          ],
+          [
+            7.39761792,
+            -2.538
+          ],
+          [
+            7.510272,
+            -0.3
+          ],
+          [
+            7.510272,
+            0
+          ],
+          [
+            7.47272064,
+            0.45
+          ],
+          [
+            7.36006656,
+            2.09329545
+          ],
+          [
+            7.20986112,
+            3.22045455
+          ]
+        ]
+      },
+      {
+        "station": 110.346744,
+        "points": [
+          [
+            0,
+            -8.46
+          ],
+          [
+            2.5261824,
+            -8.2908
+          ],
+          [
+            4.4208192,
+            -7.2756
+          ],
+          [
+            5.6839104,
+            -5.2452
+          ],
+          [
+            6.22072416,
+            -2.538
+          ],
+          [
+            6.315456,
+            -0.3
+          ],
+          [
+            6.315456,
+            0
+          ],
+          [
+            6.28387872,
+            0.45
+          ],
+          [
+            6.18914688,
+            2.145
+          ],
+          [
+            6.06283776,
+            3.3
+          ]
+        ]
+      },
+      {
+        "station": 118.420896,
+        "points": [
+          [
+            0,
+            -8.46
+          ],
+          [
+            1.877568,
+            -8.2908
+          ],
+          [
+            3.285744,
+            -7.2756
+          ],
+          [
+            4.224528,
+            -5.2452
+          ],
+          [
+            4.6235112,
+            -2.538
+          ],
+          [
+            4.69392,
+            -0.3
+          ],
+          [
+            4.69392,
+            0
+          ],
+          [
+            4.6704504,
+            0.45
+          ],
+          [
+            4.6000416,
+            2.47866667
+          ],
+          [
+            4.5061632,
+            3.81333333
+          ]
+        ]
+      },
+      {
+        "station": 125.149356,
+        "points": [
+          [
+            0,
+            -5.31
+          ],
+          [
+            1.1606784,
+            -5.2038
+          ],
+          [
+            2.0311872,
+            -4.5666
+          ],
+          [
+            2.6115264,
+            -3.2922
+          ],
+          [
+            2.85817056,
+            -1.593
+          ],
+          [
+            2.901696,
+            -0.3
+          ],
+          [
+            2.901696,
+            0
+          ],
+          [
+            2.88718752,
+            0.45
+          ],
+          [
+            2.84366208,
+            2.75672222
+          ],
+          [
+            2.78562816,
+            4.24111111
+          ]
+        ]
+      },
+      {
+        "station": 129.859278,
+        "points": [
+          [
+            0,
+            -3.105
+          ],
+          [
+            0.5803392,
+            -3.0429
+          ],
+          [
+            1.0155936,
+            -2.6703
+          ],
+          [
+            1.3057632,
+            -1.9251
+          ],
+          [
+            1.42908528,
+            -0.9315
+          ],
+          [
+            1.450848,
+            -0.3
+          ],
+          [
+            1.450848,
+            0
+          ],
+          [
+            1.44359376,
+            0.45
+          ],
+          [
+            1.42183104,
+            2.95136111
+          ],
+          [
+            1.39281408,
+            4.54055556
+          ]
+        ]
+      },
+      {
+        "station": 132.550662,
+        "points": [
+          [
+            0,
+            -1.845
+          ],
+          [
+            0.1877568,
+            -1.8081
+          ],
+          [
+            0.3285744,
+            -1.5867
+          ],
+          [
+            0.4224528,
+            -1.1439
+          ],
+          [
+            0.46235112,
+            -0.5535
+          ],
+          [
+            0.469392,
+            -0.3
+          ],
+          [
+            0.469392,
+            0
+          ],
+          [
+            0.46704504,
+            0.45
+          ],
+          [
+            0.46000416,
+            3.06258333
+          ],
+          [
+            0.45061632,
+            4.71166667
+          ]
+        ]
+      },
+      {
+        "station": 134.5692,
+        "points": [
+          [
+            0,
+            -0.9
+          ],
+          [
+            0,
+            -0.882
+          ],
+          [
+            0,
+            -0.774
+          ],
+          [
+            0,
+            -0.558
+          ],
+          [
+            0,
+            -0.31
+          ],
+          [
+            0,
+            -0.3
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0.45
+          ],
+          [
+            0,
+            3.146
+          ],
+          [
+            0,
+            4.84
+          ]
+        ]
+      }
+    ]
+  },
+  "handling": {
+    "forwardSpeed": 5.658884,
+    "reverseSpeed": 1.7,
+    "acceleration": 0.065,
+    "braking": 0.075,
+    "rudderRate": 0.14,
+    "maxYawRate": 0.014
+  },
+  "mounts": [
+    {
+      "id": "aft-5in",
+      "name": "Stern 5-inch",
+      "partId": "us-5in38-mk21-single",
+      "battery": "main",
+      "position": [
+        0,
+        5.86501726,
+        57
+      ],
+      "bearingDeg": 180,
+      "magazineId": "aft-magazine",
+      "rangefinder": false,
+      "weapon": {
+        "kind": "gun",
+        "barrelSpacing": 0.3,
+        "traverseDeg": 160,
+        "traverseRateDeg": 15,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 15,
+        "armorMm": 6,
+        "ammoPerBarrel": 360,
+        "penetrationMm": 65,
+        "damage": 10,
+        "recoilM": 0.38,
+        "id": "us-5in38-mk21-single",
+        "name": "5-inch/38 Mk 21 open mount",
+        "massKg": 13154,
+        "barrelCount": 1,
+        "mountingStyle": "open-pedestal",
+        "barbetteRadius": 1.36,
+        "gunhouseSize": [
+          3.25,
+          2.9,
+          2.15
+        ],
+        "pivotHeight": 1.62,
+        "trunnionForward": 0.25,
+        "muzzleForward": 4.48,
+        "barrelBaseRadius": 0.19,
+        "caliberM": 0.127,
+        "reloadSeconds": 4,
+        "muzzleSpeed": 792,
+        "projectileMassKg": 25,
+        "ballistics": {
+          "dragPerSecond": 0.06145,
+          "dispersionRad": 0.0012,
+          "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 5000 m, 10 m launch/sea target, nominal speed (485.109 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 485.108815
+        },
+        "ap": {
+          "armingResistanceMm": 21.1667,
+          "fuzeDelaySeconds": 0.02,
+          "explosiveKg": 0.625,
+          "fragmentPenetrationMm": 10.16,
+          "basis": "Provisional AP game calibration, not historical fuze/filler data. Arming requires caliber/6 equivalent resistance in one non-ricochet contact; delay 35 ms at >=200 mm, otherwise 20 ms; fill 2.5% of projectile mass; fragment budget 8% of caliber in mm. Smaller AA AP remains inert. See assets/parts/author-ap.ts; blast radius and damage are bounded approximations."
+        },
+        "he": {
+          "explosiveKg": 2,
+          "fragmentPenetrationMm": 21.1667,
+          "damage": 20,
+          "stockFraction": 0.4,
+          "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
+        }
+      }
+    },
+    {
+      "id": "fore-3in",
+      "name": "Bow 3-inch",
+      "partId": "us-3in50-single",
+      "battery": "secondary",
+      "position": [
+        0,
+        5.56328694,
+        -59
+      ],
+      "bearingDeg": 0,
+      "magazineId": "forward-magazine",
+      "rangefinder": false,
+      "weapon": {
+        "kind": "gun",
+        "barrelCount": 1,
+        "mountingStyle": "open-pedestal",
+        "barrelSpacing": 0.1,
+        "traverseRateDeg": 18,
+        "elevationMinDeg": -10,
+        "elevationRateDeg": 15,
+        "id": "us-3in50-single",
+        "name": "3-inch/50 defensive gun",
+        "caliberM": 0.0762,
+        "massKg": 3000,
+        "barbetteRadius": 0.85,
+        "gunhouseSize": [
+          2.5,
+          1.9,
+          1.6
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.2,
+        "muzzleForward": 3.35,
+        "barrelBaseRadius": 0.1,
+        "traverseDeg": 155,
+        "elevationMaxDeg": 85,
+        "reloadSeconds": 5,
+        "muzzleSpeed": 823,
+        "projectileMassKg": 5.9,
+        "penetrationMm": 38,
+        "damage": 7,
+        "recoilM": 0.28,
+        "ammoPerBarrel": 240,
+        "armorMm": 4,
+        "ballistics": {
+          "dragPerSecond": 0.1,
+          "dispersionRad": 0.0015,
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 576.0999999999999,
+          "basis": "Provisional gameplay calibration; rates, ammunition, penetration, dispersion and damage are not certified historical firing data."
+        },
+        "ap": {
+          "armingResistanceMm": 12.700000000000001,
+          "fuzeDelaySeconds": 0.02,
+          "explosiveKg": 0.14750000000000002,
+          "fragmentPenetrationMm": 6.096,
+          "basis": "Provisional gameplay calibration; rates, ammunition, penetration, dispersion and damage are not certified historical firing data."
+        },
+        "he": {
+          "explosiveKg": 0.47200000000000003,
+          "fragmentPenetrationMm": 12.700000000000001,
+          "damage": 14,
+          "stockFraction": 0.6,
+          "basis": "Provisional gameplay calibration; rates, ammunition, penetration, dispersion and damage are not certified historical firing data."
+        }
+      }
+    },
+    {
+      "id": "bow-aa-starboard",
+      "name": "Bow starboard Oerlikon",
+      "partId": "oerlikon-20mm-single",
+      "battery": "secondary",
+      "position": [
+        3.5,
+        5.05897746,
+        -55
+      ],
+      "bearingDeg": 90,
+      "magazineId": "forward-magazine",
+      "rangefinder": false,
+      "weapon": {
+        "kind": "gun",
+        "barrelSpacing": 0.3,
+        "traverseDeg": 160,
+        "traverseRateDeg": 15,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 15,
+        "armorMm": 6,
+        "ammoPerBarrel": 1800,
+        "penetrationMm": 6,
+        "damage": 0.6,
+        "recoilM": 0.055,
+        "id": "oerlikon-20mm-single",
+        "name": "20 mm Oerlikon single mount",
+        "massKg": 770,
+        "barrelCount": 1,
+        "mountingStyle": "oerlikon",
+        "barbetteRadius": 0.4,
+        "gunhouseSize": [
+          1.7,
+          1.02,
+          1.65
+        ],
+        "pivotHeight": 1.12,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.18,
+        "barrelBaseRadius": 0.033,
+        "caliberM": 0.02,
+        "reloadSeconds": 0.45,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 1000 m, 10 m launch/sea target, nominal speed (508.570 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 508.569711
+        },
+        "he": {
+          "explosiveKg": 0.00984,
+          "fragmentPenetrationMm": 3.3333,
+          "damage": 1.2,
+          "stockFraction": 0.4,
+          "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
+        }
+      }
+    },
+    {
+      "id": "bridge-aa-starboard-1",
+      "name": "Bridge starboard 1",
+      "partId": "oerlikon-20mm-single",
+      "battery": "secondary",
+      "position": [
+        5.9,
+        11.05,
+        -10.1
+      ],
+      "bearingDeg": 90,
+      "magazineId": "forward-magazine",
+      "rangefinder": false,
+      "weapon": {
+        "kind": "gun",
+        "barrelSpacing": 0.3,
+        "traverseDeg": 160,
+        "traverseRateDeg": 15,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 15,
+        "armorMm": 6,
+        "ammoPerBarrel": 1800,
+        "penetrationMm": 6,
+        "damage": 0.6,
+        "recoilM": 0.055,
+        "id": "oerlikon-20mm-single",
+        "name": "20 mm Oerlikon single mount",
+        "massKg": 770,
+        "barrelCount": 1,
+        "mountingStyle": "oerlikon",
+        "barbetteRadius": 0.4,
+        "gunhouseSize": [
+          1.7,
+          1.02,
+          1.65
+        ],
+        "pivotHeight": 1.12,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.18,
+        "barrelBaseRadius": 0.033,
+        "caliberM": 0.02,
+        "reloadSeconds": 0.45,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 1000 m, 10 m launch/sea target, nominal speed (508.570 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 508.569711
+        },
+        "he": {
+          "explosiveKg": 0.00984,
+          "fragmentPenetrationMm": 3.3333,
+          "damage": 1.2,
+          "stockFraction": 0.4,
+          "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
+        }
+      }
+    },
+    {
+      "id": "bridge-aa-starboard-2",
+      "name": "Bridge starboard 2",
+      "partId": "oerlikon-20mm-single",
+      "battery": "secondary",
+      "position": [
+        5.9,
+        11.05,
+        -5.8
+      ],
+      "bearingDeg": 90,
+      "magazineId": "forward-magazine",
+      "rangefinder": false,
+      "weapon": {
+        "kind": "gun",
+        "barrelSpacing": 0.3,
+        "traverseDeg": 160,
+        "traverseRateDeg": 15,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 15,
+        "armorMm": 6,
+        "ammoPerBarrel": 1800,
+        "penetrationMm": 6,
+        "damage": 0.6,
+        "recoilM": 0.055,
+        "id": "oerlikon-20mm-single",
+        "name": "20 mm Oerlikon single mount",
+        "massKg": 770,
+        "barrelCount": 1,
+        "mountingStyle": "oerlikon",
+        "barbetteRadius": 0.4,
+        "gunhouseSize": [
+          1.7,
+          1.02,
+          1.65
+        ],
+        "pivotHeight": 1.12,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.18,
+        "barrelBaseRadius": 0.033,
+        "caliberM": 0.02,
+        "reloadSeconds": 0.45,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 1000 m, 10 m launch/sea target, nominal speed (508.570 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 508.569711
+        },
+        "he": {
+          "explosiveKg": 0.00984,
+          "fragmentPenetrationMm": 3.3333,
+          "damage": 1.2,
+          "stockFraction": 0.4,
+          "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
+        }
+      }
+    },
+    {
+      "id": "aft-aa-starboard",
+      "name": "Aft starboard Oerlikon",
+      "partId": "oerlikon-20mm-single",
+      "battery": "secondary",
+      "position": [
+        5.1,
+        5.43044616,
+        50
+      ],
+      "bearingDeg": 90,
+      "magazineId": "aft-magazine",
+      "rangefinder": false,
+      "weapon": {
+        "kind": "gun",
+        "barrelSpacing": 0.3,
+        "traverseDeg": 160,
+        "traverseRateDeg": 15,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 15,
+        "armorMm": 6,
+        "ammoPerBarrel": 1800,
+        "penetrationMm": 6,
+        "damage": 0.6,
+        "recoilM": 0.055,
+        "id": "oerlikon-20mm-single",
+        "name": "20 mm Oerlikon single mount",
+        "massKg": 770,
+        "barrelCount": 1,
+        "mountingStyle": "oerlikon",
+        "barbetteRadius": 0.4,
+        "gunhouseSize": [
+          1.7,
+          1.02,
+          1.65
+        ],
+        "pivotHeight": 1.12,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.18,
+        "barrelBaseRadius": 0.033,
+        "caliberM": 0.02,
+        "reloadSeconds": 0.45,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 1000 m, 10 m launch/sea target, nominal speed (508.570 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 508.569711
+        },
+        "he": {
+          "explosiveKg": 0.00984,
+          "fragmentPenetrationMm": 3.3333,
+          "damage": 1.2,
+          "stockFraction": 0.4,
+          "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
+        }
+      }
+    },
+    {
+      "id": "bow-aa-port",
+      "name": "Bow port Oerlikon",
+      "partId": "oerlikon-20mm-single",
+      "battery": "secondary",
+      "position": [
+        -3.5,
+        5.05897746,
+        -55
+      ],
+      "bearingDeg": -90,
+      "magazineId": "forward-magazine",
+      "rangefinder": false,
+      "weapon": {
+        "kind": "gun",
+        "barrelSpacing": 0.3,
+        "traverseDeg": 160,
+        "traverseRateDeg": 15,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 15,
+        "armorMm": 6,
+        "ammoPerBarrel": 1800,
+        "penetrationMm": 6,
+        "damage": 0.6,
+        "recoilM": 0.055,
+        "id": "oerlikon-20mm-single",
+        "name": "20 mm Oerlikon single mount",
+        "massKg": 770,
+        "barrelCount": 1,
+        "mountingStyle": "oerlikon",
+        "barbetteRadius": 0.4,
+        "gunhouseSize": [
+          1.7,
+          1.02,
+          1.65
+        ],
+        "pivotHeight": 1.12,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.18,
+        "barrelBaseRadius": 0.033,
+        "caliberM": 0.02,
+        "reloadSeconds": 0.45,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 1000 m, 10 m launch/sea target, nominal speed (508.570 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 508.569711
+        },
+        "he": {
+          "explosiveKg": 0.00984,
+          "fragmentPenetrationMm": 3.3333,
+          "damage": 1.2,
+          "stockFraction": 0.4,
+          "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
+        }
+      }
+    },
+    {
+      "id": "bridge-aa-port-1",
+      "name": "Bridge port 1",
+      "partId": "oerlikon-20mm-single",
+      "battery": "secondary",
+      "position": [
+        -5.9,
+        11.05,
+        -10.1
+      ],
+      "bearingDeg": -90,
+      "magazineId": "forward-magazine",
+      "rangefinder": false,
+      "weapon": {
+        "kind": "gun",
+        "barrelSpacing": 0.3,
+        "traverseDeg": 160,
+        "traverseRateDeg": 15,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 15,
+        "armorMm": 6,
+        "ammoPerBarrel": 1800,
+        "penetrationMm": 6,
+        "damage": 0.6,
+        "recoilM": 0.055,
+        "id": "oerlikon-20mm-single",
+        "name": "20 mm Oerlikon single mount",
+        "massKg": 770,
+        "barrelCount": 1,
+        "mountingStyle": "oerlikon",
+        "barbetteRadius": 0.4,
+        "gunhouseSize": [
+          1.7,
+          1.02,
+          1.65
+        ],
+        "pivotHeight": 1.12,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.18,
+        "barrelBaseRadius": 0.033,
+        "caliberM": 0.02,
+        "reloadSeconds": 0.45,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 1000 m, 10 m launch/sea target, nominal speed (508.570 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 508.569711
+        },
+        "he": {
+          "explosiveKg": 0.00984,
+          "fragmentPenetrationMm": 3.3333,
+          "damage": 1.2,
+          "stockFraction": 0.4,
+          "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
+        }
+      }
+    },
+    {
+      "id": "bridge-aa-port-2",
+      "name": "Bridge port 2",
+      "partId": "oerlikon-20mm-single",
+      "battery": "secondary",
+      "position": [
+        -5.9,
+        11.05,
+        -5.8
+      ],
+      "bearingDeg": -90,
+      "magazineId": "forward-magazine",
+      "rangefinder": false,
+      "weapon": {
+        "kind": "gun",
+        "barrelSpacing": 0.3,
+        "traverseDeg": 160,
+        "traverseRateDeg": 15,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 15,
+        "armorMm": 6,
+        "ammoPerBarrel": 1800,
+        "penetrationMm": 6,
+        "damage": 0.6,
+        "recoilM": 0.055,
+        "id": "oerlikon-20mm-single",
+        "name": "20 mm Oerlikon single mount",
+        "massKg": 770,
+        "barrelCount": 1,
+        "mountingStyle": "oerlikon",
+        "barbetteRadius": 0.4,
+        "gunhouseSize": [
+          1.7,
+          1.02,
+          1.65
+        ],
+        "pivotHeight": 1.12,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.18,
+        "barrelBaseRadius": 0.033,
+        "caliberM": 0.02,
+        "reloadSeconds": 0.45,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 1000 m, 10 m launch/sea target, nominal speed (508.570 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 508.569711
+        },
+        "he": {
+          "explosiveKg": 0.00984,
+          "fragmentPenetrationMm": 3.3333,
+          "damage": 1.2,
+          "stockFraction": 0.4,
+          "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
+        }
+      }
+    },
+    {
+      "id": "aft-aa-port",
+      "name": "Aft port Oerlikon",
+      "partId": "oerlikon-20mm-single",
+      "battery": "secondary",
+      "position": [
+        -5.1,
+        5.43044616,
+        50
+      ],
+      "bearingDeg": -90,
+      "magazineId": "aft-magazine",
+      "rangefinder": false,
+      "weapon": {
+        "kind": "gun",
+        "barrelSpacing": 0.3,
+        "traverseDeg": 160,
+        "traverseRateDeg": 15,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 15,
+        "armorMm": 6,
+        "ammoPerBarrel": 1800,
+        "penetrationMm": 6,
+        "damage": 0.6,
+        "recoilM": 0.055,
+        "id": "oerlikon-20mm-single",
+        "name": "20 mm Oerlikon single mount",
+        "massKg": 770,
+        "barrelCount": 1,
+        "mountingStyle": "oerlikon",
+        "barbetteRadius": 0.4,
+        "gunhouseSize": [
+          1.7,
+          1.02,
+          1.65
+        ],
+        "pivotHeight": 1.12,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.18,
+        "barrelBaseRadius": 0.033,
+        "caliberM": 0.02,
+        "reloadSeconds": 0.45,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.123,
+        "ballistics": {
+          "dragPerSecond": 0.32657,
+          "dispersionRad": 0.002,
+          "basis": "Provisional game calibration, not historical firing data. Linear k=0.5*1.225*0.25*area*muzzleSpeed/mass; no Mach curve. Angular/speed sigmas are estimated, capped at 3 sigma; no salvo correlation or rangefinder error. Legacy penetrationMm retained at 1000 m, 10 m launch/sea target, nominal speed (508.570 m/s); see assets/parts/calibrate-penetration.ts. Residual budget follows speed^1.4, including descent recovery; armor resistance paid separately.",
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 508.569711
+        },
+        "he": {
+          "explosiveKg": 0.00984,
+          "fragmentPenetrationMm": 3.3333,
+          "damage": 1.2,
+          "stockFraction": 0.4,
+          "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
+        }
+      }
+    }
+  ],
+  "armor": [],
+  "modules": [
+    {
+      "id": "boiler-port",
+      "name": "Port boiler",
+      "kind": "engine",
+      "compartmentId": "boiler-room",
+      "center": [
+        -2.2,
+        -4.46,
+        -3.36423
+      ],
+      "size": [
+        4,
+        2.8,
+        4.5
+      ],
+      "hp": 200,
+      "immersionToleranceM": 0.65,
+      "role": "boiler"
+    },
+    {
+      "id": "boiler-starboard",
+      "name": "Starboard boiler",
+      "kind": "engine",
+      "compartmentId": "boiler-room",
+      "center": [
+        2.2,
+        -4.46,
+        -3.36423
+      ],
+      "size": [
+        4,
+        2.8,
+        4.5
+      ],
+      "hp": 200,
+      "immersionToleranceM": 0.65,
+      "role": "boiler"
+    },
+    {
+      "id": "main-engine",
+      "name": "Triple-expansion engine",
+      "kind": "engine",
+      "compartmentId": "engine-room",
+      "center": [
+        0,
+        -4.46,
+        8.074152
+      ],
+      "size": [
+        4,
+        2.8,
+        4.5
+      ],
+      "hp": 200,
+      "immersionToleranceM": 0.65,
+      "role": "combined-drive"
+    },
+    {
+      "id": "shaft",
+      "name": "Single shaft",
+      "kind": "engine",
+      "compartmentId": "steering-room",
+      "center": [
+        0,
+        -3.53,
+        58.874025
+      ],
+      "size": [
+        0.5,
+        0.5,
+        3.700653
+      ],
+      "hp": 200,
+      "immersionToleranceM": 0.5,
+      "role": "shaft"
+    },
+    {
+      "id": "steering",
+      "name": "Steering gear",
+      "kind": "steering",
+      "compartmentId": "steering-room",
+      "center": [
+        0,
+        0.5,
+        58.874025
+      ],
+      "size": [
+        4,
+        2.64,
+        3.700653
+      ],
+      "hp": 80,
+      "immersionToleranceM": 0.65
+    },
+    {
+      "id": "forward-magazine",
+      "name": "Forward ammunition",
+      "kind": "magazine",
+      "compartmentId": "forward-magazine-room",
+      "center": [
+        0,
+        -4.46,
+        -52.818411
+      ],
+      "size": [
+        4,
+        2.8,
+        3.027807
+      ],
+      "hp": 80,
+      "immersionToleranceM": 0.65
+    },
+    {
+      "id": "aft-magazine",
+      "name": "Aft ammunition",
+      "kind": "magazine",
+      "compartmentId": "aft-magazine-room",
+      "center": [
+        0,
+        -4.46,
+        51.472719
+      ],
+      "size": [
+        4,
+        2.8,
+        3.700653
+      ],
+      "hp": 80,
+      "immersionToleranceM": 0.65
+    }
+  ],
+  "compartments": [
+    {
+      "id": "forepeak",
+      "name": "Forepeak",
+      "center": [
+        0,
+        -0.03,
+        -60.219717
+      ],
+      "size": [
+        4.20866602,
+        7.7,
+        8.746998
+      ],
+      "cells": [
+        {
+          "center": [
+            -0.2446437,
+            -1.13,
+            -62.4064665
+          ],
+          "size": [
+            0.4892874,
+            1.1,
+            4.373499
+          ]
+        },
+        {
+          "center": [
+            0.2446437,
+            -1.13,
+            -62.4064665
+          ],
+          "size": [
+            0.4892874,
+            1.1,
+            4.373499
+          ]
+        },
+        {
+          "center": [
+            -0.32303892,
+            -0.03,
+            -62.4064665
+          ],
+          "size": [
+            0.64607783,
+            1.1,
+            4.373499
+          ]
+        },
+        {
+          "center": [
+            0.32303892,
+            -0.03,
+            -62.4064665
+          ],
+          "size": [
+            0.64607783,
+            1.1,
+            4.373499
+          ]
+        },
+        {
+          "center": [
+            -0.32310403,
+            1.07,
+            -62.4064665
+          ],
+          "size": [
+            0.64620806,
+            1.1,
+            4.373499
+          ]
+        },
+        {
+          "center": [
+            0.32310403,
+            1.07,
+            -62.4064665
+          ],
+          "size": [
+            0.64620806,
+            1.1,
+            4.373499
+          ]
+        },
+        {
+          "center": [
+            -0.3208251,
+            2.17,
+            -62.4064665
+          ],
+          "size": [
+            0.6416502,
+            1.1,
+            4.373499
+          ]
+        },
+        {
+          "center": [
+            0.3208251,
+            2.17,
+            -62.4064665
+          ],
+          "size": [
+            0.6416502,
+            1.1,
+            4.373499
+          ]
+        },
+        {
+          "center": [
+            -0.31678813,
+            3.27,
+            -62.4064665
+          ],
+          "size": [
+            0.63357627,
+            1.1,
+            4.373499
+          ]
+        },
+        {
+          "center": [
+            0.31678813,
+            3.27,
+            -62.4064665
+          ],
+          "size": [
+            0.63357627,
+            1.1,
+            4.373499
+          ]
+        },
+        {
+          "center": [
+            -0.56258708,
+            -3.33,
+            -58.0329675
+          ],
+          "size": [
+            1.12517417,
+            1.1,
+            4.373499
+          ]
+        },
+        {
+          "center": [
+            0.56258708,
+            -3.33,
+            -58.0329675
+          ],
+          "size": [
+            1.12517417,
+            1.1,
+            4.373499
+          ]
+        },
+        {
+          "center": [
+            -0.91237039,
+            -2.23,
+            -58.0329675
+          ],
+          "size": [
+            1.82474077,
+            1.1,
+            4.373499
+          ]
+        },
+        {
+          "center": [
+            0.91237039,
+            -2.23,
+            -58.0329675
+          ],
+          "size": [
+            1.82474077,
+            1.1,
+            4.373499
+          ]
+        },
+        {
+          "center": [
+            -1.01309912,
+            -1.13,
+            -58.0329675
+          ],
+          "size": [
+            2.02619824,
+            1.1,
+            4.373499
+          ]
+        },
+        {
+          "center": [
+            1.01309912,
+            -1.13,
+            -58.0329675
+          ],
+          "size": [
+            2.02619824,
+            1.1,
+            4.373499
+          ]
+        },
+        {
+          "center": [
+            -1.0521665,
+            -0.03,
+            -58.0329675
+          ],
+          "size": [
+            2.10433301,
+            1.1,
+            4.373499
+          ]
+        },
+        {
+          "center": [
+            1.0521665,
+            -0.03,
+            -58.0329675
+          ],
+          "size": [
+            2.10433301,
+            1.1,
+            4.373499
+          ]
+        },
+        {
+          "center": [
+            -1.0447437,
+            1.07,
+            -58.0329675
+          ],
+          "size": [
+            2.0894874,
+            1.1,
+            4.373499
+          ]
+        },
+        {
+          "center": [
+            1.0447437,
+            1.07,
+            -58.0329675
+          ],
+          "size": [
+            2.0894874,
+            1.1,
+            4.373499
+          ]
+        },
+        {
+          "center": [
+            -1.03725579,
+            2.17,
+            -58.0329675
+          ],
+          "size": [
+            2.07451157,
+            1.1,
+            4.373499
+          ]
+        },
+        {
+          "center": [
+            1.03725579,
+            2.17,
+            -58.0329675
+          ],
+          "size": [
+            2.07451157,
+            1.1,
+            4.373499
+          ]
+        },
+        {
+          "center": [
+            -1.02267063,
+            3.27,
+            -58.0329675
+          ],
+          "size": [
+            2.04534126,
+            1.1,
+            4.373499
+          ]
+        },
+        {
+          "center": [
+            1.02267063,
+            3.27,
+            -58.0329675
+          ],
+          "size": [
+            2.04534126,
+            1.1,
+            4.373499
+          ]
+        }
+      ],
+      "capacityM3": 138.40808283,
+      "pumpM3PerSecond": 0.006
+    },
+    {
+      "id": "forward-magazine-room",
+      "name": "Forward magazine",
+      "center": [
+        0,
+        -1.68,
+        -52.818411
+      ],
+      "size": [
+        8.32480547,
+        11,
+        6.055614
+      ],
+      "cells": [
+        {
+          "center": [
+            -0.69216057,
+            -5.53,
+            -54.3323145
+          ],
+          "size": [
+            1.38432114,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            0.69216057,
+            -5.53,
+            -54.3323145
+          ],
+          "size": [
+            1.38432114,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            -1.26521396,
+            -4.43,
+            -54.3323145
+          ],
+          "size": [
+            2.53042793,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            1.26521396,
+            -4.43,
+            -54.3323145
+          ],
+          "size": [
+            2.53042793,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            -1.5172637,
+            -3.33,
+            -54.3323145
+          ],
+          "size": [
+            3.03452739,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            1.5172637,
+            -3.33,
+            -54.3323145
+          ],
+          "size": [
+            3.03452739,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            -1.59787273,
+            -2.23,
+            -54.3323145
+          ],
+          "size": [
+            3.19574546,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            1.59787273,
+            -2.23,
+            -54.3323145
+          ],
+          "size": [
+            3.19574546,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            -1.66708711,
+            -1.13,
+            -54.3323145
+          ],
+          "size": [
+            3.33417422,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            1.66708711,
+            -1.13,
+            -54.3323145
+          ],
+          "size": [
+            3.33417422,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            -1.68023979,
+            -0.03,
+            -54.3323145
+          ],
+          "size": [
+            3.36047959,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            1.68023979,
+            -0.03,
+            -54.3323145
+          ],
+          "size": [
+            3.36047959,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            -1.66747778,
+            1.07,
+            -54.3323145
+          ],
+          "size": [
+            3.33495557,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            1.66747778,
+            1.07,
+            -54.3323145
+          ],
+          "size": [
+            3.33495557,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            -1.65412976,
+            2.17,
+            -54.3323145
+          ],
+          "size": [
+            3.30825952,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            1.65412976,
+            2.17,
+            -54.3323145
+          ],
+          "size": [
+            3.30825952,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            -1.6278895,
+            3.27,
+            -54.3323145
+          ],
+          "size": [
+            3.255779,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            1.6278895,
+            3.27,
+            -54.3323145
+          ],
+          "size": [
+            3.255779,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            -1.05366409,
+            -6.63,
+            -51.3045075
+          ],
+          "size": [
+            2.10732817,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            1.05366409,
+            -6.63,
+            -51.3045075
+          ],
+          "size": [
+            2.10732817,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            -1.57553921,
+            -5.53,
+            -51.3045075
+          ],
+          "size": [
+            3.15107842,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            1.57553921,
+            -5.53,
+            -51.3045075
+          ],
+          "size": [
+            3.15107842,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            -1.82915164,
+            -4.43,
+            -51.3045075
+          ],
+          "size": [
+            3.65830327,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            1.82915164,
+            -4.43,
+            -51.3045075
+          ],
+          "size": [
+            3.65830327,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            -1.94505154,
+            -3.33,
+            -51.3045075
+          ],
+          "size": [
+            3.89010308,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            1.94505154,
+            -3.33,
+            -51.3045075
+          ],
+          "size": [
+            3.89010308,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            -2.02592102,
+            -2.23,
+            -51.3045075
+          ],
+          "size": [
+            4.05184204,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            2.02592102,
+            -2.23,
+            -51.3045075
+          ],
+          "size": [
+            4.05184204,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            -2.07097874,
+            -1.13,
+            -51.3045075
+          ],
+          "size": [
+            4.14195747,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            2.07097874,
+            -1.13,
+            -51.3045075
+          ],
+          "size": [
+            4.14195747,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            -2.08120137,
+            -0.03,
+            -51.3045075
+          ],
+          "size": [
+            4.16240273,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            2.08120137,
+            -0.03,
+            -51.3045075
+          ],
+          "size": [
+            4.16240273,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            -2.06453262,
+            1.07,
+            -51.3045075
+          ],
+          "size": [
+            4.12906523,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            2.06453262,
+            1.07,
+            -51.3045075
+          ],
+          "size": [
+            4.12906523,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            -2.04512915,
+            2.17,
+            -51.3045075
+          ],
+          "size": [
+            4.0902583,
+            1.1,
+            3.027807
+          ]
+        },
+        {
+          "center": [
+            2.04512915,
+            2.17,
+            -51.3045075
+          ],
+          "size": [
+            4.0902583,
+            1.1,
+            3.027807
+          ]
+        }
+      ],
+      "capacityM3": 352.41939317,
+      "pumpM3PerSecond": 0.025
+    },
+    {
+      "id": "hold-1",
+      "name": "No. 1 hold",
+      "center": [
+        0,
+        -2.78,
+        -43.062144
+      ],
+      "size": [
+        12.43990313,
+        11,
+        13.45692
+      ],
+      "cells": [
+        {
+          "center": [
+            -0.97071101,
+            -7.73,
+            -46.426374
+          ],
+          "size": [
+            1.94142202,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            0.97071101,
+            -7.73,
+            -46.426374
+          ],
+          "size": [
+            1.94142202,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            -1.73083206,
+            -6.63,
+            -46.426374
+          ],
+          "size": [
+            3.46166411,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            1.73083206,
+            -6.63,
+            -46.426374
+          ],
+          "size": [
+            3.46166411,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            -1.99974587,
+            -5.53,
+            -46.426374
+          ],
+          "size": [
+            3.99949175,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            1.99974587,
+            -5.53,
+            -46.426374
+          ],
+          "size": [
+            3.99949175,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            -2.22451355,
+            -4.43,
+            -46.426374
+          ],
+          "size": [
+            4.4490271,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            2.22451355,
+            -4.43,
+            -46.426374
+          ],
+          "size": [
+            4.4490271,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            -2.31026646,
+            -3.33,
+            -46.426374
+          ],
+          "size": [
+            4.62053291,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            2.31026646,
+            -3.33,
+            -46.426374
+          ],
+          "size": [
+            4.62053291,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            -2.39595425,
+            -2.23,
+            -46.426374
+          ],
+          "size": [
+            4.7919085,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            2.39595425,
+            -2.23,
+            -46.426374
+          ],
+          "size": [
+            4.7919085,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            -2.42909641,
+            -1.13,
+            -46.426374
+          ],
+          "size": [
+            4.85819282,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            2.42909641,
+            -1.13,
+            -46.426374
+          ],
+          "size": [
+            4.85819282,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            -2.43834236,
+            -0.03,
+            -46.426374
+          ],
+          "size": [
+            4.87668472,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            2.43834236,
+            -0.03,
+            -46.426374
+          ],
+          "size": [
+            4.87668472,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            -2.41757153,
+            1.07,
+            -46.426374
+          ],
+          "size": [
+            4.83514307,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            2.41757153,
+            1.07,
+            -46.426374
+          ],
+          "size": [
+            4.83514307,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            -2.39113594,
+            2.17,
+            -46.426374
+          ],
+          "size": [
+            4.78227188,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            2.39113594,
+            2.17,
+            -46.426374
+          ],
+          "size": [
+            4.78227188,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            -1.24314089,
+            -7.73,
+            -39.697914
+          ],
+          "size": [
+            2.48628179,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            1.24314089,
+            -7.73,
+            -39.697914
+          ],
+          "size": [
+            2.48628179,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            -2.21012373,
+            -6.63,
+            -39.697914
+          ],
+          "size": [
+            4.42024746,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            2.21012373,
+            -6.63,
+            -39.697914
+          ],
+          "size": [
+            4.42024746,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            -2.55228889,
+            -5.53,
+            -39.697914
+          ],
+          "size": [
+            5.10457778,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            2.55228889,
+            -5.53,
+            -39.697914
+          ],
+          "size": [
+            5.10457778,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            -2.83819702,
+            -4.43,
+            -39.697914
+          ],
+          "size": [
+            5.67639404,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            2.83819702,
+            -4.43,
+            -39.697914
+          ],
+          "size": [
+            5.67639404,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            -2.94726013,
+            -3.33,
+            -39.697914
+          ],
+          "size": [
+            5.89452026,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            2.94726013,
+            -3.33,
+            -39.697914
+          ],
+          "size": [
+            5.89452026,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            -3.05632324,
+            -2.23,
+            -39.697914
+          ],
+          "size": [
+            6.11264648,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            3.05632324,
+            -2.23,
+            -39.697914
+          ],
+          "size": [
+            6.11264648,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            -3.09851602,
+            -1.13,
+            -39.697914
+          ],
+          "size": [
+            6.19703203,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            3.09851602,
+            -1.13,
+            -39.697914
+          ],
+          "size": [
+            6.19703203,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            -3.10997578,
+            -0.03,
+            -39.697914
+          ],
+          "size": [
+            6.21995156,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            3.10997578,
+            -0.03,
+            -39.697914
+          ],
+          "size": [
+            6.21995156,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            -3.07924277,
+            1.07,
+            -39.697914
+          ],
+          "size": [
+            6.15848555,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            3.07924277,
+            1.07,
+            -39.697914
+          ],
+          "size": [
+            6.15848555,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            -3.03307815,
+            2.17,
+            -39.697914
+          ],
+          "size": [
+            6.0661563,
+            1.1,
+            6.72846
+          ]
+        },
+        {
+          "center": [
+            3.03307815,
+            2.17,
+            -39.697914
+          ],
+          "size": [
+            6.0661563,
+            1.1,
+            6.72846
+          ]
+        }
+      ],
+      "capacityM3": 1004.60653705,
+      "pumpM3PerSecond": 0.006
+    },
+    {
+      "id": "hold-2",
+      "name": "No. 2 hold",
+      "center": [
+        0,
+        -2.78,
+        -27.923109
+      ],
+      "size": [
+        15.63978223,
+        11,
+        16.82115
+      ],
+      "cells": [
+        {
+          "center": [
+            -1.4151676,
+            -7.73,
+            -32.1283965
+          ],
+          "size": [
+            2.83033521,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            1.4151676,
+            -7.73,
+            -32.1283965
+          ],
+          "size": [
+            2.83033521,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            -2.51283083,
+            -6.63,
+            -32.1283965
+          ],
+          "size": [
+            5.02566167,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            2.51283083,
+            -6.63,
+            -32.1283965
+          ],
+          "size": [
+            5.02566167,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            -2.90122573,
+            -5.53,
+            -32.1283965
+          ],
+          "size": [
+            5.80245146,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            2.90122573,
+            -5.53,
+            -32.1283965
+          ],
+          "size": [
+            5.80245146,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            -3.22581057,
+            -4.43,
+            -32.1283965
+          ],
+          "size": [
+            6.45162114,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            3.22581057,
+            -4.43,
+            -32.1283965
+          ],
+          "size": [
+            6.45162114,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            -3.34958906,
+            -3.33,
+            -32.1283965
+          ],
+          "size": [
+            6.69917813,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            3.34958906,
+            -3.33,
+            -32.1283965
+          ],
+          "size": [
+            6.69917813,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            -3.47343267,
+            -2.23,
+            -32.1283965
+          ],
+          "size": [
+            6.94686533,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            3.47343267,
+            -2.23,
+            -32.1283965
+          ],
+          "size": [
+            6.94686533,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            -3.52129021,
+            -1.13,
+            -32.1283965
+          ],
+          "size": [
+            7.04258042,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            3.52129021,
+            -1.13,
+            -32.1283965
+          ],
+          "size": [
+            7.04258042,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            -3.53424756,
+            -0.03,
+            -32.1283965
+          ],
+          "size": [
+            7.06849512,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            3.53424756,
+            -0.03,
+            -32.1283965
+          ],
+          "size": [
+            7.06849512,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            -3.49856602,
+            1.07,
+            -32.1283965
+          ],
+          "size": [
+            6.99713203,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            3.49856602,
+            1.07,
+            -32.1283965
+          ],
+          "size": [
+            6.99713203,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            -3.44406702,
+            2.17,
+            -32.1283965
+          ],
+          "size": [
+            6.88813403,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            3.44406702,
+            2.17,
+            -32.1283965
+          ],
+          "size": [
+            6.88813403,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            -1.56759551,
+            -7.73,
+            -23.7178215
+          ],
+          "size": [
+            3.13519102,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            1.56759551,
+            -7.73,
+            -23.7178215
+          ],
+          "size": [
+            3.13519102,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            -2.78096331,
+            -6.63,
+            -23.7178215
+          ],
+          "size": [
+            5.56192661,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            2.78096331,
+            -6.63,
+            -23.7178215
+          ],
+          "size": [
+            5.56192661,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            -3.21031384,
+            -5.53,
+            -23.7178215
+          ],
+          "size": [
+            6.42062769,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            3.21031384,
+            -5.53,
+            -23.7178215
+          ],
+          "size": [
+            6.42062769,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            -3.56914775,
+            -4.43,
+            -23.7178215
+          ],
+          "size": [
+            7.13829551,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            3.56914775,
+            -4.43,
+            -23.7178215
+          ],
+          "size": [
+            7.13829551,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            -3.70594871,
+            -3.33,
+            -23.7178215
+          ],
+          "size": [
+            7.41189741,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            3.70594871,
+            -3.33,
+            -23.7178215
+          ],
+          "size": [
+            7.41189741,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            -3.84281477,
+            -2.23,
+            -23.7178215
+          ],
+          "size": [
+            7.68562954,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            3.84281477,
+            -2.23,
+            -23.7178215
+          ],
+          "size": [
+            7.68562954,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            -3.89568596,
+            -1.13,
+            -23.7178215
+          ],
+          "size": [
+            7.79137192,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            3.89568596,
+            -1.13,
+            -23.7178215
+          ],
+          "size": [
+            7.79137192,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            -3.90994556,
+            -0.03,
+            -23.7178215
+          ],
+          "size": [
+            7.81989111,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            3.90994556,
+            -0.03,
+            -23.7178215
+          ],
+          "size": [
+            7.81989111,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            -3.8694457,
+            1.07,
+            -23.7178215
+          ],
+          "size": [
+            7.73889141,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            3.8694457,
+            1.07,
+            -23.7178215
+          ],
+          "size": [
+            7.73889141,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            -3.80615654,
+            2.17,
+            -23.7178215
+          ],
+          "size": [
+            7.61231309,
+            1.1,
+            8.410575
+          ]
+        },
+        {
+          "center": [
+            3.80615654,
+            2.17,
+            -23.7178215
+          ],
+          "size": [
+            7.61231309,
+            1.1,
+            8.410575
+          ]
+        }
+      ],
+      "capacityM3": 1684.68421501,
+      "pumpM3PerSecond": 0.006
+    },
+    {
+      "id": "hold-3",
+      "name": "No. 3 hold",
+      "center": [
+        0,
+        -2.78,
+        -14.466189
+      ],
+      "size": [
+        16.62037354,
+        11,
+        10.09269
+      ],
+      "cells": [
+        {
+          "center": [
+            -1.64351646,
+            -7.73,
+            -16.9893615
+          ],
+          "size": [
+            3.28703291,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            1.64351646,
+            -7.73,
+            -16.9893615
+          ],
+          "size": [
+            3.28703291,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            -2.91463887,
+            -6.63,
+            -16.9893615
+          ],
+          "size": [
+            5.82927773,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            2.91463887,
+            -6.63,
+            -16.9893615
+          ],
+          "size": [
+            5.82927773,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            -3.36436956,
+            -5.53,
+            -16.9893615
+          ],
+          "size": [
+            6.72873911,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            3.36436956,
+            -5.53,
+            -16.9893615
+          ],
+          "size": [
+            6.72873911,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            -3.74026289,
+            -4.43,
+            -16.9893615
+          ],
+          "size": [
+            7.48052578,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            3.74026289,
+            -4.43,
+            -16.9893615
+          ],
+          "size": [
+            7.48052578,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            -3.88364019,
+            -3.33,
+            -16.9893615
+          ],
+          "size": [
+            7.76728037,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            3.88364019,
+            -3.33,
+            -16.9893615
+          ],
+          "size": [
+            7.76728037,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            -4.02701748,
+            -2.23,
+            -16.9893615
+          ],
+          "size": [
+            8.05403496,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            4.02701748,
+            -2.23,
+            -16.9893615
+          ],
+          "size": [
+            8.05403496,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            -4.08242805,
+            -1.13,
+            -16.9893615
+          ],
+          "size": [
+            8.1648561,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            4.08242805,
+            -1.13,
+            -16.9893615
+          ],
+          "size": [
+            8.1648561,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            -4.09727366,
+            -0.03,
+            -16.9893615
+          ],
+          "size": [
+            8.19454731,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            4.09727366,
+            -0.03,
+            -16.9893615
+          ],
+          "size": [
+            8.19454731,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            -4.05351819,
+            1.07,
+            -16.9893615
+          ],
+          "size": [
+            8.10703638,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            4.05351819,
+            1.07,
+            -16.9893615
+          ],
+          "size": [
+            8.10703638,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            -3.98391313,
+            2.17,
+            -16.9893615
+          ],
+          "size": [
+            7.96782627,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            3.98391313,
+            2.17,
+            -16.9893615
+          ],
+          "size": [
+            7.96782627,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            -1.667022,
+            -7.73,
+            -11.9430165
+          ],
+          "size": [
+            3.33404399,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            1.667022,
+            -7.73,
+            -11.9430165
+          ],
+          "size": [
+            3.33404399,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            -2.95592007,
+            -6.63,
+            -11.9430165
+          ],
+          "size": [
+            5.91184014,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            2.95592007,
+            -6.63,
+            -11.9430165
+          ],
+          "size": [
+            5.91184014,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            -3.41196665,
+            -5.53,
+            -11.9430165
+          ],
+          "size": [
+            6.8239333,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            3.41196665,
+            -5.53,
+            -11.9430165
+          ],
+          "size": [
+            6.8239333,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            -3.79313408,
+            -4.43,
+            -11.9430165
+          ],
+          "size": [
+            7.58626816,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            3.79313408,
+            -4.43,
+            -11.9430165
+          ],
+          "size": [
+            7.58626816,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            -3.93846475,
+            -3.33,
+            -11.9430165
+          ],
+          "size": [
+            7.87692949,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            3.93846475,
+            -3.33,
+            -11.9430165
+          ],
+          "size": [
+            7.87692949,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            -4.08386052,
+            -2.23,
+            -11.9430165
+          ],
+          "size": [
+            8.16772104,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            4.08386052,
+            -2.23,
+            -11.9430165
+          ],
+          "size": [
+            8.16772104,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            -4.14005244,
+            -1.13,
+            -11.9430165
+          ],
+          "size": [
+            8.28010488,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            4.14005244,
+            -1.13,
+            -11.9430165
+          ],
+          "size": [
+            8.28010488,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            -4.15509338,
+            -0.03,
+            -11.9430165
+          ],
+          "size": [
+            8.31018677,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            4.15509338,
+            -0.03,
+            -11.9430165
+          ],
+          "size": [
+            8.31018677,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            -4.11010078,
+            1.07,
+            -11.9430165
+          ],
+          "size": [
+            8.22020156,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            4.11010078,
+            1.07,
+            -11.9430165
+          ],
+          "size": [
+            8.22020156,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            -4.03782612,
+            2.17,
+            -11.9430165
+          ],
+          "size": [
+            8.07565225,
+            1.1,
+            5.046345
+          ]
+        },
+        {
+          "center": [
+            4.03782612,
+            2.17,
+            -11.9430165
+          ],
+          "size": [
+            8.07565225,
+            1.1,
+            5.046345
+          ]
+        }
+      ],
+      "capacityM3": 1120.38335697,
+      "pumpM3PerSecond": 0.006
+    },
+    {
+      "id": "boiler-room",
+      "name": "Two-boiler room",
+      "center": [
+        0,
+        -2.78,
+        -3.36423
+      ],
+      "size": [
+        16.85165244,
+        11,
+        12.111228
+      ],
+      "cells": [
+        {
+          "center": [
+            -1.69046243,
+            -7.73,
+            -6.392037
+          ],
+          "size": [
+            3.38092485,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            1.69046243,
+            -7.73,
+            -6.392037
+          ],
+          "size": [
+            3.38092485,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            -2.99720127,
+            -6.63,
+            -6.392037
+          ],
+          "size": [
+            5.99440254,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            2.99720127,
+            -6.63,
+            -6.392037
+          ],
+          "size": [
+            5.99440254,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            -3.45956375,
+            -5.53,
+            -6.392037
+          ],
+          "size": [
+            6.91912749,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            3.45956375,
+            -5.53,
+            -6.392037
+          ],
+          "size": [
+            6.91912749,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            -3.84600527,
+            -4.43,
+            -6.392037
+          ],
+          "size": [
+            7.69201055,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            3.84600527,
+            -4.43,
+            -6.392037
+          ],
+          "size": [
+            7.69201055,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            -3.99335442,
+            -3.33,
+            -6.392037
+          ],
+          "size": [
+            7.98670884,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            3.99335442,
+            -3.33,
+            -6.392037
+          ],
+          "size": [
+            7.98670884,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            -4.14076868,
+            -2.23,
+            -6.392037
+          ],
+          "size": [
+            8.28153735,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            4.14076868,
+            -2.23,
+            -6.392037
+          ],
+          "size": [
+            8.28153735,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            -4.19767683,
+            -1.13,
+            -6.392037
+          ],
+          "size": [
+            8.39535366,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            4.19767683,
+            -1.13,
+            -6.392037
+          ],
+          "size": [
+            8.39535366,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            -4.21291311,
+            -0.03,
+            -6.392037
+          ],
+          "size": [
+            8.42582622,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            4.21291311,
+            -0.03,
+            -6.392037
+          ],
+          "size": [
+            8.42582622,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            -4.16694382,
+            1.07,
+            -6.392037
+          ],
+          "size": [
+            8.33388765,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            4.16694382,
+            1.07,
+            -6.392037
+          ],
+          "size": [
+            8.33388765,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            -4.09284602,
+            2.17,
+            -6.392037
+          ],
+          "size": [
+            8.18569204,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            4.09284602,
+            2.17,
+            -6.392037
+          ],
+          "size": [
+            8.18569204,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            -1.69046243,
+            -7.73,
+            -0.336423
+          ],
+          "size": [
+            3.38092485,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            1.69046243,
+            -7.73,
+            -0.336423
+          ],
+          "size": [
+            3.38092485,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            -2.99720127,
+            -6.63,
+            -0.336423
+          ],
+          "size": [
+            5.99440254,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            2.99720127,
+            -6.63,
+            -0.336423
+          ],
+          "size": [
+            5.99440254,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            -3.45956375,
+            -5.53,
+            -0.336423
+          ],
+          "size": [
+            6.91912749,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            3.45956375,
+            -5.53,
+            -0.336423
+          ],
+          "size": [
+            6.91912749,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            -3.84600527,
+            -4.43,
+            -0.336423
+          ],
+          "size": [
+            7.69201055,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            3.84600527,
+            -4.43,
+            -0.336423
+          ],
+          "size": [
+            7.69201055,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            -3.99335442,
+            -3.33,
+            -0.336423
+          ],
+          "size": [
+            7.98670884,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            3.99335442,
+            -3.33,
+            -0.336423
+          ],
+          "size": [
+            7.98670884,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            -4.14076868,
+            -2.23,
+            -0.336423
+          ],
+          "size": [
+            8.28153735,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            4.14076868,
+            -2.23,
+            -0.336423
+          ],
+          "size": [
+            8.28153735,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            -4.19767683,
+            -1.13,
+            -0.336423
+          ],
+          "size": [
+            8.39535366,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            4.19767683,
+            -1.13,
+            -0.336423
+          ],
+          "size": [
+            8.39535366,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            -4.21291311,
+            -0.03,
+            -0.336423
+          ],
+          "size": [
+            8.42582622,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            4.21291311,
+            -0.03,
+            -0.336423
+          ],
+          "size": [
+            8.42582622,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            -4.16694382,
+            1.07,
+            -0.336423
+          ],
+          "size": [
+            8.33388765,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            4.16694382,
+            1.07,
+            -0.336423
+          ],
+          "size": [
+            8.33388765,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            -4.09284602,
+            2.17,
+            -0.336423
+          ],
+          "size": [
+            8.18569204,
+            1.1,
+            6.055614
+          ]
+        },
+        {
+          "center": [
+            4.09284602,
+            2.17,
+            -0.336423
+          ],
+          "size": [
+            8.18569204,
+            1.1,
+            6.055614
+          ]
+        }
+      ],
+      "capacityM3": 1725.61784473,
+      "pumpM3PerSecond": 0.025
+    },
+    {
+      "id": "engine-room",
+      "name": "Triple-expansion engine room",
+      "center": [
+        0,
+        -2.78,
+        8.074152
+      ],
+      "size": [
+        16.85165244,
+        11,
+        10.765536
+      ],
+      "cells": [
+        {
+          "center": [
+            -1.69046243,
+            -7.73,
+            5.382768
+          ],
+          "size": [
+            3.38092485,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            1.69046243,
+            -7.73,
+            5.382768
+          ],
+          "size": [
+            3.38092485,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            -2.99720127,
+            -6.63,
+            5.382768
+          ],
+          "size": [
+            5.99440254,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            2.99720127,
+            -6.63,
+            5.382768
+          ],
+          "size": [
+            5.99440254,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            -3.45956375,
+            -5.53,
+            5.382768
+          ],
+          "size": [
+            6.91912749,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            3.45956375,
+            -5.53,
+            5.382768
+          ],
+          "size": [
+            6.91912749,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            -3.84600527,
+            -4.43,
+            5.382768
+          ],
+          "size": [
+            7.69201055,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            3.84600527,
+            -4.43,
+            5.382768
+          ],
+          "size": [
+            7.69201055,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            -3.99335442,
+            -3.33,
+            5.382768
+          ],
+          "size": [
+            7.98670884,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            3.99335442,
+            -3.33,
+            5.382768
+          ],
+          "size": [
+            7.98670884,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            -4.14076868,
+            -2.23,
+            5.382768
+          ],
+          "size": [
+            8.28153735,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            4.14076868,
+            -2.23,
+            5.382768
+          ],
+          "size": [
+            8.28153735,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            -4.19767683,
+            -1.13,
+            5.382768
+          ],
+          "size": [
+            8.39535366,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            4.19767683,
+            -1.13,
+            5.382768
+          ],
+          "size": [
+            8.39535366,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            -4.21291311,
+            -0.03,
+            5.382768
+          ],
+          "size": [
+            8.42582622,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            4.21291311,
+            -0.03,
+            5.382768
+          ],
+          "size": [
+            8.42582622,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            -4.16694382,
+            1.07,
+            5.382768
+          ],
+          "size": [
+            8.33388765,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            4.16694382,
+            1.07,
+            5.382768
+          ],
+          "size": [
+            8.33388765,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            -4.09284602,
+            2.17,
+            5.382768
+          ],
+          "size": [
+            8.18569204,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            4.09284602,
+            2.17,
+            5.382768
+          ],
+          "size": [
+            8.18569204,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            -1.69046243,
+            -7.73,
+            10.765536
+          ],
+          "size": [
+            3.38092485,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            1.69046243,
+            -7.73,
+            10.765536
+          ],
+          "size": [
+            3.38092485,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            -2.99720127,
+            -6.63,
+            10.765536
+          ],
+          "size": [
+            5.99440254,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            2.99720127,
+            -6.63,
+            10.765536
+          ],
+          "size": [
+            5.99440254,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            -3.45956375,
+            -5.53,
+            10.765536
+          ],
+          "size": [
+            6.91912749,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            3.45956375,
+            -5.53,
+            10.765536
+          ],
+          "size": [
+            6.91912749,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            -3.84600527,
+            -4.43,
+            10.765536
+          ],
+          "size": [
+            7.69201055,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            3.84600527,
+            -4.43,
+            10.765536
+          ],
+          "size": [
+            7.69201055,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            -3.99335442,
+            -3.33,
+            10.765536
+          ],
+          "size": [
+            7.98670884,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            3.99335442,
+            -3.33,
+            10.765536
+          ],
+          "size": [
+            7.98670884,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            -4.14076868,
+            -2.23,
+            10.765536
+          ],
+          "size": [
+            8.28153735,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            4.14076868,
+            -2.23,
+            10.765536
+          ],
+          "size": [
+            8.28153735,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            -4.19767683,
+            -1.13,
+            10.765536
+          ],
+          "size": [
+            8.39535366,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            4.19767683,
+            -1.13,
+            10.765536
+          ],
+          "size": [
+            8.39535366,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            -4.21291311,
+            -0.03,
+            10.765536
+          ],
+          "size": [
+            8.42582622,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            4.21291311,
+            -0.03,
+            10.765536
+          ],
+          "size": [
+            8.42582622,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            -4.16694382,
+            1.07,
+            10.765536
+          ],
+          "size": [
+            8.33388765,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            4.16694382,
+            1.07,
+            10.765536
+          ],
+          "size": [
+            8.33388765,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            -4.09284602,
+            2.17,
+            10.765536
+          ],
+          "size": [
+            8.18569204,
+            1.1,
+            5.382768
+          ]
+        },
+        {
+          "center": [
+            4.09284602,
+            2.17,
+            10.765536
+          ],
+          "size": [
+            8.18569204,
+            1.1,
+            5.382768
+          ]
+        }
+      ],
+      "capacityM3": 1533.88252865,
+      "pumpM3PerSecond": 0.025
+    },
+    {
+      "id": "hold-4",
+      "name": "No. 4 hold",
+      "center": [
+        0,
+        -2.78,
+        23.54961
+      ],
+      "size": [
+        16.85165244,
+        11,
+        20.18538
+      ],
+      "cells": [
+        {
+          "center": [
+            -1.69046243,
+            -7.73,
+            18.503265
+          ],
+          "size": [
+            3.38092485,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            1.69046243,
+            -7.73,
+            18.503265
+          ],
+          "size": [
+            3.38092485,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            -2.99720127,
+            -6.63,
+            18.503265
+          ],
+          "size": [
+            5.99440254,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            2.99720127,
+            -6.63,
+            18.503265
+          ],
+          "size": [
+            5.99440254,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            -3.45956375,
+            -5.53,
+            18.503265
+          ],
+          "size": [
+            6.91912749,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            3.45956375,
+            -5.53,
+            18.503265
+          ],
+          "size": [
+            6.91912749,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            -3.84600527,
+            -4.43,
+            18.503265
+          ],
+          "size": [
+            7.69201055,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            3.84600527,
+            -4.43,
+            18.503265
+          ],
+          "size": [
+            7.69201055,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            -3.99335442,
+            -3.33,
+            18.503265
+          ],
+          "size": [
+            7.98670884,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            3.99335442,
+            -3.33,
+            18.503265
+          ],
+          "size": [
+            7.98670884,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            -4.14076868,
+            -2.23,
+            18.503265
+          ],
+          "size": [
+            8.28153735,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            4.14076868,
+            -2.23,
+            18.503265
+          ],
+          "size": [
+            8.28153735,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            -4.19767683,
+            -1.13,
+            18.503265
+          ],
+          "size": [
+            8.39535366,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            4.19767683,
+            -1.13,
+            18.503265
+          ],
+          "size": [
+            8.39535366,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            -4.21291311,
+            -0.03,
+            18.503265
+          ],
+          "size": [
+            8.42582622,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            4.21291311,
+            -0.03,
+            18.503265
+          ],
+          "size": [
+            8.42582622,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            -4.16694382,
+            1.07,
+            18.503265
+          ],
+          "size": [
+            8.33388765,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            4.16694382,
+            1.07,
+            18.503265
+          ],
+          "size": [
+            8.33388765,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            -4.09284602,
+            2.17,
+            18.503265
+          ],
+          "size": [
+            8.18569204,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            4.09284602,
+            2.17,
+            18.503265
+          ],
+          "size": [
+            8.18569204,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            -1.6818676,
+            -7.73,
+            28.595955
+          ],
+          "size": [
+            3.36373521,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            1.6818676,
+            -7.73,
+            28.595955
+          ],
+          "size": [
+            3.36373521,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            -2.9820301,
+            -6.63,
+            28.595955
+          ],
+          "size": [
+            5.96406021,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            2.9820301,
+            -6.63,
+            28.595955
+          ],
+          "size": [
+            5.96406021,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            -3.44211365,
+            -5.53,
+            28.595955
+          ],
+          "size": [
+            6.88422729,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            3.44211365,
+            -5.53,
+            28.595955
+          ],
+          "size": [
+            6.88422729,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            -3.82660181,
+            -4.43,
+            28.595955
+          ],
+          "size": [
+            7.65320361,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            3.82660181,
+            -4.43,
+            28.595955
+          ],
+          "size": [
+            7.65320361,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            -3.97323472,
+            -3.33,
+            28.595955
+          ],
+          "size": [
+            7.94646943,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            3.97323472,
+            -3.33,
+            28.595955
+          ],
+          "size": [
+            7.94646943,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            -4.11986763,
+            -2.23,
+            28.595955
+          ],
+          "size": [
+            8.23973525,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            4.11986763,
+            -2.23,
+            28.595955
+          ],
+          "size": [
+            8.23973525,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            -4.17658044,
+            -1.13,
+            28.595955
+          ],
+          "size": [
+            8.35316089,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            4.17658044,
+            -1.13,
+            28.595955
+          ],
+          "size": [
+            8.35316089,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            -4.1916865,
+            -0.03,
+            28.595955
+          ],
+          "size": [
+            8.383373,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            4.1916865,
+            -0.03,
+            28.595955
+          ],
+          "size": [
+            8.383373,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            -4.14597766,
+            1.07,
+            28.595955
+          ],
+          "size": [
+            8.29195532,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            4.14597766,
+            1.07,
+            28.595955
+          ],
+          "size": [
+            8.29195532,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            -4.07227053,
+            2.17,
+            28.595955
+          ],
+          "size": [
+            8.14454106,
+            1.1,
+            10.09269
+          ]
+        },
+        {
+          "center": [
+            4.07227053,
+            2.17,
+            28.595955
+          ],
+          "size": [
+            8.14454106,
+            1.1,
+            10.09269
+          ]
+        }
+      ],
+      "capacityM3": 2281.98441894,
+      "pumpM3PerSecond": 0.006
+    },
+    {
+      "id": "hold-5",
+      "name": "No. 5 hold",
+      "center": [
+        0,
+        -2.78,
+        40.707183
+      ],
+      "size": [
+        16.0666585,
+        11,
+        14.129766
+      ],
+      "cells": [
+        {
+          "center": [
+            -1.61089519,
+            -7.73,
+            37.1747415
+          ],
+          "size": [
+            3.22179038,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            1.61089519,
+            -7.73,
+            37.1747415
+          ],
+          "size": [
+            3.22179038,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            -2.85720981,
+            -6.63,
+            37.1747415
+          ],
+          "size": [
+            5.71441963,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            2.85720981,
+            -6.63,
+            37.1747415
+          ],
+          "size": [
+            5.71441963,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            -3.29815034,
+            -5.53,
+            37.1747415
+          ],
+          "size": [
+            6.59630068,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            3.29815034,
+            -5.53,
+            37.1747415
+          ],
+          "size": [
+            6.59630068,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            -3.66668599,
+            -4.43,
+            37.1747415
+          ],
+          "size": [
+            7.33337197,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            3.66668599,
+            -4.43,
+            37.1747415
+          ],
+          "size": [
+            7.33337197,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            -3.80726345,
+            -3.33,
+            37.1747415
+          ],
+          "size": [
+            7.6145269,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            3.80726345,
+            -3.33,
+            37.1747415
+          ],
+          "size": [
+            7.6145269,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            -3.94784092,
+            -2.23,
+            37.1747415
+          ],
+          "size": [
+            7.89568184,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            3.94784092,
+            -2.23,
+            37.1747415
+          ],
+          "size": [
+            7.89568184,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            -4.00214458,
+            -1.13,
+            37.1747415
+          ],
+          "size": [
+            8.00428916,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            4.00214458,
+            -1.13,
+            37.1747415
+          ],
+          "size": [
+            8.00428916,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            -4.01666462,
+            -0.03,
+            37.1747415
+          ],
+          "size": [
+            8.03332925,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            4.01666462,
+            -0.03,
+            37.1747415
+          ],
+          "size": [
+            8.03332925,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            -3.97284404,
+            1.07,
+            37.1747415
+          ],
+          "size": [
+            7.94568809,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            3.97284404,
+            1.07,
+            37.1747415
+          ],
+          "size": [
+            7.94568809,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            -3.90219719,
+            2.17,
+            37.1747415
+          ],
+          "size": [
+            7.80439438,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            3.90219719,
+            2.17,
+            37.1747415
+          ],
+          "size": [
+            7.80439438,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            -1.46680166,
+            -7.73,
+            44.2396245
+          ],
+          "size": [
+            2.93360332,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            1.46680166,
+            -7.73,
+            44.2396245
+          ],
+          "size": [
+            2.93360332,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            -2.6036625,
+            -6.63,
+            44.2396245
+          ],
+          "size": [
+            5.207325,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            2.6036625,
+            -6.63,
+            44.2396245
+          ],
+          "size": [
+            5.207325,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            -3.00592632,
+            -5.53,
+            44.2396245
+          ],
+          "size": [
+            6.01185264,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            3.00592632,
+            -5.53,
+            44.2396245
+          ],
+          "size": [
+            6.01185264,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            -3.34210115,
+            -4.43,
+            44.2396245
+          ],
+          "size": [
+            6.68420229,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            3.34210115,
+            -4.43,
+            44.2396245
+          ],
+          "size": [
+            6.68420229,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            -3.47030728,
+            -3.33,
+            44.2396245
+          ],
+          "size": [
+            6.94061455,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            3.47030728,
+            -3.33,
+            44.2396245
+          ],
+          "size": [
+            6.94061455,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            -3.5985134,
+            -2.23,
+            44.2396245
+          ],
+          "size": [
+            7.19702681,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            3.5985134,
+            -2.23,
+            44.2396245
+          ],
+          "size": [
+            7.19702681,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            -3.64806387,
+            -1.13,
+            44.2396245
+          ],
+          "size": [
+            7.29612773,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            3.64806387,
+            -1.13,
+            44.2396245
+          ],
+          "size": [
+            7.29612773,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            -3.661477,
+            -0.03,
+            44.2396245
+          ],
+          "size": [
+            7.322954,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            3.661477,
+            -0.03,
+            44.2396245
+          ],
+          "size": [
+            7.322954,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            -3.62345142,
+            1.07,
+            44.2396245
+          ],
+          "size": [
+            7.24690283,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            3.62345142,
+            1.07,
+            44.2396245
+          ],
+          "size": [
+            7.24690283,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            -3.56419922,
+            2.17,
+            44.2396245
+          ],
+          "size": [
+            7.12839844,
+            1.1,
+            7.064883
+          ]
+        },
+        {
+          "center": [
+            3.56419922,
+            2.17,
+            44.2396245
+          ],
+          "size": [
+            7.12839844,
+            1.1,
+            7.064883
+          ]
+        }
+      ],
+      "capacityM3": 1459.35410817,
+      "pumpM3PerSecond": 0.006
+    },
+    {
+      "id": "aft-magazine-room",
+      "name": "Armed guard magazine",
+      "center": [
+        0,
+        -2.78,
+        51.472719
+      ],
+      "size": [
+        13.62781201,
+        11,
+        7.401306
+      ],
+      "cells": [
+        {
+          "center": [
+            -0.17458286,
+            -7.73,
+            49.6223925
+          ],
+          "size": [
+            0.34916572,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            0.17458286,
+            -7.73,
+            49.6223925
+          ],
+          "size": [
+            0.34916572,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -2.34985474,
+            -6.63,
+            49.6223925
+          ],
+          "size": [
+            4.69970947,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            2.34985474,
+            -6.63,
+            49.6223925
+          ],
+          "size": [
+            4.69970947,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -2.75778333,
+            -5.53,
+            49.6223925
+          ],
+          "size": [
+            5.51556665,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            2.75778333,
+            -5.53,
+            49.6223925
+          ],
+          "size": [
+            5.51556665,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -3.09942759,
+            -4.43,
+            49.6223925
+          ],
+          "size": [
+            6.19885518,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            3.09942759,
+            -4.43,
+            49.6223925
+          ],
+          "size": [
+            6.19885518,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -3.22105737,
+            -3.33,
+            49.6223925
+          ],
+          "size": [
+            6.44211475,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            3.22105737,
+            -3.33,
+            49.6223925
+          ],
+          "size": [
+            6.44211475,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -3.34262205,
+            -2.23,
+            49.6223925
+          ],
+          "size": [
+            6.68524409,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            3.34262205,
+            -2.23,
+            49.6223925
+          ],
+          "size": [
+            6.68524409,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -3.39373521,
+            -1.13,
+            49.6223925
+          ],
+          "size": [
+            6.78747041,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            3.39373521,
+            -1.13,
+            49.6223925
+          ],
+          "size": [
+            6.78747041,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -3.406953,
+            -0.03,
+            49.6223925
+          ],
+          "size": [
+            6.81390601,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            3.406953,
+            -0.03,
+            49.6223925
+          ],
+          "size": [
+            6.81390601,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -3.37302949,
+            1.07,
+            49.6223925
+          ],
+          "size": [
+            6.74605898,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            3.37302949,
+            1.07,
+            49.6223925
+          ],
+          "size": [
+            6.74605898,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -3.321721,
+            2.17,
+            49.6223925
+          ],
+          "size": [
+            6.64344199,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            3.321721,
+            2.17,
+            49.6223925
+          ],
+          "size": [
+            6.64344199,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -1.59858896,
+            -5.53,
+            53.3230455
+          ],
+          "size": [
+            3.19717793,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            1.59858896,
+            -5.53,
+            53.3230455
+          ],
+          "size": [
+            3.19717793,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -2.32198667,
+            -4.43,
+            53.3230455
+          ],
+          "size": [
+            4.64397334,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            2.32198667,
+            -4.43,
+            53.3230455
+          ],
+          "size": [
+            4.64397334,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -2.68342507,
+            -3.33,
+            53.3230455
+          ],
+          "size": [
+            5.36685015,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            2.68342507,
+            -3.33,
+            53.3230455
+          ],
+          "size": [
+            5.36685015,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -2.81579839,
+            -2.23,
+            53.3230455
+          ],
+          "size": [
+            5.63159678,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            2.81579839,
+            -2.23,
+            53.3230455
+          ],
+          "size": [
+            5.63159678,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -2.92017341,
+            -1.13,
+            53.3230455
+          ],
+          "size": [
+            5.84034683,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            2.92017341,
+            -1.13,
+            53.3230455
+          ],
+          "size": [
+            5.84034683,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -2.94035823,
+            -0.03,
+            53.3230455
+          ],
+          "size": [
+            5.88071646,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            2.94035823,
+            -0.03,
+            53.3230455
+          ],
+          "size": [
+            5.88071646,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -2.91301106,
+            1.07,
+            53.3230455
+          ],
+          "size": [
+            5.82602212,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            2.91301106,
+            1.07,
+            53.3230455
+          ],
+          "size": [
+            5.82602212,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -2.87439946,
+            2.17,
+            53.3230455
+          ],
+          "size": [
+            5.74879893,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            2.87439946,
+            2.17,
+            53.3230455
+          ],
+          "size": [
+            5.74879893,
+            1.1,
+            3.700653
+          ]
+        }
+      ],
+      "capacityM3": 709.40386548,
+      "pumpM3PerSecond": 0.025
+    },
+    {
+      "id": "steering-room",
+      "name": "Steering and shaft tunnel",
+      "center": [
+        0,
+        -0.58,
+        58.874025
+      ],
+      "size": [
+        9.47026113,
+        6.6,
+        7.401306
+      ],
+      "cells": [
+        {
+          "center": [
+            -1.7898238,
+            -3.33,
+            57.0236985
+          ],
+          "size": [
+            3.57964761,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            1.7898238,
+            -3.33,
+            57.0236985
+          ],
+          "size": [
+            3.57964761,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -2.17248882,
+            -2.23,
+            57.0236985
+          ],
+          "size": [
+            4.34497764,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            2.17248882,
+            -2.23,
+            57.0236985
+          ],
+          "size": [
+            4.34497764,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -2.31664746,
+            -1.13,
+            57.0236985
+          ],
+          "size": [
+            4.63329492,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            2.31664746,
+            -1.13,
+            57.0236985
+          ],
+          "size": [
+            4.63329492,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -2.36756528,
+            -0.03,
+            57.0236985
+          ],
+          "size": [
+            4.73513057,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            2.36756528,
+            -0.03,
+            57.0236985
+          ],
+          "size": [
+            4.73513057,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -2.34698979,
+            1.07,
+            57.0236985
+          ],
+          "size": [
+            4.69397959,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            2.34698979,
+            1.07,
+            57.0236985
+          ],
+          "size": [
+            4.69397959,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -2.31996819,
+            2.17,
+            57.0236985
+          ],
+          "size": [
+            4.63993638,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            2.31996819,
+            2.17,
+            57.0236985
+          ],
+          "size": [
+            4.63993638,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -1.02351709,
+            -2.23,
+            60.7243515
+          ],
+          "size": [
+            2.04703418,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            1.02351709,
+            -2.23,
+            60.7243515
+          ],
+          "size": [
+            2.04703418,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -1.44166831,
+            -1.13,
+            60.7243515
+          ],
+          "size": [
+            2.88333662,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            1.44166831,
+            -1.13,
+            60.7243515
+          ],
+          "size": [
+            2.88333662,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -1.55216389,
+            -0.03,
+            60.7243515
+          ],
+          "size": [
+            3.10432778,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            1.55216389,
+            -0.03,
+            60.7243515
+          ],
+          "size": [
+            3.10432778,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -1.54083435,
+            1.07,
+            60.7243515
+          ],
+          "size": [
+            3.0816687,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            1.54083435,
+            1.07,
+            60.7243515
+          ],
+          "size": [
+            3.0816687,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            -1.52553296,
+            2.17,
+            60.7243515
+          ],
+          "size": [
+            3.05106592,
+            1.1,
+            3.700653
+          ]
+        },
+        {
+          "center": [
+            1.52553296,
+            2.17,
+            60.7243515
+          ],
+          "size": [
+            3.05106592,
+            1.1,
+            3.700653
+          ]
+        }
+      ],
+      "capacityM3": 292.27001799,
+      "pumpM3PerSecond": 0.025
+    },
+    {
+      "id": "afterpeak",
+      "name": "Afterpeak",
+      "center": [
+        0,
+        1.07,
+        64.256793
+      ],
+      "size": [
+        3.78569648,
+        5.5,
+        3.36423
+      ],
+      "cells": [
+        {
+          "center": [
+            -0.79158706,
+            -1.13,
+            63.4157355
+          ],
+          "size": [
+            1.58317412,
+            1.1,
+            1.682115
+          ]
+        },
+        {
+          "center": [
+            0.79158706,
+            -1.13,
+            63.4157355
+          ],
+          "size": [
+            1.58317412,
+            1.1,
+            1.682115
+          ]
+        },
+        {
+          "center": [
+            -0.94642412,
+            -0.03,
+            63.4157355
+          ],
+          "size": [
+            1.89284824,
+            1.1,
+            1.682115
+          ]
+        },
+        {
+          "center": [
+            0.94642412,
+            -0.03,
+            63.4157355
+          ],
+          "size": [
+            1.89284824,
+            1.1,
+            1.682115
+          ]
+        },
+        {
+          "center": [
+            -0.94316851,
+            1.07,
+            63.4157355
+          ],
+          "size": [
+            1.88633701,
+            1.1,
+            1.682115
+          ]
+        },
+        {
+          "center": [
+            0.94316851,
+            1.07,
+            63.4157355
+          ],
+          "size": [
+            1.88633701,
+            1.1,
+            1.682115
+          ]
+        },
+        {
+          "center": [
+            -0.93431323,
+            2.17,
+            63.4157355
+          ],
+          "size": [
+            1.86862646,
+            1.1,
+            1.682115
+          ]
+        },
+        {
+          "center": [
+            0.93431323,
+            2.17,
+            63.4157355
+          ],
+          "size": [
+            1.86862646,
+            1.1,
+            1.682115
+          ]
+        },
+        {
+          "center": [
+            -0.91855605,
+            3.27,
+            63.4157355
+          ],
+          "size": [
+            1.83711211,
+            1.1,
+            1.682115
+          ]
+        },
+        {
+          "center": [
+            0.91855605,
+            3.27,
+            63.4157355
+          ],
+          "size": [
+            1.83711211,
+            1.1,
+            1.682115
+          ]
+        },
+        {
+          "center": [
+            -0.38398403,
+            -0.03,
+            65.0978505
+          ],
+          "size": [
+            0.76796807,
+            1.1,
+            1.682115
+          ]
+        },
+        {
+          "center": [
+            0.38398403,
+            -0.03,
+            65.0978505
+          ],
+          "size": [
+            0.76796807,
+            1.1,
+            1.682115
+          ]
+        },
+        {
+          "center": [
+            -0.39108127,
+            1.07,
+            65.0978505
+          ],
+          "size": [
+            0.78216255,
+            1.1,
+            1.682115
+          ]
+        },
+        {
+          "center": [
+            0.39108127,
+            1.07,
+            65.0978505
+          ],
+          "size": [
+            0.78216255,
+            1.1,
+            1.682115
+          ]
+        },
+        {
+          "center": [
+            -0.38756521,
+            2.17,
+            65.0978505
+          ],
+          "size": [
+            0.77513042,
+            1.1,
+            1.682115
+          ]
+        },
+        {
+          "center": [
+            0.38756521,
+            2.17,
+            65.0978505
+          ],
+          "size": [
+            0.77513042,
+            1.1,
+            1.682115
+          ]
+        },
+        {
+          "center": [
+            -0.38085864,
+            3.27,
+            65.0978505
+          ],
+          "size": [
+            0.76171729,
+            1.1,
+            1.682115
+          ]
+        },
+        {
+          "center": [
+            0.38085864,
+            3.27,
+            65.0978505
+          ],
+          "size": [
+            0.76171729,
+            1.1,
+            1.682115
+          ]
+        }
+      ],
+      "capacityM3": 39.58391313,
+      "pumpM3PerSecond": 0.006
+    }
+  ],
+  "connections": [
+    {
+      "id": "boundary-1",
+      "fromId": "forepeak",
+      "toId": "forward-magazine-room",
+      "areaM2": 0.12,
+      "state": "closed",
+      "position": [
+        0,
+        -4.23,
+        -55.846218
+      ],
+      "thicknessMm": 5,
+      "bounds": {
+        "center": [
+          0,
+          -4.23,
+          -55.846218
+        ],
+        "size": [
+          4.20866602,
+          7.7,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "boundary-2",
+      "fromId": "forward-magazine-room",
+      "toId": "hold-1",
+      "areaM2": 0.12,
+      "state": "closed",
+      "position": [
+        0,
+        -4.23,
+        -49.790604
+      ],
+      "thicknessMm": 5,
+      "bounds": {
+        "center": [
+          0,
+          -4.23,
+          -49.790604
+        ],
+        "size": [
+          8.32480547,
+          11,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "boundary-3",
+      "fromId": "hold-1",
+      "toId": "hold-2",
+      "areaM2": 0.12,
+      "state": "closed",
+      "position": [
+        0,
+        -4.23,
+        -36.333684
+      ],
+      "thicknessMm": 5,
+      "bounds": {
+        "center": [
+          0,
+          -4.23,
+          -36.333684
+        ],
+        "size": [
+          12.43990313,
+          11,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "boundary-4",
+      "fromId": "hold-2",
+      "toId": "hold-3",
+      "areaM2": 0.12,
+      "state": "closed",
+      "position": [
+        0,
+        -4.23,
+        -19.512534
+      ],
+      "thicknessMm": 5,
+      "bounds": {
+        "center": [
+          0,
+          -4.23,
+          -19.512534
+        ],
+        "size": [
+          15.63978223,
+          11,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "boundary-5",
+      "fromId": "hold-3",
+      "toId": "boiler-room",
+      "areaM2": 0.12,
+      "state": "closed",
+      "position": [
+        0,
+        -4.23,
+        -9.419844
+      ],
+      "thicknessMm": 5,
+      "bounds": {
+        "center": [
+          0,
+          -4.23,
+          -9.419844
+        ],
+        "size": [
+          16.62037354,
+          11,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "boundary-6",
+      "fromId": "boiler-room",
+      "toId": "engine-room",
+      "areaM2": 0.12,
+      "state": "closed",
+      "position": [
+        0,
+        -4.23,
+        2.691384
+      ],
+      "thicknessMm": 5,
+      "bounds": {
+        "center": [
+          0,
+          -4.23,
+          2.691384
+        ],
+        "size": [
+          16.85165244,
+          11,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "boundary-7",
+      "fromId": "engine-room",
+      "toId": "hold-4",
+      "areaM2": 0.12,
+      "state": "closed",
+      "position": [
+        0,
+        -4.23,
+        13.45692
+      ],
+      "thicknessMm": 5,
+      "bounds": {
+        "center": [
+          0,
+          -4.23,
+          13.45692
+        ],
+        "size": [
+          16.85165244,
+          11,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "boundary-8",
+      "fromId": "hold-4",
+      "toId": "hold-5",
+      "areaM2": 0.12,
+      "state": "closed",
+      "position": [
+        0,
+        -4.23,
+        33.6423
+      ],
+      "thicknessMm": 5,
+      "bounds": {
+        "center": [
+          0,
+          -4.23,
+          33.6423
+        ],
+        "size": [
+          16.0666585,
+          11,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "boundary-9",
+      "fromId": "hold-5",
+      "toId": "aft-magazine-room",
+      "areaM2": 0.12,
+      "state": "closed",
+      "position": [
+        0,
+        -4.23,
+        47.772066
+      ],
+      "thicknessMm": 5,
+      "bounds": {
+        "center": [
+          0,
+          -4.23,
+          47.772066
+        ],
+        "size": [
+          13.62781201,
+          11,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "boundary-10",
+      "fromId": "aft-magazine-room",
+      "toId": "steering-room",
+      "areaM2": 0.12,
+      "state": "closed",
+      "position": [
+        0,
+        -4.23,
+        55.173372
+      ],
+      "thicknessMm": 5,
+      "bounds": {
+        "center": [
+          0,
+          -4.23,
+          55.173372
+        ],
+        "size": [
+          9.47026113,
+          6.6,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "boundary-11",
+      "fromId": "steering-room",
+      "toId": "afterpeak",
+      "areaM2": 0.12,
+      "state": "closed",
+      "position": [
+        0,
+        -4.23,
+        62.574678
+      ],
+      "thicknessMm": 5,
+      "bounds": {
+        "center": [
+          0,
+          -4.23,
+          62.574678
+        ],
+        "size": [
+          3.78569648,
+          5.5,
+          0.08
+        ]
+      }
+    }
+  ],
+  "floodRegions": [
+    {
+      "id": "forepeak-shell",
+      "compartmentId": "forepeak",
+      "center": [
+        0,
+        -1.81,
+        -60.219717
+      ],
+      "size": [
+        17.2688,
+        13.5,
+        8.746998
+      ]
+    },
+    {
+      "id": "forward-magazine-room-shell",
+      "compartmentId": "forward-magazine-room",
+      "center": [
+        0,
+        -1.81,
+        -52.818411
+      ],
+      "size": [
+        17.2688,
+        13.5,
+        6.055614
+      ]
+    },
+    {
+      "id": "hold-1-shell",
+      "compartmentId": "hold-1",
+      "center": [
+        0,
+        -1.81,
+        -43.062144
+      ],
+      "size": [
+        17.2688,
+        13.5,
+        13.45692
+      ]
+    },
+    {
+      "id": "hold-2-shell",
+      "compartmentId": "hold-2",
+      "center": [
+        0,
+        -1.81,
+        -27.923109
+      ],
+      "size": [
+        17.2688,
+        13.5,
+        16.82115
+      ]
+    },
+    {
+      "id": "hold-3-shell",
+      "compartmentId": "hold-3",
+      "center": [
+        0,
+        -1.81,
+        -14.466189
+      ],
+      "size": [
+        17.2688,
+        13.5,
+        10.09269
+      ]
+    },
+    {
+      "id": "boiler-room-shell",
+      "compartmentId": "boiler-room",
+      "center": [
+        0,
+        -1.81,
+        -3.36423
+      ],
+      "size": [
+        17.2688,
+        13.5,
+        12.111228
+      ]
+    },
+    {
+      "id": "engine-room-shell",
+      "compartmentId": "engine-room",
+      "center": [
+        0,
+        -1.81,
+        8.074152
+      ],
+      "size": [
+        17.2688,
+        13.5,
+        10.765536
+      ]
+    },
+    {
+      "id": "hold-4-shell",
+      "compartmentId": "hold-4",
+      "center": [
+        0,
+        -1.81,
+        23.54961
+      ],
+      "size": [
+        17.2688,
+        13.5,
+        20.18538
+      ]
+    },
+    {
+      "id": "hold-5-shell",
+      "compartmentId": "hold-5",
+      "center": [
+        0,
+        -1.81,
+        40.707183
+      ],
+      "size": [
+        17.2688,
+        13.5,
+        14.129766
+      ]
+    },
+    {
+      "id": "aft-magazine-room-shell",
+      "compartmentId": "aft-magazine-room",
+      "center": [
+        0,
+        -1.81,
+        51.472719
+      ],
+      "size": [
+        17.2688,
+        13.5,
+        7.401306
+      ]
+    },
+    {
+      "id": "steering-room-shell",
+      "compartmentId": "steering-room",
+      "center": [
+        0,
+        -1.81,
+        58.874025
+      ],
+      "size": [
+        17.2688,
+        13.5,
+        7.401306
+      ]
+    },
+    {
+      "id": "afterpeak-shell",
+      "compartmentId": "afterpeak",
+      "center": [
+        0,
+        -1.81,
+        64.256793
+      ],
+      "size": [
+        17.2688,
+        13.5,
+        3.36423
+      ]
+    }
+  ],
+  "obstructions": [
+    {
+      "id": "midship-house",
+      "center": [
+        0,
+        4.4,
+        1.3
+      ],
+      "size": [
+        11.4,
+        2.7,
+        25
+      ]
+    },
+    {
+      "id": "boat-deck",
+      "center": [
+        0,
+        7.025,
+        -0.3
+      ],
+      "size": [
+        9.2,
+        2.55,
+        20
+      ]
+    },
+    {
+      "id": "wheelhouse",
+      "center": [
+        0,
+        9.55,
+        -8
+      ],
+      "size": [
+        10.6,
+        2.5,
+        5.4
+      ]
+    },
+    {
+      "id": "bridge-wings",
+      "center": [
+        0,
+        10.925,
+        -8
+      ],
+      "size": [
+        13.5,
+        0.25,
+        6.2
+      ]
+    },
+    {
+      "id": "funnel",
+      "center": [
+        0,
+        11.55,
+        3.8
+      ],
+      "size": [
+        3,
+        6.5,
+        3.6
+      ]
+    },
+    {
+      "id": "hatch-1",
+      "center": [
+        0,
+        4.12751326,
+        -49
+      ],
+      "size": [
+        7,
+        0.9,
+        11
+      ]
+    },
+    {
+      "id": "hatch-2",
+      "center": [
+        0,
+        3.6396973,
+        -30
+      ],
+      "size": [
+        7,
+        0.9,
+        11
+      ]
+    },
+    {
+      "id": "hatch-3",
+      "center": [
+        0,
+        3.52222633,
+        -16
+      ],
+      "size": [
+        7,
+        0.9,
+        7
+      ]
+    },
+    {
+      "id": "hatch-4",
+      "center": [
+        0,
+        3.5,
+        27
+      ],
+      "size": [
+        7,
+        0.9,
+        11
+      ]
+    },
+    {
+      "id": "hatch-5",
+      "center": [
+        0,
+        3.57641047,
+        46
+      ],
+      "size": [
+        7,
+        0.9,
+        11
+      ]
+    },
+    {
+      "id": "poop-house",
+      "center": [
+        0,
+        4.61501726,
+        57
+      ],
+      "size": [
+        8.5,
+        2.1,
+        10
+      ]
+    },
+    {
+      "id": "deck-load-0-starboard",
+      "center": [
+        2,
+        5.77751326,
+        -49
+      ],
+      "size": [
+        2.4,
+        2.4,
+        5.8
+      ]
+    },
+    {
+      "id": "deck-load-0-port",
+      "center": [
+        -2,
+        5.77751326,
+        -49
+      ],
+      "size": [
+        2.4,
+        2.4,
+        5.8
+      ]
+    },
+    {
+      "id": "deck-load-1-starboard",
+      "center": [
+        2,
+        5.2896973,
+        -30
+      ],
+      "size": [
+        2.4,
+        2.4,
+        5.8
+      ]
+    },
+    {
+      "id": "deck-load-1-port",
+      "center": [
+        -2,
+        5.2896973,
+        -30
+      ],
+      "size": [
+        2.4,
+        2.4,
+        5.8
+      ]
+    },
+    {
+      "id": "deck-load-2-starboard",
+      "center": [
+        2,
+        5.15,
+        27
+      ],
+      "size": [
+        2.4,
+        2.4,
+        5.8
+      ]
+    },
+    {
+      "id": "deck-load-2-port",
+      "center": [
+        -2,
+        5.15,
+        27
+      ],
+      "size": [
+        2.4,
+        2.4,
+        5.8
+      ]
+    },
+    {
+      "id": "deck-load-3-starboard",
+      "center": [
+        2,
+        5.22641047,
+        46
+      ],
+      "size": [
+        2.4,
+        2.4,
+        5.8
+      ]
+    },
+    {
+      "id": "deck-load-3-port",
+      "center": [
+        -2,
+        5.22641047,
+        46
+      ],
+      "size": [
+        2.4,
+        2.4,
+        5.8
+      ]
+    }
+  ],
+  "structures": [
+    {
+      "id": "midship-house",
+      "name": "Accommodation block",
+      "footprint": [
+        [
+          -5.7,
+          -11.2
+        ],
+        [
+          5.7,
+          -11.2
+        ],
+        [
+          5.7,
+          13.8
+        ],
+        [
+          -5.7,
+          13.8
+        ]
+      ],
+      "baseY": 3.05,
+      "height": 2.7,
+      "material": "naval"
+    },
+    {
+      "id": "boat-deck",
+      "name": "Boat deck house",
+      "footprint": [
+        [
+          -4.6,
+          -10.3
+        ],
+        [
+          4.6,
+          -10.3
+        ],
+        [
+          4.6,
+          9.7
+        ],
+        [
+          -4.6,
+          9.7
+        ]
+      ],
+      "baseY": 5.75,
+      "height": 2.55,
+      "material": "naval"
+    },
+    {
+      "id": "wheelhouse",
+      "name": "Navigation bridge",
+      "footprint": [
+        [
+          -5.3,
+          -10.7
+        ],
+        [
+          5.3,
+          -10.7
+        ],
+        [
+          5.3,
+          -5.3
+        ],
+        [
+          -5.3,
+          -5.3
+        ]
+      ],
+      "baseY": 8.3,
+      "height": 2.5,
+      "material": "naval"
+    },
+    {
+      "id": "bridge-wings",
+      "name": "Flying bridge",
+      "footprint": [
+        [
+          -6.75,
+          -11.1
+        ],
+        [
+          6.75,
+          -11.1
+        ],
+        [
+          6.75,
+          -4.9
+        ],
+        [
+          -6.75,
+          -4.9
+        ]
+      ],
+      "baseY": 10.8,
+      "height": 0.25,
+      "material": "naval"
+    },
+    {
+      "id": "funnel",
+      "name": "Funnel jacket",
+      "footprint": [
+        [
+          -1.5,
+          2
+        ],
+        [
+          1.5,
+          2
+        ],
+        [
+          1.5,
+          5.6
+        ],
+        [
+          -1.5,
+          5.6
+        ]
+      ],
+      "baseY": 8.3,
+      "height": 6.5,
+      "material": "funnel"
+    },
+    {
+      "id": "hatch-1",
+      "name": "No. 1 cargo hatch",
+      "footprint": [
+        [
+          -3.5,
+          -54.5
+        ],
+        [
+          3.5,
+          -54.5
+        ],
+        [
+          3.5,
+          -43.5
+        ],
+        [
+          -3.5,
+          -43.5
+        ]
+      ],
+      "baseY": 3.67751326,
+      "height": 0.9,
+      "material": "hatch"
+    },
+    {
+      "id": "hatch-2",
+      "name": "No. 2 cargo hatch",
+      "footprint": [
+        [
+          -3.5,
+          -35.5
+        ],
+        [
+          3.5,
+          -35.5
+        ],
+        [
+          3.5,
+          -24.5
+        ],
+        [
+          -3.5,
+          -24.5
+        ]
+      ],
+      "baseY": 3.1896973,
+      "height": 0.9,
+      "material": "hatch"
+    },
+    {
+      "id": "hatch-3",
+      "name": "No. 3 cargo hatch",
+      "footprint": [
+        [
+          -3.5,
+          -19.5
+        ],
+        [
+          3.5,
+          -19.5
+        ],
+        [
+          3.5,
+          -12.5
+        ],
+        [
+          -3.5,
+          -12.5
+        ]
+      ],
+      "baseY": 3.07222633,
+      "height": 0.9,
+      "material": "hatch"
+    },
+    {
+      "id": "hatch-4",
+      "name": "No. 4 cargo hatch",
+      "footprint": [
+        [
+          -3.5,
+          21.5
+        ],
+        [
+          3.5,
+          21.5
+        ],
+        [
+          3.5,
+          32.5
+        ],
+        [
+          -3.5,
+          32.5
+        ]
+      ],
+      "baseY": 3.05,
+      "height": 0.9,
+      "material": "hatch"
+    },
+    {
+      "id": "hatch-5",
+      "name": "No. 5 cargo hatch",
+      "footprint": [
+        [
+          -3.5,
+          40.5
+        ],
+        [
+          3.5,
+          40.5
+        ],
+        [
+          3.5,
+          51.5
+        ],
+        [
+          -3.5,
+          51.5
+        ]
+      ],
+      "baseY": 3.12641047,
+      "height": 0.9,
+      "material": "hatch"
+    },
+    {
+      "id": "poop-house",
+      "name": "Armed guard quarters",
+      "footprint": [
+        [
+          -4.25,
+          52
+        ],
+        [
+          4.25,
+          52
+        ],
+        [
+          4.25,
+          62
+        ],
+        [
+          -4.25,
+          62
+        ]
+      ],
+      "baseY": 3.56501726,
+      "height": 2.1,
+      "material": "naval"
+    },
+    {
+      "id": "deck-load-0-starboard",
+      "name": "Lashed vehicle cargo",
+      "footprint": [
+        [
+          0.8,
+          -51.9
+        ],
+        [
+          3.2,
+          -51.9
+        ],
+        [
+          3.2,
+          -46.1
+        ],
+        [
+          0.8,
+          -46.1
+        ]
+      ],
+      "baseY": 4.57751326,
+      "height": 2.4,
+      "material": "cargo"
+    },
+    {
+      "id": "deck-load-0-port",
+      "name": "Lashed vehicle cargo",
+      "footprint": [
+        [
+          -3.2,
+          -51.9
+        ],
+        [
+          -0.8,
+          -51.9
+        ],
+        [
+          -0.8,
+          -46.1
+        ],
+        [
+          -3.2,
+          -46.1
+        ]
+      ],
+      "baseY": 4.57751326,
+      "height": 2.4,
+      "material": "cargo"
+    },
+    {
+      "id": "deck-load-1-starboard",
+      "name": "Lashed vehicle cargo",
+      "footprint": [
+        [
+          0.8,
+          -32.9
+        ],
+        [
+          3.2,
+          -32.9
+        ],
+        [
+          3.2,
+          -27.1
+        ],
+        [
+          0.8,
+          -27.1
+        ]
+      ],
+      "baseY": 4.0896973,
+      "height": 2.4,
+      "material": "cargo"
+    },
+    {
+      "id": "deck-load-1-port",
+      "name": "Lashed vehicle cargo",
+      "footprint": [
+        [
+          -3.2,
+          -32.9
+        ],
+        [
+          -0.8,
+          -32.9
+        ],
+        [
+          -0.8,
+          -27.1
+        ],
+        [
+          -3.2,
+          -27.1
+        ]
+      ],
+      "baseY": 4.0896973,
+      "height": 2.4,
+      "material": "cargo"
+    },
+    {
+      "id": "deck-load-2-starboard",
+      "name": "Lashed vehicle cargo",
+      "footprint": [
+        [
+          0.8,
+          24.1
+        ],
+        [
+          3.2,
+          24.1
+        ],
+        [
+          3.2,
+          29.9
+        ],
+        [
+          0.8,
+          29.9
+        ]
+      ],
+      "baseY": 3.95,
+      "height": 2.4,
+      "material": "cargo"
+    },
+    {
+      "id": "deck-load-2-port",
+      "name": "Lashed vehicle cargo",
+      "footprint": [
+        [
+          -3.2,
+          24.1
+        ],
+        [
+          -0.8,
+          24.1
+        ],
+        [
+          -0.8,
+          29.9
+        ],
+        [
+          -3.2,
+          29.9
+        ]
+      ],
+      "baseY": 3.95,
+      "height": 2.4,
+      "material": "cargo"
+    },
+    {
+      "id": "deck-load-3-starboard",
+      "name": "Lashed vehicle cargo",
+      "footprint": [
+        [
+          0.8,
+          43.1
+        ],
+        [
+          3.2,
+          43.1
+        ],
+        [
+          3.2,
+          48.9
+        ],
+        [
+          0.8,
+          48.9
+        ]
+      ],
+      "baseY": 4.02641047,
+      "height": 2.4,
+      "material": "cargo"
+    },
+    {
+      "id": "deck-load-3-port",
+      "name": "Lashed vehicle cargo",
+      "footprint": [
+        [
+          -3.2,
+          43.1
+        ],
+        [
+          -0.8,
+          43.1
+        ],
+        [
+          -0.8,
+          48.9
+        ],
+        [
+          -3.2,
+          48.9
+        ]
+      ],
+      "baseY": 4.02641047,
+      "height": 2.4,
+      "material": "cargo"
+    }
+  ],
+  "structuralPlating": {
+    "hullMm": 14,
+    "superstructureMm": 5,
+    "note": "Estimated ordinary steel shell and deckhouses, not armor. Complete blueprint section loft is shared with visible hull and CPU hits."
+  },
+  "viewpoints": {
+    "bridge": [
+      0,
+      12.5,
+      -9.5
+    ]
+  },
+  "accuracy": {
+    "exterior": "Original representative Liberty EC2-S-C1. Published length/beam and five holds; interpreted sections, cargo, fittings and loading. No claim to reproduce a specific named ship.",
+    "internals": "Estimated watertight envelopes, permeability, machinery and magazines. Finite-angle stability calibrated to stated displacement and an estimated GM; room boundaries are not historical plans.",
+    "weapons": "Aft 5-inch main battery; forward 3-inch and eight Oerlikons in secondary battery. Troop fit adds two aft 3-inch guns. Surface fire only; ballistics and ammunition are gameplay approximations."
+  },
+  "damageControl": {
+    "version": 1,
+    "teams": 2,
+    "setupSeconds": 10,
+    "repairPoints": 100,
+    "roomFuelSeconds": 170,
+    "mountFuelSeconds": 50,
+    "suppressionPerSecond": 0.055,
+    "portablePumpM3PerSecond": 0.018,
+    "repairHpPerSecond": 0.45,
+    "repairCeiling": 0.6,
+    "patchM2PerSecond": 0.002,
+    "maxPatchM2": 0.1,
+    "flashProtection": 0.3,
+    "basis": "Provisional gameplay calibration; rates, ammunition, penetration, dispersion and damage are not certified historical firing data."
+  },
+  "propulsion": {
+    "groups": [
+      {
+        "id": "single-screw",
+        "share": 1,
+        "boilerIds": [
+          "boiler-port",
+          "boiler-starboard"
+        ],
+        "driveIds": [
+          "main-engine"
+        ],
+        "shaftIds": [
+          "shaft"
+        ]
+      }
+    ],
+    "basis": "Two boilers supply one reciprocating steam engine and one shaft. Routing and damage aggregation are gameplay estimates."
+  },
+  "stability": {
+    "version": 1,
+    "dryCenterOfGravity": [
+      0,
+      -1.96060425,
+      2.90236703
+    ],
+    "buoyancyScale": 1.09274002,
+    "shellThicknessMm": 14,
+    "basis": "Uniform displacement calibration at the declared draft. Estimated initial GM 1.1 m; longitudinal CG aligned to upright buoyancy center. Not an historical stability curve."
+  },
+  "compilerVersion": 1,
+  "contentHash": "3b2e8d58afc5d24d8c74e1ef2be901214070fa81b7ffafdd7a10c89af0f12679"
+}

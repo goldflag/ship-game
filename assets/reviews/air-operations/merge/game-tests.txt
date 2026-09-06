@@ -1,0 +1,51 @@
+bun test v1.3.3 (274e01c7)
+
+src/game/renderOrder.test.ts:
+(pass) authored layers and depth order survive renderer sorting (reversed=false) [0.41ms]
+(pass) authored layers and depth order survive renderer sorting (reversed=true) [0.04ms]
+
+src/game/AircraftFollow.test.ts:
+(pass) aircraft camera samples airborne interpolation and follows deck poses without changing simulation [7.10ms]
+(pass) follow selects only surviving own aircraft, cancels shell follow, and camera controls return to ship [1.41ms]
+
+src/game/Game.test.ts:
+(pass) switching ships retains the port until loading completes, then frames the new hull with the same orbit [195.82ms]
+(pass) failed ship loads preserve the old ship and allow retry [228.90ms]
+(pass) a second request cannot replace an in-flight switch; disposed games never attach the result [25.44ms]
+(pass) battle loading binds each mixed fleet hull and selected target to its own exported joints [59.69ms]
+(pass) one failed fleet asset leaves the port intact and the same battle can be retried [43.96ms]
+(pass) failed aircraft loads leave the current port intact and allow another launch attempt [37.28ms]
+
+src/game/AircraftView.test.ts:
+(pass) port renders only the player deck, follows its displayed pose, and retains parked battle aircraft [12.26ms]
+
+src/game/GameFrame.test.ts:
+(pass) map and port transitions restore their own absorption after underwater attenuation [36.11ms]
+(pass) turning through north takes the short heading path without changing authoritative combat state [190.73ms]
+(pass) firing enters shell view without feeding its camera into aim, freezes on pause and restores optics [491.91ms]
+(pass) target inspection follows the interpolated underway target and resets without a streak [37.94ms]
+(pass) pause holds the interpolated pose and resume continues without a tick-sized jump [35.51ms]
+(pass) manual aiming and binoculars keep the camera attached to the displayed ship at full speed [171.18ms]
+(pass) repositioning for port and launch clears the old ship poses [15.20ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.03333333333333333 [82.14ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.01694915254237288 [55.37ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.016666666666666666 [56.58ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.008333333333333333 [36.71ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.006944444444444444 [36.00ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.006944444444444444,0.02127659574468085,0.013888888888888888,0.043 [82.54ms]
+(pass) all fleet impact marks share one cosmetic work budget, renewed for each frame [14.56ms]
+
+src/game/CombatEffects.test.ts:
+(pass) optics hide existing and new own-ship smoke while other smoke remains and ages normally [118.65ms]
+(pass) spray reaches the same position at different frame rates and falls out at the sea [4.57ms]
+(pass) salvos are bounded, do not replay events, pause cleanly, and reset without ghosts [231.01ms]
+(pass) large-gun fire remains in the gas at 0.35 seconds and cools completely into smoke [71.41ms]
+(pass) water droplets stay round through their apex instead of rotating as long rods [72.09ms]
+(pass) billboards reorient while paused and expired storage is reused [2.67ms]
+(pass) the shell pool keeps its shader capacity through empty frames, salvos and resets [2743.06ms]
+(pass) tracers end at the CPU shell, grow from the muzzle, and stay legible across range and zoom [120.52ms]
+
+ 33 pass
+ 0 fail
+ 4929 expect() calls
+Ran 33 tests across 6 files. [5.53s]

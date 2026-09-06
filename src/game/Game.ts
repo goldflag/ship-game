@@ -1,3 +1,4 @@
+import { aircraftFollowView } from './AircraftFollow';
 import { AircraftView } from './AircraftView';
 import { oceanMap, DEFAULT_MAP, landHeight } from '../maps/catalog';
 import { createBattleLandscape, disposeBattleLandscape } from './BattleLandscape';
@@ -21,6 +22,7 @@ import { HitDirectionIndicators } from './HitDirectionIndicators';
 import { gunAimPoints } from './gunAim';
 import { disposeObjects } from './disposeObjects';
 import { CombatEffects } from './CombatEffects';
+import { configureRenderOrder } from './renderOrder';
 import type { GameAudio } from './GameAudio';
 import type { Ammunition, Battery, Vec3 } from '../ships/blueprint';
 import type { InspectionMode } from '../ships/inspection';
@@ -50,6 +52,7 @@ export class Game {
   private camera = new THREE.PerspectiveCamera(52, 1, 0.5, 60000);
   private rig: CameraRig;
   private shellFollow = new ShellFollow();
+  private followedAircraftId?: string;
   // Stable motion anchor for the wake and sunlight, independent of the loaded hull.
   private ship = new THREE.Group();
   private playerView?: ShipView;
@@ -164,6 +167,7 @@ export class Game {
     this.callbacks.progress('Starting the renderer', 0.08);
     this.resize();
     await this.renderer.init();
+    configureRenderOrder(this.renderer);
     this.assertActive();
     this.rig.update(this.simulation.ship, 0, 0, true);
     this.callbacks.progress(`Launching ${this.definition.name}`, 0.2);
@@ -171,14 +175,16 @@ export class Game {
     this.loadedModel = gltf.scene;
     this.assertActive();
     if (gltf.scene.userData.definitionHash !== this.definition.contentHash) throw new Error('The ship model and definition have different versions. Rebuild the ship assets and reload.');
-    this.playerView = new ShipView(gltf.scene.clone(true), this.definition, this.simulation.player);
-    this.targetView = new ShipView(gltf.scene.clone(true), this.definition, this.simulation.target);
+    this.playerView = new ShipView(gltf.scene.clone(true), this.definition, this.simulation.player, this.renderer.reversedDepthBuffer);
+    this.targetView = new ShipView(gltf.scene.clone(true), this.definition, this.simulation.target, this.renderer.reversedDepthBuffer);
     this.fleetViews = [this.playerView, this.targetView];
     this.fleetModels = [gltf.scene];
     this.shipLabels.setFleet(this.fleetViews, this.simulation.actors);
     this.ship.position.copy(this.playerView.root.position);
     this.targetView.root.visible = !this.inPort;
-    this.scene.add(this.playerView.root, this.targetView.root, this.effects.root);
+    if (this.definition.airWing) await this.aircraftView.load();
+    this.assertActive();
+    this.scene.add(this.playerView.root, this.targetView.root, this.effects.root, this.aircraftView.root);
     this.scene.add(this.ambientLight);
 
     this.callbacks.progress('Building the Atlantic', 0.37);
@@ -334,7 +340,7 @@ export class Game {
       for (const actor of simulation.actors) {
         const clone = models.get(actor.definition.id)!.clone(true);
         clones.push(clone);
-        const view = new ShipView(clone, actor.definition, actor);
+        const view = new ShipView(clone, actor.definition, actor, this.renderer.reversedDepthBuffer);
         view.root.visible = actor === simulation.player;
         views.push(view);
       }
@@ -398,7 +404,7 @@ export class Game {
       // Apply mouse aim before sampling the sight; follow the new rendered pose
       // after stepping, with camera damping applied only once per frame.
       this.rig.update(focus, focus.y, 0);
-      const aim = this.manualAim ? this.inspecting || this.shellFollow.view ? this.currentAim : this.readSightAim() : this.simulation.aimAt(this.aimModule, this.battery);
+      const aim = this.manualAim ? this.inspecting || this.shellFollow.view || this.followedAircraftId ? this.currentAim : this.readSightAim() : this.simulation.aimAt(this.aimModule, this.battery);
       this.currentAim = aim;
       if (!this.inPort) this.simulation.advance(dt, this.input.sample(), { aim, fire: this.input.firing || this.rig.firing, battery: this.battery, ammunition: this.ammunition[this.battery], controlPriority: this.controlPriority, controlFocus: this.controlFocus }, () => {
         this.fleetViews.forEach(view => view.capturePreviousPose());
@@ -415,13 +421,19 @@ export class Game {
       this.ship.position.copy(this.playerView!.root.position);
       this.ship.quaternion.copy(this.playerView!.root.quaternion);
       this.shellFollow.update(this.simulation.shells, this.simulation.events, state.id, dt);
-      this.rig.setShellView(this.shellFollow.view);
+      const followedPlane = this.simulation.aircraft.find(p => p.id === this.followedAircraftId && p.phase !== 'lost');
+      const carrierView = followedPlane && this.fleetViews.find(v => v.actor.motion.id === followedPlane.ownerId);
+      const planeView = followedPlane && carrierView
+        ? aircraftFollowView(followedPlane, this.simulation.player, carrierView.motion, alpha) : undefined;
+      if (this.followedAircraftId && !planeView) this.stopShellFollow();
+      this.rig.setShellView(planeView ?? this.shellFollow.view);
       this.rig.update(focus, focus.y, realDt);
-      const showGunAim = !this.inPort && !this.inspecting && !this.shellFollow.view && !this.simulation.player.damage.sunk;
+      const showGunAim = !this.inPort && !this.inspecting && !this.shellFollow.view && !this.followedAircraftId && !this.simulation.player.damage.sunk;
       this.gunAim.update(showGunAim ? gunAimPoints(this.simulation.player, this.definition, this.battery, aim) : [], this.camera, showGunAim);
       this.hitDirections.update(this.simulation, this.camera, !this.inPort);
       this.inspectionHover?.update(this.inPort && !this.paused && !this.switchingShip ? this.playerView?.inspection : undefined);
-      this.aircraftView.update(this.simulation, this.camera, !this.inPort);
+      this.fleetViews.forEach(view => view.root.updateMatrixWorld(true));
+      this.aircraftView.update(this.simulation, this.camera, !this.inspecting && (!this.inPort || this.playerView?.inspection.mode === 'exterior'), this.inPort, new Map(this.fleetViews.map(view => [view.actor.motion.id, view.root])));
       this.effects.update(this.simulation, dt, this.camera, this.rig.binoculars && !this.shellFollow.view);
       this.audio?.update(this.simulation, this.input.order, this.battery,
         this.camera.position.toArray(), new THREE.Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0).toArray());
@@ -456,7 +468,7 @@ export class Game {
         this.callbacks.telemetry({ ship: { ...state }, order: this.input.order, camera: this.rig.mode,
           binoculars: this.rig.binoculars, magnification: this.rig.magnification, pointerLocked: this.rig.pointerLocked,
           viewBearing: this.rig.bearing, chartSize: this.chartSize, gunneryOpen: this.gunneryOpen,
-          shellFollow: this.shellFollow.phase,
+          shellFollow: this.shellFollow.phase, followedAircraftId: this.followedAircraftId,
           playerDamage,
           mapId: this.simulation.mapId, islands: this.simulation.islands, fps: Math.round(this.fps), backend: this.water!.backend, trail: [...this.trail],
           combat: this.simulation.telemetry(this.battery, aim), inspecting: this.inspecting, aimModule: this.manualAim ? 'point' : this.aimModule,
@@ -503,6 +515,13 @@ export class Game {
   }
   capturePointer(): void { this.rig.capturePointer(); }
   launchAircraft(squadronId: string): void { if (!this.inPort && !this.paused) this.simulation.launchAircraft(squadronId); }
+  followAircraft(id: string): void {
+    if (this.inPort || this.inspecting || !this.simulation.player.airWing?.planes.some(p => p.id === id && p.phase !== 'lost')) return;
+    this.stopShellFollow();
+    this.followedAircraftId = id;
+    this.gunneryOpen = false;
+  }
+  returnToShip(): void { this.stopShellFollow(); }
   recallAircraft(): void { if (!this.inPort && !this.paused) this.simulation.recallAircraft(); }
   setDepth(depthM: number, emergency = false): void {
     if (this.inPort || this.paused || this.simulation.player.damage.sunk) return;
@@ -516,7 +535,7 @@ export class Game {
   }
   toggleBinoculars(): void {
     if (this.paused || this.inPort || this.inspecting) return;
-    if (this.shellFollow.view) { this.stopShellFollow(); return; }
+    if (this.shellFollow.view || this.followedAircraftId) { this.stopShellFollow(); return; }
     this.rig.toggleBinoculars(this.manualAim ? this.readSightAim() : this.currentAim, this.simulation.ship);
   }
   private readSightAim(): Vec3 {
@@ -575,10 +594,12 @@ export class Game {
   toggleShellFollow(): void {
     if (this.paused || this.inPort || this.inspecting) return;
     if (this.shellFollow.enabled) { this.stopShellFollow(); return; }
+    this.stopShellFollow();
     this.shellFollow.setEnabled(true);
     this.gunneryOpen = false;
   }
   private stopShellFollow(): void {
+    this.followedAircraftId = undefined;
     this.shellFollow.setEnabled(false);
     this.rig.setShellView();
     const focus = (this.inspecting ? this.targetView : this.playerView)?.motion;
@@ -638,7 +659,7 @@ export class Game {
   diagnostics() {
     return { mapId: this.simulation.mapId ?? DEFAULT_MAP, sea: this.battleSea ?? this.settings?.sea, islands: this.simulation.islands, shipId: this.definition.id, contentHash: this.definition.contentHash, backend: this.water?.backend,
       camera: { mode: this.rig.mode, binoculars: this.rig.binoculars, magnification: this.rig.magnification, fov: this.camera.fov,
-        shellFollow: this.shellFollow.phase, followedShellId: this.shellFollow.shellId,
+        shellFollow: this.shellFollow.phase, followedAircraftId: this.followedAircraftId, followedShellId: this.shellFollow.shellId,
         pointerLocked: this.rig.pointerLocked, position: this.camera.position.toArray(), aim: this.currentAim, manualAim: this.manualAim,
         projectionMatrix: this.camera.projectionMatrix.toArray(), matrixWorldInverse: this.camera.matrixWorldInverse.toArray() },
       tick: this.simulation.tick, battleSeed: this.simulation.seed, paused: this.paused, fps: this.fps, inspecting: this.inspecting, inPort: this.inPort,
@@ -727,7 +748,7 @@ export class Game {
       this.water.fog.skyBlendDistance = this.inPort ? 2600 : map.fog.skyBlend;
     }
   }
-  cycleCamera(): void { this.stopShellFollow(); this.rig.cycle(); }
+  cycleCamera(): void { const aircraft = !!this.followedAircraftId; this.stopShellFollow(); if (!aircraft) this.rig.cycle(); }
   recenter(): void { this.stopShellFollow(); this.rig.recenter(); }
   fullscreen(): void {
     const action = document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.();

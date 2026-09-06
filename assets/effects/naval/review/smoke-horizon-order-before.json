@@ -1,0 +1,2844 @@
+{
+  "scene": "horizon",
+  "seconds": 2.5,
+  "range": 20000,
+  "lighting": "pacific-islands",
+  "controlDefaultDrawOrder": true,
+  "diagnostics": {
+    "airReleases": [],
+    "aircraft": [],
+    "backend": "webgpu",
+    "battleSeed": 1851881057,
+    "camera": {
+      "aim": [
+        850,
+        0.5,
+        0
+      ],
+      "binoculars": false,
+      "fov": 1.0829832516004387,
+      "magnification": 1,
+      "manualAim": true,
+      "matrixWorldInverse": [
+        2.220446049250313e-16,
+        0,
+        1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        -1,
+        0,
+        2.220446049250313e-16,
+        0,
+        -4.440892098500626e-12,
+        -18,
+        -20000,
+        1
+      ],
+      "mode": "Chase",
+      "pointerLocked": false,
+      "position": [
+        20000,
+        18,
+        0
+      ],
+      "projectionMatrix": [
+        59.51692491066354,
+        0,
+        0,
+        0,
+        0,
+        105.8078665078463,
+        0,
+        0,
+        0,
+        0,
+        8.333402778356486e-06,
+        -1,
+        0,
+        0,
+        0.5000041667013891,
+        0
+      ],
+      "shellFollow": "off"
+    },
+    "combat": {
+      "airContacts": [],
+      "ammunition": "ap",
+      "ammunitionStock": {
+        "ap": 568,
+        "he": 384
+      },
+      "batteries": [
+        {
+          "ammo": 952,
+          "ammunition": "ap",
+          "battery": "main",
+          "ready": 0,
+          "reload": 17.516666666666808,
+          "total": 4
+        },
+        {
+          "ammo": 1800,
+          "ammunition": "ap",
+          "battery": "secondary",
+          "ready": 3,
+          "reload": 0,
+          "total": 6
+        }
+      ],
+      "battery": "main",
+      "battle": false,
+      "contacts": [
+        {
+          "combatLost": false,
+          "controller": "player",
+          "heading": 0,
+          "id": "player",
+          "integrity": 1,
+          "name": "Bismarck",
+          "shipId": "bismarck",
+          "status": "operational",
+          "sunk": false,
+          "team": "friendly",
+          "x": 0,
+          "z": 0
+        },
+        {
+          "combatLost": false,
+          "controller": "idle",
+          "heading": 0,
+          "id": "target",
+          "integrity": 1,
+          "name": "Bismarck",
+          "shipId": "bismarck",
+          "status": "operational",
+          "sunk": false,
+          "team": "enemy",
+          "x": 650,
+          "z": -550
+        }
+      ],
+      "control": {
+        "focus": "",
+        "mounts": [
+          {
+            "fuel": 90,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 90,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 90,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 90,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 90,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 90,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 90,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 90,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 90,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 90,
+            "heat": 0,
+            "intensity": 0
+          }
+        ],
+        "priority": "balanced",
+        "pumping": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "rooms": [
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          },
+          {
+            "fuel": 180,
+            "heat": 0,
+            "intensity": 0
+          }
+        ],
+        "spares": 180,
+        "teams": [
+          null,
+          null,
+          null
+        ]
+      },
+      "controlTargets": [
+        {
+          "id": "boiler-aft-port",
+          "name": "Aft port boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "id": "boiler-aft-center",
+          "name": "Aft center boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "id": "boiler-aft-starboard",
+          "name": "Aft starboard boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "id": "boiler-forward-port",
+          "name": "Forward port boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "id": "boiler-forward-center",
+          "name": "Forward center boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "id": "boiler-forward-starboard",
+          "name": "Forward starboard boiler room \u00b7 two Wagner boilers"
+        },
+        {
+          "id": "turbine-port",
+          "name": "Port turbine room"
+        },
+        {
+          "id": "turbine-starboard",
+          "name": "Starboard turbine room"
+        },
+        {
+          "id": "turbine-center",
+          "name": "Center turbine room"
+        },
+        {
+          "id": "anton-propellant",
+          "name": "Anton propellant magazines"
+        },
+        {
+          "id": "anton-shell-room",
+          "name": "Anton shell rooms"
+        },
+        {
+          "id": "anton-handling",
+          "name": "Anton handling space"
+        },
+        {
+          "id": "bruno-propellant",
+          "name": "Bruno propellant magazines"
+        },
+        {
+          "id": "bruno-shell-room",
+          "name": "Bruno shell rooms"
+        },
+        {
+          "id": "bruno-handling",
+          "name": "Bruno handling space"
+        },
+        {
+          "id": "caesar-propellant",
+          "name": "C\u00e4sar propellant magazines"
+        },
+        {
+          "id": "caesar-shell-room",
+          "name": "C\u00e4sar shell rooms"
+        },
+        {
+          "id": "caesar-handling",
+          "name": "C\u00e4sar handling space"
+        },
+        {
+          "id": "dora-propellant",
+          "name": "Dora propellant magazines"
+        },
+        {
+          "id": "dora-shell-room",
+          "name": "Dora shell rooms"
+        },
+        {
+          "id": "dora-handling",
+          "name": "Dora handling space"
+        },
+        {
+          "id": "steering-room",
+          "name": "Steering gear room"
+        },
+        {
+          "id": "shaft-port",
+          "name": "Port shaft passage"
+        },
+        {
+          "id": "shaft-center",
+          "name": "Center shaft passage"
+        },
+        {
+          "id": "shaft-starboard",
+          "name": "Starboard shaft passage"
+        },
+        {
+          "id": "fuel-port-90",
+          "name": "Port fuel bunker envelope \u00b7 frame 90"
+        },
+        {
+          "id": "void-port-90",
+          "name": "Port outer void \u00b7 frame 90"
+        },
+        {
+          "id": "fuel-starboard-90",
+          "name": "Starboard fuel bunker envelope \u00b7 frame 90"
+        },
+        {
+          "id": "void-starboard-90",
+          "name": "Starboard outer void \u00b7 frame 90"
+        },
+        {
+          "id": "fuel-port-120",
+          "name": "Port fuel bunker envelope \u00b7 frame 120"
+        },
+        {
+          "id": "void-port-120",
+          "name": "Port outer void \u00b7 frame 120"
+        },
+        {
+          "id": "fuel-starboard-120",
+          "name": "Starboard fuel bunker envelope \u00b7 frame 120"
+        },
+        {
+          "id": "void-starboard-120",
+          "name": "Starboard outer void \u00b7 frame 120"
+        },
+        {
+          "id": "fuel-port-150",
+          "name": "Port fuel bunker envelope \u00b7 frame 150"
+        },
+        {
+          "id": "void-port-150",
+          "name": "Port outer void \u00b7 frame 150"
+        },
+        {
+          "id": "fuel-starboard-150",
+          "name": "Starboard fuel bunker envelope \u00b7 frame 150"
+        },
+        {
+          "id": "void-starboard-150",
+          "name": "Starboard outer void \u00b7 frame 150"
+        },
+        {
+          "id": "auxiliary-xii",
+          "name": "Section XII auxiliary machinery"
+        },
+        {
+          "id": "forward-void",
+          "name": "Forward void envelope"
+        },
+        {
+          "id": "flood-strip-port-1-0",
+          "name": "Port outer space 2.1 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-1-0",
+          "name": "Starboard outer space 2.1 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-1-1",
+          "name": "Port outer space 2.2 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-1-1",
+          "name": "Starboard outer space 2.2 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-1-2",
+          "name": "Port outer space 2.3 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-1-2",
+          "name": "Starboard outer space 2.3 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-1-3",
+          "name": "Port outer space 2.4 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-1-3",
+          "name": "Starboard outer space 2.4 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-1-4",
+          "name": "Port outer space 2.5 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-1-4",
+          "name": "Starboard outer space 2.5 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-1-5",
+          "name": "Port outer space 2.6 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-1-5",
+          "name": "Starboard outer space 2.6 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-2-0",
+          "name": "Port outer space 3.1 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-2-0",
+          "name": "Starboard outer space 3.1 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-2-1",
+          "name": "Port outer space 3.2 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-2-1",
+          "name": "Starboard outer space 3.2 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-2-2",
+          "name": "Port outer space 3.3 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-2-2",
+          "name": "Starboard outer space 3.3 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-2-3",
+          "name": "Port outer space 3.4 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-2-3",
+          "name": "Starboard outer space 3.4 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-2-4",
+          "name": "Port outer space 3.5 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-2-4",
+          "name": "Starboard outer space 3.5 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-2-5",
+          "name": "Port outer space 3.6 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-2-5",
+          "name": "Starboard outer space 3.6 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-3-0",
+          "name": "Port outer space 4.1 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-3-0",
+          "name": "Starboard outer space 4.1 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-3-1",
+          "name": "Port outer space 4.2 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-3-1",
+          "name": "Starboard outer space 4.2 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-3-2",
+          "name": "Port outer space 4.3 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-3-2",
+          "name": "Starboard outer space 4.3 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-3-3",
+          "name": "Port outer space 4.4 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-3-3",
+          "name": "Starboard outer space 4.4 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-3-4",
+          "name": "Port outer space 4.5 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-3-4",
+          "name": "Starboard outer space 4.5 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-3-5",
+          "name": "Port outer space 4.6 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-3-5",
+          "name": "Starboard outer space 4.6 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-4-1",
+          "name": "Port outer space 5.2 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-4-1",
+          "name": "Starboard outer space 5.2 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-4-2",
+          "name": "Port outer space 5.3 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-4-2",
+          "name": "Starboard outer space 5.3 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-4-3",
+          "name": "Port outer space 5.4 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-4-3",
+          "name": "Starboard outer space 5.4 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-4-4",
+          "name": "Port outer space 5.5 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-4-4",
+          "name": "Starboard outer space 5.5 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-4-5",
+          "name": "Port outer space 5.6 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-4-5",
+          "name": "Starboard outer space 5.6 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-5-0",
+          "name": "Port outer space 6.1 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-5-0",
+          "name": "Starboard outer space 6.1 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-5-1",
+          "name": "Port outer space 6.2 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-5-1",
+          "name": "Starboard outer space 6.2 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-5-2",
+          "name": "Port outer space 6.3 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-5-2",
+          "name": "Starboard outer space 6.3 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-5-3",
+          "name": "Port outer space 6.4 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-5-3",
+          "name": "Starboard outer space 6.4 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-5-4",
+          "name": "Port outer space 6.5 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-5-4",
+          "name": "Starboard outer space 6.5 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-5-5",
+          "name": "Port outer space 6.6 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-5-5",
+          "name": "Starboard outer space 6.6 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-6-0",
+          "name": "Port outer space 7.1 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-6-0",
+          "name": "Starboard outer space 7.1 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-6-1",
+          "name": "Port outer space 7.2 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-6-1",
+          "name": "Starboard outer space 7.2 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-6-2",
+          "name": "Port outer space 7.3 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-6-2",
+          "name": "Starboard outer space 7.3 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-6-3",
+          "name": "Port outer space 7.4 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-6-3",
+          "name": "Starboard outer space 7.4 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-6-4",
+          "name": "Port outer space 7.5 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-6-4",
+          "name": "Starboard outer space 7.5 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-6-5",
+          "name": "Port outer space 7.6 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-6-5",
+          "name": "Starboard outer space 7.6 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-7-0",
+          "name": "Port outer space 8.1 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-7-0",
+          "name": "Starboard outer space 8.1 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-7-1",
+          "name": "Port outer space 8.2 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-7-1",
+          "name": "Starboard outer space 8.2 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-7-2",
+          "name": "Port outer space 8.3 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-7-2",
+          "name": "Starboard outer space 8.3 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-7-3",
+          "name": "Port outer space 8.4 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-7-3",
+          "name": "Starboard outer space 8.4 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-7-4",
+          "name": "Port outer space 8.5 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-7-4",
+          "name": "Starboard outer space 8.5 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-7-5",
+          "name": "Port outer space 8.6 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-7-5",
+          "name": "Starboard outer space 8.6 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-8-3",
+          "name": "Port outer space 9.4 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-8-3",
+          "name": "Starboard outer space 9.4 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-8-4",
+          "name": "Port outer space 9.5 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-8-4",
+          "name": "Starboard outer space 9.5 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-8-5",
+          "name": "Port outer space 9.6 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-8-5",
+          "name": "Starboard outer space 9.6 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-9-0",
+          "name": "Port outer space 10.1 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-9-0",
+          "name": "Starboard outer space 10.1 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-9-1",
+          "name": "Port outer space 10.2 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-9-1",
+          "name": "Starboard outer space 10.2 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-9-2",
+          "name": "Port outer space 10.3 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-9-2",
+          "name": "Starboard outer space 10.3 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-9-3",
+          "name": "Port outer space 10.4 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-9-3",
+          "name": "Starboard outer space 10.4 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-9-4",
+          "name": "Port outer space 10.5 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-9-4",
+          "name": "Starboard outer space 10.5 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-9-5",
+          "name": "Port outer space 10.6 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-9-5",
+          "name": "Starboard outer space 10.6 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-10-1",
+          "name": "Port outer space 11.2 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-10-1",
+          "name": "Starboard outer space 11.2 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-10-2",
+          "name": "Port outer space 11.3 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-10-2",
+          "name": "Starboard outer space 11.3 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-10-3",
+          "name": "Port outer space 11.4 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-10-3",
+          "name": "Starboard outer space 11.4 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-10-4",
+          "name": "Port outer space 11.5 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-10-4",
+          "name": "Starboard outer space 11.5 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-10-5",
+          "name": "Port outer space 11.6 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-10-5",
+          "name": "Starboard outer space 11.6 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-11-5",
+          "name": "Port outer space 12.6 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-11-5",
+          "name": "Starboard outer space 12.6 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-12-4",
+          "name": "Port outer space 13.5 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-12-4",
+          "name": "Starboard outer space 13.5 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-port-12-5",
+          "name": "Port outer space 13.6 \u00b7 estimated"
+        },
+        {
+          "id": "flood-strip-starboard-12-5",
+          "name": "Starboard outer space 13.6 \u00b7 estimated"
+        },
+        {
+          "id": "flood-end-bow-0",
+          "name": "Bow end space 1 \u00b7 estimated"
+        },
+        {
+          "id": "flood-end-bow-1",
+          "name": "Bow end space 2 \u00b7 estimated"
+        },
+        {
+          "id": "flood-end-bow-2",
+          "name": "Bow end space 3 \u00b7 estimated"
+        },
+        {
+          "id": "flood-end-bow-3",
+          "name": "Bow end space 4 \u00b7 estimated"
+        },
+        {
+          "id": "flood-end-bow-4",
+          "name": "Bow end space 5 \u00b7 estimated"
+        },
+        {
+          "id": "flood-end-bow-5",
+          "name": "Bow end space 6 \u00b7 estimated"
+        },
+        {
+          "id": "flood-end-stern-0",
+          "name": "Stern end space 1 \u00b7 estimated"
+        },
+        {
+          "id": "flood-end-stern-1",
+          "name": "Stern end space 2 \u00b7 estimated"
+        },
+        {
+          "id": "flood-end-stern-2",
+          "name": "Stern end space 3 \u00b7 estimated"
+        },
+        {
+          "id": "flood-end-stern-3",
+          "name": "Stern end space 4 \u00b7 estimated"
+        },
+        {
+          "id": "flood-end-stern-4",
+          "name": "Stern end space 5 \u00b7 estimated"
+        },
+        {
+          "id": "flood-end-stern-5",
+          "name": "Stern end space 6 \u00b7 estimated"
+        },
+        {
+          "id": "reserve-cell-0-0-0",
+          "name": "Port deep reserve space 1 \u00b7 estimated"
+        },
+        {
+          "id": "reserve-cell-0-0-1",
+          "name": "Port middle reserve space 1 \u00b7 estimated"
+        },
+        {
+          "id": "reserve-cell-0-0-2",
+          "name": "Port upper reserve space 1 \u00b7 estimated"
+        },
+        {
+          "id": "reserve-cell-0-1-0",
+          "name": "Starboard deep reserve space 1 \u00b7 estimated"
+        },
+        {
+          "id": "reserve-cell-0-1-1",
+          "name": "Starboard middle reserve space 1 \u00b7 estimated"
+        },
+        {
+          "id": "reserve-cell-0-1-2",
+          "name": "Starboard upper reserve space 1 \u00b7 estimated"
+        },
+        {
+          "id": "reserve-cell-1-0-0",
+          "name": "Port deep reserve space 2 \u00b7 estimated"
+        },
+        {
+          "id": "reserve-cell-1-0-1",
+          "name": "Port middle reserve space 2 \u00b7 estimated"
+        },
+        {
+          "id": "reserve-cell-1-0-2",
+          "name": "Port upper reserve space 2 \u00b7 estimated"
+        },
+        {
+          "id": "reserve-cell-1-1-0",
+          "name": "Starboard deep reserve space 2 \u00b7 estimated"
+        },
+        {
+          "id": "reserve-cell-1-1-1",
+          "name": "Starboard middle reserve space 2 \u00b7 estimated"
+        },
+        {
+          "id": "reserve-cell-1-1-2",
+          "name": "Starboard upper reserve space 2 \u00b7 estimated"
+        },
+        {
+          "id": "reserve-cell-2-0-0",
+          "name": "Port deep reserve space 3 \u00b7 estimated"
+        },
+        {
+          "id": "reserve-cell-2-0-1",
+          "name": "Port middle reserve space 3 \u00b7 estimated"
+        },
+        {
+          "id": "reserve-cell-2-0-2",
+          "name": "Port upper reserve space 3 \u00b7 estimated"
+        },
+        {
+          "id": "reserve-cell-2-1-0",
+          "name": "Starboard deep reserve space 3 \u00b7 estimated"
+        },
+        {
+          "id": "reserve-cell-2-1-1",
+          "name": "Starboard middle reserve space 3 \u00b7 estimated"
+        },
+        {
+          "id": "reserve-cell-2-1-2",
+          "name": "Starboard upper reserve space 3 \u00b7 estimated"
+        },
+        {
+          "id": "reserve-cell-3-0-0",
+          "name": "Port deep reserve space 4 \u00b7 estimated"
+        },
+        {
+          "id": "reserve-cell-3-0-1",
+          "name": "Port middle reserve space 4 \u00b7 estimated"
+        },
+        {
+          "id": "reserve-cell-3-0-2",
+          "name": "Port upper reserve space 4 \u00b7 estimated"
+        },
+        {
+          "id": "reserve-cell-3-1-0",
+          "name": "Starboard deep reserve space 4 \u00b7 estimated"
+        },
+        {
+          "id": "reserve-cell-3-1-1",
+          "name": "Starboard middle reserve space 4 \u00b7 estimated"
+        },
+        {
+          "id": "reserve-cell-3-1-2",
+          "name": "Starboard upper reserve space 4 \u00b7 estimated"
+        },
+        {
+          "id": "anton",
+          "name": "Anton"
+        },
+        {
+          "id": "bruno",
+          "name": "Bruno"
+        },
+        {
+          "id": "caesar",
+          "name": "C\u00e4sar"
+        },
+        {
+          "id": "dora",
+          "name": "Dora"
+        },
+        {
+          "id": "starboard-secondary-1",
+          "name": "Starboard Secondary 1"
+        },
+        {
+          "id": "starboard-secondary-2",
+          "name": "Starboard Secondary 2"
+        },
+        {
+          "id": "starboard-secondary-3",
+          "name": "Starboard Secondary 3"
+        },
+        {
+          "id": "port-secondary-1",
+          "name": "Port Secondary 1"
+        },
+        {
+          "id": "port-secondary-2",
+          "name": "Port Secondary 2"
+        },
+        {
+          "id": "port-secondary-3",
+          "name": "Port Secondary 3"
+        }
+      ],
+      "heSupported": true,
+      "message": "Only aligned, loaded guns fire. Turn the ship to bring guns marked Out of arc onto the target.",
+      "modules": [
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-aft-port-equipment",
+          "name": "Aft port boiler room \u00b7 two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-aft-center-equipment",
+          "name": "Aft center boiler room \u00b7 two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-aft-starboard-equipment",
+          "name": "Aft starboard boiler room \u00b7 two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-forward-port-equipment",
+          "name": "Forward port boiler room \u00b7 two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-forward-center-equipment",
+          "name": "Forward center boiler room \u00b7 two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "boiler-forward-starboard-equipment",
+          "name": "Forward starboard boiler room \u00b7 two Wagner boilers",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "engine-port",
+          "name": "Port turbine room",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "engine-starboard",
+          "name": "Starboard turbine room",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "engine-center",
+          "name": "Center turbine room",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "anton-magazine",
+          "name": "Anton propellant magazines",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "bruno-magazine",
+          "name": "Bruno propellant magazines",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "caesar-magazine",
+          "name": "C\u00e4sar propellant magazines",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "dora-magazine",
+          "name": "Dora propellant magazines",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "steering",
+          "name": "Steering gear room",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "shaft-port-equipment",
+          "name": "Port shaft passage",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "shaft-center-equipment",
+          "name": "Center shaft passage",
+          "reason": "operational"
+        },
+        {
+          "availability": 1,
+          "condition": 1,
+          "id": "shaft-starboard-equipment",
+          "name": "Starboard shaft passage",
+          "reason": "operational"
+        }
+      ],
+      "mounts": [
+        {
+          "ammo": 238,
+          "id": "anton",
+          "loaded": "ap",
+          "name": "Anton",
+          "reload": 17.516666666666808,
+          "status": "reloading"
+        },
+        {
+          "ammo": 238,
+          "id": "bruno",
+          "loaded": "ap",
+          "name": "Bruno",
+          "reload": 17.516666666666808,
+          "status": "reloading"
+        },
+        {
+          "ammo": 238,
+          "id": "caesar",
+          "loaded": "ap",
+          "name": "C\u00e4sar",
+          "reload": 17.516666666666808,
+          "status": "reloading"
+        },
+        {
+          "ammo": 238,
+          "id": "dora",
+          "loaded": "ap",
+          "name": "Dora",
+          "reload": 17.516666666666808,
+          "status": "reloading"
+        }
+      ],
+      "playerDamageDealt": 0,
+      "playerFrags": 0,
+      "playerIntegrity": 1,
+      "playerMaxIntegrity": 1450,
+      "playerStatus": "operational",
+      "playerSunk": false,
+      "playerWater": 0,
+      "range": 850,
+      "ready": 0,
+      "result": "active",
+      "shellHistory": [],
+      "targetDraftChange": 0,
+      "targetFires": 0,
+      "targetId": "target",
+      "targetIntegrity": 1,
+      "targetList": 0,
+      "targetMounts": [
+        {
+          "condition": 1,
+          "id": "anton",
+          "name": "Anton"
+        },
+        {
+          "condition": 1,
+          "id": "bruno",
+          "name": "Bruno"
+        },
+        {
+          "condition": 1,
+          "id": "caesar",
+          "name": "C\u00e4sar"
+        },
+        {
+          "condition": 1,
+          "id": "dora",
+          "name": "Dora"
+        },
+        {
+          "condition": 1,
+          "id": "starboard-secondary-1",
+          "name": "Starboard Secondary 1"
+        },
+        {
+          "condition": 1,
+          "id": "starboard-secondary-2",
+          "name": "Starboard Secondary 2"
+        },
+        {
+          "condition": 1,
+          "id": "starboard-secondary-3",
+          "name": "Starboard Secondary 3"
+        },
+        {
+          "condition": 1,
+          "id": "port-secondary-1",
+          "name": "Port Secondary 1"
+        },
+        {
+          "condition": 1,
+          "id": "port-secondary-2",
+          "name": "Port Secondary 2"
+        },
+        {
+          "condition": 1,
+          "id": "port-secondary-3",
+          "name": "Port Secondary 3"
+        }
+      ],
+      "targetName": "Bismarck",
+      "targetPosition": {
+        "heading": 0,
+        "x": 650,
+        "z": -550
+      },
+      "targetPower": 1,
+      "targetRange": 851.4693182963201,
+      "targetStatus": "operational",
+      "targetSteering": 1,
+      "targetSunk": false,
+      "targetTrim": 0,
+      "targetUnderway": false,
+      "targetWater": 0,
+      "total": 4
+    },
+    "contentHash": "1c26659502b076b6eb2e2d45f6e124393542bfe67d38eb7ed446843683a71f1b",
+    "effects": {
+      "flashes": 0,
+      "foam": 0,
+      "particleCapacity": 2272,
+      "shells": 0,
+      "smoke": 24,
+      "spray": 1226,
+      "torpedoes": 0
+    },
+    "events": [
+      {
+        "kind": "shot",
+        "message": "Anton fired",
+        "position": [
+          18.491744254457018,
+          8.599845808875852,
+          -70.40741916677818
+        ],
+        "sequence": 1,
+        "shell": {
+          "ammunition": "ap",
+          "caliberM": 0.38,
+          "id": 1,
+          "type": "AP",
+          "velocity": [
+            814.5847466944685,
+            -3.0577096234631447,
+            66.12792362084133
+          ]
+        },
+        "shipId": "player",
+        "tick": 2100
+      },
+      {
+        "kind": "shot",
+        "message": "Anton fired",
+        "position": [
+          18.183744288443847,
+          8.599845808875852,
+          -66.67008910095099
+        ],
+        "sequence": 2,
+        "shell": {
+          "ammunition": "ap",
+          "caliberM": 0.38,
+          "id": 2,
+          "type": "AP",
+          "velocity": [
+            816.8758110041413,
+            -3.291517435740227,
+            67.31423518503894
+          ]
+        },
+        "shipId": "player",
+        "tick": 2100
+      },
+      {
+        "kind": "shot",
+        "message": "Bruno fired",
+        "position": [
+          18.47956685633146,
+          12.336049255770773,
+          -52.60123162016835
+        ],
+        "sequence": 3,
+        "shell": {
+          "ammunition": "ap",
+          "caliberM": 0.38,
+          "id": 3,
+          "type": "AP",
+          "velocity": [
+            819.3031196829147,
+            -7.232212780895431,
+            50.13977878665995
+          ]
+        },
+        "shipId": "player",
+        "tick": 2100
+      },
+      {
+        "kind": "shot",
+        "message": "Bruno fired",
+        "position": [
+          18.251241261663864,
+          12.336049255770773,
+          -48.85818908463396
+        ],
+        "sequence": 4,
+        "shell": {
+          "ammunition": "ap",
+          "caliberM": 0.38,
+          "id": 4,
+          "type": "AP",
+          "velocity": [
+            822.186176898354,
+            -6.054553926398845,
+            50.57547830017958
+          ]
+        },
+        "shipId": "player",
+        "tick": 2100
+      },
+      {
+        "kind": "shot",
+        "message": "C\u00e4sar fired",
+        "position": [
+          18.228663400397423,
+          12.336187994352564,
+          55.02356243136457
+        ],
+        "sequence": 5,
+        "shell": {
+          "ammunition": "ap",
+          "caliberM": 0.38,
+          "id": 5,
+          "type": "AP",
+          "velocity": [
+            816.9043414876344,
+            -6.495964884230073,
+            -56.522669475495306
+          ]
+        },
+        "shipId": "player",
+        "tick": 2100
+      },
+      {
+        "kind": "shot",
+        "message": "C\u00e4sar fired",
+        "position": [
+          18.484609282127707,
+          12.336187994352564,
+          58.76481779629561
+        ],
+        "sequence": 6,
+        "shell": {
+          "ammunition": "ap",
+          "caliberM": 0.38,
+          "id": 6,
+          "type": "AP",
+          "velocity": [
+            821.8789232856541,
+            -7.260127836403077,
+            -56.87547635231805
+          ]
+        },
+        "shipId": "player",
+        "tick": 2100
+      },
+      {
+        "kind": "shot",
+        "message": "Dora fired",
+        "position": [
+          18.158408218192886,
+          8.206654379350812,
+          72.83639888140947
+        ],
+        "sequence": 7,
+        "shell": {
+          "ammunition": "ap",
+          "caliberM": 0.38,
+          "id": 7,
+          "type": "AP",
+          "velocity": [
+            814.333352926762,
+            -2.5885889653573604,
+            -72.78728615018636
+          ]
+        },
+        "shipId": "player",
+        "tick": 2100
+      },
+      {
+        "kind": "shot",
+        "message": "Dora fired",
+        "position": [
+          18.49389577094958,
+          8.206654379350812,
+          76.57136181321285
+        ],
+        "sequence": 8,
+        "shell": {
+          "ammunition": "ap",
+          "caliberM": 0.38,
+          "id": 8,
+          "type": "AP",
+          "velocity": [
+            816.958239156151,
+            -2.5816791909817183,
+            -72.9003731899415
+          ]
+        },
+        "shipId": "player",
+        "tick": 2100
+      },
+      {
+        "kind": "splash",
+        "message": "Shell splash",
+        "position": [
+          845.6895289692751,
+          0,
+          1.5207730651040914
+        ],
+        "sequence": 9,
+        "shell": {
+          "ammunition": "ap",
+          "caliberM": 0.38,
+          "id": 6,
+          "type": "AP",
+          "velocity": [
+            807.1394245188051,
+            -17.0137237541529,
+            -55.8554769463136
+          ]
+        },
+        "shipId": "",
+        "tick": 2160
+      },
+      {
+        "kind": "splash",
+        "message": "Shell splash",
+        "position": [
+          844.4181109109695,
+          0,
+          -2.0553775944899404
+        ],
+        "sequence": 10,
+        "shell": {
+          "ammunition": "ap",
+          "caliberM": 0.38,
+          "id": 3,
+          "type": "AP",
+          "velocity": [
+            804.3711496258908,
+            -17.144746550156672,
+            49.225970871711475
+          ]
+        },
+        "shipId": "",
+        "tick": 2161
+      },
+      {
+        "kind": "splash",
+        "message": "Shell splash",
+        "position": [
+          856.0270067882587,
+          0,
+          2.371958246227635
+        ],
+        "sequence": 11,
+        "shell": {
+          "ammunition": "ap",
+          "caliberM": 0.38,
+          "id": 2,
+          "type": "AP",
+          "velocity": [
+            801.7501913118068,
+            -13.435409024302814,
+            66.06781619750926
+          ]
+        },
+        "shipId": "",
+        "tick": 2162
+      },
+      {
+        "kind": "splash",
+        "message": "Shell splash",
+        "position": [
+          877.5172053799266,
+          0,
+          -0.08264184067951741
+        ],
+        "sequence": 12,
+        "shell": {
+          "ammunition": "ap",
+          "caliberM": 0.38,
+          "id": 8,
+          "type": "AP",
+          "velocity": [
+            801.5932519130092,
+            -12.898411604633148,
+            -71.52929539134956
+          ]
+        },
+        "shipId": "",
+        "tick": 2163
+      },
+      {
+        "kind": "splash",
+        "message": "Shell splash",
+        "position": [
+          873.968965973973,
+          0,
+          -3.6582304173156674
+        ],
+        "sequence": 13,
+        "shell": {
+          "ammunition": "ap",
+          "caliberM": 0.38,
+          "id": 7,
+          "type": "AP",
+          "velocity": [
+            799.0177333764792,
+            -12.905191423045254,
+            -71.41833524234592
+          ]
+        },
+        "shipId": "",
+        "tick": 2163
+      },
+      {
+        "kind": "splash",
+        "message": "Shell splash",
+        "position": [
+          877.8546257409538,
+          0,
+          -4.4550713257377685
+        ],
+        "sequence": 14,
+        "shell": {
+          "ammunition": "ap",
+          "caliberM": 0.38,
+          "id": 5,
+          "type": "AP",
+          "velocity": [
+            801.5403679278726,
+            -16.739079153329943,
+            -55.459616244847496
+          ]
+        },
+        "shipId": "",
+        "tick": 2163
+      },
+      {
+        "kind": "splash",
+        "message": "Shell splash",
+        "position": [
+          868.5602652496226,
+          0,
+          -1.3989256282487725
+        ],
+        "sequence": 15,
+        "shell": {
+          "ammunition": "ap",
+          "caliberM": 0.38,
+          "id": 1,
+          "type": "AP",
+          "velocity": [
+            799.2643990420028,
+            -13.365489068441438,
+            64.88421904189101
+          ]
+        },
+        "shipId": "",
+        "tick": 2163
+      },
+      {
+        "kind": "splash",
+        "message": "Shell splash",
+        "position": [
+          906.2712104917651,
+          0,
+          5.766950507655197
+        ],
+        "sequence": 16,
+        "shell": {
+          "ammunition": "ap",
+          "caliberM": 0.38,
+          "id": 4,
+          "type": "AP",
+          "velocity": [
+            806.2443513336806,
+            -16.623201059750887,
+            49.59484219175828
+          ]
+        },
+        "shipId": "",
+        "tick": 2165
+      }
+    ],
+    "fleet": [
+      {
+        "ammo": 2752,
+        "controller": "player",
+        "definitionId": "bismarck",
+        "id": "player",
+        "integrity": 1450,
+        "motion": {
+          "distance": 0,
+          "heading": 0,
+          "id": "player",
+          "pitch": 0,
+          "roll": 0,
+          "rudder": 0,
+          "speed": 0,
+          "swaySpeed": 0,
+          "tick": 2250,
+          "x": 0,
+          "y": 0,
+          "yawRate": 0,
+          "z": 0
+        },
+        "team": "friendly"
+      },
+      {
+        "ammo": 2760,
+        "controller": "idle",
+        "definitionId": "bismarck",
+        "id": "target",
+        "integrity": 1450,
+        "motion": {
+          "distance": 0,
+          "heading": 0,
+          "id": "target",
+          "pitch": 0,
+          "roll": 0,
+          "rudder": 0,
+          "speed": 0,
+          "swaySpeed": 0,
+          "tick": 2250,
+          "x": 650,
+          "y": 0,
+          "yawRate": 0,
+          "z": -550
+        },
+        "team": "enemy"
+      }
+    ],
+    "fps": 44.62669979122401,
+    "inPort": false,
+    "inspecting": false,
+    "islands": [],
+    "mapId": "pacific-islands",
+    "maxMuzzleErrorM": 0.002165600449689151,
+    "paused": true,
+    "portInspection": "exterior",
+    "renderedAircraft": {
+      "batches": 0,
+      "instances": 0,
+      "models": 0,
+      "payloads": 0
+    },
+    "renderedShips": [
+      {
+        "id": "player",
+        "impactDrawCalls": 0,
+        "impactMarks": 0,
+        "visible": true
+      },
+      {
+        "id": "target",
+        "impactDrawCalls": 0,
+        "impactMarks": 0,
+        "visible": true
+      }
+    ],
+    "sea": "Fair",
+    "shipId": "bismarck",
+    "tick": 2250,
+    "torpedoes": []
+  }
+}

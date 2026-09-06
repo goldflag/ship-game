@@ -2,15 +2,17 @@ import * as THREE from 'three/webgpu';
 import { CombatEffects } from '../../src/game/CombatEffects';
 import { EffectParticlePool, effectTexture } from '../../src/game/EffectParticles';
 import { effectVolumeMaterial, effectVolumeTexture } from '../../src/game/EffectVolume';
+import { configureRenderOrder } from '../../src/game/renderOrder';
 import { uniform, viewportDepthTexture } from 'three/tsl';
 import type { CombatSimulation } from '../../src/simulation/combat';
 import type { rtt } from 'three/tsl';
 
 /** GPU regression: one submission per volume batch, visible from outside and
  * inside, with real scene-depth clipping and no residual pixels after reset. */
-export async function checkCombatVolumeRendering(forceWebGL = false) {
-  const renderer = new THREE.WebGPURenderer({ forceWebGL });
+export async function checkCombatVolumeRendering(forceWebGL = false, reversedDepthBuffer = false, turbulent = true) {
+  const renderer = new THREE.WebGPURenderer({ forceWebGL, reversedDepthBuffer });
   await renderer.init();
+  configureRenderOrder(renderer);
   renderer.setSize(256, 256);
   renderer.info.autoReset = false;
   const target = new THREE.RenderTarget(256, 256);
@@ -18,10 +20,15 @@ export async function checkCombatVolumeRendering(forceWebGL = false) {
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(52, 1, .5, 1000);
   const map = effectTexture('smoke'), volume = effectVolumeTexture();
-  const material = effectVolumeMaterial(volume, uniform(new THREE.Vector3(-.55, .74, -.39).normalize()), viewportDepthTexture().r, 12, true);
+  const material = effectVolumeMaterial(volume, uniform(new THREE.Vector3(-.55, .74, -.39).normalize()), viewportDepthTexture().r, turbulent ? 12 : 10, turbulent);
   const pool = new EffectParticlePool(8, map, false, material);
   const blocker = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshBasicMaterial({ color: 0 }));
   blocker.position.set(0, 10, 20);
+  // Like Water Pro, the surface is transparent, writes depth and has an
+  // explicit early priority. It must never erase gas in front of the horizon.
+  const horizon = new THREE.Mesh(new THREE.PlaneGeometry(200, 100),
+    new THREE.MeshBasicMaterial({ color: 0, transparent: true, depthWrite: true }));
+  horizon.position.set(0, -40, -40); horizon.renderOrder = -30;
   const wind = new THREE.Vector3();
   scene.add(pool.mesh);
   const particle = pool.emit(new THREE.Vector3(0, 10, 0));
@@ -44,6 +51,13 @@ export async function checkCombatVolumeRendering(forceWebGL = false) {
     renderer.setRenderTarget(target);
     await renderer.compileAsync(scene, camera);
     await render('outside', true, 1);
+    const outsidePixels = frames.at(-1)!.visiblePixels;
+    scene.add(horizon);
+    await render('in front of horizon', true, 2);
+    if (frames.at(-1)!.visiblePixels < outsidePixels * .98) {
+      throw new Error(`Distant transparent water erased nearby gas: ${JSON.stringify(frames)}`);
+    }
+    scene.remove(horizon);
     scene.add(blocker);
     await render('behind opaque surface', false, 2);
     scene.remove(blocker);
@@ -53,43 +67,56 @@ export async function checkCombatVolumeRendering(forceWebGL = false) {
     await render('inside', true, 1);
     pool.reset();
     await render('reset', false, 1);
-    return { backend: forceWebGL ? 'webgl2' : 'webgpu', frames };
+    return { backend: forceWebGL ? 'webgl2' : 'webgpu', reversedDepth: renderer.reversedDepthBuffer, effect: turbulent ? 'smoke' : 'water', frames };
   } finally {
     target.dispose(); pool.dispose(); map.dispose(); volume.dispose();
     blocker.geometry.dispose(); blocker.material.dispose(); renderer.dispose();
+    horizon.geometry.dispose(); horizon.material.dispose();
   }
 }
 
 /** Use window.review from combat-effects.html: real gunfire, sea, sky and final composition. */
 export async function checkCombatSmokeHorizon(review: {
-  still(scene: string, time: number): Promise<unknown>;
-  game: { renderer: THREE.WebGPURenderer; finalFrame: ReturnType<typeof rtt> };
-}) {
-  await review.still('horizon', 2.5);
+  still(scene: string, time: number, secondary?: boolean, range?: number): Promise<unknown>;
+  capture(): Promise<unknown>;
+  game: { renderer: THREE.WebGPURenderer; finalFrame: ReturnType<typeof rtt>; effects: CombatEffects };
+}, range = 5000, splash = false) {
+  await review.still(splash ? 'horizon-splash' : 'horizon', 2.5, false, range);
   const { renderer, finalFrame } = review.game;
   const target = finalFrame.renderTarget;
   const { width, height } = target;
   const pixels = await renderer.readRenderTargetPixelsAsync(target, 0, 0, width, height);
-  const channel = (x: number, y: number, c: number) => {
-    const value = pixels[(y * width + x) * 4 + c];
+  const mesh = review.game.effects.root.getObjectByName(splash ? 'Aerated water volumes' : 'Propellant and impact volumes')!;
+  const visible = mesh.visible;
+  let background: typeof pixels;
+  try {
+    mesh.visible = false;
+    await review.capture();
+    background = await renderer.readRenderTargetPixelsAsync(target, 0, 0, width, height);
+  } finally {
+    mesh.visible = visible;
+    await review.capture();
+  }
+  const channel = (data: typeof pixels, x: number, y: number, c: number) => {
+    const value = data[(y * width + x) * 4 + c];
     return target.texture.type === THREE.HalfFloatType ? THREE.DataUtils.fromHalfFloat(value)
       : target.texture.type === THREE.FloatType ? value : value / 255;
   };
-  // The left gun plume spans this band in the fixed 5 km binocular view.
-  // Compare every row with clear sky/sea alongside it: the old post-fog pass
-  // erased whole rows where the distant ocean reached its far-fade distance.
+  // The left gun plume (or central splash) spans this fixed binocular band.
+  // Subtract the same frozen frame with this effect hidden. Comparing with
+  // neighboring sky can let hull details conceal a missing row of smoke.
   const rows = [];
   for (let y = Math.round(height * .495); y <= Math.round(height * .53); y++) {
     let contrast = 0;
-    for (let x = Math.round(width * .37); x <= Math.round(width * .42); x++) {
-      const delta = Math.hypot(...[0, 1, 2].map(c => channel(x, y, c) - channel(Math.round(width * .28), y, c)));
+    for (let x = Math.round(width * (splash ? .46 : .37)); x <= Math.round(width * (splash ? .54 : .42)); x++) {
+      const delta = Math.hypot(...[0, 1, 2].map(c => channel(pixels, x, y, c) - channel(background, x, y, c)));
       contrast = Math.max(contrast, delta);
     }
     rows.push({ y, contrast });
   }
-  const erased = rows.filter(row => row.contrast < .04);
-  if (erased.length) throw new Error(`Smoke erased across ${erased.length} horizon rows: ${JSON.stringify(erased)}`);
-  return { width, height, checkedRows: rows.length, minimumContrast: Math.min(...rows.map(row => row.contrast)) };
+  const erased = rows.filter(row => row.contrast < .02);
+  if (erased.length) throw new Error(`${splash ? 'Splash' : 'Smoke'} erased across ${erased.length} horizon rows: ${JSON.stringify(erased)}`);
+  return { effect: splash ? 'splash' : 'smoke', range, width, height, checkedRows: rows.length, minimumContrast: Math.min(...rows.map(row => row.contrast)) };
 }
 
 /** Run through the dev server in a browser; verifies GPU pixels, not just CPU matrices. */
@@ -104,7 +131,7 @@ export async function checkCombatEffects(forceWebGL = false) {
   camera.position.z = 20;
   const effects = new CombatEffects();
   scene.add(effects.root);
-  const sim = { shells: [], events: [] } as unknown as CombatSimulation;
+  const sim = { shells: [], torpedoes: [], actors: [], events: [], tick: 0 } as unknown as CombatSimulation;
   const frames: { shells: number; visible: number; draws: number }[] = [];
   try {
     // Match startup: warm the scene before firing, then render an empty pool.
@@ -129,11 +156,28 @@ export async function checkCombatEffects(forceWebGL = false) {
       const draws = renderer.info.render.drawCalls;
       frames.push({ shells: count, visible, draws });
       if (visible !== count) throw new Error(`Expected ${count} visible shells, got ${visible}: ${JSON.stringify(frames)}`);
-      // Five particle batches, shell bodies and streaks. A billboard must not
-      // acquire a second front/back submission as the salvos grow or reset.
-      if (draws > 7) throw new Error(`Effect draw budget exceeded: ${JSON.stringify(frames)}`);
+      // Five particle batches, shell bodies, streaks/glows, torpedo bodies and
+      // the existing two-sided wake (two draws). Shell billboards stay single-pass.
+      if (draws > 11) throw new Error(`Effect draw budget exceeded: ${JSON.stringify(frames)}`);
     }
-    return { backend: forceWebGL ? 'webgl2' : 'webgpu', frames };
+    // Check the trail itself, beyond the bright head/body covered by the grid.
+    sim.shells.splice(1);
+    Object.assign(sim.shells[0], { position: [0, 0, 0], velocity: [120, 0, 0], age: 1 });
+    effects.update(sim, 0, camera); renderer.render(scene, camera);
+    const flight = await renderer.readRenderTargetPixelsAsync(target, 0, 0, 512, 512);
+    let trailPixels = 0;
+    for (let y = 254; y <= 257; y++) for (let x = 128; x < 240; x++) {
+      if (flight[(y * 512 + x) * 4] > 20) trailPixels++;
+    }
+    if (trailPixels < 40) throw new Error(`Flight trail disappeared: ${trailPixels} visible pixels`);
+    sim.shells[0].velocity = [0, 0, -120];
+    effects.update(sim, 0, camera); renderer.render(scene, camera);
+    const endOn = await renderer.readRenderTargetPixelsAsync(target, 0, 0, 512, 512);
+    if (endOn[(256 * 512 + 256) * 4] < 100) throw new Error('End-on shell glow disappeared');
+    effects.reset(); renderer.render(scene, camera);
+    const reset = await renderer.readRenderTargetPixelsAsync(target, 0, 0, 512, 512);
+    for (let i = 0; i < reset.length; i += 4) if (reset[i] > 0) throw new Error('Reset left tracer pixels');
+    return { backend: forceWebGL ? 'webgl2' : 'webgpu', frames, trailPixels };
   } finally {
     target.dispose();
     effects.dispose();

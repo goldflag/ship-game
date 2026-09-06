@@ -1,0 +1,17 @@
+{
+  "date": "2026-09-06",
+  "result": "incomplete-environment-interruption",
+  "engine": "isolated Chrome headless, real WebGPU",
+  "origin": "http://127.0.0.1:5297",
+  "presetHashes": {
+    "flower-corvette": "5ef519792d7b8082a951e7a1503750031eb510a7e9b2045f48fa429e0c8ff69d",
+    "liberty-cargo": "dc7cf7f609078887adae273a39e5470c91fd27f21742ebae1d4c188ed66d1794",
+    "liberty-collier": "ca51cb169b28c21bf9e39cd06a1c149059c19e0f7b6a3f2d0b5c9fbb5c5d8603",
+    "victory-cargo": "eaeb95e8778bee7f7f6cabc01822f88535c952399b647d4e3387d7c57fdb5ace"
+  },
+  "retainedCaptures": 15,
+  "capturedPresets": ["flower-corvette", "liberty-cargo", "liberty-collier"],
+  "captureTypes": ["port", "depressed", "elevated", "armor", "internals"],
+  "assertionEvidence": "An earlier current-geometry port-only run printed passing selection, inspection and articulation for all four IDs, but final upload failed. Streaming rerun retained three complete five-image sets before its wall-clock timeout.",
+  "limitation": "No successful current run.json or final battle report. macOS power log records repeated Dark Wake Thermal Emergency sleep cycles of roughly 15 minutes. No thermal protection or unrelated process was changed."
+}

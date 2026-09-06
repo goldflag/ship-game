@@ -1,0 +1,17 @@
+{
+  "configuration": "Flower class, HMCS Cobalt 1941 short-forecastle arrangement; representative early-war armament",
+  "draftM": 3.5052,
+  "massKg": 1170000,
+  "geometryDisplacementM3": 1064.7318244363346,
+  "fullEnvelopeM3": 2568.961330884669,
+  "reserveM3": 1504.2295064483346,
+  "buoyancyScale": 1.0720665884467513,
+  "estimatedGmM": 0.9,
+  "dryCenterOfGravity": [
+    0,
+    -0.01027556558839482,
+    0.9523327608850974
+  ],
+  "floodCapacityM3": 1705.3764964547702,
+  "basis": "Uniform displacement calibration at the declared draft. Estimated initial GM 0.9 m; longitudinal CG aligned to upright buoyancy center. Not an historical stability curve."
+}

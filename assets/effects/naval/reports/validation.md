@@ -1,5 +1,16 @@
 # Naval firing and shell effects
 
+## Shell visibility and tracers — September 2026
+
+Shells now have brighter bodies, warm luminous tips and tapered amber ribbons. A main-caliber tracer shows approximately 0.16 seconds of travel, capped at 150 m and limited by shell age; smaller calibers have shorter trails. The ribbon ends at the CPU shell position and follows its current velocity. Tip and ribbon widths adapt to camera projection, with bounded world sizes, so range and binocular zoom retain readable salvos. These are gameplay visibility approximations, not a claim about historical tracer ammunition.
+
+The luminous pixels write depth with a small alpha cutoff. This is required for Water Pro's depth-based postprocessing to preserve airborne tracers over the sea; transparent margins are discarded. Three fixed 256-instance batches draw bodies, tips and ribbons. Lodged rounds lose their glow/trail, inactive slots clear, and reset disposes of no live simulation state. CPU ballistics and ship assets are unchanged.
+
+Validated with 52 combat, AP projectile, shell-follow and effects tests, plus `bun run build` (the existing large-bundle warning remains). The [WebGPU/WebGL results](tracer-browser.json) cover empty frames, up to 256 shells, visible flight trails, end-on glows and pixel-free reset at a fixed 11-draw effects budget including existing torpedo effects.
+
+Inspected actual Bismarck [main](tracer-main.png) and [secondary](tracer-secondary.png) salvos over the ocean through `scripts/diagnostics/combat-effects.html`: medium quality, Fair sea, 0.4 seconds after firing, camera `[460, 105, 440]` looking at `[260, 18, 0]`, 52° vertical FOV. Screenshots retain the final render; the preview's intermittent tab/capture resets required recapturing. The camera scaling, muzzle-age limit, pause and lodged-round behavior also have automated coverage.
+The [September 6 horizon and dissipation correction](horizon-order.md) shortens firing smoke to 4.5–6 seconds and preserves smoke/splash visibility when reversed-depth draw sorting would otherwise paint the ocean over them. Earlier recipes and captures below remain historical review evidence.
+
 The September 2026 effects use directional muzzle ignition, large hot-gas volumes, drifting propellant smoke, local light, velocity-aligned shell streaks, armor sparks, aerated water columns, falling spray and lingering surface foam. Internal module damage alone does not create an exterior explosion; magazine detonation has an explicit event flag.
 
 The follow-up revision addresses the Iowa firing reference and the rigid spray problem. Main-gun gas now starts 14–23 m across per lobe, expands quickly with a decaying expansion rate, and cools over 0.62–0.82 seconds. A full Bismarck salvo uses 24 overlapping gas volumes. Water columns use eight expanding volume lobes plus 132 round droplets per shell; water particles never align with velocity, so there is no rod that reverses direction at the apex.
