@@ -107,6 +107,10 @@ test('nearby blasts damage surfaced submarines, open breaches, credit score and 
   expect(sim.target.damage.integrity).toBeLessThan(sim.target.damage.maxIntegrity);
   expect(sim.target.damage.compartments.some(c => c.breachAreaM2 > 0 && c.waterM3 > 0)).toBe(true);
   expect(sim.telemetry('depth-charge', [0, 0, 0]).playerDamageDealt).toBeCloseTo(sim.target.damage.maxIntegrity - sim.target.damage.integrity, 6);
+  const log = sim.telemetry('main', [0, 0, 0]).damageLog;
+  expect(log).toHaveLength(1);
+  expect(log[0].weapon).toContain('Depth charge');
+  expect(log[0].damage).toBeCloseTo(sim.target.damage.maxIntegrity - sim.target.damage.integrity, 6);
   expect(sim.player.damage.integrity).toBe(playerHp);
   expect(sim.depthCharges).toHaveLength(0);
   expect(sim.events.filter(e => e.kind === 'depth-charge-blast')).toHaveLength(1);

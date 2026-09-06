@@ -22,7 +22,7 @@ button, select { touch-action: manipulation; }
 .icon-button { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; background: transparent; border: 1px solid var(--line); border-radius: 3px; }
 .icon-button:hover { background: #d9eeed1f; border-color: #d9eeed88; }
 kbd { font-family: inherit; font-weight: 400; font-size: 10px; border: 1px solid #c0d4d24a; border-radius: 3px; display: inline-flex; align-items: center; justify-content: center; min-width: 19px; padding: 2px 4px; line-height: 1.2; color: #e1e9e8; }
-.restore-hud { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); padding: 10px 16px; border: 1px solid var(--line); background: #10252ec9; font-size: 12px; border-radius: 3px; }
+.restore-hud { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); padding: 10px 16px; border: 0; background: transparent; text-shadow: 0 2px 4px #07131bea; font-size: 12px; }
 .restore-hud kbd { margin-left: 8px; }
 .loading-screen { position: fixed; inset: 0; background: #142d38; display: flex; flex-direction: column; padding: 42px 48px; }
 .loading-screen-minimal { align-items: center; justify-content: center; }
