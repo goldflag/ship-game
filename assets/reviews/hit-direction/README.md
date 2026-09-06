@@ -6,6 +6,7 @@ The center stays clear and markers do not intercept input. The overlay is a sibl
 
 ## Validation
 
+- After integrating the latest master health and fleet-performance changes: **204 tests passed, 0 failed** across 33 files, and `bun run build` passed.
 - `bun run test --timeout 20000`: 192 passed, 0 failed. The first run had 191 passes and one existing bot endurance test exceed Bun's default five-second timeout while the build ran concurrently. No assertions failed; the complete rerun passed.
 - `bun run build`: passed, including all four ship checks and TypeScript. The existing large-bundle warning remains.
 - After the layering adjustment, the build and 23 focused game/frame/hit-direction tests passed again.
