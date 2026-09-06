@@ -73,7 +73,8 @@ export class ShipImpactMarks {
   private readonly pending: CombatEvent[] = [];
   private disposed = false;
 
-  constructor(private readonly root: THREE.Group, model: THREE.Group, private readonly mounts: Map<string, THREE.Object3D>) {
+  constructor(private readonly root: THREE.Group, model: THREE.Group, private readonly mounts: Map<string, THREE.Object3D>,
+    private readonly reversedDepthBuffer = false) {
     atlas ??= impactTexture(); atlasUsers++; // Generate the shared atlas while loading, not during the first hit.
     model.traverse(object => {
       if (!(object instanceof THREE.Mesh)) return;
@@ -153,15 +154,18 @@ export class ShipImpactMarks {
     const geometries = this.marks.filter(mark => mark.receiver === receiver).map(mark => mark.geometry);
     if (!geometries.length) return;
     if (!this.material) {
+      // Three reverses the depth test but leaves polygon bias in raw depth units.
+      const offset = this.reversedDepthBuffer ? 4 : -4;
       this.material = new THREE.MeshStandardMaterial({ map: atlas, transparent: true, depthWrite: false,
-        polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4, roughness: .92, metalness: .15 });
+        polygonOffset: true, polygonOffsetFactor: offset, polygonOffsetUnits: offset, roughness: .92, metalness: .15 });
     }
     const batch = new THREE.Mesh(mergeGeometries(geometries)!, this.material);
     batch.name = 'Shell impact marks'; batch.visible = this.visible; batch.receiveShadow = true;
     // Composite surface scars after opaque hulls but before transparent smoke
     // and spray. Effect pools sort as a batch, so distance sorting alone cannot
     // reliably place their individual plumes in front of these decals.
-    batch.renderOrder = -1; batch.raycast = () => {};
+    // Three r185 reverses the entire sorted list, including explicit orders.
+    batch.renderOrder = this.reversedDepthBuffer ? 1 : -1; batch.raycast = () => {};
     receiver.add(batch); this.batches.set(receiver, batch);
   }
 
