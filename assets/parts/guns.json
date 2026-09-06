@@ -4845,6 +4845,2623 @@
       "reloadSeconds": 0.5,
       "muzzleSpeed": 881,
       "projectileMassKg": 0.9
+    },
+    {
+      "kind": "gun",
+      "barbetteRadius": 6.1,
+      "gunhouseSize": [
+        13.2,
+        12.3,
+        3.12
+      ],
+      "pivotHeight": 1.55,
+      "trunnionForward": 4.45,
+      "muzzleForward": 15.8,
+      "barrelSpacing": 2.4384,
+      "caliberM": 0.3556,
+      "traverseDeg": 135,
+      "traverseRateDeg": 2,
+      "elevationMinDeg": -3,
+      "elevationMaxDeg": 40,
+      "elevationRateDeg": 8,
+      "reloadSeconds": 30,
+      "muzzleSpeed": 754.38,
+      "projectileMassKg": 721.21,
+      "penetrationMm": 510,
+      "damage": 64,
+      "recoilM": 1.143,
+      "ammoPerBarrel": 100,
+      "armorMm": 324,
+      "barrelBaseRadius": 0.64,
+      "rangefinderWidth": 12.5,
+      "rangefinderForward": -3.9,
+      "ballistics": {
+        "dragPerSecond": 0.011,
+        "dispersionRad": 0.0013,
+        "muzzleSpeedSigmaFraction": 0.0015,
+        "penetrationReferenceSpeedMps": 754.38,
+        "basis": "Game-calibrated linear drag and dispersion; muzzle speed and projectile mass from RMG B9. Not a range-table reproduction."
+      },
+      "ap": {
+        "armingResistanceMm": 32,
+        "fuzeDelaySeconds": 0.025,
+        "explosiveKg": 22,
+        "fragmentPenetrationMm": 55,
+        "basis": "Approximate APC bursting charge; arming threshold, delay and fragments are game calibration."
+      },
+      "id": "bl-14-mkvii-quad",
+      "name": "14-inch Mk VII quadruple",
+      "massKg": 1582000,
+      "barrelCount": 4,
+      "gunhouseMesh": {
+        "version": 1,
+        "vertices": [
+          [
+            -8.3,
+            0,
+            0.25
+          ],
+          [
+            -8.14,
+            -1.5,
+            0.25
+          ],
+          [
+            -7.67,
+            -3,
+            0.25
+          ],
+          [
+            -6.92,
+            -4.4,
+            0.25
+          ],
+          [
+            -6.05,
+            -5.42,
+            0.25
+          ],
+          [
+            -2.8,
+            -5.782213740458015,
+            0.25
+          ],
+          [
+            0.5,
+            -6.15,
+            0.25
+          ],
+          [
+            4.9,
+            -5.48,
+            0.25
+          ],
+          [
+            4.9,
+            5.48,
+            0.25
+          ],
+          [
+            0.5,
+            6.15,
+            0.25
+          ],
+          [
+            -2.8,
+            5.782213740458015,
+            0.25
+          ],
+          [
+            -6.05,
+            5.42,
+            0.25
+          ],
+          [
+            -6.92,
+            4.4,
+            0.25
+          ],
+          [
+            -7.67,
+            3,
+            0.25
+          ],
+          [
+            -8.14,
+            1.5,
+            0.25
+          ],
+          [
+            -8.3,
+            0.0,
+            2.72
+          ],
+          [
+            -8.14,
+            -1.29,
+            2.7316363636363636
+          ],
+          [
+            -7.67,
+            -2.58,
+            2.765818181818182
+          ],
+          [
+            -6.92,
+            -3.7840000000000003,
+            2.8203636363636364
+          ],
+          [
+            -6.05,
+            -4.6612,
+            2.8836363636363638
+          ],
+          [
+            -2.8,
+            -4.972703816793893,
+            3.12
+          ],
+          [
+            0.5,
+            -5.289000000000001,
+            3.012857142857143
+          ],
+          [
+            4.9,
+            -4.7128000000000005,
+            2.87
+          ],
+          [
+            4.9,
+            4.7128000000000005,
+            2.87
+          ],
+          [
+            0.5,
+            5.289000000000001,
+            3.012857142857143
+          ],
+          [
+            -2.8,
+            4.972703816793893,
+            3.12
+          ],
+          [
+            -6.05,
+            4.6612,
+            2.8836363636363638
+          ],
+          [
+            -6.92,
+            3.7840000000000003,
+            2.8203636363636364
+          ],
+          [
+            -7.67,
+            2.58,
+            2.765818181818182
+          ],
+          [
+            -8.14,
+            1.29,
+            2.7316363636363636
+          ]
+        ],
+        "faces": [
+          {
+            "id": "floor-1",
+            "indices": [
+              0,
+              2,
+              1
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-2",
+            "indices": [
+              0,
+              3,
+              2
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-3",
+            "indices": [
+              0,
+              4,
+              3
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-4",
+            "indices": [
+              0,
+              5,
+              4
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-5",
+            "indices": [
+              0,
+              6,
+              5
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-6",
+            "indices": [
+              0,
+              7,
+              6
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-7",
+            "indices": [
+              0,
+              8,
+              7
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-8",
+            "indices": [
+              0,
+              9,
+              8
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-9",
+            "indices": [
+              0,
+              10,
+              9
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-10",
+            "indices": [
+              0,
+              11,
+              10
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-11",
+            "indices": [
+              0,
+              12,
+              11
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-12",
+            "indices": [
+              0,
+              13,
+              12
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-13",
+            "indices": [
+              0,
+              14,
+              13
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "roof-rear-1",
+            "indices": [
+              15,
+              16,
+              17
+            ],
+            "thicknessMm": 149,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-rear-2",
+            "indices": [
+              15,
+              17,
+              18
+            ],
+            "thicknessMm": 149,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-rear-3",
+            "indices": [
+              15,
+              18,
+              19
+            ],
+            "thicknessMm": 149,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-rear-4",
+            "indices": [
+              15,
+              19,
+              20
+            ],
+            "thicknessMm": 149,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-rear-5",
+            "indices": [
+              15,
+              20,
+              25
+            ],
+            "thicknessMm": 149,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-rear-6",
+            "indices": [
+              15,
+              25,
+              26
+            ],
+            "thicknessMm": 149,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-rear-7",
+            "indices": [
+              15,
+              26,
+              27
+            ],
+            "thicknessMm": 149,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-rear-8",
+            "indices": [
+              15,
+              27,
+              28
+            ],
+            "thicknessMm": 149,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-rear-9",
+            "indices": [
+              15,
+              28,
+              29
+            ],
+            "thicknessMm": 149,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-front-1",
+            "indices": [
+              20,
+              21,
+              22
+            ],
+            "thicknessMm": 149,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-front-2",
+            "indices": [
+              20,
+              22,
+              23
+            ],
+            "thicknessMm": 149,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-front-3",
+            "indices": [
+              20,
+              23,
+              24
+            ],
+            "thicknessMm": 149,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-front-4",
+            "indices": [
+              20,
+              24,
+              25
+            ],
+            "thicknessMm": 149,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "wall-0-a",
+            "indices": [
+              0,
+              1,
+              16
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-b",
+            "indices": [
+              0,
+              16,
+              15
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-a",
+            "indices": [
+              1,
+              2,
+              17
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-b",
+            "indices": [
+              1,
+              17,
+              16
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-2-a",
+            "indices": [
+              2,
+              3,
+              18
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-2-b",
+            "indices": [
+              2,
+              18,
+              17
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-3-a",
+            "indices": [
+              3,
+              4,
+              19
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-3-b",
+            "indices": [
+              3,
+              19,
+              18
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-4-a",
+            "indices": [
+              4,
+              5,
+              20
+            ],
+            "thicknessMm": 225,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-4-b",
+            "indices": [
+              4,
+              20,
+              19
+            ],
+            "thicknessMm": 225,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-5-a",
+            "indices": [
+              5,
+              6,
+              21
+            ],
+            "thicknessMm": 225,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-5-b",
+            "indices": [
+              5,
+              21,
+              20
+            ],
+            "thicknessMm": 225,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-6-a",
+            "indices": [
+              6,
+              7,
+              22
+            ],
+            "thicknessMm": 225,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-6-b",
+            "indices": [
+              6,
+              22,
+              21
+            ],
+            "thicknessMm": 225,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "front-a",
+            "indices": [
+              7,
+              8,
+              23
+            ],
+            "thicknessMm": 324,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "front-b",
+            "indices": [
+              7,
+              23,
+              22
+            ],
+            "thicknessMm": 324,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-8-a",
+            "indices": [
+              8,
+              9,
+              24
+            ],
+            "thicknessMm": 225,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-8-b",
+            "indices": [
+              8,
+              24,
+              23
+            ],
+            "thicknessMm": 225,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-9-a",
+            "indices": [
+              9,
+              10,
+              25
+            ],
+            "thicknessMm": 225,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-9-b",
+            "indices": [
+              9,
+              25,
+              24
+            ],
+            "thicknessMm": 225,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-10-a",
+            "indices": [
+              10,
+              11,
+              26
+            ],
+            "thicknessMm": 225,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-10-b",
+            "indices": [
+              10,
+              26,
+              25
+            ],
+            "thicknessMm": 225,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-11-a",
+            "indices": [
+              11,
+              12,
+              27
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-11-b",
+            "indices": [
+              11,
+              27,
+              26
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-12-a",
+            "indices": [
+              12,
+              13,
+              28
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-12-b",
+            "indices": [
+              12,
+              28,
+              27
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-13-a",
+            "indices": [
+              13,
+              14,
+              29
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-13-b",
+            "indices": [
+              13,
+              29,
+              28
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-14-a",
+            "indices": [
+              14,
+              0,
+              15
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-14-b",
+            "indices": [
+              14,
+              15,
+              29
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          }
+        ],
+        "provenance": {
+          "sourceId": "rn-mkiii-plan",
+          "basis": "inferred",
+          "note": "Revision 4: longer rear bodies, lower and narrower roofs; quad crown separated from widest plan station. RN plates 2/62 and IWM photographs guide form; manually measured GameModels3D raster proportions guide the comparison. Historical versus game dimensional disagreement remains in visual-iteration-04/measurements.json; no game geometry."
+        }
+      }
+    },
+    {
+      "kind": "gun",
+      "barbetteRadius": 4.9,
+      "gunhouseSize": [
+        11.9,
+        9.44,
+        3.23
+      ],
+      "pivotHeight": 1.55,
+      "trunnionForward": 4.45,
+      "muzzleForward": 15.8,
+      "barrelSpacing": 2.4384,
+      "caliberM": 0.3556,
+      "traverseDeg": 135,
+      "traverseRateDeg": 2,
+      "elevationMinDeg": -3,
+      "elevationMaxDeg": 40,
+      "elevationRateDeg": 8,
+      "reloadSeconds": 30,
+      "muzzleSpeed": 754.38,
+      "projectileMassKg": 721.21,
+      "penetrationMm": 510,
+      "damage": 64,
+      "recoilM": 1.143,
+      "ammoPerBarrel": 100,
+      "armorMm": 324,
+      "barrelBaseRadius": 0.64,
+      "rangefinderWidth": 9.14,
+      "rangefinderForward": -4.3,
+      "ballistics": {
+        "dragPerSecond": 0.011,
+        "dispersionRad": 0.0013,
+        "muzzleSpeedSigmaFraction": 0.0015,
+        "penetrationReferenceSpeedMps": 754.38,
+        "basis": "Game-calibrated linear drag and dispersion; muzzle speed and projectile mass from RMG B9. Not a range-table reproduction."
+      },
+      "ap": {
+        "armingResistanceMm": 32,
+        "fuzeDelaySeconds": 0.025,
+        "explosiveKg": 22,
+        "fragmentPenetrationMm": 55,
+        "basis": "Approximate APC bursting charge; arming threshold, delay and fragments are game calibration."
+      },
+      "id": "bl-14-mkvii-twin",
+      "name": "14-inch Mk VII twin",
+      "massKg": 915000,
+      "barrelCount": 2,
+      "gunhouseMesh": {
+        "version": 1,
+        "vertices": [
+          [
+            -7.0,
+            0,
+            0.25
+          ],
+          [
+            -6.83,
+            -1.15,
+            0.25
+          ],
+          [
+            -6.32,
+            -2.3,
+            0.25
+          ],
+          [
+            -5.49,
+            -3.4,
+            0.25
+          ],
+          [
+            -4.5,
+            -4.15,
+            0.25
+          ],
+          [
+            -1.0,
+            -4.72,
+            0.25
+          ],
+          [
+            4.9,
+            -4.32,
+            0.25
+          ],
+          [
+            4.9,
+            4.32,
+            0.25
+          ],
+          [
+            -1.0,
+            4.72,
+            0.25
+          ],
+          [
+            -4.5,
+            4.15,
+            0.25
+          ],
+          [
+            -5.49,
+            3.4,
+            0.25
+          ],
+          [
+            -6.32,
+            2.3,
+            0.25
+          ],
+          [
+            -6.83,
+            1.15,
+            0.25
+          ],
+          [
+            -7.0,
+            0.0,
+            3.1
+          ],
+          [
+            -6.83,
+            -0.9889999999999999,
+            3.1036833333333336
+          ],
+          [
+            -6.32,
+            -1.9779999999999998,
+            3.1147333333333336
+          ],
+          [
+            -5.49,
+            -2.924,
+            3.1327166666666666
+          ],
+          [
+            -4.5,
+            -3.5690000000000004,
+            3.154166666666667
+          ],
+          [
+            -1.0,
+            -4.0592,
+            3.23
+          ],
+          [
+            4.9,
+            -3.7152000000000003,
+            2.87
+          ],
+          [
+            4.9,
+            3.7152000000000003,
+            2.87
+          ],
+          [
+            -1.0,
+            4.0592,
+            3.23
+          ],
+          [
+            -4.5,
+            3.5690000000000004,
+            3.154166666666667
+          ],
+          [
+            -5.49,
+            2.924,
+            3.1327166666666666
+          ],
+          [
+            -6.32,
+            1.9779999999999998,
+            3.1147333333333336
+          ],
+          [
+            -6.83,
+            0.9889999999999999,
+            3.1036833333333336
+          ]
+        ],
+        "faces": [
+          {
+            "id": "floor-1",
+            "indices": [
+              0,
+              2,
+              1
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-2",
+            "indices": [
+              0,
+              3,
+              2
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-3",
+            "indices": [
+              0,
+              4,
+              3
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-4",
+            "indices": [
+              0,
+              5,
+              4
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-5",
+            "indices": [
+              0,
+              6,
+              5
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-6",
+            "indices": [
+              0,
+              7,
+              6
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-7",
+            "indices": [
+              0,
+              8,
+              7
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-8",
+            "indices": [
+              0,
+              9,
+              8
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-9",
+            "indices": [
+              0,
+              10,
+              9
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-10",
+            "indices": [
+              0,
+              11,
+              10
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-11",
+            "indices": [
+              0,
+              12,
+              11
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "roof-rear-1",
+            "indices": [
+              13,
+              14,
+              15
+            ],
+            "thicknessMm": 149,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-rear-2",
+            "indices": [
+              13,
+              15,
+              16
+            ],
+            "thicknessMm": 149,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-rear-3",
+            "indices": [
+              13,
+              16,
+              17
+            ],
+            "thicknessMm": 149,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-rear-4",
+            "indices": [
+              13,
+              17,
+              18
+            ],
+            "thicknessMm": 149,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-rear-5",
+            "indices": [
+              13,
+              18,
+              21
+            ],
+            "thicknessMm": 149,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-rear-6",
+            "indices": [
+              13,
+              21,
+              22
+            ],
+            "thicknessMm": 149,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-rear-7",
+            "indices": [
+              13,
+              22,
+              23
+            ],
+            "thicknessMm": 149,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-rear-8",
+            "indices": [
+              13,
+              23,
+              24
+            ],
+            "thicknessMm": 149,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-rear-9",
+            "indices": [
+              13,
+              24,
+              25
+            ],
+            "thicknessMm": 149,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-front-1",
+            "indices": [
+              18,
+              19,
+              20
+            ],
+            "thicknessMm": 149,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-front-2",
+            "indices": [
+              18,
+              20,
+              21
+            ],
+            "thicknessMm": 149,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "wall-0-a",
+            "indices": [
+              0,
+              1,
+              14
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-b",
+            "indices": [
+              0,
+              14,
+              13
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-a",
+            "indices": [
+              1,
+              2,
+              15
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-b",
+            "indices": [
+              1,
+              15,
+              14
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-2-a",
+            "indices": [
+              2,
+              3,
+              16
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-2-b",
+            "indices": [
+              2,
+              16,
+              15
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-3-a",
+            "indices": [
+              3,
+              4,
+              17
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-3-b",
+            "indices": [
+              3,
+              17,
+              16
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-4-a",
+            "indices": [
+              4,
+              5,
+              18
+            ],
+            "thicknessMm": 225,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-4-b",
+            "indices": [
+              4,
+              18,
+              17
+            ],
+            "thicknessMm": 225,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-5-a",
+            "indices": [
+              5,
+              6,
+              19
+            ],
+            "thicknessMm": 225,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-5-b",
+            "indices": [
+              5,
+              19,
+              18
+            ],
+            "thicknessMm": 225,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "front-a",
+            "indices": [
+              6,
+              7,
+              20
+            ],
+            "thicknessMm": 324,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "front-b",
+            "indices": [
+              6,
+              20,
+              19
+            ],
+            "thicknessMm": 324,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-7-a",
+            "indices": [
+              7,
+              8,
+              21
+            ],
+            "thicknessMm": 225,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-7-b",
+            "indices": [
+              7,
+              21,
+              20
+            ],
+            "thicknessMm": 225,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-8-a",
+            "indices": [
+              8,
+              9,
+              22
+            ],
+            "thicknessMm": 225,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-8-b",
+            "indices": [
+              8,
+              22,
+              21
+            ],
+            "thicknessMm": 225,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-9-a",
+            "indices": [
+              9,
+              10,
+              23
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-9-b",
+            "indices": [
+              9,
+              23,
+              22
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-10-a",
+            "indices": [
+              10,
+              11,
+              24
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-10-b",
+            "indices": [
+              10,
+              24,
+              23
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-11-a",
+            "indices": [
+              11,
+              12,
+              25
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-11-b",
+            "indices": [
+              11,
+              25,
+              24
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-12-a",
+            "indices": [
+              12,
+              0,
+              13
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-12-b",
+            "indices": [
+              12,
+              13,
+              25
+            ],
+            "thicknessMm": 174,
+            "material": "steel",
+            "finish": "naval"
+          }
+        ],
+        "provenance": {
+          "sourceId": "rn-mkiii-plan",
+          "basis": "inferred",
+          "note": "Revision 4: longer rear bodies, lower and narrower roofs; quad crown separated from widest plan station. RN plates 2/62 and IWM photographs guide form; manually measured GameModels3D raster proportions guide the comparison. Historical versus game dimensional disagreement remains in visual-iteration-04/measurements.json; no game geometry."
+        }
+      }
+    },
+    {
+      "id": "qf-525-mki-twin",
+      "name": "5.25-inch QF Mk I twin",
+      "kind": "gun",
+      "massKg": 78700,
+      "barbetteRadius": 2.5,
+      "gunhouseSize": [
+        5.4,
+        4.65,
+        3.05
+      ],
+      "pivotHeight": 1.35,
+      "trunnionForward": 1.7,
+      "muzzleForward": 6.6,
+      "barrelSpacing": 0.96,
+      "barrelCount": 2,
+      "caliberM": 0.13335,
+      "traverseDeg": 80,
+      "traverseRateDeg": 10,
+      "elevationMinDeg": -5,
+      "elevationMaxDeg": 70,
+      "elevationRateDeg": 10,
+      "reloadSeconds": 8,
+      "muzzleSpeed": 792.48,
+      "projectileMassKg": 36.287,
+      "penetrationMm": 145,
+      "damage": 17,
+      "recoilM": 0.61,
+      "ammoPerBarrel": 400,
+      "armorMm": 25,
+      "barrelBaseRadius": 0.235,
+      "ballistics": {
+        "dragPerSecond": 0.037,
+        "dispersionRad": 0.0017,
+        "penetrationReferenceSpeedMps": 792.48,
+        "basis": "RMG B9 muzzle speed; linear drag, dispersion and SAP mapped to shared AP are provisional."
+      },
+      "ap": {
+        "armingResistanceMm": 14,
+        "fuzeDelaySeconds": 0.015,
+        "explosiveKg": 1.8,
+        "fragmentPenetrationMm": 24,
+        "basis": "SAP represented by AP solver; explosive/fuze/fragment values are provisional."
+      },
+      "he": {
+        "explosiveKg": 3.6,
+        "fragmentPenetrationMm": 18,
+        "damage": 20,
+        "stockFraction": 0.5,
+        "basis": "Illustrative 50/50 SAP-equivalent and HE outfit; time fuzes and star shell omitted."
+      },
+      "gunhouseMesh": {
+        "version": 1,
+        "vertices": [
+          [
+            -2.8,
+            0,
+            0.25
+          ],
+          [
+            -2.67,
+            -0.92,
+            0.25
+          ],
+          [
+            -2.13,
+            -1.77,
+            0.25
+          ],
+          [
+            -1.24,
+            -2.25,
+            0.25
+          ],
+          [
+            0.62,
+            -2.25,
+            0.25
+          ],
+          [
+            1.58,
+            -1.94,
+            0.25
+          ],
+          [
+            2.72,
+            -1.38,
+            0.25
+          ],
+          [
+            2.72,
+            1.38,
+            0.25
+          ],
+          [
+            1.58,
+            1.94,
+            0.25
+          ],
+          [
+            0.62,
+            2.25,
+            0.25
+          ],
+          [
+            -1.24,
+            2.25,
+            0.25
+          ],
+          [
+            -2.13,
+            1.77,
+            0.25
+          ],
+          [
+            -2.67,
+            0.92,
+            0.25
+          ],
+          [
+            -2.8,
+            0,
+            2.45
+          ],
+          [
+            -2.67,
+            -0.92,
+            2.45
+          ],
+          [
+            -2.13,
+            -1.77,
+            2.45
+          ],
+          [
+            -1.24,
+            -2.25,
+            2.45
+          ],
+          [
+            0.62,
+            -2.25,
+            2.45
+          ],
+          [
+            1.58,
+            -1.94,
+            1.67
+          ],
+          [
+            2.72,
+            -1.38,
+            1.67
+          ],
+          [
+            2.72,
+            1.38,
+            1.67
+          ],
+          [
+            1.58,
+            1.94,
+            1.67
+          ],
+          [
+            0.62,
+            2.25,
+            2.45
+          ],
+          [
+            -1.24,
+            2.25,
+            2.45
+          ],
+          [
+            -2.13,
+            1.77,
+            2.45
+          ],
+          [
+            -2.67,
+            0.92,
+            2.45
+          ],
+          [
+            -2.59,
+            0.0,
+            3.02
+          ],
+          [
+            -2.46,
+            -0.782,
+            3.02
+          ],
+          [
+            -1.92,
+            -1.5045,
+            3.02
+          ],
+          [
+            -1.03,
+            -1.9124999999999999,
+            3.02
+          ],
+          [
+            0.4,
+            -1.9124999999999999,
+            3.02
+          ],
+          [
+            1.36,
+            -1.649,
+            2.4897152
+          ],
+          [
+            2.5,
+            -1.1729999999999998,
+            1.860002
+          ],
+          [
+            2.5,
+            1.1729999999999998,
+            1.860002
+          ],
+          [
+            1.36,
+            1.649,
+            2.4897152
+          ],
+          [
+            0.4,
+            1.9124999999999999,
+            3.02
+          ],
+          [
+            -1.03,
+            1.9124999999999999,
+            3.02
+          ],
+          [
+            -1.92,
+            1.5045,
+            3.02
+          ],
+          [
+            -2.46,
+            0.782,
+            3.02
+          ]
+        ],
+        "faces": [
+          {
+            "id": "floor-1",
+            "indices": [
+              0,
+              2,
+              1
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-2",
+            "indices": [
+              0,
+              3,
+              2
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-3",
+            "indices": [
+              0,
+              4,
+              3
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-4",
+            "indices": [
+              0,
+              5,
+              4
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-5",
+            "indices": [
+              0,
+              6,
+              5
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-6",
+            "indices": [
+              0,
+              7,
+              6
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-7",
+            "indices": [
+              0,
+              8,
+              7
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-8",
+            "indices": [
+              0,
+              9,
+              8
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-9",
+            "indices": [
+              0,
+              10,
+              9
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-10",
+            "indices": [
+              0,
+              11,
+              10
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-11",
+            "indices": [
+              0,
+              12,
+              11
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "roof-rear-1",
+            "indices": [
+              26,
+              27,
+              28
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-rear-2",
+            "indices": [
+              26,
+              28,
+              29
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-rear-3",
+            "indices": [
+              26,
+              29,
+              30
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-rear-4",
+            "indices": [
+              26,
+              30,
+              35
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-rear-5",
+            "indices": [
+              26,
+              35,
+              36
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-rear-6",
+            "indices": [
+              26,
+              36,
+              37
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-rear-7",
+            "indices": [
+              26,
+              37,
+              38
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-nose-1",
+            "indices": [
+              30,
+              31,
+              32
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-nose-2",
+            "indices": [
+              30,
+              32,
+              33
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-nose-3",
+            "indices": [
+              30,
+              33,
+              34
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-nose-4",
+            "indices": [
+              30,
+              34,
+              35
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "wall-0-0-a",
+            "indices": [
+              0,
+              1,
+              14
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-0-b",
+            "indices": [
+              0,
+              14,
+              13
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-1-a",
+            "indices": [
+              1,
+              2,
+              15
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-1-b",
+            "indices": [
+              1,
+              15,
+              14
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-2-a",
+            "indices": [
+              2,
+              3,
+              16
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-2-b",
+            "indices": [
+              2,
+              16,
+              15
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-3-a",
+            "indices": [
+              3,
+              4,
+              17
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-3-b",
+            "indices": [
+              3,
+              17,
+              16
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-4-a",
+            "indices": [
+              4,
+              5,
+              18
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-4-b",
+            "indices": [
+              4,
+              18,
+              17
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-5-a",
+            "indices": [
+              5,
+              6,
+              19
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-5-b",
+            "indices": [
+              5,
+              19,
+              18
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-6-a",
+            "indices": [
+              6,
+              7,
+              20
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-6-b",
+            "indices": [
+              6,
+              20,
+              19
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-7-a",
+            "indices": [
+              7,
+              8,
+              21
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-7-b",
+            "indices": [
+              7,
+              21,
+              20
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-8-a",
+            "indices": [
+              8,
+              9,
+              22
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-8-b",
+            "indices": [
+              8,
+              22,
+              21
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-9-a",
+            "indices": [
+              9,
+              10,
+              23
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-9-b",
+            "indices": [
+              9,
+              23,
+              22
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-10-a",
+            "indices": [
+              10,
+              11,
+              24
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-10-b",
+            "indices": [
+              10,
+              24,
+              23
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-11-a",
+            "indices": [
+              11,
+              12,
+              25
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-11-b",
+            "indices": [
+              11,
+              25,
+              24
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-12-a",
+            "indices": [
+              12,
+              0,
+              13
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-12-b",
+            "indices": [
+              12,
+              13,
+              25
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-0-a",
+            "indices": [
+              13,
+              14,
+              27
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-0-b",
+            "indices": [
+              13,
+              27,
+              26
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-1-a",
+            "indices": [
+              14,
+              15,
+              28
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-1-b",
+            "indices": [
+              14,
+              28,
+              27
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-2-a",
+            "indices": [
+              15,
+              16,
+              29
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-2-b",
+            "indices": [
+              15,
+              29,
+              28
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-3-a",
+            "indices": [
+              16,
+              17,
+              30
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-3-b",
+            "indices": [
+              16,
+              30,
+              29
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-4-a",
+            "indices": [
+              17,
+              18,
+              31
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-4-b",
+            "indices": [
+              17,
+              31,
+              30
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-5-a",
+            "indices": [
+              18,
+              19,
+              32
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-5-b",
+            "indices": [
+              18,
+              32,
+              31
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-6-a",
+            "indices": [
+              19,
+              20,
+              33
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-6-b",
+            "indices": [
+              19,
+              33,
+              32
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-7-a",
+            "indices": [
+              20,
+              21,
+              34
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-7-b",
+            "indices": [
+              20,
+              34,
+              33
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-8-a",
+            "indices": [
+              21,
+              22,
+              35
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-8-b",
+            "indices": [
+              21,
+              35,
+              34
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-9-a",
+            "indices": [
+              22,
+              23,
+              36
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-9-b",
+            "indices": [
+              22,
+              36,
+              35
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-10-a",
+            "indices": [
+              23,
+              24,
+              37
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-10-b",
+            "indices": [
+              23,
+              37,
+              36
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-11-a",
+            "indices": [
+              24,
+              25,
+              38
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-11-b",
+            "indices": [
+              24,
+              38,
+              37
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-12-a",
+            "indices": [
+              25,
+              13,
+              26
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-12-b",
+            "indices": [
+              25,
+              26,
+              38
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          }
+        ],
+        "provenance": {
+          "sourceId": "rmg-npb5309",
+          "basis": "inferred",
+          "note": "Original Mk I curved-back and shoulder facets from 1941 drawings and photographs; GameModels3D raster cross-check only. Local facets are estimated."
+        }
+      }
     }
   ],
   "torpedoes": [

@@ -1,0 +1,67 @@
+{
+  "method": "Qualitative registration of 1280 px July 1941 as-fitted rasters; horizontal scale from visible LOA endpoints, about 5.1 pixels/m. Approximate stations are retained in the blueprint, not extracted from any game model.",
+  "profile": {
+    "file": "rmg-59265-j9645.jpg",
+    "sternPixel": 55,
+    "bowPixel": 1218,
+    "lengthM": 227.08,
+    "features": [
+      {
+        "name": "A turret",
+        "pixelX": 895,
+        "authoredBowPositiveX": 50,
+        "uncertaintyM": 1.5
+      },
+      {
+        "name": "B turret",
+        "pixelX": 820,
+        "authoredBowPositiveX": 35,
+        "uncertaintyM": 1.5
+      },
+      {
+        "name": "Y turret",
+        "pixelX": 328,
+        "authoredBowPositiveX": -60,
+        "uncertaintyM": 1.5
+      },
+      {
+        "name": "forward funnel",
+        "pixelX": 642,
+        "authoredBowPositiveX": 0.8,
+        "uncertaintyM": 1.5
+      },
+      {
+        "name": "after funnel",
+        "pixelX": 518,
+        "authoredBowPositiveX": -23.4,
+        "uncertaintyM": 1.5
+      },
+      {
+        "name": "bridge",
+        "pixelX": 742,
+        "authoredBowPositiveX": 22.2,
+        "uncertaintyM": 1.5
+      },
+      {
+        "name": "foremast",
+        "pixelX": 686,
+        "authoredBowPositiveX": 9.4,
+        "uncertaintyM": 1.5
+      },
+      {
+        "name": "mainmast",
+        "pixelX": 419,
+        "authoredBowPositiveX": -42.7,
+        "uncertaintyM": 1.5
+      }
+    ]
+  },
+  "dimensions": {
+    "loaM": 227.08,
+    "waterlineLengthM": 225.6,
+    "hullBeamM": 31.3944,
+    "standardMeanDraftM": 8.8392,
+    "depthAtSideM": 15.5773
+  },
+  "limits": "Rounded source dimensions are model targets. Computational tolerance is not historical uncertainty. Source guide beam/loading conflicts remain open."
+}
