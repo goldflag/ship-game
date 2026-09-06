@@ -1,0 +1,27 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Fleet firing performance review</title>
+<style>body{margin:0;background:#132d38;color:white;font:16px sans-serif}#scene{width:1280px;height:720px}#status{position:fixed;bottom:12px;left:12px}</style>
+<div id="scene"></div><output id="status">Loading…</output>
+<script type="module">
+import { Game } from '/src/game/Game.ts';
+const status = document.querySelector('#status');
+let ready;
+const loaded = new Promise(resolve => ready = resolve);
+const game = new Game(document.querySelector('#scene'), {quality:'medium',sea:'Fair',resolution:1}, {
+ progress: message => status.textContent = message, ready, telemetry() {}, pause() {}, hud() {}, error: message => {window.reviewError = message; status.textContent = message;}
+});
+window.review = {game};
+game.start(); await loaded;
+game.setInPort(true);
+const perTeam = Number(new URLSearchParams(location.search).get('team') ?? 24);
+await game.prepareBattle({playerShipId:'bismarck',friendlyBots:Array(perTeam-1).fill('bismarck'),enemies:Array(perTeam).fill('bismarck'),spawnDistance:5000});
+game.setInPort(false); game.setPaused(true);
+game.rig.update = () => {};
+game.camera.position.set(1800,1300,1800); game.camera.lookAt(0,0,-2500); game.camera.updateMatrixWorld();
+game.scheduleFrame = () => {}; cancelAnimationFrame(game.raf); await game.frameTask; cancelAnimationFrame(game.raf);
+const { installFiringReview } = await import('/scripts/diagnostics/firing-performance.ts');
+Object.assign(window.review, installFiringReview(game));
+window.review.camera();
+status.textContent='Ready'; window.reviewReady=true;
+</script>
