@@ -1,0 +1,709 @@
+{
+  "schemaVersion": 1,
+  "contentHash": "e386fddd3669bac5b108603829564e96773463d4255fd37bac444015edf8db0a",
+  "modelSha256": "b1b6efbf39448438755386f46d5a5ff2d4a8fc33600edc55d4fa718b4ad7ce61",
+  "capturePlanSha256": "400dd5332e1c1baa99fedd50a2c2b979a330bdfad282cdbf60a9ab72ca367865",
+  "captures": [
+    {
+      "id": "starboard",
+      "position": [
+        0,
+        -500,
+        15
+      ],
+      "target": [
+        0,
+        0,
+        15
+      ],
+      "spanM": 289.3,
+      "resolution": [
+        1600,
+        600
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "starboard.png",
+      "imageSha256": "3b8771af81a0c2076526343808cb6235bb4822a123a2ffb155231212acf8a95f",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.6292068494294654e-07,
+          -1.0,
+          -500.0
+        ],
+        [
+          0.0,
+          1.0,
+          -1.6292068494294654e-07,
+          15.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 5.53059108192188,
+      "source": {
+        "id": "yamato",
+        "contentHash": "e386fddd3669bac5b108603829564e96773463d4255fd37bac444015edf8db0a",
+        "modelSha256": "b1b6efbf39448438755386f46d5a5ff2d4a8fc33600edc55d4fa718b4ad7ce61"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "port",
+      "position": [
+        0,
+        500,
+        15
+      ],
+      "target": [
+        0,
+        0,
+        15
+      ],
+      "spanM": 289.3,
+      "resolution": [
+        1600,
+        600
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "port.png",
+      "imageSha256": "c24df6b6e742870b8f16c61b62d0cc2fcf6a58f0cb032da06959b0827feb344f",
+      "cameraMatrixWorld": [
+        [
+          -1.0,
+          1.5099581673894136e-07,
+          1.509957741063772e-07,
+          0.0
+        ],
+        [
+          1.5099580252808664e-07,
+          1.629206565212371e-07,
+          1.0,
+          500.0
+        ],
+        [
+          1.5099578831723193e-07,
+          1.0,
+          -1.6292068494294654e-07,
+          15.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 5.53059108192188,
+      "source": {
+        "id": "yamato",
+        "contentHash": "e386fddd3669bac5b108603829564e96773463d4255fd37bac444015edf8db0a",
+        "modelSha256": "b1b6efbf39448438755386f46d5a5ff2d4a8fc33600edc55d4fa718b4ad7ce61"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "top",
+      "position": [
+        0,
+        0,
+        500
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "spanM": 289.3,
+      "resolution": [
+        1600,
+        600
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "rotationEuler": [
+        0,
+        0,
+        0
+      ],
+      "image": "top.png",
+      "imageSha256": "bada1afc1dd661ac9463403597d0f00be331d8928473448f08873b960fb92ead",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          500.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 5.53059108192188,
+      "source": {
+        "id": "yamato",
+        "contentHash": "e386fddd3669bac5b108603829564e96773463d4255fd37bac444015edf8db0a",
+        "modelSha256": "b1b6efbf39448438755386f46d5a5ff2d4a8fc33600edc55d4fa718b4ad7ce61"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bow",
+      "position": [
+        500,
+        0,
+        16
+      ],
+      "target": [
+        0,
+        0,
+        16
+      ],
+      "spanM": 75,
+      "resolution": [
+        1000,
+        1000
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "bow.png",
+      "imageSha256": "69fd9e8276f15be07a1186a96cd13708bac43fb0f8026917c00835662d8bff0a",
+      "cameraMatrixWorld": [
+        [
+          -4.371138828673793e-08,
+          4.371138828673793e-08,
+          1.0,
+          500.0
+        ],
+        [
+          1.0,
+          1.910685676922942e-15,
+          4.371138828673793e-08,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          -4.371138828673793e-08,
+          16.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 13.333333333333334,
+      "source": {
+        "id": "yamato",
+        "contentHash": "e386fddd3669bac5b108603829564e96773463d4255fd37bac444015edf8db0a",
+        "modelSha256": "b1b6efbf39448438755386f46d5a5ff2d4a8fc33600edc55d4fa718b4ad7ce61"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "stern",
+      "position": [
+        -500,
+        0,
+        16
+      ],
+      "target": [
+        0,
+        0,
+        16
+      ],
+      "spanM": 75,
+      "resolution": [
+        1000,
+        1000
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "stern.png",
+      "imageSha256": "4d322ffe338403f2ccb71f2a982acb78691647fe8d415641184f85fb145d1519",
+      "cameraMatrixWorld": [
+        [
+          -4.371138828673793e-08,
+          -4.371138828673793e-08,
+          -1.0,
+          -500.0
+        ],
+        [
+          -1.0,
+          1.910685676922942e-15,
+          4.371138828673793e-08,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          -4.371138828673793e-08,
+          16.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 13.333333333333334,
+      "source": {
+        "id": "yamato",
+        "contentHash": "e386fddd3669bac5b108603829564e96773463d4255fd37bac444015edf8db0a",
+        "modelSha256": "b1b6efbf39448438755386f46d5a5ff2d4a8fc33600edc55d4fa718b4ad7ce61"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "quarter-bow",
+      "position": [
+        310,
+        -390,
+        270
+      ],
+      "target": [
+        0,
+        0,
+        8
+      ],
+      "spanM": 299.82,
+      "resolution": [
+        1400,
+        750
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "quarter-bow.png",
+      "imageSha256": "17c1b5d3d566e59751f6adab99e1f32c3c24f002c20a8ef70369ee6332253f87",
+      "cameraMatrixWorld": [
+        [
+          0.7828232049942017,
+          -0.28962722420692444,
+          0.5507303476333618,
+          310.0
+        ],
+        [
+          0.6222441792488098,
+          0.3643696904182434,
+          -0.6928541660308838,
+          -390.0
+        ],
+        [
+          -1.5213577952977175e-08,
+          0.8850710988044739,
+          0.46545591950416565,
+          270.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 4.669468347675272,
+      "source": {
+        "id": "yamato",
+        "contentHash": "e386fddd3669bac5b108603829564e96773463d4255fd37bac444015edf8db0a",
+        "modelSha256": "b1b6efbf39448438755386f46d5a5ff2d4a8fc33600edc55d4fa718b4ad7ce61"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "quarter-stern",
+      "position": [
+        -310,
+        390,
+        230
+      ],
+      "target": [
+        0,
+        0,
+        8
+      ],
+      "spanM": 299.82,
+      "resolution": [
+        1400,
+        750
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "quarter-stern.png",
+      "imageSha256": "3e5f33beb0ed42f37e15edc94b009338ddf2fd00b586cb9a85cbfc69f73d4e0d",
+      "cameraMatrixWorld": [
+        [
+          -0.7828232049942017,
+          0.2532689869403839,
+          -0.5683683753013611,
+          -310.0
+        ],
+        [
+          -0.6222441792488098,
+          -0.3186286687850952,
+          0.7150440216064453,
+          390.0
+        ],
+        [
+          2.6958371535101833e-08,
+          0.9134169816970825,
+          0.4070250689983368,
+          230.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 4.669468347675272,
+      "source": {
+        "id": "yamato",
+        "contentHash": "e386fddd3669bac5b108603829564e96773463d4255fd37bac444015edf8db0a",
+        "modelSha256": "b1b6efbf39448438755386f46d5a5ff2d4a8fc33600edc55d4fa718b4ad7ce61"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bridge",
+      "position": [
+        53,
+        -95,
+        67
+      ],
+      "target": [
+        -12,
+        0,
+        22
+      ],
+      "spanM": 58,
+      "resolution": [
+        1200,
+        900
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "bridge.png",
+      "imageSha256": "2e8717e1921ca5ab5beeaba85b3334155e0508bea9ca076a19b076861e12541a",
+      "cameraMatrixWorld": [
+        [
+          0.8253071904182434,
+          -0.20560191571712494,
+          0.5259238481521606,
+          53.0
+        ],
+        [
+          0.5646840333938599,
+          0.3004949986934662,
+          -0.7686577439308167,
+          -95.0
+        ],
+        [
+          1.534580817974529e-08,
+          0.9313595294952393,
+          0.3641008138656616,
+          67.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 20.689655172413794,
+      "source": {
+        "id": "yamato",
+        "contentHash": "e386fddd3669bac5b108603829564e96773463d4255fd37bac444015edf8db0a",
+        "modelSha256": "b1b6efbf39448438755386f46d5a5ff2d4a8fc33600edc55d4fa718b4ad7ce61"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bridge-profile",
+      "position": [
+        -12,
+        -250,
+        22
+      ],
+      "target": [
+        -12,
+        0,
+        22
+      ],
+      "spanM": 65,
+      "resolution": [
+        1400,
+        950
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "bridge-profile.png",
+      "imageSha256": "68adf29a74348ce1c4a725d93d11ee023310a78d45d64c4729a5eb7feddb7f00",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -12.0
+        ],
+        [
+          0.0,
+          -1.6292068494294654e-07,
+          -1.0,
+          -250.0
+        ],
+        [
+          0.0,
+          1.0,
+          -1.6292068494294654e-07,
+          22.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 21.53846153846154,
+      "source": {
+        "id": "yamato",
+        "contentHash": "e386fddd3669bac5b108603829564e96773463d4255fd37bac444015edf8db0a",
+        "modelSha256": "b1b6efbf39448438755386f46d5a5ff2d4a8fc33600edc55d4fa718b4ad7ce61"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "forward-battery",
+      "position": [
+        88.8,
+        -52,
+        37.5
+      ],
+      "target": [
+        50.8,
+        0,
+        7.5
+      ],
+      "spanM": 45,
+      "resolution": [
+        1200,
+        900
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "forward-battery.png",
+      "imageSha256": "18ce46e8386214a6344ddb44e2e8735df1a89cc35ba0ca4e489253ea95aacc79",
+      "cameraMatrixWorld": [
+        [
+          0.8073911070823669,
+          -0.24912983179092407,
+          0.5348401069641113,
+          88.80000305175781
+        ],
+        [
+          0.5900166034698486,
+          0.34091442823410034,
+          -0.7318864464759827,
+          -52.0
+        ],
+        [
+          3.125694192362971e-08,
+          0.9064831137657166,
+          0.42224201560020447,
+          37.5
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 26.666666666666668,
+      "source": {
+        "id": "yamato",
+        "contentHash": "e386fddd3669bac5b108603829564e96773463d4255fd37bac444015edf8db0a",
+        "modelSha256": "b1b6efbf39448438755386f46d5a5ff2d4a8fc33600edc55d4fa718b4ad7ce61"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bow-profile",
+      "position": [
+        113.5,
+        -230,
+        1
+      ],
+      "target": [
+        113.5,
+        0,
+        1
+      ],
+      "spanM": 48,
+      "resolution": [
+        1200,
+        900
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "bow-profile.png",
+      "imageSha256": "958fd6625b7b346bd18d2c188fc0d618ad41ea72a8d9099c9add49450f009704",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          113.5
+        ],
+        [
+          0.0,
+          7.549790126404332e-08,
+          -1.0,
+          -230.0
+        ],
+        [
+          0.0,
+          1.0,
+          7.549790126404332e-08,
+          1.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 25.0,
+      "source": {
+        "id": "yamato",
+        "contentHash": "e386fddd3669bac5b108603829564e96773463d4255fd37bac444015edf8db0a",
+        "modelSha256": "b1b6efbf39448438755386f46d5a5ff2d4a8fc33600edc55d4fa718b4ad7ce61"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "stern-equipment",
+      "position": [
+        -156.5,
+        -70,
+        42
+      ],
+      "target": [
+        -109.5,
+        0,
+        7
+      ],
+      "spanM": 65,
+      "resolution": [
+        1200,
+        900
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "stern-equipment.png",
+      "imageSha256": "aae4b2b29cd3e97bf8e1024b0fe06c25d6e6b64a983c1f6eabb50a9718df31db",
+      "cameraMatrixWorld": [
+        [
+          0.8302211165428162,
+          0.21371494233608246,
+          -0.514838695526123,
+          -156.5
+        ],
+        [
+          -0.5574342608451843,
+          0.3182987868785858,
+          -0.7667809128761292,
+          -70.0
+        ],
+        [
+          -1.8455125427863095e-08,
+          0.923586368560791,
+          0.3833903968334198,
+          42.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 18.46153846153846,
+      "source": {
+        "id": "yamato",
+        "contentHash": "e386fddd3669bac5b108603829564e96773463d4255fd37bac444015edf8db0a",
+        "modelSha256": "b1b6efbf39448438755386f46d5a5ff2d4a8fc33600edc55d4fa718b4ad7ce61"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    }
+  ]
+}

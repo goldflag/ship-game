@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 650" role="img" aria-label="Original hull protection and provisional rooms">
+<rect width="900" height="650" fill="#f2f0e9"/>
+<text x="24" y="35" font-family="sans-serif" font-size="22">Station 51.314 m from stern · runtime Z 51.314 m</text>
+<polygon points="450.00,527.32 456.93,527.32 463.87,527.32 470.21,527.32 475.45,527.08 480.24,526.47 485.67,525.70 492.20,524.64 499.66,523.11 508.25,521.25 519.00,518.84 531.52,515.74 543.86,512.14 555.57,507.80 567.10,502.62 577.79,496.96 587.34,490.77 596.22,483.95 604.83,476.71 613.40,469.20 621.73,461.20 629.61,452.42 638.22,442.62 646.44,431.79 650.60,420.04 651.38,405.69 651.88,390.16 652.05,378.22 652.05,371.67 652.05,366.71 652.05,359.72 652.05,345.10 652.05,324.41 652.05,304.66 652.05,288.38 652.05,272.91 652.05,257.44 247.95,257.44 247.95,272.91 247.95,288.38 247.95,304.66 247.95,324.41 247.95,345.10 247.95,359.72 247.95,366.71 247.95,371.67 247.95,378.22 248.12,390.16 248.62,405.69 249.40,420.04 253.56,431.79 261.78,442.62 270.39,452.42 278.27,461.20 286.60,469.20 295.17,476.71 303.78,483.95 312.66,490.77 322.21,496.96 332.90,502.62 344.43,507.80 356.14,512.14 368.48,515.74 381.00,518.84 391.75,521.25 400.34,523.11 407.80,524.64 414.33,525.70 419.76,526.47 424.55,527.08 429.79,527.32 436.13,527.32 443.07,527.32 450.00,527.32" fill="#e3e2dc" stroke="#526772" stroke-width="2"/>
+<rect x="338.364576659" y="338.713937687" width="223.27084668199996" height="154.572124626" fill="#9fbbad" fill-opacity=".28" stroke="#74847c"><title>After magazines</title></rect>
+<line x1="260.3540248523836" y1="441.0" x2="257.7126626055699" y2="421.28475000000003" stroke="#a26731" stroke-width="3.048"><title>Port main belt · 152.4 mm (provisional)</title></line>
+<line x1="257.7126626055699" y1="421.28475000000003" x2="247.74851999999998" y2="351.0" stroke="#a26731" stroke-width="3.048"><title>Port main belt · 152.4 mm (provisional)</title></line>
+<line x1="639.6459751476164" y1="441.0" x2="642.2873373944301" y2="421.28475000000003" stroke="#a26731" stroke-width="3.048"><title>Starboard main belt · 152.4 mm (provisional)</title></line>
+<line x1="642.2873373944301" y1="421.28475000000003" x2="652.25148" y2="351.0" stroke="#a26731" stroke-width="3.048"><title>Starboard main belt · 152.4 mm (provisional)</title></line>
+<line x1="634.0" y1="322.0" x2="266.0" y2="322.0" stroke="#a26731" stroke-width="1.27"><title>Protective deck · 63.5 mm (provisional)</title></line>
+<path d="M40 380H860" stroke="#3a6c8e" stroke-dasharray="8 5"/>
+<text x="24" y="598" font-family="sans-serif" font-size="16">Y = 0 is the declared load datum. Steel thickness to scale, minimum 0.8 px.</text>
+<text x="24" y="626" font-family="sans-serif" font-size="16">Room envelopes and armor boundaries are reconstructed, not certified subdivision.</text>
+</svg>

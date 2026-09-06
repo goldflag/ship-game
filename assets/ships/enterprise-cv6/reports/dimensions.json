@@ -1,5 +1,5 @@
 {
-  "contentHash": "4afba8256544f4381dd510187409afa032a131b1e5e285f85fa8974372cdf9d1",
+  "contentHash": "e968df81e5fbf119177548826b2dc4377f4a8e6ef3611b75984dadbe0d89e52d",
   "method": "Actual GLB POSITION accessors, scene transforms and indexed triangles; no declared accessor bounds",
   "historicalAccuracy": "Not certified. Exact model dimensions do not close configuration, shape or source gaps.",
   "measurements": [
@@ -53,9 +53,9 @@
     },
     {
       "measurement": "Flight-deck camber fall at 10 m off centerline",
-      "actual": 0.051683428497085515,
+      "actual": 0.05168342849708196,
       "reference": 0.051683048125600546,
-      "difference": 3.8037148496899986e-07,
+      "difference": 3.803714814162862e-07,
       "unit": "m",
       "evidence": "C&R 189525: 4 inches in 92 feet; parabolic reconstruction between datums"
     },

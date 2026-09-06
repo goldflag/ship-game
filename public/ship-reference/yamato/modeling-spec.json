@@ -1,0 +1,334 @@
+{
+  "schemaVersion": 1,
+  "revision": "fleet-fidelity-01",
+  "comparisonMode": "historical-before-after",
+  "configuration": "7 April 1945 exterior; 10.4 m trial datum",
+  "authoringBoundary": "Original blueprint, catalog facets and deterministic recipes. Historical images are comparison evidence only; no game mesh/texture or reference attachment transforms enter authoring.",
+  "coordinates": {
+    "runtime": "metres; +X starboard, +Y up, -Z bow",
+    "blender": "metres; +X bow, +Y port, +Z up",
+    "conversion": "runtime = (-blenderY, blenderZ, -blenderX)",
+    "origin": "overall steel hull midpoint at declared reference waterline",
+    "waterlineY": 0,
+    "keelY": -10.4
+  },
+  "acceptance": [
+    {
+      "id": "length",
+      "metric": "hull.length",
+      "target": 263,
+      "tolerance": 0.025,
+      "units": "m",
+      "sourceId": "usntmj-s062",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.5
+    },
+    {
+      "id": "beam",
+      "metric": "hull.beam",
+      "target": 38.9,
+      "tolerance": 0.025,
+      "units": "m",
+      "sourceId": "kure-museum-data",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.5
+    },
+    {
+      "id": "draft",
+      "metric": "hull.draft",
+      "target": 10.4,
+      "tolerance": 0.025,
+      "units": "m",
+      "sourceId": "usntmj-s062",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.5
+    },
+    {
+      "id": "waterlineLength",
+      "metric": "hull.waterlineLength",
+      "target": 256,
+      "tolerance": 0.025,
+      "units": "m",
+      "sourceId": "usntmj-s062",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.5
+    },
+    {
+      "id": "waterlineBeam",
+      "metric": "hull.waterlineBeam",
+      "target": 36.9,
+      "tolerance": 0.025,
+      "units": "m",
+      "sourceId": "usntmj-s062",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.5
+    },
+    {
+      "id": "midshipDepth",
+      "metric": "hull.midshipDepth",
+      "target": 18.915,
+      "tolerance": 0.025,
+      "units": "m",
+      "sourceId": "tamiya-principal-dimensions",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.5
+    }
+  ],
+  "landmarks": [
+    {
+      "id": "main-1-axis",
+      "runtime": [
+        0,
+        8,
+        -50.8
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "usntmj-o45",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "main-2-axis",
+      "runtime": [
+        0,
+        11.2,
+        -28
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "usntmj-o45",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "main-3-axis",
+      "runtime": [
+        0,
+        9.100000000000001,
+        64.7
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "usntmj-o45",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "secondary-forward-axis",
+      "runtime": [
+        0,
+        14.85,
+        -10
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "usntmj-o45",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "secondary-aft-axis",
+      "runtime": [
+        0,
+        13.45,
+        46.8
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "usntmj-o45",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    }
+  ],
+  "parameterGroups": [
+    {
+      "selector": "hull.sections",
+      "basis": "estimated",
+      "sourceIds": [
+        "usntmj-s062"
+      ],
+      "note": "333 original stations, explicit bulb/stem roots and recessed boat bays; overall datums checked. O-45/S-06-2 and museum form evidence are not measured offsets."
+    },
+    {
+      "selector": "structures / build.py fittings",
+      "basis": "estimated",
+      "sourceIds": [
+        "usntmj-o45",
+        "usntmj-s062",
+        "museum-exterior-details"
+      ],
+      "note": "Substantive bridge, funnel and gallery faces shared by CPU/rendering. Small ladders, doors, optics, boat fittings and open lattice remain visual detail, not separate damage modules. Dated fit and source limitations retained."
+    },
+    {
+      "selector": "armor / gunhouseMesh / structuralPlating",
+      "basis": "estimated",
+      "sourceIds": [
+        "usntmj-s062",
+        "fidelity-provisional-protection"
+      ],
+      "note": "Physical faceted protection replaces blanket boxes; nominal hull/structure steel is a gameplay estimate. Neither successful export nor plate labels certify a historical armor schedule."
+    },
+    {
+      "selector": "compartments / modules",
+      "basis": "estimated",
+      "sourceIds": [
+        "usntmj-s062"
+      ],
+      "note": "Lower propellant stores and separate shell rooms above follow O-45 section order. Four turbine and twelve boiler-room envelopes follow S-06-2 arrangement; precise boundaries, capacity and mass are estimates. Stable original module IDs remain; added engine IDs distinguish the after pair."
+    }
+  ],
+  "probes": [
+    {
+      "id": "midship-belt",
+      "from": [
+        -45,
+        -0.5,
+        0
+      ],
+      "to": [
+        45,
+        -0.5,
+        0
+      ]
+    },
+    {
+      "id": "protected-deck",
+      "from": [
+        0,
+        60,
+        20
+      ],
+      "to": [
+        0,
+        -20,
+        20
+      ]
+    }
+  ],
+  "structuralProbes": [
+    {
+      "id": "bow",
+      "from": [
+        -45,
+        5,
+        -123.5
+      ],
+      "to": [
+        45,
+        5,
+        -123.5
+      ],
+      "expectHit": true
+    },
+    {
+      "id": "stern",
+      "from": [
+        -45,
+        3,
+        123.5
+      ],
+      "to": [
+        45,
+        3,
+        123.5
+      ],
+      "expectHit": true
+    },
+    {
+      "id": "bridge",
+      "from": [
+        -45,
+        26,
+        3
+      ],
+      "to": [
+        45,
+        26,
+        3
+      ],
+      "expectHit": true
+    },
+    {
+      "id": "empty-air",
+      "from": [
+        -45,
+        65,
+        0
+      ],
+      "to": [
+        45,
+        65,
+        0
+      ],
+      "expectHit": false
+    }
+  ],
+  "sectionStations": [
+    26.3,
+    65.75,
+    131.5,
+    197.25,
+    244.59
+  ],
+  "historicalRegistrations": [
+    {
+      "view": "starboard",
+      "image": "yamato-1945-alexpl.png",
+      "sourceId": "alexpl-1945",
+      "crop": [
+        0,
+        950,
+        4177,
+        1850
+      ],
+      "originPixel": [
+        2042,
+        1660
+      ],
+      "pixelsPerMeter": 15.404,
+      "redistribute": true,
+      "credit": "Alexpl, Yamato1945.png, CC BY-SA 3.0 / GFDL; transformed registration licensed CC BY-SA 3.0.",
+      "note": "Secondary 1945 reconstruction, whole-sheet uniform scale from 263 m endpoints; inferred trial-waterline alignment. About ±1 m raster/datum uncertainty. Not primary offsets."
+    },
+    {
+      "view": "top",
+      "image": "yamato-1945-alexpl.png",
+      "sourceId": "alexpl-1945",
+      "crop": [
+        0,
+        0,
+        4177,
+        740
+      ],
+      "originPixel": [
+        2042,
+        390
+      ],
+      "pixelsPerMeter": 15.404,
+      "redistribute": true,
+      "credit": "Alexpl, Yamato1945.png, CC BY-SA 3.0 / GFDL; transformed registration licensed CC BY-SA 3.0.",
+      "note": "Same sheet scale; no independent lateral stretch. Remaining endpoint/plan/profile disagreement is retained."
+    }
+  ],
+  "evidence": [
+    {
+      "image": "o-45-page-22.png",
+      "sourceId": "usntmj-o45",
+      "redistribute": true,
+      "caption": "Primary recovered turret section, printed p.20. Roof/shoulder interpretation is original; exact local plate boundaries remain provisional."
+    },
+    {
+      "image": "s-06-2-page-38.png",
+      "sourceId": "usntmj-s062",
+      "redistribute": true,
+      "caption": "Primary damage arrangement and subdivision. A damage sketch is not a complete lines plan."
+    },
+    {
+      "image": "museum-forward-turrets.jpg",
+      "sourceId": "museum-exterior-details",
+      "redistribute": false,
+      "caption": "Restricted museum reconstruction photograph, inspected for bucklers, ladders, optics and roof fittings; retained locally only."
+    }
+  ],
+  "review": {
+    "title": "Yamato · fidelity 01",
+    "intro": "Matched pre-pass and current exported geometry, documented dimensions, structural probes and historical evidence. Both authored stages use the same twelve fixed cameras.",
+    "limits": "No historical accuracy percentage. Exact offsets, many fitting locations, nominal plating and internal room boundaries remain approximations. See discrepancies.md and the source register. Raster overlays use one uniform scale per source sheet; unresolved source/datum mismatch remains visible."
+  }
+}

@@ -2,6 +2,8 @@
 
 Original, independently authored Baltimore-class cruiser reconstruction targeting October 1943. Built through the shared, versioned ship blueprint and component pipeline. Historical accuracy is **under review**, not certified.
 
+[Fidelity 01](reports/fidelity-01/README.md) records the faired retained hull/bridge outlines, original faceted gunhouses and service fittings, complete structural coverage including the transom, provisional protection/internals, twelve matched views and current WebGPU checks. Reference review in port opens the portable comparison pack.
+
 The dimensional datum is the Navy's documented **24 ft 2 in limiting keel draft**. This is distinct from the **26 ft 10 in maximum navigational draft**, which includes projections below the keel. The 1945 tabulation does not establish Baltimore's precise October 1943 displacement.
 
 | Dimension | Documented value | Source |
@@ -22,6 +24,8 @@ bun run ship:build baltimore
 bun run ship:check baltimore
 bun assets/ships/baltimore/measure.ts
 bun run ship:review baltimore
+bun run ship:compare baltimore
+bun run ship:independence baltimore
 ```
 
 Read [the source register](references/sources.json), [measurements](references/measurements.json), and [open discrepancies](reports/discrepancies.md). Reference photographs and scans remain reference-only assets. None are baked onto the ship. The wartime camouflage drawing provides geometry evidence; its later dazzle scheme is not used on the 1943 model.

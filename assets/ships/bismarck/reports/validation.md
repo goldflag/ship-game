@@ -1,5 +1,13 @@
 # Bismarck exterior and collision validation · 5 September 2026
 
+## Latest shared fleet rebuild
+
+Current content hash: `ef5c6fefab2763a1ee2669c7a46c8afcc9f3df4bf625d8dcb47bc68b5f086068`. The [fleet fidelity pass](../../fleet-fidelity/README.md) changed shared build inputs, so Bismarck was recompiled/rebuilt and its fixed views, comparison pack and thumbnail refreshed. Bismarck's blueprint, original exterior recipe and preserved baseline were not edited. Geometry remains 364,170 triangles, 96 mesh nodes, 284 primitives and 21,566,248 GLB bytes, with ten mounts / twenty barrel chains.
+
+The shared CPU hull-surface cap/diagonal corrections preserve Bismarck's structural regressions. The full suite passed **247 tests, 0 failures, 30,803 assertions across 36 files**, followed by all-preset checks, TypeScript and Vite production build. Five current [fixed views](fidelity-01/fixed-views.png) were inspected. A fresh exact-hash WebGPU sweep exercised twelve train/elevation/recoil combinations, maximum muzzle error **0.002166616 m**; [runtime record](fidelity-01/runtime/review.json) and [positive-limit canvas](fidelity-01/runtime/articulation-positive-canvas.png). This pass did not repeat Bismarck's full historical battle trial; that earlier evidence remains separately identified below. Its historical approximations are unchanged.
+
+## Preserved pre-fleet iteration record
+
 The third independent iteration corrects the bow profile and main gunhouses on top of the detailed second iteration. It also makes the complete hull and 22 major superstructure surfaces hittable, aimable and inspectable. The reviewed fit remains **24 May 1941**, at the separately stated **9.33 m standard draft**.
 
 Content hash: `45b7cc0110d0262b177a0e3aeb4df43d0682de8b52f1cc4f18cd5ab0fcddc9a5`.

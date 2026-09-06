@@ -1,0 +1,716 @@
+{
+  "schemaVersion": 1,
+  "revision": "fleet-fidelity-01",
+  "comparisonMode": "historical-before-after",
+  "configuration": "June 1942/Midway; pre-bulge hull; 25 ft 11½ in reference draft",
+  "authoringBoundary": "Original blueprint, catalog facets and deterministic recipes. Historical images are comparison evidence only; no game mesh/texture or reference attachment transforms enter authoring.",
+  "coordinates": {
+    "runtime": "metres; +X starboard, +Y up, -Z bow",
+    "blender": "metres; +X bow, +Y port, +Z up",
+    "conversion": "runtime = (-blenderY, blenderZ, -blenderX)",
+    "origin": "overall steel hull midpoint at declared reference waterline",
+    "waterlineY": 0,
+    "keelY": -7.9121
+  },
+  "acceptance": [
+    {
+      "id": "length",
+      "metric": "hull.length",
+      "target": 246.7356,
+      "tolerance": 0.025,
+      "units": "m",
+      "sourceId": "cv6-contract-1934",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.5
+    },
+    {
+      "id": "beam",
+      "metric": "hull.beam",
+      "target": 28.0416,
+      "tolerance": 0.025,
+      "units": "m",
+      "sourceId": "cv6-contract-1934",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.5
+    },
+    {
+      "id": "draft",
+      "metric": "hull.draft",
+      "target": 7.9121,
+      "tolerance": 0.025,
+      "units": "m",
+      "sourceId": "cv6-contract-1934",
+      "basis": "documented",
+      "evidenceUncertaintyM": 0.5
+    }
+  ],
+  "landmarks": [
+    {
+      "id": "five-inch-port-1-axis",
+      "runtime": [
+        -12.65,
+        15.991900000000001,
+        -82
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "five-inch-port-2-axis",
+      "runtime": [
+        -12.65,
+        17.0919,
+        -74
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "five-inch-port-3-axis",
+      "runtime": [
+        -12.65,
+        15.991900000000001,
+        99
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "five-inch-port-4-axis",
+      "runtime": [
+        -12.65,
+        17.0919,
+        107
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "five-inch-starboard-1-axis",
+      "runtime": [
+        12.65,
+        15.991900000000001,
+        -82
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "five-inch-starboard-2-axis",
+      "runtime": [
+        12.65,
+        17.0919,
+        -74
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "five-inch-starboard-3-axis",
+      "runtime": [
+        12.65,
+        15.991900000000001,
+        99
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "five-inch-starboard-4-axis",
+      "runtime": [
+        12.65,
+        17.0919,
+        107
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "quad-fore-lower-axis",
+      "runtime": [
+        11.8,
+        17.7419,
+        -38.4048
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "quad-fore-upper-axis",
+      "runtime": [
+        10.4,
+        19.8755,
+        -35.9664
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "quad-aft-lower-axis",
+      "runtime": [
+        12,
+        17.7419,
+        21.336
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "quad-aft-upper-axis",
+      "runtime": [
+        10.5,
+        19.8755,
+        16.4592
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-port-1-axis",
+      "runtime": [
+        -14.2,
+        16.9419,
+        116
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-port-2-axis",
+      "runtime": [
+        -14.2,
+        16.9419,
+        112
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-port-3-axis",
+      "runtime": [
+        -14.2,
+        16.9419,
+        66
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-port-4-axis",
+      "runtime": [
+        -14.2,
+        16.9419,
+        61
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-port-5-axis",
+      "runtime": [
+        -14.2,
+        16.9419,
+        56
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-port-6-axis",
+      "runtime": [
+        -14.2,
+        16.9419,
+        51
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-port-7-axis",
+      "runtime": [
+        -14.2,
+        16.9419,
+        46
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-port-8-axis",
+      "runtime": [
+        -14.2,
+        16.9419,
+        41
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-port-9-axis",
+      "runtime": [
+        -14.2,
+        16.9419,
+        -48
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-port-10-axis",
+      "runtime": [
+        -14.2,
+        16.9419,
+        -53
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-port-11-axis",
+      "runtime": [
+        -14.2,
+        16.9419,
+        -58
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-port-12-axis",
+      "runtime": [
+        -14.2,
+        16.9419,
+        -63
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-starboard-1-axis",
+      "runtime": [
+        14.2,
+        16.9419,
+        116
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-starboard-2-axis",
+      "runtime": [
+        14.2,
+        16.9419,
+        112
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-starboard-3-axis",
+      "runtime": [
+        14.2,
+        16.9419,
+        66
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-starboard-4-axis",
+      "runtime": [
+        14.2,
+        16.9419,
+        61
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-starboard-5-axis",
+      "runtime": [
+        14.2,
+        16.9419,
+        56
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-starboard-6-axis",
+      "runtime": [
+        14.2,
+        16.9419,
+        51
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-starboard-7-axis",
+      "runtime": [
+        14.2,
+        16.9419,
+        46
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-starboard-8-axis",
+      "runtime": [
+        14.2,
+        16.9419,
+        41
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-starboard-9-axis",
+      "runtime": [
+        14.2,
+        16.9419,
+        -48
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-starboard-10-axis",
+      "runtime": [
+        14.2,
+        16.9419,
+        -53
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-starboard-11-axis",
+      "runtime": [
+        14.2,
+        16.9419,
+        -58
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-starboard-12-axis",
+      "runtime": [
+        14.2,
+        16.9419,
+        -63
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-island-1-axis",
+      "runtime": [
+        15.5,
+        17.591900000000003,
+        7
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-island-2-axis",
+      "runtime": [
+        15.5,
+        17.591900000000003,
+        2
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-island-3-axis",
+      "runtime": [
+        15.5,
+        17.591900000000003,
+        -3
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-island-4-axis",
+      "runtime": [
+        15.5,
+        17.591900000000003,
+        -8
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-island-5-axis",
+      "runtime": [
+        15.5,
+        17.591900000000003,
+        -13
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    },
+    {
+      "id": "oerlikon-island-6-axis",
+      "runtime": [
+        15.5,
+        17.591900000000003,
+        -18
+      ],
+      "toleranceM": 0.025,
+      "basis": "estimated",
+      "sourceId": "cv6-contract-1934",
+      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+    }
+  ],
+  "parameterGroups": [
+    {
+      "selector": "hull.sections",
+      "basis": "estimated",
+      "sourceIds": [
+        "cv6-contract-1934"
+      ],
+      "note": "50 retained original stations; 48-point arc-length samples reproduce prior rendered loft, including interpolation between offset anchors. Original CSV and unsampled baseline remain retained. Contract mold lines are not a 1942 survey."
+    },
+    {
+      "selector": "structures / build.py fittings",
+      "basis": "estimated",
+      "sourceIds": [
+        "020644",
+        "020694",
+        "cv6-contract-1934",
+        "cv6-contract-1934"
+      ],
+      "note": "Substantive bridge, funnel and gallery faces shared by CPU/rendering. Small ladders, doors, optics, boat fittings and open lattice remain visual detail, not separate damage modules. Dated fit and source limitations retained."
+    },
+    {
+      "selector": "armor / gunhouseMesh / structuralPlating",
+      "basis": "estimated",
+      "sourceIds": [
+        "cv6-contract-1934",
+        "fidelity-provisional-protection"
+      ],
+      "note": "Physical faceted protection replaces blanket boxes; nominal hull/structure steel is a gameplay estimate. Neither successful export nor plate labels certify a historical armor schedule."
+    },
+    {
+      "selector": "compartments / modules",
+      "basis": "estimated",
+      "sourceIds": [
+        "cv6-contract-1934"
+      ],
+      "note": "Original machinery/magazine IDs retained. Steering room placed above the rudder stock within the rising counter; bow/after voids added for local flooding. All capacities and room boundaries remain coarse gameplay estimates."
+    }
+  ],
+  "probes": [
+    {
+      "id": "midship-belt",
+      "from": [
+        -45,
+        -0.5,
+        0
+      ],
+      "to": [
+        45,
+        -0.5,
+        0
+      ]
+    },
+    {
+      "id": "protected-deck",
+      "from": [
+        0,
+        60,
+        20
+      ],
+      "to": [
+        0,
+        -20,
+        20
+      ]
+    }
+  ],
+  "structuralProbes": [
+    {
+      "id": "bow",
+      "from": [
+        -45,
+        10,
+        -115.3678
+      ],
+      "to": [
+        45,
+        10,
+        -115.3678
+      ],
+      "expectHit": true
+    },
+    {
+      "id": "stern",
+      "from": [
+        -45,
+        7,
+        115.3678
+      ],
+      "to": [
+        45,
+        7,
+        115.3678
+      ],
+      "expectHit": true
+    },
+    {
+      "id": "bridge",
+      "from": [
+        -45,
+        22,
+        -15
+      ],
+      "to": [
+        45,
+        22,
+        -15
+      ],
+      "expectHit": true
+    },
+    {
+      "id": "empty-air",
+      "from": [
+        -45,
+        65,
+        0
+      ],
+      "to": [
+        45,
+        65,
+        0
+      ],
+      "expectHit": false
+    }
+  ],
+  "sectionStations": [
+    24.673560000000002,
+    61.6839,
+    123.3678,
+    185.0517,
+    229.464108
+  ],
+  "historicalRegistrations": [],
+  "evidence": [
+    {
+      "image": "020644.jpg",
+      "sourceId": "020644",
+      "redistribute": true,
+      "caption": "U.S. Navy 19-N-29696, March 1942: island, galleries, ladders and boat handling. Perspective photograph, not a dimensioned overlay."
+    },
+    {
+      "image": "020694.jpg",
+      "sourceId": "020694",
+      "redistribute": true,
+      "caption": "U.S. Navy 19-N-29691, March 1942: forward island, CXAM-1 and forward quadruple mounts."
+    },
+    {
+      "image": "cv6-1934-flight-gallery.jpg",
+      "sourceId": "cv6-contract-1934",
+      "redistribute": false,
+      "caption": "Original contract flight/gallery arrangement, restricted scan retained locally. Split-sheet geometry is not falsely registered as one continuous 1942 plan."
+    },
+    {
+      "image": "cv6-1934-midship-sections.jpg",
+      "sourceId": "cv6-contract-1934",
+      "redistribute": false,
+      "caption": "C&R 189523 armor taper; contract versus 1942 extent remains qualified."
+    }
+  ],
+  "review": {
+    "title": "USS Enterprise (CV-6) · fidelity 01",
+    "intro": "Matched pre-pass and current exported geometry, documented dimensions, structural probes and historical evidence. Both authored stages use the same twelve fixed cameras.",
+    "limits": "No historical accuracy percentage. Exact offsets, many fitting locations, nominal plating and internal room boundaries remain approximations. See discrepancies.md and the source register. The contract scans are split sheets with configuration differences and host redistribution restrictions; they remain local, with no invented whole-ship overlay."
+  }
+}
