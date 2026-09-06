@@ -11,6 +11,28 @@ const fleet = () => new CombatSimulation(shipPreset('baltimore'), {
   friendlyBots: [shipPreset('bismarck')], enemies: [shipPreset('yamato'), shipPreset('enterprise-cv6')],
 });
 
+for (const spawnDistance of [MIN_BATTLE_SPAWN_DISTANCE, BATTLE_SPAWN_DISTANCE]) {
+  test(`Yamato survives Bismarck's opening salvo at ${spawnDistance} m with inspectable magazine damage`, () => {
+    const sim = new CombatSimulation(shipPreset('yamato'), {
+      friendlyBots: [], enemies: [shipPreset('bismarck')], spawnDistance,
+    });
+    // Exercise deployed bot aiming, shell flight, armor, magazines and flooding together.
+    for (let tick = 0; tick < 600; tick++) sim.step(stop, intent);
+    expect(sim.events.some(e => e.kind === 'penetration' && e.shipId === 'player')).toBe(true);
+    expect(sim.player.damage.modules.filter(m => m.detonated).length).toBeGreaterThanOrEqual(2);
+    const moduleDamage = sim.player.damage.modules.reduce((sum, m, i) => sum + sim.definition.modules[i].hp - m.hp, 0);
+    const openingShots = sim.events.filter(e => e.kind === 'shot' && e.shipId === sim.target.motion.id);
+    expect(openingShots).toHaveLength(4);
+    expect(moduleDamage).toBeLessThanOrEqual(openingShots.length * sim.target.definition.mounts[0].weapon.damage);
+    expect(sim.player.damage.integrity).toBeGreaterThan(sim.player.damage.maxIntegrity / 2);
+    expect(sim.player.damage.integrity).toBeLessThan(sim.player.damage.maxIntegrity);
+    expect(sim.player.damage.sunk).toBe(false);
+    expect(sim.result).toBe('active');
+    expect(sim.player.damage.compartments.some(c => c.waterM3 > 0)).toBe(true);
+    expect(sim.player.mounts.filter(m => m.status === 'disabled').length).toBeGreaterThanOrEqual(2);
+  });
+}
+
 test('custom deployments use independent mixed ships, unique IDs and lines 5 km apart', () => {
   const sim = fleet();
   expect(sim.actors.map(actor => actor.definition.id)).toEqual(['baltimore', 'bismarck', 'yamato', 'enterprise-cv6']);
@@ -120,8 +142,8 @@ test('every bot maneuvers, fires both applicable batteries, reloads and damages 
   const friendly = sim.actors[1];
   for (const battery of ['main', 'secondary']) expect(friendly.definition.mounts.some((mount, i) => mount.battery === battery && friendly.mounts[i].ammo < initial[1][i])).toBe(true);
   expect(sim.player.mounts.map(mount => mount.ammo)).toEqual(initial[0]);
-  expect(sim.actors.some(actor => actor.team === 'friendly' && actor.damage.integrity < 1000)).toBe(true);
-  expect(sim.actors.some(actor => actor.team === 'enemy' && actor.damage.integrity < 1000)).toBe(true);
+  expect(sim.actors.some(actor => actor.team === 'friendly' && actor.damage.integrity < actor.damage.maxIntegrity)).toBe(true);
+  expect(sim.actors.some(actor => actor.team === 'enemy' && actor.damage.integrity < actor.damage.maxIntegrity)).toBe(true);
   const carrier = sim.actors[3];
   carrier.definition.mounts.forEach((mount, i) => { if (mount.weapon.caliberM < .1) expect(carrier.mounts[i].ammo).toBe(initial[3][i]); });
 });
@@ -180,7 +202,7 @@ test('battle results count all ships and resetting restores every actor without 
   expect(sim.target.motion.id).toBe('enemy-1');
   sim.actors.forEach((actor, i) => {
     expect(actor).toBe(actors[i]);
-    expect(actor.damage.integrity).toBe(1000);
+    expect(actor.damage.integrity).toBe(actor.damage.maxIntegrity);
     expect(actor.damage.sunk).toBe(false);
     expect(actor.damage.compartments.every(c => c.waterM3 === 0)).toBe(true);
   });
