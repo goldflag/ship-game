@@ -5,10 +5,10 @@
   "status": "ready for visual review",
   "historicalAccuracy": "Not certified. Export residuals verify interpretation of sampled drawing landmarks; drawings, hidden sections, and variant differences retain their source limitations.",
   "sourceUrl": "https://commons.wikimedia.org/wiki/File:Grumman_F4F_Wildcat_3-view_line_drawing.svg",
-  "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
-  "expectedContentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
-  "glbSha256": "1ff9d57357e84a7d6dafa31dffea641911aa15dfcf285f464cc19ce36ac219bb",
-  "shapeSha256": "c7a5398f3108d1c5eec5c7f78d7ae417363596b9aabcac41ee0696f0943f1200",
+  "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+  "expectedContentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+  "glbSha256": "827a4d3e9c46a72dd591aee12c4dafeea526d8e13528956249da0c6591c81ac3",
+  "shapeSha256": "9067e4277f217e8a8b21f7164290e2a2afae3a5c39369992b42324f4d18cfca6",
   "comparatorSha256": "135f7901baf3b1115777a354e91b6b5c178e3249938b6d2623eb9ceee950c3df",
   "axes": "meters, source +X nose +Y port +Z up; source=(-runtimeZ,-runtimeX,runtimeY)",
   "boundsM": [
@@ -27,8 +27,8 @@
     "lengthM": 8.770199,
     "wingspanM": 11.58,
     "heightM": 3.660479,
-    "triangles": 30655,
-    "meshes": 11,
+    "triangles": 30791,
+    "meshes": 13,
     "wingStationMaxAbsErrorM": 0.002434
   },
   "drawingExpected": {
@@ -173,10 +173,10 @@
       "sourceXM": 1.672104,
       "drawingWingDatumZM": 0.123951,
       "actualBottomTopZM": [
-        0.020467,
-        0.297417
+        0.020464,
+        0.297421
       ],
-      "actualMidSurfaceZM": 0.158942,
+      "actualMidSurfaceZM": 0.158943,
       "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
     },
     {
@@ -186,10 +186,10 @@
       "sourceXM": 1.672104,
       "drawingWingDatumZM": 0.123951,
       "actualBottomTopZM": [
-        0.020467,
-        0.297417
+        0.020464,
+        0.297421
       ],
-      "actualMidSurfaceZM": 0.158942,
+      "actualMidSurfaceZM": 0.158943,
       "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
     },
     {
@@ -321,7 +321,7 @@
           169.0
         ]
       ],
-      "triangleCount": 30655,
+      "triangleCount": 30791,
       "projectedBoundsPx": [
         [
           21.0,
@@ -364,7 +364,7 @@
           737.0
         ]
       ],
-      "triangleCount": 30655,
+      "triangleCount": 30791,
       "projectedBoundsPx": [
         [
           21.0,

@@ -7,6 +7,7 @@ export const aircraftNodeIds = [
   'gear.port', 'gear.starboard', 'gear.tail', 'socket.payload', 'socket.deck',
 ] as const;
 
+export const aircraftFoldIds = (id: string): string[] => ['f4f-4-wildcat', 'tbd-1-devastator'].includes(id) ? ['wing.fold.port', 'wing.fold.starboard'] : [];
 export interface AircraftDimensions { id: string; length: number; wingspan: number }
 interface Node {
   name?: string; mesh?: number; children?: number[]; matrix?: number[];
@@ -75,18 +76,21 @@ export function inspectAircraftGlb(bytes: Buffer, aircraft: AircraftDimensions, 
     return index;
   };
   const root = nodeIndex('aircraft.root');
-  for (const id of aircraftNodeIds) nodeIndex(id);
+  const foldIds = aircraftFoldIds(aircraft.id);
+  for (const id of [...aircraftNodeIds, ...foldIds]) nodeIndex(id);
   const localFrame = (node: Node) => node.matrix ? new Matrix4().fromArray(node.matrix) : new Matrix4().compose(
     new Vector3().fromArray(node.translation ?? [0, 0, 0]),
     new Quaternion().fromArray(node.rotation ?? [0, 0, 0, 1]),
     new Vector3().fromArray(node.scale ?? [1, 1, 1]),
   );
-  const frames = (override?: { index: number; rotation: Matrix4 }) => {
+  const frames = (override?: { index: number; rotation: Matrix4 } | { index: number; rotation: Matrix4 }[]) => {
+    const overrides = !override ? [] : Array.isArray(override) ? override : [override];
     const world = new Map<number, Matrix4>();
     const walk = (index: number, parent: Matrix4) => {
       require(Number.isInteger(index) && Boolean(gltf.nodes[index]) && !world.has(index), 'Cyclic or multiply-parented GLB hierarchy');
       const local = localFrame(gltf.nodes[index]);
-      if (override?.index === index) local.multiply(override.rotation);
+      const change = overrides.find(item => item.index === index);
+      if (change) local.multiply(change.rotation);
       const transform = parent.clone().multiply(local);
       require(transform.elements.every(Number.isFinite), 'Nonfinite GLB transform');
       world.set(index, transform);
@@ -205,21 +209,42 @@ export function inspectAircraftGlb(bytes: Buffer, aircraft: AircraftDimensions, 
   near(dimensions.x, aircraft.wingspan, 'Wingspan');
   near(dimensions.z, aircraft.length, 'Length');
 
-  const movingIds = aircraftNodeIds.filter(id => id === 'propeller.spin' || id.startsWith('control.'));
+  const foldRotation = (id: string, fraction: number) => {
+    const data = gltf.nodes[nodeIndex(id)].extras!;
+    const axis = data.foldAxis as number[];
+    require(Array.isArray(axis) && axis.length === 3 && axis.every(Number.isFinite) && Math.abs(Math.hypot(...axis) - 1) < .001, `${id} needs a unit runtime fold axis`);
+    require(typeof data.foldAngleDegrees === 'number' && data.foldAngleDegrees > 0 && data.foldAngleDegrees <= 180, `${id} needs a valid fold angle`);
+    require(descendsFrom(nodeIndex(`control.aileron.${id.split('.').at(-1)}`), nodeIndex(id)), `${id} must carry its aileron`);
+    return new Matrix4().makeRotationAxis(new Vector3().fromArray(axis), data.foldAngleDegrees * Math.PI / 180 * fraction);
+  };
+  const movingIds: string[] = [...aircraftNodeIds.filter(id => id === 'propeller.spin' || id.startsWith('control.')), ...foldIds];
   const joints = movingIds.map(id => {
     const index = nodeIndex(id);
     const movingMeshes = [...vertices.keys()].filter(mesh => descendsFrom(mesh, index));
     require(movingMeshes.length > 0, `${id} has no independently parented moving geometry`);
     require(gltf.nodes[index].mesh === undefined, `${id} must retain an empty pivot node`);
-    const rotation = id === 'propeller.spin' ? new Matrix4().makeRotationZ(0.35) : id === 'control.rudder' ? new Matrix4().makeRotationY(0.35) : new Matrix4().makeRotationX(0.35);
+    const rotation = id.startsWith('wing.fold.') ? foldRotation(id, .5) : id === 'propeller.spin' ? new Matrix4().makeRotationZ(0.35) : id === 'control.rudder' ? new Matrix4().makeRotationY(0.35) : new Matrix4().makeRotationX(0.35);
     const articulated = frames({ index, rotation });
     let maximumTravel = 0;
     for (const mesh of movingMeshes) for (const vertex of vertices.get(mesh)!) maximumTravel = Math.max(maximumTravel, vertex.clone().applyMatrix4(world.get(mesh)!).distanceTo(vertex.clone().applyMatrix4(articulated.get(mesh)!)));
     require(maximumTravel > 0.005, `${id} articulation does not move its geometry`);
     for (const mesh of vertices.keys()) if (!movingMeshes.includes(mesh)) require(world.get(mesh)!.equals(articulated.get(mesh)!), `${id} moves unrelated geometry`);
-    return { id, pivot: new Vector3().setFromMatrixPosition(world.get(index)!).toArray(), movingMeshes: movingMeshes.length, testedRotationRadians: 0.35, maximumVertexTravel: maximumTravel };
+    return { id, pivot: new Vector3().setFromMatrixPosition(world.get(index)!).toArray(), movingMeshes: movingMeshes.length, testedRotationRadians: id.startsWith('wing.fold.') ? Number(gltf.nodes[index].extras!.foldAngleDegrees) * Math.PI / 360 : 0.35, maximumVertexTravel: maximumTravel };
   });
   for (const id of ['gear.port', 'gear.starboard', 'gear.tail', 'socket.payload', 'socket.deck']) require(gltf.nodes[nodeIndex(id)].mesh === undefined, `${id} must retain an empty pivot/socket node`);
+  let foldedWingspan: number | undefined, foldSweepMinimumY: number | undefined;
+  if (foldIds.length) {
+    const folded = frames(foldIds.map(id => ({ index: nodeIndex(id), rotation: foldRotation(id, 1) })));
+    const points = [...vertices].flatMap(([mesh, verts]) => verts.map(v => v.clone().applyMatrix4(folded.get(mesh)!)));
+    foldedWingspan = Math.max(...points.map(v => v.x)) - Math.min(...points.map(v => v.x));
+    require(foldedWingspan < aircraft.wingspan * .7, 'Folded wings must reduce the overall deck footprint');
+    foldSweepMinimumY = Infinity;
+    for (let sample = 0; sample <= 20; sample++) {
+      const pose = frames(foldIds.map(id => ({ index: nodeIndex(id), rotation: foldRotation(id, sample / 20) })));
+      for (const [mesh, verts] of vertices) for (const vertex of verts) foldSweepMinimumY = Math.min(foldSweepMinimumY, vertex.clone().applyMatrix4(pose.get(mesh)!).y);
+    }
+    require(foldSweepMinimumY >= bounds[0].y - .02, 'Wing fold sweep extends below the tyres');
+  }
   const centerZ = (bounds[0].z + bounds[1].z) / 2;
   require(new Vector3().setFromMatrixPosition(world.get(nodeIndex('propeller.spin'))!).z < centerZ && new Vector3().setFromMatrixPosition(world.get(nodeIndex('control.rudder'))!).z > centerZ, 'Aircraft must face runtime -Z');
   for (const control of ['control.elevator', 'control.aileron']) {
@@ -229,7 +254,7 @@ export function inspectAircraftGlb(bytes: Buffer, aircraft: AircraftDimensions, 
     schemaVersion: 1, aircraftId: aircraft.id, contentHash, result: 'passed',
     coordinates: { units: 'meters', right: '+X', up: '+Y', forward: '-Z' },
     bounds: bounds.map(v => v.toArray()), measured: { wingspan: dimensions.x, height: dimensions.y, length: dimensions.z },
-    nodeIds: aircraftNodeIds, joints, triangles, meshes: vertices.size, primitives, bytes: bytes.length,
+    nodeIds: [...aircraftNodeIds, ...foldIds], foldedWingspan, foldSweepMinimumY, joints, triangles, meshes: vertices.size, primitives, bytes: bytes.length,
     surfaces: { uvPrimitives, texturedPrimitives, normalPrimitives, embeddedImages: gltf.images?.length ?? 0 },
     geometry: { minimumTriangleAreaM2, rejectedTriangleAreaThresholdM2: 1e-14, degenerateTriangles: 0 },
     historicalAccuracy: 'Not certified; see the aircraft source register and discrepancy report.',
