@@ -1,0 +1,60 @@
+{
+  "regions": [
+    {
+      "bounds": {
+        "bottom": 378,
+        "height": 176,
+        "left": 204,
+        "right": 622.6953125,
+        "top": 202,
+        "width": 418.6953125,
+        "x": 204,
+        "y": 202
+      },
+      "selector": ".fleet-armament"
+    },
+    {
+      "bounds": {
+        "bottom": 378,
+        "height": 237.6875,
+        "left": 12,
+        "right": 192,
+        "top": 140.3125,
+        "width": 180,
+        "x": 12,
+        "y": 140.3125
+      },
+      "selector": ".fleet-ship"
+    },
+    {
+      "bounds": {
+        "bottom": 390,
+        "height": 209.3046875,
+        "left": 634.6953125,
+        "right": 844,
+        "top": 180.6953125,
+        "width": 209.3046875,
+        "x": 634.6953125,
+        "y": 180.6953125
+      },
+      "selector": ".fleet-map-area"
+    },
+    {
+      "bounds": {
+        "bottom": 159.296875,
+        "height": 145.296875,
+        "left": 12,
+        "right": 202,
+        "top": 14,
+        "width": 190,
+        "x": 12,
+        "y": 14
+      },
+      "selector": ".fleet-battle"
+    }
+  ],
+  "viewport": [
+    844,
+    390
+  ]
+}

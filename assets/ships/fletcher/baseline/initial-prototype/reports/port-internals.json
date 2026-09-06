@@ -1,0 +1,375 @@
+{
+  "audio": {
+    "failed": [],
+    "inPort": true,
+    "loaded": 13,
+    "paused": false,
+    "played": 3,
+    "settings": {
+      "effects": 0.8,
+      "interface": 0.65,
+      "master": 0.65,
+      "muted": false
+    },
+    "state": "running",
+    "total": 13,
+    "voices": 0
+  },
+  "backend": "webgpu",
+  "battleSeed": 1,
+  "camera": {
+    "aim": [
+      137.88961471405983,
+      0.5,
+      -99.41470931368218
+    ],
+    "binoculars": false,
+    "fov": 52.00000000000001,
+    "magnification": 1,
+    "manualAim": true,
+    "matrixWorldInverse": [
+      0.5889614174718577,
+      -0.12326762377668626,
+      0.7987049152584387,
+      0,
+      1.3877787807814457e-17,
+      0.9882990695511492,
+      0.1525285190524474,
+      0,
+      -0.8081611526976166,
+      -0.08983341278601266,
+      0.5820700208889629,
+      0,
+      -161.5547690106863,
+      7.572412995731407,
+      -341.23627532820444,
+      1.0000000000000002
+    ],
+    "mode": "Chase",
+    "pointerLocked": false,
+    "position": [
+      368.6300494812305,
+      44.56445500484583,
+      68.74137326331812
+    ],
+    "projectionMatrix": [
+      1.633751346060547,
+      0,
+      0,
+      0,
+      0,
+      2.050303841579296,
+      0,
+      0,
+      0,
+      0,
+      -1.000050002500125,
+      -1,
+      0,
+      0,
+      -3.000150007500375,
+      0
+    ],
+    "shellFollow": "off"
+  },
+  "combat": {
+    "batteries": [
+      {
+        "ammo": 1800,
+        "battery": "main",
+        "ready": 0,
+        "reload": 0,
+        "total": 5
+      },
+      {
+        "ammo": 13200,
+        "battery": "secondary",
+        "ready": 0,
+        "reload": 0,
+        "total": 7
+      },
+      {
+        "ammo": 10,
+        "battery": "torpedo",
+        "ready": 10,
+        "reload": 0,
+        "total": 10
+      },
+      {
+        "ammo": 28,
+        "battery": "depth-charge",
+        "ready": 8,
+        "reload": 0,
+        "total": 8
+      }
+    ],
+    "battery": "torpedo",
+    "battle": false,
+    "contacts": [
+      {
+        "controller": "player",
+        "heading": 0,
+        "id": "player",
+        "integrity": 1,
+        "name": "Fletcher",
+        "shipId": "fletcher",
+        "sunk": false,
+        "team": "friendly",
+        "x": 240,
+        "z": 0
+      },
+      {
+        "controller": "idle",
+        "heading": 0,
+        "id": "target",
+        "integrity": 1,
+        "name": "Fletcher",
+        "shipId": "fletcher",
+        "sunk": false,
+        "team": "enemy",
+        "x": 650,
+        "z": -550
+      }
+    ],
+    "message": "Bring a broadside toward the sight. Torpedoes keep their launch course; lead moving targets.",
+    "modules": [
+      {
+        "condition": 1,
+        "id": "forward-magazine",
+        "name": "Forward ammunition rooms"
+      },
+      {
+        "condition": 1,
+        "id": "boiler-forward",
+        "name": "Forward boiler room"
+      },
+      {
+        "condition": 1,
+        "id": "engine-forward",
+        "name": "Forward engine room"
+      },
+      {
+        "condition": 1,
+        "id": "boiler-aft",
+        "name": "After boiler room"
+      },
+      {
+        "condition": 1,
+        "id": "engine-aft",
+        "name": "After engine room"
+      },
+      {
+        "condition": 1,
+        "id": "aft-magazine",
+        "name": "After ammunition rooms"
+      },
+      {
+        "condition": 1,
+        "id": "steering-room",
+        "name": "Steering flat"
+      },
+      {
+        "condition": 1,
+        "id": "torpedo-magazine",
+        "name": "Torpedo ready service"
+      },
+      {
+        "condition": 1,
+        "id": "depth-charge-magazine",
+        "name": "Depth charge ready service"
+      }
+    ],
+    "mounts": [
+      {
+        "ammo": 1,
+        "id": "torpedo-forward-1",
+        "name": "Forward tube 1",
+        "reload": 0,
+        "status": "ready"
+      },
+      {
+        "ammo": 1,
+        "id": "torpedo-forward-2",
+        "name": "Forward tube 2",
+        "reload": 0,
+        "status": "ready"
+      },
+      {
+        "ammo": 1,
+        "id": "torpedo-forward-3",
+        "name": "Forward tube 3",
+        "reload": 0,
+        "status": "ready"
+      },
+      {
+        "ammo": 1,
+        "id": "torpedo-forward-4",
+        "name": "Forward tube 4",
+        "reload": 0,
+        "status": "ready"
+      },
+      {
+        "ammo": 1,
+        "id": "torpedo-forward-5",
+        "name": "Forward tube 5",
+        "reload": 0,
+        "status": "ready"
+      },
+      {
+        "ammo": 1,
+        "id": "torpedo-aft-1",
+        "name": "Aft tube 1",
+        "reload": 0,
+        "status": "ready"
+      },
+      {
+        "ammo": 1,
+        "id": "torpedo-aft-2",
+        "name": "Aft tube 2",
+        "reload": 0,
+        "status": "ready"
+      },
+      {
+        "ammo": 1,
+        "id": "torpedo-aft-3",
+        "name": "Aft tube 3",
+        "reload": 0,
+        "status": "ready"
+      },
+      {
+        "ammo": 1,
+        "id": "torpedo-aft-4",
+        "name": "Aft tube 4",
+        "reload": 0,
+        "status": "ready"
+      },
+      {
+        "ammo": 1,
+        "id": "torpedo-aft-5",
+        "name": "Aft tube 5",
+        "reload": 0,
+        "status": "ready"
+      }
+    ],
+    "playerDamageDealt": 0,
+    "playerFrags": 0,
+    "playerIntegrity": 1,
+    "playerMaxIntegrity": 600,
+    "playerSunk": false,
+    "playerWater": 0,
+    "range": 142.5125089638347,
+    "ready": 10,
+    "result": "active",
+    "targetId": "target",
+    "targetIntegrity": 1,
+    "targetName": "Fletcher",
+    "targetPosition": {
+      "heading": 0,
+      "x": 650,
+      "z": -550
+    },
+    "targetPower": 1,
+    "targetRange": 686.0029154456998,
+    "targetSteering": 1,
+    "targetSunk": false,
+    "targetUnderway": false,
+    "targetWater": 0,
+    "total": 10
+  },
+  "contentHash": "4d62de645ac3cfe900ed56f85aa4ffbcb5908728de932a8de00c58fd09e3c574",
+  "depthCharges": [],
+  "effects": {
+    "depthCharges": 0,
+    "flashes": 0,
+    "foam": 0,
+    "particleCapacity": 2272,
+    "shells": 0,
+    "smoke": 0,
+    "spray": 0,
+    "torpedoes": 0
+  },
+  "events": [],
+  "fleet": [
+    {
+      "ammo": 15000,
+      "controller": "player",
+      "definitionId": "fletcher",
+      "id": "player",
+      "integrity": 600,
+      "motion": {
+        "distance": 0,
+        "heading": 0,
+        "id": "player",
+        "pitch": 0,
+        "roll": 0,
+        "rudder": 0,
+        "speed": 0,
+        "swaySpeed": 0,
+        "tick": 0,
+        "x": 240,
+        "y": 0,
+        "yawRate": 0,
+        "z": 0
+      },
+      "team": "friendly"
+    },
+    {
+      "ammo": 15000,
+      "controller": "idle",
+      "definitionId": "fletcher",
+      "id": "target",
+      "integrity": 600,
+      "motion": {
+        "distance": 0,
+        "heading": 0,
+        "id": "target",
+        "pitch": 0,
+        "roll": 0,
+        "rudder": 0,
+        "speed": 0,
+        "swaySpeed": 0,
+        "tick": 0,
+        "x": 650,
+        "y": 0,
+        "yawRate": 0,
+        "z": -550
+      },
+      "team": "enemy"
+    }
+  ],
+  "fps": 62.340869763868945,
+  "inPort": true,
+  "inspecting": false,
+  "maxMuzzleErrorM": 0.0005965799180843202,
+  "maxTorpedoMuzzleErrorM": 5.081448948109132e-07,
+  "paused": false,
+  "portInspection": "internals",
+  "renderedShips": [
+    {
+      "id": "player",
+      "impactDrawCalls": 0,
+      "impactMarks": 0,
+      "visible": true
+    },
+    {
+      "id": "target",
+      "impactDrawCalls": 0,
+      "impactMarks": 0,
+      "visible": false
+    }
+  ],
+  "selectedVolume": "module:engine-forward",
+  "shipId": "fletcher",
+  "tick": 0,
+  "torpedoLaunchers": [
+    {
+      "id": "torpedo-forward",
+      "train": 0
+    },
+    {
+      "id": "torpedo-aft",
+      "train": 0
+    }
+  ],
+  "torpedoes": []
+}

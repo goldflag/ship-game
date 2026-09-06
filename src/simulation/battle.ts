@@ -19,6 +19,8 @@ export interface FleetActor extends Combatant {
   targetId?: string;
   torpedoTubes?: TubeState[];
   tubeLaunchCooldown?: number;
+  depthChargeLaunchers?: import('./depthCharges').DepthChargeLauncherState[];
+  depthChargeCooldown?: number;
   bot?: BotState;
 }
 

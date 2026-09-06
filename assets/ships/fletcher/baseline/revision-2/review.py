@@ -1,0 +1,67 @@
+"""Fletcher raster review pack. Reads our model metadata and preserved images only.
+Run after ship:review and scripts/reference/render_authored.py (REFERENCE_SHIP=fletcher).
+No reference geometry or source image enters ship authoring.
+"""
+from pathlib import Path
+from PIL import Image, ImageDraw, ImageFont
+import json, hashlib, html, shutil
+ROOT=Path(__file__).resolve().parents[3]
+source=Path(__file__).resolve().parent;out=source/'generated/comparison';refs=source/'references'
+def sha(path):return hashlib.sha256(path.read_bytes()).hexdigest()
+def font(size):
+    try:return ImageFont.truetype('/System/Library/Fonts/Supplemental/Arial.ttf',size)
+    except OSError:return ImageFont.load_default(size=size)
+def paper(path):
+    im=Image.open(path).convert('RGBA');bg=Image.new('RGBA',im.size,'#eae9e3');bg.alpha_composite(im);return bg.convert('RGB')
+def labelled(im,label):
+    canvas=Image.new('RGB',(im.width,im.height+58),'#eae9e3');canvas.paste(im,(0,58))
+    ImageDraw.Draw(canvas).text((22,16),label,font=font(22),fill='#273d4b');return canvas
+model=ROOT/'public/models/fletcher.glb';definition=json.loads((ROOT/'public/models/fletcher.json').read_text())
+auth=json.loads((out/'authored/manifest.json').read_text());ref=json.loads((refs/'gamemodels3d/manifest.json').read_text())
+if auth['contentHash']!=definition['contentHash'] or auth['modelSha256']!=sha(model):raise ValueError('Stale authored renders')
+if auth['capturePlanSha256']!=ref['capturePlanSha256']:raise ValueError('Reference and authored cameras differ')
+(out/'sheets').mkdir(parents=True,exist_ok=True)
+for a in auth['captures']:
+    name=a['id'];r=next(r for r in ref['captures'] if r['id']==name)
+    ap=out/'authored'/a['image'];rp=refs/'gamemodels3d'/r['image']
+    if sha(ap)!=a['imageSha256'] or sha(rp)!=r['imageSha256']:raise ValueError('Image changed after capture')
+    ours=labelled(paper(ap),'Original Fletcher revision 2 · '+definition['contentHash'][:12])
+    other=labelled(paper(rp),'GameModels3D Fletcher · later AA fit · comparison only')
+    sheet=Image.new('RGB',(ours.width+other.width,ours.height+50),'#eae9e3');sheet.paste(ours,(0,0));sheet.paste(other,(ours.width,0))
+    ImageDraw.Draw(sheet).text((22,ours.height+12),'Identical cameras; one global reference scale. No component fitting or historical accuracy certification.',font=font(19),fill='#273d4b')
+    sheet.save(out/'sheets'/(name+'.png'))
+# Before/after uses the unchanged shared review camera span; its vertical framing follows model height.
+before=labelled(paper(source/'baseline/initial-prototype/review/profile.png'),'Previous prototype · 44,182 triangles')
+after=labelled(paper(source/'generated/review/profile.png'),'Rebuilt Fletcher · original geometry, blueprint and materials')
+comparison=Image.new('RGB',(max(before.width,after.width),before.height+after.height),'#eae9e3');comparison.paste(before,(0,0));comparison.paste(after,(0,before.height));comparison.save(out/'before-after.png')
+plan=Image.open(refs/'historical/oni-222-us-1945-fletcher.png').convert('RGB')
+plan.crop((950,260,2180,835)).save(out/'oni-profile-plan.png')
+# A compact contact sheet keeps all independently matched angles inspectable.
+thumbs=[]
+for a in auth['captures']:
+    im=paper(out/'authored'/a['image']);im.thumbnail((480,250));thumbs.append((a['id'],im))
+contact=Image.new('RGB',(1500,320*((len(thumbs)+2)//3)),'#eae9e3');draw=ImageDraw.Draw(contact)
+for i,(name,im) in enumerate(thumbs):
+    x=i%3*500;y=i//3*320;draw.text((x+16,y+14),name.replace('-',' ').title(),font=font(22),fill='#273d4b');contact.paste(im,(x+(500-im.width)//2,y+55+(250-im.height)//2))
+contact.save(out/'contact-sheet.png')
+links=''.join(f'<figure><a href="sheets/{a["id"]}.png"><img loading="lazy" src="sheets/{a["id"]}.png" alt="Original and GameModels3D {a["id"]} comparison"></a><figcaption>{a["id"].replace("-"," ").title()}</figcaption></figure>' for a in auth['captures'])
+# This is a static model inspection artifact, not a new product screen.
+body='''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Fletcher · model reference review</title><style>body{margin:0;background:#132a36;color:#e9e7de;font:17px/1.6 system-ui,sans-serif}main{max-width:1500px;margin:auto;padding:32px}a{color:#e6c288}p{max-width:90ch}figure{margin:28px 0}img{display:block;width:100%;height:auto;background:#eae9e3}figcaption{padding:8px 0;color:#b5c5cc}.sources{max-width:100ch}code{overflow-wrap:anywhere}nav{display:flex;flex-wrap:wrap;gap:24px}h1{font-size:36px}h2{margin-top:40px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}@media(max-width:750px){.grid{grid-template-columns:1fr}main{padding:18px}}</style><main><nav><a href="/?ship=fletcher">Fletcher in game</a><a href="#comparison">Matched views</a><a href="#sources">Sources</a><a href="review-manifest.json">Capture provenance</a></nav><h1>Fletcher · reference-led rebuild</h1><p>The initial primitive prototype has been rebuilt around the round bridge, raised torpedo mounts, raked funnels and five-gun arrangement. Original hull stations, components and camouflage remain reproducible from the blueprint and recipe.</p><figure><img src="before-after.png" alt="Before and after Fletcher model profiles"><figcaption>Shared orthographic profile camera span; vertical framing follows each model’s height. Colour here is Workbench material colour, not the in-game camouflage.</figcaption></figure><h2 id="comparison">Matching comparison views</h2><p>Our actual exported GLB and GameModels3D use identical orthographic cameras. The game reference has one whole-model scale of 15 metres per viewer unit; its waterline and refit are unverified. The July 1942-inspired fit retains the high after AA tub and six 20 mm guns rather than adopting the later game model’s AA platforms.</p>'''+links+'''<h2 id="sources">Plans and dated photographs</h2><figure><img src="oni-profile-plan.png" alt="US Navy ONI 222-US Fletcher profile and deck plan"><figcaption>ONI 222-US, 1 September 1945, printed page 89. Preserved crop of the actual Navy recognition drawing. The later AA fit and schematic hull are not a July 1942 construction or lines plan.</figcaption></figure><div class="grid"><figure><a href="historical/19-n-31243.jpg"><img src="historical/19-n-31243.jpg" alt="USS Fletcher off New York, 18 July 1942, Bureau of Ships photograph"><figcaption>NARA 19-N-31243 · actual 1942 round bridge, director, high aft gun tub, boats, camouflage and depth-charge deck. Perspective reference, not a dimensional tracing.</figcaption></a></figure><figure><img src="historical/19-n-31245.jpg" alt="USS Fletcher underway on 18 July 1942"><figcaption>NARA 19-N-31245 · July 1942 silhouette.</figcaption></figure></div><p>Funnel cap rake, hull numbers and fine fittings were revised after the first matching-view review. Exact hull offsets, load datum, individual outfit dates and port/starboard camouflage remain open. Small fittings and paint are original interpretations. Export checks verify the model/blueprint contract; they do not certify historical accuracy.</p><ul class="sources"><li><a href="https://gamemodels3d.com/en/games/worldofwarships/vehicles/pasd021">GameModels3D Fletcher</a> · comparison rasters only; no imported topology, attachment transforms, UVs or textures in our production model.</li><li><a href="historical/oni-222-us-fletcher-extract.pdf">Preserved ONI 222-US source extract</a> · US Navy government publication, mirrored by HyperWar/ibiblio.</li><li><a href="https://www.history.navy.mil/content/history/nhhc/our-collections/photography/numerical-list-of-images/nara-series/19-n/19-N-30000/19-n-31243-uss-fletcher--dd-445-.html">NHHC 19-N-31243</a> · US Navy/Bureau of Ships, NARA.</li><li><a href="sources.json">Full source register</a> · includes unavailable Sigsbee/Bath Iron Works full plates, which were not used as measured evidence.</li></ul><p>Build: <code>'''+definition['contentHash']+'''</code>. Local Blender pipeline; no Blender MCP tools were available.</p></main></html>'''
+runtime=source/'reports/runtime-review'
+if (runtime/'summary.json').exists():
+    checked=json.loads((runtime/'summary.json').read_text())
+    if checked['contentHash']!=definition['contentHash']:raise ValueError('Stale runtime review')
+    (out/'runtime').mkdir(exist_ok=True)
+    pictures=['exterior-quarter','bridge-closeup','afterdeck-closeup','articulation-close-starboard-high','articulation-close-port-low','depth-charge-blast']
+    for name in pictures:shutil.copy2(runtime/(name+'.png'),out/'runtime'/(name+'.png'))
+    shutil.copy2(runtime/'summary.json',out/'runtime/summary.json')
+    runtime_html='<h2>In-game model and articulation</h2><p>Actual exported model in the production WebGPU scene, inspected with a diagnostic camera. All 18 joint poses passed; ten torpedoes launched and hit, and eight depth charges completed their launch-to-blast cycle. <a href="runtime/summary.json">Runtime validation</a>.</p>'
+    runtime_html+=''.join('<figure><a href="runtime/'+name+'.png"><img loading="lazy" src="runtime/'+name+'.png" alt="Fletcher '+name.replace('-',' ')+'"></a><figcaption>'+name.replace('-',' ').capitalize()+'</figcaption></figure>' for name in pictures)
+    body=body.replace('<h2 id="comparison">',runtime_html+'<h2 id="comparison">')
+(out/'index.html').write_text(body)
+shutil.copytree(refs/'historical',out/'historical',dirs_exist_ok=True);shutil.copy2(refs/'19-n-31245.jpg',out/'historical/19-n-31245.jpg');shutil.copy2(refs/'sources.json',out/'sources.json')
+manifest={'schemaVersion':1,'contentHash':definition['contentHash'],'modelSha256':sha(model),'recipeSha256':sha(source/'build.py'),'reviewRecipeSha256':sha(Path(__file__)),'blueprintSha256':sha(source/'blueprint.json'),'sourceRegisterSha256':sha(refs/'sources.json'),'capturePlanSha256':auth['capturePlanSha256'],'authored':auth,'reference':ref,'historicalAccuracy':'Not certified; recognition plan and dated photographs interpreted, hull lines reconstructed.','outputs':{str(p.relative_to(out)):sha(p) for p in sorted(out.rglob('*')) if p.is_file() and p.name!='review-manifest.json'}}
+(out/'review-manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
+publish=ROOT/'public/ship-reference/fletcher';publish.mkdir(parents=True,exist_ok=True)
+shutil.copytree(out,publish,dirs_exist_ok=True)
+print('Fletcher review: '+str(publish/'index.html'))

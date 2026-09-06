@@ -145,11 +145,29 @@ function inspectGlb(bytes: Buffer, def: ShipDefinition) {
     const direction = new Vector3(0, 0, -1).transformDirection(frame);
     const bearing = tube.bearingDeg * Math.PI / 180;
     near(direction.distanceTo(new Vector3(Math.sin(bearing), 0, -Math.cos(bearing))), 0, `${tube.id} direction`, .001);
+    if (tube.launcherId) {
+      const launcher = def.torpedoLaunchers!.find(l => l.id === tube.launcherId)!;
+      const yaw = getIndex(`${launcher.id}.yaw`), socket = getIndex(`${tube.id}.muzzle`);
+      if (!gltf.nodes[yaw].children?.includes(socket)) throw new Error(`${tube.id}: broken launcher joint chain`);
+      const pivot = new Vector3().setFromMatrixPosition(worlds.get(yaw)!);
+      near(pivot.distanceTo(new Vector3(...launcher.position)), 0, `${launcher.id} pivot`);
+      for (const angle of [-140, -90, 90, 140]) {
+        const rotation = new Matrix4().makeRotationY(-angle * Math.PI / 180);
+        const updated = frames(new Map([[yaw, rotation]]));
+        const expected = new Vector3(...tube.position).sub(pivot).applyMatrix4(rotation).add(pivot);
+        near(new Vector3().setFromMatrixPosition(updated.get(socket)!).distanceTo(expected), 0, `${tube.id} trained muzzle ${angle}`);
+      }
+    }
     return { id: tube.id, measuredMuzzle: position.toArray(), direction: direction.toArray() };
+  });
+  const depthChargeLaunchers = (def.depthChargeLaunchers ?? []).map(l => {
+    const actual = new Vector3().setFromMatrixPosition(worlds.get(getIndex(`${l.id}.release`))!);
+    near(actual.distanceTo(new Vector3(...l.position)), 0, `${l.id} release socket`);
+    return { id: l.id, measuredRelease: actual.toArray() };
   });
   const triangles = gltf.meshes.reduce((total, m) => total + m.primitives.reduce((n, p) => n + gltf.accessors[p.indices ?? p.attributes.POSITION].count / 3, 0), 0);
   if (triangles > 500000 || bytes.length > 30 * 1024 * 1024) throw new Error('Ship exceeds initial 500k triangle / 30 MiB export guardrails');
-  return { contentHash, hullBounds: bounds.map(b => b.toArray()), mounts, torpedoTubes, meshes: gltf.meshes.length, primitives: gltf.meshes.reduce((n, m) => n + m.primitives.length, 0), triangles, bytes: bytes.length, result: 'passed', historicalAccuracy: 'not certified; see reference register and discrepancy report' };
+  return { contentHash, hullBounds: bounds.map(b => b.toArray()), mounts, torpedoTubes, depthChargeLaunchers, meshes: gltf.meshes.length, primitives: gltf.meshes.reduce((n, m) => n + m.primitives.length, 0), triangles, bytes: bytes.length, result: 'passed', historicalAccuracy: 'not certified; see reference register and discrepancy report' };
 }
 
 async function runEvidence(action: 'compare' | 'check') {

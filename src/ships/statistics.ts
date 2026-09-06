@@ -1,4 +1,5 @@
 import type { GunPart, ShipDefinition } from './blueprint';
+import { torpedoArcLabel } from './armament';
 import { maxHullIntegrity } from '../simulation/damage';
 import { KNOTS_PER_MPS } from '../simulation/ship';
 import { GRAVITY } from '../simulation/weapons';
@@ -145,7 +146,7 @@ export function shipStatistics(def: ShipDefinition): StatSection[] {
     const weapon = group[0].weapon;
     return {
       id: `torpedoes-${weapon.id}`, title: 'Torpedoes', headline: format(group.length), headlineUnit: 'tubes',
-      headlineHelp: `${weapon.name}. Fixed tubes launch on a straight course within their allowed bearing arcs.`, collapsed: true,
+      headlineHelp: `${weapon.name}. Torpedoes keep a straight course after launch within their allowed bearing arcs.`, collapsed: true,
       rows: [
         { label: 'Weapon', value: weapon.name, help: 'Torpedo component fitted to these tubes.', text: true },
         { label: 'Diameter', value: format(weapon.diameterM * 1000), unit: 'mm', help: 'Diameter of the torpedo body.' },
@@ -154,13 +155,28 @@ export function shipStatistics(def: ShipDefinition): StatSection[] {
         { label: 'Maximum range', value: format(weapon.rangeM / 1000, 1), unit: 'km', help: 'Maximum distance before the torpedo expires.' },
         { label: 'Running depth', value: format(weapon.runningDepthM, 1), unit: 'm', help: 'Depth below the CPU sea datum, reached gradually after launch.' },
         { label: 'Arming distance', value: format(weapon.armingDistanceM), unit: 'm', help: 'Earlier contact is a harmless dud. Provisional game tuning.' },
-        { label: 'Reload', value: format(weapon.reloadSeconds), unit: 's', help: 'Physical reload time for each tube. Provisional game tuning.' },
+        { label: 'Reload', value: group.every(t => t.ammo <= 1) ? 'No reloads carried' : format(weapon.reloadSeconds), unit: group.every(t => t.ammo <= 1) ? undefined : 's', help: 'Per-tube reloads only apply when spare torpedoes are carried. Provisional game tuning.' },
         { label: 'Module damage', value: format(weapon.damage * .5), unit: 'max', help: 'Maximum damage to one nearby module from an armed hit. Distance reduces damage, and remaining module condition caps it. The local flooding breach is resolved separately.' },
         { label: 'Flood opening', value: format(weapon.breachAreaM2, 1), unit: 'm²', help: 'Local opening from an armed hit, capped at 4 m² per compartment across repeated strikes.' },
-        { label: 'Tube bearings', value: [...new Set(group.map(t => `${t.bearingDeg}°`))].join(' / '), help: 'Fixed bearings relative to the bow; 180° points astern.' },
-        { label: 'Launch arcs', value: [...new Set(group.map(t => `±${t.arcDeg}°`))].join(' / '), help: 'Allowed course offset either side of each fixed tube bearing.' },
+        { label: 'Tube bearings', value: def.torpedoLaunchers?.length ? `${def.torpedoLaunchers.length} trainable mounts` : [...new Set(group.map(t => `${t.bearingDeg}°`))].join(' / '), help: 'Bearings relative to the bow; trainable assemblies follow your aim.' },
+        { label: 'Launch arcs', value: torpedoArcLabel(def), help: 'Permitted ship-relative launch bearings. Turning launchers must align first.' },
       ],
     };
+  });
+  const charges = def.depthChargeLaunchers ?? [];
+  const depthChargeBatteries: StatSection[] = [...new Set(charges.map(l => l.partId))].map(partId => {
+    const group = charges.filter(l => l.partId === partId), weapon = group[0].weapon;
+    return { id: `depth-charges-${partId}`, title: 'Depth charges', headline: format(group.reduce((n, l) => n + l.ammo, 0)), headlineUnit: 'charges', headlineHelp: 'Initial ammunition across the stern racks and side throwers.', collapsed: true,
+      rows: [
+        { label: 'Weapon', value: weapon.name, text: true, help: 'Depth charge component fitted to these stations.' },
+        { label: 'Release stations', value: format(group.length), help: 'Each ready rack or thrower releases one charge per firing request.' },
+        { label: 'Detonation depth', value: format(weapon.detonationDepthM), unit: 'm', help: 'Shallow gameplay setting below the CPU sea datum. Submarines currently operate on the surface.' },
+        { label: 'Sink speed', value: format(weapon.sinkSpeed, 1), unit: 'm/s', help: 'Constant sinking speed after entering the water.' },
+        { label: 'Blast radius', value: format(weapon.blastRadiusM), unit: 'm', help: 'Damage falls with distance to the submerged hull. Allies and the launching ship can be hit. Provisional tuning.' },
+        { label: 'Module damage', value: format(weapon.damage * .5), unit: 'max', help: 'Maximum damage to one nearby module. Hull distance reduces blast strength quadratically; module distance and remaining condition further limit damage.' },
+        { label: 'Flood opening', value: format(weapon.breachAreaM2, 1), unit: 'm² max', help: 'Opening at zero hull distance; blast falloff reduces it. Repeated blasts share the 4 m² compartment cap.' },
+        { label: 'Reload', value: format(weapon.reloadSeconds), unit: 's', help: 'Gameplay time to prepare another charge at a station with ammunition remaining.' },
+      ] };
   });
   const turningDiameterM = 2 * handling.forwardSpeed / handling.maxYawRate;
   const mobility: StatSection = {
@@ -202,5 +218,5 @@ export function shipStatistics(def: ShipDefinition): StatSection[] {
       { label: 'Maximum dive / rise', value: `${format(s.maxDiveSpeed, 1)} / ${format(s.maxRiseSpeed, 1)}`, unit: 'm/s', help: 'Vertical speed limits. Filling tanks takes time; planes help when underway.' },
     ],
   }] : [];
-  return [survivability, armor, ...(mainBattery ? [mainBattery] : []), ...(secondaryBattery ? [secondaryBattery] : []), ...torpedoBatteries, mobility, ...diving, dimensions, modelBasis];
+  return [survivability, armor, ...(mainBattery ? [mainBattery] : []), ...(secondaryBattery ? [secondaryBattery] : []), ...torpedoBatteries, ...depthChargeBatteries, mobility, ...diving, dimensions, modelBasis];
 }
