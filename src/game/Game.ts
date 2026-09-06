@@ -12,6 +12,7 @@ import { ShipLabels } from './ShipLabels';
 import { HullDamageFeedback } from './HullDamageFeedback';
 import { FIXED_DT } from '../simulation/ship';
 import { GunAimIndicators } from './GunAimIndicators';
+import { HitDirectionIndicators } from './HitDirectionIndicators';
 import { gunAimPoints } from './gunAim';
 import { disposeObjects } from './disposeObjects';
 import { CombatEffects } from './CombatEffects';
@@ -53,6 +54,7 @@ export class Game {
   private shipLabels: ShipLabels;
   private playerDamageFeedback = new HullDamageFeedback();
   private gunAim: GunAimIndicators;
+  private hitDirections: HitDirectionIndicators;
   private loadedModel?: THREE.Group;
   private effects = new CombatEffects();
   battery: Battery = 'main';
@@ -101,6 +103,7 @@ export class Game {
     this.host.appendChild(this.renderer.domElement);
     this.shipLabels = new ShipLabels(this.host);
     this.gunAim = new GunAimIndicators(this.host);
+    this.hitDirections = new HitDirectionIndicators(this.host.parentElement ?? this.host);
     this.rig = new CameraRig(this.camera, this.renderer.domElement, this.definition.viewpoints?.bridge, {
       pause: () => this.setPaused(true), aim: () => { this.manualAim = true; }, optics: () => this.toggleBinoculars(),
     });
@@ -372,6 +375,7 @@ export class Game {
       this.rig.update(focus, focus.y, realDt);
       const showGunAim = !this.inPort && !this.inspecting && !this.shellFollow.view && !this.simulation.player.damage.sunk;
       this.gunAim.update(showGunAim ? gunAimPoints(this.simulation.player, this.definition, this.battery, aim) : [], this.camera, showGunAim);
+      this.hitDirections.update(this.simulation, this.camera, !this.inPort);
       this.armorHover?.update(this.inPort && !this.paused && !this.switchingShip ? this.playerView?.inspection : undefined);
       this.effects.update(this.simulation, dt, this.camera, this.rig.binoculars && !this.shellFollow.view);
       this.audio?.update(this.simulation, this.input.order, this.battery,
@@ -633,6 +637,7 @@ export class Game {
     this.armorHover.dispose();
     this.shipLabels.dispose();
     this.gunAim.dispose();
+    this.hitDirections.dispose();
     await this.initialization;
     await this.frameTask;
     this.pipeline?.dispose();
