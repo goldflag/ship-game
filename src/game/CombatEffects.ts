@@ -1,3 +1,4 @@
+import { localToWorld } from '../simulation/geometry';
 import * as THREE from 'three/webgpu';
 import { uniform, viewportDepthTexture } from 'three/tsl';
 import type { CombatEvent, CombatSimulation } from '../simulation/combat';
@@ -43,6 +44,7 @@ export class CombatEffects {
   private readonly turn = new THREE.Quaternion();
   private readonly inverse = new THREE.Quaternion();
   private sequence = 0;
+  private fireTick = -1;
   private lightCursor = 0;
   private shellCount = 0;
 
@@ -77,6 +79,22 @@ export class CombatEffects {
       this.emit(event); emitted = true;
     }
     if (emitted) this.pools.forEach(pool => pool.update(0, camera, this.wind));
+    if (dt > 0 && sim.tick >= this.fireTick + 15) {
+      this.fireTick = sim.tick;
+      let count = 0;
+      for (const actor of sim.actors) for (let i = 0; i < actor.mounts.length && count < 32; i++) {
+        const intensity = actor.damage.control.mounts[i].intensity;
+        if (intensity <= 0 || actor.damage.sunk) continue;
+        count++;
+        const m = actor.definition.mounts[i];
+        this.position.fromArray(localToWorld([m.position[0], m.position[1] + m.weapon.gunhouseSize[2], m.position[2]], actor.motion));
+        const flame = this.fire.emit(this.position); flame.size = 2 * intensity; flame.growth = 2; flame.life = .6;
+        flame.velocity.set(0, 2, 0); flame.opacity = .6; flame.color.copy(WARM);
+        const smoke = this.smoke.emit(this.position); smoke.size = 3; smoke.growth = 2; smoke.life = 5;
+        smoke.velocity.set(0, 3, 0); smoke.opacity = .35 * intensity; smoke.color.copy(SMOKE).multiplyScalar(.4);
+      }
+      this.pools.forEach(pool => pool.update(0, camera, this.wind));
+    }
     this.updateShells(sim, camera);
   }
 
@@ -277,7 +295,7 @@ export class CombatEffects {
   }
 
   reset(): void {
-    this.pools.forEach(pool => pool.reset()); this.shellCount = 0;
+    this.pools.forEach(pool => pool.reset()); this.shellCount = 0; this.fireTick = -1;
     for (const mesh of [this.projectiles, this.streaks]) { mesh.instanceMatrix.array.fill(0); mesh.instanceMatrix.needsUpdate = true; }
     this.lights.forEach(item => { item.age = 1; item.light.intensity = 0; }); this.sequence = 0;
   }
