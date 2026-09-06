@@ -11,6 +11,7 @@ const MAGNIFICATIONS = [2, 4, 6, 8, 12];
 const MIN_ORBIT_ELEVATION = .08;
 const MAX_UPWARD_TILT = Math.PI / 6;
 const CAMERA_CLEARANCE = 12;
+const PORT_ELEVATION = .2;
 
 export class CameraRig {
   mode: CameraMode = 'Chase';
@@ -170,7 +171,7 @@ export class CameraRig {
   }
   recenter(): void {
     this.azimuth = this.inPort || this.inspecting ? 1.08 : this.lastShip?.heading ?? 0;
-    this.elevation = this.inPort || this.inspecting ? .23 : this.mode === 'Tactical' ? .85 : this.mode === 'Bridge' ? .025 : .1;
+    this.elevation = this.inPort || this.inspecting ? PORT_ELEVATION : this.mode === 'Tactical' ? .85 : this.mode === 'Bridge' ? .025 : .1;
   }
   setInPort(inPort: boolean): void {
     this.setShellView();
@@ -181,7 +182,7 @@ export class CameraRig {
     this.binoculars = false;
     this.updateProjection();
     this.azimuth = inPort ? 1.08 : .82;
-    this.elevation = inPort ? .23 : .1;
+    this.elevation = inPort ? PORT_ELEVATION : .1;
     this.distance = inPort ? 325 : 345;
     this.releasePointer();
   }
