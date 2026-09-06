@@ -1,0 +1,393 @@
+{
+  "schemaVersion": 1,
+  "aircraftId": "d3a1-val",
+  "method": "Independent GLB binary vertices/indices plus composed scene transforms projected onto the retained original drawing. No fitting to the model, Blender scene, or review render camera.",
+  "status": "ready for visual review",
+  "historicalAccuracy": "Not certified. Export residuals verify interpretation of sampled drawing landmarks; drawings, hidden sections, and variant differences retain their source limitations.",
+  "sourceUrl": "https://www.combinedfleet.com/ijna/d3a.htm",
+  "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+  "expectedContentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+  "glbSha256": "6d47be1cd65e8fffb4a6afe0d460e373356155c676e69145c667350e6b7e9c25",
+  "shapeSha256": "c30725989407fd5d4cfdf1c11d835c451b5b5327a16597879c23cab84823ffb4",
+  "comparatorSha256": "135f7901baf3b1115777a354e91b6b5c178e3249938b6d2623eb9ceee950c3df",
+  "axes": "meters, source +X nose +Y port +Z up; source=(-runtimeZ,-runtimeX,runtimeY)",
+  "boundsM": [
+    [
+      -5.100201,
+      -7.185,
+      -2.070104
+    ],
+    [
+      4.975578,
+      7.185,
+      1.903169
+    ]
+  ],
+  "measured": {
+    "lengthM": 10.075778,
+    "wingspanM": 14.37,
+    "heightM": 3.973273,
+    "triangles": 32094,
+    "meshes": 11,
+    "wingStationMaxAbsErrorM": 0.018008
+  },
+  "drawingExpected": {
+    "lengthM": 10.2,
+    "wingspanM": 14.37
+  },
+  "wingStations": [
+    {
+      "halfSpanFraction": 0.55,
+      "side": "port",
+      "expectedSourceXM": {
+        "leading": 2.936929,
+        "trailing": 0.346961
+      },
+      "actualSourceXM": {
+        "leading": 2.942421,
+        "trailing": 0.328954
+      },
+      "errorM": {
+        "leading": 0.005493,
+        "trailing": -0.018007
+      }
+    },
+    {
+      "halfSpanFraction": 0.55,
+      "side": "starboard",
+      "expectedSourceXM": {
+        "leading": 2.936929,
+        "trailing": 0.346961
+      },
+      "actualSourceXM": {
+        "leading": 2.942421,
+        "trailing": 0.328954
+      },
+      "errorM": {
+        "leading": 0.005492,
+        "trailing": -0.018008
+      }
+    },
+    {
+      "halfSpanFraction": 0.7,
+      "side": "port",
+      "expectedSourceXM": {
+        "leading": 2.675207,
+        "trailing": 0.630254
+      },
+      "actualSourceXM": {
+        "leading": 2.674616,
+        "trailing": 0.620179
+      },
+      "errorM": {
+        "leading": -0.00059,
+        "trailing": -0.010075
+      }
+    },
+    {
+      "halfSpanFraction": 0.7,
+      "side": "starboard",
+      "expectedSourceXM": {
+        "leading": 2.675207,
+        "trailing": 0.630254
+      },
+      "actualSourceXM": {
+        "leading": 2.674615,
+        "trailing": 0.620179
+      },
+      "errorM": {
+        "leading": -0.000591,
+        "trailing": -0.010075
+      }
+    },
+    {
+      "halfSpanFraction": 0.85,
+      "side": "port",
+      "expectedSourceXM": {
+        "leading": 2.424267,
+        "trailing": 1.070715
+      },
+      "actualSourceXM": {
+        "leading": 2.424247,
+        "trailing": 1.068983
+      },
+      "errorM": {
+        "leading": -2.1e-05,
+        "trailing": -0.001732
+      }
+    },
+    {
+      "halfSpanFraction": 0.85,
+      "side": "starboard",
+      "expectedSourceXM": {
+        "leading": 2.424267,
+        "trailing": 1.070715
+      },
+      "actualSourceXM": {
+        "leading": 2.424246,
+        "trailing": 1.068982
+      },
+      "errorM": {
+        "leading": -2.2e-05,
+        "trailing": -0.001733
+      }
+    },
+    {
+      "halfSpanFraction": 0.95,
+      "side": "port",
+      "expectedSourceXM": {
+        "leading": 2.223202,
+        "trailing": 1.497179
+      },
+      "actualSourceXM": {
+        "leading": 2.224545,
+        "trailing": 1.493327
+      },
+      "errorM": {
+        "leading": 0.001342,
+        "trailing": -0.003852
+      }
+    },
+    {
+      "halfSpanFraction": 0.95,
+      "side": "starboard",
+      "expectedSourceXM": {
+        "leading": 2.223202,
+        "trailing": 1.497179
+      },
+      "actualSourceXM": {
+        "leading": 2.224544,
+        "trailing": 1.493326
+      },
+      "errorM": {
+        "leading": 0.001341,
+        "trailing": -0.003853
+      }
+    }
+  ],
+  "wingSectionHeights": [
+    {
+      "halfSpanFraction": 0.18,
+      "side": "port",
+      "chordFraction": 0.3,
+      "sourceXM": 2.298692,
+      "drawingWingDatumZM": -0.504542,
+      "actualBottomTopZM": [
+        -0.634205,
+        -0.287103
+      ],
+      "actualMidSurfaceZM": -0.460654,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.18,
+      "side": "starboard",
+      "chordFraction": 0.3,
+      "sourceXM": 2.298692,
+      "drawingWingDatumZM": -0.504542,
+      "actualBottomTopZM": [
+        -0.634205,
+        -0.287103
+      ],
+      "actualMidSurfaceZM": -0.460654,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.36,
+      "side": "port",
+      "chordFraction": 0.3,
+      "sourceXM": 2.275425,
+      "drawingWingDatumZM": -0.430876,
+      "actualBottomTopZM": [
+        -0.555814,
+        -0.221002
+      ],
+      "actualMidSurfaceZM": -0.388408,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.36,
+      "side": "starboard",
+      "chordFraction": 0.3,
+      "sourceXM": 2.275425,
+      "drawingWingDatumZM": -0.430876,
+      "actualBottomTopZM": [
+        -0.555814,
+        -0.221002
+      ],
+      "actualMidSurfaceZM": -0.388408,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.55,
+      "side": "port",
+      "chordFraction": 0.3,
+      "sourceXM": 2.159938,
+      "drawingWingDatumZM": -0.273415,
+      "actualBottomTopZM": [
+        -0.385063,
+        -0.086319
+      ],
+      "actualMidSurfaceZM": -0.235691,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.55,
+      "side": "starboard",
+      "chordFraction": 0.3,
+      "sourceXM": 2.159938,
+      "drawingWingDatumZM": -0.273415,
+      "actualBottomTopZM": [
+        -0.385063,
+        -0.086319
+      ],
+      "actualMidSurfaceZM": -0.235691,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.75,
+      "side": "port",
+      "chordFraction": 0.3,
+      "sourceXM": 2.031542,
+      "drawingWingDatumZM": -0.095373,
+      "actualBottomTopZM": [
+        -0.173897,
+        0.036194
+      ],
+      "actualMidSurfaceZM": -0.068852,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.75,
+      "side": "starboard",
+      "chordFraction": 0.3,
+      "sourceXM": 2.031542,
+      "drawingWingDatumZM": -0.095373,
+      "actualBottomTopZM": [
+        -0.173897,
+        0.036194
+      ],
+      "actualMidSurfaceZM": -0.068852,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.95,
+      "side": "port",
+      "chordFraction": 0.3,
+      "sourceXM": 2.005395,
+      "drawingWingDatumZM": 0.101728,
+      "actualBottomTopZM": [
+        0.070624,
+        0.15394
+      ],
+      "actualMidSurfaceZM": 0.112282,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.95,
+      "side": "starboard",
+      "chordFraction": 0.3,
+      "sourceXM": 2.005395,
+      "drawingWingDatumZM": 0.101728,
+      "actualBottomTopZM": [
+        0.070624,
+        0.153939
+      ],
+      "actualMidSurfaceZM": 0.112282,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    }
+  ],
+  "views": {
+    "side": {
+      "referenceCropPx": [
+        306,
+        49,
+        729,
+        227
+      ],
+      "overlayDisplayScale": 2,
+      "overlayHeaderHeightPx": 52,
+      "projectionMatrixSourceToPixel": [
+        [
+          -40.196078,
+          0.0,
+          0.0,
+          514.0
+        ],
+        [
+          0.0,
+          0.0,
+          -40.196078,
+          134.0
+        ]
+      ],
+      "triangleCount": 32094,
+      "projectedBoundsPx": [
+        [
+          314.0,
+          57.0
+        ],
+        [
+          720.0,
+          218.0
+        ]
+      ],
+      "files": {
+        "overlay": "assets/aircraft/d3a1-val/generated/comparison/side-overlay.png",
+        "reference": "assets/aircraft/d3a1-val/generated/comparison/side-reference.png",
+        "silhouette": "assets/aircraft/d3a1-val/generated/comparison/side-silhouette.png"
+      },
+      "sourceImage": "assets/aircraft/references/schematics/d3a1-val/three-view.png",
+      "sourceImageSha256": "91b52859aef4b9e0e76074aa13092720ef32a51f1ff2c3151ddcf3774d0c24b6",
+      "sourceImageTransform": "identity"
+    },
+    "top": {
+      "referenceCropPx": [
+        53,
+        32,
+        476,
+        609
+      ],
+      "overlayDisplayScale": 2,
+      "overlayHeaderHeightPx": 52,
+      "projectionMatrixSourceToPixel": [
+        [
+          -40.196078,
+          0.0,
+          0.0,
+          261.0
+        ],
+        [
+          0.0,
+          38.900487,
+          0.0,
+          320.0
+        ]
+      ],
+      "triangleCount": 32094,
+      "projectedBoundsPx": [
+        [
+          61.0,
+          40.0
+        ],
+        [
+          467.0,
+          600.0
+        ]
+      ],
+      "files": {
+        "overlay": "assets/aircraft/d3a1-val/generated/comparison/top-overlay.png",
+        "reference": "assets/aircraft/d3a1-val/generated/comparison/top-reference.png",
+        "silhouette": "assets/aircraft/d3a1-val/generated/comparison/top-silhouette.png"
+      },
+      "sourceImage": "assets/aircraft/references/schematics/d3a1-val/three-view.png",
+      "sourceImageSha256": "91b52859aef4b9e0e76074aa13092720ef32a51f1ff2c3151ddcf3774d0c24b6",
+      "sourceImageTransform": "identity"
+    }
+  },
+  "limitations": [
+    "Manually digitised top/side silhouettes, independently registered to catalog length and wingspan.",
+    "Published reference drawing, not manufacturing geometry. Pixel rounding, scan distortion, hidden cross sections, canopy width and small details remain approximations.",
+    "Canopy lateral widths and hidden body contours are reconstructed inside the measured exterior envelope. Wing dihedral is digitised approximately from the front view, not an airfoil or load-bearing engineering specification."
+  ]
+}

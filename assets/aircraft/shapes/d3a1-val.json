@@ -1,0 +1,630 @@
+{
+  "schemaVersion": 1,
+  "id": "d3a1-val",
+  "reference": {
+    "sourceUrl": "https://www.combinedfleet.com/ijna/d3a.htm",
+    "imagePath": "assets/aircraft/references/schematics/d3a1-val/three-view.png",
+    "sourceTitle": "Aichi D3A1 three-view drawing, CombinedFleet IJNAF reference archive",
+    "variant": "D3A1 Model 11",
+    "notes": [
+      "Manually digitised top/side silhouettes, independently registered to catalog length and wingspan.",
+      "Published reference drawing, not manufacturing geometry. Pixel rounding, scan distortion, hidden cross sections, canopy width and small details remain approximations.",
+      "Canopy lateral widths and hidden body contours are reconstructed inside the measured exterior envelope. Wing dihedral is digitised approximately from the front view, not an airfoil or load-bearing engineering specification."
+    ],
+    "registration": {
+      "top": {
+        "noseX": 56,
+        "tailX": 466,
+        "centerY": 320,
+        "portTipY": 40,
+        "starboardTipY": 599,
+        "imagePath": "assets/aircraft/references/schematics/d3a1-val/three-view.png"
+      },
+      "side": {
+        "noseX": 309,
+        "tailX": 719,
+        "engineShaftY": 134,
+        "imagePath": "assets/aircraft/references/schematics/d3a1-val/three-view.png"
+      },
+      "front": {
+        "leftTipX": 197,
+        "rightTipX": 762,
+        "centerX": 479,
+        "engineShaftY": 491,
+        "imagePath": "assets/aircraft/references/schematics/d3a1-val/three-view.png",
+        "metersPerPixel": 0.02543,
+        "wingTipsCropped": false
+      }
+    }
+  },
+  "fuselage": [
+    [
+      0.05122,
+      0.53984,
+      -0.47268,
+      0.4478
+    ],
+    [
+      0.07805,
+      0.64267,
+      -0.64683,
+      0.59707
+    ],
+    [
+      0.11707,
+      0.64267,
+      -0.67171,
+      0.59707
+    ],
+    [
+      0.1439,
+      0.62247,
+      -0.64683,
+      0.5722
+    ],
+    [
+      0.2,
+      0.60527,
+      -0.59707,
+      0.72146
+    ],
+    [
+      0.2561,
+      0.58611,
+      -0.59707,
+      0.69659
+    ],
+    [
+      0.31951,
+      0.55967,
+      -0.59707,
+      0.59707
+    ],
+    [
+      0.39512,
+      0.53506,
+      -0.54732,
+      0.59707
+    ],
+    [
+      0.46829,
+      0.50534,
+      -0.54732,
+      0.59707
+    ],
+    [
+      0.51463,
+      0.45392,
+      -0.54732,
+      0.64683
+    ],
+    [
+      0.59512,
+      0.37066,
+      -0.47268,
+      0.62195
+    ],
+    [
+      0.68537,
+      0.29991,
+      -0.39805,
+      0.5722
+    ],
+    [
+      0.78293,
+      0.21288,
+      -0.34829,
+      0.47268
+    ],
+    [
+      0.86341,
+      0.11568,
+      -0.2239,
+      0.29854
+    ],
+    [
+      0.94878,
+      0.04427,
+      -0.12439,
+      0.12439
+    ],
+    [
+      1.0,
+      0.0,
+      -0.02488,
+      -0.02488
+    ]
+  ],
+  "wing": [
+    [
+      0.0,
+      0.17561,
+      0.53902,
+      -0.50867
+    ],
+    [
+      0.10714,
+      0.18537,
+      0.48293,
+      -0.50867
+    ],
+    [
+      0.24286,
+      0.18537,
+      0.48293,
+      -0.50098
+    ],
+    [
+      0.39286,
+      0.19268,
+      0.47561,
+      -0.41121
+    ],
+    [
+      0.52143,
+      0.20732,
+      0.47073,
+      -0.29885
+    ],
+    [
+      0.65357,
+      0.22927,
+      0.44878,
+      -0.18121
+    ],
+    [
+      0.76071,
+      0.24878,
+      0.42439,
+      -0.08584
+    ],
+    [
+      0.85714,
+      0.26341,
+      0.39268,
+      0.00727
+    ],
+    [
+      0.93929,
+      0.27805,
+      0.35854,
+      0.09083
+    ],
+    [
+      0.97857,
+      0.29268,
+      0.33902,
+      0.1308
+    ],
+    [
+      0.99643,
+      0.30732,
+      0.32683,
+      0.14897
+    ],
+    [
+      1.0,
+      0.31463,
+      0.31707,
+      0.1526
+    ]
+  ],
+  "horizontalTail": [
+    [
+      0.0,
+      0.81463,
+      0.99756,
+      0
+    ],
+    [
+      0.2439,
+      0.83659,
+      0.99756,
+      0
+    ],
+    [
+      0.46341,
+      0.85366,
+      0.99024,
+      0
+    ],
+    [
+      0.69512,
+      0.87561,
+      0.98049,
+      0
+    ],
+    [
+      0.85366,
+      0.89512,
+      0.96341,
+      0
+    ],
+    [
+      0.96341,
+      0.91707,
+      0.95366,
+      0
+    ],
+    [
+      1.0,
+      0.93171,
+      0.94146,
+      0
+    ]
+  ],
+  "fin": [
+    [
+      0.63171,
+      0.5722
+    ],
+    [
+      0.70976,
+      0.64683
+    ],
+    [
+      0.78537,
+      0.69659
+    ],
+    [
+      0.81463,
+      1.14439
+    ],
+    [
+      0.8439,
+      1.61707
+    ],
+    [
+      0.86829,
+      1.8161
+    ],
+    [
+      0.89512,
+      1.89073
+    ],
+    [
+      0.92195,
+      1.89073
+    ],
+    [
+      0.9439,
+      1.76634
+    ],
+    [
+      0.95854,
+      1.4678
+    ],
+    [
+      0.96585,
+      0.97024
+    ],
+    [
+      0.97317,
+      0.37317
+    ],
+    [
+      0.98293,
+      0.09951
+    ],
+    [
+      1.0,
+      -0.02488
+    ],
+    [
+      0.95366,
+      -0.12439
+    ],
+    [
+      0.89024,
+      0.07463
+    ],
+    [
+      0.8122,
+      0.19902
+    ]
+  ],
+  "canopy": [
+    [
+      0.24146,
+      0.20622,
+      0.64683,
+      0.72146
+    ],
+    [
+      0.27317,
+      0.34098,
+      0.62195,
+      0.97024
+    ],
+    [
+      0.29756,
+      0.37753,
+      0.59707,
+      0.97024
+    ],
+    [
+      0.33171,
+      0.39216,
+      0.59707,
+      0.97024
+    ],
+    [
+      0.38293,
+      0.39634,
+      0.59707,
+      0.94537
+    ],
+    [
+      0.43415,
+      0.39065,
+      0.59707,
+      0.92049
+    ],
+    [
+      0.46341,
+      0.35488,
+      0.59707,
+      0.82098
+    ],
+    [
+      0.49268,
+      0.25707,
+      0.62195,
+      0.67171
+    ],
+    [
+      0.51463,
+      0.13085,
+      0.62195,
+      0.62195
+    ]
+  ],
+  "tailSpan": 4.21589,
+  "cowling": {
+    "frontU": 0.05122,
+    "rearU": 0.1439,
+    "radiusM": 0.62195
+  },
+  "propeller": {
+    "u": 0.03171,
+    "radiusM": 1.54244,
+    "blades": 3,
+    "spinnerLengthM": 0.19902
+  },
+  "gear": {
+    "mainU": 0.22195,
+    "trackM": 3.15377,
+    "wheelRadiusM": 0.34829,
+    "wheelZM": -1.71659,
+    "tailU": 0.90488,
+    "tailWheelZM": -0.52244
+  },
+  "extras": {
+    "engine": "radial",
+    "fixedGear": true,
+    "wheelSpats": true,
+    "diveBrakes": true,
+    "canopyFrameU": [
+      0.283,
+      0.329,
+      0.385,
+      0.439
+    ],
+    "antennaU": 0.383,
+    "antennaHeightM": 0.62,
+    "distinctive": "Elliptical wings; fixed main gear with deep streamlined wheel spats; full-length tandem canopy.",
+    "wheelSpat": {
+      "sideOutline": [
+        [
+          0.20244,
+          -1.06976
+        ],
+        [
+          0.22195,
+          -1.05732
+        ],
+        [
+          0.23659,
+          -1.0822
+        ],
+        [
+          0.26098,
+          -1.14439
+        ],
+        [
+          0.28293,
+          -1.23146
+        ],
+        [
+          0.30488,
+          -1.33098
+        ],
+        [
+          0.31951,
+          -1.41805
+        ],
+        [
+          0.32683,
+          -1.49268
+        ],
+        [
+          0.32805,
+          -1.55488
+        ],
+        [
+          0.32439,
+          -1.61707
+        ],
+        [
+          0.30976,
+          -1.66683
+        ],
+        [
+          0.28537,
+          -1.72902
+        ],
+        [
+          0.26341,
+          -1.79122
+        ],
+        [
+          0.24146,
+          -1.85341
+        ],
+        [
+          0.22439,
+          -1.90317
+        ],
+        [
+          0.20244,
+          -1.91561
+        ],
+        [
+          0.18537,
+          -1.86585
+        ],
+        [
+          0.17317,
+          -1.76634
+        ],
+        [
+          0.16585,
+          -1.66683
+        ],
+        [
+          0.1622,
+          -1.56732
+        ],
+        [
+          0.1622,
+          -1.41805
+        ],
+        [
+          0.16707,
+          -1.3061
+        ],
+        [
+          0.17561,
+          -1.20659
+        ],
+        [
+          0.1878,
+          -1.14439
+        ]
+      ],
+      "halfWidthM": 0.16532,
+      "referenceImagePath": "assets/aircraft/references/schematics/d3a1-val/three-view.png",
+      "measuredSideOutlinePx": [
+        [
+          392,
+          177
+        ],
+        [
+          400,
+          176.5
+        ],
+        [
+          406,
+          177.5
+        ],
+        [
+          416,
+          180
+        ],
+        [
+          425,
+          183.5
+        ],
+        [
+          434,
+          187.5
+        ],
+        [
+          440,
+          191
+        ],
+        [
+          443,
+          194
+        ],
+        [
+          443.5,
+          196.5
+        ],
+        [
+          442,
+          199
+        ],
+        [
+          436,
+          201
+        ],
+        [
+          426,
+          203.5
+        ],
+        [
+          417,
+          206
+        ],
+        [
+          408,
+          208.5
+        ],
+        [
+          401,
+          210.5
+        ],
+        [
+          392,
+          211
+        ],
+        [
+          385,
+          209
+        ],
+        [
+          380,
+          205
+        ],
+        [
+          377,
+          201
+        ],
+        [
+          375.5,
+          197
+        ],
+        [
+          375.5,
+          191
+        ],
+        [
+          377.5,
+          186.5
+        ],
+        [
+          381,
+          182.5
+        ],
+        [
+          386,
+          180
+        ]
+      ],
+      "measuredTopBoundsPx": [
+        124,
+        376,
+        191,
+        388
+      ],
+      "measuredFrontBoundsPx": [
+        410.5,
+        539,
+        423.5,
+        568
+      ],
+      "notes": "Digitised the long aft teardrop of the D3A1 fixed main-gear fairing, excluding the exposed tyre below it. Absolute longitudinal u and z from engine shaft follow the shape contract. Side extent 375.5..443.5 px, with wheel center x400/y203: nose is 0.610 m forward of axle; tail extends 1.082 m aft. Thickness from 13 px front-view fairing width; plan-view width is 12 px and agrees within raster precision. Strut remains separate; the fairing narrows to its aft tip."
+    }
+  }
+}

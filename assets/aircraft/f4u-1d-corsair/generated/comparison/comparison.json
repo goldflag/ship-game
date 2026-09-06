@@ -1,0 +1,421 @@
+{
+  "schemaVersion": 1,
+  "aircraftId": "f4u-1d-corsair",
+  "method": "Independent GLB binary vertices/indices plus composed scene transforms projected onto the retained original drawing. No fitting to the model, Blender scene, or review render camera.",
+  "status": "ready for visual review",
+  "historicalAccuracy": "Not certified. Export residuals verify interpretation of sampled drawing landmarks; drawings, hidden sections, and variant differences retain their source limitations.",
+  "sourceUrl": "https://www.vought.org/photo/html/pdown.html",
+  "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+  "expectedContentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+  "glbSha256": "59739a56e7d26f3d7720151013570401d9b629a507788efe544b47e5816fb0ce",
+  "shapeSha256": "e3d8b1a05fe5b04ba3a620abbf3c393d97d51d42f971f296f7ac9ee41c572fa3",
+  "comparatorSha256": "135f7901baf3b1115777a354e91b6b5c178e3249938b6d2623eb9ceee950c3df",
+  "axes": "meters, source +X nose +Y port +Z up; source=(-runtimeZ,-runtimeX,runtimeY)",
+  "boundsM": [
+    [
+      -5.1,
+      -6.25,
+      -2.186
+    ],
+    [
+      5.1,
+      6.25,
+      2.23341
+    ]
+  ],
+  "measured": {
+    "lengthM": 10.2,
+    "wingspanM": 12.5,
+    "heightM": 4.41941,
+    "triangles": 30411,
+    "meshes": 11,
+    "wingStationMaxAbsErrorM": 0.012611
+  },
+  "drawingExpected": {
+    "lengthM": 10.2,
+    "wingspanM": 12.5
+  },
+  "wingStations": [
+    {
+      "halfSpanFraction": 0.55,
+      "side": "port",
+      "expectedSourceXM": {
+        "leading": 2.778948,
+        "trailing": 0.350346
+      },
+      "actualSourceXM": {
+        "leading": 2.781001,
+        "trailing": 0.349194
+      },
+      "errorM": {
+        "leading": 0.002054,
+        "trailing": -0.001152
+      }
+    },
+    {
+      "halfSpanFraction": 0.55,
+      "side": "starboard",
+      "expectedSourceXM": {
+        "leading": 2.778948,
+        "trailing": 0.350346
+      },
+      "actualSourceXM": {
+        "leading": 2.781001,
+        "trailing": 0.349194
+      },
+      "errorM": {
+        "leading": 0.002053,
+        "trailing": -0.001152
+      }
+    },
+    {
+      "halfSpanFraction": 0.7,
+      "side": "port",
+      "expectedSourceXM": {
+        "leading": 2.687378,
+        "trailing": 0.49044
+      },
+      "actualSourceXM": {
+        "leading": 2.688616,
+        "trailing": 0.486279
+      },
+      "errorM": {
+        "leading": 0.001238,
+        "trailing": -0.004161
+      }
+    },
+    {
+      "halfSpanFraction": 0.7,
+      "side": "starboard",
+      "expectedSourceXM": {
+        "leading": 2.687378,
+        "trailing": 0.49044
+      },
+      "actualSourceXM": {
+        "leading": 2.688616,
+        "trailing": 0.486278
+      },
+      "errorM": {
+        "leading": 0.001238,
+        "trailing": -0.004162
+      }
+    },
+    {
+      "halfSpanFraction": 0.85,
+      "side": "port",
+      "expectedSourceXM": {
+        "leading": 2.579226,
+        "trailing": 0.696965
+      },
+      "actualSourceXM": {
+        "leading": 2.580035,
+        "trailing": 0.695357
+      },
+      "errorM": {
+        "leading": 0.000809,
+        "trailing": -0.001608
+      }
+    },
+    {
+      "halfSpanFraction": 0.85,
+      "side": "starboard",
+      "expectedSourceXM": {
+        "leading": 2.579226,
+        "trailing": 0.696965
+      },
+      "actualSourceXM": {
+        "leading": 2.580034,
+        "trailing": 0.695356
+      },
+      "errorM": {
+        "leading": 0.000808,
+        "trailing": -0.001609
+      }
+    },
+    {
+      "halfSpanFraction": 0.95,
+      "side": "port",
+      "expectedSourceXM": {
+        "leading": 2.232619,
+        "trailing": 1.115174
+      },
+      "actualSourceXM": {
+        "leading": 2.220009,
+        "trailing": 1.11319
+      },
+      "errorM": {
+        "leading": -0.012611,
+        "trailing": -0.001985
+      }
+    },
+    {
+      "halfSpanFraction": 0.95,
+      "side": "starboard",
+      "expectedSourceXM": {
+        "leading": 2.232619,
+        "trailing": 1.115174
+      },
+      "actualSourceXM": {
+        "leading": 2.220008,
+        "trailing": 1.113189
+      },
+      "errorM": {
+        "leading": -0.012611,
+        "trailing": -0.001985
+      }
+    }
+  ],
+  "wingSectionHeights": [
+    {
+      "halfSpanFraction": 0.18,
+      "side": "port",
+      "chordFraction": 0.3,
+      "sourceXM": 2.073079,
+      "drawingWingDatumZM": -0.492547,
+      "actualBottomTopZM": [
+        -0.607539,
+        -0.299712
+      ],
+      "actualMidSurfaceZM": -0.453626,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.18,
+      "side": "starboard",
+      "chordFraction": 0.3,
+      "sourceXM": 2.073079,
+      "drawingWingDatumZM": -0.492547,
+      "actualBottomTopZM": [
+        -0.607539,
+        -0.299712
+      ],
+      "actualMidSurfaceZM": -0.453626,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.35766,
+      "side": "port",
+      "chordFraction": 0.3,
+      "sourceXM": 2.056514,
+      "drawingWingDatumZM": -0.75,
+      "actualBottomTopZM": [
+        -0.848481,
+        -0.543749
+      ],
+      "actualMidSurfaceZM": -0.696115,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.35766,
+      "side": "starboard",
+      "chordFraction": 0.3,
+      "sourceXM": 2.056514,
+      "drawingWingDatumZM": -0.75,
+      "actualBottomTopZM": [
+        -0.848481,
+        -0.543749
+      ],
+      "actualMidSurfaceZM": -0.696115,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.36,
+      "side": "port",
+      "chordFraction": 0.3,
+      "sourceXM": 2.056652,
+      "drawingWingDatumZM": -0.748252,
+      "actualBottomTopZM": [
+        -0.848201,
+        -0.54362
+      ],
+      "actualMidSurfaceZM": -0.695911,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.36,
+      "side": "starboard",
+      "chordFraction": 0.3,
+      "sourceXM": 2.056652,
+      "drawingWingDatumZM": -0.748252,
+      "actualBottomTopZM": [
+        -0.848201,
+        -0.54362
+      ],
+      "actualMidSurfaceZM": -0.695911,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.55,
+      "side": "port",
+      "chordFraction": 0.3,
+      "sourceXM": 2.050367,
+      "drawingWingDatumZM": -0.574875,
+      "actualBottomTopZM": [
+        -0.678674,
+        -0.400699
+      ],
+      "actualMidSurfaceZM": -0.539686,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.55,
+      "side": "starboard",
+      "chordFraction": 0.3,
+      "sourceXM": 2.050367,
+      "drawingWingDatumZM": -0.574875,
+      "actualBottomTopZM": [
+        -0.678674,
+        -0.400699
+      ],
+      "actualMidSurfaceZM": -0.539687,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.75,
+      "side": "port",
+      "chordFraction": 0.3,
+      "sourceXM": 2.021967,
+      "drawingWingDatumZM": -0.369573,
+      "actualBottomTopZM": [
+        -0.459735,
+        -0.218399
+      ],
+      "actualMidSurfaceZM": -0.339067,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.75,
+      "side": "starboard",
+      "chordFraction": 0.3,
+      "sourceXM": 2.021967,
+      "drawingWingDatumZM": -0.369573,
+      "actualBottomTopZM": [
+        -0.459735,
+        -0.218399
+      ],
+      "actualMidSurfaceZM": -0.339067,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.95,
+      "side": "port",
+      "chordFraction": 0.3,
+      "sourceXM": 1.897386,
+      "drawingWingDatumZM": -0.158145,
+      "actualBottomTopZM": [
+        -0.206237,
+        -0.081795
+      ],
+      "actualMidSurfaceZM": -0.144016,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.95,
+      "side": "starboard",
+      "chordFraction": 0.3,
+      "sourceXM": 1.897386,
+      "drawingWingDatumZM": -0.158145,
+      "actualBottomTopZM": [
+        -0.206237,
+        -0.081795
+      ],
+      "actualMidSurfaceZM": -0.144016,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    }
+  ],
+  "views": {
+    "side": {
+      "referenceCropPx": [
+        860,
+        627,
+        1320,
+        897
+      ],
+      "overlayDisplayScale": 2,
+      "overlayHeaderHeightPx": 52,
+      "projectionMatrixSourceToPixel": [
+        [
+          -43.431373,
+          0.0,
+          0.0,
+          1089.5
+        ],
+        [
+          0.0,
+          0.0,
+          -43.431373,
+          793.0
+        ]
+      ],
+      "triangleCount": 30411,
+      "projectedBoundsPx": [
+        [
+          868.0,
+          635.0
+        ],
+        [
+          1311.0,
+          888.0
+        ]
+      ],
+      "files": {
+        "overlay": "assets/aircraft/f4u-1d-corsair/generated/comparison/side-overlay.png",
+        "reference": "assets/aircraft/f4u-1d-corsair/generated/comparison/side-reference.png",
+        "silhouette": "assets/aircraft/f4u-1d-corsair/generated/comparison/side-silhouette.png"
+      },
+      "sourceImage": "assets/aircraft/references/schematics/f4u-1d-corsair/vought-1532_016_22.png",
+      "sourceImageSha256": "c5464eaaac26ea0b1e1be7e7faae1b73876e305653fe4dddd7eb8cf7b16884dc",
+      "sourceImageTransform": "identity"
+    },
+    "top": {
+      "referenceCropPx": [
+        30,
+        51,
+        597,
+        502
+      ],
+      "overlayDisplayScale": 1.693122,
+      "overlayHeaderHeightPx": 52,
+      "projectionMatrixSourceToPixel": [
+        [
+          0.0,
+          43.84,
+          0.0,
+          313.0
+        ],
+        [
+          42.352941,
+          0.0,
+          0.0,
+          276.0
+        ]
+      ],
+      "triangleCount": 30411,
+      "projectedBoundsPx": [
+        [
+          39.0,
+          60.0
+        ],
+        [
+          587.0,
+          492.0
+        ]
+      ],
+      "files": {
+        "overlay": "assets/aircraft/f4u-1d-corsair/generated/comparison/top-overlay.png",
+        "reference": "assets/aircraft/f4u-1d-corsair/generated/comparison/top-reference.png",
+        "silhouette": "assets/aircraft/f4u-1d-corsair/generated/comparison/top-silhouette.png"
+      },
+      "sourceImage": "assets/aircraft/references/schematics/f4u-1d-corsair/vought-1532_016_22.png",
+      "sourceImageSha256": "c5464eaaac26ea0b1e1be7e7faae1b73876e305653fe4dddd7eb8cf7b16884dc",
+      "sourceImageTransform": "identity"
+    }
+  },
+  "limitations": [
+    "Primary F4U-1D manufacturer/archive three-view visually inspected. Raster 1584 \u00d7 1016; measured original pixels are retained below.",
+    "Plan is rotated 90 degrees relative to side: converted plan x = 492 - original image y; span offset = original image x - 313.",
+    "The primary drawing labels 16 ft 6 in horizontal tail span and 12 ft 1 in landing-gear track; those values override measurement noise. Its 13 ft 4 in early propeller differs from later 13 ft 1 in Smithsonian example; the model uses the latter and records the variant difference.",
+    "Wing front contour measured against shaft at original image y=795: root at y=810, minimum at y=834 near x=411, tip near y=797. Mesh z is the airfoil midline, not its lower surface.",
+    "Fin and cockpit are separate from the tapered body. The late -1D clear sliding hood uses only end hoops and windshield framing; manufacturing sections, panel fasteners, and wheel extension kinematics remain approximate."
+  ]
+}

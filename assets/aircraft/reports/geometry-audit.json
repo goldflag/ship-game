@@ -1,0 +1,1772 @@
+{
+  "schemaVersion": 1,
+  "auditedAt": "2026-09-06T00:39:40.624090+00:00",
+  "method": "Independent binary glTF accessor inspection per mesh node. Rejected degenerate threshold triangle area <= 1e-14 m\u00b2; accepted near-zero is >1e-14 and <1e-12 m\u00b2 only if normals remain valid; tiny nonzero <1e-8 m\u00b2. Normals invalid if nonfinite or length differs from 1 by >0.01. Texture GPU estimate assumes uncompressed RGBA8 plus complete mip chain; actual driver allocation may differ. Geometry quantities in node-local metric coordinates, exported node transforms are near unit.",
+  "models": [
+    {
+      "path": "assets/aircraft/a6m2-zero/generated/model-lod1.glb",
+      "aircraftId": "a6m2-zero",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "c24d8e9f5c4a86eaeafd0eca8c8065f44fdddbd7718021e771492d36e8192c38",
+      "fileBytes": 523132,
+      "triangles": 13936,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            1024,
+            1024
+          ],
+          "encodedBytes": 107604,
+          "rgbaBytesWithMipmaps": 5592406,
+          "sha256": "e7ffa8d89fe940df45315e01fac6fe3d6d943c6c96f5527d566be564a529f5de"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            256,
+            256
+          ],
+          "encodedBytes": 20470,
+          "rgbaBytesWithMipmaps": 349526,
+          "sha256": "2701cc921ee338a00fb3f787eb251ae128bb3e6cae6405b69b408a307df84de8"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 5941932,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/a6m2-zero/generated/model-lod2.glb",
+      "aircraftId": "a6m2-zero",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "713a3bc249ac000462d4ec29699da9161c4ecd2750b7956a2232d1000ff5b75a",
+      "fileBytes": 269544,
+      "triangles": 6148,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 52012,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "9f15e2acfce4aaad154f0b1f15b10dcf4f87c871507e723a4b0ac20f382855da"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            128,
+            128
+          ],
+          "encodedBytes": 6993,
+          "rgbaBytesWithMipmaps": 87382,
+          "sha256": "50cc103b1594c565adba7cafdb1231fdde6ea7076e7a83724401e462cfbaec21"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 1485484,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/a6m2-zero/generated/model.glb",
+      "aircraftId": "a6m2-zero",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "a99015ee291bcc3ed5e4be9a70a7ae0fc0454eff0ac1f811195ba42450ce1bd3",
+      "fileBytes": 1071292,
+      "triangles": 30999,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 230051,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "425b9eb9a457969834f185f1daa6c708c64de4e8005a36b88e088878d34dce0b"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 52422,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "1020efededc13947a84875b133095229a6c7a4f3c14fe8d95ba26f5944dd2e91"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/a6m5-zero/generated/model-lod1.glb",
+      "aircraftId": "a6m5-zero",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "8dffaf13dfec9134d3ffff04b3b263a7c62cb6a7c86574e17b59ceb0b45d2b3b",
+      "fileBytes": 559728,
+      "triangles": 14156,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            1024,
+            1024
+          ],
+          "encodedBytes": 141339,
+          "rgbaBytesWithMipmaps": 5592406,
+          "sha256": "306bd143d7ed8fda10c175e467c64f1c2ce7d1771e018acb808630bd3df47d6d"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            256,
+            256
+          ],
+          "encodedBytes": 20470,
+          "rgbaBytesWithMipmaps": 349526,
+          "sha256": "2701cc921ee338a00fb3f787eb251ae128bb3e6cae6405b69b408a307df84de8"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 5941932,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/a6m5-zero/generated/model-lod2.glb",
+      "aircraftId": "a6m5-zero",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "7e6bb0091f6bc0a07a35918d9c6fb7b8909586518157b086eff80ad8cdf1bba4",
+      "fileBytes": 283968,
+      "triangles": 6249,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 64301,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "ff702aabe8b98c38a534dffd3a5b6011100acf1c7e54124d4da165035f74b823"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            128,
+            128
+          ],
+          "encodedBytes": 6993,
+          "rgbaBytesWithMipmaps": 87382,
+          "sha256": "50cc103b1594c565adba7cafdb1231fdde6ea7076e7a83724401e462cfbaec21"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 1485484,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/a6m5-zero/generated/model.glb",
+      "aircraftId": "a6m5-zero",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "8d182dfa62a528d3899f69fb4d02d9f492b6d715bec2cd96e31d3dd52aa6a852",
+      "fileBytes": 1159956,
+      "triangles": 31486,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 304165,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "9da7ddda9a65dd2d9c7633f3d0733598a4406d137fafd07b1e0c9efdbdb4e71a"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 52422,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "1020efededc13947a84875b133095229a6c7a4f3c14fe8d95ba26f5944dd2e91"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/b5n2-kate/generated/model-lod1.glb",
+      "aircraftId": "b5n2-kate",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "9c67e5decd19cf7a200d09327e099642d1bc28c89850b249752a300c353bb455",
+      "fileBytes": 565172,
+      "triangles": 14143,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            1024,
+            1024
+          ],
+          "encodedBytes": 140783,
+          "rgbaBytesWithMipmaps": 5592406,
+          "sha256": "48b1a94af82673020a373cc85c474ef8772dd169a06227bf306f93fd4e8be4e4"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            256,
+            256
+          ],
+          "encodedBytes": 20470,
+          "rgbaBytesWithMipmaps": 349526,
+          "sha256": "2701cc921ee338a00fb3f787eb251ae128bb3e6cae6405b69b408a307df84de8"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 5941932,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/b5n2-kate/generated/model-lod2.glb",
+      "aircraftId": "b5n2-kate",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "a7e465702189ee34807290a9d455c315505d795bf6083a6669908431ce1957f3",
+      "fileBytes": 289088,
+      "triangles": 6243,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 63592,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "c0c9c50a10cf8b234e967aea4f4eda2593da05f74b9f4de6f8deeb32301f0431"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            128,
+            128
+          ],
+          "encodedBytes": 6993,
+          "rgbaBytesWithMipmaps": 87382,
+          "sha256": "50cc103b1594c565adba7cafdb1231fdde6ea7076e7a83724401e462cfbaec21"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 1485484,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/b5n2-kate/generated/model.glb",
+      "aircraftId": "b5n2-kate",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "06ecd197858ced77d417a36b4d8f86a15758e0fadb2f926946f6381ae118b61e",
+      "fileBytes": 1162116,
+      "triangles": 31458,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 304801,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "4909f5b764b14a2092d1620ceabcc59ad69de190c9d4abbd205fce6ed4887936"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 52422,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "1020efededc13947a84875b133095229a6c7a4f3c14fe8d95ba26f5944dd2e91"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/b6n2-jill/generated/model-lod1.glb",
+      "aircraftId": "b6n2-jill",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "1596f3083b4fb195b37fd57e286e93b00d1791d7082a3ff4e28c41adb28b414b",
+      "fileBytes": 564348,
+      "triangles": 14031,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            1024,
+            1024
+          ],
+          "encodedBytes": 141361,
+          "rgbaBytesWithMipmaps": 5592406,
+          "sha256": "49a3fc582e9936fea3c5e7ede3092b31571fb3f6d4c5f7c91bb9549cee844dc4"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            256,
+            256
+          ],
+          "encodedBytes": 20470,
+          "rgbaBytesWithMipmaps": 349526,
+          "sha256": "2701cc921ee338a00fb3f787eb251ae128bb3e6cae6405b69b408a307df84de8"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 5941932,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/b6n2-jill/generated/model-lod2.glb",
+      "aircraftId": "b6n2-jill",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "f20fdaadb8f5707481d5cf4c6faf0b6851cbd55c4cb6bfaa2f5d794aabc471d4",
+      "fileBytes": 290324,
+      "triangles": 6194,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 63886,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "a1e0defb5db72184f60054df98bc3ffaa96280896dd3cd4e9605d3c007d4d355"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            128,
+            128
+          ],
+          "encodedBytes": 6993,
+          "rgbaBytesWithMipmaps": 87382,
+          "sha256": "50cc103b1594c565adba7cafdb1231fdde6ea7076e7a83724401e462cfbaec21"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 1485484,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/b6n2-jill/generated/model.glb",
+      "aircraftId": "b6n2-jill",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "73a8e63809ac69fe4b4da191a90a5e25566831430bd03ac6b5b3768d6d4b2aed",
+      "fileBytes": 1160748,
+      "triangles": 31210,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 304691,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "0e8ca74b67e3183dcc9953052fd9ed81aa168bfd3e25e44572fa181b30bc01c0"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 52422,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "1020efededc13947a84875b133095229a6c7a4f3c14fe8d95ba26f5944dd2e91"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/d3a1-val/generated/model-lod1.glb",
+      "aircraftId": "d3a1-val",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "128342c8946bde313d854532ee9da42ef919f79804ed2a527f46168d2e940208",
+      "fileBytes": 536788,
+      "triangles": 14430,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            1024,
+            1024
+          ],
+          "encodedBytes": 107455,
+          "rgbaBytesWithMipmaps": 5592406,
+          "sha256": "865de9e1cee39912790ff5690a9ba504dfd2fcfc70e4fbe59537cc771b4b5caf"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            256,
+            256
+          ],
+          "encodedBytes": 20470,
+          "rgbaBytesWithMipmaps": 349526,
+          "sha256": "2701cc921ee338a00fb3f787eb251ae128bb3e6cae6405b69b408a307df84de8"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 5941932,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/d3a1-val/generated/model-lod2.glb",
+      "aircraftId": "d3a1-val",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "066183f2f4e19c985c88a946108ce86c2d48bc54e89a5c547858f16132d2e1e5",
+      "fileBytes": 276924,
+      "triangles": 6395,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 51451,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "75b6fef023e251256e82b2c9ee5b0bfbeb0bf4ee3451a7a6392b47906e3bfcd8"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            128,
+            128
+          ],
+          "encodedBytes": 6993,
+          "rgbaBytesWithMipmaps": 87382,
+          "sha256": "50cc103b1594c565adba7cafdb1231fdde6ea7076e7a83724401e462cfbaec21"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 1485484,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/d3a1-val/generated/model.glb",
+      "aircraftId": "d3a1-val",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "6d47be1cd65e8fffb4a6afe0d460e373356155c676e69145c667350e6b7e9c25",
+      "fileBytes": 1098540,
+      "triangles": 32094,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 28,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 229879,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "a5e2e330a9a94c163c9ace5ec760eb4d9d0f877175a8122006395bff8d13d7a3"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 52422,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "1020efededc13947a84875b133095229a6c7a4f3c14fe8d95ba26f5944dd2e91"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/d4y2-judy/generated/model-lod1.glb",
+      "aircraftId": "d4y2-judy",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "ef3cf8424af95b402958387b64688ff59926e2c7fd2973122074f53d57a2627f",
+      "fileBytes": 527036,
+      "triangles": 12700,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 27,
+      "materials": 9,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            1024,
+            1024
+          ],
+          "encodedBytes": 141315,
+          "rgbaBytesWithMipmaps": 5592406,
+          "sha256": "0ddfd9097bacf8ec578ef61193424a609d434230513ed156f6d1b881f680afd1"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            256,
+            256
+          ],
+          "encodedBytes": 20470,
+          "rgbaBytesWithMipmaps": 349526,
+          "sha256": "2701cc921ee338a00fb3f787eb251ae128bb3e6cae6405b69b408a307df84de8"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 5941932,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/d4y2-judy/generated/model-lod2.glb",
+      "aircraftId": "d4y2-judy",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "ab3e050afa618ea81b4e1eb51ee8be48219f719695b16a2982aee78fc0230d6b",
+      "fileBytes": 268576,
+      "triangles": 5616,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 27,
+      "materials": 9,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 64313,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "3dea7b8c76d526df3e0c7ee221aec7472823b9fa233a6f53e708a2ba4c7393bc"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            128,
+            128
+          ],
+          "encodedBytes": 6993,
+          "rgbaBytesWithMipmaps": 87382,
+          "sha256": "50cc103b1594c565adba7cafdb1231fdde6ea7076e7a83724401e462cfbaec21"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 1485484,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/d4y2-judy/generated/model.glb",
+      "aircraftId": "d4y2-judy",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "23b3253415d2e0dc0f8a66a417cbac9fbfe84fb572844d46159a5541cdd6ed3a",
+      "fileBytes": 1083096,
+      "triangles": 28252,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 2,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 27,
+      "materials": 9,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 304013,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "a5800fd787fafb72060e0eabffee72ff41d33a268177b880f9a3d6c82677fdc4"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 52422,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "1020efededc13947a84875b133095229a6c7a4f3c14fe8d95ba26f5944dd2e91"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/f4f-4-wildcat/generated/model-lod1.glb",
+      "aircraftId": "f4f-4-wildcat",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "23e5a70c9d984773237263bc3a060494439758d9996e6617dc461960359d1184",
+      "fileBytes": 499792,
+      "triangles": 13781,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 27,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            1024,
+            1024
+          ],
+          "encodedBytes": 93644,
+          "rgbaBytesWithMipmaps": 5592406,
+          "sha256": "8048ea13a25427b447708fd783fd65326ecd9a1baf8207a65ea81c5090ed7e7f"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            256,
+            256
+          ],
+          "encodedBytes": 20470,
+          "rgbaBytesWithMipmaps": 349526,
+          "sha256": "2701cc921ee338a00fb3f787eb251ae128bb3e6cae6405b69b408a307df84de8"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 5941932,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/f4f-4-wildcat/generated/model-lod2.glb",
+      "aircraftId": "f4f-4-wildcat",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "87b39fec79f30b4eb10a19aade412dd3f8998854ef645fbbcd244488173ac149",
+      "fileBytes": 259876,
+      "triangles": 6081,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 27,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 45639,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "a7e22f5b7ddaf838c8477c2025751a8bee83f22ab6f3f8fbc8a44fdde9c97a0e"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            128,
+            128
+          ],
+          "encodedBytes": 6993,
+          "rgbaBytesWithMipmaps": 87382,
+          "sha256": "50cc103b1594c565adba7cafdb1231fdde6ea7076e7a83724401e462cfbaec21"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 1485484,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/f4f-4-wildcat/generated/model.glb",
+      "aircraftId": "f4f-4-wildcat",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "1ff9d57357e84a7d6dafa31dffea641911aa15dfcf285f464cc19ce36ac219bb",
+      "fileBytes": 1024524,
+      "triangles": 30655,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 27,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 194210,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "51e9b0366453dad4fd842f0eae45991832f375bbdf81e48d833d8345715e969e"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 52422,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "1020efededc13947a84875b133095229a6c7a4f3c14fe8d95ba26f5944dd2e91"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/f4u-1d-corsair/generated/model-lod1.glb",
+      "aircraftId": "f4u-1d-corsair",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "c350f642c49045d537ce7ce40966b2de0ea155047c835c8cb251a22922628746",
+      "fileBytes": 617660,
+      "triangles": 13670,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 27,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            1024,
+            1024
+          ],
+          "encodedBytes": 209017,
+          "rgbaBytesWithMipmaps": 5592406,
+          "sha256": "30c454e3655e7e510162ef41550c81a46dff41b091a1fe22993c991082cd16bd"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            256,
+            256
+          ],
+          "encodedBytes": 20470,
+          "rgbaBytesWithMipmaps": 349526,
+          "sha256": "2701cc921ee338a00fb3f787eb251ae128bb3e6cae6405b69b408a307df84de8"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 5941932,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/f4u-1d-corsair/generated/model-lod2.glb",
+      "aircraftId": "f4u-1d-corsair",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "aa9882ca7a1d32382516f8928a73417743e906d3c2644fe83c543a20165af418",
+      "fileBytes": 305640,
+      "triangles": 6034,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 27,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 92061,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "a867a2393464c0fa994c6d1b778e19a18fe2a1f56047bd397e172c7cb06ddc9e"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            128,
+            128
+          ],
+          "encodedBytes": 6993,
+          "rgbaBytesWithMipmaps": 87382,
+          "sha256": "50cc103b1594c565adba7cafdb1231fdde6ea7076e7a83724401e462cfbaec21"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 1485484,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/f4u-1d-corsair/generated/model.glb",
+      "aircraftId": "f4u-1d-corsair",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "59739a56e7d26f3d7720151013570401d9b629a507788efe544b47e5816fb0ce",
+      "fileBytes": 1278212,
+      "triangles": 30411,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 27,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 454533,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "e105400b2f75edd875adcac2d020b12e41eea466acb5e7d584efb085fc53c6fe"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 52422,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "1020efededc13947a84875b133095229a6c7a4f3c14fe8d95ba26f5944dd2e91"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/f6f-5-hellcat/generated/model-lod1.glb",
+      "aircraftId": "f6f-5-hellcat",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "4e3d748043753cf2cabae4817587e3c24edb16e5e5dd2ab5f00adfca9bb2e627",
+      "fileBytes": 631140,
+      "triangles": 14366,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 27,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            1024,
+            1024
+          ],
+          "encodedBytes": 209566,
+          "rgbaBytesWithMipmaps": 5592406,
+          "sha256": "cad56dbe29cf249603a4967cd0dd1e1db3c2465dabc9155a72f63f0c048545fd"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            256,
+            256
+          ],
+          "encodedBytes": 20470,
+          "rgbaBytesWithMipmaps": 349526,
+          "sha256": "2701cc921ee338a00fb3f787eb251ae128bb3e6cae6405b69b408a307df84de8"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 5941932,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/f6f-5-hellcat/generated/model-lod2.glb",
+      "aircraftId": "f6f-5-hellcat",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "4286789f2903d0dfc03b1a27be6a2c548923f5b2ab8521eb0b304c3b0c5aefbb",
+      "fileBytes": 313540,
+      "triangles": 6341,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 27,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 92112,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "434a0fb6d8b12b29298a92fb81c626e5e9f67f8f9683d3427eb5d60733fc3312"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            128,
+            128
+          ],
+          "encodedBytes": 6993,
+          "rgbaBytesWithMipmaps": 87382,
+          "sha256": "50cc103b1594c565adba7cafdb1231fdde6ea7076e7a83724401e462cfbaec21"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 1485484,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/f6f-5-hellcat/generated/model.glb",
+      "aircraftId": "f6f-5-hellcat",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "c059861a8b499906c51c1845b9d2f818760cc24501b7af88963bdc802ba41404",
+      "fileBytes": 1315652,
+      "triangles": 31955,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 11,
+      "primitives": 27,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 455447,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "db778428069540b1e43d3912be3781be170788f18362690648bfa98c3a769b3d"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 52422,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "1020efededc13947a84875b133095229a6c7a4f3c14fe8d95ba26f5944dd2e91"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/sb2c-4-helldiver/generated/model-lod1.glb",
+      "aircraftId": "sb2c-4-helldiver",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "76260541143d8693c83644f9e749ee73e07e2d3932035987ed5cd619e4a2f635",
+      "fileBytes": 923888,
+      "triangles": 17275,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 16,
+      "primitives": 47,
+      "materials": 11,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            1024,
+            1024
+          ],
+          "encodedBytes": 209461,
+          "rgbaBytesWithMipmaps": 5592406,
+          "sha256": "1a001cd0116277903dc595136f65ed5d346309d505c942ae070ba5abdde2357d"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            256,
+            256
+          ],
+          "encodedBytes": 20470,
+          "rgbaBytesWithMipmaps": 349526,
+          "sha256": "2701cc921ee338a00fb3f787eb251ae128bb3e6cae6405b69b408a307df84de8"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 5941932,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/sb2c-4-helldiver/generated/model-lod2.glb",
+      "aircraftId": "sb2c-4-helldiver",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "62ae922e17ef47fa750903640f9e53b15c2256c350642e77692affdd30f8876d",
+      "fileBytes": 479796,
+      "triangles": 7799,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 16,
+      "primitives": 47,
+      "materials": 11,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 91824,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "357ee35254698ec18110e970e20135f1ceb3d997790189ac33d62e46046f73d7"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            128,
+            128
+          ],
+          "encodedBytes": 6993,
+          "rgbaBytesWithMipmaps": 87382,
+          "sha256": "50cc103b1594c565adba7cafdb1231fdde6ea7076e7a83724401e462cfbaec21"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 1485484,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/sb2c-4-helldiver/generated/model.glb",
+      "aircraftId": "sb2c-4-helldiver",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "35fe47786e6894fec6912a96877c0c69914bc8b97f3e116331278ab3e712737c",
+      "fileBytes": 1852948,
+      "triangles": 38429,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 16,
+      "primitives": 47,
+      "materials": 11,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 455894,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "e46623ca6870bb12514e21a2fd10ace3a5e0cf901bd5fcc39f2b008f97ec4e87"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 52422,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "1020efededc13947a84875b133095229a6c7a4f3c14fe8d95ba26f5944dd2e91"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/sbd-3-dauntless/generated/model-lod1.glb",
+      "aircraftId": "sbd-3-dauntless",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "fcceee7c630761998eaf77b1170dad5ffca2787aa8a5879bb95723921e4be5b5",
+      "fileBytes": 804664,
+      "triangles": 17172,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 16,
+      "primitives": 47,
+      "materials": 11,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            1024,
+            1024
+          ],
+          "encodedBytes": 93350,
+          "rgbaBytesWithMipmaps": 5592406,
+          "sha256": "be6400c7a2d8849d9898b712f45675ce8f5737b4ac0f0f170dc25eff569dc2d0"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            256,
+            256
+          ],
+          "encodedBytes": 20470,
+          "rgbaBytesWithMipmaps": 349526,
+          "sha256": "2701cc921ee338a00fb3f787eb251ae128bb3e6cae6405b69b408a307df84de8"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 5941932,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/sbd-3-dauntless/generated/model-lod2.glb",
+      "aircraftId": "sbd-3-dauntless",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "c782ef2c63b62b505bccc50df0626f6a9f7c075f9b6d4b60a1cdbf3ec43f2f01",
+      "fileBytes": 434000,
+      "triangles": 7790,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 16,
+      "primitives": 47,
+      "materials": 11,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 45331,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "be572ce82ad97ae2a217ebdb2c1aaf85bef16331075ae28a663a2bb0ff5570fd"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            128,
+            128
+          ],
+          "encodedBytes": 6993,
+          "rgbaBytesWithMipmaps": 87382,
+          "sha256": "50cc103b1594c565adba7cafdb1231fdde6ea7076e7a83724401e462cfbaec21"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 1485484,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/sbd-3-dauntless/generated/model.glb",
+      "aircraftId": "sbd-3-dauntless",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "f59209d2b4784b903a25eb797c202b8aa2359a92768745d64b53299604caf080",
+      "fileBytes": 1581948,
+      "triangles": 38199,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 16,
+      "primitives": 47,
+      "materials": 11,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 193978,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "c31d74887302c6f821ef74c886342071bde4c6e3d367d36c9f7fde87f48890f3"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 52422,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "1020efededc13947a84875b133095229a6c7a4f3c14fe8d95ba26f5944dd2e91"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/tbd-1-devastator/generated/model-lod1.glb",
+      "aircraftId": "tbd-1-devastator",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "efce054c2649f58d5a1be95aa225c13e85e364c0579506b119b8ee805242040f",
+      "fileBytes": 542396,
+      "triangles": 15095,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 12,
+      "primitives": 31,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            1024,
+            1024
+          ],
+          "encodedBytes": 92760,
+          "rgbaBytesWithMipmaps": 5592406,
+          "sha256": "3fb377650477729ba6ce4b9a1e50d67c394209e0ff544e8d861804a409415417"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            256,
+            256
+          ],
+          "encodedBytes": 20470,
+          "rgbaBytesWithMipmaps": 349526,
+          "sha256": "2701cc921ee338a00fb3f787eb251ae128bb3e6cae6405b69b408a307df84de8"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 5941932,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/tbd-1-devastator/generated/model-lod2.glb",
+      "aircraftId": "tbd-1-devastator",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "412e549a929c3ddbfb48800791b1cf7070de60f9db94ed498c74105a83a97c4c",
+      "fileBytes": 286496,
+      "triangles": 6664,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 12,
+      "primitives": 31,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 44675,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "caeaa11916ebf37101f4658387e40a927516d4a2fb1d23e86a63b14a11d236c8"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            128,
+            128
+          ],
+          "encodedBytes": 6993,
+          "rgbaBytesWithMipmaps": 87382,
+          "sha256": "50cc103b1594c565adba7cafdb1231fdde6ea7076e7a83724401e462cfbaec21"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 1485484,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/tbd-1-devastator/generated/model.glb",
+      "aircraftId": "tbd-1-devastator",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "17d054cd6643f4f6b6c3150328679b9f2a388f4352675ab2a48d74fa2f20e7db",
+      "fileBytes": 1097400,
+      "triangles": 33575,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 12,
+      "primitives": 31,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 193263,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "2fedc2c53f9e7c75dec242afdb7930eba9af932bab345d692fc95f2443b2be71"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 52422,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "1020efededc13947a84875b133095229a6c7a4f3c14fe8d95ba26f5944dd2e91"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/tbf-1c-avenger/generated/model-lod1.glb",
+      "aircraftId": "tbf-1c-avenger",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "dbcd3e8b4d95a0767c0c983f6b13b62212652649a05130ea6b9d9670d29ea09e",
+      "fileBytes": 591432,
+      "triangles": 15008,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 12,
+      "primitives": 31,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            1024,
+            1024
+          ],
+          "encodedBytes": 149720,
+          "rgbaBytesWithMipmaps": 5592406,
+          "sha256": "68cb001dfb59f3fca74e0e4038a60989e540c8504a3fad3e0a470e0f95af7c22"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            256,
+            256
+          ],
+          "encodedBytes": 20470,
+          "rgbaBytesWithMipmaps": 349526,
+          "sha256": "2701cc921ee338a00fb3f787eb251ae128bb3e6cae6405b69b408a307df84de8"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 5941932,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/tbf-1c-avenger/generated/model-lod2.glb",
+      "aircraftId": "tbf-1c-avenger",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "c1745ca01a3854b4d66e52b4bdc7603f56496d4a329a7b43b3737c6ad8c00bf6",
+      "fileBytes": 299016,
+      "triangles": 6634,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 12,
+      "primitives": 31,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 67640,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "3f0755c3a32d3c58afe648fc33cf12d104f5598497bcb0e8216219692af260b8"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            128,
+            128
+          ],
+          "encodedBytes": 6993,
+          "rgbaBytesWithMipmaps": 87382,
+          "sha256": "50cc103b1594c565adba7cafdb1231fdde6ea7076e7a83724401e462cfbaec21"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 1485484,
+      "problemMeshes": []
+    },
+    {
+      "path": "assets/aircraft/tbf-1c-avenger/generated/model.glb",
+      "aircraftId": "tbf-1c-avenger",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "sha256": "f801011da1a69f8ca3210347233b4c73e61ef13c113859561cd19a21fa59c1fa",
+      "fileBytes": 1208656,
+      "triangles": 33383,
+      "degenerateTriangles": 0,
+      "nearZeroTriangles": 0,
+      "tinyNonzeroTriangles": 0,
+      "badNormals": 0,
+      "missingNormalPrimitives": 0,
+      "nonfiniteTriangles": 0,
+      "nonfiniteUVs": 0,
+      "meshNodes": 12,
+      "primitives": 31,
+      "materials": 10,
+      "blendMaterials": 1,
+      "doubleSidedMaterials": 1,
+      "images": [
+        {
+          "name": "airframe-basecolor",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "encodedBytes": 321316,
+          "rgbaBytesWithMipmaps": 22369622,
+          "sha256": "3c258ae84f50075a0f0f0f71c521828843bc073461ed2ed8dc39d9fd09e14078"
+        },
+        {
+          "name": "airframe-roughness",
+          "dimensions": [
+            512,
+            512
+          ],
+          "encodedBytes": 52422,
+          "rgbaBytesWithMipmaps": 1398102,
+          "sha256": "1020efededc13947a84875b133095229a6c7a4f3c14fe8d95ba26f5944dd2e91"
+        }
+      ],
+      "estimatedTextureBytesWithMipmaps": 23767724,
+      "problemMeshes": []
+    }
+  ],
+  "summary": {
+    "result": "passed",
+    "models": 39,
+    "aircraft": 13,
+    "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+    "degenerateTriangles": 0,
+    "acceptedNearZeroTriangles": 0,
+    "invalidNormals": 0,
+    "nonfiniteGeometryOrUVs": 0,
+    "doubleSidedMaterialPerModel": "one transparent glazing material; opaque surfaces cull back faces",
+    "textureDimensionsByLod": [
+      [
+        [
+          2048,
+          2048
+        ],
+        [
+          512,
+          512
+        ]
+      ],
+      [
+        [
+          1024,
+          1024
+        ],
+        [
+          256,
+          256
+        ]
+      ],
+      [
+        [
+          512,
+          512
+        ],
+        [
+          128,
+          128
+        ]
+      ]
+    ],
+    "estimatedTextureMiBPerTypeByLod": [
+      22.67,
+      5.67,
+      1.42
+    ],
+    "estimatedTextureMiBAllLodsPerType": 29.75
+  }
+}
