@@ -371,7 +371,13 @@ export class Game {
       });
       const alpha = this.inPort ? 1 : this.simulation.interpolationAlpha;
       this.fleetViews.forEach(view => view.update(alpha));
-      this.fleetViews.forEach(view => view.impactMarks.update(this.simulation.events, view.actor.motion.id));
+      // A salvo must not synchronously project scars onto every struck hull.
+      // Share the budget across the fleet and rotate which hull gets first use.
+      const impactBudget = { remainingMs: 2 };
+      for (let i = 0; i < this.fleetViews.length; i++) {
+        const view = this.fleetViews[(i + this.simulation.tick) % this.fleetViews.length];
+        view.impactMarks.update(this.simulation.events, view.actor.motion.id, impactBudget);
+      }
       this.ship.position.copy(this.playerView!.root.position);
       this.ship.quaternion.copy(this.playerView!.root.quaternion);
       this.shellFollow.update(this.simulation.shells, this.simulation.events, state.id, dt);

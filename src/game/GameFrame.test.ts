@@ -207,3 +207,17 @@ for (const frameTimes of [[1 / 30], [1 / 59], [1 / 60], [1 / 120], [1 / 144], [1
     }
   });
 }
+
+test('all fleet impact marks share one cosmetic work budget, renewed for each frame', async () => {
+  const { game, playerView, targetView } = await frameHarness();
+  const budgets: { remainingMs: number }[] = [], available: number[] = [];
+  for (const view of [playerView, targetView]) view.impactMarks.update = (_events, _id, budget) => {
+    if (!budget) throw new Error('Missing fleet impact budget');
+    budgets.push(budget); available.push(budget.remainingMs); budget.remainingMs = 0;
+  };
+  await game.frame(1000 / 60);
+  await game.frame(2000 / 60);
+  expect(available).toEqual([2, 0, 2, 0]);
+  expect(budgets[0]).toBe(budgets[1]); expect(budgets[2]).toBe(budgets[3]);
+  expect(budgets[0]).not.toBe(budgets[2]);
+});
