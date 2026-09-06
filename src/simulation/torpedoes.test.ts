@@ -133,6 +133,9 @@ test('contact before arming is a dud; armed hits apply flooding and score only a
   const data = sim.telemetry('torpedo', ahead);
   expect(data.playerDamageDealt).toBeGreaterThan(0);
   expect(data.playerDamageDealt).toBeCloseTo(sim.target.damage.maxIntegrity - sim.target.damage.integrity, 1);
+  expect(data.damageLog).toHaveLength(1);
+  expect(data.damageLog[0]).toMatchObject({ sourceId: 'player', targetId: 'target', damage: data.playerDamageDealt, hits: 1 });
+  expect(data.damageLog[0].weapon).toContain('Torpedo');
 });
 
 test('launched bow salvo can sink an opponent, earning one frag, then battle reset clears it', () => {
