@@ -1,0 +1,21 @@
+{
+  "configuration": "VC2-S-AP2 Victory cargo ship, 1945 arrangement; 6000 shp geared steam turbine",
+  "sources": [
+    {
+      "id": "victory-haer",
+      "file": "../../convoy/references/plans/winthrop-victory-haer-2010.pdf",
+      "title": "National Park Service — HAER CA-345, Winthrop Victory drawings, 2010",
+      "url": "https://www.loc.gov/item/ca3462/",
+      "download": "https://archive.org/download/mcv790haer2010/mcv790haer2010.pdf",
+      "mirror": "https://archive.org/details/mcv790haer2010",
+      "sha256": "a45ae95a4846e2b974272f169c0651ff5e6444267e368974d85e43e0e367e8c0",
+      "pages": "HAER sheets 2, 3 and 6 (zero-based PDF pages 2, 3 and 6): profile, decks, sheer/half-breadth/body plan",
+      "supports": "455 ft 3 in × 62 ft Victory hull and distinct forecastle, cargo kingposts, deckhouses and hull lines.",
+      "limits": "Drawn in 2010 from historical drawings/photos; not an original 1945 builder package and not a certification of the laid-up 2010 fit.",
+      "provenance": "US National Park Service / Library of Congress HAER, mirrored by Internet Archive. Reference drawings only.",
+      "accessed": "2026-09-06"
+    }
+  ],
+  "measurements": "../../convoy/plans-v2.json",
+  "independence": "Only independently authored blueprint, versioned original recipe and original component catalog feed the model. Scans are comparison references; no third-party mesh, texture or GameModels3D asset is used."
+}

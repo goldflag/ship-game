@@ -1,0 +1,17 @@
+{
+  "configuration": "EC2-S-AW1 machinery-aft collier, Delta Shipbuilding 1945; representative armed fit",
+  "draftM": 8.7196,
+  "massKg": 14967000,
+  "geometryDisplacementM3": 13439.862808844087,
+  "fullEnvelopeM3": 19081.647551282906,
+  "reserveM3": 5641.784742438818,
+  "buoyancyScale": 1.086465794122794,
+  "estimatedGmM": 1.45,
+  "dryCenterOfGravity": [
+    0,
+    -3.287496917293712,
+    2.2982327169437076
+  ],
+  "floodCapacityM3": 11806.694196701521,
+  "basis": "Uniform displacement calibration at the declared draft. Estimated initial GM 1.45 m; longitudinal CG aligned to upright buoyancy center. Not an historical stability curve."
+}

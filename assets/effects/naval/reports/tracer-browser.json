@@ -1,0 +1,114 @@
+{
+  "webgl": {
+    "backend": "webgl2",
+    "frames": [
+      {
+        "draws": 11,
+        "shells": 0,
+        "visible": 0
+      },
+      {
+        "draws": 11,
+        "shells": 8,
+        "visible": 8
+      },
+      {
+        "draws": 11,
+        "shells": 0,
+        "visible": 0
+      },
+      {
+        "draws": 11,
+        "shells": 1,
+        "visible": 1
+      },
+      {
+        "draws": 11,
+        "shells": 8,
+        "visible": 8
+      },
+      {
+        "draws": 11,
+        "shells": 54,
+        "visible": 54
+      },
+      {
+        "draws": 11,
+        "shells": 256,
+        "visible": 256
+      },
+      {
+        "draws": 11,
+        "shells": 2,
+        "visible": 2
+      },
+      {
+        "draws": 11,
+        "shells": 0,
+        "visible": 0
+      },
+      {
+        "draws": 11,
+        "shells": 8,
+        "visible": 8
+      }
+    ],
+    "trailPixels": 288
+  },
+  "webgpu": {
+    "backend": "webgpu",
+    "frames": [
+      {
+        "draws": 11,
+        "shells": 0,
+        "visible": 0
+      },
+      {
+        "draws": 11,
+        "shells": 8,
+        "visible": 8
+      },
+      {
+        "draws": 11,
+        "shells": 0,
+        "visible": 0
+      },
+      {
+        "draws": 11,
+        "shells": 1,
+        "visible": 1
+      },
+      {
+        "draws": 11,
+        "shells": 8,
+        "visible": 8
+      },
+      {
+        "draws": 11,
+        "shells": 54,
+        "visible": 54
+      },
+      {
+        "draws": 11,
+        "shells": 256,
+        "visible": 256
+      },
+      {
+        "draws": 11,
+        "shells": 2,
+        "visible": 2
+      },
+      {
+        "draws": 11,
+        "shells": 0,
+        "visible": 0
+      },
+      {
+        "draws": 11,
+        "shells": 8,
+        "visible": 8
+      }
+    ],
+    "trailPixels": 290
+  }
+}
