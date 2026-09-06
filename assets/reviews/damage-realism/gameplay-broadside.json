@@ -1,0 +1,1666 @@
+{
+  "scenario": "Eight incoming 38 cm AP rounds at the broadside waterline; 5 km nominal impact budget/speed, fixed impacts without dispersion",
+  "definitionHash": "1c26659502b076b6eb2e2d45f6e124393542bfe67d38eb7ed446843683a71f1b",
+  "hits": 8,
+  "penetratingShells": 8,
+  "damagePoints": 364,
+  "hullCondition": 0.7489655172413793,
+  "equipmentCondition": 1,
+  "waterM3": 0,
+  "events": [
+    {
+      "shellId": 1007,
+      "shipId": "enemy-1",
+      "targetId": "port-main-belt-2",
+      "targetName": "Port Main Belt 2",
+      "kind": "armor",
+      "position": [
+        -17.034740845070424,
+        0.3574979721117113,
+        33
+      ],
+      "impactSpeedMps": 730.8404688866681,
+      "penetrationBeforeMm": 550.0020117382907,
+      "penetrationAfterMm": 197.59461308868464,
+      "outcome": "penetrated",
+      "thicknessMm": 320,
+      "material": "KC",
+      "obliquityDeg": 2.755286482049841,
+      "resistanceMm": 352.407398649606,
+      "hullDamage": 45.5,
+      "breachAssignments": [
+        {
+          "compartmentId": "flood-strip-port-7-4",
+          "areaM2": 0.1444,
+          "position": [
+            -17.034740845070424,
+            0.3574979721117113,
+            33
+          ]
+        }
+      ],
+      "compartmentId": "flood-strip-port-7-4",
+      "breachAreaM2": 0.1444,
+      "exitSpeedMps": 351.7700733595622,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.035
+    },
+    {
+      "shellId": 1007,
+      "shipId": "enemy-1",
+      "targetId": "port-teak-backing-2",
+      "targetName": "Port Teak Backing 2",
+      "kind": "armor",
+      "position": [
+        -16.849740845070425,
+        0.3485854581816453,
+        33
+      ],
+      "impactSpeedMps": 351.7703210376277,
+      "penetrationBeforeMm": 197.59480786307554,
+      "penetrationAfterMm": 197.59480786307554,
+      "outcome": "backing",
+      "thicknessMm": 50,
+      "material": "teak",
+      "obliquityDeg": 2.7561246014691747,
+      "resistanceMm": 0,
+      "exitSpeedMps": 351.7703210376277,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.03447348279581914
+    },
+    {
+      "shellId": 1007,
+      "shipId": "enemy-1",
+      "targetId": "port-belt-support-2",
+      "targetName": "Port Belt Support 2",
+      "kind": "armor",
+      "position": [
+        -16.811740845070425,
+        0.34675450034139343,
+        33
+      ],
+      "impactSpeedMps": 351.7703719214085,
+      "penetrationBeforeMm": 197.59484787816157,
+      "penetrationAfterMm": 177.57168323314016,
+      "outcome": "penetrated",
+      "thicknessMm": 20,
+      "material": "steel",
+      "obliquityDeg": 2.7562967557478477,
+      "resistanceMm": 20.023164645021403,
+      "hullDamage": 0,
+      "exitSpeedMps": 325.9230231448425,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.03436533331604145
+    },
+    {
+      "shellId": 1007,
+      "shipId": "enemy-1",
+      "targetId": "port-turtleback-2",
+      "targetName": "Port Turtleback 2",
+      "kind": "armor",
+      "position": [
+        -13.37448539576398,
+        0.18108613443796973,
+        33
+      ],
+      "impactSpeedMps": 325.9280073802481,
+      "penetrationBeforeMm": 177.5754850096353,
+      "penetrationAfterMm": 0,
+      "outcome": "stopped",
+      "thicknessMm": 110,
+      "material": "Wh",
+      "obliquityDeg": 62.84010872472486,
+      "resistanceMm": 240.9769481055701,
+      "terminal": false,
+      "exitSpeedMps": 0,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.02380696360457215
+    },
+    {
+      "shellId": 1006,
+      "shipId": "enemy-1",
+      "targetId": "port-main-belt-2",
+      "targetName": "Port Main Belt 2",
+      "kind": "armor",
+      "position": [
+        -17.003438591549298,
+        0.3559936737110746,
+        24
+      ],
+      "impactSpeedMps": 730.8404890547214,
+      "penetrationBeforeMm": 550.0020329870565,
+      "penetrationAfterMm": 197.59462461252218,
+      "outcome": "penetrated",
+      "thicknessMm": 320,
+      "material": "KC",
+      "obliquityDeg": 2.755319335602528,
+      "resistanceMm": 352.4074083745343,
+      "hullDamage": 45.5,
+      "breachAssignments": [
+        {
+          "compartmentId": "flood-strip-port-7-4",
+          "areaM2": 0.1444,
+          "position": [
+            -17.003438591549298,
+            0.3559936737110746,
+            24
+          ]
+        }
+      ],
+      "compartmentId": "flood-strip-port-7-4",
+      "breachAreaM2": 0.1444,
+      "exitSpeedMps": 351.77008801345045,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.035
+    },
+    {
+      "shellId": 1006,
+      "shipId": "enemy-1",
+      "targetId": "port-teak-backing-2",
+      "targetName": "Port Teak Backing 2",
+      "kind": "armor",
+      "position": [
+        -16.818438591549295,
+        0.3470811639181217,
+        24
+      ],
+      "impactSpeedMps": 351.7703356944785,
+      "penetrationBeforeMm": 197.59481938924608,
+      "penetrationAfterMm": 197.59481938924608,
+      "outcome": "backing",
+      "thicknessMm": 50,
+      "material": "teak",
+      "obliquityDeg": 2.756157455004752,
+      "resistanceMm": 0,
+      "exitSpeedMps": 351.7703356944785,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.03447348280322296
+    },
+    {
+      "shellId": 1006,
+      "shipId": "enemy-1",
+      "targetId": "port-belt-support-2",
+      "targetName": "Port Belt Support 2",
+      "kind": "armor",
+      "position": [
+        -16.780438591549295,
+        0.34525020692766323,
+        24
+      ],
+      "impactSpeedMps": 351.7703865788679,
+      "penetrationBeforeMm": 197.5948594048114,
+      "penetrationAfterMm": 177.5716942070342,
+      "outcome": "penetrated",
+      "thicknessMm": 20,
+      "material": "steel",
+      "obliquityDeg": 2.756329609280071,
+      "resistanceMm": 20.023165197777185,
+      "hullDamage": 0,
+      "exitSpeedMps": 325.92303753196853,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.03436533332496606
+    },
+    {
+      "shellId": 1006,
+      "shipId": "enemy-1",
+      "targetId": "port-turtleback-2",
+      "targetName": "Port Turtleback 2",
+      "kind": "armor",
+      "position": [
+        -13.346181276357997,
+        0.17972658451248838,
+        24
+      ],
+      "impactSpeedMps": 325.92801746492523,
+      "penetrationBeforeMm": 177.57549270184947,
+      "penetrationAfterMm": 0,
+      "outcome": "stopped",
+      "thicknessMm": 110,
+      "material": "Wh",
+      "obliquityDeg": 62.840091650067606,
+      "resistanceMm": 240.97680813116784,
+      "terminal": false,
+      "exitSpeedMps": 0,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.023816173289219044
+    },
+    {
+      "shellId": 1005,
+      "shipId": "enemy-1",
+      "targetId": "port-main-belt-2",
+      "targetName": "Port Main Belt 2",
+      "kind": "armor",
+      "position": [
+        -16.972136338028168,
+        0.35448937531043795,
+        15
+      ],
+      "impactSpeedMps": 730.8405092230163,
+      "penetrationBeforeMm": 550.0020542360769,
+      "penetrationAfterMm": 197.59463613649774,
+      "outcome": "penetrated",
+      "thicknessMm": 320,
+      "material": "KC",
+      "obliquityDeg": 2.7553521891557367,
+      "resistanceMm": 352.40741809957916,
+      "hullDamage": 45.5,
+      "breachAssignments": [
+        {
+          "compartmentId": "flood-strip-port-6-4",
+          "areaM2": 0.1444,
+          "position": [
+            -16.972136338028168,
+            0.354489375310438,
+            15
+          ]
+        }
+      ],
+      "compartmentId": "flood-strip-port-6-4",
+      "breachAreaM2": 0.1444,
+      "exitSpeedMps": 351.7701026675141,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.035
+    },
+    {
+      "shellId": 1005,
+      "shipId": "enemy-1",
+      "targetId": "port-teak-backing-2",
+      "targetName": "Port Teak Backing 2",
+      "kind": "armor",
+      "position": [
+        -16.78713633802817,
+        0.3455768696545953,
+        15
+      ],
+      "impactSpeedMps": 351.77035035150476,
+      "penetrationBeforeMm": 197.59483091555467,
+      "penetrationAfterMm": 197.59483091555467,
+      "outcome": "backing",
+      "thicknessMm": 50,
+      "material": "teak",
+      "obliquityDeg": 2.756190308540719,
+      "resistanceMm": 0,
+      "exitSpeedMps": 351.77035035150476,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.03447348281062688
+    },
+    {
+      "shellId": 1005,
+      "shipId": "enemy-1",
+      "targetId": "port-belt-support-2",
+      "targetName": "Port Belt Support 2",
+      "kind": "armor",
+      "position": [
+        -16.74913633802817,
+        0.34374591351392936,
+        15
+      ],
+      "impactSpeedMps": 351.77040123650266,
+      "penetrationBeforeMm": 197.59487093159916,
+      "penetrationAfterMm": 177.57170518105957,
+      "outcome": "penetrated",
+      "thicknessMm": 20,
+      "material": "steel",
+      "obliquityDeg": 2.7563624628124193,
+      "resistanceMm": 20.023165750539587,
+      "hullDamage": 0,
+      "exitSpeedMps": 325.92305191926675,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.034365333333890774
+    },
+    {
+      "shellId": 1005,
+      "shipId": "enemy-1",
+      "targetId": "port-turtleback-2",
+      "targetName": "Port Turtleback 2",
+      "kind": "armor",
+      "position": [
+        -13.317877157786896,
+        0.17836703420841873,
+        15
+      ],
+      "impactSpeedMps": 325.9280275496947,
+      "penetrationBeforeMm": 177.57550039413405,
+      "penetrationAfterMm": 0,
+      "outcome": "stopped",
+      "thicknessMm": 110,
+      "material": "Wh",
+      "obliquityDeg": 62.84007457541422,
+      "resistanceMm": 240.9766681569813,
+      "terminal": false,
+      "exitSpeedMps": 0,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.023825382976128046
+    },
+    {
+      "shellId": 1004,
+      "shipId": "enemy-1",
+      "targetId": "port-main-belt-2",
+      "targetName": "Port Main Belt 2",
+      "kind": "armor",
+      "position": [
+        -16.940834084507042,
+        0.35298507690980124,
+        6
+      ],
+      "impactSpeedMps": 730.8405293915526,
+      "penetrationBeforeMm": 550.002075485352,
+      "penetrationAfterMm": 197.59464766061149,
+      "outcome": "penetrated",
+      "thicknessMm": 320,
+      "material": "KC",
+      "obliquityDeg": 2.755385042709069,
+      "resistanceMm": 352.40742782474047,
+      "hullDamage": 45.5,
+      "breachAssignments": [
+        {
+          "compartmentId": "flood-strip-port-6-4",
+          "areaM2": 0.14439999999999997,
+          "position": [
+            -16.940834084507042,
+            0.3529850769098012,
+            6
+          ]
+        }
+      ],
+      "compartmentId": "flood-strip-port-6-4",
+      "breachAreaM2": 0.14439999999999997,
+      "exitSpeedMps": 351.7701173217532,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.035
+    },
+    {
+      "shellId": 1004,
+      "shipId": "enemy-1",
+      "targetId": "port-teak-backing-2",
+      "targetName": "Port Teak Backing 2",
+      "kind": "armor",
+      "position": [
+        -16.755834084507043,
+        0.34407257539106545,
+        6
+      ],
+      "impactSpeedMps": 351.77036500870645,
+      "penetrationBeforeMm": 197.59484244200146,
+      "penetrationAfterMm": 197.59484244200146,
+      "outcome": "backing",
+      "thicknessMm": 50,
+      "material": "teak",
+      "obliquityDeg": 2.7562231620766795,
+      "resistanceMm": 0,
+      "exitSpeedMps": 351.77036500870645,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.03447348281803087
+    },
+    {
+      "shellId": 1004,
+      "shipId": "enemy-1",
+      "targetId": "port-belt-support-2",
+      "targetName": "Port Belt Support 2",
+      "kind": "armor",
+      "position": [
+        -16.717834084507043,
+        0.3422416201001915,
+        6
+      ],
+      "impactSpeedMps": 351.77041589431286,
+      "penetrationBeforeMm": 197.59488245852512,
+      "penetrationAfterMm": 177.5717161552165,
+      "outcome": "penetrated",
+      "thicknessMm": 20,
+      "material": "steel",
+      "obliquityDeg": 2.756395316344761,
+      "resistanceMm": 20.0231663033086,
+      "hullDamage": 0,
+      "exitSpeedMps": 325.92306630673716,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.034365333342815586
+    },
+    {
+      "shellId": 1004,
+      "shipId": "enemy-1",
+      "targetId": "port-turtleback-2",
+      "targetName": "Port Turtleback 2",
+      "kind": "armor",
+      "position": [
+        -13.28957304005067,
+        0.17700748352576035,
+        6
+      ],
+      "impactSpeedMps": 325.9280376345566,
+      "penetrationBeforeMm": 177.57550808648918,
+      "penetrationAfterMm": 0,
+      "outcome": "stopped",
+      "thicknessMm": 110,
+      "material": "Wh",
+      "obliquityDeg": 62.84005750076469,
+      "resistanceMm": 240.97652818301046,
+      "terminal": false,
+      "exitSpeedMps": 0,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.023834592665299137
+    },
+    {
+      "shellId": 1003,
+      "shipId": "enemy-1",
+      "targetId": "port-main-belt-2",
+      "targetName": "Port Main Belt 2",
+      "kind": "armor",
+      "position": [
+        -16.909531830985916,
+        0.3514807785091646,
+        -3
+      ],
+      "impactSpeedMps": 730.8405495603307,
+      "penetrationBeforeMm": 550.0020967348821,
+      "penetrationAfterMm": 197.59465918486376,
+      "outcome": "penetrated",
+      "thicknessMm": 320,
+      "material": "KC",
+      "obliquityDeg": 2.755417896263056,
+      "resistanceMm": 352.40743755001836,
+      "hullDamage": 45.5,
+      "breachAssignments": [
+        {
+          "compartmentId": "flood-strip-port-5-4",
+          "areaM2": 0.1444,
+          "position": [
+            -16.909531830985916,
+            0.3514807785091646,
+            -3
+          ]
+        }
+      ],
+      "compartmentId": "flood-strip-port-5-4",
+      "breachAreaM2": 0.1444,
+      "exitSpeedMps": 351.7701319761681,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.035
+    },
+    {
+      "shellId": 1003,
+      "shipId": "enemy-1",
+      "targetId": "port-teak-backing-2",
+      "targetName": "Port Teak Backing 2",
+      "kind": "armor",
+      "position": [
+        -16.724531830985914,
+        0.34256828112753257,
+        -3
+      ],
+      "impactSpeedMps": 351.7703796660839,
+      "penetrationBeforeMm": 197.59485396858676,
+      "penetrationAfterMm": 197.59485396858676,
+      "outcome": "backing",
+      "thicknessMm": 50,
+      "material": "teak",
+      "obliquityDeg": 2.7562560156130296,
+      "resistanceMm": 0,
+      "exitSpeedMps": 351.7703796660839,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.034473482825434956
+    },
+    {
+      "shellId": 1003,
+      "shipId": "enemy-1",
+      "targetId": "port-belt-support-2",
+      "targetName": "Port Belt Support 2",
+      "kind": "armor",
+      "position": [
+        -16.686531830985913,
+        0.34073732668645007,
+        -3
+      ],
+      "impactSpeedMps": 351.7704305522989,
+      "penetrationBeforeMm": 197.59489398558966,
+      "penetrationAfterMm": 177.57172712950543,
+      "outcome": "penetrated",
+      "thicknessMm": 20,
+      "material": "steel",
+      "obliquityDeg": 2.756428169877757,
+      "resistanceMm": 20.023166856084238,
+      "hullDamage": 0,
+      "exitSpeedMps": 325.9230806943802,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.03436533335174052
+    },
+    {
+      "shellId": 1003,
+      "shipId": "enemy-1",
+      "targetId": "port-turtleback-2",
+      "targetName": "Port Turtleback 2",
+      "kind": "armor",
+      "position": [
+        -13.261268923149322,
+        0.17564793246451404,
+        -3
+      ],
+      "impactSpeedMps": 325.9280477195112,
+      "penetrationBeforeMm": 177.5755157789153,
+      "penetrationAfterMm": 0,
+      "outcome": "stopped",
+      "thicknessMm": 110,
+      "material": "Wh",
+      "obliquityDeg": 62.840040426119046,
+      "resistanceMm": 240.97638820925536,
+      "terminal": false,
+      "exitSpeedMps": 0,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.02384380235673237
+    },
+    {
+      "shellId": 1002,
+      "shipId": "enemy-1",
+      "targetId": "port-main-belt-2",
+      "targetName": "Port Main Belt 2",
+      "kind": "armor",
+      "position": [
+        -16.87822957746479,
+        0.3499764801085279,
+        -12
+      ],
+      "impactSpeedMps": 730.8405697293504,
+      "penetrationBeforeMm": 550.002117984667,
+      "penetrationAfterMm": 197.59467070925444,
+      "outcome": "penetrated",
+      "thicknessMm": 320,
+      "material": "KC",
+      "obliquityDeg": 2.7554507498169025,
+      "resistanceMm": 352.4074472754126,
+      "hullDamage": 45.5,
+      "breachAssignments": [
+        {
+          "compartmentId": "flood-strip-port-5-4",
+          "areaM2": 0.1444,
+          "position": [
+            -16.87822957746479,
+            0.3499764801085279,
+            -12
+          ]
+        }
+      ],
+      "compartmentId": "flood-strip-port-5-4",
+      "breachAreaM2": 0.1444,
+      "exitSpeedMps": 351.77014663075875,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.035
+    },
+    {
+      "shellId": 1002,
+      "shipId": "enemy-1",
+      "targetId": "port-teak-backing-2",
+      "targetName": "Port Teak Backing 2",
+      "kind": "armor",
+      "position": [
+        -16.693229577464788,
+        0.3410639868639965,
+        -12
+      ],
+      "impactSpeedMps": 351.7703943236371,
+      "penetrationBeforeMm": 197.59486549531042,
+      "penetrationAfterMm": 197.59486549531042,
+      "outcome": "backing",
+      "thicknessMm": 50,
+      "material": "teak",
+      "obliquityDeg": 2.7562888691497687,
+      "resistanceMm": 0,
+      "exitSpeedMps": 351.7703943236371,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.03447348283283912
+    },
+    {
+      "shellId": 1002,
+      "shipId": "enemy-1",
+      "targetId": "port-belt-support-2",
+      "targetName": "Port Belt Support 2",
+      "kind": "armor",
+      "position": [
+        -16.655229577464787,
+        0.33923303327270465,
+        -12
+      ],
+      "impactSpeedMps": 351.7704452104606,
+      "penetrationBeforeMm": 197.59490551279254,
+      "penetrationAfterMm": 177.57173810392604,
+      "outcome": "penetrated",
+      "thicknessMm": 20,
+      "material": "steel",
+      "obliquityDeg": 2.7564610234106137,
+      "resistanceMm": 20.023167408866488,
+      "hullDamage": 0,
+      "exitSpeedMps": 325.92309508219563,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.03436533336066553
+    },
+    {
+      "shellId": 1002,
+      "shipId": "enemy-1",
+      "targetId": "port-turtleback-2",
+      "targetName": "Port Turtleback 2",
+      "kind": "armor",
+      "position": [
+        -13.232964807082853,
+        0.17428838102467897,
+        -12
+      ],
+      "impactSpeedMps": 325.92805780455836,
+      "penetrationBeforeMm": 177.57552347141205,
+      "penetrationAfterMm": 0,
+      "outcome": "stopped",
+      "thicknessMm": 110,
+      "material": "Wh",
+      "obliquityDeg": 62.84002335147726,
+      "resistanceMm": 240.97624823571596,
+      "terminal": false,
+      "exitSpeedMps": 0,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.023853012050427683
+    },
+    {
+      "shellId": 1001,
+      "shipId": "enemy-1",
+      "targetId": "port-main-belt-2",
+      "targetName": "Port Main Belt 2",
+      "kind": "armor",
+      "position": [
+        -16.846927323943664,
+        0.3484721817078912,
+        -21
+      ],
+      "impactSpeedMps": 730.8405898986115,
+      "penetrationBeforeMm": 550.0021392347065,
+      "penetrationAfterMm": 197.5946822337831,
+      "outcome": "penetrated",
+      "thicknessMm": 320,
+      "material": "KC",
+      "obliquityDeg": 2.7554836033712706,
+      "resistanceMm": 352.40745700092344,
+      "hullDamage": 45.5,
+      "breachAssignments": [
+        {
+          "compartmentId": "flood-strip-port-5-4",
+          "areaM2": 0.1444,
+          "position": [
+            -16.846927323943664,
+            0.3484721817078912,
+            -21
+          ]
+        }
+      ],
+      "compartmentId": "flood-strip-port-5-4",
+      "breachAreaM2": 0.1444,
+      "exitSpeedMps": 351.7701612855246,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.035
+    },
+    {
+      "shellId": 1001,
+      "shipId": "enemy-1",
+      "targetId": "port-teak-backing-2",
+      "targetName": "Port Teak Backing 2",
+      "kind": "armor",
+      "position": [
+        -16.66192732394366,
+        0.3395596926004573,
+        -21
+      ],
+      "impactSpeedMps": 351.77040898136556,
+      "penetrationBeforeMm": 197.59487702217214,
+      "penetrationAfterMm": 197.59487702217214,
+      "outcome": "backing",
+      "thicknessMm": 50,
+      "material": "teak",
+      "obliquityDeg": 2.7563217226866334,
+      "resistanceMm": 0,
+      "exitSpeedMps": 351.77040898136556,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.034473482840243375
+    },
+    {
+      "shellId": 1001,
+      "shipId": "enemy-1",
+      "targetId": "port-belt-support-2",
+      "targetName": "Port Belt Support 2",
+      "kind": "armor",
+      "position": [
+        -16.62392732394366,
+        0.33772873985895546,
+        -21
+      ],
+      "impactSpeedMps": 351.7704598687976,
+      "penetrationBeforeMm": 197.5949170401335,
+      "penetrationAfterMm": 177.57174907847815,
+      "outcome": "penetrated",
+      "thicknessMm": 20,
+      "material": "steel",
+      "obliquityDeg": 2.756493876944257,
+      "resistanceMm": 20.023167961655364,
+      "hullDamage": 0,
+      "exitSpeedMps": 325.92310947018314,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.03436533336959066
+    },
+    {
+      "shellId": 1001,
+      "shipId": "enemy-1",
+      "targetId": "port-turtleback-2",
+      "targetName": "Port Turtleback 2",
+      "kind": "armor",
+      "position": [
+        -13.204660691851263,
+        0.17292882920625563,
+        -21
+      ],
+      "impactSpeedMps": 325.92806788969773,
+      "penetrationBeforeMm": 177.57553116397932,
+      "penetrationAfterMm": 0,
+      "outcome": "stopped",
+      "thicknessMm": 110,
+      "material": "Wh",
+      "obliquityDeg": 62.840006276839325,
+      "resistanceMm": 240.97610826239224,
+      "terminal": false,
+      "exitSpeedMps": 0,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.02386222174638509
+    },
+    {
+      "shellId": 1000,
+      "shipId": "enemy-1",
+      "targetId": "port-main-belt-2",
+      "targetName": "Port Main Belt 2",
+      "kind": "armor",
+      "position": [
+        -16.815625070422538,
+        0.3469678833072545,
+        -30
+      ],
+      "impactSpeedMps": 730.8406100681141,
+      "penetrationBeforeMm": 550.0021604850006,
+      "penetrationAfterMm": 197.59469375844992,
+      "outcome": "penetrated",
+      "thicknessMm": 320,
+      "material": "KC",
+      "obliquityDeg": 2.755516456925499,
+      "resistanceMm": 352.40746672655064,
+      "hullDamage": 45.5,
+      "breachAssignments": [
+        {
+          "compartmentId": "flood-strip-port-4-4",
+          "areaM2": 0.1444,
+          "position": [
+            -16.815625070422538,
+            0.3469678833072545,
+            -30
+          ]
+        }
+      ],
+      "compartmentId": "flood-strip-port-4-4",
+      "breachAreaM2": 0.1444,
+      "exitSpeedMps": 351.770175940466,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.035
+    },
+    {
+      "shellId": 1000,
+      "shipId": "enemy-1",
+      "targetId": "port-teak-backing-2",
+      "targetName": "Port Teak Backing 2",
+      "kind": "armor",
+      "position": [
+        -16.630625070422536,
+        0.33805539833691506,
+        -30
+      ],
+      "impactSpeedMps": 351.7704236392696,
+      "penetrationBeforeMm": 197.59488854917203,
+      "penetrationAfterMm": 197.59488854917203,
+      "outcome": "backing",
+      "thicknessMm": 50,
+      "material": "teak",
+      "obliquityDeg": 2.7563545762237562,
+      "resistanceMm": 0,
+      "exitSpeedMps": 351.7704236392696,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.03447348284764772
+    },
+    {
+      "shellId": 1000,
+      "shipId": "enemy-1",
+      "targetId": "port-belt-support-2",
+      "targetName": "Port Belt Support 2",
+      "kind": "armor",
+      "position": [
+        -16.592625070422535,
+        0.3362244464452026,
+        -30
+      ],
+      "impactSpeedMps": 351.7704745273101,
+      "penetrationBeforeMm": 197.59492856761256,
+      "penetrationAfterMm": 177.5717600531617,
+      "outcome": "penetrated",
+      "thicknessMm": 20,
+      "material": "steel",
+      "obliquityDeg": 2.7565267304774967,
+      "resistanceMm": 20.023168514450848,
+      "hullDamage": 0,
+      "exitSpeedMps": 325.92312385834293,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.0343653333785159
+    },
+    {
+      "shellId": 1000,
+      "shipId": "enemy-1",
+      "targetId": "port-turtleback-2",
+      "targetName": "Port Turtleback 2",
+      "kind": "armor",
+      "position": [
+        -13.17635657745455,
+        0.171569277009244,
+        -30
+      ],
+      "impactSpeedMps": 325.9280779749296,
+      "penetrationBeforeMm": 177.57553885661707,
+      "penetrationAfterMm": 0,
+      "outcome": "stopped",
+      "thicknessMm": 110,
+      "material": "Wh",
+      "obliquityDeg": 62.83998920220529,
+      "resistanceMm": 240.9759682892843,
+      "terminal": false,
+      "exitSpeedMps": 0,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0.023871431444604584
+    },
+    {
+      "shellId": 1007,
+      "shipId": "enemy-1",
+      "targetId": "partition-38fea1821bd3",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -15.050732216835023,
+        1.4449999999999998,
+        33
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 22.095327921694498,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-38fea1821bd3"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1007,
+      "shipId": "enemy-1",
+      "targetId": "partition-9c3a49e1a45f",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -14.861163339614869,
+        0.18109096236898709,
+        38.51
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 25.2212209756699,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-9c3a49e1a45f"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1007,
+      "shipId": "enemy-1",
+      "targetId": "partition-3e4e4b717578",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -15.050732216835023,
+        1.5150000000000001,
+        38.51
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 7.400465106358541,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-3e4e4b717578"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1007,
+      "shipId": "enemy-1",
+      "targetId": "partition-681e71a746ce",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -13.374585279151399,
+        1.4449999999999998,
+        38.95
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 25.288437193219252,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-681e71a746ce"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1007,
+      "shipId": "enemy-1",
+      "targetId": "ap-burst",
+      "targetName": "AP shell burst",
+      "kind": "burst",
+      "position": [
+        -13.374585279151399,
+        0.18109096236898709,
+        33
+      ],
+      "penetrationBeforeMm": 0,
+      "penetrationAfterMm": 0,
+      "outcome": "detonation",
+      "hullDamage": 0,
+      "terminal": true,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1006,
+      "shipId": "enemy-1",
+      "targetId": "partition-38fea1821bd3",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -15.050732216835023,
+        1.4449999999999998,
+        24
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 22.011473762867194,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-38fea1821bd3"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1006,
+      "shipId": "enemy-1",
+      "targetId": "partition-1679a0ecde7c",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -15.889202556610108,
+        0.17973141247327193,
+        18.99
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 24.79280276566826,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-1679a0ecde7c"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1006,
+      "shipId": "enemy-1",
+      "targetId": "partition-9965f196537b",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -15.838663301467896,
+        1.5150000000000001,
+        18.99
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 3.1168242452278623,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-9965f196537b"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1006,
+      "shipId": "enemy-1",
+      "targetId": "partition-889393feef6e",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -15.889202556610108,
+        0.055000000000000014,
+        18.55
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 13.053676601741955,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-889393feef6e"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1006,
+      "shipId": "enemy-1",
+      "targetId": "partition-9e07ea10b417",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -15.889202556610108,
+        1.4449999999999998,
+        18.55
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 12.677754021793962,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-9e07ea10b417"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1006,
+      "shipId": "enemy-1",
+      "targetId": "ap-burst",
+      "targetName": "AP shell burst",
+      "kind": "burst",
+      "position": [
+        -13.346281159743977,
+        0.17973141247327193,
+        24
+      ],
+      "penetrationBeforeMm": 0,
+      "penetrationAfterMm": 0,
+      "outcome": "detonation",
+      "hullDamage": 0,
+      "terminal": true,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1005,
+      "shipId": "enemy-1",
+      "targetId": "partition-9e07ea10b417",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -15.889202556610108,
+        1.4449999999999998,
+        15
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 19.08540200880292,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-9e07ea10b417"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1005,
+      "shipId": "enemy-1",
+      "targetId": "partition-ac53c358142c",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -14.861163339614869,
+        0.055000000000000014,
+        18.950000000000003
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 25.029696364172636,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-ac53c358142c"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1005,
+      "shipId": "enemy-1",
+      "targetId": "partition-1679a0ecde7c",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -15.889202556610108,
+        0.17837186219896847,
+        18.51
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 24.201977989290256,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-1679a0ecde7c"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1005,
+      "shipId": "enemy-1",
+      "targetId": "partition-38fea1821bd3",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -15.050732216835023,
+        1.4449999999999998,
+        18.950000000000003
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 24.709526462103852,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-38fea1821bd3"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1005,
+      "shipId": "enemy-1",
+      "targetId": "partition-9965f196537b",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -15.838663301467896,
+        1.5150000000000001,
+        18.51
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 23.956506867516342,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-9965f196537b"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1005,
+      "shipId": "enemy-1",
+      "targetId": "ap-burst",
+      "targetName": "AP shell burst",
+      "kind": "burst",
+      "position": [
+        -13.317977041171437,
+        0.17837186219896847,
+        15
+      ],
+      "penetrationBeforeMm": 0,
+      "penetrationAfterMm": 0,
+      "outcome": "detonation",
+      "hullDamage": 0,
+      "terminal": true,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1004,
+      "shipId": "enemy-1",
+      "targetId": "partition-9e07ea10b417",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -15.889202556610108,
+        1.4449999999999998,
+        6
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 18.99495639161458,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-9e07ea10b417"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1004,
+      "shipId": "enemy-1",
+      "targetId": "partition-cf71fee8af09",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -15.889202556610108,
+        0.17701231154607625,
+        -1.0100000000000007
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 25.067280037457657,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-cf71fee8af09"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1004,
+      "shipId": "enemy-1",
+      "targetId": "partition-5084e95c5ba1",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -15.838663301467896,
+        1.5150000000000001,
+        -1.0100000000000007
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 24.994790169356577,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-5084e95c5ba1"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1004,
+      "shipId": "enemy-1",
+      "targetId": "partition-783d788efd5a",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -15.702889881134034,
+        0.055000000000000014,
+        -1.4499999999999993
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 25.14359078026873,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-783d788efd5a"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1004,
+      "shipId": "enemy-1",
+      "targetId": "partition-94e606042699",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -15.702889881134034,
+        1.4449999999999998,
+        -1.4499999999999993
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 25.075778865490328,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-94e606042699"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1004,
+      "shipId": "enemy-1",
+      "targetId": "ap-burst",
+      "targetName": "AP shell burst",
+      "kind": "burst",
+      "position": [
+        -13.289672923433772,
+        0.17701231154607625,
+        6
+      ],
+      "penetrationBeforeMm": 0,
+      "penetrationAfterMm": 0,
+      "outcome": "detonation",
+      "hullDamage": 0,
+      "terminal": true,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1003,
+      "shipId": "enemy-1",
+      "targetId": "partition-94e606042699",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -15.702889881134034,
+        1.4449999999999998,
+        -3
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 19.56066753234152,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-94e606042699"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1003,
+      "shipId": "enemy-1",
+      "targetId": "partition-cf71fee8af09",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -15.889202556610108,
+        0.1756527605145961,
+        -1.4899999999999993
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 20.364314026363864,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-cf71fee8af09"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1003,
+      "shipId": "enemy-1",
+      "targetId": "partition-5084e95c5ba1",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -15.838663301467896,
+        1.5150000000000001,
+        -1.4899999999999993
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 7.339449813983583,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-5084e95c5ba1"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1003,
+      "shipId": "enemy-1",
+      "targetId": "partition-889393feef6e",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -15.889202556610108,
+        0.055000000000000014,
+        -1.0500000000000007
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 15.77328113544715,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-889393feef6e"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1003,
+      "shipId": "enemy-1",
+      "targetId": "partition-9e07ea10b417",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -15.889202556610108,
+        1.4449999999999998,
+        -1.0500000000000007
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 14.72203450667208,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-9e07ea10b417"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1003,
+      "shipId": "enemy-1",
+      "targetId": "ap-burst",
+      "targetName": "AP shell burst",
+      "kind": "burst",
+      "position": [
+        -13.261368806530985,
+        0.1756527605145961,
+        -3
+      ],
+      "penetrationBeforeMm": 0,
+      "penetrationAfterMm": 0,
+      "outcome": "detonation",
+      "hullDamage": 0,
+      "terminal": true,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1002,
+      "shipId": "enemy-1",
+      "targetId": "partition-94e606042699",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -15.702889881134034,
+        1.4449999999999998,
+        -12
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 19.470882840821286,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-94e606042699"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1002,
+      "shipId": "enemy-1",
+      "targetId": "ap-burst",
+      "targetName": "AP shell burst",
+      "kind": "burst",
+      "position": [
+        -13.233064690463078,
+        0.1742932091045272,
+        -12
+      ],
+      "penetrationBeforeMm": 0,
+      "penetrationAfterMm": 0,
+      "outcome": "detonation",
+      "hullDamage": 0,
+      "terminal": true,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1001,
+      "shipId": "enemy-1",
+      "targetId": "partition-1b8752e62655",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -14.068314156532288,
+        0.055000000000000014,
+        -21.450000000000003
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 19.50129050958234,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-1b8752e62655"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1001,
+      "shipId": "enemy-1",
+      "targetId": "partition-675a52364598",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -14.23817738056183,
+        1.4449999999999998,
+        -21.450000000000003
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 11.515676781422904,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-675a52364598"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1001,
+      "shipId": "enemy-1",
+      "targetId": "partition-94e606042699",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -15.702889881134034,
+        1.4449999999999998,
+        -21
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 19.381095011829466,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-94e606042699"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1001,
+      "shipId": "enemy-1",
+      "targetId": "ap-burst",
+      "targetName": "AP shell burst",
+      "kind": "burst",
+      "position": [
+        -13.204760575230049,
+        0.17293365731587002,
+        -21
+      ],
+      "penetrationBeforeMm": 0,
+      "penetrationAfterMm": 0,
+      "outcome": "detonation",
+      "hullDamage": 0,
+      "terminal": true,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1000,
+      "shipId": "enemy-1",
+      "targetId": "partition-675a52364598",
+      "targetName": "Watertight boundary",
+      "kind": "boundary",
+      "position": [
+        -14.23817738056183,
+        1.4449999999999998,
+        -30
+      ],
+      "penetrationBeforeMm": 30.4,
+      "penetrationAfterMm": 23.89011945953512,
+      "outcome": "damaged",
+      "damage": 0,
+      "hullDamage": 0,
+      "connectionIds": [
+        "partition-675a52364598"
+      ],
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    },
+    {
+      "shellId": 1000,
+      "shipId": "enemy-1",
+      "targetId": "ap-burst",
+      "targetName": "AP shell burst",
+      "kind": "burst",
+      "position": [
+        -13.176456460831897,
+        0.1715741051486245,
+        -30
+      ],
+      "penetrationBeforeMm": 0,
+      "penetrationAfterMm": 0,
+      "outcome": "detonation",
+      "hullDamage": 0,
+      "terminal": true,
+      "fuze": "armed",
+      "fuzeRemainingSeconds": 0
+    }
+  ]
+}

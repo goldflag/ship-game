@@ -32,11 +32,11 @@ const score = (sim: CombatSimulation) => {
   return [t.playerDamageDealt, t.playerFrags];
 };
 
-test('score counts actual enemy equipment loss, caps overkill and awards permanent disarmament once', () => {
+test('score counts actual enemy hull damage, caps overkill and awards a loss once', () => {
   const sim = fixture();
   const maxHp = sim.target.damage.maxIntegrity;
   hit(sim, sim.target, sim.player);
-  expect(score(sim)).toEqual([maxHp * .2, 0]);
+  expect(score(sim)).toEqual([17, 0]);
   hit(sim, sim.target, sim.player, 10000);
   expect(score(sim)).toEqual([maxHp, 1]);
   for (let i = 0; i < 30; i++) sim.step(helm, intent);
@@ -50,18 +50,18 @@ test('score counts actual enemy equipment loss, caps overkill and awards permane
 
 test('main battery destruction earns damage but no frag while a secondary gun survives', () => {
   const sim = fixture(true);
-  hit(sim, sim.target, sim.player, 10000);
+  hit(sim, sim.target, sim.player, 100);
   expect(sim.target.damage.sunk).toBe(false);
   expect(sim.target.damage.stability.status).toBe('operational');
   expect(sim.target.damage.stability.combatLost).toBe(false);
   expect(sim.target.mounts[1].hp).toBe(100);
-  expect(score(sim)).toEqual([sim.target.damage.maxIntegrity * .5, 0]);
+  expect(score(sim)).toEqual([85, 0]);
   sim.target.damage.compartments[0].waterM3 = 1000;
   sim.step(helm, intent);
   expect(sim.target.damage.sunk).toBe(true);
-  expect(score(sim)).toEqual([sim.target.damage.maxIntegrity * .5, 1]);
+  expect(score(sim)).toEqual([85, 1]);
   sim.step(helm, intent);
-  expect(score(sim)).toEqual([sim.target.damage.maxIntegrity * .5, 1]);
+  expect(score(sim)).toEqual([85, 1]);
 });
 
 test('stopped rounds, allied hits and bot kills do not increase the player score', () => {
@@ -77,18 +77,18 @@ test('the final hostile damaging hit earns the frag, including delayed flooding'
   const sim = fixture(), ally = sim.actors[1];
   hit(sim, sim.target, sim.player);
   hit(sim, sim.target, ally, 10000);
-  expect(score(sim)).toEqual([sim.target.damage.maxIntegrity * .2, 0]);
+  expect(score(sim)).toEqual([17, 0]);
   sim.selectTarget('enemy-2');
   hit(sim, sim.target, sim.player);
   sim.target.damage.compartments.forEach((c, i) => c.waterM3 = sim.target.definition.compartments[i].capacityM3);
   sim.step(helm, intent);
   expect(sim.target.damage.sunk).toBe(true);
-  expect(score(sim)).toEqual([sim.target.damage.maxIntegrity * .4, 1]);
+  expect(score(sim)).toEqual([34, 1]);
   sim.step(helm, intent);
-  expect(score(sim)).toEqual([sim.target.damage.maxIntegrity * .4, 1]);
+  expect(score(sim)).toEqual([34, 1]);
 });
 
-test('another shell in the lethal tick cannot take the frag from an already destroyed hull', () => {
+test('another shell in the lethal tick cannot take the frag from an already disarmed ship', () => {
   const sim = fixture();
   sim.target.mounts[0].hp = 20;
   for (const owner of [sim.actors[1], sim.player]) sim.shells.push({
@@ -96,5 +96,5 @@ test('another shell in the lethal tick cannot take the frag from an already dest
     velocity: rotate([820, 0, 0], sim.target.motion), age: 0, damage: 100, penetrationMm: 100, caliberM: .38, visited: [],
   });
   sim.step(helm, intent); // Shells resolve in reverse order: player, then ally.
-  expect(score(sim)).toEqual([sim.target.damage.maxIntegrity * .2, 1]);
+  expect(score(sim)).toEqual([85, 1]);
 });

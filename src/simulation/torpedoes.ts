@@ -5,6 +5,7 @@ import { motionVelocity } from './ship';
 import { structuralHits } from './structure';
 import { addBreach } from './damage';
 import { equipmentCondition } from './machinery';
+import { damageHull } from './durability';
 
 export type TubeDefinition = NonNullable<ShipDefinition['torpedoTubes']>[number];
 export interface TubeState {
@@ -142,6 +143,7 @@ export function damageTorpedoHit(torpedo: Torpedo, actor: FleetActor, point: Vec
 /** Common local underwater damage; callers own blast falloff, scoring and events. */
 export function damageUnderwaterBlast(actor: FleetActor, point: Vec3, w: { damage: number; breachAreaM2: number }, label: string, projectileId: number): string {
   const def = actor.definition, damage = actor.damage;
+  damageHull(actor, w.damage);
   const distanceTo = (box: { center: Vec3; size: Vec3 }) => Math.hypot(...point.map((v, i) => Math.max(0, Math.abs(v - box.center[i]) - box.size[i] / 2)));
   const compartment = def.compartments.map((c, i) => ({ c, i, distance: Math.min(...(c.cells ?? [c]).map(distanceTo)) })).sort((a, b) => a.distance - b.distance)[0];
   if (compartment) {

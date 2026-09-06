@@ -139,14 +139,8 @@ test('launched bow salvo can sink an opponent, earning one frag, then battle res
   const sim = new CombatSimulation(definition, { friendlyBots: [], enemies: [definition], spawnDistance: 1000 });
   sim.target.controller = 'idle';
   step(sim, 180, [0, 0, -1000], true); step(sim, 2700, [0, 0, -1000]);
-  // Repeated bow hits flood one isolated room; equipment points cannot sink it.
-  expect(sim.target.damage.sunk).toBe(false);
-  expect(sim.target.damage.compartments.some(c => c.waterM3 > 0)).toBe(true);
-  // Separate armed hits open enough other spaces to exhaust reserve buoyancy.
-  sim.torpedoes.push(...[-1.3, 11.3].map(z => broadsideRound(sim.target, z)));
-  step(sim, 9000, [0, 0, -1000]);
   expect(sim.target.damage.sunk).toBe(true); expect(sim.result).toBe('victory');
-  expect(sim.target.damage.defeatCause).toBe('flooding');
+  expect(sim.target.damage.defeatCause).toBe('hull-failure');
   expect(sim.telemetry('torpedo', ahead).playerFrags).toBe(1);
   expect(sim.telemetry('torpedo', ahead).playerDamageDealt).toBeLessThanOrEqual(sim.target.damage.maxIntegrity);
   sim.reset(); expect(sim.result).toBe('active'); expect(rounds(sim)).toBe(14);
@@ -169,9 +163,9 @@ test('torpedo openings retain their position and magazine damage does not invent
   const room = sim.target.damage.compartments.find(c => c.id === 'forward-torpedo-room')!;
   expect(room.breaches).toEqual([expect.objectContaining({ position: point, areaM2: 1.6, shellId: 1 })]);
   expect(sim.target.damage.modules.find(m => m.id === 'forward-torpedoes')).toMatchObject({ hp: 0, detonated: false });
-  expect(sim.target.damage.integrity).toBe(before);
+  expect(sim.target.damage.integrity).toBe(before - projectile().weapon.damage);
   updateCapability(sim.target, definition);
-  expect(sim.target.damage.integrity).toBeLessThan(before);
+  expect(sim.target.damage.integrity).toBe(before - projectile().weapon.damage);
   for (let i = 0; i < 10; i++) damageTorpedoHit(projectile(), sim.target, point);
   expect(room.breachAreaM2).toBe(4);
   expect(room.breaches.reduce((n, b) => n + b.areaM2, 0)).toBe(4);

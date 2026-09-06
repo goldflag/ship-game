@@ -31,8 +31,8 @@ test('free water stays horizontal and shifts toward the low side; full spaces lo
   expect(bow.center[2]).toBeLessThan(0); expect(stern.center[2]).toBeCloseTo(-bow.center[2], 6);
 });
 
-for (const b of presets) test(`${b.id}: dry equilibrium, hull-derived flooding loss, and global HP cannot sink the hull`, () => {
-  const { a, def } = fixture(b); a.damage.integrity = 0;
+for (const b of presets) test(`${b.id}: dry equilibrium and hull-derived flooding loss with durability remaining`, () => {
+  const { a, def } = fixture(b);
   updateFlooding(a, def, 1 / 60); expect(a.damage.sunk).toBe(false); expect(a.motion.y).toBe(0);
   expect(a.motion.roll).toBe(0); expect(a.motion.pitch).toBe(0);
   const base = hydrostatics(def.hull), f = flotation(def.hull, base.volume, .05);

@@ -1,0 +1,709 @@
+{
+  "schemaVersion": 1,
+  "contentHash": "99381546c2522dd03f50710cb4e82ea37bddc8f598b983b03bc19309f22ffdb4",
+  "modelSha256": "06df75329d26d8a486901fffb4d2b111ff81ae17af173532d81440cc420460a5",
+  "capturePlanSha256": "167b8ae9aa2f356f31126e4e02ca2a837b7748faf4a1dc93b03faf6cac6b1a6f",
+  "captures": [
+    {
+      "id": "starboard",
+      "position": [
+        0,
+        -500,
+        15
+      ],
+      "target": [
+        0,
+        0,
+        15
+      ],
+      "spanM": 225.78314,
+      "resolution": [
+        1600,
+        600
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "starboard.png",
+      "imageSha256": "9d50d0086b46b6fd40e28890c14ffdd3f214f4139b447d64ec9871620a51c45b",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.6292068494294654e-07,
+          -1.0,
+          -500.0
+        ],
+        [
+          0.0,
+          1.0,
+          -1.6292068494294654e-07,
+          15.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 7.08644587013893,
+      "source": {
+        "id": "baltimore",
+        "contentHash": "99381546c2522dd03f50710cb4e82ea37bddc8f598b983b03bc19309f22ffdb4",
+        "modelSha256": "06df75329d26d8a486901fffb4d2b111ff81ae17af173532d81440cc420460a5"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "port",
+      "position": [
+        0,
+        500,
+        15
+      ],
+      "target": [
+        0,
+        0,
+        15
+      ],
+      "spanM": 225.78314,
+      "resolution": [
+        1600,
+        600
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "port.png",
+      "imageSha256": "a0d1893791930208a0c74006acf9e30b879716a578518414e9af52ce66473e4e",
+      "cameraMatrixWorld": [
+        [
+          -1.0,
+          1.5099581673894136e-07,
+          1.509957741063772e-07,
+          0.0
+        ],
+        [
+          1.5099580252808664e-07,
+          1.629206565212371e-07,
+          1.0,
+          500.0
+        ],
+        [
+          1.5099578831723193e-07,
+          1.0,
+          -1.6292068494294654e-07,
+          15.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 7.08644587013893,
+      "source": {
+        "id": "baltimore",
+        "contentHash": "99381546c2522dd03f50710cb4e82ea37bddc8f598b983b03bc19309f22ffdb4",
+        "modelSha256": "06df75329d26d8a486901fffb4d2b111ff81ae17af173532d81440cc420460a5"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "top",
+      "position": [
+        0,
+        0,
+        500
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "spanM": 225.78314,
+      "resolution": [
+        1600,
+        600
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "rotationEuler": [
+        0,
+        0,
+        0
+      ],
+      "image": "top.png",
+      "imageSha256": "da51f3d8a3e04a0803fbb23443672e82a504aaba28dbd49fada06117dd737aab",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          500.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 7.08644587013893,
+      "source": {
+        "id": "baltimore",
+        "contentHash": "99381546c2522dd03f50710cb4e82ea37bddc8f598b983b03bc19309f22ffdb4",
+        "modelSha256": "06df75329d26d8a486901fffb4d2b111ff81ae17af173532d81440cc420460a5"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bow",
+      "position": [
+        500,
+        0,
+        16
+      ],
+      "target": [
+        0,
+        0,
+        16
+      ],
+      "spanM": 75,
+      "resolution": [
+        1000,
+        1000
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "bow.png",
+      "imageSha256": "4f9752f61c6719028dff607f36eeb1e2e3099c81b1ae1d4c3e554e3e9795ee3b",
+      "cameraMatrixWorld": [
+        [
+          -4.371138828673793e-08,
+          4.371138828673793e-08,
+          1.0,
+          500.0
+        ],
+        [
+          1.0,
+          1.910685676922942e-15,
+          4.371138828673793e-08,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          -4.371138828673793e-08,
+          16.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 13.333333333333334,
+      "source": {
+        "id": "baltimore",
+        "contentHash": "99381546c2522dd03f50710cb4e82ea37bddc8f598b983b03bc19309f22ffdb4",
+        "modelSha256": "06df75329d26d8a486901fffb4d2b111ff81ae17af173532d81440cc420460a5"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "stern",
+      "position": [
+        -500,
+        0,
+        16
+      ],
+      "target": [
+        0,
+        0,
+        16
+      ],
+      "spanM": 75,
+      "resolution": [
+        1000,
+        1000
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "stern.png",
+      "imageSha256": "97eedfd53161bc699f900b0ea11cdce70a015ba66f64f5a783b0d244bf6c1110",
+      "cameraMatrixWorld": [
+        [
+          -4.371138828673793e-08,
+          -4.371138828673793e-08,
+          -1.0,
+          -500.0
+        ],
+        [
+          -1.0,
+          1.910685676922942e-15,
+          4.371138828673793e-08,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          -4.371138828673793e-08,
+          16.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 13.333333333333334,
+      "source": {
+        "id": "baltimore",
+        "contentHash": "99381546c2522dd03f50710cb4e82ea37bddc8f598b983b03bc19309f22ffdb4",
+        "modelSha256": "06df75329d26d8a486901fffb4d2b111ff81ae17af173532d81440cc420460a5"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "quarter-bow",
+      "position": [
+        310,
+        -390,
+        270
+      ],
+      "target": [
+        0,
+        0,
+        8
+      ],
+      "spanM": 233.99343599999997,
+      "resolution": [
+        1400,
+        750
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "quarter-bow.png",
+      "imageSha256": "a34c3bde478994681ee6d960e221d9dbf751b26a964f18ad9137bd00f8ac464e",
+      "cameraMatrixWorld": [
+        [
+          0.7828232049942017,
+          -0.28962722420692444,
+          0.5507303476333618,
+          310.0
+        ],
+        [
+          0.6222441792488098,
+          0.3643696904182434,
+          -0.6928541660308838,
+          -390.0
+        ],
+        [
+          -1.5213577952977175e-08,
+          0.8850710988044739,
+          0.46545591950416565,
+          270.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 5.983073815797124,
+      "source": {
+        "id": "baltimore",
+        "contentHash": "99381546c2522dd03f50710cb4e82ea37bddc8f598b983b03bc19309f22ffdb4",
+        "modelSha256": "06df75329d26d8a486901fffb4d2b111ff81ae17af173532d81440cc420460a5"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "quarter-stern",
+      "position": [
+        -310,
+        390,
+        230
+      ],
+      "target": [
+        0,
+        0,
+        8
+      ],
+      "spanM": 233.99343599999997,
+      "resolution": [
+        1400,
+        750
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "quarter-stern.png",
+      "imageSha256": "727a61f0db876699d123ecd2e3d924c51929f68c630874c2fb2c3501d618d1f3",
+      "cameraMatrixWorld": [
+        [
+          -0.7828232049942017,
+          0.2532689869403839,
+          -0.5683683753013611,
+          -310.0
+        ],
+        [
+          -0.6222441792488098,
+          -0.3186286687850952,
+          0.7150440216064453,
+          390.0
+        ],
+        [
+          2.6958371535101833e-08,
+          0.9134169816970825,
+          0.4070250689983368,
+          230.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 5.983073815797124,
+      "source": {
+        "id": "baltimore",
+        "contentHash": "99381546c2522dd03f50710cb4e82ea37bddc8f598b983b03bc19309f22ffdb4",
+        "modelSha256": "06df75329d26d8a486901fffb4d2b111ff81ae17af173532d81440cc420460a5"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bridge",
+      "position": [
+        80,
+        -95,
+        61
+      ],
+      "target": [
+        15,
+        0,
+        16
+      ],
+      "spanM": 58,
+      "resolution": [
+        1200,
+        900
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "bridge.png",
+      "imageSha256": "a8fe1672ec9c8aa62e843d7944a2a924d59ebd2cf2ea89b745ddd42f98f55934",
+      "cameraMatrixWorld": [
+        [
+          0.8253071904182434,
+          -0.20560191571712494,
+          0.5259238481521606,
+          80.0
+        ],
+        [
+          0.5646840333938599,
+          0.3004949986934662,
+          -0.7686577439308167,
+          -95.0
+        ],
+        [
+          1.534580817974529e-08,
+          0.9313595294952393,
+          0.3641008138656616,
+          61.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 20.689655172413794,
+      "source": {
+        "id": "baltimore",
+        "contentHash": "99381546c2522dd03f50710cb4e82ea37bddc8f598b983b03bc19309f22ffdb4",
+        "modelSha256": "06df75329d26d8a486901fffb4d2b111ff81ae17af173532d81440cc420460a5"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bridge-profile",
+      "position": [
+        15,
+        -250,
+        16
+      ],
+      "target": [
+        15,
+        0,
+        16
+      ],
+      "spanM": 65,
+      "resolution": [
+        1400,
+        950
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "bridge-profile.png",
+      "imageSha256": "f145bc40d92ca71f912de92d60a90dc5141f1c862dd85247ec06af8095926b0e",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          15.0
+        ],
+        [
+          0.0,
+          -1.6292068494294654e-07,
+          -1.0,
+          -250.0
+        ],
+        [
+          0.0,
+          1.0,
+          -1.6292068494294654e-07,
+          16.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 21.53846153846154,
+      "source": {
+        "id": "baltimore",
+        "contentHash": "99381546c2522dd03f50710cb4e82ea37bddc8f598b983b03bc19309f22ffdb4",
+        "modelSha256": "06df75329d26d8a486901fffb4d2b111ff81ae17af173532d81440cc420460a5"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "forward-battery",
+      "position": [
+        92,
+        -52,
+        39
+      ],
+      "target": [
+        54,
+        0,
+        9
+      ],
+      "spanM": 38,
+      "resolution": [
+        1200,
+        900
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "forward-battery.png",
+      "imageSha256": "89e0c37d051eee4d19570b3dd68e3e70a17d3c20c8a8688ab5b5767f025d5017",
+      "cameraMatrixWorld": [
+        [
+          0.8073911070823669,
+          -0.24912989139556885,
+          0.5348401069641113,
+          92.0
+        ],
+        [
+          0.5900166034698486,
+          0.3409145176410675,
+          -0.7318863868713379,
+          -52.0
+        ],
+        [
+          1.7388014583730182e-08,
+          0.9064831137657166,
+          0.422242134809494,
+          39.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 31.57894736842105,
+      "source": {
+        "id": "baltimore",
+        "contentHash": "99381546c2522dd03f50710cb4e82ea37bddc8f598b983b03bc19309f22ffdb4",
+        "modelSha256": "06df75329d26d8a486901fffb4d2b111ff81ae17af173532d81440cc420460a5"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "bow-profile",
+      "position": [
+        84.6287,
+        -230,
+        1
+      ],
+      "target": [
+        84.6287,
+        0,
+        1
+      ],
+      "spanM": 48,
+      "resolution": [
+        1200,
+        900
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "bow-profile.png",
+      "imageSha256": "b88740c757bb91ca9ca245f2b75a1bd91acd3c2372cfb0ed6cb1b3b8262e05f5",
+      "cameraMatrixWorld": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          84.62870025634766
+        ],
+        [
+          0.0,
+          7.549790126404332e-08,
+          -1.0,
+          -230.0
+        ],
+        [
+          0.0,
+          1.0,
+          7.549790126404332e-08,
+          1.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 25.0,
+      "source": {
+        "id": "baltimore",
+        "contentHash": "99381546c2522dd03f50710cb4e82ea37bddc8f598b983b03bc19309f22ffdb4",
+        "modelSha256": "06df75329d26d8a486901fffb4d2b111ff81ae17af173532d81440cc420460a5"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    },
+    {
+      "id": "stern-equipment",
+      "position": [
+        -127.6287,
+        -70,
+        42
+      ],
+      "target": [
+        -80.6287,
+        0,
+        7
+      ],
+      "spanM": 65,
+      "resolution": [
+        1200,
+        900
+      ],
+      "projection": "ORTHO",
+      "visibility": "all",
+      "image": "stern-equipment.png",
+      "imageSha256": "a682d33146c77320bea6f74180c60e291e1d2e40f005e45a61e57e78c8150294",
+      "cameraMatrixWorld": [
+        [
+          0.8302211165428162,
+          0.21371494233608246,
+          -0.514838695526123,
+          -127.62870025634766
+        ],
+        [
+          -0.5574342608451843,
+          0.3182987868785858,
+          -0.7667809128761292,
+          -70.0
+        ],
+        [
+          -1.8455125427863095e-08,
+          0.923586368560791,
+          0.3833903968334198,
+          42.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "crop": "full image; no post-render crop",
+      "pixelsPerMeter": 18.46153846153846,
+      "source": {
+        "id": "baltimore",
+        "contentHash": "99381546c2522dd03f50710cb4e82ea37bddc8f598b983b03bc19309f22ffdb4",
+        "modelSha256": "06df75329d26d8a486901fffb4d2b111ff81ae17af173532d81440cc420460a5"
+      },
+      "material": "neutral texture-free clay; no source UVs or textures loaded",
+      "axes": "Blender +X bow, +Y port, +Z up",
+      "historicallyVerified": false
+    }
+  ]
+}
