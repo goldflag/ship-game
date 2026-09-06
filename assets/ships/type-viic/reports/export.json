@@ -1,0 +1,110 @@
+{
+  "contentHash": "790540939d476bf9503c191fbfd6d29a3f027941ebf4a4a9011a2f1c5885605b",
+  "hullBounds": [
+    [
+      -3.1000001430511475,
+      -4.739999771118164,
+      -33.54999923706055
+    ],
+    [
+      3.1000001430511475,
+      2,
+      33.54999923706055
+    ]
+  ],
+  "mounts": [
+    {
+      "id": "deck-gun",
+      "measuredPivot": [
+        0,
+        1.4700000286102295,
+        -8.399999618530273
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "flak-gun",
+      "measuredPivot": [
+        0,
+        4.25,
+        2.799999952316284
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    }
+  ],
+  "torpedoTubes": [
+    {
+      "id": "bow-tube-1",
+      "measuredMuzzle": [
+        -0.4299977421760559,
+        -1.100000023841858,
+        -30
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "bow-tube-2",
+      "measuredMuzzle": [
+        0.43000227212905884,
+        -1.100000023841858,
+        -30
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "bow-tube-3",
+      "measuredMuzzle": [
+        -0.4299977421760559,
+        -2.049999952316284,
+        -30
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "bow-tube-4",
+      "measuredMuzzle": [
+        0.43000227212905884,
+        -2.049999952316284,
+        -30
+      ],
+      "direction": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "id": "stern-tube",
+      "measuredMuzzle": [
+        -0.0000024159328404493863,
+        -1.2000000476837158,
+        32
+      ],
+      "direction": [
+        -1.5099580252808492e-7,
+        0,
+        0.9999999999999887
+      ]
+    }
+  ],
+  "meshes": 32,
+  "primitives": 55,
+  "triangles": 23486,
+  "bytes": 1477376,
+  "result": "passed",
+  "historicalAccuracy": "not certified; see reference register and discrepancy report"
+}

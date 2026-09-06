@@ -73,7 +73,7 @@ test('salvos are bounded, do not replay events, pause cleanly, and reset without
   const active = effects.diagnostics();
   expect(active.smoke + active.spray + active.flashes + active.foam).toBeLessThanOrEqual(active.particleCapacity);
   sim.events.length = 0; effects.reset(); effects.update(sim, 0, camera);
-  expect(effects.diagnostics()).toEqual({ shells: 0, smoke: 0, spray: 0, flashes: 0, foam: 0, particleCapacity: 2272 });
+  expect(effects.diagnostics()).toEqual({ shells: 0, torpedoes: 0, smoke: 0, spray: 0, flashes: 0, foam: 0, particleCapacity: 2272 });
   sim.events.push({ ...event, sequence: 150 }); effects.update(sim, 0, camera);
   expect(effects.diagnostics().flashes).toBeGreaterThan(0);
   for (let i = 0; i < 13 * 60; i++) effects.update(sim, 1 / 60, camera);

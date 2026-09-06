@@ -20,6 +20,7 @@ export class CameraRig {
   private azimuth = .82;
   private elevation = .1;
   private distance = 345;
+  private hullScale = 1;
   private dragging = false;
   private inPort = false;
   private enabled = true;
@@ -95,7 +96,7 @@ export class CameraRig {
       if (this.binoculars) {
         this.zoomIndex = MathUtils.clamp(this.zoomIndex + Math.sign(-e.deltaY), 0, MAGNIFICATIONS.length - 1);
         this.updateProjection();
-      } else this.distance = MathUtils.clamp(this.distance * Math.exp(e.deltaY * .001), this.inPort ? 90 : 185, this.inPort ? 650 : 1400);
+      } else this.distance = MathUtils.clamp(this.distance * Math.exp(e.deltaY * .001), (this.inPort ? 90 : 185) * this.hullScale, this.inPort ? 650 : 1400);
     }, { ...options, passive: false });
     canvas.addEventListener('contextmenu', e => e.preventDefault(), options);
   }
@@ -183,8 +184,14 @@ export class CameraRig {
     this.updateProjection();
     this.azimuth = inPort ? 1.08 : .82;
     this.elevation = inPort ? PORT_ELEVATION : .1;
-    this.distance = inPort ? 325 : 345;
+    this.distance = (inPort ? 325 : 345) * this.hullScale;
     this.releasePointer();
+  }
+  /** Preserve relative zoom and orbit when switching between differently sized hulls. */
+  setHullLength(length: number): void {
+    const scale = MathUtils.clamp(length / 250.5, .35, 1.5);
+    this.distance *= scale / this.hullScale;
+    this.hullScale = scale;
   }
   private constrainCameraHeight(position: Vector3): void {
     const ground = this.inPort ? Math.max(0, terrainHeight(position.x, position.z)) : 0;
@@ -240,7 +247,8 @@ export class CameraRig {
         if (this.binoculars) this.desired.y += 8;
       } else {
         const distance = (this.mode === 'Tactical' ? Math.max(650, this.distance) : this.distance) * Math.max(1, 1.2 / this.camera.aspect);
-        this.desired.set(ship.x - Math.sin(this.azimuth) * distance, height + distance * (this.mode === 'Tactical' ? .95 : .28) + 25, ship.z + Math.cos(this.azimuth) * distance);
+        const lift = this.mode === 'Tactical' ? distance * .95 + 25 : (distance * .28 + 25) * this.hullScale;
+        this.desired.set(ship.x - Math.sin(this.azimuth) * distance, height + lift, ship.z + Math.cos(this.azimuth) * distance);
       }
       this.constrainCameraHeight(this.desired);
       this.camera.position.copy(this.desired);

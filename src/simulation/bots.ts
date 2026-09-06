@@ -3,6 +3,7 @@ import type { FleetActor } from './battle';
 import { motionVelocity, type HelmCommand } from './ship';
 import { add, clamp, localToWorld, scale, sub, wrapAngle } from './geometry';
 import { muzzleCenterWorld, solveBallistic, type MountDefinition, type MountState } from './weapons';
+import { torpedoIntercept } from './torpedoes';
 
 export const shipVelocity = (actor: FleetActor): Vec3 => motionVelocity(actor.motion);
 /** Provisional bot engagement limits, in meters; small AA fittings wait for close range. */
@@ -24,6 +25,12 @@ export function botHelm(actor: FleetActor, target: FleetActor | undefined, actor
   const bearing = Math.atan2(target.motion.x - actor.motion.x, actor.motion.z - target.motion.z);
   const side = wrapAngle(actor.motion.heading - bearing) >= 0 ? 1 : -1;
   let heading = bearing + side * (range > 4200 ? Math.PI / 3 : range < 2200 ? Math.PI * .7 : Math.PI / 2);
+  const tubes = (actor.definition.torpedoTubes ?? []).filter((t, i) => (actor.torpedoTubes?.[i].ammo ?? 0) > 0 && actor.damage.modules.find(m => m.id === t.magazineId)?.hp !== 0);
+  if (tubes.length) {
+    const tube = tubes.reduce((a, b) => Math.abs(wrapAngle(bearing - actor.motion.heading - b.bearingDeg * Math.PI / 180)) < Math.abs(wrapAngle(bearing - actor.motion.heading - a.bearingDeg * Math.PI / 180)) ? b : a);
+    const aim = torpedoIntercept(localToWorld(tube.position, actor.motion), [target.motion.x, 0, target.motion.z], shipVelocity(target), tube.weapon.speed);
+    heading = (aim ? Math.atan2(aim[0] - actor.motion.x, actor.motion.z - aim[2]) : bearing) - tube.bearingDeg * Math.PI / 180;
+  }
   let x = Math.sin(heading), z = -Math.cos(heading);
   for (const other of actors) {
     if (other === actor || other.motion.y < -20) continue;
