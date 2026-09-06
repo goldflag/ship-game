@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "files": [
+    "assets/ships/convoy/geometry-v2.py",
+    "assets/ships/convoy/plans-v2.json"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "configuration": "EC2-S-C1 general cargo design; 1941 USMC plans with representative 1943 defensive armament",
+  "draftM": 8.4328,
+  "massKg": 14478000,
+  "geometryDisplacementM3": 12929.323776688543,
+  "fullEnvelopeM3": 19050.036373358507,
+  "reserveM3": 6120.712596669964,
+  "buoyancyScale": 1.0924684301160064,
+  "estimatedGmM": 1.25,
+  "dryCenterOfGravity": [
+    0,
+    -2.867472041749461,
+    2.2759327072819477
+  ],
+  "floodCapacityM3": 12247.023854422554,
+  "basis": "Uniform displacement calibration at the declared draft. Estimated initial GM 1.25 m; longitudinal CG aligned to upright buoyancy center. Not an historical stability curve."
+}
