@@ -201,6 +201,12 @@ export class CombatSimulation {
     const targets = new Map<FleetActor, FleetActor | undefined>();
     const commands = new Map<FleetActor, HelmCommand>();
     for (const actor of this.actors) {
+      updateCapability(actor, actor.definition);
+      if (actor.damage.stability.combatLost) {
+        delete actor.targetId;
+        commands.set(actor, { throttle: 0, rudder: 0 });
+        continue;
+      }
       if (actor.controller === 'bot') {
         const target = botTarget(actor, this.actors);
         updateBot(actor, target, this.tick * FIXED_DT);
@@ -219,6 +225,7 @@ export class CombatSimulation {
       const laneClear = target && clearFiringLane(actor, target, this.actors);
       def.mounts.forEach((m, i) => {
         const state = actor.mounts[i];
+        if (actor.damage.stability.combatLost) { state.status = 'disabled'; return; }
         if (actor === this.player && m.battery === intent.battery) selectAmmunition(m, state, intent.ammunition === 'he' ? 'he' : 'ap');
         else if (actor.controller === 'bot' && target) selectAmmunition(m, state, botAmmunition(target, m, state));
         if (m.magazineId && equipmentCondition(actor, def, def.modules.find(module => module.id === m.magazineId)!).availability === 0) { state.status = 'disabled'; return; }
