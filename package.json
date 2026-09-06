@@ -6,7 +6,7 @@
   "packageManager": "bun@1.3.3",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "bun run ship:check bismarck && bun run ship:check yamato && bun run ship:check baltimore && bun run ship:check enterprise-cv6 && bun run ship:check type-viic && bun run ship:check liberty-cargo && bun run ship:check liberty-collier && bun run ship:check victory-cargo && bun run ship:check flower-corvette && bun run aircraft:check all && tsc --noEmit && vite build",
+    "build": "bun run ship:check bismarck && bun run ship:check yamato && bun run ship:check baltimore && bun run ship:check enterprise-cv6 && bun run ship:check type-viic && bun run ship:check liberty-cargo && bun run ship:check liberty-collier && bun run ship:check victory-cargo && bun run ship:check flower-corvette && bun run ship:check fletcher && bun run aircraft:check all && tsc --noEmit && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "typecheck": "tsc --noEmit",
     "audio:build": "python3 scripts/audio/build.py",
