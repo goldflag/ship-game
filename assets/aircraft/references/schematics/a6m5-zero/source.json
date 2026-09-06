@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "aircraftId": "a6m5-zero",
+  "title": "Mitsubishi A6M5 Zero, Kalab, Modelar 3/1969 p.23 (RCLibrary 13451)",
+  "sourcePage": "https://rclibrary.co.uk/3view.asp?ID=13451",
+  "downloadUrl": "https://rclibrary.co.uk/images/thumbs3v/13451/rc3v13451-thumb-large.jpg",
+  "author": "Kalab, Modelar 3/1969 page 23; RCLibrary archival preview, uploaded by Miguel.",
+  "retrievedAt": "2026-09-05",
+  "variant": "A6M5 Model 52; use complete lower half of top view",
+  "originalFile": "rc3v13451-thumb-large.jpg",
+  "sha256": "199387fabab44c1f9ec1518ede9f9f9244c8b0c004897932b0dcf27d0d0e4cf2",
+  "rights": "Copyright retained by original creator/publisher unless independently established otherwise. Retained as credited development comparison reference; not packaged in public game build. No claim that these images are public domain.",
+  "measurements": "assets/aircraft/shapes/a6m5-zero.json",
+  "method": "Manual raster outline sampling, retained source points in assets/aircraft/shapes/measure-japanese.py; top and side scale registered separately; see JSON notes for unresolved reconstruction."
+}

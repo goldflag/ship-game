@@ -1,0 +1,443 @@
+{
+  "schemaVersion": 1,
+  "id": "a6m5-zero",
+  "reference": {
+    "sourceUrl": "https://rclibrary.co.uk/3view.asp?ID=13451",
+    "imagePath": "assets/aircraft/references/schematics/a6m5-zero/rc3v13451-thumb-large.jpg",
+    "sourceTitle": "Mitsubishi A6M5 Zero, Kalab, Modelar 3/1969 p.23 (RCLibrary 13451)",
+    "variant": "A6M5 Model 52; use complete lower half of top view",
+    "notes": [
+      "Manually digitised top/side silhouettes, independently registered to catalog length and wingspan.",
+      "Published reference drawing, not manufacturing geometry. Pixel rounding, scan distortion, hidden cross sections, canopy width and small details remain approximations.",
+      "Canopy lateral widths and hidden body contours are reconstructed inside the measured exterior envelope. Wing dihedral is digitised approximately from the front view, not an airfoil or load-bearing engineering specification.",
+      "RCLibrary PDF link returned HTTP 404. Original available 640-pixel plate preview retained, including creator and page credit; no claim of higher-resolution source. Front view wings are cropped; gear track uses the side-view pixel scale rather than cropped front extent."
+    ],
+    "registration": {
+      "top": {
+        "noseX": 46,
+        "tailX": 595,
+        "centerY": 414,
+        "portTipY": 86,
+        "starboardTipY": 742,
+        "imagePath": "assets/aircraft/references/schematics/a6m5-zero/rc3v13451-thumb-large.jpg"
+      },
+      "side": {
+        "noseX": 47,
+        "tailX": 595,
+        "engineShaftY": 146,
+        "imagePath": "assets/aircraft/references/schematics/a6m5-zero/rc3v13451-thumb-large.jpg"
+      },
+      "front": {
+        "leftTipX": 278,
+        "rightTipX": 570,
+        "centerX": 425,
+        "engineShaftY": 685,
+        "imagePath": "assets/aircraft/references/schematics/a6m5-zero/rc3v13451-thumb-large.jpg",
+        "metersPerPixel": 0.01664,
+        "wingTipsCropped": true
+      }
+    }
+  },
+  "fuselage": [
+    [
+      0.06387,
+      0.46951,
+      -0.38277,
+      0.4327
+    ],
+    [
+      0.08394,
+      0.5601,
+      -0.56584,
+      0.61577
+    ],
+    [
+      0.11679,
+      0.59831,
+      -0.59912,
+      0.68234
+    ],
+    [
+      0.16606,
+      0.60279,
+      -0.61577,
+      0.68234
+    ],
+    [
+      0.20073,
+      0.59527,
+      -0.58248,
+      0.68234
+    ],
+    [
+      0.23175,
+      0.59527,
+      -0.63241,
+      0.68234
+    ],
+    [
+      0.27555,
+      0.57789,
+      -0.64905,
+      0.59912
+    ],
+    [
+      0.33394,
+      0.55652,
+      -0.64905,
+      0.5492
+    ],
+    [
+      0.40511,
+      0.54319,
+      -0.61577,
+      0.53255
+    ],
+    [
+      0.49088,
+      0.4962,
+      -0.61577,
+      0.58248
+    ],
+    [
+      0.56204,
+      0.43336,
+      -0.5492,
+      0.5492
+    ],
+    [
+      0.63504,
+      0.37461,
+      -0.46599,
+      0.51591
+    ],
+    [
+      0.71898,
+      0.30348,
+      -0.36613,
+      0.48263
+    ],
+    [
+      0.79015,
+      0.22312,
+      -0.26628,
+      0.39942
+    ],
+    [
+      0.86131,
+      0.14495,
+      -0.18307,
+      0.3162
+    ],
+    [
+      0.92701,
+      0.08061,
+      -0.1165,
+      0.23299
+    ],
+    [
+      0.97263,
+      0.03266,
+      -0.06657,
+      0.08321
+    ],
+    [
+      1.0,
+      0.0,
+      -0.01664,
+      -0.01664
+    ]
+  ],
+  "wing": [
+    [
+      0.0,
+      0.20036,
+      0.52095,
+      -0.46599
+    ],
+    [
+      0.10976,
+      0.20219,
+      0.46995,
+      -0.42783
+    ],
+    [
+      0.24085,
+      0.20583,
+      0.43534,
+      -0.36238
+    ],
+    [
+      0.38415,
+      0.21494,
+      0.42441,
+      -0.28283
+    ],
+    [
+      0.53049,
+      0.22222,
+      0.40984,
+      -0.2093
+    ],
+    [
+      0.66768,
+      0.22769,
+      0.39709,
+      -0.14814
+    ],
+    [
+      0.80183,
+      0.23497,
+      0.38616,
+      -0.08834
+    ],
+    [
+      0.8872,
+      0.24772,
+      0.37523,
+      -0.05029
+    ],
+    [
+      0.93902,
+      0.26594,
+      0.36248,
+      -0.02718
+    ],
+    [
+      0.97256,
+      0.28233,
+      0.34244,
+      -0.01223
+    ],
+    [
+      0.9939,
+      0.29872,
+      0.32605,
+      -0.00272
+    ],
+    [
+      1.0,
+      0.3133,
+      0.31512,
+      0.0
+    ]
+  ],
+  "horizontalTail": [
+    [
+      0.0,
+      0.73588,
+      0.91439,
+      0.15
+    ],
+    [
+      0.22143,
+      0.75228,
+      0.90346,
+      0.15
+    ],
+    [
+      0.41429,
+      0.76685,
+      0.898,
+      0.15
+    ],
+    [
+      0.60714,
+      0.78506,
+      0.89071,
+      0.15
+    ],
+    [
+      0.78571,
+      0.80146,
+      0.8816,
+      0.15
+    ],
+    [
+      0.91429,
+      0.81421,
+      0.86703,
+      0.15
+    ],
+    [
+      0.98571,
+      0.83242,
+      0.85246,
+      0.15
+    ],
+    [
+      1.0,
+      0.84335,
+      0.84517,
+      0.15
+    ]
+  ],
+  "fin": [
+    [
+      0.74635,
+      0.4327
+    ],
+    [
+      0.77372,
+      0.49927
+    ],
+    [
+      0.79745,
+      0.79883
+    ],
+    [
+      0.82664,
+      1.14832
+    ],
+    [
+      0.85949,
+      1.53109
+    ],
+    [
+      0.88139,
+      1.66423
+    ],
+    [
+      0.89781,
+      1.69752
+    ],
+    [
+      0.91241,
+      1.66423
+    ],
+    [
+      0.92701,
+      1.53109
+    ],
+    [
+      0.94161,
+      1.21489
+    ],
+    [
+      0.9562,
+      0.78219
+    ],
+    [
+      0.97263,
+      0.29956
+    ],
+    [
+      0.98358,
+      0.08321
+    ],
+    [
+      1.0,
+      -0.01664
+    ],
+    [
+      0.9708,
+      -0.08321
+    ],
+    [
+      0.93431,
+      0.03328
+    ],
+    [
+      0.88869,
+      0.14978
+    ],
+    [
+      0.82664,
+      0.28292
+    ]
+  ],
+  "canopy": [
+    [
+      0.2354,
+      0.15175,
+      0.68234,
+      0.71562
+    ],
+    [
+      0.2646,
+      0.27916,
+      0.63241,
+      0.89869
+    ],
+    [
+      0.29927,
+      0.39742,
+      0.59912,
+      1.06511
+    ],
+    [
+      0.33212,
+      0.42369,
+      0.58248,
+      1.08175
+    ],
+    [
+      0.36314,
+      0.40223,
+      0.56584,
+      1.04847
+    ],
+    [
+      0.40146,
+      0.35166,
+      0.5492,
+      0.96526
+    ],
+    [
+      0.43613,
+      0.29619,
+      0.53255,
+      0.8654
+    ],
+    [
+      0.47263,
+      0.18559,
+      0.56584,
+      0.69898
+    ],
+    [
+      0.49818,
+      0.13,
+      0.58248,
+      0.58248
+    ]
+  ],
+  "tailSpan": 4.69512,
+  "cowling": {
+    "frontU": 0.06387,
+    "rearU": 0.19891,
+    "radiusM": 0.63241
+  },
+  "propeller": {
+    "u": 0.05109,
+    "radiusM": 1.49781,
+    "blades": 3,
+    "spinnerLengthM": 0.48263
+  },
+  "gear": {
+    "mainU": 0.20803,
+    "trackM": 3.51153,
+    "wheelRadiusM": 0.29956,
+    "wheelZM": -1.63095,
+    "tailU": 0.93978,
+    "tailWheelZM": -0.36613
+  },
+  "extras": {
+    "engine": "radial",
+    "wingFoldFraction": null,
+    "exhaustStacks": true,
+    "gunSpanM": [
+      1.76
+    ],
+    "canopyFrameU": [
+      0.299,
+      0.332,
+      0.376,
+      0.421,
+      0.455
+    ],
+    "antennaU": 0.46,
+    "antennaHeightM": 0.81,
+    "distinctive": "Short rounded nonfolding Model 52 wings; individual exhausts; single pilot canopy and rounded Zero fin."
+  }
+}

@@ -26,6 +26,8 @@ Two wake generators sit 112 m forward and aft of the origin; their current confi
 
 The demo's image-based sky is replaced by Sky Pro's animated clouds and atmosphere. That changes what the water reflects even if its material settings stay the same. Cloud reflections are baked at width 384 with 16 cloud march steps and 8 skipped frames. The game uses ACES tone mapping and neutral exposure; it does not add the demo's optional bloom or film grain.
 
+Water Pro's `scene.fogNode` owns distance fog, including transparent effects and the ocean's sky-color blend. The final composition uses Water Pro's output directly, without Sky Pro's additional `applyTo` fog pass: that pass reads opaque depth behind transparent smoke and can erase it at the ocean horizon. Sky Pro still supplies the sky, clouds, lighting and reflections. See the [horizon regression review](../assets/effects/naval/reports/validation.md#horizon-smoke-cutoff-2026-09-05).
+
 ## Ship wake
 
 `src/game/ShipWake.ts` combines Water Pro's wave displacement with the foam history in `src/game/WakeFoam.ts`. Both are sampled by the actual water material, so foam follows the ocean's displacement, lighting and bubble texture. There is no floating decal or flat plane above the sea.
@@ -70,6 +72,12 @@ The port sky still read as dark slate blue. The current tuning reduces molecular
 Both scenes use cloud thickness 2,400 m (previously 3,200 m), altitude 1,700 m, and horizon coverage boost 0.06 (previously 0.12). Coverage is a nonlinear shape control, not a percentage of visible sky. Cloud fill, water material, sun direction, and harbor fog retain their existing settings. Scene transitions restore all scene-specific sky parameters.
 
 The [before/after review](../assets/reviews/sky-daylight/index.html) contains unedited 1,600 × 900 WebGPU canvas captures from the actual Game renderer. Each pair shares its camera and frozen animation time; the review notes describe the capture setup.
+
+## Port sun glare correction
+
+The broader aerosol scattering above made the sun-facing port view pale and washed out, including its water reflections. A fixed-camera comparison isolated the forward sun haze: reducing only port `mieScatteringStrength` from **1.2 to 0.25** restored visible clouds and water color. The sea remains at **0.5**. Sun intensity, exposure, diffuse sky fill, cloud settings, fog and water materials retain their previous values, keeping the shaded hull readable and the normal harbor view close to the accepted daylight direction.
+
+The [port glare review](../assets/reviews/port-glare/README.md) records matching sun-facing and normal-port captures from the actual WebGPU renderer. Review both directions when changing atmospheric scattering; the normal port camera faces away from the sun and missed this regression.
 
 ## Repeating arc correction
 

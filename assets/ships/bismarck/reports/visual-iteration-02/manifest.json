@@ -1,0 +1,74 @@
+{
+  "beforeContentHash": "6884ac0c339ca9e88662880a7886c66fa5bcc64c47d7f8b8bdf70c8a9b1c0039",
+  "afterContentHash": "dc419a66c00f247f07a02634e136d6688aea9866303ec69f218f706437169606",
+  "beforeTriangles": 59194,
+  "afterTriangles": 361184,
+  "note": "Geometry/detail growth is not a historical-fidelity percentage. Both panels retain the same fixed orthographic camera and span.",
+  "views": [
+    {
+      "view": "bridge",
+      "preservedBeforeSheetSha256": "86283d403c3df46dcdb20a63e4f2b0a6c058e443d95a789e063cc73bc8eb411b",
+      "currentAuthoredImageSha256": "16e83b0a03f0f3f88ba961ab9b64b4ffeec6dac11b37d365c6465650f6d6aa4c",
+      "outputSha256": "f0419ef462961f773d3dcd64f130999ac6a61dbc5665b5addcc2d21aeca8eb11",
+      "beforeCrop": [
+        0,
+        120,
+        1600,
+        1100
+      ],
+      "resizing": "none"
+    },
+    {
+      "view": "funnel",
+      "preservedBeforeSheetSha256": "52b702fdc36ff730c4de7e5f4a753ff36c77b2fedc50db1cb0198c9e43a14217",
+      "currentAuthoredImageSha256": "d6b612a772562935a3279cf439712d026c725615e9c0b582ac7e895ab3dd0e97",
+      "outputSha256": "1e321f78cb894cc150c4e196c1fc1c77f292d606cc9af23575fb9f23e9bfe633",
+      "beforeCrop": [
+        0,
+        120,
+        1600,
+        1100
+      ],
+      "resizing": "none"
+    },
+    {
+      "view": "quarter-bow",
+      "preservedBeforeSheetSha256": "9edb7eca038c2d5562398470081b6b5b1a917a4636932498c8ba1add17384350",
+      "currentAuthoredImageSha256": "f458779abcc08f3d67510d4021366537c6f5c2acdb7182da6d75c241968a15a1",
+      "outputSha256": "18c6ba7ec3fe69740af43eeb35719fe16c7375f375080146cd4bed0235797463",
+      "beforeCrop": [
+        0,
+        120,
+        2200,
+        1250
+      ],
+      "resizing": "none"
+    },
+    {
+      "view": "anton",
+      "preservedBeforeSheetSha256": "707f982afa5f84e13f480995b26de06906be63925e38bd7d400d97e44b68b37e",
+      "currentAuthoredImageSha256": "7df4ab4b1a9642b7fff8aa08ef69bd0221f16a947bccf7e94254f56f111fbdc7",
+      "outputSha256": "ab58b9bbdd147efa7b10192cfde53a1a5c0cc0b49b0198b45ee456c90f9de2b9",
+      "beforeCrop": [
+        0,
+        120,
+        1600,
+        1100
+      ],
+      "resizing": "none"
+    },
+    {
+      "view": "stern-curvature",
+      "preservedBeforeSheetSha256": "1c8f71a26fd29a24a15179aded0b31f2eef2ee266a7440bf84d3679ce4fba9a4",
+      "currentAuthoredImageSha256": "9393df3cae1509e1292f3df16c2fbe8cccf389f411498d6a2a141139dfb6391b",
+      "outputSha256": "f557bf0e1f3ef04a98d060192ff4f32a896aa9c5955c5f30f00b807a112044d9",
+      "beforeCrop": [
+        0,
+        120,
+        1600,
+        1100
+      ],
+      "resizing": "none"
+    }
+  ]
+}

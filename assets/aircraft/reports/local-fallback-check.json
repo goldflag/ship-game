@@ -1,0 +1,391 @@
+{
+  "schemaVersion": 2,
+  "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+  "method": "local-blender",
+  "blenderVersion": "5.2.0 LTS",
+  "aircraftId": "f4u-1d-corsair",
+  "result": "passed",
+  "lods": [
+    {
+      "schemaVersion": 1,
+      "aircraftId": "f4u-1d-corsair",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "result": "passed",
+      "coordinates": {
+        "units": "meters",
+        "right": "+X",
+        "up": "+Y",
+        "forward": "-Z"
+      },
+      "bounds": [
+        [
+          -6.25,
+          -2.186000108718872,
+          -5.099999904632568
+        ],
+        [
+          6.25,
+          2.233409881591797,
+          5.099999904632568
+        ]
+      ],
+      "measured": {
+        "wingspan": 12.5,
+        "height": 4.419409990310669,
+        "length": 10.199999809265137
+      },
+      "nodeIds": [
+        "aircraft.root",
+        "propeller.spin",
+        "control.rudder",
+        "control.elevator.port",
+        "control.elevator.starboard",
+        "control.aileron.port",
+        "control.aileron.starboard",
+        "gear.port",
+        "gear.starboard",
+        "gear.tail",
+        "socket.payload",
+        "socket.deck"
+      ],
+      "joints": [
+        {
+          "id": "propeller.spin",
+          "pivot": [
+            0,
+            0,
+            -4.639470100402832
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.6945445813697668
+        },
+        {
+          "id": "control.rudder",
+          "pivot": [
+            0,
+            0.6525999903678894,
+            3.5088000297546387
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.3191420706152164
+        },
+        {
+          "id": "control.elevator.port",
+          "pivot": [
+            -0.12573032081127167,
+            0.4522137939929962,
+            4.396214008331299
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.17126044115764685
+        },
+        {
+          "id": "control.elevator.starboard",
+          "pivot": [
+            0.12572966516017914,
+            0.4522137939929962,
+            4.396214008331299
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.17126044115764685
+        },
+        {
+          "id": "control.aileron.port",
+          "pivot": [
+            -3.25,
+            -0.5732690095901489,
+            -0.9677690863609314
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.2851236166050124
+        },
+        {
+          "id": "control.aileron.starboard",
+          "pivot": [
+            3.25,
+            -0.5732690095901489,
+            -0.9677686095237732
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.2851234805307279
+        }
+      ],
+      "triangles": 30411,
+      "meshes": 11,
+      "primitives": 27,
+      "bytes": 1278032,
+      "surfaces": {
+        "uvPrimitives": 27,
+        "texturedPrimitives": 6,
+        "normalPrimitives": 27,
+        "embeddedImages": 2
+      },
+      "geometry": {
+        "minimumTriangleAreaM2": 2.5433533057395152e-8,
+        "rejectedTriangleAreaThresholdM2": 1e-14,
+        "degenerateTriangles": 0
+      },
+      "historicalAccuracy": "Not certified; see the aircraft source register and discrepancy report."
+    },
+    {
+      "schemaVersion": 1,
+      "aircraftId": "f4u-1d-corsair",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "result": "passed",
+      "coordinates": {
+        "units": "meters",
+        "right": "+X",
+        "up": "+Y",
+        "forward": "-Z"
+      },
+      "bounds": [
+        [
+          -6.250032901763916,
+          -2.185091018676758,
+          -5.099999904632568
+        ],
+        [
+          6.250032901763916,
+          2.233898639678955,
+          5.100009441375732
+        ]
+      ],
+      "measured": {
+        "wingspan": 12.500065803527832,
+        "height": 4.418989658355713,
+        "length": 10.2000093460083
+      },
+      "nodeIds": [
+        "aircraft.root",
+        "propeller.spin",
+        "control.rudder",
+        "control.elevator.port",
+        "control.elevator.starboard",
+        "control.aileron.port",
+        "control.aileron.starboard",
+        "gear.port",
+        "gear.starboard",
+        "gear.tail",
+        "socket.payload",
+        "socket.deck"
+      ],
+      "joints": [
+        {
+          "id": "propeller.spin",
+          "pivot": [
+            0,
+            0,
+            -4.639470100402832
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.6953160711147688
+        },
+        {
+          "id": "control.rudder",
+          "pivot": [
+            0,
+            0.6525999903678894,
+            3.5088000297546387
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.3191531994010439
+        },
+        {
+          "id": "control.elevator.port",
+          "pivot": [
+            -0.12573032081127167,
+            0.4522137939929962,
+            4.396214008331299
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.17120271737016327
+        },
+        {
+          "id": "control.elevator.starboard",
+          "pivot": [
+            0.12572966516017914,
+            0.4522137939929962,
+            4.396214008331299
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.17120271737016327
+        },
+        {
+          "id": "control.aileron.port",
+          "pivot": [
+            -3.25,
+            -0.5732690095901489,
+            -0.9677690863609314
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.28515605305907504
+        },
+        {
+          "id": "control.aileron.starboard",
+          "pivot": [
+            3.25,
+            -0.5732690095901489,
+            -0.9677686095237732
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.2851559155252733
+        }
+      ],
+      "triangles": 13670,
+      "meshes": 11,
+      "primitives": 27,
+      "bytes": 617520,
+      "surfaces": {
+        "uvPrimitives": 27,
+        "texturedPrimitives": 6,
+        "normalPrimitives": 27,
+        "embeddedImages": 2
+      },
+      "geometry": {
+        "minimumTriangleAreaM2": 0.0000011699927924269105,
+        "rejectedTriangleAreaThresholdM2": 1e-14,
+        "degenerateTriangles": 0
+      },
+      "historicalAccuracy": "Not certified; see the aircraft source register and discrepancy report."
+    },
+    {
+      "schemaVersion": 1,
+      "aircraftId": "f4u-1d-corsair",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "result": "passed",
+      "coordinates": {
+        "units": "meters",
+        "right": "+X",
+        "up": "+Y",
+        "forward": "-Z"
+      },
+      "bounds": [
+        [
+          -6.250188827514648,
+          -2.1843504905700684,
+          -5.098522663116455
+        ],
+        [
+          6.250188827514648,
+          2.2321527004241943,
+          5.100113868713379
+        ]
+      ],
+      "measured": {
+        "wingspan": 12.500377655029297,
+        "height": 4.416503190994263,
+        "length": 10.198636531829834
+      },
+      "nodeIds": [
+        "aircraft.root",
+        "propeller.spin",
+        "control.rudder",
+        "control.elevator.port",
+        "control.elevator.starboard",
+        "control.aileron.port",
+        "control.aileron.starboard",
+        "gear.port",
+        "gear.starboard",
+        "gear.tail",
+        "socket.payload",
+        "socket.deck"
+      ],
+      "joints": [
+        {
+          "id": "propeller.spin",
+          "pivot": [
+            0,
+            0,
+            -4.639470100402832
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.6953900985662476
+        },
+        {
+          "id": "control.rudder",
+          "pivot": [
+            0,
+            0.6525999903678894,
+            3.5088000297546387
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.3201785414432494
+        },
+        {
+          "id": "control.elevator.port",
+          "pivot": [
+            -0.12573032081127167,
+            0.4522137939929962,
+            4.396214008331299
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.17138318026992747
+        },
+        {
+          "id": "control.elevator.starboard",
+          "pivot": [
+            0.12572966516017914,
+            0.4522137939929962,
+            4.396214008331299
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.17138318026992747
+        },
+        {
+          "id": "control.aileron.port",
+          "pivot": [
+            -3.25,
+            -0.5732690095901489,
+            -0.9677690863609314
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.28515605305907504
+        },
+        {
+          "id": "control.aileron.starboard",
+          "pivot": [
+            3.25,
+            -0.5732690095901489,
+            -0.9677686095237732
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.2851559155252733
+        }
+      ],
+      "triangles": 6034,
+      "meshes": 11,
+      "primitives": 27,
+      "bytes": 305500,
+      "surfaces": {
+        "uvPrimitives": 27,
+        "texturedPrimitives": 6,
+        "normalPrimitives": 27,
+        "embeddedImages": 2
+      },
+      "geometry": {
+        "minimumTriangleAreaM2": 0.0000011699927924269105,
+        "rejectedTriangleAreaThresholdM2": 1e-14,
+        "degenerateTriangles": 0
+      },
+      "historicalAccuracy": "Not certified; see the aircraft source register and discrepancy report."
+    }
+  ]
+}

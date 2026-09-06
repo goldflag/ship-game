@@ -7,6 +7,35 @@ import { CombatSimulation, type CombatEvent } from '../simulation/combat';
 import { CombatEffects } from './CombatEffects';
 import { EffectParticlePool, effectTexture } from './EffectParticles';
 
+test('optics hide existing and new own-ship smoke while other smoke remains and ages normally', () => {
+  const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
+  const event: CombatEvent = { sequence: 1, tick: 0, kind: 'shot', position: [0, 10, 0], message: 'Test gun', shipId: 'player',
+    shell: { id: 1, caliberM: .38, velocity: [820, 0, 0] } };
+  sim.events.push(event);
+  effects.update(sim, 0, camera);
+  expect(effects.diagnostics().smoke).toBe(3);
+  effects.update(sim, .1, camera, true);
+  expect(effects.diagnostics().smoke).toBe(0);
+  sim.events.push({ ...event, sequence: 2 }, { ...event, sequence: 3, shipId: 'target' });
+  effects.update(sim, .1, camera, true);
+  expect(effects.diagnostics().smoke).toBe(3);
+  effects.update(sim, 0, camera);
+  expect(effects.diagnostics().smoke).toBe(9);
+  sim.events.push({ ...event, sequence: 4, kind: 'penetration', normal: [-1, 0, 0] },
+    { ...event, sequence: 5, kind: 'module', detonation: true });
+  effects.update(sim, 0, camera, true);
+  expect(effects.diagnostics().smoke).toBe(3); // Own impact and magazine smoke are hidden too.
+  effects.update(sim, 13, camera, true);
+  effects.update(sim, 0, camera);
+  expect(effects.diagnostics().smoke).toBe(0);
+  effects.reset();
+  sim.reset();
+  sim.events.push({ ...event, sequence: 6 });
+  effects.update(sim, 0, camera);
+  expect(effects.diagnostics().smoke).toBe(3);
+  effects.dispose();
+});
+
 test('spray reaches the same position at different frame rates and falls out at the sea', () => {
   const map = effectTexture('smoke'), camera = new Camera(), wind = new Vector3(2, 0, 1);
   const positions = [30, 60, 144].map(fps => {

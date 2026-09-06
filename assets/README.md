@@ -1,4 +1,4 @@
-# Ship source assets
+# Source assets
 
 All original ship models, recipes and references belong here. Runtime exports live in `public/models`.
 
@@ -7,3 +7,5 @@ All original ship models, recipes and references belong here. Runtime exports li
 - [Reusable gun catalog](parts/guns.json)
 
 Start a new ship with `bun run ship:new <ship-id>`. Existing directories are never overwritten by the scaffolder. Referenced third-party art is retained for comparison and credited in each source register; it is not a runtime texture or geometry source.
+
+- [WWII carrier aircraft: original Blender MCP models, recipes and references](aircraft/README.md)

@@ -3,6 +3,7 @@ import { Group, PerspectiveCamera, Scene } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Game } from './Game';
 import { CameraRig } from './CameraRig';
+import { ShellFollow } from './ShellFollow';
 import { ShipView } from './ShipView';
 import { CombatSimulation } from '../simulation/combat';
 import { shipPreset } from '../ships/presets';
@@ -47,7 +48,7 @@ async function port() {
   rig.update(simulation.ship, 0, 0, true);
   const game = Object.assign(Object.create(Game.prototype), {
     definition, simulation, playerView, targetView, fleetViews: [playerView, targetView], fleetModels: [loaded], loadedModel: loaded, scene, harbor, camera, rig,
-    currentAim: [650, .5, -550], manualAim: true,
+    currentAim: [650, .5, -550], manualAim: true, shellFollow: new ShellFollow(),
     effects: { reset() {}, diagnostics() { return {}; } },
     shipLabels: { setFleet() {} },
     ship: new Group(), inPort: true, disposed: false, switchingShip: false,
@@ -124,11 +125,14 @@ test('battle loading binds each mixed fleet hull and selected target to its own 
   const { game, scene, harbor, rig } = await port();
   const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => model(String(url).split('/').pop()!.replace('.glb', '')));
   try {
-    await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck', 'bismarck'], enemies: ['yamato', 'enterprise-cv6'] });
+    await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck', 'bismarck'], enemies: ['yamato', 'enterprise-cv6'], spawnDistance: 7500 });
     expect(loader).toHaveBeenCalledTimes(4);
     expect(scene.children).toContain(harbor);
     expect(scene.children).toHaveLength(6);
     expect(game.simulation.actors).toHaveLength(5);
+    expect(game.simulation.target.motion.z - game.simulation.ship.z).toBe(-7500);
+    expect(game.simulation.ship.heading).toBe(0);
+    expect(game.simulation.target.motion.heading).toBe(Math.PI);
     const diagnostics = game.diagnostics();
     expect(diagnostics.maxMuzzleErrorM).toBeLessThan(.025);
     expect(diagnostics.renderedShips.filter(ship => ship.visible).map(ship => ship.id)).toEqual(['player']);
@@ -143,7 +147,7 @@ test('battle loading binds each mixed fleet hull and selected target to its own 
 
 test('one failed fleet asset leaves the port intact and the same battle can be retried', async () => {
   const { game, scene, playerView, rig } = await port();
-  const setup = { playerShipId: 'baltimore', friendlyBots: ['bismarck'], enemies: ['yamato', 'enterprise-cv6'] };
+  const setup = { playerShipId: 'baltimore', friendlyBots: ['bismarck'], enemies: ['yamato', 'enterprise-cv6'], spawnDistance: 5000 };
   const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => {
     if (String(url).includes('enterprise')) throw new Error('Fleet asset unavailable');
     return model(String(url).split('/').pop()!.replace('.glb', ''));

@@ -1,0 +1,393 @@
+{
+  "schemaVersion": 1,
+  "aircraftId": "tbf-1c-avenger",
+  "method": "Independent GLB binary vertices/indices plus composed scene transforms projected onto the retained original drawing. No fitting to the model, Blender scene, or review render camera.",
+  "status": "ready for visual review",
+  "historicalAccuracy": "Not certified. Export residuals verify interpretation of sampled drawing landmarks; drawings, hidden sections, and variant differences retain their source limitations.",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Grumman_TBF-1_Avenger_BuAer_drawing.jpg",
+  "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+  "expectedContentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+  "glbSha256": "f801011da1a69f8ca3210347233b4c73e61ef13c113859561cd19a21fa59c1fa",
+  "shapeSha256": "8071c97877c6f62ceb6971cdf91a653cf0edde7dd11e34ae40af9c52bca29348",
+  "comparatorSha256": "135f7901baf3b1115777a354e91b6b5c178e3249938b6d2623eb9ceee950c3df",
+  "axes": "meters, source +X nose +Y port +Z up; source=(-runtimeZ,-runtimeX,runtimeY)",
+  "boundsM": [
+    [
+      -6.222356,
+      -8.255,
+      -2.297717
+    ],
+    [
+      6.134153,
+      8.255,
+      2.697936
+    ]
+  ],
+  "measured": {
+    "lengthM": 12.35651,
+    "wingspanM": 16.51,
+    "heightM": 4.995653,
+    "triangles": 33383,
+    "meshes": 12,
+    "wingStationMaxAbsErrorM": 0.003918
+  },
+  "drawingExpected": {
+    "lengthM": 12.48,
+    "wingspanM": 16.51
+  },
+  "wingStations": [
+    {
+      "halfSpanFraction": 0.55,
+      "side": "port",
+      "expectedSourceXM": {
+        "leading": 2.689502,
+        "trailing": 0.116471
+      },
+      "actualSourceXM": {
+        "leading": 2.688431,
+        "trailing": 0.116978
+      },
+      "errorM": {
+        "leading": -0.001071,
+        "trailing": 0.000507
+      }
+    },
+    {
+      "halfSpanFraction": 0.55,
+      "side": "starboard",
+      "expectedSourceXM": {
+        "leading": 2.689502,
+        "trailing": 0.116471
+      },
+      "actualSourceXM": {
+        "leading": 2.688431,
+        "trailing": 0.116977
+      },
+      "errorM": {
+        "leading": -0.001071,
+        "trailing": 0.000506
+      }
+    },
+    {
+      "halfSpanFraction": 0.7,
+      "side": "port",
+      "expectedSourceXM": {
+        "leading": 2.484098,
+        "trailing": 0.370603
+      },
+      "actualSourceXM": {
+        "leading": 2.484995,
+        "trailing": 0.370334
+      },
+      "errorM": {
+        "leading": 0.000897,
+        "trailing": -0.00027
+      }
+    },
+    {
+      "halfSpanFraction": 0.7,
+      "side": "starboard",
+      "expectedSourceXM": {
+        "leading": 2.484098,
+        "trailing": 0.370603
+      },
+      "actualSourceXM": {
+        "leading": 2.484994,
+        "trailing": 0.370333
+      },
+      "errorM": {
+        "leading": 0.000896,
+        "trailing": -0.00027
+      }
+    },
+    {
+      "halfSpanFraction": 0.85,
+      "side": "port",
+      "expectedSourceXM": {
+        "leading": 2.261804,
+        "trailing": 0.630764
+      },
+      "actualSourceXM": {
+        "leading": 2.261487,
+        "trailing": 0.630078
+      },
+      "errorM": {
+        "leading": -0.000317,
+        "trailing": -0.000686
+      }
+    },
+    {
+      "halfSpanFraction": 0.85,
+      "side": "starboard",
+      "expectedSourceXM": {
+        "leading": 2.261804,
+        "trailing": 0.630764
+      },
+      "actualSourceXM": {
+        "leading": 2.261486,
+        "trailing": 0.630077
+      },
+      "errorM": {
+        "leading": -0.000318,
+        "trailing": -0.000687
+      }
+    },
+    {
+      "halfSpanFraction": 0.95,
+      "side": "port",
+      "expectedSourceXM": {
+        "leading": 2.105809,
+        "trailing": 0.817256
+      },
+      "actualSourceXM": {
+        "leading": 2.109727,
+        "trailing": 0.815909
+      },
+      "errorM": {
+        "leading": 0.003918,
+        "trailing": -0.001347
+      }
+    },
+    {
+      "halfSpanFraction": 0.95,
+      "side": "starboard",
+      "expectedSourceXM": {
+        "leading": 2.105809,
+        "trailing": 0.817256
+      },
+      "actualSourceXM": {
+        "leading": 2.109725,
+        "trailing": 0.815908
+      },
+      "errorM": {
+        "leading": 0.003917,
+        "trailing": -0.001348
+      }
+    }
+  ],
+  "wingSectionHeights": [
+    {
+      "halfSpanFraction": 0.18,
+      "side": "port",
+      "chordFraction": 0.3,
+      "sourceXM": 2.078295,
+      "drawingWingDatumZM": -0.193827,
+      "actualBottomTopZM": [
+        -0.347421,
+        0.063843
+      ],
+      "actualMidSurfaceZM": -0.141789,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.18,
+      "side": "starboard",
+      "chordFraction": 0.3,
+      "sourceXM": 2.078295,
+      "drawingWingDatumZM": -0.193827,
+      "actualBottomTopZM": [
+        -0.347421,
+        0.063843
+      ],
+      "actualMidSurfaceZM": -0.141789,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.36,
+      "side": "port",
+      "chordFraction": 0.3,
+      "sourceXM": 2.016374,
+      "drawingWingDatumZM": -0.044412,
+      "actualBottomTopZM": [
+        -0.181218,
+        0.185069
+      ],
+      "actualMidSurfaceZM": 0.001926,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.36,
+      "side": "starboard",
+      "chordFraction": 0.3,
+      "sourceXM": 2.016374,
+      "drawingWingDatumZM": -0.044412,
+      "actualBottomTopZM": [
+        -0.181218,
+        0.185069
+      ],
+      "actualMidSurfaceZM": 0.001925,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.55,
+      "side": "port",
+      "chordFraction": 0.3,
+      "sourceXM": 1.917593,
+      "drawingWingDatumZM": 0.14742,
+      "actualBottomTopZM": [
+        0.037807,
+        0.33171
+      ],
+      "actualMidSurfaceZM": 0.184759,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.55,
+      "side": "starboard",
+      "chordFraction": 0.3,
+      "sourceXM": 1.917593,
+      "drawingWingDatumZM": 0.14742,
+      "actualBottomTopZM": [
+        0.037807,
+        0.33171
+      ],
+      "actualMidSurfaceZM": 0.184759,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.75,
+      "side": "port",
+      "chordFraction": 0.3,
+      "sourceXM": 1.824659,
+      "drawingWingDatumZM": 0.370252,
+      "actualBottomTopZM": [
+        0.286598,
+        0.510631
+      ],
+      "actualMidSurfaceZM": 0.398614,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.75,
+      "side": "starboard",
+      "chordFraction": 0.3,
+      "sourceXM": 1.824659,
+      "drawingWingDatumZM": 0.370252,
+      "actualBottomTopZM": [
+        0.286598,
+        0.510631
+      ],
+      "actualMidSurfaceZM": 0.398614,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.95,
+      "side": "port",
+      "chordFraction": 0.3,
+      "sourceXM": 1.719243,
+      "drawingWingDatumZM": 0.561093,
+      "actualBottomTopZM": [
+        0.505776,
+        0.654026
+      ],
+      "actualMidSurfaceZM": 0.579901,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    },
+    {
+      "halfSpanFraction": 0.95,
+      "side": "starboard",
+      "chordFraction": 0.3,
+      "sourceXM": 1.719243,
+      "drawingWingDatumZM": 0.561093,
+      "actualBottomTopZM": [
+        0.505776,
+        0.654026
+      ],
+      "actualMidSurfaceZM": 0.579901,
+      "note": "Actual GLB vertical ray; drawn wing datum differs from cambered airfoil mean. Attachments can extend the ray interval."
+    }
+  ],
+  "views": {
+    "side": {
+      "referenceCropPx": [
+        178,
+        1299,
+        965,
+        1637
+      ],
+      "overlayDisplayScale": 1.219822,
+      "overlayHeaderHeightPx": 52,
+      "projectionMatrixSourceToPixel": [
+        [
+          -59.695513,
+          0.0,
+          0.0,
+          573.5
+        ],
+        [
+          0.0,
+          0.0,
+          -59.695513,
+          1482.0
+        ]
+      ],
+      "triangleCount": 33383,
+      "projectedBoundsPx": [
+        [
+          191.0,
+          1312.0
+        ],
+        [
+          951.0,
+          1623.0
+        ]
+      ],
+      "files": {
+        "overlay": "assets/aircraft/tbf-1c-avenger/generated/comparison/side-overlay.png",
+        "reference": "assets/aircraft/tbf-1c-avenger/generated/comparison/side-reference.png",
+        "silhouette": "assets/aircraft/tbf-1c-avenger/generated/comparison/side-silhouette.png"
+      },
+      "sourceImage": "assets/aircraft/references/schematics/tbf-1c-avenger/buaer-tbf-1.jpg",
+      "sourceImageSha256": "b8371a8284b3e2949e62f1bff05b98606adba532a3f79d3e50bdef08318daaf1",
+      "sourceImageTransform": "identity"
+    },
+    "top": {
+      "referenceCropPx": [
+        66,
+        48,
+        1091,
+        816
+      ],
+      "overlayDisplayScale": 1,
+      "overlayHeaderHeightPx": 52,
+      "projectionMatrixSourceToPixel": [
+        [
+          0.0,
+          59.78195,
+          0.0,
+          578.0
+        ],
+        [
+          58.253205,
+          0.0,
+          0.0,
+          431.5
+        ]
+      ],
+      "triangleCount": 33383,
+      "projectedBoundsPx": [
+        [
+          83.0,
+          65.0
+        ],
+        [
+          1073.0,
+          798.0
+        ]
+      ],
+      "files": {
+        "overlay": "assets/aircraft/tbf-1c-avenger/generated/comparison/top-overlay.png",
+        "reference": "assets/aircraft/tbf-1c-avenger/generated/comparison/top-reference.png",
+        "silhouette": "assets/aircraft/tbf-1c-avenger/generated/comparison/top-silhouette.png"
+      },
+      "sourceImage": "assets/aircraft/references/schematics/tbf-1c-avenger/buaer-tbf-1.jpg",
+      "sourceImageSha256": "b8371a8284b3e2949e62f1bff05b98606adba532a3f79d3e50bdef08318daaf1",
+      "sourceImageTransform": "identity"
+    }
+  },
+  "limitations": [
+    "The retained original sheet explicitly includes TBF-1C and wing-gun annotation; no variant extrapolation needed for principal silhouette.",
+    "Source dimensions include span 54 ft 2 in, tail span 20 ft 10 in, main tread 10 ft 6 in, propeller diameter 13 ft. Catalog length 12.48 m retained.",
+    "Fuselage under the canopy, hidden elliptic sections, root fairings, ventral glazing and turret depth remain reconstructed from orthographic silhouettes, not factory lofting."
+  ]
+}

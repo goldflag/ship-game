@@ -8,44 +8,71 @@ import { CombatSimulation } from './combat';
 import { hitShip, updateFlooding, type DamageEvent, type Shell } from './damage';
 import { dot, length, localToWorld, normalize, segmentBox, sub, worldToLocal } from './geometry';
 import { ballisticStep } from './ballistics';
-import { GRAVITY, shotDirection, solveBallistic } from './weapons';
+import { GRAVITY, shotDirection, solveBallistic, updateMount } from './weapons';
 import { FIXED_DT } from './ship';
 
 const definition = () => compileShip(blueprint, catalog);
 const stop = { throttle: 0, rudder: 0 };
 const round = (penetrationMm = 1000): Shell => ({ id: 1, ownerId: 'player', position: [-100, .5, -21], velocity: [820, 0, 0], age: 0, penetrationMm, damage: 70, caliberM: .38, visited: [] });
 
-for (const aim of [[1800, 0, 0], [0, 0, 1800], [1800, 1000, 0], [40000, 0, 0]] as Vec3[]) {
-  test(`loaded guns fire at their current bearing before reaching reticle ${aim}`, () => {
+for (const aim of [[1800, 0, 0], [0, 0, 1800], [1800, 4000, 0], [40000, 0, 0]] as Vec3[]) {
+  test(`a click does not spend ammunition on guns unable to fire at ${aim}`, () => {
     const def = definition(), sim = new CombatSimulation(def);
     const mount = def.mounts[0], state = sim.player.mounts[0];
     sim.step(stop, { aim, fire: false, battery: 'main' });
     expect(Math.abs(state.train)).toBeLessThan(.01);
-    expect(state.status).toBe('ready');
+    expect(state.status).not.toBe('ready');
     const telemetry = sim.telemetry('main', aim);
-    expect(telemetry.ready).toBeGreaterThan(0);
+    expect(telemetry.ready).toBe(0);
     expect(telemetry.batteries[0].ready).toBe(telemetry.ready);
     const ammo = state.ammo;
     sim.requestFire();
     sim.step(stop, { aim, fire: false, battery: 'main' });
-    expect(state.ammo).toBe(ammo - 2);
-    expect(state.reload).toBe(mount.weapon.reloadSeconds);
-    expect(state.recoil).toBe(1);
-    expect(sim.events.filter(e => e.message === `${mount.name} fired`)).toHaveLength(2);
-    const direction = shotDirection(mount, state, sim.ship);
-    const shell = sim.shells[0];
-    const launch = sim.events.find(e => e.message === `${mount.name} fired`)!;
-    const spread = Math.acos(Math.min(1, dot(direction, normalize(launch.shell!.velocity))));
-    expect(spread).toBeLessThanOrEqual(3 * (mount.weapon.ballistics?.dispersionRad ?? 0) + 1e-7);
-    expect(Math.abs(length(launch.shell!.velocity) / mount.weapon.muzzleSpeed - 1)).toBeLessThanOrEqual(3 * (mount.weapon.ballistics?.muzzleSpeedSigmaFraction ?? 0) + 1e-10);
-    const predicted = ballisticStep(launch.position, launch.shell!.velocity, FIXED_DT, mount.weapon.ballistics?.dragPerSecond);
-    expect(shell.velocity).toEqual(predicted.velocity);
-    expect(shell.position).toEqual(predicted.position);
-    expect(shell.velocity[2]).toBeLessThan(-800);
-    sim.step(stop, { aim, fire: true, battery: 'main' });
-    expect(state.ammo).toBe(ammo - 2);
+    expect(state.ammo).toBe(ammo);
+    expect(state.reload).toBe(0);
+    expect(state.recoil).toBe(0);
+    expect(sim.events.filter(e => e.message === `${mount.name} fired`)).toHaveLength(0);
+    // A missed click is consumed; it must not fire later when aim becomes valid.
+    for (let i = 0; i < 1800; i++) sim.step(stop, { aim: [1800, .5, 0], fire: false, battery: 'main' });
+    expect(state.status).toBe('ready');
+    expect(state.ammo).toBe(ammo);
   });
 }
+
+test('Bismarck bow-on fire uses forward turrets and keeps unreachable rear turrets loaded', () => {
+  const sim = new CombatSimulation(definition()), aim: Vec3 = [0, .5, -5000];
+  sim.step(stop, { aim, fire: false, battery: 'main' });
+  expect(sim.player.mounts.slice(2, 4).map(m => m.status)).toEqual(['out-of-arc', 'out-of-arc']);
+  for (let i = 0; i < 3600; i++) sim.step(stop, { aim, fire: false, battery: 'main' });
+  expect(sim.telemetry('main', aim).ready).toBe(2);
+  sim.requestFire(); sim.step(stop, { aim, fire: false, battery: 'main' });
+  expect(sim.events.filter(e => e.kind === 'shot').map(e => e.message)).toEqual(['Anton fired', 'Anton fired', 'Bruno fired', 'Bruno fired']);
+  expect(sim.player.mounts.slice(2, 4).map(m => [m.status, m.ammo, m.reload])).toEqual([['out-of-arc', 240, 0], ['out-of-arc', 240, 0]]);
+  for (let i = 0; i < 1800; i++) sim.step(stop, { aim: [5000, .5, 0], fire: false, battery: 'main' });
+  expect(sim.telemetry('main', [5000, .5, 0]).ready).toBe(4);
+});
+
+test('held fire admits turrets as they align and release cancels later firing', () => {
+  for (const keepHolding of [false, true]) {
+    const sim = new CombatSimulation(definition()), aim: Vec3 = [5000, .5, 0];
+    // Forward turret already trained; the other three still have to traverse.
+    for (let i = 0; i < 1200; i++) updateMount(sim.definition.mounts[0], sim.player.mounts[0], sim.definition, sim.ship, aim, FIXED_DT);
+    sim.step(stop, { aim, fire: true, battery: 'main' });
+    expect(sim.events.filter(e => e.kind === 'shot')).toHaveLength(2);
+    for (let i = 0; i < 1020; i++) sim.step(stop, { aim, fire: keepHolding, battery: 'main' });
+    expect(sim.player.mounts.slice(0, 4).map(m => m.ammo)).toEqual(keepHolding ? [238, 238, 238, 238] : [238, 240, 240, 240]);
+  }
+});
+
+test('Bismarck rear barrels through the superstructure are blocked independently of target reachability', () => {
+  const sim = new CombatSimulation(definition());
+  for (const i of [2, 3]) {
+    const state = sim.player.mounts[i];
+    Object.assign(state, { train: -Math.PI, elevation: .01 });
+    updateMount(sim.definition.mounts[i], state, sim.definition, sim.ship, [0, .5, -5000], 0);
+    expect(state.status).toBe('blocked');
+  }
+});
 
 test('firing during traverse still respects obstructions, empty guns and disabled guns', () => {
   const def = definition(), sim = new CombatSimulation(def);
@@ -90,6 +117,26 @@ test('armor resolves before internal damage, and a surface/module is only charge
   hitShip(shell, from, to, sim.target, def, () => {});
   expect(sim.target.damage.modules[0].hp).toBe(hp);
 });
+test('a shell spends one internal damage budget across modules and tick boundaries', () => {
+  for (const split of [false, true]) {
+    const def = definition();
+    def.armor = []; def.mounts = []; delete def.structuralPlating; delete def.stability;
+    def.modules = [30, 100, 100].map((hp, i) => ({
+      id: `engine-${i}`, name: `Engine ${i}`, kind: 'engine' as const,
+      center: [i * 20, 0, 0] as Vec3, size: [10, 10, 10] as Vec3, hp,
+      compartmentId: def.compartments[0].id,
+    }));
+    const sim = new CombatSimulation(def), shell = round();
+    const events: DamageEvent[] = [];
+    if (split) expect(hitShip(shell, [-20, 0, 0], [10, 0, 0], sim.player, def, e => events.push(e))).toBe(false);
+    expect(hitShip(shell, [split ? 10 : -20, 0, 0], [60, 0, 0], sim.player, def, e => events.push(e))).toBe(false);
+    expect(sim.player.damage.modules.map(m => m.hp)).toEqual([0, 60, 100]);
+    expect(events.filter(e => e.kind === 'module' && e.impact!.damage! > 0)).toHaveLength(2);
+    expect(shell.remainingModuleDamage).toBe(0);
+    expect(shell.penetrationMm).toBeGreaterThan(0); // A spent damage budget does not erase a moving shell.
+  }
+});
+
 test('flood connections conserve water with pumps/leaks disabled and list follows the flooded side', () => {
   const def = definition();
   def.connections = [{ fromId:def.compartments[0].id, toId:def.compartments[2].id, areaM2:.05 }]; // Explicit damaged connection fixture.
@@ -113,7 +160,6 @@ test('aimed salvos obey reloads and ammunition while damaging the target', () =>
   expect(sim.target.damage.modules.find(m => m.id === 'engine-port')!.hp).toBe(140);
   expect(sim.events.some(e => e.kind === 'stopped' && e.message.includes('Turtleback'))).toBe(true);
   expect(sim.target.damage.compartments.some(c => c.breachAreaM2 > 0)).toBe(true);
-  expect(sim.target.damage.compartments.some(c => c.breachAreaM2 > 0)).toBe(true);
   for (let i = 0; i < 200; i++) sim.step(stop, { aim: [NaN, 0, 0], fire: true, battery: 'main' });
   expect(sim.events.filter(e => e.kind === 'shot').length).toBe(8);
 });
@@ -129,7 +175,7 @@ test('reset replaces the trial target state without invalidating renderer bindin
   const sim = new CombatSimulation(definition()), target = sim.target;
   target.damage.integrity = 0; target.motion.y = -15;
   sim.resetTarget();
-  expect(sim.target).toBe(target); expect(target.damage.integrity).toBe(1000); expect(target.motion.y).toBe(0);
+  expect(sim.target).toBe(target); expect(target.damage.integrity).toBe(target.damage.maxIntegrity); expect(target.motion.y).toBe(0);
 });
 test('shot and splash events retain matching caliber and independent velocity snapshots', () => {
   const sim = new CombatSimulation(definition()), aim: Vec3 = [450, .5, 0];
@@ -138,12 +184,14 @@ test('shot and splash events retain matching caliber and independent velocity sn
   const shots = sim.events.filter(e => e.kind === 'shot');
   expect(shots.length).toBe(8);
   const velocity: Vec3 = [...shots[0].shell!.velocity];
+  expect(shots.every(e => e.shell?.type === 'AP')).toBe(true);
   for (let i = 0; i < 120; i++) sim.step(stop, { aim, fire: false, battery: 'main' });
   const splashes = sim.events.filter(e => e.kind === 'splash');
   expect(splashes.length).toBe(8);
   for (const shot of shots) {
     const splash = splashes.find(e => e.shell?.id === shot.shell?.id)!;
     expect(splash.shell!.caliberM).toBe(shot.shell!.caliberM);
+    expect(splash.shell!.type).toBe(shot.shell!.type);
     expect(splash.shell!.velocity[1]).toBeLessThan(shot.shell!.velocity[1]);
     expect(splash.position[1]).toBe(0);
   }
@@ -162,6 +210,12 @@ test('impact normals are in world coordinates and internal damage has no surface
   const localNormal = localEvents.find(e => e.kind === 'penetration')!.normal!;
   const origin = localToWorld([0, 0, 0], pose), expected = sub(localToWorld(localNormal, pose), origin);
   expect(length(sub(plate.normal!, expected))).toBeLessThan(1e-9);
+  const localImpact = localEvents.find(e => e.surfaceImpact)?.surfaceImpact!;
+  const impact = events.find(e => e.surfaceImpact)?.surfaceImpact!;
+  expect(length(sub(impact.position, localImpact.position))).toBeLessThan(1e-8);
+  expect(length(sub(impact.direction, localImpact.direction))).toBeLessThan(1e-8);
+  expect(impact.outcome).toBe('penetration');
+  expect(events.filter(e => e.kind === 'module').every(e => !e.surfaceImpact)).toBe(true);
   // Exercise interior metadata without depending on a preset's penetration budget.
   const [x, y, z] = def.modules.find(m => m.kind === 'engine')!.center;
   hitShip(round(), localToWorld([x - .1, y, z], pose), localToWorld([x + .1, y, z], pose), sim.target, def, e => events.push(e));
@@ -172,6 +226,27 @@ test('destroyed propulsion prevents target acceleration', () => {
   def.modules.forEach((m, i) => { if (m.kind === 'engine') sim.target.damage.modules[i].hp = 0; });
   for (let i = 0; i < 600; i++) sim.step(stop, { aim: sim.aimAt(), fire: false, battery: 'main' });
   expect(sim.target.motion.speed).toBe(0);
+});
+
+test('surface evidence preserves ammunition and mount-local contact before later turret movement', () => {
+  const base = definition(), mount = base.mounts[0];
+  const def = { ...base, mounts: [mount], modules: [], compartments: [], connections: [], structures: [], structuralPlating: undefined,
+    armor: [{ id: 'test-turret-side', name: 'Test turret side', center: [2, 2, 0] as Vec3, size: [.1, 4, 4] as Vec3, thicknessMm: 100,
+      plate: { vertices: [[2, 0, -2], [2, 4, -2], [2, 4, 2], [2, 0, 2]] as Vec3[], material: 'steel' as const, mountId: mount.id } }] };
+  const sim = new CombatSimulation(def), events: DamageEvent[] = [];
+  Object.assign(sim.player.motion, { x: 50, y: -2, z: 90, heading: .8, roll: .1, pitch: -.12 });
+  sim.player.mounts[0].train = .7;
+  const mountPose = { x: mount.position[0], y: mount.position[1], z: mount.position[2], heading: mount.bearingDeg * Math.PI / 180 + .7, roll: 0, pitch: 0 };
+  const world = (point: Vec3) => localToWorld(localToWorld(point, mountPose), sim.player.motion);
+  hitShip({ ...round(), type: 'HE' }, world([8, 2, 0]), world([-8, 2, 0]), sim.player, def, e => events.push(e));
+  const strike = events.find(e => e.surfaceImpact)!;
+  expect(strike.shell?.type).toBe('HE'); expect(strike.surfaceImpact?.mountId).toBe(mount.id);
+  expect(length(sub(strike.surfaceImpact!.position, [2, 2, 0]))).toBeLessThan(1e-8);
+  expect(length(sub(strike.surfaceImpact!.direction, [-1, 0, 0]))).toBeLessThan(1e-8);
+  const snapshot = JSON.stringify(strike);
+  sim.player.mounts[0].train = -1; sim.player.motion.x += 100;
+  expect(JSON.stringify(strike)).toBe(snapshot);
+  expect(events.filter(e => e.kind === 'module').every(e => !e.surfaceImpact)).toBe(true);
 });
 
 test('an internal armed burst ignites the magazine once and disable the connected battery mount', () => {

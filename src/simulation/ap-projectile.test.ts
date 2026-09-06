@@ -18,10 +18,11 @@ const round = (overrides: Partial<Shell> = {}): Shell => ({ id: 999, ownerId: 'p
   ap: { armingResistanceMm: 60, fuzeDelaySeconds: .035, explosiveKg: 20, fragmentPenetrationMm: 30, basis: 'Controlled test' }, ...overrides });
 function fixture(armor: Armor[], moduleX?: number) {
   const def = compileShip(blueprint, catalog);
-  def.armor = armor; def.mounts = []; def.connections = []; delete def.propulsion;
+  def.armor = armor; def.mounts = []; def.connections = []; delete def.propulsion; delete def.structuralPlating; delete def.stability;
   def.modules = moduleX === undefined ? [] : [{ ...def.modules[0], id: 'fixture-engine', kind: 'engine', hp: 100,
     center: [moduleX, 5, 0], size: [1, 1, 1] }];
   const sim = new CombatSimulation(def); Object.assign(sim.target.motion, { x: 0, z: 0 });
+  sim.player.motion.x = -1000;
   return { def, sim, actor: sim.target };
 }
 test('thin-plating through-shots slow down without arming AP', () => {
@@ -80,7 +81,7 @@ test('turret entry and exit both resist a shell, while equipment is damaged only
   const before = actor.mounts[0].hp, events: DamageEvent[] = [];
   hitShip(shell, shell.position, [8, 5, 0], actor, def, e => events.push(e));
   expect(events.filter(e => e.impact?.kind === 'mount')).toHaveLength(2);
-  expect(actor.mounts[0].hp).toBe(before - 25); expect(actor.damage.modules[0].hp).toBe(75);
+  expect(actor.mounts[0].hp).toBe(before - 25); expect(actor.damage.modules[0].hp).toBe(100);
   expect(shell.penetrationMm).toBe(750);
 });
 test('intervening armor blocks blast and fragments; thin steel permits reduced fragment damage', () => {

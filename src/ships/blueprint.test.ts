@@ -24,7 +24,7 @@ test('rejects invalid IDs, missing parts, unsupported versions, invalid numbers 
   bad(b => b.modules[0].compartmentId = 'missing', /compartment/);
   bad(b => b.modules[0].size[0] = 100, /fit/);
   bad(b => b.connections = [0,1].map(() => ({fromId:b.compartments[0].id,toId:b.compartments[1].id,areaM2:.1})), /duplicate/);
-  bad(b => b.hull.halfBreadths[2][0] = 1, /increasing/);
+  bad(b => b.hull.halfBreadths[2][0] = b.hull.halfBreadths[1][0], /increasing/);
   bad(b => b.hull.keelHeights.pop(), /span/);
   bad(b => b.compartments[0].capacityM3 = 1e8, /capacity/);
   bad(b => b.modelUrl = 'https://example.com/ship.glb', /local/);

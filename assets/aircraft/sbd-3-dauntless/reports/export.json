@@ -1,0 +1,604 @@
+{
+  "schemaVersion": 1,
+  "aircraftId": "sbd-3-dauntless",
+  "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+  "result": "passed",
+  "coordinates": {
+    "units": "meters",
+    "right": "+X",
+    "up": "+Y",
+    "forward": "-Z"
+  },
+  "bounds": [
+    [
+      -6.324999809265137,
+      -1.946714997291565,
+      -4.969952583312988
+    ],
+    [
+      6.324999809265137,
+      2.2814061641693115,
+      5.038123607635498
+    ]
+  ],
+  "measured": {
+    "wingspan": 12.649999618530273,
+    "height": 4.2281211614608765,
+    "length": 10.008076190948486
+  },
+  "nodeIds": [
+    "aircraft.root",
+    "propeller.spin",
+    "control.rudder",
+    "control.elevator.port",
+    "control.elevator.starboard",
+    "control.aileron.port",
+    "control.aileron.starboard",
+    "gear.port",
+    "gear.starboard",
+    "gear.tail",
+    "socket.payload",
+    "socket.deck"
+  ],
+  "joints": [
+    {
+      "id": "propeller.spin",
+      "pivot": [
+        0,
+        0,
+        -4.669952392578125
+      ],
+      "movingMeshes": 1,
+      "testedRotationRadians": 0.35,
+      "maximumVertexTravel": 0.5840306179228846
+    },
+    {
+      "id": "control.rudder",
+      "pivot": [
+        0,
+        0.03999999910593033,
+        3.8443877696990967
+      ],
+      "movingMeshes": 1,
+      "testedRotationRadians": 0.35,
+      "maximumVertexTravel": 0.4156992504565119
+    },
+    {
+      "id": "control.elevator.port",
+      "pivot": [
+        -0.13468079268932343,
+        0.4117319881916046,
+        3.966047763824463
+      ],
+      "movingMeshes": 1,
+      "testedRotationRadians": 0.35,
+      "maximumVertexTravel": 0.16869129488274304
+    },
+    {
+      "id": "control.elevator.starboard",
+      "pivot": [
+        0.13468019664287567,
+        0.4117319881916046,
+        3.966047763824463
+      ],
+      "movingMeshes": 1,
+      "testedRotationRadians": 0.35,
+      "maximumVertexTravel": 0.16869129488274304
+    },
+    {
+      "id": "control.aileron.port",
+      "pivot": [
+        -4.174499988555908,
+        -0.07566189765930176,
+        -0.9088576436042786
+      ],
+      "movingMeshes": 1,
+      "testedRotationRadians": 0.35,
+      "maximumVertexTravel": 0.18904989852705534
+    },
+    {
+      "id": "control.aileron.starboard",
+      "pivot": [
+        4.174499988555908,
+        -0.07566189765930176,
+        -0.9088570475578308
+      ],
+      "movingMeshes": 1,
+      "testedRotationRadians": 0.35,
+      "maximumVertexTravel": 0.18904991925598208
+    }
+  ],
+  "triangles": 38199,
+  "meshes": 16,
+  "primitives": 47,
+  "bytes": 1581948,
+  "surfaces": {
+    "uvPrimitives": 47,
+    "texturedPrimitives": 6,
+    "normalPrimitives": 47,
+    "embeddedImages": 2
+  },
+  "geometry": {
+    "minimumTriangleAreaM2": 4.4553129410762615e-7,
+    "rejectedTriangleAreaThresholdM2": 1e-14,
+    "degenerateTriangles": 0
+  },
+  "historicalAccuracy": "Not certified; see the aircraft source register and discrepancy report.",
+  "modelHash": "f59209d2b4784b903a25eb797c202b8aa2359a92768745d64b53299604caf080",
+  "sourceBlendHash": "6c3ba5f0169887cf629276dd9352657200458ba44689a901597e9bb5c9d2a0f4",
+  "sourceFiles": {
+    "assets/aircraft/catalog.json": "f5a9edd4250b53c049f506701465c5a19c02de32742df2c2e9e93d837a4497a3",
+    "assets/aircraft/build.py": "4c70d84377318cd798172dcf89e51c2f84b01baf7a7b444171da856eaf4126b1",
+    "assets/aircraft/detail_bombers.py": "351e2cd6ccfddc591279a2b6e1f6057b4131420cd18f7020050f0a40848ad499",
+    "assets/aircraft/shapes/a6m2-zero.json": "98c909b4199cce1ae77024c4fa57a89099d973c8878357e4f40a1b07b9fab77c",
+    "assets/aircraft/references/schematics/a6m2-zero/three-view.png": "bd3911b9abab248fd6d5d8affe8b76f79216190f0ee0e624a40cac97e2e78dac",
+    "assets/aircraft/shapes/a6m5-zero.json": "622d79503f3f7e6208c7fffb1898ddad265dd19becc2025374d2036cc7fde7e7",
+    "assets/aircraft/references/schematics/a6m5-zero/rc3v13451-thumb-large.jpg": "199387fabab44c1f9ec1518ede9f9f9244c8b0c004897932b0dcf27d0d0e4cf2",
+    "assets/aircraft/shapes/b5n2-kate.json": "21c27c2a8eaea99678c62757a4b1f663716319ebc410f73fd39b5108e4916def",
+    "assets/aircraft/references/schematics/b5n2-kate/three-view.png": "5c4d662a52fdac9cafee6d67a00e57ae7da9b90bd615d0a7807d6bb7afa33a9e",
+    "assets/aircraft/shapes/b6n2-jill.json": "6212cc85189bffdce46936ba4d5994bd8c2dd4cd69ffe453a1394d921c0c4cca",
+    "assets/aircraft/references/schematics/b6n2-jill/three-view.png": "08ac443a134d8e790135a9e6116b158c8d74195e9d67edfb290e5afff5628adf",
+    "assets/aircraft/shapes/d3a1-val.json": "c30725989407fd5d4cfdf1c11d835c451b5b5327a16597879c23cab84823ffb4",
+    "assets/aircraft/references/schematics/d3a1-val/three-view.png": "91b52859aef4b9e0e76074aa13092720ef32a51f1ff2c3151ddcf3774d0c24b6",
+    "assets/aircraft/shapes/d4y2-judy.json": "05ed7c79e5cf545722542bd217fb9ff18623ee92dee8c208902d4ca454348287",
+    "assets/aircraft/references/schematics/d4y2-judy/profile-241-page-17-measure.png": "1b3b5b841ae1b675d264bee80dfa07eb9fd5520aad7ab4f49cc20f0b5bb22669",
+    "assets/aircraft/shapes/f4f-4-wildcat.json": "c7a5398f3108d1c5eec5c7f78d7ae417363596b9aabcac41ee0696f0943f1200",
+    "assets/aircraft/references/schematics/f4f-4-wildcat/threeview.png": "5673170e7dab2001ffaa016035230f5d9a6580ef6b629f7267731cdcdd4301ee",
+    "assets/aircraft/shapes/f4u-1d-corsair.json": "e3d8b1a05fe5b04ba3a620abbf3c393d97d51d42f971f296f7ac9ee41c572fa3",
+    "assets/aircraft/references/schematics/f4u-1d-corsair/vought-1532_016_22.png": "c5464eaaac26ea0b1e1be7e7faae1b73876e305653fe4dddd7eb8cf7b16884dc",
+    "assets/aircraft/shapes/f6f-5-hellcat.json": "e122af37b6fc0929231249bf8b8d55ce40992c8e510cbf3a2a5b4970f6e5da80",
+    "assets/aircraft/references/schematics/f6f-5-hellcat/line-threeview.png": "25633c0abeb0e0a3b6fb2a5e33f7c2b474ac598c21177f6e8cfac78fb4374f81",
+    "assets/aircraft/shapes/sb2c-4-helldiver.json": "416879dbe2021070e356179db0258194b10410f3ed1a15a957fb0e45d35d7d64",
+    "assets/aircraft/references/schematics/sb2c-4-helldiver/buaer-sb2c-5.jpg": "c7a846c2eb7d9e942f0dc7c05216b84ca1de9fae390c9f7e73649c9e9818a1b8",
+    "assets/aircraft/shapes/sbd-3-dauntless.json": "97571d4e3534188cbac77ba788abacbaeda68a7579e4900e8cfd112d1d429998",
+    "assets/aircraft/references/schematics/sbd-3-dauntless/buaer-sbd-5.jpg": "3b6e045a32fac9349e7938b53b000d390c3f887c640e39e734fd4385bf0185a7",
+    "assets/aircraft/shapes/tbd-1-devastator.json": "29153f60f93e61251d31f38de80041dcbc6010b895f850d65167884ee209af62",
+    "assets/aircraft/references/schematics/tbd-1-devastator/commons-tbd.png": "fc45af704ce7d02c420e361ab037be84155888433f1d03cb0355aa96fa5e9331",
+    "assets/aircraft/shapes/tbf-1c-avenger.json": "8071c97877c6f62ceb6971cdf91a653cf0edde7dd11e34ae40af9c52bca29348",
+    "assets/aircraft/references/schematics/tbf-1c-avenger/buaer-tbf-1.jpg": "b8371a8284b3e2949e62f1bff05b98606adba532a3f79d3e50bdef08318daaf1"
+  },
+  "textures": {
+    "airframe-basecolor.png": {
+      "sha256": "c31d74887302c6f821ef74c886342071bde4c6e3d367d36c9f7fde87f48890f3",
+      "width": 2048,
+      "height": 2048
+    },
+    "airframe-roughness.png": {
+      "sha256": "5c8d799221140a69ef6d62f5fc109782cb4d63ddc2d519008d9285f6edd815f1",
+      "width": 512,
+      "height": 512
+    }
+  },
+  "lods": [
+    {
+      "level": 0,
+      "schemaVersion": 1,
+      "aircraftId": "sbd-3-dauntless",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "result": "passed",
+      "coordinates": {
+        "units": "meters",
+        "right": "+X",
+        "up": "+Y",
+        "forward": "-Z"
+      },
+      "bounds": [
+        [
+          -6.324999809265137,
+          -1.946714997291565,
+          -4.969952583312988
+        ],
+        [
+          6.324999809265137,
+          2.2814061641693115,
+          5.038123607635498
+        ]
+      ],
+      "measured": {
+        "wingspan": 12.649999618530273,
+        "height": 4.2281211614608765,
+        "length": 10.008076190948486
+      },
+      "nodeIds": [
+        "aircraft.root",
+        "propeller.spin",
+        "control.rudder",
+        "control.elevator.port",
+        "control.elevator.starboard",
+        "control.aileron.port",
+        "control.aileron.starboard",
+        "gear.port",
+        "gear.starboard",
+        "gear.tail",
+        "socket.payload",
+        "socket.deck"
+      ],
+      "joints": [
+        {
+          "id": "propeller.spin",
+          "pivot": [
+            0,
+            0,
+            -4.669952392578125
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.5840306179228846
+        },
+        {
+          "id": "control.rudder",
+          "pivot": [
+            0,
+            0.03999999910593033,
+            3.8443877696990967
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.4156992504565119
+        },
+        {
+          "id": "control.elevator.port",
+          "pivot": [
+            -0.13468079268932343,
+            0.4117319881916046,
+            3.966047763824463
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.16869129488274304
+        },
+        {
+          "id": "control.elevator.starboard",
+          "pivot": [
+            0.13468019664287567,
+            0.4117319881916046,
+            3.966047763824463
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.16869129488274304
+        },
+        {
+          "id": "control.aileron.port",
+          "pivot": [
+            -4.174499988555908,
+            -0.07566189765930176,
+            -0.9088576436042786
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.18904989852705534
+        },
+        {
+          "id": "control.aileron.starboard",
+          "pivot": [
+            4.174499988555908,
+            -0.07566189765930176,
+            -0.9088570475578308
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.18904991925598208
+        }
+      ],
+      "triangles": 38199,
+      "meshes": 16,
+      "primitives": 47,
+      "bytes": 1581948,
+      "surfaces": {
+        "uvPrimitives": 47,
+        "texturedPrimitives": 6,
+        "normalPrimitives": 47,
+        "embeddedImages": 2
+      },
+      "geometry": {
+        "minimumTriangleAreaM2": 4.4553129410762615e-7,
+        "rejectedTriangleAreaThresholdM2": 1e-14,
+        "degenerateTriangles": 0
+      },
+      "historicalAccuracy": "Not certified; see the aircraft source register and discrepancy report.",
+      "modelHash": "f59209d2b4784b903a25eb797c202b8aa2359a92768745d64b53299604caf080",
+      "triangleRatio": 1
+    },
+    {
+      "level": 1,
+      "schemaVersion": 1,
+      "aircraftId": "sbd-3-dauntless",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "result": "passed",
+      "coordinates": {
+        "units": "meters",
+        "right": "+X",
+        "up": "+Y",
+        "forward": "-Z"
+      },
+      "bounds": [
+        [
+          -6.3252997398376465,
+          -1.9466235637664795,
+          -4.969819068908691
+        ],
+        [
+          6.3252997398376465,
+          2.282125949859619,
+          5.038393974304199
+        ]
+      ],
+      "measured": {
+        "wingspan": 12.650599479675293,
+        "height": 4.228749513626099,
+        "length": 10.00821304321289
+      },
+      "nodeIds": [
+        "aircraft.root",
+        "propeller.spin",
+        "control.rudder",
+        "control.elevator.port",
+        "control.elevator.starboard",
+        "control.aileron.port",
+        "control.aileron.starboard",
+        "gear.port",
+        "gear.starboard",
+        "gear.tail",
+        "socket.payload",
+        "socket.deck"
+      ],
+      "joints": [
+        {
+          "id": "propeller.spin",
+          "pivot": [
+            0,
+            0,
+            -4.669952392578125
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.5848364887910763
+        },
+        {
+          "id": "control.rudder",
+          "pivot": [
+            0,
+            0.03999999910593033,
+            3.8443877696990967
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.4157723931183511
+        },
+        {
+          "id": "control.elevator.port",
+          "pivot": [
+            -0.13468079268932343,
+            0.4117319881916046,
+            3.966047763824463
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.16862859404140454
+        },
+        {
+          "id": "control.elevator.starboard",
+          "pivot": [
+            0.13468019664287567,
+            0.4117319881916046,
+            3.966047763824463
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.16862859357569343
+        },
+        {
+          "id": "control.aileron.port",
+          "pivot": [
+            -4.174499988555908,
+            -0.07566189765930176,
+            -0.9088576436042786
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.18955372753454083
+        },
+        {
+          "id": "control.aileron.starboard",
+          "pivot": [
+            4.174499988555908,
+            -0.07566189765930176,
+            -0.9088570475578308
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.18955374826352697
+        }
+      ],
+      "triangles": 17172,
+      "meshes": 16,
+      "primitives": 47,
+      "bytes": 804664,
+      "surfaces": {
+        "uvPrimitives": 47,
+        "texturedPrimitives": 6,
+        "normalPrimitives": 47,
+        "embeddedImages": 2
+      },
+      "geometry": {
+        "minimumTriangleAreaM2": 0.000015999826992390967,
+        "rejectedTriangleAreaThresholdM2": 1e-14,
+        "degenerateTriangles": 0
+      },
+      "historicalAccuracy": "Not certified; see the aircraft source register and discrepancy report.",
+      "modelHash": "fcceee7c630761998eaf77b1170dad5ffca2787aa8a5879bb95723921e4be5b5",
+      "triangleRatio": 0.44954056388910707
+    },
+    {
+      "level": 2,
+      "schemaVersion": 1,
+      "aircraftId": "sbd-3-dauntless",
+      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "result": "passed",
+      "coordinates": {
+        "units": "meters",
+        "right": "+X",
+        "up": "+Y",
+        "forward": "-Z"
+      },
+      "bounds": [
+        [
+          -6.3252997398376465,
+          -1.947170376777649,
+          -4.971647262573242
+        ],
+        [
+          6.3252997398376465,
+          2.284121513366699,
+          5.038312911987305
+        ]
+      ],
+      "measured": {
+        "wingspan": 12.650599479675293,
+        "height": 4.231291890144348,
+        "length": 10.009960174560547
+      },
+      "nodeIds": [
+        "aircraft.root",
+        "propeller.spin",
+        "control.rudder",
+        "control.elevator.port",
+        "control.elevator.starboard",
+        "control.aileron.port",
+        "control.aileron.starboard",
+        "gear.port",
+        "gear.starboard",
+        "gear.tail",
+        "socket.payload",
+        "socket.deck"
+      ],
+      "joints": [
+        {
+          "id": "propeller.spin",
+          "pivot": [
+            0,
+            0,
+            -4.669952392578125
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.5849045505549201
+        },
+        {
+          "id": "control.rudder",
+          "pivot": [
+            0,
+            0.03999999910593033,
+            3.8443877696990967
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.41635816575197265
+        },
+        {
+          "id": "control.elevator.port",
+          "pivot": [
+            -0.13468079268932343,
+            0.4117319881916046,
+            3.966047763824463
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.16853840180786359
+        },
+        {
+          "id": "control.elevator.starboard",
+          "pivot": [
+            0.13468019664287567,
+            0.4117319881916046,
+            3.966047763824463
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.16860841745808777
+        },
+        {
+          "id": "control.aileron.port",
+          "pivot": [
+            -4.174499988555908,
+            -0.07566189765930176,
+            -0.9088576436042786
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.18857990583773476
+        },
+        {
+          "id": "control.aileron.starboard",
+          "pivot": [
+            4.174499988555908,
+            -0.07566189765930176,
+            -0.9088570475578308
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.18857991620207726
+        }
+      ],
+      "triangles": 7790,
+      "meshes": 16,
+      "primitives": 47,
+      "bytes": 434000,
+      "surfaces": {
+        "uvPrimitives": 47,
+        "texturedPrimitives": 6,
+        "normalPrimitives": 47,
+        "embeddedImages": 2
+      },
+      "geometry": {
+        "minimumTriangleAreaM2": 0.0000698445716976815,
+        "rejectedTriangleAreaThresholdM2": 1e-14,
+        "degenerateTriangles": 0
+      },
+      "historicalAccuracy": "Not certified; see the aircraft source register and discrepancy report.",
+      "modelHash": "c782ef2c63b62b505bccc50df0626f6a9f7c075f9b6d4b60a1cdbf3ec43f2f01",
+      "triangleRatio": 0.20393204010576194
+    }
+  ],
+  "authoring": {
+    "method": "blender-mcp",
+    "blenderVersion": "5.2.0 LTS",
+    "metadataHash": "cc10691c54a6fb15aac49af89c02bdce0eba5dc5bd47e9e43227f0638629c141"
+  },
+  "review": {
+    "images": {
+      "quarter": {
+        "sha256": "c3092a6ff3847043c3eacbb8aeafd2c6dec72dd72eccb45472ca814aa3563e1b",
+        "width": 1400,
+        "height": 1050
+      },
+      "top": {
+        "sha256": "2d0814f67f2d6ab54f75954d222a78da03c90965223fa8137916b171dbdbcf91",
+        "width": 1400,
+        "height": 1050
+      },
+      "side": {
+        "sha256": "af9b5210b357a4e5ad0cd946324f3fe65b97b87517106ee8c5d36f9b5e450312",
+        "width": 1400,
+        "height": 1050
+      },
+      "front": {
+        "sha256": "71d3ef7b546a0aa31e6bf7ecb138001ac5bebfc19564e0349c4fe086ee32d5ac",
+        "width": 1400,
+        "height": 1050
+      },
+      "rear": {
+        "sha256": "2cb3bf549f605c3f141fda95aa7d2c12100ed503d87bae8fec58c21236f5cbaf",
+        "width": 1400,
+        "height": 1050
+      },
+      "articulated": {
+        "sha256": "261fab9117424f2a71c8e348a059134c871f7bb10a181bdea058b460e1a51c68",
+        "width": 1400,
+        "height": 1050
+      }
+    },
+    "camerasHash": "56f38b2a1792a621011e98f5dec30f43526df32bf3c776d44225440ec4015c34"
+  }
+}

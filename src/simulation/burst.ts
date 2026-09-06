@@ -15,7 +15,7 @@ export function burstShell(shell: Shell, actors: (Combatant & { definition: Ship
   const radius = clamp(3 * Math.cbrt(charge.explosiveKg), .5, 15);
   let rays = 0;
   let burstShip = shell.lodged?.shipId ?? shell.lastHitShipId ?? '';
-  const base = { shell: { id: shell.id, caliberM: shell.caliberM, velocity: [...shell.velocity] as Vec3 }, position: [...shell.position] as Vec3 };
+  const base = { shell: { id: shell.id, caliberM: shell.caliberM, velocity: [...shell.velocity] as Vec3, ammunition: shell.ammunition, type: shell.type ?? (shell.he ? 'HE' as const : 'AP' as const) }, position: [...shell.position] as Vec3 };
   // The sphere contains every target ray. Filter the complete fleet once, then
   // reuse local candidate indices and sampled train angles for all rays.
   const shields = actors.filter(a => {

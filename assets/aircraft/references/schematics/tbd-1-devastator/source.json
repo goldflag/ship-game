@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "tbd-1-devastator",
+  "retrieved": "2026-09-05",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Douglas_TBD_Devastator_3-view.svg",
+  "sourceTitle": "Douglas TBD Devastator three-view orthographic drawing, Kaboldy, 25 October 2011",
+  "license": "Reference only: Kaboldy, CC BY-SA 3.0 https://creativecommons.org/licenses/by-sa/3.0/; raster is unchanged conversion of retained original SVG. Sparse dimensional landmarks are factual measurements; independently constructed mesh topology.",
+  "variant": "Production TBD-1 with raised greenhouse canopy",
+  "notes": [
+    "Credited modern technical orthographic reference, not a factory drawing. Original SVG and an unchanged nominal raster are retained under source license.",
+    "Official NHHC Dictionary of American Naval Aviation Squadrons volume I page 511 confirms span 50 ft and length 35 ft; its original PDF now returns 404 and mirror 403 during acquisition, so it was not used as the measured raster.",
+    "Wing shape, long raised three-place greenhouse, very narrow tail fuselage and corrugated outer wing are measured or located from retained three-view. Small sections and extended gear geometry remain inferred."
+  ],
+  "files": [
+    {
+      "path": "assets/aircraft/references/schematics/tbd-1-devastator/commons-tbd.svg",
+      "sha256": "1386a9e82e22978a1135260f826b87359fd9ae31ff4ea3e992cee96ab0f2e8a7",
+      "sizeBytes": 1037208
+    },
+    {
+      "path": "assets/aircraft/references/schematics/tbd-1-devastator/measured-landmarks.png",
+      "sha256": "3c985bedb4c4b406a88dea7ca6305e3a51d65c09684f8750c94f5740883fda17",
+      "sizeBytes": 202863
+    },
+    {
+      "path": "assets/aircraft/references/schematics/tbd-1-devastator/commons-tbd.png",
+      "sha256": "fc45af704ce7d02c420e361ab037be84155888433f1d03cb0355aa96fa5e9331",
+      "sizeBytes": 182335
+    }
+  ]
+}

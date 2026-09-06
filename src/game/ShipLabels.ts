@@ -1,6 +1,7 @@
 import { Box3, MathUtils, Vector3, type Camera } from 'three/webgpu';
 import type { FleetActor } from '../simulation/battle';
 import type { ShipView } from './ShipView';
+import { HullDamageFeedback } from './HullDamageFeedback';
 
 type ScreenPoint = { x: number; y: number };
 
@@ -14,6 +15,7 @@ export function projectShipLabel(anchor: Vector3, camera: Camera, width: number,
 type Label = {
   actor: FleetActor; view: ShipView; anchor: Vector3; root: HTMLDivElement;
   meter: HTMLDivElement; fill: HTMLDivElement; health: HTMLSpanElement; hp: number; sunk: boolean;
+  loss: HTMLDivElement; damageNumber: HTMLSpanElement; feedback: HullDamageFeedback;
 };
 
 /** Screen overlay follows rendered hull poses at frame rate, without React rerenders. */
@@ -45,30 +47,43 @@ export class ShipLabels {
       const health = document.createElement('span'); health.className = 'ship-label-health';
       const meter = document.createElement('div'); meter.className = 'ship-label-meter';
       meter.setAttribute('role', 'meter'); meter.setAttribute('aria-label', `${actor.definition.name}, ${identity}, equipment condition`);
-      meter.setAttribute('aria-valuemin', '0'); meter.setAttribute('aria-valuemax', '1000');
-      const fill = document.createElement('div'); meter.appendChild(fill);
-      tag.append(name, meter, health); root.appendChild(tag); this.root.appendChild(root);
+      meter.setAttribute('aria-valuemin', '0'); meter.setAttribute('aria-valuemax', String(actor.damage.maxIntegrity));
+      const fill = document.createElement('div'); fill.className = 'ship-label-fill';
+      const loss = document.createElement('div'); loss.className = 'ship-label-loss';
+      const damageNumber = document.createElement('span'); damageNumber.className = 'ship-label-damage';
+      damageNumber.hidden = true;
+      meter.append(fill, loss);
+      tag.append(name, meter, health, damageNumber); root.appendChild(tag); this.root.appendChild(root);
       // Measure the authored model once. Inspection helpers never change the anchor.
       const bounds = new Box3().setFromObject(view.root.children[0]);
       const top = bounds.isEmpty() ? actor.definition.hull.depth : bounds.max.y - view.root.position.y;
-      return [{ actor, view, root, meter, fill, health, anchor: new Vector3(0, top + 5, 0), hp: -1, sunk: false }];
+      return [{ actor, view, root, meter, fill, health, loss, damageNumber, feedback: new HullDamageFeedback(actor.damage.integrity), anchor: new Vector3(0, top + 5, 0), hp: -1, sunk: false }];
     });
   }
 
   resize(width: number, height: number): void { this.width = width; this.height = height; }
 
-  update(camera: Camera): void {
+  update(camera: Camera, time: number): void {
     camera.updateMatrixWorld();
     for (const label of this.labels) {
       const { actor, view, root } = label;
-      const hp = Math.round(MathUtils.clamp(actor.damage.integrity, 0, 1000));
+      const hp = Math.round(MathUtils.clamp(actor.damage.integrity, 0, actor.damage.maxIntegrity));
+      const damage = label.feedback.update(actor.damage.integrity, time);
+      label.loss.style.left = `${actor.damage.integrity / actor.damage.maxIntegrity * 100}%`;
+      label.loss.style.width = `${damage.amount / actor.damage.maxIntegrity * 100}%`;
+      label.loss.style.opacity = String(damage.opacity);
+      label.damageNumber.hidden = damage.amount <= 0;
+      label.damageNumber.textContent = `−${Math.max(1, Math.round(damage.amount)).toLocaleString()}`;
+      label.damageNumber.style.opacity = String(damage.opacity);
+      label.damageNumber.setAttribute('aria-label', `${Math.max(1, Math.round(damage.amount))} equipment condition points lost`);
       if (label.hp !== hp || label.sunk !== actor.damage.sunk || label.health.dataset.status !== actor.damage.stability.status) {
         label.health.dataset.status = actor.damage.stability.status;
         label.hp = hp; label.sunk = actor.damage.sunk;
-        label.health.textContent = `${Math.round(hp / 10)}% · ${actor.damage.stability.status}`;
+        label.health.textContent = `${Math.round(hp / actor.damage.maxIntegrity * 100)}% · ${actor.damage.stability.status}`;
         label.meter.setAttribute('aria-valuenow', String(hp));
-        label.meter.setAttribute('aria-valuetext', `${Math.round(hp / 10)} percent equipment condition${label.sunk ? ', sinking' : ''}`);
-        label.fill.style.transform = `scaleX(${hp / 1000})`;
+        label.meter.setAttribute('aria-valuemax', String(actor.damage.maxIntegrity));
+        label.meter.setAttribute('aria-valuetext', `${Math.round(hp / actor.damage.maxIntegrity * 100)} percent equipment condition${label.sunk ? ', sinking' : ''}`);
+        label.fill.style.transform = `scaleX(${hp / actor.damage.maxIntegrity})`;
         root.classList.toggle('ship-label-sinking', label.sunk);
       }
       view.root.updateWorldMatrix(true, false);

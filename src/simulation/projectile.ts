@@ -5,11 +5,12 @@ import { burstShell } from './burst';
 import { resolveShipContact, shipContacts, type DamageEvent, type Shell, type ShipContact } from './damage';
 import { add, length, localToWorld, radians, scale, segmentOverlapsBox, sub, worldToLocal } from './geometry';
 import { hullContains } from './hull';
+import { mayReachHull, shellHullRadius } from './spatial';
 
 export type ProjectileEnd = 'burst' | 'stopped' | 'passed-through' | 'splash' | 'expired';
 /** Swept chords remain bounded to a CPU tick. Every contact splits elapsed time,
  * so residual speed and fuze delay affect travel during that same tick. */
-export function advanceProjectile(shell: Shell, actors: FleetActor[], dt: number, emit: (event: DamageEvent | { kind: 'splash'; shipId: string; position: Vec3; message: string; shell: Pick<Shell, 'id' | 'caliberM' | 'velocity'> }) => void): ProjectileEnd | undefined {
+export function advanceProjectile(shell: Shell, actors: FleetActor[], dt: number, emit: (event: DamageEvent | { kind: 'splash'; shipId: string; position: Vec3; message: string; shell: Pick<Shell, 'id' | 'caliberM' | 'velocity' | 'type' | 'ammunition'> }) => void): ProjectileEnd | undefined {
   const insideHull = (point: Vec3) => actors.some(a => a.motion.id !== shell.ownerId && hullContains(a.definition.hull, worldToLocal(point, a.motion)));
   let remaining = dt;
   for (let iteration = 0; iteration < 64; iteration++) {
@@ -38,7 +39,7 @@ export function advanceProjectile(shell: Shell, actors: FleetActor[], dt: number
     const end = crossesSea ? seaPoint : to;
     let nearest: { actor: FleetActor; hit: ShipContact } | undefined;
     for (const actor of actors) {
-      if (actor.motion.id === shell.ownerId || actor.motion.y <= -40) continue;
+      if (actor.motion.id === shell.ownerId || actor.motion.y <= -40 || !mayReachHull(from, end, actor.motion, shellHullRadius(actor.definition))) continue;
       const def = actor.definition;
       if (!segmentOverlapsBox(worldToLocal(from, actor.motion), worldToLocal(end, actor.motion), { center: [0, 10, 0], size: [def.hull.beam + 30, 60, def.hull.length + 40] })) continue;
       const hit = shipContacts(shell, from, end, actor, def)[0];
@@ -58,7 +59,7 @@ export function advanceProjectile(shell: Shell, actors: FleetActor[], dt: number
     shell.penetrationMm = velocityPenetration(shell.penetrationMm, length(shell.velocity), length(flight.velocity));
     shell.velocity = flight.velocity; shell.position = end; shell.age += horizon; remaining -= horizon;
     if (crossesSea || (to[1] < 0 && !insideHull(to))) {
-      if (!insideHull([end[0], 0, end[2]])) emit({ kind: 'splash', position: [end[0], 0, end[2]], shipId: '', message: 'Shell splash', shell: { id: shell.id, caliberM: shell.caliberM, velocity: [...shell.velocity] } });
+      if (!insideHull([end[0], 0, end[2]])) emit({ kind: 'splash', position: [end[0], 0, end[2]], shipId: '', message: 'Shell splash', shell: { id: shell.id, caliberM: shell.caliberM, velocity: [...shell.velocity], ammunition: shell.ammunition, type: shell.type ?? (shell.ammunition === 'he' ? 'HE' : 'AP') } });
       return shell.visited.length ? 'passed-through' : 'splash';
     }
   }

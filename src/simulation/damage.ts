@@ -1,4 +1,5 @@
 import { hullContacts } from './hullContact';
+import { structuralHits, EXTERIOR_PLATING_REPLACEMENT_M } from './structure';
 import { createStability, updateStability, waterLevel, type StabilityState } from './stability';
 import { createControl, heatModule, type ControlState } from './damageControl';
 import type { Ammunition, APProjectile, Armor, FloodConnection, HEProjectile, ShipDefinition, Vec3 } from '../ships/blueprint';
@@ -28,16 +29,24 @@ export interface ImpactRecord {
 }
 export interface DamageState {
   control: ControlState; stability: StabilityState;
-  integrity: number; modules: { id: string; hp: number; detonated: boolean; ignition: number }[];
+  /** Equipment condition on the ship's display scale; never a buoyancy pool. */
+  integrity: number; maxIntegrity: number; modules: { id: string; hp: number; detonated: boolean; ignition: number }[];
   compartments: CompartmentState[]; connections: ConnectionState[]; sunk: boolean; defeatCause?: DefeatCause;
 }
 export interface Combatant { motion: ShipState; mounts: MountState[]; damage: DamageState; }
+export type ShellType = 'AP' | 'HE';
+export interface SurfaceImpact {
+  position: Vec3; normal: Vec3; direction: Vec3; mountId?: string;
+  outcome: 'penetration' | 'stopped' | 'ricochet';
+}
 export interface Shell {
   id: number; ownerId: string; position: Vec3; velocity: Vec3; age: number;
   penetrationMm: number; damage: number; caliberM: number; visited: string[];
   dragPerSecond?: number;
   ap?: APProjectile;
   he?: HEProjectile; ammunition?: Ammunition;
+  type?: ShellType;
+  remainingModuleDamage?: number;
   detonateAtAge?: number;
   lastHitShipId?: string;
   /** Position is ship-local, or mount-local when attached to an articulated gunhouse. */
@@ -45,14 +54,19 @@ export interface Shell {
 }
 /** Serializable evidence for render-side effects; never feeds back into damage. */
 export interface BallisticEffectData {
-  shell?: Pick<Shell, 'id' | 'caliberM' | 'velocity' | 'ammunition'>;
+  shell?: Pick<Shell, 'id' | 'caliberM' | 'velocity' | 'ammunition' | 'type'>;
+  surfaceImpact?: SurfaceImpact;
   normal?: Vec3;
   detonation?: boolean;
   blastRadiusM?: number;
 }
 export interface DamageEvent extends BallisticEffectData { kind: 'penetration' | 'contact' | 'ricochet' | 'stopped' | 'module' | 'sunk' | 'burst'; position: Vec3; message: string; shipId: string; impact?: ImpactRecord; defeatCause?: DefeatCause; }
+/** Historical API name retained for the HUD scale. Sinking is hydrostatic. */
+export function maxHullIntegrity(def: ShipDefinition): number {
+  return Math.round((300 + 1450 * Math.sqrt(def.hull.massKg / 70_000_000)) / 10) * 10;
+}
 export function createDamage(def: ShipDefinition): DamageState {
-  return { stability: createStability(), control: createControl(def), integrity: 1000, modules: def.modules.map(m => ({ id: m.id, hp: m.hp, detonated: false, ignition: 0 })), compartments: def.compartments.map(c => ({ id: c.id, waterM3: 0, breachAreaM2: 0, breaches: [] })), connections: def.connections.map(c => ({ id: connectionId(c), state: c.state ?? 'open', damageAreaM2: c.state === 'damaged' ? c.areaM2 : 0, fromIndex: def.compartments.findIndex(r => r.id === c.fromId), toIndex: def.compartments.findIndex(r => r.id === c.toId) })), sunk: false };
+  return { stability: createStability(), control: createControl(def), integrity: maxHullIntegrity(def), maxIntegrity: maxHullIntegrity(def), modules: def.modules.map(m => ({ id: m.id, hp: m.hp, detonated: false, ignition: 0 })), compartments: def.compartments.map(c => ({ id: c.id, waterM3: 0, breachAreaM2: 0, breaches: [] })), connections: def.connections.map(c => ({ id: connectionId(c), state: c.state ?? 'open', damageAreaM2: c.state === 'damaged' ? c.areaM2 : 0, fromIndex: def.compartments.findIndex(r => r.id === c.fromId), toIndex: def.compartments.findIndex(r => r.id === c.toId) })), sunk: false };
 }
 export function addBreach(state: CompartmentState, position: Vec3, areaM2: number, shellId: number, apertureRadiusM = Math.sqrt(areaM2 / Math.PI)): number {
   const added = Math.max(0, Math.min(areaM2, 4 - state.breachAreaM2));
@@ -107,9 +121,9 @@ function exteriorBreaches(actor: Combatant, def: ShipDefinition, point: Vec3, no
 }
 
 export function contactArmor(def: ShipDefinition, hit: ShipContact): Armor {
-  return hit.index >= 0 ? def.armor[hit.index] : { id: hit.key.split(":").slice(1).join("-"), name: 'Hull shell · estimated', thicknessMm: def.stability!.shellThicknessMm, center: hit.point, size: [.001, .001, .001], plate: { vertices: [], material: 'steel', exterior: true } };
+  return hit.armor ?? (hit.index >= 0 ? def.armor[hit.index] : { id: hit.key.split(":").slice(1).join("-"), name: 'Hull shell · estimated', thicknessMm: def.stability!.shellThicknessMm, center: hit.point, size: [.001, .001, .001], plate: { vertices: [], material: 'steel', exterior: true } });
 }
-export interface ShipContact { t: number; key: string; kind: 'armor' | 'module' | 'mount' | 'boundary'; index: number; point: Vec3; normal: Vec3; onEdge?: boolean; seamKeys?: string[]; }
+export interface ShipContact { t: number; key: string; kind: 'armor' | 'module' | 'mount' | 'boundary'; index: number; point: Vec3; normal: Vec3; onEdge?: boolean; seamKeys?: string[]; armor?: Armor; }
 export interface ContactCandidates { armor: number[]; modules: number[]; connections: number[]; mounts: number[]; trains: number[]; }
 /** Build once for a local burst, retaining every volume that can intersect a ray
  * inside its sphere. Rotation preserves the radius in mount-local coordinates. */
@@ -195,21 +209,25 @@ export function shipContacts(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor
       hits.push({ t: hit.exit, point: localToWorld(point, mountPose), normal: rotate(normal, mountPose), key: exitKey, kind: 'mount', index });
     }
   });
-  if (def.stability) {
-    const crossings = hullContacts(def.hull, from, to);
+  if (def.stability || def.structuralPlating) {
+    const crossings = def.structuralPlating
+      ? structuralHits(from, to, def).map(h => ({ ...h, index: h.triangle, surface: h.surface }))
+      : hullContacts(def.hull, from, to).map(h => ({ ...h, surface: undefined }));
     let previous: ShipContact | undefined;
     for (const h of crossings) {
-      const key = `${actor.motion.id}:hull:${h.index}`;
+      const key = `${actor.motion.id}:hull:${h.surface?.id ?? 'shell'}:${h.index}`;
       if (shell.visited.includes(key)) continue;
-      const probeFrom = add(h.point, scale(h.normal, -5)), probeTo = add(h.point, scale(h.normal, 5));
-      const covered = def.armor.some(a => {
-        if (a.plate?.mountId || !(a.plate?.exterior || a.exterior || !a.plate) || ![0,1,2].every(i => Math.abs(a.center[i] - h.point[i]) <= a.size[i] / 2 + 5)) return false;
+      const allowance = def.structuralPlating ? EXTERIOR_PLATING_REPLACEMENT_M : 5;
+      const path = normalize(sub(to, from));
+      const probeFrom = add(h.point, scale(path, -allowance)), probeTo = add(h.point, scale(path, allowance));
+      const covered = (h.surface?.hull ?? true) && def.armor.some(a => {
+        if (a.plate?.mountId || !(a.plate?.exterior || a.exterior || !a.plate) || ![0,1,2].every(i => Math.abs(a.center[i] - h.point[i]) <= a.size[i] / 2 + allowance)) return false;
         const p = a.plate ? plateHit(probeFrom, probeTo, a, def, trains) : segmentBox(probeFrom, probeTo, a);
         return p && Math.abs(p.normal.reduce((n, v, i) => n + v * h.normal[i], 0)) > .5;
       });
       if (covered) continue;
-      if (previous && length(sub(previous.point, h.point)) < 1e-5) { (previous.seamKeys ??= []).push(key); continue; }
-      previous = { ...h, index: -1, key, kind: 'armor' }; hits.push(previous);
+      if (previous && previous.armor?.id === h.surface?.id && length(sub(previous.point, h.point)) < 1e-5) { (previous.seamKeys ??= []).push(key); continue; }
+      previous = { ...h, index: -1, key, kind: 'armor', ...(h.surface ? { armor: { id: h.surface.id, name: `${h.surface.name} plating`, thicknessMm: h.surface.thicknessMm, center: h.point, size: [.001, .001, .001], plate: { vertices: [], material: 'steel', exterior: h.surface.hull } } as Armor } : {}) }; hits.push(previous);
     }
   }
   hits.sort((a, b) => a.t - b.t || Number(b.kind === 'armor') - Number(a.kind === 'armor') || (a.kind==='armor' && b.kind==='armor' ? contactArmor(def,b).thicknessMm-contactArmor(def,a).thicknessMm : 0) || a.key.localeCompare(b.key));
@@ -234,6 +252,22 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
     const target = hit.kind === 'armor' ? contactArmor(def,hit) : hit.kind === 'module' ? def.modules[hit.index] : hit.kind === 'mount' ? def.mounts[hit.index] : { id: connectionId(boundary), name: `Watertight boundary ${connectionId(boundary)}` };
     const evidence: ImpactRecord = { shellId: shell.id, shipId: actor.motion.id, targetId: target.id, targetName: target.name, kind: hit.kind, position: [...hit.point], impactSpeedMps: length(shell.velocity), penetrationBeforeMm: shell.penetrationMm, penetrationAfterMm: shell.penetrationMm, outcome: 'damaged' };
     const kineticDamage = shell.damage * (shell.ap ? .25 : 1);
+    const incomingVelocity: Vec3 = [...shell.velocity];
+    const damageEquipment = (hp: number) => {
+      const amount = Math.min(hp, shell.remainingModuleDamage ?? kineticDamage);
+      shell.remainingModuleDamage = Math.max(0, (shell.remainingModuleDamage ?? kineticDamage) - amount);
+      return amount;
+    };
+    const surfaceEvidence = (kind: DamageEvent['kind']): SurfaceImpact | undefined => {
+      if (!(hit.kind === 'mount' || hit.kind === 'armor') || evidence.outcome === 'backing') return;
+      const mountId = hit.kind === 'mount' ? def.mounts[hit.index].id : contactArmor(def, hit).plate?.mountId;
+      const i = def.mounts.findIndex(m => m.id === mountId), mount = def.mounts[i];
+      const pose = mount && { x: mount.position[0], y: mount.position[1], z: mount.position[2], heading: radians(mount.bearingDeg) + actor.mounts[i].train, roll: 0, pitch: 0 };
+      return { position: pose ? worldToLocal(hit.point, pose) : [...hit.point],
+        normal: pose ? worldToLocal(hit.normal, { ...pose, x: 0, y: 0, z: 0 }) : [...hit.normal],
+        direction: pose ? worldToLocal(direction, { ...pose, x: 0, y: 0, z: 0 }) : [...direction], mountId,
+        outcome: kind === 'ricochet' ? 'ricochet' : kind === 'stopped' ? 'stopped' : 'penetration' };
+    };
     const arm = (resistance: number) => {
       if (shell.ap && shell.detonateAtAge === undefined && resistance >= shell.ap.armingResistanceMm)
         shell.detonateAtAge = shell.age + shell.ap.fuzeDelaySeconds;
@@ -248,7 +282,8 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
       impact: { ...evidence, penetrationAfterMm: shell.penetrationMm, exitSpeedMps: length(shell.velocity),
         ...(shell.ap ? { fuze: shell.detonateAtAge === undefined ? 'unarmed' as const : 'armed' as const,
           fuzeRemainingSeconds: shell.detonateAtAge === undefined ? undefined : Math.max(0, shell.detonateAtAge - shell.age) } : {}) },
-      shell: { id: shell.id, caliberM: shell.caliberM, velocity: [...shell.velocity] },
+      shell: { id: shell.id, caliberM: shell.caliberM, velocity: incomingVelocity, ammunition: shell.ammunition, type: shell.type ?? (shell.ammunition === 'he' ? 'HE' : 'AP') },
+      surfaceImpact: surfaceEvidence(kind),
       ...(hit.kind === 'mount' || (hit.kind === 'armor' && kind !== 'module' && evidence.outcome !== 'backing') ? { normal: rotate(hit.normal, actor.motion) } : {}),
       ...(detonation ? { detonation: true } : {}),
     });
@@ -305,7 +340,7 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
         const mountIndex = def.mounts.findIndex(m => m.id === a.plate!.mountId);
         const mount = actor.mounts[mountIndex];
         const damageKey = `${actor.motion.id}:mount-damage:${a.plate.mountId}`;
-        const amount = shell.visited.includes(damageKey) ? 0 : kineticDamage;
+        const amount = shell.visited.includes(damageKey) ? 0 : damageEquipment(mount.hp);
         if (amount) shell.visited.push(damageKey);
         evidence.damage = Math.min(mount.hp, amount); mount.hp = Math.max(0, mount.hp - amount);
         evidence.outcome = mount.hp === 0 ? 'destroyed' : 'damaged';
@@ -321,14 +356,14 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
       report('penetration', `Penetrated ${a.name}`);
     } else if (hit.kind === 'module') {
       const m = def.modules[hit.index], state = actor.damage.modules[hit.index];
-      evidence.damage = Math.min(state.hp, kineticDamage); evidence.compartmentId = m.compartmentId;
-      state.hp = Math.max(0, state.hp - kineticDamage);
+      evidence.damage = damageEquipment(state.hp); evidence.compartmentId = m.compartmentId;
+      state.hp = Math.max(0, state.hp - evidence.damage);
       evidence.outcome = state.hp === 0 ? 'destroyed' : 'damaged';
       evidence.resistanceMm = 50; arm(50); pay(50);
       evidence.terminal = shell.penetrationMm === 0;
       if (evidence.terminal && shell.detonateAtAge !== undefined) { shell.lodged = { shipId: actor.motion.id, position: [...hit.point] }; evidence.terminal = false; }
       report('module', `${m.name} ${state.hp === 0 ? 'disabled' : 'damaged'}`);
-      if (shell.ap || shell.he) heatModule(actor, def, hit.index, kineticDamage * .15);
+      if (shell.ap || shell.he) heatModule(actor, def, hit.index, evidence.damage * .15);
       if (shell.penetrationMm === 0) return true;
     } else if (hit.kind === 'boundary') {
       const state = actor.damage.connections[hit.index];
@@ -347,7 +382,7 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
       if (shell.penetrationMm <= m.weapon.armorMm) return stop('stopped', `Stopped by ${m.name} armor`);
       pay(m.weapon.armorMm);
       const damageKey = `${actor.motion.id}:mount-damage:${m.id}`;
-      const amount = shell.visited.includes(damageKey) ? 0 : kineticDamage;
+      const amount = shell.visited.includes(damageKey) ? 0 : damageEquipment(state.hp);
       if (amount) shell.visited.push(damageKey);
       evidence.damage = Math.min(state.hp, amount); state.hp = Math.max(0, state.hp - amount);
       evidence.outcome = state.hp === 0 ? 'destroyed' : 'damaged';

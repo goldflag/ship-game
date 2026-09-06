@@ -10,8 +10,8 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
   if (!c) return null;
   return <section className="gunnery" aria-label="Gunnery and target damage">
     <div className="gunnery-heading">
-      <button className="gunnery-toggle" aria-expanded={expanded} aria-controls="gunnery-details" onClick={() => onExpand(!expanded)}><span className="gunnery-title">Gunnery <Icon name="chevron" size={15} style={{ transform: expanded ? 'rotate(180deg)' : undefined }}/></span><span>{c.ready}/{c.total} ready</span></button>
-      <button className="fire-button" disabled={c.ready === 0 || c.playerSunk} onClick={e => { game?.fire(); e.currentTarget.blur(); }} title={`Fire ready guns · Hold ${bindingLabel(bindings, 'fire')} for repeated salvos`}>Fire <kbd>{bindingLabel(bindings, 'fire')}</kbd></button>
+      <button className="gunnery-toggle" aria-expanded={expanded} aria-controls="gunnery-details" onClick={() => onExpand(!expanded)}><span className="gunnery-title">Gunnery <Icon name="chevron" size={15} style={{ transform: expanded ? 'rotate(180deg)' : undefined }}/></span><span>{c.ready}/{c.total} can fire</span></button>
+      <button className="fire-button" disabled={c.ready === 0 || c.playerSunk} onClick={e => { game?.fire(); e.currentTarget.blur(); }} title={`Fire aligned guns · Hold ${bindingLabel(bindings, 'fire')} to fire as guns align and reload`}>Fire <kbd>{bindingLabel(bindings, 'fire')}</kbd></button>
     </div>
     {expanded && <><div id="gunnery-details" className="gunnery-details">
       <div className="battery-selector" role="group" aria-label="Battery selection">
@@ -25,7 +25,7 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
       <p className="gunnery-help">AP penetrates armor before its delayed burst. HE bursts on contact against light protection. Changing type takes a full reload.</p>
       <div className="mount-readiness" aria-label="Gun readiness">{c.mounts.map(m => <div key={m.id}>
         <span>{m.name.replace('Starboard Secondary ', 'Stbd ').replace('Port Secondary ', 'Port ')}</span>
-        <span className={m.status === 'ready' ? 'gun-ready' : ''}>{m.loaded.toUpperCase()} · {m.status === 'reloading' ? `${Math.ceil(m.reload)}s` : m.status.replaceAll('-', ' ')}</span>
+        <span className={m.status === 'ready' ? 'gun-ready' : ''}>{m.loaded.toUpperCase()} · {m.status === 'ready' ? 'On aim · Loaded' : m.status === 'reloading' ? `Reload ${Math.ceil(m.reload)}s` : m.status === 'turning' && m.reload > 0 ? `Turning · Reload ${Math.ceil(m.reload)}s` : m.status.replaceAll('-', ' ')}</span>
         <small title="Shells remaining">{m.ammo}</small>
       </div>)}</div>
       <details className="shell-history">
