@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "contentHash": "45b7cc0110d0262b177a0e3aeb4df43d0682de8b52f1cc4f18cd5ab0fcddc9a5",
-  "modelSha256": "5176f0030b07cc11d9686af04d589c48c7eb0e06fbf92307d69b4cc2f245e9fe",
-  "specRevision": "independent-1941-03",
+  "contentHash": "957a349026ab6dfccb0b6caa5469c6899066fe034d3e9563940ad0b8e336037b",
+  "modelSha256": "8c01a7a855ad16f2800443e18087101a480704a3ea1975c88021cfd1771334cd",
+  "specRevision": "independent-1941-04",
   "dimensions": [
     {
       "id": "overall-length",

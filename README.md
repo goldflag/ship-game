@@ -90,9 +90,9 @@ The shared simulation is ready to host outside the browser, but multiplayer tran
 
 ## Model pipeline
 
-Bismarck is independently rebuilt for the 24 May 1941 fit, displayed at a separately stated 9.33 m standard draft. Its new original hull, four main turrets, superstructure, 365 armor plates and 39 internal envelopes are driven by the blueprint and component catalog. All sources are under `assets/ships/bismarck/`; the earlier original model remains untouched in `baseline/`. No build depends on `/Users/bill/models`.
+Bismarck is independently rebuilt for the 24 May 1941 fit, displayed at a separately stated 9.33 m standard draft. Its new original hull, four main turrets, superstructure, 509 armor plates and 39 internal envelopes are driven by the blueprint and component catalog. All sources are under `assets/ships/bismarck/`; the earlier original model remains untouched in `baseline/`. No build depends on `/Users/bill/models`.
 
-The latest correction reshapes the bow stem and main gunhouse facets. Bismarck's full hull and major deckhouses now register hits even outside armored areas; Armor inspection also shows their provisional structural plating. The same hull envelope prevents false splashes inside the ship.
+The latest correction replaces the secondary gunhouses' tapered boxes with ridged and sloping roof facets, separates the navigation wheelhouse from the conning tower, and reshapes the tower galleries. All six transverse armor sections now fit inside the local hull, including their physical thickness. See the [fourth correction report](assets/ships/bismarck/reports/visual-iteration-04/README.md). Bismarck's full hull and major deckhouses register hits even outside armored areas; Armor inspection also shows their provisional structural plating.
 
 **Reference review** in port opens the [local comparison page](public/ship-reference/bismarck/index.html): 25 neutral views, historical drawing registration, overlays, dimensions, landmarks, protection sections and downloadable GLB/ZIP. The [modeling specification](assets/ships/bismarck/modeling-spec.json) distinguishes documented dimensions from reconstructed sections and room envelopes. The game model is comparison evidence only; the original ship rebuild passes with the raw reference cache unavailable.
 

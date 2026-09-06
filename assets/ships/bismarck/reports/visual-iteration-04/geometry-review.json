@@ -1,0 +1,63 @@
+{
+  "configuration": "Bismarck, 24 May 1941; 9.33 m standard draft",
+  "source": "Retained bsdraw24m.png, BArch RM 25/231 image 0004 and 150mmp.gif; game rasters used for qualitative comparison only",
+  "beforeHash": "45b7cc0110d0262b177a0e3aeb4df43d0682de8b52f1cc4f18cd5ab0fcddc9a5",
+  "armorReproduction": {
+    "forwardLowerOutboardM": 1.937,
+    "aftLowerKeelY": -7.085,
+    "originalAftPlateLowerY": -7.6,
+    "failingInspectionVertices": 40
+  },
+  "armorFix": {
+    "plateIds": [
+      "forward-transverse-0",
+      "forward-transverse-1",
+      "forward-transverse-2",
+      "aft-transverse-0",
+      "aft-transverse-1",
+      "aft-transverse-2"
+    ],
+    "method": "Convex intersection of local half-section constraints at both physical plate faces",
+    "clearanceM": 0.025,
+    "geometryOwner": "blueprint.json",
+    "rendererOnlyChanges": false,
+    "authoringReproducible": true
+  },
+  "afterHash": "957a349026ab6dfccb0b6caa5469c6899066fe034d3e9563940ad0b8e336037b",
+  "verification": {
+    "tests": {
+      "pass": 184,
+      "fail": 0,
+      "assertions": 26744,
+      "files": 29,
+      "command": "bun test --timeout 30000"
+    },
+    "finalGLBHierarchyTests": {
+      "pass": 4,
+      "fail": 0,
+      "assertions": 47
+    },
+    "shipBuild": "passed",
+    "productionBuild": "passed",
+    "fixedViews": [
+      "profile",
+      "plan",
+      "bow",
+      "stern",
+      "quarter"
+    ],
+    "maxArticulationMuzzleErrorM": 0.002165962012911933,
+    "maxCombatMuzzleErrorM": 0.002168033188974802,
+    "combat": {
+      "method": "Fixed CPU tick replay in the live WebGPU game, launched through custom battle UI; bot AI enabled",
+      "finalTick": 4200,
+      "playerMainShells": 8,
+      "playerSecondaryShells": 28,
+      "damageDealt": 54.400000000000546,
+      "portResetTick": 0,
+      "portResetAmmo": 2760,
+      "portResetIntegrity": 1,
+      "portResetWater": 0
+    }
+  }
+}

@@ -1,6 +1,6 @@
 """Original Bismarck exterior, 24 May 1941 at the separately stated standard draft.
 
-Version 2 interprets the retained historical plan, archival profile and raster
+Version 4 interprets the retained historical plan, archival profile and raster
 comparison pack. Blueprint polygons own major placements; this original recipe
 owns construction/detail primitives. No source mesh or extracted transforms enter.
 """
@@ -14,7 +14,7 @@ OUT=Path(os.environ['SHIP_OUTPUT']);DEF=json.loads(Path(os.environ['SHIP_DEFINIT
 bpy.context.preferences.filepaths.save_version=0
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
 scene=bpy.context.scene;scene.unit_settings.system='METRIC';scene.unit_settings.scale_length=1
-scene['definitionHash']=DEF['contentHash'];scene['authoring']='Original polygon lofts and construction primitives, 1941-02; raster/historical interpretation only'
+scene['definitionHash']=DEF['contentHash'];scene['authoring']='Original polygon lofts and construction primitives, 1941-04; raster/historical interpretation only'
 def group(name):
  c=bpy.data.collections.new(name);scene.collection.children.link(c);return c
 hullcol=group('01 Hull and deck');supercol=group('02 Superstructure');gunscol=group('03 Articulated batteries');detailcol=group('04 Fittings');undercol=group('05 Underwater');simcol=group('14 Simulation volumes')
@@ -155,31 +155,39 @@ for s in DEF['structures']:
  ob['assemblyId']='superstructure-'+s['id']
  if s['id']=='funnel-jacket':continue
  if roof:
-  rail(s['id'],[(x,y,top+.025) for x,y in pts],.94,1.55,col=supercol)
-  if s['id'] in ['bridge-wings','bridge-admiral-platform','signal-platform','fore-aa-platform','foretop-platform','foretop-roof','aft-director-platform']:
+  shields={'bridge-wings':.78,'signal-platform':1.05,'fore-aa-platform':.66,'foretop-platform':1.12,'foretop-roof':.38,'aft-director-platform':.74}
+  if s['id'] not in shields:rail(s['id'],[(x,y,top+.025) for x,y in pts],.85,1.55,col=supercol)
+  if s['id'] in shields:
    # Sheet bulwarks and their inclined wind lip break up the repeated open
    # handrails. Leave the after edge open for passage and mast access.
    aft=min(x for x,y in pts)
    for a,b in zip(pts,pts[1:]+pts[:1]):
-    if (a[0]+b[0])/2<aft+.9:continue
+    if (a[0]+b[0])/2<aft+.9:
+     rail(s['id']+' after guard',[(x,y,top+.025) for x,y in [a,b]],.9,1.55,False,col=supercol)
+     continue
     normal=Vector((a[1]-b[1],b[0]-a[0],0)).normalized();mid=Vector(((a[0]+b[0])/2,(a[1]+b[1])/2,0))
     if normal.dot(mid-Vector(((aft+max(x for x,y in pts))/2,0,0)))<0:normal=-normal
-    vs=[(x,y,zz) for zz in [top+.06,top+.74] for x,y in [a,b]]
+    shield=shields[s['id']];vs=[(x,y,zz) for zz in [top+.04,top+shield] for x,y in [a,b]]
     ob=mesh('Gallery splinter bulwark',vs,[(0,1,3,2)],materials['naval'],supercol)
     mod=ob.modifiers.new('Fabricated plate thickness','SOLIDIFY');mod.thickness=.045
-    lip=[Vector((x,y,top+.74)) for x,y in [a,b]];mesh('Gallery wind deflector',[tuple(v) for v in lip]+[tuple(v+normal*.13+Vector((0,0,.14))) for v in lip],[(0,1,3,2)],materials['edge'],supercol)
+    lip=[Vector((x,y,top+shield)) for x,y in [a,b]];mesh('Gallery wind deflector',[tuple(v) for v in lip]+[tuple(v+normal*.17+Vector((0,0,.13))) for v in lip],[(0,1,3,2)],materials['edge'],supercol)
     count=max(1,math.ceil((Vector(b)-Vector(a)).length/1.4))
     for i in range(count):
-     p=Vector(a)+(Vector(b)-Vector(a))*((i+.5)/count);rod('Bulwark stiffener',(p.x,p.y,top+.1),(p.x,p.y,top+.70),.025,materials['edge'],supercol,vertices=5)
+     p=Vector(a)+(Vector(b)-Vector(a))*((i+.5)/count);rod('Bulwark stiffener',(p.x,p.y,top+.08),(p.x,p.y,top+shield-.04),.025,materials['edge'],supercol,vertices=5)
   # Gallery brackets connect the outer lip to the enclosed central support.
   for x,y in pts:
-   if abs(y)>4.3:rod(s['id']+' knee',(x,y,z-.02),(x,y*.56,z-1.2),.07,materials['naval'],supercol,vertices=6)
+   if abs(y)>4.3:
+    # Forward lobes overhang the tower's front as well as its sides. Keep the
+    # inner end inside the tapered core instead of leaving a hanging strut.
+    tower=s['id'] in ['signal-platform','fore-aa-platform','foretop-platform','foretop-roof']
+    inner=(max(11.0,min(16.5,x)),math.copysign(3.0,y),z-1.2) if tower else (x,y*.56,z-1.2)
+    rod(s['id']+' knee',(x,y,z-.02),inner,.07,materials['naval'],supercol,vertices=6)
  else:
   # Steel deck overhang and drainage lip emphasize real deck boundaries.
   extrude(s['id']+' deck lip',[(x*1.001,y*1.012) for x,y in pts],top,.10,materials['roof'],supercol)
   for sign in [-1,1]:
    yy=sign*max(abs(y) for x,y in pts);lo=min(x for x,y in pts)+2.6;hi=max(x for x,y in pts)-2.6
-   if hi>lo and s['height']>2.0 and s['id'] not in ['funnel-base','tower-mast-base','bridge-wheelhouse','foretop-control']:
+   if hi>lo and s['height']>2.0 and s['id'] not in ['funnel-base','tower-mast-base','bridge-wheelhouse','foretop-control','conning-tower']:
     for x in [lo+i*2.2 for i in range(max(1,int((hi-lo)/2.2)))]:
      yy,normal=house_side(pts,x,sign);porthole(s['id']+' scuttle',Vector((x,yy,top-1.12))+normal*.05,normal,.16)
     xx=(lo+hi)/2;yy,normal=house_side(pts,xx,sign)
@@ -191,13 +199,39 @@ for mount in DEF['mounts']:
  yaw=bpy.data.objects[mount['id']+'.yaw'];w=mount['weapon'];L,W,T=w['gunhouseSize'];primary=w['caliberM']>.2
  def mounted(ob):ob.parent=yaw;ob.matrix_parent_inverse=Matrix.Identity(4);ob['assemblyId']=mount['id'];return ob
  for sign in [-1,1]:
-  if not primary:mounted(box('Gunhouse side access',(-L*.14,sign*(W*.48),T*.46),(.6,.07,.65),materials['edge'],gunscol))
-  for xx in [-L*.33,-L*.07,L*.17]:mounted(box('Gunhouse side drain',(xx,sign*W*.49,T*.2),(.27,.06,.09),materials['dark'],gunscol))
-  # Rear access ladders and hatches, placed inside the original roof footprint.
-  for zz in [T*.22+i*.28 for i in range(int(T*.65/.28))]:
-   rearx=-8.55+max(0,zz-2.1)*(1.65/1.55) if primary else -L*.46
-   mounted(rod('Gunhouse rear rung',(rearx,sign*W*.2-.25,zz),(rearx,sign*W*.2+.25,zz),.024,materials['edge'],gunscol,vertices=6))
-  mounted(box('Gunhouse roof access',(-L*.26,sign*W*.22,T+.11),(1.0 if primary else .55,.76 if primary else .42,.12),materials['naval'],gunscol))
+  if primary:
+   for xx in [-L*.33,-L*.07,L*.17]:mounted(box('Gunhouse side drain',(xx,sign*W*.49,T*.2),(.27,.06,.09),materials['dark'],gunscol))
+   # Preserve the main turret's existing paired rear ladders and roof hatches.
+   for zz in [T*.22+i*.28 for i in range(int(T*.65/.28))]:
+    rearx=-8.55+max(0,zz-2.1)*(1.65/1.55)
+    mounted(rod('Gunhouse rear rung',(rearx,sign*W*.2-.25,zz),(rearx,sign*W*.2+.25,zz),.024,materials['edge'],gunscol,vertices=6))
+   mounted(box('Gunhouse roof access',(-L*.26,sign*W*.22,T+.11),(1.0,.76,.12),materials['naval'],gunscol))
+ if not primary:
+  # The secondary's rear roof ridge, sloping roof and near-vertical walls are
+  # catalog facets. These small original fittings are carried by the same yaw.
+  mounted(box('Secondary rear access hatch',(-3.92,0,1.12),(.07,.78,1.18),materials['edge'],gunscol))
+  mounted(box('Secondary rear hatch inset',(-3.97,0,1.12),(.035,.63,1.02),materials['naval'],gunscol))
+  for yy in [-1.25,-.73]:mounted(rod('Secondary rear ladder rail',(-3.94,yy,.3),(-3.86,yy,2.20),.025,materials['edge'],gunscol,vertices=6))
+  for zz in [.42+i*.26 for i in range(7)]:mounted(rod('Secondary rear ladder rung',(-3.94, -1.25,zz),(-3.94,-.73,zz),.022,materials['edge'],gunscol,vertices=6))
+  for sign in [-1,1]:
+   mounted(box('Secondary covered sight',(-.25,sign*2.32,1.52),(.63,.12,.32),materials['naval'],gunscol))
+   mounted(box('Secondary sight glass',(.075,sign*2.32,1.52),(.026,.085,.14),materials['dark'],gunscol))
+   for xx in [-2.7,-.6,1.2]:
+    yy=sign*(2.15+(xx+3.9)*.4/5.9)
+    mounted(box('Secondary drain',(xx,yy,.39),(.22,.05,.065),materials['dark'],gunscol))
+  for a,b in zip([(-3.82,0,2.20),(-1.2,0,2.62),(1.95,0,2.10)], [(-1.2,0,2.62),(1.95,0,2.10),(2.55,0,1.87)]):mounted(rod('Secondary roof seam',a,b,.018,materials['edge'],gunscol,vertices=5))
+  mounted(cyl('Secondary observation periscope',(-1.18,0,2.76),.095,.34,materials['naval'],gunscol,16))
+  mounted(box('Secondary periscope head',(-1.12,0,2.94),(.26,.23,.15),materials['edge'],gunscol))
+  for side in ['left','right']:
+   parent=bpy.data.objects[mount['id']+'.'+side+'.recoil']
+   for old in list(parent.children):
+    if 'canvas mantlet' in old.name:bpy.data.objects.remove(old,do_unlink=True)
+   vs=[];n=24;rings=[(-.38,.35),(-.16,.39),(.12,.34),(.48,.29),(.85,.235),(1.10,.208)]
+   for xx,rr in rings:
+    for i in range(n):
+     a=math.tau*i/n;wrinkle=1+.055*math.cos(a*7+xx*10);vs.append((xx,rr*math.cos(a)*wrinkle,rr*.94*math.sin(a)*wrinkle))
+   boot=mesh('Secondary pleated blast bag',vs,[(j*n+i,j*n+(i+1)%n,(j+1)*n+(i+1)%n,(j+1)*n+i) for j in range(len(rings)-1) for i in range(n)],materials['canvas'],gunscol,True)
+   boot.parent=parent;boot.matrix_parent_inverse=Matrix.Identity(4);boot['assemblyId']=mount['id']
  if primary:
   for yy in [-2.65,0,2.65]:
    mounted(box('Gunhouse roof plate seam',(-1.95,yy,T+.017),(8.7,.025,.025),materials['edge'],gunscol))
@@ -223,22 +257,40 @@ for mount in DEF['mounts']:
      a=math.tau*i/n;wrinkle=1+.04*math.cos(a*6+xx*7);vs.append((xx,rr*math.cos(a)*wrinkle,rr*.92*math.sin(a)*wrinkle))
    boot=mesh('Main gun pleated blast bag',vs,[(j*n+i,j*n+(i+1)%n,(j+1)*n+(i+1)%n,(j+1)*n+i) for j in range(len(rings)-1) for i in range(n)],materials['canvas'],gunscol,True)
    boot.parent=parent;boot.matrix_parent_inverse=Matrix.Identity(4);boot['assemblyId']=mount['id']
-# Continuous glazed wheelhouse and foretop windows, with structural mullions.
-for name,front,half,z,height in [('bridge',30.55,4.3,16.0,.85),('foretop',17.25,3.25,27.0,.75)]:
- for yy in [i*1.03 for i in range(-int(half),int(half)+1)]:
-  box(name+' window frame',(front,yy,z+height/2),(.07,.89,height+.12),materials['edge'],detailcol)
-  box(name+' glazing',(front+.043,yy,z+height/2),(.023,.76,height),materials['glass'],detailcol)
- for sign in [-1,1]:
-  for x in ([22,23.5,25,26.5,28] if name=='bridge' else [11.4,12.8,14.2,15.6]):
-   box(name+' side glass',(x,sign*(5.22 if name=='bridge' else 4.23),z+height/2),(.9,.035,height),materials['glass'],detailcol)
+# Glazing follows the actual faceted wall, including the rounded forward bridge
+# corners. The navigation house is forward of the separate conning enclosure.
+def wall_windows(sid,z,height,spacing=.95):
+ s=structures[sid];pts=[(-zz,-xx) for xx,zz in s['footprint']];aft=min(x for x,y in pts)
+ for a,b in zip(pts,pts[1:]+pts[:1]):
+  if (a[0]+b[0])/2<aft+.2:continue
+  a,b=Vector((*a,0)),Vector((*b,0));delta=b-a;count=max(1,round(delta.length/spacing));normal=Vector((delta.y,-delta.x,0)).normalized()
+  if normal.dot((a+b)/2-Vector(((aft+max(x for x,y in pts))/2,0,0)))<0:normal=-normal
+  for i in range(count):
+   start=a+delta*((i+.10)/count)+normal*.047;end=a+delta*((i+.90)/count)+normal*.047
+   corners=[p+Vector((0,0,zz)) for zz in [z,z+height] for p in [start,end]]
+   mesh(sid+' framed glass',corners,[(0,1,3,2)],materials['glass'],detailcol)
+   polyline(sid+' window frame',[corners[j] for j in [0,1,3,2]],.033,materials['edge'],closed=True,vertices=6)
+wall_windows('bridge-wheelhouse',15.95,.85,.90)
+wall_windows('foretop-control',27.10,.66,1.05)
+wall_windows('conning-tower',17.74,.13,1.15)
+for sign in [-1,1]:
+ # Open bridge wings, enclosed signal lockers and small navigation instruments.
+ box('Admiral bridge signal locker',(12.4,sign*4.95,21.28),(2.9,.48,.74),materials['naval'],detailcol)
+ for xx in [11.3,12.0,12.7,13.4]:box('Signal locker door',(xx,sign*5.21,21.28),(.57,.035,.56),materials['edge'],detailcol)
+ for xx,yy,zz in [(33.1,6.1,15.54),(18.2,5.6,20.89)]:
+  cyl('Bridge pelorus stand',(xx,sign*yy,zz+.5),.14,.95,materials['naval'],detailcol,16)
+  cyl('Bridge pelorus dial',(xx,sign*yy,zz+1.0),.31,.12,materials['edge'],detailcol,24)
+  rod('Bridge sighting arm',(xx-.25,sign*yy,zz+1.13),(xx+.35,sign*yy,zz+1.13),.035,materials['dark'],detailcol,vertices=6)
+ stairs('Signal bridge access',(18.5,sign*4.0,15.55),(10.3,sign*4.0,20.89),.65)
+ stairs('Upper director gallery access',(10.3,sign*3.9,23.44),(12.8,sign*4.8,26.43),.65)
 # Deckhouse equipment and stairs read at normal harbor inspection distances.
 for sign in [-1,1]:
  for x in [12,18,32,39]:
   pts=[(-z,-x) for x,z in structures['forward-battery-deck']['footprint']];y,_=house_side(pts,x,sign);vent('Forward intake',(x,y+sign*.08,7.15),(1.2,.23,1.05),sign)
  for x in [-47,-42,-34]:vent('Aft intake',(x,sign*8.8,7.05),(1.15,.25,1.0),sign)
  stairs('Forward exterior stair',(39.5,sign*7.95,5.9),(36.0,sign*7.95,9.38))
- stairs('Bridge stair',(35.4,sign*6.7,9.4),(32.8,sign*6.7,12.63))
- stairs('Upper bridge stair',(21.5,sign*6.1,12.6),(18.6,sign*6.1,15.5))
+ stairs('Bridge stair',(35.4,sign*6.3,9.4),(32.8,sign*5.8,12.63))
+ stairs('Upper bridge stair',(24.3,sign*6.1,12.6),(21.2,sign*6.1,15.53))
  stairs('Aft deck stair',(-46,sign*8.5,5.85),(-42.6,sign*8.5,9.28))
  stairs('Aft control stair',(-41.6,sign*6.5,9.3),(-38.5,sign*6.5,12.5))
  for x in [13,37]:
@@ -279,12 +331,8 @@ for sign in [-1,1]:
  stairs('Funnel gallery access',(fx-4,sign*4.45,14.3),(fx-.3,sign*4.45,17.83),.7)
  ladder('Funnel upper ladder',(fx-5.8,sign*3.9,17.9),(fx-5.8,sign*3.9,23.4),.46)
  for xx in [-5.7,0.5]:vent('Funnel lower uptake grille',(xx,sign*5.04,9.6),(1.75,.12,1.5),sign)
-# Deck-to-director supports prevent the floating equipment in iteration 1.
-conning=extrude('Armored forward conning tower',rounded_rect(28.4,0,5.8,5.6,2.0,6),15.47,3.0,materials['naval'],supercol)
-for yy in [-1.8,-.9,0,.9,1.8]:box('Conning vision slit',(31.28,yy,17.7),(.035,.56,.15),materials['dark'],detailcol)
-for sign in [-1,1]:
- for xx in [26.7,28.0,29.3]:box('Conning side slit',(xx,sign*2.79,17.7),(.65,.035,.15),materials['dark'],detailcol)
-rail('Conning roof',[(x,y,18.54) for x,y in rounded_rect(28.4,0,6.1,5.9,2.0,5)],.75,1.5)
+# The conning enclosure and crown now come from the blueprint, with the same
+# structural surfaces used for CPU hits. Its director remains on the original axis.
 def director(name,x,z,span,base):
  # Center of optical axis is z; each pedestal physically spans the supporting roof.
  cyl(name+' support column',(x,0,(base+z-.75)/2),1.55,max(.12,z-.75-base),materials['naval'],detailcol,32)
@@ -304,7 +352,7 @@ def director(name,x,z,span,base):
  for yy in [-1.2,1.2]:rod(name+' radar support',(x,yy,z+.65),(radarx,yy,radarz-.5),.055,materials['edge'],detailcol,vertices=6)
  rod(name+' aerial',(x-.5,0,z+.9),(x-.5,0,z+3.25),.024,materials['edge'],detailcol,vertices=6)
 director('Fore main director',13.4,32.0,10.5,29.21)
-director('Conning director',27.6,20.6,7.0,18.48)
+director('Conning director',27.6,20.6,7.0,18.63)
 director('Aft main director',-37.8,17.5,10.5,16.2)
 # Enclosed AA directors with the characteristic rounded weather covers.
 def aa_director(name,x,y,z,base):
@@ -509,8 +557,8 @@ def aa_mount(name,x,y,z,caliber,bearing=0,quad=False):
 for sign in [-1,1]:
  for x,y in [(20,12.15),(.1,11.6),(-16.0,11.6),(-32.0,10.35)]:aa_mount('Twin 10.5 cm',x,sign*y,deckz(x)+.12,.105)
  for x,y,z in [(39.0,7.8,9.4),(16.5,8.1,12.65),(-37.6,7.4,9.4),(-49.0,6.7,9.4)]:aa_mount('Twin 3.7 cm',x,sign*y,z,.037,bearing=sign*.65)
- for x,y,z in [(42.5,5.5,9.4),(29.1,7.2,12.66),(22.7,8.65,15.6),(11.3,5.8,20.92),(-35.0,5.0,12.65),(-46.1,6.8,9.4)]:aa_mount('Single 2 cm',x,sign*y,z,.020,bearing=sign*.95)
- aa_mount('Quad 2 cm April 1941 fit',13.2,sign*6.05,26.46,.020,bearing=sign*.82,quad=True)
+ for x,y,z in [(42.5,5.5,9.4),(29.1,7.2,12.66),(25.4,6.3,15.6),(11.3,5.2,20.92),(-35.0,5.0,12.65),(-46.1,6.8,9.4)]:aa_mount('Single 2 cm',x,sign*y,z,.020,bearing=sign*.95)
+ aa_mount('Quad 2 cm April 1941 fit',14.4,sign*4.8,26.46,.020,bearing=sign*.82,quad=True)
 
 # Mooring machinery, proper stockless anchors, hatch coamings and hull scuttles.
 def bollard(name,x,y,z):
@@ -626,4 +674,4 @@ for name,loc in [('funnel-cap',(-2.4,0,25)),('mainmast-top',(-22.5,0,48.5)),('fo
  ob=bpy.data.objects.new('landmark.'+name,None);scene.collection.objects.link(ob);ob.location=loc;ob['nodeId']='landmark.'+name
 OUT.mkdir(parents=True,exist_ok=True)
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'source.blend'))
-print('INDEPENDENT BISMARCK SOURCE 1941-02',len(scene.objects),'objects',flush=True)
+print('INDEPENDENT BISMARCK SOURCE 1941-04',len(scene.objects),'objects',flush=True)

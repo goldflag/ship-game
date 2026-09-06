@@ -43,6 +43,19 @@ test('turret plates follow the rear pivot and share collision/inspection local c
   expect(plateHit(from,to,a,def,trains)).not.toBeNull();
   expect(protectionTrace(from,to,def,trains).some(h=>h.id.startsWith('caesar-turret'))).toBe(true);
 });
+test('secondary slopes leave air above the nose and retain distinct front and roof protection while trained', () => {
+  const d=structuredClone(def), i=d.mounts.findIndex(m=>m.id==='starboard-secondary-2'), m=d.mounts[i];
+  d.armor=d.armor.filter(a=>a.plate?.mountId===m.id);
+  expect(d.armor.length).toBeGreaterThan(0);
+  for (const train of [-.8,.8]) {
+    const pose={x:m.position[0],y:m.position[1],z:m.position[2],heading:train,roll:0,pitch:0};
+    const trains=d.mounts.map((_,j)=>j===i?train:0);
+    const trace=(a:Vec3,b:Vec3)=>protectionTrace(localToWorld(a,pose),localToWorld(b,pose),d,trains);
+    expect(trace([-4,2.45,-2.2],[4,2.45,-2.2])).toEqual([]);
+    expect(trace([0,1.0,-6],[0,1.0,0])[0]?.thicknessMm).toBe(80);
+    expect(trace([0,5,1.5],[0,1,1.5])[0]?.thicknessMm).toBe(20);
+  }
+});
 test('a shell at a coplanar plate seam crosses one layer, preserving spatially separated backing', () => {
   const d=structuredClone(def);d.mounts=[];d.modules=[];
   d.armor=[{id:'a',name:'a',center:[0,0,-1],size:[.001,4,2],thicknessMm:100,plate:{vertices:[[0,-2,-2],[0,2,-2],[0,2,0],[0,-2,0]],material:'Wh'}},{id:'b',name:'b',center:[0,0,1],size:[.001,4,2],thicknessMm:120,plate:{vertices:[[0,-2,0],[0,2,0],[0,2,2],[0,-2,2]],material:'Wh'}},{id:'support',name:'support',center:[1,0,0],size:[.001,4,4],thicknessMm:20,plate:{vertices:plate.map(v=>[1,v[1],v[2]]),material:'Wh'}}];
