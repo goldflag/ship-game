@@ -1,0 +1,13 @@
+{
+  "backend": "webgpu",
+  "changed": 0,
+  "contrast": 0,
+  "distance": 3000,
+  "rendered": {
+    "batches": 27,
+    "contacts": 1,
+    "instances": 1,
+    "models": 9,
+    "payloads": 0
+  }
+}

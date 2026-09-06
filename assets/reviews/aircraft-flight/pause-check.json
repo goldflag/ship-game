@@ -1,0 +1,11 @@
+{
+  "id": "9e6e71c2-cfcd-4f43-82e1-b14476b9bc2e",
+  "ok": true,
+  "result": {
+    "result": "{\"followed\":\"player/vb-6/1\",\"paused\":true,\"tick\":15504,\"unchanged\":true}",
+    "origin": "http://localhost:5289/?ship=enterprise-cv6"
+  },
+  "_meta": {
+    "runtimeId": "ddeb9046-2fba-425a-ab05-8e6acf1a4049"
+  }
+}

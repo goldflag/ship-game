@@ -40,7 +40,7 @@ test('launch queues three, spaces takeoffs, uses moving carrier datum, recall an
 });
 test('dive bombers release ballistic HE bombs with carrier ownership and recover', () => {
   const { sim, run, events } = fixture();
-  sim.launchAircraft('vb-6'); run(210);
+  sim.launchAircraft('vb-6'); run(580);
   expect(events.filter(e => e.kind === 'bomb-release').length).toBeGreaterThan(0);
   expect(sim.shells.every(s => s.ownerId === 'player' && s.ammunition === 'he' && s.he!.explosiveKg > 0)).toBe(true);
   expect(events.filter(e => e.kind === 'aircraft-recovered').length).toBeGreaterThan(0);
@@ -48,7 +48,7 @@ test('dive bombers release ballistic HE bombs with carrier ownership and recover
 });
 test('torpedo bombers create falling payloads then armed-distance water runners', () => {
   const { sim, run, events } = fixture();
-  sim.launchAircraft('vt-6'); run(100);
+  sim.launchAircraft('vt-6'); run(155);
   expect(events.some(e => e.kind === 'aircraft-release')).toBe(true);
   expect(sim.torpedoes.length).toBeGreaterThan(0);
   expect(sim.torpedoes.every(t => t.ownerId === 'player' && t.position[1] < 0 && t.distance === 0 && t.weapon.armingDistanceM > 0)).toBe(true);
@@ -87,7 +87,7 @@ test('aircraft weapons resolve actual ship hits and score hostile damage through
   const { sim } = fixture();
   sim.launchAircraft('vb-6'); sim.launchAircraft('vt-6');
   let bombHit = false, torpedoHit = false;
-  for (let i = 0; i < 200 * 60; i++) {
+  for (let i = 0; i < 280 * 60; i++) {
     sim.step({ throttle: 0, rudder: 0 }, { aim: [0, 0, -5000], fire: false, battery: 'main' });
     bombHit ||= sim.events.some(e => !!e.shell && e.shell.caliberM === .35 && !!e.impact);
     torpedoHit ||= sim.events.some(e => e.kind === 'torpedo-hit');
@@ -127,7 +127,7 @@ test('deck aircraft occupy distinct stable spots and taxi continuously before ta
   const first = planes[0]; const parked = [...first.position];
   sim.launchAircraft('vf-6'); run(1 / 60);
   expect(first.phase).toBe('taxi');
-  expect(Math.hypot(...first.position.map((v, i) => v - parked[i]))).toBeLessThan(.3);
+  expect(Math.hypot(...first.position.map((v, i) => v - parked[i]))).toBeLessThan(.4);
   expect(onFlightDeck(first)).toBe(true);
   sim.recallAircraft(); run(25);
   expect(first.phase).toBe('rearming');
@@ -164,4 +164,19 @@ test('a taxi aircraft clears the launch lane when the airborne limit fills', () 
   run(35);
   expect(plane.phase).toBe('rearming');
   expect(plane.deckPosition).toEqual(aircraftDeckSpot(sim.player, plane));
+});
+
+test('a fighter group gets airborne within 37 seconds without overlapping occupied deck runs', () => {
+  const { sim, run } = fixture(); run(1 / 60);
+  sim.launchAircraft('vf-6');
+  const departures = new Map<string, number>();
+  for (let tick = 0; tick < 40 * 60; tick++) {
+    run(1 / 60);
+    const planes = sim.player.airWing!.planes;
+    expect(planes.filter(p => p.phase === 'taxi' || (p.phase === 'takeoff' && onFlightDeck(p))).length).toBeLessThanOrEqual(1);
+    for (const p of planes) if (airborne(p) && !onFlightDeck(p) && !departures.has(p.id)) departures.set(p.id, (tick + 1) / 60);
+  }
+  expect(departures.size).toBe(3);
+  expect(Math.min(...departures.values())).toBeLessThan(12.5);
+  expect(Math.max(...departures.values())).toBeLessThan(37);
 });

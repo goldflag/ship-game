@@ -179,7 +179,8 @@ test('failed aircraft loads leave the current port intact and allow another laun
   const { game, scene, playerView, rig } = await port();
   const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => model(String(url).split('/').pop()!.replace('.glb', '')));
   const view = (game as unknown as { aircraftView: { load(): Promise<void> } }).aircraftView;
-  const aircraftLoader = spyOn(view, 'load').mockRejectedValue(new Error('Aircraft unavailable'));
+  // Create the rejection when called, after the asynchronous ship loads finish.
+  const aircraftLoader = spyOn(view, 'load').mockImplementation(async () => { throw new Error('Aircraft unavailable'); });
   const setup = { playerShipId: 'enterprise-cv6', friendlyBots: [], enemies: ['enterprise-cv6'], spawnDistance: 5000 };
   try {
     await expect(game.prepareBattle(setup)).rejects.toThrow('Aircraft unavailable');

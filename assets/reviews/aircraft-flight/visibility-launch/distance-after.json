@@ -1,0 +1,106 @@
+[
+  {
+    "changed": 377,
+    "contrast": 36841,
+    "distance": 100,
+    "instances": {
+      "batches": 27,
+      "contacts": 0,
+      "instances": 1,
+      "models": 9,
+      "payloads": 0
+    },
+    "model": "f4f-4-wildcat"
+  },
+  {
+    "changed": 272,
+    "contrast": 25794,
+    "distance": 121,
+    "instances": {
+      "batches": 27,
+      "contacts": 0,
+      "instances": 1,
+      "models": 9,
+      "payloads": 0
+    },
+    "model": "f4f-4-wildcat"
+  },
+  {
+    "changed": 37,
+    "contrast": 2626,
+    "distance": 401,
+    "instances": {
+      "batches": 27,
+      "contacts": 0,
+      "instances": 1,
+      "models": 9,
+      "payloads": 0
+    },
+    "model": "f4f-4-wildcat"
+  },
+  {
+    "changed": 14,
+    "contrast": 915,
+    "distance": 800,
+    "instances": {
+      "batches": 27,
+      "contacts": 1,
+      "instances": 1,
+      "models": 9,
+      "payloads": 0
+    },
+    "model": "f4f-4-wildcat"
+  },
+  {
+    "changed": 10,
+    "contrast": 1587,
+    "distance": 1500,
+    "instances": {
+      "batches": 27,
+      "contacts": 1,
+      "instances": 1,
+      "models": 9,
+      "payloads": 0
+    },
+    "model": "f4f-4-wildcat"
+  },
+  {
+    "changed": 10,
+    "contrast": 1794,
+    "distance": 3000,
+    "instances": {
+      "batches": 27,
+      "contacts": 1,
+      "instances": 1,
+      "models": 9,
+      "payloads": 0
+    },
+    "model": "f4f-4-wildcat"
+  },
+  {
+    "changed": 10,
+    "contrast": 1794,
+    "distance": 6000,
+    "instances": {
+      "batches": 27,
+      "contacts": 1,
+      "instances": 1,
+      "models": 9,
+      "payloads": 0
+    },
+    "model": "f4f-4-wildcat"
+  },
+  {
+    "changed": 10,
+    "contrast": 1794,
+    "distance": 10000,
+    "instances": {
+      "batches": 27,
+      "contacts": 1,
+      "instances": 1,
+      "models": 9,
+      "payloads": 0
+    },
+    "model": "f4f-4-wildcat"
+  }
+]
