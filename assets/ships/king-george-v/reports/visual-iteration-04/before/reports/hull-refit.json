@@ -1,0 +1,70 @@
+{
+  "method": "Conservative corner containment of original room envelopes; reduce transverse and vertical extent together, retain stations and stable IDs. Hull-side armor clipped to the same authored sections.",
+  "changes": [
+    {
+      "id": "magazine-a-room",
+      "before": [
+        16,
+        7,
+        16
+      ],
+      "after": [
+        12.527901205718518,
+        5.480956777501851,
+        16
+      ]
+    },
+    {
+      "id": "magazine-y-room",
+      "before": [
+        16,
+        7,
+        18
+      ],
+      "after": [
+        8.401831769645215,
+        3.6758013992197816,
+        18
+      ]
+    },
+    {
+      "id": "magazine-p4-room",
+      "before": [
+        4.4,
+        5,
+        7
+      ],
+      "after": [
+        4.129306568063796,
+        4.692393827345222,
+        7
+      ]
+    },
+    {
+      "id": "magazine-s4-room",
+      "before": [
+        4.4,
+        5,
+        7
+      ],
+      "after": [
+        4.129306568063796,
+        4.692393827345222,
+        7
+      ]
+    },
+    {
+      "id": "steering-room",
+      "before": [
+        8,
+        5,
+        9
+      ],
+      "after": [
+        3.2389086739718915,
+        2.024317921232432,
+        9
+      ]
+    }
+  ]
+}

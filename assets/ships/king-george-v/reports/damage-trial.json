@@ -1,0 +1,12 @@
+{
+  "module": "boiler-1-1",
+  "hpBefore": 170,
+  "hpAfter": 150,
+  "breachedSpaces": 4,
+  "waterAfterTwoSecondsM3": 2.3197084512128936,
+  "marks": 2,
+  "eventKinds": [
+    "penetration",
+    "module"
+  ]
+}

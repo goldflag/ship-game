@@ -1,0 +1,579 @@
+{
+  "origin": "http://localhost:61731/ship-reference/king-george-v/index.html",
+  "refs": {
+    "e1": {
+      "name": "Review navigation",
+      "role": "navigation"
+    },
+    "e10": {
+      "name": "Sources and limits",
+      "role": "link"
+    },
+    "e100": {
+      "name": "Stern \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e101": {
+      "name": "Underside \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e102": {
+      "name": "Quarter Bow \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e103": {
+      "name": "Quarter Stern \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e104": {
+      "name": "Bow Flare \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e105": {
+      "name": "Stern Curvature \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e106": {
+      "name": "Deck Sheer \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e107": {
+      "name": "Main A \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e108": {
+      "name": "Main B \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e109": {
+      "name": "Main Y \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e11": {
+      "name": "Download review pack",
+      "role": "link"
+    },
+    "e110": {
+      "name": "Bridge \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e111": {
+      "name": "Fore Funnel \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e112": {
+      "name": "Aft Funnel \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e113": {
+      "name": "Catapult \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e114": {
+      "name": "Foremast \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e115": {
+      "name": "Mainmast \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e116": {
+      "name": "Aft Superstructure \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e117": {
+      "name": "Secondary Forward \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e118": {
+      "name": "Secondary Aft \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e119": {
+      "name": "Bridge Quarter \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e12": {
+      "name": "Download GLB",
+      "role": "link"
+    },
+    "e120": {
+      "name": "Main A Quarter \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e121": {
+      "name": "Main A Top \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e122": {
+      "name": "Secondary Quarter \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e123": {
+      "name": "Aircraft Deck \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e124": {
+      "name": "Battery Isolated \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e125": {
+      "name": "Hull Superstructure Isolated \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e126": {
+      "name": "GameModels3D clay render",
+      "role": "option"
+    },
+    "e127": {
+      "name": "Historical drawing",
+      "role": "option"
+    },
+    "e128": {
+      "name": "Measurement",
+      "role": "columnheader"
+    },
+    "e129": {
+      "name": "Exported",
+      "role": "columnheader"
+    },
+    "e13": {
+      "name": "Comparison view",
+      "role": "combobox"
+    },
+    "e130": {
+      "name": "Target",
+      "role": "columnheader"
+    },
+    "e131": {
+      "name": "Deviation",
+      "role": "columnheader"
+    },
+    "e132": {
+      "name": "Build tolerance",
+      "role": "columnheader"
+    },
+    "e133": {
+      "name": "Evidence",
+      "role": "columnheader"
+    },
+    "e134": {
+      "name": "Landmark",
+      "role": "columnheader"
+    },
+    "e135": {
+      "name": "Exported X, Y, Z",
+      "role": "columnheader"
+    },
+    "e136": {
+      "name": "Reviewed X, Y, Z",
+      "role": "columnheader"
+    },
+    "e137": {
+      "name": "Largest axis deviation",
+      "role": "columnheader"
+    },
+    "e138": {
+      "name": "Evidence and tolerance",
+      "role": "columnheader"
+    },
+    "e139": {
+      "name": "30",
+      "role": "option"
+    },
+    "e14": {
+      "name": "Reference layer",
+      "role": "combobox"
+    },
+    "e140": {
+      "name": "55",
+      "role": "option"
+    },
+    "e141": {
+      "name": "113.54",
+      "role": "option"
+    },
+    "e142": {
+      "name": "163.54",
+      "role": "option"
+    },
+    "e143": {
+      "name": "205",
+      "role": "option"
+    },
+    "e15": {
+      "name": "Authored overlay",
+      "role": "slider"
+    },
+    "e16": {
+      "name": "Download full resolution comparison sheet",
+      "role": "link"
+    },
+    "e17": {
+      "name": "Reference contact sheet",
+      "role": "link"
+    },
+    "e18": {
+      "name": "Capture manifest",
+      "role": "link"
+    },
+    "e19": {
+      "name": "Measurements and probes",
+      "role": "link"
+    },
+    "e2": {
+      "name": "HMS King George V \u00b7 early 1941",
+      "role": "heading"
+    },
+    "e20": {
+      "name": "Reviewed modeling specification",
+      "role": "link"
+    },
+    "e21": {
+      "name": "Editable blueprint",
+      "role": "link"
+    },
+    "e22": {
+      "name": "Historical raster registration",
+      "role": "link"
+    },
+    "e23": {
+      "name": "Structural frame",
+      "role": "combobox"
+    },
+    "e24": {
+      "name": "Original dated plan image, with credit",
+      "role": "link"
+    },
+    "e25": {
+      "name": "Full source register",
+      "role": "link"
+    },
+    "e26": {
+      "name": "length",
+      "role": "rowheader"
+    },
+    "e27": {
+      "name": "227.080 m",
+      "role": "cell"
+    },
+    "e28": {
+      "name": "227.080 m",
+      "role": "cell"
+    },
+    "e29": {
+      "name": "+0.000 m",
+      "role": "cell"
+    },
+    "e3": {
+      "name": "Dimensions and datums",
+      "role": "heading"
+    },
+    "e30": {
+      "name": "\u00b10.03 m",
+      "role": "cell"
+    },
+    "e31": {
+      "name": "documented assessed uncertainty \u00b10.3 m",
+      "role": "cell"
+    },
+    "e32": {
+      "name": "beam",
+      "role": "rowheader"
+    },
+    "e33": {
+      "name": "31.394 m",
+      "role": "cell"
+    },
+    "e34": {
+      "name": "31.394 m",
+      "role": "cell"
+    },
+    "e35": {
+      "name": "-0.000 m",
+      "role": "cell"
+    },
+    "e36": {
+      "name": "\u00b10.03 m",
+      "role": "cell"
+    },
+    "e37": {
+      "name": "documented assessed uncertainty \u00b10.3 m",
+      "role": "cell"
+    },
+    "e38": {
+      "name": "standard draft",
+      "role": "rowheader"
+    },
+    "e39": {
+      "name": "8.839 m",
+      "role": "cell"
+    },
+    "e4": {
+      "name": "Landmark deviations",
+      "role": "heading"
+    },
+    "e40": {
+      "name": "8.839 m",
+      "role": "cell"
+    },
+    "e41": {
+      "name": "+0.000 m",
+      "role": "cell"
+    },
+    "e42": {
+      "name": "\u00b10.03 m",
+      "role": "cell"
+    },
+    "e43": {
+      "name": "documented assessed uncertainty \u00b10.3 m",
+      "role": "cell"
+    },
+    "e44": {
+      "name": "waterline length",
+      "role": "rowheader"
+    },
+    "e45": {
+      "name": "225.600 m",
+      "role": "cell"
+    },
+    "e46": {
+      "name": "225.600 m",
+      "role": "cell"
+    },
+    "e47": {
+      "name": "+0.000 m",
+      "role": "cell"
+    },
+    "e48": {
+      "name": "\u00b10.03 m",
+      "role": "cell"
+    },
+    "e49": {
+      "name": "documented assessed uncertainty \u00b11 m",
+      "role": "cell"
+    },
+    "e5": {
+      "name": "Protection and internal spaces",
+      "role": "heading"
+    },
+    "e50": {
+      "name": "midship depth",
+      "role": "rowheader"
+    },
+    "e51": {
+      "name": "15.577 m",
+      "role": "cell"
+    },
+    "e52": {
+      "name": "15.577 m",
+      "role": "cell"
+    },
+    "e53": {
+      "name": "+0.000 m",
+      "role": "cell"
+    },
+    "e54": {
+      "name": "\u00b10.03 m",
+      "role": "cell"
+    },
+    "e55": {
+      "name": "documented assessed uncertainty \u00b10.3 m",
+      "role": "cell"
+    },
+    "e56": {
+      "name": "main a axis",
+      "role": "rowheader"
+    },
+    "e57": {
+      "name": "0.00, 8.69, -50.00",
+      "role": "cell"
+    },
+    "e58": {
+      "name": "0.00, 8.69, -50.00",
+      "role": "cell"
+    },
+    "e59": {
+      "name": "0.0000 m",
+      "role": "cell"
+    },
+    "e6": {
+      "name": "Evidence and unresolved differences",
+      "role": "heading"
+    },
+    "e60": {
+      "name": "plan-measured \u00b7 \u00b10.8 m \u00b7 rmg-npb5308",
+      "role": "cell"
+    },
+    "e61": {
+      "name": "main b axis",
+      "role": "rowheader"
+    },
+    "e62": {
+      "name": "0.00, 12.39, -35.00",
+      "role": "cell"
+    },
+    "e63": {
+      "name": "0.00, 12.39, -35.00",
+      "role": "cell"
+    },
+    "e64": {
+      "name": "0.0000 m",
+      "role": "cell"
+    },
+    "e65": {
+      "name": "plan-measured \u00b7 \u00b10.8 m \u00b7 rmg-npb5308",
+      "role": "cell"
+    },
+    "e66": {
+      "name": "main y axis",
+      "role": "rowheader"
+    },
+    "e67": {
+      "name": "-0.00, 8.69, 60.00",
+      "role": "cell"
+    },
+    "e68": {
+      "name": "0.00, 8.69, 60.00",
+      "role": "cell"
+    },
+    "e69": {
+      "name": "0.0000 m",
+      "role": "cell"
+    },
+    "e7": {
+      "name": "Open ship in game",
+      "role": "link"
+    },
+    "e70": {
+      "name": "plan-measured \u00b7 \u00b10.8 m \u00b7 rmg-npb5308",
+      "role": "cell"
+    },
+    "e71": {
+      "name": "funnel cap",
+      "role": "rowheader"
+    },
+    "e72": {
+      "name": "0.00, 24.74, -0.80",
+      "role": "cell"
+    },
+    "e73": {
+      "name": "0.00, 24.74, -0.80",
+      "role": "cell"
+    },
+    "e74": {
+      "name": "0.0000 m",
+      "role": "cell"
+    },
+    "e75": {
+      "name": "plan-measured \u00b7 \u00b11.5 m \u00b7 rmg-j9645-original",
+      "role": "cell"
+    },
+    "e76": {
+      "name": "foremast top",
+      "role": "rowheader"
+    },
+    "e77": {
+      "name": "0.00, 37.80, -8.50",
+      "role": "cell"
+    },
+    "e78": {
+      "name": "0.00, 37.80, -8.50",
+      "role": "cell"
+    },
+    "e79": {
+      "name": "0.0000 m",
+      "role": "cell"
+    },
+    "e8": {
+      "name": "Dimensions",
+      "role": "link"
+    },
+    "e80": {
+      "name": "plan-measured \u00b7 \u00b11.5 m \u00b7 rmg-j9645-original",
+      "role": "cell"
+    },
+    "e81": {
+      "name": "mainmast top",
+      "role": "rowheader"
+    },
+    "e82": {
+      "name": "-0.00, 34.10, 43.60",
+      "role": "cell"
+    },
+    "e83": {
+      "name": "0.00, 34.10, 43.60",
+      "role": "cell"
+    },
+    "e84": {
+      "name": "0.0000 m",
+      "role": "cell"
+    },
+    "e85": {
+      "name": "plan-measured \u00b7 \u00b11.5 m \u00b7 rmg-j9645-original",
+      "role": "cell"
+    },
+    "e86": {
+      "name": "fore director",
+      "role": "rowheader"
+    },
+    "e87": {
+      "name": "0.00, 23.09, -22.30",
+      "role": "cell"
+    },
+    "e88": {
+      "name": "0.00, 23.09, -22.30",
+      "role": "cell"
+    },
+    "e89": {
+      "name": "0.0000 m",
+      "role": "cell"
+    },
+    "e9": {
+      "name": "Protection and spaces",
+      "role": "link"
+    },
+    "e90": {
+      "name": "plan-measured \u00b7 \u00b11.5 m \u00b7 rmg-j9645-original",
+      "role": "cell"
+    },
+    "e91": {
+      "name": "bridge front",
+      "role": "rowheader"
+    },
+    "e92": {
+      "name": "0.00, 23.69, -31.00",
+      "role": "cell"
+    },
+    "e93": {
+      "name": "0.00, 23.69, -31.00",
+      "role": "cell"
+    },
+    "e94": {
+      "name": "0.0000 m",
+      "role": "cell"
+    },
+    "e95": {
+      "name": "plan-measured \u00b7 \u00b11.5 m \u00b7 rmg-j9645-original",
+      "role": "cell"
+    },
+    "e96": {
+      "name": "Starboard \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e97": {
+      "name": "Port \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e98": {
+      "name": "Top \u00b7 ORTHO",
+      "role": "option"
+    },
+    "e99": {
+      "name": "Bow \u00b7 ORTHO",
+      "role": "option"
+    }
+  },
+  "snapshot": "- main\n  - navigation \"Review navigation\" [ref=e1]\n    - link \"Open ship in game\" [ref=e7]\n    - link \"Dimensions\" [ref=e8]\n    - link \"Protection and spaces\" [ref=e9]\n    - link \"Sources and limits\" [ref=e10]\n    - link \"Download review pack\" [ref=e11]\n    - link \"Download GLB\" [ref=e12]\n  - heading \"HMS King George V \u00b7 early 1941\" [level=1, ref=e2]\n  - paragraph\n    - StaticText \"Original reconstruction refined against Vickers schematics, dated photographs and GameModels3D raster views. Inspect the actual exported ship with matched cameras, retained originals and explicit source uncertainty.\"\n  - paragraph\n    - StaticText \"Engineering targets passed \u00b7 hull sections and internal envelopes remain reconstructed. Build 4bb046b736b3 \u00b7 EU 15.7.0.0 reference \u00b7 no historical accuracy certification.\"\n  - LabelText\n    - StaticText \"Comparison view\"\n    - combobox \"Comparison view\" [expanded=false, ref=e13]: Main A Quarter \u00b7 ORTHO\n      - MenuListPopup\n        - option \"Starboard \u00b7 ORTHO\" [ref=e96]\n        - option \"Port \u00b7 ORTHO\" [ref=e97]\n        - option \"Top \u00b7 ORTHO\" [ref=e98]\n        - option \"Bow \u00b7 ORTHO\" [ref=e99]\n        - option \"Stern \u00b7 ORTHO\" [ref=e100]\n        - option \"Underside \u00b7 ORTHO\" [ref=e101]\n        - option \"Quarter Bow \u00b7 ORTHO\" [ref=e102]\n        - option \"Quarter Stern \u00b7 ORTHO\" [ref=e103]\n        - option \"Bow Flare \u00b7 ORTHO\" [ref=e104]\n        - option \"Stern Curvature \u00b7 ORTHO\" [ref=e105]\n        - option \"Deck Sheer \u00b7 ORTHO\" [ref=e106]\n        - option \"Main A \u00b7 ORTHO\" [ref=e107]\n        - option \"Main B \u00b7 ORTHO\" [ref=e108]\n        - option \"Main Y \u00b7 ORTHO\" [ref=e109]\n        - option \"Bridge \u00b7 ORTHO\" [ref=e110]\n        - option \"Fore Funnel \u00b7 ORTHO\" [ref=e111]\n        - option \"Aft Funnel \u00b7 ORTHO\" [ref=e112]\n        - option \"Catapult \u00b7 ORTHO\" [ref=e113]\n        - option \"Foremast \u00b7 ORTHO\" [ref=e114]\n        - option \"Mainmast \u00b7 ORTHO\" [ref=e115]\n        - option \"Aft Superstructure \u00b7 ORTHO\" [ref=e116]\n        - option \"Secondary Forward \u00b7 ORTHO\" [ref=e117]\n        - option \"Secondary Aft \u00b7 ORTHO\" [ref=e118]\n        - option \"Bridge Quarter \u00b7 ORTHO\" [ref=e119]\n        - option \"Main A Quarter \u00b7 ORTHO\" [selected, ref=e120]\n        - option \"Main A Top \u00b7 ORTHO\" [ref=e121]\n        - option \"Secondary Quarter \u00b7 ORTHO\" [ref=e122]\n        - option \"Aircraft Deck \u00b7 ORTHO\" [ref=e123]\n        - option \"Battery Isolated \u00b7 ORTHO\" [ref=e124]\n        - option \"Hull Superstructure Isolated \u00b7 ORTHO\" [ref=e125]\n  - LabelText\n    - StaticText \"Reference layer\"\n    - combobox \"Reference layer\" [expanded=false, ref=e14]: GameModels3D clay render\n      - MenuListPopup\n        - option \"GameModels3D clay render\" [selected, ref=e126]\n        - option \"Historical drawing\" [disabled, ref=e127]\n  - LabelText\n    - StaticText \"Authored overlay\"\n    - status\n      - StaticText \"50%\"\n    - slider \"Authored overlay\" [ref=e15]: 50\n  - figure\n    - image \"GameModels3D reference in the selected fixed view\"\n    - image \"Actual exported authored ship overlaid at the same camera scale\"\n    - Figcaption\n      - StaticText \"Matched orthographic cameras. Game reference uses one global 15 m/viewer-unit registration; source waterline/load remains unverified.\"\n  - figure\n    - image \"Authored ship alone\"\n    - Figcaption\n      - StaticText \"Actual authored GLB\"\n  - figure\n    - image \"Selected comparison reference alone\"\n    - Figcaption\n      - StaticText \"GameModels3D \u00b7 comparison evidence\"\n  - paragraph\n    - link \"Download full resolution comparison sheet\" [ref=e16]\n    - StaticText \" \u00b7 \"\n    - link \"Reference contact sheet\" [ref=e17]\n    - StaticText \" \u00b7 \"\n    - link \"Capture manifest\" [ref=e18]\n  - heading \"Dimensions and datums\" [level=2, ref=e3]\n  - table\n    - rowgroup\n      - row\n        - columnheader \"Measurement\" [ref=e128]\n        - columnheader \"Exported\" [ref=e129]\n        - columnheader \"Target\" [ref=e130]\n        - columnheader \"Deviation\" [ref=e131]\n        - columnheader \"Build tolerance\" [ref=e132]\n        - columnheader \"Evidence\" [ref=e133]\n    - row\n      - rowheader \"length\" [ref=e26]\n      - cell \"227.080 m\" [ref=e27]\n      - cell \"227.080 m\" [ref=e28]\n      - cell \"+0.000 m\" [ref=e29]\n      - cell \"\u00b10.03 m\" [ref=e30]\n      - cell \"documented assessed uncertainty \u00b10.3 m\" [ref=e31]\n        - StaticText \"documented\"\n        - LineBreak \"\\n\"\n        - StaticText \"assessed uncertainty \u00b10.3 m\"\n    - row\n      - rowheader \"beam\" [ref=e32]\n      - cell \"31.394 m\" [ref=e33]\n      - cell \"31.394 m\" [ref=e34]\n      - cell \"-0.000 m\" [ref=e35]\n      - cell \"\u00b10.03 m\" [ref=e36]\n      - cell \"documented assessed uncertainty \u00b10.3 m\" [ref=e37]\n        - StaticText \"documented\"\n        - LineBreak \"\\n\"\n        - StaticText \"assessed uncertainty \u00b10.3 m\"\n    - row\n      - rowheader \"standard draft\" [ref=e38]\n      - cell \"8.839 m\" [ref=e39]\n      - cell \"8.839 m\" [ref=e40]\n      - cell \"+0.000 m\" [ref=e41]\n      - cell \"\u00b10.03 m\" [ref=e42]\n      - cell \"documented assessed uncertainty \u00b10.3 m\" [ref=e43]\n        - StaticText \"documented\"\n        - LineBreak \"\\n\"\n        - StaticText \"assessed uncertainty \u00b10.3 m\"\n    - row\n      - rowheader \"waterline length\" [ref=e44]\n      - cell \"225.600 m\" [ref=e45]\n      - cell \"225.600 m\" [ref=e46]\n      - cell \"+0.000 m\" [ref=e47]\n      - cell \"\u00b10.03 m\" [ref=e48]\n      - cell \"documented assessed uncertainty \u00b11 m\" [ref=e49]\n        - StaticText \"documented\"\n        - LineBreak \"\\n\"\n        - StaticText \"assessed uncertainty \u00b11 m\"\n    - row\n      - rowheader \"midship depth\" [ref=e50]\n      - cell \"15.577 m\" [ref=e51]\n      - cell \"15.577 m\" [ref=e52]\n      - cell \"+0.000 m\" [ref=e53]\n      - cell \"\u00b10.03 m\" [ref=e54]\n      - cell \"documented assessed uncertainty \u00b10.3 m\" [ref=e55]\n        - StaticText \"documented\"\n        - LineBreak \"\\n\"\n        - StaticText \"assessed uncertainty \u00b10.3 m\"\n  - paragraph\n    - StaticText \"Measurements intersect actual exported hull triangles. The hull is watertight after welding: 18562 triangles, 0 degenerate triangles. All 152 authored room envelopes fit within the reconstructed hull. These checks cannot certify missing historical offsets.\"\n  - paragraph\n    - link \"Measurements and probes\" [ref=e19]\n    - StaticText \" \u00b7 \"\n    - link \"Reviewed modeling specification\" [ref=e20]\n    - StaticText \" \u00b7 \"\n    - link \"Editable blueprint\" [ref=e21]\n    - StaticText \" \u00b7 \"\n    - link \"Historical raster registration\" [ref=e22]\n  - heading \"Landmark deviations\" [level=2, ref=e4]\n  - paragraph\n    - StaticText \"Runtime coordinates are X starboard, Y up, Z aft, in metres. Deviations check the exported landmarks against the reviewed specification; they do not measure agreement with GameModels3D. Evidence uncertainties are our assessment, not source-published error bars.\"\n  - table\n    - rowgroup\n      - row\n        - columnheader \"Landmark\" [ref=e134]\n        - columnheader \"Exported X, Y, Z\" [ref=e135]\n        - columnheader \"Reviewed X, Y, Z\" [ref=e136]\n        - columnheader \"Largest axis deviation\" [ref=e137]\n        - columnheader \"Evidence and tolerance\" [ref=e138]\n    - row\n      - rowheader \"main a axis\" [ref=e56]\n      - cell \"0.00, 8.69, -50.00\" [ref=e57]\n      - cell \"0.00, 8.69, -50.00\" [ref=e58]\n      - cell \"0.0000 m\" [ref=e59]\n      - cell \"plan-measured \u00b7 \u00b10.8 m \u00b7 rmg-npb5308\" [ref=e60]\n    - row\n      - rowheader \"main b axis\" [ref=e61]\n      - cell \"0.00, 12.39, -35.00\" [ref=e62]\n      - cell \"0.00, 12.39, -35.00\" [ref=e63]\n      - cell \"0.0000 m\" [ref=e64]\n      - cell \"plan-measured \u00b7 \u00b10.8 m \u00b7 rmg-npb5308\" [ref=e65]\n    - row\n      - rowheader \"main y axis\" [ref=e66]\n      - cell \"-0.00, 8.69, 60.00\" [ref=e67]\n      - cell \"0.00, 8.69, 60.00\" [ref=e68]\n      - cell \"0.0000 m\" [ref=e69]\n      - cell \"plan-measured \u00b7 \u00b10.8 m \u00b7 rmg-npb5308\" [ref=e70]\n    - row\n      - rowheader \"funnel cap\" [ref=e71]\n      - cell \"0.00, 24.74, -0.80\" [ref=e72]\n      - cell \"0.00, 24.74, -0.80\" [ref=e73]\n      - cell \"0.0000 m\" [ref=e74]\n      - cell \"plan-measured \u00b7 \u00b11.5 m \u00b7 rmg-j9645-original\" [ref=e75]\n    - row\n      - rowheader \"foremast top\" [ref=e76]\n      - cell \"0.00, 37.80, -8.50\" [ref=e77]\n      - cell \"0.00, 37.80, -8.50\" [ref=e78]\n      - cell \"0.0000 m\" [ref=e79]\n      - cell \"plan-measured \u00b7 \u00b11.5 m \u00b7 rmg-j9645-original\" [ref=e80]\n    - row\n      - rowheader \"mainmast top\" [ref=e81]\n      - cell \"-0.00, 34.10, 43.60\" [ref=e82]\n      - cell \"0.00, 34.10, 43.60\" [ref=e83]\n      - cell \"0.0000 m\" [ref=e84]\n      - cell \"plan-measured \u00b7 \u00b11.5 m \u00b7 rmg-j9645-original\" [ref=e85]\n    - row\n      - rowheader \"fore director\" [ref=e86]\n      - cell \"0.00, 23.09, -22.30\" [ref=e87]\n      - cell \"0.00, 23.09, -22.30\" [ref=e88]\n      - cell \"0.0000 m\" [ref=e89]\n      - cell \"plan-measured \u00b7 \u00b11.5 m \u00b7 rmg-j9645-original\" [ref=e90]\n    - row\n      - rowheader \"bridge front\" [ref=e91]\n      - cell \"0.00, 23.69, -31.00\" [ref=e92]\n      - cell \"0.00, 23.69, -31.00\" [ref=e93]\n      - cell \"0.0000 m\" [ref=e94]\n      - cell \"plan-measured \u00b7 \u00b11.5 m \u00b7 rmg-j9645-original\" [ref=e95]\n  - heading \"Protection and internal spaces\" [level=2, ref=e5]\n  - LabelText\n    - StaticText \"Structural frame\"\n    - combobox \"Structural frame\" [expanded=false, ref=e23]: 30\n      - MenuListPopup\n        - option \"30\" [selected, ref=e139]\n        - option \"55\" [ref=e140]\n        - option \"113.54\" [ref=e141]\n        - option \"163.54\" [ref=e142]\n        - option \"205\" [ref=e143]\n  - figure\n    - image \"Authored hull, armor layers and compartments at selected frame\"\n    - Figcaption\n      - StaticText \"Authored section \u00b7 physical layer separation and thickness\"\n  - figure\n    - image \"Vickers NPB5265 body plan \u00b7 1937/38 \u00b7 design waterline 28 ft\"\n    - Figcaption\n      - StaticText \"Vickers NPB5265 body plan \u00b7 1937/38 \u00b7 design waterline 28 ft\"\n  - paragraph\n    - StaticText \"CPU probes cross separate physical plates once. Teak backing is visible but contributes no invented steel-equivalent resistance. Slopes change incidence; gunhouse plates train with their mount. AP performance and flood capacities remain game approximations.\"\n  - StaticText \"broadside: Port machinery belt \u00b7 upper (349 mm steel)\\n\\nplunging: Machinery armored deck (124 mm steel)\\n\\nunderwater: Port machinery belt \u00b7 lower (137 mm steel)\"\n  - group\n    - DisclosureTriangle \"All fixed views and component sheets\" [expanded=false]\n      - StaticText \"All fixed views and component sheets\"\n  - heading \"Evidence and unresolved differences\" [level=2, ref=e6]\n  - paragraph\n    - StaticText \"Body-plan sections are manual interpretations of a 1937/38 design drawing, not certified as-built offsets. Gunhouse, fitting dimensions and paint remain approximate. Game stock hull retains some later radar/light-AA details excluded from the 1941 reconstruction. CPU gunhouse armor retains a complete simplified face envelope behind the visible recessed ports.\"\n  - figure\n    - image \"Vickers NPB5265 body plan \u00b7 1937/38 \u00b7 design waterline 28 ft\"\n    - Figcaption\n      - StaticText \"Vickers NPB5265 body plan \u00b7 1937/38 \u00b7 design waterline 28 ft\"\n  - figure\n    - image \"Vickers NPB5308 profile \u00b7 as fitted July 1941\"\n    - Figcaption\n      - StaticText \"Vickers NPB5308 profile \u00b7 as fitted July 1941\"\n  - paragraph\n    - link \"Original dated plan image, with credit\" [ref=e24]\n    - StaticText \" \u00b7 \"\n    - link \"Full source register\" [ref=e25]\n  - group\n    - DisclosureTriangle \"Source records and access limitations\" [expanded=false]\n      - StaticText \"Source records and access limitations\"\n  - paragraph\n    - StaticText \"Historical drawing \u00a9 Royal Museums Greenwich / National Maritime Museum; Vickers-Armstrongs original drawings. Other archival and photograph credits remain in the source register. GameModels3D / Wargaming reference renders retained for comparison. All production geometry and materials independently authored. Reference art is not a game texture.\"",
+  "browserPageId": "1b2a9d61-1fb3-4bdd-ba0e-622317a1303f"
+}
