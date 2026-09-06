@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { shipPresets } from '../ships/presets';
 import { MIN_BATTLE_SPAWN_DISTANCE, MAX_BATTLE_SPAWN_DISTANCE, MAX_TEAM_SHIPS, type BattleSetup } from '../simulation/battle';
 import { Icon } from './Icons';
@@ -19,6 +19,9 @@ interface Props {
 export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, loading, error }: Props) {
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => { dialog.current?.showModal(); }, []);
+  const [filter, setFilter] = useState('');
+  const terms = filter.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
+  const filteredShips = ships.filter(ship => terms.every(term => `${ship.name} ${ship.id}`.toLocaleLowerCase().includes(term)));
   const friendlyFull = setup.friendlyBots.length >= MAX_TEAM_SHIPS - 1;
   const enemyFull = setup.enemies.length >= MAX_TEAM_SHIPS;
   const bots = (team: 'friendlyBots' | 'enemies') => setup[team].map((id, index) => <li key={`${team}-${index}`}>
@@ -32,10 +35,17 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, loading,
     <fieldset disabled={loading} className="battle-builder">
       <legend className="battle-sr-only">Fleet selection</legend>
       <section className="battle-catalog" aria-labelledby="catalog-title">
-        <header><h3 id="catalog-title">Ships</h3><span>{ships.length} hulls</span></header>
-        <ul className="battle-catalog-list">
-          {ships.map(ship => <li key={ship.id} className={ship.id === setup.playerShipId ? 'battle-catalog-commanded' : undefined}>
-            <img src={`/models/${ship.id}-thumbnail.png`} width="240" height="72" alt=""/>
+        <header><h3 id="catalog-title">Ships</h3><span role="status">{filteredShips.length} / {ships.length} hulls</span></header>
+        <div className="battle-catalog-filter">
+          <label htmlFor="battle-ship-filter">Filter ships</label>
+          <div>
+            <input id="battle-ship-filter" type="search" placeholder="Search ship names…" value={filter} onChange={event => setFilter(event.target.value)} aria-controls="battle-ship-results" />
+            {filter && <button onClick={() => setFilter('')}>Clear</button>}
+          </div>
+        </div>
+        <ul id="battle-ship-results" className="battle-catalog-list">
+          {filteredShips.map(ship => <li key={ship.id} className={ship.id === setup.playerShipId ? 'battle-catalog-commanded' : undefined}>
+            <img src={`/models/${ship.id}-thumbnail.png`} width="80" height="32" alt="" loading="lazy"/>
             <strong>{ship.name}</strong>
             <small>{Math.round(ship.hull.length)} m · {Math.round(ship.hull.massKg / 1000).toLocaleString()} t</small>
             <div className="battle-catalog-actions" role="group" aria-label={`Add ${ship.name}`}>
@@ -45,6 +55,7 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, loading,
             </div>
           </li>)}
         </ul>
+        {!filteredShips.length && <p className="battle-empty">No ships match “{filter}”. Clear or change the filter.</p>}
       </section>
       <div className="battle-rosters">
         <section aria-labelledby="friendly-title">
