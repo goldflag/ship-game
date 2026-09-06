@@ -238,3 +238,17 @@
 @media (max-height:620px) and (min-width:601px) { .fleet-score { top:51px; } }
 
 .fleet-torpedo-help { margin:0 2px 8px; color:var(--fleet-muted); font-size:10px; text-align:center; }
+
+.fleet-armament-expanded { width:440px; }
+@media (max-width:900px) and (min-width:601px) {
+  .fleet-armament-expanded { left:204px; right:calc(var(--chart-width) + 12px); width:auto; transform:none; }
+  .fleet-armament-expanded .fleet-weapon-row { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); row-gap:26px; }
+  .fleet-armament-expanded .fleet-utility-slot { margin-left:0; }
+  .fleet-armament-expanded .fleet-fire-slot { grid-column:3 / span 2; }
+  .fleet-armament-expanded .fleet-turrets { gap:4px; }
+}
+@media (max-width:600px) {
+  .fleet-armament-expanded { width:calc(100vw - 24px); max-width:380px; }
+  .fleet-armament-expanded .fleet-weapon-row { gap:4px; }
+  .fleet-armament-expanded .fleet-utility-slot { margin-left:0; }
+}

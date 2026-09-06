@@ -6,7 +6,7 @@ import { maxHullIntegrity } from '../simulation/damage';
 test('every preset prints a complete sheet whose figures come from the compiled definition', () => {
   for (const id of Object.keys(shipPresets)) {
     const def = shipPreset(id), sections = shipStatistics(def);
-    expect(sections.map(s => s.id)).toEqual(['survivability', 'armor', 'main-battery', ...(def.mounts.some(m => m.battery === 'secondary') ? ['secondary-battery'] : []), ...[...new Set(def.torpedoTubes?.map(t => `torpedoes-${t.weapon.id}`))], 'mobility', ...(def.submarine ? ['diving'] : []), 'dimensions', 'model-basis']);
+    expect(sections.map(s => s.id)).toEqual(['survivability', 'armor', 'main-battery', ...(def.mounts.some(m => m.battery === 'secondary') ? ['secondary-battery'] : []), ...[...new Set(def.torpedoTubes?.map(t => `torpedoes-${t.weapon.id}`))], ...[...new Set(def.depthChargeLaunchers?.map(l => `depth-charges-${l.weapon.id}`))], 'mobility', ...(def.submarine ? ['diving'] : []), 'dimensions', 'model-basis']);
     for (const section of sections) {
       expect(section.headline).not.toBe('');
       expect(section.headlineHelp.length).toBeGreaterThan(10);

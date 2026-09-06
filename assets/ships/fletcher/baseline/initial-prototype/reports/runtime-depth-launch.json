@@ -1,0 +1,789 @@
+{
+  "audio": {
+    "failed": [],
+    "inPort": false,
+    "loaded": 0,
+    "paused": true,
+    "played": 0,
+    "settings": {
+      "effects": 0.8,
+      "interface": 0.65,
+      "master": 0.65,
+      "muted": true
+    },
+    "state": "locked",
+    "total": 13,
+    "voices": 0
+  },
+  "backend": "webgpu",
+  "battleSeed": 3776340689,
+  "camera": {
+    "aim": [
+      25,
+      0.5,
+      62
+    ],
+    "binoculars": false,
+    "fov": 52.00000000000001,
+    "magnification": 1,
+    "manualAim": false,
+    "matrixWorldInverse": [
+      0.6486084937999539,
+      -0.20833770316387262,
+      0.732053565807146,
+      0,
+      -5.551115123125783e-17,
+      0.9618081750309498,
+      0.2737243767800633,
+      0,
+      -0.7611222121121912,
+      -0.17753995573964795,
+      0.6238369517313067,
+      0,
+      9.133466545346334,
+      2.130479468875783,
+      -164.57837295980823,
+      1.0000000000000002
+    ],
+    "mode": "Chase",
+    "pointerLocked": false,
+    "position": [
+      115,
+      43,
+      110
+    ],
+    "projectionMatrix": [
+      1.633751346060547,
+      0,
+      0,
+      0,
+      0,
+      2.050303841579296,
+      0,
+      0,
+      0,
+      0,
+      -1.0000083334027783,
+      -1,
+      0,
+      0,
+      -0.5000041667013891,
+      0
+    ],
+    "shellFollow": "off"
+  },
+  "combat": {
+    "batteries": [
+      {
+        "ammo": 1800,
+        "battery": "main",
+        "ready": 2,
+        "reload": 0,
+        "total": 5
+      },
+      {
+        "ammo": 13200,
+        "battery": "secondary",
+        "ready": 0,
+        "reload": 0,
+        "total": 7
+      },
+      {
+        "ammo": 10,
+        "battery": "torpedo",
+        "ready": 0,
+        "reload": 0,
+        "total": 10
+      },
+      {
+        "ammo": 20,
+        "battery": "depth-charge",
+        "ready": 0,
+        "reload": 3.2166666666666766,
+        "total": 8
+      }
+    ],
+    "battery": "depth-charge",
+    "battle": true,
+    "contacts": [
+      {
+        "controller": "player",
+        "heading": 0,
+        "id": "player",
+        "integrity": 1,
+        "name": "Fletcher",
+        "shipId": "fletcher",
+        "sunk": false,
+        "team": "friendly",
+        "x": 0,
+        "z": -35.49279999999976
+      },
+      {
+        "controller": "idle",
+        "heading": 1.5707963267948966,
+        "id": "enemy-1",
+        "integrity": 1,
+        "name": "Type VIIC",
+        "shipId": "type-viic",
+        "sunk": false,
+        "team": "enemy",
+        "x": 25,
+        "z": 62
+      }
+    ],
+    "message": "Fletcher \u00b7 Starboard K-gun 3 \u00b7 depth charge away",
+    "modules": [
+      {
+        "condition": 1,
+        "id": "forward-torpedoes",
+        "name": "Forward torpedo stowage"
+      },
+      {
+        "condition": 1,
+        "id": "deck-magazine",
+        "name": "Deck gun ammunition locker"
+      },
+      {
+        "condition": 1,
+        "id": "diesels",
+        "name": "Twin diesel engines"
+      },
+      {
+        "condition": 1,
+        "id": "electric-motors",
+        "name": "Twin electric motors"
+      },
+      {
+        "condition": 1,
+        "id": "aft-torpedoes",
+        "name": "Stern torpedo stowage"
+      },
+      {
+        "condition": 1,
+        "id": "steering-gear",
+        "name": "Rudder linkage"
+      }
+    ],
+    "mounts": [
+      {
+        "ammo": 7,
+        "id": "dc-rack-port",
+        "name": "Port stern rack",
+        "reload": 3.2166666666666766,
+        "status": "reloading"
+      },
+      {
+        "ammo": 1,
+        "id": "dc-thrower-port-1",
+        "name": "Port K-gun 1",
+        "reload": 3.583333333333342,
+        "status": "reloading"
+      },
+      {
+        "ammo": 1,
+        "id": "dc-thrower-port-2",
+        "name": "Port K-gun 2",
+        "reload": 3.9500000000000073,
+        "status": "reloading"
+      },
+      {
+        "ammo": 1,
+        "id": "dc-thrower-port-3",
+        "name": "Port K-gun 3",
+        "reload": 4.316666666666673,
+        "status": "reloading"
+      },
+      {
+        "ammo": 7,
+        "id": "dc-rack-starboard",
+        "name": "Starboard stern rack",
+        "reload": 4.683333333333338,
+        "status": "reloading"
+      },
+      {
+        "ammo": 1,
+        "id": "dc-thrower-starboard-1",
+        "name": "Starboard K-gun 1",
+        "reload": 5.050000000000003,
+        "status": "reloading"
+      },
+      {
+        "ammo": 1,
+        "id": "dc-thrower-starboard-2",
+        "name": "Starboard K-gun 2",
+        "reload": 5.416666666666669,
+        "status": "reloading"
+      },
+      {
+        "ammo": 1,
+        "id": "dc-thrower-starboard-3",
+        "name": "Starboard K-gun 3",
+        "reload": 5.783333333333334,
+        "status": "reloading"
+      }
+    ],
+    "playerDamageDealt": 0,
+    "playerFrags": 0,
+    "playerIntegrity": 1,
+    "playerMaxIntegrity": 600,
+    "playerSunk": false,
+    "playerWater": 0,
+    "range": 100.64713633203854,
+    "ready": 0,
+    "result": "active",
+    "targetId": "enemy-1",
+    "targetIntegrity": 1,
+    "targetName": "Type VIIC",
+    "targetPosition": {
+      "heading": 1.5707963267948966,
+      "x": 25,
+      "z": 62
+    },
+    "targetPower": 1,
+    "targetRange": 100.64713633203854,
+    "targetSteering": 1,
+    "targetSunk": false,
+    "targetUnderway": false,
+    "targetWater": 0,
+    "total": 8
+  },
+  "contentHash": "4d62de645ac3cfe900ed56f85aa4ffbcb5908728de932a8de00c58fd09e3c574",
+  "depthCharges": [
+    {
+      "detonationDepthM": 10,
+      "id": 1,
+      "ownerId": "player",
+      "position": [
+        -2,
+        -4.996562586979592,
+        41.580235132686646
+      ],
+      "submerged": true
+    },
+    {
+      "detonationDepthM": 10,
+      "id": 2,
+      "ownerId": "player",
+      "position": [
+        -32.995928082270346,
+        -0.6720262226141185,
+        2.8288010204682696
+      ],
+      "submerged": true
+    },
+    {
+      "detonationDepthM": 10,
+      "id": 3,
+      "ownerId": "player",
+      "position": [
+        -29.19999999999993,
+        1.1501999999999888,
+        5.318000000000069
+      ],
+      "submerged": false
+    },
+    {
+      "detonationDepthM": 10,
+      "id": 4,
+      "ownerId": "player",
+      "position": [
+        -24.799999999999944,
+        4.624549999999992,
+        8.485066666666903
+      ],
+      "submerged": false
+    },
+    {
+      "detonationDepthM": 10,
+      "id": 5,
+      "ownerId": "player",
+      "position": [
+        2,
+        -1.3298959203129246,
+        25.04497293799454
+      ],
+      "submerged": true
+    },
+    {
+      "detonationDepthM": 10,
+      "id": 6,
+      "ownerId": "player",
+      "position": [
+        15.999999999999975,
+        7.616549999999996,
+        1.0128000000001915
+      ],
+      "submerged": false
+    },
+    {
+      "detonationDepthM": 10,
+      "id": 7,
+      "ownerId": "player",
+      "position": [
+        11.59999999999999,
+        7.134199999999997,
+        4.373466666666882
+      ],
+      "submerged": false
+    },
+    {
+      "detonationDepthM": 10,
+      "id": 8,
+      "ownerId": "player",
+      "position": [
+        7.200000000000003,
+        5.332949999999999,
+        7.7986666666669
+      ],
+      "submerged": false
+    }
+  ],
+  "effects": {
+    "depthCharges": 8,
+    "flashes": 0,
+    "foam": 0,
+    "particleCapacity": 2272,
+    "shells": 0,
+    "smoke": 0,
+    "spray": 401,
+    "torpedoes": 0
+  },
+  "events": [
+    {
+      "depthCharge": {
+        "id": 1,
+        "radiusM": 32
+      },
+      "kind": "depth-charge-launch",
+      "message": "Port stern rack \u00b7 depth charge away",
+      "position": [
+        -2,
+        3.15,
+        55.599866666666664
+      ],
+      "sequence": 1,
+      "shipId": "player",
+      "tick": 0
+    },
+    {
+      "depthCharge": {
+        "id": 2,
+        "radiusM": 32
+      },
+      "kind": "depth-charge-launch",
+      "message": "Port K-gun 1 \u00b7 depth charge away",
+      "position": [
+        -4.4,
+        3.5,
+        31.863200000000003
+      ],
+      "sequence": 2,
+      "shipId": "player",
+      "tick": 22
+    },
+    {
+      "depthCharge": {
+        "id": 3,
+        "radiusM": 32
+      },
+      "kind": "depth-charge-launch",
+      "message": "Port K-gun 2 \u00b7 depth charge away",
+      "position": [
+        -4.4,
+        3.5,
+        30.86200000000001
+      ],
+      "sequence": 3,
+      "shipId": "player",
+      "tick": 44
+    },
+    {
+      "depthCharge": {
+        "id": 1,
+        "radiusM": 32
+      },
+      "kind": "depth-charge-splash",
+      "message": "Depth charge entering water",
+      "position": [
+        -2,
+        0,
+        47.57970601486326
+      ],
+      "sequence": 4,
+      "shipId": "player",
+      "tick": 48
+    },
+    {
+      "depthCharge": {
+        "id": 4,
+        "radiusM": 32
+      },
+      "kind": "depth-charge-launch",
+      "message": "Port K-gun 3 \u00b7 depth charge away",
+      "position": [
+        -4.4,
+        3.5,
+        29.796266666666703
+      ],
+      "sequence": 5,
+      "shipId": "player",
+      "tick": 66
+    },
+    {
+      "depthCharge": {
+        "id": 5,
+        "radiusM": 32
+      },
+      "kind": "depth-charge-launch",
+      "message": "Starboard stern rack \u00b7 depth charge away",
+      "position": [
+        2,
+        3.15,
+        37.466000000000065
+      ],
+      "sequence": 6,
+      "shipId": "player",
+      "tick": 88
+    },
+    {
+      "depthCharge": {
+        "id": 6,
+        "radiusM": 32
+      },
+      "kind": "depth-charge-launch",
+      "message": "Starboard K-gun 1 \u00b7 depth charge away",
+      "position": [
+        4.4,
+        3.5,
+        13.471200000000106
+      ],
+      "sequence": 7,
+      "shipId": "player",
+      "tick": 110
+    },
+    {
+      "depthCharge": {
+        "id": 7,
+        "radiusM": 32
+      },
+      "kind": "depth-charge-launch",
+      "message": "Starboard K-gun 2 \u00b7 depth charge away",
+      "position": [
+        4.4,
+        3.5,
+        12.211866666666818
+      ],
+      "sequence": 8,
+      "shipId": "player",
+      "tick": 132
+    },
+    {
+      "depthCharge": {
+        "id": 5,
+        "radiusM": 32
+      },
+      "kind": "depth-charge-splash",
+      "message": "Depth charge entering water",
+      "position": [
+        2,
+        0,
+        28.881671372690246
+      ],
+      "sequence": 9,
+      "shipId": "player",
+      "tick": 136
+    },
+    {
+      "depthCharge": {
+        "id": 2,
+        "radiusM": 32
+      },
+      "kind": "depth-charge-splash",
+      "message": "Depth charge entering water",
+      "position": [
+        -30.374274131452157,
+        0,
+        5.490653665198997
+      ],
+      "sequence": 10,
+      "shipId": "player",
+      "tick": 151
+    },
+    {
+      "depthCharge": {
+        "id": 8,
+        "radiusM": 32
+      },
+      "kind": "depth-charge-launch",
+      "message": "Starboard K-gun 3 \u00b7 depth charge away",
+      "position": [
+        4.4,
+        3.5,
+        10.888000000000204
+      ],
+      "sequence": 11,
+      "shipId": "player",
+      "tick": 154
+    }
+  ],
+  "fleet": [
+    {
+      "ammo": 15000,
+      "controller": "player",
+      "definitionId": "fletcher",
+      "id": "player",
+      "integrity": 600,
+      "motion": {
+        "distance": 35.49279999999976,
+        "heading": 0,
+        "id": "player",
+        "pitch": 0,
+        "roll": 0,
+        "rudder": 0,
+        "speed": 13.343999999999852,
+        "swaySpeed": 0,
+        "tick": 168,
+        "x": 0,
+        "y": 0,
+        "yawRate": 0,
+        "z": -35.49279999999976
+      },
+      "team": "friendly"
+    },
+    {
+      "ammo": 1320,
+      "controller": "idle",
+      "definitionId": "type-viic",
+      "id": "enemy-1",
+      "integrity": 450,
+      "motion": {
+        "distance": 0,
+        "heading": 1.5707963267948966,
+        "id": "enemy-1",
+        "pitch": 0,
+        "roll": 0,
+        "rudder": 0,
+        "speed": 0,
+        "swaySpeed": 0,
+        "tick": 168,
+        "x": 25,
+        "y": 0,
+        "yawRate": 0,
+        "z": 62
+      },
+      "team": "enemy"
+    }
+  ],
+  "fps": 72.03335062464257,
+  "inPort": false,
+  "inspecting": false,
+  "maxMuzzleErrorM": 0.0005996213387835095,
+  "maxTorpedoMuzzleErrorM": 2.4164033658146785e-06,
+  "paused": true,
+  "portInspection": "exterior",
+  "renderedShips": [
+    {
+      "id": "player",
+      "impactDrawCalls": 0,
+      "impactMarks": 0,
+      "visible": true
+    },
+    {
+      "id": "enemy-1",
+      "impactDrawCalls": 0,
+      "impactMarks": 0,
+      "visible": true
+    }
+  ],
+  "reviewEvents": [
+    {
+      "depthCharge": {
+        "id": 1,
+        "radiusM": 32
+      },
+      "kind": "depth-charge-launch",
+      "message": "Port stern rack \u00b7 depth charge away",
+      "position": [
+        -2,
+        3.15,
+        55.599866666666664
+      ],
+      "sequence": 1,
+      "shipId": "player",
+      "tick": 0
+    },
+    {
+      "depthCharge": {
+        "id": 2,
+        "radiusM": 32
+      },
+      "kind": "depth-charge-launch",
+      "message": "Port K-gun 1 \u00b7 depth charge away",
+      "position": [
+        -4.4,
+        3.5,
+        31.863200000000003
+      ],
+      "sequence": 2,
+      "shipId": "player",
+      "tick": 22
+    },
+    {
+      "depthCharge": {
+        "id": 3,
+        "radiusM": 32
+      },
+      "kind": "depth-charge-launch",
+      "message": "Port K-gun 2 \u00b7 depth charge away",
+      "position": [
+        -4.4,
+        3.5,
+        30.86200000000001
+      ],
+      "sequence": 3,
+      "shipId": "player",
+      "tick": 44
+    },
+    {
+      "depthCharge": {
+        "id": 1,
+        "radiusM": 32
+      },
+      "kind": "depth-charge-splash",
+      "message": "Depth charge entering water",
+      "position": [
+        -2,
+        0,
+        47.57970601486326
+      ],
+      "sequence": 4,
+      "shipId": "player",
+      "tick": 48
+    },
+    {
+      "depthCharge": {
+        "id": 4,
+        "radiusM": 32
+      },
+      "kind": "depth-charge-launch",
+      "message": "Port K-gun 3 \u00b7 depth charge away",
+      "position": [
+        -4.4,
+        3.5,
+        29.796266666666703
+      ],
+      "sequence": 5,
+      "shipId": "player",
+      "tick": 66
+    },
+    {
+      "depthCharge": {
+        "id": 5,
+        "radiusM": 32
+      },
+      "kind": "depth-charge-launch",
+      "message": "Starboard stern rack \u00b7 depth charge away",
+      "position": [
+        2,
+        3.15,
+        37.466000000000065
+      ],
+      "sequence": 6,
+      "shipId": "player",
+      "tick": 88
+    },
+    {
+      "depthCharge": {
+        "id": 6,
+        "radiusM": 32
+      },
+      "kind": "depth-charge-launch",
+      "message": "Starboard K-gun 1 \u00b7 depth charge away",
+      "position": [
+        4.4,
+        3.5,
+        13.471200000000106
+      ],
+      "sequence": 7,
+      "shipId": "player",
+      "tick": 110
+    },
+    {
+      "depthCharge": {
+        "id": 7,
+        "radiusM": 32
+      },
+      "kind": "depth-charge-launch",
+      "message": "Starboard K-gun 2 \u00b7 depth charge away",
+      "position": [
+        4.4,
+        3.5,
+        12.211866666666818
+      ],
+      "sequence": 8,
+      "shipId": "player",
+      "tick": 132
+    },
+    {
+      "depthCharge": {
+        "id": 5,
+        "radiusM": 32
+      },
+      "kind": "depth-charge-splash",
+      "message": "Depth charge entering water",
+      "position": [
+        2,
+        0,
+        28.881671372690246
+      ],
+      "sequence": 9,
+      "shipId": "player",
+      "tick": 136
+    },
+    {
+      "depthCharge": {
+        "id": 2,
+        "radiusM": 32
+      },
+      "kind": "depth-charge-splash",
+      "message": "Depth charge entering water",
+      "position": [
+        -30.374274131452157,
+        0,
+        5.490653665198997
+      ],
+      "sequence": 10,
+      "shipId": "player",
+      "tick": 151
+    },
+    {
+      "depthCharge": {
+        "id": 8,
+        "radiusM": 32
+      },
+      "kind": "depth-charge-launch",
+      "message": "Starboard K-gun 3 \u00b7 depth charge away",
+      "position": [
+        4.4,
+        3.5,
+        10.888000000000204
+      ],
+      "sequence": 11,
+      "shipId": "player",
+      "tick": 154
+    }
+  ],
+  "shipId": "fletcher",
+  "tick": 168,
+  "torpedoLaunchers": [
+    {
+      "id": "torpedo-forward",
+      "train": 0.8796459430050874
+    },
+    {
+      "id": "torpedo-aft",
+      "train": 0.8796459430050874
+    }
+  ],
+  "torpedoes": []
+}

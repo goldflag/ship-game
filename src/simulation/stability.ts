@@ -67,6 +67,7 @@ export function updateCapability(actor: Combatant, def: ShipDefinition): void {
     availableAmmunition(state, 'ap') >= (m.weapon.barrelCount ?? 2) || !!m.weapon.he && availableAmmunition(state, 'he') >= (m.weapon.barrelCount ?? 2);
   const loadedGuns = guns.filter(g => g.state.hp > 0 && hasSalvo(g));
   const loadedTubes = (def.torpedoTubes ?? []).filter(t => (actor.torpedoTubes?.find(s => s.id === t.id)?.ammo ?? 0) > 0);
+  const loadedCharges = (def.depthChargeLaunchers ?? []).filter(l => (actor.depthChargeLaunchers?.find(s => s.id === l.id)?.ammo ?? 0) > 0);
   // Ship victory requires surviving weapons that can still damage a ship.
   const armedFlight = !!actor.airWing?.planes.some(p => ['takeoff', 'outbound', 'attack', 'returning', 'landing'].includes(p.phase) && p.payload);
   const strikeReserves = !!actor.airWing?.planes.some(p => p.phase !== 'lost' && p.role !== 'fighter');
@@ -74,16 +75,16 @@ export function updateCapability(actor: Combatant, def: ShipDefinition): void {
   const airRecoverable = armedFlight || strikeReserves && (actor.damage.modules.find(m => m.id === service?.id)?.hp ?? 0) > 0;
   const airUsable = armedFlight || strikeReserves && !!service && equipmentCondition(actor, def, service).availability > 0;
   const usable = airUsable || loadedGuns.some(({ definition: m }) => !m.magazineId || equipmentCondition(actor, def, def.modules.find(mod => mod.id === m.magazineId)!).availability > 0) ||
-    loadedTubes.some(t => equipmentCondition(actor, def, def.modules.find(m => m.id === t.magazineId)!).availability > 0);
+    [...loadedTubes, ...loadedCharges].some(t => equipmentCondition(actor, def, def.modules.find(m => m.id === t.magazineId)!).availability > 0);
   const recoverable = airRecoverable || loadedGuns.some(({ definition: m }) => !m.magazineId || actor.damage.modules.find(mod => mod.id === m.magazineId)!.hp > 0) ||
-    loadedTubes.some(t => (actor.damage.modules.find(m => m.id === t.magazineId)?.hp ?? 0) > 0);
+    [...loadedTubes, ...loadedCharges].some(t => (actor.damage.modules.find(m => m.id === t.magazineId)?.hp ?? 0) > 0);
   const mobile = systemHealth(actor, def, 'engine') > .001;
   // Flooded supplies may recover. Only permanent loss of all weapons/ammunition
   // removes an afloat ship from the battle, until reset.
   s.combatLost ||= !recoverable;
   s.status = usable ? (mobile ? 'operational' : 'immobile') : (mobile ? 'disarmed' : 'disabled');
   if (s.combatLost) {
-    actor.damage.defeatCause ??= !guns.some(hasSalvo) && loadedTubes.length === 0 ? 'ammunition-exhausted' : 'weapons-lost';
+    actor.damage.defeatCause ??= !guns.some(hasSalvo) && loadedTubes.length === 0 && loadedCharges.length === 0 ? 'ammunition-exhausted' : 'weapons-lost';
   }
   // Hits resolve after gun training. Publish individual failures immediately so
   // the HUD and renderer do not spend another tick treating them as turning.

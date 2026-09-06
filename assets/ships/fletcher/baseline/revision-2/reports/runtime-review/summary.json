@@ -1,0 +1,13 @@
+{
+  "contentHash": "4697b4259a43065b9ad72a386daea744c665e75d125c499680f97fd81a14c958",
+  "browser": "151.0.7922.34",
+  "backend": "webgpu",
+  "poses": 18,
+  "maxMuzzleErrorM": 0.0005966589631765259,
+  "maxTorpedoMuzzleErrorM": 0.0000024164033658146785,
+  "torpedoLaunches": 10,
+  "torpedoHits": 10,
+  "depthChargeLaunches": 8,
+  "depthChargeBlasts": 8,
+  "pageErrors": []
+}

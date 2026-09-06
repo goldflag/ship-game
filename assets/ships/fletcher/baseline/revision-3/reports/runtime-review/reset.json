@@ -1,0 +1,324 @@
+{
+  "shipId": "fletcher",
+  "contentHash": "09030d3f59d3503c8d7540106b1f9c1107b0d6527d5d9cd691641a5136df542b",
+  "backend": "webgpu",
+  "camera": {
+    "mode": "Chase",
+    "binoculars": false,
+    "magnification": 1,
+    "fov": 52.00000000000001,
+    "shellFollow": "off",
+    "pointerLocked": true,
+    "position": [
+      115,
+      43,
+      110
+    ],
+    "aim": [
+      25,
+      0.5,
+      62
+    ],
+    "manualAim": false,
+    "projectionMatrix": [
+      1.28143990098706,
+      0,
+      0,
+      0,
+      0,
+      2.050303841579296,
+      0,
+      0,
+      0,
+      0,
+      -1.0000083334027783,
+      -1,
+      0,
+      0,
+      -0.5000041667013891,
+      0
+    ],
+    "matrixWorldInverse": [
+      0.6486084937999539,
+      -0.20833770316387262,
+      0.732053565807146,
+      0,
+      -5.551115123125783e-17,
+      0.9618081750309498,
+      0.2737243767800633,
+      0,
+      -0.7611222121121912,
+      -0.17753995573964795,
+      0.6238369517313067,
+      0,
+      9.133466545346334,
+      2.130479468875783,
+      -164.57837295980823,
+      1.0000000000000002
+    ]
+  },
+  "tick": 0,
+  "battleSeed": 614413155,
+  "paused": false,
+  "fps": 35.02885297867434,
+  "inspecting": false,
+  "inPort": false,
+  "effects": {
+    "shells": 0,
+    "torpedoes": 0,
+    "depthCharges": 0,
+    "smoke": 0,
+    "spray": 0,
+    "flashes": 0,
+    "foam": 0,
+    "particleCapacity": 2272
+  },
+  "audio": {
+    "state": "locked",
+    "loaded": 0,
+    "total": 13,
+    "failed": [],
+    "voices": 0,
+    "played": 0,
+    "inPort": false,
+    "paused": false,
+    "settings": {
+      "muted": true,
+      "master": 0.65,
+      "effects": 0.8,
+      "interface": 0.65
+    }
+  },
+  "portInspection": "exterior",
+  "maxMuzzleErrorM": 0.0005959143948531988,
+  "maxTorpedoMuzzleErrorM": 0.0000024164033658146785,
+  "torpedoLaunchers": [
+    {
+      "id": "torpedo-forward",
+      "train": 0
+    },
+    {
+      "id": "torpedo-aft",
+      "train": 0
+    }
+  ],
+  "depthCharges": [],
+  "combat": {
+    "battery": "main",
+    "range": 66.85057965343307,
+    "ready": 0,
+    "total": 5,
+    "targetId": "enemy-1",
+    "targetName": "Type VIIC",
+    "targetRange": 66.85057965343307,
+    "battle": true,
+    "result": "active",
+    "playerSunk": false,
+    "contacts": [
+      {
+        "id": "player",
+        "shipId": "fletcher",
+        "name": "Fletcher",
+        "team": "friendly",
+        "controller": "player",
+        "x": 0,
+        "z": 0,
+        "heading": 0,
+        "integrity": 1,
+        "sunk": false
+      },
+      {
+        "id": "enemy-1",
+        "shipId": "type-viic",
+        "name": "Type VIIC",
+        "team": "enemy",
+        "controller": "idle",
+        "x": 25,
+        "z": 62,
+        "heading": 1.5707963267948966,
+        "integrity": 1,
+        "sunk": false
+      }
+    ],
+    "targetIntegrity": 1,
+    "targetWater": 0,
+    "targetPower": 1,
+    "targetSteering": 1,
+    "targetSunk": false,
+    "targetUnderway": false,
+    "mounts": [
+      {
+        "id": "gun-1",
+        "name": "Mount 51",
+        "status": "turning",
+        "reload": 0,
+        "ammo": 360
+      },
+      {
+        "id": "gun-2",
+        "name": "Mount 52",
+        "status": "turning",
+        "reload": 0,
+        "ammo": 360
+      },
+      {
+        "id": "gun-3",
+        "name": "Mount 53",
+        "status": "turning",
+        "reload": 0,
+        "ammo": 360
+      },
+      {
+        "id": "gun-4",
+        "name": "Mount 54",
+        "status": "turning",
+        "reload": 0,
+        "ammo": 360
+      },
+      {
+        "id": "gun-5",
+        "name": "Mount 55",
+        "status": "turning",
+        "reload": 0,
+        "ammo": 360
+      }
+    ],
+    "modules": [
+      {
+        "id": "forward-torpedoes",
+        "name": "Forward torpedo stowage",
+        "condition": 1
+      },
+      {
+        "id": "deck-magazine",
+        "name": "Deck gun ammunition locker",
+        "condition": 1
+      },
+      {
+        "id": "diesels",
+        "name": "Twin diesel engines",
+        "condition": 1
+      },
+      {
+        "id": "electric-motors",
+        "name": "Twin electric motors",
+        "condition": 1
+      },
+      {
+        "id": "aft-torpedoes",
+        "name": "Stern torpedo stowage",
+        "condition": 1
+      },
+      {
+        "id": "steering-gear",
+        "name": "Rudder linkage",
+        "condition": 1
+      }
+    ],
+    "playerIntegrity": 1,
+    "playerMaxIntegrity": 600,
+    "playerDamageDealt": 0,
+    "playerFrags": 0,
+    "playerWater": 0,
+    "targetPosition": {
+      "x": 25,
+      "z": 62,
+      "heading": 1.5707963267948966
+    },
+    "batteries": [
+      {
+        "battery": "main",
+        "ammo": 1800,
+        "ready": 0,
+        "total": 5,
+        "reload": 0
+      },
+      {
+        "battery": "secondary",
+        "ammo": 13200,
+        "ready": 0,
+        "total": 7,
+        "reload": 0
+      },
+      {
+        "battery": "torpedo",
+        "ammo": 10,
+        "ready": 10,
+        "total": 10,
+        "reload": 0
+      },
+      {
+        "battery": "depth-charge",
+        "ammo": 28,
+        "ready": 8,
+        "total": 8,
+        "reload": 0
+      }
+    ],
+    "message": "Only aligned, loaded guns fire. Turn the ship to bring guns marked Out of arc onto the target."
+  },
+  "fleet": [
+    {
+      "id": "player",
+      "definitionId": "fletcher",
+      "team": "friendly",
+      "controller": "player",
+      "motion": {
+        "id": "player",
+        "tick": 0,
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "roll": 0,
+        "pitch": 0,
+        "heading": 0,
+        "speed": 12,
+        "swaySpeed": 0,
+        "rudder": 0,
+        "yawRate": 0,
+        "distance": 0
+      },
+      "ammo": 15000,
+      "integrity": 600
+    },
+    {
+      "id": "enemy-1",
+      "definitionId": "type-viic",
+      "team": "enemy",
+      "controller": "idle",
+      "motion": {
+        "id": "enemy-1",
+        "tick": 0,
+        "x": 25,
+        "y": 0,
+        "z": 62,
+        "roll": 0,
+        "pitch": 0,
+        "heading": 1.5707963267948966,
+        "speed": 0,
+        "swaySpeed": 0,
+        "rudder": 0,
+        "yawRate": 0,
+        "distance": 0
+      },
+      "ammo": 1320,
+      "integrity": 450
+    }
+  ],
+  "renderedShips": [
+    {
+      "id": "player",
+      "visible": true,
+      "impactMarks": 0,
+      "impactDrawCalls": 0
+    },
+    {
+      "id": "enemy-1",
+      "visible": true,
+      "impactMarks": 0,
+      "impactDrawCalls": 0
+    }
+  ],
+  "torpedoes": [],
+  "events": []
+}
