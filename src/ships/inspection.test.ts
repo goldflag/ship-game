@@ -12,6 +12,7 @@ import { plateHit } from '../simulation/protection';
 
 test('Bismarck transverse armor, including rendered thickness, fits inside the local hull section', () => {
   const def = compileShip(blueprint, catalog), view = new ShipInspection(def);
+  view.setMode('armor');
   const bulkheads = def.armor.filter(a => /^(forward|aft)-transverse-/.test(a.id));
   expect(bulkheads).toHaveLength(6);
   const outside: string[] = [];
