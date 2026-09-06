@@ -156,9 +156,9 @@ export class CombatSimulation {
           for (let barrel = 0; barrel < barrelCount; barrel++) {
             const position = muzzleWorld(m, state, barrel, actor.motion);
             const velocity = add(scale(shotDirection(m, state, actor.motion), m.weapon.muzzleSpeed), shipVelocity(actor));
-            this.shells.push({ id: ++this.shellSequence, ownerId: actor.motion.id, position, velocity, age: 0, penetrationMm: m.weapon.penetrationMm, damage: m.weapon.damage, caliberM: m.weapon.caliberM, visited: [] });
+            this.shells.push({ id: ++this.shellSequence, ownerId: actor.motion.id, position, velocity, age: 0, penetrationMm: m.weapon.penetrationMm, damage: m.weapon.damage, caliberM: m.weapon.caliberM, type: 'AP', visited: [] });
             this.emit({ kind: 'shot', position: [...position], shipId: actor.motion.id, message: `${m.name} fired`,
-              shell: { id: this.shellSequence, caliberM: m.weapon.caliberM, velocity: [...velocity] } });
+              shell: { id: this.shellSequence, caliberM: m.weapon.caliberM, velocity: [...velocity], type: 'AP' } });
           }
         }
       });
@@ -199,7 +199,7 @@ export class CombatSimulation {
       }
       if (!ended && (crossingSea || (to[1] < 0 && !insideHull(to)))) {
         this.emit({ kind: 'splash', position: [end[0], 0, end[2]], shipId: '', message: 'Shell splash',
-          shell: { id: shell.id, caliberM: shell.caliberM, velocity: [...shell.velocity] } }); ended = true;
+          shell: { id: shell.id, caliberM: shell.caliberM, velocity: [...shell.velocity], type: shell.type ?? 'AP' } }); ended = true;
       }
       shell.position = to;
       if (ended || shell.age > 60) this.shells.splice(i, 1);

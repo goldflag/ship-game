@@ -6,12 +6,15 @@ import { radians, wrapAngle } from '../simulation/geometry';
 import { muzzleWorld, shotDirection } from '../simulation/weapons';
 import { ShipInspection } from './ShipInspection';
 import type { InspectionMode } from '../ships/inspection';
+import { ShipImpactMarks } from './ShipImpactMarks';
 
 /** Renderer adapter. Simulation geometry and transforms come from the same definition. */
 export class ShipView {
   readonly root = new THREE.Group();
   readonly inspection: ShipInspection;
   readonly motion: Combatant['motion'];
+  readonly impactMarks: ShipImpactMarks;
+  private damageSource: Combatant['damage'];
   private previousMotion: Combatant['motion'];
   private motionSource: Combatant['motion'];
   private previousMounts: Combatant['mounts'];
@@ -22,6 +25,7 @@ export class ShipView {
   private inspecting = false;
   constructor(model: THREE.Group, readonly definition: ShipDefinition, readonly actor: Combatant) {
     this.motionSource = actor.motion;
+    this.damageSource = actor.damage;
     this.motion = { ...actor.motion };
     this.previousMotion = { ...actor.motion };
     this.previousMounts = actor.mounts.map(m => ({ ...m }));
@@ -52,12 +56,14 @@ export class ShipView {
     const node = (id: string) => { const n = nodes.get(id); if (!n) throw new Error(`Ship export is missing ${id}. Rebuild with bun run ship:build ${definition.id}`); return n; };
     this.bindings = definition.mounts.map(m => ({ yaw: node(`${m.id}.yaw`), elevation: barrelIds(m.weapon).map(side => node(`${m.id}.${side}.elevation`)), recoil: barrelIds(m.weapon).map(side => node(`${m.id}.${side}.recoil`)), muzzles: barrelIds(m.weapon).map(side => node(`${m.id}.${side}.muzzle`)) }));
     this.root.add(model, this.internals);
+    this.impactMarks = new ShipImpactMarks(this.root, model, new Map(definition.mounts.map((m, i) => [m.id, this.bindings[i].yaw])));
     this.update();
   }
   inspect(enabled: boolean): void { this.setInspection(enabled ? 'all' : 'exterior'); }
   setInspection(mode: InspectionMode | 'all', selectedId?: string): void {
     this.inspection.setMode(mode, selectedId);
     const enabled = mode !== 'exterior';
+    this.impactMarks.setVisible(!enabled);
     if (this.inspecting !== enabled) {
       this.inspecting = enabled;
       this.surfaces.forEach(({ material, opacity, transparent, depthWrite }) => {
@@ -86,6 +92,9 @@ export class ShipView {
   /** Teleports and port transitions must not interpolate across the old voyage. */
   snap(): void { this.capturePreviousPose(); this.update(); }
   update(alpha = 1): void {
+    if (this.damageSource !== this.actor.damage) {
+      this.impactMarks.clear(); this.damageSource = this.actor.damage;
+    }
     if (this.motionSource !== this.actor.motion) this.capturePreviousPose();
     const t = THREE.MathUtils.clamp(alpha, 0, 1);
     const current = this.actor.motion, previous = this.previousMotion;

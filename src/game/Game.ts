@@ -309,7 +309,7 @@ export class Game {
         views.push(view);
       }
       const previous = [...this.fleetModels, ...this.fleetViews.map(view => view.root)];
-      this.fleetViews.forEach(view => view.root.removeFromParent());
+      this.fleetViews.forEach(view => { view.impactMarks.dispose(); view.root.removeFromParent(); });
       this.scene.add(...views.map(view => view.root));
       this.definition = definition; this.simulation = simulation;
       this.playerDamageFeedback = new HullDamageFeedback(simulation.player.damage.integrity);
@@ -327,6 +327,7 @@ export class Game {
       this.renderer.domElement.setAttribute('aria-label', `${definition.name} ocean scene. Drag to orbit; scroll to zoom.`);
       disposeObjects(...previous);
     } catch (error) {
+      views.forEach(view => view.impactMarks.dispose());
       disposeObjects(...models.values(), ...clones, ...views.map(view => view.root));
       throw error;
     }
@@ -370,6 +371,13 @@ export class Game {
       });
       const alpha = this.inPort ? 1 : this.simulation.interpolationAlpha;
       this.fleetViews.forEach(view => view.update(alpha));
+      // A salvo must not synchronously project scars onto every struck hull.
+      // Share the budget across the fleet and rotate which hull gets first use.
+      const impactBudget = { remainingMs: 2 };
+      for (let i = 0; i < this.fleetViews.length; i++) {
+        const view = this.fleetViews[(i + this.simulation.tick) % this.fleetViews.length];
+        view.impactMarks.update(this.simulation.events, view.actor.motion.id, impactBudget);
+      }
       this.ship.position.copy(this.playerView!.root.position);
       this.ship.quaternion.copy(this.playerView!.root.quaternion);
       this.shellFollow.update(this.simulation.shells, this.simulation.events, state.id, dt);
@@ -586,7 +594,8 @@ export class Game {
       maxMuzzleErrorM: Math.max(0, ...this.fleetViews.flatMap(view => view.muzzleErrors())),
       combat: this.simulation.telemetry(this.battery, this.currentAim),
       fleet: this.simulation.actors.map(actor => ({ id: actor.motion.id, definitionId: actor.definition.id, team: actor.team, controller: actor.controller, targetId: actor.targetId, motion: { ...actor.motion }, ammo: actor.mounts.reduce((n, m) => n + m.ammo, 0), integrity: actor.damage.integrity })),
-      renderedShips: this.fleetViews.map(view => ({ id: view.actor.motion.id, visible: view.root.visible })),
+      renderedShips: this.fleetViews.map(view => ({ id: view.actor.motion.id, visible: view.root.visible,
+        impactMarks: view.impactMarks.count, impactDrawCalls: view.impactMarks.drawCalls })),
       events: this.simulation.events.slice(-20) };
   }
   private projectAim(aim: Vec3): { x: number; y: number; visible: boolean } {
@@ -642,6 +651,7 @@ export class Game {
     this.hitDirections.dispose();
     await this.initialization;
     await this.frameTask;
+    this.fleetViews.forEach(view => view.impactMarks.dispose());
     this.pipeline?.dispose();
     this.finalFrame?.renderTarget?.dispose();
     this.scenePass?.dispose();
