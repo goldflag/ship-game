@@ -1,0 +1,108 @@
+{
+  "simulationAlternatingRuns": [
+    {
+      "ships": 48,
+      "preset": "bismarck",
+      "ticks": 3600,
+      "tickMs": {
+        "median": 3.1506250000002183,
+        "p95": 5.209042000000409,
+        "mean": 3.5772769499999897
+      },
+      "shells": 256,
+      "stateHash": "1505665566368487970",
+      "variant": "before",
+      "round": 1
+    },
+    {
+      "ships": 48,
+      "preset": "bismarck",
+      "ticks": 3600,
+      "tickMs": {
+        "median": 2.034375000000182,
+        "p95": 3.13274999999976,
+        "mean": 2.449560901944446
+      },
+      "shells": 256,
+      "stateHash": "1505665566368487970",
+      "variant": "after",
+      "round": 1
+    },
+    {
+      "ships": 48,
+      "preset": "bismarck",
+      "ticks": 3600,
+      "tickMs": {
+        "median": 2.15887500000008,
+        "p95": 3.307166999999936,
+        "mean": 2.6356651466666667
+      },
+      "shells": 256,
+      "stateHash": "1505665566368487970",
+      "variant": "after",
+      "round": 2
+    },
+    {
+      "ships": 48,
+      "preset": "bismarck",
+      "ticks": 3600,
+      "tickMs": {
+        "median": 3.275666999999885,
+        "p95": 5.695749999998952,
+        "mean": 3.8096761836111024
+      },
+      "shells": 256,
+      "stateHash": "1505665566368487970",
+      "variant": "before",
+      "round": 2
+    },
+    {
+      "ships": 48,
+      "preset": "bismarck",
+      "ticks": 3600,
+      "tickMs": {
+        "median": 3.610000000000582,
+        "p95": 6.087166999999681,
+        "mean": 4.192240777777756
+      },
+      "shells": 256,
+      "stateHash": "1505665566368487970",
+      "variant": "before",
+      "round": 3
+    },
+    {
+      "ships": 48,
+      "preset": "bismarck",
+      "ticks": 3600,
+      "tickMs": {
+        "median": 2.478166999999303,
+        "p95": 3.9989589999986492,
+        "mean": 3.0804797497222314
+      },
+      "shells": 256,
+      "stateHash": "1505665566368487970",
+      "variant": "after",
+      "round": 3
+    }
+  ],
+  "sceneBefore": {
+    "ships": 48,
+    "nodes": 89041,
+    "materials": 58704,
+    "creationMs": 3465.449958,
+    "matrixUpdateMs": {
+      "median": 24.592208999999457,
+      "p95": 25.98370900000009
+    }
+  },
+  "sceneAfter": {
+    "ships": 48,
+    "nodes": 22369,
+    "materials": 672,
+    "creationMs": 86.20929100000001,
+    "matrixUpdateMs": {
+      "median": 2.907332999999994,
+      "p95": 3.665833999999961
+    }
+  }
+}
