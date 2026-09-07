@@ -251,14 +251,18 @@ export function AirOperations({ data, game, bindings }: { data: Telemetry; game:
             <g data-map-position={JSON.stringify([f.destination[0], 0, f.destination[2]])} transform={`translate(${x} ${y})`}><path d="M-8 0H8M0-8V8"/><circle r="4"/><text x="11" y="15">{f.name}</text></g>
           </g>;
         })}
-        {data.combat!.contacts.filter(c => !c.sunk).map(c => <g key={c.id} data-contact="ship" data-map-position={JSON.stringify([c.x, 0, c.z])} className={`air-map-ship ${c.team === 'enemy' ? 'air-hostile' : 'air-friendly'}`} transform={`translate(${point(c.x, c.z).join(' ')})`}
-          role="button" tabIndex={0} aria-label={`${c.name} · ${c.team}. ${c.team === 'enemy' ? 'Right-click to strike' : 'Right-click to defend'}`}
-          onClick={() => { if (armed.current) commandShip(c.id, c.team); else if (c.team === 'enemy') game?.selectTarget(c.id); }}
-          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); commandShip(c.id, c.team); } }}
-          onContextMenu={e => { e.preventDefault(); e.stopPropagation(); commandShip(c.id, c.team); }}>
-          <title>{`${c.name} · ${c.team === 'enemy' ? 'Bombers: strike ship' : 'Fighters: defend ship'}`}</title>
-          <circle r="24" fill="transparent" stroke="none"/><path d="M0-13 6-3 6 11H-6V-3Z" transform={`rotate(${c.heading * 180 / Math.PI})`}/>
-          <text x="13" y="0">{c.name}{c.id === data.ship.id ? ' · You' : ''}</text><text x="13" y="16">{Math.round(c.integrity * 100)}% · {c.status.replaceAll('-', ' ')}</text>
+        {data.combat!.contacts.map(c => <g key={c.id} data-contact={c.sunk ? undefined : 'ship'} data-map-position={JSON.stringify([c.x, 0, c.z])} className={`air-map-ship ${c.team === 'enemy' ? 'air-hostile' : 'air-friendly'}${c.sunk ? ' air-map-ship-sunk' : ''}`} transform={`translate(${point(c.x, c.z).join(' ')})`}
+          role={c.sunk ? undefined : 'button'} tabIndex={c.sunk ? undefined : 0} aria-label={c.sunk ? `${c.name}, sunk` : `${c.name} · ${c.team}. ${c.team === 'enemy' ? 'Right-click to strike' : 'Right-click to defend'}`}
+          onClick={() => { if (c.sunk) return; if (armed.current) commandShip(c.id, c.team); else if (c.team === 'enemy') game?.selectTarget(c.id); }}
+          onKeyDown={e => { if (!c.sunk && e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); commandShip(c.id, c.team); } }}
+          onContextMenu={e => { if (c.sunk) return; e.preventDefault(); e.stopPropagation(); commandShip(c.id, c.team); }}>
+          <title>{c.sunk ? `${c.name}, sunk` : `${c.name} · ${c.team === 'enemy' ? 'Bombers: strike ship' : 'Fighters: defend ship'}`}</title>
+          <g className="air-map-ship-marker"><circle r="24" fill="transparent" stroke="none"/><path d="M0-13 6-3 6 11H-6V-3Z" transform={`rotate(${c.heading * 180 / Math.PI})`}/></g>
+          <text x="13" y="0">{c.name}{c.id === data.ship.id ? ' · You' : ''}</text>{!c.sunk && <g className="air-map-ship-health" role="meter" aria-label={`${c.name}, hull condition`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(c.integrity * 100)}>
+            <rect className="air-map-ship-health-track" x="13" y="5" width="104" height="5"/>
+            <rect className="air-map-ship-health-fill" x="14" y="6" width={102 * Math.max(0, Math.min(1, c.integrity))} height="3"/>
+            <text x="65" y="20" textAnchor="middle" dominantBaseline="central">{Math.round(c.integrity * 100)}%</text>
+          </g>}
         </g>)}
       </svg>
       <header className="air-map-header"><h2>Air operations</h2>
