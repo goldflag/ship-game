@@ -4,6 +4,7 @@ A playable singleplayer foundation using **Bun, TypeScript, React, Three.js WebG
 
 ```sh
 bun install
+bun run git:setup # Once per clone: safer catalog merges and remembered resolutions
 bun run dev
 ```
 
@@ -11,7 +12,7 @@ Open http://localhost:5173. Current Chrome or Edge with hardware acceleration is
 
 **Custom battle → Battle waters** selects North Atlantic, Pacific Islands, Arctic Passage, or Volcanic Coast in the Indian Ocean. Each map has distinct water color, waves, sun, cloud cover and haze. **Battle conditions** lets you choose Dawn, Morning, Noon, Dusk, or Night and Clear, Partly cloudy, Overcast, Fog, or Storm clouds; **Map default** preserves the map’s original lighting or weather. Time stays fixed throughout the battle. Weather also sets wave strength: Clear and Fog bring gentle seas, Partly cloudy brings moderate seas, Overcast brings rolling seas, and Storm clouds brings heavy seas. Choices are retained for the current page session. Weather changes visual waves, clouds, light and haze; bot targeting and ballistics are unchanged. Storm clouds do not add rain or lightning. Coastal maps have original procedural islands shown on the navigation chart. Land blocks ships and low projectiles; bots turn away from shores. Large fleets widen the clear deployment lane automatically. Returning to port restores the harbor's sheltered water and daylight. See the [map guide with in-game screenshots](assets/maps/review/index.html).
 
-You start in port with the Bismarck moored. Drag to inspect the ship, then choose **Custom battle** to configure both fleets. Choose your own ship, add up to 29 friendly bots, and select one to 30 enemy bots, for up to 30 ships per side. All registered presets can appear on either team, including duplicates. **Spawn distance** sets the separation between formations from 1–20 km in 0.5 km steps (5 km by default). **Start battle** loads the chosen models and deploys both teams facing each other, with 650 m between adjacent ships. **Return to port** in the pause menu ends the battle and resets every ship. The selected [Fleet harbor garage](docs/garage-mockups/README.md) uses compact panels and a transparent top bar. The fleet carousel lists Bismarck, Yamato, Baltimore, Enterprise, Type VIIC, Liberty Cargo, Liberty Collier, Victory Cargo, Flower Corvette, Fletcher, and HMS King George V. Select a card to switch ships in place for inspection and sailing; the harbor stays loaded, your orbit direction is preserved, and camera distance adjusts to keep the same relative zoom for the new hull. Currency, refits, and commanders are illustrative, with temporary state only.
+You start in port with the Bismarck moored. Drag to inspect the ship, then choose **Custom battle** to configure both fleets. Choose your own ship, add up to 29 friendly bots, and select one to 30 enemy bots, for up to 30 ships per side. All registered presets can appear on either team, including duplicates. **Spawn distance** sets the separation between formations from 1–20 km in 0.5 km steps (5 km by default). **Start battle** loads the chosen models and deploys both teams facing each other, with 650 m between adjacent ships. **Return to port** in the pause menu ends the battle and resets every ship. The selected [Fleet harbor garage](docs/garage-mockups/README.md) uses compact panels and a transparent top bar. The fleet carousel shows all registered presets; the [preset registry](src/ships/presets.ts) is the authoritative roster. Select a card to switch ships in place for inspection and sailing; the harbor stays loaded, your orbit direction is preserved, and camera distance adjusts to keep the same relative zoom for the new hull. Currency, refits, and commanders are illustrative, with temporary state only.
 
 Each ship's carousel card uses a baked image of its actual model. `bun run ship:thumbnail <ship-id>` regenerates it with local Blender; `ship:build` also refreshes it.
 
@@ -25,29 +26,29 @@ Choose **Create schematic** beneath the ship’s name in port to preview a refer
 
 In port, upward dragging stops at the lowest orbit and keeps the camera aimed at the ship. While sailing, upward tilt is limited to 30°. Surface-ship cameras maintain at least 12 m of clearance above sea level, including during sinking; the port also preserves clearance above terrain. Submarine chase follows the hull underwater. Bridge and binocular views use the raised periscope when submerged; at 7 m its eye remains above the sea. Tactical stays above the water.
 
-| Control | Action |
-| --- | --- |
-| W / S or up / down | Raise / lower engine order; tap for each notch |
-| A / D or left / right | Step the persistent rudder order toward port / starboard; tap for each notch |
-| Space | Stop engine; the ship coasts down |
-| Z / X | Submarine: order 10 m deeper / shallower |
-| B | Submarine: emergency blow ballast and surface |
-| Mouse | Aim the centered sight while sailing; drag to orbit in port or inspection |
-| Shift / right mouse | Toggle binocular aiming |
-| Scroll | Adjust camera distance, or continuous 2×–32× binocular magnification |
-| Hold Ctrl | Release cursor to use HUD controls; release Ctrl to return to aiming |
-| 1 / 2 / 3 / 4 | Select main / secondary battery / torpedoes / depth charges (when fitted) |
-| − / + | Decrease / increase minimap size (numpad keys also work) |
-| G | Open / close gunnery and target damage |
-| T | Toggle automatic shell-follow camera; press again to return early |
-| C | Cycle chase, bridge, and tactical cameras |
-| R | Recenter camera |
-| Esc | Pause / resume; open Settings or close the game |
-| H | Hide / show instruments |
-| F | Fullscreen |
-| Hold left mouse / Q / Fire button | Fire the selected battery as guns become ready |
-| Aim at selector | Track a target module; moving the mouse returns to manual aim |
-| Inspect target | View armor, compartments, modules and floodwater |
+| Control                           | Action                                                                       |
+| --------------------------------- | ---------------------------------------------------------------------------- |
+| W / S or up / down                | Raise / lower engine order; tap for each notch                               |
+| A / D or left / right             | Step the persistent rudder order toward port / starboard; tap for each notch |
+| Space                             | Stop engine; the ship coasts down                                            |
+| Z / X                             | Submarine: order 10 m deeper / shallower                                     |
+| B                                 | Submarine: emergency blow ballast and surface                                |
+| Mouse                             | Aim the centered sight while sailing; drag to orbit in port or inspection    |
+| Shift / right mouse               | Toggle binocular aiming                                                      |
+| Scroll                            | Adjust camera distance, or continuous 2×–32× binocular magnification         |
+| Hold Ctrl                         | Release cursor to use HUD controls; release Ctrl to return to aiming         |
+| 1 / 2 / 3 / 4                     | Select main / secondary battery / torpedoes / depth charges (when fitted)    |
+| − / +                             | Decrease / increase minimap size (numpad keys also work)                     |
+| G                                 | Open / close gunnery and target damage                                       |
+| T                                 | Toggle automatic shell-follow camera; press again to return early            |
+| C                                 | Cycle chase, bridge, and tactical cameras                                    |
+| R                                 | Recenter camera                                                              |
+| Esc                               | Pause / resume; open Settings or close the game                              |
+| H                                 | Hide / show instruments                                                      |
+| F                                 | Fullscreen                                                                   |
+| Hold left mouse / Q / Fire button | Fire the selected battery as guns become ready                               |
+| Aim at selector                   | Track a target module; moving the mouse returns to manual aim                |
+| Inspect target                    | View armor, compartments, modules and floodwater                             |
 
 **Esc → Settings** opens graphics, sound, and **Keybindings** in a separate dialog. Select a primary or alternate binding and press a key; changes apply immediately and are saved in this browser. Esc cancels capture, Delete clears a binding, and Reset restores the defaults. Esc, Tab and Enter remain reserved for menus; Shift binoculars and Ctrl cursor release remain fixed controls. The HUD and control hints follow your bindings. Graphics changes reload the scene in port. **Close game** closes the tab when permitted by the browser.
 
@@ -198,3 +199,5 @@ AA coverage in this first implementation comes only from registered guns of 40 m
 The ongoing 60 FPS work, live measurements and verification limits are recorded in [the 60 FPS performance review](assets/reviews/fps60-performance/README.md).
 
 Default battle visibility now fades across 45–55 km depending on the map, keeping hull contrast at 20 km starts; selected weather presets retain their own visibility settings. Fair / Moderate / Heavy wave amplitude multipliers are 0.09 / 0.18 / 0.48, with peak wavelengths 12 / 20 / 36 m; sheltered port waves retain their existing amplitude and wavelength. These are visual gameplay settings, not measured historical sea states.
+
+For parallel ship work and conflict resolution, follow the [integration workflow](docs/integration-workflow.md). Fleet validation uses `bun run ship:check all`.
