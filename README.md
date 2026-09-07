@@ -170,7 +170,7 @@ bun run build
 bun run preview
 ```
 
-`bun run test` runs every test file in a separate Bun process, with at most six workers (bounded by available CPU parallelism). Output stays grouped by file, and any failed file fails the command. Tests, assertions and simulation durations are unchanged. `bun test` still uses Bun's single-process runner. Passing options to `bun run test`, such as `--coverage`, `--watch` or `--test-name-pattern`, delegates to the native single-process runner so those options retain their usual behavior.
+`bun run test` discovers every test file under `src/` and `scripts/` and runs each in a separate Bun process, with at most eight workers (bounded by available CPU parallelism). Measured expensive files start first to avoid leaving one slow file at the end. Output stays grouped by file, and any failed file fails the command. Assertions and simulation durations are preserved. The review-page test serves retained comparison pages in an isolated directory; `bun run build` checks asset hashes and freshness. See [runtime measurements](docs/test-performance.md). `bun test` still uses Bun's single-process runner. Passing options to `bun run test`, such as `--coverage`, `--watch` or `--test-name-pattern`, delegates to the native single-process runner so those options retain their usual behavior.
 
 See the [test runtime measurements](docs/test-performance.md) for the before/after comparison.
 

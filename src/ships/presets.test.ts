@@ -1,23 +1,27 @@
 import { expect, test } from 'bun:test';
 import { resolve } from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { mkdtemp, mkdir, symlink, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { shipPresets, shipReviewUrls } from './presets';
 
 test('every available port review link serves evidence without inventing packs for other presets', async () => {
   const { createServer } = await import('vite');
+  // Exercise the real retained review pages in an isolated served directory.
+  // Content hashes and build freshness are checked by `bun run build`.
+  const publicDir = await mkdtemp(resolve(tmpdir(), 'ship-review-test-'));
+  await mkdir(resolve(publicDir, 'ship-reference'));
+  for (const id of Object.keys(shipReviewUrls)) {
+    await symlink(resolve(import.meta.dir, '../../assets/ships', id, 'generated/comparison'), resolve(publicDir, 'ship-reference', id));
+  }
   const server = await createServer({
     configFile: false,
     root: resolve(import.meta.dir, '../..'),
+    publicDir,
     logLevel: 'silent',
     server: { port: 0, strictPort: true, hmr: false, watch: null },
     optimizeDeps: { noDiscovery: true, include: [] },
   });
   try {
-    // public/ship-reference is an ignored served copy; refresh it from the retained comparison output first.
-    for (const id of Object.keys(shipReviewUrls)) {
-      const check = spawnSync('bun', [resolve(import.meta.dir, '../../scripts/reference/pipeline.ts'), 'check', id], { encoding: 'utf8' });
-      if (check.status !== 0) throw new Error(`ship:check ${id} failed:\n${check.stdout}${check.stderr}`);
-    }
     await server.listen();
     const address = server.httpServer!.address();
     if (!address || typeof address === 'string') throw new Error('Missing review test server');
@@ -32,5 +36,6 @@ test('every available port review link serves evidence without inventing packs f
     }
   } finally {
     await server.close();
+    await rm(publicDir, { recursive: true, force: true });
   }
 });
