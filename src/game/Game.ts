@@ -52,6 +52,8 @@ export const BUOYS = [
   { x: 220, z: -1800, color: '#b84734' }, { x: 540, z: -1800, color: '#42a789' },
 ];
 export type ArticulationPreview = { trainFraction: number; elevationFraction: number; recoilFraction: number };
+/** Battle preparation stages, reported as a label with a completion fraction in [0, 1). */
+export type BattleProgress = (label: string, fraction: number) => void;
 
 export class Game {
   definition: typeof selectedShip;
@@ -129,6 +131,7 @@ export class Game {
   private trail: { x: number; z: number }[] = [{ x: 0, z: 0 }];
   private initialization?: Promise<void>;
   private frameTask?: Promise<void>;
+  private frameWaiters: (() => void)[] = [];
   private articulationOriginal?: CombatSimulation['player']['mounts'];
   private articulationLaunchers?: CombatSimulation['player']['torpedoLaunchers'];
 
@@ -352,22 +355,30 @@ export class Game {
   }
 
   /** Load and validate the complete fleet before replacing the current port scene. */
-  async prepareBattle(setup: BattleSetup): Promise<void> {
+  async prepareBattle(setup: BattleSetup, progress?: BattleProgress): Promise<void> {
     if (this.disposed || !this.inPort || !this.playerView || this.switchingShip) throw new Error('Battle setup requires an idle, loaded port.');
     validateBattleSetup(setup, Object.keys(shipPresets));
     this.switchingShip = true;
     try {
+      progress?.(`Charting ${oceanMap(setup.mapId ?? DEFAULT_MAP).name}`, 0.04);
       const definition = shipPreset(setup.playerShipId);
       const simulation = new CombatSimulation(definition, { friendlyBots: setup.friendlyBots.map(shipPreset), enemies: setup.enemies.map(shipPreset), spawnDistance: setup.spawnDistance, mapId: setup.mapId,
         seed: crypto.getRandomValues(new Uint32Array(1))[0] });
-      await this.replaceFleet(simulation, definition);
+      await this.replaceFleet(simulation, definition, progress);
       this.battleSea = setup.sea ?? this.settings?.sea ?? 'Atlantic';
       this.battleTimeOfDay = setup.timeOfDay ?? 'map';
       this.battleWeather = setup.weather ?? 'map';
+      progress?.('Forming the battle lines', 0.9);
     } finally { this.switchingShip = false; }
   }
 
-  private async replaceFleet(simulation: CombatSimulation, definition: typeof selectedShip): Promise<void> {
+  /** Resolve once the next frame has been rendered, so a scene change is on screen. */
+  nextFrame(): Promise<void> {
+    if (this.disposed) return Promise.resolve();
+    return new Promise(resolve => this.frameWaiters.push(resolve));
+  }
+
+  private async replaceFleet(simulation: CombatSimulation, definition: typeof selectedShip, progress?: BattleProgress): Promise<void> {
     this.inspectionHover?.clear();
     const definitions = [...new Map(simulation.actors.map(actor => [actor.definition.id, actor.definition])).values()];
     const models = new Map<string, THREE.Group>();
@@ -376,6 +387,10 @@ export class Game {
     const clones: THREE.Group[] = [];
     let draws: FleetShipDraws | undefined;
     try {
+      // Hulls load in parallel; each arrival advances the shared fraction toward the aircraft stage.
+      let loaded = 0;
+      const hullShare = 0.6 / definitions.length;
+      progress?.(`Loading ${definitions[0].name}`, 0.08);
       const loads = await Promise.allSettled(definitions.map(async def => {
         const model = (await new GLTFLoader().loadAsync(def.modelUrl)).scene;
         models.set(def.id, model);
@@ -384,12 +399,16 @@ export class Game {
         palette.apply(model);
         batchShipModel(model);
         await prepareShipDetail(model);
+        loaded += 1;
+        const next = definitions.find(d => !models.has(d.id));
+        progress?.(next ? `Loading ${next.name}` : `${def.name} aboard`, 0.08 + hullShare * loaded);
       }));
       const failure = loads.find(result => result.status === 'rejected');
       if (failure?.status === 'rejected') throw failure.reason;
-      if (simulation.actors.some(a => a.definition.airWing)) await this.aircraftView.load();
+      if (simulation.actors.some(a => a.definition.airWing)) { progress?.('Spotting the air wing', 0.7); await this.aircraftView.load(); }
       this.assertActive();
       if (!this.inPort) throw new Error('Return to port before changing fleets.');
+      progress?.('Mustering the fleets', 0.78);
       for (const actor of simulation.actors) {
         const clone = models.get(actor.definition.id)!.clone(true);
         clones.push(clone);
@@ -519,6 +538,7 @@ export class Game {
         this.underwaterPassVisibility?.capture();
         if (this.disposed) return;
         this.renderFrame();
+        if (this.frameWaiters.length) { const waiters = this.frameWaiters; this.frameWaiters = []; waiters.forEach(resolve => resolve()); }
       } finally { this.scene.endFrame(); }
       const combatTime = this.simulation.tick * FIXED_DT;
       this.shipLabels.update(this.camera, combatTime);
@@ -867,6 +887,7 @@ export class Game {
     this.underwaterPassVisibility?.dispose();
     this.audio?.dispose();
     cancelAnimationFrame(this.raf);
+    const waiters = this.frameWaiters; this.frameWaiters = []; waiters.forEach(resolve => resolve());
     this.abort.abort(); this.observer.disconnect(); this.input.dispose(); this.rig.dispose();
     this.inspectionHover.dispose();
     this.shipLabels.dispose();
