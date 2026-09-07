@@ -133,8 +133,8 @@ window.review = {
       try {
         for (let i = 0; i < frameCount; i++) {
           if (i === 15) game.fire();
-          // Explicit rendering outside RAF needs a new node frame too;
-          // otherwise the postprocessing scene pass reuses its cached image.
+          // An unfocused tab may get only occasional browser animation frames.
+          // Invalidate the scene-pass cache for every encoded simulation frame.
           game.renderer._nodes.nodeFrame.update();
           await game.frame(started + (i + 1) * 1000 / fps);
           if (window.reviewError) throw new Error(window.reviewError);
@@ -160,7 +160,7 @@ window.review = {
           parts.push(packet,chunk.bytes);
         }
         window.reviewRecordingResult = {...game.diagnostics(),capture:{frames:chunks.length,seconds:duration,fps,
-          renderSeconds:(performance.now()-started)/1000,mode:'fixed simulation timestamps',offscreenBuoyReadbacks:false}};
+          renderSeconds:(performance.now()-started)/1000,mode:'fixed simulation timestamps',freshRenderFrame:true,offscreenBuoyReadbacks:false}};
         const reader = new FileReader();
         reader.onload = () => window.reviewVideo = reader.result;
         reader.readAsDataURL(new Blob(parts,{type:'video/x-ivf'}));

@@ -1,0 +1,22 @@
+bun test v1.3.3 (274e01c7)
+
+src/simulation/sea.test.ts:
+(pass) battle weather reaches CPU seas, while port remains calm [4.79ms]
+(pass) storm seas move the authoritative hull, add leeway and cost speed without capsizing an intact battleship [2701.89ms]
+(pass) sea forcing is deterministic, survives resets and decays with submarine depth [67.84ms]
+(pass) a surfaced submarine heaves without changing its ballast order [333.88ms]
+(pass) steady turning heel points outward in both directions [0.77ms]
+(pass) each intact hull settles after a small disturbance with the sea solver enabled [2060.48ms]
+(pass) storm troughs do not dive a surfaced submarine or switch its engines and weapons [584.29ms]
+(pass) explicit wind reaches CPU sea through battle fleet resolution [2.25ms]
+
+src/game/BattleEnvironment.test.ts:
+(pass) all battle conditions combine across maps without mutating their defaults [4.00ms]
+(pass) weather drives live waves across maps, overrides obsolete settings, and restores sheltered port water [0.37ms]
+(pass) night, fog and storm lighting reach the live uniforms; the sky stays fixed and port restores daylight [3.75ms]
+(pass) continuous battle conditions keep clouds independent of CPU and visual wind [0.20ms]
+
+ 12 pass
+ 0 fail
+ 7027 expect() calls
+Ran 12 tests across 2 files. [5.91s]

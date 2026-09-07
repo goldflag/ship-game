@@ -465,7 +465,7 @@
     }
   ],
   "shipId": "bismarck",
-  "tick": 2584,
+  "tick": 2580,
   "timeOfDay": "map",
   "waves": {
     "amplitude": 0.24,
@@ -476,9 +476,10 @@
   "capture": {
     "fps": 30,
     "frames": 240,
+    "freshRenderFrame": true,
     "mode": "fixed simulation timestamps",
     "offscreenBuoyReadbacks": false,
-    "renderSeconds": 2.441800000011921,
+    "renderSeconds": 5.1755,
     "seconds": 8
   }
 }

@@ -1,0 +1,93 @@
+bun test v1.3.3 (274e01c7)
+
+src/simulation/combat.test.ts:
+(pass) a click does not spend ammunition on guns unable to fire at 1800,0,0 [313.14ms]
+(pass) a click does not spend ammunition on guns unable to fire at 0,0,1800 [247.27ms]
+(pass) a click does not spend ammunition on guns unable to fire at 1800,4000,0 [259.78ms]
+(pass) a click does not spend ammunition on guns unable to fire at 40000,0,0 [234.94ms]
+(pass) Bismarck bow-on fire uses forward turrets and keeps unreachable rear turrets loaded [618.53ms]
+(pass) held fire admits turrets as they align and release cancels later firing [274.49ms]
+(pass) Bismarck rear barrels through the superstructure are blocked independently of target reachability [12.45ms]
+(pass) firing during traverse still respects obstructions, empty guns and disabled guns [13.25ms]
+(pass) pose conversions preserve arbitrary points under heading, list and trim [0.03ms]
+(pass) swept collision catches a thin plate between ticks and rejects a parallel miss [0.27ms]
+(pass) ballistic aim reaches its target under the flight integrator gravity [0.02ms]
+(pass) armor resolves before internal damage, and a surface/module is only charged once per shell [27.52ms]
+(pass) a shell spends one internal damage budget across modules and tick boundaries [24.22ms]
+(pass) flood connections conserve water with pumps/leaks disabled and list follows the flooded side [75.18ms]
+(pass) aimed salvos obey reloads and ammunition while damaging the target [807.35ms]
+(pass) same commands at 30, 60 and 144 fps yield identical combat state [940.97ms]
+(pass) reset replaces the trial target state without invalidating renderer bindings [11.65ms]
+(pass) shot and splash events retain matching caliber and independent velocity snapshots [273.20ms]
+(pass) impact normals are in world coordinates and internal damage has no surface normal [20.78ms]
+(pass) destroyed propulsion prevents target acceleration [102.53ms]
+(pass) surface evidence preserves ammunition and mount-local contact before later turret movement [106.95ms]
+(pass) an internal armed burst ignites the magazine once and disable the connected battery mount [427.43ms]
+(pass) exhausted reserve buoyancy causes sinking and target reset restores dry compartments [38.80ms]
+
+src/simulation/shellTravel.test.ts:
+(pass) a grazing plate hit reflects a live projectile, loses energy, and retains an armed fuze [6.54ms]
+(pass) water entry continues underwater, loses penetration, and expires after a short run [0.32ms]
+(pass) air/water transition gives the same result when subdivided into ticks [0.29ms]
+(pass) a short underwater run can strike the actual hull and open a flooding breach [20.85ms]
+(pass) a spent underwater shell retains an armed fuze until it bursts [0.31ms]
+(pass) a reflected underwater shell can leave the water without paying a second entry loss
+
+src/simulation/ap-projectile.test.ts:
+(pass) thin-plating through-shots slow down without arming AP [10.53ms]
+(pass) armor speed loss changes the remaining travel in the same tick [11.02ms]
+(pass) a delay can expire inside the ship after contact and damage local equipment [10.72ms]
+(pass) an armed stop remains attached to the moving hull until its fuze expires [12.03ms]
+(pass) a long delay can carry an armed shell outside the hull before it bursts [12.28ms]
+(pass) turret entry and exit both resist a shell, while equipment is damaged only once [21.22ms]
+(pass) intervening armor blocks blast and fragments; thin steel permits reduced fragment damage [30.30ms]
+(pass) a stopped shell bursts against armor without transmitting damage through that armor [10.59ms]
+(pass) a stopped AP burst damages equipment on the incoming side of its stopping plate [10.09ms]
+(pass) another ship can shield nearby equipment from a burst [22.23ms]
+(pass) AP catalog profiles are validated and legacy inert parts remain supported [11.40ms]
+(pass) burst candidate filtering preserves complete ray contacts across all presets and articulated poses [180.97ms]
+
+src/game/renderOrder.test.ts:
+(pass) authored layers and depth order survive renderer sorting (reversed=false) [0.58ms]
+(pass) authored layers and depth order survive renderer sorting (reversed=true) [0.03ms]
+
+src/game/FleetWakeFoam.test.ts:
+(pass) all 60 ships have independent trails across a wide battlefield, even with the player stopped [121.40ms]
+(pass) stopped and submerged ships emit no new trail; existing foam fades away [30.07ms]
+(pass) distant wake refreshes retain the full curved trail and zoom restores nearby cadence [10.59ms]
+
+src/game/WaterPlumes.test.ts:
+(pass) water rises from the impact, slows under gravity, and falls completely into the sea [10.73ms]
+(pass) water motion is frame-rate independent and camera rotation cannot move it [7.65ms]
+(pass) caliber increases the plume and oblique entries carry water downrange [6.94ms]
+(pass) overlapping salvos stay bounded and reset leaves no rendered geometry [17.78ms]
+(pass) distant splashes reduce geometry, zoom restores it, and offscreen splashes keep aging [3.72ms]
+
+src/game/CombatEffects.test.ts:
+(pass) burning-turret smoke drifts with wind, responds to changes, and freezes on pause [130.45ms]
+(pass) torpedo trails end at the round and extend aft at every heading and visible depth [75.77ms]
+(pass) torpedo foam has an aerated center instead of a hollow splash ring [51.91ms]
+(pass) optics hide existing and new own-ship smoke while other smoke remains and ages normally [72.83ms]
+(pass) spray reaches the same position at different frame rates and falls out at the sea [4.31ms]
+(pass) salvos are bounded, do not replay events, pause cleanly, and reset without ghosts [243.75ms]
+(pass) water spray returns to the sampled impact height above and below mean sea level [2.64ms]
+(pass) airborne water responds to environment light without re-emitting the splash [72.01ms]
+(pass) large-gun fire remains in the gas at 0.35 seconds and cools completely into smoke [72.00ms]
+(pass) water droplets stay round through their apex instead of rotating as long rods [73.98ms]
+(pass) billboards reorient while paused and expired storage is reused [2.72ms]
+(pass) the shell pool keeps its shader capacity through empty frames, salvos and resets [1944.29ms]
+(pass) tracers end at the CPU shell, grow from the muzzle, and stay legible across range and zoom [93.13ms]
+(pass) falling aircraft lay persistent smoke, freeze on pause and splash only on the CPU impact event [66.49ms]
+(pass) underwater bursts and hull contacts produce water spray without a fireball [127.11ms]
+
+src/game/WakeFoam.test.ts:
+(pass) impact foam reaches the ocean field while stopped, freezes on pause, and clears on reset [9.47ms]
+(pass) returning water keeps a broad foam footprint after the initial crown has fallen [8.76ms]
+
+src/game/ShipWake.test.ts:
+(pass) fleet displacement respects the vendor capacity, hull size, depth, and replacement lifecycle [1.81ms]
+
+ 69 pass
+ 0 fail
+ 4038 expect() calls
+Ran 69 tests across 9 files. [8.67s]

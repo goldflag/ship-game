@@ -77,12 +77,17 @@ test('night, fog and storm lighting reach the live uniforms; the sky stays fixed
   const driver = new SunDriver({ sun: sky.sun, timeOfDay: sky.timeOfDay });
   const game = Object.assign(Object.create(Game.prototype), {
     simulation: { mapId: 'pacific-islands' }, inPort: false, sky,
-    ambientLight: new HemisphereLight(), effects: { setSun() {} }, water: { fog: {} },
+    ambientLight: new HemisphereLight(), effects: {
+      setSun() {}, direct: 0, ambient: 0,
+      setIllumination(_color: Color, intensity: number, ambient: number) { this.direct = intensity; this.ambient = ambient; },
+    }, water: { fog: {} },
   });
   for (const time of TIME_OF_DAY_PRESETS) for (const weather of WEATHER_PRESETS) {
     game.battleTimeOfDay = time.id; game.battleWeather = weather.id;
     game.updatePortLighting();
     driver.update(0);
+    // No water step occurs on a paused frame; the sky must still reach smoke.
+    game.updateEffectsLighting();
     const expected = battleEnvironment(oceanMap('pacific-islands'), time.id, weather.id);
     expect(sky.sun.elevationDeg).toBeCloseTo(expected.sky.elevation, 8);
     expect((sky.sun.azimuthDeg + 360) % 360).toBeCloseTo(expected.sky.azimuth, 8);
@@ -92,12 +97,15 @@ test('night, fog and storm lighting reach the live uniforms; the sky stays fixed
     expect(sky.clouds.shape.coverage.value).toBe(expected.sky.coverage);
     expect(game.water.fog.fadeEnd).toBe(expected.fog.end);
     expect(game.ambientLight.intensity).toBe(expected.sky.ambient);
+    expect(game.effects.ambient).toBe(expected.sky.ambient);
     if (time.id === 'night') {
       expect(sky.sun.intensity.value).toBe(0);
       expect(sky.timeOfDay.moonDirection.value.y).toBeGreaterThan(0);
       expect(game.ambientLight.intensity).toBeLessThan(.25);
       expect(game.water.fog.color).toBe('#182839');
-    }
+      expect(game.effects.direct).toBeLessThan(.5);
+      expect(game.effects.direct).toBeGreaterThan(0);
+    } else expect(game.effects.direct).toBeCloseTo(sky.sun.intensity.value);
   }
   game.inPort = true;
   game.updatePortLighting(); driver.update(0);
@@ -111,4 +119,26 @@ test('night, fog and storm lighting reach the live uniforms; the sky stays fixed
   expect(sky.clouds.lighting.baseShadowStrength.value).toBe(.2);
   expect(game.water.fog.color).toBe('#819aa5');
   expect(game.water.fog.fadeEnd).toBe(5600);
+});
+
+test('continuous battle conditions keep clouds independent of CPU and visual wind', () => {
+  for (const map of OCEAN_MAPS) {
+    const clear = battleEnvironment(map, 'map', 'map', { timeHours: 12, cloudCover: 0, windSpeed: 18 });
+    const cloudy = battleEnvironment(map, 'map', 'map', { timeHours: 12, cloudCover: 100, windSpeed: 18 });
+    expect(clear.sky.coverage).toBe(0);
+    expect(cloudy.sky.coverage).toBe(1);
+    expect(clear.waves).toEqual(cloudy.waves);
+    expect(clear.waves.windSpeed).toBe(18);
+    expect(clear.sky.elevation).toBe(70);
+    const calmNight = battleEnvironment(map, 'map', 'map', { timeHours: 0, cloudCover: 100, windSpeed: 0 });
+    expect(calmNight.sky.elevation).toBe(-70);
+    expect(calmNight.sky.ambient).toBeLessThan(cloudy.sky.ambient);
+    expect(calmNight.waves.amplitude).toBe(0);
+    expect(calmNight.cloudWind).toBe(0);
+    expect(battleEnvironment(map, 'map', 'map', { timeHours: 24 }).sky.elevation).toBeCloseTo(calmNight.sky.elevation);
+  }
+  const setup = { playerShipId: 'bismarck', friendlyBots: [], enemies: ['bismarck'], spawnDistance: 5000 };
+  for (const key of ['timeHours', 'cloudCover', 'windSpeed']) {
+    for (const value of [NaN, Infinity, -1, 101]) expect(() => validateBattleSetup({ ...setup, [key]: value }, ['bismarck'])).toThrow();
+  }
 });

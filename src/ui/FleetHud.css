@@ -85,7 +85,7 @@
 .fleet-gun-disabled { color:#ee9b86; }
 .fleet-battery-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 2px 8px; font-size:10px; color:var(--fleet-muted); }
 .fleet-battery-heading strong { font-weight:500; color:#e4efea; }
-.fleet-weapon-controls { display:flex; align-items:flex-start; gap:7px; }
+.fleet-weapon-controls { display:flex; align-items:flex-start; justify-content:center; gap:7px; }
 .fleet-shell-cycle-wrap { position:relative; flex:0 0 40px; }
 .fleet-shell-cycle { position:relative; width:100%; height:var(--fleet-slot-height); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; padding:4px 7px 4px 0; border:0; border-right:1px solid var(--fleet-line); border-radius:0; background:transparent; color:var(--fleet-active); }
 .fleet-shell-cycle strong { font:500 18px/1 'Barlow Condensed',sans-serif; }
@@ -100,8 +100,8 @@
 .fleet-shell-cycle-info b { font-weight:500; color:var(--fleet-active); }
 .fleet-shell-cycle-info small { border-top:1px solid var(--fleet-line); margin-top:2px; padding-top:8px; font-size:11px; line-height:1.4; color:var(--fleet-muted); }
 .fleet-shell-cycle-info .fleet-shell-cycle-note { border:0; margin:0; padding:0; color:var(--fleet-gold); }
-.fleet-weapon-row { display:flex; flex:1; min-width:0; align-items:stretch; gap:7px; }
-.fleet-weapon-slot { position:relative; flex:1; min-width:0; height:var(--fleet-slot-height); display:flex; align-items:center; justify-content:center; border:1px solid #c9dce044; border-radius:1px; background:transparent; padding:9px 2px 3px; color:#d4e2df; }
+.fleet-weapon-row { display:flex; flex:0 1 auto; min-width:0; align-items:flex-start; gap:7px; }
+.fleet-weapon-slot { position:relative; flex:0 1 var(--fleet-slot-height); width:var(--fleet-slot-height); min-width:0; min-height:0; height:auto; aspect-ratio:1; display:flex; align-items:center; justify-content:center; border:1px solid #c9dce044; border-radius:1px; background:transparent; padding:9px 2px 3px; color:#d4e2df; }
 .fleet-weapon-slot:hover { background:transparent; border-color:#d3e5e590; }
 .fleet-weapon-slot[aria-pressed=true],.fleet-weapon-slot[aria-expanded=true] { border-color:var(--fleet-active); background:transparent; }
 .fleet-weapon-slot[aria-pressed=true]:after { content:''; position:absolute; inset:2px; border:1px solid #86e4c533; pointer-events:none; }

@@ -24,9 +24,12 @@ export class CombatEffects {
     droplet: effectTexture('droplet'), spray: effectTexture('spray') };
   private readonly volumeMap = effectVolumeTexture();
   private readonly sun = uniform(new THREE.Vector3(-.55, .74, -.39).normalize());
+  private readonly smokeDirect = uniform(new THREE.Vector3(1.25, 1.19, 1.08));
+  private readonly smokeAmbient = uniform(new THREE.Vector3(.3, .35, .4));
   private readonly volumeDepthTexture = new THREE.DepthTexture(1, 1);
   private readonly volumeDepth = nodeObject(new EffectDepthTextureNode(undefined, null, this.volumeDepthTexture)).r;
-  private readonly smoke = new EffectParticlePool(192, this.maps.smoke, false, effectVolumeMaterial(this.volumeMap, this.sun, this.volumeDepth, 12, true));
+  private readonly smoke = new EffectParticlePool(192, this.maps.smoke, false, effectVolumeMaterial(this.volumeMap, this.sun, this.volumeDepth, 16, true,
+    { direct: this.smokeDirect, ambient: this.smokeAmbient }));
   private readonly spouts = new WaterPlumes(16, this.maps.spray);
   private readonly spray = new EffectParticlePool(1536, this.maps.droplet, false, undefined, true);
   private readonly mist = new EffectParticlePool(128, this.maps.spray, false, undefined, true);
@@ -96,6 +99,11 @@ export class CombatEffects {
     // Tint also reaches existing airborne water when the environment changes.
     this.spray.mesh.material.color.setScalar(intensity);
     this.mist.mesh.material.color.setScalar(intensity);
+  }
+  /** Match the scene's weather/daylight or moonlight; hot gas remains emissive. */
+  setIllumination(color: THREE.Color, intensity: number, ambient: number): void {
+    this.smokeDirect.value.set(color.r, color.g, color.b).multiplyScalar(Math.max(0, intensity) * 1.25 / 5.8);
+    this.smokeAmbient.value.set(.3, .35, .4).multiplyScalar(Math.max(0, ambient) / 1.75);
   }
 
   update(sim: CombatSimulation, dt: number, camera: THREE.Camera, hidePlayerSmoke = false): void {
@@ -346,6 +354,8 @@ export class CombatEffects {
         .addScaledVector(this.across, Math.cos(angle) * (5 + random() * 8) * size)
         .addScaledVector(this.vertical, Math.sin(angle) * (3 + random() * 6) * size);
       p.velocity.y += 2;
+      p.volumeAspect = 2.2 - i * .35;
+      p.volumeYaw = Math.atan2(this.direction.z, this.direction.x); p.volumeAxisY = this.direction.y;
       p.size = (9 + i * 3 + random() * 7) * size; p.growth = (32 + i * 4 + random() * 16) * size; p.growthDecay = 2.2;
       p.diffusion = (.9 + random() * .6) * size;
       p.life = 3.3 + random() * .9; p.drag = 2 + random() * .35;

@@ -8,7 +8,7 @@ import { squadronFlights, airborne, onFlightDeck, type AirOrder } from '../simul
 import { aircraftFollowView } from './AircraftFollow';
 import { AircraftView } from './AircraftView';
 import { oceanMap, DEFAULT_MAP, landHeight } from '../maps/catalog';
-import { battleEnvironment, type TimeOfDayId, type WeatherId } from '../maps/conditions';
+import { battleEnvironment, type BattleConditions, type TimeOfDayId, type WeatherId } from '../maps/conditions';
 import { createBattleLandscape, disposeBattleLandscape } from './BattleLandscape';
 import type { ControlPriority } from '../simulation/damageControl';
 import * as THREE from 'three/webgpu';
@@ -149,6 +149,7 @@ export class Game {
   private landscape?: THREE.Group;
   private battleTimeOfDay?: TimeOfDayId;
   private battleWeather?: WeatherId;
+  private battleConditions?: BattleConditions;
   private surfaceWaterAbsorption = new THREE.Color();
   private surfaceWaterDistortion = 0;
   private sky?: SkySystem;
@@ -443,6 +444,7 @@ export class Game {
       await this.replaceFleet(simulation, definition, progress);
       this.battleTimeOfDay = setup.timeOfDay ?? 'map';
       this.battleWeather = setup.weather ?? 'map';
+      this.battleConditions = { timeHours: setup.timeHours, cloudCover: setup.cloudCover, windSpeed: setup.windSpeed };
       progress?.('Forming the battle lines', 0.9);
     } finally { this.switchingShip = false; }
   }
@@ -613,6 +615,7 @@ export class Game {
       this.harbor?.update(dt, this.camera);
       this.shipWake!.update(this.inPort ? [this.playerView!] : this.fleetViews, dt, this.simulation.events, this.camera);
       this.sky!.update(dt);
+      this.updateEffectsLighting();
       // Black Flag's absorption loses >99% of green/blue light over 50 m,
       // hiding even our own submarine. Ease to a 20× longer visibility range
       // over the first 2 m of camera submersion; keep distant water hazy and
@@ -768,7 +771,7 @@ export class Game {
       if (this.water) { this.water.fog.fadeStart = 400000; this.water.fog.fadeEnd = 900000; }
     } else {
       this.battlefieldCamera.exit();
-      const { fog } = battleEnvironment(oceanMap(this.simulation.mapId), this.battleTimeOfDay, this.battleWeather);
+      const { fog } = battleEnvironment(oceanMap(this.simulation.mapId), this.battleTimeOfDay, this.battleWeather, this.battleConditions);
       if (this.water) { this.water.fog.fadeStart = fog.start; this.water.fog.fadeEnd = fog.end; }
       this.rig.update(this.playerView?.motion ?? this.simulation.ship, this.simulation.ship.y, 0, true);
       this.rig.setEnabled(true); this.rig.capturePointer();
@@ -1006,7 +1009,7 @@ export class Game {
     return { mapId: this.simulation.mapId ?? DEFAULT_MAP,
       waves: this.water ? { amplitude: this.water.waves.amplitude.value, windSpeed: this.water.waves.windSpeed.value,
         peakWavelength: this.water.waves.peakWavelength.value } : undefined,
-      timeOfDay: this.battleTimeOfDay ?? 'map', weather: this.battleWeather ?? 'map',
+      ...this.battleConditions, timeOfDay: this.battleTimeOfDay ?? 'map', weather: this.battleWeather ?? 'map',
       environment: this.sky ? { sunElevation: this.sky.sun.elevationDeg, sunAzimuth: this.sky.sun.azimuthDeg,
         sunIntensity: this.sky.sun.peakIntensity, ambient: this.ambientLight.intensity,
         cloudCoverage: this.sky.clouds.shape.coverage.value, cloudWind: this.sky.clouds.wind.speed,
@@ -1063,7 +1066,7 @@ export class Game {
   private updateSeaState(): void {
     if (!this.water) return;
     const map = oceanMap(this.simulation.mapId ?? DEFAULT_MAP);
-    const { waves } = battleEnvironment(map, this.battleTimeOfDay, this.battleWeather);
+    const { waves } = battleEnvironment(map, this.battleTimeOfDay, this.battleWeather, this.battleConditions);
     // Retain the smaller wave scale across all oceans; port stays sheltered.
     this.water.waves.amplitude.value = this.inPort ? .12 : waves.amplitude;
     this.water.waves.windSpeed.value = this.inPort ? 4 : waves.windSpeed;
@@ -1078,10 +1081,22 @@ export class Game {
     this.effects.setWind(this.water.waves.windSpeed.value, this.water.waves.windDirection.value);
     this.funnelSmoke.setWind(this.water.waves.windSpeed.value, this.water.waves.windDirection.value);
   }
+  private updateEffectsLighting(): void {
+    if (!this.sky) return;
+    // Water skips fixed simulation steps while paused. Read the live sky after
+    // its zero-delta update, so a conditions change still reaches frozen smoke.
+    const { sun, timeOfDay: moon } = this.sky, night = moon.skyDarkness.value > .5;
+    this.effects.setSun(night ? moon.moonDirection.value : sun.direction.value,
+      this.inPort ? 1 : Math.min(1, night ? .18 + this.ambientLight.intensity * .5
+        : this.ambientLight.intensity * .45 + sun.peakIntensity * .09));
+    this.effects.setIllumination(night ? moon.moonColor.value : sun.color.value,
+      night ? .35 * moon.moonIntensity.value * moon.moonPhaseIllumination.value : sun.intensity.value,
+      this.ambientLight.intensity);
+  }
   private updatePortLighting(): void {
     if(!this.sky)return;
     const map = oceanMap(this.simulation.mapId ?? DEFAULT_MAP);
-    const environment = battleEnvironment(map, this.battleTimeOfDay, this.battleWeather), sky = environment.sky;
+    const environment = battleEnvironment(map, this.battleTimeOfDay, this.battleWeather, this.battleConditions), sky = environment.sky;
     const elevation = this.inPort ? 36 : sky.elevation, azimuth = this.inPort ? 58 : sky.azimuth;
     // Freeze the celestial clock at an arc endpoint matching the authored angles.
     // This keeps SunDriver's moon opposite the sun without advancing battle time.
@@ -1089,8 +1104,6 @@ export class Game {
       latitude: 90 - Math.abs(elevation), azimuth: elevation < 0 ? azimuth : azimuth - 180 });
     this.sky.sun.setFromAngles(elevation, azimuth);
     this.sky.sun.peakIntensity=this.inPort ? 5.8 : sky.intensity;
-    this.effects.setSun(elevation < 0 ? this.sky.sun.direction.value.clone().negate() : this.sky.sun.direction.value,
-      this.inPort ? 1 : Math.min(1, elevation < 0 ? .18 + sky.ambient * .5 : sky.ambient * .45 + sky.intensity * .09));
     this.sky.clouds.shape.altitude.value = this.inPort ? 1700 : sky.altitude;
     this.sky.clouds.shape.thickness.value = this.inPort ? 2400 : sky.thickness;
     this.sky.clouds.shape.coverage.value=this.inPort ? .38 : sky.coverage;

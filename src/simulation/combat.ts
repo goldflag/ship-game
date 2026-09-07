@@ -120,7 +120,7 @@ export class CombatSimulation {
     this.mapId = fleet?.mapId ?? DEFAULT_MAP;
     this.islands = mapIslands(this.mapId, this.spawnDistance, Math.max(1 + (fleet?.friendlyBots.length ?? 0), fleet?.enemies.length ?? 1));
     this.seed = seed;
-    this.sea = createSeaState(this.mapId, fleet?.weather, seed);
+    this.sea = createSeaState(this.mapId, fleet?.weather, seed, fleet?.windSpeed);
     if (!Number.isInteger(this.seed) || this.seed < 0 || this.seed > 0xffffffff) throw new Error('Battle seed must be an unsigned 32-bit integer.');
     validateSpawnDistance(this.spawnDistance);
     if (fleet && (!fleet.enemies.length || fleet.enemies.length > MAX_TEAM_SHIPS || fleet.friendlyBots.length >= MAX_TEAM_SHIPS)) throw new Error(`Choose one to ${MAX_TEAM_SHIPS} ships per team.`);

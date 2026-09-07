@@ -1,6 +1,6 @@
 import { assetUrl } from '../assetUrl';
 import { OCEAN_MAPS, oceanMap, DEFAULT_MAP, mapIslands } from '../maps/catalog';
-import { TIME_OF_DAY_PRESETS, WEATHER_PRESETS } from '../maps/conditions';
+import { battleEnvironment, formatBattleTime } from '../maps/conditions';
 import { useEffect, useRef, useState } from 'react';
 import { shipPresets } from '../ships/presets';
 import { botSelection, MIN_BATTLE_SPAWN_DISTANCE, MAX_BATTLE_SPAWN_DISTANCE, MAX_TEAM_SHIPS, setupSpawns, validateSpawns, type BattleSetup } from '../simulation/battle';
@@ -30,8 +30,10 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, error }:
   const terms = filter.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
   const filteredShips = ships.filter(ship => terms.every(term => `${ship.name} ${ship.id}`.toLocaleLowerCase().includes(term)));
   const map = oceanMap(setup.mapId ?? DEFAULT_MAP);
-  const time = TIME_OF_DAY_PRESETS.find(preset => preset.id === (setup.timeOfDay ?? 'map'))!;
-  const weather = WEATHER_PRESETS.find(preset => preset.id === (setup.weather ?? 'map'))!;
+  const environment = battleEnvironment(map, setup.timeOfDay, setup.weather, setup);
+  const timeHours = setup.timeHours ?? 12;
+  const cloudCover = setup.cloudCover ?? Math.round(environment.sky.coverage * 100);
+  const windSpeed = setup.windSpeed ?? environment.waves.windSpeed;
   // Warm the loading screen's backdrop so it is on screen the moment the battle starts loading.
   useEffect(() => { new Image().src = backdropUrl(map.id); }, [map.id]);
   let placementError = '';
@@ -138,16 +140,19 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, error }:
   const conditions = (<fieldset className="battle-conditions">
       <legend>Conditions</legend>
       <div className="battle-condition-options">
-        <div><label htmlFor="battle-time">Time of day</label>
-          <select id="battle-time" value={time.id} aria-describedby="battle-time-description" onChange={event => onChange({ ...setup, timeOfDay: event.target.value as BattleSetup['timeOfDay'] })}>
-            {TIME_OF_DAY_PRESETS.map(preset => <option key={preset.id} value={preset.id}>{preset.name}</option>)}
-          </select><p id="battle-time-description">{time.description}</p>
-        </div>
-        <div><label htmlFor="battle-weather">Weather</label>
-          <select id="battle-weather" value={weather.id} aria-describedby="battle-weather-description" onChange={event => onChange({ ...setup, weather: event.target.value as BattleSetup['weather'] })}>
-            {WEATHER_PRESETS.map(preset => <option key={preset.id} value={preset.id}>{preset.name}</option>)}
-          </select><p id="battle-weather-description">{weather.description}</p>
-        </div>
+        {[
+          { key: 'timeHours', id: 'battle-time', label: 'Time of day', value: timeHours, max: 24, step: 0.25, reading: formatBattleTime(timeHours), ends: ['Midnight', 'Midnight'], description: 'Set the sun and moon position.' },
+          { key: 'cloudCover', id: 'battle-cloud-cover', label: 'Cloud cover', value: cloudCover, max: 100, step: 1, reading: `${cloudCover}%`, ends: ['Clear', 'Overcast'], description: 'Set cloud coverage independently of wind.' },
+          { key: 'windSpeed', id: 'battle-wind-speed', label: 'Wind speed', value: windSpeed, max: 30, step: 0.5, reading: `${windSpeed} m/s`, ends: ['Calm', '30 m/s'], description: 'Stronger wind raises waves and moves smoke faster.' },
+        ].map(control => <div className="battle-condition-slider" key={control.key}>
+          <label htmlFor={control.id}>{control.label}</label>
+          <output htmlFor={control.id}>{control.reading}</output>
+          <input id={control.id} type="range" min={0} max={control.max} step={control.step} value={control.value}
+            aria-valuetext={control.reading} aria-describedby={`${control.id}-description`}
+            onChange={event => onChange({ ...setup, [control.key]: Number(event.target.value) })}/>
+          <div className="battle-slider-scale" aria-hidden="true"><span>{control.ends[0]}</span><span>{control.ends[1]}</span></div>
+          <p id={`${control.id}-description`}>{control.description}</p>
+        </div>)}
       </div>
     </fieldset>);
   const distance = (<div className="battle-deployment">
@@ -171,7 +176,7 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, error }:
     {placementError && <p className="battle-error" role="alert">{placementError} Move ships or reset positions.</p>}
     {error && <p className="battle-error" role="alert">{error} Your fleet is kept here; try launching again.</p>}
     <footer>
-      <div className="battle-briefing"><Icon name="compass" size={21}/><p><strong>{map.name}</strong><span>{time.id === 'map' ? 'Map daylight' : time.name} · {weather.id === 'map' ? 'Map weather' : weather.name}</span><span>{setup.friendlyBots.length + 1} v {setup.enemies.length} ships · {setup.spawnDistance / 1000} km apart</span><span>Defeat the opposing fleet to win.</span></p></div>
+      <div className="battle-briefing"><Icon name="compass" size={21}/><p><strong>{map.name}</strong><span>{formatBattleTime(timeHours)} · {cloudCover}% clouds · {windSpeed} m/s wind</span><span>{setup.friendlyBots.length + 1} v {setup.enemies.length} ships · {setup.spawnDistance / 1000} km apart</span><span>Defeat the opposing fleet to win.</span></p></div>
       <button className="secondary-button" onClick={onClose}>Back to port</button><button className="primary-button" disabled={!setup.enemies.length || !!placementError} onClick={onLaunch}>Start battle<Icon name="arrow" size={18}/></button>
     </footer>
   </dialog>;

@@ -1,5 +1,115 @@
 import * as THREE from 'three/webgpu';
 import { effectVolumeMaterial } from '../../src/game/EffectVolume';
+import { CombatEffects } from '../../src/game/CombatEffects';
+import type { CombatEvent, CombatSimulation } from '../../src/simulation/combat';
+
+/** Full frozen Game frame, including ocean/sky/postprocessing. Reconstruct the
+ * baseline from the same CPU shot events and the live cloud's simulation age. */
+export async function compareSmokeGameFrames(review: any, Baseline: typeof CombatEffects, samples = 60) {
+  await review.still('smoke', 1);
+  const game = review.game, renderer: THREE.WebGPURenderer = game.renderer;
+  if (!renderer.hasFeature('timestamp-query')) throw new Error('WebGPU timestamps are required.');
+  const backend = renderer.backend as typeof renderer.backend & { trackTimestamp: boolean };
+  const tracking = backend.trackTimestamp, autoReset = renderer.info.autoReset;
+  const baseline = new Baseline(), current = game.effects.root.getObjectByName('Propellant and impact volumes') as THREE.InstancedMesh;
+  const old = baseline.root.getObjectByName('Propellant and impact volumes')!;
+  const events = game.simulation.events.filter((event: CombatEvent) => event.kind === 'shot');
+  const sim = { events, shells: [], torpedoes: [], depthCharges: [], aircraft: [], actors: [], tick: 0 } as unknown as CombatSimulation;
+  baseline.setSun(game.effects.sun.value);
+  baseline.setWind(game.water.waves.windSpeed.value, game.water.waves.windDirection.value);
+  baseline.update(sim, 0, game.camera);
+  baseline.update(sim, current.geometry.getAttribute('effectVolume').getX(0), game.camera);
+  game.effects.root.add(old);
+  const gpu: number[][] = [[], []], cpu: number[][] = [[], []], draws = [0, 0];
+  try {
+    backend.trackTimestamp = true; renderer.info.autoReset = false;
+    for (let frame = -8; frame < samples; frame++) for (const index of frame % 2 === 0 ? [0, 1] : [1, 0]) {
+      old.visible = index === 0; current.visible = index === 1;
+      // Give the real scene pass a fresh frame, without background RAF delays.
+      game.renderer._nodes.nodeFrame.update(); renderer.info.reset();
+      const start = performance.now(); game.renderFrame();
+      const submit = performance.now() - start;
+      const time = await renderer.resolveTimestampsAsync('render');
+      if (time === undefined) throw new Error('GPU timestamp query returned no result.');
+      if (frame >= 0) { gpu[index].push(time); cpu[index].push(submit); draws[index] = renderer.info.render.drawCalls; }
+    }
+    const stats = (values: number[]) => {
+      const sorted = [...values].sort((a, b) => a - b);
+      return { median: sorted[Math.floor(sorted.length / 2)], p95: sorted[Math.floor(sorted.length * .95)] };
+    };
+    return { canvas: [renderer.domElement.width, renderer.domElement.height], samples, drawCalls: draws,
+      particles: [baseline.diagnostics().smoke, game.effects.diagnostics().smoke],
+      gpuMs: { before: stats(gpu[0]), after: stats(gpu[1]) }, submitMs: { before: stats(cpu[0]), after: stats(cpu[1]) }, rawGpuMs: gpu };
+  } finally {
+    old.removeFromParent(); current.visible = true; baseline.dispose();
+    backend.trackTimestamp = tracking; renderer.info.autoReset = autoReset;
+  }
+}
+
+/** Compare complete recipes as well as shaders. A retained, import-relocated
+ * baseline constructor can be loaded from .build; it never ships with the game.
+ * Both revisions receive identical events, clocks, wind, cameras and targets.
+ * Alternate order and use GPU timestamps rather than background-tab RAF time. */
+export async function compareSmokeRevisions(review: any, Baseline: typeof CombatEffects, samples = 40) {
+  const renderer: THREE.WebGPURenderer = review.game.renderer;
+  if (!renderer.hasFeature('timestamp-query')) throw new Error('WebGPU timestamps are required.');
+  const backend = renderer.backend as typeof renderer.backend & { trackTimestamp: boolean };
+  const tracking = backend.trackTimestamp, previous = renderer.getRenderTarget();
+  const clearColor = renderer.getClearColor(new THREE.Color()), clearAlpha = renderer.getClearAlpha();
+  const size = renderer.getDrawingBufferSize(new THREE.Vector2());
+  const target = new THREE.RenderTarget(size.x, size.y, { samples: renderer.samples });
+  const effects = [new Baseline(), new CombatEffects()];
+  const scenes = effects.map(effect => {
+    const scene = new THREE.Scene();
+    scene.add(effect.root.getObjectByName('Propellant and impact volumes')!);
+    effect.setSun(new THREE.Vector3(.45, .8, .4).normalize()); effect.setWind(12, .5);
+    return scene;
+  });
+  const stats = (values: number[]) => {
+    const ordered = [...values].sort((a, b) => a - b);
+    return { median: ordered[Math.floor(ordered.length / 2)], p95: ordered[Math.floor(ordered.length * .95)] };
+  };
+  const results = [];
+  try {
+    backend.trackTimestamp = true;
+    renderer.setRenderTarget(target); renderer.setClearColor(0, 0);
+    for (const fixture of [
+      { name: 'close broadside', guns: 8, position: [145, 58, -150], aim: [45, 18, -55], fov: 52, age: 1 },
+      { name: 'binocular broadside', guns: 8, position: [5000, 18, 0], aim: [0, 18, 0], fov: 4.33, age: 1 },
+      { name: 'inside plume', guns: 8, position: [35, 25, -70], aim: [0, 25, 0], fov: 52, age: 1 },
+      { name: '64 gun overlap', guns: 64, position: [180, 95, -250], aim: [60, 25, 0], fov: 52, age: 1 },
+      { name: 'late wisps', guns: 8, position: [145, 58, -150], aim: [45, 18, -55], fov: 52, age: 2.5 },
+    ]) {
+      const camera = new THREE.PerspectiveCamera(fixture.fov, size.x / size.y, .1, 30000);
+      camera.position.fromArray(fixture.position); camera.lookAt(new THREE.Vector3().fromArray(fixture.aim)); camera.updateMatrixWorld();
+      const events: CombatEvent[] = Array.from({ length: fixture.guns }, (_, gun) => ({
+        sequence: gun + 1, tick: 0, kind: 'shot', shipId: 'fixture', message: 'GPU comparison',
+        position: [Math.floor(gun / 8) * 5, 14 + Math.floor(gun / 8) * 2, [-85, -55, 55, 85][Math.floor(gun % 8 / 2)] + gun % 2 * 3],
+        shell: { id: gun + 1, caliberM: .38, velocity: [820, 0, 0] },
+      }));
+      const sim = { events, shells: [], torpedoes: [], depthCharges: [], aircraft: [], actors: [], tick: 0 } as unknown as CombatSimulation;
+      for (const effect of effects) {
+        effect.reset(); effect.update(sim, 0, camera);
+        for (let frame = 0; frame < Math.round(fixture.age * 60); frame++) effect.update(sim, 1 / 60, camera);
+      }
+      const gpu: number[][] = [[], []], cpu: number[][] = [[], []];
+      for (let frame = -8; frame < samples; frame++) for (const index of frame % 2 === 0 ? [0, 1] : [1, 0]) {
+        const start = performance.now(); renderer.render(scenes[index], camera);
+        const submit = performance.now() - start;
+        const time = await renderer.resolveTimestampsAsync('render');
+        if (time === undefined) throw new Error('GPU timestamp query returned no result.');
+        if (frame >= 0) { gpu[index].push(time); cpu[index].push(submit); }
+      }
+      results.push({ ...fixture, gpuMs: { before: stats(gpu[0]), after: stats(gpu[1]) },
+        submitMs: { before: stats(cpu[0]), after: stats(cpu[1]) }, particles: effects.map(effect => effect.diagnostics().smoke),
+        rawGpuMs: gpu });
+    }
+    return { canvas: size.toArray(), samples, antialiasSamples: renderer.samples, results };
+  } finally {
+    renderer.setRenderTarget(previous); renderer.setClearColor(clearColor, clearAlpha); backend.trackTimestamp = tracking;
+    effects.forEach(effect => effect.dispose()); target.dispose();
+  }
+}
 
 // Development-only probe for combat-effects.html. Freeze the real CPU-fired
 // scene and alternate smoke on/off; GPU timestamps exclude RAF/background-tab
@@ -91,6 +201,7 @@ export async function compareSmokeMaterials(review: any, baseline: typeof effect
         mesh.material = materials[index];
         renderer.render(scene, game.camera);
         const ms = await renderer.resolveTimestampsAsync('render');
+        if (ms === undefined) throw new Error('GPU timestamp query returned no result.');
         if (frame >= 0) timings[index].push(ms);
       }
     }
