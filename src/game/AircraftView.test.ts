@@ -1,5 +1,5 @@
 import { expect, spyOn, test } from 'bun:test';
-import { BoxGeometry, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, PerspectiveCamera, Vector3 } from 'three/webgpu';
+import { BoxGeometry, Group, InstancedBufferGeometry, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, PerspectiveCamera, Vector3 } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { AircraftView } from './AircraftView';
 import { CombatSimulation } from '../simulation/combat';
@@ -7,6 +7,8 @@ import { shipPreset } from '../ships/presets';
 import { aircraftDeckSpot } from '../simulation/aircraft';
 import { aircraftGroundPose } from '../simulation/aircraftGroundPose';
 import { aircraftContactAppearance } from './AircraftContacts';
+
+const drawCount = (mesh: InstancedMesh) => (mesh.geometry as InstancedBufferGeometry).instanceCount;
 
 test('follow-camera zoom keeps a readable contact before thin aircraft fade into the sea', () => {
   // A 12 m aircraft at 600 m spans ~22 pixels at 1080p, but its edge-on
@@ -33,7 +35,7 @@ test('hangar starts hidden; explicitly spotted aircraft follow the carrier pose 
     sim.actors.forEach(actor => actor.airWing!.planes.slice(0, 12).forEach((p, i) => { p.deckSlot = i; }));
     view.update(sim, camera, true, true, roots);
     expect(view.diagnostics().instances).toBe(12);
-    const firstBatch = view.root.children.find(c => c instanceof InstancedMesh && c.name.startsWith('Aircraft model ') && c.count > 0) as InstancedMesh;
+    const firstBatch = view.root.children.find(c => c instanceof InstancedMesh && c.name.startsWith('Aircraft model ') && c.visible) as InstancedMesh;
     const matrix = new Matrix4(); firstBatch.getMatrixAt(0, matrix);
     const spot = aircraftDeckSpot(sim.player, sim.player.airWing!.planes[0]);
     const expected = carrier.matrixWorld.clone().multiply(new Matrix4().makeTranslation(...spot))
@@ -66,8 +68,8 @@ test('distant flying aircraft retain a silhouette across LODs, while deck, lost 
       view.update(sim, camera, true);
       expect(view.diagnostics().instances).toBe(1);
       expect(view.diagnostics().contacts).toBe(distance >= 401 ? 1 : 0);
-      if (distance >= 1500) expect(view.root.children.filter(c => c instanceof InstancedMesh && c.name.endsWith('/2')).reduce((n, c) => n + (c as InstancedMesh).count, 0)).toBe(1);
-      if (distance >= 1500) expect(contacts()?.count).toBe(1);
+      if (distance >= 1500) expect(view.root.children.filter(c => c instanceof InstancedMesh && c.name.endsWith('/2')).reduce((n, c) => n + drawCount(c as InstancedMesh), 0)).toBe(1);
+      if (distance >= 1500) expect(contacts()?.count).toBe(contacts()?.instanceMatrix.count);
       else if (distance === 100) expect(contacts()?.visible).toBe(false);
     }
     camera.position.set(0, 300, 6000); camera.updateMatrixWorld(true);
@@ -97,21 +99,38 @@ test('large carrier fleets retain every visible aircraft without oversized GPU u
     // Cross the former fleet-wide limit and allocate a fourth GPU batch.
     const population = 2305;
     sim.player.airWing!.planes = Array.from({ length: population }, (_, i) => ({ ...structuredClone(template), id: `player/render-${i}`, phase: 'outbound', payload: false }));
-    view.update(sim, new PerspectiveCamera(), true);
+    for (const count of [0, 1, 6, 2, 769, 800, 1, population]) {
+      sim.player.airWing!.planes.forEach((plane, i) => { plane.phase = i < count ? 'outbound' : 'lost'; });
+      view.update(sim, new PerspectiveCamera(), true);
+      const batches = view.root.children.filter(c => c instanceof InstancedMesh && c.name.startsWith('Aircraft model ')) as InstancedMesh[];
+      expect(batches.reduce((n, batch) => n + drawCount(batch), 0)).toBe(count);
+      for (const batch of batches) {
+        expect(batch.count).toBe(batch.instanceMatrix.count); // Shader capacity must survive growth after the first draw.
+        expect(batch.visible).toBe(drawCount(batch) > 0);
+      }
+    }
     expect(view.diagnostics().instances).toBe(population);
-    const modelBatches = view.root.children.filter(c => c instanceof InstancedMesh && c.count > 0 && c.name.startsWith('Aircraft model ')) as InstancedMesh[];
-    expect(modelBatches.reduce((n, b) => n + b.count, 0)).toBe(population);
+    const modelBatches = view.root.children.filter(c => c instanceof InstancedMesh && c.visible && c.name.startsWith('Aircraft model ')) as InstancedMesh[];
+    expect(modelBatches.reduce((n, b) => n + drawCount(b), 0)).toBe(population);
     for (const batch of modelBatches) {
       expect(batch.instanceMatrix.array.byteLength).toBeLessThanOrEqual(65536);
-      expect(batch.count).toBeLessThanOrEqual(batch.instanceMatrix.count);
+      expect(batch.count).toBe(batch.instanceMatrix.count);
+      expect(drawCount(batch)).toBeLessThanOrEqual(batch.count);
     }
     const distant = new PerspectiveCamera(52, 1, .5, 60000);
     distant.position.set(0, 300, 6000); distant.lookAt(0, 0, 0); distant.updateMatrixWorld(true);
     view.update(sim, distant, true);
     expect(view.diagnostics().instances).toBe(population);
-    expect(view.root.children.filter(c => c instanceof InstancedMesh && c.name.endsWith('/2')).reduce((n, c) => n + (c as InstancedMesh).count, 0)).toBe(population);
+    expect(view.root.children.filter(c => c instanceof InstancedMesh && c.name.endsWith('/2')).reduce((n, c) => n + drawCount(c as InstancedMesh), 0)).toBe(population);
     expect(view.diagnostics().contacts).toBe(population);
     expect(modelBatches.every(batch => !batch.visible)).toBe(true); // Near LOD batches give way to LOD2.
+    for (const count of [1, 6, 0, population]) {
+      sim.player.airWing!.planes.forEach((plane, i) => { plane.phase = i < count ? 'outbound' : 'lost'; });
+      view.update(sim, distant, true);
+      const contacts = view.root.getObjectByName('Distant aircraft silhouettes') as InstancedMesh;
+      expect(view.diagnostics().contacts).toBe(count);
+      expect(contacts.count).toBe(contacts.instanceMatrix.count);
+    }
   } finally { await view.dispose(); loader.mockRestore(); }
 });
 
@@ -158,7 +177,7 @@ test('fold joints retain full-size geometry and independent per-plane poses acro
     const roots = new Map([['player', carrier]]), camera = new PerspectiveCamera();
     for (const distance of [40, 220, 600]) {
       camera.position.set(0, distance, -90); view.update(sim, camera, true, true, roots);
-      const batch = view.root.children.find(c => c instanceof InstancedMesh && c.count === 2) as InstancedMesh;
+      const batch = view.root.children.find(c => c instanceof InstancedMesh && c.name.startsWith('Aircraft model ') && drawCount(c) === 2) as InstancedMesh;
       expect(batch).toBeDefined();
       for (let i = 0; i < 2; i++) {
         const actual = new Matrix4(); batch.getMatrixAt(i, actual);

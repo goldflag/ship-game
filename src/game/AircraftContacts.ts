@@ -46,11 +46,11 @@ export class AircraftContacts {
     this.material.opacityNode = attribute('aircraftOpacity', 'float');
     this.opacity.setUsage(THREE.DynamicDrawUsage);
     this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    this.mesh.count = 0; this.mesh.visible = false; this.mesh.frustumCulled = false;
+    this.mesh.visible = false; this.mesh.frustumCulled = false;
     this.mesh.name = 'Distant aircraft silhouettes';
   }
   resize(height: number) { this.height = Math.max(1, height); }
-  begin() { this.mesh.count = 0; }
+  begin() { this.count = 0; }
   add(position: THREE.Vector3, wingspan: number, camera: THREE.Camera, bank: number) {
     const depth = -this.viewPosition.copy(position).applyMatrix4(camera.matrixWorldInverse).z;
     if (depth <= 0) return;
@@ -60,9 +60,9 @@ export class AircraftContacts {
     camera.getWorldQuaternion(this.rotation);
     this.rotation.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), bank));
     this.scale.setScalar(appearance.pixels * worldPerPixel);
-    this.mesh.setMatrixAt(this.mesh.count, this.matrix.compose(position, this.rotation, this.scale));
-    this.mesh.setScalarAttributeAt('aircraftOpacity', this.mesh.count++, appearance.opacity);
+    this.mesh.setMatrixAt(this.count, this.matrix.compose(position, this.rotation, this.scale));
+    this.mesh.setScalarAttributeAt('aircraftOpacity', this.count++, appearance.opacity);
   }
-  finish() { this.count = this.mesh.count; this.mesh.visible = this.mesh.count > 0; this.mesh.publish(this.mesh.count); this.mesh.count = Math.min(this.mesh.count, PAGE_SIZE); }
+  finish() { this.mesh.visible = this.count > 0; this.mesh.publish(this.count); }
   dispose() { this.mesh.removeFromParent(); this.mesh.dispose(); this.geometry.dispose(); this.material.dispose(); this.texture.dispose(); }
 }

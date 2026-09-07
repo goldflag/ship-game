@@ -1,0 +1,58 @@
+{
+  "date": "2026-09-07",
+  "baseCommit": "cb01ec2dc1799e1f2f314c1b3925d36ccc45410a",
+  "sha256": {
+    "src/game/AircraftView.ts": "20d5cc78538e9e6648ce81a37be26e1edb4b084b451815d79cddf59930e451ff",
+    "src/game/AircraftContacts.ts": "8726e1f38c6fbc57196585707a456c8cc62fbe42ad4c429327f0316b6767a695",
+    "scripts/tests/aircraft-rendering-browser.ts": "010d03a58e3587a49d0302425b0f977c53239890899947bca2bbaa5c388dc160",
+    "public/models/aircraft/f4f-4-wildcat.glb": "827a4d3e9c46a72dd591aee12c4dafeea526d8e13528956249da0c6591c81ac3",
+    "public/models/aircraft/LOD1/f4f-4-wildcat-lod1.glb": "ada6bfc386fc712857cfd2dda619da09dd6bead7ba379485da0cb7ece9fed431",
+    "public/models/aircraft/LOD2/f4f-4-wildcat-lod2.glb": "af39acf2ed83ac1e495cff6708ad477e935c8ecfacf948eec1a6ac2f925f28a9",
+    "public/models/aircraft/sbd-3-dauntless.glb": "5579d6db8b84f67e05b04141a9f11a39cb1f2a04e1cf6ca153ac111f3481fde4",
+    "public/models/aircraft/LOD1/sbd-3-dauntless-lod1.glb": "83fa3715d273eca6e709d0e3c0e92088222ce4381889a9816c0e108521729613",
+    "public/models/aircraft/LOD2/sbd-3-dauntless-lod2.glb": "8c10c8f19a47eb8259987870baef08addd5f136aa50fa8a018abc78edb9b39a3",
+    "public/models/aircraft/tbd-1-devastator.glb": "468479d01d3253e7321282a0a217a2186b82ac1351433892cab9a47a48e0fef0",
+    "public/models/aircraft/LOD1/tbd-1-devastator-lod1.glb": "a7d176eacd0abbca7a3f109a495181994624758e7e5c155665d7d0fb9e784fcc",
+    "public/models/aircraft/LOD2/tbd-1-devastator-lod2.glb": "d27a26df9eeaafe79301328b85c9d66d029ea7db5139e4f828a503451696a5ed"
+  },
+  "beforeFix": {
+    "counts": [
+      0,
+      1,
+      6,
+      2,
+      0,
+      9
+    ],
+    "visibleAirframes": [
+      0,
+      1,
+      1,
+      1,
+      0,
+      1
+    ],
+    "visiblePayloads": [
+      0,
+      1,
+      6,
+      2,
+      0,
+      9
+    ]
+  },
+  "targetedTests": {
+    "passed": 7,
+    "assertions": 396
+  },
+  "build": "passed",
+  "fullSuite": {
+    "files": 114,
+    "failedFiles": [
+      "src/game/AirOperations.test.tsx",
+      "src/game/GameFrame.test.ts"
+    ],
+    "failedTests": 23,
+    "reproducedOnUnmodifiedBase": true
+  }
+}
