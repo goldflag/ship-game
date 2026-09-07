@@ -543,7 +543,7 @@ export class Game {
       this.inspectionHover?.update(this.inPort && !this.paused && !this.switchingShip ? this.playerView?.inspection : undefined);
       this.fleetViews.forEach(view => {
         view.rig.update(dt, this.water!.waves.windSpeed.value, this.water!.waves.windDirection.value,
-          view.root, view.motion, view.actor.damage.sunk, this.camera);
+          view.root, view.motion, view.actor.damage.sunk, this.camera, !this.inPort);
         view.updateRenderMatrices();
       });
       this.aircraftView.update(this.simulation, this.camera, !this.inspecting && (!this.inPort || this.playerView?.inspection.mode === 'exterior'), this.inPort, new Map(this.fleetViews.map(view => [view.actor.motion.id, view.root])));

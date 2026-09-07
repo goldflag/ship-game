@@ -12,7 +12,7 @@ window.rigGame=game;
 // Controlled frames make pause/motion comparisons reproducible, even in a background tab.
 game.scheduleFrame=noop;
 game.start(); await game.initialization;
-game.setInPort(true);
+game.setInPort(!params.has('atSea'));
 window.reviewRig = (focus='flag', wind=9, speed=0) => {
   game.water.waves.windSpeed.value=wind;
   game.water.waves.windDirection.value=.5;
