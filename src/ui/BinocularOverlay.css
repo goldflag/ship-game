@@ -1,4 +1,8 @@
 /* A physical field stop and recessed glass edge; the central image stays clear. */
+:root {
+  --binocular-width:min(92vw,178vh);
+  --binocular-height:min(96vh,52vw);
+}
 .binocular-overlay {
   position:absolute;
   inset:0;
@@ -10,13 +14,12 @@
   position:absolute;
   top:50%;
   left:50%;
-  width:min(92vw,142vh);
-  height:min(90vh,100vw);
+  width:var(--binocular-width);
+  height:var(--binocular-height);
   transform:translate(-50%,-50%);
   border:2px solid #030506;
-  border-radius:50%;
-  background:radial-gradient(ellipse closest-side,transparent 76%,#15312c0a 86%,#02060866 96%,#020405e6 100%);
-  box-shadow:0 0 0 7px #0b1011,0 0 0 8px #333b3a,0 0 0 15px #070a0b,0 0 0 100vmax #020405,inset 0 8px 18px 5px #0009;
+  border-radius:min(36vh,22vw);
+  box-shadow:0 0 0 7px #0b1011,0 0 0 8px #333b3a,0 0 0 15px #070a0b,0 0 0 100vmax #020405,inset 0 0 18px 6px #02040599,inset 0 8px 18px 5px #0009;
 }
 .binocular-eyepiece::after {
   content:'';
