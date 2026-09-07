@@ -306,8 +306,11 @@
 .fleet-spectator { margin-top:8px; display:grid; gap:4px; max-width:100%; }
 .fleet-spectator > label { color:var(--fleet-active); font-size:12px; }
 .fleet-spectator-controls { display:flex; gap:6px; min-width:0; }
-.fleet-spectator-controls select { min-width:0; flex:1; }
+.fleet-spectator-controls .ui-select { min-width:0; flex:1; }
 .fleet-spectator-controls button { flex-shrink:0; }
 
 /* Carrier guns and squadron controls share one flowing stack. */
 .air-squadron-command .fleet-armament { position:relative; inset:auto; transform:none; width:100%; max-width:440px; margin:0 auto 12px; }
+
+.fleet-spectator-controls .ui-button { width: 36px; padding: 6px; }
+.fleet-spectator-controls .ui-select { font-size: 13px; }

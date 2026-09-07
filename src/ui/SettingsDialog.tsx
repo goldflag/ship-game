@@ -1,3 +1,4 @@
+import { Select, SelectOption, Button, Input } from './components';
 import { useEffect, useRef, useState } from 'react';
 import type { GameSettings } from '../game/types';
 import { bindingError, defaultKeybindings, INPUT_ACTIONS, keyLabel, type InputAction, type Keybindings } from '../game/keybindings';
@@ -72,7 +73,7 @@ export function SettingsDialog({ settings, bindings, audioSettings, hudSettings,
   const changed = JSON.stringify(draft) !== JSON.stringify(settings);
   return <dialog ref={dialog} className="pause-menu settings-dialog" aria-labelledby="settings-title"
     onCancel={event => { event.preventDefault(); onClose(); }}>
-    <div className="menu-heading"><h2 id="settings-title">Settings</h2><button className="icon-button" aria-label="Close settings" autoFocus onClick={onClose}><Icon name="close"/></button></div>
+    <div className="menu-heading"><h2 id="settings-title">Settings</h2><Button variant="icon" aria-label="Close settings" autoFocus onClick={onClose}><Icon name="close"/></Button></div>
     <div className="settings-sections" role="group" aria-label="Settings sections">
       <button aria-pressed={section === 'scene'} onClick={() => { setSection('scene'); setListening(null); }}>Graphics</button>
       <button aria-pressed={section === 'hud'} onClick={() => { setSection('hud'); setListening(null); }}>HUD</button>
@@ -82,34 +83,34 @@ export function SettingsDialog({ settings, bindings, audioSettings, hudSettings,
     <div className="settings-content">
       {section === 'scene' ? <section aria-label="Graphics settings">
         <p className="settings-description">Prepare the scene for your next voyage.</p>
-        <label className="setting-row">Ocean detail<select value={draft.quality} onChange={event => setDraft({ ...draft, quality: event.target.value as GameSettings['quality'] })}><option value="medium">Medium</option><option value="high">High</option><option value="ultra">Ultra</option></select></label>
-        <label className="setting-row">Render scale<select value={draft.resolution} onChange={event => setDraft({ ...draft, resolution: Number(event.target.value) })}><option value={0.65}>65%</option><option value={0.8}>80%</option><option value={1}>100%</option></select></label>
+        <label className="setting-row">Ocean detail<Select value={draft.quality} onValueChange={value => setDraft({ ...draft, quality: value as GameSettings['quality'] })}><SelectOption value="medium">Medium</SelectOption><SelectOption value="high">High</SelectOption><SelectOption value="ultra">Ultra</SelectOption></Select></label>
+        <label className="setting-row">Render scale<Select value={draft.resolution} onValueChange={value => setDraft({ ...draft, resolution: Number(value) })}><SelectOption value={0.65}>65%</SelectOption><SelectOption value={0.8}>80%</SelectOption><SelectOption value={1}>100%</SelectOption></Select></label>
         <p className="settings-note">Applying these settings ends the current trial and reloads the scene in port. Lower detail or render scale can improve performance.</p>
-        <button className="primary-button" disabled={!changed} onClick={() => onApply(draft)}>Apply & reload port <Icon name="arrow" size={17}/></button>
+        <Button variant="primary" disabled={!changed} onClick={() => onApply(draft)}>Apply & reload port <Icon name="arrow" size={17}/></Button>
       </section> : section === 'hud' ? <section aria-label="HUD settings">
         <p className="settings-description">Size the battle instruments to suit your display. Changes apply immediately, including during a battle.</p>
-        <label className="setting-row">HUD scaling<select value={hudSettings.mode} onChange={event => changeHud({ ...hudSettings, mode: event.target.value as HudSettings['mode'] })}><option value="auto">Automatic</option><option value="manual">Manual</option></select></label>
+        <label className="setting-row">HUD scaling<Select value={hudSettings.mode} onValueChange={value => changeHud({ ...hudSettings, mode: value as HudSettings['mode'] })}><SelectOption value="auto">Automatic</SelectOption><SelectOption value="manual">Manual</SelectOption></Select></label>
         <p className="settings-note">{hudSettings.mode === 'auto' ? 'Adapts to your game window as you resize it or move between displays. Adjust the automatic size below.' : 'Keeps your chosen size when you resize the game window or move between displays.'}</p>
         <label className="hud-size-setting" htmlFor="hud-size"><span>{hudSettings.mode === 'auto' ? 'Size adjustment' : 'HUD size'}</span><output htmlFor="hud-size">{Math.round(hudSettings.scale * 100)}%</output>
-          <input id="hud-size" type="range" min="50" max="200" step="5" value={Math.round(hudSettings.scale * 100)} aria-valuetext={`${Math.round(hudSettings.scale * 100)} percent`} onChange={event => changeHud({ ...hudSettings, scale: Number(event.target.value) / 100 })}/>
+          <Input id="hud-size" type="range" min="50" max="200" step="5" value={Math.round(hudSettings.scale * 100)} aria-valuetext={`${Math.round(hudSettings.scale * 100)} percent`} onChange={event => changeHud({ ...hudSettings, scale: Number(event.target.value) / 100 })}/>
         </label>
         <p className="hud-scale-readout">Current HUD scale <strong>{Math.round(hudScale * 100)}%</strong></p>
         <p className="settings-note">Scales instruments, the minimap, ship names and hit readouts. Menus keep their normal size.</p>
         <p className="settings-note" role="status">{hudSaved ? 'HUD settings are saved in this browser.' : 'HUD settings applied for this session. Browser storage is unavailable.'}</p>
-        <button className="secondary-button" onClick={() => changeHud({ ...DEFAULT_HUD })}>Reset HUD to automatic</button>
+        <Button variant="secondary" onClick={() => changeHud({ ...DEFAULT_HUD })}>Reset HUD to automatic</Button>
       </section> : section === 'sound' ? <section aria-label="Sound settings">
         <p className="settings-description">Balance the guns and instruments. Changes apply immediately.</p>
-        <label className="setting-row audio-mute">Mute all sound<input type="checkbox" checked={audioSettings.muted} onChange={event => changeAudio({ ...audioSettings, muted: event.target.checked })}/></label>
+        <label className="setting-row audio-mute">Mute all sound<Input type="checkbox" checked={audioSettings.muted} onChange={event => changeAudio({ ...audioSettings, muted: event.target.checked })}/></label>
         {([['master', 'Master volume'], ['effects', 'Guns & impacts'], ['interface', 'Controls & instruments']] as const).map(([key, label]) => <label className="audio-setting" key={key} htmlFor={`audio-volume-${key}`}>
           <span>{label}</span><output>{Math.round(audioSettings[key] * 100)}%</output>
-          <input id={`audio-volume-${key}`} type="range" min="0" max="100" step="1" value={Math.round(audioSettings[key] * 100)} aria-label={label} aria-valuetext={`${Math.round(audioSettings[key] * 100)} percent`} onChange={event => changeAudio({ ...audioSettings, [key]: Number(event.target.value) / 100 })}/>
+          <Input id={`audio-volume-${key}`} type="range" min="0" max="100" step="1" value={Math.round(audioSettings[key] * 100)} aria-label={label} aria-valuetext={`${Math.round(audioSettings[key] * 100)} percent`} onChange={event => changeAudio({ ...audioSettings, [key]: Number(event.target.value) / 100 })}/>
         </label>)}
         <div className="audio-previews" role="group" aria-label="Preview sounds">
-          <button className="secondary-button" data-sound="none" disabled={audioSettings.muted || audioSettings.master === 0 || audioSettings.interface === 0} onClick={() => onPreviewSound('ui-confirm')}>Test controls</button>
-          <button className="secondary-button" data-sound="none" disabled={audioSettings.muted || audioSettings.master === 0 || audioSettings.effects === 0} onClick={() => onPreviewSound('main-gun-a')}>Test gunfire</button>
+          <Button variant="secondary" data-sound="none" disabled={audioSettings.muted || audioSettings.master === 0 || audioSettings.interface === 0} onClick={() => onPreviewSound('ui-confirm')}>Test controls</Button>
+          <Button variant="secondary" data-sound="none" disabled={audioSettings.muted || audioSettings.master === 0 || audioSettings.effects === 0} onClick={() => onPreviewSound('main-gun-a')}>Test gunfire</Button>
         </div>
         <p className="settings-note" role="status">{audioSaved ? 'Sound settings are saved in this browser. Background tabs are silent.' : 'Sound settings applied for this session. Browser storage is unavailable.'}</p>
-        <button className="secondary-button" onClick={() => changeAudio({ ...DEFAULT_AUDIO })}>Reset sound to defaults</button>
+        <Button variant="secondary" onClick={() => changeAudio({ ...DEFAULT_AUDIO })}>Reset sound to defaults</Button>
       </section> : <section aria-label="Keybindings">
         <p className="settings-description">Select a binding, then press a key. Changes apply immediately.</p>
         <p className="keybinding-instructions" id="keybinding-instructions">Esc cancels a change. Delete clears a binding. Keep at least one key per action. Esc, Tab and Enter stay reserved for menus.</p>
@@ -131,18 +132,18 @@ export function SettingsDialog({ settings, bindings, audioSettings, hudSettings,
         <div className="keybinding-fixed"><span>Toggle binoculars</span><kbd>Shift</kbd><span>Fixed control</span></div>
         <div className="keybinding-fixed"><span>Hold for cursor</span><kbd>Ctrl</kbd><span>Fixed control</span></div>
         <p className="settings-note">Move the mouse to aim; hold left mouse to fire. Right mouse also toggles binoculars. Scroll adjusts camera distance or magnification.</p>
-        <button className="secondary-button" onClick={() => {
+        <Button variant="secondary" onClick={() => {
           setListening(null); setInvalid(false);
           const saved = onBindingsChange(defaultKeybindings());
           setNotice(saved ? 'Default keybindings restored.' : 'Defaults restored for this session. Browser storage is unavailable.');
-        }}>Reset keybindings to defaults</button>
+        }}>Reset keybindings to defaults</Button>
       </section>}
     </div>
     <footer className="settings-footer">
       {section === 'keys' && <div className={`keybinding-status ${invalid ? 'keybinding-error' : ''}`} role="status" aria-live="polite">
         {listening && !invalid ? `Press a key for ${INPUT_ACTIONS.find(entry => entry.id === listening.action)!.label.toLowerCase()}.` : notice || 'Weapon groups follow the HUD order for each ship: main guns, secondaries, torpedoes, then depth charges. Bindings are saved in this browser.'}
       </div>}
-      <button className="secondary-button" data-sound="back" onClick={onClose}>Back to menu <kbd>Esc</kbd></button>
+      <Button variant="secondary" data-sound="back" onClick={onClose}>Back to menu <kbd>Esc</kbd></Button>
     </footer>
   </dialog>;
 }

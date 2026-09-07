@@ -18,7 +18,7 @@ describe('keyboard gameplay controls', () => {
     Object.defineProperty(globalThis, 'window', { configurable: true, value: events });
     Object.defineProperty(globalThis, 'document', { configurable: true, value: { querySelector: () => modal ? {} : null } });
     Object.defineProperty(globalThis, 'HTMLElement', { configurable: true, value: class {} });
-    actions = { pause: mock(), camera: mock(), recenter: mock(), hud: mock(), fullscreen: mock(), optics: mock(), weaponGroup: mock(), cursor: mock(), chartSize: mock(), shellFollow: mock(), shellType: mock(), depth: mock(), depthPreset: mock(), emergencyBlow: mock(), periscope: mock(), airOperations: mock() };
+    actions = { isSpectating: mock(() => false), cycleSpectator: mock(), pause: mock(), camera: mock(), recenter: mock(), hud: mock(), fullscreen: mock(), optics: mock(), weaponGroup: mock(), cursor: mock(), chartSize: mock(), shellFollow: mock(), shellType: mock(), depth: mock(), depthPreset: mock(), emergencyBlow: mock(), periscope: mock(), airOperations: mock() };
     input = new InputController(actions, defaultKeybindings());
   });
   afterEach(() => {
@@ -27,6 +27,24 @@ describe('keyboard gameplay controls', () => {
       if (descriptor) Object.defineProperty(globalThis, name, descriptor);
       else Reflect.deleteProperty(globalThis, name);
     }
+  });
+
+  test('spectator arrows cycle once per press without changing the helm, and respect pause, modifiers and dialogs', () => {
+    key('keydown', 'ArrowRight'); expect(input.rudderOrder).toBe(.5);
+    key('keyup', 'ArrowRight');
+    actions.isSpectating.mockReturnValue(true);
+    expect(key('keydown', 'ArrowLeft').defaultPrevented).toBe(true);
+    key('keydown', 'ArrowLeft', { repeat: true });
+    expect(actions.cycleSpectator).toHaveBeenCalledTimes(1);
+    expect(actions.cycleSpectator).toHaveBeenLastCalledWith(-1);
+    key('keyup', 'ArrowLeft'); key('keydown', 'ArrowRight');
+    expect(actions.cycleSpectator).toHaveBeenLastCalledWith(1);
+    expect(input.rudderOrder).toBe(.5);
+    key('keydown', 'ArrowRight', { ctrlKey: true });
+    key('keydown', 'ArrowRight', { shiftKey: true });
+    input.setEnabled(false); key('keydown', 'ArrowRight');
+    input.setEnabled(true); modal = true; key('keydown', 'ArrowRight');
+    expect(actions.cycleSpectator).toHaveBeenCalledTimes(2);
   });
 
   test('periscope shortcut respects rebinding, repeat, pause and dialogs', () => {
