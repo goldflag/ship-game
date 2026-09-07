@@ -1,0 +1,12 @@
+{
+  "breachedSpaces": 4,
+  "eventKinds": [
+    "penetration",
+    "module"
+  ],
+  "hpAfter": 150,
+  "hpBefore": 170,
+  "marks": 2,
+  "module": "boiler-1-1",
+  "waterAfterTwoSecondsM3": 2.3197084512128936
+}

@@ -1,5 +1,6 @@
 import type { AircraftRole, ShipDefinition, TorpedoPart, Vec3 } from '../ships/blueprint';
 import type { FleetActor, Team } from './battle';
+import { crewSkill, DEFAULT_AI_LEVEL, isPassiveAi } from './aiLevels';
 import type { CombatEvent } from './combat';
 import type { Shell } from './damage';
 import { add, clamp, dot, length, localToWorld, normalize, scale, sub, wrapAngle, worldToLocal } from './geometry';
@@ -16,6 +17,7 @@ export interface Aircraft {
   id: string; ownerId: string; team: Team; squadronId: string; modelId: string; role: AircraftRole;
   phase: FlightPhase; position: Vec3; previousPosition: Vec3; velocity: Vec3;
   heading: number; pitch: number; bank: number; hp: number; ammo: number; payload: boolean;
+  wingFold: number; // 0 flight-ready, 1 fully stowed; fixed wings always 0.
   deckPosition?: Vec3; timer: number; flightTime: number; cooldown: number; targetId?: string; kills: number;
   controls: FlightControls; previousControls?: FlightControls; previousAttitude?: FlightAttitude; pilot: AirPilot;
   deckSlot?: number; flightId?: string; recoveryRequestedAt?: number; lossReason?: string;
@@ -25,6 +27,8 @@ export interface Aircraft {
 }
 export interface AirWingState { planes: Aircraft[]; launchCooldown: number; flights: AirFlight[]; flightSequence: number; transferCooldown: number; }
 export interface AirRelease { id: number; ownerId: string; position: Vec3; velocity: Vec3; }
+export const hasFoldingWings = (modelId: string) => ['f4f-4-wildcat', 'tbd-1-devastator'].includes(modelId);
+const WING_FOLD_SECONDS = 4; // Gameplay timing; manual crew/hydraulic operation is abstracted.
 export const MAX_AIRBORNE = 144;
 export const deckClearance = (p: Aircraft) => p.role === 'fighter' ? 1.755 : p.role === 'dive-bomber' ? 1.941 : 2.24445;
 export const flightSize = (actor: FleetActor) => actor.definition.airWing?.flightSize ?? 3;
@@ -64,7 +68,7 @@ export function createAirWing(def: ShipDefinition, ownerId: string, team: Team):
   if (!def.airWing) return;
   const state: AirWingState = { launchCooldown: 0, flights: [], flightSequence: 0, transferCooldown: 0, planes: def.airWing.squadrons.flatMap(s => Array.from({ length: s.count }, (_, i) => ({
     id: `${ownerId}/${s.id}/${i + 1}`, ownerId, team, squadronId: s.id, modelId: s.modelId, role: s.role,
-    phase: 'ready' as const, position: [0, 0, 0] as Vec3, previousPosition: [0, 0, 0] as Vec3, velocity: [0, 0, 0] as Vec3,
+    phase: 'ready' as const, wingFold: hasFoldingWings(s.modelId) ? 1 : 0, position: [0, 0, 0] as Vec3, previousPosition: [0, 0, 0] as Vec3, velocity: [0, 0, 0] as Vec3,
     heading: 0, pitch: 0, bank: 0, hp: 100, ammo: s.role === 'fighter' ? 16 : 0, payload: s.role !== 'fighter', timer: 0, flightTime: 0, cooldown: 0, kills: 0,
     controls: initialFlightControls(), pilot: initialAirPilot(),
   }))) };
@@ -221,7 +225,7 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
     // never put the entire inventory on the deck or consume additional aircraft.
     const waiting = state.planes.find(p => p.phase === 'queued' && p.deckSlot === undefined);
     if (waiting && !approachingDeck && state.transferCooldown <= 0 && airServiceAvailable(actor) && spotAircraft(actor, waiting)) state.transferCooldown = 4;
-    if (actor.controller === 'bot' && time >= 5) {
+    if (actor.controller === 'bot' && !isPassiveAi(actor.bot?.aiLevel) && time >= 5 * crewSkill(actor.bot?.aiLevel ?? DEFAULT_AI_LEVEL).reactionScale) {
       const validTarget = (a: FleetActor) => a.team !== actor.team && !a.damage.sunk && !a.damage.stability.combatLost && a.motion.y > -8;
       const target = ctx.actors.find(a => a.motion.id === actor.targetId && validTarget(a)) ?? ctx.actors.find(validTarget);
       for (const squadron of wing.squadrons) if (!state.planes.some(p => p.squadronId === squadron.id && !['ready', 'rearming', 'lost'].includes(p.phase))) launchSquadron(actor, squadron.id, target);
@@ -229,6 +233,8 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
     for (const [i, p] of state.planes.entries()) {
       p.cooldown = Math.max(0, p.cooldown - dt);
       if (p.phase === 'lost') continue;
+      const foldTarget = hasFoldingWings(p.modelId) && ['ready', 'queued', 'parking', 'rearming'].includes(p.phase) ? 1 : 0;
+      p.wingFold += Math.sign(foldTarget - p.wingFold) * Math.min(Math.abs(foldTarget - p.wingFold), dt / WING_FOLD_SECONDS);
       if (actor.damage.sunk && (onFlightDeck(p) || !airborne(p))) { p.hp = 0; p.phase = 'lost'; p.deckSlot = undefined; p.lossReason = 'Carrier lost'; continue; }
       if (p.phase === 'ready' || p.phase === 'queued' || p.phase === 'rearming') {
         if (p.deckSlot !== undefined) deckPose(p, actor, aircraftDeckSpot(actor, p));
@@ -242,6 +248,10 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
         } else continue;
       }
       if (p.phase === 'taxi' || p.phase === 'parking' || p.phase === 'rollout') {
+        if ((p.phase === 'taxi' && p.wingFold > 0) || (p.phase === 'parking' && hasFoldingWings(p.modelId) && p.wingFold < 1)) {
+          deckPose(p, actor, p.deckPosition!);
+          continue;
+        }
         if (p.phase === 'rollout') {
           p.timer += dt;
           const local = p.deckPosition!;
@@ -264,12 +274,12 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
         continue;
       }
       p.flightTime += dt; p.timer += dt;
-      if (p.flightTime > 650) { lose(p, ctx, 'Endurance exhausted'); continue; }
+      if (p.flightTime > 1050) { lose(p, ctx, 'Endurance exhausted'); continue; }
       if ((p.flightTime > 470 || p.hp < 25) && p.phase !== 'landing') p.phase = 'returning';
       const carrier = localToWorld(add(wing.recoveryPosition, [0, deckClearance(p), 0]), actor.motion);
       // Approximate AA envelope from surviving, supplied light gun mounts. No render/GPU input.
       for (const enemy of ctx.actors) {
-        if (enemy.team === p.team || enemy.damage.sunk || enemy.damage.stability.combatLost || enemy.motion.y < -1) continue;
+        if (enemy.team === p.team || enemy.damage.sunk || enemy.damage.stability.combatLost || enemy.motion.y < -1 || isPassiveAi(enemy.bot?.aiLevel)) continue;
         const distance = length(sub(p.position, [enemy.motion.x, enemy.motion.y, enemy.motion.z]));
         if (distance > 1100) continue;
         const guns = enemy.definition.mounts.filter((m, index) => m.weapon.caliberM <= .04 && enemy.mounts[index].hp > 0 && enemy.mounts[index].ammo > 0 && (!m.magazineId || equipmentCondition(enemy, enemy.definition, enemy.definition.modules.find(v => v.id === m.magazineId)!).availability > 0)).length;

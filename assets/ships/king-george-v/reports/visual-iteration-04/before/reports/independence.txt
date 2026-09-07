@@ -1,0 +1,2 @@
+$ bun scripts/reference/pipeline.ts independence king-george-v
+independence-build passed

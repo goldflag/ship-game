@@ -62,6 +62,13 @@ src/simulation/                    Renderer-free weapons, movement and damage
 
 Our generated/source and runtime files are deliberately retained with their recipes. `.build/`, Blender backups and caches are ignored. The Bismarck baseline is preserved in this repository, so the build no longer relies on `/Users/bill/models`. Large future fleets may need a separate versioned binary store; the high-resolution reference packs are larger than runtime models and include standalone review copies.
 
+Review ZIP downloads are local, ignored build outputs: they duplicate the retained
+comparison files and authoring inputs. Run `bun run ship:compare <ship-id>` to
+generate the download before using a review page's ZIP link or publishing that
+page with its download. Clean checkouts retain the review pages and evidence but
+omit ZIPs. `ship:check` permits absent ZIPs and verifies the recorded hash of every
+ZIP that is present; all other comparison artifacts remain required.
+
 ## Author a ship with an assistant and Blender MCP
 
 1. Read `AGENTS.md`, this document, the component library, and the ship's source register. Inspect existing work before changing it. State the chosen configuration and which measurements are known, interpreted, or unknown.
@@ -82,6 +89,8 @@ Prefer dated plans and documented dimensions for historical features. Record ref
 For GameModels3D browser access, retain permitted comparison views and camera/configuration notes. For reference files available for this use, inspect them in a separate reference scene with documented scale and alignment. Do not trace their topology, retopologize/shrinkwrap from them, bake their textures, or include their meshes in our runtime assets. Reference art remains credited reference material. Resolve discrepancies against the source register; two matching game models are not automatically independent confirmation.
 
 Bismarck now uses WoWS Bismarck ’41 `pgsb708`, with source/version recorded in `references/gamemodels3d/manifest.json`. `ship:reference` is the only stage that reads the raw game geometry under ignored `.build/reference-cache/`. It creates a disposable Blender scene, neutral captures, a contact sheet and a browsable index. Its single global registration preserves game-model proportions and leaves its load datum unverified. No game vertices, UVs, textures, offsets or attachment transforms enter the production recipe.
+
+King George V uses the same workflow with `pbsb107` and 30 vessel-specific views. Its capture plan explicitly selects `A_Hull` and compatible artillery/AA/director components so later hull variants cannot replace an already assembled reference. The production model remains an independent early-1941 interpretation of the retained Vickers drawings.
 
 For ships with `modeling-spec.json`, `ship:build` also runs `ship:compare`: independently measure the actual exported GLB, render it through the same camera plan, register preserved historical rasters with one uniform scale, and generate sheets, overlays, sections, JSON measurements, a local HTML page and ZIP. The page is served at `/ship-reference/<ship-id>/index.html` (the explicit filename avoids Vite's SPA fallback) and works directly from an extracted review ZIP. The ZIP includes an authoring snapshot; rebuilding still uses this repository's shared pipeline. `ship:check` hashes the model, definition, source, specification, reference images and review recipes, then checks every retained and published output. This makes stale comparisons a build failure.
 
@@ -162,6 +171,8 @@ Surface-hit events additionally retain shell type (AP by default), caliber, outc
 Diagnostics also identify the loaded ship/hash, renderer backend and camera matrices for reproducible browser review. In the development port, `window.shipTrialArticulation({trainFraction: 1, elevationFraction: 1, recoilFraction: 1})` previews the catalog limits on the actual loaded model. Train spans -1 to 1; elevation and recoil span 0 to 1. Passing `null` restores the original mount state. Launching restores it automatically. This review hook is unavailable in production and cannot change joints during combat.
 
 An optional blueprint `viewpoints.bridge` places a ship's bridge camera in runtime coordinates. Its position follows the authoritative ship pose. Use it for offset islands and bridges instead of adding ship-name conditions to the camera or simulation.
+
+`ShipFunnelSmoke` derives visual exhaust outlets from existing authored `structures` with IDs `funnel`, `funnel-jacket`, or `<assembly>-funnel`. Bases, casings and caps do not add emitters. Open surface boundaries locate raked rims; closed jackets use their upper facing lid, and simple extrusions use the top footprint. Positions use the same runtime coordinate frame and displayed CPU hull pose. New player-built ships can use this convention without preset-name conditions. Particle size, density, aggregate propulsion response and wind drift are illustrative; individual boiler-to-uptake routing and thermal exhaust are not simulated. No model geometry or compiled blueprint is modified by the effect.
 
 Port inspection uses the same renderer through `ShipInspection` and the same data through `inspectionEntries`. Armor includes hull protection and moving gunhouses; Internals includes machinery, magazines, steering and compartments. The UI reads thickness, health and capacity from the compiled definition, with stable prefixed IDs for selection. Add new inspection properties to this shared adapter rather than maintaining a second port-only layout. Verify each new preset in both port views, isolate a volume, return to Statistics, launch and return to port. The Statistics sheet reads `shipStatistics` and `shipScores` from `src/ships/statistics.ts`; add new figures there so the sheet and its tests share one source. Combat stays frozen in port; entering port resets every fleet actor, ammunition, shells and flooding while preserving renderer bindings. Fleet launches load each distinct preset once and clone independent views for all actors; every hull uses its own definition, armor, modules, mounts and joints. Without a fleet, the simulation constructor retains an idle two-actor fixture for port inspection and isolated asset/combat regression tests; the playable launch always supplies a custom fleet.
 

@@ -1,7 +1,7 @@
 import { availableParallelism } from 'node:os';
 import { resolve } from 'node:path';
 
-const roots = ['src/simulation', 'src/ships', 'src/game', 'src/schematic', 'scripts/aircraft'];
+const roots = ['src/simulation', 'src/ships', 'src/game', 'src/schematic', 'scripts/aircraft', 'scripts/git'];
 const cwd = resolve(import.meta.dir, '../..');
 
 /** Isolate files while limiting simultaneous CPU and model-loading work. */

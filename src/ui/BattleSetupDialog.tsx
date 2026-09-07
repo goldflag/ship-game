@@ -2,7 +2,8 @@ import { OCEAN_MAPS, oceanMap, DEFAULT_MAP } from '../maps/catalog';
 import { TIME_OF_DAY_PRESETS, WEATHER_PRESETS } from '../maps/conditions';
 import { useEffect, useRef, useState } from 'react';
 import { shipPresets } from '../ships/presets';
-import { MIN_BATTLE_SPAWN_DISTANCE, MAX_BATTLE_SPAWN_DISTANCE, MAX_TEAM_SHIPS, type BattleSetup } from '../simulation/battle';
+import { botSelection, MIN_BATTLE_SPAWN_DISTANCE, MAX_BATTLE_SPAWN_DISTANCE, MAX_TEAM_SHIPS, type BattleSetup } from '../simulation/battle';
+import { SHIP_AI_LEVELS, type ShipAiLevel } from '../simulation/aiLevels';
 import { Icon } from './Icons';
 import { backdropUrl } from './BattleLoadingScreen';
 import './BattleSetupDialog.css';
@@ -31,11 +32,25 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, error }:
   useEffect(() => { new Image().src = backdropUrl(map.id); }, [map.id]);
   const friendlyFull = setup.friendlyBots.length >= MAX_TEAM_SHIPS - 1;
   const enemyFull = setup.enemies.length >= MAX_TEAM_SHIPS;
-  const bots = (team: 'friendlyBots' | 'enemies') => setup[team].map((id, index) => <li key={`${team}-${index}`}>
+  const bots = (team: 'friendlyBots' | 'enemies') => setup[team].map((entry, index) => {
+    const { shipId: id, aiLevel } = botSelection(entry);
+    const controlId = `battle-ai-${team}-${index}`;
+    const description = SHIP_AI_LEVELS.find(level => level.id === aiLevel)!.description;
+    return <li key={`${team}-${index}`}>
     <img src={`/models/${id}-thumbnail.png`} width="120" height="36" alt=""/>
     <span className="battle-roster-name"><span>{shipName(id)}</span><small>{team === 'enemies' ? 'Enemy' : 'Friendly'} bot {index + 1}</small></span>
     <button className="icon-button" aria-label={`Remove ${shipName(id)}, ${team === 'enemies' ? 'enemy' : 'friendly'} bot ${index + 1}`} onClick={() => onChange({ ...setup, [team]: setup[team].filter((_, i) => i !== index) })}><Icon name="close" size={16}/></button>
-  </li>);
+    <div className="battle-roster-ai">
+      <label htmlFor={controlId}>AI level<span className="battle-sr-only"> for {shipName(id)}, {team === 'enemies' ? 'enemy' : 'friendly'} bot {index + 1}</span></label>
+      <select id={controlId} value={aiLevel} aria-describedby={`${controlId}-description`} onChange={event => onChange({ ...setup,
+        [team]: setup[team].map((selection, i) => i === index ? { shipId: id, aiLevel: event.target.value as ShipAiLevel } : selection),
+      })}>
+        {SHIP_AI_LEVELS.map(level => <option key={level.id} value={level.id}>{level.name}</option>)}
+      </select>
+      <p id={`${controlId}-description`}>{description}</p>
+    </div>
+  </li>;
+  });
   return <dialog ref={dialog} className="battle-setup" aria-labelledby="battle-setup-title" aria-describedby="battle-setup-description" onCancel={event => { event.preventDefault(); onClose(); }}>
     <div className="battle-setup-heading"><h2 id="battle-setup-title">Custom battle</h2><button className="icon-button" aria-label="Close battle setup" onClick={onClose}><Icon name="close"/></button></div>
     <p id="battle-setup-description">Pick ships from the catalog to build both fleets. You command one ship; bots command the rest.</p>

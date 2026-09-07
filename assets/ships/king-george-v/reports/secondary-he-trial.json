@@ -1,0 +1,17 @@
+{
+  "battery": "secondary",
+  "ammunition": "he",
+  "shots": 8,
+  "ammunitionSpent": 8,
+  "maxMuzzleErrorM": 0.0017396475289548662,
+  "impactCount": 22,
+  "impactOutcomes": [
+    "contact",
+    "burst"
+  ],
+  "targetIntegrity": 1380,
+  "targetMaximumIntegrity": 1380,
+  "targetMarks": 4,
+  "targetWaterM3": 0,
+  "muzzleErrorsAfterFlight": 0.0017396475289548662
+}
