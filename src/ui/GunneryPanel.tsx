@@ -101,8 +101,8 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
             {impact.thicknessMm !== undefined && <span>{impact.thicknessMm.toFixed(1)} mm {impact.material}{impact.obliquityDeg !== undefined ? ` · ${impact.obliquityDeg.toFixed(1)}° from normal` : ''}</span>}
             {impact.fragmentBudgetMm !== undefined && <span>{impact.fragmentBudgetMm.toFixed(1)} mm fragment budget</span>}
             <span>{impact.resistanceMm !== undefined ? `${impact.resistanceMm.toFixed(1)} mm resistance · ` : ''}{impact.penetrationAfterMm.toFixed(1)} mm remaining</span>
-            {!!impact.hullDamage && <span>{impact.hullDamage.toFixed(1)} hull damage</span>}
-            {!!impact.damage && <span>{impact.damage.toFixed(1)} equipment damage</span>}
+            {!!impact.hullDamage && <span>{Math.round(impact.hullDamage).toLocaleString()} hull damage</span>}
+            {!!impact.damage && <span>{Math.round(impact.damage).toLocaleString()} equipment damage</span>}
             {impact.localDamage && <span>{impact.localDamage.regionName} · {structureLabel(impact.localDamage.condition)}</span>}
             {impact.throughWreckage && !!impact.damage && <span>Reached equipment through wreckage</span>}
             {impact.breachAssignments ? impact.breachAssignments.filter(b => b.areaM2 > 0).map((b, index) => <span key={index}>{b.areaM2.toFixed(3)} m² opening · {b.compartmentId}</span>) : !!impact.breachAreaM2 && <span>{impact.breachAreaM2.toFixed(3)} m² opening · {impact.compartmentId ?? 'watertight boundary'}</span>}

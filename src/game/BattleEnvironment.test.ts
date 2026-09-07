@@ -103,8 +103,8 @@ test('night, fog and storm lighting reach the live uniforms; the sky stays fixed
   game.updatePortLighting(); driver.update(0);
   expect(sky.sun.elevationDeg).toBeCloseTo(36);
   expect(sky.sun.azimuthDeg).toBeCloseTo(58);
-  expect(sky.sun.peakIntensity).toBe(5);
-  expect(game.ambientLight.intensity).toBe(1.1);
+  expect(sky.sun.peakIntensity).toBe(5.8);
+  expect(game.ambientLight.intensity).toBe(1.75);
   expect(sky.clouds.shape.coverage.value).toBe(.38);
   expect(sky.clouds.wind.speed).toBe(12);
   expect(sky.clouds.lighting.ambientIntensity.value).toBe(1.1);

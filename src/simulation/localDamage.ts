@@ -1,5 +1,6 @@
 import type { DamageRegion, ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { Combatant } from './damage';
+import { HULL_HP_SCALE } from './durability';
 import { contains } from './geometry';
 
 export interface RegionState { id: string; hp: number; maximum: number; }
@@ -42,6 +43,6 @@ export function consumeStructure(actor: Combatant, amount: number, regionId?: st
   const full = Math.min(amount, Math.max(0, before - half));
   region.hp -= full;
   region.hp *= Math.exp(-(amount - full) / half);
-  if (region.hp < .001) region.hp = 0;
+  if (region.hp < .001 * HULL_HP_SCALE) region.hp = 0;
   return before - region.hp;
 }

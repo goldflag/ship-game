@@ -1,0 +1,1002 @@
+[
+  {
+    "ms": 15717,
+    "stages": [
+      {
+        "label": "Loading game files…",
+        "ms": 48
+      },
+      {
+        "label": "Preparing the harbor…",
+        "ms": 408
+      },
+      {
+        "label": "Starting graphics…",
+        "ms": 493
+      },
+      {
+        "label": "Loading Bismarck…",
+        "ms": 498
+      },
+      {
+        "label": "Building the Atlantic…",
+        "ms": 2387
+      },
+      {
+        "label": "Lighting the sky…",
+        "ms": 3008
+      },
+      {
+        "label": "Building the naval anchorage…",
+        "ms": 3571
+      },
+      {
+        "label": "Preparing ocean effects and lighting…",
+        "ms": 12107
+      },
+      {
+        "label": "Harbor ready",
+        "ms": 15209
+      }
+    ],
+    "resources": [
+      {
+        "name": "react-BYzzQ_KH.js",
+        "kb": 59,
+        "start": 46,
+        "end": 125
+      },
+      {
+        "name": "main-DONci6uY.css",
+        "kb": 20,
+        "start": 46,
+        "end": 106
+      },
+      {
+        "name": "GLTFLoader-Cjtq7LsY.js",
+        "kb": 98,
+        "start": 46,
+        "end": 143
+      },
+      {
+        "name": "main-DbEeE5e1.js",
+        "kb": 47,
+        "start": 46,
+        "end": 161
+      },
+      {
+        "name": "three-engine-7_lVewqs.js",
+        "kb": 258,
+        "start": 46,
+        "end": 208
+      },
+      {
+        "name": "preload-helper-C5USSe9Y.js",
+        "kb": 1142,
+        "start": 46,
+        "end": 367
+      },
+      {
+        "name": "barlow-latin-500-normal-BPAOfeC8.woff2",
+        "kb": 22,
+        "start": 107,
+        "end": 166
+      },
+      {
+        "name": "barlow-latin-400-normal-qiz4-Cze.woff2",
+        "kb": 22,
+        "start": 107,
+        "end": 176
+      },
+      {
+        "name": "bismarck.glb.gz",
+        "kb": 4380,
+        "start": 496,
+        "end": 1260
+      },
+      {
+        "name": "ocean-texture-CyaGqCrv.jpg",
+        "kb": 426,
+        "start": 2381,
+        "end": 2729
+      },
+      {
+        "name": "ocean-texture-CM4n0Z7n.jpg",
+        "kb": 475,
+        "start": 2385,
+        "end": 2746
+      },
+      {
+        "name": "ocean-texture-ChJ1a3sd.jpg",
+        "kb": 84,
+        "start": 2385,
+        "end": 2508
+      },
+      {
+        "name": "ocean-texture-Bx-DMuZi.jpg",
+        "kb": 94,
+        "start": 2385,
+        "end": 2517
+      },
+      {
+        "name": "ocean-texture-R3DfSYQU.jpg",
+        "kb": 255,
+        "start": 2385,
+        "end": 2640
+      },
+      {
+        "name": "ocean-texture-DBEZ7YGj.jpg",
+        "kb": 143,
+        "start": 2385,
+        "end": 2661
+      },
+      {
+        "name": "ocean-texture-BlzvPLuU.jpg",
+        "kb": 734,
+        "start": 2385,
+        "end": 2788
+      },
+      {
+        "name": "ocean-texture-NxgIw4e7.png",
+        "kb": 147,
+        "start": 2789,
+        "end": 2858
+      },
+      {
+        "name": "ocean-texture-CNRHWlg9.jpg",
+        "kb": 87,
+        "start": 3006,
+        "end": 3113
+      },
+      {
+        "name": "ocean-texture-Bi1OB7HD.jpg",
+        "kb": 48,
+        "start": 3006,
+        "end": 3097
+      },
+      {
+        "name": "ocean-texture-DE5OZyma.jpg",
+        "kb": 62,
+        "start": 3006,
+        "end": 3108
+      },
+      {
+        "name": "ocean-texture-C5qEe6_j.jpg",
+        "kb": 59,
+        "start": 3006,
+        "end": 3106
+      },
+      {
+        "name": "ocean-texture-DcV2zmza.jpg",
+        "kb": 68,
+        "start": 3006,
+        "end": 3110
+      },
+      {
+        "name": "ocean-texture-CMY05lBJ.jpg",
+        "kb": 52,
+        "start": 3006,
+        "end": 3101
+      },
+      {
+        "name": "ocean-texture-GbBrxIhW.jpg",
+        "kb": 45,
+        "start": 3006,
+        "end": 3172
+      },
+      {
+        "name": "ocean-texture-BVvnJ19B.jpg",
+        "kb": 76,
+        "start": 3006,
+        "end": 3200
+      },
+      {
+        "name": "ocean-texture-B6vBNkcW.jpg",
+        "kb": 574,
+        "start": 3006,
+        "end": 3348
+      },
+      {
+        "name": "ocean-texture-XPoWFsfC.jpg",
+        "kb": 448,
+        "start": 3006,
+        "end": 3328
+      },
+      {
+        "name": "baseShape32.bin",
+        "kb": 111,
+        "start": 3007,
+        "end": 3211
+      },
+      {
+        "name": "ground-color.jpg",
+        "kb": 651,
+        "start": 3569,
+        "end": 4236
+      },
+      {
+        "name": "ground-roughness.jpg",
+        "kb": 354,
+        "start": 3569,
+        "end": 3960
+      },
+      {
+        "name": "meadow-roughness.jpg",
+        "kb": 500,
+        "start": 3569,
+        "end": 4097
+      },
+      {
+        "name": "ground-normal.jpg",
+        "kb": 884,
+        "start": 3569,
+        "end": 4457
+      },
+      {
+        "name": "rock-roughness.jpg",
+        "kb": 373,
+        "start": 3569,
+        "end": 4636
+      },
+      {
+        "name": "meadow-color.jpg",
+        "kb": 1168,
+        "start": 3569,
+        "end": 4720
+      },
+      {
+        "name": "rock-color.jpg",
+        "kb": 768,
+        "start": 3569,
+        "end": 4723
+      },
+      {
+        "name": "meadow-normal.jpg",
+        "kb": 1432,
+        "start": 3569,
+        "end": 4960
+      },
+      {
+        "name": "rock-normal.jpg",
+        "kb": 1151,
+        "start": 3569,
+        "end": 5213
+      },
+      {
+        "name": "concrete-normal.jpg",
+        "kb": 189,
+        "start": 3569,
+        "end": 5186
+      },
+      {
+        "name": "brick-color.jpg",
+        "kb": 995,
+        "start": 3569,
+        "end": 5422
+      },
+      {
+        "name": "concrete-color.jpg",
+        "kb": 758,
+        "start": 3569,
+        "end": 5476
+      },
+      {
+        "name": "concrete-roughness.jpg",
+        "kb": 311,
+        "start": 3569,
+        "end": 5512
+      },
+      {
+        "name": "brick-roughness.jpg",
+        "kb": 921,
+        "start": 3569,
+        "end": 5616
+      },
+      {
+        "name": "brick-normal.jpg",
+        "kb": 1033,
+        "start": 3569,
+        "end": 5621
+      },
+      {
+        "name": "slate-color.jpg",
+        "kb": 504,
+        "start": 3569,
+        "end": 5695
+      },
+      {
+        "name": "apron-color.jpg",
+        "kb": 116,
+        "start": 3569,
+        "end": 5651
+      },
+      {
+        "name": "apron-normal.jpg",
+        "kb": 109,
+        "start": 3569,
+        "end": 5747
+      },
+      {
+        "name": "slate-roughness.jpg",
+        "kb": 300,
+        "start": 3569,
+        "end": 5763
+      },
+      {
+        "name": "slate-normal.jpg",
+        "kb": 746,
+        "start": 3569,
+        "end": 6116
+      },
+      {
+        "name": "apron-roughness.jpg",
+        "kb": 178,
+        "start": 3569,
+        "end": 5805
+      },
+      {
+        "name": "cobbles-roughness.jpg",
+        "kb": 407,
+        "start": 3569,
+        "end": 6168
+      },
+      {
+        "name": "cobbles-color.jpg",
+        "kb": 562,
+        "start": 3569,
+        "end": 6197
+      },
+      {
+        "name": "cobbles-normal.jpg",
+        "kb": 764,
+        "start": 3569,
+        "end": 6363
+      },
+      {
+        "name": "asphalt-color.jpg",
+        "kb": 715,
+        "start": 3569,
+        "end": 6383
+      },
+      {
+        "name": "asphalt-roughness.jpg",
+        "kb": 532,
+        "start": 3569,
+        "end": 6446
+      },
+      {
+        "name": "asphalt-normal.jpg",
+        "kb": 1211,
+        "start": 3569,
+        "end": 6504
+      },
+      {
+        "name": "period-facades.jpg",
+        "kb": 752,
+        "start": 6505,
+        "end": 6673
+      },
+      {
+        "name": "barlow-condensed-latin-600-normal-DepVgxBB.woff2",
+        "kb": 22,
+        "start": 7011,
+        "end": 7578
+      },
+      {
+        "name": "cargo-barrel.glb",
+        "kb": 545,
+        "start": 7521,
+        "end": 7749
+      },
+      {
+        "name": "cargo-crate.glb",
+        "kb": 2346,
+        "start": 7521,
+        "end": 8044
+      },
+      {
+        "name": "broadleaf.glb",
+        "kb": 10143,
+        "start": 8110,
+        "end": 11570
+      },
+      {
+        "name": "coastal-rock.glb",
+        "kb": 1684,
+        "start": 8110,
+        "end": 9164
+      },
+      {
+        "name": "fir.glb",
+        "kb": 7907,
+        "start": 8110,
+        "end": 11204
+      },
+      {
+        "name": "fir-impostor.png",
+        "kb": 525,
+        "start": 8110,
+        "end": 8575
+      },
+      {
+        "name": "broadleaf-impostor.png",
+        "kb": 583,
+        "start": 8110,
+        "end": 8654
+      },
+      {
+        "name": "baltimore-thumbnail.png",
+        "kb": 97,
+        "start": 15209,
+        "end": 15348
+      },
+      {
+        "name": "bismarck-thumbnail.png",
+        "kb": 102,
+        "start": 15209,
+        "end": 15350
+      },
+      {
+        "name": "yamato-thumbnail.png",
+        "kb": 102,
+        "start": 15209,
+        "end": 15350
+      },
+      {
+        "name": "king-george-v-thumbnail.png",
+        "kb": 103,
+        "start": 15209,
+        "end": 15350
+      },
+      {
+        "name": "type-viic-thumbnail.png",
+        "kb": 85,
+        "start": 15210,
+        "end": 15337
+      },
+      {
+        "name": "enterprise-cv6-thumbnail.png",
+        "kb": 98,
+        "start": 15210,
+        "end": 15349
+      },
+      {
+        "name": "liberty-collier-thumbnail.png",
+        "kb": 97,
+        "start": 15210,
+        "end": 15467
+      },
+      {
+        "name": "victory-cargo-thumbnail.png",
+        "kb": 111,
+        "start": 15210,
+        "end": 15475
+      },
+      {
+        "name": "liberty-cargo-thumbnail.png",
+        "kb": 109,
+        "start": 15210,
+        "end": 15472
+      },
+      {
+        "name": "flower-corvette-thumbnail.png",
+        "kb": 99,
+        "start": 15210,
+        "end": 15471
+      },
+      {
+        "name": "fletcher-thumbnail.png",
+        "kb": 108,
+        "start": 15210,
+        "end": 15475
+      },
+      {
+        "name": "barlow-condensed-latin-500-normal-BgYH2mbd.woff2",
+        "kb": 21,
+        "start": 15226,
+        "end": 15385
+      }
+    ],
+    "errors": []
+  },
+  {
+    "ms": 15214,
+    "stages": [
+      {
+        "label": "Loading game files…",
+        "ms": 46
+      },
+      {
+        "label": "Preparing the harbor…",
+        "ms": 402
+      },
+      {
+        "label": "Starting graphics…",
+        "ms": 488
+      },
+      {
+        "label": "Loading Bismarck…",
+        "ms": 490
+      },
+      {
+        "label": "Building the Atlantic…",
+        "ms": 2308
+      },
+      {
+        "label": "Lighting the sky…",
+        "ms": 2900
+      },
+      {
+        "label": "Building the naval anchorage…",
+        "ms": 3415
+      },
+      {
+        "label": "Preparing ocean effects and lighting…",
+        "ms": 11912
+      },
+      {
+        "label": "Harbor ready",
+        "ms": 14703
+      }
+    ],
+    "resources": [
+      {
+        "name": "main-DONci6uY.css",
+        "kb": 20,
+        "start": 45,
+        "end": 102
+      },
+      {
+        "name": "react-BYzzQ_KH.js",
+        "kb": 59,
+        "start": 45,
+        "end": 121
+      },
+      {
+        "name": "GLTFLoader-Cjtq7LsY.js",
+        "kb": 98,
+        "start": 45,
+        "end": 140
+      },
+      {
+        "name": "main-DbEeE5e1.js",
+        "kb": 47,
+        "start": 45,
+        "end": 158
+      },
+      {
+        "name": "three-engine-7_lVewqs.js",
+        "kb": 258,
+        "start": 45,
+        "end": 205
+      },
+      {
+        "name": "preload-helper-C5USSe9Y.js",
+        "kb": 1142,
+        "start": 45,
+        "end": 363
+      },
+      {
+        "name": "barlow-latin-500-normal-BPAOfeC8.woff2",
+        "kb": 22,
+        "start": 104,
+        "end": 162
+      },
+      {
+        "name": "barlow-latin-400-normal-qiz4-Cze.woff2",
+        "kb": 22,
+        "start": 104,
+        "end": 173
+      },
+      {
+        "name": "bismarck.glb.gz",
+        "kb": 4380,
+        "start": 490,
+        "end": 1255
+      },
+      {
+        "name": "ocean-texture-CyaGqCrv.jpg",
+        "kb": 426,
+        "start": 2303,
+        "end": 2647
+      },
+      {
+        "name": "ocean-texture-ChJ1a3sd.jpg",
+        "kb": 84,
+        "start": 2307,
+        "end": 2430
+      },
+      {
+        "name": "ocean-texture-Bx-DMuZi.jpg",
+        "kb": 94,
+        "start": 2307,
+        "end": 2439
+      },
+      {
+        "name": "ocean-texture-R3DfSYQU.jpg",
+        "kb": 255,
+        "start": 2307,
+        "end": 2562
+      },
+      {
+        "name": "ocean-texture-DBEZ7YGj.jpg",
+        "kb": 143,
+        "start": 2307,
+        "end": 2583
+      },
+      {
+        "name": "ocean-texture-CM4n0Z7n.jpg",
+        "kb": 475,
+        "start": 2307,
+        "end": 2666
+      },
+      {
+        "name": "ocean-texture-BlzvPLuU.jpg",
+        "kb": 734,
+        "start": 2307,
+        "end": 2709
+      },
+      {
+        "name": "ocean-texture-NxgIw4e7.png",
+        "kb": 147,
+        "start": 2710,
+        "end": 2778
+      },
+      {
+        "name": "ocean-texture-CMY05lBJ.jpg",
+        "kb": 52,
+        "start": 2898,
+        "end": 2992
+      },
+      {
+        "name": "ocean-texture-CNRHWlg9.jpg",
+        "kb": 87,
+        "start": 2898,
+        "end": 3004
+      },
+      {
+        "name": "ocean-texture-Bi1OB7HD.jpg",
+        "kb": 48,
+        "start": 2898,
+        "end": 2988
+      },
+      {
+        "name": "ocean-texture-C5qEe6_j.jpg",
+        "kb": 59,
+        "start": 2898,
+        "end": 2997
+      },
+      {
+        "name": "ocean-texture-DcV2zmza.jpg",
+        "kb": 68,
+        "start": 2898,
+        "end": 3001
+      },
+      {
+        "name": "ocean-texture-DE5OZyma.jpg",
+        "kb": 62,
+        "start": 2898,
+        "end": 2998
+      },
+      {
+        "name": "ocean-texture-GbBrxIhW.jpg",
+        "kb": 45,
+        "start": 2898,
+        "end": 3062
+      },
+      {
+        "name": "ocean-texture-BVvnJ19B.jpg",
+        "kb": 76,
+        "start": 2898,
+        "end": 3091
+      },
+      {
+        "name": "ocean-texture-B6vBNkcW.jpg",
+        "kb": 574,
+        "start": 2898,
+        "end": 3239
+      },
+      {
+        "name": "ocean-texture-XPoWFsfC.jpg",
+        "kb": 448,
+        "start": 2899,
+        "end": 3219
+      },
+      {
+        "name": "baseShape32.bin",
+        "kb": 111,
+        "start": 2899,
+        "end": 3102
+      },
+      {
+        "name": "ground-color.jpg",
+        "kb": 651,
+        "start": 3413,
+        "end": 4081
+      },
+      {
+        "name": "ground-roughness.jpg",
+        "kb": 354,
+        "start": 3413,
+        "end": 3805
+      },
+      {
+        "name": "ground-normal.jpg",
+        "kb": 884,
+        "start": 3413,
+        "end": 4302
+      },
+      {
+        "name": "meadow-roughness.jpg",
+        "kb": 500,
+        "start": 3413,
+        "end": 3942
+      },
+      {
+        "name": "rock-roughness.jpg",
+        "kb": 373,
+        "start": 3413,
+        "end": 4480
+      },
+      {
+        "name": "meadow-color.jpg",
+        "kb": 1168,
+        "start": 3413,
+        "end": 4565
+      },
+      {
+        "name": "rock-color.jpg",
+        "kb": 768,
+        "start": 3413,
+        "end": 4569
+      },
+      {
+        "name": "meadow-normal.jpg",
+        "kb": 1432,
+        "start": 3413,
+        "end": 4805
+      },
+      {
+        "name": "rock-normal.jpg",
+        "kb": 1151,
+        "start": 3413,
+        "end": 5056
+      },
+      {
+        "name": "brick-color.jpg",
+        "kb": 995,
+        "start": 3413,
+        "end": 5266
+      },
+      {
+        "name": "concrete-normal.jpg",
+        "kb": 189,
+        "start": 3413,
+        "end": 5032
+      },
+      {
+        "name": "concrete-color.jpg",
+        "kb": 758,
+        "start": 3413,
+        "end": 5320
+      },
+      {
+        "name": "concrete-roughness.jpg",
+        "kb": 311,
+        "start": 3413,
+        "end": 5358
+      },
+      {
+        "name": "brick-roughness.jpg",
+        "kb": 921,
+        "start": 3413,
+        "end": 5461
+      },
+      {
+        "name": "brick-normal.jpg",
+        "kb": 1033,
+        "start": 3413,
+        "end": 5466
+      },
+      {
+        "name": "apron-color.jpg",
+        "kb": 116,
+        "start": 3413,
+        "end": 5497
+      },
+      {
+        "name": "slate-color.jpg",
+        "kb": 504,
+        "start": 3413,
+        "end": 5538
+      },
+      {
+        "name": "apron-normal.jpg",
+        "kb": 109,
+        "start": 3413,
+        "end": 5592
+      },
+      {
+        "name": "slate-roughness.jpg",
+        "kb": 300,
+        "start": 3413,
+        "end": 5608
+      },
+      {
+        "name": "apron-roughness.jpg",
+        "kb": 178,
+        "start": 3413,
+        "end": 5648
+      },
+      {
+        "name": "slate-normal.jpg",
+        "kb": 746,
+        "start": 3413,
+        "end": 5961
+      },
+      {
+        "name": "cobbles-color.jpg",
+        "kb": 562,
+        "start": 3413,
+        "end": 6042
+      },
+      {
+        "name": "cobbles-roughness.jpg",
+        "kb": 407,
+        "start": 3413,
+        "end": 6013
+      },
+      {
+        "name": "cobbles-normal.jpg",
+        "kb": 764,
+        "start": 3413,
+        "end": 6208
+      },
+      {
+        "name": "asphalt-color.jpg",
+        "kb": 715,
+        "start": 3413,
+        "end": 6228
+      },
+      {
+        "name": "asphalt-roughness.jpg",
+        "kb": 532,
+        "start": 3413,
+        "end": 6291
+      },
+      {
+        "name": "asphalt-normal.jpg",
+        "kb": 1211,
+        "start": 3413,
+        "end": 6349
+      },
+      {
+        "name": "period-facades.jpg",
+        "kb": 752,
+        "start": 6349,
+        "end": 6518
+      },
+      {
+        "name": "barlow-condensed-latin-600-normal-DepVgxBB.woff2",
+        "kb": 22,
+        "start": 6845,
+        "end": 7410
+      },
+      {
+        "name": "cargo-crate.glb",
+        "kb": 2346,
+        "start": 7353,
+        "end": 7877
+      },
+      {
+        "name": "cargo-barrel.glb",
+        "kb": 545,
+        "start": 7353,
+        "end": 7582
+      },
+      {
+        "name": "broadleaf.glb",
+        "kb": 10143,
+        "start": 7943,
+        "end": 11404
+      },
+      {
+        "name": "coastal-rock.glb",
+        "kb": 1684,
+        "start": 7943,
+        "end": 8998
+      },
+      {
+        "name": "fir.glb",
+        "kb": 7907,
+        "start": 7943,
+        "end": 11037
+      },
+      {
+        "name": "fir-impostor.png",
+        "kb": 525,
+        "start": 7943,
+        "end": 8409
+      },
+      {
+        "name": "broadleaf-impostor.png",
+        "kb": 583,
+        "start": 7943,
+        "end": 8488
+      },
+      {
+        "name": "type-viic-thumbnail.png",
+        "kb": 85,
+        "start": 14703,
+        "end": 14830
+      },
+      {
+        "name": "enterprise-cv6-thumbnail.png",
+        "kb": 98,
+        "start": 14703,
+        "end": 14842
+      },
+      {
+        "name": "yamato-thumbnail.png",
+        "kb": 102,
+        "start": 14703,
+        "end": 14843
+      },
+      {
+        "name": "baltimore-thumbnail.png",
+        "kb": 97,
+        "start": 14703,
+        "end": 14840
+      },
+      {
+        "name": "bismarck-thumbnail.png",
+        "kb": 102,
+        "start": 14703,
+        "end": 14843
+      },
+      {
+        "name": "king-george-v-thumbnail.png",
+        "kb": 103,
+        "start": 14703,
+        "end": 14844
+      },
+      {
+        "name": "liberty-collier-thumbnail.png",
+        "kb": 97,
+        "start": 14703,
+        "end": 14960
+      },
+      {
+        "name": "liberty-cargo-thumbnail.png",
+        "kb": 109,
+        "start": 14703,
+        "end": 14963
+      },
+      {
+        "name": "flower-corvette-thumbnail.png",
+        "kb": 99,
+        "start": 14703,
+        "end": 14964
+      },
+      {
+        "name": "fletcher-thumbnail.png",
+        "kb": 108,
+        "start": 14703,
+        "end": 14967
+      },
+      {
+        "name": "victory-cargo-thumbnail.png",
+        "kb": 111,
+        "start": 14703,
+        "end": 14967
+      },
+      {
+        "name": "barlow-condensed-latin-500-normal-BgYH2mbd.woff2",
+        "kb": 21,
+        "start": 14719,
+        "end": 14877
+      }
+    ],
+    "errors": []
+  }
+]

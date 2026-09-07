@@ -1,3 +1,4 @@
+import { HULL_HP_SCALE } from './durability';
 import { expect, test } from 'bun:test';
 import blueprint from '../../assets/ships/bismarck/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
@@ -23,8 +24,8 @@ test('repeated damage tapers locally, while opposite sides and lower spaces rema
   const first = localHit(f, point);
   for (let i = 0; i < 25; i++) localHit(f, point, i + 2);
   expect(localHit(f, point, 90)).toBeLessThan(first * .01);
-  expect(localHit(f, [17, 1, -21], 91)).toBeCloseTo(first, 6);
-  expect(localHit(f, [-17, -4, -21], 92)).toBeCloseTo(first, 6);
+  expect(Math.abs(localHit(f, [17, 1, -21], 91) - first)).toBeLessThanOrEqual(1);
+  expect(Math.abs(localHit(f, [-17, -4, -21], 92) - first)).toBeLessThanOrEqual(1);
   expect(f.actor.damage.integrity).toBeGreaterThan(f.actor.damage.maxIntegrity * .7);
 });
 
@@ -34,16 +35,16 @@ test('spreading the same number of hits removes more hull HP than shooting one a
     localHit(focused, [-17, 1, -21], i);
     localHit(spread, [i < 8 ? -17 : 17, 1, -110 + (i % 8) * 30], i);
   }
-  expect(focused.actor.damage.integrity - spread.actor.damage.integrity).toBeGreaterThan(400);
+  expect(focused.actor.damage.integrity - spread.actor.damage.integrity).toBeGreaterThan(400 * HULL_HP_SCALE);
 });
 
 test('one shell cannot multiply hull damage across layers, ticks or repeat contacts', () => {
   const f = fixture(), shell = projectile();
   let paid = 0;
   for (const point of [[-17, 1, -21], [-17, 1, -21], [17, 1, -21]] as Vec3[]) paid += damageShellHull(shell, f.actor, 45.5, localDamageEvidence(f.actor, f.def, point));
-  expect(paid).toBeCloseTo(45.5, 8);
+  expect(paid).toBe(Math.floor(45.5 * HULL_HP_SCALE));
   paid += damageShellHull(shell, f.actor, 59.5, localDamageEvidence(f.actor, f.def, [17, 1, -21]));
-  expect(paid).toBeCloseTo(59.5, 8);
+  expect(paid).toBe(Math.floor(59.5 * HULL_HP_SCALE));
 });
 
 test('a shell traverses wreckage and damages an intact module without spending its opportunity at entry', () => {
@@ -61,7 +62,7 @@ test('a shell traverses wreckage and damages an intact module without spending i
   expect(equipment.damage).toBeGreaterThan(0);
   expect(equipment.hullDamage).toBeGreaterThan(0);
   expect(equipment.throughWreckage).toBe(true);
-  expect(events.reduce((n, e) => n + (e.impact?.hullDamage ?? 0), 0)).toBeLessThanOrEqual(59.5);
+  expect(events.reduce((n, e) => n + (e.impact?.hullDamage ?? 0), 0)).toBeLessThanOrEqual(Math.ceil(59.5 * HULL_HP_SCALE));
 });
 
 test('finishing a one-HP module awards only the hull consequence of that fresh damage', () => {
@@ -71,14 +72,14 @@ test('finishing a one-HP module awards only the hull consequence of that fresh d
   f.actor.damage = createDamage(f.def); f.actor.damage.modules[0].hp = 1;
   const before = f.actor.damage.integrity;
   hitShip(projectile(), [0, 1, -21], [10, 1, -21], f.actor, f.def, () => {});
-  expect(before - f.actor.damage.integrity).toBeLessThan(2);
+  expect(before - f.actor.damage.integrity).toBeLessThan(2 * HULL_HP_SCALE);
   expect(f.actor.damage.modules[0].hp).toBe(0);
 });
 
 test('local structure is finite and independent of integration step and equipment repairs', () => {
   const a = fixture(), b = fixture(), id = damageRegion(a.def, [-17, 1, -21])!.id;
-  consumeStructure(a.actor, 180, id);
-  for (let i = 0; i < 600; i++) consumeStructure(b.actor, .3, id);
+  consumeStructure(a.actor, 180 * HULL_HP_SCALE, id);
+  for (let i = 0; i < 600; i++) consumeStructure(b.actor, .3 * HULL_HP_SCALE, id);
   expect(regionCondition(a.actor, id)).toBeCloseTo(regionCondition(b.actor, id), 10);
   const prior = a.actor.damage.regions.find(r => r.id === id)!.hp;
   a.actor.mounts[0].hp = 50;
@@ -158,7 +159,7 @@ test('global hull exhaustion still sinks and post-loss damage cannot consume mor
 
 test('underwater shock spans nearby regions and repeat blasts lose effectiveness', () => {
   const f = fixture(), first = damageBlastHull(f.actor, f.def, [-17, -2, 0], 320);
-  expect(first).toBeGreaterThan(250);
+  expect(first).toBeGreaterThan(250 * HULL_HP_SCALE);
   expect(f.actor.damage.regions.filter(r => r.hp < r.maximum).length).toBeGreaterThan(1);
   for (let i = 0; i < 12; i++) damageBlastHull(f.actor, f.def, [-17, -2, 0], 320);
   expect(damageBlastHull(f.actor, f.def, [-17, -2, 0], 320)).toBeLessThan(first * .1);
@@ -199,7 +200,7 @@ test('an armed burst beyond a fully depleted entry still damages intact internal
   const before = f.actor.damage.integrity;
   burstShell(shell, [f.actor], () => {});
   expect(before - f.actor.damage.integrity).toBeGreaterThan(0);
-  expect(before - f.actor.damage.integrity).toBeLessThanOrEqual(45.5);
+  expect(before - f.actor.damage.integrity).toBeLessThanOrEqual(Math.ceil(45.5 * HULL_HP_SCALE));
 });
 
 test('pressure-hull growth widens its own opening instead of migrating a distant shell hole', () => {
