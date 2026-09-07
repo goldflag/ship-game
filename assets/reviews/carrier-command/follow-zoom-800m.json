@@ -1,0 +1,11 @@
+{
+  "distance": 800,
+  "followed": "enemy-1/vf-6/1",
+  "rendered": {
+    "models": 9,
+    "instances": 6,
+    "batches": 27,
+    "contacts": 6,
+    "payloads": 0
+  }
+}

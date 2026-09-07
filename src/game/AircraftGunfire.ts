@@ -49,29 +49,32 @@ export class AircraftGunfire {
     for (const event of sim.events) {
       if (event.kind !== 'aircraft-fire' || !event.aircraft?.target) continue;
       const age = now - event.tick * FIXED_DT;
-      if (age < 0 || age > 1.3) continue;
+      if (age < 0 || age > 6) continue;
       const data = event.aircraft, attitude = data.attitude;
+      const aa = data.tracerSpeed !== undefined, speed = data.tracerSpeed ?? 720;
       this.pose.setFromEuler(new THREE.Euler(attitude?.pitch ?? 0, -(attitude?.heading ?? 0), attitude?.bank ?? 0, 'YXZ'));
       const range = this.direction.fromArray(data.target!).sub(new THREE.Vector3(...event.position)).length();
       this.direction.fromArray(data.direction ?? this.direction.normalize().toArray());
-      const life = Math.min(.95, (range + 100) / 720);
-      for (let round = 0; round < 3; round++) for (const side of [-1, 1]) {
-        const delay = round * .095 + (side > 0 ? .018 : 0), flight = age - delay;
+      const life = aa ? range / speed : Math.min(.95, (range + 100) / speed);
+      for (let round = 0; round < (aa ? 1 : 3); round++) for (const side of aa ? [0] : [-1, 1]) {
+        const delay = aa ? 0 : round * .095 + (side > 0 ? .018 : 0), flight = age - delay;
         if (flight < 0 || flight > life || count >= CAPACITY) continue;
-        this.origin.set(side * 2.4, -.25, -1.15).applyQuaternion(this.pose).add(new THREE.Vector3(...event.position));
+        this.origin.set(side * 2.4, aa ? 0 : -.25, aa ? 0 : -1.15).applyQuaternion(this.pose).add(new THREE.Vector3(...event.position));
         this.velocity.fromArray(data.velocity ?? [0, 0, 0]);
         this.origin.addScaledVector(this.velocity, delay);
-        this.velocity.addScaledVector(this.direction, 720);
+        this.velocity.addScaledVector(this.direction, speed);
         // Tiny fixed dispersion separates the streams without homing or random frame flicker.
-        this.velocity.x += Math.sin(event.sequence * 7 + round * 3 + side) * 1.4;
-        this.velocity.y += Math.cos(event.sequence * 3 + round + side) * 1.1;
+        if (!aa) {
+          this.velocity.x += Math.sin(event.sequence * 7 + round * 3 + side) * 1.4;
+          this.velocity.y += Math.cos(event.sequence * 3 + round + side) * 1.1;
+        }
         if (flight < .038 && flashes < CAPACITY) {
           this.dummy.position.copy(this.origin).addScaledVector(this.velocity, flight * .08);
           this.dummy.quaternion.copy(camera.quaternion); this.dummy.scale.setScalar(.7);
           this.write(this.muzzles, flashes++, 1 - flight / .038);
         }
         this.dummy.position.copy(this.origin).addScaledVector(this.velocity, flight);
-        this.dummy.position.y -= 4.905 * flight * flight;
+        if (!aa) this.dummy.position.y -= 4.905 * flight * flight;
         const opacity = Math.min(1, (life - flight) / .12);
         this.normal.copy(this.dummy.position).applyMatrix4(camera.matrixWorldInverse);
         const depth = camera.projectionMatrix.elements[11] === -1 ? Math.max(.1, -this.normal.z) : 1;
@@ -79,7 +82,7 @@ export class AircraftGunfire {
         const width = Math.max(.12, Math.min(2.4, viewHeight * .0012));
         this.dummy.quaternion.copy(camera.quaternion); this.dummy.scale.setScalar(width * 2.2);
         this.write(this.tips, count, opacity * .65);
-        this.velocity.y -= 9.81 * flight;
+        if (!aa) this.velocity.y -= 9.81 * flight;
         const length = this.velocity.length() * Math.min(.022, flight);
         this.velocity.normalize(); this.dummy.position.addScaledVector(this.velocity, -length / 2);
         this.normal.subVectors(camera.position, this.dummy.position).normalize();

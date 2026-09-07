@@ -79,7 +79,7 @@ test('moving and turning ship solutions line up and switching batteries preserve
   expect(gunAimPoints(sim.player, sim.definition, 'main', aim)[0].aligned).toBe(true);
   const secondary = gunAimPoints(sim.player, sim.definition, 'secondary', aim);
   expect(secondary.map(point => point.id)).toEqual(sim.definition.mounts.filter(mount => mount.battery === 'secondary').map(mount => mount.id));
-  expect(secondary.map(point => point.number)).toEqual([1, 2, 3, 4, 5, 6]);
+  expect(secondary.map(point => point.number)).toEqual(secondary.map((_, i) => i + 1));
 });
 
 test('in-view circles use their actual projected position; off-screen and aft cues never mirror', () => {

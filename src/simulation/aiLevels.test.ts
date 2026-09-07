@@ -4,7 +4,6 @@ import { SHIP_AI_LEVELS, type ShipAiLevel } from './aiLevels';
 import { resolveBattleFleet, validateBattleSetup, type BattleSetup } from './battle';
 import { botAim, botDidFire, botReadyToFire, updateBot } from './bots';
 import { CombatSimulation } from './combat';
-import { stepAircraft } from './aircraft';
 import { FIXED_DT } from './ship';
 
 const stop = { throttle: 0, rudder: 0 };
@@ -86,12 +85,14 @@ test('passive ships leave nearby aircraft unharmed while combat AI retains anti-
       friendlyBots: [], enemies: [{ definition: shipPreset('fletcher'), aiLevel }],
     });
     const plane = sim.player.airWing!.planes[0];
-    plane.phase = 'outbound'; plane.deckSlot = undefined;
-    plane.position = [sim.target.motion.x, 120, sim.target.motion.z];
-    plane.previousPosition = [...plane.position]; plane.velocity = [0, 0, -80];
-    stepAircraft({ actors: sim.actors, planes: sim.aircraft, shells: [], torpedoes: [], releases: [], nextId: () => 1, emit: () => {} }, FIXED_DT, 1);
-    if (aiLevel === 'normal') expect(plane.hp).toBeLessThan(100);
-    else expect(plane.hp).toBe(100);
+    let shots = 0;
+    for (let tick = 0; tick < 600; tick++) {
+      Object.assign(plane, { phase: 'outbound', deckSlot: undefined, position: [sim.target.motion.x + 700, 250, sim.target.motion.z], velocity: [0, 0, 0] });
+      sim.step(stop, intent);
+      shots += sim.events.filter(e => e.tick === sim.tick - 1 && e.kind === 'aircraft-fire' && e.shipId === sim.target.motion.id).length;
+    }
+    if (aiLevel === 'normal') { expect(shots).toBeGreaterThan(0); expect(plane.hp).toBeLessThan(100); }
+    else { expect(shots).toBe(0); expect(plane.hp).toBe(100); }
   }
 });
 

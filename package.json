@@ -15,6 +15,7 @@
     "aircraft:build": "bun scripts/aircraft/pipeline.ts build",
     "aircraft:check": "bun scripts/aircraft/pipeline.ts check",
     "aircraft:review": "bun scripts/aircraft/pipeline.ts review",
+    "aircraft:thumbnail": "bun scripts/aircraft/pipeline.ts thumbnail",
     "aircraft:publish": "bun scripts/aircraft/pipeline.ts publish",
     "aircraft:inputs": "bun scripts/aircraft/pipeline.ts inputs",
     "aircraft:hash": "bun scripts/aircraft/pipeline.ts hash",

@@ -23331,6 +23331,398 @@
       ],
       "bearingDeg": 180,
       "rangefinder": false
+    },
+    {
+      "id": "starboard-aa-105-1",
+      "name": "Starboard 105 mm AA 1",
+      "partId": "flak-105-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        12.15,
+        5.79,
+        -20
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine"
+    },
+    {
+      "id": "starboard-aa-105-2",
+      "name": "Starboard 105 mm AA 2",
+      "partId": "flak-105-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        11.6,
+        5.79,
+        -0.1
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine"
+    },
+    {
+      "id": "starboard-aa-105-3",
+      "name": "Starboard 105 mm AA 3",
+      "partId": "flak-105-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        11.6,
+        5.79,
+        16
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine"
+    },
+    {
+      "id": "starboard-aa-105-4",
+      "name": "Starboard 105 mm AA 4",
+      "partId": "flak-105-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        10.35,
+        5.79,
+        32
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine"
+    },
+    {
+      "id": "starboard-aa-37-1",
+      "name": "Starboard 37 mm AA 1",
+      "partId": "flak-37-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        7.8,
+        9.4,
+        -39
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine"
+    },
+    {
+      "id": "starboard-aa-37-2",
+      "name": "Starboard 37 mm AA 2",
+      "partId": "flak-37-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        8.1,
+        12.65,
+        -16.5
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine"
+    },
+    {
+      "id": "starboard-aa-37-3",
+      "name": "Starboard 37 mm AA 3",
+      "partId": "flak-37-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        7.4,
+        9.4,
+        37.6
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine"
+    },
+    {
+      "id": "starboard-aa-37-4",
+      "name": "Starboard 37 mm AA 4",
+      "partId": "flak-37-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        6.7,
+        9.4,
+        49
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine"
+    },
+    {
+      "id": "starboard-aa-20-1",
+      "name": "Starboard 20 mm AA 1",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        5.5,
+        9.4,
+        -42.5
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine"
+    },
+    {
+      "id": "starboard-aa-20-2",
+      "name": "Starboard 20 mm AA 2",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        7.2,
+        12.66,
+        -29.1
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine"
+    },
+    {
+      "id": "starboard-aa-20-3",
+      "name": "Starboard 20 mm AA 3",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        6.3,
+        15.6,
+        -25.4
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine"
+    },
+    {
+      "id": "starboard-aa-20-4",
+      "name": "Starboard 20 mm AA 4",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        5.2,
+        20.92,
+        -11.3
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine"
+    },
+    {
+      "id": "starboard-aa-20-5",
+      "name": "Starboard 20 mm AA 5",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        5,
+        12.65,
+        35
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine"
+    },
+    {
+      "id": "starboard-aa-20-6",
+      "name": "Starboard 20 mm AA 6",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        6.8,
+        9.4,
+        46.1
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine"
+    },
+    {
+      "id": "port-aa-105-1",
+      "name": "Port 105 mm AA 1",
+      "partId": "flak-105-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -12.15,
+        5.79,
+        -20
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine"
+    },
+    {
+      "id": "port-aa-105-2",
+      "name": "Port 105 mm AA 2",
+      "partId": "flak-105-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -11.6,
+        5.79,
+        -0.1
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine"
+    },
+    {
+      "id": "port-aa-105-3",
+      "name": "Port 105 mm AA 3",
+      "partId": "flak-105-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -11.6,
+        5.79,
+        16
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine"
+    },
+    {
+      "id": "port-aa-105-4",
+      "name": "Port 105 mm AA 4",
+      "partId": "flak-105-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -10.35,
+        5.79,
+        32
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine"
+    },
+    {
+      "id": "port-aa-37-1",
+      "name": "Port 37 mm AA 1",
+      "partId": "flak-37-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -7.8,
+        9.4,
+        -39
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine"
+    },
+    {
+      "id": "port-aa-37-2",
+      "name": "Port 37 mm AA 2",
+      "partId": "flak-37-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -8.1,
+        12.65,
+        -16.5
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine"
+    },
+    {
+      "id": "port-aa-37-3",
+      "name": "Port 37 mm AA 3",
+      "partId": "flak-37-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -7.4,
+        9.4,
+        37.6
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine"
+    },
+    {
+      "id": "port-aa-37-4",
+      "name": "Port 37 mm AA 4",
+      "partId": "flak-37-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -6.7,
+        9.4,
+        49
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine"
+    },
+    {
+      "id": "port-aa-20-1",
+      "name": "Port 20 mm AA 1",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -5.5,
+        9.4,
+        -42.5
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine"
+    },
+    {
+      "id": "port-aa-20-2",
+      "name": "Port 20 mm AA 2",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -7.2,
+        12.66,
+        -29.1
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine"
+    },
+    {
+      "id": "port-aa-20-3",
+      "name": "Port 20 mm AA 3",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -6.3,
+        15.6,
+        -25.4
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine"
+    },
+    {
+      "id": "port-aa-20-4",
+      "name": "Port 20 mm AA 4",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -5.2,
+        20.92,
+        -11.3
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine"
+    },
+    {
+      "id": "port-aa-20-5",
+      "name": "Port 20 mm AA 5",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -5,
+        12.65,
+        35
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine"
+    },
+    {
+      "id": "port-aa-20-6",
+      "name": "Port 20 mm AA 6",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -6.8,
+        9.4,
+        46.1
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine"
     }
   ],
   "armor": [
@@ -86383,7 +86775,7 @@
   "accuracy": {
     "exterior": "Independent 1941-04: revised secondary gunhouses, separated navigation/conning bridge and scalloped tower galleries. Principal dimensions documented; local shapes and fittings remain image estimates.",
     "internals": "Plate thicknesses and machinery sequence evidence-based; room boundaries and hull-conforming plate envelopes approximate. Standard-draft datum, not battle displacement.",
-    "weapons": "Independent gunhouse polygons; historical bore and turret frames. Simplified geometry and AP budget, no fuze, spall or material penetration model."
+    "weapons": "Independent gunhouse polygons; historical bore and turret frames. Simplified geometry and AP budget, no fuze, spall or material penetration model. AA: eight twin 105 mm, eight twin 37 mm and twelve single 20 mm mounts use original visual placements and provisional CPU fire control. Two upper quad 20 mm fittings remain decorative."
   },
   "structures": [
     {
