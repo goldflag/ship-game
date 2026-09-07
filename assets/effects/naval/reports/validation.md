@@ -1,6 +1,10 @@
 # Naval firing and shell effects
 
-## Shell visibility and tracers — September 2026
+## Shell subtlety follow-up — September 6, 2026
+
+The airborne shell presentation now uses smaller, dimmer tips and thinner, shorter amber ribbons: 0.075 seconds of main-caliber travel, capped at 72 m. See the [matched before/after comparison and current verification](../../../reviews/shell-subtlety/README.md). The original brighter presentation below is retained as the baseline record.
+
+## Shell visibility and tracers — September 2026 baseline
 
 Shells now have brighter bodies, warm luminous tips and tapered amber ribbons. A main-caliber tracer shows approximately 0.16 seconds of travel, capped at 150 m and limited by shell age; smaller calibers have shorter trails. The ribbon ends at the CPU shell position and follows its current velocity. Tip and ribbon widths adapt to camera projection, with bounded world sizes, so range and binocular zoom retain readable salvos. These are gameplay visibility approximations, not a claim about historical tracer ammunition.
 

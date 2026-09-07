@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shells · before and after</title>
+<style>
+  @font-face{font-family:Barlow;src:url(../../maps/review/fonts/barlow-latin-400-normal.woff2) format('woff2');font-display:swap}
+  *{box-sizing:border-box}body{margin:0;background:#132d38;color:#edf1ec;font:16px/1.5 Barlow,sans-serif}
+  main{max-width:1600px;margin:auto;padding:24px}h1{font-size:28px;margin:0 0 6px;font-weight:500}
+  p{color:#bacbd0;margin:0 0 20px}nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  button{font:inherit;color:inherit;background:transparent;border:1px solid #cfdfdf55;border-radius:3px;padding:7px 16px;cursor:pointer}
+  button[aria-pressed=true]{background:#e0c58d;color:#152b32;border-color:#e0c58d}button:hover{border-color:#e0c58d}
+  button:focus-visible,input:focus-visible{outline:2px solid #e0c58d;outline-offset:4px}
+  figure{margin:0}.view{position:relative;aspect-ratio:16/9;overflow:hidden;background:#0e2530}
+  img{position:absolute;width:100%;height:100%;object-fit:contain;inset:0}
+  #before{clip-path:inset(0 50% 0 0)}.divider{position:absolute;left:50%;height:100%;width:1px;background:#edf1ec;pointer-events:none}
+  .label{position:absolute;top:12px;background:#132d38;padding:4px 10px;border-radius:2px}.left{left:12px}.right{right:12px}
+  .slider{display:flex;align-items:center;gap:16px;margin-top:14px}input{flex:1;min-width:60px;accent-color:#e0c58d}
+  figcaption{margin-top:12px;color:#bacbd0;font-size:14px}a{color:#e0c58d}footer{margin-top:16px;font-size:14px}
+  @media(max-width:600px){main{padding:16px}h1{font-size:24px}.label{font-size:12px;top:8px}.slider{gap:8px}}
+</style>
+<main>
+  <h1>More subtle shells and tracers</h1>
+  <p>Smaller glowing tips, thinner and shorter amber trails. Compare the same frozen salvo from the game renderer.</p>
+  <nav aria-label="Battery">
+    <button type="button" data-battery="main" aria-pressed="true">Main guns</button>
+    <button type="button" data-battery="secondary" aria-pressed="false">Secondary guns</button>
+  </nav>
+  <figure>
+    <div class="view">
+      <img id="after" src="after-main.png" alt="After: restrained glowing shells and short, fine amber trails over the sea">
+      <img id="before" src="before-main.png" alt="Before: bright shell tips and long, thick luminous trails over the same sea view">
+      <div class="divider" aria-hidden="true"></div>
+      <span class="label left">Before</span><span class="label right">After</span>
+    </div>
+    <div class="slider">
+      <button type="button" id="show-before">Before</button>
+      <input id="split" type="range" min="0" max="100" value="50" aria-label="Before and after comparison" aria-valuetext="50 percent before, 50 percent after">
+      <button type="button" id="show-after">After</button>
+    </div>
+    <figcaption>Move the slider or select Before / After. Bismarck, 0.4 seconds after firing. Actual 1920 × 1080 captures; camera, shell positions and combat state are identical within each pair.</figcaption>
+  </figure>
+  <footer><a href="README.md">Capture details and verification</a> · <a id="original-before" href="before-main.png">Before image</a> · <a id="original-after" href="after-main.png">After image</a></footer>
+</main>
+<script>
+  const split=document.querySelector('#split'),before=document.querySelector('#before'),after=document.querySelector('#after');
+  function update(){const n=Number(split.value);before.style.clipPath=`inset(0 ${100-n}% 0 0)`;document.querySelector('.divider').style.left=`${n}%`;split.setAttribute('aria-valuetext',`${n} percent before, ${100-n} percent after`);document.querySelector('.left').hidden=n===0;document.querySelector('.right').hidden=n===100;}
+  split.addEventListener('input',update);
+  document.querySelector('#show-before').onclick=()=>{split.value=100;update()};
+  document.querySelector('#show-after').onclick=()=>{split.value=0;update()};
+  for(const button of document.querySelectorAll('[data-battery]'))button.onclick=()=>{for(const b of document.querySelectorAll('[data-battery]'))b.setAttribute('aria-pressed',String(b===button));for(const [style,img] of [['before',before],['after',after]]){img.src=`${style}-${button.dataset.battery}.png`;document.querySelector(`#original-${style}`).href=img.src;}};
+</script>
+</html>
