@@ -1,0 +1,90 @@
+{
+  "date": "2026-09-07",
+  "integrationBase": "f3820a547151ecfb190f7d4fdebf756bac73654e",
+  "blender": "5.2.0 LTS (local)",
+  "tests": {
+    "command": "bun run test",
+    "files": 102,
+    "failedFiles": 0
+  },
+  "productionBuild": "passed",
+  "ships": [
+    {
+      "ship": "bismarck",
+      "contentHash": "9477e135c39e1356ad54f9923b0d801a19372a71537263b475b38c42e0fe7a16",
+      "radarCount": 3,
+      "maxWeaponErrorM": 0.002166293408939459,
+      "result": "passed"
+    },
+    {
+      "ship": "yamato",
+      "contentHash": "00e9c0d93054e4df3dd331ada507ec3881d226c05885bacdd696e5a97cf74eea",
+      "radarCount": 3,
+      "maxWeaponErrorM": 0.0027464697123877825,
+      "result": "passed"
+    },
+    {
+      "ship": "king-george-v",
+      "contentHash": "bd00502d92064f855f9bfc71c82fb7f81418f354722d4c2c9f72b162fa416c4b",
+      "radarCount": 3,
+      "maxWeaponErrorM": 0.0017379514971361963,
+      "result": "passed"
+    },
+    {
+      "ship": "baltimore",
+      "contentHash": "827c7ecc7a0b2eccd0fe471843eb29058e5221768ece313754d4ba6b73497d9f",
+      "radarCount": 6,
+      "maxWeaponErrorM": 0.0013168090882187296,
+      "result": "passed"
+    },
+    {
+      "ship": "enterprise-cv6",
+      "contentHash": "8dae05042d16a0524dfe7617d83d8ae090cb141d881c5206bbe3645343c2df6c",
+      "radarCount": 1,
+      "maxWeaponErrorM": 3.263095168349711e-05,
+      "result": "passed"
+    },
+    {
+      "ship": "type-viic",
+      "contentHash": "64f32852aa3e5527b8f80b9daa34c0eba8474d135bfa231bafea8fff79c88c92",
+      "radarCount": 0,
+      "maxWeaponErrorM": 2.6020255303479814e-06,
+      "result": "passed"
+    },
+    {
+      "ship": "liberty-cargo",
+      "contentHash": "ed621f006dfbfc323c8ded198ef73e933c646771c2c31a523e22bfc2c8d12069",
+      "radarCount": 0,
+      "maxWeaponErrorM": 1.61581393893102e-05,
+      "result": "passed"
+    },
+    {
+      "ship": "liberty-collier",
+      "contentHash": "f161a9ca3c2246764267e51f32d5f44097f9e53105e3fe57e9f197cff3423662",
+      "radarCount": 0,
+      "maxWeaponErrorM": 9.589899741464416e-06,
+      "result": "passed"
+    },
+    {
+      "ship": "victory-cargo",
+      "contentHash": "a654005a9e33d2ce2131e91ef771b16d234bc8b580bc1e99877826cf28aa5f5d",
+      "radarCount": 0,
+      "maxWeaponErrorM": 1.6193846912987977e-05,
+      "result": "passed"
+    },
+    {
+      "ship": "flower-corvette",
+      "contentHash": "af9c3a64e22fbf4b70335992a4f7dd51375d72792358d4ca34a45a9e7eb747c2",
+      "radarCount": 0,
+      "maxWeaponErrorM": 2.5511848343630287e-06,
+      "result": "passed"
+    },
+    {
+      "ship": "fletcher",
+      "contentHash": "a679af7c128323add8afa71369c12e96e5c44b39245a0c3b3ececb183ae33e4b",
+      "radarCount": 3,
+      "maxWeaponErrorM": 0.0006816694559700051,
+      "result": "passed"
+    }
+  ]
+}

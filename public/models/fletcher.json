@@ -62098,6 +62098,43 @@
     "shellThicknessMm": 12,
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
   },
+  "rig": {
+    "version": 1,
+    "ensigns": [
+      {
+        "id": "national-ensign",
+        "design": "us-48",
+        "position": [
+          0,
+          4.26,
+          56.83
+        ],
+        "width": 2.05,
+        "staffHeight": 0
+      }
+    ],
+    "radars": [
+      {
+        "id": "radar-sc",
+        "nodeId": "radar-sc.yaw",
+        "rpm": 6,
+        "phaseDeg": 0
+      },
+      {
+        "id": "radar-sg",
+        "nodeId": "radar-sg.yaw",
+        "rpm": 15,
+        "phaseDeg": 47
+      },
+      {
+        "id": "director-mk37",
+        "nodeId": "director-mk37.yaw",
+        "rpm": 2,
+        "sweepDeg": 55,
+        "phaseDeg": 94
+      }
+    ]
+  },
   "compilerVersion": 1,
-  "contentHash": "4b09bc943a2050d5170b1990813b5199ea821e3f5b5e32cb6942d22c6cb9564a"
+  "contentHash": "ccee6ace00f2a6715a504e0bc3899bdbcf88e4f962147ccab797120bbd254013"
 }

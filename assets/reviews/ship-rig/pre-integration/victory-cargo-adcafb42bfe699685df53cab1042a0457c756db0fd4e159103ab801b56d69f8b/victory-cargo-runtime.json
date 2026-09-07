@@ -1,0 +1,43 @@
+{
+  "ship": "victory-cargo",
+  "before": {
+    "flags": [
+      {
+        "design": "us-48",
+        "position": [
+          0,
+          8.148,
+          66.38
+        ],
+        "visible": true,
+        "tip": [
+          2.4346139430999756,
+          -0.3511088490486145,
+          1.2079914808273315
+        ]
+      }
+    ],
+    "radars": []
+  },
+  "after": {
+    "flags": [
+      {
+        "design": "us-48",
+        "position": [
+          0,
+          8.148,
+          66.38
+        ],
+        "visible": true,
+        "tip": [
+          2.421234369277954,
+          -0.6502949595451355,
+          1.0780932903289795
+        ]
+      }
+    ],
+    "radars": []
+  },
+  "pauseHeld": true,
+  "maxWeaponErrorM": 1.6193846912987977e-05
+}

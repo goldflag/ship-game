@@ -31,6 +31,8 @@ Run commands from the repository root. Replace `my-ship` with the lowercase ship
 7. **Register a new playable preset.** Import the compiled JSON and add one entry per line to [`src/ships/presets.ts`](../src/ships/presets.ts). `ship:new` does not register it. This is the authoritative runtime/fleet-check roster; do not duplicate it in package scripts or shared prose.
 8. **Verify in-game and finish.** Load the exact published ship/hash. Check full traverse/elevation/recoil, independently positioned neighboring mounts, fitted weapons, free aim, firing, hits, damage, flooding and reset. In port, inspect Armor and Internals, isolate a volume, return to Statistics, launch and return to port. Use the shared inspection/statistics adapters for new properties. Run the checks below and retain evidence of both successes and unresolved items.
 
+For national cloth ensigns and articulated sensors, see [ensigns and radar rigs](ship-runtime-contract.md#ensigns-and-radar-rigs).
+
 ## Required visual acceptance checks
 
 All four checks in [ship model review](ship-model-review.md) are required for new models and affected geometry: **no floating parts; historically supported turret/bridge/bow proportions targeting 100% accuracy; intricate exposed guns; no turret clipping.** Known defects block visual acceptance. Successful export checks do not certify any of these visual requirements or historical accuracy.

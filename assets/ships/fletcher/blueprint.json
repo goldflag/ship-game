@@ -7256,7 +7256,7 @@
     },
     {
       "id": "reserve-cell-0-0-0",
-      "name": "Port deep reserve space 1 · estimated",
+      "name": "Port deep reserve space 1 \u00b7 estimated",
       "center": [
         -3.025,
         -2.4800000000000004,
@@ -8438,7 +8438,7 @@
     },
     {
       "id": "reserve-cell-0-0-1",
-      "name": "Port middle reserve space 1 · estimated",
+      "name": "Port middle reserve space 1 \u00b7 estimated",
       "center": [
         -3.025,
         0.9599999999999997,
@@ -10256,7 +10256,7 @@
     },
     {
       "id": "reserve-cell-0-0-2",
-      "name": "Port upper reserve space 1 · estimated",
+      "name": "Port upper reserve space 1 \u00b7 estimated",
       "center": [
         -3.025,
         4.4,
@@ -11762,7 +11762,7 @@
     },
     {
       "id": "reserve-cell-0-1-0",
-      "name": "Starboard deep reserve space 1 · estimated",
+      "name": "Starboard deep reserve space 1 \u00b7 estimated",
       "center": [
         3.025,
         -2.4800000000000004,
@@ -12944,7 +12944,7 @@
     },
     {
       "id": "reserve-cell-0-1-1",
-      "name": "Starboard middle reserve space 1 · estimated",
+      "name": "Starboard middle reserve space 1 \u00b7 estimated",
       "center": [
         3.025,
         0.9599999999999997,
@@ -14762,7 +14762,7 @@
     },
     {
       "id": "reserve-cell-0-1-2",
-      "name": "Starboard upper reserve space 1 · estimated",
+      "name": "Starboard upper reserve space 1 \u00b7 estimated",
       "center": [
         3.025,
         4.4,
@@ -16268,7 +16268,7 @@
     },
     {
       "id": "reserve-cell-1-0-0",
-      "name": "Port deep reserve space 2 · estimated",
+      "name": "Port deep reserve space 2 \u00b7 estimated",
       "center": [
         -3.025,
         -2.4800000000000004,
@@ -17630,7 +17630,7 @@
     },
     {
       "id": "reserve-cell-1-0-1",
-      "name": "Port middle reserve space 2 · estimated",
+      "name": "Port middle reserve space 2 \u00b7 estimated",
       "center": [
         -3.025,
         0.9599999999999997,
@@ -18176,7 +18176,7 @@
     },
     {
       "id": "reserve-cell-1-0-2",
-      "name": "Port upper reserve space 2 · estimated",
+      "name": "Port upper reserve space 2 \u00b7 estimated",
       "center": [
         -3.025,
         4.4,
@@ -18434,7 +18434,7 @@
     },
     {
       "id": "reserve-cell-1-1-0",
-      "name": "Starboard deep reserve space 2 · estimated",
+      "name": "Starboard deep reserve space 2 \u00b7 estimated",
       "center": [
         3.025,
         -2.4800000000000004,
@@ -19796,7 +19796,7 @@
     },
     {
       "id": "reserve-cell-1-1-1",
-      "name": "Starboard middle reserve space 2 · estimated",
+      "name": "Starboard middle reserve space 2 \u00b7 estimated",
       "center": [
         3.025,
         0.9599999999999997,
@@ -20342,7 +20342,7 @@
     },
     {
       "id": "reserve-cell-1-1-2",
-      "name": "Starboard upper reserve space 2 · estimated",
+      "name": "Starboard upper reserve space 2 \u00b7 estimated",
       "center": [
         3.025,
         4.4,
@@ -20600,7 +20600,7 @@
     },
     {
       "id": "reserve-cell-2-0-0",
-      "name": "Port deep reserve space 3 · estimated",
+      "name": "Port deep reserve space 3 \u00b7 estimated",
       "center": [
         -3.025,
         -2.4800000000000004,
@@ -21950,7 +21950,7 @@
     },
     {
       "id": "reserve-cell-2-0-1",
-      "name": "Port middle reserve space 3 · estimated",
+      "name": "Port middle reserve space 3 \u00b7 estimated",
       "center": [
         -3.025,
         0.9599999999999997,
@@ -22088,7 +22088,7 @@
     },
     {
       "id": "reserve-cell-2-0-2",
-      "name": "Port upper reserve space 3 · estimated",
+      "name": "Port upper reserve space 3 \u00b7 estimated",
       "center": [
         -3.025,
         4.4,
@@ -22118,7 +22118,7 @@
     },
     {
       "id": "reserve-cell-2-1-0",
-      "name": "Starboard deep reserve space 3 · estimated",
+      "name": "Starboard deep reserve space 3 \u00b7 estimated",
       "center": [
         3.025,
         -2.4800000000000004,
@@ -23468,7 +23468,7 @@
     },
     {
       "id": "reserve-cell-2-1-1",
-      "name": "Starboard middle reserve space 3 · estimated",
+      "name": "Starboard middle reserve space 3 \u00b7 estimated",
       "center": [
         3.025,
         0.9599999999999997,
@@ -23606,7 +23606,7 @@
     },
     {
       "id": "reserve-cell-2-1-2",
-      "name": "Starboard upper reserve space 3 · estimated",
+      "name": "Starboard upper reserve space 3 \u00b7 estimated",
       "center": [
         3.025,
         4.4,
@@ -23636,7 +23636,7 @@
     },
     {
       "id": "reserve-cell-3-0-0",
-      "name": "Port deep reserve space 4 · estimated",
+      "name": "Port deep reserve space 4 \u00b7 estimated",
       "center": [
         -3.025,
         -2.4800000000000004,
@@ -24818,7 +24818,7 @@
     },
     {
       "id": "reserve-cell-3-0-1",
-      "name": "Port middle reserve space 4 · estimated",
+      "name": "Port middle reserve space 4 \u00b7 estimated",
       "center": [
         -3.025,
         0.9599999999999997,
@@ -26336,7 +26336,7 @@
     },
     {
       "id": "reserve-cell-3-1-0",
-      "name": "Starboard deep reserve space 4 · estimated",
+      "name": "Starboard deep reserve space 4 \u00b7 estimated",
       "center": [
         3.025,
         -2.4800000000000004,
@@ -27518,7 +27518,7 @@
     },
     {
       "id": "reserve-cell-3-1-1",
-      "name": "Starboard middle reserve space 4 · estimated",
+      "name": "Starboard middle reserve space 4 \u00b7 estimated",
       "center": [
         3.025,
         0.9599999999999997,
@@ -34818,7 +34818,7 @@
     "regions": [
       {
         "id": "underwater-port-1",
-        "name": "Underwater hull · port · bow",
+        "name": "Underwater hull \u00b7 port \u00b7 bow",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -34834,7 +34834,7 @@
       },
       {
         "id": "underwater-port-2",
-        "name": "Underwater hull · port · forward",
+        "name": "Underwater hull \u00b7 port \u00b7 forward",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -34850,7 +34850,7 @@
       },
       {
         "id": "underwater-port-3",
-        "name": "Underwater hull · port · forward amidships",
+        "name": "Underwater hull \u00b7 port \u00b7 forward amidships",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -34866,7 +34866,7 @@
       },
       {
         "id": "underwater-port-4",
-        "name": "Underwater hull · port · amidships forward",
+        "name": "Underwater hull \u00b7 port \u00b7 amidships forward",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -34882,7 +34882,7 @@
       },
       {
         "id": "underwater-port-5",
-        "name": "Underwater hull · port · amidships aft",
+        "name": "Underwater hull \u00b7 port \u00b7 amidships aft",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -34898,7 +34898,7 @@
       },
       {
         "id": "underwater-port-6",
-        "name": "Underwater hull · port · aft amidships",
+        "name": "Underwater hull \u00b7 port \u00b7 aft amidships",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -34914,7 +34914,7 @@
       },
       {
         "id": "underwater-port-7",
-        "name": "Underwater hull · port · aft",
+        "name": "Underwater hull \u00b7 port \u00b7 aft",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -34930,7 +34930,7 @@
       },
       {
         "id": "underwater-port-8",
-        "name": "Underwater hull · port · stern",
+        "name": "Underwater hull \u00b7 port \u00b7 stern",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -34946,7 +34946,7 @@
       },
       {
         "id": "underwater-starboard-1",
-        "name": "Underwater hull · starboard · bow",
+        "name": "Underwater hull \u00b7 starboard \u00b7 bow",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -34962,7 +34962,7 @@
       },
       {
         "id": "underwater-starboard-2",
-        "name": "Underwater hull · starboard · forward",
+        "name": "Underwater hull \u00b7 starboard \u00b7 forward",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -34978,7 +34978,7 @@
       },
       {
         "id": "underwater-starboard-3",
-        "name": "Underwater hull · starboard · forward amidships",
+        "name": "Underwater hull \u00b7 starboard \u00b7 forward amidships",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -34994,7 +34994,7 @@
       },
       {
         "id": "underwater-starboard-4",
-        "name": "Underwater hull · starboard · amidships forward",
+        "name": "Underwater hull \u00b7 starboard \u00b7 amidships forward",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -35010,7 +35010,7 @@
       },
       {
         "id": "underwater-starboard-5",
-        "name": "Underwater hull · starboard · amidships aft",
+        "name": "Underwater hull \u00b7 starboard \u00b7 amidships aft",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -35026,7 +35026,7 @@
       },
       {
         "id": "underwater-starboard-6",
-        "name": "Underwater hull · starboard · aft amidships",
+        "name": "Underwater hull \u00b7 starboard \u00b7 aft amidships",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -35042,7 +35042,7 @@
       },
       {
         "id": "underwater-starboard-7",
-        "name": "Underwater hull · starboard · aft",
+        "name": "Underwater hull \u00b7 starboard \u00b7 aft",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -35058,7 +35058,7 @@
       },
       {
         "id": "underwater-starboard-8",
-        "name": "Underwater hull · starboard · stern",
+        "name": "Underwater hull \u00b7 starboard \u00b7 stern",
         "kind": "hull",
         "durabilityFraction": 0.12,
         "center": [
@@ -35074,7 +35074,7 @@
       },
       {
         "id": "upper-hull-port-1",
-        "name": "Upper hull · port · bow",
+        "name": "Upper hull \u00b7 port \u00b7 bow",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -35090,7 +35090,7 @@
       },
       {
         "id": "upper-hull-port-2",
-        "name": "Upper hull · port · forward",
+        "name": "Upper hull \u00b7 port \u00b7 forward",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -35106,7 +35106,7 @@
       },
       {
         "id": "upper-hull-port-3",
-        "name": "Upper hull · port · forward amidships",
+        "name": "Upper hull \u00b7 port \u00b7 forward amidships",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -35122,7 +35122,7 @@
       },
       {
         "id": "upper-hull-port-4",
-        "name": "Upper hull · port · amidships forward",
+        "name": "Upper hull \u00b7 port \u00b7 amidships forward",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -35138,7 +35138,7 @@
       },
       {
         "id": "upper-hull-port-5",
-        "name": "Upper hull · port · amidships aft",
+        "name": "Upper hull \u00b7 port \u00b7 amidships aft",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -35154,7 +35154,7 @@
       },
       {
         "id": "upper-hull-port-6",
-        "name": "Upper hull · port · aft amidships",
+        "name": "Upper hull \u00b7 port \u00b7 aft amidships",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -35170,7 +35170,7 @@
       },
       {
         "id": "upper-hull-port-7",
-        "name": "Upper hull · port · aft",
+        "name": "Upper hull \u00b7 port \u00b7 aft",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -35186,7 +35186,7 @@
       },
       {
         "id": "upper-hull-port-8",
-        "name": "Upper hull · port · stern",
+        "name": "Upper hull \u00b7 port \u00b7 stern",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -35202,7 +35202,7 @@
       },
       {
         "id": "upper-hull-starboard-1",
-        "name": "Upper hull · starboard · bow",
+        "name": "Upper hull \u00b7 starboard \u00b7 bow",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -35218,7 +35218,7 @@
       },
       {
         "id": "upper-hull-starboard-2",
-        "name": "Upper hull · starboard · forward",
+        "name": "Upper hull \u00b7 starboard \u00b7 forward",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -35234,7 +35234,7 @@
       },
       {
         "id": "upper-hull-starboard-3",
-        "name": "Upper hull · starboard · forward amidships",
+        "name": "Upper hull \u00b7 starboard \u00b7 forward amidships",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -35250,7 +35250,7 @@
       },
       {
         "id": "upper-hull-starboard-4",
-        "name": "Upper hull · starboard · amidships forward",
+        "name": "Upper hull \u00b7 starboard \u00b7 amidships forward",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -35266,7 +35266,7 @@
       },
       {
         "id": "upper-hull-starboard-5",
-        "name": "Upper hull · starboard · amidships aft",
+        "name": "Upper hull \u00b7 starboard \u00b7 amidships aft",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -35282,7 +35282,7 @@
       },
       {
         "id": "upper-hull-starboard-6",
-        "name": "Upper hull · starboard · aft amidships",
+        "name": "Upper hull \u00b7 starboard \u00b7 aft amidships",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -35298,7 +35298,7 @@
       },
       {
         "id": "upper-hull-starboard-7",
-        "name": "Upper hull · starboard · aft",
+        "name": "Upper hull \u00b7 starboard \u00b7 aft",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -35314,7 +35314,7 @@
       },
       {
         "id": "upper-hull-starboard-8",
-        "name": "Upper hull · starboard · stern",
+        "name": "Upper hull \u00b7 starboard \u00b7 stern",
         "kind": "hull",
         "durabilityFraction": 0.1,
         "center": [
@@ -35330,7 +35330,7 @@
       },
       {
         "id": "upperworks-port-1",
-        "name": "Upperworks · port · bow",
+        "name": "Upperworks \u00b7 port \u00b7 bow",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -35346,7 +35346,7 @@
       },
       {
         "id": "upperworks-port-2",
-        "name": "Upperworks · port · forward",
+        "name": "Upperworks \u00b7 port \u00b7 forward",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -35362,7 +35362,7 @@
       },
       {
         "id": "upperworks-port-3",
-        "name": "Upperworks · port · forward amidships",
+        "name": "Upperworks \u00b7 port \u00b7 forward amidships",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -35378,7 +35378,7 @@
       },
       {
         "id": "upperworks-port-4",
-        "name": "Upperworks · port · amidships forward",
+        "name": "Upperworks \u00b7 port \u00b7 amidships forward",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -35394,7 +35394,7 @@
       },
       {
         "id": "upperworks-port-5",
-        "name": "Upperworks · port · amidships aft",
+        "name": "Upperworks \u00b7 port \u00b7 amidships aft",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -35410,7 +35410,7 @@
       },
       {
         "id": "upperworks-port-6",
-        "name": "Upperworks · port · aft amidships",
+        "name": "Upperworks \u00b7 port \u00b7 aft amidships",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -35426,7 +35426,7 @@
       },
       {
         "id": "upperworks-port-7",
-        "name": "Upperworks · port · aft",
+        "name": "Upperworks \u00b7 port \u00b7 aft",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -35442,7 +35442,7 @@
       },
       {
         "id": "upperworks-port-8",
-        "name": "Upperworks · port · stern",
+        "name": "Upperworks \u00b7 port \u00b7 stern",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -35458,7 +35458,7 @@
       },
       {
         "id": "upperworks-starboard-1",
-        "name": "Upperworks · starboard · bow",
+        "name": "Upperworks \u00b7 starboard \u00b7 bow",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -35474,7 +35474,7 @@
       },
       {
         "id": "upperworks-starboard-2",
-        "name": "Upperworks · starboard · forward",
+        "name": "Upperworks \u00b7 starboard \u00b7 forward",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -35490,7 +35490,7 @@
       },
       {
         "id": "upperworks-starboard-3",
-        "name": "Upperworks · starboard · forward amidships",
+        "name": "Upperworks \u00b7 starboard \u00b7 forward amidships",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -35506,7 +35506,7 @@
       },
       {
         "id": "upperworks-starboard-4",
-        "name": "Upperworks · starboard · amidships forward",
+        "name": "Upperworks \u00b7 starboard \u00b7 amidships forward",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -35522,7 +35522,7 @@
       },
       {
         "id": "upperworks-starboard-5",
-        "name": "Upperworks · starboard · amidships aft",
+        "name": "Upperworks \u00b7 starboard \u00b7 amidships aft",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -35538,7 +35538,7 @@
       },
       {
         "id": "upperworks-starboard-6",
-        "name": "Upperworks · starboard · aft amidships",
+        "name": "Upperworks \u00b7 starboard \u00b7 aft amidships",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -35554,7 +35554,7 @@
       },
       {
         "id": "upperworks-starboard-7",
-        "name": "Upperworks · starboard · aft",
+        "name": "Upperworks \u00b7 starboard \u00b7 aft",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -35570,7 +35570,7 @@
       },
       {
         "id": "upperworks-starboard-8",
-        "name": "Upperworks · starboard · stern",
+        "name": "Upperworks \u00b7 starboard \u00b7 stern",
         "kind": "superstructure",
         "durabilityFraction": 0.025,
         "center": [
@@ -36127,5 +36127,42 @@
     "buoyancyScale": 0.8924569888325935,
     "shellThicknessMm": 12,
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
+  },
+  "rig": {
+    "version": 1,
+    "ensigns": [
+      {
+        "id": "national-ensign",
+        "design": "us-48",
+        "position": [
+          0,
+          4.26,
+          56.83
+        ],
+        "width": 2.05,
+        "staffHeight": 0
+      }
+    ],
+    "radars": [
+      {
+        "id": "radar-sc",
+        "nodeId": "radar-sc.yaw",
+        "rpm": 6,
+        "phaseDeg": 0
+      },
+      {
+        "id": "radar-sg",
+        "nodeId": "radar-sg.yaw",
+        "rpm": 15,
+        "phaseDeg": 47
+      },
+      {
+        "id": "director-mk37",
+        "nodeId": "director-mk37.yaw",
+        "rpm": 2,
+        "sweepDeg": 55,
+        "phaseDeg": 94
+      }
+    ]
   }
 }

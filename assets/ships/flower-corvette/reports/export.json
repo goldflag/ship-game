@@ -1,5 +1,5 @@
 {
-  "contentHash": "a3fc9262e7fa87985cf65a350cffd18d758c771c948315c1eb05d9386e34b6e3",
+  "contentHash": "af9c3a64e22fbf4b70335992a4f7dd51375d72792358d4ca34a45a9e7eb747c2",
   "hullBounds": [
     [
       -5.029200553894043,
@@ -56,10 +56,10 @@
   ],
   "torpedoTubes": [],
   "depthChargeLaunchers": [],
-  "meshes": 69,
-  "primitives": 146,
-  "triangles": 63360,
-  "bytes": 2704696,
+  "meshes": 70,
+  "primitives": 147,
+  "triangles": 63396,
+  "bytes": 2708156,
   "result": "passed",
   "historicalAccuracy": "not certified; see reference register and discrepancy report"
 }

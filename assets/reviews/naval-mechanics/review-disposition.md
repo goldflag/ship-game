@@ -1,6 +1,6 @@
 # Claude Fable review disposition
 
-Review: [original report](claude-fable-review.md). The report was written against the initial implementation; the final branch incorporates the fixes below and master through `f3820a54`. Fable did not independently complete the full suite. The final implementation run passed 754 tests across 104 files and `bun run build`.
+Review: [original report](claude-fable-review.md). The report was written against the initial implementation; the final branch incorporates the fixes below and master through `d840e0c6`. Fable did not independently complete the full suite. The final implementation run passed 774 tests across 108 files on Bun 1.3.3 and `bun run build`.
 
 ## Blocking findings fixed
 
@@ -17,6 +17,10 @@ Review: [original report](claude-fable-review.md). The report was written agains
 - Reused one sea-response evaluation per actor/tick.
 - Corrected outward turning heel in both turn directions, with a regression.
 - Integrated master's whole-HP durability scale and its new AA mounts, then calibrated the two new placeholder drag profiles through the durable catalog recipe and rebuilt affected assets.
+
+## Final integration validation
+
+Master's new spectator-camera selection required adding the existing fleet-view state to three camera fixtures; all nine focused camera tests pass. The parallel runner now allows 30 seconds per test because long fleet simulations exceed Bun 1.3.3's five-second default under eight-worker CPU contention. The full pinned-version suite passes with that finite deadline.
 
 ## Intentional approximations retained
 

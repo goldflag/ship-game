@@ -225,8 +225,13 @@ export function App() {
     </div></>}
     {battleLoading && ready && !error && <BattleLoadingScreen setup={battleSetup} state={battleLoading} onLeft={() => setBattleLoading(null)}/>}
 
-    {!ready && !error && <section className="loading-screen loading-screen-minimal">
-      <div className="loading-progress" role="progressbar" aria-label="Loading port" aria-valuetext={loading.label} aria-valuenow={Math.round(loading.progress * 100)} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${loading.progress * 100}%` }}/></div>
+    {!ready && !error && <section className="startup-screen" aria-labelledby="startup-title">
+      <div className="startup-content">
+        <h1 id="startup-title">Opening the harbor</h1>
+        <p className="startup-status" role="status">{loading.label}…</p>
+        <div className="loading-progress" role="progressbar" aria-label="Preparing the harbor" aria-valuetext={loading.label} aria-valuenow={Math.round(loading.progress * 100)} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${loading.progress * 100}%` }}/></div>
+        <p className="startup-note">The first visit can take a little longer while ship models, ocean effects and lighting are prepared.</p>
+      </div>
     </section>}
 
     {error && <section className="loading-screen" aria-live="polite">

@@ -76,3 +76,7 @@ Local regions, generator and director proxies, combustible loads and smoke outle
 ## Plausible mechanics calibration — 2026-09-07
 
 Missing or placeholder gun drag has been replaced by the shared mass/area-based linear approximation, with estimated dispersion and a stated penetration reference speed. These are independently authored game estimates, not historical firing-table reproductions. See `assets/parts/author-plausible-ballistics.ts`.
+
+## Ensign and radar animation
+
+The version-1 blueprint rig selects a period national ensign and a retained or original flagstaff hoist. Flag dimensions and stern/bridge placement are gameplay approximations; harbor/underway flag etiquette and halyard handling are not modeled. See `assets/parts/ensigns-sources.md` for design references. Radar rates and director sector sweeps are visual calibration, not verified operating procedures or combat tracking. Existing aerial shapes retain their prior evidence limitations. Cloth uses gravity, apparent wind and constrained fabric; it does not simulate cloth tearing, rigging collisions or fluid dynamics.

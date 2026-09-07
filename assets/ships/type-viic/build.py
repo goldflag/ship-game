@@ -310,4 +310,6 @@ for mount in definition['mounts']:
 landmark('bridge-lip',(3.3,0,4.60375))
 landmark('saddle-maximum',(0,3.076575,-.82))
 scene['definitionHash']=definition['contentHash']
+from blender_rig import create_flagstaffs
+create_flagstaffs(definition)
 bpy.ops.wm.save_as_mainfile(filepath=str(out/'source.blend'))
