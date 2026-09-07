@@ -56,11 +56,11 @@ async function frameHarness() {
       setOrder: (order: number) => { helm.throttle = ENGINE_ORDERS[order]; },
       setRudder: (rudder: number) => { helm.rudder = rudder; } },
     aircraftView: { update() {} },
-    effects: { update() {}, reset() {} }, sky: { update() {} }, scene: new FrameScene(),
     funnelSmoke: { root: new Group(), update() {}, setWind() {} },
+    effects: { update() {}, reset() {} }, sky: { update() {} }, scene: new FrameScene(),
     surfaceWaterAbsorption: new Color(.296, .105, .095),
     water: { color: { absorptionColor: new Color(.296, .105, .095) }, async update() {} },
-    shipWake: { update: (ship: { z: number }) => wakePositions.push(ship.z), reset() {} },
+    shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
   }) as { frame(time: number): Promise<void>; setInPort(inPort: boolean): void; toggleBinoculars(): void; toggleShellFollow(): void; shellFollow: ShellFollow;
@@ -254,4 +254,19 @@ test('all fleet impact marks share one cosmetic work budget, renewed for each fr
   expect(available).toEqual([2, 0, 2, 0]);
   expect(budgets[0]).toBe(budgets[1]); expect(budgets[2]).toBe(budgets[3]);
   expect(budgets[0]).not.toBe(budgets[2]);
+});
+
+
+test('the frame feeds every fleet wake the rendered pose, and only the player in port', async () => {
+  const { game, playerView, targetView } = await frameHarness();
+  const frames: { ships: ShipView[]; positions: number[] }[] = [];
+  Object.assign(game, { shipWake: {
+    update(ships: ShipView[]) { frames.push({ ships: [...ships], positions: ships.map(ship => ship.motion.z) }); }, reset() {},
+  } });
+  await game.frame(100);
+  expect(frames.at(-1)!.ships).toEqual([playerView, targetView]);
+  expect(frames.at(-1)!.positions).toEqual([playerView.root.position.z, targetView.root.position.z]);
+  game.setInPort(true);
+  await game.frame(200);
+  expect(frames.at(-1)!.ships).toEqual([playerView]);
 });

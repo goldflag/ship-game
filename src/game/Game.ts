@@ -83,6 +83,7 @@ export class Game {
   private playerDamageFeedback: HullDamageFeedback;
   private gunAim: GunAimIndicators;
   private hitDirections: HitDirectionIndicators;
+  private hudScale = 1;
   private loadedModel?: THREE.Group;
   private effects = new CombatEffects();
   private funnelSmoke = new ShipFunnelSmoke();
@@ -428,6 +429,7 @@ export class Game {
       this.audio?.reset(simulation);
       this.fleetModels = [...models.values()]; this.loadedModel = models.get(definition.id);
       this.fleetViews = views; this.playerView = views[0];
+      this.shipWake?.reset();
       this.fleetDraws = draws;
       this.scene.add(this.fleetDraws.root);
       this.targetView = views.find(view => view.actor === simulation.target);
@@ -522,7 +524,7 @@ export class Game {
         this.camera.position.toArray(), new THREE.Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0).toArray());
       this.playerView!.root.visible = !this.rig.binoculars;
       this.harbor?.update(dt, this.camera);
-      this.shipWake!.update(this.playerView!.motion, dt, this.simulation.events);
+      this.shipWake!.update(this.inPort ? [this.playerView!] : this.fleetViews, dt, this.simulation.events);
       this.sky!.update(dt);
       // Black Flag's absorption loses >99% of green/blue light over 50 m,
       // hiding even our own submarine. Ease to a 20× longer visibility range
@@ -572,6 +574,20 @@ export class Game {
     }
   }
 
+  setHudScale(scale: number): void {
+    this.hudScale = scale;
+    this.resizeHudOverlays();
+  }
+
+  private resizeHudOverlays(): void {
+    // Overlay projection and collision placement use the same logical space as CSS.
+    const width = Math.max(this.host.clientWidth, 1) / this.hudScale;
+    const height = Math.max(this.host.clientHeight, 1) / this.hudScale;
+    this.shipLabels.resize(width, height);
+    this.hitLabels.resize(width, height);
+    this.gunAim.resize(width, height);
+  }
+
   private resize(): void {
     const width = Math.max(this.host.clientWidth, 1), height = Math.max(this.host.clientHeight, 1);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5) * this.settings.resolution);
@@ -579,9 +595,8 @@ export class Game {
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     this.water?.resize(width, height);
-    this.shipLabels.resize(width, height);
+    this.resizeHudOverlays();
     this.aircraftView.resize(height);
-    this.gunAim.resize(width, height);
     this.sky?.resize(width, height);
     this.resizePending = false;
   }
