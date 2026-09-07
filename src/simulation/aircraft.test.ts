@@ -196,3 +196,39 @@ test('a fighter group gets airborne within 37 seconds without overlapping occupi
   expect(Math.min(...departures.values())).toBeLessThan(12.5);
   expect(Math.max(...departures.values())).toBeLessThan(37);
 });
+
+test('shot-down airframes retain momentum, descend on CPU ticks and emit exactly one sea impact', () => {
+  const { sim, context, events, run } = fixture();
+  const p = sim.player.airWing!.planes[0];
+  p.phase = 'outbound'; p.deckSlot = undefined; p.position = [2000, 120, 2000];
+  p.velocity = [90, 8, -30]; p.heading = 1; p.pitch = .1; p.hp = 0;
+  run(1 / 60);
+  expect(String(p.phase)).toBe('lost'); expect(airborne(p)).toBe(false); expect(p.wreck?.impacted).toBe(false);
+  const lost = structuredClone(p), ammunition = p.ammo;
+  stepAircraft(context, 0, 0); expect(p).toEqual(lost);
+  run(1);
+  expect(p.position[0]).toBeGreaterThan(lost.position[0] + 80);
+  expect(p.position[2]).toBeLessThan(lost.position[2] - 25);
+  expect(p.velocity[1]).toBeLessThan(0); expect(p.bank).not.toBe(lost.bank);
+  expect(events.filter(e => e.kind === 'aircraft-crash')).toHaveLength(0);
+  run(20);
+  const impact = events.filter(e => e.kind === 'aircraft-crash');
+  expect(impact).toHaveLength(1); expect(impact[0].position[1]).toBe(0);
+  expect(impact[0].position).toEqual(p.position); expect(impact[0].aircraft?.velocity?.[1]).toBeLessThan(-30);
+  expect(p.wreck?.impacted).toBe(true); expect(p.ammo).toBe(ammunition);
+  const position: Vec3 = [...p.position]; run(5); expect(p.position).toEqual(position);
+  expect(events.filter(e => e.kind === 'aircraft-lost')).toHaveLength(1);
+  expect(events.filter(e => e.kind === 'aircraft-crash')).toHaveLength(1);
+  sim.reset(); expect(sim.aircraft.every(plane => !plane.wreck && plane.phase === 'ready')).toBe(true);
+});
+
+test('a low-level loss crosses the sea without a below-water frame; carrier inventory loss creates no airborne wreck', () => {
+  const { sim, events, run } = fixture();
+  const p = sim.player.airWing!.planes[0];
+  p.phase = 'attack'; p.deckSlot = undefined; p.position = [2000, .1, 2000]; p.velocity = [60, -100, 0]; p.hp = 0;
+  run(2 / 60);
+  expect(p.position[1]).toBe(0); expect(p.position[0]).toBeCloseTo(2000.06, 2);
+  expect(events.filter(e => e.kind === 'aircraft-crash')).toHaveLength(1);
+  sim.player.damage.sunk = true; run(1 / 60);
+  expect(sim.player.airWing!.planes.filter(plane => plane.wreck)).toHaveLength(1);
+});
