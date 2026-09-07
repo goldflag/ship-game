@@ -1,0 +1,485 @@
+{
+  "backend": "webgpu",
+  "battleSeed": 1851881057,
+  "camera": {
+    "aim": [
+      330,
+      0.5,
+      -35
+    ],
+    "binoculars": false,
+    "fov": 52,
+    "magnification": 1,
+    "manualAim": true,
+    "matrixWorldInverse": [
+      0.7182402227891738,
+      -0.1552773934437619,
+      0.678247678546023,
+      0,
+      1.3877787807814457e-17,
+      0.9747806008408204,
+      0.22316536519901403,
+      0,
+      -0.6957952158270119,
+      -0.16028634161936714,
+      0.7001266359184755,
+      0,
+      -257.7809049604269,
+      32.1829831016141,
+      -427.35729856463735,
+      1
+    ],
+    "mode": "Chase",
+    "pointerLocked": false,
+    "position": [
+      480,
+      64,
+      125
+    ],
+    "projectionMatrix": [
+      1.153295910888354,
+      0,
+      0,
+      0,
+      0,
+      2.050303841579296,
+      0,
+      0,
+      0,
+      0,
+      8.333402778356486e-06,
+      -1,
+      0,
+      0,
+      0.5000041667013891,
+      0
+    ],
+    "shellFollow": "off"
+  },
+  "contentHash": "25429e7ad048aada681f0dc250d25f0a07bd93d7cc93f34c1e94692f2150052b",
+  "effects": {
+    "aircraftSmoke": 0,
+    "depthCharges": 0,
+    "flashes": 0,
+    "foam": 0,
+    "particleCapacity": 11168,
+    "shells": 0,
+    "smoke": 0,
+    "spray": 89,
+    "torpedoes": 0
+  },
+  "environment": {
+    "ambient": 0.65,
+    "cloudAmbient": 1.1,
+    "cloudCoverage": 0.4,
+    "cloudWind": 12,
+    "fogEnd": 48000,
+    "sunAzimuth": -125.00000000000003,
+    "sunElevation": 48,
+    "sunIntensity": 6.6
+  },
+  "events": [
+    {
+      "kind": "shot",
+      "message": "Anton fired",
+      "position": [
+        18.491501432350923,
+        8.329182460197009,
+        -69.97152469994346
+      ],
+      "sequence": 1,
+      "shell": {
+        "ammunition": "ap",
+        "caliberM": 0.38,
+        "id": 1,
+        "type": "AP",
+        "velocity": [
+          812.591471264318,
+          -18.69052553324104,
+          85.30138628193097
+        ]
+      },
+      "shipId": "player",
+      "tick": 2100
+    },
+    {
+      "kind": "shot",
+      "message": "Anton fired",
+      "position": [
+        18.095433735338652,
+        8.329182460197009,
+        -66.24249930724586
+      ],
+      "sequence": 2,
+      "shell": {
+        "ammunition": "ap",
+        "caliberM": 0.38,
+        "id": 2,
+        "type": "AP",
+        "velocity": [
+          814.8490356464846,
+          -18.969831920534762,
+          86.54088936537845
+        ]
+      },
+      "shipId": "player",
+      "tick": 2100
+    },
+    {
+      "kind": "shot",
+      "message": "Bruno fired",
+      "position": [
+        18.46329837936745,
+        11.962875461004115,
+        -52.78469544019879
+      ],
+      "sequence": 3,
+      "shell": {
+        "ammunition": "ap",
+        "caliberM": 0.38,
+        "id": 3,
+        "type": "AP",
+        "velocity": [
+          819.2839683465962,
+          -28.880362559119025,
+          41.99533437594429
+        ]
+      },
+      "shipId": "player",
+      "tick": 2100
+    },
+    {
+      "kind": "shot",
+      "message": "Bruno fired",
+      "position": [
+        18.272070228000366,
+        11.962875461004115,
+        -49.039574374849266
+      ],
+      "sequence": 4,
+      "shell": {
+        "ammunition": "ap",
+        "caliberM": 0.38,
+        "id": 4,
+        "type": "AP",
+        "velocity": [
+          822.2012138014363,
+          -27.779716631188204,
+          42.40397951380447
+        ]
+      },
+      "shipId": "player",
+      "tick": 2100
+    },
+    {
+      "kind": "shot",
+      "message": "C\u00e4sar fired",
+      "position": [
+        17.19127953740637,
+        11.983216625605394,
+        51.34910407909771
+      ],
+      "sequence": 5,
+      "shell": {
+        "ammunition": "ap",
+        "caliberM": 0.38,
+        "id": 5,
+        "type": "AP",
+        "velocity": [
+          787.489387111751,
+          -26.923024578458474,
+          -222.94691924237347
+        ]
+      },
+      "shipId": "player",
+      "tick": 2100
+    },
+    {
+      "kind": "shot",
+      "message": "C\u00e4sar fired",
+      "position": [
+        18.20999543275845,
+        11.983216625605394,
+        54.95808148614212
+      ],
+      "sequence": 6,
+      "shell": {
+        "ammunition": "ap",
+        "caliberM": 0.38,
+        "id": 6,
+        "type": "AP",
+        "velocity": [
+          792.2656792106973,
+          -27.811368302120783,
+          -224.30808087464538
+        ]
+      },
+      "shipId": "player",
+      "tick": 2100
+    },
+    {
+      "kind": "shot",
+      "message": "Dora fired",
+      "position": [
+        16.83205735136596,
+        7.964120353874023,
+        68.69159327194266
+      ],
+      "sequence": 7,
+      "shell": {
+        "ammunition": "ap",
+        "caliberM": 0.38,
+        "id": 7,
+        "type": "AP",
+        "velocity": [
+          774.6267633205726,
+          -16.602134330874314,
+          -261.0004716279951
+        ]
+      },
+      "shipId": "player",
+      "tick": 2100
+    },
+    {
+      "kind": "shot",
+      "message": "Dora fired",
+      "position": [
+        18.030985609988157,
+        7.964120353874023,
+        72.24477086821858
+      ],
+      "sequence": 8,
+      "shell": {
+        "ammunition": "ap",
+        "caliberM": 0.38,
+        "id": 8,
+        "type": "AP",
+        "velocity": [
+          777.1523081006891,
+          -16.640211075887343,
+          -261.72368519665577
+        ]
+      },
+      "shipId": "player",
+      "tick": 2100
+    },
+    {
+      "kind": "splash",
+      "message": "Shell entering water",
+      "position": [
+        336.7326105164417,
+        0,
+        -36.47066184355475
+      ],
+      "sequence": 9,
+      "shell": {
+        "ammunition": "ap",
+        "caliberM": 0.38,
+        "id": 3,
+        "type": "AP",
+        "velocity": [
+          813.6187745905555,
+          -32.4915757852162,
+          41.704944577923996
+        ]
+      },
+      "shipId": "",
+      "tick": 2123
+    },
+    {
+      "kind": "splash",
+      "message": "Shell entering water",
+      "position": [
+        342.3529951362795,
+        0,
+        -31.804785670114576
+      ],
+      "sequence": 10,
+      "shell": {
+        "ammunition": "ap",
+        "caliberM": 0.38,
+        "id": 2,
+        "type": "AP",
+        "velocity": [
+          809.077251053547,
+          -22.73921343707155,
+          85.92789806263742
+        ]
+      },
+      "shipId": "",
+      "tick": 2123
+    },
+    {
+      "kind": "splash",
+      "message": "Shell entering water",
+      "position": [
+        336.86474306207657,
+        0,
+        -35.26018339381118
+      ],
+      "sequence": 11,
+      "shell": {
+        "ammunition": "ap",
+        "caliberM": 0.38,
+        "id": 6,
+        "type": "AP",
+        "velocity": [
+          786.5936247028949,
+          -31.557908831624207,
+          -222.70219575978203
+        ]
+      },
+      "shipId": "",
+      "tick": 2124
+    },
+    {
+      "kind": "splash",
+      "message": "Shell entering water",
+      "position": [
+        343.0146896255757,
+        0,
+        -40.89509207778771
+      ],
+      "sequence": 12,
+      "shell": {
+        "ammunition": "ap",
+        "caliberM": 0.38,
+        "id": 5,
+        "type": "AP",
+        "velocity": [
+          781.6897304121808,
+          -30.783626896219474,
+          -221.30497255078075
+        ]
+      },
+      "shipId": "",
+      "tick": 2124
+    },
+    {
+      "kind": "splash",
+      "message": "Shell entering water",
+      "position": [
+        348.77002767424915,
+        0,
+        -31.994563516607577
+      ],
+      "sequence": 13,
+      "shell": {
+        "ammunition": "ap",
+        "caliberM": 0.38,
+        "id": 4,
+        "type": "AP",
+        "velocity": [
+          816.3183501588925,
+          -31.524250968887994,
+          42.10057832052773
+        ]
+      },
+      "shipId": "",
+      "tick": 2124
+    },
+    {
+      "kind": "splash",
+      "message": "Shell entering water",
+      "position": [
+        345.8387800829303,
+        0,
+        -35.60840663636588
+      ],
+      "sequence": 14,
+      "shell": {
+        "ammunition": "ap",
+        "caliberM": 0.38,
+        "id": 1,
+        "type": "AP",
+        "velocity": [
+          806.7646897043368,
+          -22.508398725057532,
+          84.68972278039922
+        ]
+      },
+      "shipId": "",
+      "tick": 2124
+    },
+    {
+      "kind": "splash",
+      "message": "Shell entering water",
+      "position": [
+        348.3793077864625,
+        0,
+        -39.0075272686315
+      ],
+      "sequence": 15,
+      "shell": {
+        "ammunition": "ap",
+        "caliberM": 0.38,
+        "id": 8,
+        "type": "AP",
+        "velocity": [
+          771.272107965947,
+          -20.684295145870536,
+          -259.7433942898198
+        ]
+      },
+      "shipId": "",
+      "tick": 2125
+    },
+    {
+      "kind": "splash",
+      "message": "Shell entering water",
+      "position": [
+        346.7093815263236,
+        0,
+        -42.456305646460706
+      ],
+      "sequence": 16,
+      "shell": {
+        "ammunition": "ap",
+        "caliberM": 0.38,
+        "id": 7,
+        "type": "AP",
+        "velocity": [
+          768.7549469502577,
+          -20.65390741002271,
+          -259.0220390272473
+        ]
+      },
+      "shipId": "",
+      "tick": 2125
+    }
+  ],
+  "mapId": "north-atlantic",
+  "paused": true,
+  "renderedShips": [
+    {
+      "id": "player",
+      "impactDrawCalls": 0,
+      "impactMarks": 0,
+      "visible": true
+    },
+    {
+      "id": "target",
+      "impactDrawCalls": 0,
+      "impactMarks": 0,
+      "visible": true
+    }
+  ],
+  "shipId": "bismarck",
+  "tick": 2508,
+  "timeOfDay": "map",
+  "waves": {
+    "amplitude": 0.24,
+    "peakWavelength": 20,
+    "windSpeed": 9
+  },
+  "weather": "map",
+  "capture": {
+    "name": "foam",
+    "secondsAfterFiring": 6.8,
+    "scene": "splash",
+    "pixels": [
+      1920,
+      1080
+    ]
+  }
+}

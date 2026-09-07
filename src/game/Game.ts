@@ -1091,7 +1091,9 @@ export class Game {
     // Water skips fixed simulation steps while paused. Read the live sky after
     // its zero-delta update, so a conditions change still reaches frozen smoke.
     const { sun, timeOfDay: moon } = this.sky, night = moon.skyDarkness.value > .5;
-    this.effects.setSun(night ? moon.moonDirection.value : sun.direction.value);
+    this.effects.setSun(night ? moon.moonDirection.value : sun.direction.value,
+      this.inPort ? 1 : Math.min(1, night ? .18 + this.ambientLight.intensity * .5
+        : this.ambientLight.intensity * .45 + sun.peakIntensity * .09));
     this.effects.setIllumination(night ? moon.moonColor.value : sun.color.value,
       night ? .35 * moon.moonIntensity.value * moon.moonPhaseIllumination.value : sun.intensity.value,
       this.ambientLight.intensity);

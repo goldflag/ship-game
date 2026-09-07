@@ -1,5 +1,9 @@
 # Naval firing and shell effects
 
+## Water impact polish — September 7, 2026
+
+Shell splashes use the first PR #80 iteration’s long water streaks, curved sheets and low crown, restored after owner review. The original breakup, mist and lighter foam are retained with current lighting and offscreen culling. See the [current animation and rendering checks](../../../reviews/water-impact/streaks/README.md). The later parcel-column experiment remains historical evidence.
+
 ## Muzzle smoke thinning — September 7, 2026
 
 Firing smoke now loses density after cooling, erodes into wisps and is mostly gone within about three seconds. The plume has a narrower trailing lobe and faster, broader leading gas. See the [matched frames, GPU fade measurements and validation](muzzle-dissipation/README.md). Earlier recipes and captures below remain historical evidence.

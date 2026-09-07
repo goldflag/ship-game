@@ -1,0 +1,77 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Water plume GPU regression</title>
+<pre id="result">Checking water rendering…</pre>
+<script type="module">
+import * as THREE from 'three/webgpu';
+import { WaterPlumes } from '/src/game/WaterPlumes.ts';
+import { effectTexture } from '/src/game/EffectParticles.ts';
+
+// Exercise the production material, sheet buffers and depth test on both
+// backends. This supplements the full ocean/game visual and performance review.
+async function check(forceWebGL, reversedDepthBuffer) {
+  const renderer = new THREE.WebGPURenderer({ forceWebGL, reversedDepthBuffer });
+  renderer.setSize(384, 384); await renderer.init();
+  const errors = [];
+  renderer.backend.device?.addEventListener('uncapturederror', event => errors.push(event.error.message));
+  const scene = new THREE.Scene(); scene.background = new THREE.Color('#19364a');
+  const camera = new THREE.PerspectiveCamera(52, 1, .1, 10000);
+  camera.position.set(0, 22, 95); camera.lookAt(0, 22, 0); camera.updateMatrixWorld();
+  const map = effectTexture('water'), plumes = new WaterPlumes(384, map);
+  scene.add(plumes.mesh);
+  const canvas = document.createElement('canvas'); canvas.width = canvas.height = 384;
+  const context = canvas.getContext('2d', { willReadFrequently: true });
+  const pixels = async () => {
+    renderer.render(scene, camera); await renderer.backend.device?.queue.onSubmittedWorkDone();
+    context.drawImage(renderer.domElement, 0, 0);
+    return context.getImageData(0, 0, 384, 384).data;
+  };
+  const difference = (a, b) => {
+    let count = 0;
+    for (let i = 0; i < a.length; i += 4) if (Math.abs(a[i]-b[i])+Math.abs(a[i+1]-b[i+1])+Math.abs(a[i+2]-b[i+2]) > 12) count++;
+    return count;
+  };
+  let seed = 19;
+  const random = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
+  const emit = (x = 0, z = 0) => plumes.emit(new THREE.Vector3(x, .35, z), 1, new THREE.Vector3(.15, -1, 0).normalize(), random);
+  try {
+    const empty = await pixels();
+    emit(); plumes.advance(1.5); plumes.publish(camera);
+    const single = await pixels(), singleSheets = plumes.count;
+    plumes.advance(0); plumes.publish(camera); const paused = await pixels();
+    plumes.setSun(new THREE.Vector3(-.55, .74, -.39).normalize(), .08);
+    const night = await pixels(); plumes.setSun(new THREE.Vector3(-.55, .74, -.39).normalize());
+    let dayLight = 0, nightLight = 0;
+    for (let i = 0; i < single.length; i += 4) if (single[i] - empty[i] > 30) {
+      dayLight += single[i] + single[i+1] + single[i+2]; nightLight += night[i] + night[i+1] + night[i+2];
+    }
+    const blocker = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshBasicMaterial({ color: '#506570' }));
+    blocker.position.set(0, 22, 50); scene.add(blocker);
+    const occluded = await pixels(); plumes.mesh.visible = false; const wall = await pixels();
+    plumes.mesh.visible = true; blocker.removeFromParent(); blocker.geometry.dispose(); blocker.material.dispose();
+    plumes.reset();
+    for (let i = 0; i < 32; i++) emit((i % 4 - 1.5) * 9, (Math.floor(i / 4) - 3.5) * 5);
+    plumes.advance(1.5); plumes.publish(camera);
+    const saturated = await pixels(), saturatedSheets = plumes.count;
+    plumes.reset(); plumes.publish(camera); const cleared = await pixels();
+    emit(); plumes.advance(1.5); plumes.publish(camera); const restarted = await pixels();
+    const result = { backend: renderer.backend.isWebGPUBackend ? 'WebGPU' : 'WebGL', requestedReversedDepth: reversedDepthBuffer,
+      reversedDepth: renderer.reversedDepthBuffer, errors, singleSheets, saturatedSheets,
+      visiblePixels: difference(empty, single), pausedPixels: difference(single, paused), occludedPixels: difference(wall, occluded),
+      saturatedPixels: difference(empty, saturated), resetPixels: difference(empty, cleared), restartedPixels: difference(empty, restarted),
+      nightToDayBrightness: nightLight / dayLight };
+    result.pass = result.visiblePixels > 300 && result.pausedPixels === 0 && result.occludedPixels === 0
+      && saturatedSheets > singleSheets * 5 && result.saturatedPixels > result.visiblePixels
+      && result.resetPixels === 0 && result.restartedPixels > 300 && result.nightToDayBrightness < .7 && errors.length === 0;
+    return result;
+  } finally { plumes.dispose(); map.dispose(); renderer.dispose(); }
+}
+window.waterRenderResults = [];
+try {
+  for (const webgl of [false, true]) for (const reversed of [false, true]) {
+    waterRenderResults.push(await check(webgl, reversed));
+    document.querySelector('#result').textContent = JSON.stringify(waterRenderResults, null, 2);
+  }
+} catch (error) { window.waterRenderError = error.stack; }
+window.waterRenderDone = true;
+</script>

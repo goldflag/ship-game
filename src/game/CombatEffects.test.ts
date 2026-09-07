@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { Camera, InstancedMesh, Matrix4, PerspectiveCamera, Vector3 } from 'three/webgpu';
+import { Camera, InstancedMesh, Matrix4, MeshBasicNodeMaterial, PerspectiveCamera, Vector3 } from 'three/webgpu';
 import blueprint from '../../assets/ships/bismarck/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
 import submarine from '../../assets/ships/type-viic/blueprint.json';
@@ -151,11 +151,41 @@ test('salvos are bounded, do not replay events, pause cleanly, and reset without
   const active = effects.diagnostics();
   expect(active.smoke + active.spray + active.flashes + active.foam).toBeLessThanOrEqual(active.particleCapacity);
   sim.events.length = 0; effects.reset(); effects.update(sim, 0, camera);
-  expect(effects.diagnostics()).toEqual({ shells: 0, torpedoes: 0, depthCharges: 0, smoke: 0, aircraftSmoke: 0, spray: 0, flashes: 0, foam: 0, particleCapacity: 3040 });
+  expect(effects.diagnostics()).toEqual({ shells: 0, torpedoes: 0, depthCharges: 0, smoke: 0, aircraftSmoke: 0, spray: 0, flashes: 0, foam: 0, particleCapacity: active.particleCapacity });
   sim.events.push({ ...event, sequence: 150 }); effects.update(sim, 0, camera);
   expect(effects.diagnostics().flashes).toBeGreaterThan(0);
   for (let i = 0; i < 13 * 60; i++) effects.update(sim, 1 / 60, camera);
   expect(effects.diagnostics().smoke).toBe(0); expect(effects.diagnostics().flashes).toBe(0);
+  effects.dispose();
+});
+
+test('water spray returns to the sampled impact height above and below mean sea level', () => {
+  const map = effectTexture('droplet'), camera = new Camera(), wind = new Vector3();
+  for (const surfaceY of [-4, 0, 5]) {
+    const pool = new EffectParticlePool(4, map), p = pool.emit(new Vector3(0, surfaceY + .35, 0));
+    p.surfaceY = surfaceY; p.waterline = true; p.velocity.y = 8; p.gravity = 9.81; p.life = 6;
+    pool.update(.7, camera, wind);
+    expect(pool.count).toBe(1);
+    expect(p.position.y).toBeGreaterThan(surfaceY + 3);
+    pool.update(1, camera, wind);
+    expect(pool.count).toBe(0);
+    pool.dispose();
+  }
+  map.dispose();
+});
+
+test('airborne water responds to environment light without re-emitting the splash', () => {
+  const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
+  sim.events.push({ sequence: 1, tick: 0, kind: 'splash', position: [0, 0, 0], message: 'Test splash', shipId: 'player',
+    shell: { id: 1, caliberM: .38, velocity: [790, -85, 0] } });
+  effects.update(sim, 0, camera); effects.update(sim, .5, camera);
+  const before = effects.diagnostics();
+  effects.setSun(new Vector3(0, 1, 0), .08); effects.update(sim, 0, camera);
+  expect(effects.diagnostics()).toEqual(before);
+  const mesh = effects.root.getObjectByName('Water droplets and mist') as InstancedMesh;
+  expect((mesh.material as MeshBasicNodeMaterial).color.r).toBeCloseTo(.08, 5);
+  effects.setSun(new Vector3(0, 1, 0), 1);
+  expect((mesh.material as MeshBasicNodeMaterial).color.r).toBe(1);
   effects.dispose();
 });
 

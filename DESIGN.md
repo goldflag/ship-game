@@ -211,6 +211,8 @@ Own damage control puts active fires first, showing the affected space, growing/
 
 ## Do's and Don'ts
 
+Water impacts retain the first PR #80 iteration's long, directional water streaks: curved sheets, fine filaments and a low crown that collapse into spray. This is the owner's preferred splash appearance. Preserve its silhouette and breakup when optimizing; the later dense parcel column was rejected. See the [current streaked-water review](assets/reviews/water-impact/streaks/README.md).
+
 ### Do:
 
 - **Do** preserve the ship and sea as the primary view.
