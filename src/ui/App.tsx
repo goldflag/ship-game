@@ -192,7 +192,15 @@ export function App() {
     window.close();
   };
 
-  return <ShipContext value={selectedShip}><main className="game-shell">
+  return <ShipContext value={selectedShip}><main className="game-shell"
+    onContextMenu={event => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement && target.closest('input, textarea, [contenteditable]:not([contenteditable="false"])'))) event.preventDefault();
+    }}
+    onDragStart={event => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement && target.closest('input, textarea, [contenteditable]:not([contenteditable="false"])'))) event.preventDefault();
+    }}>
     <div ref={host} className="ocean-viewport" inert={!ready || !!error} data-ship-labels={phase === 'sailing' && hud && ready && !error} />
     {phase === 'garage' && ready && !error && <Garage key={selectedShip.id} switching={switching} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} fps={data.fps} onLaunch={openBattleSetup} onSettings={() => game.current?.setPaused(true)}/>}
     {battleSetupOpen && !battleLoading && <BattleSetupDialog setup={battleSetup} onChange={setBattleSetup} onLaunch={launch} onClose={() => setBattleSetupOpen(false)} error={battleError}/>}
