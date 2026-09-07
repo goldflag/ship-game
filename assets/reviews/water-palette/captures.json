@@ -1,0 +1,632 @@
+{
+  "width": 1600,
+  "height": 900,
+  "baseline": "716c34f787ceaf658a2fe425da73e100f5a2ab45",
+  "captures": [
+    {
+      "file": "port-original.webp",
+      "ambient": 1.1,
+      "backend": "webgpu",
+      "camera": [
+        519.0881204723669,
+        89.09269514893623,
+        149.1478914928684
+      ],
+      "colors": {
+        "absorptionColor": "#945b57",
+        "transmissionColor": "#226755",
+        "waterColor": "#224659"
+      },
+      "errors": [],
+      "map": "port",
+      "portSun": 5,
+      "variant": "original",
+      "view": "ship",
+      "waves": {
+        "amplitude": 0.12,
+        "gamma": 3.3,
+        "sharpness": 1.57
+      },
+      "weather": "map"
+    },
+    {
+      "file": "port-A.webp",
+      "ambient": 1.75,
+      "backend": "webgpu",
+      "camera": [
+        519.0881204723669,
+        89.09269514893623,
+        149.1478914928684
+      ],
+      "colors": {
+        "absorptionColor": "#945b57",
+        "transmissionColor": "#355166",
+        "waterColor": "#19364a"
+      },
+      "errors": [],
+      "map": "port",
+      "portSun": 5.8,
+      "variant": "A",
+      "view": "ship",
+      "waves": {
+        "amplitude": 0.12,
+        "gamma": 2.2,
+        "sharpness": 0.8
+      },
+      "weather": "map"
+    },
+    {
+      "file": "north-atlantic-original.webp",
+      "ambient": 0.65,
+      "backend": "webgpu",
+      "camera": [
+        550,
+        200,
+        700
+      ],
+      "colors": {
+        "absorptionColor": "#945b57",
+        "transmissionColor": "#226755",
+        "waterColor": "#224659"
+      },
+      "errors": [],
+      "map": "north-atlantic",
+      "portSun": 6.6,
+      "variant": "original",
+      "view": "ship",
+      "waves": {
+        "amplitude": 0.18,
+        "gamma": 3.3,
+        "sharpness": 1.57
+      },
+      "weather": "map"
+    },
+    {
+      "file": "north-atlantic-A.webp",
+      "ambient": 0.65,
+      "backend": "webgpu",
+      "camera": [
+        550,
+        200,
+        700
+      ],
+      "colors": {
+        "absorptionColor": "#945b57",
+        "transmissionColor": "#355166",
+        "waterColor": "#19364a"
+      },
+      "errors": [],
+      "map": "north-atlantic",
+      "portSun": 6.6,
+      "variant": "A",
+      "view": "ship",
+      "waves": {
+        "amplitude": 0.24,
+        "gamma": 2.2,
+        "sharpness": 0.8
+      },
+      "weather": "map"
+    },
+    {
+      "file": "pacific-islands-original.webp",
+      "ambient": 0.85,
+      "backend": "webgpu",
+      "camera": [
+        550,
+        200,
+        700
+      ],
+      "colors": {
+        "absorptionColor": "#b67b45",
+        "transmissionColor": "#40bc9f",
+        "waterColor": "#146779"
+      },
+      "errors": [],
+      "map": "pacific-islands",
+      "portSun": 6.5,
+      "variant": "original",
+      "view": "ship",
+      "waves": {
+        "amplitude": 0.11699999999999999,
+        "gamma": 3.3,
+        "sharpness": 1.57
+      },
+      "weather": "map"
+    },
+    {
+      "file": "pacific-islands-A.webp",
+      "ambient": 0.85,
+      "backend": "webgpu",
+      "camera": [
+        550,
+        200,
+        700
+      ],
+      "colors": {
+        "absorptionColor": "#b67b45",
+        "transmissionColor": "#3b5867",
+        "waterColor": "#1b3a4c"
+      },
+      "errors": [],
+      "map": "pacific-islands",
+      "portSun": 6.5,
+      "variant": "A",
+      "view": "ship",
+      "waves": {
+        "amplitude": 0.156,
+        "gamma": 2.2,
+        "sharpness": 0.8
+      },
+      "weather": "map"
+    },
+    {
+      "file": "arctic-passage-original.webp",
+      "ambient": 1,
+      "backend": "webgpu",
+      "camera": [
+        550,
+        200,
+        700
+      ],
+      "colors": {
+        "absorptionColor": "#916d59",
+        "transmissionColor": "#77abb0",
+        "waterColor": "#2c515b"
+      },
+      "errors": [],
+      "map": "arctic-passage",
+      "portSun": 4.8,
+      "variant": "original",
+      "view": "ship",
+      "waves": {
+        "amplitude": 0.108,
+        "gamma": 3.3,
+        "sharpness": 1.57
+      },
+      "weather": "map"
+    },
+    {
+      "file": "arctic-passage-A.webp",
+      "ambient": 1,
+      "backend": "webgpu",
+      "camera": [
+        550,
+        200,
+        700
+      ],
+      "colors": {
+        "absorptionColor": "#916d59",
+        "transmissionColor": "#41576b",
+        "waterColor": "#20394c"
+      },
+      "errors": [],
+      "map": "arctic-passage",
+      "portSun": 4.8,
+      "variant": "A",
+      "view": "ship",
+      "waves": {
+        "amplitude": 0.144,
+        "gamma": 2.2,
+        "sharpness": 0.8
+      },
+      "weather": "map"
+    },
+    {
+      "file": "indian-volcanic-coast-original.webp",
+      "ambient": 0.8,
+      "backend": "webgpu",
+      "camera": [
+        550,
+        200,
+        700
+      ],
+      "colors": {
+        "absorptionColor": "#a97851",
+        "transmissionColor": "#327d85",
+        "waterColor": "#203f65"
+      },
+      "errors": [],
+      "map": "indian-volcanic-coast",
+      "portSun": 5.8,
+      "variant": "original",
+      "view": "ship",
+      "waves": {
+        "amplitude": 0.189,
+        "gamma": 3.3,
+        "sharpness": 1.57
+      },
+      "weather": "map"
+    },
+    {
+      "file": "indian-volcanic-coast-A.webp",
+      "ambient": 0.8,
+      "backend": "webgpu",
+      "camera": [
+        550,
+        200,
+        700
+      ],
+      "colors": {
+        "absorptionColor": "#a97851",
+        "transmissionColor": "#354e65",
+        "waterColor": "#1b354b"
+      },
+      "errors": [],
+      "map": "indian-volcanic-coast",
+      "portSun": 5.8,
+      "variant": "A",
+      "view": "ship",
+      "waves": {
+        "amplitude": 0.252,
+        "gamma": 2.2,
+        "sharpness": 0.8
+      },
+      "weather": "map"
+    },
+    {
+      "file": "port-original-close.webp",
+      "ambient": 1.1,
+      "backend": "webgpu",
+      "camera": [
+        432.13232023966,
+        45.69948522173203,
+        102.67771484818593
+      ],
+      "colors": {
+        "absorptionColor": "#945b57",
+        "transmissionColor": "#226755",
+        "waterColor": "#224659"
+      },
+      "errors": [],
+      "map": "port",
+      "portSun": 5,
+      "variant": "original",
+      "view": "close",
+      "waves": {
+        "amplitude": 0.12,
+        "gamma": 3.3,
+        "sharpness": 1.57
+      },
+      "weather": "map"
+    },
+    {
+      "file": "port-A-close.webp",
+      "ambient": 1.75,
+      "backend": "webgpu",
+      "camera": [
+        432.13232023966,
+        45.69948522173203,
+        102.67771484818596
+      ],
+      "colors": {
+        "absorptionColor": "#945b57",
+        "transmissionColor": "#355166",
+        "waterColor": "#19364a"
+      },
+      "errors": [],
+      "map": "port",
+      "portSun": 5.8,
+      "variant": "A",
+      "view": "close",
+      "waves": {
+        "amplitude": 0.12,
+        "gamma": 2.2,
+        "sharpness": 0.8
+      },
+      "weather": "map"
+    },
+    {
+      "file": "north-atlantic-original-close.webp",
+      "ambient": 0.65,
+      "backend": "webgpu",
+      "camera": [
+        -165,
+        36,
+        95
+      ],
+      "colors": {
+        "absorptionColor": "#945b57",
+        "transmissionColor": "#226755",
+        "waterColor": "#224659"
+      },
+      "errors": [],
+      "map": "north-atlantic",
+      "portSun": 6.6,
+      "variant": "original",
+      "view": "close",
+      "waves": {
+        "amplitude": 0.18,
+        "gamma": 3.3,
+        "sharpness": 1.57
+      },
+      "weather": "map"
+    },
+    {
+      "file": "north-atlantic-A-close.webp",
+      "ambient": 0.65,
+      "backend": "webgpu",
+      "camera": [
+        -165,
+        36,
+        95
+      ],
+      "colors": {
+        "absorptionColor": "#945b57",
+        "transmissionColor": "#355166",
+        "waterColor": "#19364a"
+      },
+      "errors": [],
+      "map": "north-atlantic",
+      "portSun": 6.6,
+      "variant": "A",
+      "view": "close",
+      "waves": {
+        "amplitude": 0.24,
+        "gamma": 2.2,
+        "sharpness": 0.8
+      },
+      "weather": "map"
+    },
+    {
+      "file": "pacific-islands-original-close.webp",
+      "ambient": 0.85,
+      "backend": "webgpu",
+      "camera": [
+        -165,
+        36,
+        95
+      ],
+      "colors": {
+        "absorptionColor": "#b67b45",
+        "transmissionColor": "#40bc9f",
+        "waterColor": "#146779"
+      },
+      "errors": [],
+      "map": "pacific-islands",
+      "portSun": 6.5,
+      "variant": "original",
+      "view": "close",
+      "waves": {
+        "amplitude": 0.11699999999999999,
+        "gamma": 3.3,
+        "sharpness": 1.57
+      },
+      "weather": "map"
+    },
+    {
+      "file": "pacific-islands-A-close.webp",
+      "ambient": 0.85,
+      "backend": "webgpu",
+      "camera": [
+        -165,
+        36,
+        95
+      ],
+      "colors": {
+        "absorptionColor": "#b67b45",
+        "transmissionColor": "#3b5867",
+        "waterColor": "#1b3a4c"
+      },
+      "errors": [],
+      "map": "pacific-islands",
+      "portSun": 6.5,
+      "variant": "A",
+      "view": "close",
+      "waves": {
+        "amplitude": 0.156,
+        "gamma": 2.2,
+        "sharpness": 0.8
+      },
+      "weather": "map"
+    },
+    {
+      "file": "arctic-passage-original-close.webp",
+      "ambient": 1,
+      "backend": "webgpu",
+      "camera": [
+        -165,
+        36,
+        95
+      ],
+      "colors": {
+        "absorptionColor": "#916d59",
+        "transmissionColor": "#77abb0",
+        "waterColor": "#2c515b"
+      },
+      "errors": [],
+      "map": "arctic-passage",
+      "portSun": 4.8,
+      "variant": "original",
+      "view": "close",
+      "waves": {
+        "amplitude": 0.108,
+        "gamma": 3.3,
+        "sharpness": 1.57
+      },
+      "weather": "map"
+    },
+    {
+      "file": "arctic-passage-A-close.webp",
+      "ambient": 1,
+      "backend": "webgpu",
+      "camera": [
+        -165,
+        36,
+        95
+      ],
+      "colors": {
+        "absorptionColor": "#916d59",
+        "transmissionColor": "#41576b",
+        "waterColor": "#20394c"
+      },
+      "errors": [],
+      "map": "arctic-passage",
+      "portSun": 4.8,
+      "variant": "A",
+      "view": "close",
+      "waves": {
+        "amplitude": 0.144,
+        "gamma": 2.2,
+        "sharpness": 0.8
+      },
+      "weather": "map"
+    },
+    {
+      "file": "indian-volcanic-coast-original-close.webp",
+      "ambient": 0.8,
+      "backend": "webgpu",
+      "camera": [
+        -165,
+        36,
+        95
+      ],
+      "colors": {
+        "absorptionColor": "#a97851",
+        "transmissionColor": "#327d85",
+        "waterColor": "#203f65"
+      },
+      "errors": [],
+      "map": "indian-volcanic-coast",
+      "portSun": 5.8,
+      "variant": "original",
+      "view": "close",
+      "waves": {
+        "amplitude": 0.189,
+        "gamma": 3.3,
+        "sharpness": 1.57
+      },
+      "weather": "map"
+    },
+    {
+      "file": "indian-volcanic-coast-A-close.webp",
+      "ambient": 0.8,
+      "backend": "webgpu",
+      "camera": [
+        -165,
+        36,
+        95
+      ],
+      "colors": {
+        "absorptionColor": "#a97851",
+        "transmissionColor": "#354e65",
+        "waterColor": "#1b354b"
+      },
+      "errors": [],
+      "map": "indian-volcanic-coast",
+      "portSun": 5.8,
+      "variant": "A",
+      "view": "close",
+      "waves": {
+        "amplitude": 0.252,
+        "gamma": 2.2,
+        "sharpness": 0.8
+      },
+      "weather": "map"
+    },
+    {
+      "file": "port-original-sun.webp",
+      "ambient": 1.1,
+      "backend": "webgpu",
+      "camera": [
+        -34.73413151450933,
+        40.972275539981126,
+        -171.6729387068433
+      ],
+      "colors": {
+        "absorptionColor": "#945b57",
+        "transmissionColor": "#226755",
+        "waterColor": "#224659"
+      },
+      "errors": [],
+      "map": "port",
+      "portSun": 5,
+      "variant": "original",
+      "view": "sun",
+      "waves": {
+        "amplitude": 0.12,
+        "gamma": 3.3,
+        "sharpness": 1.57
+      },
+      "weather": "map"
+    },
+    {
+      "file": "port-A-sun.webp",
+      "ambient": 1.75,
+      "backend": "webgpu",
+      "camera": [
+        -34.73413151450933,
+        40.972275539981126,
+        -171.67293870684333
+      ],
+      "colors": {
+        "absorptionColor": "#945b57",
+        "transmissionColor": "#355166",
+        "waterColor": "#19364a"
+      },
+      "errors": [],
+      "map": "port",
+      "portSun": 5.8,
+      "variant": "A",
+      "view": "sun",
+      "waves": {
+        "amplitude": 0.12,
+        "gamma": 2.2,
+        "sharpness": 0.8
+      },
+      "weather": "map"
+    },
+    {
+      "file": "north-atlantic-A-overcast.webp",
+      "ambient": 0.5850000000000001,
+      "backend": "webgpu",
+      "camera": [
+        550,
+        200,
+        700
+      ],
+      "colors": {
+        "absorptionColor": "#945b57",
+        "transmissionColor": "#355166",
+        "waterColor": "#19364a"
+      },
+      "errors": [],
+      "map": "north-atlantic",
+      "portSun": 3.63,
+      "variant": "A",
+      "view": "ship",
+      "waves": {
+        "amplitude": 0.34,
+        "gamma": 2.2,
+        "sharpness": 0.8
+      },
+      "weather": "overcast"
+    },
+    {
+      "file": "north-atlantic-A-storm-clouds.webp",
+      "ambient": 0.42250000000000004,
+      "backend": "webgpu",
+      "camera": [
+        550,
+        200,
+        700
+      ],
+      "colors": {
+        "absorptionColor": "#945b57",
+        "transmissionColor": "#355166",
+        "waterColor": "#19364a"
+      },
+      "errors": [],
+      "map": "north-atlantic",
+      "portSun": 1.9799999999999998,
+      "variant": "A",
+      "view": "ship",
+      "waves": {
+        "amplitude": 0.48,
+        "gamma": 2.2,
+        "sharpness": 0.8
+      },
+      "weather": "storm-clouds"
+    }
+  ],
+  "selectedVariant": "A"
+}
