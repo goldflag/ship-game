@@ -1,0 +1,196 @@
+{
+  "type": "Actual React components over a static in-game harbor crop; not live combat evidence",
+  "browser": "Isolated headless Chrome",
+  "records": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900,
+      "mode": "scope",
+      "layout": {
+        "eyepiece": {
+          "x": 80.82032775878906,
+          "y": 44.8860969543457,
+          "width": 1278.359375,
+          "height": 810.227783203125,
+          "top": 44.8860969543457,
+          "right": 1359.179702758789,
+          "bottom": 855.1138801574707,
+          "left": 80.82032775878906
+        },
+        "scope": "5.00 km\n6.4 s\nFLIGHT TIME\n8.0×",
+        "readout": {
+          "x": 631.6015625,
+          "y": 559.9921875,
+          "width": 176.796875,
+          "height": 35,
+          "top": 559.9921875,
+          "right": 808.3984375,
+          "bottom": 594.9921875,
+          "left": 631.6015625
+        },
+        "armament": {
+          "x": 550,
+          "y": 727,
+          "width": 340,
+          "height": 153,
+          "top": 727,
+          "right": 890,
+          "bottom": 880,
+          "left": 550
+        },
+        "hidden": false,
+        "hint": false,
+        "overflow": false
+      }
+    },
+    {
+      "name": "portrait",
+      "width": 390,
+      "height": 844,
+      "mode": "scope",
+      "layout": {
+        "eyepiece": {
+          "x": 15.574834823608398,
+          "y": 226.97093200683594,
+          "width": 358.850341796875,
+          "height": 390.05810546875,
+          "top": 226.97093200683594,
+          "right": 374.4251766204834,
+          "bottom": 617.0290374755859,
+          "left": 15.574834823608398
+        },
+        "scope": "5.00 km\n6.4 s\nFLIGHT TIME\n8.0×",
+        "readout": {
+          "x": 106.6015625,
+          "y": 531.9921875,
+          "width": 176.796875,
+          "height": 35,
+          "top": 531.9921875,
+          "right": 283.3984375,
+          "bottom": 566.9921875,
+          "left": 106.6015625
+        },
+        "armament": {
+          "x": 40,
+          "y": 150,
+          "width": 310,
+          "height": 147,
+          "top": 150,
+          "right": 350,
+          "bottom": 297,
+          "left": 40
+        },
+        "hidden": false,
+        "hint": false,
+        "overflow": false
+      }
+    },
+    {
+      "name": "landscape",
+      "width": 844,
+      "height": 390,
+      "mode": "scope",
+      "layout": {
+        "eyepiece": {
+          "x": 145.0601806640625,
+          "y": 19.473770141601562,
+          "width": 553.879638671875,
+          "height": 351.052490234375,
+          "top": 19.473770141601562,
+          "right": 698.9398193359375,
+          "bottom": 370.52626037597656,
+          "left": 145.0601806640625
+        },
+        "scope": "5.00 km\n6.4 s\nFLIGHT TIME\n8.0×",
+        "readout": {
+          "x": 333.6015625,
+          "y": 269.09375,
+          "width": 176.796875,
+          "height": 35,
+          "top": 269.09375,
+          "right": 510.3984375,
+          "bottom": 304.09375,
+          "left": 333.6015625
+        },
+        "armament": {
+          "x": 292,
+          "y": 308,
+          "width": 260,
+          "height": 70,
+          "top": 308,
+          "right": 552,
+          "bottom": 378,
+          "left": 292
+        },
+        "hidden": false,
+        "hint": false,
+        "overflow": false
+      }
+    },
+    {
+      "name": "hidden",
+      "width": 1440,
+      "height": 900,
+      "mode": "hidden",
+      "layout": {
+        "eyepiece": {
+          "x": 80.95498657226562,
+          "y": 44.97146224975586,
+          "width": 1278.0899658203125,
+          "height": 810.05712890625,
+          "top": 44.97146224975586,
+          "right": 1359.0449523925781,
+          "bottom": 855.0285911560059,
+          "left": 80.95498657226562
+        },
+        "scope": "",
+        "readout": {
+          "x": 631.6015625,
+          "y": 559.9921875,
+          "width": 176.796875,
+          "height": 35,
+          "top": 559.9921875,
+          "right": 808.3984375,
+          "bottom": 594.9921875,
+          "left": 631.6015625
+        },
+        "armament": {
+          "x": 550,
+          "y": 727,
+          "width": 340,
+          "height": 153,
+          "top": 727,
+          "right": 890,
+          "bottom": 880,
+          "left": 550
+        },
+        "hidden": true,
+        "hint": false,
+        "overflow": false
+      }
+    },
+    {
+      "name": "chase",
+      "width": 1440,
+      "height": 900,
+      "mode": "chase",
+      "layout": {
+        "armament": {
+          "x": 550,
+          "y": 727,
+          "width": 340,
+          "height": 153,
+          "top": 727,
+          "right": 890,
+          "bottom": 880,
+          "left": 550
+        },
+        "hidden": false,
+        "hint": false,
+        "overflow": false
+      }
+    }
+  ],
+  "errors": []
+}

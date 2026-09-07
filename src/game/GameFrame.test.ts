@@ -56,6 +56,7 @@ async function frameHarness() {
       setOrder: (order: number) => { helm.throttle = ENGINE_ORDERS[order]; },
       setRudder: (rudder: number) => { helm.rudder = rudder; } },
     aircraftView: { update() {} },
+    funnelSmoke: { root: new Group(), update() {}, setWind() {} },
     effects: { update() {}, reset() {} }, sky: { update() {} }, scene: new FrameScene(),
     surfaceWaterAbsorption: new Color(.296, .105, .095),
     water: { color: { absorptionColor: new Color(.296, .105, .095) }, async update() {} },

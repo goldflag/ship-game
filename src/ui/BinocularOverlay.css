@@ -1,0 +1,35 @@
+/* A physical field stop and recessed glass edge; the central image stays clear. */
+.binocular-overlay {
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+  pointer-events:none;
+  animation:binocular-seat .3s cubic-bezier(.16,1,.3,1) both;
+}
+.binocular-eyepiece {
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:min(92vw,142vh);
+  height:min(90vh,100vw);
+  transform:translate(-50%,-50%);
+  border:2px solid #030506;
+  border-radius:50%;
+  background:radial-gradient(ellipse closest-side,transparent 76%,#15312c0a 86%,#02060866 96%,#020405e6 100%);
+  box-shadow:0 0 0 7px #0b1011,0 0 0 8px #333b3a,0 0 0 15px #070a0b,0 0 0 100vmax #020405,inset 0 8px 18px 5px #0009;
+}
+.binocular-eyepiece::after {
+  content:'';
+  position:absolute;
+  inset:5px;
+  border:1px solid #b5d2be30;
+  border-radius:inherit;
+  mask-image:linear-gradient(145deg,#0009,transparent 36%,transparent 65%,#0006);
+}
+@keyframes binocular-seat {
+  from { opacity:.4; transform:scale(1.045); }
+  to { opacity:1; transform:scale(1); }
+}
+@media (prefers-reduced-motion:reduce) {
+  .binocular-overlay { animation:none; }
+}
