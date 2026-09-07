@@ -3,16 +3,17 @@ import { PerspectiveCamera, Plane, Raycaster, Vector2, Vector3 } from 'three/web
 import { BattlefieldCamera } from './BattlefieldCamera';
 import { chartPoint, chartWorld } from '../ui/airChart';
 
-test('angle limits keep the sea below the whole viewport and reset retains map position and zoom', () => {
+test('angle limits allow a low horizon view and reset retains map position and zoom', () => {
   const camera = new PerspectiveCamera(52, 390 / 844, .5, 60000);
   const map = new BattlefieldCamera(camera);
   map.view = { x: 50000, z: -50000, radius: 40000 };
   map.orbit(500, -100000); map.update();
-  expect(map.view.tilt! * 180 / Math.PI).toBeCloseTo(55);
+  expect(map.view.tilt! * 180 / Math.PI).toBeCloseTo(80);
   for (const x of [-1, 1]) for (const y of [-1, 1]) {
     const ray = new Raycaster(); ray.setFromCamera(new Vector2(x, y), camera);
     const sea = ray.ray.intersectPlane(new Plane(new Vector3(0, 1, 0), 0), new Vector3())!;
-    expect(sea).toBeTruthy(); expect(sea.clone().project(camera).z).toBeLessThan(1);
+    if (y > 0) expect(sea).toBeNull();
+    else { expect(sea).toBeTruthy(); expect(sea.clone().project(camera).z).toBeLessThan(1); }
   }
   map.orbit(0, 100000); expect(map.view.tilt).toBe(0);
   map.setTilt(NaN); expect(map.view.tilt).toBe(0);
@@ -22,8 +23,25 @@ test('angle limits keep the sea below the whole viewport and reset retains map p
   expect(map.view.tilt).toBe(Math.PI / 9); expect(map.view.bearing).toBe(0);
 });
 
+test('sky and horizon navigation stays finite and pans in the same direction as water', () => {
+  for (const [width, height] of [[1440, 900], [390, 844]]) for (const radius of [600, 8000, 40000]) {
+    const camera = new PerspectiveCamera(52, width / height, .5, 60000);
+    const map = new BattlefieldCamera(camera);
+    const view = { x: 0, z: 0, radius, tilt: 80 * Math.PI / 180, bearing: 0 };
+    const horizon = height / 2 - height / (2 * Math.tan(26 * Math.PI / 180)) / Math.tan(view.tilt);
+    for (const y of [0, horizon - .01, horizon, horizon + .01]) {
+      map.view = { ...view }; map.pan(10, 10, width, height, width / 2, y);
+      expect(map.view.x).toBeLessThan(0); expect(map.view.z).toBeLessThan(0);
+      expect(Math.abs(map.view.x)).toBeLessThan(50000); expect(Math.abs(map.view.z)).toBeLessThan(50000);
+      map.view = { ...view }; map.zoom(-200, width / 2, y, width, height);
+      expect(Number.isFinite(map.view.x)).toBe(true); expect(Number.isFinite(map.view.z)).toBe(true);
+      expect(map.view.radius).toBeLessThanOrEqual(radius);
+    }
+  }
+});
+
 test('orbit angles preserve water picking, cursor zoom and screen-space panning', () => {
-  for (const [width, height] of [[1440, 900], [390, 844]]) for (const tilt of [0, 20, 55]) for (const bearing of [0, 90, 225]) {
+  for (const [width, height] of [[1440, 900], [390, 844]]) for (const tilt of [0, 20, 55, 80]) for (const bearing of [0, 90, 225]) {
     const camera = new PerspectiveCamera(52, width / height, .5, 60000);
     const map = new BattlefieldCamera(camera);
     map.view = { x: 300, z: -600, radius: 8000, tilt: tilt * Math.PI / 180, bearing: bearing * Math.PI / 180 };
@@ -34,6 +52,7 @@ test('orbit angles preserve water picking, cursor zoom and screen-space panning'
     for (const [u, v] of [[.02, .02], [.98, .98], [.5, .5]]) {
       const ray = new Raycaster(); ray.setFromCamera(new Vector2(u * 2 - 1, 1 - v * 2), camera);
       const water = ray.ray.intersectPlane(new Plane(new Vector3(0, 1, 0), 0), new Vector3())!;
+      if (!water) continue;
       const point = chartWorld(map.view, width, height, width * u, height * v);
       expect(point[0]).toBeCloseTo(water.x, 5); expect(point[1]).toBeCloseTo(water.z, 5);
     }
@@ -41,10 +60,10 @@ test('orbit angles preserve water picking, cursor zoom and screen-space panning'
     const overlay = chartPoint(map.view, width, height, 500, -1000, 420);
     expect(overlay[0]).toBeCloseTo((point.x + 1) * width / 2, 6);
     expect(overlay[1]).toBeCloseTo((1 - point.y) * height / 2, 6);
-    const anchor = chartWorld(map.view, width, height, width * .6, height * .4);
-    map.zoom(-200, width * .6, height * .4, width, height);
-    map.pan(20, 10, width, height, width * .6 + 20, height * .4 + 10);
-    const dragged = chartWorld(map.view, width, height, width * .6 + 20, height * .4 + 10);
+    const anchor = chartWorld(map.view, width, height, width * .6, height * .6);
+    map.zoom(-200, width * .6, height * .6, width, height);
+    map.pan(20, 10, width, height, width * .6 + 20, height * .6 + 10);
+    const dragged = chartWorld(map.view, width, height, width * .6 + 20, height * .6 + 10);
     expect(dragged[0]).toBeCloseTo(anchor[0], 6); expect(dragged[1]).toBeCloseTo(anchor[1], 6);
   }
 });

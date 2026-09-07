@@ -1,8 +1,14 @@
 export interface ChartView { x: number; z: number; radius: number; tilt?: number; bearing?: number; }
 export const BATTLEFIELD_FOV = 52;
 export const BATTLEFIELD_TILT = 20 * Math.PI / 180;
-export const BATTLEFIELD_MAX_TILT = 55 * Math.PI / 180;
+export const BATTLEFIELD_MAX_TILT = 80 * Math.PI / 180;
 const focalLength = (height: number) => height / (2 * Math.tan(BATTLEFIELD_FOV * Math.PI / 360));
+/** Keep navigation rays below the horizon, where tiny drags would cover enormous distances. */
+export function chartNavigationY(view: ChartView, height: number, y: number): number {
+  const tilt = view.tilt ?? BATTLEFIELD_TILT;
+  if (tilt <= 0) return y;
+  return Math.max(y, height / 2 + focalLength(height) * (.1 - Math.cos(tilt)) / Math.sin(tilt));
+}
 export const battlefieldDistance = (view: ChartView, width: number, height: number) => 2 * view.radius * focalLength(height) / width;
 
 /** Shared perspective projection for the tilted scene, sea targets and airborne routes. */

@@ -1,5 +1,5 @@
 import { PerspectiveCamera } from 'three/webgpu';
-import { battlefieldDistance, BATTLEFIELD_FOV, BATTLEFIELD_TILT, BATTLEFIELD_MAX_TILT, chartPoint, chartWorld, fitAirChart, type ChartView } from '../ui/airChart';
+import { battlefieldDistance, BATTLEFIELD_FOV, BATTLEFIELD_TILT, BATTLEFIELD_MAX_TILT, chartNavigationY, chartPoint, chartWorld, fitAirChart, type ChartView } from '../ui/airChart';
 
 /** Orbitable battlefield camera; defaults to north-up, twenty degrees off vertical. */
 export class BattlefieldCamera {
@@ -55,11 +55,14 @@ export class BattlefieldCamera {
     }
   }
   pan(dx: number, dy: number, width: number, height: number, x = width / 2, y = height / 2) {
+    // Move both grab points into the usable water band so sky drags still pan in both axes.
+    y = chartNavigationY(this.view, height, y - Math.max(0, dy)) + Math.max(0, dy);
     const before = chartWorld(this.view, width, height, x - dx, y - dy), after = chartWorld(this.view, width, height, x, y);
     this.view.x += before[0] - after[0]; this.view.z += before[1] - after[1];
     this.view.x = Math.max(-50000, Math.min(50000, this.view.x)); this.view.z = Math.max(-50000, Math.min(50000, this.view.z));
   }
   zoom(delta: number, x: number, y: number, width: number, height: number) {
+    y = chartNavigationY(this.view, height, y);
     const before = chartWorld(this.view, width, height, x, y);
     this.view.radius = Math.max(600, Math.min(40000, this.view.radius * Math.exp(delta * .0015)));
     const after = chartWorld(this.view, width, height, x, y);
