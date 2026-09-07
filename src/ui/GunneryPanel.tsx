@@ -6,6 +6,9 @@ import type { Ammunition } from '../ships/blueprint';
 import { Icon } from './Icons';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
 
+const listLabel = (angle: number) => Math.abs(angle) < .05 ? 'Upright' : `${Math.abs(angle).toFixed(1)}° ${angle > 0 ? 'port' : 'starboard'}`;
+const trimLabel = (angle: number) => Math.abs(angle) < .05 ? 'Level' : `${Math.abs(angle).toFixed(1)}° ${angle < 0 ? 'bow down' : 'stern down'}`;
+
 export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bindings: Keybindings; data: Telemetry; game: Game | null; expanded: boolean; onExpand(expanded: boolean): void }) {
   const c = data.combat;
   if (!c) return null;
@@ -31,6 +34,13 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
       </div>)}</div>
       <details className="shell-history">
         <summary>Own damage control · {[...c.control.rooms, ...c.control.mounts].filter(f => f.intensity > 0).length} fires · {c.control.teams.filter(Boolean).length}/{c.control.teams.length} teams</summary>
+        <dl className="damage-readout" aria-label="Own flooding and balance">
+          <div><dt>List</dt><dd>{listLabel(c.playerList)}</dd></div>
+          <div><dt>Trim</dt><dd>{trimLabel(c.playerTrim)}</dd></div>
+          <div><dt>Flooding</dt><dd>{c.playerWater.toFixed(0)} m³</dd></div>
+          <div><dt>{c.submarine ? 'Depth' : 'Draft change'}</dt><dd>{c.playerDraftChange.toFixed(2)} m</dd></div>
+        </dl>
+        <p className="gunnery-help">Uneven flooding can make the ship list or capsize with hull HP remaining. Contain flooding and focus crews on flooded spaces to help restore balance.</p>
         <label className="aim-select">Priority <select value={c.control.priority} onChange={e => { if (game) game.controlPriority = e.target.value as ControlPriority; }}>
           <option value="balanced">Balanced</option><option value="fires">Fight fires</option><option value="flooding">Contain flooding</option><option value="repairs">Repair equipment</option>
         </select></label>
@@ -53,7 +63,8 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
         <div><dt>Hull</dt><dd>{Math.round(c.targetIntegrity * 100)}%</dd></div>
         <div><dt>Equipment</dt><dd>{Math.round(c.targetEquipmentIntegrity * 100)}%</dd></div>
         <div><dt>Propulsion</dt><dd>{Math.round(c.targetPower * 100)}%</dd></div>
-        <div><dt>List / trim</dt><dd>{c.targetList.toFixed(1)}° / {c.targetTrim.toFixed(1)}°</dd></div>
+        <div><dt>List</dt><dd>{listLabel(c.targetList)}</dd></div>
+        <div><dt>Trim</dt><dd>{trimLabel(c.targetTrim)}</dd></div>
         <div><dt>Draft change</dt><dd>{c.targetDraftChange.toFixed(2)} m</dd></div>
         <div><dt>Fires</dt><dd>{c.targetFires}</dd></div>
         <div><dt>Flooding</dt><dd>{c.targetWater.toFixed(1)} m³</dd></div>

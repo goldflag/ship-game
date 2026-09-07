@@ -43,7 +43,7 @@ export const BISMARCK = {
 } as const;
 
 export function createShipState(id = 'player'): ShipState {
-  return { id, tick: 0, x: 0, y: 0, z: 0, roll: 0, pitch: 0, heading: 0, speed: 0, swaySpeed: 0, rudder: 0, yawRate: 0, distance: 0 };
+  return { id, tick: 0, x: 0, y: 0, z: 0, roll: 0, pitch: 0, heading: 0, speed: 0, swaySpeed: 0, rudder: 0, yawRate: 0, distance: 0, verticalSpeed: 0 };
 }
 
 export function motionVelocity(state: ShipState): import('../ships/blueprint').Vec3 {
