@@ -63,9 +63,9 @@ describe('player keybindings', () => {
 
 test('older custom controls survive new diving actions even when Z, X and B are taken', () => {
   const { dive: _d, rise: _r, emergencyBlow: _b, ...saved } = defaultKeybindings();
-  saved.camera = ['KeyZ', null]; saved.fire = ['KeyX', null]; saved.gunnery = ['KeyB', null];
+  saved.camera = ['KeyZ', null]; saved.fire = ['KeyX', null]; saved.recenter = ['KeyB', null];
   const loaded = keybindingsOf(saved);
-  expect(loaded.camera).toEqual(saved.camera); expect(loaded.fire).toEqual(saved.fire); expect(loaded.gunnery).toEqual(saved.gunnery);
+  expect(loaded.camera).toEqual(saved.camera); expect(loaded.fire).toEqual(saved.fire); expect(loaded.recenter).toEqual(saved.recenter);
   expect(loaded.dive).not.toContain('KeyZ'); expect(loaded.rise).not.toContain('KeyX'); expect(loaded.emergencyBlow).not.toContain('KeyB');
   expect(keybindingsOf(loaded)).toEqual(loaded);
 });
@@ -78,4 +78,37 @@ test('older saves gain depth charges without taking an existing custom 4 binding
   expect(result.depthCharges[0]).not.toBe('Digit4');
   expect(result.depthCharges[0]).not.toBeNull();
   expect(keybindingsOf(result)).toEqual(result);
+});
+
+test('older saves gain periscope without taking a custom P binding', () => {
+  const { periscope: _newAction, ...saved } = defaultKeybindings();
+  saved.camera = ['KeyP', null];
+  const loaded = keybindingsOf(saved);
+  expect(loaded.camera).toEqual(saved.camera);
+  expect(loaded.periscope[0]).toBeTruthy();
+  expect(loaded.periscope).not.toContain('KeyP');
+  expect(keybindingsOf(loaded)).toEqual(loaded);
+});
+
+test('older saves gain surface and deep-dive shortcuts without taking custom U or J keys', () => {
+  const { surface: _surface, dive50: _dive50, ...saved } = defaultKeybindings();
+  saved.camera = ['KeyU', null]; saved.fire = ['KeyJ', null];
+  const loaded = keybindingsOf(saved);
+  expect(loaded.camera).toEqual(saved.camera);
+  expect(loaded.fire).toEqual(saved.fire);
+  for (const action of ['surface', 'dive50'] as const) {
+    expect(loaded[action][0]).toBeTruthy();
+    expect(loaded[action]).not.toContain('KeyU');
+    expect(loaded[action]).not.toContain('KeyJ');
+  }
+  expect(keybindingsOf(loaded)).toEqual(loaded);
+});
+
+test('retired gunnery bindings are discarded while other saved controls survive', () => {
+  const saved = { ...defaultKeybindings(), gunnery: ['KeyG', null] };
+  saved.fire = ['KeyL', null];
+  const loaded = keybindingsOf(saved);
+  expect(loaded.fire).toEqual(['KeyL', null]);
+  expect(loaded).not.toHaveProperty('gunnery');
+  expect(bindingError(loaded, 'fire', 0, 'KeyG')).toBeNull();
 });

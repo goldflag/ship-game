@@ -1,13 +1,27 @@
+import { hullDepth } from './ship';
 import type { Ammunition, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { barrelOffset } from '../ships/blueprint';
 import { add, clamp, length, localToWorld, normalize, radians, rotate, sub, wrapAngle, worldToLocal, type Pose } from './geometry';
 import { GRAVITY, solveDragArc, travelFactor } from './ballistics';
-import { segmentIntersectsBox } from './obstruction';
+import { BarrelObstructionTree } from './obstruction';
 export { GRAVITY } from './ballistics';
 export type MountDefinition = ShipDefinition['mounts'][number];
 // Compiled definitions are immutable during a battle, like the hull/armor caches.
 // Every barrel used to rebuild every other gunhouse box on every fixed tick.
 const gunhouseBoxes = new WeakMap<ShipDefinition, { id: string; center: Vec3; size: Vec3 }[]>();
+const barrelObstructions = new WeakMap<MountState, { definition: ShipDefinition; mount: MountDefinition; train: number; elevation: number; blocked: boolean }>();
+const obstructionTrees = new WeakMap<ShipDefinition, BarrelObstructionTree>();
+function obstructionTree(definition: ShipDefinition) {
+  let tree = obstructionTrees.get(definition);
+  if (!tree) {
+    tree = new BarrelObstructionTree([
+      ...definition.obstructions.map(box => ({ box })),
+      ...obstructionGunhouses(definition).map(box => ({ box, mountId: box.id })),
+    ]);
+    obstructionTrees.set(definition, tree);
+  }
+  return tree;
+}
 function obstructionGunhouses(definition: ShipDefinition) {
   let boxes = gunhouseBoxes.get(definition);
   if (!boxes) {
@@ -79,13 +93,13 @@ export function solveBallistic(from: Vec3, target: Vec3, speed: number, dragPerS
   return { direction: [delta[0] / range * Math.cos(angle), Math.sin(angle), delta[2] / range * Math.cos(angle)], time: range / (speed * Math.cos(angle)) };
 }
 /** Return true when the barrel has reached a valid firing solution (used by bots). */
-export function updateMount(m: MountDefinition, state: MountState, definition: ShipDefinition, pose: Pose, aim: Vec3 | undefined, dt: number, inheritedVelocity: Vec3 = [0, 0, 0], power = 1): boolean {
+export function updateMount(m: MountDefinition, state: MountState, definition: ShipDefinition, pose: Pose & { waveHeave?: number }, aim: Vec3 | undefined, dt: number, inheritedVelocity: Vec3 = [0, 0, 0], power = 1): boolean {
   const workRate = .25 + .75 * clamp(power, 0, 1);
   state.reload = Math.max(0, state.reload - dt * workRate);
   state.recoil = Math.max(0, state.recoil - dt / 1.4);
   if (state.hp <= 0) { state.status = 'disabled'; return false; }
   if (availableAmmunition(state) < (m.weapon.barrelCount ?? 2)) { state.status = 'empty'; return false; }
-  if ((definition.submarine && pose.y < -.5) || muzzleWorld(m, state, 0, pose)[1] <= 0) { state.status = 'submerged'; return false; }
+  if ((definition.submarine && hullDepth(pose) > .5) || muzzleWorld(m, state, 0, pose)[1] <= (pose.waveHeave ?? 0)) { state.status = 'submerged'; return false; }
   // Warm-start from the previous desired muzzle and flight time. Reacquisition
   // still converges in three iterations; continuous tracking needs only one.
   // Heading and inherited velocity are recomputed each tick, even for a cached
@@ -114,18 +128,21 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
   state.train += clamp(train - state.train, -radians(w.traverseRateDeg) * dt * workRate, radians(w.traverseRateDeg) * dt * workRate);
   state.elevation += clamp(elevation - state.elevation, -radians(w.elevationRateDeg) * dt * workRate, radians(w.elevationRateDeg) * dt * workRate);
   // Readiness depends on the actual barrel path, even while tracking an unreachable reticle.
+  const previousObstruction = barrelObstructions.get(state);
+  const unchanged = previousObstruction?.definition === definition && previousObstruction.mount === m
+    && previousObstruction.train === state.train && previousObstruction.elevation === state.elevation;
   const breech = add(m.position, [0, w.pivotHeight, 0]);
-  let obstructed = false;
-  for (let barrel = 0; barrel < (w.barrelCount ?? 2) && !obstructed; barrel++) {
+  let obstructed = unchanged ? previousObstruction.blocked : false;
+  for (let barrel = 0; !unchanged && barrel < (w.barrelCount ?? 2) && !obstructed; barrel++) {
     const muzzle = muzzleLocal(m, state, barrel);
     const direction = normalize(sub(muzzle, breech));
     const beyond: Vec3 = [muzzle[0] + direction[0] * definition.hull.length,
       muzzle[1] + direction[1] * definition.hull.length, muzzle[2] + direction[2] * definition.hull.length];
-    for (const box of definition.obstructions) if (segmentIntersectsBox(breech, beyond, box)) { obstructed = true; break; }
-    if (!obstructed) for (const box of obstructionGunhouses(definition)) {
-      if (box.id !== m.id && segmentIntersectsBox(breech, beyond, box)) { obstructed = true; break; }
-    }
+    obstructed = obstructionTree(definition).intersects(breech, beyond, m.id);
   }
+  // Obstructions are fixed in hull coordinates. Ship motion, reload and recoil
+  // cannot change this test; any actual traverse/elevation change recomputes it.
+  if (!unchanged) barrelObstructions.set(state, { definition, mount: m, train: state.train, elevation: state.elevation, blocked: obstructed });
   if (obstructed) { state.status = 'blocked'; return false; }
   if (!reachable) { state.status = 'out-of-range'; return false; }
   if (Math.abs(desiredTrain) > limit + 1e-6 || desiredElevation < radians(w.elevationMinDeg) - 1e-6 || desiredElevation > radians(w.elevationMaxDeg) + 1e-6) { state.status = 'out-of-arc'; return false; }

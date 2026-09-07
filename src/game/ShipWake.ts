@@ -46,7 +46,7 @@ export class ShipWake {
     this.materials.forEach(material => material.setWakeFieldSampler(sampler));
   }
 
-  update(ships: readonly WakeShip[], dt: number, events: readonly CombatEvent[] = []): void {
+  update(ships: readonly WakeShip[], dt: number, events: readonly CombatEvent[] = [], camera?: Camera): void {
     const freshEvents = events.filter(event => event.sequence > this.eventSequence);
     for (const event of freshEvents) this.eventSequence = Math.max(this.eventSequence, event.sequence);
     const focus = ships[0]?.motion;
@@ -81,7 +81,7 @@ export class ShipWake {
     }
     this.wake.foamStrength = 1.2 * strength;
     if (dt > 0) this.wake.foamPersistence = Math.exp(-dt / 9);
-    this.foam.update(ships, dt, freshEvents);
+    this.foam.update(ships, dt, freshEvents, camera);
   }
 
   resetImpacts(): void { this.foam.resetImpacts(); this.eventSequence = 0; }

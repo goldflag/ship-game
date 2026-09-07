@@ -41,6 +41,7 @@ test('hangar starts hidden; explicitly spotted aircraft follow the carrier pose 
     matrix.elements.forEach((value, i) => expect(value).toBeCloseTo(expected.elements[i], 3));
     sim.player.airWing!.planes[0].phase = 'lost';
     view.update(sim, camera, true, true, roots); expect(view.diagnostics().instances).toBe(11);
+    camera.position.set(0, 12000, 0); camera.lookAt(0, 0, 0); camera.far = 60000; camera.updateProjectionMatrix(); camera.updateMatrixWorld(true);
     view.update(sim, camera, true, false, roots); expect(view.diagnostics().instances).toBe(23);
     view.update(sim, camera, false, true, roots); expect(view.root.visible).toBe(false);
   } finally { await view.dispose(); loader.mockRestore(); }
@@ -63,12 +64,18 @@ test('distant flying aircraft retain a silhouette across LODs, while deck, lost 
     for (const distance of [100, 121, 401, 1500, 3000, 6000]) {
       camera.position.set(0, 300, distance); camera.lookAt(0, 300, 0); camera.updateMatrixWorld(true);
       view.update(sim, camera, true);
-      expect(view.diagnostics().instances).toBe(1);
+      expect(view.diagnostics().instances + view.diagnostics().silhouettes).toBe(1);
+      expect(view.diagnostics().contacts).toBe(distance >= 401 ? 1 : 0);
+      if (distance >= 1500) expect(view.diagnostics().instances).toBe(0);
       if (distance >= 1500) expect(contacts()?.count).toBe(1);
       else if (distance === 100) expect(contacts()?.visible).toBe(false);
     }
     camera.zoom = 24; camera.updateProjectionMatrix(); view.update(sim, camera, true);
     expect(contacts()?.visible).toBe(false); // Binoculars resolve the actual model again.
+    expect(view.diagnostics().instances).toBe(1);
+    camera.lookAt(0, 300, 12000); camera.updateMatrixWorld(true); view.update(sim, camera, true);
+    expect(view.diagnostics().culled).toBe(1); expect(view.diagnostics().instances).toBe(0); expect(contacts()?.visible).toBe(false);
+    camera.lookAt(0, 300, 0); camera.updateMatrixWorld(true);
     camera.zoom = 1; camera.updateProjectionMatrix();
     plane.phase = 'ready'; view.update(sim, camera, true); expect(contacts()?.visible).toBe(false);
     plane.phase = 'lost'; view.update(sim, camera, true); expect(contacts()?.visible).toBe(false);
@@ -86,17 +93,24 @@ test('large carrier fleets retain every visible aircraft without oversized GPU u
     await view.load();
     const sim = new CombatSimulation(shipPreset('enterprise-cv6'), { friendlyBots: [], enemies: [shipPreset('bismarck')] });
     const template = sim.aircraft[0];
-    // Isolate rendering of the largest permitted shared model population:
-    // 60 decks of 24 aircraft plus the battle's 144 airborne capacity.
-    sim.player.airWing!.planes = Array.from({ length: 1584 }, (_, i) => ({ ...structuredClone(template), id: `player/render-${i}`, phase: 'outbound', payload: false }));
+    // Cross the former fleet-wide limit and allocate a fourth GPU batch.
+    const population = 2305;
+    sim.player.airWing!.planes = Array.from({ length: population }, (_, i) => ({ ...structuredClone(template), id: `player/render-${i}`, phase: 'outbound', payload: false }));
     view.update(sim, new PerspectiveCamera(), true);
-    expect(view.diagnostics().instances).toBe(1584);
+    expect(view.diagnostics().instances).toBe(population);
     const modelBatches = view.root.children.filter(c => c instanceof InstancedMesh && c.count > 0 && c.name.startsWith('Aircraft model ')) as InstancedMesh[];
-    expect(modelBatches.reduce((n, b) => n + b.count, 0)).toBe(1584);
+    expect(modelBatches.reduce((n, b) => n + b.count, 0)).toBe(population);
     for (const batch of modelBatches) {
       expect(batch.instanceMatrix.array.byteLength).toBeLessThanOrEqual(65536);
       expect(batch.count).toBeLessThanOrEqual(batch.instanceMatrix.count);
     }
+    const distant = new PerspectiveCamera(52, 1, .5, 60000);
+    distant.position.set(0, 300, 6000); distant.lookAt(0, 0, 0); distant.updateMatrixWorld(true);
+    view.update(sim, distant, true);
+    expect(view.diagnostics().instances).toBe(0);
+    expect(view.diagnostics().silhouettes).toBe(population);
+    expect(view.diagnostics().contacts).toBe(population);
+    expect(modelBatches.every(batch => !batch.visible)).toBe(true);
   } finally { await view.dispose(); loader.mockRestore(); }
 });
 

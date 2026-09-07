@@ -64,9 +64,9 @@ export class ShipRigView {
     });
   }
 
-  update(dt: number, windSpeed: number, windDirection: number, hull: THREE.Object3D, motion: Combatant['motion'], sunk: boolean, camera?: THREE.Camera): void {
+  update(dt: number, windSpeed: number, windDirection: number, hull: THREE.Object3D, motion: Combatant['motion'], sunk: boolean, camera?: THREE.Camera, radarsActive = true): void {
     const step = Math.max(0, Math.min(dt, .1));
-    if (!sunk) this.clock += step;
+    if (radarsActive && !sunk) this.clock += step;
     for (const radar of this.radars) {
       const cycle = this.clock * radar.rpm * Math.PI / 30 + radar.phase;
       radar.angle = radar.sweepDeg === undefined ? cycle % (Math.PI * 2) : Math.sin(cycle) * radar.sweepDeg * Math.PI / 180;

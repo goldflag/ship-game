@@ -321,7 +321,7 @@ export class CameraRig {
       }
     } else {
       if (this.binoculars || this.mode === 'Bridge') {
-        const periscope = this.submarine && height < -.5;
+        const periscope = this.submarine && (this.binoculars || height < -.5);
         this.desired.set(...localToWorld(periscope ? this.submarine!.periscopeEye : this.bridge, { ...ship, y: height }));
         if (this.binoculars && !periscope) this.desired.y += 8;
       } else {

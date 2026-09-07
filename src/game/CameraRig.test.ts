@@ -241,7 +241,7 @@ test('legacy capture errors and rejected requests permit retry without firing on
 
 test('submerged zoom preserves forward and deliberately aft bearings through shallow dives', () => {
   const definition = shipPreset('type-viic');
-  for (const depth of [2, 3, 4, 7, 50]) for (const heading of [0, 1.2, Math.PI]) for (const aft of [false, true]) {
+  for (const depth of [0, 2, 3, 4, 7, 50]) for (const heading of [0, 1.2, Math.PI]) for (const aft of [false, true]) {
     const { camera, rig, drag } = interactiveCamera();
     const simulation = new CombatSimulation(definition);
     Object.assign(simulation.ship, { y: -depth, heading });
@@ -255,7 +255,9 @@ test('submerged zoom preserves forward and deliberately aft bearings through sha
     }) as Game;
     try {
       for (let toggle = 0; toggle < 4; toggle++) {
-        game.toggleBinoculars();
+        const depthOrder = simulation.player.submarine!.targetDepthM;
+        game.togglePeriscope();
+        expect(simulation.player.submarine!.targetDepthM).toBe(depthOrder);
         for (let frame = 0; frame < 60; frame++) rig.update(simulation.ship, -depth, 1 / 60);
         const direction = camera.getWorldDirection(new Vector3());
         expect(direction.x * Math.sin(bearing) - direction.z * Math.cos(bearing)).toBeGreaterThan(.95);

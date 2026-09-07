@@ -67,4 +67,4 @@ test('a full 24-plane rotation recovers, rearms and launches again without endur
   expect(sim.launchAircraft('vt-6')).toBe(6);
   run(75);
   expect(sim.player.airWing!.planes.filter(airborne)).toHaveLength(6);
-}, 30000);
+}, 60000); // Full launch/recovery/rearm cycles can exceed 30 s on Windows.

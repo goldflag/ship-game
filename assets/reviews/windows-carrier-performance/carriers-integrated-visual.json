@@ -1,0 +1,66 @@
+{
+  "views": {
+    "distant": {
+      "plane": "friendly-1/vb-6/1",
+      "position": [
+        982.8980819257243,
+        845.6637786051734,
+        -2660.1998473099193
+      ],
+      "aircraft": {
+        "models": 9,
+        "instances": 0,
+        "batches": 0,
+        "culled": 25,
+        "silhouettes": 90,
+        "contacts": 90,
+        "payloads": 0,
+        "bombs": 0,
+        "tracers": 128
+      }
+    },
+    "zoom": {
+      "plane": "friendly-1/vb-6/1",
+      "position": [
+        982.8980819257243,
+        845.6637786051734,
+        -2660.1998473099193
+      ],
+      "aircraft": {
+        "models": 9,
+        "instances": 12,
+        "batches": 35,
+        "culled": 103,
+        "silhouettes": 0,
+        "contacts": 0,
+        "payloads": 11,
+        "bombs": 11,
+        "tracers": 128
+      }
+    },
+    "near": {
+      "plane": "friendly-1/vb-6/1",
+      "position": [
+        982.8980819257243,
+        845.6637786051734,
+        -2660.1998473099193
+      ],
+      "aircraft": {
+        "models": 9,
+        "instances": 2,
+        "batches": 35,
+        "culled": 87,
+        "silhouettes": 26,
+        "contacts": 27,
+        "payloads": 1,
+        "bombs": 1,
+        "tracers": 128
+      }
+    }
+  },
+  "errors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "failedResources": []
+}

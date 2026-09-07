@@ -59,8 +59,8 @@ async function frameHarness() {
     aircraftView: { update() {} },
     funnelSmoke: { root: new Group(), update() {}, setWind() {} },
     effects: { update() {}, reset() {} }, sky: { update() {} }, scene: new FrameScene(),
-    surfaceWaterAbsorption: new Color(.296, .105, .095),
-    water: { color: { absorptionColor: new Color(.296, .105, .095) },
+    surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+    water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
@@ -74,6 +74,7 @@ test('map and port transitions restore their own absorption after underwater att
   const { game, simulation } = await frameHarness();
   const absorptionColor = new Color();
   const water = {
+    underwaterDistortion: { intensity: .02 },
     color: { absorptionColor, update(colors: { absorptionColor: string }) { absorptionColor.set(colors.absorptionColor); } },
     waves: Object.fromEntries(['amplitude', 'windSpeed', 'peakWavelength', 'choppiness', 'windDirection'].map(key => [key, { value: 0 }])),
     foam: { waves: { opacity: 0 } }, async update() {},
@@ -92,6 +93,17 @@ test('map and port transitions restore their own absorption after underwater att
       await game.frame(16);
       expect(absorptionColor.toArray()).toEqual(expected.toArray());
     }
+  }
+});
+
+test('underwater distortion eases down with camera depth and restores without accumulating', async () => {
+  const { game, camera, rig } = await frameHarness();
+  rig.update = () => {};
+  const water = (game as unknown as { water: { underwaterDistortion: { intensity: number } } }).water;
+  for (const [height, scale] of [[12, 1], [0, 1], [-1, .575], [-2, .15], [-50, .15], [-150, .15], [-1, .575], [12, 1], [-50, .15], [12, 1]]) {
+    camera.position.y = height;
+    await game.frame(16);
+    expect(water.underwaterDistortion.intensity).toBeCloseTo(.02 * scale, 10);
   }
 });
 

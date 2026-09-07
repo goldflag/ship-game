@@ -58,7 +58,7 @@ for (const squadron of ['vb-6', 'vt-6']) test(`${squadron} produces both physica
     if (squadron === 'vb-6') for (const bomb of ctx.shells) {
       rounds++; let hit = false;
       for (let tick = 0; tick < 30 * 60; tick++) {
-        const end = advanceProjectile(bomb, sim.actors, 1 / 60, e => { if ('impact' in e && e.impact) hit = true; });
+        const end = advanceProjectile(bomb, sim.actors, 1 / 60, e => { if ('impact' in e && e.impact && e.shipId && e.impact.kind !== 'burst') hit = true; });
         if (end) break;
       }
       if (hit) hits++;

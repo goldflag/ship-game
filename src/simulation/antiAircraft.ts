@@ -1,7 +1,9 @@
+import { meanHullY } from './ship';
 import type { AirContext, Aircraft } from './aircraft';
 import { antiAircraftRange } from '../ships/armament';
 import { airborne, onFlightDeck } from './aircraft';
 import type { FleetActor } from './battle';
+import type { ShipDefinition } from '../ships/blueprint';
 import { isPassiveAi } from './aiLevels';
 import { ballisticStep, dispersedDirection } from './ballistics';
 import { add, dot, length, normalize, scale, segmentBox, sub, worldToLocal } from './geometry';
@@ -9,6 +11,31 @@ import { motionVelocity } from './ship';
 import { availableAmmunition, muzzleWorld, selectAmmunition, shotDirection, updateMount, type MountDefinition, type MountState } from './weapons';
 
 export { antiAircraftRange } from '../ships/armament';
+
+const reachByDefinition = new WeakMap<ShipDefinition, number>();
+/** Conservative ship-wide broad phase. Called once per actor, not per gun.
+ * Inputs are this tick's airborne, off-deck aircraft in their original order. */
+export function antiAircraftCandidates(actor: FleetActor, planes: readonly Aircraft[]): Aircraft[] {
+  let reach = reachByDefinition.get(actor.definition);
+  if (reach === undefined) {
+    reach = 0;
+    for (const mount of actor.definition.mounts) {
+      const range = antiAircraftRange(mount), w = mount.weapon;
+      if (!range) continue;
+      // Triangle bound covers every barrel through traverse, elevation and hull roll.
+      const offset = Math.hypot(...mount.position) + Math.abs(w.pivotHeight) + Math.abs(w.trunnionForward)
+        + Math.abs(w.muzzleForward - w.trunnionForward) + Math.abs(w.barrelSpacing) * (w.barrelCount ?? 2);
+      reach = Math.max(reach, range + offset + 1e-6);
+    }
+    reachByDefinition.set(actor.definition, reach);
+  }
+  if (!reach || actor.damage.sunk || actor.damage.stability.combatLost || meanHullY(actor.motion) < -1
+    || (actor.controller === 'bot' && isPassiveAi(actor.bot?.aiLevel))) return [];
+  return planes.filter(p => p.team !== actor.team && p.hp > 0
+    && Math.abs(p.position[0] - actor.motion.x) <= reach!
+    && Math.abs(p.position[1] - actor.motion.y) <= reach!
+    && Math.abs(p.position[2] - actor.motion.z) <= reach!);
+}
 
 function clearLane(actor: FleetActor, from: [number, number, number], to: [number, number, number], ctx: AirContext) {
   const delta = sub(to, from), distance = length(delta), direction = normalize(delta);
@@ -26,15 +53,23 @@ function clearLane(actor: FleetActor, from: [number, number, number], to: [numbe
 
 /** True reserves this mount for a nearby aircraft this tick. Bursts use seeded
  * miss distance and a bounded hit radius; heavy AA approximates a timed burst. */
-export function updateAntiAircraft(actor: FleetActor, m: MountDefinition, state: MountState, ctx: AirContext, dt: number): boolean {
+export function updateAntiAircraft(actor: FleetActor, m: MountDefinition, state: MountState, ctx: AirContext, dt: number, candidates?: readonly Aircraft[]): boolean {
   const range = antiAircraftRange(m);
-  if (!range || actor.damage.sunk || actor.damage.stability.combatLost || actor.motion.y < -1 || state.hp <= 0 || state.ammo <= 0
+  if (!range || actor.damage.sunk || actor.damage.stability.combatLost || meanHullY(actor.motion) < -1 || state.hp <= 0 || state.ammo <= 0
     || (actor.controller === 'bot' && isPassiveAi(actor.bot?.aiLevel))) return false;
+  if (candidates?.length === 0) return false;
   const origin = muzzleWorld(m, state, 0, actor.motion);
   let target: Aircraft | undefined, closest = range;
-  for (const p of ctx.planes) {
-    if (p.team === actor.team || p.hp <= 0 || !airborne(p) || onFlightDeck(p)) continue;
-    const distance = length(sub(p.position, origin));
+  for (const p of candidates ?? ctx.planes) {
+    // Earlier guns can kill a candidate in this same tick. Preserve that check
+    // and stable nearest-target ties; aircraft movement follows all ship guns.
+    if (p.hp <= 0 || (!candidates && (p.team === actor.team || !airborne(p) || onFlightDeck(p)))) continue;
+    const dx = p.position[0] - origin[0], dy = p.position[1] - origin[1], dz = p.position[2] - origin[2];
+    if (Math.abs(dx) >= closest || Math.abs(dy) >= closest || Math.abs(dz) >= closest) continue;
+    // Reject clear losers before the scale-safe hypot; keep its original exact
+    // comparison near the boundary, including equal-distance target ordering.
+    if (dx * dx + dy * dy + dz * dz > closest * closest * (1 + 1e-14)) continue;
+    const distance = Math.hypot(dx, dy, dz);
     if (distance < closest) { target = p; closest = distance; }
   }
   if (!target) return false;

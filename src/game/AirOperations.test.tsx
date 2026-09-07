@@ -76,7 +76,7 @@ test('the map releases aim, blocks firing and restores aiming on close without l
   const requestFire = mock(); simulation.requestFire = requestFire;
   const rig = { setEnabled: mock(), capturePointer: mock(), setShellView: mock(), update: mock() };
   const game = Object.assign(Object.create(Game.prototype), { simulation, shellFollow: new ShellFollow(), input: { clear: mock() }, rig, battlefieldCamera: new BattlefieldCamera(new PerspectiveCamera()), host: { clientWidth: 1280, clientHeight: 800 },
-    inPort: false, paused: false, inspecting: false, playerView: {}, selectedFlightId: 'player/flight-1' }) as Game;
+    inPort: false, paused: false, inspecting: false, fleetViews: [], playerView: {}, selectedFlightId: 'player/flight-1' }) as Game;
   game.setAirOperationsOpen(true);
   expect(game.airOperationsOpen).toBe(true); expect(rig.setEnabled).toHaveBeenLastCalledWith(false);
   game.capturePointer(); game.fire(); expect(rig.capturePointer).not.toHaveBeenCalled(); expect(requestFire).not.toHaveBeenCalled();
@@ -102,7 +102,7 @@ test('closing the carrier map restores the chosen weather visibility', () => {
     const water = { fog: { fadeStart: environment.fog.start, fadeEnd: environment.fog.end } };
     const game = Object.assign(Object.create(Game.prototype), { simulation, water, rig, shellFollow: new ShellFollow(), input: { clear() {} },
       battlefieldCamera: new BattlefieldCamera(new PerspectiveCamera()), host: { clientWidth: 1280, clientHeight: 800 },
-      battleWeather: weather, battleTimeOfDay: 'night', inPort: false, paused: false, inspecting: false, playerView: {} }) as Game;
+      battleWeather: weather, battleTimeOfDay: 'night', inPort: false, paused: false, inspecting: false, fleetViews: [], playerView: {} }) as Game;
     game.setAirOperationsOpen(true); expect(water.fog.fadeEnd).toBe(900000);
     game.setAirOperationsOpen(false);
     expect(water.fog).toEqual({ fadeStart: environment.fog.start, fadeEnd: environment.fog.end });

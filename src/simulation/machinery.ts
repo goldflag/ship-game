@@ -1,3 +1,4 @@
+import { hullDepth } from './ship';
 import { waterLevel } from './stability';
 import { localToWorld } from './geometry';
 import type { Module, ShipDefinition } from '../ships/blueprint';
@@ -15,8 +16,10 @@ function layout(def: ShipDefinition): MachineryLayout {
   }
   return result;
 }
-export function equipmentCondition(actor: Combatant, def: ShipDefinition, module: Module): EquipmentCondition {
-  const compiled = layout(def), slot = compiled.modules.get(module.id)!.index;
+export function equipmentCondition(actor: Combatant, def: ShipDefinition, module: Module | string): EquipmentCondition {
+  const compiled = layout(def), entry = compiled.modules.get(typeof module === 'string' ? module : module.id)!;
+  if (typeof module === 'string') module = entry.module;
+  const slot = entry.index;
   const state = actor.damage.modules[slot];
   const hp = (state?.id === module.id ? state : actor.damage.modules.find(s => s.id === module.id)!).hp;
   if (hp <= 0) return { availability: 0, reason: 'destroyed' };
@@ -42,7 +45,7 @@ export function systemHealth(actor: Combatant, def: ShipDefinition, kind: 'engin
   const compiled = layout(def);
   const available = (id: string) => equipmentCondition(actor, def, compiled.modules.get(id)!.module).availability;
   if (kind === 'engine' && def.submarine) {
-    const ids = actor.motion.y < -.5 ? def.submarine.submergedEngineIds : def.submarine.surfaceEngineIds;
+    const ids = hullDepth(actor.motion) > .5 ? def.submarine.submergedEngineIds : def.submarine.surfaceEngineIds;
     return ids.reduce((power, id) => power + available(id), 0) / ids.length;
   }
   if (kind === 'engine' && def.propulsion) return def.propulsion.groups.reduce((power, group) => {

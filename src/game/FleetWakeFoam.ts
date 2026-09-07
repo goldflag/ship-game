@@ -1,4 +1,4 @@
-import { DataTexture, LinearFilter, RedFormat, Vector4, type Node } from 'three/webgpu';
+import { DataTexture, LinearFilter, RedFormat, Vector4, type Camera, type Node } from 'three/webgpu';
 import { Fn, If, Loop, float, max, mx_noise_float, smoothstep, texture, uniform, uniformArray, vec2, vec3 } from 'three/tsl';
 import { WakeFoam, WAKE_EXTENT } from './WakeFoam';
 import type { ShipView } from './ShipView';
@@ -50,7 +50,7 @@ export class FleetWakeFoam {
     })();
   }
 
-  update(ships: readonly WakeShip[], dt: number, events: readonly CombatEvent[]): void {
+  update(ships: readonly WakeShip[], dt: number, events: readonly CombatEvent[], camera?: Camera): void {
     const roots = new Set(ships.map(ship => ship.root));
     for (const [root, entry] of this.entries) if (!roots.has(root)) {
       entry.foam.dispose(); this.entries.delete(root);
@@ -70,7 +70,11 @@ export class FleetWakeFoam {
         if (event.kind === 'splash') entry.foam.splash(event.position[0], event.position[2], event.shell?.caliberM ?? .38);
       }
       const surface = Math.max(0, Math.min(1, 1 + ship.motion.y / 3));
-      entry.foam.update({ ...ship.motion, speed: ship.motion.speed * surface }, dt);
+      const distance = camera ? Math.hypot(ship.motion.x - camera.position.x, ship.motion.y - camera.position.y, ship.motion.z - camera.position.z) : 0;
+      // Keep every turn/emission sample, but refresh distant coverage at 5 Hz.
+      // Optical magnification restores the nearby 20 Hz rate automatically.
+      const apparentDistance = camera ? distance * 2.05 / camera.projectionMatrix.elements[5] : 0;
+      entry.foam.update({ ...ship.motion, speed: ship.motion.speed * surface }, dt, apparentDistance > 2500 ? .2 : .05);
       const tx = slot % TILES, ty = Math.floor(slot / TILES);
       this.centers[slot].set(entry.foam.center.x, entry.foam.center.y, tx, ty);
       if (entry.slot === slot && entry.version === entry.foam.texture.version) return;
