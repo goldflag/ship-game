@@ -4,6 +4,8 @@ Friendly and enemy bots share the same controller and physical weapon/damage rul
 
 ## Fire control
 
+Guns of 80 mm or less only engage aircraft when a larger gun is fitted, matching the player’s manual-fire restriction. Ships fitted only with light guns can still use them against ships. Damage and ammunition loss do not change this fitting-based rule.
+
 - The first target requires 8–14 seconds to acquire, plus 0–2 seconds per mount before it can fire. Changing targets requires a new 3–6 second solution and mount delays. Turret traversal, obstruction, ammunition and reload still gate every shot.
 - Target position and heading are observed every 0.9–1.8 seconds. Velocity estimates blend observations and extrapolate between them. The controller does not read the player's helm or predict future course changes.
 - Tracking settles over about 45 seconds on a steady target. Observed velocity changes reduce tracking quality. This approximates a crew establishing a solution; it does not analyze splash locations or implement historical ranging doctrine.

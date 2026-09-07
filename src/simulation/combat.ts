@@ -1,3 +1,4 @@
+import { surfaceGunAllowed } from '../ships/armament';
 import { equipmentCenter } from './equipmentPose';
 import { weaponGroups, weaponGroupId, selectedWeapon, type WeaponGroup } from '../ships/weaponGroups';
 import { airborne, onFlightDeck, commandSquadron, createAirWing, launchSquadron, orderFlight, recallAircraft, stepAircraft, type AirRelease, type AirOrder } from './aircraft';
@@ -316,10 +317,12 @@ export class CombatSimulation {
       const laneClear = target && clearFiringLane(actor, target, this.actors);
       def.mounts.forEach((m, i) => {
         const state = actor.mounts[i];
-        const playerSelected = actor === this.player && selectedWeapon(m.battery, m.weapon, intent.battery, intent.weaponGroupId);
+        const surfaceAllowed = surfaceGunAllowed(def, m.weapon);
+        const playerSelected = surfaceAllowed && actor === this.player && selectedWeapon(m.battery, m.weapon, intent.battery, intent.weaponGroupId);
         if (actor.damage.stability.combatLost) { state.status = 'disabled'; return; }
         if (m.magazineId && equipmentCondition(actor, def, m.magazineId).availability === 0) { state.status = 'disabled'; return; }
         if (this.isBattle && this.result === 'active' && !(playerSelected && intent.weaponGroupId !== undefined) && updateAntiAircraft(actor, m, state, airContext, FIXED_DT, aaCandidates, support.power)) return;
+        if (!surfaceAllowed) { updateMount(m, state, def, actor.motion, undefined, FIXED_DT, shipVelocity(actor), support.power); return; }
         if (actor === this.player) queueAmmunition(m, state, this.ammunitionSelection[weaponGroupId(m.battery, m.weapon)] ?? this.ammunitionSelection[m.battery]);
         else if (actor.controller === 'bot' && target) selectAmmunition(m, state, botAmmunition(target, m, state));
         if (actor === this.player && !aimValid) { state.status = 'out-of-arc'; return; }
@@ -488,7 +491,7 @@ export class CombatSimulation {
     }) : battery === 'torpedo' ? (definition.torpedoTubes ?? []).map((tube, i) => {
       const s = subject.torpedoTubes![i];
       return { id: tube.id, name: tube.name, status: s.status, reload: Math.max(s.reload, subject.tubeLaunchCooldown ?? 0), ammo: s.ammo };
-    }) : definition.mounts.filter(m => selectedWeapon(m.battery, m.weapon, battery, weaponGroupId)).map(m => {
+    }) : definition.mounts.filter(m => surfaceGunAllowed(definition, m.weapon) && selectedWeapon(m.battery, m.weapon, battery, weaponGroupId)).map(m => {
       const s = subject.mounts.find(s => s.id === m.id)!;
       return { id: m.id, name: m.name, status: s.status, reload: s.reload / gunWorkRate, ammo: availableAmmunition(s), loaded: s.loaded, queued: s.queued };
     });
@@ -498,7 +501,7 @@ export class CombatSimulation {
     const flightTimes = definition.mounts.flatMap((m, i) => {
       const state = subject.mounts[i];
       const time = state.aimCache?.time;
-      return selectedWeapon(m.battery, m.weapon, battery, weaponGroupId) && ['ready', 'reloading', 'turning'].includes(state.status) && time !== undefined && Number.isFinite(time) && time > 0 ? [time] : [];
+      return surfaceGunAllowed(definition, m.weapon) && selectedWeapon(m.battery, m.weapon, battery, weaponGroupId) && ['ready', 'reloading', 'turning'].includes(state.status) && time !== undefined && Number.isFinite(time) && time > 0 ? [time] : [];
     });
     return {
       airWing: (() => { const wing = airWingTelemetry(subject, this.actors); if (wing) wing.available &&= this.result === 'active'; return wing; })(),

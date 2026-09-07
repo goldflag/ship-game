@@ -30,12 +30,12 @@ for (const battery of ['main', 'secondary'] as Battery[]) {
     const intent = { aim: [1800, 0, 0] as Vec3, fire: false, battery };
     for (let i = 0; i < 900; i++) sim.step(helm, intent);
     const ready = definition.mounts.filter((m, i) => m.battery === battery && sim.player.mounts[i].status === 'ready');
-    expect(ready).toHaveLength(battery === 'main' ? 4 : 22);
+    expect(ready).toHaveLength(battery === 'main' ? 4 : 0);
     expect(ready.every(m => !m.id.includes('-port-'))).toBe(true);
     const before = sim.player.mounts.map(m => m.ammo);
     sim.step(helm, { ...intent, fire: true });
     const shots = sim.events.filter(e => e.kind === 'shot');
-    expect(shots).toHaveLength(battery === 'main' ? 4 : 34);
+    expect(shots).toHaveLength(battery === 'main' ? 4 : 0);
     expect(new Set(shots.map(e => JSON.stringify(e.position))).size).toBe(shots.length);
     definition.mounts.forEach((m, i) => {
       expect(before[i] - sim.player.mounts[i].ammo).toBe(ready.includes(m) ? m.weapon.barrelCount! : 0);

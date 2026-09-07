@@ -1,3 +1,4 @@
+import { surfaceGunAllowed } from './armament';
 import type { Battery, ShipDefinition, GunPart, TorpedoPart, DepthChargePart } from './blueprint';
 
 export interface WeaponGroup {
@@ -43,7 +44,7 @@ export function weaponGroups(definition: ShipDefinition): WeaponGroup[] {
     if (group.weaponId !== weapon.id) group.name = `${Number(caliberMm.toFixed(2))} mm ${battery} battery`;
     group.mountIds.push(mountId);
   };
-  for (const m of definition.mounts) add(m.battery, m.weapon, m.weapon.caliberM * 1000, m.id);
+  for (const m of definition.mounts) if (surfaceGunAllowed(definition, m.weapon)) add(m.battery, m.weapon, m.weapon.caliberM * 1000, m.id);
   for (const t of definition.torpedoTubes ?? []) add('torpedo', t.weapon, t.weapon.diameterM * 1000, t.id);
   for (const l of definition.depthChargeLaunchers ?? []) add('depth-charge', l.weapon, 0, l.id);
   const order: Record<Battery, number> = { main: 0, secondary: 1, torpedo: 2, 'depth-charge': 3 };
