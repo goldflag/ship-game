@@ -2356,7 +2356,10 @@ function Dn(r) {
   );
   return { reflectionColor: p ? p(j, q) : R(0.6, 0.8, 1), reflectDir: n };
 }
-const rp = 0.05, Nn = 0.998749217771909, mn = 0.7, cq = /* @__PURE__ */ Y(
+// Keep the grazing guard below real naval sight angles (29 m / 20 km = 0.00145).
+// The upstream 0.05 clamp gave distant wave slopes identical reflectance and
+// bent their reflection normals flat, visibly erasing detail through binoculars.
+const rp = 1e-4, Nn = Math.sqrt(1 - rp * rp), mn = 0.7, cq = /* @__PURE__ */ Y(
   ({ cosThetaI: r, eta: A }) => {
     const t = r.lessThan(0), p = lt(t, r.negate(), r), q = lt(t, O(1).div(A), A), n = O(1).sub(p.mul(p)).div(q.mul(q)), j = jA(KA(O(0), O(1).sub(n))), e = q.mul(p), a = q.mul(j), V = e.sub(j).div(e.add(j)), c = p.sub(a).div(p.add(a)), k = O(0.5).mul(V.mul(V).add(c.mul(c)));
     return lt(n.greaterThanEqual(1), O(1), k);

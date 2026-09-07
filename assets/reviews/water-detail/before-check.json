@@ -1,0 +1,31 @@
+{
+  "check": {
+    "passed": false,
+    "samples": [
+      {
+        "cosine": 0.003,
+        "red": 186
+      },
+      {
+        "cosine": 0.01,
+        "red": 186
+      },
+      {
+        "cosine": 0.03,
+        "red": 186
+      },
+      {
+        "cosine": 0.1,
+        "red": 136
+      },
+      {
+        "cosine": 0.5,
+        "red": 14
+      },
+      {
+        "cosine": 1,
+        "red": 5
+      }
+    ]
+  }
+}
