@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { HemisphereLight } from 'three/webgpu';
+import { Color, HemisphereLight } from 'three/webgpu';
 import { Atmosphere, Clouds, Sun, SunDriver, TimeOfDay } from '../../vendor/threejs-sky-pro/build/index.js';
 import { OCEAN_MAPS, oceanMap } from '../maps/catalog';
 import { battleEnvironment, TIME_OF_DAY_PRESETS, WEATHER_PRESETS } from '../maps/conditions';
@@ -20,6 +20,9 @@ test('all battle conditions combine across maps without mutating their defaults'
       expect(environment.fog.end).toBeGreaterThan(environment.fog.start);
       expect(environment.sky.coverage).toBeGreaterThanOrEqual(0);
       expect(environment.sky.coverage).toBeLessThanOrEqual(1);
+      expect(environment.waves.amplitude).toBe(weather.waves.amplitude * map.water.amplitudeScale);
+      expect(environment.waves.windSpeed).toBe(weather.waves.windSpeed * map.water.windScale);
+      expect(environment.waves.peakWavelength).toBe(weather.waves.peakWavelength * map.water.wavelengthScale);
     }
   }
   expect(JSON.stringify(OCEAN_MAPS)).toBe(original);
@@ -27,6 +30,40 @@ test('all battle conditions combine across maps without mutating their defaults'
     expect(() => validateBattleSetup({ ...setup, timeOfDay: value as never }, ['bismarck'])).toThrow('time of day');
     expect(() => validateBattleSetup({ ...setup, weather: value as never }, ['bismarck'])).toThrow('weather preset');
   }
+});
+
+test('weather drives live waves across maps, overrides obsolete settings, and restores sheltered port water', () => {
+  const water = {
+    waves: { amplitude: { value: 0 }, windSpeed: { value: 0 }, peakWavelength: { value: 0 },
+      choppiness: { value: 0 }, windDirection: { value: 0 }, dirty: false },
+    color: { absorptionColor: new Color(), update() {} }, foam: { waves: { opacity: 0 } },
+  };
+  const game = Object.assign(Object.create(Game.prototype), {
+    simulation: { mapId: 'north-atlantic' }, inPort: false, water, surfaceWaterAbsorption: new Color(),
+    settings: { sea: 'Heavy' }, effects: { setWind(value: number) { this.wind = value; }, wind: 0 },
+  });
+  for (const map of OCEAN_MAPS) {
+    game.simulation.mapId = map.id;
+    let previous = 0;
+    for (const weather of ['clear', 'partly-cloudy', 'overcast', 'storm-clouds'] as const) {
+      game.battleWeather = weather;
+      game.updateSeaState();
+      const expected = battleEnvironment(map, 'map', weather).waves;
+      expect(water.waves.amplitude.value).toBe(expected.amplitude);
+      expect(water.waves.windSpeed.value).toBe(expected.windSpeed);
+      expect(water.waves.peakWavelength.value).toBe(expected.peakWavelength);
+      expect(water.waves.amplitude.value).toBeGreaterThan(previous);
+      expect(game.effects.wind).toBe(expected.windSpeed);
+      expect(water.waves.dirty).toBe(true);
+      previous = water.waves.amplitude.value;
+    }
+    game.battleWeather = 'fog'; game.updateSeaState();
+    expect(water.waves.amplitude.value).toBe(battleEnvironment(map, 'map', 'clear').waves.amplitude);
+  }
+  game.inPort = true; game.updateSeaState();
+  expect(water.waves.amplitude.value).toBe(.12);
+  expect(water.waves.windSpeed.value).toBe(4);
+  expect(water.waves.peakWavelength.value).toBe(14);
 });
 
 test('night, fog and storm lighting reach the live uniforms; the sky stays fixed and port restores daylight', () => {

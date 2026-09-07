@@ -8,7 +8,7 @@ import { shipPreset } from '/src/ships/presets.ts';
 import { stepAircraft } from '/src/simulation/aircraft.ts';
 import { advanceProjectile } from '/src/simulation/projectile.ts';
 let ready; const loaded = new Promise(resolve => ready = resolve);
-const game = new Game(document.querySelector('#scene'), {quality:'medium',sea:'Fair',resolution:1}, {
+const game = new Game(document.querySelector('#scene'), {quality:'medium',resolution:1}, {
   progress: message => window.reviewProgress = message, ready, telemetry:()=>{},pause:()=>{},hud:()=>{},error:message=>window.reviewError=message,
 }, shipPreset('enterprise-cv6'));
 game.start(); await loaded; game.setInPort(false); game.setPaused(true); game.rig.update=()=>{};

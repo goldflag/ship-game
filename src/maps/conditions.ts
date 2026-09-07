@@ -11,6 +11,7 @@ interface WeatherPreset {
   id: WeatherId; name: string; description: string;
   sky: Partial<OceanMap['sky']>; fog: Partial<OceanMap['fog']>;
   sunScale: number; ambientScale: number; cloudWind: number;
+  waves: { amplitude: number; windSpeed: number; peakWavelength: number };
 }
 export const TIME_OF_DAY_PRESETS = source.times as TimePreset[];
 export const WEATHER_PRESETS = source.weather as WeatherPreset[];
@@ -29,6 +30,9 @@ export function battleEnvironment(map: OceanMap, timeOfDay: TimeOfDayId = 'map',
   const fog = { ...map.fog, ...forecast.fog };
   if (time.fogColor) fog.color = time.fogColor;
   return { sky, fog, cloudWind: forecast.cloudWind,
+    waves: { amplitude: forecast.waves.amplitude * map.water.amplitudeScale,
+      windSpeed: forecast.waves.windSpeed * map.water.windScale,
+      peakWavelength: forecast.waves.peakWavelength * map.water.wavelengthScale },
     cloudAmbient: 1.1 * time.lightScale * forecast.ambientScale,
     cloudShadow: weather === 'storm-clouds' ? 0.55 : 0.2,
     horizonCoverage: weather === 'clear' ? 0 : 0.06 };

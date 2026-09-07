@@ -13,7 +13,7 @@ if (query.has('mobile') && !query.has('frame')) {
   document.querySelector('#root')!.replaceWith(frame);
 } else {
   function Review() {
-    const [setup, setSetup] = useState<BattleSetup>({ playerShipId: 'bismarck', friendlyBots: [], enemies: ['bismarck'], spawnDistance: 5000, mapId: 'pacific-islands', sea: 'Atlantic' });
+    const [setup, setSetup] = useState<BattleSetup>({ playerShipId: 'bismarck', friendlyBots: [], enemies: ['bismarck'], spawnDistance: 5000, mapId: 'pacific-islands' });
     return <BattleSetupDialog setup={setup} onChange={setSetup} onLaunch={() => {}} onClose={() => {}} error=""/>;
   }
   createRoot(document.querySelector('#root')!).render(<Review/>);
