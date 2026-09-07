@@ -14,7 +14,7 @@ The dimensional datum is the Navy's documented **24 ft 2 in limiting keel draft*
 | Limiting keel draft | 24 ft 2 in / 7.366 m | NAVSHIPS 250-010, p. 27 |
 | Maximum navigational draft | 26 ft 10 in / 8.1788 m | NAVSHIPS 250-010, p. 27 |
 
-`blueprint.json` owns the hull stations, 120 retained hull sections informed by primary class comparisons, deckhouse footprints, nine main/secondary mounts, and provisional simulation volumes. `build.py` creates the retained Blender source, catalog guns, masts, directors, twin aircraft cranes, twin catapults, original indicative OS2U aircraft, light AA, four shafts, and a rudder. AA and aircraft are visual fittings, as in the Bismarck baseline.
+`blueprint.json` owns the hull stations, 120 retained hull sections informed by primary class comparisons, deckhouse footprints, nine main/dual-purpose mounts, twelve quad 40 mm Bofors mounts, and provisional simulation volumes. `build.py` creates the retained Blender source, catalog guns, masts, directors, twin aircraft cranes, twin catapults, original indicative OS2U aircraft, light AA, four shafts, and a rudder. The six twin 5-inch and twelve quad Bofors mounts engage aircraft through shared combat state; the single 20 mm guns and aircraft remain visual fittings.
 
 Run:
 

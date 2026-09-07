@@ -7573,6 +7573,81 @@
           "note": "Original Mk I curved-back and shoulder facets from 1941 drawings and photographs; GameModels3D raster cross-check only. Local facets are estimated."
         }
       }
+    },
+    {
+      "id": "type89-127-yamato-twin",
+      "name": "12.7 cm Type 89 twin AA",
+      "kind": "gun",
+      "massKg": 20000,
+      "barbetteRadius": 2.35,
+      "gunhouseSize": [
+        4.5,
+        4.1,
+        3
+      ],
+      "pivotHeight": 2.2,
+      "trunnionForward": 0.55,
+      "muzzleForward": 5.13,
+      "barrelSpacing": 1.3,
+      "caliberM": 0.127,
+      "traverseDeg": 100,
+      "traverseRateDeg": 16,
+      "elevationMinDeg": -10,
+      "elevationMaxDeg": 85,
+      "elevationRateDeg": 16,
+      "reloadSeconds": 5,
+      "muzzleSpeed": 720,
+      "projectileMassKg": 23,
+      "penetrationMm": 55,
+      "damage": 15,
+      "recoilM": 0.25,
+      "ammoPerBarrel": 300,
+      "armorMm": 5,
+      "barrelCount": 2,
+      "mountingStyle": "open-pedestal",
+      "ballistics": {
+        "dragPerSecond": 0.015,
+        "dispersionRad": 0.004,
+        "basis": "Provisional gameplay calibration; the existing independently authored Yamato twin 127 mm fitting supplies the dimensions. Rates, damage, supply and arcs are not a historical fire-control model."
+      }
+    },
+    {
+      "kind": "gun",
+      "barrelSpacing": 0.45,
+      "traverseDeg": 180,
+      "traverseRateDeg": 24,
+      "elevationMinDeg": -10,
+      "elevationMaxDeg": 85,
+      "elevationRateDeg": 24,
+      "armorMm": 6,
+      "ammoPerBarrel": 1200,
+      "penetrationMm": 18,
+      "damage": 2.5,
+      "recoilM": 0.15,
+      "id": "us-40mm-bofors-baltimore-quad",
+      "name": "40 mm Bofors quadruple mount",
+      "massKg": 11000,
+      "barrelCount": 4,
+      "mountingStyle": "open-pedestal",
+      "barbetteRadius": 2.2,
+      "gunhouseSize": [
+        2.4,
+        2.7,
+        1.8
+      ],
+      "pivotHeight": 1.33,
+      "trunnionForward": 0.15,
+      "muzzleForward": 2.064,
+      "barrelBaseRadius": 0.07,
+      "caliberM": 0.04,
+      "reloadSeconds": 0.5,
+      "muzzleSpeed": 881,
+      "projectileMassKg": 0.9,
+      "ballistics": {
+        "dragPerSecond": 0.015,
+        "dispersionRad": 0.004,
+        "basis": "Provisional gameplay calibration, based on the existing original Baltimore Bofors fitting. Four evenly spaced barrel axes approximate the authored spacing; not a historical fire-control model."
+      }
     }
   ],
   "torpedoes": [

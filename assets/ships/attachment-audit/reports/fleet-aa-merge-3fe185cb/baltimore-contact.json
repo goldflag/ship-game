@@ -1,0 +1,14 @@
+{
+  "ship": "baltimore",
+  "sourceSha256": "8f7e5a23808f216e43f30687110b228e12ee161e136feffa86eefce4294b9c59",
+  "contentHash": "d51b9a257be75c99ac6cfd835255d4c4de2f78fa51421b8c6a1ffae635c0dffc",
+  "method": "triangle intersection, closed-solid containment, vertex/surface proximity",
+  "toleranceM": 0.025,
+  "limits": "Separate objects are graph nodes; a mesh containing disconnected islands needs additional review. Contacts do not establish historical accuracy.",
+  "meshCount": 9905,
+  "hullConnectedMeshCount": 9905,
+  "candidates": 21799,
+  "contacts": 9904,
+  "elapsedSeconds": 35.07422891695751,
+  "islands": []
+}

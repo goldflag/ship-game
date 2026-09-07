@@ -32,7 +32,8 @@ test('Baltimore secondary broadside uses the four clear twin mounts and preserve
   expect(secondary.filter(m => m.status === 'ready')).toHaveLength(4);
   const before = new Map(sim.player.mounts.map(m => [m.id, m.ammo]));
   sim.step(helm, { aim, fire: true, battery: 'secondary' });
-  const shots = sim.events.filter(e => e.kind === 'shot');
+  // Bofors can also fire at surface targets; retain the 5-inch broadside check.
+  const shots = sim.events.filter(e => e.kind === 'shot' && e.shell?.caliberM === .127);
   expect(shots).toHaveLength(8);
   expect(new Set(shots.map(e => JSON.stringify(e.position))).size).toBe(8);
   expect(secondary.filter(m => m.ammo === before.get(m.id)! - 2)).toHaveLength(4);

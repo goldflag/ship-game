@@ -1,0 +1,77 @@
+{
+  "shipId": "yamato",
+  "contentHash": "ccaa53fcd25da2a4ecee0e65191703644e6dc73a92a083b21d4f4290ec683e54",
+  "poses": [
+    {
+      "trainFraction": -1,
+      "elevationFraction": 0,
+      "maxMuzzleError": 0.0027430435757326804
+    },
+    {
+      "trainFraction": -1,
+      "elevationFraction": 0.5,
+      "maxMuzzleError": 0.002743114625855639
+    },
+    {
+      "trainFraction": -1,
+      "elevationFraction": 1,
+      "maxMuzzleError": 0.002743407078053107
+    },
+    {
+      "trainFraction": 0,
+      "elevationFraction": 0,
+      "maxMuzzleError": 0.002743536201881167
+    },
+    {
+      "trainFraction": 0,
+      "elevationFraction": 0.5,
+      "maxMuzzleError": 0.0027435793210965165
+    },
+    {
+      "trainFraction": 0,
+      "elevationFraction": 1,
+      "maxMuzzleError": 0.0027437568104304996
+    },
+    {
+      "trainFraction": 1,
+      "elevationFraction": 0,
+      "maxMuzzleError": 0.002746863355506571
+    },
+    {
+      "trainFraction": 1,
+      "elevationFraction": 0.5,
+      "maxMuzzleError": 0.002746717804616096
+    },
+    {
+      "trainFraction": 1,
+      "elevationFraction": 1,
+      "maxMuzzleError": 0.00274611857590037
+    },
+    {
+      "independentNeighbors": 0,
+      "maxMuzzleError": 0.0027430435757326804
+    },
+    {
+      "independentNeighbors": 1,
+      "maxMuzzleError": 0.0027435793210965165
+    },
+    {
+      "independentNeighbors": 2,
+      "maxMuzzleError": 0.00274611857590037
+    }
+  ],
+  "shots": 24,
+  "eligibleMounts": 12,
+  "firingMounts": [
+    "Starboard 12.7 cm AA 6",
+    "Starboard 12.7 cm AA 4",
+    "Starboard 12.7 cm AA 5",
+    "Starboard 12.7 cm AA 1",
+    "Starboard 12.7 cm AA 2",
+    "Starboard 12.7 cm AA 3"
+  ],
+  "ammoSpent": 24,
+  "maxMuzzleError": 0.0027435332982602124,
+  "backend": "webgpu",
+  "browser": "Isolated headless Chrome / Metal, fallback after Orca tab closures"
+}

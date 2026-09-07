@@ -57871,6 +57871,234 @@
         "ignitionHeat": 0.5,
         "heatPerDamage": 0.014
       }
+    },
+    {
+      "id": "ha--1-1",
+      "name": "Starboard 12.7 cm AA 1",
+      "partId": "type89-127-yamato-twin",
+      "battery": "secondary",
+      "position": [
+        12.1,
+        13.3,
+        9
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "magazine-secondary-aft",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      }
+    },
+    {
+      "id": "ha--1-2",
+      "name": "Starboard 12.7 cm AA 2",
+      "partId": "type89-127-yamato-twin",
+      "battery": "secondary",
+      "position": [
+        12.1,
+        13.3,
+        19.5
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "magazine-secondary-aft",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      }
+    },
+    {
+      "id": "ha--1-3",
+      "name": "Starboard 12.7 cm AA 3",
+      "partId": "type89-127-yamato-twin",
+      "battery": "secondary",
+      "position": [
+        12.1,
+        13.3,
+        30
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "magazine-secondary-aft",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      }
+    },
+    {
+      "id": "ha--1-4",
+      "name": "Starboard 12.7 cm AA 4",
+      "partId": "type89-127-yamato-twin",
+      "battery": "secondary",
+      "position": [
+        7.3,
+        15.1,
+        13.2
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "magazine-secondary-aft",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      }
+    },
+    {
+      "id": "ha--1-5",
+      "name": "Starboard 12.7 cm AA 5",
+      "partId": "type89-127-yamato-twin",
+      "battery": "secondary",
+      "position": [
+        7.3,
+        15.1,
+        24.2
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "magazine-secondary-aft",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      }
+    },
+    {
+      "id": "ha--1-6",
+      "name": "Starboard 12.7 cm AA 6",
+      "partId": "type89-127-yamato-twin",
+      "battery": "secondary",
+      "position": [
+        7.3,
+        15.1,
+        33.7
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "magazine-secondary-aft",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      }
+    },
+    {
+      "id": "ha-1-1",
+      "name": "Port 12.7 cm AA 1",
+      "partId": "type89-127-yamato-twin",
+      "battery": "secondary",
+      "position": [
+        -12.1,
+        13.3,
+        9
+      ],
+      "bearingDeg": 270,
+      "rangefinder": false,
+      "magazineId": "magazine-secondary-aft",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      }
+    },
+    {
+      "id": "ha-1-2",
+      "name": "Port 12.7 cm AA 2",
+      "partId": "type89-127-yamato-twin",
+      "battery": "secondary",
+      "position": [
+        -12.1,
+        13.3,
+        19.5
+      ],
+      "bearingDeg": 270,
+      "rangefinder": false,
+      "magazineId": "magazine-secondary-aft",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      }
+    },
+    {
+      "id": "ha-1-3",
+      "name": "Port 12.7 cm AA 3",
+      "partId": "type89-127-yamato-twin",
+      "battery": "secondary",
+      "position": [
+        -12.1,
+        13.3,
+        30
+      ],
+      "bearingDeg": 270,
+      "rangefinder": false,
+      "magazineId": "magazine-secondary-aft",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      }
+    },
+    {
+      "id": "ha-1-4",
+      "name": "Port 12.7 cm AA 4",
+      "partId": "type89-127-yamato-twin",
+      "battery": "secondary",
+      "position": [
+        -7.3,
+        15.1,
+        13.2
+      ],
+      "bearingDeg": 270,
+      "rangefinder": false,
+      "magazineId": "magazine-secondary-aft",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      }
+    },
+    {
+      "id": "ha-1-5",
+      "name": "Port 12.7 cm AA 5",
+      "partId": "type89-127-yamato-twin",
+      "battery": "secondary",
+      "position": [
+        -7.3,
+        15.1,
+        24.2
+      ],
+      "bearingDeg": 270,
+      "rangefinder": false,
+      "magazineId": "magazine-secondary-aft",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      }
+    },
+    {
+      "id": "ha-1-6",
+      "name": "Port 12.7 cm AA 6",
+      "partId": "type89-127-yamato-twin",
+      "battery": "secondary",
+      "position": [
+        -7.3,
+        15.1,
+        33.7
+      ],
+      "bearingDeg": 270,
+      "rangefinder": false,
+      "magazineId": "magazine-secondary-aft",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      }
     }
   ],
   "armor": [
@@ -125252,7 +125480,7 @@
   "accuracy": {
     "exterior": "263 m LOA / 38.9 m beam. Original reconstruction; station offsets, hull sections and fittings remain under review. See references/sources.json and reports/discrepancies.md.",
     "internals": "Physical protection surfaces and contained provisional room envelopes. Thickness families, boundaries, capacities, flooding and ballistics remain estimates; see fidelity-01 evidence.",
-    "weapons": "46 cm triple geometry uses USNTMJ O-45(N) measured spacing, roller path and trunnion dimensions. Secondary shapes and exterior station measurements remain interpreted; combat is approximate."
+    "weapons": "46 cm triple geometry uses USNTMJ O-45(N) measured spacing, roller path and trunnion dimensions. Secondary shapes and exterior station measurements remain interpreted; combat is approximate. Twelve twin 127 mm AA mounts now use shared aiming, finite ammunition and damage. Their rates, arcs and supply are gameplay approximations; the 25 mm fittings remain visual."
   },
   "viewpoints": {
     "bridge": [

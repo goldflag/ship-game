@@ -57,7 +57,7 @@ for (const id of ['liberty-cargo', 'liberty-collier', 'victory-cargo', 'flower-c
   });
 }
 
-test('Baltimore exported hierarchy binds all 21 muzzles through train, pitch and recoil', async () => {
+test('Baltimore exported hierarchy binds all 69 main, DP and Bofors muzzles through train, pitch and recoil', async () => {
   const source = await Bun.file(new URL('../../assets/ships/baltimore/blueprint.json', import.meta.url)).json();
   const bytes = await Bun.file(new URL('../../public/models/baltimore.glb', import.meta.url)).arrayBuffer();
   const chunkLength = new DataView(bytes).getUint32(12, true);
@@ -66,9 +66,9 @@ test('Baltimore exported hierarchy binds all 21 muzzles through train, pitch and
   const model = await new GLTFLoader().parseAsync(JSON.stringify({ asset: gltf.asset, scene: gltf.scene, scenes: gltf.scenes, nodes }), '');
   const sim = new CombatSimulation(compileShip(source, catalog));
   const view = new ShipView(model.scene, sim.definition, sim.player);
-  expect(view.muzzleErrors()).toHaveLength(21);
+  expect(view.muzzleErrors()).toHaveLength(69);
   for (const train of [-2.3, 0, 2.3]) {
-    for (const elevation of [-.08, .35, .7]) {
+    for (const elevation of [-.08, .35, .7, 85 * Math.PI / 180]) {
       Object.assign(sim.player.motion, { x: 534, y: -1.2, z: -294, heading: 1.3, roll: -.07, pitch: .04 });
       sim.player.mounts.forEach(m => Object.assign(m, { train, elevation, recoil: .75 }));
       view.update();
@@ -133,9 +133,9 @@ test('Yamato center and outer barrels remain aligned through fore and aft traver
   const model = await new GLTFLoader().parseAsync(JSON.stringify({ asset: gltf.asset, scene: gltf.scene, scenes: gltf.scenes, nodes }), '');
   const sim = new CombatSimulation(compileShip(yamato, catalog));
   const view = new ShipView(model.scene, sim.definition, sim.player);
-  expect(view.muzzleErrors()).toHaveLength(15);
+  expect(view.muzzleErrors()).toHaveLength(39);
   for (const train of [-2.4, 0, 2.4]) {
-    for (const elevation of [-.08, .35, .78]) {
+    for (const elevation of [-.08, .35, .78, 85 * Math.PI / 180]) {
       Object.assign(sim.player.motion, { x: -287, y: -.7, z: 399, heading: 1.4, roll: -.09, pitch: .06 });
       sim.player.mounts.forEach(m => Object.assign(m, { train, elevation, recoil: .8 }));
       view.update();

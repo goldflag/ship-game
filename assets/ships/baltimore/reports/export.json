@@ -1,5 +1,5 @@
 {
-  "contentHash": "32e3e48313128baaba630d594b815d1b54ecdc8e7b8c165ec3a91293615992f6",
+  "contentHash": "d51b9a257be75c99ac6cfd835255d4c4de2f78fa51421b8c6a1ffae635c0dffc",
   "hullBounds": [
     [
       -10.795001983642578,
@@ -102,14 +102,134 @@
       ],
       "barrels": 2,
       "articulationChecks": 6
+    },
+    {
+      "id": "bofors-01",
+      "measuredPivot": [
+        0.0000057378406381758396,
+        7.252236843109131,
+        -76
+      ],
+      "barrels": 4,
+      "articulationChecks": 12
+    },
+    {
+      "id": "bofors-02",
+      "measuredPivot": [
+        -7.499996662139893,
+        6.099999904632568,
+        -45
+      ],
+      "barrels": 4,
+      "articulationChecks": 12
+    },
+    {
+      "id": "bofors-03",
+      "measuredPivot": [
+        7.500003337860107,
+        6.099999904632568,
+        -45
+      ],
+      "barrels": 4,
+      "articulationChecks": 12
+    },
+    {
+      "id": "bofors-04",
+      "measuredPivot": [
+        -8.099998474121094,
+        8,
+        -26
+      ],
+      "barrels": 4,
+      "articulationChecks": 12
+    },
+    {
+      "id": "bofors-05",
+      "measuredPivot": [
+        8.10000228881836,
+        8,
+        -26
+      ],
+      "barrels": 4,
+      "articulationChecks": 12
+    },
+    {
+      "id": "bofors-06",
+      "measuredPivot": [
+        -8.000001907348633,
+        7.900000095367432,
+        28
+      ],
+      "barrels": 4,
+      "articulationChecks": 12
+    },
+    {
+      "id": "bofors-07",
+      "measuredPivot": [
+        7.999998092651367,
+        7.900000095367432,
+        28
+      ],
+      "barrels": 4,
+      "articulationChecks": 12
+    },
+    {
+      "id": "bofors-08",
+      "measuredPivot": [
+        -7.100003719329834,
+        5.800000190734863,
+        50
+      ],
+      "barrels": 4,
+      "articulationChecks": 12
+    },
+    {
+      "id": "bofors-09",
+      "measuredPivot": [
+        7.099996089935303,
+        5.800000190734863,
+        50
+      ],
+      "barrels": 4,
+      "articulationChecks": 12
+    },
+    {
+      "id": "bofors-10",
+      "measuredPivot": [
+        -7.100005149841309,
+        6,
+        68
+      ],
+      "barrels": 4,
+      "articulationChecks": 12
+    },
+    {
+      "id": "bofors-11",
+      "measuredPivot": [
+        7.099994659423828,
+        6,
+        68
+      ],
+      "barrels": 4,
+      "articulationChecks": 12
+    },
+    {
+      "id": "bofors-12",
+      "measuredPivot": [
+        -0.000007323296358663356,
+        6.888325214385986,
+        97
+      ],
+      "barrels": 4,
+      "articulationChecks": 12
     }
   ],
   "torpedoTubes": [],
   "depthChargeLaunchers": [],
-  "meshes": 126,
-  "primitives": 370,
+  "meshes": 186,
+  "primitives": 478,
   "triangles": 271494,
-  "bytes": 8930652,
+  "bytes": 8986788,
   "result": "passed",
   "historicalAccuracy": "not certified; see reference register and discrepancy report"
 }

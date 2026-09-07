@@ -1,0 +1,64 @@
+{
+  "ammoSpent": 24,
+  "backend": "webgpu",
+  "contentHash": "216e408f6980f0c0fc7444e454afa81d6c5298976cbc52463a677f76c2097e0a",
+  "eligibleMounts": 12,
+  "firingMounts": [
+    "Starboard 12.7 cm AA 6",
+    "Starboard 12.7 cm AA 4",
+    "Starboard 12.7 cm AA 5",
+    "Starboard 12.7 cm AA 1",
+    "Starboard 12.7 cm AA 2",
+    "Starboard 12.7 cm AA 3"
+  ],
+  "maxMuzzleError": 0.0027435332982602124,
+  "poses": [
+    {
+      "elevationFraction": 0,
+      "maxMuzzleError": 0.0027430435757326804,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 0.5,
+      "maxMuzzleError": 0.002743114625855639,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleError": 0.002743407078053107,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleError": 0.002743536201881167,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 0.5,
+      "maxMuzzleError": 0.0027435793210965165,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleError": 0.0027437568104304996,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleError": 0.002746863355506571,
+      "trainFraction": 1
+    },
+    {
+      "elevationFraction": 0.5,
+      "maxMuzzleError": 0.002746717804616096,
+      "trainFraction": 1
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleError": 0.00274611857590037,
+      "trainFraction": 1
+    }
+  ],
+  "shipId": "yamato",
+  "shots": 24
+}

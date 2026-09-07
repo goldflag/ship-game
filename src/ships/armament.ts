@@ -1,5 +1,13 @@
 import type { Battery, ShipDefinition } from './blueprint';
 
+/** Gameplay envelope for registered high-angle mounts, including 5.25-inch DP guns. */
+export const ANTI_AIRCRAFT_MAX_CALIBER_M = .14;
+export function antiAircraftRange(mount: ShipDefinition['mounts'][number]): number {
+  const gun = mount.weapon;
+  if (gun.elevationMaxDeg < 70 || gun.caliberM > ANTI_AIRCRAFT_MAX_CALIBER_M) return 0;
+  return gun.caliberM > .08 ? 3200 : gun.caliberM > .025 ? 1800 : 1200;
+}
+
 export const batteryName = (battery: Battery) => ({ main: 'Main battery', secondary: 'Secondary battery', torpedo: 'Torpedo tubes', 'depth-charge': 'Depth charges' })[battery];
 export const ammunitionName = (battery: Battery) => battery === 'depth-charge' ? 'charges' : battery === 'torpedo' ? 'torpedoes' : 'shells';
 export function torpedoArcLabel(def: ShipDefinition): string {

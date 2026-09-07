@@ -4,7 +4,7 @@ Original reconstruction targeting the 7 April 1945 exterior, authored through th
 
 [Fidelity 01](reports/fidelity-01/README.md) records the revised stem/bulb, bridge, gunhouses and equipment, complete structural hit coverage, protection/internals, matched before/after views and current WebGPU checks. The port's Reference review opens the portable historical/measurement pack.
 
-The model uses 263 m overall length, 38.9 m extreme beam, 256 m waterline length, 36.9 m waterline beam and a 10.4 m trial draft. Midship depth is 18.915 m. The equipment date does not assert an exact sinking/departure displacement. Three triple 46 cm and two triple 15.5 cm mounts have independent yaw, elevation, recoil and muzzle joints. The original recipe also includes AA, bridge, funnel, masts, radar, aircraft handling gear, boats, shafts, four 5 m screws and tandem centreline rudders.
+The model uses 263 m overall length, 38.9 m extreme beam, 256 m waterline length, 36.9 m waterline beam and a 10.4 m trial draft. Midship depth is 18.915 m. The equipment date does not assert an exact sinking/departure displacement. Three triple 46 cm, two triple 15.5 cm and twelve twin 127 mm AA mounts have independent yaw, elevation, recoil and muzzle joints. The original recipe also includes visual 25 mm AA, bridge, funnel, masts, radar, aircraft handling gear, boats, shafts, four 5 m screws and tandem centreline rudders.
 
 ```sh
 bun run ship:compile yamato
