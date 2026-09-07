@@ -9,3 +9,5 @@ The in-game WebGPU review used the actual Game/CombatSimulation and renderer thr
 [Captured firing view](panic-fire.png) shows scattered tracers and flak around the aircraft, including bursts far from its position. The capture was read from the rendered canvas after the browser screenshot command timed out.
 
 During review, corrected the AA endpoint to use the lead-point solution's flight time and drag; previously the current-target range time and drag-free flight could prevent hits on incoming aircraft. The renderer now uses the same ballistic step, verified at the heavy-burst endpoint with inherited ship velocity and drag.
+
+Integration with master (`8eb2f9d5`) preserves squadron formations and applies mount power and director-damage dispersion to panic-capable AA. All 129 relevant tests passed across the integration run and an affected aircraft-suite rerun. The payload scoring fixture now empties AA ammunition instead of destroying the target guns, leaving equipment available for bomb damage. `bun run build` passed. The WebGPU measurements and source hashes above remain evidence for the original pre-integration implementation; they have not been recaptured.

@@ -213,6 +213,8 @@ export class Game {
       chartSize: direction => this.resizeChart(direction),
       shellFollow: () => this.toggleShellFollow(),
       shellType: () => this.cycleAmmunition(),
+      isSpectating: () => !this.inPort && this.simulation.isBattle && this.simulation.player.damage.sunk,
+      cycleSpectator: direction => this.cycleSpectator(direction),
       airOperations: () => this.setAirOperationsOpen(!this.airOperationsOpen),
       depth: direction => this.setDepth((this.simulation.player.submarine?.targetDepthM ?? 0) + direction * DEPTH_STEP_M),
       depthPreset: depthM => this.setDepth(depthM),

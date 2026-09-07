@@ -21,9 +21,6 @@
 .schematic-header .icon-button { width: 40px; height: 40px; flex-shrink: 0; }
 .schematic-options { display: grid; grid-template-columns: 1fr 1fr 1fr 1.6fr 0.8fr; gap: 16px; padding: 16px 24px; }
 .schematic-options label { display: grid; gap: 7px; min-width: 0; color: var(--port-muted); font-size: 12px; }
-.schematic-options select { width: 100%; min-width: 0; min-height: 40px; padding: 8px 28px 8px 10px; color: var(--port-text); border: 1px solid var(--port-line); border-radius: 2px; background: #172c38; font-size: 13px; color-scheme: dark; }
-.schematic-options select:hover { border-color: var(--port-muted); }
-.schematic-options select:disabled { opacity: 0.5; }
 .schematic-preview { min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 22px 24px; background: #050e16; overflow: hidden; }
 .schematic-preview img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .schematic-message { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 24px; text-align: center; font-size: 16px; line-height: 1.5; }
@@ -55,3 +52,5 @@
   .schematic-options { padding: 10px 16px; }
   .schematic-footer { padding: 10px 16px; }
 }
+
+.schematic-options .ui-select { width: 100%; min-height: 40px; font-size: 13px; }

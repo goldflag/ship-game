@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "basis": "Original blueprint/recipe equipment inventory. Placement, HP, coverage and protection are game approximations; historical uncertainties remain in discrepancies.md.",
+  "functional": {
+    "guns": [
+      {
+        "id": "fore-4in",
+        "partId": "bl-4in-mk9-single"
+      },
+      {
+        "id": "aft-pompom",
+        "partId": "qf-2pdr-single"
+      },
+      {
+        "id": "bridge-starboard",
+        "partId": "lewis-303-twin"
+      },
+      {
+        "id": "bridge-port",
+        "partId": "lewis-303-twin"
+      }
+    ],
+    "equipment": [
+      {
+        "id": "boiler-port",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "boiler-starboard",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "main-engine",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "shaft",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "steering",
+        "kind": "steering",
+        "placement": "room"
+      },
+      {
+        "id": "forward-magazine",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "aft-magazine",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "support-generator-1",
+        "kind": "generator",
+        "placement": "room"
+      },
+      {
+        "id": "support-generator-2",
+        "kind": "generator",
+        "placement": "room"
+      },
+      {
+        "id": "support-director",
+        "kind": "fire-control",
+        "placement": "room",
+        "servesMountIds": [
+          "fore-4in",
+          "aft-pompom",
+          "bridge-starboard",
+          "bridge-port"
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "Other visual fittings require a dated per-fitting evidence audit before registration.",
+    "Existing support-director location remains an internal proxy until a sourced exposed station is authored."
+  ]
+}

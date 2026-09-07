@@ -1,0 +1,252 @@
+{
+  "version": 1,
+  "basis": "Original blueprint/recipe equipment inventory. Placement, HP, coverage and protection are game approximations; historical uncertainties remain in discrepancies.md.",
+  "functional": {
+    "guns": [
+      {
+        "id": "five-inch-port-1",
+        "partId": "us-5in38-mk21-single"
+      },
+      {
+        "id": "five-inch-port-2",
+        "partId": "us-5in38-mk21-single"
+      },
+      {
+        "id": "five-inch-port-3",
+        "partId": "us-5in38-mk21-single"
+      },
+      {
+        "id": "five-inch-port-4",
+        "partId": "us-5in38-mk21-single"
+      },
+      {
+        "id": "five-inch-starboard-1",
+        "partId": "us-5in38-mk21-single"
+      },
+      {
+        "id": "five-inch-starboard-2",
+        "partId": "us-5in38-mk21-single"
+      },
+      {
+        "id": "five-inch-starboard-3",
+        "partId": "us-5in38-mk21-single"
+      },
+      {
+        "id": "five-inch-starboard-4",
+        "partId": "us-5in38-mk21-single"
+      },
+      {
+        "id": "quad-fore-lower",
+        "partId": "us-11in75-quad"
+      },
+      {
+        "id": "quad-fore-upper",
+        "partId": "us-11in75-quad"
+      },
+      {
+        "id": "quad-aft-lower",
+        "partId": "us-11in75-quad"
+      },
+      {
+        "id": "quad-aft-upper",
+        "partId": "us-11in75-quad"
+      },
+      {
+        "id": "oerlikon-port-1",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-port-2",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-port-3",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-port-4",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-port-5",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-port-6",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-port-7",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-port-8",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-port-9",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-port-10",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-port-11",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-port-12",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-starboard-1",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-starboard-2",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-starboard-3",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-starboard-4",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-starboard-5",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-starboard-6",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-starboard-7",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-starboard-8",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-starboard-9",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-starboard-10",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-starboard-11",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-starboard-12",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-island-1",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-island-2",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-island-3",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-island-4",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-island-5",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-island-6",
+        "partId": "oerlikon-20mm-single"
+      }
+    ],
+    "equipment": [
+      {
+        "id": "magazine-forward",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "engine-port",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "boilers-aft-module",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "turbines-module",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "magazine-aft",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "steering-space-module",
+        "kind": "steering",
+        "placement": "room"
+      },
+      {
+        "id": "support-generator-1",
+        "kind": "generator",
+        "placement": "room"
+      },
+      {
+        "id": "support-generator-2",
+        "kind": "generator",
+        "placement": "room"
+      },
+      {
+        "id": "equipment-forward-mk33-director",
+        "kind": "fire-control",
+        "placement": "fixed",
+        "servesMountIds": [
+          "five-inch-port-1",
+          "five-inch-port-2",
+          "five-inch-port-3",
+          "five-inch-port-4",
+          "five-inch-starboard-1",
+          "five-inch-starboard-2",
+          "five-inch-starboard-3",
+          "five-inch-starboard-4"
+        ]
+      },
+      {
+        "id": "equipment-aft-mk33-director",
+        "kind": "fire-control",
+        "placement": "fixed",
+        "servesMountIds": [
+          "five-inch-port-1",
+          "five-inch-port-2",
+          "five-inch-port-3",
+          "five-inch-port-4",
+          "five-inch-starboard-1",
+          "five-inch-starboard-2",
+          "five-inch-starboard-3",
+          "five-inch-starboard-4"
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "Other visual fittings require a dated per-fitting evidence audit before registration.",
+    "Fixed director stations follow existing original recipe housings; exact historical dimensions/coverage remain estimates."
+  ]
+}

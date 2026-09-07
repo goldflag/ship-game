@@ -10,13 +10,14 @@ export function createRegions(def: ShipDefinition, hullHp: number): RegionState[
 }
 /** Explicit mount ownership wins over fixed volumes. Fixed overlaps choose the
  * smallest volume, so a bridge does not consume the machinery below it. */
-export function damageRegion(def: ShipDefinition, point: Vec3, mountId?: string): DamageRegion | undefined {
+export function damageRegion(def: ShipDefinition, point: Vec3, mountId?: string, moduleId?: string): DamageRegion | undefined {
   const regions = def.localDamage?.regions;
   if (!regions) return;
+  if (moduleId) { const owned = regions.find(r => r.moduleId === moduleId); if (owned) return owned; }
   if (mountId) return regions.find(r => r.mountId === mountId);
   let best: DamageRegion | undefined, volume = Infinity;
   for (const r of regions) {
-    if (r.mountId || !contains(r, point)) continue;
+    if (r.mountId || r.moduleId || !contains(r, point)) continue;
     const size = r.size[0] * r.size[1] * r.size[2];
     if (size < volume) { best = r; volume = size; }
   }
@@ -26,8 +27,8 @@ export function regionCondition(actor: Combatant, id: string): number {
   const region = actor.damage.regions.find(r => r.id === id);
   return region ? region.hp / region.maximum : 1;
 }
-export function localDamageEvidence(actor: Combatant, def: ShipDefinition, point: Vec3, mountId?: string): LocalDamageEvidence | undefined {
-  const r = damageRegion(def, point, mountId);
+export function localDamageEvidence(actor: Combatant, def: ShipDefinition, point: Vec3, mountId?: string, moduleId?: string): LocalDamageEvidence | undefined {
+  const r = damageRegion(def, point, mountId, moduleId);
   if (!r) return;
   const condition = regionCondition(actor, r.id);
   return { regionId: r.id, regionName: r.name, condition, multiplier: Math.min(1, condition * 2) };

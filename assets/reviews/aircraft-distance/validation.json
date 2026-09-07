@@ -1,0 +1,26 @@
+{
+  "date": "2026-09-07",
+  "baseCommit": "6f69615dc79a1846eaed817e0627c64a48d19eee",
+  "sha256": {
+    "src/game/AircraftContacts.ts": "0734abd2aaac77f0cfaee01f49a03d6f128ff0c896bcc929df6d1cb1f423bec1",
+    "src/game/AircraftView.test.ts": "8e5e5b89fe5e791519260616bbf06033a804ecf3c6d5caa25036ff67629b79bc",
+    "scripts/tests/aircraft-distance-browser.ts": "4d90c431dcac85ce4174619caadd7a362e533e6dabfd778cf36e2123ac8a4e74"
+  },
+  "tests": {
+    "passed": 7,
+    "assertions": 298
+  },
+  "build": "passed",
+  "webgpu": {
+    "snapshots": 21,
+    "passed": true
+  },
+  "webgl2": "Not completed: repeated Orca runtime_unavailable errors. Original WebGPU before/after runs completed before browser control became unavailable.",
+  "inGame": "Compared all eighteen aircraft at 600, 1800 and 5400 m; captured before and after through the real Game renderer.",
+  "integration": {
+    "baseCommit": "ff1baaddfdd3624bdf9b7f3536bfaf52fe2afecb",
+    "testsPassed": 31,
+    "assertions": 17222,
+    "build": "passed"
+  }
+}

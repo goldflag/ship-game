@@ -1,3 +1,4 @@
+import { Select, SelectOption, Button } from './components';
 import { shipModel } from '../game/shipModel';
 import { useShip } from './ShipContext';
 // Extends Fleet harbor: maritime controls frame a model-derived drawing. The sheet leads;
@@ -135,17 +136,17 @@ export function SchematicDialog({ onClose }: { onClose: () => void }) {
     }}>
     <header className="schematic-header">
       <div><h2 id="schematic-title">{SHIP_MODEL.name} schematic</h2><p>Create a reference sheet of your ship.</p></div>
-      <button type="button" className="icon-button" aria-label="Close schematic" onClick={onClose} autoFocus><Icon name="close" size={20}/></button>
+      <Button type="button" variant="icon" aria-label="Close schematic" onClick={onClose} autoFocus><Icon name="close" size={20}/></Button>
     </header>
     <div className="schematic-options">
       {(Object.keys(SCHEMATIC_OPTIONS) as (keyof SchematicChoices)[]).map(field => <label key={field}>
         <span>{LABELS[field]}</span>
-        <select value={choices[field]} disabled={exporting} onChange={event => {
-          setChoices(value => schematicChoicesOf({ ...value, [field]: event.target.value }));
+        <Select value={choices[field]} disabled={exporting} onValueChange={value => {
+          setChoices(previous => schematicChoicesOf({ ...previous, [field]: value }));
           setNotice('');
         }}>
-          {Object.entries(SCHEMATIC_OPTIONS[field]).map(([id, label]) => <option key={id} value={id}>{label}</option>)}
-        </select>
+          {Object.entries(SCHEMATIC_OPTIONS[field]).map(([id, label]) => <SelectOption key={id} value={id}>{label}</SelectOption>)}
+        </Select>
       </label>)}
     </div>
     <div className="schematic-preview" aria-busy={!visibleSheet && !failure}>

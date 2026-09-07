@@ -2,17 +2,15 @@
  * Locations, fuel and durability are explicitly provisional gameplay authoring. */
 import { readFile, writeFile } from 'node:fs/promises';
 import { compileShip, type DamageRegion, type ShipBlueprint, type Vec3 } from '../../src/ships/blueprint';
-const ids = ['bismarck', 'yamato', 'king-george-v', 'baltimore', 'enterprise-cv6', 'type-viic', 'liberty-cargo', 'liberty-collier', 'victory-cargo', 'flower-corvette', 'fletcher'];
-const catalog = JSON.parse(await readFile(new URL('../parts/guns.json', import.meta.url), 'utf8'));
-for (const id of ids) {
-  const path = new URL(`./${id}/blueprint.json`, import.meta.url);
-  const b = JSON.parse(await readFile(path, 'utf8')) as ShipBlueprint;
+/** Pure recipe seam: callers own persistence and choose ships explicitly. */
+export function authorLocalDamage(input: ShipBlueprint): ShipBlueprint {
+  const b = structuredClone(input);
   const h = b.hull, deck = Math.max(...h.deckHeights.map(p => p[1]));
   // Re-running replaces only this recipe's own support-equipment IDs.
-  b.modules = b.modules.filter(m => !m.id.startsWith('support-'));
+  b.modules = b.modules.filter(m => !['support-director', 'support-generator-1', 'support-generator-2'].includes(m.id));
   b.compartments = b.compartments.filter(c => c.id !== 'support-director-room');
   const engineRooms = [...new Set(b.modules.filter(m => m.kind === 'engine').map(m => m.compartmentId))];
-  for (const [i, roomId] of [engineRooms[0], engineRooms.length > 1 ? engineRooms.at(-1) : undefined].entries()) {
+  for (const [i, roomId] of (b.modules.some(m => m.kind === 'generator') ? [] : [engineRooms[0], engineRooms.length > 1 ? engineRooms.at(-1) : undefined]).entries()) {
     const room = b.compartments.find(c => c.id === roomId);
     if (!room) continue;
     const cell = [...room.cells ?? [room]].sort((a, c) => c.size[0]*c.size[1]*c.size[2] - a.size[0]*a.size[1]*a.size[2])[0];
@@ -29,7 +27,7 @@ for (const id of ids) {
     .sort((a, c) => Math.hypot(a.cell.center[0]-bridge[0], (a.cell.center[1]-bridge[1])*2, a.cell.center[2]-bridge[2]) - Math.hypot(c.cell.center[0]-bridge[0], (c.cell.center[1]-bridge[1])*2, c.cell.center[2]-bridge[2]))[0];
   const director = controlCell.center.map((n, axis) => n + (axis === 1 ? .25 : 0) * controlCell.size[axis]) as Vec3;
   const directorSize = controlCell.size.map(n => Math.min(1.8, n * .25)) as Vec3;
-  b.modules.push({ id: 'support-director', name: 'Fire-control station', kind: 'fire-control', hp: 65,
+  if (!b.modules.some(m => m.kind === 'fire-control')) b.modules.push({ id: 'support-director', name: 'Fire-control station', kind: 'fire-control', hp: 65,
     compartmentId: controlRoom.id, center: director, size: directorSize, immersionToleranceM: directorSize[1] * .2 });
   for (const room of b.compartments) {
     const modules = b.modules.filter(m => m.compartmentId === room.id);
@@ -53,12 +51,49 @@ for (const id of ids) {
   }
   for (const m of b.mounts) regions.push({ id: `mount-${m.id}`, name: m.name, kind: 'mount', mountId: m.id,
     center: [...m.position], size: [1, 1, 1], durabilityFraction: m.battery === 'main' ? .025 : .008 });
+  for (const m of b.modules.filter(m => m.kind === 'launcher')) regions.push({ id: `launcher-${m.id}`, name: m.name, kind: 'launcher', moduleId: m.id, center: [...m.center], size: [...m.size], durabilityFraction: .008 });
   b.localDamage = { version: 1, regions, basis: 'Original game calibration: eight longitudinal sections, independent sides and three height bands, with separate gunhouse budgets. Generator/director proxy positions and fire loads are estimated; no historical structural tolerance, electrical routing, ventilation or crew-performance claim.' };
-  compileShip(b, catalog);
-  await writeFile(path, JSON.stringify(b, null, 2) + '\n');
-  const report = new URL(`./${id}/reports/discrepancies.md`, import.meta.url);
-  const marker = '## Local damage and fire calibration — 2026-09-06';
-  const existing = await readFile(report, 'utf8');
-  if (!existing.includes(marker)) await writeFile(report, existing + `\n${marker}\n\nLocal regions, generator and director proxies, combustible loads and smoke outlets are independently authored gameplay estimates from the existing layout. They are not historically measured structural subdivisions, generator schedules or ventilation plans. Electrical supply is aggregated with manual gun fallback; directors share a targeting penalty. Breach overlap uses bounded aperture sampling. See \`assets/ships/author-local-damage.ts\`.\n`);
-  console.log(`${id}: ${regions.length} local regions, ${b.modules.filter(m => m.id.startsWith('support-')).length} support modules`);
+  return b;
+}
+
+/** Add equipment budgets without changing previously calibrated hull/gun regions. */
+export function mergeEquipmentDamage(b: ShipBlueprint, previousMountIds: ReadonlySet<string>): void {
+  const generated = authorLocalDamage(b);
+  if (!b.localDamage) b.localDamage = generated.localDamage;
+  else {
+    const regions = b.localDamage.regions.filter(r =>
+      (!r.moduleId || b.modules.some(m => m.id === r.moduleId)) &&
+      (!r.mountId || b.mounts.some(m => m.id === r.mountId)));
+    const existing = new Set(regions.map(r => r.id));
+    b.localDamage.regions = [...regions, ...generated.localDamage!.regions.filter(r =>
+      !existing.has(r.id) && (r.kind === 'launcher' || r.mountId && !previousMountIds.has(r.mountId)))];
+  }
+  for (const mount of b.mounts) mount.fire ??= generated.mounts.find(m => m.id === mount.id)!.fire;
+}
+
+if (import.meta.main) {
+  const { shipPresets } = await import('../../src/ships/presets');
+  const args = process.argv.slice(2);
+  const roster = Object.keys(shipPresets);
+  if (!args.length || args.some(id => id !== 'all' && !roster.includes(id)) || args.includes('all') && args.length > 1)
+    throw new Error('Usage: bun assets/ships/author-local-damage.ts <ship-id> [...] | all');
+  const ids = args[0] === 'all' ? roster : [...new Set(args)];
+  await writeLocalDamage(ids);
+}
+
+
+/** Validate the requested batch before writing; injectable paths keep scoped authoring testable. */
+export async function writeLocalDamage(ids: string[], shipRoot = new URL('./', import.meta.url), catalogUrl = new URL('../parts/guns.json', import.meta.url)): Promise<void> {
+  const catalog = JSON.parse(await readFile(catalogUrl, 'utf8'));
+  // Validate the whole requested batch before writing any ship.
+  const authored = await Promise.all(ids.map(async id => {
+    const path = new URL(`./${id}/blueprint.json`, shipRoot);
+    const b = authorLocalDamage(JSON.parse(await readFile(path, 'utf8')));
+    compileShip(b, catalog);
+    return { id, path, b };
+  }));
+  for (const { id, path, b } of authored) {
+    await writeFile(path, JSON.stringify(b, null, 2) + '\n');
+    console.log(`${id}: ${b.localDamage!.regions.length} local regions, ${b.modules.length} modules`);
+  }
 }

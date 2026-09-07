@@ -12,6 +12,7 @@ import { clearFighterLane, fighterGunAim, fighterTarget, initialAirPilot, orbitP
 import { aircraftDeckAttitude, aircraftGroundPose } from './aircraftGroundPose';
 import { fighterBurst, strikeAimError } from './aircraftAccuracy';
 import { AIR_GUNNERY, gunnerySeed, initialFireDiscipline, stepFireDiscipline } from './airGunnery';
+import { flyFormation, formationLeader } from './aircraftFormation';
 
 export type FlightPhase = 'ready' | 'queued' | 'taxi' | 'takeoff' | 'outbound' | 'attack' | 'returning' | 'landing' | 'rollout' | 'parking' | 'rearming' | 'lost';
 export type AirOrder = { kind: 'attack'; targetId: string } | { kind: 'patrol'; point: Vec3 } | { kind: 'defend'; targetId?: string } | { kind: 'intercept'; flightId: string } | { kind: 'escort'; flightId: string } | { kind: 'return' };
@@ -241,6 +242,12 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
     if (p.phase === 'lost') stepWreck(p, ctx, dt);
     else stepFlightMechanisms(p, dt, onFlightDeck(p));
   }
+  // One immutable leader pose per tick keeps every wingman on the same reference.
+  const leaders = new Map<string, Aircraft>();
+  for (const actor of ctx.actors) for (const flight of actor.airWing?.flights ?? []) {
+    const leader = formationLeader(flight, actor.airWing!.planes);
+    if (leader) leaders.set(flight.id, { ...leader, position: [...leader.position], velocity: [...leader.velocity], pilot: { ...leader.pilot } });
+  }
   for (const actor of ctx.actors) {
     const state = actor.airWing, wing = actor.definition.airWing;
     if (!state || !wing) continue;
@@ -393,9 +400,15 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
         continue;
       }
       const flight = state.flights.find(f => f.id === p.flightId);
+      const leader = flight && leaders.get(flight.id);
+      const follow = () => {
+        if (!flight || !leader || leader.id === p.id || leader.hp <= 0) return false;
+        flyFormation(p, leader, flight, dt, time, ctx.seed ?? 0);
+        return true;
+      };
       if (p.role !== 'fighter' && flight?.order.kind === 'patrol') {
         const anchor: Vec3 = [flight.order.point[0], p.role === 'dive-bomber' ? 850 : 420, flight.order.point[2]];
-        p.phase = 'outbound'; fly(p, orbitPoint(p, anchor, 700 + (i % 3) * 80), 90, dt); continue;
+        p.phase = 'outbound'; if (!follow()) fly(p, orbitPoint(p, anchor, 850), 80, dt, { bankLimit: .45 }); continue;
       }
       if (p.role === 'fighter') {
         if (!p.ammo || p.flightTime > 260) { p.phase = 'returning'; continue; }
@@ -444,8 +457,8 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
           }
         } else {
           p.phase = 'outbound'; p.pilot.aimTime = 0;
-          const anchor: Vec3 = [patrol[0], Math.max(420, patrol[1] + 80) + (i % 3) * 35, patrol[2]];
-          fly(p, orbitPoint(p, anchor, 850 + (i % 3) * 100), 95, dt);
+          const anchor: Vec3 = [patrol[0], Math.max(420, patrol[1] + 80), patrol[2]];
+          if (!leader || leader.phase === 'attack' || !follow()) fly(p, orbitPoint(p, anchor, 1000), 85, dt, { bankLimit: .5 });
         }
         continue;
       }
@@ -457,9 +470,24 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
       const targetPoint = add([target.motion.x, Math.max(0, target.motion.y + target.definition.hull.depth - target.definition.hull.draft), target.motion.z],
         strikeAimError(p, target.motion.heading, ctx.seed ?? 0, p.sortie ?? 0));
       const distance = Math.hypot(targetPoint[0] - p.position[0], targetPoint[2] - p.position[2]);
+      // The whole flight uses one approach axis. Final weapon solutions retain
+      // each pilot's seeded aim error and all existing release/lane checks.
+      if (leader && leader.id !== p.id && leader.targetId === p.targetId && leader.pilot.attackHeading !== undefined
+        && p.pilot.attempts === leader.pilot.attempts && p.pilot.attackStage !== 'egress') {
+        p.pilot.attackHeading = leader.pilot.attackHeading;
+        p.pilot.attackStage ??= 'ingress';
+        if (leader.pilot.attackStage === 'run') p.pilot.attackStage = 'run';
+      }
       const ingress = strikeIngress(p, target, targetPoint);
       const heading = p.pilot.attackHeading!;
       const forward: Vec3 = [Math.sin(heading), 0, -Math.cos(heading)];
+      if (leader && leader.id !== p.id && leader.targetId === p.targetId && leader.payload
+        && p.pilot.attempts === leader.pilot.attempts && p.pilot.attackStage !== 'egress'
+        && (leader.pilot.attackStage === 'ingress' || (leader.pilot.attackStage === 'run'
+          && Math.hypot(leader.position[0] - targetPoint[0], leader.position[2] - targetPoint[2]) > (p.role === 'dive-bomber' ? 1700 : 2100)))) {
+        p.phase = 'outbound';
+        if (follow()) continue;
+      }
       if (p.pilot.attackStage === 'egress') {
         const exit = add(targetPoint, scale(forward, 2200)); exit[1] = 350;
         fly(p, exit, 95, dt);
@@ -471,9 +499,7 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
       }
       if (p.pilot.attackStage === 'ingress') {
         p.phase = 'outbound';
-        // The last two aircraft trail the leader's approach with separate heights.
-        ingress[1] += (i % 3) * (p.role === 'dive-bomber' ? 30 : 12);
-        fly(p, ingress, p.role === 'dive-bomber' ? 95 : 80, dt);
+        fly(p, ingress, p.role === 'dive-bomber' ? 85 : 75, dt, { bankLimit: .65 });
         if (Math.hypot(p.position[0] - ingress[0], p.position[2] - ingress[2]) < (p.role === 'dive-bomber' ? 1000 : 240) && Math.abs(p.position[1] - ingress[1]) < 120) p.pilot.attackStage = 'run';
         continue;
       }
@@ -482,7 +508,7 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
       if (p.role === 'dive-bomber' && p.phase !== 'attack') {
         const bearing = Math.atan2(targetPoint[0] - p.position[0], p.position[2] - targetPoint[2]);
         if (distance > 1600 || Math.abs(wrapAngle(bearing - p.heading)) > .12 || Math.abs(p.bank) > .15) {
-          fly(p, [targetPoint[0], 850 + (i % 3) * 30, targetPoint[2]], 85, dt);
+          fly(p, [targetPoint[0], 850, targetPoint[2]], 85, dt, { bankLimit: .65 });
           continue;
         }
       }

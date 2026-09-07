@@ -3,7 +3,7 @@ import type { FleetActor } from './battle';
 import { add, clamp, localToWorld, rotate, scale, worldToLocal } from './geometry';
 import { motionVelocity } from './ship';
 import { damageUnderwaterBlast } from './torpedoes';
-import { equipmentCondition } from './machinery';
+import { launcherAvailable, equipmentCondition } from './machinery';
 
 export type DepthChargeDefinition = NonNullable<ShipDefinition['depthChargeLaunchers']>[number];
 export interface DepthChargeLauncherState {
@@ -17,7 +17,7 @@ export const createDepthChargeLauncherState = (l: DepthChargeDefinition): DepthC
 export function updateDepthChargeLauncher(actor: FleetActor, l: DepthChargeDefinition, state: DepthChargeLauncherState, dt: number): void {
   state.reload = Math.max(0, state.reload - dt);
   const magazine = actor.definition.modules.find(m => m.id === l.magazineId);
-  state.status = actor.damage.sunk || actor.damage.stability.combatLost || !magazine || equipmentCondition(actor, actor.definition, magazine).availability <= 0 ? 'disabled' : state.ammo <= 0 ? 'empty' : state.reload > 0 || (actor.depthChargeCooldown ?? 0) > 0 ? 'reloading' : 'ready';
+  state.status = actor.damage.sunk || actor.damage.stability.combatLost || !launcherAvailable(actor, actor.definition, l.launcherModuleId) || !magazine || equipmentCondition(actor, actor.definition, magazine).availability <= 0 ? 'disabled' : state.ammo <= 0 ? 'empty' : state.reload > 0 || (actor.depthChargeCooldown ?? 0) > 0 ? 'reloading' : 'ready';
 }
 export function launchDepthCharge(actor: FleetActor, l: DepthChargeDefinition, id: number): DepthCharge {
   return { id, ownerId: actor.motion.id, launcherId: l.id, position: localToWorld(l.position, actor.motion),

@@ -1,3 +1,4 @@
+import { Input } from './components';
 import { useState } from 'react';
 import type { ShipDefinition } from '../ships/blueprint';
 import { INSPECTION_EFFECTS, ARMOR_COLOR_STOPS, INSPECTION_KIND_LABELS, entriesForMode, inspectionColor, inspectionEntries, type InspectionMode } from '../ships/inspection';
@@ -35,7 +36,7 @@ export function PortInspection({ definition, mode, selectedId, onSelect }: { def
       <div className="port-armor-legend-labels">{ARMOR_COLOR_STOPS.map(stop => <span key={stop.thicknessMm}>{stop.thicknessMm}{stop.thicknessMm === armorScaleMax ? '+' : ''} mm</span>)}</div>
       {entries.some(entry => entry.plate?.material === 'teak') && <small>Teak backing is gray.</small>}
     </div>}
-    <label className="port-volume-search">Find {mode === 'armor' ? 'armor' : mode === 'internals' ? 'equipment' : 'a compartment'}<input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Belt, boiler, Anton…" /></label>
+    <label className="port-volume-search">Find {mode === 'armor' ? 'armor' : mode === 'internals' ? 'equipment' : 'a compartment'}<Input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Belt, boiler, Anton…" /></label>
     <div className="port-volume-list" aria-label={mode === 'armor' ? 'Armor volumes' : mode === 'internals' ? 'Equipment modules' : 'Flooding spaces'}>
       {[...groups].map(([key, group]) => group.length === 1 ? row(group[0]) : <details className="port-volume-group" key={key} open={group.some(e => e.id === selectedId) || undefined}>
         <summary>{group[0].name}<small>{group.length} joined surfaces · Expand to isolate a plate</small></summary>
@@ -45,6 +46,6 @@ export function PortInspection({ definition, mode, selectedId, onSelect }: { def
     {filtered.length === 0 && <p role="status" className="port-inspection-note">No matching entries. Try a shorter name or clear the search.</p>}
     <p className="port-inspection-note">{mode === 'armor' ? 'Hull and deckhouse plating also registers hits. Opaque surfaces hide inner layers; isolate a row to inspect them.' : mode === 'internals' ? 'Colored volumes show the equipment hitboxes used in combat. Decorative fittings are not damageable equipment.' : 'Outlines show compartments; blue fill shows floodwater.'}</p>
     </div>
-    {selected && <div className="port-volume-detail" role="status"><div><strong>{selected.name}</strong><span>{selected.size.map(n => n.toFixed(1)).join(' × ')} m</span>{selected.kind !== 'armor' && <small>{INSPECTION_EFFECTS[selected.kind]}</small>}{selected.provenance && <small>{selected.provenance.note}</small>}</div><button onClick={() => onSelect(undefined)}>Clear selection</button></div>}
+    {selected && <div className="port-volume-detail" role="status"><div><strong>{selected.name}</strong><span>{selected.size.map(n => n.toFixed(1)).join(' × ')} m</span>{selected.kind !== 'armor' && <small>{INSPECTION_EFFECTS[selected.kind]}</small>}{selected.consumers && <small>{selected.kind === 'fire-control' ? 'Directs' : 'Operates'}: {selected.consumers.join(', ') || 'No connected weapons'}</small>}{selected.provenance && <small>{selected.provenance.note}</small>}</div><button onClick={() => onSelect(undefined)}>Clear selection</button></div>}
   </section>;
 }

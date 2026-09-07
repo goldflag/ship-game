@@ -5,6 +5,7 @@ These are geometrical reconstructions, not imported commercial model components.
 """
 import math
 import bpy
+from blender_barrels import barrel_layout
 
 
 def create_open_mount(mount, col, helpers, materials):
@@ -13,8 +14,6 @@ def create_open_mount(mount, col, helpers, materials):
     style = spec['mountingStyle']
     gray, dark, steel = (materials[k] for k in ['naval', 'dark', 'edge'])
     count = spec.get('barrelCount', 2)
-    sides = {1: ['center'], 2: ['left', 'right'], 3: ['left', 'center', 'right'],
-             4: ['left-outer', 'left', 'right', 'right-outer']}[count]
     name = mount['id']
     before = set(bpy.context.scene.objects)
 
@@ -70,20 +69,44 @@ def create_open_mount(mount, col, helpers, materials):
                        (.2, side * .28, .75), .032, gray, col), yaw)
     attach(rod(name + '.trunnion-shaft', (trunnion, -fork, height),
                (trunnion, fork, height), .075 if hand_trained else .13, steel, col), yaw)
-    for index, side in enumerate(sides):
-        lateral = ((count - 1) / 2 - index) * spec['barrelSpacing']
+    if style == 'pom-pom':
+        # Original Mk VI layout: paired belt feeds and two stacked bore rows.
+        # The tall bearing cheeks and cross-shafts carry both rows continuously.
+        for sign in [-1, 1]:
+            attach(box(name + '.row-bearing-cheek', (trunnion, sign * fork, height),
+                       (.32, .16, spec['barrelVerticalSpacing'] + .42), gray, col), yaw)
+            attach(box(name + '.feed-cabinet', (-.40, sign * 1.37, 1.27),
+                       (1.28, .58, .88), gray, col), yaw)
+            attach(box(name + '.feed-lid', (-.40, sign * 1.37, 1.74),
+                       (1.34, .64, .06), steel, col), yaw)
+            for z in [height - spec['barrelVerticalSpacing']/2, height + spec['barrelVerticalSpacing']/2]:
+                attach(box(name + '.belt-guide', (-.36, sign * 1.01, z), (.24, .42, .08), steel, col), yaw)
+                for link in range(5):
+                    attach(rod(name + '.feed-round', (-.48, sign * (.84 + link * .075), z + .06),
+                               (-.17, sign * (.84 + link * .075), z + .06), .033, steel, col, vertices=8), yaw)
+            attach(rod(name + '.control-shaft', (-.62, sign * .96, .90), (-.62, sign * 1.23, .90), .045, steel, col), yaw)
+            for segment in range(16):
+                a, b = segment * math.tau/16, (segment+1) * math.tau/16
+                attach(rod(name + '.control-handwheel', (-.62+.19*math.cos(a), sign*1.23, .90+.19*math.sin(a)),
+                           (-.62+.19*math.cos(b), sign*1.23, .90+.19*math.sin(b)), .016, steel, col, vertices=6), yaw)
+            for a in [0, math.pi/2]:
+                attach(rod(name + '.wheel-spoke', (-.62, sign*1.23, .90), (-.62+.19*math.cos(a), sign*1.23, .90+.19*math.sin(a)), .012, steel, col, vertices=6), yaw)
+    for side, lateral, vertical in barrel_layout(spec):
         elevation = empty(side + '.elevation', yaw, (trunnion, lateral, height))
         elevation.rotation_euler.y = -math.radians(1)
-        recoil = empty(side + '.recoil', elevation)
+        cradle = empty(side + '.cradle', elevation, (0, 0, vertical)) if vertical else elevation
+        recoil = empty(side + '.recoil', elevation, (0, 0, vertical))
+        if style == 'pom-pom' and vertical < 0:
+            attach(box(name + '.elevating-row-web', (0, 0, 0), (.19, .13, spec['barrelVerticalSpacing'] + .15), steel, col), elevation)
         length = spec['muzzleForward'] - trunnion
         empty(side + '.muzzle', recoil, (length, 0, 0))
         radius = spec.get('barrelBaseRadius', spec['caliberM'] * .85)
         # The slide stays with elevation while the barrel/breech recoil inside
         # it. Its circular bearing remains on the shaft at every elevation.
         attach(rod(name + '.elevating-bearing', (0, -.12, 0), (0, .12, 0),
-                   max(.09, radius * 1.35), steel, col, vertices=20), elevation)
+                   max(.09, radius * 1.35), steel, col, vertices=20), cradle)
         attach(box(name + '.recoil-slide', (-.12, 0, -radius * .7),
-                   (.64 + spec['recoilM'], max(.12, radius * 2.5), max(.10, radius * 1.4)), gray, col), elevation)
+                   (.64 + spec['recoilM'], max(.12, radius * 2.5), max(.10, radius * 1.4)), gray, col), cradle)
         attach(box(name + '.breech', (-.5 if style == 'open-pedestal' else -.25, 0, 0),
                    (1.1 if style == 'open-pedestal' else .55, radius * 3, radius * 3), steel, col), recoil)
         attach(rod(name + '.barrel-root', (0, 0, 0), (length * .38, 0, 0), radius, steel, col,
@@ -95,9 +118,9 @@ def create_open_mount(mount, col, helpers, materials):
         if style == 'open-pedestal':
             attach(rod(name + '.recoil-cylinder', (-.65, 0, -.26), (1.1, 0, -.26), .14,
                        gray, col, vertices=16), recoil)
-            attach(box(name + '.loading-tray', (-1.08, 0, -.19), (1.20, .48, .08), gray, col), elevation)
+            attach(box(name + '.loading-tray', (-1.08, 0, -.19), (1.20, .48, .08), gray, col), cradle)
             attach(rod(name + '.loading-tray-bracket', (-.30, 0, -radius * .7),
-                       (-.95, 0, -.19), .075, gray, col), elevation)
+                       (-.95, 0, -.19), .075, gray, col), cradle)
         elif style == 'oerlikon':
             attach(cyl(name + '.drum', (-.12, 0, .15), .17, .17, dark, col, 20), recoil)
         else:
@@ -106,12 +129,12 @@ def create_open_mount(mount, col, helpers, materials):
         if hand_trained:
             for sign in [-1, 1]:
                 attach(rod(name + '.shoulder-rest-arm', (-.30, 0, -.04),
-                           (-.72, sign * .20, -.09), .028, gray, col), elevation)
+                           (-.72, sign * .20, -.09), .028, gray, col), cradle)
                 attach(box(name + '.shoulder-pad', (-.74, sign * .20, -.09),
-                           (.08, .15, .22), dark, col), elevation)
+                           (.08, .15, .22), dark, col), cradle)
             attach(rod(name + '.sight-support', (-.18, 0, .03),
-                       (.10, 0, .35), .022, steel, col), elevation)
-            attach(rod(name + '.sight', (0, 0, .35), (.27, 0, .35), .045, dark, col), elevation)
+                       (.10, 0, .35), .022, steel, col), cradle)
+            attach(rod(name + '.sight', (0, 0, .35), (.27, 0, .35), .045, dark, col), cradle)
     if not hand_trained:
         for side in [-1, 1]:
             attach(rod(name + '.sight-support', (trunnion, side * fork, height * .85),

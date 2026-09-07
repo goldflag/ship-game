@@ -7686,6 +7686,54 @@
         "penetrationReferenceSpeedMps": 692.757864,
         "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
       }
+    },
+    {
+      "kind": "gun",
+      "barrelCount": 8,
+      "mountingStyle": "pom-pom",
+      "barrelSpacing": 0.54,
+      "traverseRateDeg": 20,
+      "elevationMinDeg": -10,
+      "elevationRateDeg": 20,
+      "id": "qf-2pdr-mkvi-octuple",
+      "name": "Octuple QF 2-pounder Mk VI pom-pom",
+      "caliberM": 0.04,
+      "massKg": 15500,
+      "barbetteRadius": 0.91,
+      "gunhouseSize": [
+        3.6,
+        3.4,
+        2.45
+      ],
+      "pivotHeight": 1.37,
+      "trunnionForward": -0.05,
+      "muzzleForward": 2.11,
+      "barrelBaseRadius": 0.094,
+      "traverseDeg": 165,
+      "elevationMaxDeg": 80,
+      "reloadSeconds": 0.5217391304347826,
+      "muzzleSpeed": 701.0400000000001,
+      "projectileMassKg": 0.8210021897,
+      "penetrationMm": 15,
+      "damage": 2.2,
+      "recoilM": 0.1,
+      "ammoPerBarrel": 1000,
+      "armorMm": 3,
+      "ballistics": {
+        "dragPerSecond": 0.13,
+        "dispersionRad": 0.0015,
+        "muzzleSpeedSigmaFraction": 0.003,
+        "penetrationReferenceSpeedMps": 409.5,
+        "basis": "RMG B9 supplies 1940 octuple Mk VI fit, 2300 ft/s, 1.81 lb and 115 rpm. Original two-row geometry follows retained KGV NPB5315 and existing original station recipe; local dimensions, traverse rates, ammunition and damage are provisional gameplay calibration."
+      },
+      "he": {
+        "explosiveKg": 0.0728,
+        "fragmentPenetrationMm": 6.666666666666667,
+        "damage": 4.4,
+        "stockFraction": 0.6,
+        "basis": "Provisional gameplay calibration; rates, ammunition, penetration, dispersion and damage are not certified historical firing data."
+      },
+      "barrelVerticalSpacing": 0.46
     }
   ],
   "torpedoes": [

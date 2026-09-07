@@ -1,0 +1,244 @@
+{
+  "version": 1,
+  "basis": "Original blueprint/recipe equipment inventory. Placement, HP, coverage and protection are game approximations; historical uncertainties remain in discrepancies.md.",
+  "functional": {
+    "guns": [
+      {
+        "id": "main-1",
+        "partId": "type94-460-triple"
+      },
+      {
+        "id": "main-2",
+        "partId": "type94-460-triple"
+      },
+      {
+        "id": "main-3",
+        "partId": "type94-460-triple"
+      },
+      {
+        "id": "secondary-forward",
+        "partId": "type3-155-triple"
+      },
+      {
+        "id": "secondary-aft",
+        "partId": "type3-155-triple"
+      },
+      {
+        "id": "ha--1-1",
+        "partId": "type89-127-yamato-twin"
+      },
+      {
+        "id": "ha--1-2",
+        "partId": "type89-127-yamato-twin"
+      },
+      {
+        "id": "ha--1-3",
+        "partId": "type89-127-yamato-twin"
+      },
+      {
+        "id": "ha--1-4",
+        "partId": "type89-127-yamato-twin"
+      },
+      {
+        "id": "ha--1-5",
+        "partId": "type89-127-yamato-twin"
+      },
+      {
+        "id": "ha--1-6",
+        "partId": "type89-127-yamato-twin"
+      },
+      {
+        "id": "ha-1-1",
+        "partId": "type89-127-yamato-twin"
+      },
+      {
+        "id": "ha-1-2",
+        "partId": "type89-127-yamato-twin"
+      },
+      {
+        "id": "ha-1-3",
+        "partId": "type89-127-yamato-twin"
+      },
+      {
+        "id": "ha-1-4",
+        "partId": "type89-127-yamato-twin"
+      },
+      {
+        "id": "ha-1-5",
+        "partId": "type89-127-yamato-twin"
+      },
+      {
+        "id": "ha-1-6",
+        "partId": "type89-127-yamato-twin"
+      }
+    ],
+    "equipment": [
+      {
+        "id": "engine-port",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "engine-starboard",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "steering",
+        "kind": "steering",
+        "placement": "room"
+      },
+      {
+        "id": "magazine-1",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "magazine-2",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "magazine-3",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "magazine-secondary-forward",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "magazine-secondary-aft",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "engine-port-aft",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "engine-starboard-aft",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "support-generator-1",
+        "kind": "generator",
+        "placement": "room"
+      },
+      {
+        "id": "support-generator-2",
+        "kind": "generator",
+        "placement": "room"
+      },
+      {
+        "id": "equipment-main-director",
+        "kind": "fire-control",
+        "placement": "fixed",
+        "servesMountIds": [
+          "main-1",
+          "main-2",
+          "main-3",
+          "secondary-forward",
+          "secondary-aft"
+        ]
+      },
+      {
+        "id": "equipment-aft-director",
+        "kind": "fire-control",
+        "placement": "fixed",
+        "servesMountIds": [
+          "main-1",
+          "main-2",
+          "main-3",
+          "secondary-forward",
+          "secondary-aft"
+        ]
+      },
+      {
+        "id": "equipment-ha-director-starboard-1",
+        "kind": "fire-control",
+        "placement": "fixed",
+        "servesMountIds": [
+          "ha--1-1",
+          "ha--1-2",
+          "ha--1-3",
+          "ha--1-4",
+          "ha--1-5",
+          "ha--1-6"
+        ]
+      },
+      {
+        "id": "equipment-ha-director-starboard-2",
+        "kind": "fire-control",
+        "placement": "fixed",
+        "servesMountIds": [
+          "ha--1-1",
+          "ha--1-2",
+          "ha--1-3",
+          "ha--1-4",
+          "ha--1-5",
+          "ha--1-6"
+        ]
+      },
+      {
+        "id": "equipment-ha-director-starboard-3",
+        "kind": "fire-control",
+        "placement": "fixed",
+        "servesMountIds": [
+          "ha--1-1",
+          "ha--1-2",
+          "ha--1-3",
+          "ha--1-4",
+          "ha--1-5",
+          "ha--1-6"
+        ]
+      },
+      {
+        "id": "equipment-ha-director-port-1",
+        "kind": "fire-control",
+        "placement": "fixed",
+        "servesMountIds": [
+          "ha-1-1",
+          "ha-1-2",
+          "ha-1-3",
+          "ha-1-4",
+          "ha-1-5",
+          "ha-1-6"
+        ]
+      },
+      {
+        "id": "equipment-ha-director-port-2",
+        "kind": "fire-control",
+        "placement": "fixed",
+        "servesMountIds": [
+          "ha-1-1",
+          "ha-1-2",
+          "ha-1-3",
+          "ha-1-4",
+          "ha-1-5",
+          "ha-1-6"
+        ]
+      },
+      {
+        "id": "equipment-ha-director-port-3",
+        "kind": "fire-control",
+        "placement": "fixed",
+        "servesMountIds": [
+          "ha-1-1",
+          "ha-1-2",
+          "ha-1-3",
+          "ha-1-4",
+          "ha-1-5",
+          "ha-1-6"
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "Other visual fittings require a dated per-fitting evidence audit before registration.",
+    "Fixed director stations follow existing original recipe housings; exact historical dimensions/coverage remain estimates."
+  ]
+}

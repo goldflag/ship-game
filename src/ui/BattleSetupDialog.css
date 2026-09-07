@@ -5,9 +5,7 @@
 .battle-setup h2 { margin:0; font:500 36px/1.1 'Barlow Condensed',sans-serif; }
 .battle-setup .icon-button { width:40px; height:40px; }
 .battle-setup-heading+p { flex-shrink:0; margin:4px 0 18px; padding-bottom:14px; border-bottom:1px solid var(--line); color:var(--muted); }
-.battle-setup select { min-height:38px; padding:7px 10px; color:#e1e9e9; background:#0e2530; border:1px solid var(--line); border-radius:3px; font:inherit; cursor:pointer; }
-.battle-setup select:hover { border-color:var(--accent); }
-.battle-setup button:focus-visible,.battle-setup select:focus-visible,.battle-setup input:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.battle-setup button:focus-visible,.battle-setup .ui-select:focus-visible,.battle-setup input:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 
 .battle-board { flex:1; min-height:0; display:grid; grid-template-columns:336px minmax(0,1fr) minmax(0,1fr) 352px; gap:0 26px; }
 .battle-board>* { min-width:0; min-height:0; }
@@ -36,9 +34,9 @@
 .battle-catalog-actions button[aria-pressed="true"] { color:var(--accent); border-color:var(--accent); }
 .battle-catalog-actions button:disabled { opacity:.4; cursor:not-allowed; }
 
-/* Rosters: one compact row per ship, with the AI level select in the row. */
+/* Rosters: one compact row per ship, with the AI level selector in the row. */
 .battle-roster-all { margin-left:auto; display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted); white-space:nowrap; }
-.battle-roster-all select { min-height:28px; padding:2px 6px; font-size:12px; }
+.battle-roster-all .ui-select { min-height:28px; padding:2px 6px; font-size:12px; }
 .battle-roster { list-style:none; margin:0; padding:0 8px 0 0; overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; scrollbar-gutter:stable; }
 .battle-roster li { display:grid; grid-template-columns:72px minmax(0,1fr) 148px 28px; align-items:center; gap:0 10px; padding:8px 0; border-bottom:1px solid var(--line); }
 .battle-roster img { width:72px; height:24px; object-fit:contain; }
@@ -102,7 +100,7 @@
 .spawn-heading>span,.spawn-planner>p,.spawn-legend { color:var(--muted); font-size:12px; line-height:1.5; }
 .spawn-controls { display:flex; align-items:end; flex-wrap:wrap; gap:10px; margin:12px 0; }
 .spawn-controls label { display:grid; gap:6px; flex:1; min-width:110px; font-size:13px; color:var(--muted); }
-.spawn-controls select,.spawn-controls button { min-height:36px; max-width:100%; padding:6px 10px; color:#edf1ec; background:#0e2530; border:1px solid var(--line); border-radius:3px; font:inherit; }
+.spawn-controls .ui-select,.spawn-controls button { min-height:36px; max-width:100%; padding:6px 10px; color:#edf1ec; background:#0e2530; border:1px solid var(--line); border-radius:3px; font:inherit; }
 .spawn-controls button { cursor:pointer; white-space:nowrap; }
 .spawn-controls button:hover { border-color:var(--accent); }
 .spawn-chart { position:relative; width:100%; aspect-ratio:1; overflow:hidden; background:#0a202b; border:1px solid var(--line); touch-action:none; cursor:crosshair; }
@@ -163,7 +161,7 @@
   .battle-roster-ai { grid-area:ai; }
   .battle-roster .icon-button { grid-area:remove; justify-self:end; width:44px; height:44px; }
   .battle-player>svg { grid-area:remove; }
-  .battle-catalog-actions button,.battle-roster-ai,.battle-setup select { min-height:44px; }
+  .battle-catalog-actions button,.battle-roster-ai,.battle-setup .ui-select { min-height:44px; }
   .battle-briefing { display:none; }
   .battle-setup footer button { min-width:0; flex:1; gap:8px; padding:12px; }
   .spawn-marker { width:30px; height:30px; font-size:10px; gap:2px; }

@@ -1,0 +1,253 @@
+{
+  "version": 1,
+  "basis": "Original blueprint/recipe equipment inventory. Placement, HP, coverage and protection are game approximations; historical uncertainties remain in discrepancies.md.",
+  "functional": {
+    "guns": [
+      {
+        "id": "main-a",
+        "partId": "bl-14-mkvii-quad"
+      },
+      {
+        "id": "main-b",
+        "partId": "bl-14-mkvii-twin"
+      },
+      {
+        "id": "main-y",
+        "partId": "bl-14-mkvii-quad"
+      },
+      {
+        "id": "secondary-p1",
+        "partId": "qf-525-mki-twin"
+      },
+      {
+        "id": "secondary-p2",
+        "partId": "qf-525-mki-twin"
+      },
+      {
+        "id": "secondary-p3",
+        "partId": "qf-525-mki-twin"
+      },
+      {
+        "id": "secondary-p4",
+        "partId": "qf-525-mki-twin"
+      },
+      {
+        "id": "secondary-s1",
+        "partId": "qf-525-mki-twin"
+      },
+      {
+        "id": "secondary-s2",
+        "partId": "qf-525-mki-twin"
+      },
+      {
+        "id": "secondary-s3",
+        "partId": "qf-525-mki-twin"
+      },
+      {
+        "id": "secondary-s4",
+        "partId": "qf-525-mki-twin"
+      }
+    ],
+    "equipment": [
+      {
+        "id": "magazine-a",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "magazine-b",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "magazine-y",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "magazine-p1",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "magazine-p2",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "magazine-p3",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "magazine-p4",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "magazine-s1",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "magazine-s2",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "magazine-s3",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "magazine-s4",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "boiler-1-1",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "boiler-1-2",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "turbine-1",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "boiler-2-1",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "boiler-2-2",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "turbine-2",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "boiler-3-1",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "boiler-3-2",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "turbine-3",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "boiler-4-1",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "boiler-4-2",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "turbine-4",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "steering",
+        "kind": "steering",
+        "placement": "room"
+      },
+      {
+        "id": "support-generator-1",
+        "kind": "generator",
+        "placement": "room"
+      },
+      {
+        "id": "support-generator-2",
+        "kind": "generator",
+        "placement": "room"
+      },
+      {
+        "id": "equipment-dct-forward",
+        "kind": "fire-control",
+        "placement": "fixed",
+        "servesMountIds": [
+          "main-a",
+          "main-b",
+          "main-y"
+        ]
+      },
+      {
+        "id": "equipment-dct-after",
+        "kind": "fire-control",
+        "placement": "fixed",
+        "servesMountIds": [
+          "main-a",
+          "main-b",
+          "main-y"
+        ]
+      },
+      {
+        "id": "equipment-hacs-p-forward",
+        "kind": "fire-control",
+        "placement": "fixed",
+        "servesMountIds": [
+          "secondary-p1",
+          "secondary-p2",
+          "secondary-p3",
+          "secondary-p4"
+        ]
+      },
+      {
+        "id": "equipment-hacs-s-forward",
+        "kind": "fire-control",
+        "placement": "fixed",
+        "servesMountIds": [
+          "secondary-s1",
+          "secondary-s2",
+          "secondary-s3",
+          "secondary-s4"
+        ]
+      },
+      {
+        "id": "equipment-hacs-p-after",
+        "kind": "fire-control",
+        "placement": "fixed",
+        "servesMountIds": [
+          "secondary-p1",
+          "secondary-p2",
+          "secondary-p3",
+          "secondary-p4"
+        ]
+      },
+      {
+        "id": "equipment-hacs-s-after",
+        "kind": "fire-control",
+        "placement": "fixed",
+        "servesMountIds": [
+          "secondary-s1",
+          "secondary-s2",
+          "secondary-s3",
+          "secondary-s4"
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "KGV-005/006: existing turret and bridge proportion uncertainties remain.",
+    "KGV-007: four octuple pom-poms and UP launchers remain decorative; individual station coordinates and mechanism review are unresolved. See equipment-evidence.json.",
+    "Octuple mechanism dimensions and close-AA director coverage remain approximations."
+  ]
+}

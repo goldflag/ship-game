@@ -1,3 +1,4 @@
+from blender_barrels import barrel_layout
 """Shared original gun geometry and articulation, driven by the part catalog.
 
 Authoring axes: bow +X, port +Y, up +Z. All joint IDs survive the common export.
@@ -72,10 +73,9 @@ def create_gun_mount(mount, collection, helpers, materials, deck_height):
     bore=spec['caliberM']/2
     gunz=zbase+spec['pivotHeight']
     elev=math.radians(1.0)
-    sides={1:['center'],2:['left','right'],3:['left','center','right'],4:['left-outer','left','right','right-outer']}[spec.get('barrelCount',2)]
-    for index,side in enumerate(sides):
+    for side,gy,vertical in barrel_layout(spec):
         barrel_before=set(bpy.context.scene.objects)
-        gy=((len(sides)-1)/2-index)*spacing
+        gunz=zbase+spec['pivotHeight']+vertical
         rad=spec.get('barrelBaseRadius',.69 if primary else .30)
         rod(name+' • canvas mantlet',pt(exposed_start-.65,gy,gunz),pt(exposed_start+.7,gy,gunz),rad*1.12,canvas,col,rad*.78,24)
         sections=[(exposed_start+.4,rad*.83),(exposed_start+2.4,rad*.76),(exposed_start+2.6,rad*.64),(muzzle-2.0,rad*.43),(muzzle,rad*.40)]

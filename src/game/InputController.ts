@@ -18,6 +18,8 @@ export interface InputActions {
   emergencyBlow?(): void;
   periscope?(): void;
   airOperations?(): void;
+  isSpectating?(): boolean;
+  cycleSpectator?(direction: number): void;
 }
 
 export class InputController {
@@ -57,6 +59,11 @@ export class InputController {
     }
     const key = event.code;
     if (event.metaKey || event.altKey) return;
+    if (this.enabled && !event.ctrlKey && !event.shiftKey && this.actions.isSpectating?.() && (key === 'ArrowLeft' || key === 'ArrowRight')) {
+      event.preventDefault();
+      if (!event.repeat) this.actions.cycleSpectator?.(key === 'ArrowLeft' ? -1 : 1);
+      return;
+    }
     const action = INPUT_ACTIONS.find(({ id }) => this.bindings[id].includes(key))?.id;
     const shift = key === 'ShiftLeft' || key === 'ShiftRight';
     const control = key === 'ControlLeft' || key === 'ControlRight';

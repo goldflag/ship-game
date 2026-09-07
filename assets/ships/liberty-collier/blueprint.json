@@ -8784,7 +8784,17 @@
         0.275,
         1.8
       ],
-      "immersionToleranceM": 0.05500000000000001
+      "immersionToleranceM": 0.05500000000000001,
+      "servesMountIds": [
+        "aft-5in",
+        "fore-3in",
+        "bow-aa-starboard",
+        "bridge-aa-starboard-1",
+        "aft-aa-starboard",
+        "bow-aa-port",
+        "bridge-aa-port-1",
+        "aft-aa-port"
+      ]
     }
   ],
   "compartments": [
