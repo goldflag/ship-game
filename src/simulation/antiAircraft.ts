@@ -1,3 +1,4 @@
+import { mountSupport, directorDispersion } from './machinery';
 import { meanHullY } from './ship';
 import type { AirContext, Aircraft } from './aircraft';
 import { antiAircraftRange } from '../ships/armament';
@@ -24,7 +25,7 @@ export function antiAircraftCandidates(actor: FleetActor, planes: readonly Aircr
       if (!range) continue;
       // Triangle bound covers every barrel through traverse, elevation and hull roll.
       const offset = Math.hypot(...mount.position) + Math.abs(w.pivotHeight) + Math.abs(w.trunnionForward)
-        + Math.abs(w.muzzleForward - w.trunnionForward) + Math.abs(w.barrelSpacing) * (w.barrelCount ?? 2);
+        + Math.abs(w.muzzleForward - w.trunnionForward) + Math.abs(w.barrelSpacing) * (w.barrelCount ?? 2) + (w.barrelVerticalSpacing ?? 0);
       reach = Math.max(reach, range + offset + 1e-6);
     }
     reachByDefinition.set(actor.definition, reach);
@@ -53,7 +54,7 @@ function clearLane(actor: FleetActor, from: [number, number, number], to: [numbe
 
 /** True reserves this mount for a nearby aircraft this tick. Bursts use seeded
  * miss distance and a bounded hit radius; heavy AA approximates a timed burst. */
-export function updateAntiAircraft(actor: FleetActor, m: MountDefinition, state: MountState, ctx: AirContext, dt: number, candidates?: readonly Aircraft[]): boolean {
+export function updateAntiAircraft(actor: FleetActor, m: MountDefinition, state: MountState, ctx: AirContext, dt: number, candidates?: readonly Aircraft[], power?: number): boolean {
   const range = antiAircraftRange(m);
   if (!range || actor.damage.sunk || actor.damage.stability.combatLost || meanHullY(actor.motion) < -1 || state.hp <= 0 || state.ammo <= 0
     || (actor.controller === 'bot' && isPassiveAi(actor.bot?.aiLevel))) return false;
@@ -78,7 +79,8 @@ export function updateAntiAircraft(actor: FleetActor, m: MountDefinition, state:
   const velocity = motionVelocity(actor.motion);
   const flightTime = closest / m.weapon.muzzleSpeed;
   const aim = add(target.position, scale(target.velocity, flightTime));
-  const aligned = updateMount(m, state, actor.definition, actor.motion, aim, dt, velocity);
+  const support = mountSupport(actor, actor.definition, m.id, power);
+  const aligned = updateMount(m, state, actor.definition, actor.motion, aim, dt, velocity, support.power);
   if (!aligned || state.status !== 'ready') return true;
   const muzzle = muzzleWorld(m, state, 0, actor.motion);
   if (!clearLane(actor, muzzle, aim, ctx)) { state.status = 'blocked'; return true; }
@@ -87,7 +89,7 @@ export function updateAntiAircraft(actor: FleetActor, m: MountDefinition, state:
   const heavy = m.weapon.caliberM > .08;
   for (let barrel = 0; barrel < barrels; barrel++) {
     const position = muzzleWorld(m, state, barrel, actor.motion);
-    const direction = dispersedDirection(shotDirection(m, state, actor.motion), .006 + closest / 200000, ctx.seed ?? 0, ctx.nextId());
+    const direction = dispersedDirection(shotDirection(m, state, actor.motion), .006 + closest / 200000 + directorDispersion(support.fireControl), ctx.seed ?? 0, ctx.nextId());
     const endpoint = ballisticStep(position, add(scale(direction, m.weapon.muzzleSpeed), velocity), flightTime).position;
     if (length(sub(endpoint, aim)) < (heavy ? 14 : 6)) target.hp -= heavy ? 2.5 : m.weapon.caliberM > .025 ? 1.2 : .8;
     ctx.emit({ kind: 'aircraft-fire', shipId: actor.motion.id, position, message: `${m.name} · AA fire`,

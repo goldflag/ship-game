@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "baseline": "cb01ec2dc1799e1f2f314c1b3925d36ccc45410a",
+  "blender": "Local Blender 5.2.0 LTS; no Blender MCP available",
+  "bun": "1.3.3 (package-pinned version, invoked with npx; machine default is 1.2.18)",
+  "build": "passed: ship checks, aircraft checks, TypeScript, Vite production bundle; existing chunk-size advisory",
+  "tests": {
+    "files": 118,
+    "passed": 821,
+    "failed": 23,
+    "failedFiles": [
+      "src/game/GameFrame.test.ts",
+      "src/game/AirOperations.test.tsx"
+    ],
+    "sameFailureNamesOnBaseline": true,
+    "simulationPassed": 479,
+    "simulationFailed": 0,
+    "shipPassed": 32,
+    "shipFailed": 0
+  },
+  "models": {
+    "baltimore": {
+      "contentHash": "134afefdde249817379a6f05653c56c67a09a3937d787450f9d336272821f81a",
+      "glbSha256": "b18438d7e172e5ea8309fe0a7831247c9c694e40435aa8f3d1814874ee86b074"
+    },
+    "bismarck": {
+      "contentHash": "fcc33f028b242f738e3beeddf0ab62e84567abdc99417e514ec6824dcb928e09",
+      "glbSha256": "b243c58153fc40be570e7214ce15bc6b93c2ad6757e6feceacb915bc34d617ce"
+    },
+    "enterprise-cv6": {
+      "contentHash": "be93ad44f18bec4351c0a851936b856aa0f4a0df16844ad83c651cb26d77b5c3",
+      "glbSha256": "63b0c5b5b6befc36f44c5ade876622bbfa099b1b1d3c88d9641ff61323e30870"
+    },
+    "fletcher": {
+      "contentHash": "66114db0980d7134d6fc1cfc5c6875923d57c6f8f6c7191d8b965244f61621fd",
+      "glbSha256": "b53f0b3988b0846fc9ea89d4d97484fdc2a3f5b662303594b773365cc50b3e7d"
+    },
+    "flower-corvette": {
+      "contentHash": "7cef17d3a725489e43732b1ef4249bb309dafabf68b3695485bf0ab36aefbef1",
+      "glbSha256": "b32881fb12be0ec11656ab2afd3e8b37d2e9e71707632db895c6e38cafd1927c"
+    },
+    "king-george-v": {
+      "contentHash": "0b6b14ff4ad02d328b015bddca3bb7c8fa355393442e0721f56c7ca19b047ebb",
+      "glbSha256": "c46a3dcddc2665692f44ab3666f71fe9f38c023bc9452faeb2581f0c857db6c2"
+    },
+    "liberty-cargo": {
+      "contentHash": "17ce429d23ad8160bec1e27b63ecae0c350672812ed1b4e3bbb90db5144fbf22",
+      "glbSha256": "b4755d689474448f571a32de0d8762d4395e0ca6d072453f11f5b6b02d85245b"
+    },
+    "liberty-collier": {
+      "contentHash": "ec22a64efdb7c3b60676705b07adadbc5a11c095a238e3c5166a7a824bff9f7f",
+      "glbSha256": "c9484164f6ce08146cf34155c266888f0e625f880d2ac6a7d120c7dea16c58da"
+    },
+    "liberty-deck-cargo": {
+      "contentHash": "dff920815d4d40967aa7d2c8d387778906ef1f48e7ac5af04edf130af57e47e1",
+      "glbSha256": "7c1ae8d2079acf960d0f5923d2ad4e77d4f8668e82888da665dc4d39f486f561"
+    },
+    "liberty-troopship": {
+      "contentHash": "5ceb4b20bdf3e0573a8ad22b385716244273e9e3be2df799bc44d8b26e27f1b3",
+      "glbSha256": "a9b412942c56d2d79cf35608ee7007cb753caebba40cd0850acbddb496be4add"
+    },
+    "type-viic": {
+      "contentHash": "57b226f0b3326ad44d734511e2b4e0d22f45972fc41df79a92f9438ade70cff1",
+      "glbSha256": "1c0aa4d9cad935acfae6a79674afac49b82532975796bf49c67e739144a30753"
+    },
+    "victory-cargo": {
+      "contentHash": "a139ed05c86f306caed0bd8b839b42616157d56692bbd606ddc770a5bc62087f",
+      "glbSha256": "791691d8facd1fce4704f4902be9b991bf99bad830719e8cf202025d571ed3b9"
+    },
+    "yamato": {
+      "contentHash": "c13b72fc9389409bf6abdafba611c517bdb41fc10eb5ca8d1268ce5c275bb58d",
+      "glbSha256": "4224098b7cdf7ad14010cf8d4e99133300a040d1e3364e59390631d9995e24db"
+    }
+  },
+  "octuplePrototype": {
+    "contentHash": "c700b4c838b8e65901b75ddcb80ac06183a427e1cbdc31a6c71502b3a4fcc3b7",
+    "glbSha256": "e3e42aaa388631303263fffa406afc8b5f517b6ac37e4403d14e8aba86d703f5",
+    "runtimeRegistered": false,
+    "acceptance": "blocked by unresolved station/mechanism evidence and high-elevation boom/rigging interference"
+  },
+  "browser": {
+    "status": "incomplete",
+    "reason": "Orca target repeatedly restarted during harbor loading; awaited evaluation ended with target closed while handling command. Computer-use restore briefly produced a window, but subsequent actions reported no on-screen window.",
+    "kgvLoadedMuzzleErrorM": 0.0017358771112409616
+  }
+}

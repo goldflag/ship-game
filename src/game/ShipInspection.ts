@@ -1,3 +1,4 @@
+import { equipmentCenter, equipmentPose } from '../simulation/equipmentPose';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { positionWorld, float } from 'three/tsl';
 import { waterLevel as compartmentWaterLevel } from '../simulation/stability';
@@ -30,7 +31,7 @@ export class ShipInspection {
   private buildVolumes(): void {
     if (this.volumes.length) return;
     const definition = this.definition;
-    this.regionOutlines = (definition.localDamage?.regions ?? []).filter(r => !r.mountId).map(r => {
+    this.regionOutlines = (definition.localDamage?.regions ?? []).filter(r => !r.mountId && !r.moduleId).map(r => {
       const box = new THREE.BoxGeometry(...r.size), edges = new THREE.EdgesGeometry(box); box.dispose();
       const mesh = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: '#dfbd83', transparent: true, opacity: .4, depthTest: false, depthWrite: false }));
       mesh.position.fromArray(r.center); mesh.visible = false; mesh.renderOrder = 99; this.root.add(mesh);
@@ -140,6 +141,9 @@ export class ShipInspection {
       group.visible = this.inMode(entry) && (!this.selectedId || entry.id === this.selectedId);
       this.paint(volume);
       if (entry.moduleIndex !== undefined) {
+        const module = this.definition.modules[entry.moduleIndex];
+        group.position.fromArray(equipmentCenter(actor, this.definition, module));
+        group.rotation.y = -(equipmentPose(actor, this.definition, module)?.heading ?? 0);
         const condition = actor.damage.modules[entry.moduleIndex].hp / this.definition.modules[entry.moduleIndex].hp;
         if (condition < 1) { fill.material.color.set(condition <= 0 ? '#d36b4f' : '#dfbd83'); if (entry.id === this.hoveredId) fill.material.color.lerp(this.hoverColor, .3); }
         if (equipmentCondition(actor, this.definition, this.definition.modules[entry.moduleIndex]).reason === 'flooded') fill.material.color.set('#519fc0');

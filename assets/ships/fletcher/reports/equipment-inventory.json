@@ -1,0 +1,181 @@
+{
+  "version": 1,
+  "basis": "Original blueprint/recipe equipment inventory. Placement, HP, coverage and protection are game approximations; historical uncertainties remain in discrepancies.md.",
+  "functional": {
+    "guns": [
+      {
+        "id": "gun-1",
+        "partId": "us-5in38-mk30-single"
+      },
+      {
+        "id": "gun-2",
+        "partId": "us-5in38-mk30-single"
+      },
+      {
+        "id": "gun-3",
+        "partId": "us-5in38-mk30-single"
+      },
+      {
+        "id": "gun-4",
+        "partId": "us-5in38-mk30-single"
+      },
+      {
+        "id": "gun-5",
+        "partId": "us-5in38-mk30-single"
+      },
+      {
+        "id": "bofors-aft",
+        "partId": "us-40mm-bofors-twin"
+      },
+      {
+        "id": "oerlikon-1",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-2",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-3",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-4",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-5",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "oerlikon-6",
+        "partId": "oerlikon-20mm-single"
+      }
+    ],
+    "equipment": [
+      {
+        "id": "forward-magazine",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "boiler-forward",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "engine-forward",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "boiler-aft",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "engine-aft",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "aft-magazine",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "steering-room",
+        "kind": "steering",
+        "placement": "room"
+      },
+      {
+        "id": "torpedo-magazine",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "depth-charge-magazine",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "support-generator-1",
+        "kind": "generator",
+        "placement": "room"
+      },
+      {
+        "id": "support-generator-2",
+        "kind": "generator",
+        "placement": "room"
+      },
+      {
+        "id": "equipment-mk37-director",
+        "kind": "fire-control",
+        "placement": "fixed",
+        "servesMountIds": [
+          "gun-1",
+          "gun-2",
+          "gun-3",
+          "gun-4",
+          "gun-5"
+        ]
+      },
+      {
+        "id": "equipment-torpedo-forward",
+        "kind": "launcher",
+        "placement": "fixed",
+        "torpedoLauncherId": "torpedo-forward"
+      },
+      {
+        "id": "equipment-torpedo-aft",
+        "kind": "launcher",
+        "placement": "fixed",
+        "torpedoLauncherId": "torpedo-aft"
+      },
+      {
+        "id": "equipment-dc-rack-port",
+        "kind": "launcher",
+        "placement": "fixed"
+      },
+      {
+        "id": "equipment-dc-thrower-port-1",
+        "kind": "launcher",
+        "placement": "fixed"
+      },
+      {
+        "id": "equipment-dc-thrower-port-2",
+        "kind": "launcher",
+        "placement": "fixed"
+      },
+      {
+        "id": "equipment-dc-thrower-port-3",
+        "kind": "launcher",
+        "placement": "fixed"
+      },
+      {
+        "id": "equipment-dc-rack-starboard",
+        "kind": "launcher",
+        "placement": "fixed"
+      },
+      {
+        "id": "equipment-dc-thrower-starboard-1",
+        "kind": "launcher",
+        "placement": "fixed"
+      },
+      {
+        "id": "equipment-dc-thrower-starboard-2",
+        "kind": "launcher",
+        "placement": "fixed"
+      },
+      {
+        "id": "equipment-dc-thrower-starboard-3",
+        "kind": "launcher",
+        "placement": "fixed"
+      }
+    ]
+  },
+  "unresolved": [
+    "Other visual fittings require a dated per-fitting evidence audit before registration.",
+    "Fixed director stations follow existing original recipe housings; exact historical dimensions/coverage remain estimates."
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "registrationPolicy": "verified-only",
+  "basis": "KGV-007: RMG B9 verifies four octuple Mk VI mounts in the early fit. It does not verify individual station datums or the original mechanism reconstruction.",
+  "stations": [
+    {
+      "id": "pom-pom-1",
+      "status": "unresolved",
+      "sourceIds": [
+        "rmg-b9",
+        "rmg-npb5315",
+        "rmg-j9645-original"
+      ],
+      "position": [
+        -6.6,
+        13.0181,
+        -4
+      ],
+      "limitations": "Existing original-recipe visual position. Exact station identification, coordinate measurement and Mk VI mechanism dimensions require review before functional registration."
+    },
+    {
+      "id": "pom-pom-2",
+      "status": "unresolved",
+      "sourceIds": [
+        "rmg-b9",
+        "rmg-npb5315",
+        "rmg-j9645-original"
+      ],
+      "position": [
+        6.6,
+        13.0181,
+        -4
+      ],
+      "limitations": "Existing original-recipe visual position. Exact station identification, coordinate measurement and Mk VI mechanism dimensions require review before functional registration."
+    },
+    {
+      "id": "pom-pom-3",
+      "status": "unresolved",
+      "sourceIds": [
+        "rmg-b9",
+        "rmg-npb5315",
+        "rmg-j9645-original"
+      ],
+      "position": [
+        -6.6,
+        13.0181,
+        24.2
+      ],
+      "limitations": "Existing original-recipe visual position. Exact station identification, coordinate measurement and Mk VI mechanism dimensions require review before functional registration."
+    },
+    {
+      "id": "pom-pom-4",
+      "status": "unresolved",
+      "sourceIds": [
+        "rmg-b9",
+        "rmg-npb5315",
+        "rmg-j9645-original"
+      ],
+      "position": [
+        6.6,
+        13.0181,
+        24.2
+      ],
+      "limitations": "Existing original-recipe visual position. Exact station identification, coordinate measurement and Mk VI mechanism dimensions require review before functional registration."
+    }
+  ]
+}

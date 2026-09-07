@@ -8793,7 +8793,13 @@
         0.175,
         1.015365
       ],
-      "immersionToleranceM": 0.034999999999999996
+      "immersionToleranceM": 0.034999999999999996,
+      "servesMountIds": [
+        "fore-4in",
+        "aft-pompom",
+        "bridge-starboard",
+        "bridge-port"
+      ]
     }
   ],
   "compartments": [
@@ -13402,7 +13408,7 @@
         "design": "white-ensign",
         "position": [
           0,
-          7.0,
+          7,
           28.242
         ],
         "width": 1.5,

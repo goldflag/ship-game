@@ -1,0 +1,312 @@
+bun test v1.3.3 (274e01c7)
+
+../../../../../../private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:
+1083 |   }
+1084 |   private updateEffectsLighting(): void {
+1085 |     if (!this.sky) return;
+1086 |     // Water skips fixed simulation steps while paused. Read the live sky after
+1087 |     // its zero-delta update, so a conditions change still reaches frozen smoke.
+1088 |     const { sun, timeOfDay: moon } = this.sky, night = moon.skyDarkness.value > .5;
+                                                              ^
+TypeError: undefined is not an object (evaluating 'moon.skyDarkness')
+      at updateEffectsLighting (/private/tmp/equipment-baseline-check/src/game/Game.ts:1088:56)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:618:12)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:550:23)
+      at <anonymous> (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:80:43)
+(fail) render warmup draws without advancing combat or starting a second animation loop [153.21ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:69:70)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:673:42)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:550:23)
+      at <anonymous> (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:108:18)
+(fail) map and port transitions restore their own absorption after underwater attenuation [14.49ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:69:70)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:673:42)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:550:23)
+      at <anonymous> (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:120:16)
+(fail) underwater distortion eases down with camera depth and restores without accumulating [15.21ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:69:70)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:673:42)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:550:23)
+      at <anonymous> (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:137:16)
+(fail) turning through north takes the short heading path without changing authoritative combat state [15.24ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:69:70)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:673:42)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:550:23)
+      at <anonymous> (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:157:44)
+(fail) firing enters shell view without feeding its camera into aim, freezes on pause and restores optics [28.71ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:69:70)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:673:42)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:550:23)
+      at <anonymous> (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:191:14)
+(fail) death exits binoculars without a surviving teammate and prevents scope reentry [14.77ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:69:70)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:673:42)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:550:23)
+      at <anonymous> (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:206:14)
+(fail) shell-follow cannot restore binoculars after player death [11.48ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:69:70)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:673:42)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:550:23)
+      at <anonymous> (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:223:16)
+(fail) target inspection follows the interpolated underway target and resets without a streak [13.09ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:69:70)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:673:42)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:550:23)
+      at <anonymous> (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:236:54)
+(fail) pause holds the interpolated pose and resume continues without a tick-sized jump [11.18ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:69:70)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:673:42)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:550:23)
+      at <anonymous> (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:257:58)
+(fail) manual aiming and binoculars keep the camera attached to the displayed ship at full speed [16.54ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:69:70)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:673:42)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:550:23)
+      at <anonymous> (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:280:56)
+(fail) gun circles follow the displayed barrels between simulation ticks in rolling seas [23.65ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:69:70)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:673:42)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:550:23)
+      at <anonymous> (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:311:57)
+(fail) a stationary binocular sight has no abrupt vertical gun-circle jumps as the ship bobs at 60 fps [21.20ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:69:70)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:673:42)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:550:23)
+      at <anonymous> (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:311:57)
+(fail) a stationary binocular sight has no abrupt vertical gun-circle jumps as the ship bobs at 144 fps [19.65ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:69:70)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:673:42)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:550:23)
+      at <anonymous> (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:328:14)
+(fail) repositioning for port and launch clears the old ship poses [15.20ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:69:70)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:673:42)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:550:23)
+      at <anonymous> (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:349:18)
+(fail) full-speed frame movement stays uniform at frame intervals 0.03333333333333333 [19.56ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:69:70)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:673:42)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:550:23)
+      at <anonymous> (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:349:18)
+(fail) full-speed frame movement stays uniform at frame intervals 0.01694915254237288 [12.25ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:69:70)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:673:42)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:550:23)
+      at <anonymous> (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:349:18)
+(fail) full-speed frame movement stays uniform at frame intervals 0.016666666666666666 [15.04ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:69:70)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:673:42)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:550:23)
+      at <anonymous> (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:349:18)
+(fail) full-speed frame movement stays uniform at frame intervals 0.008333333333333333 [12.42ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:69:70)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:673:42)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:550:23)
+      at <anonymous> (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:349:18)
+(fail) full-speed frame movement stays uniform at frame intervals 0.006944444444444444 [12.84ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:69:70)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:673:42)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:550:23)
+      at <anonymous> (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:349:18)
+(fail) full-speed frame movement stays uniform at frame intervals 0.006944444444444444,0.02127659574468085,0.013888888888888888,0.043 [8.19ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:69:70)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:673:42)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:550:23)
+      at <anonymous> (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:364:14)
+(fail) all fleet impact marks share one cosmetic work budget, renewed for each frame [14.77ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:69:70)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:673:42)
+      at frame (/private/tmp/equipment-baseline-check/src/game/Game.ts:550:23)
+      at <anonymous> (/private/tmp/equipment-baseline-check/src/game/GameFrame.test.ts:378:14)
+(fail) the frame feeds every fleet wake the rendered pose, and only the player in port [13.91ms]
+
+../../../../../../private/tmp/equipment-baseline-check/src/game/AirOperations.test.tsx:
+21 |   battlefieldCamera.beginTransition(); battlefieldCamera.enter([{ x: 0, z: 0 }], 1280, 800);
+22 |   for (let i = 0; i < 7; i++) {
+23 |     battlefieldCamera.update(); battlefieldCamera.applyTransition(.2);
+24 |     const [x, y] = game.projectAirMap(100, -200);
+25 |     const water = game.airMapWater(x, y)!;
+26 |     expect(water[0]).toBeCloseTo(100, 5); expect(water[1]).toBeCloseTo(-200, 5);
+                ^
+TypeError: undefined is not an object (evaluating 'water[0]')
+      at <anonymous> (/private/tmp/equipment-baseline-check/src/game/AirOperations.test.tsx:26:12)
+(fail) map overlays and water orders use the displayed camera throughout ascent and panning [0.66ms]
+(pass) an armed action refuses an incompatible click without issuing a different mission [1.23ms]
+(pass) air chart fits distant aircraft in wide and narrow windows and maps clicks back to world coordinates [0.43ms]
+(pass) the operations roster exposes the full inventory and retains a flight target when the ship target changes [11.58ms]
+(pass) the map releases aim, blocks firing and restores aiming on close without losing flight selection [0.84ms]
+(pass) older keybindings keep a custom M binding while adding a reachable map shortcut [0.20ms]
+(pass) closing the carrier map restores the chosen weather visibility [0.57ms]
+
+ 6 pass
+ 23 fail
+ 76 expect() calls
+Ran 29 tests across 2 files. [733.00ms]

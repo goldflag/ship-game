@@ -90065,22 +90065,106 @@
       "immersionToleranceM": 0.36
     },
     {
-      "id": "support-director",
-      "name": "Fire-control station",
+      "id": "equipment-forward-main-director",
+      "name": "forward main director",
       "kind": "fire-control",
-      "hp": 65,
-      "compartmentId": "reserve-cell-1-0-2",
+      "placement": "fixed",
       "center": [
-        -4.7228125,
-        5.508180555,
-        -22.45002812
+        0,
+        19.55,
+        -21.4
       ],
       "size": [
-        1.8,
-        0.120319445,
-        1.6035734375
+        2.9,
+        2,
+        2.95
       ],
-      "immersionToleranceM": 0.024063889
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "main-1",
+        "main-2",
+        "main-3"
+      ]
+    },
+    {
+      "id": "equipment-after-main-director",
+      "name": "after main director",
+      "kind": "fire-control",
+      "placement": "fixed",
+      "center": [
+        0,
+        12.639999999999999,
+        36
+      ],
+      "size": [
+        2.9,
+        2,
+        2.95
+      ],
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "main-1",
+        "main-2",
+        "main-3"
+      ]
+    },
+    {
+      "id": "equipment-forward-dp-director",
+      "name": "forward dp director",
+      "kind": "fire-control",
+      "placement": "fixed",
+      "center": [
+        0,
+        24.765,
+        -14.1
+      ],
+      "size": [
+        2.9,
+        2.35,
+        2.95
+      ],
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "secondary-51",
+        "secondary-52",
+        "secondary-53",
+        "secondary-54",
+        "secondary-55",
+        "secondary-56"
+      ]
+    },
+    {
+      "id": "equipment-after-dp-director",
+      "name": "after dp director",
+      "kind": "fire-control",
+      "placement": "fixed",
+      "center": [
+        0,
+        22.015,
+        27.7
+      ],
+      "size": [
+        2.9,
+        2.35,
+        2.95
+      ],
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "secondary-51",
+        "secondary-52",
+        "secondary-53",
+        "secondary-54",
+        "secondary-55",
+        "secondary-56"
+      ]
     }
   ],
   "connections": [

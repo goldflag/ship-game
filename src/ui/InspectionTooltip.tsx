@@ -35,6 +35,7 @@ export function InspectionTooltip({ game }: { game: Game | null }) {
       {entry.hp !== undefined && <div><dt>Hit points</dt><dd>{entry.hp} HP</dd></div>}
       {entry.capacityM3 !== undefined && <div><dt>Flooding capacity</dt><dd>{Math.round(entry.capacityM3).toLocaleString()} m³</dd></div>}
       {entry.pumpM3PerSecond !== undefined && <div><dt>Pumping</dt><dd>{(entry.pumpM3PerSecond * 60).toFixed(1)} m³/min</dd></div>}
+      {entry.consumers && <div><dt>{entry.kind === 'fire-control' ? 'Directs' : 'Operates'}</dt><dd>{entry.consumers.join(', ') || 'No connected weapons'}</dd></div>}
       {entry.within && <div><dt>Compartment</dt><dd>{entry.within}</dd></div>}
       {dimensions}
     </dl>}
