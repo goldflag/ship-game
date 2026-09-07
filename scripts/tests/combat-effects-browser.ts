@@ -88,15 +88,19 @@ export async function checkCombatVolumeRendering(forceWebGL = false, reversedDep
   scene.add(pool.mesh);
   const particle = pool.emit(new THREE.Vector3(0, 10, 0));
   particle.size = 28; particle.life = 12; particle.opacity = .9; particle.density = 4;
-  const frames: { view: string; visiblePixels: number; draws: number }[] = [];
+  const frames: { view: string; visiblePixels: number; draws: number; width: number; height: number }[] = [];
   const render = async (view: string, visible: boolean, draws: number) => {
     camera.updateMatrixWorld(); pool.update(0, camera, wind);
     renderer.info.reset(); renderer.render(scene, camera);
     const pixels = await renderer.readRenderTargetPixelsAsync(target, 0, 0, 256, 256);
-    let visiblePixels = 0;
-    for (let i = 0; i < pixels.length; i += 4) if (pixels[i] > 2) visiblePixels++;
+    let visiblePixels = 0, left = 256, right = -1, top = 256, bottom = -1;
+    for (let i = 0; i < pixels.length; i += 4) if (pixels[i] > 2) {
+      visiblePixels++;
+      const x = i / 4 % 256, y = Math.floor(i / 4 / 256);
+      left = Math.min(left, x); right = Math.max(right, x); top = Math.min(top, y); bottom = Math.max(bottom, y);
+    }
     const calls = renderer.info.render.drawCalls;
-    frames.push({ view, visiblePixels, draws: calls });
+    frames.push({ view, visiblePixels, draws: calls, width: Math.max(0, right - left + 1), height: Math.max(0, bottom - top + 1) });
     if ((visible ? visiblePixels < 100 : visiblePixels !== 0) || calls !== draws) {
       throw new Error(`Volume visibility/draw budget failed: ${JSON.stringify(frames)}`);
     }
@@ -120,8 +124,34 @@ export async function checkCombatVolumeRendering(forceWebGL = false, reversedDep
     await render('reverse oblique', true, 1);
     camera.position.set(0, 10, 0); camera.lookAt(0, 10, -1);
     await render('inside', true, 1);
+    if (turbulent) {
+      particle.volumeAspect = 2.2;
+      camera.position.set(0, 10, 50); camera.lookAt(0, 10, 0);
+      await render('elongated side', true, 1);
+      const side = frames.at(-1)!;
+      if (side.width < side.height * 1.5) throw new Error(`Muzzle volume lost its launch direction: ${JSON.stringify(side)}`);
+      particle.volumeYaw = Math.PI / 2;
+      await render('elongated end-on', true, 1);
+      particle.volumeYaw = .7; particle.volumeAxisY = .65;
+      await render('elevated oblique', true, 1);
+      scene.add(blocker);
+      await render('elongated behind opaque surface', false, 2);
+      scene.remove(blocker);
+      camera.position.set(0, 10, 0); camera.lookAt(0, 10, -1);
+      await render('inside elongated volume', true, 1);
+    }
     pool.reset();
     await render('reset', false, 1);
+    // Muzzles share storage with ordinary impact/fire smoke. Reusing their
+    // slots must restore a sphere, including after an elevated launch.
+    const reused = pool.emit(new THREE.Vector3(0, 10, 0));
+    reused.size = 28; reused.life = 12; reused.opacity = .9; reused.density = 4;
+    camera.position.set(0, 10, 50); camera.lookAt(0, 10, 0);
+    await render('reused spherical slot', true, 1);
+    const restored = frames.at(-1)!;
+    if (restored.width !== frames[0].width || restored.height !== frames[0].height || restored.visiblePixels !== outsidePixels) {
+      throw new Error(`Reused smoke retained its muzzle shape: ${JSON.stringify(restored)}`);
+    }
     return { backend: forceWebGL ? 'webgl2' : 'webgpu', reversedDepth: renderer.reversedDepthBuffer, effect: turbulent ? 'smoke' : 'water', frames };
   } finally {
     target.dispose(); pool.dispose(); map.dispose(); volume.dispose();

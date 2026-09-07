@@ -354,6 +354,8 @@ export class Game {
         sunlight.intensity = .35 * this.sky!.timeOfDay.moonIntensity.value * this.sky!.timeOfDay.moonPhaseIllumination.value;
         sunlight.color.copy(this.sky!.timeOfDay.moonColor.value);
       }
+      this.effects.setSun(lightDirection);
+      this.effects.setIllumination(sunlight.color, sunlight.intensity, this.ambientLight.intensity);
       sunlight.position.copy(lightDirection).multiplyScalar(this.inPort ? 800 : 500).add(sunlight.target.position);
       sunlight.target.updateMatrixWorld();
     });
