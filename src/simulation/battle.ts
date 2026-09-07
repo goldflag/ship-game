@@ -30,6 +30,8 @@ export interface FleetActor extends Combatant {
   definition: ShipDefinition;
   team: Team;
   controller: 'player' | 'bot' | 'idle';
+  /** Last applied helm command, for instrument readouts. */
+  helm?: import('./ship').HelmCommand;
   targetId?: string;
   torpedoTubes?: TubeState[];
   tubeLaunchCooldown?: number;

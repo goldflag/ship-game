@@ -243,7 +243,7 @@ test('spectating follows only surviving teammates, cycles duplicates, and resets
   const fleetViews = simulation.actors.map(actor => ({ actor, definition: actor.definition, motion: actor.motion }));
   const game = Object.assign(Object.create(Game.prototype), {
     definition, simulation, rig, fleetViews, playerView: fleetViews[0], targetView: fleetViews.at(-1),
-    inPort: false, shellFollow: new ShellFollow(), input: { clear() {} }, battlefieldCamera: { cancelTransition() {} },
+    inPort: false, selectedBattery: 'main', currentAim: [0, 0, -5000], ammunition: {}, shellFollow: new ShellFollow(), input: { clear() {}, order: 5, rudderOrder: 1 }, battlefieldCamera: { cancelTransition() {} },
   }) as Game;
   const update = () => (game as unknown as { updateSpectator(): void }).updateSpectator();
   try {
@@ -256,17 +256,27 @@ test('spectating follows only surviving teammates, cycles duplicates, and resets
     game.cycleSpectator(1); expect(game.spectatedShipId).toBe('friendly-1');
     game.cycleSpectator(1); expect(game.spectatedShipId).toBe('friendly-2');
     const friend = simulation.actors[2];
+    friend.motion.speed = 4;
+    friend.helm = { throttle: .5, rudder: -.5 };
+    const telemetry = () => (game as unknown as { shipTelemetry(aim: [number, number, number]): import('./types').Telemetry }).shipTelemetry([0, 0, -5000]);
+    expect(telemetry()).toMatchObject({ ship: { id: friend.motion.id, speed: 4 }, shipDefinition: { id: 'type-viic' }, order: 3, rudderOrder: -.5 });
+    expect(telemetry().combat?.submarine).toBeDefined();
+    expect(telemetry().combat?.playerSunk).toBe(true);
     const projected = new Vector3(friend.motion.x, friend.motion.y, friend.motion.z).project(camera);
     expect(Math.abs(projected.x)).toBeLessThan(1); expect(Math.abs(projected.y)).toBeLessThan(1);
     expect(simulation.player.controller).toBe('player'); expect(friend.controller).toBe('bot');
     friend.damage.sunk = true;
     update(); expect(game.spectatedShipId).toBe('friendly-1');
+    expect(telemetry().ship.id).toBe('friendly-1');
+    expect(telemetry().combat?.submarine).toBeUndefined();
     simulation.actors[1].damage.stability.combatLost = true;
     update(); expect(game.spectatedShipId).toBe('friendly-3');
     simulation.actors[3].damage.sunk = true;
     update(); expect(game.spectatedShipId).toBeUndefined();
     game.cycleSpectator(1); expect(game.spectatedShipId).toBeUndefined();
     simulation.reset(); update(); expect(game.spectatedShipId).toBeUndefined();
+    expect(telemetry().ship.id).toBe('player');
+    expect(telemetry().order).toBe(5);
     simulation.player.damage.sunk = true; update(); expect(game.spectatedShipId).toBe('friendly-1');
     Object.assign(game, { inPort: true }); update(); expect(game.spectatedShipId).toBeUndefined();
   } finally { rig.dispose(); }
