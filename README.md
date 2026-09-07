@@ -78,7 +78,7 @@ In port, upward dragging stops at the lowest orbit and keeps the camera aimed at
 | Esc                               | Pause / resume; open Settings or close the game                              |
 | H                                 | Hide / show instruments                                                      |
 | F                                 | Fullscreen                                                                   |
-| Hold left mouse / Q / Fire button | Fire the selected battery as guns become ready                               |
+| Hold left mouse / Q               | Fire the selected battery as guns become ready                               |
 
 Each fitted weapon group has its own direct shortcut, ordered main guns first, then secondaries from largest caliber down, followed by torpedoes and depth charges. Matching guns share a group across mount layouts; different firing characteristics, ammunition or aiming envelopes stay separate. Pressing a group's key always selects that group, with no cycling. Slots stay fixed through damage and ammunition loss. Each group retains its own AP/HE choice, and its mount readiness, stocks, flight time and aim markers reflect only its weapons. Unselected AA guns retain automatic air defense; selecting an AA group gives you manual control. Bismarck uses 1–5 for 380, 150, 105, 37 and 20 mm guns; Fletcher uses 1–3 for guns, 4 for torpedoes and 5 for depth charges. Number keys are rebindable weapon slots, so their weapon types can differ between ships. The first ten groups have default shortcuts (1–9, then 0); any additional groups remain directly clickable in the HUD. Older saved category bindings migrate to slots 1–4 while other custom controls are preserved.
 

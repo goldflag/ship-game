@@ -67,7 +67,7 @@ test('Fletcher exposes live depth charge supply and broadside torpedo help, whil
     if (id === 'fletcher') {
       expect(html).not.toContain('class="fleet-shell-cycle"');
       expect(html).toContain('Select Mk 6 depth charge · 28 charges · 5');
-      expect(html).toContain('Burst at 10 m'); expect(html).toContain('Drop depth charge');
+      expect(html).toContain('Burst at 10 m');
       data.combat = sim.telemetry('torpedo', [1500, 0, 0]);
       const torpedoHtml = renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={data} game={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
       expect(torpedoHtml).not.toContain('class="fleet-shell-cycle"');
@@ -113,7 +113,8 @@ test('battle HUD omits the removed gunnery panel and keeps weapon controls', () 
     expect(html).not.toContain('class="gunnery"');
     expect(html).toContain('aria-label="Weapons"');
     expect(html).toContain('class="fleet-shell-cycle"');
-    expect(html).toContain('fleet-fire-slot');
+    expect(html).not.toContain('fleet-fire-slot');
+    expect(html).not.toContain('fleet-utility-slot');
   }
 });
 
@@ -161,8 +162,7 @@ test('weapon slots show separate types, custom shortcuts, and one selected group
     expect(html.match(/class="fleet-weapon-slot"[^>]*aria-pressed="true"/g)).toHaveLength(1);
     expect(html).toContain(`${selected.name}</span>`);
     if (id === 'enterprise-cv6') {
-      expect(html).toContain('aria-label="Squadron commands"');
-      expect(html).toContain('Command map');
+      expect(html).not.toContain('aria-label="Squadron commands"');
     }
   }
 });
