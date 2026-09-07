@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
+  "passed": true,
+  "rawCacheAvailableDuringBuild": false,
+  "cacheMovedForTest": true,
+  "command": "bun run ship:build king-george-v",
+  "authoringReadAudit": ".build/ships/king-george-v/authoring-reads.json",
+  "note": "Full original asset build and raster comparison succeeded without the raw game cache. Python authoring reads additionally reject raw model formats and cache paths."
+}

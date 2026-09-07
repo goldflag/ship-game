@@ -1,3 +1,4 @@
+import kingGeorgeV from '../../public/models/king-george-v.json';
 import bismarck from '../../public/models/bismarck.json';
 import yamato from '../../public/models/yamato.json';
 import baltimore from '../../public/models/baltimore.json';
@@ -11,8 +12,19 @@ import flower from '../../public/models/flower-corvette.json';
 import type { ShipDefinition } from './blueprint';
 
 /** Historical presets share the same compiled definition and renderer contract. */
-export const shipPresets = { bismarck, yamato, baltimore, 'enterprise-cv6': enterprise, 'type-viic': viic,
-  'liberty-cargo': libertyCargo, 'liberty-collier': libertyCollier, 'victory-cargo': victoryCargo, 'flower-corvette': flower, fletcher };
+export const shipPresets = {
+  bismarck,
+  yamato,
+  'king-george-v': kingGeorgeV,
+  baltimore,
+  'enterprise-cv6': enterprise,
+  'type-viic': viic,
+  'liberty-cargo': libertyCargo,
+  'liberty-collier': libertyCollier,
+  'victory-cargo': victoryCargo,
+  'flower-corvette': flower,
+  fletcher,
+};
 const retiredPresetAliases: Record<string, keyof typeof shipPresets> = {
   'liberty-deck-cargo': 'liberty-collier', 'liberty-troopship': 'victory-cargo',
 };
@@ -25,5 +37,5 @@ export const selectedShip = shipPreset(typeof window === 'undefined' ? null : ne
 /** Published authoring evidence is optional preset metadata, independent of combat. */
 export const shipReviewUrls: Partial<Record<string, string>> = Object.fromEntries(
   // Vite's SPA fallback serves the game for public directory URLs.
-  ['bismarck', 'yamato', 'baltimore', 'enterprise-cv6', 'type-viic'].map(id => [id, `/ship-reference/${id}/index.html`]),
+  ['bismarck', 'yamato', 'baltimore', 'enterprise-cv6', 'type-viic', 'king-george-v'].map(id => [id, `/ship-reference/${id}/index.html`]),
 );

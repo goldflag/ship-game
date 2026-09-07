@@ -1,0 +1,1 @@
+Previous runtime evidence, superseded by the turret revision. Files retain their recorded model hashes. The prior articulation PNGs and in-game-refined.png aimed at the old origin after port reset and show an empty harbor; they are not valid visual articulation evidence. The fixture camera now follows the player mooring.

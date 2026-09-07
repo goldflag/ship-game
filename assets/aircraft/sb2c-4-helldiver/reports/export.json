@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "aircraftId": "sb2c-4-helldiver",
-  "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+  "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
   "result": "passed",
   "coordinates": {
     "units": "meters",
@@ -111,7 +111,7 @@
   "triangles": 38429,
   "meshes": 16,
   "primitives": 47,
-  "bytes": 1852948,
+  "bytes": 1852704,
   "surfaces": {
     "uvPrimitives": 47,
     "texturedPrimitives": 6,
@@ -124,11 +124,11 @@
     "degenerateTriangles": 0
   },
   "historicalAccuracy": "Not certified; see the aircraft source register and discrepancy report.",
-  "modelHash": "35fe47786e6894fec6912a96877c0c69914bc8b97f3e116331278ab3e712737c",
-  "sourceBlendHash": "fbac2871328d25854d5b785b91cb2672bf024f0b325be90699c1a00c95fff9a0",
+  "modelHash": "63ba00af8b0bf0ea5c25129d04ed33b5f86dd722a5d206d423a88fc05f60e8b6",
+  "sourceBlendHash": "c6d9bc757db3e6ad18dab469b5e20adb3a06f5cdc48666ff99a176a4c8d2326f",
   "sourceFiles": {
     "assets/aircraft/catalog.json": "f5a9edd4250b53c049f506701465c5a19c02de32742df2c2e9e93d837a4497a3",
-    "assets/aircraft/build.py": "4c70d84377318cd798172dcf89e51c2f84b01baf7a7b444171da856eaf4126b1",
+    "assets/aircraft/build.py": "fcb1bf8212454e3ffe2eedcbffe48880e31d8f754b8e27faf277b023055cc511",
     "assets/aircraft/detail_bombers.py": "351e2cd6ccfddc591279a2b6e1f6057b4131420cd18f7020050f0a40848ad499",
     "assets/aircraft/shapes/a6m2-zero.json": "98c909b4199cce1ae77024c4fa57a89099d973c8878357e4f40a1b07b9fab77c",
     "assets/aircraft/references/schematics/a6m2-zero/three-view.png": "bd3911b9abab248fd6d5d8affe8b76f79216190f0ee0e624a40cac97e2e78dac",
@@ -142,7 +142,7 @@
     "assets/aircraft/references/schematics/d3a1-val/three-view.png": "91b52859aef4b9e0e76074aa13092720ef32a51f1ff2c3151ddcf3774d0c24b6",
     "assets/aircraft/shapes/d4y2-judy.json": "05ed7c79e5cf545722542bd217fb9ff18623ee92dee8c208902d4ca454348287",
     "assets/aircraft/references/schematics/d4y2-judy/profile-241-page-17-measure.png": "1b3b5b841ae1b675d264bee80dfa07eb9fd5520aad7ab4f49cc20f0b5bb22669",
-    "assets/aircraft/shapes/f4f-4-wildcat.json": "c7a5398f3108d1c5eec5c7f78d7ae417363596b9aabcac41ee0696f0943f1200",
+    "assets/aircraft/shapes/f4f-4-wildcat.json": "9067e4277f217e8a8b21f7164290e2a2afae3a5c39369992b42324f4d18cfca6",
     "assets/aircraft/references/schematics/f4f-4-wildcat/threeview.png": "5673170e7dab2001ffaa016035230f5d9a6580ef6b629f7267731cdcdd4301ee",
     "assets/aircraft/shapes/f4u-1d-corsair.json": "e3d8b1a05fe5b04ba3a620abbf3c393d97d51d42f971f296f7ac9ee41c572fa3",
     "assets/aircraft/references/schematics/f4u-1d-corsair/vought-1532_016_22.png": "c5464eaaac26ea0b1e1be7e7faae1b73876e305653fe4dddd7eb8cf7b16884dc",
@@ -152,7 +152,7 @@
     "assets/aircraft/references/schematics/sb2c-4-helldiver/buaer-sb2c-5.jpg": "c7a846c2eb7d9e942f0dc7c05216b84ca1de9fae390c9f7e73649c9e9818a1b8",
     "assets/aircraft/shapes/sbd-3-dauntless.json": "97571d4e3534188cbac77ba788abacbaeda68a7579e4900e8cfd112d1d429998",
     "assets/aircraft/references/schematics/sbd-3-dauntless/buaer-sbd-5.jpg": "3b6e045a32fac9349e7938b53b000d390c3f887c640e39e734fd4385bf0185a7",
-    "assets/aircraft/shapes/tbd-1-devastator.json": "29153f60f93e61251d31f38de80041dcbc6010b895f850d65167884ee209af62",
+    "assets/aircraft/shapes/tbd-1-devastator.json": "ce135fa1098d48ebb5847e79443329cc502f2510478a58e40f055961c260d82e",
     "assets/aircraft/references/schematics/tbd-1-devastator/commons-tbd.png": "fc45af704ce7d02c420e361ab037be84155888433f1d03cb0355aa96fa5e9331",
     "assets/aircraft/shapes/tbf-1c-avenger.json": "8071c97877c6f62ceb6971cdf91a653cf0edde7dd11e34ae40af9c52bca29348",
     "assets/aircraft/references/schematics/tbf-1c-avenger/buaer-tbf-1.jpg": "b8371a8284b3e2949e62f1bff05b98606adba532a3f79d3e50bdef08318daaf1"
@@ -174,7 +174,7 @@
       "level": 0,
       "schemaVersion": 1,
       "aircraftId": "sb2c-4-helldiver",
-      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
       "result": "passed",
       "coordinates": {
         "units": "meters",
@@ -284,7 +284,7 @@
       "triangles": 38429,
       "meshes": 16,
       "primitives": 47,
-      "bytes": 1852948,
+      "bytes": 1852704,
       "surfaces": {
         "uvPrimitives": 47,
         "texturedPrimitives": 6,
@@ -297,14 +297,14 @@
         "degenerateTriangles": 0
       },
       "historicalAccuracy": "Not certified; see the aircraft source register and discrepancy report.",
-      "modelHash": "35fe47786e6894fec6912a96877c0c69914bc8b97f3e116331278ab3e712737c",
+      "modelHash": "63ba00af8b0bf0ea5c25129d04ed33b5f86dd722a5d206d423a88fc05f60e8b6",
       "triangleRatio": 1
     },
     {
       "level": 1,
       "schemaVersion": 1,
       "aircraftId": "sb2c-4-helldiver",
-      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
       "result": "passed",
       "coordinates": {
         "units": "meters",
@@ -414,7 +414,7 @@
       "triangles": 17275,
       "meshes": 16,
       "primitives": 47,
-      "bytes": 923888,
+      "bytes": 923704,
       "surfaces": {
         "uvPrimitives": 47,
         "texturedPrimitives": 6,
@@ -427,14 +427,14 @@
         "degenerateTriangles": 0
       },
       "historicalAccuracy": "Not certified; see the aircraft source register and discrepancy report.",
-      "modelHash": "76260541143d8693c83644f9e749ee73e07e2d3932035987ed5cd619e4a2f635",
+      "modelHash": "c1652f77877fc937066b399c289f43a31b62dadf83eeedacfd3def069b066f7b",
       "triangleRatio": 0.44953030263603005
     },
     {
       "level": 2,
       "schemaVersion": 1,
       "aircraftId": "sb2c-4-helldiver",
-      "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
+      "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
       "result": "passed",
       "coordinates": {
         "units": "meters",
@@ -544,7 +544,7 @@
       "triangles": 7799,
       "meshes": 16,
       "primitives": 47,
-      "bytes": 479796,
+      "bytes": 479612,
       "surfaces": {
         "uvPrimitives": 47,
         "texturedPrimitives": 6,
@@ -557,48 +557,48 @@
         "degenerateTriangles": 0
       },
       "historicalAccuracy": "Not certified; see the aircraft source register and discrepancy report.",
-      "modelHash": "62ae922e17ef47fa750903640f9e53b15c2256c350642e77692affdd30f8876d",
+      "modelHash": "c574b53565cdae20cbcd64305fe45b0c55599356aae70b31aca691acd5af6a6b",
       "triangleRatio": 0.20294569205547894
     }
   ],
   "authoring": {
-    "method": "blender-mcp",
+    "method": "local-blender",
     "blenderVersion": "5.2.0 LTS",
-    "metadataHash": "9adc26aa1d4be997c9118ac0b149f021a7a443e381957857e2b53153bf1e1902"
+    "metadataHash": "64035786e3e961675037d6e8d49120ff366a269c2dc9e50c45f80ed18cbf399b"
   },
   "review": {
     "images": {
       "quarter": {
-        "sha256": "075f1f18cd0f50e27047bbb86f7c42bac05a3993450dc84304398d7db545d529",
+        "sha256": "d1c0c072cfb7d33fbaa2dbcfdc00ff811f0b87f3f700a5343600ccf2d7d3426c",
         "width": 1400,
         "height": 1050
       },
       "top": {
-        "sha256": "09cf035a556f70f84b75b1d380b8467de5faedb7b24f2caa848eaa097c5b0864",
+        "sha256": "8670f6d63526e2699b7852e98461fdbfa57f2cd722b9dd017591a2e0ebbd8ac9",
         "width": 1400,
         "height": 1050
       },
       "side": {
-        "sha256": "f4bae2708ee23af76b06d9c6d3ef33f487fb1f77d0966fc3bfdb0e252723d452",
+        "sha256": "b6ff892c2810cabeb909381ee9dacb46489f5363e2074aa7e42421e83a434f13",
         "width": 1400,
         "height": 1050
       },
       "front": {
-        "sha256": "fa279c90b34992dc068205e5b20db71a40bb77c53b06cf16e965d551a77b5579",
+        "sha256": "cbb348df111a46160ce44cba69147d3fb33ed01d08149f01dc7504eb4ce44843",
         "width": 1400,
         "height": 1050
       },
       "rear": {
-        "sha256": "b618c78ef80aec3b83a8504b91788bee03849c71f1d4bcc175c130c819feeba4",
+        "sha256": "5f0e4b081bbab78687881560a3347af065c0112a34bb9ffcd194b1cd6b83e3c5",
         "width": 1400,
         "height": 1050
       },
       "articulated": {
-        "sha256": "23b41a7c4f0421fbdfed897ac3d2a6a0894d92c935543a77d3da00538e8eaa35",
+        "sha256": "b5cf77f0bf8162856938e4d1210e5087703dd521a72eaa9150ecc5e71e8811e5",
         "width": 1400,
         "height": 1050
       }
     },
-    "camerasHash": "54c4d0d8e104e55716ae953be1610b376c91f0a5e6ff0ba7fd4e3880ae485559"
+    "camerasHash": "99517ecaa7fae737d659e49c8a86c79978deb1623f4d72b348b90e99d67eb319"
   }
 }

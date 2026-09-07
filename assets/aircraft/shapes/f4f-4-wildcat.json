@@ -806,7 +806,7 @@
     "mainGearMountZM": -0.4,
     "mainGearWheelHalfWidthM": 0.135,
     "wingFoldSpanFraction": 0.274,
-    "wingFoldU": 0.425,
+    "wingFoldU": 0.32,
     "gunSpanFractions": [
       0.41,
       0.45,
@@ -825,6 +825,13 @@
     "radialCylinders": 14,
     "cowlingFlaps": 8,
     "tailWheelRadiusM": 0.135,
-    "rudderHingeU": 0.922
+    "rudderHingeU": 0.922,
+    "wingFold": {
+      "kind": "sto-wing",
+      "spanFraction": 0.274,
+      "pivotU": 0.32,
+      "angleDegrees": 120,
+      "approximation": "Rigid visual hinge; fold line from retained plan where present, compound axis and travel inferred from mechanism references. Not manufacturing or clearance-certified geometry. Longitudinal hinge inferred near the forward spar to keep the complete fold sweep above the tyre datum."
+    }
   }
 }
