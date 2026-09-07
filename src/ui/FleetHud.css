@@ -1,6 +1,6 @@
 /* Fleet action: an open sea, a centered sight, and edge-mounted naval instruments. */
 .fleet-hud { --fleet-active:#86e4c5; --fleet-gold:#e8c56c; --fleet-muted:#c1d0d4; --fleet-line:#c9dce04a; --fleet-edge:24px; --fleet-bottom:20px; --chart-limit:min(400px, 31cqw, 68cqh); --chart-width:calc(var(--chart-limit) * var(--map-factor)); position:absolute; inset:0; pointer-events:none; color:#f0f5f3; font-size:12px; font-variant-numeric:tabular-nums; text-shadow:0 2px 4px #07131bea; transition:opacity .18s; }
-.fleet-hud-hidden > :not(.fleet-sight-optics),
+.fleet-hud-hidden > :not(.fleet-sight-optics):not(.air-battlefield),
 .fleet-hud-hidden .fleet-scope-readout { opacity:0; visibility:hidden; }
 .fleet-hud button { pointer-events:auto; }
 .fleet-hud button:focus-visible { outline:2px solid var(--fleet-active); outline-offset:3px; }
@@ -306,8 +306,11 @@
 .fleet-spectator { margin-top:8px; display:grid; gap:4px; max-width:100%; }
 .fleet-spectator > label { color:var(--fleet-active); font-size:12px; }
 .fleet-spectator-controls { display:flex; gap:6px; min-width:0; }
-.fleet-spectator-controls select { min-width:0; flex:1; }
+.fleet-spectator-controls .ui-select { min-width:0; flex:1; }
 .fleet-spectator-controls button { flex-shrink:0; }
 
 /* Carrier guns and squadron controls share one flowing stack. */
 .air-squadron-command .fleet-armament { position:relative; inset:auto; transform:none; width:100%; max-width:440px; margin:0 auto 12px; }
+
+.fleet-spectator-controls .ui-button { width: 36px; padding: 6px; }
+.fleet-spectator-controls .ui-select { font-size: 13px; }

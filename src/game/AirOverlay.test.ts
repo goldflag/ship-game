@@ -40,3 +40,24 @@ test('squadron projection follows interpolated aircraft and camera between telem
   plane.phase = 'lost';
   expect(game.projectSquadron('carrier', 'flight')).toBeNull();
 });
+
+test('map paths clip near, far and viewport crossings without joining invisible segments', () => {
+  const { game, camera } = fixture(1.5);
+  camera.position.set(0, 0, 0); camera.lookAt(0, 0, -1); camera.updateMatrixWorld();
+  const numbers = (path: string) => path.match(/-?\d+(?:\.\d+)?(?:e[+-]?\d+)?/g)!.map(Number);
+  expect(game.projectAirMapPath([[10, 0, 100], [20, 0, 200]])).toBe('');
+  expect(game.projectAirMapPath([[0, 0, -70000], [10, 0, -80000]])).toBe('');
+  expect(game.projectAirMapPath([[0, 0, 0], [0, 0, 100]])).toBe('');
+  for (const end of [[1000, 0, 100], [10000, 0, -100], [0, 10000, -100], [100, 0, -80000]] as [number, number, number][]) {
+    const path = game.projectAirMapPath([[0, 0, -100], end]);
+    const coords = numbers(path);
+    expect(coords).toHaveLength(4);
+    for (let i = 0; i < coords.length; i++) {
+      expect(Number.isFinite(coords[i])).toBe(true);
+      expect(coords[i]).toBeGreaterThanOrEqual(-1e-6);
+      expect(coords[i]).toBeLessThanOrEqual((i % 2 ? 900 : 1600) / 1.5 + 1e-6);
+    }
+  }
+  const separated = game.projectAirMapPath([[0, 0, -100], [100, 0, 100], [-100, 0, 100], [0, 0, -100]]);
+  expect(separated.match(/M/g)).toHaveLength(2);
+});

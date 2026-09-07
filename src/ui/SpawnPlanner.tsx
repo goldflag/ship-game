@@ -1,3 +1,4 @@
+import { Select, SelectOption } from './components';
 import { useRef, useState } from 'react';
 import { coastOutline, DEFAULT_MAP, mapIslands } from '../maps/catalog';
 import { shipPresets } from '../ships/presets';
@@ -41,10 +42,10 @@ export function SpawnPlanner({ setup, onChange }: { setup: BattleSetup; onChange
   return <section className="spawn-planner" aria-labelledby="spawn-title">
     <div className="spawn-heading"><h3 id="spawn-title">Deployment chart</h3><span>North up · {(radius * 2 / 1000).toFixed(1)} km across</span></div>
     <div className="spawn-controls">
-      <label>Formation<select value={setup.spawns ? 'custom' : setup.formation ?? 'line'} onChange={event => { onChange({ ...setup, formation: event.target.value as SpawnFormation, spawns: undefined }); setNotice(''); }}>
-        {setup.spawns && <option value="custom" disabled>Custom positions</option>}
-        <option value="line">Line abreast</option><option value="column">Column</option><option value="wedge">Wedge</option>
-      </select></label>
+      <label>Formation<Select value={setup.spawns ? 'custom' : setup.formation ?? 'line'} onValueChange={value => { onChange({ ...setup, formation: value as SpawnFormation, spawns: undefined }); setNotice(''); }}>
+        {setup.spawns && <SelectOption value="custom" disabled>Custom positions</SelectOption>}
+        <SelectOption value="line">Line abreast</SelectOption><SelectOption value="column">Column</SelectOption><SelectOption value="wedge">Wedge</SelectOption>
+      </Select></label>
       <button type="button" onClick={() => { onChange({ ...setup, spawns: undefined }); setNotice(''); }}>Reset positions</button>
     </div>
     <p id="spawn-help">Select a ship, then click the sea to place it, or drag its marker. Use arrow keys on a marker to move 50 m; hold Shift for 250 m. Formations and distance changes arrange both fleets again.</p>
@@ -69,10 +70,10 @@ export function SpawnPlanner({ setup, onChange }: { setup: BattleSetup; onChange
         }}><span className="spawn-bow" style={{ transform: `rotate(${slot.pose.heading}rad)` }}/><span>{slot.label}</span></button>)}
     </div>
     <div className="spawn-controls spawn-selection">
-      <label>Ship<select value={selected.key} onChange={event => setSelection(event.target.value)}>{slots.map(slot => <option key={slot.key} value={slot.key}>{slot.label} · {slot.name}</option>)}</select></label>
-      <label>Heading<select value={Math.round(selected.pose.heading * 180 / Math.PI)} onChange={event => move(selected.key, selected.pose.x, selected.pose.z, Number(event.target.value) * Math.PI / 180)}>
-        {[0, 45, 90, 135, 180, 225, 270, 315].map(degrees => <option key={degrees} value={degrees}>{degrees}° {({ 0: 'N', 90: 'E', 180: 'S', 270: 'W' } as Record<number, string>)[degrees] ?? ''}</option>)}
-      </select></label>
+      <label>Ship<Select value={selected.key} onValueChange={value => setSelection(value)}>{slots.map(slot => <SelectOption key={slot.key} value={slot.key}>{slot.label} · {slot.name}</SelectOption>)}</Select></label>
+      <label>Heading<Select value={Math.round(selected.pose.heading * 180 / Math.PI)} onValueChange={value => move(selected.key, selected.pose.x, selected.pose.z, Number(value) * Math.PI / 180)}>
+        {[0, 45, 90, 135, 180, 225, 270, 315].map(degrees => <SelectOption key={degrees} value={degrees}>{degrees}° {({ 0: 'N', 90: 'E', 180: 'S', 270: 'W' } as Record<number, string>)[degrees] ?? ''}</SelectOption>)}
+      </Select></label>
     </div>
     <div className="spawn-legend"><span>F · Friendly (F1 is you)</span><span>E · Enemy</span><span>Markers enlarged for selection</span></div>
     <p className="battle-error" role="status">{notice}</p>

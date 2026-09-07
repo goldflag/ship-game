@@ -36,5 +36,19 @@
     "browserFunnelChecks": "render-checks.json",
     "sharedVolumeChecks": "shared-volume-checks.json"
   },
-  "captureNotes": "Actual Game models, water, sky and render pipeline. Fixed 12 m/s ship motion, current ShipView emission poses, 60 Hz effect ticks, paused ocean and sky. Video is 180 fresh renderer frames at 30 fps; duration 6 seconds after 12-second warmup."
+  "captureNotes": "Actual Game models, water, sky and render pipeline. Fixed 12 m/s ship motion, current ShipView emission poses, 60 Hz effect ticks, paused ocean and sky. Video is 180 fresh renderer frames at 30 fps; duration 6 seconds after 12-second warmup.",
+  "captureCommit": "770710bdf62ab3311bbab6150696ff69287a1a92",
+  "integration": {
+    "masterCommit": "d0967a7de11702b39e758801e1ab8ff2e6a09ffe",
+    "unchangedSmokeSources": [
+      "src/game/FunnelSmokeMaterial.ts",
+      "src/game/ShipFunnelSmoke.ts",
+      "src/game/EffectParticles.ts",
+      "src/game/CombatEffects.ts"
+    ],
+    "gameSourceSha256": "3c84e10dc99de4be883267b60ac7412e451bb38d7654408f715b6067a0050f10",
+    "note": "Master adds carrier/spectator controls; the captured smoke sources and Game effect lighting/timing remain unchanged. Capture hashes retain their original identity.",
+    "testsPassed": 68,
+    "build": "passed"
+  }
 }

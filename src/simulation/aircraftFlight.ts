@@ -19,7 +19,7 @@ const envelopes: Record<AircraftRole, { bank: number; rollRate: number; climb: n
 /** Coordinated turns: roll develops first; lateral lift turns the velocity vector.
  * Pitch and throttle have finite response, and dives exchange height for speed.
  * All poses and mechanisms advance on the CPU fixed tick, including while offscreen. */
-export function flyAircraft(p: Aircraft, point: Vec3, requestedSpeed: number, dt: number, options: { dive?: boolean; landing?: boolean; bankLimit?: number; altitudeLookahead?: number } = {}) {
+export function flyAircraft(p: Aircraft, point: Vec3, requestedSpeed: number, dt: number, options: { dive?: boolean; landing?: boolean; bankLimit?: number; altitudeLookahead?: number; turnRate?: number } = {}) {
   if (dt <= 0) return;
   p.navigationTarget = [...point];
   const envelope = envelopes[p.role];
@@ -28,7 +28,7 @@ export function flyAircraft(p: Aircraft, point: Vec3, requestedSpeed: number, dt
   const horizontal = Math.hypot(dx, dz);
   const error = wrapAngle(Math.atan2(dx, -dz) - p.heading);
   const maxBank = options.bankLimit ?? (options.landing ? .38 : envelope.bank);
-  const desiredBank = clamp(-Math.atan(error * speed / (9.81 * 2.2)), -maxBank, maxBank);
+  const desiredBank = clamp(-Math.atan((error / 2.2 + (options.turnRate ?? 0)) * speed / 9.81), -maxBank, maxBank);
   const oldBank = p.bank, oldPitch = p.pitch;
   p.bank = approachValue(p.bank, desiredBank, envelope.rollRate, dt);
   const turnRate = -9.81 * Math.tan(p.bank) / Math.max(30, speed * Math.cos(p.pitch));

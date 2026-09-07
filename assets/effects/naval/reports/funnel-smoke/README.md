@@ -33,7 +33,7 @@ GPU timestamps on this host have a 0.065536 ms quantum; small differences and p9
 
 ## Validation and reproduction
 
-- `bun test src/game/ShipFunnelSmoke.test.ts src/game/BattleEnvironment.test.ts src/game/CombatEffects.test.ts src/game/renderOrder.test.ts --timeout 30000`: 27 pass.
+- `bun test src/game/ShipFunnelSmoke.test.ts src/game/BattleEnvironment.test.ts src/game/CombatEffects.test.ts src/game/renderOrder.test.ts src/game/AirOperations.test.tsx src/game/BattlefieldCamera.test.ts src/simulation/combat.test.ts --timeout 30000`: 68 pass after integrating master.
 - `bun run build`: passes ship/aircraft checks, TypeScript and Vite. Existing large-bundle advisory remains.
 - Actual WebGPU [render checks](render-checks.json): empty first compilation, lighting direction, immediate paused lighting changes, pause, own optics hiding/restoration, machinery stop and reset. Every state stays in one batch.
 - [Shared volume checks](shared-volume-checks.json): cannon volumes still render with normal and reversed depth, including inside views and opaque occlusion.
@@ -48,3 +48,5 @@ const wholeScene = await compareFunnelGameFrames(window.review, Baseline, 120);
 ```
 
 Keep preview videos paused and avoid builds or edits during the measurements. For captures, use `review.baseline(Baseline)`, `review.variant('before' | 'after')`, then `review.still(scene, 12)` or `review.record('close', 6)`. `scripts/diagnostics/capture-combat.py` saves this page's stills and VP9 video as well; set `NAVAL_REVIEW_PAGE` to its Orca page ID. The runtime source, model hash and exact capture setup are retained in the manifest.
+
+Captures and timings retain the source hashes from `770710bd`. The subsequent master integration adds carrier/spectator controls; all four smoke source files are byte-identical, and the model and Game effect lighting/timing are unchanged. Integration hashes and validation are recorded in the manifest.

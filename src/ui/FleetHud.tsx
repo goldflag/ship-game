@@ -1,3 +1,4 @@
+import { Button } from './components';
 import { AirOperations, SquadronLabels } from './AirOperations';
 import { FlightControl } from './FlightControl';
 import { type CSSProperties } from 'react';
@@ -131,12 +132,12 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
   const followingShell = data.shellFollow === 'flight' || data.shellFollow === 'impact';
   const following = followingShell || !!data.followedAircraftId || !!data.combat?.playerSunk;
 
-  return <div className={`fleet-hud ${visible ? '' : 'fleet-hud-hidden'} ${data.airOperationsOpen ? 'fleet-air-map' : ''} ${data.binoculars ? 'fleet-in-optics' : ''}`} inert={!visible} style={{ '--map-factor': mapSize / 400 } as CSSProperties}>
+  return <div className={`fleet-hud ${visible ? '' : 'fleet-hud-hidden'} ${data.airOperationsOpen ? 'fleet-air-map' : ''} ${data.binoculars ? 'fleet-in-optics' : ''}`} inert={!visible && !data.airOperationsOpen} style={{ '--map-factor': mapSize / 400 } as CSSProperties}>
     <BearingTape degrees={degrees}/>
     {data.combat?.battle && <BattleStatus combat={data.combat} game={game} spectatedShipId={data.spectatedShipId}>
       {data.combat.airWing && !data.airOperationsOpen && <FlightControl combat={data.combat} game={game} bindings={bindings}/>}
     </BattleStatus>}
-    <div className="fleet-top-actions"><span className="fleet-fps" aria-label={`${data.fps} frames per second`}><strong>{data.fps || '—'}</strong> FPS</span><button className="icon-button" aria-label="Pause and settings" title="Pause · Esc" onClick={() => game?.setPaused(true)}><Icon name="pause" size={17}/></button></div>
+    <div className="fleet-top-actions"><span className="fleet-fps" aria-label={`${data.fps} frames per second`}><strong>{data.fps || '—'}</strong> FPS</span><Button variant="icon" aria-label="Pause and settings" title="Pause · Esc" onClick={() => game?.setPaused(true)}><Icon name="pause" size={17}/></Button></div>
     {data.combat?.battle && <BattleDamageLog combat={data.combat} obscured={!!data.inspecting}/>}
 
     {followingShell && <div className="fleet-shell-status" role="status" title="Move mouse to orbit; drag when the cursor is released. Scroll to zoom."><strong>{data.shellFollow === 'impact' ? 'Shell impact' : 'Following shell'}</strong><span>{data.shellFollow === 'impact' ? 'Returning to ship…' : `${bindingLabel(bindings, 'shellFollow')} to return to ship`}</span></div>}
@@ -182,7 +183,7 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
 
     {!data.airOperationsOpen && <ActiveArmament data={data} game={game} visible={visible} bindings={bindings}/>}
     {!data.combat?.airWing && <SquadronLabels data={data} game={game}/>}
-    {data.combat?.airWing && <AirOperations data={data} game={game} bindings={bindings}/>}
+    {data.combat?.airWing && <AirOperations data={data} game={game} bindings={bindings} instrumentsVisible={visible}/>}
     {data.combat?.submarine && <DepthControl combat={data.combat} game={game} bindings={bindings}/>}
     {data.binoculars && data.aimModule !== 'point' && data.aimMarker?.visible && <div className="aim-marker" aria-hidden="true" style={{ left: `${data.aimMarker.x}%`, top: `${data.aimMarker.y}%` }}><span/><small>TRACKED AIM</small></div>}
     <aside className="fleet-map-area" aria-label="Navigation minimap"><NavigationChart bindings={bindings} data={data} onResize={direction => game?.resizeChart(direction)}/></aside>

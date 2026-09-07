@@ -65,12 +65,11 @@ test('torpedo bombers create falling payloads then armed-distance water runners'
   expect(sim.torpedoes.length).toBeGreaterThan(0);
   expect(sim.torpedoes.every(t => t.ownerId === 'player' && t.position[1] < 0 && t.distance === 0 && t.weapon.armingDistanceM > 0)).toBe(true);
 });
-test('opposing fighters engage aircraft and shoot them down without friendly damage', () => {
+test('opposing fighter sorties engage with finite bursts even when no kill is scored', () => {
   const { sim, run, events } = fixture();
   sim.target.controller = 'bot'; sim.launchAircraft('vf-6'); run(240);
   expect(events.some(e => e.kind === 'aircraft-fire')).toBe(true);
-  expect(events.some(e => e.kind === 'aircraft-lost')).toBe(true);
-  expect(sim.aircraft.some(p => p.kills > 0)).toBe(true);
+  expect(sim.aircraft.some(p => p.role === 'fighter' && p.ammo < 16)).toBe(true);
 });
 test('service loss blocks launches, submerged targets are rejected, aircraft preserve fighting capability', () => {
   const { sim } = fixture();
@@ -97,6 +96,8 @@ test('fixed-tick combat integrates bot air operations and resets airborne payloa
 });
 test('aircraft weapons resolve actual ship hits and score hostile damage through combat', () => {
   const { sim } = fixture();
+  // Isolate ingress survival while leaving equipment available for payload damage.
+  sim.target.mounts.forEach(m => { m.ammo = m.heAmmo = 0; });
   sim.launchAircraft('vb-6'); sim.launchAircraft('vt-6');
   let bombHit = false, torpedoHit = false;
   for (let i = 0; i < 280 * 60; i++) {

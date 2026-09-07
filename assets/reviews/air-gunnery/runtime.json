@@ -1,0 +1,18 @@
+{
+  "scenario": "Enterprise AA; seed 93; enemy aircraft held at [0,350,-850] with inbound velocity [0,0,100], HP reset each tick to retain firing opportunities",
+  "seconds": 60,
+  "shots": 3826,
+  "panicBursts": 373,
+  "wideMissesOver200mFromCurrentPosition": 355,
+  "totalDamageAgainstRefreshedTarget": 620,
+  "activeTracers": 214,
+  "activeFlakSmoke": 36,
+  "backend": "webgpu",
+  "sourceSha256": {
+    "src/simulation/airGunnery.ts": "76dfdb21c90e3bd899029ff0627aa2cdb3e10c52ca54c3f52f114bf12063620d",
+    "src/simulation/antiAircraft.ts": "37bb07d91b99aed873f0dfa596d1ee8dc125cf789ed9b3b258074cd3b7a5a81a",
+    "src/simulation/aircraft.ts": "ed764f8c33bf40dbb5e93359ca17512fef4d28c16956a6c066d37d97389f0539",
+    "src/simulation/aircraftAccuracy.ts": "4be49fa9674dd47f5be2f3a5c3217821f53ce0f455bd98950b6b26b02ded631f",
+    "src/game/AircraftGunfire.ts": "5b1af5c184606d7ec0793fb6eda4dbfd3ef4fa8e0604e3da2e3e162fd6932586"
+  }
+}

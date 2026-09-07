@@ -15,7 +15,7 @@ Start with [AGENTS.md](../AGENTS.md) for repository rules. Read the task's curre
 | Change carrier operations | [Air operations](air-operations.md) | Versioned air-wing data and CPU aircraft state |
 | Change bot behavior | [Bot behavior](bot-behavior.md) | Seeded, renderer-free crew decisions |
 | Change ocean rendering | [Ocean configuration](ocean-configuration.md) | Visual ocean settings; CPU combat poses stay authoritative |
-| Work on port or HUD UI | [Garage design](garage-mockups/README.md), [HUD design](hud-mockups/README.md) | Existing naval instrument styling and current runtime UI |
+| Work on port or HUD UI | [Garage design](garage-mockups/README.md), [HUD design](hud-mockups/README.md), [shared controls](../src/ui/components/README.md) | Existing naval instrument styling and current runtime UI |
 | Investigate test execution | [Test performance](test-performance.md) | Repository test runner and measured execution notes |
 
 ## Per-asset evidence

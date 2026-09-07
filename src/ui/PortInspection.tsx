@@ -1,3 +1,4 @@
+import { Input } from './components';
 import { useState } from 'react';
 import type { ShipDefinition } from '../ships/blueprint';
 import { INSPECTION_EFFECTS, ARMOR_COLOR_STOPS, INSPECTION_KIND_LABELS, entriesForMode, inspectionColor, inspectionEntries, type InspectionMode } from '../ships/inspection';
@@ -35,7 +36,7 @@ export function PortInspection({ definition, mode, selectedId, onSelect }: { def
       <div className="port-armor-legend-labels">{ARMOR_COLOR_STOPS.map(stop => <span key={stop.thicknessMm}>{stop.thicknessMm}{stop.thicknessMm === armorScaleMax ? '+' : ''} mm</span>)}</div>
       {entries.some(entry => entry.plate?.material === 'teak') && <small>Teak backing is gray.</small>}
     </div>}
-    <label className="port-volume-search">Find {mode === 'armor' ? 'armor' : mode === 'internals' ? 'equipment' : 'a compartment'}<input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Belt, boiler, Anton…" /></label>
+    <label className="port-volume-search">Find {mode === 'armor' ? 'armor' : mode === 'internals' ? 'equipment' : 'a compartment'}<Input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Belt, boiler, Anton…" /></label>
     <div className="port-volume-list" aria-label={mode === 'armor' ? 'Armor volumes' : mode === 'internals' ? 'Equipment modules' : 'Flooding spaces'}>
       {[...groups].map(([key, group]) => group.length === 1 ? row(group[0]) : <details className="port-volume-group" key={key} open={group.some(e => e.id === selectedId) || undefined}>
         <summary>{group[0].name}<small>{group.length} joined surfaces · Expand to isolate a plate</small></summary>

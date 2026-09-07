@@ -5,6 +5,7 @@ import { add, clamp, dot, length, normalize, scale, sub } from './geometry';
 import { flyAircraft } from './aircraftFlight';
 
 export interface AirPilot {
+  fireDiscipline?: import('./airGunnery').FireDiscipline;
   think: number; hostileId?: string; aimTime: number;
   breakTime: number; breakCooldown: number; breakPoint?: Vec3;
   attackHeading?: number; attackStage?: 'ingress' | 'run' | 'egress';

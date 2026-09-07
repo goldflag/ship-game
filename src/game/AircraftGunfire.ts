@@ -2,6 +2,7 @@ import * as THREE from 'three/webgpu';
 import { attribute } from 'three/tsl';
 import type { CombatEvent, CombatSimulation } from '../simulation/combat';
 import { FIXED_DT } from '../simulation/ship';
+import { ballisticStep } from '../simulation/ballistics';
 import { effectTexture } from './EffectParticles';
 import { ExpandableInstances } from './ExpandableInstances';
 
@@ -86,8 +87,9 @@ export class AircraftGunfire {
           this.dummy.quaternion.copy(camera.quaternion); this.dummy.scale.setScalar(.7);
           this.write(this.muzzles, flashes++, 1 - flight / .038);
         }
-        this.dummy.position.copy(this.origin).addScaledVector(this.velocity, flight);
-        this.dummy.position.y -= 4.905 * flight * flight;
+        const shot = ballisticStep(this.origin.toArray(), this.velocity.toArray(), flight, data.dragPerSecond ?? 0);
+        this.dummy.position.fromArray(shot.position);
+        this.velocity.fromArray(shot.velocity);
         if (this.dummy.position.y < 0) continue;
         const opacity = data.airburst ? 1 : THREE.MathUtils.smoothstep(life - flight, 0, aa ? .65 : .12);
         this.normal.copy(this.dummy.position).applyMatrix4(camera.matrixWorldInverse);
@@ -96,7 +98,6 @@ export class AircraftGunfire {
         const width = Math.max(.12, Math.min(2.4, viewHeight * .0012));
         this.dummy.quaternion.copy(camera.quaternion); this.dummy.scale.setScalar(width * 2.2);
         this.write(this.tips, count, opacity * .65);
-        this.velocity.y -= 9.81 * flight;
         const length = this.velocity.length() * Math.min(.022, flight);
         this.velocity.normalize(); this.dummy.position.addScaledVector(this.velocity, -length / 2);
         this.normal.subVectors(camera.position, this.dummy.position).normalize();

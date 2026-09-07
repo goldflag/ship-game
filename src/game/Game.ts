@@ -4,6 +4,7 @@ import { assetUrl } from '../assetUrl';
 import { BattlefieldCamera } from './BattlefieldCamera';
 import { airWingTelemetry } from '../simulation/airTelemetry';
 import { projectShipLabel } from './ShipLabels';
+import { projectAirMapPath } from './AirMapProjection';
 import { squadronFlights, airborne, onFlightDeck, type AirOrder } from '../simulation/aircraft';
 import { aircraftFollowView } from './AircraftFollow';
 import { AircraftView } from './AircraftView';
@@ -213,6 +214,8 @@ export class Game {
       chartSize: direction => this.resizeChart(direction),
       shellFollow: () => this.toggleShellFollow(),
       shellType: () => this.cycleAmmunition(),
+      isSpectating: () => !this.inPort && this.simulation.isBattle && this.simulation.player.damage.sunk,
+      cycleSpectator: direction => this.cycleSpectator(direction),
       airOperations: () => this.setAirOperationsOpen(!this.airOperationsOpen),
       depth: direction => this.setDepth((this.simulation.player.submarine?.targetDepthM ?? 0) + direction * DEPTH_STEP_M),
       depthPreset: depthM => this.setDepth(depthM),
@@ -726,7 +729,9 @@ export class Game {
   launchAircraft(squadronId: string): void {
     if (!this.inPort && !this.paused && this.simulation.launchAircraft(squadronId)) this.selectedFlightId = this.simulation.player.airWing!.flights.at(-1)!.id;
   }
-  selectFlight(id: string): void { if (squadronFlights(this.simulation.player).some(f => f.id === id)) this.selectedFlightId = id; }
+  selectFlight(id: string): void {
+    if (squadronFlights(this.simulation.player).some(f => f.id === id)) this.selectedFlightId = this.selectedFlightId === id ? undefined : id;
+  }
   orderFlight(id: string, order: AirOrder): boolean { return !this.inPort && !this.paused && this.simulation.orderFlight(id, order); }
   commandSquadron(id: string, order: AirOrder): boolean { return !this.inPort && !this.paused && this.simulation.commandSquadron(id, order); }
   panAirMap(dx: number, dy: number, x?: number, y?: number): void { this.battlefieldCamera.pan(dx, dy, this.host.clientWidth, this.host.clientHeight, x, y); }
@@ -734,6 +739,9 @@ export class Game {
     const p = new THREE.Vector3(x, altitude, z).project(this.camera);
     // Map SVG and HTML tags live inside the scaled HUD, unlike pointer input.
     return [(p.x + 1) * this.host.clientWidth / (2 * this.hudScale), (1 - p.y) * this.host.clientHeight / (2 * this.hudScale)];
+  }
+  projectAirMapPath(points: Vec3[], closed = false): string {
+    return projectAirMapPath(points, this.camera, this.host.clientWidth / this.hudScale, this.host.clientHeight / this.hudScale, closed);
   }
   projectSquadron(ownerId: string, flightId: string): { x: number; y: number } | null {
     const actor = this.simulation.actors.find(a => a.motion.id === ownerId);
@@ -757,6 +765,9 @@ export class Game {
   }
   fitAirMap(): void { this.battlefieldCamera.fit(this.simulation.actors.map(a => a.motion), this.host.clientWidth, this.host.clientHeight); }
   centerAirMap(): void { this.battlefieldCamera.view.x = this.simulation.ship.x; this.battlefieldCamera.view.z = this.simulation.ship.z; }
+  orbitAirMap(dx: number, dy: number): void { this.battlefieldCamera.orbit(dx, dy); }
+  setAirMapTilt(degrees: number): void { this.battlefieldCamera.setTilt(degrees * Math.PI / 180); }
+  resetAirMapAngle(): void { this.battlefieldCamera.resetAngle(); }
   setAirOperationsOpen(open: boolean): void {
     if (this.inPort || (open && (this.simulation.player.damage.sunk || this.paused)) || !this.simulation.player.airWing) return;
     if (open === this.airOperationsOpen) return;

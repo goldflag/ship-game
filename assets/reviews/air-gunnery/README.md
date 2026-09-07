@@ -1,0 +1,15 @@
+# Air gunnery and panic review
+
+2026-09-07. Gameplay tuning retains 100 HP aircraft, sharply reduces normal aim precision, raises hit damage and adds temporary poor fire discipline to automatic AA and fighters. See [current tuning](../../../docs/air-operations.md#air-gunnery-tuning-and-panic).
+
+Validated 94 tests across air gunnery, aircraft accuracy/flight/operations, AA and candidate selection, AI levels, aircraft gunfire rendering and combat effects. The payload collision/scoring fixture disables defensive AA so it tests payload outcomes independently of ingress survival. The affected aircraft suite passed after that fixture adjustment. `bun run build` passed ship/aircraft checks, TypeScript and Vite; Vite retained its large-chunk advisory.
+
+The in-game WebGPU review used the actual Game/CombatSimulation and renderer through Orca's embedded browser. A controlled 60-second incoming-target sample produced 3,826 barrel events, including 373 panic events, and 620 damage against a target whose HP was refreshed each tick. The final view contained 214 active tracers and 36 flak puffs. This is a controlled behavior/rendering check, not a dogfight benchmark or historical hit rate. [Runtime measurements and source hashes](runtime.json) identify the reviewed code.
+
+[Captured firing view](panic-fire.png) shows scattered tracers and flak around the aircraft, including bursts far from its position. The capture was read from the rendered canvas after the browser screenshot command timed out.
+
+During review, corrected the AA endpoint to use the lead-point solution's flight time and drag; previously the current-target range time and drag-free flight could prevent hits on incoming aircraft. The renderer now uses the same ballistic step, verified at the heavy-burst endpoint with inherited ship velocity and drag.
+
+Integration with master (`8eb2f9d5`) preserves squadron formations and applies mount power and director-damage dispersion to panic-capable AA. All 129 relevant tests passed across the integration run and an affected aircraft-suite rerun. The payload scoring fixture now empties AA ammunition instead of destroying the target guns, leaving equipment available for bomb damage. `bun run build` passed. The WebGPU measurements and source hashes above remain evidence for the original pre-integration implementation; they have not been recaptured.
+
+AA balance follow-up (2026-09-07): doubled ship AA spread and reduced its damage by 60% to 8/16/40 HP. In six matched 240-second attacks (three seeds each against Bismarck and Enterprise), losses fell from 43/72 to 2/72 and weapon releases increased from 66/72 to 72/72. Targets kept automatic AA active but were stationary without surface fire or fighter launches; this is not a fleet-battle guarantee. [Run settings, measurements and tuning hash](aa-balance.json) retain the comparison. A separate actual-game WebGPU run against Enterprise released all 12 payloads and lost no aircraft despite 1,249 AA barrel events. All 59 relevant tests and `bun run build` passed; the aircraft suite also passed after removing an invalid `apAmmo` field from the earlier ammunition-disabled test fixture.

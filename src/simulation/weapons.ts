@@ -33,6 +33,7 @@ function obstructionGunhouses(definition: ShipDefinition) {
   return boxes;
 }
 export interface MountState {
+  aaDiscipline?: import('./airGunnery').FireDiscipline;
   id: string; train: number; elevation: number; reload: number; ammo: number; hp: number; recoil: number;
   /** Total rounds include the HE subset; rounds are consumed when fired. */
   heAmmo: number; loaded: Ammunition; queued?: Ammunition;
