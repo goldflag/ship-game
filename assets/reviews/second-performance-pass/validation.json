@@ -1,0 +1,34 @@
+{
+  "tests": {
+    "command": "bun run test --timeout 30000",
+    "passed": 718,
+    "failed": 0,
+    "files": 101,
+    "assertions": 350549,
+    "elapsedSeconds": 175.44
+  },
+  "parallelTests": {
+    "command": "bun run test",
+    "files": 101,
+    "failedFiles": 2,
+    "reason": "Existing 5000 ms timeouts under background load; all tests pass in full serial run",
+    "timeouts": [
+      "src/simulation/bots.test.ts: bots give the player time to get underway before their opening shots",
+      "src/simulation/stability.test.ts: yamato shell and flooding coverage"
+    ]
+  },
+  "build": {
+    "command": "bun run build",
+    "passed": true,
+    "includes": [
+      "ship:check all",
+      "aircraft:check all",
+      "tsc --noEmit",
+      "vite build"
+    ]
+  },
+  "diffCheck": {
+    "command": "git diff --check",
+    "passed": true
+  }
+}

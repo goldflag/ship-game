@@ -1,0 +1,29 @@
+{
+  "backend": "webgpu",
+  "diagnostics": {
+    "aircraft": {
+      "batches": 51,
+      "bombs": 36,
+      "contacts": 67,
+      "instances": 92,
+      "models": 9,
+      "payloads": 59,
+      "tracers": 98
+    },
+    "effects": {
+      "aircraftSmoke": 182,
+      "depthCharges": 0,
+      "flashes": 157,
+      "foam": 3,
+      "particleCapacity": 3040,
+      "shells": 101,
+      "smoke": 374,
+      "spray": 1345,
+      "torpedoes": 108
+    },
+    "maxMuzzleErrorM": 0.002747091344958716,
+    "maxTorpedoMuzzleErrorM": 2.602026430312729e-06,
+    "tick": 6660
+  },
+  "timestamps": true
+}

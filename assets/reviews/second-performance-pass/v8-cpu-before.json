@@ -1,0 +1,641 @@
+{
+  "ships": 60,
+  "ticks": 7200,
+  "seconds": 122,
+  "tickMs": {
+    "median": 11.345916999998735,
+    "p95": 23.504916999998386,
+    "p99": 47.39449999999488,
+    "max": 173.72904199999994,
+    "mean": 12.926483984999955
+  },
+  "overBudget": {
+    "over16Ms": 630,
+    "over33Ms": 191,
+    "over50Ms": 61
+  },
+  "slowTicks": [
+    {
+      "tick": 766,
+      "ms": 173.72904199999994
+    },
+    {
+      "tick": 903,
+      "ms": 159.89050000000134
+    },
+    {
+      "tick": 1801,
+      "ms": 112.56645799999751
+    },
+    {
+      "tick": 1827,
+      "ms": 100.53954199999862
+    },
+    {
+      "tick": 779,
+      "ms": 100.41991599999983
+    },
+    {
+      "tick": 1258,
+      "ms": 98.62620799999968
+    },
+    {
+      "tick": 1276,
+      "ms": 92.15162500000042
+    },
+    {
+      "tick": 798,
+      "ms": 89.26716699999997
+    },
+    {
+      "tick": 1803,
+      "ms": 78.46087499999703
+    },
+    {
+      "tick": 906,
+      "ms": 78.34558300000026
+    },
+    {
+      "tick": 1816,
+      "ms": 77.48454200000197
+    },
+    {
+      "tick": 1810,
+      "ms": 76.24383300000045
+    },
+    {
+      "tick": 928,
+      "ms": 75.32133299999987
+    },
+    {
+      "tick": 6841,
+      "ms": 74.56949999999779
+    },
+    {
+      "tick": 1383,
+      "ms": 71.0002080000013
+    },
+    {
+      "tick": 1831,
+      "ms": 66.2679590000007
+    },
+    {
+      "tick": 1782,
+      "ms": 64.88562500000262
+    },
+    {
+      "tick": 767,
+      "ms": 64.46712499999921
+    },
+    {
+      "tick": 6931,
+      "ms": 63.48070899999584
+    },
+    {
+      "tick": 1833,
+      "ms": 63.46729199999754
+    },
+    {
+      "tick": 6031,
+      "ms": 63.13041599999997
+    },
+    {
+      "tick": 1790,
+      "ms": 63.12583299999824
+    },
+    {
+      "tick": 893,
+      "ms": 62.5914159999993
+    },
+    {
+      "tick": 6991,
+      "ms": 61.80245800000557
+    },
+    {
+      "tick": 1809,
+      "ms": 61.78491600000052
+    },
+    {
+      "tick": 7051,
+      "ms": 60.67945900000632
+    },
+    {
+      "tick": 1840,
+      "ms": 60.658125000001746
+    },
+    {
+      "tick": 770,
+      "ms": 60.42108300000018
+    },
+    {
+      "tick": 7201,
+      "ms": 60.13816700001189
+    },
+    {
+      "tick": 7021,
+      "ms": 59.709499999997206
+    }
+  ],
+  "events": {
+    "aircraft-launch": 120,
+    "shot": 1866,
+    "torpedo-launch": 118,
+    "splash": 956,
+    "ricochet": 68,
+    "penetration": 528,
+    "module": 27,
+    "burst": 2187,
+    "stopped": 93,
+    "contact": 502,
+    "aircraft-fire": 26243,
+    "aircraft-lost": 25,
+    "aircraft-crash": 25,
+    "aircraft-release": 10
+  },
+  "shells": 62,
+  "aircraft": 95,
+  "actors": [
+    {
+      "id": "player",
+      "type": "bismarck",
+      "team": "friendly",
+      "hp": 839.2656118200475,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-1",
+      "type": "yamato",
+      "team": "friendly",
+      "hp": 823.5184124179032,
+      "water": 0.3793974375958312,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-2",
+      "type": "king-george-v",
+      "team": "friendly",
+      "hp": 973.318625789158,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-3",
+      "type": "baltimore",
+      "team": "friendly",
+      "hp": 696.2285167697335,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-4",
+      "type": "enterprise-cv6",
+      "team": "friendly",
+      "hp": 1110,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-5",
+      "type": "type-viic",
+      "team": "friendly",
+      "hp": 450,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-6",
+      "type": "liberty-cargo",
+      "team": "friendly",
+      "hp": 960,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-7",
+      "type": "liberty-collier",
+      "team": "friendly",
+      "hp": 970,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-8",
+      "type": "victory-cargo",
+      "team": "friendly",
+      "hp": 980,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-9",
+      "type": "flower-corvette",
+      "team": "friendly",
+      "hp": 455.31134570761947,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-10",
+      "type": "fletcher",
+      "team": "friendly",
+      "hp": 588.6000000000001,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-11",
+      "type": "bismarck",
+      "team": "friendly",
+      "hp": 860.6734424368387,
+      "water": 0.026567764335558092,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-12",
+      "type": "yamato",
+      "team": "friendly",
+      "hp": 952.6860387221698,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-13",
+      "type": "king-george-v",
+      "team": "friendly",
+      "hp": 1073.0400329608929,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-14",
+      "type": "baltimore",
+      "team": "friendly",
+      "hp": 746.7264749058062,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-15",
+      "type": "enterprise-cv6",
+      "team": "friendly",
+      "hp": 1166,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-16",
+      "type": "type-viic",
+      "team": "friendly",
+      "hp": 450,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-17",
+      "type": "liberty-cargo",
+      "team": "friendly",
+      "hp": 960,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-18",
+      "type": "liberty-collier",
+      "team": "friendly",
+      "hp": 970,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-19",
+      "type": "victory-cargo",
+      "team": "friendly",
+      "hp": 980,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-20",
+      "type": "flower-corvette",
+      "team": "friendly",
+      "hp": 473.20000000000005,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-21",
+      "type": "fletcher",
+      "team": "friendly",
+      "hp": 544.2000000000004,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-22",
+      "type": "bismarck",
+      "team": "friendly",
+      "hp": 1038.9221719585087,
+      "water": 0.03371425243630724,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-23",
+      "type": "yamato",
+      "team": "friendly",
+      "hp": 1200.2955998560014,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-24",
+      "type": "king-george-v",
+      "team": "friendly",
+      "hp": 1070.1587014881827,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-25",
+      "type": "baltimore",
+      "team": "friendly",
+      "hp": 595.1015731100044,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-26",
+      "type": "enterprise-cv6",
+      "team": "friendly",
+      "hp": 1164.9754994099994,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-27",
+      "type": "type-viic",
+      "team": "friendly",
+      "hp": 450,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-28",
+      "type": "liberty-cargo",
+      "team": "friendly",
+      "hp": 960,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "friendly-29",
+      "type": "liberty-collier",
+      "team": "friendly",
+      "hp": 949,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-1",
+      "type": "bismarck",
+      "team": "enemy",
+      "hp": 1450,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-2",
+      "type": "yamato",
+      "team": "enemy",
+      "hp": 1094.5817322492815,
+      "water": 17.612593071419127,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-3",
+      "type": "king-george-v",
+      "team": "enemy",
+      "hp": 875.2758590497285,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-4",
+      "type": "baltimore",
+      "team": "enemy",
+      "hp": 666.4185728030632,
+      "water": 0.2992950170664961,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-5",
+      "type": "enterprise-cv6",
+      "team": "enemy",
+      "hp": 1121.9937881981175,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-6",
+      "type": "type-viic",
+      "team": "enemy",
+      "hp": 450,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-7",
+      "type": "liberty-cargo",
+      "team": "enemy",
+      "hp": 960,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-8",
+      "type": "liberty-collier",
+      "team": "enemy",
+      "hp": 970,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-9",
+      "type": "victory-cargo",
+      "team": "enemy",
+      "hp": 980,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-10",
+      "type": "flower-corvette",
+      "team": "enemy",
+      "hp": 481.9747081647953,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-11",
+      "type": "fletcher",
+      "team": "enemy",
+      "hp": 584.4000000000001,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-12",
+      "type": "bismarck",
+      "team": "enemy",
+      "hp": 1008.3885086413368,
+      "water": 0.02637314168030176,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-13",
+      "type": "yamato",
+      "team": "enemy",
+      "hp": 1249.4465386093696,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-14",
+      "type": "king-george-v",
+      "team": "enemy",
+      "hp": 858.6168826652194,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-15",
+      "type": "baltimore",
+      "team": "enemy",
+      "hp": 384.571021773299,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-16",
+      "type": "enterprise-cv6",
+      "team": "enemy",
+      "hp": 1152,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-17",
+      "type": "type-viic",
+      "team": "enemy",
+      "hp": 450,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-18",
+      "type": "liberty-cargo",
+      "team": "enemy",
+      "hp": 960,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-19",
+      "type": "liberty-collier",
+      "team": "enemy",
+      "hp": 970,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-20",
+      "type": "victory-cargo",
+      "team": "enemy",
+      "hp": 980,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-21",
+      "type": "flower-corvette",
+      "team": "enemy",
+      "hp": 456.4000000000001,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-22",
+      "type": "fletcher",
+      "team": "enemy",
+      "hp": 574.2000000000003,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-23",
+      "type": "bismarck",
+      "team": "enemy",
+      "hp": 901.8876809126484,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-24",
+      "type": "yamato",
+      "team": "enemy",
+      "hp": 1015.3186081966705,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-25",
+      "type": "king-george-v",
+      "team": "enemy",
+      "hp": 940.626449187007,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-26",
+      "type": "baltimore",
+      "team": "enemy",
+      "hp": 593.8656459173721,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-27",
+      "type": "enterprise-cv6",
+      "team": "enemy",
+      "hp": 1103,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-28",
+      "type": "type-viic",
+      "team": "enemy",
+      "hp": 450,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-29",
+      "type": "liberty-cargo",
+      "team": "enemy",
+      "hp": 960,
+      "water": 0,
+      "status": "operational"
+    },
+    {
+      "id": "enemy-30",
+      "type": "liberty-collier",
+      "team": "enemy",
+      "hp": 942,
+      "water": 0,
+      "status": "operational"
+    }
+  ],
+  "stateHash": "4f24051c0109efbdc72664e8b81ac0832728ce8ee26bf7133126b531b835f080",
+  "fullStateHash": "e1d7aa0c420bee6a6fdbdb774dc53b6e19e83ebbc4d0b8453861ad8297e7beaf"
+}

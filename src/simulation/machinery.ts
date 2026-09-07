@@ -16,6 +16,10 @@ function layout(def: ShipDefinition): MachineryLayout {
   }
   return result;
 }
+/** Immutable authoring lookup; equipment health/immersion is always read live. */
+export function moduleDefinition(def: ShipDefinition, id: string): Module | undefined {
+  return layout(def).modules.get(id)?.module;
+}
 export function equipmentCondition(actor: Combatant, def: ShipDefinition, module: Module): EquipmentCondition {
   const compiled = layout(def), slot = compiled.modules.get(module.id)!.index;
   const state = actor.damage.modules[slot];

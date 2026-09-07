@@ -2,11 +2,41 @@ import { expect, test } from 'bun:test';
 import blueprint from '../../assets/ships/bismarck/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
 import { compileShip, type Vec3 } from '../ships/blueprint';
-import { ballisticStep, dispersedDirection, dispersedSpeed, travelFactor } from './ballistics';
+import { ballisticStep, dispersedDirection, dispersedSpeed, solveDragArc, travelFactor } from './ballistics';
 import { botAim, shipVelocity } from './bots';
 import { add, dot, length, normalize, scale, sub } from './geometry';
 import { solveBallistic, updateMount, muzzleCenterWorld, shotDirection } from './weapons';
 import { CombatSimulation } from './combat';
+
+test('drag searches remain exact after the bounded coefficient cache fills', () => {
+  const drag = .0234567, speed = 800;
+  const reference = (target: Vec3) => {
+    const [dx, dy, dz] = target, range2 = dx * dx + dz * dz;
+    if (Math.sqrt(range2) * drag >= speed) return null;
+    const drop = (time: number) => -ballisticStep([0, 0, 0], [0, 0, 0], time, drag).position[1];
+    const error = (time: number) => {
+      const factor = travelFactor(time, drag), vertical = dy + drop(time);
+      return (range2 + vertical * vertical) / (factor * factor) - speed * speed;
+    };
+    let a = .0001, b = 180;
+    for (let i = 0; i < 24; i++) {
+      const left = (2 * a + b) / 3, right = (a + 2 * b) / 3;
+      if (error(left) < error(right)) b = right; else a = left;
+    }
+    let low = .0001, high = (a + b) / 2;
+    if (error(high) > 0) return null;
+    for (let i = 0; i < 36; i++) {
+      const mid = (low + high) / 2;
+      if (error(mid) > 0) low = mid; else high = mid;
+    }
+    const time = (low + high) / 2, factor = travelFactor(time, drag);
+    return { direction: normalize([dx / factor, (dy + drop(time)) / factor, dz / factor]), time };
+  };
+  for (let i = 0; i < 2500; i++) {
+    const target: Vec3 = [100 + (i * 7919 % 33000), (i * 137 % 4000) - 1000, i * 59 % 5000];
+    expect(solveDragArc([0, 0, 0], target, speed, drag)).toEqual(reference(target));
+  }
+});
 
 test('shared drag solution reaches elevated and lowered targets and composes across ticks', () => {
   const from: Vec3 = [32, 14, -200];

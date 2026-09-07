@@ -1,0 +1,26 @@
+{
+  "base": "167773c530f12be221f6738ac253ae2a48ad3c76",
+  "runtimeSources": {
+    "src/simulation/antiAircraft.ts": "3d6f386236058b370f44b26c5ef2bc4e2053c4378a89cb3e32d6928110cef56d",
+    "src/simulation/ballistics.ts": "1f2fb6a562b0d6a83904df3409cdd48eaa27dee5918e814e4e7bf1be7e2f5003",
+    "src/simulation/combat.ts": "8876cef4155e74e000887d1e30bfa372326d7a832712358dda850d611c6fac72",
+    "src/simulation/hydrostatics.ts": "948141a79c58172a3d1f7d7780c23fe13474370e60ba27cf8d41ebdd67199ef2",
+    "src/simulation/machinery.ts": "9e63fb39acf5d446814bee1b199c66269d9e8d1c07eb6b0249768b47f6485b33",
+    "src/simulation/stability.ts": "0f4c52fb058a0f71c5c748772e58d4147356219bb638d2573072b1374716fcf3"
+  },
+  "tests": {
+    "command": "bun run test --timeout 30000",
+    "passed": 778,
+    "failed": 0,
+    "files": 109,
+    "assertions": 378031,
+    "elapsedSeconds": 191.06
+  },
+  "checks": [
+    "bun run ship:check all",
+    "bun run build",
+    "git diff --check"
+  ],
+  "checksPassed": true,
+  "performanceRemeasuredAfterIntegration": false
+}

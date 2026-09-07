@@ -3,8 +3,54 @@ import blueprint from '../../assets/ships/bismarck/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
 import { compileShip } from '../ships/blueprint';
 import { shipPreset, shipPresets } from '../ships/presets';
-import { antiAircraftRange } from './antiAircraft';
 import { CombatSimulation } from './combat';
+import { antiAircraftRange, antiAircraftTargets, shipAntiAircraftTargets, updateAntiAircraft } from './antiAircraft';
+import type { AirContext, Aircraft } from './aircraft';
+import { muzzleWorld } from './weapons';
+
+test('shared AA candidates preserve exhaustive targeting, ties, deck exclusion and immediate losses', () => {
+  const { sim, plane } = fixture();
+  const planes: Aircraft[] = Array.from({ length: 48 }, (_, i) => ({ ...structuredClone(plane), id: `probe-${i}`,
+    team: i % 7 === 0 ? 'friendly' as const : 'enemy' as const,
+    phase: i % 9 === 0 ? 'ready' as const : 'outbound' as const,
+    position: [i % 3 === 0 ? 700 : 700 + i * 200, 250, 0] as [number, number, number], velocity: [0, 0, 0] as [number, number, number] }));
+  const targets = shipAntiAircraftTargets(sim.player, antiAircraftTargets(planes).enemy);
+  // A gun earlier in this same tick can kill a candidate; the next must skip it.
+  planes[1].hp = 0;
+  for (const m of sim.definition.mounts) {
+    const initial = sim.player.mounts.find(s => s.id === m.id)!;
+    const run = (indexed: boolean) => {
+      const state = structuredClone(initial), actors = structuredClone(sim.actors), copied = structuredClone(planes);
+      const events: unknown[] = []; let id = 0;
+      const ctx: AirContext = { actors, planes: copied, shells: [], torpedoes: [], releases: [], nextId: () => ++id, emit: event => events.push(event) };
+      const reserved = updateAntiAircraft(actors[0], m, state, ctx, 1 / 60,
+        indexed ? targets.map(p => copied[planes.indexOf(p)]) : undefined);
+      return { reserved, state, planes: copied, events };
+    };
+    expect(run(true)).toEqual(run(false));
+  }
+});
+
+test('ship AA bounds retain targets at each muzzle range through hull and gun rotation', () => {
+  const { sim, plane } = fixture(), actor = sim.player;
+  for (const roll of [0, .8, 2.5]) for (const pitch of [-.5, .4]) {
+    Object.assign(actor.motion, { x: 500, y: -20, z: -200, heading: 1.3, roll, pitch });
+    actor.definition.mounts.forEach((m, i) => {
+      const range = antiAircraftRange(m);
+      if (!range) return;
+      for (const train of [-2, 0, 2]) for (const elevation of [0, 1.4]) {
+        const state = { ...actor.mounts[i], train, elevation };
+        const muzzle = muzzleWorld(m, state, 0, actor.motion);
+        for (const axis of [0, 1, 2]) for (const sign of [-1, 1]) {
+          const position = [...muzzle] as [number, number, number];
+          position[axis] += sign * range;
+          const target = { ...plane, position };
+          expect(shipAntiAircraftTargets(actor, [target])).toEqual([target]);
+        }
+      }
+    });
+  }
+});
 
 function fixture() {
   const sim = new CombatSimulation(compileShip(blueprint, catalog), { friendlyBots: [], enemies: [shipPreset('enterprise-cv6')], seed: 93 });
