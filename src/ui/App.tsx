@@ -9,6 +9,7 @@ import { selectedShip as initialShip, shipPreset } from '../ships/presets';
 import { ShipContext } from './ShipContext';
 import { bindingLabel, KEYBINDING_STORAGE_KEY, loadKeybindings, type Keybindings } from '../game/keybindings';
 import { BattleSetupDialog } from './BattleSetupDialog';
+import { BattleLoadingScreen, type BattleLoadingState } from './BattleLoadingScreen';
 import { BATTLE_SPAWN_DISTANCE, type BattleSetup } from '../simulation/battle';
 import { SettingsDialog } from './SettingsDialog';
 import { GameAudio } from '../game/GameAudio';
@@ -53,14 +54,14 @@ export function App() {
   const [hud, setHud] = useState(true);
   const [battleSetupOpen, setBattleSetupOpen] = useState(false);
   const [battleSetup, setBattleSetup] = useState<BattleSetup>({ playerShipId: initialShip.id, friendlyBots: [], enemies: ['bismarck'], spawnDistance: BATTLE_SPAWN_DISTANCE, mapId: 'north-atlantic', sea: settings.sea });
-  const [battleLoading, setBattleLoading] = useState(false);
+  const [battleLoading, setBattleLoading] = useState<BattleLoadingState | null>(null);
   const [battleError, setBattleError] = useState('');
   const battlePending = useRef(false);
   const [phase, setPhase] = useState<'garage' | 'sailing'>('garage');
 
   useEffect(() => {
     let active = true;
-    setBattleSetupOpen(false); setBattleLoading(false); battlePending.current = false;
+    setBattleSetupOpen(false); setBattleLoading(null); battlePending.current = false;
     setSwitching(false); setSwitchError(''); switchPending.current = false;
     setReady(false); setError(''); setPaused(false); setSettingsOpen(false); setData(INITIAL_TELEMETRY); setPhase('garage');
     const session = new Game(host.current!, settings, {
@@ -98,7 +99,18 @@ export function App() {
   }, [paused, ready, error]);
 
   // Let React unmount the setup dialog before the scene takes focus for aiming.
-  useEffect(() => { if (phase === 'sailing') game.current?.setInPort(false); }, [phase]);
+  // The loading screen stays up until the battle scene has actually been drawn twice,
+  // covering the landscape build and the first shader compilation of the new hulls.
+  useEffect(() => {
+    const session = game.current;
+    if (phase !== 'sailing' || !session) return;
+    session.setInPort(false);
+    let active = true;
+    void session.nextFrame().then(() => session.nextFrame()).then(() => {
+      if (active && game.current === session) setBattleLoading(value => value && { label: 'Underway', progress: 1, leaving: true });
+    });
+    return () => { active = false; };
+  }, [phase]);
 
   const openBattleSetup = () => {
     if (!ready || switchPending.current) return;
@@ -108,19 +120,21 @@ export function App() {
   const launch = async () => {
     const session = game.current;
     if (!ready || !session || switchPending.current || battlePending.current) return;
-    battlePending.current = true; setBattleLoading(true); setBattleError('');
+    battlePending.current = true; setBattleError('');
+    setBattleLoading({ label: 'Preparing the fleets', progress: 0, leaving: false });
     try {
-      await session.prepareBattle(battleSetup);
+      await session.prepareBattle(battleSetup, (label, progress) => { if (game.current === session) setBattleLoading({ label, progress, leaving: false }); });
       if (game.current !== session) return;
       const definition = shipPreset(battleSetup.playerShipId);
       selectedRef.current = definition; setSelectedShip(definition);
       const url = new URL(window.location.href); url.searchParams.set('ship', definition.id);
       window.history.replaceState(null, '', url);
+      setBattleLoading({ label: 'Getting underway', progress: 0.95, leaving: false });
       setBattleSetupOpen(false); setHud(true); setPhase('sailing');
     } catch (error) {
-      if (game.current === session) setBattleError(error instanceof Error ? error.message : String(error));
+      if (game.current === session) { setBattleLoading(null); setBattleError(error instanceof Error ? error.message : String(error)); }
     } finally {
-      if (game.current === session) { battlePending.current = false; setBattleLoading(false); }
+      if (game.current === session) battlePending.current = false;
     }
   };
   const returnToPort = () => {
@@ -182,8 +196,9 @@ export function App() {
   return <ShipContext value={selectedShip}><main className="game-shell">
     <div ref={host} className="ocean-viewport" inert={!ready || !!error} data-ship-labels={phase === 'sailing' && hud && ready && !error} />
     {phase === 'garage' && ready && !error && <Garage key={selectedShip.id} switching={switching} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} fps={data.fps} onLaunch={openBattleSetup} onSettings={() => game.current?.setPaused(true)}/>}
-    {battleSetupOpen && <BattleSetupDialog setup={battleSetup} onChange={setBattleSetup} onLaunch={launch} onClose={() => setBattleSetupOpen(false)} loading={battleLoading} error={battleError}/>}
+    {battleSetupOpen && !battleLoading && <BattleSetupDialog setup={battleSetup} onChange={setBattleSetup} onLaunch={launch} onClose={() => setBattleSetupOpen(false)} error={battleError}/>}
     {phase === 'sailing' && ready && !error && <FleetHud data={data} game={game.current} visible={hud} bindings={bindings}/>}
+    {battleLoading && ready && !error && <BattleLoadingScreen setup={battleSetup} state={battleLoading} onLeft={() => setBattleLoading(null)}/>}
 
     {phase === 'sailing' && ready && !hud && <button className="restore-hud" onClick={() => setHud(true)}>Show instruments <kbd>{bindingLabel(bindings, 'hud')}</kbd></button>}
 

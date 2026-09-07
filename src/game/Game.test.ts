@@ -158,6 +158,25 @@ test('battle loading binds each mixed fleet hull and selected target to its own 
   } finally { loader.mockRestore(); rig.dispose(); }
 });
 
+test('battle preparation reports each loading stage in order for the loading screen', async () => {
+  const { game, rig } = await port();
+  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => model(String(url).split('/').pop()!.replace('.glb', '')));
+  const stages: [string, number][] = [];
+  try {
+    await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck'], enemies: ['yamato', 'enterprise-cv6'], spawnDistance: 7500, mapId: 'pacific-islands', sea: 'Fair' }, (label, fraction) => stages.push([label, fraction]));
+    expect(stages[0][0]).toBe('Charting Pacific Islands');
+    expect(stages.map(([, fraction]) => fraction)).toEqual([...stages.map(([, fraction]) => fraction)].sort((a, b) => a - b));
+    expect(stages.every(([, fraction]) => fraction >= 0 && fraction < 1)).toBe(true);
+    expect(stages.map(([label]) => label)).toContain('Spotting the air wing');
+    expect(stages.map(([label]) => label)).toContain('Mustering the fleets');
+    expect(stages.at(-1)?.[0]).toBe('Forming the battle lines');
+    expect(stages.filter(([label]) => label.startsWith('Loading '))).toHaveLength(4);
+    // A disposed session never renders again, so a pending frame wait must not hang the loading screen.
+    Object.assign(game, { disposed: true });
+    await game.nextFrame();
+  } finally { loader.mockRestore(); rig.dispose(); }
+});
+
 test('one failed fleet asset leaves the port intact and the same battle can be retried', async () => {
   const { game, scene, playerView, rig } = await port();
   const setup = { playerShipId: 'baltimore', friendlyBots: ['bismarck'], enemies: ['yamato', 'enterprise-cv6'], spawnDistance: 5000 };
