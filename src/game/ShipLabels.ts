@@ -55,8 +55,8 @@ export class ShipLabels {
       const loss = document.createElement('div'); loss.className = 'ship-label-loss';
       const damageNumber = document.createElement('span'); damageNumber.className = 'ship-label-damage';
       damageNumber.hidden = true;
-      meter.append(fill, loss);
-      tag.append(name, meter, health, damageNumber); root.appendChild(tag); this.root.appendChild(root);
+      meter.append(fill, loss, health);
+      tag.append(name, meter, damageNumber); root.appendChild(tag); this.root.appendChild(root);
       // Measure the authored model once. Inspection helpers never change the anchor.
       const bounds = new Box3().setFromObject(view.root.children[0]);
       const top = bounds.isEmpty() ? actor.definition.hull.depth : bounds.max.y - view.root.position.y;
@@ -92,7 +92,8 @@ export class ShipLabels {
         label.health.dataset.status = actor.damage.stability.status;
         label.hp = hp; label.sunk = actor.damage.sunk;
         const status = actor.damage.stability.status.replaceAll('-', ' ');
-        label.health.textContent = `${Math.round(hp / actor.damage.maxIntegrity * 100)}% · ${status}`;
+        label.health.textContent = `${Math.round(hp / actor.damage.maxIntegrity * 100)}%`;
+        label.meter.hidden = label.sunk;
         label.meter.setAttribute('aria-valuenow', String(hp));
         label.meter.setAttribute('aria-valuemax', String(actor.damage.maxIntegrity));
         label.meter.setAttribute('aria-valuetext', `${Math.round(hp / actor.damage.maxIntegrity * 100)} percent hull condition, ${status}`);
