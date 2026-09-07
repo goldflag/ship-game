@@ -424,6 +424,7 @@ export class Game {
       this.audio?.reset(simulation);
       this.fleetModels = [...models.values()]; this.loadedModel = models.get(definition.id);
       this.fleetViews = views; this.playerView = views[0];
+      this.shipWake?.reset();
       this.fleetDraws = draws;
       this.scene.add(this.fleetDraws.root);
       this.targetView = views.find(view => view.actor === simulation.target);
@@ -515,7 +516,7 @@ export class Game {
         this.camera.position.toArray(), new THREE.Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0).toArray());
       this.playerView!.root.visible = !this.rig.binoculars;
       this.harbor?.update(dt, this.camera);
-      this.shipWake!.update(this.playerView!.motion, dt, this.simulation.events);
+      this.shipWake!.update(this.inPort ? [this.playerView!] : this.fleetViews, dt, this.simulation.events);
       this.sky!.update(dt);
       // Black Flag's absorption loses >99% of green/blue light over 50 m,
       // hiding even our own submarine. Ease to a 20× longer visibility range
