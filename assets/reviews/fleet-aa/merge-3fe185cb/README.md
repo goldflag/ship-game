@@ -49,3 +49,13 @@ and geometry. It does not certify historical proportions or exhaustive clearance
 Existing dated-fit uncertainties, simplified shield apertures and high-elevation
 clearances remain documented in the ship discrepancy registers. Original PR
 captures remain in the parent directory under their original hashes.
+
+## Final follow-up integration
+
+Master `54b0be10` (carrier-map navigation, transitions and overlay tracking)
+landed during publication and merged cleanly. Its new camera interface required
+updating `GameFrame.test.ts`: the fixture now uses the real `BattlefieldCamera`
+and initializes camera-frame listeners. The 15 frame tests passed, followed by
+all 727 tests in 100 files and another successful `bun run build`. Ship recipes
+and model hashes are unchanged, so the retained model evidence above still
+applies.
