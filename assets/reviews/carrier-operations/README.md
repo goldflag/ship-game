@@ -34,3 +34,9 @@ The in-game [neutral](port-neutral.png) and [articulated](port-articulated.png) 
 ## Remaining limits
 
 Hangar transfers are abstract; elevator movement, deck crew and wing folding are absent. Deck parking and aircraft traffic have no physical collision solver. The dashed chart route represents the flight lead's current navigation point and mission destination; it does not predict every future maneuver. Approximate travel times exclude attack and recovery waiting. Maneuvering carriers, multiple carriers, AA and combat damage can alter recovery outcomes; the traffic fixture does not establish their timing. See the [runtime discrepancy register](../../ships/enterprise-cv6/reports/flight-discrepancies.md) for historical and flight-model limitations.
+
+## Final merge validation
+
+Integrated master `8345096` (transparent team HUD and damage log) in `76b2503`. All **537 tests pass** across 67 files, with zero failures: [integrated-tests.log](integrated-tests.log). The complete ship/aircraft checks, TypeScript and Vite build pass: [integrated-build.log](integrated-build.log). No ship compiler or geometry input changed during this integration.
+
+The final sailing HUD removes the target dropdown and reduces the air-wing surface to a transparent header, remaining count, map key and nonzero status counts. Flight details remain in Air operations. The master team rosters and damage log are preserved; selecting an enemy remains available inside its team roster or the carrier chart. An integrated server-render check verifies the air-wing/map action, absence of the target selector, and retained fleet roster: [integrated-hud-check.json](integrated-hud-check.json). The screenshots above document the original feature review before this subsequent HUD simplification.
