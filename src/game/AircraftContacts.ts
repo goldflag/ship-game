@@ -5,12 +5,11 @@ const PAGE_SIZE = 144;
 
 /** Screen coverage for aircraft whose thin triangles no longer cover a pixel.
  * This only supplements the rendered silhouette; simulation size stays unchanged. */
-export function aircraftContactAppearance(spanPixels: number, distance: number) {
+export function aircraftContactAppearance(spanPixels: number) {
   // Wingspan overestimates coverage when following a thin, edge-on aircraft.
   // Bring the contact in while the model is still readable, with a broad overlap.
   const fadeIn = 1 - THREE.MathUtils.smoothstep(spanPixels, 14, 48);
-  const fadeOut = 1 - THREE.MathUtils.smoothstep(distance, 16000, 20000);
-  return { pixels: 9, opacity: .9 * fadeIn * fadeOut };
+  return { pixels: 9, opacity: .9 * fadeIn };
 }
 
 function silhouetteTexture() {
@@ -56,7 +55,7 @@ export class AircraftContacts {
     const depth = -this.viewPosition.copy(position).applyMatrix4(camera.matrixWorldInverse).z;
     if (depth <= 0) return;
     const worldPerPixel = 2 * depth / (camera.projectionMatrix.elements[5] * this.height);
-    const appearance = aircraftContactAppearance(wingspan / worldPerPixel, position.distanceTo(camera.position));
+    const appearance = aircraftContactAppearance(wingspan / worldPerPixel);
     if (appearance.opacity <= .001) return;
     camera.getWorldQuaternion(this.rotation);
     this.rotation.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), bank));

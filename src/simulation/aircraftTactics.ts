@@ -105,6 +105,6 @@ export function strikeIngress(p: Aircraft, target: FleetActor, targetPoint: Vec3
     } else p.pilot.attackHeading = Math.atan2(targetPoint[0] - p.position[0], p.position[2] - targetPoint[2]);
     p.pilot.attackStage = 'ingress';
   }
-  const heading = p.pilot.attackHeading, standOff = p.role === 'torpedo-bomber' ? 2600 : 1250;
+  const heading = p.pilot.attackHeading, standOff = p.role === 'torpedo-bomber' ? 2600 : 3000;
   return [targetPoint[0] - Math.sin(heading) * standOff, p.role === 'torpedo-bomber' ? 90 : 850, targetPoint[2] + Math.cos(heading) * standOff];
 }

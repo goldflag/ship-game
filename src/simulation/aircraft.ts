@@ -468,8 +468,17 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
         // The last two aircraft trail the leader's approach with separate heights.
         ingress[1] += (i % 3) * (p.role === 'dive-bomber' ? 30 : 12);
         fly(p, ingress, p.role === 'dive-bomber' ? 95 : 80, dt);
-        if (Math.hypot(p.position[0] - ingress[0], p.position[2] - ingress[2]) < 240 && Math.abs(p.position[1] - ingress[1]) < 120) p.pilot.attackStage = 'run';
+        if (Math.hypot(p.position[0] - ingress[0], p.position[2] - ingress[2]) < (p.role === 'dive-bomber' ? 1000 : 240) && Math.abs(p.position[1] - ingress[1]) < 120) p.pilot.attackStage = 'run';
         continue;
+      }
+      // Reaching the ingress point does not mean the aircraft faces the target.
+      // Finish the turn at approach altitude before committing to a restricted-bank dive.
+      if (p.role === 'dive-bomber' && p.phase !== 'attack') {
+        const bearing = Math.atan2(targetPoint[0] - p.position[0], p.position[2] - targetPoint[2]);
+        if (distance > 1600 || Math.abs(wrapAngle(bearing - p.heading)) > .12 || Math.abs(p.bank) > .15) {
+          fly(p, [targetPoint[0], 850 + (i % 3) * 30, targetPoint[2]], 85, dt);
+          continue;
+        }
       }
       p.phase = 'attack';
       if (p.role === 'dive-bomber') {

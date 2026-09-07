@@ -186,9 +186,9 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
       {(data.combat?.playerWater ?? 0) > .1 && <p className="fleet-flood-warning">Flooding · {data.combat!.playerWater.toFixed(1)} m³</p>}
     </section>
 
-    {!data.combat?.airWing && !data.airOperationsOpen && <ActiveArmament data={data} game={game} visible={visible} bindings={bindings}/>}
+    {!data.airOperationsOpen && <ActiveArmament data={data} game={game} visible={visible} bindings={bindings}/>}
     {!data.combat?.airWing && <SquadronLabels data={data} game={game}/>}
-    {data.combat?.airWing && <AirOperations data={data} game={game} bindings={bindings} armament={<ActiveArmament data={data} game={game} visible={visible} bindings={bindings}/>}/>}
+    {data.combat?.airWing && <AirOperations data={data} game={game} bindings={bindings}/>}
     {data.combat?.submarine && <DepthControl combat={data.combat} game={game} bindings={bindings}/>}
     {data.binoculars && data.aimModule !== 'point' && data.aimMarker?.visible && <div className="aim-marker" aria-hidden="true" style={{ left: `${data.aimMarker.x}%`, top: `${data.aimMarker.y}%` }}><span/><small>TRACKED AIM</small></div>}
     <aside className="fleet-map-area" aria-label="Navigation minimap"><NavigationChart bindings={bindings} data={data} onResize={direction => game?.resizeChart(direction)}/></aside>

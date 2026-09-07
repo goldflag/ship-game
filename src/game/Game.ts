@@ -705,7 +705,19 @@ export class Game {
   panAirMap(dx: number, dy: number, x?: number, y?: number): void { this.battlefieldCamera.pan(dx, dy, this.host.clientWidth, this.host.clientHeight, x, y); }
   projectAirMap(x: number, z: number, altitude = 0): [number, number] {
     const p = new THREE.Vector3(x, altitude, z).project(this.camera);
-    return [(p.x + 1) * this.host.clientWidth / 2, (1 - p.y) * this.host.clientHeight / 2];
+    // Map SVG and HTML tags live inside the scaled HUD, unlike pointer input.
+    return [(p.x + 1) * this.host.clientWidth / (2 * this.hudScale), (1 - p.y) * this.host.clientHeight / (2 * this.hudScale)];
+  }
+  projectSquadron(ownerId: string, flightId: string): { x: number; y: number } | null {
+    const actor = this.simulation.actors.find(a => a.motion.id === ownerId);
+    const planes = actor?.airWing?.planes.filter(p => p.flightId === flightId && airborne(p)) ?? [];
+    if (!planes.length) return null;
+    const anchor = new THREE.Vector3();
+    for (const plane of planes) {
+      anchor.add(new THREE.Vector3(...plane.previousPosition).lerp(new THREE.Vector3(...plane.position), this.simulation.interpolationAlpha));
+    }
+    anchor.divideScalar(planes.length).y += 24;
+    return projectShipLabel(anchor, this.camera, this.host.clientWidth / this.hudScale, this.host.clientHeight / this.hudScale);
   }
   airMapWater(x: number, y: number): [number, number] | undefined {
     const ray = new THREE.Raycaster();
