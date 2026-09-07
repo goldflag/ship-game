@@ -273,7 +273,7 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
         continue;
       }
       p.flightTime += dt; p.timer += dt;
-      if (p.flightTime > 650) { lose(p, ctx, 'Endurance exhausted'); continue; }
+      if (p.flightTime > 1050) { lose(p, ctx, 'Endurance exhausted'); continue; }
       if ((p.flightTime > 470 || p.hp < 25) && p.phase !== 'landing') p.phase = 'returning';
       const carrier = localToWorld(add(wing.recoveryPosition, [0, deckClearance(p), 0]), actor.motion);
       // Approximate AA envelope from surviving, supplied light gun mounts. No render/GPU input.
