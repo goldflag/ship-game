@@ -292,3 +292,39 @@ test('direct slots select a single type, never cycle, and retain selection when 
   game.selectWeaponSlot(3); expect(game.battery).toBe('torpedo');
   game.selectWeaponSlot(4); expect(game.battery).toBe('depth-charge');
 });
+
+test('single shell presses queue, rapid pairs force that choice, and slow presses cancel it', () => {
+  const definition = shipPreset('bismarck'), simulation = new CombatSimulation(definition);
+  const game = Object.assign(Object.create(Game.prototype), { definition, simulation, battery: 'main',
+    ammunition: { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' },
+    inPort: false, paused: false, airOperationsOpen: false }) as Game;
+  const main = game.weaponGroupId!;
+  game.cycleAmmunition(1000);
+  expect(game.ammunition[main]).toBe('he'); expect(simulation.player.mounts[0].loaded).toBe('ap');
+  game.cycleAmmunition(1200);
+  expect(game.ammunition[main]).toBe('he'); expect(simulation.player.mounts[0].loaded).toBe('he');
+  expect(simulation.player.mounts[0].reload).toBe(definition.mounts[0].weapon.reloadSeconds);
+  game.cycleAmmunition(2000); game.cycleAmmunition(2400);
+  expect(game.ammunition[main]).toBe('he');
+  game.cycleAmmunition(3000); game.battery = 'secondary'; game.cycleAmmunition(3100);
+  expect(simulation.telemetry('main', [2000, 10, 0], main).ammunition).toBe('ap');
+  expect(game.selectedAmmunition).toBe('he');
+  expect(simulation.player.mounts.filter((_, i) => definition.mounts[i].battery === 'secondary').every(m => m.loaded === 'ap')).toBe(true);
+});
+
+test('rapid shell presses in different secondary groups never force a neighboring group to reload', () => {
+  const definition = shipPreset('bismarck'), simulation = new CombatSimulation(definition);
+  const game = Object.assign(Object.create(Game.prototype), { definition, simulation, battery: 'main',
+    ammunition: {}, inPort: false, paused: false, airOperationsOpen: false }) as Game;
+  const groups = game.weaponGroups;
+  game.selectWeaponSlot(1); game.cycleAmmunition(1000);
+  game.selectWeaponSlot(2); game.cycleAmmunition(1100);
+  expect(simulation.player.mounts.every(m => m.loaded === 'ap')).toBe(true);
+  game.selectWeaponSlot(1); game.cycleAmmunition(1200); game.cycleAmmunition(1300);
+  expect(simulation.player.mounts.every(m => m.loaded === 'ap')).toBe(true);
+  game.cycleAmmunition(2000); game.cycleAmmunition(2100);
+  definition.mounts.forEach((m, i) => {
+    expect(simulation.player.mounts[i].loaded).toBe(groups[1].mountIds.includes(m.id) ? 'he' : 'ap');
+  });
+  expect(game.selectedAmmunition).toBe('he');
+});

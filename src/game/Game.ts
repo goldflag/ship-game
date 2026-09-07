@@ -37,7 +37,6 @@ import { FIXED_DT } from '../simulation/ship';
 import { DEPTH_STEP_M, orderDepth } from '../simulation/submarine';
 import { GunAimIndicators } from './GunAimIndicators';
 import { HitDirectionIndicators } from './HitDirectionIndicators';
-import { gunAimPoints } from './gunAim';
 import { disposeObjects } from './disposeObjects';
 import { CombatEffects } from './CombatEffects';
 import { configureRenderOrder } from './renderOrder';
@@ -118,6 +117,7 @@ export class Game {
   selectWeaponGroup(id: string): void {
     const group = this.weaponGroups.find(g => g.id === id);
     if (!group) return;
+    if (this.weaponGroupId !== group.id) this.lastShellPress = undefined;
     this.selectedBattery = group.battery;
     this.selectedWeaponGroupId = group.id;
   }
@@ -129,6 +129,7 @@ export class Game {
   set battery(value: Battery) {
     if (value === 'torpedo' && !this.definition.torpedoTubes?.length) return;
     if (value === 'depth-charge' && !this.definition.depthChargeLaunchers?.length) return;
+    if (this.selectedBattery !== value) this.lastShellPress = undefined;
     this.selectedBattery = value;
     this.selectedWeaponGroupId = this.weaponGroups.find(g => g.battery === value)?.id;
   }
@@ -210,7 +211,7 @@ export class Game {
       cursor: released => { if (released) this.rig.releasePointer(); else if (!this.airOperationsOpen && !document.querySelector('dialog[open]')) this.rig.capturePointer(); },
       chartSize: direction => this.resizeChart(direction),
       shellFollow: () => this.toggleShellFollow(),
-      shellType: () => this.selectAmmunition(this.selectedAmmunition === 'ap' ? 'he' : 'ap'),
+      shellType: () => this.cycleAmmunition(),
       airOperations: () => this.setAirOperationsOpen(!this.airOperationsOpen),
       depth: direction => this.setDepth((this.simulation.player.submarine?.targetDepthM ?? 0) + direction * DEPTH_STEP_M),
       depthPreset: depthM => this.setDepth(depthM),
@@ -485,6 +486,7 @@ export class Game {
       this.shipLabels.setFleet(views, simulation.actors);
       this.articulationOriginal = undefined;
       this.controlPriority = 'balanced'; this.controlFocus = '';
+      this.lastShellPress = undefined;
       this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
       this.battery = definition.torpedoTubes?.length ? 'torpedo' : 'main'; this.manualAim = true; this.inspecting = false;
       this.airOperationsOpen = false; this.selectedFlightId = undefined; this.effects.reset();
@@ -568,7 +570,7 @@ export class Game {
       this.battlefieldCamera.applyTransition(realDt);
       this.cameraFrameListeners.forEach(listener => listener());
       const showGunAim = !this.airOperationsOpen && !this.battlefieldCamera.transitioning && !this.inPort && !this.inspecting && !this.shellFollow.view && !this.followedAircraftId && !this.simulation.player.damage.sunk;
-      this.gunAim.update(showGunAim ? gunAimPoints(this.simulation.player, this.definition, this.battery, aim, this.weaponGroupId) : [], this.camera, showGunAim);
+      this.gunAim.update(showGunAim ? this.playerView!.gunAimPoints(this.battery, aim, this.weaponGroupId) : [], this.camera, showGunAim);
       this.hitDirections.update(this.simulation, this.camera, !this.inPort);
       this.torpedoPreview.update(this.simulation.player, this.playerView!.motion, aim, showGunAim && this.battery === 'torpedo' && this.host?.dataset.shipLabels !== 'false', this.weaponGroupId);
       this.inspectionHover?.update(this.inPort && !this.paused && !this.switchingShip ? this.playerView?.inspection : undefined);
@@ -686,6 +688,7 @@ export class Game {
   }
   setPaused(paused: boolean): void {
     if (paused) this.inspectionHover?.clear();
+    this.lastShellPress = undefined;
     this.paused = paused;
     this.audio?.setScene(this.inPort, paused);
     this.input.setEnabled(!paused && !this.inPort && !!this.water);
@@ -787,13 +790,25 @@ export class Game {
     this.spectateTeammate(candidates[(Math.max(0, index) + (direction < 0 ? -1 : 1) + candidates.length) % candidates.length].actor.motion.id);
   }
   returnToShip(): void { this.stopShellFollow(); }
-  selectAmmunition(type: Ammunition): void {
+  private lastShellPress?: { time: number; group: string; type: Ammunition };
+  cycleAmmunition(now = performance.now()): void {
+    if (this.inPort || this.paused || this.airOperationsOpen || this.simulation.player.damage.sunk ||
+      (this.battery !== 'main' && this.battery !== 'secondary')) { this.lastShellPress = undefined; return; }
+    const last = this.lastShellPress;
+    const immediate = !!last && last.group === (this.weaponGroupId ?? this.battery) && now - last.time >= 0 && now - last.time <= 300;
+    const type = immediate ? last!.type : this.selectedAmmunition === 'ap' ? 'he' : 'ap';
+    this.selectAmmunition(type, immediate);
+    this.lastShellPress = !immediate && this.selectedAmmunition === type ? { time: now, group: this.weaponGroupId ?? this.battery, type } : undefined;
+  }
+  selectAmmunition(type: Ammunition, immediate = false): void {
+    this.lastShellPress = undefined;
     if (this.inPort || this.paused || this.airOperationsOpen || this.simulation.player.damage.sunk ||
       (this.battery !== 'main' && this.battery !== 'secondary')) return;
     const available = this.definition.mounts.some((mount, i) => selectedWeapon(mount.battery, mount.weapon, this.battery, this.weaponGroupId) &&
       (type === 'ap' || mount.weapon.he) && availableAmmunition(this.simulation.player.mounts[i], type) >= (mount.weapon.barrelCount ?? 2));
     if (!available) return;
     this.ammunition[this.weaponGroupId ?? this.battery] = type;
+    this.simulation.orderAmmunition(this.battery, type, immediate, this.weaponGroupId);
   }
   recallAircraft(flightId?: string): void { if (!this.inPort && !this.paused) this.simulation.recallAircraft(flightId); }
   setDepth(depthM: number, emergency = false): void {
@@ -858,6 +873,7 @@ export class Game {
     this.input.setOrder(1); this.input.setRudder(0);
     if (inPort) {
       this.simulation.reset();
+      this.lastShellPress = undefined;
       this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
       this.audio?.reset(this.simulation);
       this.targetView = this.fleetViews.find(view => view.actor === this.simulation.target);

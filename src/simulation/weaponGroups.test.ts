@@ -63,7 +63,8 @@ test('AP/HE, stocks, flight time and destroyed-group slots stay isolated through
   sim.step(helm, { aim, fire: false, battery: 'secondary', weaponGroupId: first.id, ammunition: 'he' });
   sim.step(helm, { aim, fire: false, battery: 'secondary', weaponGroupId: second.id, ammunition: 'ap' });
   def.mounts.forEach((m, i) => {
-    expect(sim.player.mounts[i].loaded).toBe(first.mountIds.includes(m.id) ? 'he' : 'ap');
+    expect(sim.player.mounts[i].loaded).toBe('ap');
+    expect(sim.player.mounts[i].queued).toBe(first.mountIds.includes(m.id) ? 'he' : undefined);
   });
   const telemetry = sim.telemetry('secondary', aim, first.id);
   expect(telemetry.ammunition).toBe('he');

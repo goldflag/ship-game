@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test } from 'bun:test';
-import { Color, Group, PerspectiveCamera } from 'three/webgpu';
+import { Color, Group, PerspectiveCamera, Vector3 } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { CombatSimulation } from '../simulation/combat';
 import { ENGINE_ORDERS, FIXED_DT } from '../simulation/ship';
@@ -12,7 +12,9 @@ import { Game } from './Game';
 import { FrameScene } from './FrameScene';
 import { ShipView } from './ShipView';
 import { HullDamageFeedback } from './HullDamageFeedback';
-import type { GunAimPoint } from './gunAim';
+import { gunAimPoints, type GunAimPoint } from './gunAim';
+import { projectGunAim } from './GunAimIndicators';
+import { barrelIds, type Vec3 } from '../ships/blueprint';
 import { OCEAN_MAPS, DEFAULT_MAP, oceanMap } from '../maps/catalog';
 
 const globals = ['window', 'document'] as const;
@@ -221,6 +223,39 @@ test('manual aiming and binoculars keep the camera attached to the displayed shi
       expect(camera.position.clone().sub(playerView.root.position).distanceTo(offset)).toBeLessThan(1e-9);
       expect(playerView.root.visible).toBe(!binoculars);
       expect(game.currentAim.every(Number.isFinite)).toBe(true);
+    }
+  }
+});
+
+test('gun circles follow the displayed barrels between simulation ticks in rolling seas', async () => {
+  const { game, simulation, playerView, camera, rig, gunAimFrames } = await frameHarness();
+  const aim: Vec3 = [5000, .5, -2000];
+  simulation.aimAt = () => aim;
+  Object.assign(simulation.sea, { amplitudeM: 1.5, windMps: 12 });
+  // Keep the sight completely still at high magnification while the hull moves.
+  rig.update = () => {};
+  camera.position.set(0, 36, 0);
+  camera.fov = 2 * Math.atan(Math.tan(52 * Math.PI / 360) / 24) * 180 / Math.PI;
+  camera.updateProjectionMatrix(); camera.lookAt(new Vector3(...aim)); camera.updateMatrixWorld();
+  let time = 0;
+  for (let frame = 0; frame < 600; frame++) await game.frame(time += 1000 / 60);
+  const nodes = new Map<string, Group>();
+  playerView.model.traverse(node => { if (node.userData.nodeId) nodes.set(node.userData.nodeId, node as Group); });
+  for (const dt of Array.from({ length: 30 }, (_, i) => [1000 / 144, 1000 / 144, 1000 / 47, 1000 / 120][i % 4])) {
+    await game.frame(time += dt);
+    const mounts = simulation.player.mounts.map((state, i) => {
+      const mount = simulation.definition.mounts[i];
+      return { ...state,
+        train: -nodes.get(`${mount.id}.yaw`)!.rotation.y - mount.bearingDeg * Math.PI / 180,
+        elevation: nodes.get(`${mount.id}.${barrelIds(mount.weapon)[0]}.elevation`)!.rotation.x };
+    });
+    const expected = gunAimPoints({ ...simulation.player, motion: playerView.motion, mounts }, simulation.definition, 'main', aim);
+    const actual = gunAimFrames.at(-1)!.points;
+    for (let i = 0; i < actual.length; i++) {
+      const displayed = projectGunAim(new Vector3(...expected[i].point), camera, 1440, 900);
+      const circle = projectGunAim(new Vector3(...actual[i].point), camera, 1440, 900);
+      expect(Math.hypot(circle.x - displayed.x, circle.y - displayed.y)).toBeLessThan(.01);
+      expect(actual[i].status).toBe(simulation.player.mounts[i].status);
     }
   }
 });

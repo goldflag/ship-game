@@ -35,3 +35,16 @@ The first ten groups have default keys 1–9 and 0. Extra future groups remain
 clickable in the HUD. Saved category shortcuts migrate to slots 1–4; other
 custom keys are retained and new slots avoid conflicts. The same number can
 represent different weapon types on different ships, as shown by the HUD.
+
+## PR integration
+
+Merged current remote master (`230c9974`) before opening the PR. Preserved its
+queued shell changes and interpolated gun-aim markers. Shell orders and the
+300 ms double-press window now belong to individual weapon groups; switching
+groups clears the double-press window. Orders continue to apply to unselected
+groups without changing their neighbors' stocks or reload progress.
+
+After integration, `bun run build` passed all asset checks, TypeScript and Vite;
+76 focused tests passed across the Game, GameFrame, FleetHud, ShipView, gunAim,
+weaponGroups and ammunition suites. Prior browser evidence above predates this
+integration; the integration-specific behavior is covered by those tests.

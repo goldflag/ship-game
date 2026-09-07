@@ -7,13 +7,14 @@ export function ShellCycle({ combat, game, bindings }: { combat: CombatTelemetry
   const descriptionId = useId();
   const [dismissed, setDismissed] = useState(false);
   const current = combat.ammunition, next = current === 'ap' ? 'he' : 'ap';
+  const queued = combat.mounts.some(mount => mount.queued === current);
   const stock = combat.ammunitionStock;
   const unavailable = combat.playerSunk ? 'Ship lost' : next === 'he' && !combat.heSupported ? 'HE not fitted' : stock[next] === 0 ? `Out of ${next.toUpperCase()}` : '';
   const shortcut = bindingLabel(bindings, 'shellType');
 
   return <div className="fleet-shell-cycle-wrap" data-dismissed={dismissed} onPointerEnter={() => setDismissed(false)}>
     <button className="fleet-shell-cycle" aria-disabled={!!unavailable} data-empty={stock[current] === 0}
-      aria-label={`${current.toUpperCase()} selected · ${stock[current]} rounds. ${unavailable || `Switch to ${next.toUpperCase()} · ${stock[next]} rounds`} · ${shortcut}`}
+      aria-label={`${current.toUpperCase()} selected · ${stock[current]} rounds. ${unavailable || `Queue ${next.toUpperCase()} · ${stock[next]} rounds`} · ${shortcut}`}
       aria-describedby={descriptionId}
       onFocus={() => setDismissed(false)}
       onKeyDown={event => {
@@ -32,14 +33,14 @@ export function ShellCycle({ combat, game, bindings }: { combat: CombatTelemetry
         // Mouse users resume ship shortcuts; keyboard users can continue cycling with Enter/Space.
         if (event.detail > 0) event.currentTarget.blur();
       }}>
-      <strong>{current.toUpperCase()}</strong>
+      <strong>{current.toUpperCase()}{queued ? ' next' : ''}</strong>
       <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M3 6h14m-4-3 3 3-3 3M17 14H3m4-3-3 3 3 3"/></svg>
       <kbd>{shortcut}</kbd>
     </button>
     <div className="fleet-shell-cycle-info" role="tooltip" id={descriptionId}>
       <span>Armor piercing <b>AP · {stock.ap}</b></span>
       <span>High explosive <b>{combat.heSupported ? `HE · ${stock.he}` : 'Not fitted'}</b></span>
-      <small>Full reload on change. Guns without HE keep AP.</small>
+      <small>Single press queues next load. Double-press {shortcut} to switch now with a full reload. Guns without HE keep AP.</small>
       {(unavailable || stock[current] === 0) && <small className="fleet-shell-cycle-note">{stock[current] === 0 ? `Out of ${current.toUpperCase()}` : unavailable}</small>}
     </div>
   </div>;
