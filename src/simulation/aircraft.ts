@@ -11,6 +11,7 @@ import { flyAircraft as fly, initialFlightControls, stepFlightMechanisms, TAKEOF
 import { clearFighterLane, fighterGunAim, fighterTarget, initialAirPilot, orbitPoint, steerFighter, strikeIngress, type AirPilot } from './aircraftTactics';
 import { aircraftDeckAttitude, aircraftGroundPose } from './aircraftGroundPose';
 import { fighterBurst, strikeAimError } from './aircraftAccuracy';
+import { AIR_GUNNERY, gunnerySeed, initialFireDiscipline, stepFireDiscipline } from './airGunnery';
 
 export type FlightPhase = 'ready' | 'queued' | 'taxi' | 'takeoff' | 'outbound' | 'attack' | 'returning' | 'landing' | 'rollout' | 'parking' | 'rearming' | 'lost';
 export type AirOrder = { kind: 'attack'; targetId: string } | { kind: 'patrol'; point: Vec3 } | { kind: 'defend'; targetId?: string } | { kind: 'intercept'; flightId: string } | { kind: 'escort'; flightId: string } | { kind: 'return' };
@@ -422,18 +423,23 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
           }
         }
         const hostile = fighterTarget(p, ctx.planes, patrol, dt, flight?.order.kind === 'intercept' ? flight.order.flightId : undefined);
+        const discipline = p.pilot.fireDiscipline ??= initialFireDiscipline();
+        const pressure = 1 - p.hp / 100 + (hostile && length(sub(hostile.position, p.position)) < 350 ? .5 : 0);
+        stepFireDiscipline(discipline, dt, pressure, gunnerySeed(p.id, ctx.seed ?? 0), !!hostile);
         if (hostile) {
           p.phase = 'attack';
           const pursuing = steerFighter(p, hostile, ctx.planes, dt);
           const gun = fighterGunAim(p, hostile);
-          const onAim = pursuing && gun.distance > 80 && gun.distance < 600 && gun.alignment > .996
+          const onAim = pursuing && gun.distance > 80 && gun.distance < 600 && gun.alignment > (discipline.panic ? .94 : .996)
             && clearFighterLane(p, gun.point, ctx.planes);
           p.pilot.aimTime = onAim ? p.pilot.aimTime + dt : 0;
-          if (onAim && p.pilot.aimTime >= .12 && p.cooldown <= 0) {
-            p.ammo--; p.cooldown = .4;
+          if (onAim && p.pilot.aimTime >= (discipline.panic ? .04 : .12) && p.cooldown <= 0) {
+            // Sample the next burst before consuming it, so a blocked lane spends nothing.
             const burst = fighterBurst(p, gun.point, ctx.seed ?? 0, p.sortie ?? 0);
-            if (burst.hit) hostile.hp -= 32 * clamp((gun.alignment - .996) / .004, .3, 1) * clamp(1.3 - gun.distance / 900, .5, 1);
-            ctx.emit({ kind: 'aircraft-fire', position: [...p.position], shipId: p.ownerId, message: 'Fighter guns', aircraft: { id: p.id, target: burst.end, direction: normalize(sub(sub(burst.end, p.position), scale(p.velocity, gun.time))), velocity: [...p.velocity], attitude: { heading: p.heading, pitch: p.pitch, bank: p.bank } } });
+            if (!clearFighterLane(p, burst.end, ctx.planes)) continue;
+            p.ammo--; p.cooldown = .4;
+            if (burst.hit) hostile.hp -= AIR_GUNNERY.fighterDamage * clamp((gun.alignment - .996) / .004, .3, 1) * clamp(1.3 - gun.distance / 900, .5, 1);
+            ctx.emit({ kind: 'aircraft-fire', position: [...p.position], shipId: p.ownerId, message: 'Fighter guns', aircraft: { id: p.id, target: burst.end, panic: discipline.panic, direction: normalize(sub(sub(burst.end, p.position), scale(p.velocity, gun.time))), velocity: [...p.velocity], attitude: { heading: p.heading, pitch: p.pitch, bank: p.bank } } });
             if (hostile.hp <= 0) { p.kills++; lose(hostile, ctx); }
           }
         } else {

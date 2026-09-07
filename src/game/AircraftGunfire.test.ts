@@ -3,6 +3,22 @@ import { InstancedMesh, Matrix4, PerspectiveCamera, Vector3 } from 'three/webgpu
 import { CombatSimulation } from '../simulation/combat';
 import { shipPreset } from '../ships/presets';
 import { AircraftGunfire } from './AircraftGunfire';
+import { ballisticStep } from '../simulation/ballistics';
+
+test('AA tracer reaches its CPU airburst endpoint with drag and inherited ship velocity', () => {
+  const sim = new CombatSimulation(shipPreset('bismarck')), gunfire = new AircraftGunfire();
+  const camera = new PerspectiveCamera(52, 1, .5, 60000);
+  const endpoint = ballisticStep([0, 300, 0], [15, 0, -800], 3, .08).position;
+  sim.events.push({ sequence: 1, tick: 0, kind: 'aircraft-fire', position: [0, 300, 0], shipId: 'player', message: 'AA',
+    aircraft: { id: 'target', target: endpoint, tracerSpeed: 800, direction: [0, 0, -1], velocity: [15, 0, 0], dragPerSecond: .08,
+      airburst: { flightTime: 3, caliberM: .105 } } });
+  try {
+    sim.tick = 181; gunfire.update(sim, camera);
+    const tips = gunfire.root.getObjectByName('Aircraft tracer tips') as InstancedMesh;
+    expect(gunfire.diagnostics()).toBe(1);
+    expect(at(tips).position.distanceTo(new Vector3(...endpoint))).toBeLessThan(.001);
+  } finally { gunfire.dispose(); }
+});
 
 test('light AA stays visible beyond a nearby aim point and survives combat history eviction', () => {
   const sim = new CombatSimulation(shipPreset('bismarck')), gunfire = new AircraftGunfire(), camera = new PerspectiveCamera();

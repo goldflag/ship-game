@@ -2,12 +2,8 @@ import type { Vec3 } from '../ships/blueprint';
 import type { Aircraft } from './aircraft';
 import { dispersedDirection, dispersedSpeed } from './ballistics';
 import { add, length, normalize, scale, sub } from './geometry';
-
-/** Stable per-aircraft sampling: telemetry and render frames never consume RNG. */
-export function aircraftSeed(id: string, seed: number): number {
-  for (let i = 0; i < id.length; i++) seed = Math.imul(seed ^ id.charCodeAt(i), 16777619);
-  return seed >>> 0;
-}
+import { AIR_GUNNERY, gunnerySeed as aircraftSeed } from './airGunnery';
+export { gunnerySeed as aircraftSeed } from './airGunnery';
 
 /** Provisional pilot errors in metres, held for the whole attack pass. Bombs
  * still inherit the aircraft's velocity; torpedoes still run a straight course. */
@@ -23,8 +19,11 @@ export function strikeAimError(p: Aircraft, heading: number, seed: number, sorti
  * solution permits firing; it no longer guarantees damage. */
 export function fighterBurst(p: Aircraft, aim: Vec3, seed: number, sortie: number) {
   const delta = sub(aim, p.position), distance = length(delta);
-  const direction = dispersedDirection(normalize(delta), .014 + Math.abs(p.bank) * .008,
-    aircraftSeed(p.id, seed), sortie * 31 + p.ammo);
+  const panic = p.pilot.fireDiscipline?.panic ?? false;
+  // Panic fire follows the nose before a good lead solution has settled.
+  const forward: Vec3 = [Math.sin(p.heading) * Math.cos(p.pitch), Math.sin(p.pitch), -Math.cos(p.heading) * Math.cos(p.pitch)];
+  const direction = dispersedDirection(panic ? forward : normalize(delta), AIR_GUNNERY.fighterSpread(p.bank) * (panic ? 2 : 1),
+    aircraftSeed(p.id, seed), sortie * 31 + p.ammo - 1);
   const end = add(p.position, scale(direction, distance));
   return { end, hit: length(sub(end, aim)) <= 7 };
 }

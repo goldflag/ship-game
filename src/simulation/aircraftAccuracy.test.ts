@@ -30,10 +30,48 @@ test('aligned fighter bursts can hit or miss, with identical seeded replays', ()
     expect(p.ammo).toBe(15);
     return { hp: target.hp, events };
   };
-  const results = Array.from({ length: 48 }, (_, seed) => run(seed));
-  expect(results.filter(r => r.hp === 100).length).toBeGreaterThan(5);
-  expect(results.filter(r => r.hp < 100).length).toBeGreaterThan(5);
+  const results = Array.from({ length: 1024 }, (_, seed) => run(seed));
+  const hits = results.filter(r => r.hp < 100);
+  expect(hits.length).toBeGreaterThan(10);
+  expect(hits.length / results.length).toBeLessThan(.08);
+  expect(hits.every(r => r.hp < 40)).toBe(true);
   expect(run(17)).toEqual(run(17));
+});
+
+test('rare fighter hits finish damaged enemies and count kills without friendly damage', () => {
+  let kills = 0;
+  for (let seed = 0; seed < 256; seed++) {
+    const { sim, ctx, events } = fixture(seed);
+    const p = sim.aircraft[0], target = sim.target.airWing!.planes[0];
+    Object.assign(p, { phase: 'attack', position: [0, 400, 0], velocity: [0, 0, -100] });
+    Object.assign(target, { hp: 60, phase: 'outbound', position: [0, 400, -350], velocity: [0, 0, -100] });
+    p.pilot.aimTime = .2; p.pilot.hostileId = target.id; p.pilot.think = 1;
+    stepAircraft(ctx, 1 / 60, 0);
+    if (target.phase === 'lost') {
+      kills++; expect(p.kills).toBe(1); expect(events.some(e => e.kind === 'aircraft-lost')).toBe(true);
+    }
+    expect(sim.player.airWing!.planes.every(plane => plane.hp === 100)).toBe(true);
+  }
+  expect(kills).toBeGreaterThan(0);
+});
+
+test('panicked fighters waste forward bursts before obtaining a disciplined gun solution', () => {
+  const run = (panic: boolean, friendlyLane = false) => {
+    const { sim, ctx, events } = fixture(93);
+    const p = sim.aircraft[0], target = sim.target.airWing!.planes[0];
+    Object.assign(p, { phase: 'attack', position: [0, 400, 0], velocity: [0, 0, -100] });
+    Object.assign(target, { phase: 'outbound', position: [65, 400, -350], velocity: [0, 0, -100] });
+    p.pilot.aimTime = .2; p.pilot.hostileId = target.id; p.pilot.think = 1;
+    p.pilot.fireDiscipline = { panic, remaining: 3, sequence: 0, yaw: 0, pitch: 0 };
+    if (friendlyLane) Object.assign(sim.aircraft[1], { phase: 'outbound', position: [32, 400, -175], velocity: [0, 0, -100] });
+    stepAircraft(ctx, 1 / 60, 0);
+    return { events: events.filter(e => e.kind === 'aircraft-fire' && e.aircraft?.id === p.id), ammo: p.ammo, hp: target.hp };
+  };
+  expect(run(false).events).toHaveLength(0);
+  const panic = run(true);
+  expect(panic.events).toHaveLength(1); expect(panic.events[0].aircraft?.panic).toBe(true);
+  expect(panic.ammo).toBe(15); expect(panic.hp).toBe(100);
+  expect(run(true, true).events).toHaveLength(0); expect(run(true, true).ammo).toBe(16);
 });
 
 for (const squadron of ['vb-6', 'vt-6']) test(`${squadron} releases follow varied seeded attack runs without homing`, () => {
