@@ -35,7 +35,7 @@ function obstructionGunhouses(definition: ShipDefinition) {
 export interface MountState {
   id: string; train: number; elevation: number; reload: number; ammo: number; hp: number; recoil: number;
   /** Total rounds include the HE subset; rounds are consumed when fired. */
-  heAmmo: number; loaded: Ammunition;
+  heAmmo: number; loaded: Ammunition; queued?: Ammunition;
   status: 'ready' | 'reloading' | 'turning' | 'out-of-range' | 'blocked' | 'out-of-arc' | 'empty' | 'disabled' | 'submerged';
   aimCache?: { time: number; train: number; elevation: number; point: Vec3 };
   leadCache?: { time: number; point: Vec3 };
@@ -48,9 +48,19 @@ export const availableAmmunition = (state: MountState, type = state.loaded): num
  * always requires a complete load interval, including changing back mid-load. */
 export function selectAmmunition(m: MountDefinition, state: MountState, requested: Ammunition): void {
   const type = requested === 'he' && !m.weapon.he ? 'ap' : requested;
+  delete state.queued;
   if (state.loaded === type) return;
   state.loaded = type; state.reload = Math.max(state.reload, m.weapon.reloadSeconds);
   delete state.aimCache; delete state.leadCache;
+}
+/** Keep the current salvo; use the requested stock when the current reload completes. */
+export function queueAmmunition(m: MountDefinition, state: MountState, requested: Ammunition): void {
+  const type = requested === 'he' && !m.weapon.he ? 'ap' : requested;
+  if (type === state.loaded) { delete state.queued; return; }
+  if (availableAmmunition(state, type) < (m.weapon.barrelCount ?? 2)) return;
+  state.queued = type;
+  // An empty gun has no current salvo to preserve.
+  if (state.reload === 0 && availableAmmunition(state) < (m.weapon.barrelCount ?? 2)) selectAmmunition(m, state, type);
 }
 export function muzzleLocal(m: MountDefinition, state: Pick<MountState, 'train' | 'elevation'>, barrel: number): Vec3 {
   const bearing = radians(m.bearingDeg) + state.train, w = m.weapon;
@@ -95,7 +105,12 @@ export function solveBallistic(from: Vec3, target: Vec3, speed: number, dragPerS
 /** Return true when the barrel has reached a valid firing solution (used by bots). */
 export function updateMount(m: MountDefinition, state: MountState, definition: ShipDefinition, pose: Pose & { waveHeave?: number }, aim: Vec3 | undefined, dt: number, inheritedVelocity: Vec3 = [0, 0, 0], power = 1): boolean {
   const workRate = .25 + .75 * clamp(power, 0, 1);
+  const wasReloading = state.reload > 0;
   state.reload = Math.max(0, state.reload - dt * workRate);
+  if (wasReloading && state.reload === 0 && state.queued) {
+    state.loaded = state.queued;
+    delete state.queued; delete state.aimCache; delete state.leadCache;
+  }
   state.recoil = Math.max(0, state.recoil - dt / 1.4);
   if (state.hp <= 0) { state.status = 'disabled'; return false; }
   if (availableAmmunition(state) < (m.weapon.barrelCount ?? 2)) { state.status = 'empty'; return false; }

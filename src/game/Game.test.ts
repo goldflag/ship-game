@@ -270,3 +270,21 @@ test('spectating follows only surviving teammates, cycles duplicates, and resets
     Object.assign(game, { inPort: true }); update(); expect(game.spectatedShipId).toBeUndefined();
   } finally { rig.dispose(); }
 });
+
+test('single shell presses queue, rapid pairs force that choice, and slow presses cancel it', () => {
+  const definition = shipPreset('bismarck'), simulation = new CombatSimulation(definition);
+  const game = Object.assign(Object.create(Game.prototype), { definition, simulation, battery: 'main',
+    ammunition: { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' },
+    inPort: false, paused: false, airOperationsOpen: false }) as Game;
+  game.cycleAmmunition(1000);
+  expect(game.ammunition.main).toBe('he'); expect(simulation.player.mounts[0].loaded).toBe('ap');
+  game.cycleAmmunition(1200);
+  expect(game.ammunition.main).toBe('he'); expect(simulation.player.mounts[0].loaded).toBe('he');
+  expect(simulation.player.mounts[0].reload).toBe(definition.mounts[0].weapon.reloadSeconds);
+  game.cycleAmmunition(2000); game.cycleAmmunition(2400);
+  expect(game.ammunition.main).toBe('he');
+  game.cycleAmmunition(3000); game.battery = 'secondary'; game.cycleAmmunition(3100);
+  expect(simulation.telemetry('main', [2000, 10, 0]).ammunition).toBe('ap');
+  expect(game.ammunition.secondary).toBe('he');
+  expect(simulation.player.mounts.filter((_, i) => definition.mounts[i].battery === 'secondary').every(m => m.loaded === 'ap')).toBe(true);
+});
