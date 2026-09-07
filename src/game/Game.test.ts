@@ -108,7 +108,7 @@ test('failed ship loads preserve the old ship and allow retry', async () => {
     for (const id of ['yamato', 'baltimore', 'enterprise-cv6', 'type-viic', 'bismarck']) {
       await game.switchShip(shipPreset(id));
       expect(game.definition.id).toBe(id);
-      expect(scene.children).toHaveLength(4);
+      expect(scene.children).toHaveLength(5); // Harbor, aircraft, two hull roots, fleet draw adapter.
       expect(game.simulation.definition.id).toBe(id);
       expect(game.diagnostics().maxMuzzleErrorM).toBeLessThan(.025);
     }
@@ -135,13 +135,15 @@ test('battle loading binds each mixed fleet hull and selected target to its own 
   const { game, scene, harbor, rig } = await port();
   const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => model(String(url).split('/').pop()!.replace('.glb', '')));
   try {
-    await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck', 'bismarck'], enemies: ['yamato', 'enterprise-cv6'], spawnDistance: 7500, mapId: 'pacific-islands', sea: 'Fair' });
+    await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck', 'bismarck'], enemies: ['yamato', 'enterprise-cv6'], spawnDistance: 7500, mapId: 'pacific-islands', sea: 'Fair', timeOfDay: 'night', weather: 'fog' });
     expect(loader).toHaveBeenCalledTimes(4);
     expect(scene.children).toContain(harbor);
-    expect(scene.children).toHaveLength(7);
+    expect(scene.children).toHaveLength(8); // Harbor, aircraft, five hull roots, fleet draw adapter.
     expect(game.simulation.actors).toHaveLength(5);
     expect(game.diagnostics().mapId).toBe('pacific-islands');
     expect(game.diagnostics().sea).toBe('Fair');
+    expect(game.diagnostics().timeOfDay).toBe('night');
+    expect(game.diagnostics().weather).toBe('fog');
     expect(game.simulation.islands).toHaveLength(3);
     expect(game.simulation.target.motion.z - game.simulation.ship.z).toBe(-7500);
     expect(game.simulation.ship.heading).toBe(0);
@@ -153,7 +155,7 @@ test('battle loading binds each mixed fleet hull and selected target to its own 
     expect(game.diagnostics().combat.targetName).toBe(shipPreset('enterprise-cv6').name);
     // Returning to an ordinary port ship drops all old battle actors and bindings.
     await game.switchShip(shipPreset('bismarck'));
-    expect(scene.children).toHaveLength(4);
+    expect(scene.children).toHaveLength(5); // Harbor, aircraft, two hull roots, fleet draw adapter.
     expect(game.simulation.isBattle).toBe(false);
   } finally { loader.mockRestore(); rig.dispose(); }
 });

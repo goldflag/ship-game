@@ -1,0 +1,21 @@
+{
+  "adapter": {
+    "architecture": "metal-3",
+    "description": "",
+    "device": "",
+    "vendor": "apple"
+  },
+  "backend": "WebGPUBackend",
+  "devicePixelRatio": 2,
+  "quality": {
+    "quality": "medium",
+    "resolution": 1,
+    "sea": "Fair"
+  },
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.7871.47 Safari/537.36",
+  "cpu": "Apple M5 Pro",
+  "memoryBytes": 51539607552,
+  "date": "2026-09-06",
+  "baselineCommit": "d25a435c5a001655588570c913c1747b938c3cef",
+  "bun": "1.3.3"
+}
