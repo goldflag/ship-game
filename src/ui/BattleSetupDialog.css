@@ -69,7 +69,12 @@
 .battle-condition-options { display:grid; gap:14px; }
 .battle-condition-options>div { min-width:0; }
 .battle-condition-options label { display:block; margin-bottom:6px; font-size:13px; color:var(--muted); }
-.battle-condition-options select { width:100%; min-width:0; }
+.battle-condition-slider { display:grid; grid-template-columns:1fr auto; align-items:center; }
+.battle-condition-slider output { color:var(--accent); }
+.battle-condition-slider input { grid-column:1 / -1; width:100%; min-width:0; height:30px; margin:0; accent-color:var(--accent); cursor:pointer; }
+.battle-condition-slider input:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+.battle-condition-slider p { grid-column:1 / -1; }
+.battle-slider-scale { grid-column:1 / -1; display:flex; justify-content:space-between; color:var(--muted); font-size:12px; }
 .battle-condition-options p { margin:6px 0 0; color:var(--muted); font-size:13px; line-height:1.45; }
 .battle-deployment { display:grid; grid-template-columns:1fr auto; align-items:center; column-gap:16px; }
 .battle-deployment label { font:500 23px/1.2 'Barlow Condensed',sans-serif; }

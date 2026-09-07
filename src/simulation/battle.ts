@@ -1,5 +1,5 @@
 import { DEFAULT_MAP, mapIslands, islandRadius, type Island, isOceanMapId, type OceanMapId } from '../maps/catalog';
-import { isTimeOfDayId, isWeatherId, type TimeOfDayId, type WeatherId } from '../maps/conditions';
+import { isTimeOfDayId, isWeatherId, type BattleConditions, type TimeOfDayId, type WeatherId } from '../maps/conditions';
 import type { ShipDefinition } from '../ships/blueprint';
 import type { Combatant } from './damage';
 import type { TubeState } from './torpedoes';
@@ -20,12 +20,12 @@ export const botSelection = (selection: BotSelection): { shipId: string; aiLevel
 export interface SpawnPose { x: number; z: number; heading: number; }
 export type SpawnPositions = { friendly: SpawnPose[]; enemy: SpawnPose[] };
 export type SpawnFormation = 'line' | 'column' | 'wedge';
-export interface BattleSetup {
+export interface BattleSetup extends BattleConditions {
   playerShipId: string; friendlyBots: BotSelection[]; enemies: BotSelection[]; spawnDistance: number;
   formation?: SpawnFormation; spawns?: SpawnPositions;
   mapId?: OceanMapId; timeOfDay?: TimeOfDayId; weather?: WeatherId;
 }
-export interface BattleFleet { friendlyBots: BattleBot[]; enemies: BattleBot[]; spawnDistance?: number; seed?: number; mapId?: OceanMapId; weather?: WeatherId; spawns?: SpawnPositions; }
+export interface BattleFleet { friendlyBots: BattleBot[]; enemies: BattleBot[]; spawnDistance?: number; seed?: number; mapId?: OceanMapId; weather?: WeatherId; windSpeed?: number; spawns?: SpawnPositions; }
 export interface FleetActor extends Combatant {
   definition: ShipDefinition;
   team: Team;
@@ -48,6 +48,10 @@ export function validateBattleSetup(setup: BattleSetup, availableIds: readonly s
   if (setup.mapId !== undefined && !isOceanMapId(setup.mapId)) throw new Error('Choose an available ocean map.');
   if (setup.timeOfDay !== undefined && !isTimeOfDayId(setup.timeOfDay)) throw new Error('Choose an available time of day.');
   if (setup.weather !== undefined && !isWeatherId(setup.weather)) throw new Error('Choose an available weather preset.');
+  for (const [key, max, label] of [['timeHours', 24, 'time of day'], ['cloudCover', 100, 'cloud cover'], ['windSpeed', 30, 'wind speed']] as const) {
+    const value = setup[key];
+    if (value !== undefined && (!Number.isFinite(value) || value < 0 || value > max)) throw new Error(`Choose a ${label} between 0 and ${max}.`);
+  }
   validateSpawnDistance(setup.spawnDistance);
   validateSpawns(setupSpawns(setup), setup.friendlyBots.length + 1, setup.enemies.length, mapIslands(setup.mapId ?? DEFAULT_MAP, setup.spawnDistance, Math.max(setup.friendlyBots.length + 1, setup.enemies.length)));
 }
@@ -57,7 +61,7 @@ export function resolveBattleFleet(setup: BattleSetup, definitionFor: (id: strin
     const { shipId, aiLevel } = botSelection(selection);
     return { definition: definitionFor(shipId), aiLevel };
   };
-  return { friendlyBots: setup.friendlyBots.map(resolve), enemies: setup.enemies.map(resolve), spawnDistance: setup.spawnDistance, mapId: setup.mapId, weather: setup.weather ?? 'map', spawns: setupSpawns(setup) };
+  return { friendlyBots: setup.friendlyBots.map(resolve), enemies: setup.enemies.map(resolve), spawnDistance: setup.spawnDistance, mapId: setup.mapId, weather: setup.weather ?? 'map', windSpeed: setup.windSpeed, spawns: setupSpawns(setup) };
 }
 
 export function validateSpawnDistance(distance: number): void {
