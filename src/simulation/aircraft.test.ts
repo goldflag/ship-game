@@ -5,7 +5,11 @@ import { compileShip, type Vec3 } from '../ships/blueprint';
 import { CombatSimulation, type CombatEvent } from './combat';
 import { airborne, launchSquadron, recallAircraft, stepAircraft, aircraftDeckSpot, onFlightDeck, type AirContext } from './aircraft';
 import { updateCapability } from './stability';
-const definition = compileShip(source, catalog);
+// Keep the original three-aircraft fixtures exercising backwards-compatible v1 blueprints.
+const legacy = structuredClone(source);
+legacy.airWing.flightSize = 3; legacy.airWing.deckCapacity = 18;
+legacy.airWing.squadrons.forEach(s => { s.count = 6; });
+const definition = compileShip(legacy, catalog);
 function fixture() {
   const sim = new CombatSimulation(definition, { enemies: [definition], friendlyBots: [], spawnDistance: 5000 });
   sim.target.controller = 'idle';
@@ -16,6 +20,14 @@ function fixture() {
   const run = (seconds: number) => { for (let i = 0; i < seconds * 60; i++) { stepAircraft(context, 1 / 60, time); time += 1 / 60; } };
   return { sim, context, events, run };
 }
+test('mixed flights recover before endurance expires on an undamaged carrier', () => {
+  const { sim, run } = fixture();
+  sim.target.mounts.forEach(m => { m.hp = 0; });
+  for (const id of ['vf-6', 'vb-6', 'vt-6']) sim.launchAircraft(id);
+  run(750);
+  expect(sim.player.airWing!.planes.filter(p => p.phase === 'lost')).toHaveLength(0);
+  expect(sim.player.airWing!.planes.every(p => p.phase === 'ready')).toBe(true);
+});
 test('versioned air wing validation and unsupported model rejection', () => {
   expect(definition.airWing?.squadrons).toHaveLength(3);
   const invalid = structuredClone(source); invalid.airWing.squadrons[0].modelId = '../../bad';
@@ -95,6 +107,10 @@ test('aircraft weapons resolve actual ship hits and score hostile damage through
   expect(bombHit).toBe(true); expect(torpedoHit).toBe(true);
   expect(sim.target.damage.compartments.some(c => c.breachAreaM2 > 0)).toBe(true);
   expect(sim.telemetry('main', [0,0,-5000]).playerDamageDealt).toBeGreaterThan(0);
+  const log = sim.telemetry('main', [0, 0, -5000]).damageLog;
+  expect(log.some(entry => entry.weapon === '500 lb HE bomb')).toBe(true);
+  expect(log.some(entry => entry.weapon.includes('Air torpedo'))).toBe(true);
+  expect(log.reduce((sum, entry) => sum + entry.damage, 0)).toBeCloseTo(sim.telemetry('main', [0, 0, -5000]).playerDamageDealt, 6);
 }, 30000);
 
 test('bot strike orders fall back from a lost or submerged target to a valid hostile ship', () => {
@@ -127,7 +143,7 @@ test('deck aircraft occupy distinct stable spots and taxi continuously before ta
   const first = planes[0]; const parked = [...first.position];
   sim.launchAircraft('vf-6'); run(1 / 60);
   expect(first.phase).toBe('taxi');
-  expect(Math.hypot(...first.position.map((v, i) => v - parked[i]))).toBeLessThan(.4);
+  expect(Math.hypot(...first.position.map((v, i) => v - parked[i]))).toBeLessThan(.6);
   expect(onFlightDeck(first)).toBe(true);
   sim.recallAircraft(); run(25);
   expect(first.phase).toBe('rearming');

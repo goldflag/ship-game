@@ -1,6 +1,6 @@
 import { hullContacts } from './hullContact';
 import { structuralHits, EXTERIOR_PLATING_REPLACEMENT_M } from './structure';
-import { createStability, updateStability, waterLevel, type StabilityState } from './stability';
+import { createStability, updateSinking, updateStability, waterLevel, type StabilityState } from './stability';
 import { createControl, heatModule, type ControlState } from './damageControl';
 import { damageShellHull, HULL_DAMAGE, penetrationHullDamage } from './durability';
 import type { Ammunition, APProjectile, Armor, FloodConnection, HEProjectile, ShipDefinition, Vec3 } from '../ships/blueprint';
@@ -44,6 +44,8 @@ export interface SurfaceImpact {
 }
 export interface Shell {
   id: number; ownerId: string; position: Vec3; velocity: Vec3; age: number;
+  /** Captured at launch so later weapon selection cannot change damage attribution. */
+  weaponLabel?: string;
   penetrationMm: number; damage: number; caliberM: number; visited: string[];
   dragPerSecond?: number;
   ap?: APProjectile;
@@ -419,6 +421,7 @@ export function hitShip(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor: Com
 }
 
 export function updateFlooding(actor: Combatant, def: ShipDefinition, dt: number): void {
+  if (dt <= 0) return;
   const damage = actor.damage;
   if (!damage.sunk && damage.integrity <= 0) {
     damage.sunk = true;
@@ -445,7 +448,8 @@ export function updateFlooding(actor: Combatant, def: ShipDefinition, dt: number
       }
       return sum + .6 * breach.areaM2 / (2*radius) * Math.sqrt(2*9.81) * flow;
     }, 0);
-    state.waterM3 = clamp(state.waterM3 + (inflow - c.pumpM3PerSecond - (damage.control.pumping[i] ?? 0)) * dt, 0, c.capacityM3);
+    const pumping = damage.sunk ? 0 : c.pumpM3PerSecond + (damage.control.pumping[i] ?? 0);
+    state.waterM3 = clamp(state.waterM3 + (inflow - pumping) * dt, 0, c.capacityM3);
   });
   // Sequential, stable connection order; each transfer conserves water and respects capacity.
   def.connections.forEach((connection, i) => {
@@ -483,14 +487,14 @@ export function updateFlooding(actor: Combatant, def: ShipDefinition, dt: number
     damage.defeatCause ??= 'flooding';
     damage.sunk = true;
   }
-  if (damage.sunk) {
-    const y = Math.min(actor.motion.y, Math.max(def.submarine ? -1000 : -50, actor.motion.y - dt * .45));
-    actor.motion.verticalSpeed = dt > 0 ? (y - actor.motion.y) / dt : 0;
-    actor.motion.y = y; return;
+  if (!def.stability) {
+    if (!actor.submarine && !damage.sunk) actor.motion.y = -water / def.hull.waterplaneAreaM2;
+    const totalMass = def.hull.massKg + water * 1000;
+    const roll = clamp(-damage.compartments.reduce((n, c, i) => n + c.waterM3 * 1000 * def.compartments[i].center[0], 0) / totalMass * .5, -.45, .45);
+    const pitch = clamp(damage.compartments.reduce((n, c, i) => n + c.waterM3 * 1000 * def.compartments[i].center[2], 0) / totalMass * .02, -.2, .2);
+    const blend = damage.sunk ? 1 - Math.exp(-dt / 4) : 1;
+    actor.motion.roll += (roll - actor.motion.roll) * blend;
+    actor.motion.pitch += (pitch - actor.motion.pitch) * blend;
   }
-  if (def.stability) return;
-  if (!actor.submarine) actor.motion.y = -water / def.hull.waterplaneAreaM2;
-  const totalMass = def.hull.massKg + water * 1000;
-  actor.motion.roll = clamp(-damage.compartments.reduce((n, c, i) => n + c.waterM3 * 1000 * def.compartments[i].center[0], 0) / totalMass * .5, -.45, .45);
-  actor.motion.pitch = clamp(damage.compartments.reduce((n, c, i) => n + c.waterM3 * 1000 * def.compartments[i].center[2], 0) / totalMass * .02, -.2, .2);
+  updateSinking(actor, def, dt);
 }
