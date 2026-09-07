@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f",
-  "modelSha256": "5c7421f286711a2a81de4d89b89575cbca73bb2a4ef59b6fb17be937e89c14c2",
+  "contentHash": "3b6e6221414dd39150800941449cadd95323ccdab18286ed6b01b7d503f56749",
+  "modelSha256": "1a68d5a74695caf711f6a952e66d426463e5db92994872b9582e6acf40745fcb",
   "specRevision": "independent-1941-04",
   "dimensions": [
     {
@@ -1255,6 +1255,7 @@
       ]
     }
   ],
+  "structuralProbes": [],
   "landmarks": [
     {
       "id": "main-a-axis",

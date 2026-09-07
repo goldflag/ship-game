@@ -12,8 +12,19 @@ import flower from '../../public/models/flower-corvette.json';
 import type { ShipDefinition } from './blueprint';
 
 /** Historical presets share the same compiled definition and renderer contract. */
-export const shipPresets = { bismarck, yamato, 'king-george-v': kingGeorgeV, baltimore, 'enterprise-cv6': enterprise, 'type-viic': viic,
-  'liberty-cargo': libertyCargo, 'liberty-collier': libertyCollier, 'victory-cargo': victoryCargo, 'flower-corvette': flower, fletcher };
+export const shipPresets = {
+  bismarck,
+  yamato,
+  'king-george-v': kingGeorgeV,
+  baltimore,
+  'enterprise-cv6': enterprise,
+  'type-viic': viic,
+  'liberty-cargo': libertyCargo,
+  'liberty-collier': libertyCollier,
+  'victory-cargo': victoryCargo,
+  'flower-corvette': flower,
+  fletcher,
+};
 const retiredPresetAliases: Record<string, keyof typeof shipPresets> = {
   'liberty-deck-cargo': 'liberty-collier', 'liberty-troopship': 'victory-cargo',
 };
