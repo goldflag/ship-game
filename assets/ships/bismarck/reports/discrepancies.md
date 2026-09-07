@@ -55,3 +55,7 @@ Regenerated estimated wing/end rooms and residual cells against the current mast
 The complete structural shell supersedes the old 466 partial end-closure triangles. `author-end-plating.ts` retires those proxies when `structuralPlating` is enabled. Bismarck uses its declared 20 mm hull and 8 mm deckhouse steel; the stability profile's 12 mm fallback applies only to presets without structural plating. Joint, socket, retained room and researched armor IDs remain intact. Residual space IDs remain stable by longitudinal/side/depth group.
 
 Hits through empty structure spend penetration resistance and may create exterior openings; they do not subtract a universal hull-health pool. Finite AP fuzes, local AP/HE bursts, magazine ignition, abstract damage-control teams and sampled hydrostatics are implemented with the approximation limits described in the stability section. The HUD's equipment-condition scale does not determine flotation. No historical armor-response or loading accuracy is certified by the integration checks.
+
+## Local damage and fire calibration — 2026-09-06
+
+Local regions, generator and director proxies, combustible loads and smoke outlets are independently authored gameplay estimates from the existing layout. They are not historically measured structural subdivisions, generator schedules or ventilation plans. Electrical supply is aggregated with manual gun fallback; directors share a targeting penalty. Breach overlap uses bounded aperture sampling. See `assets/ships/author-local-damage.ts`.

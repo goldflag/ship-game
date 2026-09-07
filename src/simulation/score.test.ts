@@ -11,7 +11,7 @@ function fixture(withSecondary = false) {
   // A single gun isolates equipment loss and permanent disarmament. The shell
   // also opens a thin hull sheet, which can earn a later flooding loss.
   const base = shipPreset('baltimore'), mount = base.mounts[0];
-  const definition: ShipDefinition = { ...base, modules: [], propulsion: undefined, stability: undefined, structuralPlating: undefined, floodRegions: undefined, damageControl: undefined,
+  const definition: ShipDefinition = { ...base, modules: [], propulsion: undefined, stability: undefined, structuralPlating: undefined, floodRegions: undefined, damageControl: undefined, localDamage: undefined,
     mounts: [{ ...mount, position: [0, 0, 0], bearingDeg: 0, magazineId: undefined, weapon: { ...mount.weapon, armorMm: 1, gunhouseSize: [4, 4, 4] } }],
     hull: { ...base.hull, reserveBuoyancyM3: 500 }, connections: [],
     compartments: [{ id: 'room', name: 'Room', center: [0, 0, 0], size: [20, 10, 100], capacityM3: 1000, pumpM3PerSecond: 0 }],
@@ -101,5 +101,5 @@ test('another shell in the lethal tick cannot take the frag from an already disa
     velocity: rotate([820, 0, 0], sim.target.motion), age: 0, damage: 100, penetrationMm: 100, caliberM: .38, visited: [],
   });
   sim.step(helm, intent); // Shells resolve in reverse order: player, then ally.
-  expect(score(sim)).toEqual([85, 1]);
+  expect(score(sim)).toEqual([17, 1]); // Only 20 equipment HP remained to destroy.
 });

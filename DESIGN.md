@@ -197,6 +197,10 @@ Damage gold marks actual hull damage beside overhead ship labels and in the vaca
 
 The compact Damage / Frags reading sits below the upper-right pause control. Its damage log is three single-line entries high (two on compact screens), with a fixed scrollable footprint and no heading, frame, surface fill or empty-state message. Each entry shows weapon, other ship and signed damage; hover text retains time and hit details. Two compact Friendly / Enemy rows occupy the upper-left edge. Opening a team shows a short inline roster, without a target dropdown, floating panel or extra health bars. Damage counts actual hostile hull HP removed on the displacement-based scale; frags count permanent combat losses or sinkings credited to the last hostile damage or breach, including delayed flooding. Both reset with the battle. The bottom armament ends with its weapon keycaps: the Follow shells row and Ctrl/Shift/Esc hint strip are removed. T remains the configurable shell-follow shortcut. Binocular mode hides smoke emitted at the player's ship, including already active smoke, while it continues aging; other ships' smoke remains visible.
 
+Local structural damage appears in Gunnery's Damaged sections list and beside the affected shell impact. Labels explain reduced hull damage and intact equipment reached through wreckage. Combat inspection adds amber outlines for damaged structural regions and grey outlines for depleted regions; orange compartment fill marks active fires. These overlays are separate from equipment condition and blue floodwater.
+
+Own damage control puts active fires first, showing the affected space, growing/contained/being-fought/cooling status, remaining fuel and threatened equipment. Each row offers Focus crews. Target fires have the same readings without crew commands. Electrical supply and fire-control availability appear beside existing condition readings. Keep these additions within the scrolling naval instrument; room smoke exits above the deck and stays bounded with the existing gunhouse fire effects.
+
 ## Do's and Don'ts
 
 ### Do:

@@ -28,6 +28,15 @@ export function equipmentCondition(actor: Combatant, def: ShipDefinition, module
   }
   return { availability: hp / module.hp, reason: hp < module.hp ? 'damaged' : 'operational' };
 }
+/** Shared emergency/manual fallback is applied by consumers. Independent
+ * directors provide redundancy; generators share available electrical load. */
+export function supportPerformance(actor: Combatant, def: ShipDefinition): { power: number; fireControl: number } {
+  const generators = def.modules.filter(m => m.kind === 'generator');
+  const directors = def.modules.filter(m => m.kind === 'fire-control');
+  const power = actor.damage.sunk ? 0 : generators.length ? generators.reduce((n, m) => n + equipmentCondition(actor, def, m).availability, 0) / generators.length : 1;
+  const fireControl = directors.length ? Math.max(...directors.map(m => equipmentCondition(actor, def, m).availability)) * (.35 + .65 * power) : 1;
+  return { power, fireControl };
+}
 export function systemHealth(actor: Combatant, def: ShipDefinition, kind: 'engine' | 'steering'): number {
   if (actor.damage.sunk) return 0;
   const compiled = layout(def);
