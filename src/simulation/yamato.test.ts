@@ -43,13 +43,14 @@ test('both Yamato secondary triples clear the hull on a broadside and reload tog
   const sim = new CombatSimulation(definition);
   const helm = { throttle: 0, rudder: 0 };
   const intent = { aim: [1800, 0, 0] as [number, number, number], fire: false, battery: 'secondary' as const };
-  const indices = definition.mounts.flatMap((m, i) => m.battery === 'secondary' ? [i] : []);
+  const indices = definition.mounts.flatMap((m, i) => m.partId === 'type3-155-triple' ? [i] : []);
+  const tripleShots = () => sim.events.filter(e => e.kind === 'shot' && e.shell?.caliberM === .155);
   for (let i = 0; i < 7200; i++) sim.step(helm, intent);
   expect(indices.map(n => sim.player.mounts[n].status)).toEqual(['ready', 'ready']);
   sim.step(helm, { ...intent, fire: true });
-  expect(sim.events.filter(e => e.kind === 'shot')).toHaveLength(6);
+  expect(tripleShots()).toHaveLength(6);
   expect(indices.map(n => sim.player.mounts[n].ammo)).toEqual([447, 447]);
   expect(sim.player.mounts.slice(0, 3).map(m => m.ammo)).toEqual([300, 300, 300]);
   sim.step(helm, { ...intent, fire: true });
-  expect(sim.events.filter(e => e.kind === 'shot')).toHaveLength(6);
+  expect(tripleShots()).toHaveLength(6);
 });

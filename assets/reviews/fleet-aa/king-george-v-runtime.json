@@ -1,0 +1,62 @@
+{
+  "ammoSpent": 16,
+  "backend": "webgpu",
+  "contentHash": "3b6e6221414dd39150800941449cadd95323ccdab18286ed6b01b7d503f56749",
+  "eligibleMounts": 8,
+  "firingMounts": [
+    "S3 5.25-inch",
+    "S2 5.25-inch",
+    "S4 5.25-inch",
+    "S1 5.25-inch"
+  ],
+  "maxMuzzleError": 0.0017358832544021668,
+  "poses": [
+    {
+      "elevationFraction": 0,
+      "maxMuzzleError": 0.0017332304618182177,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 0.5,
+      "maxMuzzleError": 0.0017332045024500437,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleError": 0.0017334449561877859,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleError": 0.0017358991735627032,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 0.5,
+      "maxMuzzleError": 0.0017357390284197841,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleError": 0.0017354927556261753,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleError": 0.0017385616011633504,
+      "trainFraction": 1
+    },
+    {
+      "elevationFraction": 0.5,
+      "maxMuzzleError": 0.0017382676708090927,
+      "trainFraction": 1
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleError": 0.0017375359526608737,
+      "trainFraction": 1
+    }
+  ],
+  "shipId": "king-george-v",
+  "shots": 16
+}

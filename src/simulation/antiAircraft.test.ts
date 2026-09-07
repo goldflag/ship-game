@@ -2,7 +2,8 @@ import { expect, test } from 'bun:test';
 import blueprint from '../../assets/ships/bismarck/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
 import { compileShip } from '../ships/blueprint';
-import { shipPreset } from '../ships/presets';
+import { shipPreset, shipPresets } from '../ships/presets';
+import { antiAircraftRange } from './antiAircraft';
 import { CombatSimulation } from './combat';
 
 function fixture() {
@@ -30,6 +31,45 @@ test('Bismarck automatically tracks and fires visible AA bursts with finite ammu
   expect(sim.player.mounts.filter(m => m.id.includes('-aa-')).some(m => m.elevation > .1)).toBe(true);
   expect(sim.player.mounts.slice(0, 4).every(m => m.ammo === 240)).toBe(true);
 });
+
+test('AA admits 5.25-inch dual-purpose guns but excludes low-angle and larger guns', () => {
+  const mount = shipPreset('king-george-v').mounts.find(m => m.battery === 'secondary')!;
+  expect(antiAircraftRange(mount)).toBe(3200);
+  expect(antiAircraftRange({ ...mount, weapon: { ...mount.weapon, elevationMaxDeg: 69 } })).toBe(0);
+  expect(antiAircraftRange({ ...mount, weapon: { ...mount.weapon, caliberM: .15 } })).toBe(0);
+});
+
+for (const id of Object.keys(shipPresets)) test(`${id}: every registered AA mount fires in a fleet engagement`, () => {
+  const def = shipPreset(id), mounts = def.mounts.filter(m => antiAircraftRange(m) > 0);
+  expect(mounts.length).toBeGreaterThan(0);
+  const fired = new Set<string>();
+  for (const bearing of [0, Math.PI / 2, Math.PI, -Math.PI / 2]) {
+    const sim = new CombatSimulation(def, { friendlyBots: [], enemies: [shipPreset('enterprise-cv6')], seed: 93 });
+    sim.target.controller = 'idle';
+    const plane = sim.target.airWing!.planes[0];
+    const ammo = sim.player.mounts.reduce((sum, mount) => sum + mount.ammo, 0);
+    let shots = 0, damage = 0;
+    for (let tick = 0; tick < 600; tick++) {
+      // Hold a fresh target in each cardinal sector so one kill cannot mask
+      // an inoperative mount elsewhere on the hull. Use real combat ticks.
+      Object.assign(plane, { phase: 'outbound', hp: 100,
+        position: [700 * Math.sin(bearing), 250, -700 * Math.cos(bearing)], velocity: [0, 0, 0] });
+      sim.step({ throttle: 0, rudder: 0 }, { aim: [0, 0, -5000], fire: false, battery: 'main' });
+      damage += 100 - plane.hp;
+      for (const event of sim.events) if (event.tick === sim.tick - 1 && event.kind === 'aircraft-fire' && event.shipId === 'player') {
+        fired.add(event.message.replace(' · AA fire', '')); shots++;
+        expect(event.aircraft?.target).toBeDefined();
+        expect(event.aircraft?.tracerSpeed).toBeGreaterThan(0);
+        expect(event.position[1]).toBeGreaterThan(0);
+      }
+    }
+    if (shots) {
+      expect(sim.player.mounts.reduce((sum, mount) => sum + mount.ammo, 0)).toBeLessThan(ammo);
+      expect(damage).toBeGreaterThan(0);
+    }
+  }
+  expect(mounts.filter(mount => !fired.has(mount.name)).map(mount => mount.id)).toEqual([]);
+}, 30000);
 
 for (const condition of ['disabled', 'empty', 'magazine', 'sunk', 'friendly', 'hangar', 'distant'] as const) test(`AA respects ${condition} targets or equipment`, () => {
   const { sim, plane } = fixture();

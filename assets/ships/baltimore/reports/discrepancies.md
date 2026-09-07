@@ -1,5 +1,22 @@
 # Baltimore discrepancy register
 
+## Fleet AA gameplay integration
+
+The twelve existing quad 40 mm fittings are now blueprint mounts `bofors-01`
+through `bofors-12`, retaining their original assembly IDs and stations. Each has
+one yaw pivot and four independent elevation/recoil/muzzle chains. Gun tubs remain
+fixed. The model now exports 21 mounts and 69 muzzle chains. These Bofors guns and
+the six existing twin 5-inch mounts engage aircraft; the 24 single 20 mm fittings
+remain visual.
+
+The barrel axes use uniform 0.45 m spacing (within 0.025 m of the previous visual
+stations) and the shared neutral 1° elevation. The 0.5-second reload, 24°/s aiming,
+±180° local train, 85° elevation, 1,200 rounds per barrel and AA range/spread/damage
+are gameplay calibrations. Local mount ammunition stands in for detailed supply
+routing. These changes do not close BAL-009's October 1943 placement and inventory
+questions. Fixed review views and current WebGPU articulation/firing evidence are
+recorded in `assets/reviews/fleet-aa/README.md`; older evidence keeps its own hash.
+
 ## Damage-model integration, 2026-09-05 Pacific
 
 The fidelity geometry and ten named room envelopes are retained while integrating master's damage model. Residual spaces and finite-angle buoyancy regions were regenerated around this hull and these rooms: 120 total spaces, 255 closed connections and 142 buoyancy regions. The two equal combined-drive groups retain the forward/after machinery equipment IDs. Room boundaries, machinery aggregation, permeability, capacities, reference loading and mass distribution remain estimated gameplay inputs, not an as-built damage-control or stability plan.

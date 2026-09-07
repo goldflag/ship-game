@@ -16,6 +16,8 @@ ROOT=Path(__file__).resolve().parents[3]
 sys.path.insert(0,str(ROOT/'scripts/ships'))
 from blender_components import create_gun_mount
 from blender_fidelity import authored_hull, authored_structure, Fittings, loft_breadth
+sys.path.insert(0,str(ROOT/'assets/parts'))
+from aa_articulation import articulate_aa
 D=json.loads(Path(os.environ['SHIP_DEFINITION']).read_text())
 OUT=Path(os.environ['SHIP_OUTPUT']);H=D['hull'];L=H['length']
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
@@ -118,6 +120,7 @@ for i,(sa,sb) in enumerate(zip(stations,stations[1:])):
 # Main batteries retain all barrel pivots, recoil joints and sockets.
 materials=dict(naval=naval,roof=roof,edge=edge,hullgray=hullgray,canvas=canvas,dark=dark)
 for mount in D['mounts']:
+ if mount['partId']=='type89-127-yamato-twin':continue
  create_gun_mount(mount,GUNS,dict(mesh=mesh,cyl=cyl,rod=rod,box=box),materials,deck)
  gun_finish=Fittings(dict(mesh=mesh,cyl=cyl,rod=rod,box=box),dict(**materials,glass=glass),GUNS)
  gun_finish.gun_details(mount)
@@ -260,8 +263,8 @@ for side in (-1,1):
   cyl('HA director pedestal',(xx,side*5.9,zz),1.4,2,naval,SUPER,24)
   rounded('HA director hood',xx,side*5.9,zz+1,2.8,2.4,1.5,naval,SUPER)
 
-# AA fittings retain stable assembly ownership; these are visual equipment like
-# the baseline ship's AA. Counts and detailed positions remain under review.
+# Heavy AA uses blueprint joints; 25 mm fittings retain visual assembly ownership.
+# Counts, detailed positions and performance remain under review.
 def blast_shield(name,x,y,z,length,width,height,bearing):
  # Rounded blast hoods, as photographed on the museum model. The roof curves
  # in the firing direction; the basic geometry is not a conical gun tub.
@@ -291,27 +294,34 @@ def aa25(id,x,y,z,shield=True,bearing=90):
   rod(id+' 25 mm barrel',pt(.45,b,1.45),pt(2.05,b,1.86),.055,edge,AA,r2=.038,vertices=8)
  for ob in set(scene.objects)-before:ob['assemblyId']=id
 
-def aa127(id,x,y,z,shield,bearing):
- before=set(scene.objects);ang=math.radians(bearing)
- def pt(a,b,h):return (x+a*math.cos(ang)-b*math.sin(ang),y+a*math.sin(ang)+b*math.cos(ang),z+h)
- cyl(id+' platform',(x,y,z+.2),2.35,.4,roof,AA,32)
- cyl(id+' pivot',(x,y,z+.65),.85,.9,naval,AA,24)
+def aa127(mount,shield):
+ id=mount['id'];w=mount['weapon'];px,pz,py=mount['position'];x,y,z=-py,-px,pz
+ platform=cyl(id+' platform',(x,y,z+.2),2.35,.4,roof,AA,32);platform['assemblyId']=id
+ before=set(scene.objects)
+ cyl(id+' pivot',(0,0,.65),.85,.9,naval,AA,24)
  if shield:
-  blast_shield(id+' rounded blast shield',x,y,z+.35,4.5,4.1,2.65,bearing)
+  blast_shield(id+' rounded blast shield',0,0,.35,4.5,4.1,2.65,0)
  else:
   for b in (-1.3,1.3):
-   o=box(id+' trunnion shield',pt(.15,b,1.4),(1.8,.12,2.1),naval,AA);o.rotation_euler.z=ang
- for b in (-.65,.65):
-  rod(id+' breech',pt(-1,b,1.65),pt(.75,b,2.25),.28,naval,AA,vertices=12)
-  rod(id+' 127 mm barrel',pt(.55,b,2.2),pt(4.8,b,3.9),.17,edge,AA,r2=.1,vertices=12)
- for ob in set(scene.objects)-before:ob['assemblyId']=id
+   box(id+' trunnion shield',(.15,b,1.4),(1.8,.12,2.1),naval,AA)
+ frame=set(scene.objects)-before;barrels=[]
+ direction=Vector((math.cos(math.radians(1)),0,math.sin(math.radians(1))))
+ for b in (w['barrelSpacing']/2,-w['barrelSpacing']/2):
+  start=Vector((w['trunnionForward'],b,w['pivotHeight']));tip=start+direction*(w['muzzleForward']-w['trunnionForward'])
+  barrels.append([
+   rod(id+' breech',start-direction*1.55,start+direction*.2,.28,naval,AA,vertices=12),
+   rod(id+' 127 mm barrel',start,tip,.17,edge,AA,r2=.1,vertices=12),
+  ])
+ articulate_aa(mount,AA,frame,barrels)
+for mount in D['mounts']:
+ if mount['partId']=='type89-127-yamato-twin':
+  # The original lower tier has enclosed blast hoods; upper mounts are open.
+  shield=int(mount['id'].rsplit('-',1)[1])<=3
+  if shield:
+   px,pz,py=mount['position'];cyl('Raised HA sponson',(-py,-px,pz-2.55),3.05,5.1,naval,SUPER,28)
+  aa127(mount,shield)
 for side in (-1,1):
  structure(f'aa-gallery-{side}',AA)
- for i,xx in enumerate((-9,-19.5,-30)):
-  cyl('Raised HA sponson',(xx,side*12.1,10.75),3.05,5.1,naval,SUPER,28)
-  aa127(f'ha-{side}-{i+1}',xx,side*12.1,13.3,True,side*90)
- for i,xx in enumerate((-13.2,-24.2,-33.7)):
-  aa127(f'ha-{side}-{i+4}',xx,side*7.3,15.1,False,side*90)
  # Dense outer rows and the curved ends of the AA citadel.
  for i,(xx,yy,zz) in enumerate([(-7.8,18,9),(-13.4,18.5,9),(-19,18.5,9),(-24.6,18.5,9),(-30.2,18.5,9),(-35.5,15.8,10),(-39,12.3,11),(-41,8.5,11.4),(0,14.8,10),(.4,10.5,11.4),(-.3,6.9,12.1),(-37.7,5.5,13.3)]):
   cyl('25 mm gallery base',(xx,side*yy,zz-.35),1.6,.7,naval,AA,20)

@@ -60773,6 +60773,618 @@
           "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
         }
       }
+    },
+    {
+      "id": "ha--1-1",
+      "name": "Starboard 12.7 cm AA 1",
+      "partId": "type89-127-yamato-twin",
+      "battery": "secondary",
+      "position": [
+        12.1,
+        13.3,
+        9
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "magazine-secondary-aft",
+      "weapon": {
+        "id": "type89-127-yamato-twin",
+        "name": "12.7 cm Type 89 twin AA",
+        "kind": "gun",
+        "massKg": 20000,
+        "barbetteRadius": 2.35,
+        "gunhouseSize": [
+          4.5,
+          4.1,
+          3
+        ],
+        "pivotHeight": 2.2,
+        "trunnionForward": 0.55,
+        "muzzleForward": 5.13,
+        "barrelSpacing": 1.3,
+        "caliberM": 0.127,
+        "traverseDeg": 100,
+        "traverseRateDeg": 16,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 16,
+        "reloadSeconds": 5,
+        "muzzleSpeed": 720,
+        "projectileMassKg": 23,
+        "penetrationMm": 55,
+        "damage": 15,
+        "recoilM": 0.25,
+        "ammoPerBarrel": 300,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay calibration; the existing independently authored Yamato twin 127 mm fitting supplies the dimensions. Rates, damage, supply and arcs are not a historical fire-control model."
+        }
+      }
+    },
+    {
+      "id": "ha--1-2",
+      "name": "Starboard 12.7 cm AA 2",
+      "partId": "type89-127-yamato-twin",
+      "battery": "secondary",
+      "position": [
+        12.1,
+        13.3,
+        19.5
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "magazine-secondary-aft",
+      "weapon": {
+        "id": "type89-127-yamato-twin",
+        "name": "12.7 cm Type 89 twin AA",
+        "kind": "gun",
+        "massKg": 20000,
+        "barbetteRadius": 2.35,
+        "gunhouseSize": [
+          4.5,
+          4.1,
+          3
+        ],
+        "pivotHeight": 2.2,
+        "trunnionForward": 0.55,
+        "muzzleForward": 5.13,
+        "barrelSpacing": 1.3,
+        "caliberM": 0.127,
+        "traverseDeg": 100,
+        "traverseRateDeg": 16,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 16,
+        "reloadSeconds": 5,
+        "muzzleSpeed": 720,
+        "projectileMassKg": 23,
+        "penetrationMm": 55,
+        "damage": 15,
+        "recoilM": 0.25,
+        "ammoPerBarrel": 300,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay calibration; the existing independently authored Yamato twin 127 mm fitting supplies the dimensions. Rates, damage, supply and arcs are not a historical fire-control model."
+        }
+      }
+    },
+    {
+      "id": "ha--1-3",
+      "name": "Starboard 12.7 cm AA 3",
+      "partId": "type89-127-yamato-twin",
+      "battery": "secondary",
+      "position": [
+        12.1,
+        13.3,
+        30
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "magazine-secondary-aft",
+      "weapon": {
+        "id": "type89-127-yamato-twin",
+        "name": "12.7 cm Type 89 twin AA",
+        "kind": "gun",
+        "massKg": 20000,
+        "barbetteRadius": 2.35,
+        "gunhouseSize": [
+          4.5,
+          4.1,
+          3
+        ],
+        "pivotHeight": 2.2,
+        "trunnionForward": 0.55,
+        "muzzleForward": 5.13,
+        "barrelSpacing": 1.3,
+        "caliberM": 0.127,
+        "traverseDeg": 100,
+        "traverseRateDeg": 16,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 16,
+        "reloadSeconds": 5,
+        "muzzleSpeed": 720,
+        "projectileMassKg": 23,
+        "penetrationMm": 55,
+        "damage": 15,
+        "recoilM": 0.25,
+        "ammoPerBarrel": 300,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay calibration; the existing independently authored Yamato twin 127 mm fitting supplies the dimensions. Rates, damage, supply and arcs are not a historical fire-control model."
+        }
+      }
+    },
+    {
+      "id": "ha--1-4",
+      "name": "Starboard 12.7 cm AA 4",
+      "partId": "type89-127-yamato-twin",
+      "battery": "secondary",
+      "position": [
+        7.3,
+        15.1,
+        13.2
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "magazine-secondary-aft",
+      "weapon": {
+        "id": "type89-127-yamato-twin",
+        "name": "12.7 cm Type 89 twin AA",
+        "kind": "gun",
+        "massKg": 20000,
+        "barbetteRadius": 2.35,
+        "gunhouseSize": [
+          4.5,
+          4.1,
+          3
+        ],
+        "pivotHeight": 2.2,
+        "trunnionForward": 0.55,
+        "muzzleForward": 5.13,
+        "barrelSpacing": 1.3,
+        "caliberM": 0.127,
+        "traverseDeg": 100,
+        "traverseRateDeg": 16,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 16,
+        "reloadSeconds": 5,
+        "muzzleSpeed": 720,
+        "projectileMassKg": 23,
+        "penetrationMm": 55,
+        "damage": 15,
+        "recoilM": 0.25,
+        "ammoPerBarrel": 300,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay calibration; the existing independently authored Yamato twin 127 mm fitting supplies the dimensions. Rates, damage, supply and arcs are not a historical fire-control model."
+        }
+      }
+    },
+    {
+      "id": "ha--1-5",
+      "name": "Starboard 12.7 cm AA 5",
+      "partId": "type89-127-yamato-twin",
+      "battery": "secondary",
+      "position": [
+        7.3,
+        15.1,
+        24.2
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "magazine-secondary-aft",
+      "weapon": {
+        "id": "type89-127-yamato-twin",
+        "name": "12.7 cm Type 89 twin AA",
+        "kind": "gun",
+        "massKg": 20000,
+        "barbetteRadius": 2.35,
+        "gunhouseSize": [
+          4.5,
+          4.1,
+          3
+        ],
+        "pivotHeight": 2.2,
+        "trunnionForward": 0.55,
+        "muzzleForward": 5.13,
+        "barrelSpacing": 1.3,
+        "caliberM": 0.127,
+        "traverseDeg": 100,
+        "traverseRateDeg": 16,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 16,
+        "reloadSeconds": 5,
+        "muzzleSpeed": 720,
+        "projectileMassKg": 23,
+        "penetrationMm": 55,
+        "damage": 15,
+        "recoilM": 0.25,
+        "ammoPerBarrel": 300,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay calibration; the existing independently authored Yamato twin 127 mm fitting supplies the dimensions. Rates, damage, supply and arcs are not a historical fire-control model."
+        }
+      }
+    },
+    {
+      "id": "ha--1-6",
+      "name": "Starboard 12.7 cm AA 6",
+      "partId": "type89-127-yamato-twin",
+      "battery": "secondary",
+      "position": [
+        7.3,
+        15.1,
+        33.7
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "magazine-secondary-aft",
+      "weapon": {
+        "id": "type89-127-yamato-twin",
+        "name": "12.7 cm Type 89 twin AA",
+        "kind": "gun",
+        "massKg": 20000,
+        "barbetteRadius": 2.35,
+        "gunhouseSize": [
+          4.5,
+          4.1,
+          3
+        ],
+        "pivotHeight": 2.2,
+        "trunnionForward": 0.55,
+        "muzzleForward": 5.13,
+        "barrelSpacing": 1.3,
+        "caliberM": 0.127,
+        "traverseDeg": 100,
+        "traverseRateDeg": 16,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 16,
+        "reloadSeconds": 5,
+        "muzzleSpeed": 720,
+        "projectileMassKg": 23,
+        "penetrationMm": 55,
+        "damage": 15,
+        "recoilM": 0.25,
+        "ammoPerBarrel": 300,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay calibration; the existing independently authored Yamato twin 127 mm fitting supplies the dimensions. Rates, damage, supply and arcs are not a historical fire-control model."
+        }
+      }
+    },
+    {
+      "id": "ha-1-1",
+      "name": "Port 12.7 cm AA 1",
+      "partId": "type89-127-yamato-twin",
+      "battery": "secondary",
+      "position": [
+        -12.1,
+        13.3,
+        9
+      ],
+      "bearingDeg": 270,
+      "rangefinder": false,
+      "magazineId": "magazine-secondary-aft",
+      "weapon": {
+        "id": "type89-127-yamato-twin",
+        "name": "12.7 cm Type 89 twin AA",
+        "kind": "gun",
+        "massKg": 20000,
+        "barbetteRadius": 2.35,
+        "gunhouseSize": [
+          4.5,
+          4.1,
+          3
+        ],
+        "pivotHeight": 2.2,
+        "trunnionForward": 0.55,
+        "muzzleForward": 5.13,
+        "barrelSpacing": 1.3,
+        "caliberM": 0.127,
+        "traverseDeg": 100,
+        "traverseRateDeg": 16,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 16,
+        "reloadSeconds": 5,
+        "muzzleSpeed": 720,
+        "projectileMassKg": 23,
+        "penetrationMm": 55,
+        "damage": 15,
+        "recoilM": 0.25,
+        "ammoPerBarrel": 300,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay calibration; the existing independently authored Yamato twin 127 mm fitting supplies the dimensions. Rates, damage, supply and arcs are not a historical fire-control model."
+        }
+      }
+    },
+    {
+      "id": "ha-1-2",
+      "name": "Port 12.7 cm AA 2",
+      "partId": "type89-127-yamato-twin",
+      "battery": "secondary",
+      "position": [
+        -12.1,
+        13.3,
+        19.5
+      ],
+      "bearingDeg": 270,
+      "rangefinder": false,
+      "magazineId": "magazine-secondary-aft",
+      "weapon": {
+        "id": "type89-127-yamato-twin",
+        "name": "12.7 cm Type 89 twin AA",
+        "kind": "gun",
+        "massKg": 20000,
+        "barbetteRadius": 2.35,
+        "gunhouseSize": [
+          4.5,
+          4.1,
+          3
+        ],
+        "pivotHeight": 2.2,
+        "trunnionForward": 0.55,
+        "muzzleForward": 5.13,
+        "barrelSpacing": 1.3,
+        "caliberM": 0.127,
+        "traverseDeg": 100,
+        "traverseRateDeg": 16,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 16,
+        "reloadSeconds": 5,
+        "muzzleSpeed": 720,
+        "projectileMassKg": 23,
+        "penetrationMm": 55,
+        "damage": 15,
+        "recoilM": 0.25,
+        "ammoPerBarrel": 300,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay calibration; the existing independently authored Yamato twin 127 mm fitting supplies the dimensions. Rates, damage, supply and arcs are not a historical fire-control model."
+        }
+      }
+    },
+    {
+      "id": "ha-1-3",
+      "name": "Port 12.7 cm AA 3",
+      "partId": "type89-127-yamato-twin",
+      "battery": "secondary",
+      "position": [
+        -12.1,
+        13.3,
+        30
+      ],
+      "bearingDeg": 270,
+      "rangefinder": false,
+      "magazineId": "magazine-secondary-aft",
+      "weapon": {
+        "id": "type89-127-yamato-twin",
+        "name": "12.7 cm Type 89 twin AA",
+        "kind": "gun",
+        "massKg": 20000,
+        "barbetteRadius": 2.35,
+        "gunhouseSize": [
+          4.5,
+          4.1,
+          3
+        ],
+        "pivotHeight": 2.2,
+        "trunnionForward": 0.55,
+        "muzzleForward": 5.13,
+        "barrelSpacing": 1.3,
+        "caliberM": 0.127,
+        "traverseDeg": 100,
+        "traverseRateDeg": 16,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 16,
+        "reloadSeconds": 5,
+        "muzzleSpeed": 720,
+        "projectileMassKg": 23,
+        "penetrationMm": 55,
+        "damage": 15,
+        "recoilM": 0.25,
+        "ammoPerBarrel": 300,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay calibration; the existing independently authored Yamato twin 127 mm fitting supplies the dimensions. Rates, damage, supply and arcs are not a historical fire-control model."
+        }
+      }
+    },
+    {
+      "id": "ha-1-4",
+      "name": "Port 12.7 cm AA 4",
+      "partId": "type89-127-yamato-twin",
+      "battery": "secondary",
+      "position": [
+        -7.3,
+        15.1,
+        13.2
+      ],
+      "bearingDeg": 270,
+      "rangefinder": false,
+      "magazineId": "magazine-secondary-aft",
+      "weapon": {
+        "id": "type89-127-yamato-twin",
+        "name": "12.7 cm Type 89 twin AA",
+        "kind": "gun",
+        "massKg": 20000,
+        "barbetteRadius": 2.35,
+        "gunhouseSize": [
+          4.5,
+          4.1,
+          3
+        ],
+        "pivotHeight": 2.2,
+        "trunnionForward": 0.55,
+        "muzzleForward": 5.13,
+        "barrelSpacing": 1.3,
+        "caliberM": 0.127,
+        "traverseDeg": 100,
+        "traverseRateDeg": 16,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 16,
+        "reloadSeconds": 5,
+        "muzzleSpeed": 720,
+        "projectileMassKg": 23,
+        "penetrationMm": 55,
+        "damage": 15,
+        "recoilM": 0.25,
+        "ammoPerBarrel": 300,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay calibration; the existing independently authored Yamato twin 127 mm fitting supplies the dimensions. Rates, damage, supply and arcs are not a historical fire-control model."
+        }
+      }
+    },
+    {
+      "id": "ha-1-5",
+      "name": "Port 12.7 cm AA 5",
+      "partId": "type89-127-yamato-twin",
+      "battery": "secondary",
+      "position": [
+        -7.3,
+        15.1,
+        24.2
+      ],
+      "bearingDeg": 270,
+      "rangefinder": false,
+      "magazineId": "magazine-secondary-aft",
+      "weapon": {
+        "id": "type89-127-yamato-twin",
+        "name": "12.7 cm Type 89 twin AA",
+        "kind": "gun",
+        "massKg": 20000,
+        "barbetteRadius": 2.35,
+        "gunhouseSize": [
+          4.5,
+          4.1,
+          3
+        ],
+        "pivotHeight": 2.2,
+        "trunnionForward": 0.55,
+        "muzzleForward": 5.13,
+        "barrelSpacing": 1.3,
+        "caliberM": 0.127,
+        "traverseDeg": 100,
+        "traverseRateDeg": 16,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 16,
+        "reloadSeconds": 5,
+        "muzzleSpeed": 720,
+        "projectileMassKg": 23,
+        "penetrationMm": 55,
+        "damage": 15,
+        "recoilM": 0.25,
+        "ammoPerBarrel": 300,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay calibration; the existing independently authored Yamato twin 127 mm fitting supplies the dimensions. Rates, damage, supply and arcs are not a historical fire-control model."
+        }
+      }
+    },
+    {
+      "id": "ha-1-6",
+      "name": "Port 12.7 cm AA 6",
+      "partId": "type89-127-yamato-twin",
+      "battery": "secondary",
+      "position": [
+        -7.3,
+        15.1,
+        33.7
+      ],
+      "bearingDeg": 270,
+      "rangefinder": false,
+      "magazineId": "magazine-secondary-aft",
+      "weapon": {
+        "id": "type89-127-yamato-twin",
+        "name": "12.7 cm Type 89 twin AA",
+        "kind": "gun",
+        "massKg": 20000,
+        "barbetteRadius": 2.35,
+        "gunhouseSize": [
+          4.5,
+          4.1,
+          3
+        ],
+        "pivotHeight": 2.2,
+        "trunnionForward": 0.55,
+        "muzzleForward": 5.13,
+        "barrelSpacing": 1.3,
+        "caliberM": 0.127,
+        "traverseDeg": 100,
+        "traverseRateDeg": 16,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 16,
+        "reloadSeconds": 5,
+        "muzzleSpeed": 720,
+        "projectileMassKg": 23,
+        "penetrationMm": 55,
+        "damage": 15,
+        "recoilM": 0.25,
+        "ammoPerBarrel": 300,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay calibration; the existing independently authored Yamato twin 127 mm fitting supplies the dimensions. Rates, damage, supply and arcs are not a historical fire-control model."
+        }
+      }
     }
   ],
   "armor": [
@@ -133858,7 +134470,7 @@
   "accuracy": {
     "exterior": "263 m LOA / 38.9 m beam. Original reconstruction; station offsets, hull sections and fittings remain under review. See references/sources.json and reports/discrepancies.md.",
     "internals": "Physical protection surfaces and contained provisional room envelopes. Thickness families, boundaries, capacities, flooding and ballistics remain estimates; see fidelity-01 evidence.",
-    "weapons": "46 cm triple geometry uses USNTMJ O-45(N) measured spacing, roller path and trunnion dimensions. Secondary shapes and exterior station measurements remain interpreted; combat is approximate."
+    "weapons": "46 cm triple geometry uses USNTMJ O-45(N) measured spacing, roller path and trunnion dimensions. Secondary shapes and exterior station measurements remain interpreted; combat is approximate. Twelve twin 127 mm AA mounts now use shared aiming, finite ammunition and damage. Their rates, arcs and supply are gameplay approximations; the 25 mm fittings remain visual."
   },
   "viewpoints": {
     "bridge": [
@@ -146988,5 +147600,5 @@
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
   },
   "compilerVersion": 1,
-  "contentHash": "83dd3ce4ee209648d128a68e8e25da3d761277bf996a2449dc73fe1a7c38b72e"
+  "contentHash": "216e408f6980f0c0fc7444e454afa81d6c5298976cbc52463a677f76c2097e0a"
 }

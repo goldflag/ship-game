@@ -1,5 +1,13 @@
 # King George V discrepancy register
 
+The shared AA eligibility limit now admits the existing eight twin 5.25-inch
+(133.35 mm) mounts with their authored 70° elevation. They use the same ammunition,
+damage, aiming and muzzle joints as surface fire; no geometry or mount IDs changed.
+The former 130 mm cutoff incorrectly excluded this DP battery. The 140 mm gameplay
+cutoff, AA range, spread and damage are not a historical fire-control calibration.
+Pom-poms and UP projectors remain visual fits as documented below. Current firing
+and WebGPU articulation evidence is in `assets/reviews/fleet-aa/README.md`.
+
 Configuration: early 1941 Home Fleet exterior, before December AA changes. Waterline: separately declared 1940 standard mean-draft datum. Intended use: playable historical preset with documented game approximations.
 
 | ID | Status | Evidence and limitation |
