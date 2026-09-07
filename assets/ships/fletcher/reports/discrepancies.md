@@ -22,6 +22,14 @@ The export checks certify the blueprint/model contract, not historical accuracy.
 | GameModels3D | Inspected via seventeen retained raster captures of WoWS Fletcher pasd021. Identical cameras and one global 15 m/viewer-unit registration support raster silhouette comparison; source waterline/refit are unverified. No game topology, transforms, UVs or textures entered the production recipe. |
 | Plans access | ONI 222-US page 89 side/top recognition drawings, Navy OP 1112 p.288 mount drawing and All Hands October 1952 p.3 propeller photograph were actually inspected and preserved. Sigsbee and Bath Iron Works full plates could not be retrieved; no dimensional claims are based on those inaccessible plates. |
 
+## Attachment repair, 2026-09-06 Pacific
+
+Gunhouse bearing races and roof fittings; open-gun carriage supports; SG pedestal and wireless spreaders; torpedo race seating; connected boat thwarts and lifting bridles; ladder rails following their slope; pipe clips; seated vents, signal lights, bottles and gunhouse steps.
+
+Retained Navy photograph 19-N-31243 provides the early ship context; OP 1112 and the open-gun manuals provide qualified equipment context. The later Mount 30 Mod 18 illustration does not certify the exact July 1942 variant. Small fittings and support dimensions remain reconstructed.
+
+Stable assembly, joint and socket IDs are retained. Original recipes own these changes; the preserved baselines are untouched. Exact-hash mesh reports, review views and game articulation evidence are collected in [the fleet attachment record](../../attachment-audit/README.md). Physical attachment and successful export checks do not close the historical discrepancies above.
+
 ## Local damage and fire calibration — 2026-09-06
 
 Local regions, generator and director proxies, combustible loads and smoke outlets are independently authored gameplay estimates from the existing layout. They are not historically measured structural subdivisions, generator schedules or ventilation plans. Electrical supply is aggregated with manual gun fallback; directors share a targeting penalty. Breach overlap uses bounded aperture sampling. See `assets/ships/author-local-damage.ts`.

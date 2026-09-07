@@ -29,6 +29,16 @@ The export checks establish dimensions, sockets and hierarchy, not historical ac
 - Scope extension differs by drawing/photo. The raised attack eye uses the notebook maximum 14.612 m above keel, with the 4.7625 m reference draft subtracted. The operating 7 m depth order remains gameplay tuning.
 - The C/30 fixed pedestal was raised in iteration 2 after comparing its barrel axis with the captured profile. Shared gun receivers, sights, seats and ammunition feed remain simplified. Torpedo shutters are unanimated dark apertures, not a detailed door mechanism.
 
+## Attachment repair, 2026-09-06 Pacific
+
+Open gun carriages; periscope lower housings; direction-finder stem and bridge voicepipes; wooden lining follows the actual inner tower; cover seams/handles match the covers; wire insulators follow the sagging wire; rudder bearings.
+
+The existing captured U-570 August/September 1941 plan/photo basis is retained, with its early single C/30 basket. Exact housing fabrication, attachment brackets and the particular gun-mount details remain interpreted; later enlarged wintergarten equipment is not inferred from these repairs.
+
+Stable assembly, joint and socket IDs are retained. Original recipes own these changes; the preserved baselines are untouched. Exact-hash mesh reports, review views and game articulation evidence are collected in [the fleet attachment record](../../attachment-audit/README.md). Physical attachment and successful export checks do not close the historical discrepancies above.
+
+The open-bridge wood lining is fitted against the actual inner fairing facets; its strips no longer protrude through the outer tower wall. Thickness and arrangement remain reconstructed.
+
 ## Local damage and fire calibration — 2026-09-06
 
 Local regions, generator and director proxies, combustible loads and smoke outlets are independently authored gameplay estimates from the existing layout. They are not historically measured structural subdivisions, generator schedules or ventilation plans. Electrical supply is aggregated with manual gun fallback; directors share a targeting penalty. Breach overlap uses bounded aperture sampling. See `assets/ships/author-local-damage.ts`.

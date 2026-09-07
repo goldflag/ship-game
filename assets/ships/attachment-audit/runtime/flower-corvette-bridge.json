@@ -1,0 +1,25 @@
+{
+  "shipId": "flower-corvette",
+  "contentHash": "a3fc9262e7fa87985cf65a350cffd18d758c771c948315c1eb05d9386e34b6e3",
+  "targetBlender": [
+    4,
+    0,
+    6
+  ],
+  "offsetBlender": [
+    10,
+    17,
+    8
+  ],
+  "pose": {
+    "trainFraction": 1,
+    "elevationFraction": 1,
+    "recoilFraction": 1
+  },
+  "camera": [
+    223,
+    14,
+    -14
+  ],
+  "browser": "Isolated headless Chrome / Metal; fallback after Orca tab closures"
+}

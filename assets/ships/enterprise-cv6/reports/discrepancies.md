@@ -75,6 +75,16 @@ The original `assets/ships/author-stability.ts` recipe preserves prior IDs and a
 
 The air-wing launch/recovery lane is at runtime X=0 m; parked aircraft use the port side at X=-4 m to avoid the modeled island. Spots and single-lane taxi/rollout timing are gameplay approximations. Unfolded wings may overlap the lane envelope; there is no deck collision solver, wing folding, physical arresting cable, or elevator simulation. Existing aircraft geometry is unchanged.
 
+## Attachment repair, 2026-09-06 Pacific
+
+Oerlikon gallery seating and the narrower aft-gallery positions; original open-gun carriages; 5-inch gallery knees; raised 1.1-inch platform legs; crane head axles; boat falls/bridles at davit stations; raft racks; shaft struts, blade roots and rudder stock; low arresting-wire supports; seated lockers.
+
+The June 1942 pre-Bofors inventory is retained. Navy OP 909 describes the single Oerlikon pedestal/column/trunnion bracket/cradle and shoulder control, so generic crew seats were removed from that shared component. Its March 1943 edition and later changes do not certify a June 1942 modification. Existing contract/class drawing and dated photo limitations remain; gallery adjustments follow authored platforms and are estimates, not new primary measurements.
+
+Stable assembly, joint and socket IDs are retained. Original recipes own these changes; the preserved baselines are untouched. Exact-hash mesh reports, review views and game articulation evidence are collected in [the fleet attachment record](../../attachment-audit/README.md). Physical attachment and successful export checks do not close the historical discrepancies above.
+
+Carrier aircraft now use a CPU-owned tail-down resting attitude derived from their original gear dimensions; both main wheels and the tail wheel meet a common deck plane. Exported near/far geometry is checked within 20 mm (including tyre tread and LOD simplification). Exact loaded tyre compression and the local flight-deck camber remain approximated by the air-wing deck datum. This fixes the former 0.68–1.76 m tail-wheel gaps without asserting factory landing-gear accuracy.
+
 ## Local damage and fire calibration — 2026-09-06
 
 Local regions, generator and director proxies, combustible loads and smoke outlets are independently authored gameplay estimates from the existing layout. They are not historically measured structural subdivisions, generator schedules or ventilation plans. Electrical supply is aggregated with manual gun fallback; directors share a targeting penalty. Breach overlap uses bounded aperture sampling. See `assets/ships/author-local-damage.ts`.

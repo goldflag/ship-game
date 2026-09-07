@@ -1,0 +1,298 @@
+{
+  "ship": "flower-corvette",
+  "source": "assets/ships/flower-corvette/generated/source.blend",
+  "toleranceM": 0.025,
+  "method": "object AABB candidate graph; overlaps do not prove attachment",
+  "meshCount": 1464,
+  "hullConnectedMeshCount": 1449,
+  "islands": [
+    {
+      "objects": [
+        {
+          "name": "wireless.aerial",
+          "assembly": "wireless",
+          "node": null,
+          "low": [
+            -10.000533103942871,
+            -0.5577961206436157,
+            17.19101905822754
+          ],
+          "high": [
+            11.900532722473145,
+            -0.5422039031982422,
+            18.508981704711914
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.3709709495306015,
+      "closestObject": "wireless.aerial",
+      "closestHullConnectedObject": "foremast.spar"
+    },
+    {
+      "objects": [
+        {
+          "name": "wireless.aerial.002",
+          "assembly": "wireless",
+          "node": null,
+          "low": [
+            -10.000533103942871,
+            0.5422039031982422,
+            17.19101905822754
+          ],
+          "high": [
+            11.900532722473145,
+            0.5577961206436157,
+            18.508981704711914
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.3709709495306015,
+      "closestObject": "wireless.aerial.002",
+      "closestHullConnectedObject": "foremast.spar"
+    },
+    {
+      "objects": [
+        {
+          "name": "bridge-starboard.seat",
+          "assembly": "bridge-starboard",
+          "node": null,
+          "low": [
+            7.444999694824219,
+            -2.8499999046325684,
+            7.366199970245361
+          ],
+          "high": [
+            7.795000076293945,
+            -2.4499998092651367,
+            7.456200122833252
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.1043999195098877,
+      "closestObject": "bridge-starboard.seat",
+      "closestHullConnectedObject": "bridge-starboard.pedestal"
+    },
+    {
+      "objects": [
+        {
+          "name": "bridge-port.seat.001",
+          "assembly": "bridge-port",
+          "node": null,
+          "low": [
+            7.444999694824219,
+            2.4499998092651367,
+            7.366199970245361
+          ],
+          "high": [
+            7.795000076293945,
+            2.8499999046325684,
+            7.456200122833252
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.1043999195098877,
+      "closestObject": "bridge-port.seat.001",
+      "closestHullConnectedObject": "bridge-port.pedestal"
+    },
+    {
+      "objects": [
+        {
+          "name": "aft-pompom.cradle",
+          "assembly": "aft-pompom",
+          "node": null,
+          "low": [
+            -17.170000076293945,
+            0.38999998569488525,
+            5.414999961853027
+          ],
+          "high": [
+            -16.670000076293945,
+            0.5460000038146973,
+            6.289999961853027
+          ]
+        },
+        {
+          "name": "aft-pompom.trunnion-cover",
+          "assembly": "aft-pompom",
+          "node": null,
+          "low": [
+            -17.079999923706055,
+            0.35999998450279236,
+            6.230000019073486
+          ],
+          "high": [
+            -16.760000228881836,
+            0.6800000071525574,
+            6.349999904632568
+          ]
+        },
+        {
+          "name": "aft-pompom.sight-support",
+          "assembly": "aft-pompom",
+          "node": null,
+          "low": [
+            -16.923921585083008,
+            0.5352235436439514,
+            5.907740592956543
+          ],
+          "high": [
+            -16.656076431274414,
+            0.5827764868736267,
+            6.647259712219238
+          ]
+        },
+        {
+          "name": "aft-pompom.sight",
+          "assembly": "aft-pompom",
+          "node": null,
+          "low": [
+            -17.06999969482422,
+            0.5066918730735779,
+            6.585000038146973
+          ],
+          "high": [
+            -16.799999237060547,
+            0.6113081574440002,
+            6.694999694824219
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.051999956369400024,
+      "closestObject": "aft-pompom.cradle",
+      "closestHullConnectedObject": "aft-pompom.pedestal"
+    },
+    {
+      "objects": [
+        {
+          "name": "aft-pompom.cradle.001",
+          "assembly": "aft-pompom",
+          "node": null,
+          "low": [
+            -17.170000076293945,
+            -0.5460000038146973,
+            5.414999961853027
+          ],
+          "high": [
+            -16.670000076293945,
+            -0.38999998569488525,
+            6.289999961853027
+          ]
+        },
+        {
+          "name": "aft-pompom.trunnion-cover.001",
+          "assembly": "aft-pompom",
+          "node": null,
+          "low": [
+            -17.079999923706055,
+            -0.6800000071525574,
+            6.230000019073486
+          ],
+          "high": [
+            -16.760000228881836,
+            -0.35999998450279236,
+            6.349999904632568
+          ]
+        },
+        {
+          "name": "aft-pompom.sight-support.001",
+          "assembly": "aft-pompom",
+          "node": null,
+          "low": [
+            -16.923921585083008,
+            -0.5827764868736267,
+            5.907740592956543
+          ],
+          "high": [
+            -16.656076431274414,
+            -0.5352235436439514,
+            6.647259712219238
+          ]
+        },
+        {
+          "name": "aft-pompom.sight.001",
+          "assembly": "aft-pompom",
+          "node": null,
+          "low": [
+            -17.06999969482422,
+            -0.6113081574440002,
+            6.585000038146973
+          ],
+          "high": [
+            -16.799999237060547,
+            -0.5066918730735779,
+            6.694999694824219
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.051999956369400024,
+      "closestObject": "aft-pompom.cradle.001",
+      "closestHullConnectedObject": "aft-pompom.pedestal"
+    },
+    {
+      "objects": [
+        {
+          "name": "aft-pompom.loading-tray",
+          "assembly": "aft-pompom",
+          "node": null,
+          "low": [
+            -16.2191219329834,
+            -0.24000012874603271,
+            6.03115177154541
+          ],
+          "high": [
+            -15.267870903015137,
+            0.2399999499320984,
+            6.127718925476074
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.04647111892700195,
+      "closestObject": "aft-pompom.loading-tray",
+      "closestHullConnectedObject": "aft-pompom.breech"
+    },
+    {
+      "objects": [
+        {
+          "name": "fore-4in.seat",
+          "assembly": "fore-4in",
+          "node": null,
+          "low": [
+            16.14999771118164,
+            -1.1949999332427979,
+            6.021999835968018
+          ],
+          "high": [
+            16.549999237060547,
+            -0.8449999690055847,
+            6.111999988555908
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.02500009536743164,
+      "closestObject": "fore-4in.seat",
+      "closestHullConnectedObject": "fore-4in.shield-side"
+    },
+    {
+      "objects": [
+        {
+          "name": "fore-4in.seat.001",
+          "assembly": "fore-4in",
+          "node": null,
+          "low": [
+            16.14999771118164,
+            0.8449999690055847,
+            6.021999835968018
+          ],
+          "high": [
+            16.549999237060547,
+            1.1949999332427979,
+            6.111999988555908
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.02500009536743164,
+      "closestObject": "fore-4in.seat.001",
+      "closestHullConnectedObject": "fore-4in.shield-side.001"
+    }
+  ]
+}

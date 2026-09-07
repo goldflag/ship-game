@@ -82,6 +82,16 @@ The original `assets/ships/author-stability.ts` recipe preserves prior IDs and a
 
 `stability.json` records modeled reference/full displacement, the stated mass mismatch, the uniform buoyancy scale, estimated CG and initial GM target (7% beam). Numerical station integration, sixteen-column water surfaces in box rooms, up to sixteen columns per compound cell, 2 Hz force updates and heuristic angular inertia/damping bound runtime cost. Capsize requires sustained inversion beyond 100 degrees with an outward/neutral arm. These are reproducible game approximations, not recovered loading or stability curves. No trapped air, detailed downflooding openings, free-surface waves, dynamic ocean forces, underwater shock or hull fracture is modeled. Finite local fire fuel, abstract crew rates and magazine flash protection are likewise provisional.
 
+## Attachment repair, 2026-09-06 Pacific
+
+The stern bay frames now follow the narrowing hull edge, and the launches sit within the existing bay openings; their longitudinal stations remain interpreted from the retained plan and museum evidence.
+
+Turret races and roof-AA plinths; AA carriages and gallery foundations; six searchlight foundations; director/radar supports; tripod/signal-spar braces; aircraft-crane heel and transverse ties; rudder stocks; boat-bay framing; shell-following scuttles and seated reels.
+
+The retained Kure Museum searchlight/rudder photographs and qualified Alexpl 1945 elevation inform support type and placement. Existing Y-01–Y-11 uncertainties remain: the final AA fit, fabrication dimensions and original frame locations are not newly established. Interlinked chain rings and thin glazing overlays are documented scan exceptions.
+
+Stable assembly, joint and socket IDs are retained. Original recipes own these changes; the preserved baselines are untouched. Exact-hash mesh reports, review views and game articulation evidence are collected in [the fleet attachment record](../../attachment-audit/README.md). Physical attachment and successful export checks do not close the historical discrepancies above.
+
 ## Local damage and fire calibration — 2026-09-06
 
 Local regions, generator and director proxies, combustible loads and smoke outlets are independently authored gameplay estimates from the existing layout. They are not historically measured structural subdivisions, generator schedules or ventilation plans. Electrical supply is aggregated with manual gun fallback; directors share a targeting penalty. Breach overlap uses bounded aperture sampling. See `assets/ships/author-local-damage.ts`.

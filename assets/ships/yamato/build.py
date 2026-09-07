@@ -15,6 +15,7 @@ from mathutils import Vector
 ROOT=Path(__file__).resolve().parents[3]
 sys.path.insert(0,str(ROOT/'scripts/ships'))
 from blender_components import create_gun_mount
+from blender_supports import SupportSurface
 from blender_fidelity import authored_hull, authored_structure, Fittings, loft_breadth
 D=json.loads(Path(os.environ['SHIP_DEFINITION']).read_text())
 OUT=Path(os.environ['SHIP_OUTPUT']);H=D['hull'];L=H['length']
@@ -192,7 +193,7 @@ for side in (-1,1):
  for i in range(24):rod('Bridge access ladder rung',(-6.8,side*4.5,24+i*.30),(-6.15,side*4.5,24+i*.30),.025,edge,SUPER,vertices=6)
 for side in (-1,1):
  rounded('Bridge wing binocular station',-2.6,side*7.0,18.5,5,3.3,.85,naval,SUPER)
- for x in (0,-2.7,-5.4):
+ for x in (0,-2.7,-5.0):
   cyl('Binocular pedestal',(x,side*7,19.7),.14,.8,edge,SUPER,12)
   rod('Binocular optics',(x-.25,side*7,20.2),(x+.3,side*7,20.2),.16,dark,SUPER,vertices=10)
 # Main director and its 15 metre optical base.
@@ -231,8 +232,13 @@ for j in (3,9,15,21,27,33,39,45):
 for y in (-2.6,-1.3,0,1.3,2.6):
  extent=4.05*math.sqrt(1-(y/3.55)**2)
  rod('Funnel cap grille',(-26.25-extent,y,30.42-.25*extent),(-26.25+extent,y,30.42+.25*extent),.045,edge,FUNNEL,vertices=6)
+funnel_support=SupportSurface(FUNNEL.objects)
 for side in (-1,1):
- for xx in (-30.6,-16):cyl('Steam pipe',(xx,side*3.3,17),.24,11.8,edge,FUNNEL,16)
+ for xx in (-30.6,-16):
+  cyl('Steam pipe',(xx,side*3.3,17),.24,11.8,edge,FUNNEL,16)
+  for z in (13,18):
+   foot=funnel_support.along((xx,side*3.3,z),(1 if xx< -25 else -1,0,0),18)
+   rod('Steam pipe clamp',foot,(xx,side*3.3,z),.065,edge,FUNNEL,vertices=8)
 
 # Auxiliary directors, searchlights and Type 89 dual-purpose mounts.
 def light(name,x,y,z,bearing):
@@ -246,17 +252,22 @@ def light(name,x,y,z,bearing):
   rod(name+' axle',pt(0,s,1.4),pt(0,s*.78,1.4),.12,edge,SUPER,vertices=12)
  rod(name+' reflector horizontal brace',pt(.53,-.75,1.4),pt(.53,.75,1.4),.018,edge,SUPER,vertices=6)
  rod(name+' reflector vertical brace',pt(.53,0,.65),pt(.53,0,2.15),.018,edge,SUPER,vertices=6)
+searchlight_support=SupportSurface([*HULL.objects,*SUPER.objects])
 for side in (-1,1):
  # Museum searchlight article explicitly describes three 150 cm lights per side.
  for xx,zz in [(-16.0,18.2),(-23.5,20.1),(-31.0,20.1)]:
   # The museum photograph shows a lower forward station and two raised tubs.
   cy=side*6.1
   outline=[(xx+1.8*math.cos(i*math.tau/24),cy+1.8*math.sin(i*math.tau/24)) for i in range(24)]
-  cyl('Searchlight gallery support',(xx,cy,zz-1.3),.75,2.6,naval,SUPER,20,r2=1.8)
+  floor=searchlight_support.below(xx,cy,zz-2.6)
+  cyl('Searchlight lower pedestal',(xx,cy,(floor+zz-2.0)/2),.76,zz-2.0-floor+.02,naval,SUPER,24)
+  cyl('Searchlight gallery support',(xx,cy,zz-1.0),.75,2.0,naval,SUPER,20,r2=1.8)
   prism('Searchlight gallery deck',outline,zz,zz+.18,roof,SUPER)
   perimeter_band('Searchlight gallery bulwark',outline,zz+.18,.7,naval,SUPER)
   light('150 cm searchlight',xx,cy,zz+.18,side*90)
  for xx,zz in [(0,21),(-6,25),(-35,16)]:
+  floor=searchlight_support.below(xx,side*5.9,zz-1)
+  if zz-1-floor>.02:cyl('HA director foundation',(xx,side*5.9,(floor+zz-1)/2),1.15,zz-1-floor+.02,naval,SUPER,24)
   cyl('HA director pedestal',(xx,side*5.9,zz),1.4,2,naval,SUPER,24)
   rounded('HA director hood',xx,side*5.9,zz+1,2.8,2.4,1.5,naval,SUPER)
 
@@ -286,6 +297,11 @@ def aa25(id,x,y,z,shield=True,bearing=90):
  else:
   cyl(id+' pedestal',(x,y,z+.63),.26,.95,naval,AA,12)
   rounded(id+' seat',x-.45*math.cos(ang),y-.45*math.sin(ang),z+.45,1.3,1.6,.28,naval,AA)
+  # Triple cradle joins the three breeches to the pedestal. Each barrel used
+  # to be an isolated pair of rods above the top of the stand.
+  rod(id+' trunnion axle',pt(0,-.42,1.30),pt(0,.42,1.30),.14,edge,AA,vertices=12)
+  for b in [-.38,.38]:rod(id+' carriage cheek',pt(0,b,.70),pt(0,b,1.30),.11,naval,AA,vertices=10)
+  rod(id+' carriage crosshead',pt(0,-.38,.78),pt(0,.38,.78),.12,naval,AA,vertices=10)
  for b in (-.24,0,.24):
   rod(id+' breech',pt(-.25,b,1.3),pt(.55,b,1.48),.14,naval,AA,vertices=8)
   rod(id+' 25 mm barrel',pt(.45,b,1.45),pt(2.05,b,1.86),.055,edge,AA,r2=.038,vertices=8)
@@ -299,6 +315,8 @@ def aa127(id,x,y,z,shield,bearing):
  if shield:
   blast_shield(id+' rounded blast shield',x,y,z+.35,4.5,4.1,2.65,bearing)
  else:
+  rod(id+' saddle',pt(0,-1.3,.9),pt(0,1.3,.9),.22,naval,AA,vertices=12)
+  rod(id+' trunnion axle',pt(.15,-1.3,1.87),pt(.15,1.3,1.87),.21,edge,AA,vertices=12)
   for b in (-1.3,1.3):
    o=box(id+' trunnion shield',pt(.15,b,1.4),(1.8,.12,2.1),naval,AA);o.rotation_euler.z=ang
  for b in (-.65,.65):
@@ -307,24 +325,36 @@ def aa127(id,x,y,z,shield,bearing):
  for ob in set(scene.objects)-before:ob['assemblyId']=id
 for side in (-1,1):
  structure(f'aa-gallery-{side}',AA)
+aa_support=SupportSurface([*HULL.objects,*SUPER.objects,*AA.objects,*GUNS.objects])
+def aa_foundation(name,x,y,top,radius):
+ floor=aa_support.below(x,y,top)
+ if top-floor>.015:
+  return cyl(name,(x,y,(floor+top)/2),radius,top-floor+.02,naval,AA,24)
+for side in (-1,1):
  for i,xx in enumerate((-9,-19.5,-30)):
   cyl('Raised HA sponson',(xx,side*12.1,10.75),3.05,5.1,naval,SUPER,28)
   aa127(f'ha-{side}-{i+1}',xx,side*12.1,13.3,True,side*90)
  for i,xx in enumerate((-13.2,-24.2,-33.7)):
+  aa_foundation('Open HA mount raised foundation',xx,side*7.3,15.1,2.35)
   aa127(f'ha-{side}-{i+4}',xx,side*7.3,15.1,False,side*90)
  # Dense outer rows and the curved ends of the AA citadel.
  for i,(xx,yy,zz) in enumerate([(-7.8,18,9),(-13.4,18.5,9),(-19,18.5,9),(-24.6,18.5,9),(-30.2,18.5,9),(-35.5,15.8,10),(-39,12.3,11),(-41,8.5,11.4),(0,14.8,10),(.4,10.5,11.4),(-.3,6.9,12.1),(-37.7,5.5,13.3)]):
-  cyl('25 mm gallery base',(xx,side*yy,zz-.35),1.6,.7,naval,AA,20)
+  aa_foundation('25 mm gallery base',xx,side*yy,zz,1.6)
   aa25(f'aa-citadel-{side}-{i+1}',xx,side*yy,zz,True,side*90)
- for i,(xx,yy) in enumerate([(-50,10.7),(-45,13.0),(-40,14.2),(18,11.0),(26,12.0),(36,10.6),(-72,10.5)]):aa25(f'aa-deck-{side}-{i+1}',xx,side*yy,deck(xx)+.12,False,side*90)
+ for i,(xx,yy) in enumerate([(-50,10.7),(-45,13.0),(-40,14.2),(18,11.0),(26,12.0),(36,10.6),(-72,10.5)]):
+  aa_foundation('Deck 25 mm foundation',xx,side*yy,deck(xx)+.12,1.40)
+  aa25(f'aa-deck-{side}-{i+1}',xx,side*yy,deck(xx)+.12,False,side*90)
  for i,xx in enumerate((-105,-98)):
-  rounded('Quarterdeck AA sponson',xx,side*12.5,5.7,5.5,7.0,.75,naval,AFT)
+  rounded('Quarterdeck AA sponson',xx,side*12.5,5.7,5.5,7.0,.90,naval,AFT)
   aa25(f'aa-quarter-{side}-{i+1}',xx,side*14.4,6.6,True,side*90)
  aa25(f'aa-stern-{side}',-127,side*3.4,5.8,False,180)
- for i,xx in enumerate((-33,-17)):aa25(f'aa-upper-{side}-{i+1}',xx,side*4.2,18.3,False,side*90)
+ for i,xx in enumerate((-33,-17)):
+  aa_foundation('Upper 25 mm foundation',xx,side*4.2,18.3,1.4)
+  aa25(f'aa-upper-{side}-{i+1}',xx,side*4.2,18.3,False,side*90)
  for m in D['mounts'][1:3]:
   # Roof mounts move with the main gunhouse, independently of the barrels.
   mx=-m['position'][2];rear=math.cos(math.radians(m['bearingDeg']));before=set(scene.objects)
+  aa_foundation('Turret roof 25 mm plinth',mx-4.4*rear,side*4,m['position'][1]+6.75,1.40)
   aa25(f'aa-roof-{m["id"]}-{side}',mx-4.4*rear,side*4,m['position'][1]+6.75,False,side*90)
   bpy.context.view_layer.update();yaw=bpy.data.objects[m['id']+'.yaw']
   for ob in set(scene.objects)-before:
@@ -337,7 +367,13 @@ for i,(x,y) in enumerate([(-119,-4),(-119,4),(-93,-9),(-93,9),(-53,-5),(-53,5)])
 # Tripod mainmast and open radar aerials. Sizes are interpreted from elevations.
 for a in [(-28,-3.8,16),(-28,3.8,16),(-35,0,14)]:rod('Tripod mast leg',a,(-37,0,39.6),.24,edge,MAST,r2=.13,vertices=12)
 rod('Mainmast yard',(-34.5,-12,33),(-34.5,12,33),.12,edge,MAST,vertices=10)
-for z in (24,29,34):rod('Mast cross brace',(-28-(z-16)*.38,-2,z),(-28-(z-16)*.38,2,z),.1,edge,MAST,vertices=8)
+for z in (24,29,34):
+ t=(z-16)/(39.6-16);xx=-28-9*t;yy=3.8*(1-t)
+ rod('Mast cross brace',(xx,-yy,z),(xx,yy,z),.1,edge,MAST,vertices=8)
+# The aft signal outrigger is a braced extension of the tripod, as shown in
+# the retained 1945 elevation; its dimensions remain interpreted.
+rod('Signal spar upper stay',(-37,0,39.6),(-43,0,36),.12,edge,MAST,vertices=8)
+rod('Signal spar lower brace',(-36.1,0,28),(-43,0,36),.12,edge,MAST,vertices=8)
 rod('Signal spar',(-43,-7,36),(-43,7,36),.075,wire,MAST,vertices=8)
 for side in (-1,1):
  for y in (2,4,6,8,10):rod('Signal halyard',(-34.5,side*y,33),(-29,side*5.8,16.4),.015,wire,MAST,vertices=5)
@@ -350,8 +386,14 @@ for side in (-1,1):
   y=side*(3.3+i*.5)
   rod('Type 21 array vertical',(-3.5,y,36.5),(-3.5,y,38.5),.035,edge,MAST,vertices=6)
  for z in (36.5,37.15,37.8,38.5):rod('Type 21 array horizontal',(-3.5,side*3.3,z),(-3.5,side*7.3,z),.035,edge,MAST,vertices=6)
+tower_support=SupportSurface(SUPER.objects)
 for side in (-1,1):
+ for z in (27.8,28.55):
+  foot=tower_support.along((-1,side*5,z),(0,-side,0),8)
+  rod('Type 22 radar bracket',foot,(-1,side*5,z),.10,naval,MAST,vertices=10)
  for z in (27.8,28.55):rod('Type 22 radar horn',(-1,side*5,z),(1.0,side*5,z),.19,naval,MAST,r2=.52,vertices=16)
+ for z in (30,33):rod('Type 13 mounting arm',(-35-2*(z-14)/25.6,0,z),(-35.5,0,z),.08,edge,MAST,vertices=8)
+ rod('Type 13 aerial spine',(-35.5,0,29.8),(-35.5,0,34.2),.07,edge,MAST,vertices=8)
  for z in (30,31,32,33,34):rod('Type 13 aerial dipole',(-35.5,-.85,z),(-35.5,.85,z),.038,edge,MAST,vertices=6)
 
 # Stern aircraft deck. Long transfer rails are distinct from the short catapults.
@@ -368,6 +410,9 @@ for side in (-1,1):
 # Central aircraft lift hatch and crane.
 rounded('Aircraft lift hatch',-118,0,6.02,9.3,8.2,.13,dark,AFT)
 cyl('Aircraft crane pedestal',(-106,0,7.2),1.6,2.5,naval,AFT,24)
+rod('Crane heel bearing',(-106,-.8,8.7),(-106,.8,8.7),.22,naval,AFT,vertices=12)
+cyl('Crane heel column',(-106,0,8.5),.55,.7,naval,AFT,20)
+for xx,zz in [(-106,10.4),(-128,10.4)]:rod('Crane transverse tie',(xx,-.65,zz),(xx,.65,zz),.10,edge,AFT,vertices=8)
 for y in (-.65,.65):
  rod('Crane boom chord',(-106,y,8.7),(-128,y,10.2),.12,edge,AFT,vertices=8)
  rod('Crane boom upper',(-106,y,10.4),(-128,y,10.4),.1,edge,AFT,vertices=8)
@@ -375,9 +420,14 @@ for y in (-.65,.65):
 rod('Crane support mast',(-106,0,8),(-105,0,14),.2,naval,AFT,vertices=12)
 rod('Crane hoist',(-105,0,14),(-128,0,10.4),.035,wire,AFT,vertices=6)
 rod('Crane hook line',(-128,0,10.4),(-128,0,7.0),.035,wire,AFT,vertices=6)
-# Boat-bay recesses are now part of hull.sections, shared with CPU hits.
+# Boat-bay framing follows the recessed hull's actual floor and roof edges.
+# Constant +/-14 m posts projected outside the narrowing stern, producing
+# unsupported hanging legs even when their heads touched a crossbeam.
 for side in (-1,1):
- for x in (-116,-110,-103,-96,-89,-82):rod('Boat bay frame',(x,side*14.0,2.6),(x,side*14.0,5.6),.065,edge,AFT,vertices=8)
+ for x in (-99,-94,-88,-83):
+  y=side*(min(loft_breadth(H,x,2.45),loft_breadth(H,x,5.92))-.03)
+  rod('Boat bay frame',(x,y,2.45),(x,y,5.92),.065,edge,AFT,vertices=8)
+  rod('Boat bay frame head',(x,side*10.95,5.92),(x,y,5.92),.08,edge,AFT,vertices=8)
 
 # Four screws and two rudders on the centreline in tandem.
 for side in (-1,1):
@@ -409,6 +459,10 @@ for name,x,z,sx,sz in [('Main rudder',-121,-7.8,7.3,5.1),('Auxiliary rudder',-10
  v=[(x+a*sx,side*.22,z+b*sz) for side in (-1,1) for a,b in outline];n=len(outline)
  fs=[tuple(reversed(range(n))),tuple(range(n,n*2))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
  o=mesh(name,v,fs,red,UNDER);o['assemblyId']=name.lower().replace(' ','-')
+ # The museum's underside view shows a stock entering the hull above each blade.
+ foot=SupportSurface([hull]).along((x-sx*.2,0,z+sz*.5),(0,0,1),12)
+ stock=rod(name+' stock',(x-sx*.2,0,z+sz*.35),foot,.26,hullgray,UNDER,vertices=16)
+ stock['assemblyId']=o['assemblyId']
  for dz in (-.35,-.1,.15,.38):rod('Rudder plating seam',(x-sx*.46,-.225,z+sz*dz),(x+sx*(.43 if dz<-.1 else .06),-.225,z+sz*dz),.025,hullgray,UNDER,vertices=6)
 for side in (-1,1):
  mesh('Bilge keel',[(-68,side*16,-8.3),(41,side*16,-8.3),(39,side*17.0,-9.4),(-66,side*17.0,-9.4)],[(0,1,2,3)],red,UNDER)
@@ -417,6 +471,8 @@ for side in (-1,1):
 for side in (-1,1):
  cyl('Anchor capstan',(95,side*3.5,deck(95)+.6),.9,1.2,edge,DECK,24)
  rod('Anchor shank',(124,side*6.0,4.8),(121,side*6.7,3.6),.15,edge,DECK,vertices=12)
+ foot=SupportSurface([hull]).along((124,side*6,4.8),(0,-side,0),12)
+ rod('Hawse seating',foot,(124,side*6,4.8),.24,hullgray,DECK,vertices=16)
  for x in (70,83,103,115,-57,-78,-118):
   y=side*max(1,breadth(x)-1.2);z=deck(x)
   for dx in (-.4,.4):cyl('Mooring bollard',(x+dx,y,z+.42),.23,.8,edge,DECK,12)
@@ -436,9 +492,9 @@ for x,height in ((130,4.5),(-130,7.6)):
 # Discrete glazed portholes avoid unsupported shader tricks.
 for side in (-1,1):
  for i in range(92):
-  x=-119+i*2.65;y=side*(breadth(x)+.016);z=min(deck(x)-1.45,5.9)
+  x=-119+i*2.65;z=min(deck(x)-1.45,5.9);y=side*(loft_breadth(H,x,z)-.04)
   if -74<x<62 and i%3:continue
-  rod('Hull scuttle',(x,y,z),(x,y+side*.055,z),.12,dark,HULL,vertices=10)
+  rod('Hull scuttle',(x,y,z),(x,y+side*.065,z),.12,dark,HULL,vertices=10)
 # Reference-led service details: Kure bridge/forward-turret photographs, S-06-2
 # gallery arrangement and O-45 machinery. Dimensions remain authored estimates.
 fm=dict(**materials,glass=glass)
@@ -451,7 +507,9 @@ for side in [-1,1]:
  for x in [-32,-26,-20,-14,-8]:fit.knee('AA gallery bracket',x,side*16.5,side*20.1,8.5,1.2)
  # Raised directors have sight slits and split hoods instead of blank drums.
  for x,z in [(-38.6,23),(-3.2,37.5)]:
-  for dx in [-.65,.65]:box('Director optical slit',(x+dx,side*2.04,z),(.38,.035,.20),glass,SUPER)
+  for dx in [-.65,.65]:
+   yy=(2.05 if x==-38.6 else 1.8)*math.sqrt(1-(dx/(2.05 if x==-38.6 else 1.8))**2)
+   box('Director optical slit',(x+dx,side*(yy-.035),z),(.38,.12,.20),glass,SUPER)
 fit.col=FUNNEL
 for side in [-1,1]:
  fit.ladder('Funnel inspection ladder',(-22,side*4.0,17),(-26.3,side*3.7,30.0),.62)
@@ -459,7 +517,7 @@ for side in [-1,1]:
   fit.vent('Funnel base air intake',x,side*3.85,13.4,2.0,1.7)
 fit.col=DECK
 for side in [-1,1]:
- for x in [59,76,87,-57,-75]:fit.reel('Mooring line reel',x,side*min(12,breadth(x)-2),deck(x)+.12,.58,1.4)
+ for x in [59,76,87,-57,-75]:fit.reel('Mooring line reel',x,side*min(12,breadth(x)-2),deck(x)+.025,.58,1.4)
  for x in [82,-62]:
   fit.door('Deck trunk access',x,side*3.2,deck(x),.7,1.2)
   rounded('Companionway coaming',x,side*3.0,deck(x),1.5,1.1,1.3,naval,DECK)
@@ -469,14 +527,15 @@ for side in [-1,1]:
   cyl('Windlass gear casing',(x-1.1,side*3.5,deck(x)+.43),.68,.78,naval,DECK,32)
   rod('Windlass axle',(x-1.1,side*2.65,deck(x)+.65),(x-1.1,side*4.35,deck(x)+.65),.18,edge,DECK,vertices=16)
   fit.ring('Windlass brake wheel',(x-1.1,side*4.4,deck(x)+.65),.37,.043,'y')
+  for a in (0,math.pi/2):rod('Windlass brake spoke',(x-1.1-.37*math.cos(a),side*4.4,deck(x)+.65-.37*math.sin(a)),(x-1.1+.37*math.cos(a),side*4.4,deck(x)+.65+.37*math.sin(a)),.035,edge,DECK,vertices=6)
 fit.col=AFT
 for side in [-1,1]:
- fit.reel('Aircraft crane winch',-104,side*1.5,6.1,.52,1.2)
- for i,x in enumerate([-105,-92]):fit.boat('Recessed motor launch',x,side*12.0,2.9,11 if i==0 else 9,2.0,i==0)
+ fit.reel('Aircraft crane winch',-104,side*1.5,6.0,.52,1.2)
+ for i,x in enumerate([-97.5,-86.5]):fit.boat('Recessed motor launch',x,side*12.0,2.9,11 if i==0 else 9,2.0,i==0)
  for x in [-122,-116]:
   fit.ring('Catapult carriage wheel',(x,side*10.0,7.1),.21,.045,'y',segments=12)
- for x in [-115,-108,-100,-92,-84]:
-  rod('Boat bay upper beam',(x,side*11,5.7),(x,side*15.8,5.7),.08,naval,AFT,vertices=8)
+ for x in [-99,-94,-88,-83]:
+  rod('Boat bay upper beam',(x,side*10.95,5.92),(x,side*(loft_breadth(H,x,5.92)-.03),5.92),.08,naval,AFT,vertices=8)
  fit.ladder('Aircraft deck access',(-75,side*9,5.95),(-70,side*9,8.0),.7)
 scene['definitionHash']=D['contentHash'];scene['configuration']=D['configuration']
 scene['historicalAccuracy']='Unverified reconstruction; see discrepancy register'

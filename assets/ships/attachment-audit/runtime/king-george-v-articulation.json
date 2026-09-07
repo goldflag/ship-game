@@ -1,0 +1,83 @@
+{
+  "kind": "articulation",
+  "shipId": "king-george-v",
+  "contentHash": "112375a281cf571ba52a414fb82d3c341376b1fcd4ecf2063e7640b08594c904",
+  "backend": "webgpu",
+  "time": "2026-09-07T07:31:08.772Z",
+  "mounts": 11,
+  "poses": [
+    {
+      "trainFraction": -1,
+      "elevationFraction": 0,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 0.0017358771111841268
+    },
+    {
+      "trainFraction": -1,
+      "elevationFraction": 0,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.0017358771111841268
+    },
+    {
+      "trainFraction": -1,
+      "elevationFraction": 1,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 0.0017358771111841268
+    },
+    {
+      "trainFraction": -1,
+      "elevationFraction": 1,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.0017358771111841268
+    },
+    {
+      "trainFraction": 0,
+      "elevationFraction": 0,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 0.0017358991735627032
+    },
+    {
+      "trainFraction": 0,
+      "elevationFraction": 0,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.0017358991735627032
+    },
+    {
+      "trainFraction": 0,
+      "elevationFraction": 1,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 0.0017358771111841268
+    },
+    {
+      "trainFraction": 0,
+      "elevationFraction": 1,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.0017358771111841268
+    },
+    {
+      "trainFraction": 1,
+      "elevationFraction": 0,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 0.0017385616011633504
+    },
+    {
+      "trainFraction": 1,
+      "elevationFraction": 0,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.0017385616011633504
+    },
+    {
+      "trainFraction": 1,
+      "elevationFraction": 1,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 0.0017375359526608737
+    },
+    {
+      "trainFraction": 1,
+      "elevationFraction": 1,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.0017375359526608737
+    }
+  ],
+  "browser": "Isolated headless Chrome / Metal; fallback after Orca tab closures"
+}

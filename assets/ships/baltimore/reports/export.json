@@ -1,5 +1,5 @@
 {
-  "contentHash": "a69bf8e180acf9f46cecd2e8f7969ed9f5c1ed0fe12e4bdc2947d9af578172ee",
+  "contentHash": "32e3e48313128baaba630d594b815d1b54ecdc8e7b8c165ec3a91293615992f6",
   "hullBounds": [
     [
       -10.795001983642578,
@@ -108,8 +108,8 @@
   "depthChargeLaunchers": [],
   "meshes": 126,
   "primitives": 370,
-  "triangles": 260522,
-  "bytes": 8587524,
+  "triangles": 271494,
+  "bytes": 8930652,
   "result": "passed",
   "historicalAccuracy": "not certified; see reference register and discrepancy report"
 }

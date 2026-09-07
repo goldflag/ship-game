@@ -1,0 +1,14 @@
+{
+  "ship": "liberty-cargo",
+  "sourceSha256": "8f4881f6514cfd462871844ad848b51518c6ce292018265783524a73db1cf67d",
+  "contentHash": "869d86b41d0c301cc43bd31f75cb6fd7850fc0333723527bb14d5f2891ad6cf5",
+  "method": "triangle intersection, closed-solid containment, vertex/surface proximity",
+  "toleranceM": 0.025,
+  "limits": "Separate objects are graph nodes; a mesh containing disconnected islands needs additional review. Contacts do not establish historical accuracy.",
+  "meshCount": 2439,
+  "hullConnectedMeshCount": 2439,
+  "candidates": 3822,
+  "contacts": 2438,
+  "elapsedSeconds": 2.787340834038332,
+  "islands": []
+}

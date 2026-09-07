@@ -1,0 +1,25 @@
+{
+  "shipId": "king-george-v",
+  "contentHash": "112375a281cf571ba52a414fb82d3c341376b1fcd4ecf2063e7640b08594c904",
+  "targetBlender": [
+    50,
+    0,
+    12
+  ],
+  "offsetBlender": [
+    40,
+    50,
+    22
+  ],
+  "pose": {
+    "trainFraction": 1,
+    "elevationFraction": 1,
+    "recoilFraction": 1
+  },
+  "camera": [
+    190,
+    34,
+    -90
+  ],
+  "browser": "Isolated headless Chrome / Metal; fallback after Orca tab closures"
+}

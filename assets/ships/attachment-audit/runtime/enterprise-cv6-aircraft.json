@@ -1,0 +1,34 @@
+{
+  "shipId": "enterprise-cv6",
+  "contentHash": "7e61635147580da0ec956fa03b295ca2ae8035b117c019e675d93c1c4ad234b4",
+  "targetBlender": [
+    60,
+    10,
+    17
+  ],
+  "offsetBlender": [
+    0,
+    24,
+    2
+  ],
+  "pose": {
+    "trainFraction": 1,
+    "elevationFraction": 1,
+    "recoilFraction": 1
+  },
+  "camera": [
+    206,
+    19,
+    -60
+  ],
+  "browser": "Isolated headless Chrome / Metal; fallback after Orca tab closures",
+  "fixture": {
+    "kind": "parked-aircraft-fixture",
+    "shipId": "enterprise-cv6",
+    "contentHash": "7e61635147580da0ec956fa03b295ca2ae8035b117c019e675d93c1c4ad234b4",
+    "backend": "webgpu",
+    "time": "2026-09-07T07:30:23.148Z",
+    "count": 12,
+    "note": "Explicit deck slots for gear inspection; normal carrier startup keeps the hangar hidden. CPU simulation computes the aircraft poses."
+  }
+}

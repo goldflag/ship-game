@@ -11,6 +11,16 @@
 - Reviewed — Functional guns retain independent yaw, elevation, recoil and muzzle sockets. Hull sections and CPU hit/flood geometry share the versioned blueprint. Screw and rudder retain separate pivot empties.
 - Scope — Cargo handling, sonar, depth-charge attacks and minesweeping are not implemented. Small fittings are visual-only; surface combat uses the shared renderer-free simulation.
 
+## Attachment repair, 2026-09-06 Pacific
+
+Shared open-gun supports; winches seated on the actual local hull/deck surface; raked-mast yards; screw blade roots, deck rails and funnel recess closure.
+
+The retained Jagger Seam contract plan remains the layout basis, with the original discrepancies about draft, later service changes and the representative armed fit. The repairs do not assert a measured 1945 gun inventory or detailed cargo-gear fabrication.
+
+Stable assembly, joint and socket IDs are retained. Original recipes own these changes; the preserved baselines are untouched. Exact-hash mesh reports, review views and game articulation evidence are collected in [the fleet attachment record](../../attachment-audit/README.md). Physical attachment and successful export checks do not close the historical discrepancies above.
+
+Outboard gun-platform columns now rake inward to the actual weather-deck edge; their heels no longer hang beside the narrowing hull. Column and brace dimensions remain reconstructed.
+
 ## Local damage and fire calibration — 2026-09-06
 
 Local regions, generator and director proxies, combustible loads and smoke outlets are independently authored gameplay estimates from the existing layout. They are not historically measured structural subdivisions, generator schedules or ventilation plans. Electrical supply is aggregated with manual gun fallback; directors share a targeting penalty. Breach overlap uses bounded aperture sampling. See `assets/ships/author-local-damage.ts`.

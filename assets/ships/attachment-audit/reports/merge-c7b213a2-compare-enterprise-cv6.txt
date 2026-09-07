@@ -1,0 +1,5 @@
+$ bun scripts/reference/pipeline.ts compare "enterprise-cv6"
+measure passed
+authored-capture passed
+comparison-sheets passed
+Local review page: /ship-reference/enterprise-cv6/index.html

@@ -1,0 +1,5 @@
+00:00.421  blend            | Read blend: "/Users/bill/orca/workspaces/ship-game/sunstar/assets/ships/baltimore/generated/source.blend"
+{"ship": "baltimore", "meshes": 9905, "islands": 0, "seconds": 24.7, "largest": []}
+Blender 5.2.0 LTS (hash fbe6228777e7 built 2026-07-14 01:31:22)
+
+Blender quit

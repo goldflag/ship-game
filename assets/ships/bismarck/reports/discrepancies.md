@@ -56,6 +56,13 @@ The complete structural shell supersedes the old 466 partial end-closure triangl
 
 Hits through empty structure spend penetration resistance and may create exterior openings; they do not subtract a universal hull-health pool. Finite AP fuzes, local AP/HE bursts, magazine ignition, abstract damage-control teams and sampled hydrostatics are implemented with the approximation limits described in the stability section. The HUD's equipment-condition scale does not determine flotation. No historical armor-response or loading accuracy is certified by the integration checks.
 
+## Attachment repair, 2026-09-06 Pacific
+
+Turret bearing rings, roof fittings and ladders; AA carriages, sights, seats and magazine supports; director foundations; boat cradles, thwarts and oars; crane tip/kingpost pins; mast ladder lugs and aerial spreaders; funnel collars; deck fittings and scuttle sleeves.
+
+The retained 24 May profile/plan and photographs establish the equipment context. Small support dimensions remain reconstructed; the modern drawing is not an as-built certificate. This pass does not resolve every German AA mounting variant or precise locker location.
+
+Stable assembly, joint and socket IDs are retained. Original recipes own these changes; the preserved baselines are untouched. Exact-hash mesh reports, review views and game articulation evidence are collected in [the fleet attachment record](../../attachment-audit/README.md). Physical attachment and successful export checks do not close the historical discrepancies above.
 ## 2026-09-06 — connect the existing AA fittings to combat
 
 Promoted 28 original AA fittings to the shared blueprint and gun catalog, keeping the existing ten main/secondary IDs. The resulting 38 mounts have 64 barrel chains. Existing independently authored foundations, shields, seats and barrels are retained, with neutral gun elevation set to the shared one-degree datum and initial bearings facing outboard. No reference geometry or baseline was used. Local Blender 5.2 LTS performs the rebuild; no Blender MCP tools were available.

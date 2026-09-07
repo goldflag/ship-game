@@ -11,6 +11,7 @@ import bpy, bmesh, json, math, os, sys
 from pathlib import Path
 from mathutils import Vector
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / 'scripts/ships'))
+from blender_supports import SupportSurface
 from blender_components import create_gun_mount
 out = Path(os.environ['SHIP_OUTPUT'])
 definition = json.loads(Path(os.environ['SHIP_DEFINITION']).read_text())
@@ -154,8 +155,8 @@ for x in (-16.4,17.9):
     z=deckz(x)
     box('deck.external-torpedo-cover',(x,0,z+.046),(6.95,.79,.07),materials['roof'])
     for t in range(12):
-        px=x-3.15+t*.56;rod('deck.cover-seam',(px,-.38,deckz(px)+.085),(px,.38,deckz(px)+.085),.009,materials['edge'],vertices=6)
-    for px in (x-3.1,x+3.1):rod('deck.cover-handle',(px,-.12,deckz(px)+.12),(px,.12,deckz(px)+.12),.025,materials['edge'])
+        px=x-3.15+t*.56;rod('deck.cover-seam',(px,-.38,z+.084),(px,.38,z+.084),.009,materials['edge'],vertices=6)
+    for px in (x-3.1,x+3.1):rod('deck.cover-handle',(px,-.12,z+.10),(px,.12,z+.10),.025,materials['edge'])
 for x,offset in [(-22.1,0),(12.7,.40)]:
     z=deckz(x);cyl('deck.loading-coaming',(x,offset,z+.10),.52,.18,materials['hullgray'],vertices=40)
     cyl('deck.loading-hatch',(x,offset,z+.21),.44,.05,materials['roof'],vertices=40)
@@ -181,10 +182,15 @@ for s in definition['structures']:
 wall=definition['structures'][0]['surface']['vertices'];n=len(wall)//3
 upper=[(-z,-x,y) for x,y,z in wall[2*n:]]
 for i,a in enumerate(upper):rod('bridge.wind-deflector-lip',a,upper[(i+1)%n],.045,materials['naval'])
+tower_skin=SupportSurface([o for o in col.objects if o.name in ['conning-tower.fairing','bridge-floor.deck']])
 # Wooden lining, forward voicepipe, compass repeater and watertight access.
 for side in (-1,1):
-    for i in range(18):box('bridge.wood-lining',(1.05+i*.19,side*.95,3.98),(.13,.04,.68),materials['wood'],bev=0)
-    rod('bridge.voicepipe',(4.28,side*.52,3.58),(4.28,side*.52,4.39),.048,materials['edge'])
+    for i in range(18):
+        px=1.05+i*.19
+        back=[tower_skin.along((xx,0,zz),(0,side,0),3)-Vector((0,side*.008,0)) for xx,zz in [(px-.065,3.64),(px+.065,3.64),(px+.065,4.32),(px-.065,4.32)]]
+        front=[v-Vector((0,side*.025,0)) for v in back]
+        mesh('bridge.wood-lining',back+front,[(0,1,2,3),(7,6,5,4),(0,4,5,1),(1,5,6,2),(2,6,7,3),(3,7,4,0)],materials['wood'])
+    rod('bridge.voicepipe',(4.28,side*.52,3.52),(4.28,side*.52,4.39),.048,materials['edge'])
     rod('bridge.voicepipe-mouth',(4.28,side*.52,4.39),(4.12,side*.52,4.39),.064,materials['naval'])
 cyl('bridge.access-hatch',(2.45,0,3.60),.34,.11,materials['edge'])
 cyl('bridge.compass-pedestal',(4.32,0,3.87),.12,.62,materials['naval'])
@@ -210,6 +216,7 @@ for side in (-1,1):
     for z in (1.65,1.95,2.25,2.55,2.85):rod('tower.ladder-rung',(-.18,side*.45,z),(-.18,side*.83,z),.025,materials['edge'])
 # The raised attack-scope eye uses the same 14.612 m above-keel datum as camera.
 for x,height,label in [(1.285,9.8495,'attack'),(3.695,7.14,'observation')]:
+    cyl('periscopes.'+label+'-housing',(x,0,2.7),.23,1.9,materials['hullgray'],vertices=32)
     cyl('periscopes.'+label+'-gland',(x,0,4.36),.23,1.52,materials['hullgray'],vertices=32,r2=.15)
     rod('periscopes.'+label+'-lower',(x,0,4.72),(x,0,5.74),.125,materials['hullgray'],r2=.075)
     rod('periscopes.'+label+'-shaft',(x,0,5.74),(x,0,height-.12),.058,materials['edge'],r2=.039)
@@ -220,7 +227,7 @@ for x,height,label in [(1.285,9.8495,'attack'),(3.695,7.14,'observation')]:
 for i in range(40):
     a,b=i*math.tau/40,(i+1)*math.tau/40
     rod('antenna.direction-finder',(3.18,.61+math.sin(a)*.29,5.07+math.cos(a)*.29),(3.18,.61+math.sin(b)*.29,5.07+math.cos(b)*.29),.021,materials['edge'])
-rod('antenna.loop-stem',(3.18,.61,4.58),(3.18,.61,4.80),.041,materials['edge'])
+rod('antenna.loop-stem',(3.18,.61,3.52),(3.18,.61,4.80),.041,materials['edge'])
 # Central removable rails and aerials visible in the September survey photos.
 for side in (-1,1):
     prev=None
@@ -240,8 +247,9 @@ for end in (-31.8,31.0):
         rod('rigging.aerial',anchor,mid,.009,materials['dark'],vertices=6)
         rod('rigging.aerial',mid,top,.009,materials['dark'],vertices=6)
         for f in (.30,.36,.42):
-            pos=Vector(anchor).lerp(Vector(top),f)
-            rod('rigging.insulator',pos,pos+Vector((.14,0,0)),.038,materials['roof'],vertices=8)
+            pos=Vector(anchor).lerp(Vector(mid),f*2)
+            direction=(Vector(mid)-Vector(anchor)).normalized()
+            rod('rigging.insulator',pos-direction*.07,pos+direction*.07,.038,materials['roof'],vertices=8)
 # ONI explicitly: net cutters on the class drawing were NOT fitted to U-570.
 # Twin submerged planes, shafts, screws and rudders. Each moving part stays
 # on its stable joint; fixed shaft brackets/guards never rotate with the screw.
@@ -286,6 +294,7 @@ for side in (-1,1):
     vv=[(x,side*.6223+dy,z) for dy in (-.06,.06) for x,z in outline];n=len(outline)
     blade=mesh('rudder-'+label+'.blade',vv,[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,n+(i+1)%n,n+i) for i in range(n)],materials['underwater']);attach(blade,rudder)
     rod('rudders.fixed-stock',(-30.05,side*.6223,-.63),(-30.05,side*.6223,-1.20),.073,materials['underwater'])
+    rod('rudders.upper-bearing',(-30.05,side*.6223,-.63),(-30.05,side*.35,-.05),.085,materials['underwater'])
 # Aft keel spur and rudder protection in docking-plan profile.
 outline=[(-31.00,-3.32),(-27.60,-4.15),(-25.65,-3.69),(-22.0,-3.17),(-24.40,-2.90),(-27.65,-3.96),(-30.80,-3.16)]
 n=len(outline);vv=[(x,y,z) for y in (-.065,.065) for x,z in outline]

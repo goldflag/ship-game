@@ -1,0 +1,25 @@
+{
+  "shipId": "liberty-cargo",
+  "contentHash": "75ce2c47cabd18d55e0253c03da13d9107676fcf8b70d2cac65fe569d523df60",
+  "targetBlender": [
+    0,
+    0,
+    9
+  ],
+  "offsetBlender": [
+    22,
+    38,
+    17
+  ],
+  "pose": {
+    "trainFraction": 1,
+    "elevationFraction": 1,
+    "recoilFraction": 1
+  },
+  "camera": [
+    202,
+    26,
+    -22
+  ],
+  "browser": "Isolated headless Chrome / Metal; fallback after Orca tab closures"
+}

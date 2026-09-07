@@ -1,0 +1,14 @@
+{
+  "ship": "type-viic",
+  "sourceSha256": "c1c57cb0e8035c72af34c3a8805c66dc7ec63244d09f38dcdc7553896f384645",
+  "contentHash": "566d406e834d39861d23ec7c2c4ac9f49dae5a0270f2f007aec59c9e5893fb3a",
+  "method": "triangle intersection, closed-solid containment, vertex/surface proximity",
+  "toleranceM": 0.025,
+  "limits": "Separate objects are graph nodes; a mesh containing disconnected islands needs additional review. Contacts do not establish historical accuracy.",
+  "meshCount": 824,
+  "hullConnectedMeshCount": 824,
+  "candidates": 1152,
+  "contacts": 823,
+  "elapsedSeconds": 1.0847095840144902,
+  "islands": []
+}

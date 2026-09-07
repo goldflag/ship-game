@@ -1,0 +1,82 @@
+{
+  "backend": "webgpu",
+  "contentHash": "b2a8edf6217e89e4a90997dac9fd4af596cd7c58b6ecc9b2552514dea6aede1c",
+  "kind": "articulation",
+  "mounts": 2,
+  "poses": [
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 1.5256463515456287e-06,
+      "recoilFraction": 0,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 1.525646350724264e-06,
+      "recoilFraction": 1,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 1.5391881668410631e-06,
+      "recoilFraction": 0,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 1.5391881668410631e-06,
+      "recoilFraction": 1,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 1.218999856131567e-06,
+      "recoilFraction": 0,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 1.218999856131567e-06,
+      "recoilFraction": 1,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 1.2464123553947172e-06,
+      "recoilFraction": 0,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 1.2464123569260037e-06,
+      "recoilFraction": 1,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 1.5256463515456287e-06,
+      "recoilFraction": 0,
+      "trainFraction": 1
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 1.525646350724264e-06,
+      "recoilFraction": 1,
+      "trainFraction": 1
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 1.5391881668410631e-06,
+      "recoilFraction": 0,
+      "trainFraction": 1
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 1.5391881668410631e-06,
+      "recoilFraction": 1,
+      "trainFraction": 1
+    }
+  ],
+  "shipId": "type-viic",
+  "time": "2026-09-07T04:40:23.934Z"
+}

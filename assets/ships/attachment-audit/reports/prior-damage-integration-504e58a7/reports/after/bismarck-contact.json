@@ -1,0 +1,14 @@
+{
+  "ship": "bismarck",
+  "sourceSha256": "f9feaf28b08bf66725a30114cb7345dce95561da543f06b886217cabfa1443c9",
+  "contentHash": "e1beb2182de74c2c22f5a67f8c78f4e285ef84648c537537c71dddaffd46f249",
+  "method": "triangle intersection, closed-solid containment, vertex/surface proximity",
+  "toleranceM": 0.025,
+  "limits": "Separate objects are graph nodes; a mesh containing disconnected islands needs additional review. Contacts do not establish historical accuracy.",
+  "meshCount": 17908,
+  "hullConnectedMeshCount": 17908,
+  "candidates": 33107,
+  "contacts": 17907,
+  "elapsedSeconds": 50.47259550000308,
+  "islands": []
+}
