@@ -1,3 +1,4 @@
+import { HULL_HP_SCALE } from './durability';
 import { expect, test } from 'bun:test';
 import { shipPreset } from '../ships/presets';
 import { SHIP_AI_LEVELS, type ShipAiLevel } from './aiLevels';
@@ -109,7 +110,7 @@ test('combat skill improves acquisition, tracking, accuracy, firing cadence and 
     const acquisition = bot.track!.fireAt;
     for (let tick = 1; tick <= 5 * 60; tick++) updateBot(actor, sim.player, tick * FIXED_DT);
     sim.player.motion.speed = 12;
-    actor.damage.integrity -= 20;
+    actor.damage.integrity -= 20 * HULL_HP_SCALE;
     for (let tick = 1; tick <= 60; tick++) updateBot(actor, sim.player, 5 + tick * FIXED_DT);
     const trackedSpeed = Math.hypot(...bot.track!.velocity);
     const evading = bot.evadeUntil > 6;

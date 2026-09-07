@@ -1,3 +1,4 @@
+import { HULL_HP_SCALE } from './durability';
 import type { Ammunition, ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { FleetActor } from './battle';
 import { FIXED_DT, motionVelocity, type HelmCommand } from './ship';
@@ -136,7 +137,7 @@ export function updateBot(actor: FleetActor, target: FleetActor | undefined, tim
     track.aimPoints = damageAwareAimPoints(actor, target);
     track.observedAt = time;
     track.observeAt = time + bot.reactionSeconds;
-    if (bot.lastIntegrity - actor.damage.integrity > skill.evadeDamage) {
+    if (bot.lastIntegrity - actor.damage.integrity > skill.evadeDamage * HULL_HP_SCALE) {
       bot.evadeUntil = time + between(bot, 8, 14);
       bot.maneuverAt = time;
     }

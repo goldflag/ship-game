@@ -124,7 +124,7 @@ test('Gunnery separates penetrating hull damage from surviving equipment', () =>
   const html = renderToStaticMarkup(<GunneryPanel data={data} game={null} expanded onExpand={() => {}} bindings={defaultKeybindings()}/>);
   expect(html).toContain('<dt>Hull</dt><dd>97%</dd>');
   expect(html).toContain('<dt>Equipment</dt><dd>100%</dd>');
-  expect(html).toContain('45.5 hull damage');
+  expect(html).toContain('1,592 hull damage');
   expect(html).toContain('without restoring hull HP');
 });
 

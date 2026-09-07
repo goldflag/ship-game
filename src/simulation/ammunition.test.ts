@@ -1,3 +1,4 @@
+import { HULL_HP_SCALE } from './durability';
 import { expect, test } from 'bun:test';
 import blueprint from '../../assets/ships/bismarck/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
@@ -81,7 +82,7 @@ test('HE bursts at its first physical contact and cannot transmit damage through
     expect(shell.position[0]).toBe(thickness ? 0 : 1.5);
     const hullDamage = sim.target.damage.maxIntegrity - sim.target.damage.integrity;
     if (thickness === 320) expect(hullDamage).toBe(0);
-    else { expect(hullDamage).toBeGreaterThan(0); expect(hullDamage).toBeLessThanOrEqual(shell.he!.damage * .5); }
+    else { expect(hullDamage).toBeGreaterThan(0); expect(hullDamage).toBeLessThanOrEqual(Math.ceil(shell.he!.damage * .5 * HULL_HP_SCALE)); }
     return 100 - sim.target.damage.modules[0].hp;
   });
   expect(damages[0]).toBe(100); expect(damages[1]).toBeGreaterThan(0); expect(damages[1]).toBeLessThan(damages[0]); expect(damages[2]).toBe(0);
