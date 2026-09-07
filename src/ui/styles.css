@@ -10,6 +10,24 @@
 }
 * { box-sizing: border-box; }
 body { margin: 0; overflow: hidden; }
+html, body { overscroll-behavior: none; }
+.game-shell {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.game-shell * { overscroll-behavior: contain; }
+.game-shell img, .game-shell a { -webkit-user-drag: none; }
+.game-shell input, .game-shell textarea, .game-shell [contenteditable]:not([contenteditable="false"]) {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+/* Game-wide policy also overrides component-specific focus rings. Keep native
+   focus and keyboard activation, without outlining instruments or map regions. */
+.game-shell :focus, .game-shell :has(> :focus-visible) { outline: none !important; }
+.game-shell :is(button, a, summary):focus-visible { text-decoration: underline; text-underline-offset: 3px; }
 button, select { font: inherit; }
 button { cursor: pointer; color: inherit; }
 button:focus-visible, select:focus-visible, canvas:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
