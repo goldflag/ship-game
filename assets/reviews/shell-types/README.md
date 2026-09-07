@@ -20,11 +20,11 @@ On narrow screens, the gun controls omit the separate turret row and battery hea
 
 ## Validation
 
-The relevant game, input, HUD and simulation tests passed: **101 tests across 11 files, 3,995 assertions, zero failures**. Coverage includes independent battery selection, finite stocks and reload behavior, AP fallback, selected-load telemetry, unavailable choices, input guards and keybinding migration.
+The relevant game, input, HUD, wake and simulation tests passed: **112 tests across 14 files, 4,155 assertions, zero failures**. Coverage includes independent battery selection, finite stocks and reload behavior, AP fallback, selected-load telemetry, unavailable choices, input guards, keybinding migration, HUD scaling and fleet wakes.
 
 `bun run build` passed, including checks for all eleven ships and thirteen aircraft, TypeScript and the production bundle. The existing warning about the oversized vendored bundle remains.
 
-PR integration against `master` at `b1961487` also passes the focused suite and build. The controls-table conflict was resolved, and headless game fixtures now include the funnel-smoke adapter required by the current renderer. The screenshots above predate that integration.
+PR integration against `master` at `975ce251` passes the focused suite and build. The mobile gun-controls conflict preserves container-relative sizing for automatic HUD scaling and the compact shell-selector layout. A duplicate funnel-smoke test adapter introduced by the merge was removed. The screenshots above predate this integration; no new visual capture was made for the conflict resolution.
 
 Final visual verdict: **pass**. The original reload/count overlap is resolved. The correction was checked in the labeled fixture because live preview contexts repeatedly reloaded during capture; earlier WebGPU images establish in-game composition. No final DOM bounds verification is claimed.
 
