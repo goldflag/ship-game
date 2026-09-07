@@ -743,7 +743,6 @@ export class Game {
     if (this.inspecting) this.inspectTarget();
     this.stopShellFollow();
     this.spectatedShipId = id;
-    this.gunneryOpen = false;
     this.input.clear();
     this.rig.setInspecting(false);
     this.rig.mode = 'Chase';
