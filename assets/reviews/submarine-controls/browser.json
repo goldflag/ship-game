@@ -1,0 +1,44 @@
+{
+  "backend": "webgpu",
+  "battleSeed": 2057538302,
+  "camera": {
+    "binoculars": false,
+    "forward": [
+      0,
+      0.0010248123487692658,
+      -0.999999474879687
+    ],
+    "mode": "Chase",
+    "position": [
+      0,
+      -4.499335782298763,
+      44.286297
+    ]
+  },
+  "contentHash": "ec30adf2446fbcc1f272c39316d9ab040c9d8206dec55141b2bcf491282e3807",
+  "depthButtons": [
+    "Surface",
+    "Dive 50 m",
+    "Rise 2 m X",
+    "Dive 2 m Z",
+    "Emergency blow B"
+  ],
+  "fleet": [
+    {
+      "controller": "player",
+      "definitionId": "type-viic",
+      "depth": 7.999335965352712,
+      "id": "player",
+      "targetDepth": 8
+    },
+    {
+      "controller": "bot",
+      "definitionId": "type-viic",
+      "depth": 6.999998302425111,
+      "id": "enemy-1",
+      "targetDepth": 7
+    }
+  ],
+  "shipId": "type-viic",
+  "tick": 5190
+}
