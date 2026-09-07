@@ -1,3 +1,4 @@
+import { LocalizedFireEffects, type FireDisplayPose } from './LocalizedFireEffects';
 import { ExpandableInstances } from './ExpandableInstances';
 import { localToWorld } from '../simulation/geometry';
 import * as THREE from 'three/webgpu';
@@ -69,7 +70,7 @@ export class CombatEffects {
   private readonly cameraPosition = new THREE.Vector3();
   private readonly cameraRotation = new THREE.Quaternion();
   private sequence = 0;
-  private fireTick = -1;
+  private readonly localFires = new LocalizedFireEffects();
   private lightCursor = 0;
   private shellCount = 0;
   private torpedoCount = 0;
@@ -77,6 +78,7 @@ export class CombatEffects {
 
   constructor() {
     this.root.name = 'Combat effects';
+    this.root.add(this.localFires.root);
     this.projectiles.name = 'Shell bodies'; this.streaks.name = 'Shell streaks'; this.shellGlows.name = 'Shell glows';
     this.streaks.material.forceSinglePass = true; this.shellGlows.material.forceSinglePass = true;
     this.aircraftSmoke.mesh.name = 'Falling aircraft smoke';
@@ -111,7 +113,7 @@ export class CombatEffects {
     this.smokeAmbient.value.set(.3, .35, .4).multiplyScalar(Math.max(0, ambient) / 1.75);
   }
 
-  update(sim: CombatSimulation, dt: number, camera: THREE.Camera, hidePlayerSmoke = false): void {
+  update(sim: CombatSimulation, dt: number, camera: THREE.Camera, hidePlayerSmoke = false, poses?: readonly FireDisplayPose[]): void {
     // Advance before emitting: a slow frame still gets one visible muzzle flash.
     for (const item of this.lights) {
       item.age += dt;
@@ -125,35 +127,7 @@ export class CombatEffects {
       this.emit(event);
     }
     this.updateAirbursts(sim);
-    if (dt > 0 && sim.tick >= this.fireTick + 15) {
-      this.fireTick = sim.tick;
-      let count = 0;
-      for (const actor of sim.actors) {
-        if (actor.damage.sunk) continue;
-        for (let i = 0; i < actor.damage.control.rooms.length && count < 32; i++) {
-          const intensity = actor.damage.control.rooms[i].intensity;
-          const room = actor.definition.compartments[i], vent = room.fire?.ventPosition;
-          if (intensity <= 0 || !vent) continue;
-          this.position.fromArray(localToWorld(vent, actor.motion));
-          if (this.position.y <= 0) continue;
-          count++;
-          const smoke = this.smoke.emit(this.position, actor.motion.id); smoke.size = 2 + intensity * 2; smoke.growth = 2; smoke.life = 6;
-          smoke.velocity.set(0, 2 + intensity, 0); smoke.wind = 1; smoke.opacity = .35 * intensity; smoke.color.copy(SMOKE).multiplyScalar(.4);
-        }
-        for (let i = 0; i < actor.mounts.length && count < 32; i++) {
-        const intensity = actor.damage.control.mounts[i].intensity;
-        if (intensity <= 0 || actor.damage.sunk) continue;
-        count++;
-        const m = actor.definition.mounts[i];
-        this.position.fromArray(localToWorld([m.position[0], m.position[1] + m.weapon.gunhouseSize[2], m.position[2]], actor.motion));
-        const flame = this.fire.emit(this.position); flame.size = 2 * intensity; flame.growth = 2; flame.life = .6;
-        flame.velocity.set(0, 2, 0); flame.opacity = .6; flame.color.copy(WARM);
-        const smoke = this.smoke.emit(this.position, actor.motion.id); smoke.size = 3; smoke.growth = 2; smoke.life = 5;
-        smoke.velocity.set(0, 3, 0); smoke.wind = 1;
-        smoke.opacity = .35 * intensity; smoke.color.copy(SMOKE).multiplyScalar(.4);
-        }
-      }
-    }
+    this.localFires.update(sim, dt, camera, this.wind, hidePlayerSmoke ? sim.player.motion.id : undefined, poses);
     if (dt > 0) this.updateAircraftSmoke(sim);
     for (const pool of this.pools) pool.publish(camera,
       hidePlayerSmoke && pool === this.smoke ? sim.player.motion.id : undefined);
@@ -520,17 +494,17 @@ export class CombatEffects {
   }
 
   reset(): void {
-    this.pools.forEach(pool => pool.reset()); this.spouts.reset(); this.aircraftTrails.clear(); this.airbursts.clear(); this.shellCount = 0; this.torpedoCount = 0; this.depthChargeCount = 0; this.fireTick = -1;
+    this.pools.forEach(pool => pool.reset()); this.spouts.reset(); this.aircraftTrails.clear(); this.airbursts.clear(); this.shellCount = 0; this.torpedoCount = 0; this.depthChargeCount = 0; this.localFires.reset();
     for (const mesh of [this.projectiles, this.streaks, this.shellGlows, this.torpedoBodies, this.torpedoWakes, this.depthChargeBodies]) { mesh.publish(0); }
     this.lights.forEach(item => { item.age = 1; item.light.intensity = 0; }); this.sequence = 0;
   }
   diagnostics() {
-    return { shells: this.shellCount, torpedoes: this.torpedoCount, depthCharges: this.depthChargeCount, smoke: this.smoke.count + this.aircraftSmoke.count + this.flakSmoke.count, aircraftSmoke: this.aircraftSmoke.count, flakSmoke: this.flakSmoke.count, spray: this.spray.count + this.spouts.count + this.mist.count,
-      flashes: this.fire.count, foam: this.foam.count,
-      particleCapacity: this.spouts.capacity + this.pools.reduce((sum, pool) => sum + pool.capacity, 0) };
+    return { shells: this.shellCount, torpedoes: this.torpedoCount, depthCharges: this.depthChargeCount, smoke: this.smoke.count + this.aircraftSmoke.count + this.flakSmoke.count + this.localFires.diagnostics().smoke, aircraftSmoke: this.aircraftSmoke.count, flakSmoke: this.flakSmoke.count, spray: this.spray.count + this.spouts.count + this.mist.count,
+      flashes: this.fire.count + this.localFires.diagnostics().flames, foam: this.foam.count,
+      particleCapacity: this.localFires.diagnostics().capacity + this.spouts.capacity + this.pools.reduce((sum, pool) => sum + pool.capacity, 0) };
   }
   dispose(): void {
-    this.root.removeFromParent(); this.pools.forEach(pool => pool.dispose()); this.spouts.dispose();
+    this.root.removeFromParent(); this.localFires.dispose(); this.pools.forEach(pool => pool.dispose()); this.spouts.dispose();
     for (const mesh of [this.projectiles, this.streaks, this.shellGlows, this.torpedoBodies, this.torpedoWakes, this.depthChargeBodies]) { mesh.dispose(); mesh.geometry.dispose(); mesh.material.dispose(); }
     Object.values(this.maps).forEach(map => map.dispose());
     this.volumeMap.dispose();

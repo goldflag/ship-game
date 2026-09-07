@@ -1,0 +1,27 @@
+bun test v1.3.3 (274e01c7)
+
+src/simulation/damageControl.test.ts:
+140 |   const before = a.damage.control.teams.map(job => ({ ...job! }));
+141 |   directControl(a, 'fires', def.mounts[0].id);
+142 |   updateDamageControl(a, def, 1, () => {});
+143 |   for (const old of before) {
+144 |     const current = a.damage.control.teams.find(job => job?.kind === old.kind && job.index === old.index)!;
+145 |     expect(current.setup).toBeCloseTo(old.setup - 1);
+                                ^
+error: expect(received).toBeCloseTo(expected, precision)
+
+Expected: 1
+Received: 5
+
+Expected precision: 2
+Expected difference: < 0.005
+Received difference: 4
+
+      at <anonymous> (/Users/bill/orca/workspaces/ship-game/cownose/src/simulation/damageControl.test.ts:145:27)
+(fail) changing crew priority or focusing an incumbent does not restart unaffected firefighting setup [29.26ms]
+
+ 0 pass
+ 12 filtered out
+ 1 fail
+ 1 expect() calls
+Ran 1 test across 1 file. [67.00ms]

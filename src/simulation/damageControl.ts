@@ -52,7 +52,9 @@ export function createControl(def: ShipDefinition): ControlState {
 export function directControl(actor: Combatant, priority: ControlPriority, focus = ''): void {
   if (!['balanced', 'fires', 'flooding', 'repairs'].includes(priority)) return;
   const c = actor.damage.control;
-  if (c.priority !== priority || c.focus !== focus) { c.priority = priority; c.focus = focus; c.teams.fill(null); }
+  // Re-score existing jobs on the next tick. Only a reassigned team pays setup;
+  // a priority order must not send every working crew back to its station.
+  c.priority = priority; c.focus = focus;
 }
 function wet(actor: Combatant, def: ShipDefinition, index: number): number {
   return actor.damage.compartments[index].waterM3 / def.compartments[index].capacityM3;

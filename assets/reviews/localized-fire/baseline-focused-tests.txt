@@ -1,0 +1,58 @@
+bun test v1.3.3 (274e01c7)
+
+src/simulation/damageControl.test.ts:
+(pass) teams extinguish fires; finite fuel bounds unattended burning and damage persists [443.50ms]
+(pass) water prevents magazine ignition; HP exhaustion alone never detonates; dry delivered heat can [38.02ms]
+(pass) protected feed paths prevent automatic remote magazine explosions from one gunhouse fire [292.56ms]
+(pass) finite spares and repair ceiling never revive destroyed machinery or replenish ammunition [1302.42ms]
+(pass) flooding teams close intact open boundaries but preserve damaged boundaries and conserve transferred water [37.92ms]
+(pass) shoring consumes spares, oversized openings remain, and portable pumping takes setup time [82.31ms]
+(pass) closed boundaries contain fire and opened paths can spread it [127.99ms]
+(pass) damage control resets and uses identical fixed ticks at different display rates [283.31ms]
+(pass) a freed team does not take another team’s job and reset its setup progress [14.77ms]
+(pass) repair and portable pumping use only the time left after setup completes [11.55ms]
+(pass) fire damage cannot consume more fuel than remains in the last burning tick [12.37ms]
+(pass) a new fire preempts lower-priority repairs while another team keeps pumping setup [11.55ms]
+
+src/simulation/localDamage.test.ts:
+(pass) repeated damage tapers locally, while opposite sides and lower spaces remain fresh [12.24ms]
+(pass) spreading the same number of hits removes more hull HP than shooting one area [23.72ms]
+(pass) one shell cannot multiply hull damage across layers, ticks or repeat contacts [11.84ms]
+(pass) a shell traverses wreckage and damages an intact module without spending its opportunity at entry [13.28ms]
+(pass) finishing a one-HP module awards only the hull consequence of that fresh damage [11.55ms]
+(pass) local structure is finite and independent of integration step and equipment repairs [34.04ms]
+(pass) overlapping apertures count only newly opened area; widening and distinct holes still leak [16.42ms]
+(pass) burned-out fuel does not regenerate from later hits, even in wrecked equipment [10.84ms]
+(pass) fire readouts identify a threatened magazine and working crews [18.20ms]
+(pass) generator loss slows loading and reduces fixed pumping; directors affect targeting independently [32.80ms]
+(pass) bots shift away from exhausted empty areas while considering surviving internals [10.92ms]
+(pass) global hull exhaustion still sinks and post-loss damage cannot consume more local structure [13.74ms]
+(pass) underwater shock spans nearby regions and repeat blasts lose effectiveness [13.32ms]
+(pass) HE can ignite room fuel without equipment, while intact armor blocks that heat [25.41ms]
+(pass) blueprints reject invalid region ownership and nonfinite fire profiles [20.33ms]
+(pass) an armed burst beyond a fully depleted entry still damages intact internal structure [12.16ms]
+(pass) pressure-hull growth widens its own opening instead of migrating a distant shell hole [15.62ms]
+
+src/game/CombatEffects.test.ts:
+(pass) heavy AA bursts at the recorded endpoint after flight, survives history eviction, and stays visible in optics [155.94ms]
+(pass) light AA never schedules flak, and reset cancels a heavy burst in flight [88.35ms]
+(pass) burning-turret smoke drifts with wind, responds to changes, and freezes on pause [125.39ms]
+(pass) torpedo trails end at the round and extend aft at every heading and visible depth [84.79ms]
+(pass) torpedo foam has an aerated center instead of a hollow splash ring [61.48ms]
+(pass) optics hide existing and new own-ship smoke while other smoke remains and ages normally [83.23ms]
+(pass) spray reaches the same position at different frame rates and falls out at the sea [4.99ms]
+(pass) salvos are bounded, do not replay events, pause cleanly, and reset without ghosts [295.08ms]
+(pass) water spray returns to the sampled impact height above and below mean sea level [2.62ms]
+(pass) airborne water responds to environment light without re-emitting the splash [92.14ms]
+(pass) large-gun fire remains in the gas at 0.35 seconds and cools completely into smoke [88.48ms]
+(pass) water droplets stay round through their apex instead of rotating as long rods [88.10ms]
+(pass) billboards reorient while paused and expired storage is reused [2.29ms]
+(pass) the shell pool keeps its shader capacity through empty frames, salvos and resets [2848.83ms]
+(pass) tracers end at the CPU shell, grow from the muzzle, and stay legible across range and zoom [128.38ms]
+(pass) falling aircraft lay persistent smoke, freeze on pause and splash only on the CPU impact event [88.98ms]
+(pass) underwater bursts and hull contacts produce water spray without a fireball [171.53ms]
+
+ 46 pass
+ 0 fail
+ 2931 expect() calls
+Ran 46 tests across 3 files. [7.51s]

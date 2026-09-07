@@ -14,6 +14,8 @@ The minimap uses a 40% opaque background and sits flush with the bottom and righ
 
 Desktop instruments are 240 px wide at lower left and 340 px wide at bottom center, with smaller dials, weapon illustrations and tighter spacing. Narrow portrait screens move armament below the top compass to keep the center sight clear. Short landscape screens compact the weapon row and retain gun-status access in the helm and weapon readiness indicators.
 
+The fleet report now includes a collapsed damage-control alert with burning locations, also marked on the existing ship instrument. **View crews** opens priority/focus controls and a scrolling report of intensity, remaining fuel, threatened equipment and crew setup/suppression/cooling. Target and spectated-ship reports remain read-only. On narrow screens the report sits beneath the weapons; its close control stays reachable above the helm. See the [runtime fire review](../../assets/reviews/localized-fire/README.md).
+
 ## Current review captures
 
 - [Desktop, 1600 × 900](../../assets/hud/review/desktop.png)
