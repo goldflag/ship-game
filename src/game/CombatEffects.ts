@@ -21,15 +21,15 @@ function randomFor(seed: number): () => number {
 export class CombatEffects {
   readonly root = new THREE.Group();
   private readonly maps = { smoke: effectTexture('smoke'), flash: effectTexture('flash'), foam: effectTexture('foam'), tracer: effectTexture('tracer'), wake: effectTexture('wake'),
-    water: effectTexture('water'), droplet: effectTexture('droplet') };
+    droplet: effectTexture('droplet'), spray: effectTexture('spray') };
   private readonly volumeMap = effectVolumeTexture();
   private readonly sun = uniform(new THREE.Vector3(-.55, .74, -.39).normalize());
   private readonly volumeDepthTexture = new THREE.DepthTexture(1, 1);
   private readonly volumeDepth = nodeObject(new EffectDepthTextureNode(undefined, null, this.volumeDepthTexture)).r;
   private readonly smoke = new EffectParticlePool(192, this.maps.smoke, false, effectVolumeMaterial(this.volumeMap, this.sun, this.volumeDepth, 12, true));
-  private readonly spouts = new WaterPlumes(384, this.maps.water);
-  private readonly spray = new EffectParticlePool(1536, this.maps.droplet);
-  private readonly mist = new EffectParticlePool(192, this.maps.smoke);
+  private readonly spouts = new WaterPlumes(16, this.maps.spray);
+  private readonly spray = new EffectParticlePool(1536, this.maps.droplet, false, undefined, true);
+  private readonly mist = new EffectParticlePool(128, this.maps.spray, false, undefined, true);
   private readonly aircraftSmoke = new EffectParticlePool(768, this.maps.smoke);
   private readonly aircraftTrails = new Map<string, { position: THREE.Vector3; age: number }>();
   private readonly fire = new EffectParticlePool(256, this.maps.flash, true);
@@ -91,7 +91,12 @@ export class CombatEffects {
     // Match the ocean/funnel convention: radians from +X toward +Z.
     this.wind.set(Math.cos(direction), 0, Math.sin(direction)).multiplyScalar(speed * .35);
   }
-  setSun(direction: THREE.Vector3): void { this.sun.value.copy(direction); this.spouts.setSun(direction); }
+  setSun(direction: THREE.Vector3, intensity = 1): void {
+    this.sun.value.copy(direction); this.spouts.setSun(direction, intensity);
+    // Tint also reaches existing airborne water when the environment changes.
+    this.spray.mesh.material.color.setScalar(intensity);
+    this.mist.mesh.material.color.setScalar(intensity);
+  }
 
   update(sim: CombatSimulation, dt: number, camera: THREE.Camera, hidePlayerSmoke = false): void {
     // Advance before emitting: a slow frame still gets one visible muzzle flash.
@@ -271,7 +276,7 @@ export class CombatEffects {
     const random = randomFor(event.sequence * 7919 + (event.shell?.id ?? 0));
     const scale = THREE.MathUtils.clamp((event.shell?.caliberM ?? .38) / .38, .25, 1.7);
     this.position.fromArray(event.position);
-    this.direction.fromArray(event.shell?.velocity ?? [0, 0, -1]).normalize();
+    this.direction.fromArray(event.shell?.velocity ?? [0, -1, 0]).normalize();
     this.across.crossVectors(this.direction, UP).normalize();
     if (this.across.lengthSq() < .01) this.across.set(1, 0, 0);
     this.vertical.crossVectors(this.across, this.direction).normalize();
@@ -297,7 +302,7 @@ export class CombatEffects {
       p.position.y = .45; p.size = 3; p.growth = 1.5; p.life = 2; p.opacity = .55;
       p.color.copy(WATER);
     } else if (event.kind === 'shot') this.muzzle(scale, random, event.shipId);
-    else if (event.kind === 'splash') this.splash(scale, random, event.position[1]);
+    else if (event.kind === 'splash') this.splash(THREE.MathUtils.clamp((event.shell?.caliberM ?? .38) / .38, .035, 1.7), random, event.position[1]);
     else if (event.kind === 'burst' && event.detonation && event.waterBurstY !== undefined) {
       const attenuation = Math.exp(Math.min(0, event.position[1] - event.waterBurstY) / 12);
       this.position.y = event.waterBurstY;
@@ -360,14 +365,14 @@ export class CombatEffects {
     const size = Math.pow(scale, .65);
     const rootSize = Math.sqrt(size);
     const lift = .8 + .2 * Math.sqrt(Math.min(1, Math.abs(this.direction.y)));
-    const lean = (2 + 5 * (1 - Math.min(1, Math.abs(this.direction.y)))) * rootSize;
+    const lean = (1.5 + 4.5 * (1 - Math.min(1, Math.abs(this.direction.y)))) * rootSize;
     this.position.y = surfaceY + .35;
     this.spouts.emit(this.position, size, this.direction, random);
-    // Coherent sheets carry most of the water; small fragments fringe the
-    // column and low crown. Match their launch envelope so breakup is continuous.
-    for (let i = 0; i < 144; i++) {
+    // Fine droplets fringe the dense water body and its low outward crown.
+    const droplets = Math.ceil(96 * Math.min(1, size));
+    for (let i = 0; i < droplets; i++) {
       const p = this.spray.emit(this.position), angle = random() * Math.PI * 2;
-      const crown = i < 36;
+      const crown = i < droplets / 4;
       const speed = (crown ? 8 + random() * 13 : 1 + random() ** 2 * 7) * rootSize;
       p.velocity.set(Math.cos(angle) * speed + this.direction.x * lean,
         (crown ? 7 + random() * 10 : 13 + random() * 29) * rootSize * lift,
@@ -378,20 +383,19 @@ export class CombatEffects {
       p.wind = .04; p.opacity = .86; p.color.copy(WATER).multiplyScalar(.8 + random() * .2);
       p.angle = random() * Math.PI * 2;
     }
-    // A translucent veil separates from the rising water, then a second low
-    // veil forms where it rains back. Wind catches mist more than heavy drops.
-    for (let i = 0; i < 18; i++) {
+    // Returning water lifts a low, wind-carried veil around the foam footprint.
+    for (let i = 0; i < 8; i++) {
       const p = this.mist.emit(this.position), angle = random() * Math.PI * 2;
-      const falling = i >= 8, delay = falling ? (1.4 + random() * 1.3) * rootSize : .65 + random() * .45;
-      const radius = (falling ? 5 + random() * 10 : 1 + random() * 3) * size;
+      const delay = (1.5 + random() * 1.8) * rootSize;
+      const radius = (5 + random() * 10) * size;
       p.position.x += Math.cos(angle) * radius + this.direction.x * lean * delay;
       p.position.z += Math.sin(angle) * radius + this.direction.z * lean * delay;
-      p.position.y += falling ? .5 : (24 + random() * 10) * rootSize * lift * delay - 4.905 * delay * delay;
-      p.velocity.set(Math.cos(angle) * 2 * rootSize, falling ? 1.5 : 3, Math.sin(angle) * 2 * rootSize);
-      p.size = ((falling ? 2 : 4) + random() * 3) * size; p.growth = 1.8 * size; p.growthDecay = .4;
-      p.age = -delay; p.life = 3 + random(); p.drag = .6; p.wind = .8; p.gravity = falling ? .8 : 1.8;
+      p.position.y += .5;
+      p.velocity.set(Math.cos(angle) * 2 * rootSize, 1.5, Math.sin(angle) * 2 * rootSize);
+      p.size = (3 + random() * 3) * size; p.growth = 1.8 * size; p.growthDecay = .4;
+      p.age = -delay; p.life = 3 + random(); p.drag = .6; p.wind = .8; p.gravity = .8;
       p.waterline = true; p.surfaceY = surfaceY;
-      p.opacity = falling ? .15 : .11; p.fadeIn = .3; p.color.copy(WATER); p.angle = random() * Math.PI * 2;
+      p.opacity = .15; p.fadeIn = .3; p.color.copy(WATER); p.angle = random() * Math.PI * 2;
     }
     // ShipWake stamps the remaining foam onto the ocean's own displaced surface.
   }
@@ -470,9 +474,9 @@ export class CombatEffects {
     this.lights.forEach(item => { item.age = 1; item.light.intensity = 0; }); this.sequence = 0;
   }
   diagnostics() {
-    return { shells: this.shellCount, torpedoes: this.torpedoCount, depthCharges: this.depthChargeCount, smoke: this.smoke.count + this.aircraftSmoke.count, aircraftSmoke: this.aircraftSmoke.count, spray: this.spray.count + this.spouts.count + this.mist.count,
+    return { shells: this.shellCount, torpedoes: this.torpedoCount, depthCharges: this.depthChargeCount, smoke: this.smoke.count + this.aircraftSmoke.count, aircraftSmoke: this.aircraftSmoke.count, spray: this.spray.count + this.spouts.particleCount + this.mist.count,
       flashes: this.fire.count, foam: this.foam.count,
-      particleCapacity: this.spouts.capacity + this.pools.reduce((sum, pool) => sum + pool.capacity, 0) };
+      particleCapacity: this.spouts.particleCapacity + this.pools.reduce((sum, pool) => sum + pool.capacity, 0) };
   }
   dispose(): void {
     this.root.removeFromParent(); this.pools.forEach(pool => pool.dispose()); this.spouts.dispose();

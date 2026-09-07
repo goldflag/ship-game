@@ -1024,7 +1024,8 @@ export class Game {
       latitude: 90 - Math.abs(elevation), azimuth: elevation < 0 ? azimuth : azimuth - 180 });
     this.sky.sun.setFromAngles(elevation, azimuth);
     this.sky.sun.peakIntensity=this.inPort ? 5.8 : sky.intensity;
-    this.effects.setSun(elevation < 0 ? this.sky.sun.direction.value.clone().negate() : this.sky.sun.direction.value);
+    this.effects.setSun(elevation < 0 ? this.sky.sun.direction.value.clone().negate() : this.sky.sun.direction.value,
+      this.inPort ? 1 : Math.max(.055, Math.min(1, sky.ambient * .45 + (elevation < 0 ? .025 : sky.intensity * .09))));
     this.sky.clouds.shape.altitude.value = this.inPort ? 1700 : sky.altitude;
     this.sky.clouds.shape.thickness.value = this.inPort ? 2400 : sky.thickness;
     this.sky.clouds.shape.coverage.value=this.inPort ? .38 : sky.coverage;

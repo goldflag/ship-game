@@ -174,6 +174,21 @@ test('water spray returns to the sampled impact height above and below mean sea 
   map.dispose();
 });
 
+test('airborne water responds to environment light without re-emitting the splash', () => {
+  const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
+  sim.events.push({ sequence: 1, tick: 0, kind: 'splash', position: [0, 0, 0], message: 'Test splash', shipId: 'player',
+    shell: { id: 1, caliberM: .38, velocity: [790, -85, 0] } });
+  effects.update(sim, 0, camera); effects.update(sim, .5, camera);
+  const before = effects.diagnostics();
+  effects.setSun(new Vector3(0, 1, 0), .08); effects.update(sim, 0, camera);
+  expect(effects.diagnostics()).toEqual(before);
+  const mesh = effects.root.getObjectByName('Water droplets and mist') as InstancedMesh;
+  expect((mesh.material as { color: { r: number } }).color.r).toBeCloseTo(.08, 5);
+  effects.setSun(new Vector3(0, 1, 0), 1);
+  expect((mesh.material as { color: { r: number } }).color.r).toBe(1);
+  effects.dispose();
+});
+
 test('large-gun fire remains in the gas at 0.35 seconds and cools completely into smoke', () => {
   const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
   sim.events.push({ sequence: 1, tick: 0, kind: 'shot', position: [0, 10, 0], message: 'Test gun', shipId: 'player',
