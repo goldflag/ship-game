@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Game } from '../game/Game';
 import { INSPECTION_TOOLTIP_ID, type InspectionHoverInfo } from '../game/InspectionHover';
-import { INSPECTION_KIND_LABELS, inspectionColor } from '../ships/inspection';
+import { INSPECTION_EFFECTS, INSPECTION_KIND_LABELS, inspectionColor } from '../ships/inspection';
 
 /** Follows the pointer over the port model: plate details in the armor view, module and compartment details in internals. */
 export function InspectionTooltip({ game }: { game: Game | null }) {
@@ -38,6 +38,6 @@ export function InspectionTooltip({ game }: { game: Game | null }) {
       {entry.within && <div><dt>Compartment</dt><dd>{entry.within}</dd></div>}
       {dimensions}
     </dl>}
-    <small>{entry.kind === 'armor' ? 'Select a row to isolate this plate.' : entry.kind === 'compartment' ? 'Floods when breached below the waterline.' : entry.kind === 'magazine' ? 'Detonates when destroyed.' : entry.kind === 'steering' ? 'Loses rudder authority when damaged.' : 'Loses propulsion power when damaged.'}</small>
+    <small>{entry.kind === 'armor' ? 'Select a row to isolate this plate.' : INSPECTION_EFFECTS[entry.kind]}</small>
   </div>;
 }
