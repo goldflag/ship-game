@@ -158,6 +158,7 @@ test('shell camera follows flight without frame lag or changed aim, and restores
   const ship = createShipState();
   rig.setInPort(false);
   rig.toggleBinoculars([1000, 0, -5000], ship);
+  for (let i = 0; i < 180; i++) rig.update(ship, 0, 1 / 60);
   const position = camera.position.clone(), orientation = camera.quaternion.clone(), fov = camera.fov;
   const bearing = rig.bearing;
   const view = { position: [0, 200, -1000] as [number, number, number], velocity: [0, -20, -800] as [number, number, number] };
@@ -183,7 +184,7 @@ test('shell camera follows flight without frame lag or changed aim, and restores
   rig.setShellView();
   rig.update(ship, 0, .016);
   expect(rig.binoculars).toBe(true);
-  expect(camera.fov).toBe(fov);
+  expect(camera.fov).toBeCloseTo(fov, 10);
   expect(camera.position.distanceTo(position)).toBeLessThan(1e-9);
   expect(camera.quaternion.angleTo(orientation)).toBeLessThan(1e-7);
   rig.dispose();
@@ -311,5 +312,70 @@ test('VIIC chase follows underwater, scope eye breaks the surface at 7 m, and de
   expect(camera.position.y).toBeGreaterThanOrEqual(12);
   rig.setInPort(false); rig.setSubmarine(); ship.y = -50; rig.update(ship, ship.y, 0, true);
   expect(camera.position.y).toBeGreaterThanOrEqual(12);
+  rig.dispose();
+});
+
+test('tiny scroll inputs zoom continuously and settle without a camera jump', () => {
+  const { camera, canvas, rig } = interactiveCamera();
+  const ship = createShipState();
+  rig.aimAt([0, .5, -5000], ship);
+  const start = camera.position.clone(), fov = camera.fov;
+  rig.toggleBinoculars([0, .5, -5000], ship);
+  expect(camera.position.distanceTo(start)).toBeLessThan(1e-6);
+  expect(camera.fov).toBeCloseTo(fov, 10);
+  rig.update(ship, 0, 1 / 60);
+  expect(camera.fov).toBeLessThan(fov);
+  expect(camera.fov).toBeGreaterThan(14);
+  for (let i = 0; i < 120; i++) rig.update(ship, 0, 1 / 60);
+  const before = rig.magnification;
+  canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY: -1, deltaMode: 0 }));
+  for (let i = 0; i < 120; i++) rig.update(ship, 0, 1 / 60);
+  expect(rig.magnification).toBeGreaterThan(before);
+  expect(rig.magnification).toBeLessThan(before + .1);
+  rig.dispose();
+});
+
+test('chase tilt orbits above the hull at both zoom limits and permits a close look', () => {
+  const { camera, canvas, rig, drag } = interactiveCamera();
+  const ship = createShipState();
+  rig.setInPort(false); drag(0, 100000);
+  for (const deltaY of [100000, -100000]) {
+    canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY }));
+    rig.update(ship, 0, 0, true);
+    const offset = camera.position.clone().sub(new Vector3(ship.x, ship.y, ship.z));
+    expect(Math.hypot(offset.x, offset.z)).toBeLessThan(offset.y * .04);
+    const hull = new Vector3(ship.x, 0, ship.z).project(camera);
+    expect(Math.abs(hull.x)).toBeLessThan(.02); expect(Math.abs(hull.y)).toBeLessThan(.1);
+  }
+  expect(camera.position.length()).toBeLessThan(100);
+  rig.dispose();
+});
+
+test('aiming during an optics transition keeps the camera glide and rapid toggles remain continuous', () => {
+  const { camera, rig, drag } = interactiveCamera();
+  const ship = createShipState();
+  const aim: [number, number, number] = [0, .5, -5000];
+  rig.aimAt(aim, ship); rig.toggleBinoculars(aim, ship); rig.update(ship, 0, .08);
+  const start = camera.position.clone();
+  drag(2, 1); rig.update(ship, 0, 0);
+  expect(camera.position.distanceTo(start)).toBeLessThan(.01);
+  const beforeReverse = camera.position.clone(), fov = camera.fov;
+  rig.toggleBinoculars(aim, ship);
+  expect(camera.position.distanceTo(beforeReverse)).toBeLessThan(1e-6);
+  expect(camera.fov).toBeCloseTo(fov, 10);
+  for (let i = 0; i < 120; i++) rig.update(ship, 0, 1 / 60);
+  expect(camera.fov).toBeCloseTo(52, 5);
+  rig.dispose();
+});
+
+
+test('a submerged submarine can also orbit to a near-vertical view of its hull', () => {
+  const { camera, rig, drag } = interactiveCamera();
+  rig.setHullLength(viic.hull.length);
+  rig.setSubmarine(viic.submarine as import('../ships/blueprint').SubmarineDefinition);
+  rig.setInPort(false);
+  const ship = createShipState(); ship.y = -50;
+  drag(0, 100000); rig.update(ship, ship.y, 0, true);
+  expect(Math.hypot(camera.position.x, camera.position.z)).toBeLessThan((camera.position.y - ship.y) * .04);
   rig.dispose();
 });

@@ -14,6 +14,7 @@ export interface Telemetry {
   islands?: Island[];
   ship: ShipState;
   order: number;
+  rudderOrder?: number;
   camera: CameraMode;
   binoculars?: boolean;
   magnification?: number;
