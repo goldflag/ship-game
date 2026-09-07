@@ -74,8 +74,8 @@ for (const caliber of [.02, .037, .105]) test(`${caliber * 1000} mm: rare strong
   };
   const calm = run(false), panic = run(true);
   expect(calm.hits).toBeGreaterThan(0);
-  expect(calm.hits / calm.shots).toBeLessThan(caliber > .08 ? .05 : .015);
-  expect(calm.damage / calm.hits).toBe(caliber > .08 ? 100 : caliber > .025 ? 40 : 20);
+  expect(calm.hits / calm.shots).toBeLessThan(caliber > .08 ? .015 : .005);
+  expect(calm.damage / calm.hits).toBe(caliber > .08 ? 40 : caliber > .025 ? 16 : 8);
   expect(panic.hits).toBeLessThan(calm.hits / 10);
   expect(panic.offTarget / panic.shots).toBeGreaterThan(.9);
   const inbound = run(false, true);

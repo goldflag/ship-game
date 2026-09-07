@@ -3,8 +3,8 @@ import { add, clamp, length, scale, sub } from './geometry';
 
 /** Gameplay calibration: these are burst outcomes, not historical per-bullet rates. */
 export const AIR_GUNNERY = {
-  aaSpread: (distance: number) => .03 + distance / 40000,
-  aaDamage: (caliber: number) => caliber > .08 ? 100 : caliber > .025 ? 40 : 20,
+  aaSpread: (distance: number) => .06 + distance / 20000,
+  aaDamage: (caliber: number) => caliber > .08 ? 40 : caliber > .025 ? 16 : 8,
   fighterSpread: (bank: number) => .07 + Math.abs(bank) * .04,
   fighterDamage: 80,
 };

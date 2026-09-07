@@ -97,7 +97,7 @@ test('fixed-tick combat integrates bot air operations and resets airborne payloa
 test('aircraft weapons resolve actual ship hits and score hostile damage through combat', () => {
   const { sim } = fixture();
   // Isolate ingress survival while leaving equipment available for payload damage.
-  sim.target.mounts.forEach(m => { m.ammo = m.apAmmo = m.heAmmo = 0; });
+  sim.target.mounts.forEach(m => { m.ammo = m.heAmmo = 0; });
   sim.launchAircraft('vb-6'); sim.launchAircraft('vt-6');
   let bombHit = false, torpedoHit = false;
   for (let i = 0; i < 280 * 60; i++) {

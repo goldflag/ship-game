@@ -1,0 +1,146 @@
+{
+  "date": "2026-09-07",
+  "durationSeconds": 240,
+  "spawnDistanceM": 5000,
+  "attacker": "enterprise-cv6",
+  "squadrons": [
+    "vb-6",
+    "vt-6"
+  ],
+  "targetController": "idle (automatic AA active; no surface fire or fighter launches)",
+  "before": {
+    "spread": ".03 + distance / 40000",
+    "damage": [
+      20,
+      40,
+      100
+    ]
+  },
+  "after": {
+    "spread": ".06 + distance / 20000",
+    "damage": [
+      8,
+      16,
+      40
+    ]
+  },
+  "runs": [
+    {
+      "tuning": "before",
+      "target": "bismarck",
+      "seed": 11,
+      "launched": 12,
+      "released": 11,
+      "lost": 6,
+      "shots": 975
+    },
+    {
+      "tuning": "before",
+      "target": "bismarck",
+      "seed": 73,
+      "launched": 12,
+      "released": 11,
+      "lost": 8,
+      "shots": 642
+    },
+    {
+      "tuning": "before",
+      "target": "bismarck",
+      "seed": 93,
+      "launched": 12,
+      "released": 11,
+      "lost": 7,
+      "shots": 699
+    },
+    {
+      "tuning": "before",
+      "target": "enterprise-cv6",
+      "seed": 11,
+      "launched": 12,
+      "released": 12,
+      "lost": 8,
+      "shots": 1490
+    },
+    {
+      "tuning": "before",
+      "target": "enterprise-cv6",
+      "seed": 73,
+      "launched": 12,
+      "released": 11,
+      "lost": 6,
+      "shots": 1793
+    },
+    {
+      "tuning": "before",
+      "target": "enterprise-cv6",
+      "seed": 93,
+      "launched": 12,
+      "released": 10,
+      "lost": 8,
+      "shots": 1050
+    },
+    {
+      "tuning": "after",
+      "target": "bismarck",
+      "seed": 11,
+      "launched": 12,
+      "released": 12,
+      "lost": 1,
+      "shots": 1013
+    },
+    {
+      "tuning": "after",
+      "target": "bismarck",
+      "seed": 73,
+      "launched": 12,
+      "released": 12,
+      "lost": 0,
+      "shots": 992
+    },
+    {
+      "tuning": "after",
+      "target": "bismarck",
+      "seed": 93,
+      "launched": 12,
+      "released": 12,
+      "lost": 1,
+      "shots": 890
+    },
+    {
+      "tuning": "after",
+      "target": "enterprise-cv6",
+      "seed": 11,
+      "launched": 12,
+      "released": 12,
+      "lost": 0,
+      "shots": 1636
+    },
+    {
+      "tuning": "after",
+      "target": "enterprise-cv6",
+      "seed": 73,
+      "launched": 12,
+      "released": 12,
+      "lost": 0,
+      "shots": 1903
+    },
+    {
+      "tuning": "after",
+      "target": "enterprise-cv6",
+      "seed": 93,
+      "launched": 12,
+      "released": 12,
+      "lost": 0,
+      "shots": 1760
+    }
+  ],
+  "browser": {
+    "backend": "WebGPUBackend",
+    "launched": 12,
+    "lost": 0,
+    "released": 12,
+    "seed": 4177941675,
+    "shots": 1249
+  },
+  "sourceSha256": "4ffdec7103fb57f13d367a46b4c4a31806dbad81f3591d336bc8a23ace8a4d23"
+}
