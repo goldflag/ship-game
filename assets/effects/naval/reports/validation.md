@@ -1,5 +1,9 @@
 # Naval firing and shell effects
 
+## Long shell trails and projectile detail — September 7, 2026
+
+Shells now use compact white-gold heads, thin pale trails retaining recent CPU flight positions, and an original metal projectile with an ogive, cap seam, copper driving bands and recessed base. Close camera views reveal the model; distant rounds use a simpler silhouette. See the [current source hashes, in-game captures and validation](wows-shells/README.md). Earlier amber-ribbon reviews below are historical evidence.
+
 ## Water impact polish — September 7, 2026
 
 Shell splashes use the first PR #80 iteration’s long water streaks, curved sheets and low crown, restored after owner review. The original breakup, mist and lighter foam are retained with current lighting and offscreen culling. See the [current animation and rendering checks](../../../reviews/water-impact/streaks/README.md). The later parcel-column experiment remains historical evidence.
