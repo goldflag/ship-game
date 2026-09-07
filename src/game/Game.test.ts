@@ -51,6 +51,7 @@ async function port() {
     currentAim: [650, .5, -550], manualAim: true, shellFollow: new ShellFollow(),
     aircraftView: { root: new Group(), async load() {}, diagnostics() { return {}; } },
     effects: { reset() {}, diagnostics() { return {}; } },
+    funnelSmoke: { diagnostics() { return {}; } },
     shipLabels: { setFleet() {} },
     ship: new Group(), inPort: true, disposed: false, switchingShip: false,
     renderer: { domElement: { setAttribute() {} } },
@@ -153,7 +154,9 @@ test('battle loading binds each mixed fleet hull and selected target to its own 
   const { game, scene, harbor, rig } = await port();
   const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => model(String(url).split('/').pop()!.replace('.glb', '')));
   try {
-    await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck', 'bismarck'], enemies: ['yamato', 'enterprise-cv6'], spawnDistance: 7500, mapId: 'pacific-islands', timeOfDay: 'night', weather: 'fog' });
+    await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck', { shipId: 'bismarck', aiLevel: 'hard' }],
+      enemies: [{ shipId: 'yamato', aiLevel: 'static' }, { shipId: 'enterprise-cv6', aiLevel: 'moving' }],
+      spawnDistance: 7500, mapId: 'pacific-islands', timeOfDay: 'night', weather: 'fog' });
     expect(loader).toHaveBeenCalledTimes(4);
     expect(scene.children).toContain(harbor);
     expect(scene.children).toHaveLength(8); // Harbor, aircraft, five hull roots, fleet draw adapter.
@@ -166,6 +169,7 @@ test('battle loading binds each mixed fleet hull and selected target to its own 
     expect(game.simulation.ship.heading).toBe(0);
     expect(game.simulation.target.motion.heading).toBe(Math.PI);
     const diagnostics = game.diagnostics();
+    expect(diagnostics.fleet.map(actor => actor.aiLevel)).toEqual([undefined, 'normal', 'hard', 'static', 'moving']);
     expect(diagnostics.maxMuzzleErrorM).toBeLessThan(.025);
     expect(diagnostics.renderedShips.filter(ship => ship.visible).map(ship => ship.id)).toEqual(['player']);
     game.selectTarget('enemy-2');

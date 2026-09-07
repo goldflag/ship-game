@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "aircraftId": "a6m5-zero",
-  "contentHash": "a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844",
-  "method": "blender-mcp",
+  "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+  "method": "local-blender",
   "blenderVersion": "5.2.0 LTS",
   "originalGeometry": true,
   "shapeSource": "shapes/a6m5-zero.json",

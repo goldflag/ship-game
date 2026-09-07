@@ -57,6 +57,7 @@ async function frameHarness() {
       setRudder: (rudder: number) => { helm.rudder = rudder; } },
     aircraftView: { update() {} },
     effects: { update() {}, reset() {} }, sky: { update() {} }, scene: new FrameScene(),
+    funnelSmoke: { root: new Group(), update() {}, setWind() {} },
     surfaceWaterAbsorption: new Color(.296, .105, .095),
     water: { color: { absorptionColor: new Color(.296, .105, .095) }, async update() {} },
     shipWake: { update: (ship: { z: number }) => wakePositions.push(ship.z), reset() {} },

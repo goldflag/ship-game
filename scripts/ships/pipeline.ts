@@ -8,6 +8,10 @@ import { barrelIds, compileShip, type ShipDefinition } from '../../src/ships/blu
 const root = resolve(import.meta.dir, '../..');
 const [action = 'check', shipId = 'bismarck'] = process.argv.slice(2);
 if (!['build', 'check', 'compile', 'review', 'thumbnail'].includes(action) || !/^[a-z][a-z0-9-]{0,63}$/.test(shipId)) throw new Error('Usage: bun scripts/ships/pipeline.ts build|check|compile|review|thumbnail <ship-id>');
+if (shipId === 'all') {
+  const { runFleet } = await import('./fleet');
+  process.exit(await runFleet(action));
+}
 const sourceDir = join(root, 'assets/ships', shipId);
 const stage = join(root, '.build/ships', shipId);
 const catalog = JSON.parse(await readFile(join(root, 'assets/parts/guns.json'), 'utf8'));

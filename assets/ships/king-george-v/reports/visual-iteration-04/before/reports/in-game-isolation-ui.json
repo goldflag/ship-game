@@ -1,0 +1,779 @@
+{
+  "origin": "http://localhost:61731/?ship=king-george-v",
+  "refs": {
+    "e1": {
+      "name": "HMS King George V ocean scene. Drag to orbit; scroll to zoom.",
+      "role": "Canvas"
+    },
+    "e10": {
+      "name": "Commander",
+      "role": "button"
+    },
+    "e100": {
+      "name": "Port outer space 5.3 \u00b7 estimated Compartment 47 m\u00b3",
+      "role": "button"
+    },
+    "e101": {
+      "name": "Starboard outer space 5.3 \u00b7 estimated Compartment 47 m\u00b3",
+      "role": "button"
+    },
+    "e102": {
+      "name": "Port outer space 5.4 \u00b7 estimated Compartment 52 m\u00b3",
+      "role": "button"
+    },
+    "e103": {
+      "name": "Starboard outer space 5.4 \u00b7 estimated Compartment 52 m\u00b3",
+      "role": "button"
+    },
+    "e104": {
+      "name": "Port outer space 5.5 \u00b7 estimated Compartment 145 m\u00b3",
+      "role": "button"
+    },
+    "e105": {
+      "name": "Starboard outer space 5.5 \u00b7 estimated Compartment 145 m\u00b3",
+      "role": "button"
+    },
+    "e106": {
+      "name": "Port outer space 5.6 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e107": {
+      "name": "Starboard outer space 5.6 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e108": {
+      "name": "Port outer space 6.1 \u00b7 estimated Compartment 64 m\u00b3",
+      "role": "button"
+    },
+    "e109": {
+      "name": "Starboard outer space 6.1 \u00b7 estimated Compartment 64 m\u00b3",
+      "role": "button"
+    },
+    "e11": {
+      "name": "Fleet",
+      "role": "button"
+    },
+    "e110": {
+      "name": "Port outer space 6.2 \u00b7 estimated Compartment 68 m\u00b3",
+      "role": "button"
+    },
+    "e111": {
+      "name": "Starboard outer space 6.2 \u00b7 estimated Compartment 68 m\u00b3",
+      "role": "button"
+    },
+    "e112": {
+      "name": "Port outer space 6.3 \u00b7 estimated Compartment 70 m\u00b3",
+      "role": "button"
+    },
+    "e113": {
+      "name": "Starboard outer space 6.3 \u00b7 estimated Compartment 70 m\u00b3",
+      "role": "button"
+    },
+    "e114": {
+      "name": "Port outer space 6.4 \u00b7 estimated Compartment 70 m\u00b3",
+      "role": "button"
+    },
+    "e115": {
+      "name": "Starboard outer space 6.4 \u00b7 estimated Compartment 70 m\u00b3",
+      "role": "button"
+    },
+    "e116": {
+      "name": "Port outer space 6.5 \u00b7 estimated Compartment 161 m\u00b3",
+      "role": "button"
+    },
+    "e117": {
+      "name": "Starboard outer space 6.5 \u00b7 estimated Compartment 161 m\u00b3",
+      "role": "button"
+    },
+    "e118": {
+      "name": "Port outer space 6.6 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e119": {
+      "name": "Starboard outer space 6.6 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e12": {
+      "name": "CUSTOM BATTLE",
+      "role": "button"
+    },
+    "e120": {
+      "name": "Port outer space 7.1 \u00b7 estimated Compartment 15 m\u00b3",
+      "role": "button"
+    },
+    "e121": {
+      "name": "Starboard outer space 7.1 \u00b7 estimated Compartment 15 m\u00b3",
+      "role": "button"
+    },
+    "e122": {
+      "name": "Port outer space 7.2 \u00b7 estimated Compartment 38 m\u00b3",
+      "role": "button"
+    },
+    "e123": {
+      "name": "Starboard outer space 7.2 \u00b7 estimated Compartment 38 m\u00b3",
+      "role": "button"
+    },
+    "e124": {
+      "name": "Port outer space 7.3 \u00b7 estimated Compartment 47 m\u00b3",
+      "role": "button"
+    },
+    "e125": {
+      "name": "Starboard outer space 7.3 \u00b7 estimated Compartment 47 m\u00b3",
+      "role": "button"
+    },
+    "e126": {
+      "name": "Port outer space 7.4 \u00b7 estimated Compartment 52 m\u00b3",
+      "role": "button"
+    },
+    "e127": {
+      "name": "Starboard outer space 7.4 \u00b7 estimated Compartment 52 m\u00b3",
+      "role": "button"
+    },
+    "e128": {
+      "name": "Port outer space 7.5 \u00b7 estimated Compartment 145 m\u00b3",
+      "role": "button"
+    },
+    "e129": {
+      "name": "Starboard outer space 7.5 \u00b7 estimated Compartment 145 m\u00b3",
+      "role": "button"
+    },
+    "e13": {
+      "name": "Statistics",
+      "role": "button"
+    },
+    "e130": {
+      "name": "Port outer space 7.6 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e131": {
+      "name": "Starboard outer space 7.6 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e132": {
+      "name": "Port outer space 8.5 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e133": {
+      "name": "Starboard outer space 8.5 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e134": {
+      "name": "Port outer space 8.6 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e135": {
+      "name": "Starboard outer space 8.6 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e136": {
+      "name": "Port outer space 9.2 \u00b7 estimated Compartment 7 m\u00b3",
+      "role": "button"
+    },
+    "e137": {
+      "name": "Starboard outer space 9.2 \u00b7 estimated Compartment 7 m\u00b3",
+      "role": "button"
+    },
+    "e138": {
+      "name": "Port outer space 9.3 \u00b7 estimated Compartment 52 m\u00b3",
+      "role": "button"
+    },
+    "e139": {
+      "name": "Starboard outer space 9.3 \u00b7 estimated Compartment 52 m\u00b3",
+      "role": "button"
+    },
+    "e14": {
+      "name": "Armor",
+      "role": "button"
+    },
+    "e140": {
+      "name": "Port outer space 9.4 \u00b7 estimated Compartment 84 m\u00b3",
+      "role": "button"
+    },
+    "e141": {
+      "name": "Starboard outer space 9.4 \u00b7 estimated Compartment 84 m\u00b3",
+      "role": "button"
+    },
+    "e142": {
+      "name": "Port outer space 9.5 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e143": {
+      "name": "Starboard outer space 9.5 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e144": {
+      "name": "Port outer space 9.6 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e145": {
+      "name": "Starboard outer space 9.6 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e146": {
+      "name": "Port outer space 10.3 \u00b7 estimated Compartment 17 m\u00b3",
+      "role": "button"
+    },
+    "e147": {
+      "name": "Starboard outer space 10.3 \u00b7 estimated Compartment 17 m\u00b3",
+      "role": "button"
+    },
+    "e148": {
+      "name": "Port outer space 10.4 \u00b7 estimated Compartment 52 m\u00b3",
+      "role": "button"
+    },
+    "e149": {
+      "name": "Starboard outer space 10.4 \u00b7 estimated Compartment 52 m\u00b3",
+      "role": "button"
+    },
+    "e15": {
+      "name": "Internals",
+      "role": "button"
+    },
+    "e150": {
+      "name": "Port outer space 10.5 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e151": {
+      "name": "Starboard outer space 10.5 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e152": {
+      "name": "Port outer space 10.6 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e153": {
+      "name": "Starboard outer space 10.6 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e154": {
+      "name": "Port outer space 11.5 \u00b7 estimated Compartment 26 m\u00b3",
+      "role": "button"
+    },
+    "e155": {
+      "name": "Starboard outer space 11.5 \u00b7 estimated Compartment 26 m\u00b3",
+      "role": "button"
+    },
+    "e156": {
+      "name": "Port outer space 11.6 \u00b7 estimated Compartment 34 m\u00b3",
+      "role": "button"
+    },
+    "e157": {
+      "name": "Starboard outer space 11.6 \u00b7 estimated Compartment 34 m\u00b3",
+      "role": "button"
+    },
+    "e158": {
+      "name": "Bow end space 1 \u00b7 estimated Compartment 8 m\u00b3",
+      "role": "button"
+    },
+    "e159": {
+      "name": "Bow end space 2 \u00b7 estimated Compartment 8 m\u00b3",
+      "role": "button"
+    },
+    "e16": {
+      "name": "Internal layout",
+      "role": "heading"
+    },
+    "e160": {
+      "name": "Bow end space 3 \u00b7 estimated Compartment 8 m\u00b3",
+      "role": "button"
+    },
+    "e161": {
+      "name": "Bow end space 4 \u00b7 estimated Compartment 8 m\u00b3",
+      "role": "button"
+    },
+    "e162": {
+      "name": "Bow end space 5 \u00b7 estimated Compartment 8 m\u00b3",
+      "role": "button"
+    },
+    "e163": {
+      "name": "Bow end space 6 \u00b7 estimated Compartment 8 m\u00b3",
+      "role": "button"
+    },
+    "e164": {
+      "name": "Stern end space 1 \u00b7 estimated Compartment 5 m\u00b3",
+      "role": "button"
+    },
+    "e165": {
+      "name": "Stern end space 2 \u00b7 estimated Compartment 8 m\u00b3",
+      "role": "button"
+    },
+    "e166": {
+      "name": "Stern end space 3 \u00b7 estimated Compartment 4 m\u00b3",
+      "role": "button"
+    },
+    "e167": {
+      "name": "Stern end space 4 \u00b7 estimated Compartment 8 m\u00b3",
+      "role": "button"
+    },
+    "e168": {
+      "name": "Stern end space 5 \u00b7 estimated Compartment 2 m\u00b3",
+      "role": "button"
+    },
+    "e169": {
+      "name": "Stern end space 6 \u00b7 estimated Compartment 2 m\u00b3",
+      "role": "button"
+    },
+    "e17": {
+      "name": "Find armor or space",
+      "role": "searchbox"
+    },
+    "e170": {
+      "name": "Port deep reserve space 1 \u00b7 estimated Compartment 333 m\u00b3",
+      "role": "button"
+    },
+    "e171": {
+      "name": "Port middle reserve space 1 \u00b7 estimated Compartment 903 m\u00b3",
+      "role": "button"
+    },
+    "e172": {
+      "name": "Port upper reserve space 1 \u00b7 estimated Compartment 1,300 m\u00b3",
+      "role": "button"
+    },
+    "e173": {
+      "name": "Starboard deep reserve space 1 \u00b7 estimated Compartment 333 m\u00b3",
+      "role": "button"
+    },
+    "e174": {
+      "name": "Starboard middle reserve space 1 \u00b7 estimated Compartment 903 m\u00b3",
+      "role": "button"
+    },
+    "e175": {
+      "name": "Starboard upper reserve space 1 \u00b7 estimated Compartment 1,300 m\u00b3",
+      "role": "button"
+    },
+    "e176": {
+      "name": "Port deep reserve space 2 \u00b7 estimated Compartment 1,721 m\u00b3",
+      "role": "button"
+    },
+    "e177": {
+      "name": "Port middle reserve space 2 \u00b7 estimated Compartment 1,943 m\u00b3",
+      "role": "button"
+    },
+    "e178": {
+      "name": "Port upper reserve space 2 \u00b7 estimated Compartment 2,578 m\u00b3",
+      "role": "button"
+    },
+    "e179": {
+      "name": "Starboard deep reserve space 2 \u00b7 estimated Compartment 1,721 m\u00b3",
+      "role": "button"
+    },
+    "e18": {
+      "name": "A 14-inch magazine Magazine 210 HP",
+      "role": "button"
+    },
+    "e180": {
+      "name": "Starboard middle reserve space 2 \u00b7 estimated Compartment 1,943 m\u00b3",
+      "role": "button"
+    },
+    "e181": {
+      "name": "Starboard upper reserve space 2 \u00b7 estimated Compartment 2,578 m\u00b3",
+      "role": "button"
+    },
+    "e182": {
+      "name": "Port deep reserve space 3 \u00b7 estimated Compartment 2,036 m\u00b3",
+      "role": "button"
+    },
+    "e183": {
+      "name": "Port middle reserve space 3 \u00b7 estimated Compartment 2,543 m\u00b3",
+      "role": "button"
+    },
+    "e184": {
+      "name": "Port upper reserve space 3 \u00b7 estimated Compartment 2,634 m\u00b3",
+      "role": "button"
+    },
+    "e185": {
+      "name": "Starboard deep reserve space 3 \u00b7 estimated Compartment 2,036 m\u00b3",
+      "role": "button"
+    },
+    "e186": {
+      "name": "Starboard middle reserve space 3 \u00b7 estimated Compartment 2,543 m\u00b3",
+      "role": "button"
+    },
+    "e187": {
+      "name": "Starboard upper reserve space 3 \u00b7 estimated Compartment 2,634 m\u00b3",
+      "role": "button"
+    },
+    "e188": {
+      "name": "Port deep reserve space 4 \u00b7 estimated Compartment 211 m\u00b3",
+      "role": "button"
+    },
+    "e189": {
+      "name": "Port middle reserve space 4 \u00b7 estimated Compartment 967 m\u00b3",
+      "role": "button"
+    },
+    "e19": {
+      "name": "B 14-inch magazine Magazine 210 HP",
+      "role": "button"
+    },
+    "e190": {
+      "name": "Port upper reserve space 4 \u00b7 estimated Compartment 1,379 m\u00b3",
+      "role": "button"
+    },
+    "e191": {
+      "name": "Starboard deep reserve space 4 \u00b7 estimated Compartment 211 m\u00b3",
+      "role": "button"
+    },
+    "e192": {
+      "name": "Starboard middle reserve space 4 \u00b7 estimated Compartment 967 m\u00b3",
+      "role": "button"
+    },
+    "e193": {
+      "name": "Starboard upper reserve space 4 \u00b7 estimated Compartment 1,379 m\u00b3",
+      "role": "button"
+    },
+    "e2": {
+      "name": "Port sections",
+      "role": "navigation"
+    },
+    "e20": {
+      "name": "Y 14-inch magazine Magazine 210 HP",
+      "role": "button"
+    },
+    "e21": {
+      "name": "P1 5.25-inch magazine Magazine 80 HP",
+      "role": "button"
+    },
+    "e22": {
+      "name": "P2 5.25-inch magazine Magazine 80 HP",
+      "role": "button"
+    },
+    "e23": {
+      "name": "P3 5.25-inch magazine Magazine 80 HP",
+      "role": "button"
+    },
+    "e24": {
+      "name": "P4 5.25-inch magazine Magazine 80 HP",
+      "role": "button"
+    },
+    "e25": {
+      "name": "S1 5.25-inch magazine Magazine 80 HP",
+      "role": "button"
+    },
+    "e26": {
+      "name": "S2 5.25-inch magazine Magazine 80 HP",
+      "role": "button"
+    },
+    "e27": {
+      "name": "S3 5.25-inch magazine Magazine 80 HP",
+      "role": "button"
+    },
+    "e28": {
+      "name": "S4 5.25-inch magazine Magazine 80 HP",
+      "role": "button"
+    },
+    "e29": {
+      "name": "Boiler 1.1 Machinery 170 HP",
+      "role": "button"
+    },
+    "e3": {
+      "name": "Port settings",
+      "role": "button"
+    },
+    "e30": {
+      "name": "Boiler 1.2 Machinery 170 HP",
+      "role": "button"
+    },
+    "e31": {
+      "name": "Turbine set 1 Machinery 180 HP",
+      "role": "button"
+    },
+    "e32": {
+      "name": "Boiler 2.1 Machinery 170 HP",
+      "role": "button"
+    },
+    "e33": {
+      "name": "Boiler 2.2 Machinery 170 HP",
+      "role": "button"
+    },
+    "e34": {
+      "name": "Turbine set 2 Machinery 180 HP",
+      "role": "button"
+    },
+    "e35": {
+      "name": "Boiler 3.1 Machinery 170 HP",
+      "role": "button"
+    },
+    "e36": {
+      "name": "Boiler 3.2 Machinery 170 HP",
+      "role": "button"
+    },
+    "e37": {
+      "name": "Turbine set 3 Machinery 180 HP",
+      "role": "button"
+    },
+    "e38": {
+      "name": "Boiler 4.1 Machinery 170 HP",
+      "role": "button"
+    },
+    "e39": {
+      "name": "Boiler 4.2 Machinery 170 HP",
+      "role": "button"
+    },
+    "e4": {
+      "name": "HMS KING GEORGE V",
+      "role": "heading"
+    },
+    "e40": {
+      "name": "Turbine set 4 Machinery 180 HP",
+      "role": "button"
+    },
+    "e41": {
+      "name": "Steering gear Steering gear 150 HP",
+      "role": "button"
+    },
+    "e42": {
+      "name": "A 14-inch magazine space Compartment 857 m\u00b3",
+      "role": "button"
+    },
+    "e43": {
+      "name": "B 14-inch magazine space Compartment 786 m\u00b3",
+      "role": "button"
+    },
+    "e44": {
+      "name": "Y 14-inch magazine space Compartment 434 m\u00b3",
+      "role": "button"
+    },
+    "e45": {
+      "name": "P1 5.25-inch magazine space Compartment 120 m\u00b3",
+      "role": "button"
+    },
+    "e46": {
+      "name": "P2 5.25-inch magazine space Compartment 120 m\u00b3",
+      "role": "button"
+    },
+    "e47": {
+      "name": "P3 5.25-inch magazine space Compartment 120 m\u00b3",
+      "role": "button"
+    },
+    "e48": {
+      "name": "P4 5.25-inch magazine space Compartment 106 m\u00b3",
+      "role": "button"
+    },
+    "e49": {
+      "name": "S1 5.25-inch magazine space Compartment 120 m\u00b3",
+      "role": "button"
+    },
+    "e5": {
+      "name": "Create schematic",
+      "role": "button"
+    },
+    "e50": {
+      "name": "S2 5.25-inch magazine space Compartment 120 m\u00b3",
+      "role": "button"
+    },
+    "e51": {
+      "name": "S3 5.25-inch magazine space Compartment 120 m\u00b3",
+      "role": "button"
+    },
+    "e52": {
+      "name": "S4 5.25-inch magazine space Compartment 106 m\u00b3",
+      "role": "button"
+    },
+    "e53": {
+      "name": "Boiler 1.1 space Compartment 280 m\u00b3",
+      "role": "button"
+    },
+    "e54": {
+      "name": "Boiler 1.2 space Compartment 280 m\u00b3",
+      "role": "button"
+    },
+    "e55": {
+      "name": "Turbine set 1 space Compartment 201 m\u00b3",
+      "role": "button"
+    },
+    "e56": {
+      "name": "Boiler 2.1 space Compartment 280 m\u00b3",
+      "role": "button"
+    },
+    "e57": {
+      "name": "Boiler 2.2 space Compartment 280 m\u00b3",
+      "role": "button"
+    },
+    "e58": {
+      "name": "Turbine set 2 space Compartment 201 m\u00b3",
+      "role": "button"
+    },
+    "e59": {
+      "name": "Boiler 3.1 space Compartment 280 m\u00b3",
+      "role": "button"
+    },
+    "e6": {
+      "name": "Reference review",
+      "role": "link"
+    },
+    "e60": {
+      "name": "Boiler 3.2 space Compartment 280 m\u00b3",
+      "role": "button"
+    },
+    "e61": {
+      "name": "Turbine set 3 space Compartment 201 m\u00b3",
+      "role": "button"
+    },
+    "e62": {
+      "name": "Boiler 4.1 space Compartment 280 m\u00b3",
+      "role": "button"
+    },
+    "e63": {
+      "name": "Boiler 4.2 space Compartment 280 m\u00b3",
+      "role": "button"
+    },
+    "e64": {
+      "name": "Turbine set 4 space Compartment 201 m\u00b3",
+      "role": "button"
+    },
+    "e65": {
+      "name": "Steering gear space Compartment 46 m\u00b3",
+      "role": "button"
+    },
+    "e66": {
+      "name": "Port outer space 2.1 \u00b7 estimated Compartment 26 m\u00b3",
+      "role": "button"
+    },
+    "e67": {
+      "name": "Starboard outer space 2.1 \u00b7 estimated Compartment 26 m\u00b3",
+      "role": "button"
+    },
+    "e68": {
+      "name": "Port outer space 2.2 \u00b7 estimated Compartment 40 m\u00b3",
+      "role": "button"
+    },
+    "e69": {
+      "name": "Starboard outer space 2.2 \u00b7 estimated Compartment 40 m\u00b3",
+      "role": "button"
+    },
+    "e7": {
+      "name": "Ship internal modules",
+      "role": "region"
+    },
+    "e70": {
+      "name": "Port outer space 2.3 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e71": {
+      "name": "Starboard outer space 2.3 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e72": {
+      "name": "Port outer space 2.4 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e73": {
+      "name": "Starboard outer space 2.4 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e74": {
+      "name": "Port outer space 2.5 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e75": {
+      "name": "Starboard outer space 2.5 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e76": {
+      "name": "Port outer space 2.6 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e77": {
+      "name": "Starboard outer space 2.6 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e78": {
+      "name": "Port outer space 3.4 \u00b7 estimated Compartment 25 m\u00b3",
+      "role": "button"
+    },
+    "e79": {
+      "name": "Starboard outer space 3.4 \u00b7 estimated Compartment 25 m\u00b3",
+      "role": "button"
+    },
+    "e8": {
+      "name": "Port",
+      "role": "button"
+    },
+    "e80": {
+      "name": "Port outer space 3.5 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e81": {
+      "name": "Starboard outer space 3.5 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e82": {
+      "name": "Port outer space 3.6 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e83": {
+      "name": "Starboard outer space 3.6 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e84": {
+      "name": "Port outer space 4.1 \u00b7 estimated Compartment 34 m\u00b3",
+      "role": "button"
+    },
+    "e85": {
+      "name": "Starboard outer space 4.1 \u00b7 estimated Compartment 34 m\u00b3",
+      "role": "button"
+    },
+    "e86": {
+      "name": "Port outer space 4.2 \u00b7 estimated Compartment 74 m\u00b3",
+      "role": "button"
+    },
+    "e87": {
+      "name": "Starboard outer space 4.2 \u00b7 estimated Compartment 74 m\u00b3",
+      "role": "button"
+    },
+    "e88": {
+      "name": "Port outer space 4.3 \u00b7 estimated Compartment 101 m\u00b3",
+      "role": "button"
+    },
+    "e89": {
+      "name": "Starboard outer space 4.3 \u00b7 estimated Compartment 101 m\u00b3",
+      "role": "button"
+    },
+    "e9": {
+      "name": "Equipment",
+      "role": "button"
+    },
+    "e90": {
+      "name": "Port outer space 4.4 \u00b7 estimated Compartment 116 m\u00b3",
+      "role": "button"
+    },
+    "e91": {
+      "name": "Starboard outer space 4.4 \u00b7 estimated Compartment 116 m\u00b3",
+      "role": "button"
+    },
+    "e92": {
+      "name": "Port outer space 4.5 \u00b7 estimated Compartment 128 m\u00b3",
+      "role": "button"
+    },
+    "e93": {
+      "name": "Starboard outer space 4.5 \u00b7 estimated Compartment 128 m\u00b3",
+      "role": "button"
+    },
+    "e94": {
+      "name": "Port outer space 4.6 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e95": {
+      "name": "Starboard outer space 4.6 \u00b7 estimated Compartment 41 m\u00b3",
+      "role": "button"
+    },
+    "e96": {
+      "name": "Port outer space 5.1 \u00b7 estimated Compartment 15 m\u00b3",
+      "role": "button"
+    },
+    "e97": {
+      "name": "Starboard outer space 5.1 \u00b7 estimated Compartment 15 m\u00b3",
+      "role": "button"
+    },
+    "e98": {
+      "name": "Port outer space 5.2 \u00b7 estimated Compartment 38 m\u00b3",
+      "role": "button"
+    },
+    "e99": {
+      "name": "Starboard outer space 5.2 \u00b7 estimated Compartment 38 m\u00b3",
+      "role": "button"
+    }
+  },
+  "snapshot": "- main\n  - Canvas \"HMS King George V ocean scene. Drag to orbit; scroll to zoom.\" [ref=e1] focusable [tabindex]\n  - generic\n    - generic\n      - sectionheader\n        - strong\n          - StaticText \"FLEET COMMAND\"\n        - navigation \"Port sections\" [ref=e2]\n          - button \"Port\" [ref=e8]\n          - button \"Equipment\" [ref=e9]\n          - button \"Commander\" [ref=e10]\n          - button \"Fleet\" [ref=e11]\n        - button \"CUSTOM BATTLE\" [ref=e12]\n          - strong\n            - StaticText \"CUSTOM BATTLE\"\n        - generic \"Illustrative currency balances\"\n          - StaticText \"2,450,000\"\n          - StaticText \"12,400\"\n          - StaticText \"CAPTAIN 08\"\n        - button \"Port settings\" [ref=e3]\n      - generic\n        - heading \"HMS KING GEORGE V\" [level=1, ref=e4]\n        - StaticText \"VIII\"\n        - StaticText \"Battleship\"\n        - StaticText \"United Kingdom\"\n        - StaticText \" \u00b7 \"\n        - StaticText \"1941\"\n        - StaticText \"READY FOR BATTLE\"\n        - button \"Create schematic\" [ref=e5]\n        - link \"Reference review\" [ref=e6]\n      - complementary\n        - group \"Ship model view\"\n          - button \"Statistics\" [ref=e13]\n          - button \"Armor\" [ref=e14]\n          - button \"Internals\" [ref=e15]\n        - region \"Ship internal modules\" [ref=e7]\n          - generic\n            - heading \"Internal layout\" [level=2, ref=e16]\n            - StaticText \"176\"\n            - StaticText \" \"\n            - StaticText \"spaces\"\n            - paragraph\n              - StaticText \"Provisional layout. Hover a module or compartment for details. Select a row to isolate it.\"\n            - LabelText\n              - StaticText \"Find armor or space\"\n              - searchbox \"Find armor or space\" [ref=e17]\n            - generic \"Modules and compartments\"\n              - button \"A 14-inch magazine Magazine 210 HP\" [ref=e18]\n                - StaticText \"A 14-inch magazine\"\n                - StaticText \"Magazine\"\n                - strong\n                  - StaticText \"210 HP\"\n              - button \"B 14-inch magazine Magazine 210 HP\" [ref=e19]\n                - StaticText \"B 14-inch magazine\"\n                - StaticText \"Magazine\"\n                - strong\n                  - StaticText \"210 HP\"\n              - button \"Y 14-inch magazine Magazine 210 HP\" [ref=e20]\n                - StaticText \"Y 14-inch magazine\"\n                - StaticText \"Magazine\"\n                - strong\n                  - StaticText \"210 HP\"\n              - button \"P1 5.25-inch magazine Magazine 80 HP\" [ref=e21]\n                - StaticText \"P1 5.25-inch magazine\"\n                - StaticText \"Magazine\"\n                - strong\n                  - StaticText \"80 HP\"\n              - button \"P2 5.25-inch magazine Magazine 80 HP\" [ref=e22]\n                - StaticText \"P2 5.25-inch magazine\"\n                - StaticText \"Magazine\"\n                - strong\n                  - StaticText \"80 HP\"\n              - button \"P3 5.25-inch magazine Magazine 80 HP\" [ref=e23]\n                - StaticText \"P3 5.25-inch magazine\"\n                - StaticText \"Magazine\"\n                - strong\n                  - StaticText \"80 HP\"\n              - button \"P4 5.25-inch magazine Magazine 80 HP\" [ref=e24]\n                - StaticText \"P4 5.25-inch magazine\"\n                - StaticText \"Magazine\"\n                - strong\n                  - StaticText \"80 HP\"\n              - button \"S1 5.25-inch magazine Magazine 80 HP\" [ref=e25]\n                - StaticText \"S1 5.25-inch magazine\"\n                - StaticText \"Magazine\"\n                - strong\n                  - StaticText \"80 HP\"\n              - button \"S2 5.25-inch magazine Magazine 80 HP\" [ref=e26]\n                - StaticText \"S2 5.25-inch magazine\"\n                - StaticText \"Magazine\"\n                - strong\n                  - StaticText \"80 HP\"\n              - button \"S3 5.25-inch magazine Magazine 80 HP\" [ref=e27]\n                - StaticText \"S3 5.25-inch magazine\"\n                - StaticText \"Magazine\"\n                - strong\n                  - StaticText \"80 HP\"\n              - button \"S4 5.25-inch magazine Magazine 80 HP\" [ref=e28]\n                - StaticText \"S4 5.25-inch magazine\"\n                - StaticText \"Magazine\"\n                - strong\n                  - StaticText \"80 HP\"\n              - button \"Boiler 1.1 Machinery 170 HP\" [ref=e29]\n                - StaticText \"Boiler 1.1\"\n                - StaticText \"Machinery\"\n                - strong\n                  - StaticText \"170 HP\"\n              - button \"Boiler 1.2 Machinery 170 HP\" [ref=e30]\n                - StaticText \"Boiler 1.2\"\n                - StaticText \"Machinery\"\n                - strong\n                  - StaticText \"170 HP\"\n              - button \"Turbine set 1 Machinery 180 HP\" [ref=e31]\n                - StaticText \"Turbine set 1\"\n                - StaticText \"Machinery\"\n                - strong\n                  - StaticText \"180 HP\"\n              - button \"Boiler 2.1 Machinery 170 HP\" [ref=e32]\n                - StaticText \"Boiler 2.1\"\n                - StaticText \"Machinery\"\n                - strong\n                  - StaticText \"170 HP\"\n              - button \"Boiler 2.2 Machinery 170 HP\" [ref=e33]\n                - StaticText \"Boiler 2.2\"\n                - StaticText \"Machinery\"\n                - strong\n                  - StaticText \"170 HP\"\n              - button \"Turbine set 2 Machinery 180 HP\" [ref=e34]\n                - StaticText \"Turbine set 2\"\n                - StaticText \"Machinery\"\n                - strong\n                  - StaticText \"180 HP\"\n              - button \"Boiler 3.1 Machinery 170 HP\" [ref=e35]\n                - StaticText \"Boiler 3.1\"\n                - StaticText \"Machinery\"\n                - strong\n                  - StaticText \"170 HP\"\n              - button \"Boiler 3.2 Machinery 170 HP\" [ref=e36]\n                - StaticText \"Boiler 3.2\"\n                - StaticText \"Machinery\"\n                - strong\n                  - StaticText \"170 HP\"\n              - button \"Turbine set 3 Machinery 180 HP\" [ref=e37]\n                - StaticText \"Turbine set 3\"\n                - StaticText \"Machinery\"\n                - strong\n                  - StaticText \"180 HP\"\n              - button \"Boiler 4.1 Machinery 170 HP\" [ref=e38]\n                - StaticText \"Boiler 4.1\"\n                - StaticText \"Machinery\"\n                - strong\n                  - StaticText \"170 HP\"\n              - button \"Boiler 4.2 Machinery 170 HP\" [ref=e39]\n                - StaticText \"Boiler 4.2\"\n                - StaticText \"Machinery\"\n                - strong\n                  - StaticText \"170 HP\"\n              - button \"Turbine set 4 Machinery 180 HP\" [ref=e40]\n                - StaticText \"Turbine set 4\"\n                - StaticText \"Machinery\"\n                - strong\n                  - StaticText \"180 HP\"\n              - button \"Steering gear Steering gear 150 HP\" [ref=e41]\n                - StaticText \"Steering gear\"\n                - StaticText \"Steering gear\"\n                - strong\n                  - StaticText \"150 HP\"\n              - button \"A 14-inch magazine space Compartment 857 m\u00b3\" [ref=e42]\n                - StaticText \"A 14-inch magazine space\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"857 m\u00b3\"\n              - button \"B 14-inch magazine space Compartment 786 m\u00b3\" [ref=e43]\n                - StaticText \"B 14-inch magazine space\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"786 m\u00b3\"\n              - button \"Y 14-inch magazine space Compartment 434 m\u00b3\" [ref=e44]\n                - StaticText \"Y 14-inch magazine space\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"434 m\u00b3\"\n              - button \"P1 5.25-inch magazine space Compartment 120 m\u00b3\" [ref=e45]\n                - StaticText \"P1 5.25-inch magazine space\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"120 m\u00b3\"\n              - button \"P2 5.25-inch magazine space Compartment 120 m\u00b3\" [ref=e46]\n                - StaticText \"P2 5.25-inch magazine space\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"120 m\u00b3\"\n              - button \"P3 5.25-inch magazine space Compartment 120 m\u00b3\" [ref=e47]\n                - StaticText \"P3 5.25-inch magazine space\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"120 m\u00b3\"\n              - button \"P4 5.25-inch magazine space Compartment 106 m\u00b3\" [ref=e48]\n                - StaticText \"P4 5.25-inch magazine space\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"106 m\u00b3\"\n              - button \"S1 5.25-inch magazine space Compartment 120 m\u00b3\" [ref=e49]\n                - StaticText \"S1 5.25-inch magazine space\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"120 m\u00b3\"\n              - button \"S2 5.25-inch magazine space Compartment 120 m\u00b3\" [ref=e50]\n                - StaticText \"S2 5.25-inch magazine space\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"120 m\u00b3\"\n              - button \"S3 5.25-inch magazine space Compartment 120 m\u00b3\" [ref=e51]\n                - StaticText \"S3 5.25-inch magazine space\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"120 m\u00b3\"\n              - button \"S4 5.25-inch magazine space Compartment 106 m\u00b3\" [ref=e52]\n                - StaticText \"S4 5.25-inch magazine space\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"106 m\u00b3\"\n              - button \"Boiler 1.1 space Compartment 280 m\u00b3\" [ref=e53]\n                - StaticText \"Boiler 1.1 space\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"280 m\u00b3\"\n              - button \"Boiler 1.2 space Compartment 280 m\u00b3\" [ref=e54]\n                - StaticText \"Boiler 1.2 space\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"280 m\u00b3\"\n              - button \"Turbine set 1 space Compartment 201 m\u00b3\" [ref=e55]\n                - StaticText \"Turbine set 1 space\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"201 m\u00b3\"\n              - button \"Boiler 2.1 space Compartment 280 m\u00b3\" [ref=e56]\n                - StaticText \"Boiler 2.1 space\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"280 m\u00b3\"\n              - button \"Boiler 2.2 space Compartment 280 m\u00b3\" [ref=e57]\n                - StaticText \"Boiler 2.2 space\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"280 m\u00b3\"\n              - button \"Turbine set 2 space Compartment 201 m\u00b3\" [ref=e58]\n                - StaticText \"Turbine set 2 space\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"201 m\u00b3\"\n              - button \"Boiler 3.1 space Compartment 280 m\u00b3\" [ref=e59]\n                - StaticText \"Boiler 3.1 space\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"280 m\u00b3\"\n              - button \"Boiler 3.2 space Compartment 280 m\u00b3\" [ref=e60]\n                - StaticText \"Boiler 3.2 space\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"280 m\u00b3\"\n              - button \"Turbine set 3 space Compartment 201 m\u00b3\" [ref=e61]\n                - StaticText \"Turbine set 3 space\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"201 m\u00b3\"\n              - button \"Boiler 4.1 space Compartment 280 m\u00b3\" [ref=e62]\n                - StaticText \"Boiler 4.1 space\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"280 m\u00b3\"\n              - button \"Boiler 4.2 space Compartment 280 m\u00b3\" [ref=e63]\n                - StaticText \"Boiler 4.2 space\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"280 m\u00b3\"\n              - button \"Turbine set 4 space Compartment 201 m\u00b3\" [ref=e64]\n                - StaticText \"Turbine set 4 space\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"201 m\u00b3\"\n              - button \"Steering gear space Compartment 46 m\u00b3\" [ref=e65]\n                - StaticText \"Steering gear space\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"46 m\u00b3\"\n              - button \"Port outer space 2.1 \u00b7 estimated Compartment 26 m\u00b3\" [ref=e66]\n                - StaticText \"Port outer space 2.1 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"26 m\u00b3\"\n              - button \"Starboard outer space 2.1 \u00b7 estimated Compartment 26 m\u00b3\" [ref=e67]\n                - StaticText \"Starboard outer space 2.1 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"26 m\u00b3\"\n              - button \"Port outer space 2.2 \u00b7 estimated Compartment 40 m\u00b3\" [ref=e68]\n                - StaticText \"Port outer space 2.2 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"40 m\u00b3\"\n              - button \"Starboard outer space 2.2 \u00b7 estimated Compartment 40 m\u00b3\" [ref=e69]\n                - StaticText \"Starboard outer space 2.2 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"40 m\u00b3\"\n              - button \"Port outer space 2.3 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e70]\n                - StaticText \"Port outer space 2.3 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Starboard outer space 2.3 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e71]\n                - StaticText \"Starboard outer space 2.3 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Port outer space 2.4 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e72]\n                - StaticText \"Port outer space 2.4 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Starboard outer space 2.4 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e73]\n                - StaticText \"Starboard outer space 2.4 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Port outer space 2.5 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e74]\n                - StaticText \"Port outer space 2.5 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Starboard outer space 2.5 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e75]\n                - StaticText \"Starboard outer space 2.5 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Port outer space 2.6 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e76]\n                - StaticText \"Port outer space 2.6 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Starboard outer space 2.6 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e77]\n                - StaticText \"Starboard outer space 2.6 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Port outer space 3.4 \u00b7 estimated Compartment 25 m\u00b3\" [ref=e78]\n                - StaticText \"Port outer space 3.4 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"25 m\u00b3\"\n              - button \"Starboard outer space 3.4 \u00b7 estimated Compartment 25 m\u00b3\" [ref=e79]\n                - StaticText \"Starboard outer space 3.4 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"25 m\u00b3\"\n              - button \"Port outer space 3.5 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e80]\n                - StaticText \"Port outer space 3.5 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Starboard outer space 3.5 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e81]\n                - StaticText \"Starboard outer space 3.5 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Port outer space 3.6 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e82]\n                - StaticText \"Port outer space 3.6 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Starboard outer space 3.6 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e83]\n                - StaticText \"Starboard outer space 3.6 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Port outer space 4.1 \u00b7 estimated Compartment 34 m\u00b3\" [ref=e84]\n                - StaticText \"Port outer space 4.1 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"34 m\u00b3\"\n              - button \"Starboard outer space 4.1 \u00b7 estimated Compartment 34 m\u00b3\" [ref=e85]\n                - StaticText \"Starboard outer space 4.1 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"34 m\u00b3\"\n              - button \"Port outer space 4.2 \u00b7 estimated Compartment 74 m\u00b3\" [ref=e86]\n                - StaticText \"Port outer space 4.2 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"74 m\u00b3\"\n              - button \"Starboard outer space 4.2 \u00b7 estimated Compartment 74 m\u00b3\" [ref=e87]\n                - StaticText \"Starboard outer space 4.2 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"74 m\u00b3\"\n              - button \"Port outer space 4.3 \u00b7 estimated Compartment 101 m\u00b3\" [ref=e88]\n                - StaticText \"Port outer space 4.3 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"101 m\u00b3\"\n              - button \"Starboard outer space 4.3 \u00b7 estimated Compartment 101 m\u00b3\" [ref=e89]\n                - StaticText \"Starboard outer space 4.3 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"101 m\u00b3\"\n              - button \"Port outer space 4.4 \u00b7 estimated Compartment 116 m\u00b3\" [ref=e90]\n                - StaticText \"Port outer space 4.4 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"116 m\u00b3\"\n              - button \"Starboard outer space 4.4 \u00b7 estimated Compartment 116 m\u00b3\" [ref=e91]\n                - StaticText \"Starboard outer space 4.4 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"116 m\u00b3\"\n              - button \"Port outer space 4.5 \u00b7 estimated Compartment 128 m\u00b3\" [ref=e92]\n                - StaticText \"Port outer space 4.5 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"128 m\u00b3\"\n              - button \"Starboard outer space 4.5 \u00b7 estimated Compartment 128 m\u00b3\" [ref=e93]\n                - StaticText \"Starboard outer space 4.5 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"128 m\u00b3\"\n              - button \"Port outer space 4.6 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e94]\n                - StaticText \"Port outer space 4.6 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Starboard outer space 4.6 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e95]\n                - StaticText \"Starboard outer space 4.6 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Port outer space 5.1 \u00b7 estimated Compartment 15 m\u00b3\" [ref=e96]\n                - StaticText \"Port outer space 5.1 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"15 m\u00b3\"\n              - button \"Starboard outer space 5.1 \u00b7 estimated Compartment 15 m\u00b3\" [ref=e97]\n                - StaticText \"Starboard outer space 5.1 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"15 m\u00b3\"\n              - button \"Port outer space 5.2 \u00b7 estimated Compartment 38 m\u00b3\" [ref=e98]\n                - StaticText \"Port outer space 5.2 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"38 m\u00b3\"\n              - button \"Starboard outer space 5.2 \u00b7 estimated Compartment 38 m\u00b3\" [ref=e99]\n                - StaticText \"Starboard outer space 5.2 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"38 m\u00b3\"\n              - button \"Port outer space 5.3 \u00b7 estimated Compartment 47 m\u00b3\" [ref=e100]\n                - StaticText \"Port outer space 5.3 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"47 m\u00b3\"\n              - button \"Starboard outer space 5.3 \u00b7 estimated Compartment 47 m\u00b3\" [ref=e101]\n                - StaticText \"Starboard outer space 5.3 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"47 m\u00b3\"\n              - button \"Port outer space 5.4 \u00b7 estimated Compartment 52 m\u00b3\" [ref=e102]\n                - StaticText \"Port outer space 5.4 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"52 m\u00b3\"\n              - button \"Starboard outer space 5.4 \u00b7 estimated Compartment 52 m\u00b3\" [ref=e103]\n                - StaticText \"Starboard outer space 5.4 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"52 m\u00b3\"\n              - button \"Port outer space 5.5 \u00b7 estimated Compartment 145 m\u00b3\" [ref=e104]\n                - StaticText \"Port outer space 5.5 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"145 m\u00b3\"\n              - button \"Starboard outer space 5.5 \u00b7 estimated Compartment 145 m\u00b3\" [ref=e105]\n                - StaticText \"Starboard outer space 5.5 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"145 m\u00b3\"\n              - button \"Port outer space 5.6 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e106]\n                - StaticText \"Port outer space 5.6 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Starboard outer space 5.6 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e107]\n                - StaticText \"Starboard outer space 5.6 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Port outer space 6.1 \u00b7 estimated Compartment 64 m\u00b3\" [ref=e108]\n                - StaticText \"Port outer space 6.1 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"64 m\u00b3\"\n              - button \"Starboard outer space 6.1 \u00b7 estimated Compartment 64 m\u00b3\" [ref=e109]\n                - StaticText \"Starboard outer space 6.1 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"64 m\u00b3\"\n              - button \"Port outer space 6.2 \u00b7 estimated Compartment 68 m\u00b3\" [ref=e110]\n                - StaticText \"Port outer space 6.2 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"68 m\u00b3\"\n              - button \"Starboard outer space 6.2 \u00b7 estimated Compartment 68 m\u00b3\" [ref=e111]\n                - StaticText \"Starboard outer space 6.2 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"68 m\u00b3\"\n              - button \"Port outer space 6.3 \u00b7 estimated Compartment 70 m\u00b3\" [ref=e112]\n                - StaticText \"Port outer space 6.3 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"70 m\u00b3\"\n              - button \"Starboard outer space 6.3 \u00b7 estimated Compartment 70 m\u00b3\" [ref=e113]\n                - StaticText \"Starboard outer space 6.3 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"70 m\u00b3\"\n              - button \"Port outer space 6.4 \u00b7 estimated Compartment 70 m\u00b3\" [ref=e114]\n                - StaticText \"Port outer space 6.4 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"70 m\u00b3\"\n              - button \"Starboard outer space 6.4 \u00b7 estimated Compartment 70 m\u00b3\" [ref=e115]\n                - StaticText \"Starboard outer space 6.4 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"70 m\u00b3\"\n              - button \"Port outer space 6.5 \u00b7 estimated Compartment 161 m\u00b3\" [ref=e116]\n                - StaticText \"Port outer space 6.5 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"161 m\u00b3\"\n              - button \"Starboard outer space 6.5 \u00b7 estimated Compartment 161 m\u00b3\" [ref=e117]\n                - StaticText \"Starboard outer space 6.5 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"161 m\u00b3\"\n              - button \"Port outer space 6.6 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e118]\n                - StaticText \"Port outer space 6.6 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Starboard outer space 6.6 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e119]\n                - StaticText \"Starboard outer space 6.6 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Port outer space 7.1 \u00b7 estimated Compartment 15 m\u00b3\" [ref=e120]\n                - StaticText \"Port outer space 7.1 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"15 m\u00b3\"\n              - button \"Starboard outer space 7.1 \u00b7 estimated Compartment 15 m\u00b3\" [ref=e121]\n                - StaticText \"Starboard outer space 7.1 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"15 m\u00b3\"\n              - button \"Port outer space 7.2 \u00b7 estimated Compartment 38 m\u00b3\" [ref=e122]\n                - StaticText \"Port outer space 7.2 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"38 m\u00b3\"\n              - button \"Starboard outer space 7.2 \u00b7 estimated Compartment 38 m\u00b3\" [ref=e123]\n                - StaticText \"Starboard outer space 7.2 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"38 m\u00b3\"\n              - button \"Port outer space 7.3 \u00b7 estimated Compartment 47 m\u00b3\" [ref=e124]\n                - StaticText \"Port outer space 7.3 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"47 m\u00b3\"\n              - button \"Starboard outer space 7.3 \u00b7 estimated Compartment 47 m\u00b3\" [ref=e125]\n                - StaticText \"Starboard outer space 7.3 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"47 m\u00b3\"\n              - button \"Port outer space 7.4 \u00b7 estimated Compartment 52 m\u00b3\" [ref=e126]\n                - StaticText \"Port outer space 7.4 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"52 m\u00b3\"\n              - button \"Starboard outer space 7.4 \u00b7 estimated Compartment 52 m\u00b3\" [ref=e127]\n                - StaticText \"Starboard outer space 7.4 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"52 m\u00b3\"\n              - button \"Port outer space 7.5 \u00b7 estimated Compartment 145 m\u00b3\" [ref=e128]\n                - StaticText \"Port outer space 7.5 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"145 m\u00b3\"\n              - button \"Starboard outer space 7.5 \u00b7 estimated Compartment 145 m\u00b3\" [ref=e129]\n                - StaticText \"Starboard outer space 7.5 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"145 m\u00b3\"\n              - button \"Port outer space 7.6 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e130]\n                - StaticText \"Port outer space 7.6 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Starboard outer space 7.6 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e131]\n                - StaticText \"Starboard outer space 7.6 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Port outer space 8.5 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e132]\n                - StaticText \"Port outer space 8.5 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Starboard outer space 8.5 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e133]\n                - StaticText \"Starboard outer space 8.5 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Port outer space 8.6 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e134]\n                - StaticText \"Port outer space 8.6 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Starboard outer space 8.6 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e135]\n                - StaticText \"Starboard outer space 8.6 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Port outer space 9.2 \u00b7 estimated Compartment 7 m\u00b3\" [ref=e136]\n                - StaticText \"Port outer space 9.2 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"7 m\u00b3\"\n              - button \"Starboard outer space 9.2 \u00b7 estimated Compartment 7 m\u00b3\" [ref=e137]\n                - StaticText \"Starboard outer space 9.2 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"7 m\u00b3\"\n              - button \"Port outer space 9.3 \u00b7 estimated Compartment 52 m\u00b3\" [ref=e138]\n                - StaticText \"Port outer space 9.3 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"52 m\u00b3\"\n              - button \"Starboard outer space 9.3 \u00b7 estimated Compartment 52 m\u00b3\" [ref=e139]\n                - StaticText \"Starboard outer space 9.3 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"52 m\u00b3\"\n              - button \"Port outer space 9.4 \u00b7 estimated Compartment 84 m\u00b3\" [ref=e140]\n                - StaticText \"Port outer space 9.4 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"84 m\u00b3\"\n              - button \"Starboard outer space 9.4 \u00b7 estimated Compartment 84 m\u00b3\" [ref=e141]\n                - StaticText \"Starboard outer space 9.4 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"84 m\u00b3\"\n              - button \"Port outer space 9.5 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e142]\n                - StaticText \"Port outer space 9.5 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Starboard outer space 9.5 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e143]\n                - StaticText \"Starboard outer space 9.5 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Port outer space 9.6 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e144]\n                - StaticText \"Port outer space 9.6 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Starboard outer space 9.6 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e145]\n                - StaticText \"Starboard outer space 9.6 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Port outer space 10.3 \u00b7 estimated Compartment 17 m\u00b3\" [ref=e146]\n                - StaticText \"Port outer space 10.3 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"17 m\u00b3\"\n              - button \"Starboard outer space 10.3 \u00b7 estimated Compartment 17 m\u00b3\" [ref=e147]\n                - StaticText \"Starboard outer space 10.3 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"17 m\u00b3\"\n              - button \"Port outer space 10.4 \u00b7 estimated Compartment 52 m\u00b3\" [ref=e148]\n                - StaticText \"Port outer space 10.4 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"52 m\u00b3\"\n              - button \"Starboard outer space 10.4 \u00b7 estimated Compartment 52 m\u00b3\" [ref=e149]\n                - StaticText \"Starboard outer space 10.4 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"52 m\u00b3\"\n              - button \"Port outer space 10.5 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e150]\n                - StaticText \"Port outer space 10.5 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Starboard outer space 10.5 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e151]\n                - StaticText \"Starboard outer space 10.5 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Port outer space 10.6 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e152]\n                - StaticText \"Port outer space 10.6 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Starboard outer space 10.6 \u00b7 estimated Compartment 41 m\u00b3\" [ref=e153]\n                - StaticText \"Starboard outer space 10.6 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"41 m\u00b3\"\n              - button \"Port outer space 11.5 \u00b7 estimated Compartment 26 m\u00b3\" [ref=e154]\n                - StaticText \"Port outer space 11.5 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"26 m\u00b3\"\n              - button \"Starboard outer space 11.5 \u00b7 estimated Compartment 26 m\u00b3\" [ref=e155]\n                - StaticText \"Starboard outer space 11.5 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"26 m\u00b3\"\n              - button \"Port outer space 11.6 \u00b7 estimated Compartment 34 m\u00b3\" [ref=e156]\n                - StaticText \"Port outer space 11.6 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"34 m\u00b3\"\n              - button \"Starboard outer space 11.6 \u00b7 estimated Compartment 34 m\u00b3\" [ref=e157]\n                - StaticText \"Starboard outer space 11.6 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"34 m\u00b3\"\n              - button \"Bow end space 1 \u00b7 estimated Compartment 8 m\u00b3\" [ref=e158]\n                - StaticText \"Bow end space 1 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"8 m\u00b3\"\n              - button \"Bow end space 2 \u00b7 estimated Compartment 8 m\u00b3\" [ref=e159]\n                - StaticText \"Bow end space 2 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"8 m\u00b3\"\n              - button \"Bow end space 3 \u00b7 estimated Compartment 8 m\u00b3\" [ref=e160]\n                - StaticText \"Bow end space 3 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"8 m\u00b3\"\n              - button \"Bow end space 4 \u00b7 estimated Compartment 8 m\u00b3\" [ref=e161]\n                - StaticText \"Bow end space 4 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"8 m\u00b3\"\n              - button \"Bow end space 5 \u00b7 estimated Compartment 8 m\u00b3\" [ref=e162]\n                - StaticText \"Bow end space 5 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"8 m\u00b3\"\n              - button \"Bow end space 6 \u00b7 estimated Compartment 8 m\u00b3\" [ref=e163]\n                - StaticText \"Bow end space 6 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"8 m\u00b3\"\n              - button \"Stern end space 1 \u00b7 estimated Compartment 5 m\u00b3\" [ref=e164]\n                - StaticText \"Stern end space 1 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"5 m\u00b3\"\n              - button \"Stern end space 2 \u00b7 estimated Compartment 8 m\u00b3\" [ref=e165]\n                - StaticText \"Stern end space 2 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"8 m\u00b3\"\n              - button \"Stern end space 3 \u00b7 estimated Compartment 4 m\u00b3\" [ref=e166]\n                - StaticText \"Stern end space 3 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"4 m\u00b3\"\n              - button \"Stern end space 4 \u00b7 estimated Compartment 8 m\u00b3\" [ref=e167]\n                - StaticText \"Stern end space 4 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"8 m\u00b3\"\n              - button \"Stern end space 5 \u00b7 estimated Compartment 2 m\u00b3\" [ref=e168]\n                - StaticText \"Stern end space 5 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"2 m\u00b3\"\n              - button \"Stern end space 6 \u00b7 estimated Compartment 2 m\u00b3\" [ref=e169]\n                - StaticText \"Stern end space 6 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"2 m\u00b3\"\n              - button \"Port deep reserve space 1 \u00b7 estimated Compartment 333 m\u00b3\" [ref=e170]\n                - StaticText \"Port deep reserve space 1 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"333 m\u00b3\"\n              - button \"Port middle reserve space 1 \u00b7 estimated Compartment 903 m\u00b3\" [ref=e171]\n                - StaticText \"Port middle reserve space 1 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"903 m\u00b3\"\n              - button \"Port upper reserve space 1 \u00b7 estimated Compartment 1,300 m\u00b3\" [ref=e172]\n                - StaticText \"Port upper reserve space 1 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"1,300 m\u00b3\"\n              - button \"Starboard deep reserve space 1 \u00b7 estimated Compartment 333 m\u00b3\" [ref=e173]\n                - StaticText \"Starboard deep reserve space 1 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"333 m\u00b3\"\n              - button \"Starboard middle reserve space 1 \u00b7 estimated Compartment 903 m\u00b3\" [ref=e174]\n                - StaticText \"Starboard middle reserve space 1 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"903 m\u00b3\"\n              - button \"Starboard upper reserve space 1 \u00b7 estimated Compartment 1,300 m\u00b3\" [ref=e175]\n                - StaticText \"Starboard upper reserve space 1 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"1,300 m\u00b3\"\n              - button \"Port deep reserve space 2 \u00b7 estimated Compartment 1,721 m\u00b3\" [ref=e176]\n                - StaticText \"Port deep reserve space 2 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"1,721 m\u00b3\"\n              - button \"Port middle reserve space 2 \u00b7 estimated Compartment 1,943 m\u00b3\" [ref=e177]\n                - StaticText \"Port middle reserve space 2 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"1,943 m\u00b3\"\n              - button \"Port upper reserve space 2 \u00b7 estimated Compartment 2,578 m\u00b3\" [ref=e178]\n                - StaticText \"Port upper reserve space 2 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"2,578 m\u00b3\"\n              - button \"Starboard deep reserve space 2 \u00b7 estimated Compartment 1,721 m\u00b3\" [ref=e179]\n                - StaticText \"Starboard deep reserve space 2 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"1,721 m\u00b3\"\n              - button \"Starboard middle reserve space 2 \u00b7 estimated Compartment 1,943 m\u00b3\" [ref=e180]\n                - StaticText \"Starboard middle reserve space 2 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"1,943 m\u00b3\"\n              - button \"Starboard upper reserve space 2 \u00b7 estimated Compartment 2,578 m\u00b3\" [ref=e181]\n                - StaticText \"Starboard upper reserve space 2 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"2,578 m\u00b3\"\n              - button \"Port deep reserve space 3 \u00b7 estimated Compartment 2,036 m\u00b3\" [ref=e182]\n                - StaticText \"Port deep reserve space 3 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"2,036 m\u00b3\"\n              - button \"Port middle reserve space 3 \u00b7 estimated Compartment 2,543 m\u00b3\" [ref=e183]\n                - StaticText \"Port middle reserve space 3 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"2,543 m\u00b3\"\n              - button \"Port upper reserve space 3 \u00b7 estimated Compartment 2,634 m\u00b3\" [ref=e184]\n                - StaticText \"Port upper reserve space 3 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"2,634 m\u00b3\"\n              - button \"Starboard deep reserve space 3 \u00b7 estimated Compartment 2,036 m\u00b3\" [ref=e185]\n                - StaticText \"Starboard deep reserve space 3 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"2,036 m\u00b3\"\n              - button \"Starboard middle reserve space 3 \u00b7 estimated Compartment 2,543 m\u00b3\" [ref=e186]\n                - StaticText \"Starboard middle reserve space 3 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"2,543 m\u00b3\"\n              - button \"Starboard upper reserve space 3 \u00b7 estimated Compartment 2,634 m\u00b3\" [ref=e187]\n                - StaticText \"Starboard upper reserve space 3 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"2,634 m\u00b3\"\n              - button \"Port deep reserve space 4 \u00b7 estimated Compartment 211 m\u00b3\" [ref=e188]\n                - StaticText \"Port deep reserve space 4 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"211 m\u00b3\"\n              - button \"Port middle reserve space 4 \u00b7 estimated Compartment 967 m\u00b3\" [ref=e189]\n                - StaticText \"Port middle reserve space 4 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"967 m\u00b3\"\n              - button \"Port upper reserve space 4 \u00b7 estimated Compartment 1,379 m\u00b3\" [ref=e190]\n                - StaticText \"Port upper reserve space 4 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"1,379 m\u00b3\"\n              - button \"Starboard deep reserve space 4 \u00b7 estimated Compartment 211 m\u00b3\" [ref=e191]\n                - StaticText \"Starboard deep reserve space 4 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"211 m\u00b3\"\n              - button \"Starboard middle reserve space 4 \u00b7 estimated Compartment 967 m\u00b3\" [ref=e192]\n                - StaticText \"Starboard middle reserve space 4 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"967 m\u00b3\"\n              - button \"Starboard upper reserve space 4 \u00b7 estimated Compartment 1,379 m\u00b3\" [ref=e193]\n                - StaticText \"Starboard upper reserve space 4 \u00b7 estimated\"\n                - StaticText \"Compartment\"\n                - strong\n                  - StaticText \"1,379 m\u00b3\"\n            - paragraph\n              - StaticText \"Outlines show compartments; blue fill shows floodwater.\"\n    - generic \"22 frames per second\"\n      - StaticText \"22 FPS\"",
+  "browserPageId": "1b2a9d61-1fb3-4bdd-ba0e-622317a1303f"
+}

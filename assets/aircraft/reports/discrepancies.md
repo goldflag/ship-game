@@ -30,7 +30,7 @@ The [independent comparator](../../../scripts/aircraft/compare.py) decodes the a
 
 ## Implementation limits
 
-- Wings remain spread, with no fold joints or deck-storage poses. Aileron controls are not fold mechanisms; the SBD has no wing fold.
+- Neutral assets keep wings spread. F4F-4 and TBD-1 now have fold joints and runtime storage poses; other folding-capable types remain unimplemented. Aileron controls are separate from fold mechanisms; the SBD has no wing fold.
 - Neutral assets use an approximately level engine shaft and extended gear, rather than a physically supported tail-down deck stance. Main/tail gear retraction, hinge alignment and linkage clearance are approximate inspection motions.
 - Transparent glazing and cockpit interiors are now modeled. Crew, exact instruments, canopy opening mechanisms, factory cross-sections and complete interior structure are absent.
 - SBD/Helldiver split brakes now use real apertures in thin upper and lower plates, with separate `diveBrake.port` / `.starboard` and `diveBrake.lower.port` / `.starboard` joints. Hole density is reduced for the mesh budget. These independent plates do not certify deployment linkage geometry or aerodynamic behavior.
@@ -44,3 +44,9 @@ The [independent comparator](../../../scripts/aircraft/compare.py) decodes the a
 The V2 workflow produces six fixed views per aircraft and independently registered side/top GLB overlays. During refinement, `compare.py --allow-stale` may create explicitly labeled diagnostic comparisons; these must not be presented as current validation evidence. After the final rebuild, regenerate comparisons and overview sheets, inspect all views and articulated parts, verify LOD changes and transparency in the browser, and record the checked hashes and observations in [validation.md](validation.md).
 
 Keep source uncertainty separate from model defects. A passing dimension or export check does not close a historical item above; a visible deviation from an accepted drawing should remain open until corrected or explicitly justified.
+
+## Enterprise wing folding revision
+
+The 20% runtime size experiment was removed; aircraft and carrier retain their authored metre scale. F4F-4 outer panels fold rearward about an inferred compound axis; TBD-1 outer panels fold upward. Original panels are split in the durable recipe at retained shape fold-span datums, with stable wing pivots and nested ailerons/guns at each LOD. SBD-3 remains fixed-wing. See `references/wing-fold/sources.json` for evidence.
+
+Mechanism type is historical; hinge-axis components, longitudinal pivot, 120° Wildcat / 90° Devastator travel, four-second actuation and the existing single-row deck arrangement are approximations. The simplified hinges omit skewed cut lines, locks, crew, actuators and cables. No swept-volume deck collision solver or manufacturing-clearance claim. Wings of other catalog aircraft still have no authored fold joints. Articulated fixed views exercise controls and gear as well as folding; they are inspection poses, not parked configurations.

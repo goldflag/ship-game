@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import { copyFile, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve, sep } from 'node:path';
 import { validateAircraftCatalog, validateAircraftShape, type AircraftEntry } from './catalog';
-import { aircraftNodeIds, inspectAircraftLods } from './glb';
+import { aircraftNodeIds, aircraftFoldIds, inspectAircraftLods } from './glb';
 
 const root = resolve(import.meta.dir, '../..');
 const sourceDir = join(root, 'assets/aircraft');
@@ -47,7 +47,7 @@ const runtimeCatalog = {
   schemaVersion: 1, contentHash, coordinates,
   aircraft: catalog.aircraft.map(({ id, name, nation, role, year, length, wingspan }) => ({
     id, name, nation, role, year, length, wingspan,
-    modelUrl: `/models/aircraft/${id}.glb`, contentHash, nodeIds: aircraftNodeIds,
+    modelUrl: `/models/aircraft/${id}.glb`, contentHash, nodeIds: [...aircraftNodeIds, ...aircraftFoldIds(id)],
     switchDistancesM,
     lods: runtimePaths(id).map((path, level) => ({ level, modelUrl: `/models/aircraft/${path}`, switchDistanceM: level === 0 ? 0 : switchDistancesM[level - 1], contentHash })),
   })),

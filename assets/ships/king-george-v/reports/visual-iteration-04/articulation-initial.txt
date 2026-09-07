@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/Users/bill/orca/workspaces/ship-game/ningyo/assets/ships/king-george-v/reports/review-browser.py", line 59, in <module>
+    evaluate('window.kingGeorgeTrial.reset()')
+  File "/Users/bill/orca/workspaces/ship-game/ningyo/assets/ships/king-george-v/reports/review-browser.py", line 20, in evaluate
+    raise RuntimeError(data)
+RuntimeError: {'id': 'local', 'ok': False, 'error': {'code': 'runtime_unavailable', 'message': 'The Orca runtime closed the connection before responding. Restart Orca and try again.'}, '_meta': {'runtimeId': None}}

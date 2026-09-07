@@ -11,3 +11,7 @@ dist/
 *.blend2
 *.tmp
 __pycache__/
+
+# Rebuildable download bundles duplicate retained review files. Keep them local.
+/assets/ships/*/generated/comparison/*-review.zip
+/public/ship-reference/*/*-review.zip
