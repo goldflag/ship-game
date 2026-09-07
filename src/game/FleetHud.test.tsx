@@ -9,7 +9,7 @@ import type { Telemetry } from './types';
 import { updateCapability } from '../simulation/stability';
 import { GunneryPanel } from '../ui/GunneryPanel';
 
-test('shell choices are available in the main HUD with stock, current type and the remapped shortcut', () => {
+test('the compact shell cycle exposes the current load, next choice, stocks and remapped shortcut', () => {
   const definition = shipPreset('bismarck'), sim = new CombatSimulation(definition);
   const aim: [number, number, number] = [2000, 10, 0];
   sim.step({ throttle: 0, rudder: 0 }, { aim, fire: false, battery: 'main', ammunition: 'he' });
@@ -18,16 +18,26 @@ test('shell choices are available in the main HUD with stock, current type and t
   const bindings = defaultKeybindings(); bindings.shellType = ['KeyV', null];
   const render = () => renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={data} game={null} visible bindings={bindings}/></ShipContext.Provider>);
   const html = render();
-  expect(html).toContain('aria-label="Shell type for selected battery"');
-  expect(html).toContain('aria-pressed="true" aria-label="High explosive (HE) · 384 rounds');
-  expect(html).toContain('Armor piercing (AP) · 576 rounds');
+  expect(html).toContain('aria-label="HE selected · 384 rounds. Switch to AP · 576 rounds · V"');
+  expect(html).toContain('aria-disabled="false"');
+  expect(html).toContain('Armor piercing <b>AP · 576</b>');
+  expect(html).toContain('High explosive <b>HE · 384</b>');
+  expect(html).toContain('Full reload on change. Guns without HE keep AP.');
   expect(html).toContain('Select main HE battery · 384 shells');
-  expect(html).toContain('<kbd>V</kbd> switch shells');
+  expect(html).toContain('<kbd>V</kbd>');
   combat.ammunitionStock.he = 0;
-  expect(render()).toContain('High explosive (HE) · 0 rounds · Full reload on change" title="High explosive: Contact blast against light armor and exposed equipment. Guns without HE keep AP. Changing type takes a full reload." disabled=""');
+  expect(render()).toContain('aria-label="HE selected · 0 rounds. Switch to AP · 576 rounds · V"');
+  expect(render()).toContain('aria-disabled="false" data-empty="true"');
   expect(render()).toContain('Out of HE');
+  combat.ammunitionStock.ap = 0;
+  expect(render()).toContain('aria-disabled="true" data-empty="true"');
+  expect(render()).toContain('HE selected · 0 rounds. Out of AP · V');
+  combat.ammunition = 'ap'; combat.ammunitionStock.ap = 576;
   combat.heSupported = false;
-  expect(render()).toContain('High explosive (HE) · Not fitted');
+  expect(render()).toContain('AP selected · 576 rounds. HE not fitted · V');
+  expect(render()).toContain('High explosive <b>Not fitted</b>');
+  combat.playerSunk = true;
+  expect(render()).toContain('AP selected · 576 rounds. Ship lost · V');
 });
 
 test('the helm displays current/max HP and proportional hit feedback for large and small hulls', () => {
@@ -56,7 +66,7 @@ test('Fletcher exposes live depth charge supply and broadside torpedo help, whil
     const data: Telemetry = { ship: sim.ship, order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat: sim.telemetry(id === 'fletcher' ? 'depth-charge' : 'main', [1500, 0, 0]) };
     const html = renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={data} game={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
     if (id === 'fletcher') {
-      expect(html).not.toContain('aria-label="Shell type for selected battery"');
+      expect(html).not.toContain('class="fleet-shell-cycle"');
       expect(html).toContain('Select depth charges · 28 charges · 4');
       expect(html).toContain('Burst at 10 m'); expect(html).toContain('Drop depth charge');
       const gunnery = renderToStaticMarkup(<GunneryPanel data={data} game={null} expanded onExpand={() => {}} bindings={defaultKeybindings()}/>);
@@ -66,7 +76,7 @@ test('Fletcher exposes live depth charge supply and broadside torpedo help, whil
       expect(gunnery).not.toContain('Aim at <select');
       data.combat = sim.telemetry('torpedo', [1500, 0, 0]);
       const torpedoHtml = renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={data} game={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
-      expect(torpedoHtml).not.toContain('aria-label="Shell type for selected battery"');
+      expect(torpedoHtml).not.toContain('class="fleet-shell-cycle"');
       expect(torpedoHtml).toContain('Each broadside 40–140°'); expect(torpedoHtml).not.toContain('Bow / stern');
     } else expect(html).not.toContain('Select depth charges');
   }
