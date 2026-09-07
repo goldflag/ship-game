@@ -58,6 +58,7 @@ export class ShipWake {
     for (const event of events) {
       if (event.sequence <= this.eventSequence) continue;
       this.eventSequence = event.sequence;
+      if (event.kind === 'aircraft-crash') this.foam.splash(event.position[0], event.position[2], .65);
       if (event.kind === 'splash') this.foam.splash(event.position[0], event.position[2], event.shell?.caliberM ?? .38);
     }
     this.anchor.position.set(state.x, 1, state.z);
