@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { Camera, InstancedMesh, Matrix4, PerspectiveCamera, Vector3 } from 'three/webgpu';
+import { Camera, InstancedMesh, Matrix4, MeshBasicNodeMaterial, PerspectiveCamera, Vector3 } from 'three/webgpu';
 import blueprint from '../../assets/ships/bismarck/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
 import submarine from '../../assets/ships/type-viic/blueprint.json';
@@ -183,9 +183,9 @@ test('airborne water responds to environment light without re-emitting the splas
   effects.setSun(new Vector3(0, 1, 0), .08); effects.update(sim, 0, camera);
   expect(effects.diagnostics()).toEqual(before);
   const mesh = effects.root.getObjectByName('Water droplets and mist') as InstancedMesh;
-  expect((mesh.material as { color: { r: number } }).color.r).toBeCloseTo(.08, 5);
+  expect((mesh.material as MeshBasicNodeMaterial).color.r).toBeCloseTo(.08, 5);
   effects.setSun(new Vector3(0, 1, 0), 1);
-  expect((mesh.material as { color: { r: number } }).color.r).toBe(1);
+  expect((mesh.material as MeshBasicNodeMaterial).color.r).toBe(1);
   effects.dispose();
 });
 

@@ -1,5 +1,7 @@
 # Shell water impacts — September 7, 2026
 
+This is the retained first-pass sheet review. The [current water-body animation and measured performance](polish/README.md) supersede this implementation.
+
 The splash now rises as a coherent, irregular water column with a low outward crown. Thin sheets lose cohesion as gravity pulls them back into the sea; small round droplets continue falling, and lighter mist drifts with the ocean wind. Incoming direction inclines the plume, caliber controls its size, and the CPU event's surface height anchors both the column and returning spray.
 
 The previous recipe used eight smoke-like raymarched spheres per splash. `src/game/WaterPlumes.ts` now builds fourteen column sheets and ten crown sheets per impact in one bounded mesh batch. Curved, world-space strips keep their orientation through the apex and camera changes. Original procedural textures supply lengthwise filaments, irregular edges and gradual breakup. The mesh uses ordinary depth testing and normal alpha blending, with the existing sun direction and scene fog. The remaining ocean foam continues to use `FleetWakeFoam` / `WakeFoam` and the displaced water material.

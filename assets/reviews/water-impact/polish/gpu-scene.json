@@ -1,0 +1,517 @@
+{
+  "adapter": {},
+  "canvas": [
+    1920,
+    1080
+  ],
+  "isolated": false,
+  "rows": [
+    {
+      "age": 1.8,
+      "effects": {
+        "baseline": {
+          "aircraftSmoke": 0,
+          "depthCharges": 0,
+          "flashes": 0,
+          "foam": 0,
+          "particleCapacity": 3424,
+          "shells": 0,
+          "smoke": 0,
+          "spray": 1389,
+          "torpedoes": 0
+        },
+        "current": {
+          "aircraftSmoke": 0,
+          "depthCharges": 0,
+          "flashes": 0,
+          "foam": 0,
+          "particleCapacity": 11168,
+          "shells": 0,
+          "smoke": 0,
+          "spray": 4135,
+          "torpedoes": 0
+        }
+      },
+      "impacts": 8,
+      "name": "8 impacts close",
+      "pairedGpuDeltaMs": {
+        "median": 0.5242879999999985,
+        "p90": 36.700160000000004
+      },
+      "range": 220,
+      "results": {
+        "baseline": {
+          "drawCalls": 256,
+          "effectUpdateMs": {
+            "median": 1.0599999964237212,
+            "p90": 1.55
+          },
+          "gpuMs": {
+            "median": 73.334784,
+            "p90": 73.92460799999999
+          },
+          "submitMs": {
+            "median": 111.69999998807907,
+            "p90": 118.39999997615814
+          },
+          "triangles": 751913
+        },
+        "current": {
+          "drawCalls": 256,
+          "effectUpdateMs": {
+            "median": 1.2300000011920929,
+            "p90": 1.4600000023841857
+          },
+          "gpuMs": {
+            "median": 51.576832,
+            "p90": 74.97318399999999
+          },
+          "submitMs": {
+            "median": 110.5,
+            "p90": 116.89999997615814
+          },
+          "triangles": 752613
+        },
+        "hidden": {
+          "drawCalls": 242,
+          "effectUpdateMs": {
+            "median": 1.2100000023841857,
+            "p90": 1.3899999976158142
+          },
+          "gpuMs": {
+            "median": 25.034752,
+            "p90": 62.455808000000005
+          },
+          "submitMs": {
+            "median": 93.40000003576279,
+            "p90": 100.10000002384186
+          },
+          "triangles": 702553
+        }
+      }
+    },
+    {
+      "age": 1.8,
+      "effects": {
+        "baseline": {
+          "aircraftSmoke": 0,
+          "depthCharges": 0,
+          "flashes": 0,
+          "foam": 0,
+          "particleCapacity": 3424,
+          "shells": 0,
+          "smoke": 0,
+          "spray": 1950,
+          "torpedoes": 0
+        },
+        "current": {
+          "aircraftSmoke": 0,
+          "depthCharges": 0,
+          "flashes": 0,
+          "foam": 0,
+          "particleCapacity": 11168,
+          "shells": 0,
+          "smoke": 0,
+          "spray": 8274,
+          "torpedoes": 0
+        }
+      },
+      "impacts": 32,
+      "name": "32 impacts close",
+      "pairedGpuDeltaMs": {
+        "median": -0.9175039999999939,
+        "p90": 37.87980799999999
+      },
+      "range": 220,
+      "results": {
+        "baseline": {
+          "drawCalls": 256,
+          "effectUpdateMs": {
+            "median": 1.3899999976158142,
+            "p90": 2.0599999964237212
+          },
+          "gpuMs": {
+            "median": 71.696384,
+            "p90": 74.448896
+          },
+          "submitMs": {
+            "median": 104,
+            "p90": 116.30000001192093
+          },
+          "triangles": 757493
+        },
+        "current": {
+          "drawCalls": 256,
+          "effectUpdateMs": {
+            "median": 1.2600000023841857,
+            "p90": 2.619999998807907
+          },
+          "gpuMs": {
+            "median": 38.141952,
+            "p90": 74.05568
+          },
+          "submitMs": {
+            "median": 75,
+            "p90": 122.10000002384186
+          },
+          "triangles": 759355
+        },
+        "hidden": {
+          "drawCalls": 242,
+          "effectUpdateMs": {
+            "median": 1.2899999976158143,
+            "p90": 2.530000001192093
+          },
+          "gpuMs": {
+            "median": 29.229056,
+            "p90": 62.2592
+          },
+          "submitMs": {
+            "median": 61.40000003576279,
+            "p90": 101.79999995231628
+          },
+          "triangles": 702553
+        }
+      }
+    },
+    {
+      "age": 4.2,
+      "effects": {
+        "baseline": {
+          "aircraftSmoke": 0,
+          "depthCharges": 0,
+          "flashes": 0,
+          "foam": 0,
+          "particleCapacity": 3424,
+          "shells": 0,
+          "smoke": 0,
+          "spray": 1208,
+          "torpedoes": 0
+        },
+        "current": {
+          "aircraftSmoke": 0,
+          "depthCharges": 0,
+          "flashes": 0,
+          "foam": 0,
+          "particleCapacity": 11168,
+          "shells": 0,
+          "smoke": 0,
+          "spray": 3842,
+          "torpedoes": 0
+        }
+      },
+      "impacts": 32,
+      "name": "32 impacts falling",
+      "pairedGpuDeltaMs": {
+        "median": -0.7208959999999962,
+        "p90": 9.043968
+      },
+      "range": 220,
+      "results": {
+        "baseline": {
+          "drawCalls": 256,
+          "effectUpdateMs": {
+            "median": 1.0100000023841857,
+            "p90": 1.1900000035762788
+          },
+          "gpuMs": {
+            "median": 73.662464,
+            "p90": 79.101952
+          },
+          "submitMs": {
+            "median": 110,
+            "p90": 117.30000001192093
+          },
+          "triangles": 754073
+        },
+        "current": {
+          "drawCalls": 256,
+          "effectUpdateMs": {
+            "median": 1.0199999988079071,
+            "p90": 1.2300000011920929
+          },
+          "gpuMs": {
+            "median": 35.192832,
+            "p90": 73.990144
+          },
+          "submitMs": {
+            "median": 102,
+            "p90": 120.10000002384186
+          },
+          "triangles": 751691
+        },
+        "hidden": {
+          "drawCalls": 242,
+          "effectUpdateMs": {
+            "median": 1.030000001192093,
+            "p90": 1.2599999964237214
+          },
+          "gpuMs": {
+            "median": 31.064064000000002,
+            "p90": 62.128128000000004
+          },
+          "submitMs": {
+            "median": 84.19999998807907,
+            "p90": 97
+          },
+          "triangles": 702553
+        }
+      }
+    },
+    {
+      "age": 1.8,
+      "effects": {
+        "baseline": {
+          "aircraftSmoke": 0,
+          "depthCharges": 0,
+          "flashes": 0,
+          "foam": 0,
+          "particleCapacity": 3424,
+          "shells": 0,
+          "smoke": 0,
+          "spray": 1950,
+          "torpedoes": 0
+        },
+        "current": {
+          "aircraftSmoke": 0,
+          "depthCharges": 0,
+          "flashes": 0,
+          "foam": 0,
+          "particleCapacity": 11168,
+          "shells": 0,
+          "smoke": 0,
+          "spray": 2672,
+          "torpedoes": 0
+        }
+      },
+      "impacts": 32,
+      "name": "32 impacts distant",
+      "pairedGpuDeltaMs": {
+        "median": -22.74099199999999,
+        "p90": 0.45875199999999694
+      },
+      "range": 5000,
+      "results": {
+        "baseline": {
+          "drawCalls": 369,
+          "effectUpdateMs": {
+            "median": 1.3600000023841858,
+            "p90": 2.0599999964237212
+          },
+          "gpuMs": {
+            "median": 59.899904,
+            "p90": 60.48972800000001
+          },
+          "submitMs": {
+            "median": 114.19999998807907,
+            "p90": 123.69999998807907
+          },
+          "triangles": 985891
+        },
+        "current": {
+          "drawCalls": 369,
+          "effectUpdateMs": {
+            "median": 0.2099999964237213,
+            "p90": 0.3699999988079071
+          },
+          "gpuMs": {
+            "median": 31.981568000000003,
+            "p90": 60.227584
+          },
+          "submitMs": {
+            "median": 81.69999998807907,
+            "p90": 122.20000004768372
+          },
+          "triangles": 979569
+        },
+        "hidden": {
+          "drawCalls": 355,
+          "effectUpdateMs": {
+            "median": 0.2,
+            "p90": 0.3600000023841858
+          },
+          "gpuMs": {
+            "median": 31.981568000000003,
+            "p90": 51.380224
+          },
+          "submitMs": {
+            "median": 69,
+            "p90": 101.30000001192093
+          },
+          "triangles": 930951
+        }
+      }
+    },
+    {
+      "age": 1.8,
+      "effects": {
+        "baseline": {
+          "aircraftSmoke": 0,
+          "depthCharges": 0,
+          "flashes": 0,
+          "foam": 0,
+          "particleCapacity": 3424,
+          "shells": 0,
+          "smoke": 0,
+          "spray": 1950,
+          "torpedoes": 0
+        },
+        "current": {
+          "aircraftSmoke": 0,
+          "depthCharges": 0,
+          "flashes": 0,
+          "foam": 0,
+          "particleCapacity": 11168,
+          "shells": 0,
+          "smoke": 0,
+          "spray": 8009,
+          "torpedoes": 0
+        }
+      },
+      "impacts": 32,
+      "name": "32 impacts binoculars",
+      "pairedGpuDeltaMs": {
+        "median": 1.9660799999999945,
+        "p90": 29.16351999999999
+      },
+      "range": 5000,
+      "results": {
+        "baseline": {
+          "drawCalls": 251,
+          "effectUpdateMs": {
+            "median": 1.5199999988079071,
+            "p90": 1.830000001192093
+          },
+          "gpuMs": {
+            "median": 46.00627200000001,
+            "p90": 76.218368
+          },
+          "submitMs": {
+            "median": 124.80000001192093,
+            "p90": 137.5
+          },
+          "triangles": 757445
+        },
+        "current": {
+          "drawCalls": 251,
+          "effectUpdateMs": {
+            "median": 1.530000001192093,
+            "p90": 1.7
+          },
+          "gpuMs": {
+            "median": 40.370176,
+            "p90": 75.169792
+          },
+          "submitMs": {
+            "median": 108,
+            "p90": 126.39999997615814
+          },
+          "triangles": 759307
+        },
+        "hidden": {
+          "drawCalls": 237,
+          "effectUpdateMs": {
+            "median": 1.6,
+            "p90": 1.7599999964237214
+          },
+          "gpuMs": {
+            "median": 25.362432000000002,
+            "p90": 63.176704
+          },
+          "submitMs": {
+            "median": 68,
+            "p90": 107.10000002384186
+          },
+          "triangles": 702505
+        }
+      },
+      "zoom": true
+    },
+    {
+      "age": 1.8,
+      "away": true,
+      "effects": {
+        "baseline": {
+          "aircraftSmoke": 0,
+          "depthCharges": 0,
+          "flashes": 0,
+          "foam": 0,
+          "particleCapacity": 3424,
+          "shells": 0,
+          "smoke": 0,
+          "spray": 1950,
+          "torpedoes": 0
+        },
+        "current": {
+          "aircraftSmoke": 0,
+          "depthCharges": 0,
+          "flashes": 0,
+          "foam": 0,
+          "particleCapacity": 11168,
+          "shells": 0,
+          "smoke": 0,
+          "spray": 0,
+          "torpedoes": 0
+        }
+      },
+      "impacts": 32,
+      "name": "32 impacts offscreen",
+      "pairedGpuDeltaMs": {
+        "median": 0.9175040000000045,
+        "p90": 21.430271999999995
+      },
+      "range": 220,
+      "results": {
+        "baseline": {
+          "drawCalls": 245,
+          "effectUpdateMs": {
+            "median": 1.6399999976158142,
+            "p90": 1.8899999976158142
+          },
+          "gpuMs": {
+            "median": 36.962303999999996,
+            "p90": 71.827456
+          },
+          "submitMs": {
+            "median": 111,
+            "p90": 126.59999996423721
+          },
+          "triangles": 575347
+        },
+        "current": {
+          "drawCalls": 244,
+          "effectUpdateMs": {
+            "median": 0.1100000023841858,
+            "p90": 0.1199999988079071
+          },
+          "gpuMs": {
+            "median": 37.421056,
+            "p90": 52.035584
+          },
+          "submitMs": {
+            "median": 95.20000004768372,
+            "p90": 118.5
+          },
+          "triangles": 563735
+        },
+        "hidden": {
+          "drawCalls": 231,
+          "effectUpdateMs": {
+            "median": 0.10999999642372131,
+            "p90": 0.1199999988079071
+          },
+          "gpuMs": {
+            "median": 34.799616,
+            "p90": 60.358655999999996
+          },
+          "submitMs": {
+            "median": 78,
+            "p90": 103
+          },
+          "triangles": 520407
+        }
+      }
+    }
+  ],
+  "samples": 24
+}

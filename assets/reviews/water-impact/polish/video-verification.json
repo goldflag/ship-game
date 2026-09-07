@@ -1,0 +1,19 @@
+{
+  "duration": 8.001,
+  "frames": [
+    {
+      "time": 1.2,
+      "decodedFrameSha256": "91af96b28a42a2624bb54da4b6de1d756126b6e7b7069b343e392a3946384f3a"
+    },
+    {
+      "time": 2.8,
+      "decodedFrameSha256": "5eb4e7c531f8e933d13bc674917f3ce318835b0679ae6c6dbb48f9e0a5757bec"
+    },
+    {
+      "time": 5.5,
+      "decodedFrameSha256": "69041e0cea47ae3584e46add0d08d0545247510920ac2b22d6d3f547170867e4"
+    }
+  ],
+  "height": 1080,
+  "width": 1920
+}

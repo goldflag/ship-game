@@ -40,7 +40,7 @@ test('water motion is frame-rate independent and camera rotation cannot move it'
     for (let i = 0; i < fps * 2; i++) plumes.advance(1 / fps);
     plumes.publish(camera);
     const before = visibleVertices(plumes);
-    camera.position.set(50, 20, -100); camera.lookAt(0, 5, 0);
+    camera.position.set(50, 20, -100); camera.lookAt(0, 5, 0); camera.updateMatrixWorld();
     plumes.advance(0); plumes.publish(camera);
     expect(visibleVertices(plumes)).toEqual(before);
     plumes.dispose(); return before;

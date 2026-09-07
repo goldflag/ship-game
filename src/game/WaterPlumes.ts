@@ -124,8 +124,9 @@ export class WaterPlumes {
         const height = data[p + 3] * travel - fall;
         if (height <= 0) continue;
         const body = i % 4 < 2;
-        const size = data[p + 5] * opening * (body ? 1 - breakup * .52 : 1);
-        const alpha = data[p + 8] * opening * fade * smooth(0, size * .5, height) * (distant && body ? 1.65 : 1);
+        const size = data[p + 5] * opening * (body ? 1 - breakup * .9 : 1);
+        const alpha = data[p + 8] * opening * fade * smooth(0, size * .5, height)
+          * (body ? 1 - breakup * .5 : 1) * (distant && body ? 1.65 : 1);
         const vx = data[p + 2] * decay, vy = data[p + 3] * decay - GRAVITY * travel, vz = data[p + 4] * decay;
         const screenX = vx * this.right.value.x + vy * this.right.value.y + vz * this.right.value.z;
         const screenY = vx * this.up.value.x + vy * this.up.value.y + vz * this.up.value.z;
