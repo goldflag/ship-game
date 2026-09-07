@@ -44,7 +44,7 @@ Each friendly and enemy bot has its own **AI level** in the custom battle roster
 
 Each ship's carousel card uses a baked image of its actual model. `bun run ship:thumbnail <ship-id>` regenerates it with local Blender; `ship:build` also refreshes it.
 
-Ships fly period national ensigns with cloth that responds to weather wind, forward/reverse speed and turning. Calm flags hang under gravity; stronger wind stretches and flutters the fabric. Search aerials rotate, and director-mounted radars sweep their authored sectors. Animation runs in port and battle, holds on pause, and resets with the ship. Flags hide when their hoists submerge; radar motion stops on sinking. Flag positions, radar rates and sector motion are visual approximations documented in the [rig review](assets/reviews/ship-rig/README.md).
+Ships fly period national ensigns with cloth that responds to weather wind, forward/reverse speed and turning. Calm flags hang under gravity; stronger wind stretches and flutters the fabric. Search aerials rotate, and director-mounted radars sweep their authored sectors. Flags animate in port and battle; radars stay stationary in port and animate at sea. Both hold on pause and reset with the ship. Flags hide when their hoists submerge; radar motion stops on sinking. Flag positions, radar rates and sector motion are visual approximations documented in the [rig review](assets/reviews/ship-rig/README.md).
 
 Port camera distance, aim point, height offsets and zoom limits scale with the selected hull's length, including small boats. Switching ships preserves your orbit direction and relative zoom; water and terrain clearance still apply.
 
