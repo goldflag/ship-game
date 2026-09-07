@@ -244,14 +244,15 @@ test('bot torpedo lead uses delayed observations after a target changes course',
   expect(Math.abs(botTorpedoAim(actor, tube)![0] - before[0])).toBeGreaterThan(20);
 });
 
-test('VIIC deck and platform guns remain articulated and fire through the shared gun system', () => {
+test('VIIC deck gun fires while its light platform gun stays automatic-only', () => {
   const sim = new CombatSimulation(definition);
   for (const battery of ['main', 'secondary'] as const) {
     const aim: Vec3 = battery === 'main' ? [700, .5, -400] : [700, .5, 400];
     for (let i = 0; i < 1200; i++) sim.step(helm, { aim, fire: false, battery });
     const m = sim.player.mounts[battery === 'main' ? 0 : 1], ammo = m.ammo;
-    expect(m.status).toBe('ready'); sim.step(helm, { aim, fire: true, battery });
-    expect(m.ammo).toBe(ammo - 1);
+    if (battery === 'main') expect(m.status).toBe('ready');
+    sim.step(helm, { aim, fire: true, battery });
+    expect(m.ammo).toBe(ammo - (battery === 'main' ? 1 : 0));
   }
   expect(rounds(sim)).toBe(14);
 });

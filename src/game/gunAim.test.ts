@@ -1,3 +1,4 @@
+import { surfaceGunAllowed } from '../ships/armament';
 import { expect, test } from 'bun:test';
 import { PerspectiveCamera, Vector3 } from 'three/webgpu';
 import { CombatSimulation } from '../simulation/combat';
@@ -78,7 +79,7 @@ test('moving and turning ship solutions line up and switching batteries preserve
   for (let i = 0; i < 2400; i++) updateMount(mount, state, sim.definition, sim.ship, aim, FIXED_DT, motionVelocity(sim.ship));
   expect(gunAimPoints(sim.player, sim.definition, 'main', aim)[0].aligned).toBe(true);
   const secondary = gunAimPoints(sim.player, sim.definition, 'secondary', aim);
-  expect(secondary.map(point => point.id)).toEqual(sim.definition.mounts.filter(mount => mount.battery === 'secondary').map(mount => mount.id));
+  expect(secondary.map(point => point.id)).toEqual(sim.definition.mounts.filter(mount => mount.battery === 'secondary' && surfaceGunAllowed(sim.definition, mount.weapon)).map(mount => mount.id));
   expect(secondary.map(point => point.number)).toEqual(secondary.map((_, i) => i + 1));
 });
 
