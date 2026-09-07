@@ -32,8 +32,14 @@
 .audio-setting input { grid-column: 1 / -1; width: 100%; min-width: 0; height: 32px; margin: 0; accent-color: var(--accent); cursor: pointer; }
 .audio-previews { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
 .audio-previews button { flex: 1; min-height: 44px; }
+.hud-size-setting { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px 12px; font-size: 14px; }
+.hud-size-setting output, .hud-scale-readout strong { color: var(--accent); font-weight: 500; font-variant-numeric: tabular-nums; }
+.hud-size-setting input { grid-column: 1 / -1; width: 100%; height: 44px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.hud-size-setting input:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.hud-scale-readout { display: flex; justify-content: space-between; font-size: 14px; margin: 16px 0; }
 @media (max-width: 480px) {
   .pause-menu.settings-dialog { padding: 18px; }
+  .settings-sections { gap: 16px; }
   .keybinding-columns, .keybinding-row { grid-template-columns: minmax(0, 1fr) repeat(2, 76px); gap: 6px; }
   .keybinding-row { font-size: 12px; }
 }

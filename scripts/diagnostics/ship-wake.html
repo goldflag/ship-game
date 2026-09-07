@@ -13,7 +13,7 @@
   const noop = () => {};
   const quality = new URLSearchParams(location.search).get('quality') ?? 'high';
   let error;
-  const game = new Game(document.querySelector('#scene'), {quality,sea:'Atlantic',resolution:1}, {
+  const game = new Game(document.querySelector('#scene'), {quality,resolution:1}, {
     progress:noop, ready:noop, telemetry:noop, pause:noop, hud:noop, error:m=>{error=m;},
   });
   window.wakeGame=game;
@@ -32,10 +32,16 @@
     const foam=game.shipWake.foam;
     const foamValues=foam.texture.image.data.slice();
     const foamAt=(x,z)=>{
-      const res=foam.texture.image.width, size=game.water.wake.worldSize;
-      const ix=Math.floor((x-foam.origin.value.x)/size*res+res/2);
-      const iz=Math.floor((z-foam.origin.value.y)/size*res+res/2);
-      return ix>=0 && ix<res && iz>=0 && iz<res ? foamValues[iz*res+ix]/255 : 0;
+      const size=foam.texture.image.width, res=size/8;
+      let energy=0;
+      for(const {foam:trail,slot} of foam.entries.values()) {
+        const ix=Math.floor((x-trail.center.x)/1536*res+res/2);
+        const iz=Math.floor((z-trail.center.y)/1536*res+res/2);
+        if(ix>=0 && ix<res && iz>=0 && iz<res) {
+          energy=Math.max(energy,foamValues[(Math.floor(slot/8)*res+iz)*size+(slot%8)*res+ix]/255);
+        }
+      }
+      return energy;
     };
     const resolution=game.water.wake.resolution, cell=game.water.wake.worldSize/resolution;
     let totalFoam=0, maxFoam=0, maxHeight=0;

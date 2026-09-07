@@ -19,13 +19,16 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { WaterSystem, getPresetParams } from '../../vendor/threejs-water-pro/build/index.js';
 import { SkySystem, PRESETS as SKY_PRESETS } from '../../vendor/threejs-sky-pro/build/index.js';
 import { CombatSimulation } from '../simulation/combat';
+import { availableAmmunition } from '../simulation/weapons';
 import { ShipView } from './ShipView';
 import { ArmorOverlay } from './ArmorOverlay';
 import { InspectionHover, type InspectionHoverInfo } from './InspectionHover';
 import { ShipLabels } from './ShipLabels';
+import { HitLabels } from './HitLabels';
+import { TorpedoPreview } from './TorpedoPreview';
 import { HullDamageFeedback } from './HullDamageFeedback';
 import { FIXED_DT } from '../simulation/ship';
-import { orderDepth } from '../simulation/submarine';
+import { DEPTH_STEP_M, orderDepth } from '../simulation/submarine';
 import { GunAimIndicators } from './GunAimIndicators';
 import { HitDirectionIndicators } from './HitDirectionIndicators';
 import { gunAimPoints } from './gunAim';
@@ -36,13 +39,14 @@ import type { GameAudio } from './GameAudio';
 import type { Ammunition, Battery, Vec3 } from '../ships/blueprint';
 import type { InspectionMode } from '../ships/inspection';
 import { selectedShip, shipPreset, shipPresets } from '../ships/presets';
-import { validateBattleSetup, type BattleSetup } from '../simulation/battle';
+import { resolveBattleFleet, validateBattleSetup, type BattleSetup } from '../simulation/battle';
 import { InputController } from './InputController';
 import { CameraRig } from './CameraRig';
 import { ShellFollow } from './ShellFollow';
 import { sightAim, torpedoCourseAim } from './aiming';
 import { createHarborBackdrop, type HarborBackdrop } from './HarborBackdrop';
 import { ShipWake } from './ShipWake';
+import { ShipFunnelSmoke } from './ShipFunnelSmoke';
 import type { GameCallbacks, GameSettings } from './types';
 
 export const BUOYS = [
@@ -50,6 +54,8 @@ export const BUOYS = [
   { x: 220, z: -1800, color: '#b84734' }, { x: 540, z: -1800, color: '#42a789' },
 ];
 export type ArticulationPreview = { trainFraction: number; elevationFraction: number; recoilFraction: number };
+/** Battle preparation stages, reported as a label with a completion fraction in [0, 1). */
+export type BattleProgress = (label: string, fraction: number) => void;
 
 export class Game {
   definition: typeof selectedShip;
@@ -72,11 +78,15 @@ export class Game {
   private visualWaveSampler?: VisualWaveSampler;
   private fleetModels: THREE.Group[] = [];
   private shipLabels: ShipLabels;
+  private hitLabels: HitLabels;
+  private torpedoPreview = new TorpedoPreview();
   private playerDamageFeedback: HullDamageFeedback;
   private gunAim: GunAimIndicators;
   private hitDirections: HitDirectionIndicators;
+  private hudScale = 1;
   private loadedModel?: THREE.Group;
   private effects = new CombatEffects();
+  private funnelSmoke = new ShipFunnelSmoke();
   private aircraftView = new AircraftView();
   controlPriority: ControlPriority = 'balanced';
   controlFocus = '';
@@ -98,7 +108,6 @@ export class Game {
   selectedFlightId?: string;
   private water?: WaterSystem;
   private landscape?: THREE.Group;
-  private battleSea?: GameSettings['sea'];
   private battleTimeOfDay?: TimeOfDayId;
   private battleWeather?: WeatherId;
   private surfaceWaterAbsorption = new THREE.Color();
@@ -125,6 +134,7 @@ export class Game {
   private trail: { x: number; z: number }[] = [{ x: 0, z: 0 }];
   private initialization?: Promise<void>;
   private frameTask?: Promise<void>;
+  private frameWaiters: (() => void)[] = [];
   private articulationOriginal?: CombatSimulation['player']['mounts'];
   private articulationLaunchers?: CombatSimulation['player']['torpedoLaunchers'];
 
@@ -145,6 +155,7 @@ export class Game {
     this.renderer.domElement.tabIndex = 0;
     this.host.appendChild(this.renderer.domElement);
     this.shipLabels = new ShipLabels(this.host);
+    this.hitLabels = new HitLabels(this.host);
     this.gunAim = new GunAimIndicators(this.host);
     this.hitDirections = new HitDirectionIndicators(this.host.parentElement ?? this.host);
     this.rig = new CameraRig(this.camera, this.renderer.domElement, this.definition.viewpoints?.bridge, {
@@ -160,8 +171,9 @@ export class Game {
       cursor: released => { if (released) this.rig.releasePointer(); else if (!this.airOperationsOpen && !document.querySelector('dialog[open]')) this.rig.capturePointer(); },
       chartSize: direction => this.resizeChart(direction), gunnery: () => this.setGunneryOpen(!this.gunneryOpen),
       shellFollow: () => this.toggleShellFollow(),
+      shellType: () => this.selectAmmunition(this.ammunition[this.battery] === 'ap' ? 'he' : 'ap'),
       airOperations: () => this.setAirOperationsOpen(!this.airOperationsOpen),
-      depth: direction => this.setDepth((this.simulation.player.submarine?.targetDepthM ?? 0) + direction * 10),
+      depth: direction => this.setDepth((this.simulation.player.submarine?.targetDepthM ?? 0) + direction * DEPTH_STEP_M),
       emergencyBlow: () => this.setDepth(0, true),
     });
     this.input.setEnabled(false);
@@ -208,7 +220,7 @@ export class Game {
     this.targetView.root.visible = !this.inPort;
     if (this.definition.airWing) await this.aircraftView.load();
     this.assertActive();
-    this.scene.add(this.playerView.root, this.targetView.root, this.effects.root, this.aircraftView.root);
+    this.scene.add(this.playerView.root, this.targetView.root, this.effects.root, this.funnelSmoke.root, this.aircraftView.root, this.torpedoPreview.root);
     this.scene.add(this.ambientLight);
 
     this.callbacks.progress('Building the Atlantic', 0.37);
@@ -236,6 +248,7 @@ export class Game {
     params.spray.enabled = false;
     this.water.loadPreset(params);
     this.underwaterPassVisibility = new UnderwaterPassVisibility(this.water, this.renderer);
+    this.torpedoPreview.setWater(this.water);
     this.surfaceWaterAbsorption.copy(this.water.color.absorptionColor);
     this.updateSeaState();
 
@@ -346,22 +359,29 @@ export class Game {
   }
 
   /** Load and validate the complete fleet before replacing the current port scene. */
-  async prepareBattle(setup: BattleSetup): Promise<void> {
+  async prepareBattle(setup: BattleSetup, progress?: BattleProgress): Promise<void> {
     if (this.disposed || !this.inPort || !this.playerView || this.switchingShip) throw new Error('Battle setup requires an idle, loaded port.');
     validateBattleSetup(setup, Object.keys(shipPresets));
     this.switchingShip = true;
     try {
+      progress?.(`Charting ${oceanMap(setup.mapId ?? DEFAULT_MAP).name}`, 0.04);
       const definition = shipPreset(setup.playerShipId);
-      const simulation = new CombatSimulation(definition, { friendlyBots: setup.friendlyBots.map(shipPreset), enemies: setup.enemies.map(shipPreset), spawnDistance: setup.spawnDistance, mapId: setup.mapId,
+      const simulation = new CombatSimulation(definition, { ...resolveBattleFleet(setup, shipPreset),
         seed: crypto.getRandomValues(new Uint32Array(1))[0] });
-      await this.replaceFleet(simulation, definition);
-      this.battleSea = setup.sea ?? this.settings?.sea ?? 'Atlantic';
+      await this.replaceFleet(simulation, definition, progress);
       this.battleTimeOfDay = setup.timeOfDay ?? 'map';
       this.battleWeather = setup.weather ?? 'map';
+      progress?.('Forming the battle lines', 0.9);
     } finally { this.switchingShip = false; }
   }
 
-  private async replaceFleet(simulation: CombatSimulation, definition: typeof selectedShip): Promise<void> {
+  /** Resolve once the next frame has been rendered, so a scene change is on screen. */
+  nextFrame(): Promise<void> {
+    if (this.disposed) return Promise.resolve();
+    return new Promise(resolve => this.frameWaiters.push(resolve));
+  }
+
+  private async replaceFleet(simulation: CombatSimulation, definition: typeof selectedShip, progress?: BattleProgress): Promise<void> {
     this.inspectionHover?.clear();
     const definitions = [...new Map(simulation.actors.map(actor => [actor.definition.id, actor.definition])).values()];
     const models = new Map<string, THREE.Group>();
@@ -370,6 +390,10 @@ export class Game {
     const clones: THREE.Group[] = [];
     let draws: FleetShipDraws | undefined;
     try {
+      // Hulls load in parallel; each arrival advances the shared fraction toward the aircraft stage.
+      let loaded = 0;
+      const hullShare = 0.6 / definitions.length;
+      progress?.(`Loading ${definitions[0].name}`, 0.08);
       const loads = await Promise.allSettled(definitions.map(async def => {
         const model = (await new GLTFLoader().loadAsync(def.modelUrl)).scene;
         models.set(def.id, model);
@@ -378,12 +402,16 @@ export class Game {
         palette.apply(model);
         batchShipModel(model);
         await prepareShipDetail(model);
+        loaded += 1;
+        const next = definitions.find(d => !models.has(d.id));
+        progress?.(next ? `Loading ${next.name}` : `${def.name} aboard`, 0.08 + hullShare * loaded);
       }));
       const failure = loads.find(result => result.status === 'rejected');
       if (failure?.status === 'rejected') throw failure.reason;
-      if (simulation.actors.some(a => a.definition.airWing)) await this.aircraftView.load();
+      if (simulation.actors.some(a => a.definition.airWing)) { progress?.('Spotting the air wing', 0.7); await this.aircraftView.load(); }
       this.assertActive();
       if (!this.inPort) throw new Error('Return to port before changing fleets.');
+      progress?.('Mustering the fleets', 0.78);
       for (const actor of simulation.actors) {
         const clone = models.get(actor.definition.id)!.clone(true);
         clones.push(clone);
@@ -401,6 +429,7 @@ export class Game {
       this.audio?.reset(simulation);
       this.fleetModels = [...models.values()]; this.loadedModel = models.get(definition.id);
       this.fleetViews = views; this.playerView = views[0];
+      this.shipWake?.reset();
       this.fleetDraws = draws;
       this.scene.add(this.fleetDraws.root);
       this.targetView = views.find(view => view.actor === simulation.target);
@@ -483,15 +512,19 @@ export class Game {
       const showGunAim = !this.inPort && !this.inspecting && !this.shellFollow.view && !this.followedAircraftId && !this.simulation.player.damage.sunk;
       this.gunAim.update(showGunAim ? gunAimPoints(this.simulation.player, this.definition, this.battery, aim) : [], this.camera, showGunAim);
       this.hitDirections.update(this.simulation, this.camera, !this.inPort);
+      this.torpedoPreview.update(this.simulation.player, this.playerView!.motion, aim, showGunAim && this.battery === 'torpedo' && this.host?.dataset.shipLabels !== 'false');
       this.inspectionHover?.update(this.inPort && !this.paused && !this.switchingShip ? this.playerView?.inspection : undefined);
       this.fleetViews.forEach(view => view.updateRenderMatrices());
       this.aircraftView.update(this.simulation, this.camera, !this.inspecting && (!this.inPort || this.playerView?.inspection.mode === 'exterior'), this.inPort, new Map(this.fleetViews.map(view => [view.actor.motion.id, view.root])));
       this.effects.update(this.simulation, dt, this.camera, this.rig.binoculars && !this.shellFollow.view);
+      this.funnelSmoke.root.visible = !this.inspecting && (!this.inPort || this.playerView!.inspection.mode === 'exterior');
+      this.funnelSmoke.update(this.inPort ? [this.playerView!] : this.fleetViews, dt, this.camera,
+        this.rig.binoculars && !this.shellFollow.view ? this.simulation.player.motion.id : undefined);
       this.audio?.update(this.simulation, this.input.order, this.battery,
         this.camera.position.toArray(), new THREE.Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0).toArray());
       this.playerView!.root.visible = !this.rig.binoculars;
       this.harbor?.update(dt, this.camera);
-      this.shipWake!.update(this.playerView!.motion, dt, this.simulation.events);
+      this.shipWake!.update(this.inPort ? [this.playerView!] : this.fleetViews, dt, this.simulation.events);
       this.sky!.update(dt);
       // Black Flag's absorption loses >99% of green/blue light over 50 m,
       // hiding even our own submarine. Ease to a 20× longer visibility range
@@ -512,9 +545,11 @@ export class Game {
         this.underwaterPassVisibility?.capture();
         if (this.disposed) return;
         this.renderFrame();
+        if (this.frameWaiters.length) { const waiters = this.frameWaiters; this.frameWaiters = []; waiters.forEach(resolve => resolve()); }
       } finally { this.scene.endFrame(); }
       const combatTime = this.simulation.tick * FIXED_DT;
       this.shipLabels.update(this.camera, combatTime);
+      this.hitLabels.update(this.simulation, this.fleetViews, this.camera, !this.inPort && !this.inspecting);
       const playerDamage = this.playerDamageFeedback.update(this.simulation.player.damage.integrity, combatTime);
       this.fps += (1 / realDt - this.fps) * 0.04;
       if (state.tick - this.lastTrailTick >= 120) {
@@ -524,7 +559,7 @@ export class Game {
       }
       if (time - this.hudTime > 100) {
         this.hudTime = time;
-        this.callbacks.telemetry({ ship: { ...state }, order: this.input.order, camera: this.rig.mode,
+        this.callbacks.telemetry({ ship: { ...state }, order: this.input.order, rudderOrder: this.input.rudderOrder, camera: this.rig.mode,
           binoculars: this.rig.binoculars, magnification: this.rig.magnification, pointerLocked: this.rig.pointerLocked,
           viewBearing: this.rig.bearing, chartSize: this.chartSize, gunneryOpen: this.gunneryOpen, airOperationsOpen: this.airOperationsOpen, selectedFlightId: this.selectedFlightId,
           shellFollow: this.shellFollow.phase, followedAircraftId: this.followedAircraftId,
@@ -539,6 +574,20 @@ export class Game {
     }
   }
 
+  setHudScale(scale: number): void {
+    this.hudScale = scale;
+    this.resizeHudOverlays();
+  }
+
+  private resizeHudOverlays(): void {
+    // Overlay projection and collision placement use the same logical space as CSS.
+    const width = Math.max(this.host.clientWidth, 1) / this.hudScale;
+    const height = Math.max(this.host.clientHeight, 1) / this.hudScale;
+    this.shipLabels.resize(width, height);
+    this.hitLabels.resize(width, height);
+    this.gunAim.resize(width, height);
+  }
+
   private resize(): void {
     const width = Math.max(this.host.clientWidth, 1), height = Math.max(this.host.clientHeight, 1);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5) * this.settings.resolution);
@@ -546,9 +595,8 @@ export class Game {
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     this.water?.resize(width, height);
-    this.shipLabels.resize(width, height);
+    this.resizeHudOverlays();
     this.aircraftView.resize(height);
-    this.gunAim.resize(width, height);
     this.sky?.resize(width, height);
     this.resizePending = false;
   }
@@ -596,6 +644,14 @@ export class Game {
     this.gunneryOpen = false;
   }
   returnToShip(): void { this.stopShellFollow(); }
+  selectAmmunition(type: Ammunition): void {
+    if (this.inPort || this.paused || this.airOperationsOpen || this.simulation.player.damage.sunk ||
+      (this.battery !== 'main' && this.battery !== 'secondary')) return;
+    const available = this.definition.mounts.some((mount, i) => mount.battery === this.battery &&
+      (type === 'ap' || mount.weapon.he) && availableAmmunition(this.simulation.player.mounts[i], type) >= (mount.weapon.barrelCount ?? 2));
+    if (!available) return;
+    this.ammunition[this.battery] = type;
+  }
   recallAircraft(flightId?: string): void { if (!this.inPort && !this.paused) this.simulation.recallAircraft(flightId); }
   setDepth(depthM: number, emergency = false): void {
     if (this.inPort || this.paused || this.simulation.player.damage.sunk) return;
@@ -611,7 +667,20 @@ export class Game {
   toggleBinoculars(): void {
     if (this.paused || this.inPort || this.inspecting || this.airOperationsOpen) return;
     if (this.shellFollow.view || this.followedAircraftId) { this.stopShellFollow(); return; }
-    this.rig.toggleBinoculars(this.manualAim ? this.readSightAim() : this.currentAim, this.simulation.ship);
+    const ship = this.simulation.ship;
+    let aim = this.manualAim ? this.readSightAim() : this.currentAim;
+    if (!this.rig.binoculars && this.definition.submarine && ship.y < -.5) {
+      const bearing = this.rig.bearing;
+      const ahead = (aim[0] - ship.x) * Math.sin(bearing) - (aim[2] - ship.z) * Math.cos(bearing);
+      // During a shallow dive the chase sight can meet the sea over our own
+      // stern. Moving to the scope would turn around to keep that point in view.
+      // Continue along the viewing bearing, including deliberate stern aiming.
+      if (ahead < this.definition.hull.length) {
+        const range = (this.definition.torpedoTubes?.[0]?.weapon.rangeM ?? 5000) * .98;
+        aim = [ship.x + Math.sin(bearing) * range, .5, ship.z - Math.cos(bearing) * range];
+      }
+    }
+    this.rig.toggleBinoculars(aim, ship);
   }
   private readSightAim(): Vec3 {
     const aim = sightAim(this.camera.position.toArray(), this.camera.getWorldDirection(new THREE.Vector3()).toArray(),
@@ -645,6 +714,7 @@ export class Game {
     this.input.setOrder(1); this.input.setRudder(0);
     if (inPort) {
       this.simulation.reset();
+      this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
       this.audio?.reset(this.simulation);
       this.targetView = this.fleetViews.find(view => view.actor === this.simulation.target);
       this.effects.reset();
@@ -737,7 +807,9 @@ export class Game {
     return this.diagnostics();
   }
   diagnostics() {
-    return { mapId: this.simulation.mapId ?? DEFAULT_MAP, sea: this.battleSea ?? this.settings?.sea,
+    return { mapId: this.simulation.mapId ?? DEFAULT_MAP,
+      waves: this.water ? { amplitude: this.water.waves.amplitude.value, windSpeed: this.water.waves.windSpeed.value,
+        peakWavelength: this.water.waves.peakWavelength.value } : undefined,
       timeOfDay: this.battleTimeOfDay ?? 'map', weather: this.battleWeather ?? 'map',
       environment: this.sky ? { sunElevation: this.sky.sun.elevationDeg, sunAzimuth: this.sky.sun.azimuthDeg,
         sunIntensity: this.sky.sun.peakIntensity, ambient: this.ambientLight.intensity,
@@ -750,6 +822,7 @@ export class Game {
         projectionMatrix: this.camera.projectionMatrix.toArray(), matrixWorldInverse: this.camera.matrixWorldInverse.toArray() },
       tick: this.simulation.tick, battleSeed: this.simulation.seed, paused: this.paused, fps: this.fps, inspecting: this.inspecting, inPort: this.inPort,
       effects: this.effects.diagnostics(),
+      funnelSmoke: this.funnelSmoke.diagnostics(),
       audio: this.audio?.diagnostics(),
       portInspection: this.playerView?.inspection.mode, selectedVolume: this.playerView?.inspection.selectedId, hoveredVolume: this.playerView?.inspection.hoveredId,
       maxMuzzleErrorM: Math.max(0, ...this.fleetViews.flatMap(view => view.muzzleErrors())),
@@ -757,7 +830,7 @@ export class Game {
       torpedoLaunchers: this.simulation.player.torpedoLaunchers,
       depthCharges: this.simulation.depthCharges.map(c => ({ id: c.id, ownerId: c.ownerId, position: [...c.position], submerged: c.submerged, detonationDepthM: c.weapon.detonationDepthM })),
       combat: this.simulation.telemetry(this.battery, this.currentAim),
-      fleet: this.simulation.actors.map(actor => ({ id: actor.motion.id, definitionId: actor.definition.id, team: actor.team, controller: actor.controller, targetId: actor.targetId, motion: { ...actor.motion }, submarine: actor.submarine ? { ...actor.submarine } : undefined, ammo: actor.mounts.reduce((n, m) => n + m.ammo, 0), integrity: actor.damage.integrity })),
+      fleet: this.simulation.actors.map(actor => ({ id: actor.motion.id, definitionId: actor.definition.id, team: actor.team, controller: actor.controller, aiLevel: actor.bot?.aiLevel, targetId: actor.targetId, motion: { ...actor.motion }, submarine: actor.submarine ? { ...actor.submarine } : undefined, ammo: actor.mounts.reduce((n, m) => n + m.ammo, 0), integrity: actor.damage.integrity })),
       renderedShips: this.fleetViews.map(view => ({ id: view.actor.motion.id, visible: view.root.visible,
         impactMarks: view.impactMarks.count, impactDrawCalls: view.impactMarks.drawCalls })),
       renderedAircraft: this.aircraftView.diagnostics(),
@@ -770,7 +843,7 @@ export class Game {
   previewAdvance(seconds: number): void {
     if (!import.meta.env.DEV || this.inPort || this.paused || !Number.isFinite(seconds) || seconds <= 0 || seconds > 120) return;
     for (let i = 0; i < Math.floor(seconds / FIXED_DT); i++) {
-      this.simulation.step(this.input.sample(), { aim: this.currentAim, fire: false, battery: this.battery });
+      this.simulation.step(this.input.sample(), { aim: this.currentAim, fire: false, battery: this.battery, ammunition: this.ammunition[this.battery] });
     }
     this.fleetViews.forEach(view => view.snap());
   }
@@ -793,22 +866,20 @@ export class Game {
   private updateSeaState(): void {
     if (!this.water) return;
     const map = oceanMap(this.simulation.mapId ?? DEFAULT_MAP);
-    const sea = this.battleSea ?? this.settings.sea;
-    const amplitude = sea === 'Fair' ? .22 : sea === 'Heavy' ? .95 : .45;
-    const wind = sea === 'Fair' ? 5 : sea === 'Heavy' ? 16 : 9;
-    const wavelength = sea === 'Fair' ? 20 : sea === 'Heavy' ? 50 : 28;
+    const { waves } = battleEnvironment(map, this.battleTimeOfDay, this.battleWeather);
     // Retain the smaller wave scale across all oceans; port stays sheltered.
-    this.water.waves.amplitude.value = this.inPort ? .12 : amplitude * map.water.amplitudeScale;
-    this.water.waves.windSpeed.value = this.inPort ? 4 : wind * map.water.windScale;
-    this.water.waves.peakWavelength.value = this.inPort ? 14 : wavelength * map.water.wavelengthScale;
-    this.water.waves.choppiness.value = .8;
+    this.water.waves.amplitude.value = this.inPort ? .12 : waves.amplitude;
+    this.water.waves.windSpeed.value = this.inPort ? 4 : waves.windSpeed;
+    this.water.waves.peakWavelength.value = this.inPort ? 14 : waves.peakWavelength;
+    this.water.waves.choppiness.value = .55;
     this.water.waves.windDirection.value = (this.inPort ? 35 : map.water.windDirection) * Math.PI / 180;
     this.water.waves.dirty = true;
     const colors = this.inPort ? oceanMap(DEFAULT_MAP).water : map.water;
     this.water.color.update({ waterColor: colors.waterColor, transmissionColor: colors.transmissionColor, absorptionColor: colors.absorptionColor });
     this.surfaceWaterAbsorption.copy(this.water.color.absorptionColor);
     this.water.foam.waves.opacity = this.inPort ? .45 : map.water.foam;
-    this.effects.setWind(this.water.waves.windSpeed.value);
+    this.effects.setWind(this.water.waves.windSpeed.value, this.water.waves.windDirection.value);
+    this.funnelSmoke.setWind(this.water.waves.windSpeed.value, this.water.waves.windDirection.value);
   }
   private updatePortLighting(): void {
     if(!this.sky)return;
@@ -859,9 +930,12 @@ export class Game {
     this.underwaterPassVisibility?.dispose();
     this.audio?.dispose();
     cancelAnimationFrame(this.raf);
+    const waiters = this.frameWaiters; this.frameWaiters = []; waiters.forEach(resolve => resolve());
     this.abort.abort(); this.observer.disconnect(); this.input.dispose(); this.rig.dispose();
     this.inspectionHover.dispose();
     this.shipLabels.dispose();
+    this.hitLabels.dispose();
+    this.torpedoPreview.dispose();
     this.gunAim.dispose();
     this.hitDirections.dispose();
     await this.initialization;
@@ -876,6 +950,7 @@ export class Game {
     await this.aircraftView.dispose();
     if (this.landscape) disposeBattleLandscape(this.landscape);
     this.effects.dispose();
+    this.funnelSmoke.dispose();
     await this.visualWaveSampler?.drain();
     this.water?.dispose();
     this.sky?.dispose();

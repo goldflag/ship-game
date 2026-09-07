@@ -5,6 +5,7 @@ const identities: Record<string, { type: string; nation: string }> = {
   fletcher: { type: 'Destroyer', nation: 'United States' },
   bismarck: { type: 'Battleship', nation: 'Germany' },
   yamato: { type: 'Battleship', nation: 'Japan' },
+  'king-george-v': { type: 'Battleship', nation: 'United Kingdom' },
   baltimore: { type: 'Heavy cruiser', nation: 'United States' },
   'enterprise-cv6': { type: 'Aircraft carrier', nation: 'United States' },
   'liberty-cargo': { type: 'Cargo ship', nation: 'United States' },

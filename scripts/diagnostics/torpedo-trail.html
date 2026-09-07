@@ -6,7 +6,7 @@
 import { Game } from '/src/game/Game.ts';
 import { shipPreset } from '/src/ships/presets.ts';
 const noop=()=>{}, status=document.querySelector('output');
-const game=new Game(document.querySelector('#scene'),{quality:'medium',sea:'Fair',resolution:1},
+const game=new Game(document.querySelector('#scene'),{quality:'medium',resolution:1},
   {progress:noop,ready:noop,telemetry:noop,pause:noop,hud:noop,error:message=>status.textContent=message},shipPreset('fletcher'));
 game.scheduleFrame=noop;
 window.trailGame=game;

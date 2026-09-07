@@ -5,6 +5,7 @@ import { add, clamp, length, localToWorld, scale, sub, wrapAngle, type Pose } fr
 import { availableAmmunition, muzzleCenterWorld, solveBallistic, type MountDefinition, type MountState } from './weapons';
 import { travelFactor } from './ballistics';
 import { torpedoIntercept, type TubeDefinition } from './torpedoes';
+import { crewSkill, DEFAULT_AI_LEVEL, isPassiveAi, isShipAiLevel, type ShipAiLevel } from './aiLevels';
 
 export const shipVelocity = (actor: FleetActor): Vec3 => motionVelocity(actor.motion);
 /** Provisional bot engagement limits, in meters; small AA fittings wait for close range. */
@@ -31,10 +32,11 @@ interface TargetTrack {
 }
 /** Serializable crew memory. Randomness advances only on decisions, never while reading aim. */
 export interface BotState {
+  aiLevel: ShipAiLevel;
+  patrolHeading?: number;
   randomState: number; time: number; reactionSeconds: number; preferredRange: number;
   side: number; courseOffset: number; cruiseThrottle: number; maneuverAt: number;
   evadeUntil: number; lastIntegrity: number; openingFireAt?: number;
-  submergedUntil?: number;
   track?: TargetTrack;
   guns: Record<string, GunOrder>;
 }
@@ -51,15 +53,16 @@ function reviseGunAim(bot: BotState, gun: GunOrder): void {
   gun.acrossError = between(bot, -1, 1);
   gun.rangeError = between(bot, -1, 1);
 }
-export function createBotState(id: string, definition: ShipDefinition, seed: number): BotState {
+export function createBotState(id: string, definition: ShipDefinition, seed: number, aiLevel: ShipAiLevel = DEFAULT_AI_LEVEL): BotState {
+  if (!isShipAiLevel(aiLevel)) throw new Error('Choose an available AI level for each ship.');
   let hash = seed >>> 0;
   for (const char of id) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619) >>> 0;
   const bot: BotState = {
-    randomState: hash || 1, time: 0, reactionSeconds: 1, preferredRange: 4000,
+    aiLevel, randomState: hash || 1, time: 0, reactionSeconds: 1, preferredRange: 4000,
     side: 1, courseOffset: 0, cruiseThrottle: .6, maneuverAt: 0,
     evadeUntil: 0, lastIntegrity: 0, guns: {},
   };
-  bot.reactionSeconds = between(bot, .9, 1.8);
+  bot.reactionSeconds = between(bot, .9, 1.8) * crewSkill(aiLevel).reactionScale;
   const caliber = Math.max(0, ...definition.mounts.map(m => m.weapon.caliberM));
   bot.preferredRange = caliber >= .3 ? between(bot, 4200, 5800) : between(bot, 3200, 4600);
   bot.side = random(bot) < .5 ? -1 : 1;
@@ -80,12 +83,13 @@ const observedPose = (actor: FleetActor): Pose => {
 export function updateBot(actor: FleetActor, target: FleetActor | undefined, time: number): void {
   const bot = actor.bot!;
   bot.time = time;
-  if (!target || actor.damage.sunk) { delete bot.track; return; }
+  if (isPassiveAi(bot.aiLevel) || !target || actor.damage.sunk) { delete bot.track; return; }
+  const skill = crewSkill(bot.aiLevel);
   if (bot.track?.id !== target.motion.id) {
     const firstTarget = bot.openingFireAt === undefined;
-    bot.openingFireAt ??= time + between(bot, 8, 14);
+    bot.openingFireAt ??= time + between(bot, ...skill.openingDelay);
     // A lost contact must not let a shorter reacquisition bypass the opening grace period.
-    const fireAt = firstTarget ? bot.openingFireAt : Math.max(bot.openingFireAt, time + between(bot, 3, 6));
+    const fireAt = firstTarget ? bot.openingFireAt : Math.max(bot.openingFireAt, time + between(bot, ...skill.reacquireDelay));
     bot.track = {
       id: target.motion.id, fireAt, observedAt: time, observeAt: time + bot.reactionSeconds,
       pose: observedPose(target), velocity: shipVelocity(target), quality: 0,
@@ -97,17 +101,17 @@ export function updateBot(actor: FleetActor, target: FleetActor | undefined, tim
     }
   }
   const track = bot.track;
-  track.quality = Math.min(1, track.quality + FIXED_DT / 45);
+  track.quality = Math.min(1, track.quality + FIXED_DT / skill.settleSeconds);
   if (time >= track.observeAt) {
     const velocity = shipVelocity(target);
     // A speed/course change spoils the solution; the crew takes several observations to catch up.
     const change = Math.hypot(...sub(velocity, track.velocity));
     track.quality = Math.max(0, track.quality - Math.min(.35, change * .035));
-    track.velocity = add(scale(track.velocity, .45), scale(velocity, .55));
+    track.velocity = add(scale(track.velocity, 1 - skill.velocityBlend), scale(velocity, skill.velocityBlend));
     track.pose = observedPose(target);
     track.observedAt = time;
     track.observeAt = time + bot.reactionSeconds;
-    if (bot.lastIntegrity - actor.damage.integrity > 15) {
+    if (bot.lastIntegrity - actor.damage.integrity > skill.evadeDamage) {
       bot.evadeUntil = time + between(bot, 8, 14);
       bot.maneuverAt = time;
     }
@@ -122,14 +126,14 @@ export function updateBot(actor: FleetActor, target: FleetActor | undefined, tim
     bot.cruiseThrottle = between(bot, .5, .8);
     // Occasional changes of broadside are held long enough for a heavy hull to answer the helm.
     if (time > 0 && random(bot) < .18) bot.side *= -1;
-    bot.maneuverAt = time + between(bot, 22, 38);
+    bot.maneuverAt = time + between(bot, ...skill.maneuverDelay);
   }
 }
 
 /** Without a gun mount, only the shared target-acquisition delay applies (fixed tubes). */
 export function botReadyToFire(actor: FleetActor, mount?: MountDefinition): boolean {
   const bot = actor.bot;
-  return !!bot?.track && bot.time >= bot.track.fireAt && (!mount || bot.time >= bot.guns[mount.id].fireAt);
+  return !!bot?.track && !isPassiveAi(bot.aiLevel) && bot.time >= bot.track.fireAt && (!mount || bot.time >= bot.guns[mount.id].fireAt);
 }
 
 /** Torpedo crews lead the same delayed target observations used by gun crews. */
@@ -143,12 +147,13 @@ export function botTorpedoAim(actor: FleetActor, tube: TubeDefinition): Vec3 | n
 /** Crew cadence is additional to the shared physical reload and alignment checks. */
 export function botDidFire(actor: FleetActor, mount: MountDefinition): void {
   const bot = actor.bot!, gun = bot.guns[mount.id];
-  gun.fireAt = bot.time + mount.weapon.reloadSeconds + (mount.battery === 'main' ? between(bot, .8, 3.5) : between(bot, .2, 1.4));
+  gun.fireAt = bot.time + mount.weapon.reloadSeconds + (mount.battery === 'main' ? between(bot, .8, 3.5) : between(bot, .2, 1.4)) * crewSkill(bot.aiLevel).cadenceScale;
   reviseGunAim(bot, gun);
 }
 
 /** Stable nearest-opponent selection, with hysteresis to prevent target flicker. */
 export function botTarget(actor: FleetActor, actors: readonly FleetActor[]): FleetActor | undefined {
+  if (isPassiveAi(actor.bot?.aiLevel)) return undefined;
   const enemies = actors.filter(other => other.team !== actor.team && !other.damage.sunk && !other.damage.stability.combatLost);
   const nearest = enemies.reduce<FleetActor | undefined>((best, other) => !best || distance(actor, other) < distance(actor, best) ? other : best, undefined);
   const previous = enemies.find(other => other.motion.id === actor.targetId);
@@ -157,10 +162,17 @@ export function botTarget(actor: FleetActor, actors: readonly FleetActor[]): Fle
 
 /** Individual engagement distances, sustained course changes, and a turn away after taking damage. */
 export function botHelm(actor: FleetActor, target: FleetActor | undefined, actors: readonly FleetActor[]): HelmCommand {
-  if (!target || actor.damage.sunk) return { throttle: 0, rudder: 0 };
+  const bot = actor.bot!;
+  if (actor.damage.sunk || bot.aiLevel === 'static') return { throttle: 0, rudder: 0 };
+  if (bot.aiLevel === 'moving') {
+    // Turn across the deployment lane, then hold course independently of opponents.
+    bot.patrolHeading ??= actor.motion.heading + Math.PI / 2;
+    const heading = avoidShips(actor, bot.patrolHeading, actors);
+    return { throttle: .55, rudder: steerTo(actor, heading), ...(actor.submarine ? { depthM: 0 } : {}) };
+  }
+  if (!target) return { throttle: 0, rudder: 0 };
   const range = distance(actor, target);
   const bearing = Math.atan2(target.motion.x - actor.motion.x, actor.motion.z - target.motion.z);
-  const bot = actor.bot!;
   const hurt = actor.damage.integrity / actor.damage.maxIntegrity < .35;
   const preferredRange = bot.preferredRange * (hurt ? 1.35 : 1);
   const evading = bot.time < bot.evadeUntil;
@@ -172,6 +184,18 @@ export function botHelm(actor: FleetActor, target: FleetActor | undefined, actor
     const aim = botTorpedoAim(actor, tube);
     heading = (aim ? Math.atan2(aim[0] - actor.motion.x, actor.motion.z - aim[2]) : bearing) - tube.bearingDeg * Math.PI / 180;
   }
+  heading = avoidShips(actor, heading, actors);
+  // Start diving before entering torpedo range and stay down through reloads
+  // and turns. A wider exit range keeps depth orders steady at the boundary.
+  const torpedoRange = Math.max(0, ...tubes.map(t => t.weapon.rangeM));
+  const dive = tubes.length > 0 && range < torpedoRange * ((actor.submarine?.targetDepthM ?? 0) > 0 ? 1.8 : 1.6);
+  return { throttle: evading ? .85 : range > preferredRange + 700 ? .8 : bot.cruiseThrottle,
+    ...(actor.definition.submarine ? { depthM: dive ? Math.min(actor.definition.submarine.periscopeDepthM, actor.definition.submarine.maxTorpedoDepthM) : 0 } : {}),
+    rudder: steerTo(actor, heading) };
+}
+
+const steerTo = (actor: FleetActor, heading: number) => clamp(wrapAngle(heading - actor.motion.heading) * 2 - actor.motion.yawRate * 5, -1, 1);
+function avoidShips(actor: FleetActor, heading: number, actors: readonly FleetActor[]): number {
   let x = Math.sin(heading), z = -Math.cos(heading);
   for (const other of actors) {
     if (other === actor || other.motion.y < -20) continue;
@@ -183,16 +207,7 @@ export function botHelm(actor: FleetActor, target: FleetActor | undefined, actor
       z += (actor.motion.z - other.motion.z) / separation * weight;
     }
   }
-  heading = Math.atan2(x, -z);
-  // Surface while the tubes facing the opponent reload: deck guns can contribute
-  // and opponents get an attack window. Dive again for the next torpedo approach.
-  const loadedAttackTubes = tubes.some(t => Math.abs(wrapAngle(bearing - actor.motion.heading - t.bearingDeg * Math.PI / 180)) < Math.PI / 2
-    && (actor.torpedoTubes?.find(state => state.id === t.id)?.reload ?? 0) <= 0);
-  if (actor.submarine && loadedAttackTubes && range < 5500 && actor.submarine.targetDepthM === 0) bot.submergedUntil = bot.time + 40;
-  const dive = tubes.length && range < 5500 && (loadedAttackTubes || bot.time < (bot.submergedUntil ?? 0));
-  return { throttle: evading ? .85 : range > preferredRange + 700 ? .8 : bot.cruiseThrottle,
-    ...(actor.definition.submarine ? { depthM: dive ? actor.definition.submarine.periscopeDepthM : 0 } : {}),
-    rudder: clamp(wrapAngle(heading - actor.motion.heading) * 2 - actor.motion.yawRate * 5, -1, 1) };
+  return Math.atan2(x, -z);
 }
 
 /** Lead the last observed track. Aim errors persist between salvos and shrink as tracking settles. */
@@ -206,7 +221,7 @@ export function botAim(actor: FleetActor, target: FleetActor, mount: MountDefini
   const from = muzzleCenterWorld(mount, state, actor.motion);
   const dx = point[0] - from[0], dz = point[2] - from[2];
   const range = Math.max(1, Math.hypot(dx, dz));
-  const error = (4 + range * .003) * (1 + 3 * (1 - (track?.quality ?? 0)));
+  const error = (4 + range * .003) * (1 + 3 * (1 - (track?.quality ?? 0))) * crewSkill(bot?.aiLevel ?? DEFAULT_AI_LEVEL).aimErrorScale;
   point[0] += (dx * gun.rangeError - dz * gun.acrossError * .6) / range * error;
   point[2] += (dz * gun.rangeError + dx * gun.acrossError * .6) / range * error;
   const cached = state.leadCache && length(sub(point, state.leadCache.point)) < 10 ? state.leadCache : undefined;

@@ -1,8 +1,12 @@
-import { afterEach, beforeEach, expect, test } from 'bun:test';
+import { afterEach, beforeEach, expect, mock, spyOn, test } from 'bun:test';
 import { PerspectiveCamera, Vector3 } from 'three/webgpu';
 import { createShipState } from '../simulation/ship';
 import { CameraRig } from './CameraRig';
 import viic from '../../assets/ships/type-viic/blueprint.json';
+import { Game } from './Game';
+import { ShellFollow } from './ShellFollow';
+import { CombatSimulation } from '../simulation/combat';
+import { shipPreset } from '../ships/presets';
 
 const globals = ['window', 'document'] as const;
 let originals: (PropertyDescriptor | undefined)[];
@@ -98,6 +102,169 @@ function interactiveCamera() {
   return { camera, canvas, rig, drag };
 }
 
+function pointerLockCamera() {
+  Object.assign(window, { matchMedia: () => ({ matches: true }) });
+  const canvas = Object.assign(new EventTarget(), {
+    focus() {},
+    requestPointerLock: mock<() => Promise<void> | void>(() => new Promise<void>(() => {})),
+  });
+  const changeLock = (element: EventTarget | null) => {
+    Object.assign(document, { pointerLockElement: element });
+    document.dispatchEvent(new Event('pointerlockchange'));
+  };
+  Object.assign(document, { pointerLockElement: null, exitPointerLock: () => changeLock(null) });
+  const pause = mock();
+  const rig = new CameraRig(new PerspectiveCamera(52, 16 / 9, .5, 60000), canvas as unknown as HTMLCanvasElement,
+    undefined, { pause, aim() {}, optics() {} });
+  const clickSea = () => canvas.dispatchEvent(Object.assign(new Event('pointerdown'), { button: 0, pointerType: 'mouse' }));
+  return { rig, canvas, changeLock, clickSea, pause };
+}
+
+test('an interrupted capture can recover after pausing or leaving and re-entering battle', () => {
+  const { rig, canvas, clickSea, changeLock } = pointerLockCamera();
+  try {
+    rig.capturePointer();
+    rig.setEnabled(false);
+    rig.setEnabled(true);
+    clickSea();
+    expect(canvas.requestPointerLock).toHaveBeenCalledTimes(2);
+    rig.setInPort(true);
+    rig.setInPort(false);
+    clickSea();
+    expect(canvas.requestPointerLock).toHaveBeenCalledTimes(3);
+    changeLock(canvas);
+    expect(rig.pointerLocked).toBe(true);
+  } finally { rig.dispose(); }
+});
+
+test('a completed request without a retained lock allows the next sea click to capture', async () => {
+  const { rig, canvas, clickSea, changeLock } = pointerLockCamera();
+  canvas.requestPointerLock.mockImplementation(() => Promise.resolve());
+  try {
+    clickSea();
+    await Promise.resolve();
+    clickSea();
+    expect(canvas.requestPointerLock).toHaveBeenCalledTimes(2);
+    changeLock(canvas);
+    expect(rig.pointerLocked).toBe(true);
+  } finally { rig.dispose(); }
+});
+
+test('an unanswered capture only suppresses duplicate requests briefly', () => {
+  const clock = spyOn(performance, 'now').mockReturnValue(0);
+  const { rig, canvas, clickSea, changeLock } = pointerLockCamera();
+  try {
+    clickSea();
+    clickSea();
+    expect(canvas.requestPointerLock).toHaveBeenCalledTimes(1);
+    clock.mockReturnValue(2000);
+    clickSea();
+    expect(canvas.requestPointerLock).toHaveBeenCalledTimes(2);
+    changeLock(canvas);
+    expect(rig.pointerLocked).toBe(true);
+  } finally { rig.dispose(); clock.mockRestore(); }
+});
+
+test('an unlock notification clears a capture whose acquired state was already lost', () => {
+  const { rig, canvas, clickSea, changeLock, pause } = pointerLockCamera();
+  try {
+    clickSea();
+    changeLock(null);
+    expect(pause).toHaveBeenCalledTimes(1);
+    clickSea();
+    expect(canvas.requestPointerLock).toHaveBeenCalledTimes(2);
+  } finally { rig.dispose(); }
+});
+
+for (const outcome of ['resolve', 'reject'] as const) {
+  test(`an old request's late ${outcome} does not clear a newer capture`, async () => {
+    const { rig, canvas, clickSea } = pointerLockCamera();
+    let finish!: () => void;
+    canvas.requestPointerLock.mockImplementationOnce(() => new Promise<void>((resolve, reject) => {
+      finish = () => outcome === 'resolve' ? resolve() : reject(new Error('interrupted'));
+    }));
+    try {
+      clickSea();
+      rig.releasePointer();
+      clickSea();
+      expect(canvas.requestPointerLock).toHaveBeenCalledTimes(2);
+      finish();
+      await Promise.resolve();
+      clickSea();
+      expect(canvas.requestPointerLock).toHaveBeenCalledTimes(2);
+    } finally { rig.dispose(); }
+  });
+}
+
+test('late capture is released while paused and intentional release does not pause', () => {
+  const { rig, canvas, clickSea, changeLock, pause } = pointerLockCamera();
+  try {
+    clickSea();
+    rig.setEnabled(false);
+    changeLock(canvas);
+    expect(rig.pointerLocked).toBe(false);
+    expect(pause).not.toHaveBeenCalled();
+    rig.setEnabled(true);
+    clickSea();
+    changeLock(canvas);
+    rig.releasePointer();
+    expect(rig.pointerLocked).toBe(false);
+    expect(pause).not.toHaveBeenCalled();
+    clickSea();
+    changeLock(canvas);
+    changeLock(null);
+    expect(pause).toHaveBeenCalledTimes(1);
+  } finally { rig.dispose(); }
+});
+
+test('legacy capture errors and rejected requests permit retry without firing on the capture click', async () => {
+  const { rig, canvas, clickSea, changeLock } = pointerLockCamera();
+  canvas.requestPointerLock.mockImplementationOnce(() => {});
+  canvas.requestPointerLock.mockImplementationOnce(() => Promise.reject(new Error('denied')));
+  canvas.requestPointerLock.mockImplementationOnce(() => { throw new Error('denied'); });
+  try {
+    clickSea();
+    document.dispatchEvent(new Event('pointerlockerror'));
+    clickSea();
+    await Promise.resolve();
+    clickSea();
+    clickSea();
+    expect(canvas.requestPointerLock).toHaveBeenCalledTimes(4);
+    changeLock(canvas);
+    expect(rig.firing).toBe(false);
+    clickSea();
+    expect(rig.firing).toBe(true);
+    window.dispatchEvent(new Event('pointerup'));
+    expect(rig.firing).toBe(false);
+  } finally { rig.dispose(); }
+});
+
+test('submerged zoom preserves forward and deliberately aft bearings through shallow dives', () => {
+  const definition = shipPreset('type-viic');
+  for (const depth of [2, 3, 4, 7, 50]) for (const heading of [0, 1.2, Math.PI]) for (const aft of [false, true]) {
+    const { camera, rig, drag } = interactiveCamera();
+    const simulation = new CombatSimulation(definition);
+    Object.assign(simulation.ship, { y: -depth, heading });
+    rig.setHullLength(definition.hull.length); rig.setSubmarine(definition.submarine);
+    rig.setInPort(false); rig.update(simulation.ship, -depth, 0, true); rig.recenter();
+    if (aft) drag(Math.PI / .0025, 0);
+    rig.update(simulation.ship, -depth, 0, true);
+    const bearing = rig.bearing;
+    const game = Object.assign(Object.create(Game.prototype), {
+      camera, rig, simulation, definition, manualAim: true, battery: 'torpedo', shellFollow: new ShellFollow(),
+    }) as Game;
+    try {
+      for (let toggle = 0; toggle < 4; toggle++) {
+        game.toggleBinoculars();
+        for (let frame = 0; frame < 60; frame++) rig.update(simulation.ship, -depth, 1 / 60);
+        const direction = camera.getWorldDirection(new Vector3());
+        expect(direction.x * Math.sin(bearing) - direction.z * Math.cos(bearing)).toBeGreaterThan(.95);
+        if (rig.binoculars) expect(camera.position.y).toBeCloseTo(definition.submarine!.periscopeEye[1] - depth);
+      }
+    } finally { rig.dispose(); }
+  }
+});
+
 function sunDirection(elevation: number, azimuth: number) {
   return new Vector3(Math.sin(azimuth) * Math.cos(elevation), Math.sin(elevation), Math.cos(azimuth) * Math.cos(elevation));
 }
@@ -158,6 +325,7 @@ test('shell camera follows flight without frame lag or changed aim, and restores
   const ship = createShipState();
   rig.setInPort(false);
   rig.toggleBinoculars([1000, 0, -5000], ship);
+  for (let i = 0; i < 180; i++) rig.update(ship, 0, 1 / 60);
   const position = camera.position.clone(), orientation = camera.quaternion.clone(), fov = camera.fov;
   const bearing = rig.bearing;
   const view = { position: [0, 200, -1000] as [number, number, number], velocity: [0, -20, -800] as [number, number, number] };
@@ -183,7 +351,7 @@ test('shell camera follows flight without frame lag or changed aim, and restores
   rig.setShellView();
   rig.update(ship, 0, .016);
   expect(rig.binoculars).toBe(true);
-  expect(camera.fov).toBe(fov);
+  expect(camera.fov).toBeCloseTo(fov, 10);
   expect(camera.position.distanceTo(position)).toBeLessThan(1e-9);
   expect(camera.quaternion.angleTo(orientation)).toBeLessThan(1e-7);
   rig.dispose();
@@ -311,5 +479,70 @@ test('VIIC chase follows underwater, scope eye breaks the surface at 7 m, and de
   expect(camera.position.y).toBeGreaterThanOrEqual(12);
   rig.setInPort(false); rig.setSubmarine(); ship.y = -50; rig.update(ship, ship.y, 0, true);
   expect(camera.position.y).toBeGreaterThanOrEqual(12);
+  rig.dispose();
+});
+
+test('tiny scroll inputs zoom continuously and settle without a camera jump', () => {
+  const { camera, canvas, rig } = interactiveCamera();
+  const ship = createShipState();
+  rig.aimAt([0, .5, -5000], ship);
+  const start = camera.position.clone(), fov = camera.fov;
+  rig.toggleBinoculars([0, .5, -5000], ship);
+  expect(camera.position.distanceTo(start)).toBeLessThan(1e-6);
+  expect(camera.fov).toBeCloseTo(fov, 10);
+  rig.update(ship, 0, 1 / 60);
+  expect(camera.fov).toBeLessThan(fov);
+  expect(camera.fov).toBeGreaterThan(14);
+  for (let i = 0; i < 120; i++) rig.update(ship, 0, 1 / 60);
+  const before = rig.magnification;
+  canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY: -1, deltaMode: 0 }));
+  for (let i = 0; i < 120; i++) rig.update(ship, 0, 1 / 60);
+  expect(rig.magnification).toBeGreaterThan(before);
+  expect(rig.magnification).toBeLessThan(before + .1);
+  rig.dispose();
+});
+
+test('chase tilt orbits above the hull at both zoom limits and permits a close look', () => {
+  const { camera, canvas, rig, drag } = interactiveCamera();
+  const ship = createShipState();
+  rig.setInPort(false); drag(0, 100000);
+  for (const deltaY of [100000, -100000]) {
+    canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY }));
+    rig.update(ship, 0, 0, true);
+    const offset = camera.position.clone().sub(new Vector3(ship.x, ship.y, ship.z));
+    expect(Math.hypot(offset.x, offset.z)).toBeLessThan(offset.y * .04);
+    const hull = new Vector3(ship.x, 0, ship.z).project(camera);
+    expect(Math.abs(hull.x)).toBeLessThan(.02); expect(Math.abs(hull.y)).toBeLessThan(.1);
+  }
+  expect(camera.position.length()).toBeLessThan(100);
+  rig.dispose();
+});
+
+test('aiming during an optics transition keeps the camera glide and rapid toggles remain continuous', () => {
+  const { camera, rig, drag } = interactiveCamera();
+  const ship = createShipState();
+  const aim: [number, number, number] = [0, .5, -5000];
+  rig.aimAt(aim, ship); rig.toggleBinoculars(aim, ship); rig.update(ship, 0, .08);
+  const start = camera.position.clone();
+  drag(2, 1); rig.update(ship, 0, 0);
+  expect(camera.position.distanceTo(start)).toBeLessThan(.01);
+  const beforeReverse = camera.position.clone(), fov = camera.fov;
+  rig.toggleBinoculars(aim, ship);
+  expect(camera.position.distanceTo(beforeReverse)).toBeLessThan(1e-6);
+  expect(camera.fov).toBeCloseTo(fov, 10);
+  for (let i = 0; i < 120; i++) rig.update(ship, 0, 1 / 60);
+  expect(camera.fov).toBeCloseTo(52, 5);
+  rig.dispose();
+});
+
+
+test('a submerged submarine can also orbit to a near-vertical view of its hull', () => {
+  const { camera, rig, drag } = interactiveCamera();
+  rig.setHullLength(viic.hull.length);
+  rig.setSubmarine(viic.submarine as import('../ships/blueprint').SubmarineDefinition);
+  rig.setInPort(false);
+  const ship = createShipState(); ship.y = -50;
+  drag(0, 100000); rig.update(ship, ship.y, 0, true);
+  expect(Math.hypot(camera.position.x, camera.position.z)).toBeLessThan((camera.position.y - ship.y) * .04);
   rig.dispose();
 });

@@ -1,0 +1,72 @@
+{
+  "sourceId": "rmg-j9645-original",
+  "image": "historical/registered-plan-sheet.png",
+  "originalPixels": [
+    4800,
+    2500
+  ],
+  "method": "Two independent original drawings assembled at one common metric scale. Profile unchanged, registered by LOA endpoints and keel. Upper deck uniformly resized once from its own complete LOA endpoints, then translated; no anisotropic stretching, skew correction or component fitting.",
+  "pixelsPerMeter": 19.253126651400386,
+  "sternPixelX": 207,
+  "bowPixelX": 4579,
+  "starboard": {
+    "crop": [
+      0,
+      0,
+      4800,
+      1233
+    ],
+    "originPixel": [
+      2393,
+      870.8177629029417
+    ],
+    "keelPixelY": 1041
+  },
+  "port": {
+    "crop": [
+      0,
+      0,
+      4800,
+      1233
+    ],
+    "originPixel": [
+      2393,
+      870.8177629029417
+    ],
+    "keelPixelY": 1041,
+    "mirrorX": true
+  },
+  "top": {
+    "crop": [
+      0,
+      1290,
+      4800,
+      2500
+    ],
+    "originPixel": [
+      2393,
+      1890.4463519313304
+    ],
+    "mirrorX": false
+  },
+  "uncertaintyPixels": 8,
+  "limits": "The port overlay mirrors the same starboard profile and does not certify side-specific fittings. Top drawing 1280 px; scale uncertainty larger than full-resolution profile. Original files are retained beside this derived presentation sheet.",
+  "componentSources": [
+    {
+      "file": "historical/j9645-original.jpg",
+      "scale": 1,
+      "translation": [
+        0,
+        0
+      ]
+    },
+    {
+      "file": "rmg-59266-j9646.jpg",
+      "scale": 3.752789699570815,
+      "translation": [
+        -22,
+        1290
+      ]
+    }
+  ]
+}

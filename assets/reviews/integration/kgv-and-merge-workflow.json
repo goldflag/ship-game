@@ -1,0 +1,28 @@
+{
+  "base": "382c848",
+  "originalKgvCommit": "9ca26fe",
+  "shipId": "king-george-v",
+  "contentHash": "21a47406441bc03fca895c3d2263b4c2a68d825bad749c6a2893d37fb36ba917",
+  "continuity": {
+    "sceneUnchangedExceptHash": true,
+    "binaryIdentical": true,
+    "definitionUnchangedExceptHash": true
+  },
+  "runtime": {
+    "backend": "webgpu",
+    "inPort": true,
+    "trainFraction": 1,
+    "elevationFraction": 1,
+    "recoilFraction": 1,
+    "maxMuzzleErrorM": 0.0017375359526608737,
+    "screenshot": "Orca screenshot failed with browser_tab_closed; no fresh screenshot claimed"
+  },
+  "build": "passed: all 11 ship checks, aircraft checks, TypeScript and Vite",
+  "geometryReview": "Inspected fixed authored contact sheet. Original model geometry and simulation definition unchanged; no new historical-accuracy approval.",
+  "tests": {
+    "command": "bun test src/simulation src/game src/ships/king-george-v.test.ts scripts/git --timeout 60000",
+    "passed": 488,
+    "failed": 0,
+    "note": "Includes real Git integration tests for catalog merging; not a claim that the entire repository test command was run."
+  }
+}

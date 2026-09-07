@@ -33,7 +33,9 @@ function subtract(cell: Cell, room: Cell): Cell[] {
   }
   return out;
 }
-for (const id of ['bismarck', 'yamato', 'baltimore', 'enterprise-cv6']) {
+const requestedShips = process.argv.slice(2);
+for (const id of requestedShips.length ? requestedShips : ['bismarck', 'yamato', 'baltimore', 'enterprise-cv6', 'king-george-v']) {
+  if (!/^[a-z][a-z0-9-]{0,63}$/.test(id)) throw new Error('Expected a ship ID');
   const path = new URL(`./${id}/blueprint.json`, import.meta.url), b = JSON.parse(await readFile(path, 'utf8')) as ShipBlueprint;
   b.compartments = b.compartments.filter(c => !c.id.startsWith('reserve-cell-'));
   b.connections = b.connections.filter(c => !c.id?.startsWith('reserve-link-'));

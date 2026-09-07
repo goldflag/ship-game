@@ -36,7 +36,7 @@ interface AircraftEntry {
 }
 
 type View = 'quarter' | 'top' | 'side' | 'front' | 'rear';
-type JointKind = 'propeller' | 'rudder' | 'elevator' | 'aileron' | 'gear' | 'diveBrake';
+type JointKind = 'propeller' | 'rudder' | 'elevator' | 'aileron' | 'gear' | 'diveBrake' | 'wingFold';
 interface Joint {
   id: string;
   object: Object3D;
@@ -50,6 +50,7 @@ interface ReviewPose {
   controlsAngle?: number;
   gearFraction?: number;
   diveBrakeAngle?: number;
+  wingFoldFraction?: number;
 }
 
 function element<T extends HTMLElement>(id: string): T {
@@ -61,6 +62,7 @@ function element<T extends HTMLElement>(id: string): T {
 const stage = element('model-stage');
 const select = element<HTMLSelectElement>('aircraft-select');
 const detailSelect = element<HTMLSelectElement>('detail-select');
+const foldToggle = element<HTMLInputElement>('fold-toggle');
 const brakeToggle = element<HTMLInputElement>('brake-toggle');
 const message = element('model-message');
 const status = element('model-status');
@@ -199,6 +201,7 @@ function jointKind(id: string): JointKind | undefined {
   if (id === 'control.rudder') return 'rudder';
   if (id.startsWith('control.elevator.')) return 'elevator';
   if (id.startsWith('control.aileron.')) return 'aileron';
+  if (id.startsWith('wing.fold.')) return 'wingFold';
   if (id.startsWith('diveBrake.')) return 'diveBrake';
   if (id.startsWith('gear.')) return 'gear';
   return undefined;
@@ -282,6 +285,7 @@ function resetPose(): void {
   controlsToggle.checked = false;
   gearToggle.checked = false;
   brakeToggle.checked = false;
+  foldToggle.checked = false;
   for (const joint of joints) joint.object.quaternion.copy(joint.rest);
   needsRender = true;
 }
@@ -304,6 +308,9 @@ function updatePose(delta: number): boolean {
     } else if (joint.kind === 'rudder') {
       axis = yAxis;
       angle = swing;
+    } else if (joint.kind === 'wingFold') {
+      axis = new Vector3().fromArray(joint.object.userData.foldAxis);
+      angle = (manualPose?.wingFoldFraction ?? (foldToggle.checked ? 1 : 0)) * Number(joint.object.userData.foldAngleDegrees) * Math.PI / 180;
     } else if (joint.kind === 'diveBrake') {
       angle = (manualPose?.diveBrakeAngle ?? (brakeToggle.checked ? 0.8 : 0)) * Number(joint.object.userData.rotationMultiplier ?? 1);
     } else if (joint.kind === 'gear') {
@@ -364,6 +371,7 @@ async function selectAircraft(id: string, lod = currentLOD): Promise<void> {
     sun.shadow.camera.updateProjectionMatrix();
     propellerToggle.disabled = !joints.some(joint => joint.kind === 'propeller' && !joint.fixed);
     controlsToggle.disabled = !joints.some(joint => ['rudder', 'elevator', 'aileron'].includes(joint.kind) && !joint.fixed);
+    element('fold-label').hidden = !joints.some(joint => joint.kind === 'wingFold');
     element('brake-label').hidden = !joints.some(joint => joint.kind === 'diveBrake');
     gearToggle.disabled = !joints.some(joint => joint.kind === 'gear' && !joint.fixed);
     element('articulation-note').textContent = gearToggle.disabled
@@ -488,7 +496,7 @@ try {
   select.addEventListener('change', () => void selectAircraft(select.value), { signal: listeners.signal });
   detailSelect.addEventListener('change', () => { if (selected) void selectAircraft(selected.id, Number(detailSelect.value)); }, { signal: listeners.signal });
   for (const button of viewButtons) button.addEventListener('click', () => setView(button.dataset.view as View), { signal: listeners.signal });
-  for (const toggle of [propellerToggle, controlsToggle, gearToggle, brakeToggle]) toggle.addEventListener('change', () => { manualPose = null; needsRender = true; }, { signal: listeners.signal });
+  for (const toggle of [propellerToggle, controlsToggle, gearToggle, brakeToggle, foldToggle]) toggle.addEventListener('change', () => { manualPose = null; needsRender = true; }, { signal: listeners.signal });
   gridToggle.addEventListener('change', () => { grid.visible = gridToggle.checked; needsRender = true; }, { signal: listeners.signal });
   resetButton.addEventListener('click', () => { resetPose(); setView('quarter'); }, { signal: listeners.signal });
   retry.addEventListener('click', () => { void (selected ? selectAircraft(selected.id) : loadCatalog()); }, { signal: listeners.signal });
@@ -529,6 +537,7 @@ try {
       if (pose) manualPose = {
         propellerAngle: Number.isFinite(pose.propellerAngle) ? pose.propellerAngle : 0,
         controlsAngle: Math.max(-0.5, Math.min(0.5, Number.isFinite(pose.controlsAngle) ? pose.controlsAngle! : 0)),
+        wingFoldFraction: Math.max(0, Math.min(1, Number.isFinite(pose.wingFoldFraction) ? pose.wingFoldFraction! : 0)),
         diveBrakeAngle: Math.max(0, Math.min(1, Number.isFinite(pose.diveBrakeAngle) ? pose.diveBrakeAngle! : 0)),
         gearFraction: Math.max(0, Math.min(1, Number.isFinite(pose.gearFraction) ? pose.gearFraction! : 0)),
       };

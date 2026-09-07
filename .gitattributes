@@ -6,3 +6,7 @@
 *.jpg binary
 *.jpeg binary
 *.webp binary
+
+# Install the repository-local driver with bun run git:setup after cloning.
+# Real same-field conflicts remain unmerged; binary outputs keep normal Git behavior.
+assets/parts/guns.json merge=ship-catalog
