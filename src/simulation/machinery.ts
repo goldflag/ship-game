@@ -15,8 +15,10 @@ function layout(def: ShipDefinition): MachineryLayout {
   }
   return result;
 }
-export function equipmentCondition(actor: Combatant, def: ShipDefinition, module: Module): EquipmentCondition {
-  const compiled = layout(def), slot = compiled.modules.get(module.id)!.index;
+export function equipmentCondition(actor: Combatant, def: ShipDefinition, module: Module | string): EquipmentCondition {
+  const compiled = layout(def), entry = compiled.modules.get(typeof module === 'string' ? module : module.id)!;
+  if (typeof module === 'string') module = entry.module;
+  const slot = entry.index;
   const state = actor.damage.modules[slot];
   const hp = (state?.id === module.id ? state : actor.damage.modules.find(s => s.id === module.id)!).hp;
   if (hp <= 0) return { availability: 0, reason: 'destroyed' };

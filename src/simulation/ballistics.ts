@@ -43,6 +43,21 @@ function arcTree(drag: number): ArcTree {
 export function solveDragArc(from: Vec3, target: Vec3, speed: number, drag: number): { direction: Vec3; time: number } | null {
   const dx = target[0] - from[0], dy = target[1] - from[1], dz = target[2] - from[2], range2 = dx * dx + dz * dz;
   if (Math.sqrt(range2) * drag >= speed) return null;
+  // Solve the same closed-form trajectory directly in the ordinary low-arc
+  // case. A negative slope selects the earlier root. Near maximum range or
+  // a degenerate derivative, retain the bracketed search below.
+  let estimate = Math.sqrt(range2 + dy * dy) / speed;
+  for (let i = 0; i < 8 && estimate > .0001 && estimate < 180; i++) {
+    const factor = travelFactor(estimate, drag), vertical = dy + gravityDrop(estimate, drag, factor);
+    const speed2 = speed * speed, travel2 = factor * factor;
+    const residual = range2 + vertical * vertical - speed2 * travel2;
+    const slope = 2 * factor * (GRAVITY * vertical - speed2 * Math.exp(-drag * estimate));
+    if (!(slope < 0)) break;
+    if (Math.abs(residual) <= speed2 * travel2 * 1e-13) {
+      return { direction: normalize([dx / factor, vertical / factor, dz / factor]), time: estimate };
+    }
+    estimate -= residual / slope;
+  }
   const error = (time: number) => {
     const factor = travelFactor(time, drag), vertical = dy + gravityDrop(time, drag, factor);
     return (range2 + vertical * vertical) / (factor * factor) - speed * speed;

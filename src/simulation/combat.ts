@@ -1,6 +1,6 @@
-import { airborne, commandSquadron, createAirWing, launchSquadron, orderFlight, recallAircraft, stepAircraft, type AirRelease, type AirOrder } from './aircraft';
+import { airborne, onFlightDeck, commandSquadron, createAirWing, launchSquadron, orderFlight, recallAircraft, stepAircraft, type AirRelease, type AirOrder } from './aircraft';
 import { airWingTelemetry, type AirWingTelemetry } from './airTelemetry';
-import { updateAntiAircraft } from './antiAircraft';
+import { antiAircraftCandidates, updateAntiAircraft } from './antiAircraft';
 import { DEFAULT_AI_LEVEL, type ShipAiLevel } from './aiLevels';
 import { DEFAULT_MAP, mapIslands, type Island, type OceanMapId } from '../maps/catalog';
 import { avoidLand, firstLandHit, resolveLandContact } from './land';
@@ -279,15 +279,17 @@ export class CombatSimulation {
     for (const actor of this.actors) resolveLandContact(actor, this.islands);
     const airContext = { seed: this.seed, actors: this.actors, planes: this.aircraft, shells: this.shells, torpedoes: this.torpedoes,
       releases: this.airReleases, nextId: () => ++this.shellSequence, emit: this.emit };
+    const aaPlanes = airContext.planes.filter(p => airborne(p) && !onFlightDeck(p));
     for (const actor of this.actors) {
       const def = actor.definition, target = targets.get(actor);
+      const aaCandidates = antiAircraftCandidates(actor, aaPlanes);
       const support = supportPerformance(actor, def);
       const laneClear = target && clearFiringLane(actor, target, this.actors);
       def.mounts.forEach((m, i) => {
         const state = actor.mounts[i];
         if (actor.damage.stability.combatLost) { state.status = 'disabled'; return; }
-        if (m.magazineId && equipmentCondition(actor, def, def.modules.find(module => module.id === m.magazineId)!).availability === 0) { state.status = 'disabled'; return; }
-        if (this.isBattle && this.result === 'active' && updateAntiAircraft(actor, m, state, airContext, FIXED_DT)) return;
+        if (m.magazineId && equipmentCondition(actor, def, m.magazineId).availability === 0) { state.status = 'disabled'; return; }
+        if (this.isBattle && this.result === 'active' && updateAntiAircraft(actor, m, state, airContext, FIXED_DT, aaCandidates)) return;
         if (actor === this.player && m.battery === intent.battery) selectAmmunition(m, state, intent.ammunition === 'he' ? 'he' : 'ap');
         else if (actor.controller === 'bot' && target) selectAmmunition(m, state, botAmmunition(target, m, state));
         if (actor === this.player && !aimValid) { state.status = 'out-of-arc'; return; }

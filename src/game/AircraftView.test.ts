@@ -41,6 +41,7 @@ test('hangar starts hidden; explicitly spotted aircraft follow the carrier pose 
     matrix.elements.forEach((value, i) => expect(value).toBeCloseTo(expected.elements[i], 3));
     sim.player.airWing!.planes[0].phase = 'lost';
     view.update(sim, camera, true, true, roots); expect(view.diagnostics().instances).toBe(11);
+    camera.position.set(0, 12000, 0); camera.lookAt(0, 0, 0); camera.far = 60000; camera.updateProjectionMatrix(); camera.updateMatrixWorld(true);
     view.update(sim, camera, true, false, roots); expect(view.diagnostics().instances).toBe(23);
     view.update(sim, camera, false, true, roots); expect(view.root.visible).toBe(false);
   } finally { await view.dispose(); loader.mockRestore(); }
@@ -63,12 +64,17 @@ test('distant flying aircraft retain a silhouette across LODs, while deck, lost 
     for (const distance of [100, 121, 401, 1500, 3000, 6000]) {
       camera.position.set(0, 300, distance); camera.lookAt(0, 300, 0); camera.updateMatrixWorld(true);
       view.update(sim, camera, true);
-      expect(view.diagnostics().instances).toBe(1);
+      expect(view.diagnostics().instances + view.diagnostics().silhouettes).toBe(1);
+      if (distance >= 1500) expect(view.diagnostics().instances).toBe(0);
       if (distance >= 1500) expect(contacts()?.count).toBe(1);
       else if (distance === 100) expect(contacts()?.visible).toBe(false);
     }
     camera.zoom = 24; camera.updateProjectionMatrix(); view.update(sim, camera, true);
     expect(contacts()?.visible).toBe(false); // Binoculars resolve the actual model again.
+    expect(view.diagnostics().instances).toBe(1);
+    camera.lookAt(0, 300, 12000); camera.updateMatrixWorld(true); view.update(sim, camera, true);
+    expect(view.diagnostics().culled).toBe(1); expect(view.diagnostics().instances).toBe(0); expect(contacts()?.visible).toBe(false);
+    camera.lookAt(0, 300, 0); camera.updateMatrixWorld(true);
     camera.zoom = 1; camera.updateProjectionMatrix();
     plane.phase = 'ready'; view.update(sim, camera, true); expect(contacts()?.visible).toBe(false);
     plane.phase = 'lost'; view.update(sim, camera, true); expect(contacts()?.visible).toBe(false);

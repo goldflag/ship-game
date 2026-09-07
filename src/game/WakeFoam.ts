@@ -66,7 +66,7 @@ export class WakeFoam {
     })();
   }
 
-  update(state: Motion, dt: number): void {
+  update(state: Motion, dt: number, updateInterval = UPDATE_INTERVAL): void {
     if (dt <= 0) return;
     this.time.value += dt;
     this.elapsed += dt;
@@ -95,8 +95,8 @@ export class WakeFoam {
     this.previous = { ...state };
     while (this.samples.length && this.time.value - this.samples[0].born > LIFETIME) this.samples.shift();
     while (this.impacts.length && this.time.value - this.impacts[0].born > 10) this.impacts.shift();
-    if (this.elapsed < UPDATE_INTERVAL || (!this.samples.length && !this.impacts.length && !this.dirty)) return;
-    this.elapsed %= UPDATE_INTERVAL;
+    if (this.elapsed < updateInterval || (!this.samples.length && !this.impacts.length && !this.dirty)) return;
+    this.elapsed %= updateInterval;
     this.rasterize(state);
     this.dirty = this.samples.length > 0 || this.impacts.length > 0;
   }
