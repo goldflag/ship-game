@@ -6,12 +6,12 @@
   "packageManager": "bun@1.3.3",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "bun run ship:check bismarck && bun run ship:check yamato && bun run ship:check baltimore && bun run ship:check enterprise-cv6 && bun run ship:check type-viic && bun run ship:check liberty-cargo && bun run ship:check liberty-collier && bun run ship:check victory-cargo && bun run ship:check flower-corvette && bun run ship:check fletcher && bun run ship:check king-george-v && bun run aircraft:check all && tsc --noEmit && vite build",
+    "build": "bun run ship:check all && bun run aircraft:check all && tsc --noEmit && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "typecheck": "tsc --noEmit",
     "audio:build": "python3 scripts/audio/build.py",
     "test": "bun scripts/tests/run.ts",
-    "test:serial": "bun test src/simulation src/ships src/game src/schematic scripts/aircraft",
+    "test:serial": "bun test src/simulation src/ships src/game src/schematic scripts/aircraft scripts/git",
     "aircraft:build": "bun scripts/aircraft/pipeline.ts build",
     "aircraft:check": "bun scripts/aircraft/pipeline.ts check",
     "aircraft:review": "bun scripts/aircraft/pipeline.ts review",
@@ -27,7 +27,9 @@
     "ship:new": "bun scripts/ships/new.ts",
     "ship:reference": "bun scripts/reference/pipeline.ts reference",
     "ship:compare": "bun scripts/reference/pipeline.ts compare",
-    "ship:independence": "bun scripts/reference/pipeline.ts independence"
+    "ship:independence": "bun scripts/reference/pipeline.ts independence",
+    "git:setup": "bun scripts/git/setup.ts",
+    "test:workflow": "bun test scripts/git scripts/ships"
   },
   "dependencies": {
     "@fontsource/barlow": "^5.2.8",
