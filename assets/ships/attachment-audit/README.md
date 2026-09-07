@@ -52,7 +52,8 @@ These include small paint/detail offsets and do not count unique confirmed bugs.
 `check_open_mounts.py` calls the real shared original gun recipe for every open
 catalog component and checks physical connectivity from foundation through all
 meshes, at minimum/zero/maximum elevation with rest/full recoil. The retained
-before result fails; the repaired result passes all 60 cases. This supplements
+before result fails; the original repaired result passes all 60 cases. The
+carrier-combat integration adds three catalog parts; all 78 current cases pass. This supplements
 the existing exported GLB pivot/muzzle checks, without replacing in-game review.
 
 ```sh
@@ -133,17 +134,19 @@ tyre compression remain approximated by the existing deck datum.
 
 Validation retained in this pass:
 
-- All 60 original open-gun component cases pass at elevation/recoil extremes.
-- `bun test --timeout 20000`: 583 tests pass across 82 files.
+- All 78 current open-gun component cases pass at elevation/recoil extremes.
+- Latest master integration: `bun test --timeout 30000` passes 691 tests across
+  97 files; `bun run build` passes. See `reports/merge-fe0df0be.md`.
+- Original repair suite, `bun test --timeout 20000`: 583 tests pass across 82 files.
 - After the final support changes, convoy and Game/ShipBatching tests: 44 pass.
 - `bun run build`: passes every registered ship check, aircraft checks,
   TypeScript and the production bundle. Vite retains its existing large-chunk
   advisory.
-- All 50 fixed views and 18 runtime close-ups were visually inspected. All 120
+- All 50 fixed views and 19 runtime close-ups were visually inspected. All 120
   runtime articulation poses pass; maximum CPU-to-rendered muzzle error is
   2.75 mm. The retained evidence matches the final published models.
 - `verify.py` passes for all ten ships, including source/model hashes, retained
-  node IDs, current review images and the 60 open-component cases.
+  node IDs, current review images and the 78 open-component cases.
 
 Full-suite, final model-test and production-build output is retained under
 `reports/tests.txt`, `reports/model-tests.txt` and `reports/build.txt`.
@@ -193,3 +196,15 @@ the production bundle. Logs are retained in `reports/pr-tests.txt` and
 `reports/pr-build.txt`. The initial six-worker run exceeded the default five-second
 limit in a Yamato penetration test; the complete rerun used the explicit timeout
 above and passed without changing the simulation assertion.
+
+Master `fe0df0be` subsequently connects Bismarck's original AA fittings to combat.
+The merged recipe retains the repaired foundations, carriages and barrel
+supports while preserving all 236 upstream node IDs for its 38 mounts and 64
+barrel chains. Parenting now snapshots the authored transforms once per mount;
+it no longer rebuilds Blender's whole dependency graph for each individual
+fitting. The final model passes the contact scan with zero detached candidates,
+all five fixed views were inspected, and twelve fresh runtime poses pass.
+Earlier Bismarck evidence is preserved under
+`reports/prior-bismarck-5b0621b5851d/`; current evidence matches the new model hash.
+See `reports/bismarck-aa-integration.json` for the upstream ID and articulation
+checks. The open-component verifier now follows the actual catalog inventory.

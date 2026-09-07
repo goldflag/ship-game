@@ -1,10 +1,10 @@
 {
   "kind": "articulation",
   "shipId": "bismarck",
-  "contentHash": "5b0621b5851dcbadda696317fd05bc71b167140c7ba5827e231f4ad59043c84e",
+  "contentHash": "e1beb2182de74c2c22f5a67f8c78f4e285ef84648c537537c71dddaffd46f249",
   "backend": "webgpu",
-  "time": "2026-09-07T04:59:01.173Z",
-  "mounts": 10,
+  "time": "2026-09-07T07:07:40.857Z",
+  "mounts": 38,
   "poses": [
     {
       "trainFraction": -1,

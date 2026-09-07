@@ -9,7 +9,7 @@ const browser=await chromium.launch({executablePath:process.env.ATTACHMENT_CHROM
 const page=await browser.newPage({viewport:{width:1486,height:1144}});
 page.on('pageerror',e=>console.error('PAGE',e.message));
 const views={
-'bismarck':[['aa',[0,0,18],[24,36,18]],['bridge',[20,0,23],[12,-33,12]]],
+'bismarck':[['aa',[0,0,18],[24,36,18]],['bridge',[20,0,23],[12,-33,12]],['aa-deck',[20,12.15,7.4],[6,12,4]]],
 'baltimore':[['battery',[22,0,11],[30,34,17]],['stern',[-65,0,7],[-14,28,13]]],
 'enterprise-cv6':[['aircraft',[60,10,17],[0,24,2]],['boats',[-38,11,11],[-10,33,5]],['aa',[45,12,17],[5,24,5]]],
 'king-george-v':[['forward-battery',[50,0,12],[40,50,22]]],

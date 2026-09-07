@@ -196,9 +196,11 @@ for s in DEF['structures']:
     xx=(lo+hi)/2;yy,normal=house_side(pts,xx,sign)
     if abs(normal.x)<.15:door(s['id']+' watertight door',xx,yy+sign*.05,z+.13,sign)
 # All ten active batteries retain the shared original joint and socket contract.
-for mount in DEF['mounts']:create_gun_mount(mount,gunscol,helpers,materials,deckz)
+for mount in DEF['mounts']:
+ if mount['weapon']['caliberM']>.13:create_gun_mount(mount,gunscol,helpers,materials,deckz)
 # Additional original gunhouse fabrication and service fittings follow yaw.
 for mount in DEF['mounts']:
+ if mount['weapon']['caliberM']<=.13:continue
  yaw=bpy.data.objects[mount['id']+'.yaw'];w=mount['weapon'];L,W,T=w['gunhouseSize'];primary=w['caliberM']>.2
  def mounted(ob):ob.parent=yaw;ob.matrix_parent_inverse=Matrix.Identity(4);ob['assemblyId']=mount['id'];return ob
  for sign in [-1,1]:
@@ -531,10 +533,10 @@ box('Catapult trolley',(-9.05,0,7.0),(2.35,2.3,.24),materials['roof'],detailcol)
 for yy in [-.9,.9]:
  for xx in [-9.9,-8.2]:rod('Trolley wheel',(xx-.10,yy,6.92),(xx+.10,yy,6.92),.20,materials['edge'],detailcol,vertices=16)
 
-# The light batteries are original visual fittings, separate from the ten CPU
-# controlled main/secondary mount contracts. Fit counts follow kb-armament.
+# Existing original AA geometry now uses the same blueprint joints as other guns.
+# The two upper quad fittings retain their original decorative geometry.
 aa_support=SupportSurface([*hullcol.objects,*supercol.objects])
-def aa_mount(name,x,y,z,caliber,bearing=0,quad=False):
+def aa_mount(name,x,y,z,caliber,bearing=0,quad=False,mount=None):
  # Foundations use the authored deck edges. Outboard sponsons span back to a
  # wall with knees; a light gun is never left floating beside a narrowed house.
  if z>deckz(x)+.8:
@@ -568,15 +570,18 @@ def aa_mount(name,x,y,z,caliber,bearing=0,quad=False):
   mesh(name+' side shield',vs,[(0,1,2,3,4),(5,9,8,7,6),(1,6,7,2),(2,7,8,3),(3,8,9,4)],materials['naval'],detailcol)
   for yy in [-1.05,1.05]:box(name+' loading deck',(-.3,yy,.50),(2.3,.64,.13),materials['roof'],detailcol)
  count=4 if quad else 2 if heavy or medium else 1
+ barrel_groups=[]
  for i in range(count):
+  barrel_before=set(bpy.data.objects)
   yy=(i%2-.5)*(.80 if heavy else .55) if count>1 else 0;zz=axisz+(i//2)*.34
-  elev=.18 if heavy else .40 if quad else .28;start=Vector((.12,yy,zz));direction=Vector((math.cos(elev),0,math.sin(elev)))
+  elev=math.radians(1) if mount else .18 if heavy else .40 if quad else .28;start=Vector((.12,yy,zz));direction=Vector((math.cos(elev),0,math.sin(elev)))
   rod(name+' receiver',start-direction*.8,start+direction*.5,.21 if heavy else .10,materials['naval'],detailcol,vertices=12)
   rod(name+' tapered barrel',start+direction*.3,start+direction*length,caliber*.78,materials['edge'],detailcol,caliber*.46,12)
   rod(name+' muzzle opening',start+direction*(length+.002),start+direction*(length+.035),caliber*.35,materials['dark'],detailcol,vertices=12)
   rod(name+' recoil cylinder',start+Vector((0,0,-.24)),start+direction*1.05+Vector((0,0,-.24)),.105 if heavy else .048,materials['naval'],detailcol,vertices=10)
   for a in (0,.65):rod(name+' recoil slide collar',start+direction*a,start+direction*a+Vector((0,0,-.24)),.09 if heavy else .055,materials['naval'],detailcol,vertices=10)
   if not heavy:box(name+' feed magazine',tuple(start+Vector((-.22,0,.14))),(.32,.24,.25),materials['dark'],detailcol)
+  barrel_groups.append((yy,zz,elev,set(bpy.data.objects)-barrel_before))
  for sign in [-1,1]:
   rod(name+' trunnion',(0,sign*.45,.65),(0,sign*.45,axisz),.14 if heavy else .075,materials['naval'],detailcol,vertices=10)
   rod(name+' bearing cheek',(0,sign*.45,axisz),(.12,sign*.45,axisz),.14 if heavy else .08,materials['naval'],detailcol,vertices=10)
@@ -588,13 +593,38 @@ def aa_mount(name,x,y,z,caliber,bearing=0,quad=False):
   for a in range(3):rod(name+' handwheel spoke',(-.34,sign*(.83 if heavy else .45),1.14),(-.34+(.22 if heavy else .13)*math.cos(a*math.tau/3),sign*(.83 if heavy else .45),1.14+(.22 if heavy else .13)*math.sin(a*math.tau/3)),.018,materials['edge'],detailcol,vertices=6)
  rod(name+' sight bracket',(0,0,.65),(-.35,0,axisz+.5),.035,materials['edge'],detailcol,vertices=6)
  ring(name+' ring sight',(-.35,0,axisz+.54),(1,0,0),.11,.015,n=12)
- # One parent makes every local feature share placement and orientation.
- pivot=bpy.data.objects.new(name+' visual mount',None);detailcol.objects.link(pivot);pivot.location=(x,y,z);pivot.rotation_euler.z=bearing
- for ob in set(bpy.data.objects)-before-{pivot}:ob.parent=pivot;ob.matrix_parent_inverse=Matrix.Identity(4)
+ # Assemble in the local mount frame, then place the complete hierarchy.
+ pieces=set(bpy.data.objects)-before
+ # Snapshot once: refreshing the whole ship for each parent change is quadratic.
+ bpy.context.view_layer.update()
+ piece_matrices={ob:ob.matrix_world.copy() for ob in pieces}
+ def joint(suffix,loc=(0,0,0),rotation=(0,0,0)):
+  ob=bpy.data.objects.new(mount['id']+'.'+suffix,None);detailcol.objects.link(ob)
+  ob.location=loc;ob.rotation_euler=rotation;ob['nodeId']=ob.name;ob['assemblyId']=mount['id'];return ob
+ def attach(ob,parent,frame=Matrix.Identity(4)):
+  ob.parent=parent;ob.matrix_parent_inverse=Matrix.Identity(4)
+  ob.matrix_basis=frame.inverted()@piece_matrices[ob]
+ if mount:
+  pivot=joint('yaw')
+  sides=['center'] if count==1 else ['left','right']
+  # Authoring +Y is runtime -X, so the higher Y barrel is the left axis.
+  for side,(yy,zz,elev,barrels) in zip(sides,sorted(barrel_groups,reverse=True,key=lambda v:v[0])):
+   pitch=joint(side+'.elevation',(.12,yy,zz),(0,-elev,0));pitch.parent=pivot
+   pitch_frame=Matrix.Translation((.12,yy,zz))@Matrix.Rotation(-elev,4,'Y')
+   recoil=joint(side+'.recoil');recoil.parent=pitch
+   muzzle=joint(side+'.muzzle',(length,0,0));muzzle.parent=recoil
+   for ob in barrels:attach(ob,recoil,pitch_frame)
+  for ob in pieces:
+   ob['assemblyId']=mount['id']
+   if ob.parent is None:attach(ob,pivot)
+ else:
+  pivot=bpy.data.objects.new(name+' visual mount',None);detailcol.objects.link(pivot)
+  for ob in pieces:ob.parent=pivot;ob.matrix_parent_inverse=Matrix.Identity(4)
+ pivot.location=(x,y,z);pivot.rotation_euler.z=bearing
+for mount in DEF['mounts']:
+ if mount['weapon']['caliberM']<=.13:
+  a,b,c=mount['position'];aa_mount(mount['name'],-c,-a,b,mount['weapon']['caliberM'],bearing=-math.radians(mount['bearingDeg']),mount=mount)
 for sign in [-1,1]:
- for x,y in [(20,12.15),(.1,11.6),(-16.0,11.6),(-32.0,10.35)]:aa_mount('Twin 10.5 cm',x,sign*y,deckz(x)+.12,.105)
- for x,y,z in [(39.0,7.8,9.4),(16.5,8.1,12.65),(-37.6,7.4,9.4),(-49.0,6.7,9.4)]:aa_mount('Twin 3.7 cm',x,sign*y,z,.037,bearing=sign*.65)
- for x,y,z in [(42.5,5.5,9.4),(29.1,7.2,12.66),(25.4,6.3,15.6),(11.3,5.2,20.92),(-35.0,5.0,12.65),(-46.1,6.8,9.4)]:aa_mount('Single 2 cm',x,sign*y,z,.020,bearing=sign*.95)
  aa_mount('Quad 2 cm April 1941 fit',14.4,sign*4.8,26.46,.020,bearing=sign*.82,quad=True)
 
 # Mooring machinery, proper stockless anchors, hatch coamings and hull scuttles.

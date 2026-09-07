@@ -358,5 +358,113 @@
     "elevation": 85,
     "recoil": 0.15,
     "detached": []
+  },
+  {
+    "part": "flak-105-bismarck-1941",
+    "elevation": -10,
+    "recoil": 0,
+    "detached": []
+  },
+  {
+    "part": "flak-105-bismarck-1941",
+    "elevation": -10,
+    "recoil": 0.18,
+    "detached": []
+  },
+  {
+    "part": "flak-105-bismarck-1941",
+    "elevation": 0,
+    "recoil": 0,
+    "detached": []
+  },
+  {
+    "part": "flak-105-bismarck-1941",
+    "elevation": 0,
+    "recoil": 0.18,
+    "detached": []
+  },
+  {
+    "part": "flak-105-bismarck-1941",
+    "elevation": 80,
+    "recoil": 0,
+    "detached": []
+  },
+  {
+    "part": "flak-105-bismarck-1941",
+    "elevation": 80,
+    "recoil": 0.18,
+    "detached": []
+  },
+  {
+    "part": "flak-37-bismarck-1941",
+    "elevation": -10,
+    "recoil": 0,
+    "detached": []
+  },
+  {
+    "part": "flak-37-bismarck-1941",
+    "elevation": -10,
+    "recoil": 0.06,
+    "detached": []
+  },
+  {
+    "part": "flak-37-bismarck-1941",
+    "elevation": 0,
+    "recoil": 0,
+    "detached": []
+  },
+  {
+    "part": "flak-37-bismarck-1941",
+    "elevation": 0,
+    "recoil": 0.06,
+    "detached": []
+  },
+  {
+    "part": "flak-37-bismarck-1941",
+    "elevation": 80,
+    "recoil": 0,
+    "detached": []
+  },
+  {
+    "part": "flak-37-bismarck-1941",
+    "elevation": 80,
+    "recoil": 0.06,
+    "detached": []
+  },
+  {
+    "part": "flak-20-bismarck-1941",
+    "elevation": -10,
+    "recoil": 0,
+    "detached": []
+  },
+  {
+    "part": "flak-20-bismarck-1941",
+    "elevation": -10,
+    "recoil": 0.06,
+    "detached": []
+  },
+  {
+    "part": "flak-20-bismarck-1941",
+    "elevation": 0,
+    "recoil": 0,
+    "detached": []
+  },
+  {
+    "part": "flak-20-bismarck-1941",
+    "elevation": 0,
+    "recoil": 0.06,
+    "detached": []
+  },
+  {
+    "part": "flak-20-bismarck-1941",
+    "elevation": 80,
+    "recoil": 0,
+    "detached": []
+  },
+  {
+    "part": "flak-20-bismarck-1941",
+    "elevation": 80,
+    "recoil": 0.06,
+    "detached": []
   }
 ]

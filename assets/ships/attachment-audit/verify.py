@@ -64,8 +64,12 @@ for ship in ships:
                     'reviewImages': images})
 assert not subprocess.check_output(['git', 'diff', '--name-only', 'b020bbf', '--', 'assets/ships/bismarck/baseline'], cwd=repo)
 components = read(audit/'reports/open-mounts.json')
-assert len(components) == 60 and all(not record['detached'] for record in components)
+catalog = read(repo/'assets/parts/guns.json')
+open_parts = {part['id'] for part in catalog['parts'] if part.get('mountingStyle', 'enclosed') != 'enclosed'}
+assert {record['part'] for record in components} == open_parts
+assert all(sum(record['part'] == part for record in components) == 6 for part in open_parts)
+assert all(not record['detached'] for record in components)
 report = {'schemaVersion': 1, 'baselineRevision': 'b020bbf', 'ships': records,
           'openComponentPoses': len(components), 'historicalAccuracy': 'Not certified; see dated source and discrepancy registers.'}
 (audit/'reports/verification.json').write_text(json.dumps(report, indent=2)+'\n')
-print(f'Verified {len(records)} ships, 50 fixed views, 120 runtime poses, and 60 open-component poses.')
+print(f'Verified {len(records)} ships, 50 fixed views, 120 runtime poses, and {len(components)} open-component poses.')

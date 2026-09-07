@@ -10,9 +10,10 @@ import { clearTorpedoLane, torpedoIntercept, type Torpedo } from './torpedoes';
 import { flyAircraft as fly, initialFlightControls, stepFlightMechanisms, TAKEOFF_ROLL_SECONDS, TAKEOFF_CLIMB_SECONDS, type FlightAttitude, type FlightControls } from './aircraftFlight';
 import { clearFighterLane, fighterGunAim, fighterTarget, initialAirPilot, orbitPoint, steerFighter, strikeIngress, type AirPilot } from './aircraftTactics';
 import { aircraftDeckAttitude, aircraftGroundPose } from './aircraftGroundPose';
+import { fighterBurst, strikeAimError } from './aircraftAccuracy';
 
 export type FlightPhase = 'ready' | 'queued' | 'taxi' | 'takeoff' | 'outbound' | 'attack' | 'returning' | 'landing' | 'rollout' | 'parking' | 'rearming' | 'lost';
-export type AirOrder = { kind: 'attack'; targetId: string } | { kind: 'patrol'; point: Vec3 } | { kind: 'defend' } | { kind: 'escort'; flightId: string } | { kind: 'return' };
+export type AirOrder = { kind: 'attack'; targetId: string } | { kind: 'patrol'; point: Vec3 } | { kind: 'defend'; targetId?: string } | { kind: 'intercept'; flightId: string } | { kind: 'escort'; flightId: string } | { kind: 'return' };
 export interface AirFlight { id: string; name: string; squadronId: string; planeIds: string[]; order: AirOrder; notice?: string; }
 export interface Aircraft {
   id: string; ownerId: string; team: Team; squadronId: string; modelId: string; role: AircraftRole;
@@ -22,7 +23,7 @@ export interface Aircraft {
   deckPosition?: Vec3; deckHeading?: number; timer: number; flightTime: number; cooldown: number; targetId?: string; kills: number;
   controls: FlightControls; previousControls?: FlightControls; previousAttitude?: FlightAttitude; pilot: AirPilot;
   deckSlot?: number; flightId?: string; recoveryRequestedAt?: number; lossReason?: string;
-  navigationTarget?: Vec3;
+  navigationTarget?: Vec3; sortie?: number;
   /** A loss leaves combat immediately; its unpowered airframe continues to sea level. */
   wreck?: { age: number; rollRate: number; impacted: boolean };
 }
@@ -31,6 +32,7 @@ export interface AirRelease { id: number; ownerId: string; position: Vec3; veloc
 export const hasFoldingWings = (modelId: string) => ['f4f-4-wildcat', 'tbd-1-devastator'].includes(modelId);
 const WING_FOLD_SECONDS = 4; // Gameplay timing; manual crew/hydraulic operation is abstracted.
 export const MAX_AIRBORNE = 144;
+export const AIRCRAFT_ENDURANCE_SECONDS = 1050;
 export const deckClearance = (p: Aircraft) => aircraftGroundPose(p.modelId).clearance;
 export const flightSize = (actor: FleetActor) => actor.definition.airWing?.flightSize ?? 3;
 export const deckCapacity = (actor: FleetActor) => actor.definition.airWing?.deckCapacity ?? 18;
@@ -77,13 +79,6 @@ export function createAirWing(def: ShipDefinition, ownerId: string, team: Team):
     heading: 0, pitch: 0, bank: 0, hp: 100, ammo: s.role === 'fighter' ? 16 : 0, payload: s.role !== 'fighter', timer: 0, flightTime: 0, cooldown: 0, kills: 0,
     controls: initialFlightControls(), pilot: initialAirPilot(),
   }))) };
-  // A balanced ready deck; remaining inventory is stored in the hangar.
-  const capacity = Math.min(def.airWing.deckCapacity ?? 18, state.planes.length);
-  const groups = def.airWing.squadrons.map(s => state.planes.filter(p => p.squadronId === s.id));
-  let slot = 0;
-  for (let row = 0; slot < capacity; row++) for (const group of groups) {
-    if (slot < capacity && group[row]) group[row].deckSlot = slot++;
-  }
   return state;
 }
 export function airServiceAvailable(actor: FleetActor): boolean {
@@ -91,29 +86,70 @@ export function airServiceAvailable(actor: FleetActor): boolean {
   const module = wing && actor.definition.modules.find(m => m.id === wing.serviceModuleId);
   return !!module && !actor.damage.sunk && !actor.damage.stability.combatLost && Math.abs(actor.motion.roll) < .22 && Math.abs(actor.motion.pitch) < .15 && actor.motion.y > -3 && equipmentCondition(actor, actor.definition, module).availability > 0;
 }
-export function launchSquadron(actor: FleetActor, squadronId: string, target?: FleetActor): number {
+/** Stable six-plane (or blueprint-sized) squadrons retain their inventory and hotkey after recovery. */
+export function squadronFlights(actor: FleetActor): AirFlight[] {
+  if (!actor.airWing) return [];
+  return (actor.definition.airWing?.squadrons ?? []).flatMap(s => {
+    const planes = actor.airWing!.planes.filter(p => p.squadronId === s.id);
+    return Array.from({ length: Math.ceil(planes.length / flightSize(actor)) }, (_, i) => {
+      const id = `${actor.motion.id}/${s.id}/squadron-${i + 1}`;
+      return actor.airWing!.flights.find(f => f.id === id) ?? {
+        id, name: `${s.role === 'fighter' ? 'Fighter' : s.role === 'dive-bomber' ? 'Dive' : 'Torpedo'} ${i + 1}`,
+        squadronId: s.id, planeIds: planes.slice(i * flightSize(actor), (i + 1) * flightSize(actor)).map(p => p.id), order: { kind: 'defend' },
+      };
+    });
+  });
+}
+function validAirOrder(actor: FleetActor, flightId: string, planes: Aircraft[], order: AirOrder, actors: FleetActor[]) {
+  if (order.kind === 'return') return true;
+  if (!planes.length || planes.some(p => p.flightTime > 470 || p.hp < 25)) return false;
+  if (order.kind === 'patrol') return order.point.length === 3 && order.point.every(Number.isFinite)
+    && Math.hypot(order.point[0] - actor.motion.x, order.point[2] - actor.motion.z) <= 30000;
+  if (order.kind === 'attack') {
+    const target = actors.find(a => a.motion.id === order.targetId);
+    return !!target && target.team !== actor.team && !target.damage.sunk && !target.damage.stability.combatLost && target.motion.y >= -8
+      && planes.every(p => p.role !== 'fighter' && p.payload);
+  }
+  if (planes.some(p => p.role !== 'fighter' || p.ammo <= 0)) return false;
+  if (order.kind === 'defend') return !order.targetId || actors.some(a => a.motion.id === order.targetId && a.team === actor.team && !a.damage.sunk && !a.damage.stability.combatLost);
+  return order.flightId !== flightId && actors.some(a => (order.kind === 'escort' ? a.team === actor.team : a.team !== actor.team)
+    && a.airWing?.flights.some(f => f.id === order.flightId && activeFlight(f, a.airWing!.planes)));
+}
+export function launchSquadron(actor: FleetActor, squadronId: string, target?: FleetActor, requestedOrder?: AirOrder, actors: FleetActor[] = target ? [actor, target] : [actor], flightId?: string): number {
   if (!airServiceAvailable(actor)) return 0;
   const state = actor.airWing!;
   if (state.flights.filter(f => activeFlight(f, state.planes)).length >= (actor.definition.airWing!.maxActiveFlights ?? 4)) return 0;
-  const planes = state.planes.filter(p => p.squadronId === squadronId && p.phase === 'ready').slice(0, flightSize(actor));
-  if (!planes.length) return 0;
-  if (planes.some(p => p.role !== 'fighter') && (!target || target.team === actor.team || target.damage.sunk || target.damage.stability.combatLost || target.motion.y < -8)) return 0;
-  const number = ++state.flightSequence;
-  const id = `${actor.motion.id}/flight-${number}`;
-  const name = `${planes[0].role === 'fighter' ? 'Fighter' : planes[0].role === 'dive-bomber' ? 'Dive' : 'Torpedo'} ${number}`;
-  state.flights = state.flights.filter(f => activeFlight(f, state.planes) || state.flights.indexOf(f) >= state.flights.length - 12);
-  state.flights.push({ id, name, squadronId, planeIds: planes.map(p => p.id), order: planes[0].role === 'fighter' ? { kind: 'defend' } : { kind: 'attack', targetId: target!.motion.id } });
+  const flight = squadronFlights(actor).find(f => f.squadronId === squadronId && (!flightId || f.id === flightId)
+    && state.planes.filter(p => f.planeIds.includes(p.id) && p.phase !== 'lost').length > 0
+    && state.planes.filter(p => f.planeIds.includes(p.id)).every(p => p.phase === 'ready' || p.phase === 'lost'));
+  if (!flight) return 0;
+  const planes = state.planes.filter(p => flight.planeIds.includes(p.id) && p.phase === 'ready');
+  const order: AirOrder = requestedOrder ?? (planes[0].role === 'fighter' ? { kind: 'defend' } : { kind: 'attack', targetId: target?.motion.id ?? '' });
+  // Ready aircraft have already refuelled, so their previous sortie age is irrelevant.
+  if (order.kind === 'return' || !validAirOrder(actor, flight.id, planes.map(p => ({ ...p, flightTime: 0 })), order, actors)) return 0;
+  flight.order = structuredClone(order); flight.notice = undefined;
+  state.flights = state.flights.filter(f => f.id !== flight.id);
+  state.flights.push(flight); state.flightSequence++;
   for (const plane of planes) {
-    plane.phase = 'queued'; plane.flightId = id; plane.targetId = target?.motion.id; plane.pilot = initialAirPilot();
+    plane.sortie = (plane.sortie ?? 0) + 1;
+    plane.phase = 'queued'; plane.flightId = flight.id; plane.targetId = order.kind === 'attack' ? order.targetId : undefined;
+    plane.pilot = initialAirPilot(); plane.flightTime = 0; plane.timer = 0;
     plane.recoveryRequestedAt = undefined; plane.lossReason = undefined;
   }
   return planes.length;
+}
+/** One command path for a ready squadron's launch and an airborne squadron's retask. */
+export function commandSquadron(actor: FleetActor, id: string, order: AirOrder, actors: FleetActor[]): boolean {
+  const flight = squadronFlights(actor).find(f => f.id === id);
+  if (!flight) return false;
+  return activeFlight(flight, actor.airWing!.planes) ? orderFlight(actor, id, order, actors)
+    : launchSquadron(actor, flight.squadronId, undefined, order, actors, id) > 0;
 }
 export function recallAircraft(actor: FleetActor, flightId?: string): void {
   for (const flight of actor.airWing?.flights ?? []) if (!flightId || flight.id === flightId) { flight.order = { kind: 'return' }; flight.notice = 'Recalled'; }
   for (const p of actor.airWing?.planes ?? []) {
     if (flightId && p.flightId !== flightId) continue;
-    if (p.phase === 'queued') p.phase = 'ready';
+    if (p.phase === 'queued') { p.phase = 'ready'; p.deckSlot = undefined; p.deckPosition = undefined; }
     else if (p.phase === 'taxi' || (p.phase === 'takeoff' && onFlightDeck(p))) p.phase = 'parking';
     else if (airborne(p) && p.phase !== 'landing') p.phase = 'returning';
   }
@@ -124,14 +160,7 @@ export function orderFlight(actor: FleetActor, flightId: string, order: AirOrder
   if (order.kind === 'return') { recallAircraft(actor, flightId); return true; }
   const planes = actor.airWing!.planes.filter(p => p.flightId === flightId && ['queued', 'taxi', 'takeoff', 'outbound', 'attack', 'returning'].includes(p.phase));
   if (!planes.length || planes.some(p => p.flightTime > 470 || p.hp < 25)) return false;
-  if (order.kind === 'attack') {
-    const target = actors.find(a => a.motion.id === order.targetId);
-    if (!target || target.team === actor.team || target.damage.sunk || target.damage.stability.combatLost || target.motion.y < -8 || planes.some(p => p.role === 'fighter' || !p.payload)) return false;
-  } else {
-    if (planes.some(p => p.role !== 'fighter' || p.ammo <= 0)) return false;
-    if (order.kind === 'patrol' && (!order.point.every(Number.isFinite) || Math.hypot(order.point[0] - actor.motion.x, order.point[2] - actor.motion.z) > 30000)) return false;
-    if (order.kind === 'escort' && (order.flightId === flightId || !actors.some(a => a.team === actor.team && a.airWing?.flights.some(f => f.id === order.flightId && activeFlight(f, a.airWing!.planes))))) return false;
-  }
+  if (!validAirOrder(actor, flightId, planes, order, actors)) return false;
   flight.order = structuredClone(order); flight.notice = undefined;
   for (const p of planes) {
     p.targetId = order.kind === 'attack' ? order.targetId : undefined; p.pilot = initialAirPilot(); p.recoveryRequestedAt = undefined;
@@ -166,6 +195,7 @@ export const AIR_TORPEDO: TorpedoPart = {
   launchIntervalSeconds: 3, damage: 480, breachAreaM2: .55,
 };
 export interface AirContext {
+  seed?: number;
   actors: FleetActor[]; planes: Aircraft[]; shells: Shell[]; torpedoes: Torpedo[]; releases: AirRelease[];
   nextId: () => number; emit: (e: Omit<CombatEvent, 'sequence' | 'tick'>) => void;
 }
@@ -223,13 +253,9 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
       if (p.phase !== 'returning' || p.pilot.recoveryStage !== 'final') return false;
       const local = worldToLocal(p.position, actor.motion), aft = local[2] - wing.recoveryPosition[2];
       return aft > 550 && Math.abs(local[0] - wing.recoveryPosition[0]) < 70 && Math.abs(wrapAngle(p.heading - actor.motion.heading)) < .2
-        && recovery.every(other => other.phase !== 'landing' || Math.abs(local[2] - worldToLocal(other.position, actor.motion)[2]) > 260);
+        && recovery.every(other => other.phase !== 'landing' || Math.abs(local[2] - worldToLocal(other.position, actor.motion)[2]) > 60);
     });
     const approachingDeck = state.planes.some(p => p.phase === 'landing' && worldToLocal(p.position, actor.motion)[2] - wing.recoveryPosition[2] < 650);
-    // Spot one waiting launch at a time. Transfers represent hangar handling; they
-    // never put the entire inventory on the deck or consume additional aircraft.
-    const waiting = state.planes.find(p => p.phase === 'queued' && p.deckSlot === undefined);
-    if (waiting && !approachingDeck && state.transferCooldown <= 0 && airServiceAvailable(actor) && spotAircraft(actor, waiting)) state.transferCooldown = 4;
     if (actor.controller === 'bot' && !isPassiveAi(actor.bot?.aiLevel) && time >= 5 * crewSkill(actor.bot?.aiLevel ?? DEFAULT_AI_LEVEL).reactionScale) {
       const validTarget = (a: FleetActor) => a.team !== actor.team && !a.damage.sunk && !a.damage.stability.combatLost && a.motion.y > -8;
       const target = ctx.actors.find(a => a.motion.id === actor.targetId && validTarget(a)) ?? ctx.actors.find(validTarget);
@@ -239,18 +265,27 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
       p.cooldown = Math.max(0, p.cooldown - dt);
       if (p.phase === 'lost') continue;
       const foldTarget = hasFoldingWings(p.modelId) && ['ready', 'queued', 'parking', 'rearming'].includes(p.phase) ? 1 : 0;
-      p.wingFold += Math.sign(foldTarget - p.wingFold) * Math.min(Math.abs(foldTarget - p.wingFold), dt / WING_FOLD_SECONDS);
+      // Unfold during the compressed deck run; full span is restored before liftoff.
+      const foldSeconds = p.phase === 'takeoff' ? TAKEOFF_ROLL_SECONDS - .5 : WING_FOLD_SECONDS;
+      p.wingFold += Math.sign(foldTarget - p.wingFold) * Math.min(Math.abs(foldTarget - p.wingFold), dt / foldSeconds);
       if (actor.damage.sunk && (onFlightDeck(p) || !airborne(p))) { p.hp = 0; p.phase = 'lost'; p.deckSlot = undefined; p.lossReason = 'Carrier lost'; continue; }
       if (p.phase === 'ready' || p.phase === 'queued' || p.phase === 'rearming') {
         if (p.deckSlot !== undefined) deckPose(p, actor, aircraftDeckSpot(actor, p));
         if (p.phase === 'rearming' && airServiceAvailable(actor)) {
           p.timer -= dt;
-          if (p.timer <= 0) { p.phase = 'ready'; p.ammo = p.role === 'fighter' ? 16 : 0; p.payload = p.role !== 'fighter'; p.hp = 100; }
+          if (p.timer <= 0) { p.phase = 'ready'; p.deckSlot = undefined; p.deckPosition = undefined; p.flightTime = 0; p.ammo = p.role === 'fighter' ? 16 : 0; p.payload = p.role !== 'fighter'; p.hp = 100; }
         }
-        if (p.phase === 'queued' && p.deckSlot !== undefined && state.launchCooldown <= 0 && flying < MAX_AIRBORNE && airServiceAvailable(actor)
-          && !approachingDeck && !state.planes.some(other => occupiesLaunchLane(other, actor))) {
-          p.phase = 'taxi'; p.timer = 0; p.flightTime = 0;
-        } else continue;
+        if (p.phase === 'queued' && state.launchCooldown <= 0 && flying < MAX_AIRBORNE && airServiceAvailable(actor)
+          && !approachingDeck && !state.planes.some(other => ['taxi', 'rollout', 'parking'].includes(other.phase)) && spotAircraft(actor, p)) {
+          // Gameplay launch cadence: overlapping deck runs complete a full squadron in ~10 s.
+          // Spawn only on release from the hangar; no idle deck aircraft or taxi delay.
+          p.phase = 'takeoff'; p.timer = 0; p.flightTime = 0; flying++;
+          state.launchCooldown = (10 - TAKEOFF_ROLL_SECONDS - TAKEOFF_CLIMB_SECONDS) / Math.max(1, flightSize(actor) - 1);
+          deckPose(p, actor, add(wing.launchPosition, [0, deckClearance(p), 0]));
+          p.previousPosition = [...p.position];
+          ctx.emit({ kind: 'aircraft-launch', position: [...p.position], shipId: p.ownerId, message: `${p.modelId} launched`, aircraft: { id: p.id } });
+        }
+        continue;
       }
       if (p.phase === 'taxi' || p.phase === 'parking' || p.phase === 'rollout') {
         if ((p.phase === 'taxi' && p.wingFold > 0) || (p.phase === 'parking' && hasFoldingWings(p.modelId) && p.wingFold < 1)) {
@@ -260,15 +295,15 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
         if (p.phase === 'rollout') {
           p.timer += dt;
           const local = p.deckPosition!;
-          deckPose(p, actor, [local[0], local[1], local[2] - Math.max(0, 35 * (1 - p.timer / 3)) * dt]);
-          if (p.timer >= 3) p.phase = 'parking';
+          deckPose(p, actor, [local[0], local[1], local[2] - Math.max(0, 35 * (1 - p.timer / 1.2)) * dt]);
+          if (p.timer >= 1.2) { p.phase = 'rearming'; p.timer = wing.rearmSeconds; p.deckSlot = undefined; p.deckPosition = undefined; p.recoveryRequestedAt = undefined; }
         } else {
           const destination = p.phase === 'parking' ? aircraftDeckSpot(actor, p) : add(wing.launchPosition, [0, deckClearance(p), 0]);
           // Clear the parking row laterally before moving along the flight lane.
           const current = p.deckPosition!;
           const waypoint: Vec3 = Math.abs(current[0] - destination[0]) > .1 ? [destination[0], destination[1], current[2]] : destination;
           const arrived = taxi(p, actor, waypoint, p.phase === 'taxi' ? LAUNCH_TAXI_SPEED : 12, dt) && length(sub(waypoint, destination)) < .1;
-          if (arrived && p.phase === 'parking') { p.phase = 'rearming'; p.timer = wing.rearmSeconds; p.recoveryRequestedAt = undefined; }
+          if (arrived && p.phase === 'parking') { p.phase = 'rearming'; p.timer = wing.rearmSeconds; p.deckSlot = undefined; p.deckPosition = undefined; p.recoveryRequestedAt = undefined; }
           else if (arrived && (!airServiceAvailable(actor) || flying >= MAX_AIRBORNE)) { p.phase = 'parking'; }
           else if (arrived) {
             flying++; p.phase = 'takeoff'; p.timer = 0; p.flightTime = 0; state.launchCooldown = wing.launchIntervalSeconds;
@@ -279,17 +314,9 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
         continue;
       }
       p.flightTime += dt; p.timer += dt;
-      if (p.flightTime > 1050) { lose(p, ctx, 'Endurance exhausted'); continue; }
+      if (p.flightTime > AIRCRAFT_ENDURANCE_SECONDS) { lose(p, ctx, 'Endurance exhausted'); continue; }
       if ((p.flightTime > 470 || p.hp < 25) && p.phase !== 'landing') p.phase = 'returning';
       const carrier = localToWorld(add(wing.recoveryPosition, [0, deckClearance(p), 0]), actor.motion);
-      // Approximate AA envelope from surviving, supplied light gun mounts. No render/GPU input.
-      for (const enemy of ctx.actors) {
-        if (enemy.team === p.team || enemy.damage.sunk || enemy.damage.stability.combatLost || enemy.motion.y < -1 || isPassiveAi(enemy.bot?.aiLevel)) continue;
-        const distance = length(sub(p.position, [enemy.motion.x, enemy.motion.y, enemy.motion.z]));
-        if (distance > 1100) continue;
-        const guns = enemy.definition.mounts.filter((m, index) => m.weapon.caliberM <= .04 && enemy.mounts[index].hp > 0 && enemy.mounts[index].ammo > 0 && (!m.magazineId || equipmentCondition(enemy, enemy.definition, enemy.definition.modules.find(v => v.id === m.magazineId)!).availability > 0)).length;
-        p.hp -= Math.min(4, guns * .24) * (1 - distance / 1300) * dt;
-      }
       if (p.hp <= 0) { lose(p, ctx); continue; }
       if (p.phase === 'takeoff') {
         if (p.timer <= TAKEOFF_ROLL_SECONDS) {
@@ -333,7 +360,7 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
             else if (p.pilot.recoveryStage === 'final') {
               const intercept = localToWorld([wing.recoveryPosition[0], wing.recoveryPosition[1] + Math.max(90, aft * .06), wing.recoveryPosition[2] + Math.max(150, aft - 600)], actor.motion);
               fly(p, intercept, 38 + Math.max(0, actor.motion.speed), dt);
-              const separated = state.planes.every(other => other === p || other.phase !== 'landing' || Math.abs(aft - (worldToLocal(other.position, actor.motion)[2] - wing.recoveryPosition[2])) > 260);
+              const separated = state.planes.every(other => other === p || other.phase !== 'landing' || Math.abs(aft - (worldToLocal(other.position, actor.motion)[2] - wing.recoveryPosition[2])) > 60);
               if (landingClearance === p && separated && (!busy || aft > 900) && aft > 550 && Math.abs(local[0] - wing.recoveryPosition[0]) < 70
                 && Math.abs(wrapAngle(p.heading - actor.motion.heading)) < .2) { p.phase = 'landing'; p.timer = 0; }
               else if (aft < 500) p.pilot.recoveryStage = 'marshal';
@@ -366,11 +393,29 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
         }
         continue;
       }
+      const flight = state.flights.find(f => f.id === p.flightId);
+      if (p.role !== 'fighter' && flight?.order.kind === 'patrol') {
+        const anchor: Vec3 = [flight.order.point[0], p.role === 'dive-bomber' ? 850 : 420, flight.order.point[2]];
+        p.phase = 'outbound'; fly(p, orbitPoint(p, anchor, 700 + (i % 3) * 80), 90, dt); continue;
+      }
       if (p.role === 'fighter') {
         if (!p.ammo || p.flightTime > 260) { p.phase = 'returning'; continue; }
-        const flight = state.flights.find(f => f.id === p.flightId);
         let patrol: Vec3 = [...carrier];
         if (flight?.order.kind === 'patrol') patrol = flight.order.point;
+        if (flight?.order.kind === 'defend' && flight.order.targetId) {
+          const targetId = flight.order.targetId;
+          const defended = ctx.actors.find(a => a.motion.id === targetId && !a.damage.sunk && !a.damage.stability.combatLost);
+          if (defended) patrol = [defended.motion.x, 0, defended.motion.z];
+          else { flight.order = { kind: 'defend' }; flight.notice = 'Ship unavailable · Defending carrier'; }
+        }
+        if (flight?.order.kind === 'intercept') {
+          const targetFlightId = flight.order.flightId;
+          const targets = ctx.planes.filter(other => other.flightId === targetFlightId && other.team !== p.team && airborne(other) && other.hp > 0);
+          if (targets.length) patrol = targets[0].position;
+          else if (!ctx.actors.some(a => a.airWing?.flights.some(f => f.id === targetFlightId && activeFlight(f, a.airWing!.planes)))) {
+            flight.order = { kind: 'patrol', point: [p.position[0], 420, p.position[2]] }; flight.notice = 'Interception complete · Loitering';
+          }
+        }
         if (flight?.order.kind === 'escort') {
           const escorted = ctx.planes.find(other => other.flightId === (flight.order as { flightId: string }).flightId && airborne(other) && !onFlightDeck(other));
           if (escorted) patrol = escorted.position;
@@ -378,7 +423,7 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
             flight.order = { kind: 'defend' }; flight.notice = 'Escort complete · Defending carrier';
           }
         }
-        const hostile = fighterTarget(p, ctx.planes, patrol, dt);
+        const hostile = fighterTarget(p, ctx.planes, patrol, dt, flight?.order.kind === 'intercept' ? flight.order.flightId : undefined);
         if (hostile) {
           p.phase = 'attack';
           const pursuing = steerFighter(p, hostile, ctx.planes, dt);
@@ -388,8 +433,9 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
           p.pilot.aimTime = onAim ? p.pilot.aimTime + dt : 0;
           if (onAim && p.pilot.aimTime >= .12 && p.cooldown <= 0) {
             p.ammo--; p.cooldown = .4;
-            hostile.hp -= 22 * clamp((gun.alignment - .996) / .004, .3, 1) * clamp(1.3 - gun.distance / 900, .5, 1);
-            ctx.emit({ kind: 'aircraft-fire', position: [...p.position], shipId: p.ownerId, message: 'Fighter guns', aircraft: { id: p.id, target: gun.point, direction: [...gun.direction], velocity: [...p.velocity], attitude: { heading: p.heading, pitch: p.pitch, bank: p.bank } } });
+            const burst = fighterBurst(p, gun.point, ctx.seed ?? 0, p.sortie ?? 0);
+            if (burst.hit) hostile.hp -= 32 * clamp((gun.alignment - .996) / .004, .3, 1) * clamp(1.3 - gun.distance / 900, .5, 1);
+            ctx.emit({ kind: 'aircraft-fire', position: [...p.position], shipId: p.ownerId, message: 'Fighter guns', aircraft: { id: p.id, target: burst.end, direction: normalize(sub(sub(burst.end, p.position), scale(p.velocity, gun.time))), velocity: [...p.velocity], attitude: { heading: p.heading, pitch: p.pitch, bank: p.bank } } });
             if (hostile.hp <= 0) { p.kills++; lose(hostile, ctx); }
           }
         } else {
@@ -404,7 +450,8 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
         if (!target && p.payload) { const flight = state.flights.find(f => f.id === p.flightId); if (flight) flight.notice = 'Target unavailable · Returning armed'; }
         p.phase = 'returning'; continue;
       }
-      const targetPoint: Vec3 = [target.motion.x, Math.max(0, target.motion.y + target.definition.hull.depth - target.definition.hull.draft), target.motion.z];
+      const targetPoint = add([target.motion.x, Math.max(0, target.motion.y + target.definition.hull.depth - target.definition.hull.draft), target.motion.z],
+        strikeAimError(p, target.motion.heading, ctx.seed ?? 0, p.sortie ?? 0));
       const distance = Math.hypot(targetPoint[0] - p.position[0], targetPoint[2] - p.position[2]);
       const ingress = strikeIngress(p, target, targetPoint);
       const heading = p.pilot.attackHeading!;
