@@ -3,6 +3,10 @@ import { PerspectiveCamera, Vector3 } from 'three/webgpu';
 import { createShipState } from '../simulation/ship';
 import { CameraRig } from './CameraRig';
 import viic from '../../assets/ships/type-viic/blueprint.json';
+import { Game } from './Game';
+import { ShellFollow } from './ShellFollow';
+import { CombatSimulation } from '../simulation/combat';
+import { shipPreset } from '../ships/presets';
 
 const globals = ['window', 'document'] as const;
 let originals: (PropertyDescriptor | undefined)[];
@@ -233,6 +237,32 @@ test('legacy capture errors and rejected requests permit retry without firing on
     window.dispatchEvent(new Event('pointerup'));
     expect(rig.firing).toBe(false);
   } finally { rig.dispose(); }
+});
+
+test('submerged zoom preserves forward and deliberately aft bearings through shallow dives', () => {
+  const definition = shipPreset('type-viic');
+  for (const depth of [2, 3, 4, 7, 50]) for (const heading of [0, 1.2, Math.PI]) for (const aft of [false, true]) {
+    const { camera, rig, drag } = interactiveCamera();
+    const simulation = new CombatSimulation(definition);
+    Object.assign(simulation.ship, { y: -depth, heading });
+    rig.setHullLength(definition.hull.length); rig.setSubmarine(definition.submarine);
+    rig.setInPort(false); rig.update(simulation.ship, -depth, 0, true); rig.recenter();
+    if (aft) drag(Math.PI / .0025, 0);
+    rig.update(simulation.ship, -depth, 0, true);
+    const bearing = rig.bearing;
+    const game = Object.assign(Object.create(Game.prototype), {
+      camera, rig, simulation, definition, manualAim: true, battery: 'torpedo', shellFollow: new ShellFollow(),
+    }) as Game;
+    try {
+      for (let toggle = 0; toggle < 4; toggle++) {
+        game.toggleBinoculars();
+        for (let frame = 0; frame < 60; frame++) rig.update(simulation.ship, -depth, 1 / 60);
+        const direction = camera.getWorldDirection(new Vector3());
+        expect(direction.x * Math.sin(bearing) - direction.z * Math.cos(bearing)).toBeGreaterThan(.95);
+        if (rig.binoculars) expect(camera.position.y).toBeCloseTo(definition.submarine!.periscopeEye[1] - depth);
+      }
+    } finally { rig.dispose(); }
+  }
 });
 
 function sunDirection(elevation: number, azimuth: number) {

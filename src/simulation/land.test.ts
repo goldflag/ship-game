@@ -42,6 +42,17 @@ test('swept land contact stops low projectiles, allows overflight, and leaves op
   expect(firstLandHit([island], [from[0], 2000, from[2]], [to[0], 2000, to[2]])).toBeUndefined();
   expect(firstLandHit([], from, to)).toBeUndefined();
 });
+
+test('shore avoidance preserves submarine depth and emergency ballast orders', () => {
+  const sim = new CombatSimulation(shipPreset('type-viic'), { friendlyBots: [], enemies: [bismarck], mapId: 'pacific-islands' });
+  const island = sim.islands[0], [x, z] = coastOutline(island)[0];
+  Object.assign(sim.ship, { x, z, heading: -Math.PI / 2 });
+  for (const order of [{ depthM: 7 }, { depthM: 0, emergencyBlow: true }]) {
+    const command = avoidLand(sim.player, { throttle: .8, rudder: 0, ...order }, sim.islands);
+    expect(command).toMatchObject(order);
+    expect(Math.abs(command.rudder)).toBeGreaterThan(.1);
+  }
+});
 test('battle map selection rejects unknown maps while old setups remain valid', () => {
   const setup = { playerShipId: 'bismarck', friendlyBots: [], enemies: ['bismarck'], spawnDistance: 5000 };
   expect(() => validateBattleSetup(setup, ['bismarck'])).not.toThrow();

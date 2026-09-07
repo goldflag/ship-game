@@ -29,7 +29,7 @@ export function avoidLand(actor: FleetActor, command: HelmCommand, islands: read
     if (islandRadius(island, x, z) > 1.3 && islandRadius(island, ship.x, ship.z) > 1.2) continue;
     const away = Math.atan2(ship.x - island.x, island.z - ship.z);
     const rudder = clamp(wrapAngle(away - ship.heading) * 2, -1, 1);
-    return { throttle: .4, rudder: Math.abs(rudder) < .05 ? 1 : rudder };
+    return { ...command, throttle: .4, rudder: Math.abs(rudder) < .05 ? 1 : rudder };
   }
   return command;
 }
