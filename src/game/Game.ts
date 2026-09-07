@@ -20,7 +20,7 @@ import { FleetShipDraws } from './FleetShipDraws';
 import { batchShipModel } from './ShipBatching';
 import { prepareShipDetail } from './ShipDetail';
 import { ShipMaterialPalette } from './ShipMaterialPalette';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { loadShipModel } from './loadShipModel';
 import { WaterSystem, getPresetParams } from '../../vendor/threejs-water-pro/build/index.js';
 import { SkySystem, PRESETS as SKY_PRESETS } from '../../vendor/threejs-sky-pro/build/index.js';
 import { CombatSimulation } from '../simulation/combat';
@@ -207,14 +207,14 @@ export class Game {
   private assertActive(): void { if (this.disposed) throw new Error('Game disposed'); }
 
   private async initialize(): Promise<void> {
-    this.callbacks.progress('Starting the renderer', 0.08);
+    this.callbacks.progress('Starting graphics', 0.08);
     this.resize();
     await this.renderer.init();
     configureRenderOrder(this.renderer);
     this.assertActive();
     this.rig.update(this.simulation.ship, 0, 0, true);
-    this.callbacks.progress(`Launching ${this.definition.name}`, 0.2);
-    const gltf = await new GLTFLoader().loadAsync(assetUrl(this.definition.modelUrl));
+    this.callbacks.progress(`Loading ${this.definition.name}`, 0.2);
+    const gltf = await loadShipModel(assetUrl(this.definition.modelUrl));
     new ShipMaterialPalette().apply(gltf.scene);
     batchShipModel(gltf.scene);
     await prepareShipDetail(gltf.scene);
@@ -230,7 +230,10 @@ export class Game {
     this.shipLabels.setFleet(this.fleetViews, this.simulation.actors);
     this.ship.position.copy(this.playerView.root.position);
     this.targetView.root.visible = !this.inPort;
-    if (this.definition.airWing) await this.aircraftView.load();
+    if (this.definition.airWing) {
+      this.callbacks.progress('Loading aircraft', 0.32);
+      await this.aircraftView.load();
+    }
     this.assertActive();
     this.scene.add(this.playerView.root, this.targetView.root, this.effects.root, this.funnelSmoke.root, this.aircraftView.root, this.torpedoPreview.root);
     this.scene.add(this.ambientLight);
@@ -335,7 +338,7 @@ export class Game {
     this.scene.add(this.harbor);
     this.assertActive();
 
-    this.callbacks.progress('Compiling ocean shaders', 0.82);
+    this.callbacks.progress('Preparing ocean effects and lighting', 0.82);
     this.scenePass = pass(this.scene, this.camera);
     const sceneColor = this.scenePass.getTextureNode('output');
     const waterColor = this.water.postProcessing.buildNode(this.scenePass, sceneColor);
@@ -412,7 +415,7 @@ export class Game {
       const hullShare = 0.6 / definitions.length;
       progress?.(`Loading ${definitions[0].name}`, 0.08);
       const loads = await Promise.allSettled(definitions.map(async def => {
-        const model = (await new GLTFLoader().loadAsync(assetUrl(def.modelUrl))).scene;
+        const model = (await loadShipModel(assetUrl(def.modelUrl))).scene;
         models.set(def.id, model);
         const hash = 'contentHash' in def ? def.contentHash : undefined;
         if (!hash || model.userData.definitionHash !== hash) throw new Error('The ship model and definition have different versions. Rebuild the ship assets and reload.');

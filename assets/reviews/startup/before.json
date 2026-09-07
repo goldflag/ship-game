@@ -1,0 +1,786 @@
+[
+  {
+    "ms": 19376,
+    "stages": [
+      {
+        "label": "Loading game files…",
+        "ms": 47
+      },
+      {
+        "label": "Preparing the harbor…",
+        "ms": 1107
+      },
+      {
+        "label": "Starting graphics…",
+        "ms": 1190
+      },
+      {
+        "label": "Loading Bismarck…",
+        "ms": 1195
+      },
+      {
+        "label": "Building the Atlantic…",
+        "ms": 6210
+      },
+      {
+        "label": "Lighting the sky…",
+        "ms": 6646
+      },
+      {
+        "label": "Building the naval anchorage…",
+        "ms": 7064
+      },
+      {
+        "label": "Preparing ocean effects and lighting…",
+        "ms": 15693
+      },
+      {
+        "label": "Harbor ready",
+        "ms": 18875
+      }
+    ],
+    "resources": [
+      {
+        "name": "react-BYzzQ_KH.js",
+        "kb": 59,
+        "start": 45,
+        "end": 123
+      },
+      {
+        "name": "main-DONci6uY.css",
+        "kb": 20,
+        "start": 45,
+        "end": 104
+      },
+      {
+        "name": "GLTFLoader-Cjtq7LsY.js",
+        "kb": 98,
+        "start": 45,
+        "end": 142
+      },
+      {
+        "name": "main-BB-u-gc5.js",
+        "kb": 47,
+        "start": 45,
+        "end": 160
+      },
+      {
+        "name": "three-engine-7_lVewqs.js",
+        "kb": 258,
+        "start": 45,
+        "end": 207
+      },
+      {
+        "name": "preload-helper-CB-M20ig.js",
+        "kb": 5354,
+        "start": 45,
+        "end": 1057
+      },
+      {
+        "name": "barlow-latin-500-normal-BPAOfeC8.woff2",
+        "kb": 22,
+        "start": 105,
+        "end": 165
+      },
+      {
+        "name": "barlow-latin-400-normal-qiz4-Cze.woff2",
+        "kb": 22,
+        "start": 105,
+        "end": 175
+      },
+      {
+        "name": "bismarck.glb",
+        "kb": 23088,
+        "start": 1193,
+        "end": 5036
+      },
+      {
+        "name": "baseShape32.bin",
+        "kb": 111,
+        "start": 6477,
+        "end": 6543
+      },
+      {
+        "name": "ground-color.jpg",
+        "kb": 651,
+        "start": 7062,
+        "end": 7731
+      },
+      {
+        "name": "ground-roughness.jpg",
+        "kb": 354,
+        "start": 7062,
+        "end": 7455
+      },
+      {
+        "name": "meadow-roughness.jpg",
+        "kb": 500,
+        "start": 7062,
+        "end": 7592
+      },
+      {
+        "name": "ground-normal.jpg",
+        "kb": 884,
+        "start": 7062,
+        "end": 7952
+      },
+      {
+        "name": "rock-roughness.jpg",
+        "kb": 373,
+        "start": 7062,
+        "end": 8130
+      },
+      {
+        "name": "meadow-color.jpg",
+        "kb": 1168,
+        "start": 7062,
+        "end": 8216
+      },
+      {
+        "name": "rock-color.jpg",
+        "kb": 768,
+        "start": 7062,
+        "end": 8219
+      },
+      {
+        "name": "meadow-normal.jpg",
+        "kb": 1432,
+        "start": 7062,
+        "end": 8456
+      },
+      {
+        "name": "rock-normal.jpg",
+        "kb": 1151,
+        "start": 7062,
+        "end": 8707
+      },
+      {
+        "name": "brick-color.jpg",
+        "kb": 995,
+        "start": 7062,
+        "end": 8916
+      },
+      {
+        "name": "concrete-normal.jpg",
+        "kb": 189,
+        "start": 7062,
+        "end": 8682
+      },
+      {
+        "name": "concrete-color.jpg",
+        "kb": 758,
+        "start": 7062,
+        "end": 8972
+      },
+      {
+        "name": "concrete-roughness.jpg",
+        "kb": 311,
+        "start": 7062,
+        "end": 9008
+      },
+      {
+        "name": "brick-roughness.jpg",
+        "kb": 921,
+        "start": 7062,
+        "end": 9111
+      },
+      {
+        "name": "brick-normal.jpg",
+        "kb": 1033,
+        "start": 7062,
+        "end": 9117
+      },
+      {
+        "name": "apron-color.jpg",
+        "kb": 116,
+        "start": 7062,
+        "end": 9147
+      },
+      {
+        "name": "slate-color.jpg",
+        "kb": 504,
+        "start": 7062,
+        "end": 9189
+      },
+      {
+        "name": "apron-normal.jpg",
+        "kb": 109,
+        "start": 7062,
+        "end": 9242
+      },
+      {
+        "name": "slate-roughness.jpg",
+        "kb": 300,
+        "start": 7062,
+        "end": 9259
+      },
+      {
+        "name": "apron-roughness.jpg",
+        "kb": 178,
+        "start": 7062,
+        "end": 9300
+      },
+      {
+        "name": "slate-normal.jpg",
+        "kb": 746,
+        "start": 7062,
+        "end": 9611
+      },
+      {
+        "name": "cobbles-roughness.jpg",
+        "kb": 407,
+        "start": 7062,
+        "end": 9662
+      },
+      {
+        "name": "cobbles-color.jpg",
+        "kb": 562,
+        "start": 7062,
+        "end": 9692
+      },
+      {
+        "name": "cobbles-normal.jpg",
+        "kb": 764,
+        "start": 7062,
+        "end": 9859
+      },
+      {
+        "name": "asphalt-color.jpg",
+        "kb": 715,
+        "start": 7063,
+        "end": 9878
+      },
+      {
+        "name": "asphalt-roughness.jpg",
+        "kb": 532,
+        "start": 7063,
+        "end": 9941
+      },
+      {
+        "name": "asphalt-normal.jpg",
+        "kb": 1211,
+        "start": 7063,
+        "end": 9999
+      },
+      {
+        "name": "period-facades.jpg",
+        "kb": 752,
+        "start": 10000,
+        "end": 10168
+      },
+      {
+        "name": "barlow-condensed-latin-600-normal-DepVgxBB.woff2",
+        "kb": 22,
+        "start": 10498,
+        "end": 11051
+      },
+      {
+        "name": "cargo-barrel.glb",
+        "kb": 545,
+        "start": 10994,
+        "end": 11222
+      },
+      {
+        "name": "cargo-crate.glb",
+        "kb": 2346,
+        "start": 10994,
+        "end": 11517
+      },
+      {
+        "name": "broadleaf.glb",
+        "kb": 10143,
+        "start": 11587,
+        "end": 15048
+      },
+      {
+        "name": "coastal-rock.glb",
+        "kb": 1684,
+        "start": 11587,
+        "end": 12642
+      },
+      {
+        "name": "fir.glb",
+        "kb": 7907,
+        "start": 11587,
+        "end": 14680
+      },
+      {
+        "name": "fir-impostor.png",
+        "kb": 525,
+        "start": 11588,
+        "end": 12053
+      },
+      {
+        "name": "broadleaf-impostor.png",
+        "kb": 583,
+        "start": 11588,
+        "end": 12131
+      },
+      {
+        "name": "bismarck-thumbnail.png",
+        "kb": 102,
+        "start": 18875,
+        "end": 19020
+      },
+      {
+        "name": "type-viic-thumbnail.png",
+        "kb": 85,
+        "start": 18875,
+        "end": 19007
+      },
+      {
+        "name": "baltimore-thumbnail.png",
+        "kb": 97,
+        "start": 18875,
+        "end": 19017
+      },
+      {
+        "name": "enterprise-cv6-thumbnail.png",
+        "kb": 98,
+        "start": 18875,
+        "end": 19019
+      },
+      {
+        "name": "yamato-thumbnail.png",
+        "kb": 102,
+        "start": 18875,
+        "end": 19020
+      },
+      {
+        "name": "king-george-v-thumbnail.png",
+        "kb": 103,
+        "start": 18875,
+        "end": 19020
+      },
+      {
+        "name": "liberty-cargo-thumbnail.png",
+        "kb": 109,
+        "start": 18875,
+        "end": 19141
+      },
+      {
+        "name": "liberty-collier-thumbnail.png",
+        "kb": 97,
+        "start": 18875,
+        "end": 19137
+      },
+      {
+        "name": "flower-corvette-thumbnail.png",
+        "kb": 99,
+        "start": 18875,
+        "end": 19141
+      },
+      {
+        "name": "victory-cargo-thumbnail.png",
+        "kb": 111,
+        "start": 18875,
+        "end": 19145
+      },
+      {
+        "name": "fletcher-thumbnail.png",
+        "kb": 108,
+        "start": 18875,
+        "end": 19144
+      },
+      {
+        "name": "barlow-condensed-latin-500-normal-BgYH2mbd.woff2",
+        "kb": 21,
+        "start": 18890,
+        "end": 19054
+      }
+    ],
+    "errors": []
+  },
+  {
+    "ms": 18860,
+    "stages": [
+      {
+        "label": "Loading game files…",
+        "ms": 50
+      },
+      {
+        "label": "Preparing the harbor…",
+        "ms": 1105
+      },
+      {
+        "label": "Starting graphics…",
+        "ms": 1194
+      },
+      {
+        "label": "Loading Bismarck…",
+        "ms": 1198
+      },
+      {
+        "label": "Building the Atlantic…",
+        "ms": 6081
+      },
+      {
+        "label": "Lighting the sky…",
+        "ms": 6291
+      },
+      {
+        "label": "Building the naval anchorage…",
+        "ms": 6698
+      },
+      {
+        "label": "Preparing ocean effects and lighting…",
+        "ms": 15154
+      },
+      {
+        "label": "Harbor ready",
+        "ms": 18344
+      }
+    ],
+    "resources": [
+      {
+        "name": "react-BYzzQ_KH.js",
+        "kb": 59,
+        "start": 49,
+        "end": 133
+      },
+      {
+        "name": "GLTFLoader-Cjtq7LsY.js",
+        "kb": 98,
+        "start": 49,
+        "end": 154
+      },
+      {
+        "name": "three-engine-7_lVewqs.js",
+        "kb": 258,
+        "start": 49,
+        "end": 220
+      },
+      {
+        "name": "main-DONci6uY.css",
+        "kb": 20,
+        "start": 49,
+        "end": 107
+      },
+      {
+        "name": "main-BB-u-gc5.js",
+        "kb": 47,
+        "start": 49,
+        "end": 173
+      },
+      {
+        "name": "preload-helper-CB-M20ig.js",
+        "kb": 5354,
+        "start": 49,
+        "end": 1057
+      },
+      {
+        "name": "barlow-latin-500-normal-BPAOfeC8.woff2",
+        "kb": 22,
+        "start": 133,
+        "end": 193
+      },
+      {
+        "name": "barlow-latin-400-normal-qiz4-Cze.woff2",
+        "kb": 22,
+        "start": 133,
+        "end": 194
+      },
+      {
+        "name": "bismarck.glb",
+        "kb": 23088,
+        "start": 1198,
+        "end": 5029
+      },
+      {
+        "name": "baseShape32.bin",
+        "kb": 111,
+        "start": 6267,
+        "end": 6329
+      },
+      {
+        "name": "ground-color.jpg",
+        "kb": 651,
+        "start": 6697,
+        "end": 7365
+      },
+      {
+        "name": "ground-normal.jpg",
+        "kb": 884,
+        "start": 6697,
+        "end": 7586
+      },
+      {
+        "name": "ground-roughness.jpg",
+        "kb": 354,
+        "start": 6697,
+        "end": 7089
+      },
+      {
+        "name": "meadow-roughness.jpg",
+        "kb": 500,
+        "start": 6697,
+        "end": 7226
+      },
+      {
+        "name": "meadow-color.jpg",
+        "kb": 1168,
+        "start": 6697,
+        "end": 7851
+      },
+      {
+        "name": "rock-color.jpg",
+        "kb": 768,
+        "start": 6697,
+        "end": 7854
+      },
+      {
+        "name": "meadow-normal.jpg",
+        "kb": 1432,
+        "start": 6697,
+        "end": 8089
+      },
+      {
+        "name": "rock-roughness.jpg",
+        "kb": 373,
+        "start": 6697,
+        "end": 7764
+      },
+      {
+        "name": "concrete-normal.jpg",
+        "kb": 189,
+        "start": 6697,
+        "end": 8315
+      },
+      {
+        "name": "rock-normal.jpg",
+        "kb": 1151,
+        "start": 6697,
+        "end": 8341
+      },
+      {
+        "name": "brick-color.jpg",
+        "kb": 995,
+        "start": 6697,
+        "end": 8551
+      },
+      {
+        "name": "concrete-color.jpg",
+        "kb": 758,
+        "start": 6697,
+        "end": 8606
+      },
+      {
+        "name": "concrete-roughness.jpg",
+        "kb": 311,
+        "start": 6697,
+        "end": 8642
+      },
+      {
+        "name": "brick-roughness.jpg",
+        "kb": 921,
+        "start": 6697,
+        "end": 8746
+      },
+      {
+        "name": "brick-normal.jpg",
+        "kb": 1033,
+        "start": 6697,
+        "end": 8751
+      },
+      {
+        "name": "apron-color.jpg",
+        "kb": 116,
+        "start": 6697,
+        "end": 8781
+      },
+      {
+        "name": "slate-color.jpg",
+        "kb": 504,
+        "start": 6697,
+        "end": 8822
+      },
+      {
+        "name": "apron-normal.jpg",
+        "kb": 109,
+        "start": 6697,
+        "end": 8878
+      },
+      {
+        "name": "slate-roughness.jpg",
+        "kb": 300,
+        "start": 6697,
+        "end": 8893
+      },
+      {
+        "name": "apron-roughness.jpg",
+        "kb": 178,
+        "start": 6697,
+        "end": 8934
+      },
+      {
+        "name": "slate-normal.jpg",
+        "kb": 746,
+        "start": 6697,
+        "end": 9245
+      },
+      {
+        "name": "cobbles-roughness.jpg",
+        "kb": 407,
+        "start": 6697,
+        "end": 9299
+      },
+      {
+        "name": "cobbles-color.jpg",
+        "kb": 562,
+        "start": 6697,
+        "end": 9326
+      },
+      {
+        "name": "cobbles-normal.jpg",
+        "kb": 764,
+        "start": 6697,
+        "end": 9492
+      },
+      {
+        "name": "asphalt-color.jpg",
+        "kb": 715,
+        "start": 6697,
+        "end": 9513
+      },
+      {
+        "name": "asphalt-roughness.jpg",
+        "kb": 532,
+        "start": 6697,
+        "end": 9575
+      },
+      {
+        "name": "asphalt-normal.jpg",
+        "kb": 1211,
+        "start": 6697,
+        "end": 9633
+      },
+      {
+        "name": "period-facades.jpg",
+        "kb": 752,
+        "start": 9634,
+        "end": 9802
+      },
+      {
+        "name": "barlow-condensed-latin-600-normal-DepVgxBB.woff2",
+        "kb": 22,
+        "start": 10116,
+        "end": 10657
+      },
+      {
+        "name": "cargo-barrel.glb",
+        "kb": 545,
+        "start": 10601,
+        "end": 10828
+      },
+      {
+        "name": "cargo-crate.glb",
+        "kb": 2346,
+        "start": 10601,
+        "end": 11124
+      },
+      {
+        "name": "broadleaf.glb",
+        "kb": 10143,
+        "start": 11186,
+        "end": 14646
+      },
+      {
+        "name": "coastal-rock.glb",
+        "kb": 1684,
+        "start": 11186,
+        "end": 12241
+      },
+      {
+        "name": "fir.glb",
+        "kb": 7907,
+        "start": 11186,
+        "end": 14279
+      },
+      {
+        "name": "fir-impostor.png",
+        "kb": 525,
+        "start": 11186,
+        "end": 11651
+      },
+      {
+        "name": "broadleaf-impostor.png",
+        "kb": 583,
+        "start": 11186,
+        "end": 11730
+      },
+      {
+        "name": "type-viic-thumbnail.png",
+        "kb": 85,
+        "start": 18344,
+        "end": 18473
+      },
+      {
+        "name": "king-george-v-thumbnail.png",
+        "kb": 103,
+        "start": 18344,
+        "end": 18485
+      },
+      {
+        "name": "yamato-thumbnail.png",
+        "kb": 102,
+        "start": 18344,
+        "end": 18486
+      },
+      {
+        "name": "enterprise-cv6-thumbnail.png",
+        "kb": 98,
+        "start": 18344,
+        "end": 18485
+      },
+      {
+        "name": "baltimore-thumbnail.png",
+        "kb": 97,
+        "start": 18344,
+        "end": 18484
+      },
+      {
+        "name": "bismarck-thumbnail.png",
+        "kb": 102,
+        "start": 18344,
+        "end": 18485
+      },
+      {
+        "name": "liberty-cargo-thumbnail.png",
+        "kb": 109,
+        "start": 18344,
+        "end": 18609
+      },
+      {
+        "name": "liberty-collier-thumbnail.png",
+        "kb": 97,
+        "start": 18344,
+        "end": 18604
+      },
+      {
+        "name": "flower-corvette-thumbnail.png",
+        "kb": 99,
+        "start": 18344,
+        "end": 18606
+      },
+      {
+        "name": "fletcher-thumbnail.png",
+        "kb": 108,
+        "start": 18344,
+        "end": 18611
+      },
+      {
+        "name": "victory-cargo-thumbnail.png",
+        "kb": 111,
+        "start": 18344,
+        "end": 18611
+      },
+      {
+        "name": "barlow-condensed-latin-500-normal-BgYH2mbd.woff2",
+        "kb": 21,
+        "start": 18367,
+        "end": 18521
+      }
+    ],
+    "errors": []
+  }
+]
