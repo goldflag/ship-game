@@ -2,7 +2,7 @@
 import { Game } from '/src/game/Game.ts';
 import { shipPreset } from '/src/ships/presets.ts';
 let ready;const loaded=new Promise(resolve=>ready=resolve);
-const game=new Game(document.querySelector('#scene'),{quality:'medium',sea:'Fair',resolution:1},{progress:message=>window.reviewProgress=message,ready,telemetry:()=>{},pause:()=>{},hud:()=>{},error:message=>window.reviewError=message},shipPreset('enterprise-cv6'));
+const game=new Game(document.querySelector('#scene'),{quality:'medium',resolution:1},{progress:message=>window.reviewProgress=message,ready,telemetry:()=>{},pause:()=>{},hud:()=>{},error:message=>window.reviewError=message},shipPreset('enterprise-cv6'));
 window.oceanGame=game;game.start();await loaded;game.setInPort(false);game.setPaused(true);game.rig.update=()=>{};
 game.simulation.aircraft.forEach(p=>p.phase='lost');const plane=game.simulation.player.airWing.planes[0];plane.controls.gear=0;
 game.camera.position.set(0,300,0);game.camera.lookAt(0,300,-3000);game.camera.updateMatrixWorld(true);

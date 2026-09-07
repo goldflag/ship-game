@@ -8,6 +8,31 @@ import { CombatSimulation, type CombatEvent } from '../simulation/combat';
 import { CombatEffects } from './CombatEffects';
 import { EffectParticlePool, effectTexture } from './EffectParticles';
 
+test('burning-turret smoke drifts with wind, responds to changes, and freezes on pause', () => {
+  const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
+  sim.player.damage.control.mounts[0].intensity = 1;
+  sim.tick = 15;
+  effects.update(sim, .1, camera);
+  expect(effects.diagnostics().smoke).toBe(1);
+  const mesh = effects.root.getObjectByName('Propellant and impact volumes') as InstancedMesh;
+  const sphere = mesh.geometry.getAttribute('effectSphere');
+  const position = () => new Vector3(sphere.getX(0), sphere.getY(0), sphere.getZ(0));
+  const beforeSimulation = JSON.stringify(sim);
+  for (const [speed, direction] of [[10, 0], [10, Math.PI / 2], [20, Math.PI], [10, -Math.PI / 2], [0, 1]]) {
+    const before = position();
+    effects.setWind(speed, direction);
+    effects.update(sim, 0, camera);
+    expect(position().distanceTo(before)).toBe(0);
+    effects.update(sim, .1, camera);
+    const drift = position().sub(before);
+    expect(drift.x).toBeCloseTo(Math.cos(direction) * speed * .35 * .1, 4);
+    expect(drift.z).toBeCloseTo(Math.sin(direction) * speed * .35 * .1, 4);
+    expect(drift.y).toBeGreaterThan(0);
+  }
+  expect(JSON.stringify(sim)).toBe(beforeSimulation);
+  effects.dispose();
+});
+
 test('torpedo trails end at the round and extend aft at every heading and visible depth', () => {
   const sim = new CombatSimulation(compileShip(submarine, catalog)), effects = new CombatEffects(), camera = new Camera();
   const weapon = sim.definition.torpedoTubes![0].weapon;
@@ -126,7 +151,7 @@ test('salvos are bounded, do not replay events, pause cleanly, and reset without
   const active = effects.diagnostics();
   expect(active.smoke + active.spray + active.flashes + active.foam).toBeLessThanOrEqual(active.particleCapacity);
   sim.events.length = 0; effects.reset(); effects.update(sim, 0, camera);
-  expect(effects.diagnostics()).toEqual({ shells: 0, torpedoes: 0, depthCharges: 0, smoke: 0, spray: 0, flashes: 0, foam: 0, particleCapacity: 2272 });
+  expect(effects.diagnostics()).toEqual({ shells: 0, torpedoes: 0, depthCharges: 0, smoke: 0, aircraftSmoke: 0, spray: 0, flashes: 0, foam: 0, particleCapacity: 3040 });
   sim.events.push({ ...event, sequence: 150 }); effects.update(sim, 0, camera);
   expect(effects.diagnostics().flashes).toBeGreaterThan(0);
   for (let i = 0; i < 13 * 60; i++) effects.update(sim, 1 / 60, camera);
@@ -278,5 +303,27 @@ test('tracers end at the CPU shell, grow from the muzzle, and stay legible acros
     expect(new Vector3().setFromMatrixScale(matrix).y).toBe(0);
     glow.getMatrixAt(0, matrix);
     expect(new Vector3().setFromMatrixScale(matrix).x).toBe(0);
+  } finally { effects.dispose(); }
+});
+
+test('falling aircraft lay persistent smoke, freeze on pause and splash only on the CPU impact event', () => {
+  const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
+  // The effect adapter consumes serializable aircraft state without moving the wreck.
+  const plane = { id: 'wreck', phase: 'lost', previousPosition: [0, 100, 0], position: [0, 100, 0], velocity: [0, -20, -80],
+    wreck: { age: 0, rollRate: .5, impacted: false }, lossReason: 'Shot down' };
+  Object.defineProperty(sim, 'aircraft', { get: () => [plane] });
+  try {
+    effects.update(sim, 1 / 60, camera);
+    plane.previousPosition = [0, 100, 0]; plane.position = [0, 98, -8]; plane.wreck.age = .1; sim.tick = 6;
+    const before = JSON.stringify(plane); effects.update(sim, .1, camera);
+    expect(JSON.stringify(plane)).toBe(before);
+    expect(effects.diagnostics().aircraftSmoke).toBeGreaterThan(0); expect(effects.diagnostics().spray).toBe(0);
+    const stats = effects.diagnostics(); effects.update(sim, 0, camera); expect(effects.diagnostics()).toEqual(stats);
+    plane.wreck.impacted = true; plane.position = [0, 0, -250];
+    sim.events.push({ sequence: 1, tick: 6, kind: 'aircraft-crash', position: [0, 0, -250], shipId: 'player', message: 'Sea impact', aircraft: { id: plane.id, velocity: plane.velocity as [number, number, number] } });
+    effects.update(sim, .1, camera); expect(effects.diagnostics().spray).toBeGreaterThan(0);
+    expect(effects.diagnostics().aircraftSmoke).toBeGreaterThan(0);
+    effects.update(sim, 10, camera); expect(effects.diagnostics().aircraftSmoke).toBe(0);
+    effects.reset(); expect(effects.diagnostics().spray).toBe(0); expect(effects.diagnostics().aircraftSmoke).toBe(0);
   } finally { effects.dispose(); }
 });

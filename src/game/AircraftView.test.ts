@@ -1,5 +1,5 @@
 import { expect, spyOn, test } from 'bun:test';
-import { BoxGeometry, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, PerspectiveCamera } from 'three/webgpu';
+import { BoxGeometry, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, PerspectiveCamera, Vector3 } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { AircraftView } from './AircraftView';
 import { CombatSimulation } from '../simulation/combat';
@@ -20,7 +20,7 @@ test('port renders only the player deck, follows its displayed pose, and retains
     const roots = new Map([['player', carrier]]), camera = new PerspectiveCamera();
     view.update(sim, camera, true, true, roots);
     expect(view.diagnostics().instances).toBe(12);
-    const firstBatch = view.root.children.find(c => c instanceof InstancedMesh && c !== view.root.children[1] && c.count > 0) as InstancedMesh;
+    const firstBatch = view.root.children.find(c => c instanceof InstancedMesh && c.name.startsWith('Aircraft model ') && c.count > 0) as InstancedMesh;
     const matrix = new Matrix4(); firstBatch.getMatrixAt(0, matrix);
     const spot = aircraftDeckSpot(sim.player, sim.player.airWing!.planes[0]);
     const expected = carrier.matrixWorld.clone().multiply(new Matrix4().makeTranslation(...spot));
@@ -77,11 +77,67 @@ test('large carrier fleets retain every visible aircraft without oversized GPU u
     sim.player.airWing!.planes = Array.from({ length: 1584 }, (_, i) => ({ ...structuredClone(template), id: `player/render-${i}`, phase: 'outbound', payload: false }));
     view.update(sim, new PerspectiveCamera(), true);
     expect(view.diagnostics().instances).toBe(1584);
-    const modelBatches = view.root.children.filter(c => c instanceof InstancedMesh && c.count > 0 && c !== view.root.children[1] && c.name !== 'Distant aircraft silhouettes') as InstancedMesh[];
+    const modelBatches = view.root.children.filter(c => c instanceof InstancedMesh && c.count > 0 && c.name.startsWith('Aircraft model ')) as InstancedMesh[];
     expect(modelBatches.reduce((n, b) => n + b.count, 0)).toBe(1584);
     for (const batch of modelBatches) {
       expect(batch.instanceMatrix.array.byteLength).toBeLessThanOrEqual(65536);
       expect(batch.count).toBeLessThanOrEqual(batch.instanceMatrix.count);
+    }
+  } finally { await view.dispose(); loader.mockRestore(); }
+});
+
+test('bombs retain their release attitude, interpolate ballistics and never draw an artillery glow', async () => {
+  const sim = new CombatSimulation(shipPreset('enterprise-cv6')), view = new AircraftView();
+  const { CombatEffects } = await import('./CombatEffects');
+  const effects = new CombatEffects(), camera = new PerspectiveCamera();
+  sim.aircraft.forEach(p => { p.phase = 'lost'; });
+  const shell = { id: 100, ownerId: 'player', position: [0, 100, 0] as [number, number, number], velocity: [0, -20, -90] as [number, number, number],
+    bomb: { heading: .2, pitch: -.3, bank: .4 }, age: 0, damage: 380, penetrationMm: 0, caliberM: .35, visited: [], ammunition: 'he' as const };
+  sim.shells.push(shell);
+  try {
+    view.update(sim, camera, true); effects.update(sim, 0, camera);
+    expect(view.diagnostics().bombs).toBe(1); expect(effects.diagnostics().shells).toBe(0);
+    const bombs = view.root.getObjectByName('Aircraft bombs') as InstancedMesh;
+    const matrix = new Matrix4(); bombs.getMatrixAt(0, matrix);
+    const expected = new Group(); expected.position.fromArray(shell.position); expected.rotation.set(-.3, -.2, .4, 'YXZ'); expected.updateMatrix();
+    matrix.elements.forEach((value, i) => expect(value).toBeCloseTo(expected.matrix.elements[i], 5));
+    shell.age = 1; shell.position = [0, 75.095, -90]; shell.velocity = [0, -29.81, -90];
+    const before = structuredClone(shell); view.update(sim, camera, true); bombs.getMatrixAt(0, matrix);
+    expect(matrix.elements[14]).toBeCloseTo(-88.5, 4); expect(matrix.elements[13]).toBeGreaterThan(shell.position[1]);
+    expect(shell).toEqual(before); expect(bombs.count).toBe(bombs.instanceMatrix.count);
+    sim.shells.length = 0; view.update(sim, camera, true);
+    expect(view.diagnostics().bombs).toBe(0); expect([...bombs.instanceMatrix.array].every(n => n === 0)).toBe(true);
+  } finally { effects.dispose(); await view.dispose(); }
+});
+
+test('fold joints retain full-size geometry and independent per-plane poses across every LOD', async () => {
+  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async () => {
+    const scene = new Group(), wing = new Group();
+    wing.userData = { nodeId: 'wing.fold.port', foldAxis: [0, 0, -1], foldAngleDegrees: 90 };
+    wing.add(new Mesh(new BoxGeometry(), new MeshBasicMaterial())); scene.add(wing);
+    return { scene } as Awaited<ReturnType<GLTFLoader['loadAsync']>>;
+  });
+  const view = new AircraftView();
+  try {
+    await view.load();
+    const sim = new CombatSimulation(shipPreset('enterprise-cv6'));
+    const planes = sim.player.airWing!.planes;
+    for (const plane of sim.aircraft) plane.phase = 'lost';
+    for (const plane of planes.slice(0, 2)) plane.phase = 'ready';
+    planes[0].wingFold = .5; planes[1].wingFold = 1;
+    const carrier = new Group(); carrier.updateMatrixWorld(true);
+    const roots = new Map([['player', carrier]]), camera = new PerspectiveCamera();
+    for (const distance of [40, 220, 600]) {
+      camera.position.set(0, distance, -90); view.update(sim, camera, true, true, roots);
+      const batch = view.root.children.find(c => c instanceof InstancedMesh && c.count === 2) as InstancedMesh;
+      expect(batch).toBeDefined();
+      for (let i = 0; i < 2; i++) {
+        const actual = new Matrix4(); batch.getMatrixAt(i, actual);
+        const expected = new Matrix4().makeTranslation(...aircraftDeckSpot(sim.player, planes[i]))
+          .multiply(new Matrix4().makeRotationZ(-planes[i].wingFold * Math.PI / 2));
+        actual.elements.forEach((value, n) => expect(value).toBeCloseTo(expected.elements[n], 4));
+        expect(new Vector3().setFromMatrixColumn(actual, 0).length()).toBeCloseTo(1, 5);
+      }
     }
   } finally { await view.dispose(); loader.mockRestore(); }
 });

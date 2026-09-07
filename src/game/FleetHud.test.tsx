@@ -9,6 +9,27 @@ import type { Telemetry } from './types';
 import { updateCapability } from '../simulation/stability';
 import { GunneryPanel } from '../ui/GunneryPanel';
 
+test('shell choices are available in the main HUD with stock, current type and the remapped shortcut', () => {
+  const definition = shipPreset('bismarck'), sim = new CombatSimulation(definition);
+  const aim: [number, number, number] = [2000, 10, 0];
+  sim.step({ throttle: 0, rudder: 0 }, { aim, fire: false, battery: 'main', ammunition: 'he' });
+  const combat = sim.telemetry('main', aim);
+  const data: Telemetry = { ship: sim.ship, order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat };
+  const bindings = defaultKeybindings(); bindings.shellType = ['KeyV', null];
+  const render = () => renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={data} game={null} visible bindings={bindings}/></ShipContext.Provider>);
+  const html = render();
+  expect(html).toContain('aria-label="Shell type for selected battery"');
+  expect(html).toContain('aria-pressed="true" aria-label="High explosive (HE) · 384 rounds');
+  expect(html).toContain('Armor piercing (AP) · 576 rounds');
+  expect(html).toContain('Select main HE battery · 384 shells');
+  expect(html).toContain('<kbd>V</kbd> switch shells');
+  combat.ammunitionStock.he = 0;
+  expect(render()).toContain('High explosive (HE) · 0 rounds · Full reload on change" title="High explosive: Contact blast against light armor and exposed equipment. Guns without HE keep AP. Changing type takes a full reload." disabled=""');
+  expect(render()).toContain('Out of HE');
+  combat.heSupported = false;
+  expect(render()).toContain('High explosive (HE) · Not fitted');
+});
+
 test('the helm displays current/max HP and proportional hit feedback for large and small hulls', () => {
   for (const id of ['yamato', 'baltimore']) {
     const definition = shipPreset(id), sim = new CombatSimulation(definition);
@@ -35,6 +56,7 @@ test('Fletcher exposes live depth charge supply and broadside torpedo help, whil
     const data: Telemetry = { ship: sim.ship, order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat: sim.telemetry(id === 'fletcher' ? 'depth-charge' : 'main', [1500, 0, 0]) };
     const html = renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={data} game={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
     if (id === 'fletcher') {
+      expect(html).not.toContain('aria-label="Shell type for selected battery"');
       expect(html).toContain('Select depth charges · 28 charges · 4');
       expect(html).toContain('Burst at 10 m'); expect(html).toContain('Drop depth charge');
       const gunnery = renderToStaticMarkup(<GunneryPanel data={data} game={null} expanded onExpand={() => {}} bindings={defaultKeybindings()}/>);
@@ -44,6 +66,7 @@ test('Fletcher exposes live depth charge supply and broadside torpedo help, whil
       expect(gunnery).not.toContain('Aim at <select');
       data.combat = sim.telemetry('torpedo', [1500, 0, 0]);
       const torpedoHtml = renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={data} game={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
+      expect(torpedoHtml).not.toContain('aria-label="Shell type for selected battery"');
       expect(torpedoHtml).toContain('Each broadside 40–140°'); expect(torpedoHtml).not.toContain('Bow / stern');
     } else expect(html).not.toContain('Select depth charges');
   }
@@ -57,7 +80,8 @@ test('VIIC depth instruments show real orders, ballast and recovery instructions
     if (id === 'type-viic') {
       expect(html).toContain('aria-label="Depth and ballast"'); expect(html).toContain('Ordered 50 m');
       expect(html).toContain('Ballast 85%'); expect(html).toContain('Torpedoes: rise to 12 m or less');
-      expect(html).toContain('Emergency blow'); expect(html).toContain('Periscope');
+      expect(html).toContain('Emergency blow'); expect(html).not.toContain('Periscope');
+      expect(html).toContain('Dive 2 m'); expect(html).toContain('Rise 2 m');
     } else expect(html).not.toContain('aria-label="Depth and ballast"');
   }
 });

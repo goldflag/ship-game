@@ -13,7 +13,7 @@ window.errors=[];
 addEventListener('error',e=>window.errors.push(e.message));
 addEventListener('unhandledrejection',e=>window.errors.push(String(e.reason)));
 const status=document.querySelector('#status');
-const game=new Game(document.querySelector('#scene'),{quality,resolution:1,sea:'Atlantic'},{
+const game=new Game(document.querySelector('#scene'),{quality,resolution:1},{
  progress:(text)=>status.textContent=text,
  ready:()=>{window.ready=true;status.textContent='Ready';},
  telemetry:data=>{window.telemetry=data;},pause:()=>{},hud:()=>{},error:error=>{window.errors.push(error);status.textContent=error;}

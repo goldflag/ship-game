@@ -1,0 +1,478 @@
+{
+  "type": "Actual React components over a static in-game harbor crop; not live combat evidence",
+  "browser": "Isolated headless Chrome",
+  "records": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900,
+      "mode": "scope",
+      "scale": 1,
+      "layout": {
+        "ruler": {
+          "x": 59.6015625,
+          "y": 360,
+          "width": 1320.796875,
+          "height": 180,
+          "top": 360,
+          "right": 1380.3984375,
+          "bottom": 540,
+          "left": 59.6015625
+        },
+        "reticle": {
+          "x": 699.9921875,
+          "y": 360,
+          "width": 40,
+          "height": 180,
+          "top": 360,
+          "right": 739.9921875,
+          "bottom": 540,
+          "left": 699.9921875
+        },
+        "radius": "316.8px",
+        "eyepiece": {
+          "x": 57.6015625,
+          "y": 75.6015625,
+          "width": 1324.796875,
+          "height": 748.796875,
+          "top": 75.6015625,
+          "right": 1382.3984375,
+          "bottom": 824.3984375,
+          "left": 57.6015625
+        },
+        "scope": "5.00 km\n6.4 s\nFLIGHT TIME\n8.0×",
+        "readout": {
+          "x": 631.59375,
+          "y": 560,
+          "width": 176.796875,
+          "height": 35,
+          "top": 560,
+          "right": 808.390625,
+          "bottom": 595,
+          "left": 631.59375
+        },
+        "armament": {
+          "x": 550,
+          "y": 659,
+          "width": 340,
+          "height": 221,
+          "top": 659,
+          "right": 890,
+          "bottom": 880,
+          "left": 550
+        },
+        "hidden": false,
+        "hint": false,
+        "overflow": false
+      }
+    },
+    {
+      "name": "portrait",
+      "width": 390,
+      "height": 844,
+      "mode": "scope",
+      "scale": 1,
+      "layout": {
+        "ruler": {
+          "x": 17.6015625,
+          "y": 332,
+          "width": 354.796875,
+          "height": 180,
+          "top": 332,
+          "right": 372.3984375,
+          "bottom": 512,
+          "left": 17.6015625
+        },
+        "reticle": {
+          "x": 174.9921875,
+          "y": 359.6015625,
+          "width": 40,
+          "height": 124.796875,
+          "top": 359.6015625,
+          "right": 214.9921875,
+          "bottom": 484.3984375,
+          "left": 174.9921875
+        },
+        "radius": "85.8px",
+        "eyepiece": {
+          "x": 15.6015625,
+          "y": 320.6015625,
+          "width": 358.796875,
+          "height": 202.796875,
+          "top": 320.6015625,
+          "right": 374.3984375,
+          "bottom": 523.3984375,
+          "left": 15.6015625
+        },
+        "scope": "5.00 km\n6.4 s\nFLIGHT TIME\n8.0×",
+        "readout": {
+          "x": 106.59375,
+          "y": 484.390625,
+          "width": 176.796875,
+          "height": 35,
+          "top": 484.390625,
+          "right": 283.390625,
+          "bottom": 519.390625,
+          "left": 106.59375
+        },
+        "armament": {
+          "x": 40,
+          "y": 150,
+          "width": 310,
+          "height": 150,
+          "top": 150,
+          "right": 350,
+          "bottom": 300,
+          "left": 40
+        },
+        "hidden": false,
+        "hint": false,
+        "overflow": false
+      }
+    },
+    {
+      "name": "landscape",
+      "width": 844,
+      "height": 390,
+      "mode": "scope",
+      "scale": 1,
+      "layout": {
+        "ruler": {
+          "x": 76.90625,
+          "y": 105,
+          "width": 690.1875,
+          "height": 180,
+          "top": 105,
+          "right": 767.09375,
+          "bottom": 285,
+          "left": 76.90625
+        },
+        "reticle": {
+          "x": 402,
+          "y": 105,
+          "width": 40,
+          "height": 180,
+          "top": 105,
+          "right": 442,
+          "bottom": 285,
+          "left": 402
+        },
+        "radius": "140.4px",
+        "eyepiece": {
+          "x": 74.90625,
+          "y": 7.8046875,
+          "width": 694.1875,
+          "height": 374.390625,
+          "top": 7.8046875,
+          "right": 769.09375,
+          "bottom": 382.1953125,
+          "left": 74.90625
+        },
+        "scope": "5.00 km\n6.4 s\nFLIGHT TIME\n8.0×",
+        "readout": {
+          "x": 333.6015625,
+          "y": 118,
+          "width": 176.796875,
+          "height": 35,
+          "top": 118,
+          "right": 510.3984375,
+          "bottom": 153,
+          "left": 333.6015625
+        },
+        "armament": {
+          "x": 292,
+          "y": 240,
+          "width": 260,
+          "height": 138,
+          "top": 240,
+          "right": 552,
+          "bottom": 378,
+          "left": 292
+        },
+        "hidden": false,
+        "hint": false,
+        "overflow": false
+      }
+    },
+    {
+      "name": "wide",
+      "width": 2048,
+      "height": 852,
+      "mode": "scope",
+      "scale": 1,
+      "layout": {
+        "ruler": {
+          "x": 267.7265625,
+          "y": 336,
+          "width": 1512.546875,
+          "height": 180,
+          "top": 336,
+          "right": 1780.2734375,
+          "bottom": 516,
+          "left": 267.7265625
+        },
+        "reticle": {
+          "x": 1003.9921875,
+          "y": 336,
+          "width": 40,
+          "height": 180,
+          "top": 336,
+          "right": 1043.9921875,
+          "bottom": 516,
+          "left": 1003.9921875
+        },
+        "radius": "306.72px",
+        "eyepiece": {
+          "x": 265.7265625,
+          "y": 17.046875,
+          "width": 1516.546875,
+          "height": 817.90625,
+          "top": 17.046875,
+          "right": 1782.2734375,
+          "bottom": 834.953125,
+          "left": 265.7265625
+        },
+        "scope": "5.00 km\n6.4 s\nFLIGHT TIME\n8.0×",
+        "readout": {
+          "x": 935.59375,
+          "y": 536,
+          "width": 176.796875,
+          "height": 35,
+          "top": 536,
+          "right": 1112.390625,
+          "bottom": 571,
+          "left": 935.59375
+        },
+        "armament": {
+          "x": 854,
+          "y": 611,
+          "width": 340,
+          "height": 221,
+          "top": 611,
+          "right": 1194,
+          "bottom": 832,
+          "left": 854
+        },
+        "hidden": false,
+        "hint": false,
+        "overflow": false
+      }
+    },
+    {
+      "name": "large-hud",
+      "width": 1440,
+      "height": 900,
+      "mode": "scope",
+      "scale": 1.5,
+      "layout": {
+        "ruler": {
+          "x": 59.6015625,
+          "y": 314.9765625,
+          "width": 1320.796875,
+          "height": 270,
+          "top": 314.9765625,
+          "right": 1380.3984375,
+          "bottom": 584.9765625,
+          "left": 59.6015625
+        },
+        "reticle": {
+          "x": 690,
+          "y": 314.9765625,
+          "width": 60,
+          "height": 270,
+          "top": 314.9765625,
+          "right": 750,
+          "bottom": 584.9765625,
+          "left": 690
+        },
+        "radius": "316.8px",
+        "eyepiece": {
+          "x": 57.6015625,
+          "y": 75.6015625,
+          "width": 1324.796875,
+          "height": 748.796875,
+          "top": 75.6015625,
+          "right": 1382.3984375,
+          "bottom": 824.3984375,
+          "left": 57.6015625
+        },
+        "scope": "5.00 km\n6.4 s\nFLIGHT TIME\n8.0×",
+        "readout": {
+          "x": 587.40234375,
+          "y": 334.4765625,
+          "width": 265.1953125,
+          "height": 52.5,
+          "top": 334.4765625,
+          "right": 852.59765625,
+          "bottom": 386.9765625,
+          "left": 587.40234375
+        },
+        "armament": {
+          "x": 498,
+          "y": 674.9765625,
+          "width": 444,
+          "height": 207,
+          "top": 674.9765625,
+          "right": 942,
+          "bottom": 881.9765625,
+          "left": 498
+        },
+        "hidden": false,
+        "hint": false,
+        "overflow": false
+      }
+    },
+    {
+      "name": "small-hud",
+      "width": 1440,
+      "height": 900,
+      "mode": "scope",
+      "scale": 0.75,
+      "layout": {
+        "ruler": {
+          "x": 59.6015625,
+          "y": 382.48828125,
+          "width": 1320.796875,
+          "height": 135,
+          "top": 382.48828125,
+          "right": 1380.3984375,
+          "bottom": 517.48828125,
+          "left": 59.6015625
+        },
+        "reticle": {
+          "x": 705,
+          "y": 382.48828125,
+          "width": 30,
+          "height": 135,
+          "top": 382.48828125,
+          "right": 735,
+          "bottom": 517.48828125,
+          "left": 705
+        },
+        "radius": "316.8px",
+        "eyepiece": {
+          "x": 57.6015625,
+          "y": 75.6015625,
+          "width": 1324.796875,
+          "height": 748.796875,
+          "top": 75.6015625,
+          "right": 1382.3984375,
+          "bottom": 824.3984375,
+          "left": 57.6015625
+        },
+        "scope": "5.00 km\n6.4 s\nFLIGHT TIME\n8.0×",
+        "readout": {
+          "x": 653.701171875,
+          "y": 532.48828125,
+          "width": 132.59765625,
+          "height": 26.25,
+          "top": 532.48828125,
+          "right": 786.298828125,
+          "bottom": 558.73828125,
+          "left": 653.701171875
+        },
+        "armament": {
+          "x": 592.5,
+          "y": 719.23828125,
+          "width": 255,
+          "height": 165.75,
+          "top": 719.23828125,
+          "right": 847.5,
+          "bottom": 884.98828125,
+          "left": 592.5
+        },
+        "hidden": false,
+        "hint": false,
+        "overflow": false
+      }
+    },
+    {
+      "name": "hidden",
+      "width": 1440,
+      "height": 900,
+      "mode": "hidden",
+      "scale": 1,
+      "layout": {
+        "ruler": {
+          "x": 59.6015625,
+          "y": 360,
+          "width": 1320.796875,
+          "height": 180,
+          "top": 360,
+          "right": 1380.3984375,
+          "bottom": 540,
+          "left": 59.6015625
+        },
+        "reticle": {
+          "x": 699.9921875,
+          "y": 360,
+          "width": 40,
+          "height": 180,
+          "top": 360,
+          "right": 739.9921875,
+          "bottom": 540,
+          "left": 699.9921875
+        },
+        "radius": "316.8px",
+        "eyepiece": {
+          "x": 57.6015625,
+          "y": 75.6015625,
+          "width": 1324.796875,
+          "height": 748.796875,
+          "top": 75.6015625,
+          "right": 1382.3984375,
+          "bottom": 824.3984375,
+          "left": 57.6015625
+        },
+        "scope": "",
+        "readout": {
+          "x": 631.59375,
+          "y": 560,
+          "width": 176.796875,
+          "height": 35,
+          "top": 560,
+          "right": 808.390625,
+          "bottom": 595,
+          "left": 631.59375
+        },
+        "armament": {
+          "x": 550,
+          "y": 659,
+          "width": 340,
+          "height": 221,
+          "top": 659,
+          "right": 890,
+          "bottom": 880,
+          "left": 550
+        },
+        "hidden": true,
+        "hint": false,
+        "overflow": false
+      }
+    },
+    {
+      "name": "chase",
+      "width": 1440,
+      "height": 900,
+      "mode": "chase",
+      "scale": 1,
+      "layout": {
+        "radius": null,
+        "armament": {
+          "x": 550,
+          "y": 659,
+          "width": 340,
+          "height": 221,
+          "top": 659,
+          "right": 890,
+          "bottom": 880,
+          "left": 550
+        },
+        "hidden": false,
+        "hint": false,
+        "overflow": false
+      }
+    }
+  ],
+  "errors": []
+}

@@ -477,6 +477,13 @@
       "frontU": 0.165,
       "rearU": 0.29,
       "heightM": 0.19
+    },
+    "wingFold": {
+      "kind": "upward",
+      "spanFraction": 0.295,
+      "pivotU": 0.4,
+      "angleDegrees": 90,
+      "approximation": "Rigid visual hinge; fold line from retained plan where present, compound axis and travel inferred from mechanism references. Not manufacturing or clearance-certified geometry."
     }
   },
   "measurement": {

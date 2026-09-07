@@ -1,0 +1,69 @@
+{
+  "airborne": [
+    {
+      "fold": 0,
+      "phase": "outbound"
+    },
+    {
+      "fold": 0,
+      "phase": "outbound"
+    },
+    {
+      "fold": 0,
+      "phase": "outbound"
+    }
+  ],
+  "error": null,
+  "models": [
+    {
+      "hash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+      "id": "f4f-4-wildcat/2"
+    },
+    {
+      "hash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+      "id": "sbd-3-dauntless/2"
+    },
+    {
+      "hash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+      "id": "tbd-1-devastator/2"
+    },
+    {
+      "hash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+      "id": "sbd-3-dauntless/1"
+    },
+    {
+      "hash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+      "id": "f4f-4-wildcat/1"
+    },
+    {
+      "hash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+      "id": "tbd-1-devastator/1"
+    },
+    {
+      "hash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+      "id": "f4f-4-wildcat/0"
+    },
+    {
+      "hash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+      "id": "tbd-1-devastator/0"
+    },
+    {
+      "hash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+      "id": "sbd-3-dauntless/0"
+    }
+  ],
+  "recovered": [
+    {
+      "fold": 1,
+      "phase": "ready"
+    },
+    {
+      "fold": 1,
+      "phase": "ready"
+    },
+    {
+      "fold": 1,
+      "phase": "ready"
+    }
+  ]
+}

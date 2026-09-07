@@ -1,0 +1,35 @@
+.battle-loading { z-index: 8; background: #0b1d26; animation: battle-loading-arrive .45s ease-out both; }
+.battle-loading-backdrop { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; object-position: center; }
+.battle-loading::before { content: ''; position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, #0b1d26d9 0%, #0f273366 45%, #0b1d26c9 100%); }
+.battle-loading > :not(.battle-loading-backdrop) { position: relative; z-index: 2; }
+.battle-loading-leaving { animation: battle-loading-depart .55s ease-in both; pointer-events: none; }
+.battle-loading-top { display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+.battle-loading-region { font-size: 10px; letter-spacing: .2em; color: #a9bcc3; }
+.battle-loading-content { width: min(720px, 100%); margin: auto; text-align: center; }
+.battle-loading-kicker { margin: 0 0 14px; font-size: 11px; letter-spacing: .2em; color: var(--accent); text-transform: uppercase; }
+.battle-loading-content > h1 { font: 500 clamp(56px, 8vw, 96px)/1 'Barlow Condensed', sans-serif; letter-spacing: .065em; margin: 0; }
+.battle-loading-content .loading-subtitle { font-size: 15px; line-height: 1.55; margin: 16px auto 34px; max-width: 520px; }
+.battle-loading-fleets { display: grid; grid-template-columns: 1fr auto 1fr; gap: 24px; align-items: start; text-align: left; margin-bottom: 36px; }
+.battle-loading-fleets h2 { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line); font: 500 17px/1.2 'Barlow Condensed', sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+.battle-loading-fleets h2 span { font-size: 12px; color: #a9bcc3; letter-spacing: .1em; }
+.battle-loading-fleets > div:last-child { text-align: right; }
+.battle-loading-fleets > div:last-child li { flex-direction: row-reverse; }
+.battle-loading-versus { align-self: center; font: 500 22px/1 'Barlow Condensed', sans-serif; letter-spacing: .2em; color: var(--accent); padding-top: 24px; }
+.battle-loading-roster { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.battle-loading-roster li { display: flex; align-items: center; gap: 12px; font-size: 13px; min-height: 30px; }
+.battle-loading-roster img { width: 80px; height: 24px; object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 2px 4px #0008); }
+.battle-loading-roster small { font-size: 9px; letter-spacing: .14em; color: var(--accent); text-transform: uppercase; }
+.battle-loading-player span { color: #f0f5f3; font-weight: 500; }
+.battle-loading-status { display: flex; justify-content: space-between; font-size: 11px; letter-spacing: .1em; color: #bfced2; margin-bottom: 8px; text-transform: uppercase; }
+.battle-loading .loading-progress { height: 3px; }
+.battle-loading .loading-progress span { transition: width .35s ease; }
+@keyframes battle-loading-arrive { from { opacity: 0; } to { opacity: 1; } }
+@keyframes battle-loading-depart { from { opacity: 1; } to { opacity: 0; } }
+@media (max-width: 760px) {
+  .battle-loading-fleets { grid-template-columns: 1fr; gap: 16px; }
+  .battle-loading-versus { display: none; }
+  .battle-loading-fleets > div:last-child { text-align: left; }
+  .battle-loading-fleets > div:last-child li { flex-direction: row; }
+  .battle-loading-content .loading-subtitle { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .battle-loading, .battle-loading-leaving { animation-duration: .01s; } }

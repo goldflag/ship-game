@@ -1,0 +1,52 @@
+{
+  "contentHash": "a9398f04d9cb73a9c3e101f0574d92d6ed1242844718ada33c814f31be8c8dfc",
+  "method": "Triangle intersections of exported hull.surface at runtime Y=0 and Z=0; actual transformed vertices.",
+  "measures": [
+    {
+      "id": "length-overall",
+      "expectedM": 227.08,
+      "measuredM": 227.0800018310547,
+      "source": "rmg-b9, 745 ft 0.13 in rounded to cm",
+      "errorM": 0.0000018310546749944479,
+      "toleranceM": 0.025,
+      "passed": true
+    },
+    {
+      "id": "hull-beam",
+      "expectedM": 31.3944,
+      "measuredM": 31.39440155029297,
+      "source": "rmg-slr1553, 103 ft; B9 lists a conflicting extreme envelope",
+      "errorM": 0.0000015502929677779775,
+      "toleranceM": 0.025,
+      "passed": true
+    },
+    {
+      "id": "standard-mean-draft",
+      "expectedM": 8.8392,
+      "measuredM": 8.839200019836426,
+      "source": "rmg-b9, 1940 standard mean 29 ft; not a May 1941 deep-load claim",
+      "errorM": 1.9836425835251248e-8,
+      "toleranceM": 0.025,
+      "passed": true
+    },
+    {
+      "id": "waterline-length",
+      "expectedM": 225.6,
+      "measuredM": 225.60000610351562,
+      "source": "rmg-b9, 740 ft 0.25 in rounded to dm; datum uncertainty recorded",
+      "errorM": 0.000006103515630684342,
+      "toleranceM": 0.025,
+      "passed": true
+    },
+    {
+      "id": "midship-depth",
+      "expectedM": 15.5773,
+      "measuredM": 15.577300071716309,
+      "source": "rmg-b9, depth at side 51 ft 1.31 in",
+      "errorM": 7.171630933555662e-8,
+      "toleranceM": 0.025,
+      "passed": true
+    }
+  ],
+  "historicalAccuracy": "These five dimensions are checked. Hull lines, surface offsets and equipment details remain unverified; this is not historical certification."
+}

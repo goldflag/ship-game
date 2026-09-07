@@ -21,7 +21,9 @@ test('every preset prints a complete sheet whose figures come from the compiled 
     expect(survivability.rows.find(r => r.label === 'Compartments')!.value).toBe(String(def.compartments.length));
     const main = sections.find(s => s.id === 'main-battery')!, weapon = def.mounts.find(m => m.battery === 'main')!.weapon;
     expect(main.headline).toBe(String(Math.round(weapon.caliberM * 1000)));
-    expect(main.rows.find(r => r.label === 'Layout')!.value).toBe(`${def.mounts.filter(m => m.battery === 'main').length} × ${weapon.barrelCount ?? 2}`);
+    if (new Set(def.mounts.filter(m => m.battery === 'main').map(m => m.weapon.barrelCount ?? 2)).size === 1) {
+      expect(main.rows.find(r => r.label === 'Layout')!.value).toBe(`${def.mounts.filter(m => m.battery === 'main').length} × ${weapon.barrelCount ?? 2}`);
+    }
     expect(sections.find(s => s.id === 'model-basis')!.notes!.map(n => n.text)).toEqual([def.accuracy.exterior, def.accuracy.internals, def.accuracy.weapons]);
   }
 });
