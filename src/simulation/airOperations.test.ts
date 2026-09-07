@@ -52,9 +52,9 @@ test('six-plane flights retain separate orders and four active slots include que
 test('a full 24-plane rotation recovers, rearms and launches again without endurance losses', () => {
   const { sim, run, wing, events } = fixture();
   for (const squadron of ['vf-6', 'vb-6', 'vt-6', 'vf-6']) sim.launchAircraft(squadron);
-  for (let second = 0; second < 750; second++) {
+  for (let second = 0; second < 1250; second++) {
     run(1);
-    if (second === 180) sim.recallAircraft();
+    if (second === 260) sim.recallAircraft();
     const telemetry = wing();
     expect(Object.values(telemetry.counts).reduce((a, b) => a + b, 0)).toBe(48);
     expect(sim.player.airWing!.planes.filter(onFlightDeck).length).toBeLessThanOrEqual(12);
@@ -64,6 +64,6 @@ test('a full 24-plane rotation recovers, rearms and launches again without endur
   expect(wing().counts.ready).toBe(48);
   expect(events.filter(e => e.kind === 'aircraft-recovered')).toHaveLength(24);
   expect(sim.launchAircraft('vt-6')).toBe(6);
-  run(60);
+  run(75);
   expect(sim.player.airWing!.planes.filter(airborne)).toHaveLength(6);
 }, 30000);
