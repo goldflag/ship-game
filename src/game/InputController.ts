@@ -13,6 +13,7 @@ export interface InputActions {
   chartSize(direction: number): void;
   gunnery(): void;
   shellFollow(): void;
+  shellType?(): void;
   depth?(direction: number): void;
   emergencyBlow?(): void;
   airOperations?(): void;
@@ -87,6 +88,7 @@ export class InputController {
       if (action === 'chartSmaller') this.actions.chartSize(-1);
       if (action === 'gunnery') this.actions.gunnery();
       if (action === 'shellFollow') this.actions.shellFollow();
+      if (action === 'shellType') this.actions.shellType?.();
       if (action === 'dive') this.actions.depth?.(1);
       if (action === 'rise') this.actions.depth?.(-1);
       if (action === 'emergencyBlow') this.actions.emergencyBlow?.();

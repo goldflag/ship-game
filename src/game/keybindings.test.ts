@@ -2,6 +2,15 @@ import { describe, expect, test } from 'bun:test';
 import { bindingError, bindingLabel, defaultKeybindings, keybindingsOf } from './keybindings';
 
 describe('player keybindings', () => {
+  test('older saves gain shell selection without taking a custom E binding', () => {
+    const { shellType: _newAction, ...saved } = defaultKeybindings();
+    saved.camera = ['KeyE', null];
+    const loaded = keybindingsOf(saved);
+    expect(loaded.camera).toEqual(saved.camera);
+    expect(loaded.shellType[0]).toBeTruthy();
+    expect(loaded.shellType).not.toContain('KeyE');
+    expect(keybindingsOf(loaded)).toEqual(loaded);
+  });
   test('older saves gain shell follow without losing a custom T binding', () => {
     const { shellFollow: _newAction, ...saved } = defaultKeybindings();
     saved.camera = ['KeyT', null];

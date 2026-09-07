@@ -82,6 +82,19 @@
 .fleet-gun-disabled { color:#ee9b86; }
 .fleet-battery-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 2px 8px; font-size:10px; color:var(--fleet-muted); }
 .fleet-battery-heading strong { font-weight:500; color:#e4efea; }
+.fleet-shells { margin-bottom:8px; }
+.fleet-shell-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
+.fleet-shell-option { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:7px; min-width:0; min-height:38px; padding:5px 7px; border:1px solid var(--fleet-line); border-radius:1px; background:transparent; color:var(--fleet-muted); text-align:left; }
+.fleet-shell-option strong { font:600 16px/1 'Barlow Condensed',sans-serif; }
+.fleet-shell-option span { font-size:10px; line-height:1.1; }
+.fleet-shell-option b { font:500 17px/1 'Barlow Condensed',sans-serif; font-variant-numeric:tabular-nums; }
+.fleet-shell-option[aria-pressed=true] { border-color:var(--fleet-active); color:var(--fleet-active); }
+.fleet-shell-option:hover:not(:disabled) { border-color:#f0f5f3; color:#f0f5f3; background:transparent; }
+.fleet-shell-option:focus-visible { outline:2px solid var(--fleet-active); outline-offset:3px; }
+.fleet-shell-option:disabled { opacity:.5; cursor:default; }
+.fleet-shell-help { display:flex; justify-content:space-between; flex-wrap:wrap; gap:2px 8px; margin:4px 0 0; font-size:10px; color:var(--fleet-muted); }
+.fleet-shell-help kbd { color:#f0f5f3; font:inherit; }
+.fleet-shell-help strong { color:var(--fleet-gold); font-weight:500; }
 .fleet-weapon-row { display:flex; align-items:stretch; gap:7px; }
 .fleet-weapon-slot { position:relative; flex:1; min-width:0; height:64px; display:flex; align-items:center; justify-content:center; border:1px solid #c9dce044; border-radius:1px; background:transparent; padding:9px 2px 3px; color:#d4e2df; }
 .fleet-weapon-slot:hover { background:transparent; border-color:#d3e5e590; }
@@ -96,8 +109,9 @@
 .fleet-weapon-slot>kbd { position:absolute; top:calc(100% + 4px); left:50%; transform:translateX(-50%); background:transparent; border:0; color:var(--fleet-muted); min-width:23px; font-size:11px; text-shadow:inherit; white-space:nowrap; }
 .fleet-weapon-slot[aria-pressed=true]>kbd { background:transparent; color:var(--fleet-active); }
 .fleet-utility-slot { margin-left:7px; }
-.fleet-slot-cooldown { position:absolute; inset:20px 0 14px; text-align:center; background:transparent; color:#e0c58d; font:500 24px/1.2 'Barlow Condensed',sans-serif; }
-.fleet-slot-cooldown small { font-size:13px; margin-left:2px; }
+.fleet-slot-cooldown { position:absolute; inset:17px 0 auto; text-align:center; background:transparent; color:#e0c58d; font:500 16px/1 'Barlow Condensed',sans-serif; }
+.fleet-slot-cooldown small { font-size:10px; margin-left:2px; }
+.fleet-weapon-slot:has(.fleet-slot-cooldown) .fleet-ammo-glyph { opacity:.3; }
 .fleet-slot-value { position:absolute; bottom:4px; right:6px; color:var(--fleet-active); font:500 16px/1 'Barlow Condensed',sans-serif; }
 
 .fleet-map-area { position:absolute; right:0; bottom:0; width:var(--chart-width); }
@@ -174,6 +188,7 @@
   .fleet-throttle button { min-height:19px; min-width:46px; font-size:15px; }
   .fleet-steering { margin-left:0; }
   .fleet-armament { width:calc(100vw - 40px); max-width:310px; top:100px; bottom:auto; }
+  .fleet-armament-guns :is(.fleet-turrets,.fleet-battery-heading) { display:none; }
   .fleet-shell-status { top:72px; display:flex; align-items:center; gap:8px; white-space:nowrap; }
   .fleet-shell-status strong { font-size:16px; }
   .fleet-turrets { gap:5px; }
@@ -190,6 +205,8 @@
   .fleet-armament { padding-bottom:22px; }
   .fleet-turrets,.fleet-battery-heading { display:none; }
   .fleet-weapon-slot { height:48px; }
+  .fleet-slot-cooldown { top:15px; font-size:11px; }
+  .fleet-weapon-slot:has(.fleet-slot-cooldown) .fleet-ammo-count { font-size:16px; bottom:3px; }
   .fleet-ammo-glyph { width:38px; height:38px; }
   .fleet-capture-hint,.fleet-in-optics .fleet-capture-hint { top:80px; }
   .fleet-hud .gunnery { top:88px; max-height:calc(100dvh - 100px); }
