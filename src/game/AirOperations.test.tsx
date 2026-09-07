@@ -13,6 +13,24 @@ import { battleEnvironment } from '../maps/conditions';
 import { oceanMap } from '../maps/catalog';
 import { squadronTargetOrder } from '../ui/airCommands';
 
+test('map overlays and water orders use the displayed camera throughout ascent and panning', () => {
+  const camera = new PerspectiveCamera(52, 1.6, .5, 60000);
+  camera.position.set(0, 50, 300); camera.lookAt(0, 0, 0);
+  const battlefieldCamera = new BattlefieldCamera(camera);
+  const game = Object.assign(Object.create(Game.prototype), { camera, battlefieldCamera, host: { clientWidth: 1280, clientHeight: 800 } }) as Game;
+  battlefieldCamera.beginTransition(); battlefieldCamera.enter([{ x: 0, z: 0 }], 1280, 800);
+  for (let i = 0; i < 7; i++) {
+    battlefieldCamera.update(); battlefieldCamera.applyTransition(.2);
+    const [x, y] = game.projectAirMap(100, -200);
+    const water = game.airMapWater(x, y)!;
+    expect(water[0]).toBeCloseTo(100, 5); expect(water[1]).toBeCloseTo(-200, 5);
+  }
+  const before = game.projectAirMap(100, -200);
+  game.panAirMap(90, 0); battlefieldCamera.update();
+  const after = game.projectAirMap(100, -200);
+  expect(after[0]).not.toBe(before[0]);
+});
+
 test('an armed action refuses an incompatible click without issuing a different mission', () => {
   expect(squadronTargetOrder('attack', { kind: 'water', point: [200, 420, -900] })).toBeUndefined();
   expect(squadronTargetOrder('defend', { kind: 'ship', team: 'enemy', id: 'enemy-1' })).toBeUndefined();
