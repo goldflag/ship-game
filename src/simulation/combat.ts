@@ -433,7 +433,7 @@ export class CombatSimulation {
       return { id: tube.id, name: tube.name, status: s.status, reload: Math.max(s.reload, this.player.tubeLaunchCooldown ?? 0), ammo: s.ammo };
     }) : this.definition.mounts.filter(m => m.battery === battery).map(m => {
       const s = this.player.mounts.find(s => s.id === m.id)!;
-      return { id: m.id, name: m.name, status: s.status, reload: s.reload, ammo: s.ammo, loaded: s.loaded };
+      return { id: m.id, name: m.name, status: s.status, reload: s.reload, ammo: availableAmmunition(s), loaded: s.loaded };
     });
     const significant = [...this.events].reverse().find(e => ['module', 'sunk', 'stopped', 'ricochet', 'penetration', 'contact', 'burst', 'torpedo-launch', 'torpedo-hit', 'torpedo-dud', 'torpedo-expired', 'depth-charge-launch', 'depth-charge-blast', 'depth-charge-hit'].includes(e.kind));
     const flightTimes = this.definition.mounts.flatMap((m, i) => {
@@ -480,7 +480,7 @@ export class CombatSimulation {
       batteries: (['main', 'secondary', ...(this.definition.torpedoTubes?.length ? ['torpedo'] : []), ...(this.definition.depthChargeLaunchers?.length ? ['depth-charge'] : [])] as Battery[]).map(battery => {
         const states = battery === 'depth-charge' ? this.player.depthChargeLaunchers! : battery === 'torpedo' ? this.player.torpedoTubes! : this.definition.mounts.filter(m => m.battery === battery).map(m => this.player.mounts.find(s => s.id === m.id)!);
         const reloading = states.filter(m => m.reload > 0);
-        return { battery, ammunition: this.ammunitionSelection[battery], ammo: states.reduce((n, m) => n + m.ammo, 0), ready: states.filter(m => m.status === 'ready').length, total: states.length,
+        return { battery, ammunition: this.ammunitionSelection[battery], ammo: states.reduce((n, m) => n + ('loaded' in m ? availableAmmunition(m) : m.ammo), 0), ready: states.filter(m => m.status === 'ready').length, total: states.length,
           reload: reloading.length ? Math.min(...reloading.map(m => m.reload)) : 0 };
       }),
       message: significant ? `${this.actors.find(actor => actor.motion.id === significant.shipId)?.definition.name ?? 'Ship'} · ${significant.message}` : battery === 'depth-charge' ? 'Drop during a close pass. Charges sink before exploding; keep moving clear of the blast.' : battery === 'torpedo' ? `${this.definition.torpedoLaunchers?.length ? 'Bring a broadside toward the sight.' : 'Turn bow or stern toward the sight.'} Torpedoes keep their launch course; lead moving targets.` : 'Only aligned, loaded guns fire. Turn the ship to bring guns marked Out of arc onto the target.',

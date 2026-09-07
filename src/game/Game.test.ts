@@ -51,12 +51,31 @@ async function port() {
     currentAim: [650, .5, -550], manualAim: true, shellFollow: new ShellFollow(),
     aircraftView: { root: new Group(), async load() {}, diagnostics() { return {}; } },
     effects: { reset() {}, diagnostics() { return {}; } },
+    funnelSmoke: { diagnostics() { return {}; } },
     shipLabels: { setFleet() {} },
     ship: new Group(), inPort: true, disposed: false, switchingShip: false,
     renderer: { domElement: { setAttribute() {} } },
   }) as Game;
   return { game, scene, harbor, camera, rig, playerView };
 }
+
+test('shell commands affect only the active gun battery and reject unavailable rounds or inactive play', () => {
+  const definition = shipPreset('bismarck'), simulation = new CombatSimulation(definition);
+  const game = Object.assign(Object.create(Game.prototype), { definition, simulation, currentAim: [2000, 10, 0],
+    battery: 'main', ammunition: { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' },
+    inPort: false, paused: false, airOperationsOpen: false }) as Game;
+  game.selectAmmunition('he'); expect(game.ammunition.main).toBe('he'); expect(game.ammunition.secondary).toBe('ap');
+  game.battery = 'secondary'; game.selectAmmunition('he'); expect(game.ammunition.secondary).toBe('he');
+  game.selectAmmunition('ap'); expect(game.ammunition.main).toBe('he');
+  for (const state of simulation.player.mounts) { state.ammo -= state.heAmmo; state.heAmmo = 0; }
+  game.selectAmmunition('he'); expect(game.ammunition.secondary).toBe('ap');
+  game.battery = 'torpedo'; game.selectAmmunition('he'); expect(game.ammunition.torpedo).toBe('ap');
+  game.battery = 'main';
+  Object.assign(game, { paused: true }); game.selectAmmunition('ap'); expect(game.ammunition.main).toBe('he');
+  Object.assign(game, { paused: false, inPort: true }); game.selectAmmunition('ap'); expect(game.ammunition.main).toBe('he');
+  Object.assign(game, { inPort: false, airOperationsOpen: true }); game.selectAmmunition('ap'); expect(game.ammunition.main).toBe('he');
+  game.airOperationsOpen = false; simulation.player.damage.sunk = true; game.selectAmmunition('ap'); expect(game.ammunition.main).toBe('he');
+});
 
 test('switching ships retains the port until loading completes, then frames the new hull with the same orbit', async () => {
   const { game, scene, harbor, camera, rig, playerView } = await port();

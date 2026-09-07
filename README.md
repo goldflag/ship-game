@@ -40,6 +40,7 @@ In port, upward dragging stops at the lowest orbit and keeps the camera aimed at
 | Scroll                            | Adjust camera distance, or continuous 2×–32× binocular magnification         |
 | Hold Ctrl                         | Release cursor to use HUD controls; release Ctrl to return to aiming         |
 | 1 / 2 / 3 / 4                     | Select main / secondary battery / torpedoes / depth charges (when fitted)    |
+| E                                 | Switch AP / HE shells for the selected gun battery; requires a full reload  |
 | − / +                             | Decrease / increase minimap size (numpad keys also work)                     |
 | G                                 | Open / close gunnery and target damage                                       |
 | T                                 | Toggle automatic shell-follow camera; press again to return early            |
@@ -97,7 +98,7 @@ Gunfire uses caliber-scaled ignition and large fireballs that cool over roughly 
 
 When your ship is hit, a salmon arc around the sight points toward the incoming shell relative to your camera, including hits from behind. Nearby hits share a cue; separate directions can appear together. Armor stops and ricochets count too. The markers hold briefly, fade over 2.2 seconds total, freeze on pause, and follow the H instrument toggle.
 
-Shell strikes also leave lasting marks on the ship itself: penetrations have dark punctures and torn paint, stopped AP rounds leave steel dents, and ricochets score a scrape along the incoming direction. Larger calibers leave larger marks. Scars conform to the visible mesh and follow hull movement, sinking and turret rotation. They persist while paused, hide in Armor/Internals inspection, and clear when the ship resets or returns to port. Each ship retains its latest 96 marks, batched by struck mesh. Current guns fire AP; the visual adapter also supports broader HE scorch marks for future ammunition types. These are surface decals and gameplay approximations, not holes cut through the model or a new HE damage simulation.
+Shell strikes also leave lasting marks on the ship itself: penetrations have dark punctures and torn paint, stopped AP rounds leave steel dents, and ricochets score a scrape along the incoming direction. Larger calibers leave larger marks. Scars conform to the visible mesh and follow hull movement, sinking and turret rotation. They persist while paused, hide in Armor/Internals inspection, and clear when the ship resets or returns to port. Each ship retains its latest 96 marks, batched by struck mesh. AP and HE use their respective strike marks, with broader scorch marks for HE contact bursts. These are surface decals and gameplay approximations, not holes cut through the model.
 
 ## Architecture
 
@@ -181,7 +182,7 @@ The [mixed-fleet performance review](assets/reviews/mixed-fleet-performance/READ
 
 Three.js renderer reference: https://threejs.org/manual/en/webgpurenderer
 
-Gunnery now supports finite AP and HE stocks. Changing shell type takes a full reload. HE contact bursts affect locally exposed equipment through the same armor queries; its fill, fragment budget and stock split are provisional game calibration.
+Choose **AP — Armor piercing** or **HE — High explosive** above the weapon slots, or press **E** to switch the selected gun battery. Hold Ctrl to click the controls. Each battery remembers its selection. AP penetrates armor before a delayed burst; HE bursts on contact against light protection and exposed equipment. Changing type takes a full reload, including switching back during loading; it never creates or spends rounds. The selector shows separate finite stocks, while weapon and mount counters show rounds available for their current load. Empty or unsupported choices are disabled; guns without HE keep AP. Returning to port restores both stocks and AP selection. The shortcut is rebindable in Settings → Keybindings. HE fill, fragment budget and stock split remain provisional game calibration.
 
 In Gunnery, **Own damage control** lets you prioritize fires, flooding or repairs and focus crews on a space or gun mount. Crews take time to set up, shore small accessible holes, close intact open boundaries and use portable pumps. Repairs consume finite supplies, stop at 60% condition and cannot revive destroyed equipment. Target damage shows active fires, list, trim, draft change and loss cause.
 

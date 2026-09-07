@@ -1,7 +1,7 @@
 import { AirOperations } from './AirOperations';
 import { FlightControl } from './FlightControl';
 import { type CSSProperties } from 'react';
-import type { Battery } from '../ships/blueprint';
+import type { Ammunition, Battery } from '../ships/blueprint';
 import { ammunitionName, batteryName, torpedoArcLabel } from '../ships/armament';
 import type { Game } from '../game/Game';
 import type { Telemetry } from '../game/types';
@@ -63,14 +63,14 @@ function BearingTape({ degrees }: { degrees: number }) {
   </div>;
 }
 
-function AmmoGlyph({ secondary = false, torpedo = false, depthCharge = false }: { secondary?: boolean; torpedo?: boolean; depthCharge?: boolean }) {
+function AmmoGlyph({ secondary = false, torpedo = false, depthCharge = false, ammunition = 'ap' }: { secondary?: boolean; torpedo?: boolean; depthCharge?: boolean; ammunition?: Ammunition }) {
   if (depthCharge) return <svg className="fleet-ammo-glyph" viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M18 20v29c0 7 28 7 28 0V20" fill="#bacbd0" stroke="#e1e9e9"/><ellipse cx="32" cy="20" rx="14" ry="6" fill="#778991" stroke="#e1e9e9"/><path d="M18 27c0 7 28 7 28 0M18 43c0 7 28 7 28 0M32 14v8M28 18h8" stroke="#e8e0c3" strokeWidth="2"/></svg>;
   if (torpedo) return <svg className="fleet-ammo-glyph" viewBox="0 0 64 64" fill="none" aria-hidden="true"><g transform="rotate(28 32 32)"><path d="M28 48V15c0-7 4-12 4-12s4 5 4 12v33Z" fill="#bacbd0" stroke="#e8e0c3"/><path d="M28 17h8v8h-8Z" fill="#d9b665"/><path d="m28 40-5 10h18l-5-10M32 49v9m-5-3h10" stroke="#e1e9e9"/><path d="M30 28v13" stroke="#fff" strokeOpacity=".45"/></g></svg>;
   return <svg className="fleet-ammo-glyph" viewBox="0 0 64 64" fill="none" aria-hidden="true">
     <g transform={secondary ? 'translate(3 4) rotate(28 32 32)' : 'rotate(28 32 32)'}>
       {secondary && <path d="M17 49V22l6-12 6 12v27Z" fill="#99a8ae" stroke="#e1e9e9"/>}
       <path d="M26 48V21c0-7 6-16 6-16s6 9 6 16v27Z" fill={secondary ? '#bacbd0' : '#d9b665'} stroke="#e8e0c3" strokeWidth="1.2"/>
-      <path d="M26 21c0-7 6-16 6-16s6 9 6 16Z" fill={secondary ? '#bb715b' : '#f2e2a8'}/>
+      <path d="M26 21c0-7 6-16 6-16s6 9 6 16Z" fill={ammunition === 'he' ? '#bb715b' : '#f2e2a8'}/>
       <path d="M28 23v20" stroke="#fff" strokeOpacity=".45" strokeWidth="2"/>
       <path d="M25 44h14v4H25Zm-1 7h16v4H24Z" fill="#d9e0d7"/>
       <path d="M26 48h12v3H26Z" fill="#778991"/>
@@ -89,7 +89,7 @@ function ActiveArmament({ data, game, bindings }: FleetHudProps) {
   const torpedoes = combat.battery === 'torpedo', depthCharges = combat.battery === 'depth-charge';
   const caliber = (battery: Battery) => Math.round((battery === 'torpedo' ? selectedShip.torpedoTubes?.[0].weapon.diameterM ?? 0 : selectedShip.mounts.find(m => m.battery === battery)?.weapon.caliberM ?? 0) * 1000);
   const shortcut = (battery: Battery) => battery === 'depth-charge' ? 'depthCharges' : battery === 'torpedo' ? 'torpedoes' : battery === 'main' ? 'mainBattery' : 'secondaryBattery';
-  return <section className={`fleet-armament ${selectedShip.depthChargeLaunchers?.length ? 'fleet-armament-expanded' : ''}`} aria-label="Weapons and gunnery">
+  return <section className={`fleet-armament ${selectedShip.depthChargeLaunchers?.length ? 'fleet-armament-expanded' : ''} ${!torpedoes && !depthCharges ? 'fleet-armament-guns' : ''}`} aria-label="Weapons and gunnery">
     <div className="fleet-turrets" aria-label="Battery mount readiness">{combat.mounts.map((mount, i) => {
       const reloadSeconds = (depthCharges ? selectedShip.depthChargeLaunchers?.find(m => m.id === mount.id)?.weapon.reloadSeconds : torpedoes ? selectedShip.torpedoTubes?.find(m => m.id === mount.id)?.weapon.reloadSeconds : selectedShip.mounts.find(m => m.id === mount.id)?.weapon.reloadSeconds) ?? 1;
       const ready = mount.status === 'ready';
@@ -97,17 +97,37 @@ function ActiveArmament({ data, game, bindings }: FleetHudProps) {
       const countdown = !unavailable && mount.reload > 0;
       const progress = countdown ? 1 - mount.reload / reloadSeconds : ready ? 1 : 0;
       const label = ready ? depthCharges ? 'Ready to release' : 'On aim · Loaded' : mount.status === 'reloading' ? `Reloading · ${Math.ceil(mount.reload)} seconds` : `${mount.status.replaceAll('-', ' ')}${countdown ? ` · Reload ${Math.ceil(mount.reload)} seconds` : ''}`;
-      return <div key={mount.id} title={`${mount.name}: ${label} · ${mount.ammo} ${ammunitionName(combat.battery)}`} aria-label={`${mount.name}: ${label}`} className={`fleet-mount ${ready ? 'fleet-gun-ready' : ''} ${['blocked', 'disabled', 'empty'].includes(mount.status) ? 'fleet-gun-disabled' : ''}`}>
+      return <div key={mount.id} title={`${mount.name}: ${label} · ${mount.ammo} ${mount.loaded ? `${mount.loaded.toUpperCase()} ` : ''}${ammunitionName(combat.battery)}`} aria-label={`${mount.name}: ${label}`} className={`fleet-mount ${ready ? 'fleet-gun-ready' : ''} ${['blocked', 'disabled', 'empty'].includes(mount.status) ? 'fleet-gun-disabled' : ''}`}>
         <svg viewBox="0 0 38 38" aria-hidden="true"><circle cx="19" cy="19" r="16"/><circle className="fleet-reload-progress" cx="19" cy="19" r="16" pathLength="100" strokeDasharray={`${progress * 100} 100`} transform="rotate(-90 19 19)"/></svg>
         <b>{unavailable ? <Icon name="close" size={14}/> : countdown ? Math.ceil(mount.reload) : ready ? <Icon name="turret" size={18}/> : '—'}</b><small>{i + 1}</small>
       </div>;
     })}</div>
     <div className="fleet-battery-heading"><span>{!depthCharges && `${caliber(combat.battery)} mm · `}{batteryName(combat.battery)}</span><strong>{combat.ready}/{combat.total} can fire</strong></div>
+    {!torpedoes && !depthCharges && combat.total > 0 && <div className="fleet-shells">
+      <div className="fleet-shell-options" role="group" aria-label="Shell type for selected battery">
+        {(['ap', 'he'] as const).map(type => {
+          const name = type === 'ap' ? 'Armor piercing' : 'High explosive';
+          const supported = type === 'ap' || combat.heSupported;
+          const stock = combat.ammunitionStock[type];
+          const help = type === 'ap' ? 'Penetrates armor; delayed burst inside the ship.' : 'Contact blast against light armor and exposed equipment. Guns without HE keep AP.';
+          return <button key={type} className="fleet-shell-option" aria-pressed={combat.ammunition === type}
+            aria-label={`${name} (${type.toUpperCase()}) · ${supported ? `${stock} rounds` : 'Not fitted'} · Full reload on change`}
+            title={`${name}: ${help} Changing type takes a full reload.`}
+            disabled={combat.playerSunk || !supported || stock === 0}
+            onClick={event => { game?.selectAmmunition(type); event.currentTarget.blur(); }}>
+            <strong>{type.toUpperCase()}</strong><span>{name}</span><b>{supported ? stock : '—'}</b>
+          </button>;
+        })}
+      </div>
+      <p className="fleet-shell-help"><span><kbd>{bindingLabel(bindings, 'shellType')}</kbd> switch shells · Full reload on change</span>
+        {combat.ammunitionStock[combat.ammunition] === 0 && <strong>Out of {combat.ammunition.toUpperCase()}</strong>}
+      </p>
+    </div>}
     {torpedoes && <p className="fleet-torpedo-help">{torpedoArcLabel(selectedShip)} · {((selectedShip.torpedoTubes?.[0].weapon.rangeM ?? 0) / 1000).toFixed(1)} km · Arms at {selectedShip.torpedoTubes?.[0].weapon.armingDistanceM} m · Line shows straight course</p>}
     {depthCharges && <p className="fleet-torpedo-help">Stern racks / side throwers · Burst at {selectedShip.depthChargeLaunchers?.[0].weapon.detonationDepthM} m<br/>Drop on a close pass; keep moving clear of the blast.</p>}
     <div className="fleet-weapon-row">
       {combat.batteries.filter(battery => battery.total > 0).map(battery => <button key={battery.battery} className="fleet-weapon-slot" aria-label={`Select ${battery.battery === 'depth-charge' ? 'depth charges' : battery.battery === 'torpedo' ? 'torpedoes' : `${battery.battery} ${battery.ammunition.toUpperCase()} battery`} · ${battery.ammo} ${ammunitionName(battery.battery)} · ${bindingLabel(bindings, shortcut(battery.battery))}`} aria-pressed={combat.battery === battery.battery} disabled={!battery.total} onClick={event => { if (game) game.battery = battery.battery; event.currentTarget.blur(); }}>
-        <span className="fleet-slot-label">{battery.battery === 'depth-charge' ? 'DEPTH' : battery.battery === 'torpedo' ? 'TORPEDO' : `${battery.battery === 'main' ? 'MAIN' : 'SEC.'} ${battery.ammunition.toUpperCase()}`}</span><AmmoGlyph secondary={battery.battery === 'secondary'} torpedo={battery.battery === 'torpedo'} depthCharge={battery.battery === 'depth-charge'}/>
+        <span className="fleet-slot-label">{battery.battery === 'depth-charge' ? 'DEPTH' : battery.battery === 'torpedo' ? 'TORPEDO' : `${battery.battery === 'main' ? 'MAIN' : 'SEC.'} ${battery.ammunition.toUpperCase()}`}</span><AmmoGlyph secondary={battery.battery === 'secondary'} torpedo={battery.battery === 'torpedo'} depthCharge={battery.battery === 'depth-charge'} ammunition={battery.ammunition}/>
         <strong className="fleet-ammo-count">{battery.ammo}</strong>
         {battery.reload > 0 && Number.isFinite(battery.reload) && battery.ready === 0 && <span className="fleet-slot-cooldown">{Math.ceil(battery.reload)}<small>s</small></span>}
         <kbd>{bindingLabel(bindings, shortcut(battery.battery))}</kbd>
