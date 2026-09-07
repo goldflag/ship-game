@@ -31,7 +31,7 @@ export class HitLabels {
       }
       label.children[0].textContent = cue.damage > 0 ? `−${cue.damage.toLocaleString(undefined, { maximumFractionDigits: 0 })} HP` : '0 HP';
       label.children[1].textContent = cue.part;
-      label.children[2].textContent = cue.result;
+      label.children[2].textContent = `${cue.result}${cue.projectileIds.length > 1 ? ` x${cue.projectileIds.length}` : ''}`;
       label.dataset.damage = String(cue.damage > 0);
       const view = views.find(v => v.actor.motion.id === cue.shipId);
       const anchor = view && new Vector3(...cue.position).applyMatrix4(view.root.matrixWorld);
@@ -39,7 +39,7 @@ export class HitLabels {
       label.hidden = !point;
       if (point) {
         point.y -= 28;
-        while (occupied.some(p => Math.abs(p.x - point.x) < 155 && Math.abs(p.y - point.y) < 62)) point.y -= 64;
+        while (occupied.some(p => Math.abs(p.x - point.x) < 155 && Math.abs(p.y - point.y) < 52)) point.y -= 54;
         label.hidden = point.y < 70;
         occupied.push(point);
         label.style.transform = `translate(${point.x}px, ${point.y}px) translate(-50%, -100%)`;
