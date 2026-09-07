@@ -46,6 +46,8 @@ export interface Shell {
   id: number; ownerId: string; position: Vec3; velocity: Vec3; age: number;
   /** Captured at launch so later weapon selection cannot change damage attribution. */
   weaponLabel?: string;
+  /** Release attitude identifies an aircraft bomb and preserves visual separation. */
+  bomb?: { heading: number; pitch: number; bank: number };
   penetrationMm: number; damage: number; caliberM: number; visited: string[];
   dragPerSecond?: number;
   ap?: APProjectile;
