@@ -10,9 +10,8 @@ import { actionAvailable, SQUADRON_ACTIONS, squadronTargetOrder, type SquadronAc
 import { Icon } from './Icons';
 import './AirOperations.css';
 import { AirMapNavigation } from './airMapNavigation';
-
-export const duration = (seconds: number) => `${Math.floor(Math.max(0, Math.ceil(seconds)) / 60)}:${String(Math.max(0, Math.ceil(seconds)) % 60).padStart(2, '0')}`;
-const roleLabel = (role: string) => role === 'fighter' ? 'Fighters' : role === 'dive-bomber' ? 'Dive bombers' : 'Torpedo bombers';
+import { duration, mission, roleIcon, roleLabel } from './airFormat';
+import { AirWingManifest } from './AirWingManifest';
 
 // Camera motion is rendered every frame; combat telemetry intentionally stays at 10 Hz.
 // Move the overlay directly so camera motion never waits for a React telemetry render.
@@ -34,10 +33,6 @@ function useMapProjection(ref: RefObject<HTMLElement | SVGSVGElement | null>, ga
     return game.onCameraFrame(update);
   }, [ref, game, active]);
 }
-export const mission = (f: FlightSummary) => f.order.kind === 'attack' ? `Strike ${f.targetName ?? 'ship'}`
-  : f.order.kind === 'intercept' ? `Intercept ${f.targetName ?? 'squadron'}` : f.order.kind === 'escort' ? `Escort ${f.targetName ?? 'squadron'}`
-  : f.order.kind === 'patrol' ? 'Loiter at station' : f.order.kind === 'return' ? 'Return to carrier' : `Defend ${f.targetName ?? 'carrier'}`;
-
 export function WingCounts({ wing, selected, onSelect }: { wing: AirWingTelemetry; selected?: AirStatus; onSelect?(status: AirStatus): void }) {
   return <div className="air-counts" aria-label="Whole air wing status">{(Object.keys(AIR_STATUS_LABELS) as AirStatus[]).map(status =>
     <button key={status} className={`air-count air-count-${status}`} aria-pressed={selected === status} onClick={e => { onSelect?.(status); e.currentTarget.blur(); }}>
@@ -46,7 +41,7 @@ export function WingCounts({ wing, selected, onSelect }: { wing: AirWingTelemetr
 }
 
 function SquadronIcon({ role, size = 20 }: { role: FlightSummary['role']; size?: number }) {
-  return <span className="air-role-icon" data-role={role} title={roleLabel(role)}><Icon name={role === 'fighter' ? 'fighter' : role === 'dive-bomber' ? 'bomb' : 'torpedo'} size={size}/></span>;
+  return <span className="air-role-icon" data-role={role} title={roleLabel(role)}><Icon name={roleIcon(role)} size={size}/></span>;
 }
 
 export function SquadronLabels({ data, game, onOrder, onTarget, onSelect }: { data: Telemetry; game: Game | null; onOrder?(id: string, team: string): void; onTarget?(id: string, team: string): boolean; onSelect?(id: string): void }) {
@@ -321,5 +316,6 @@ export function AirOperations({ data, game, bindings, instrumentsVisible = true 
         </button>)}
       </div>
     </section>}
+    {mapOpen && instrumentsVisible && <AirWingManifest wing={wing} selectedId={selected?.id} onSelect={select}/>}
   </>;
 }

@@ -1,0 +1,58 @@
+/* Wing manifest: every squadron and aircraft, docked right in the M view below the combat report.
+   The translucent maritime surface is the one filled instrument here: 48 condition bars need a steady ground over cloud and wake. */
+.air-manifest { position:absolute; right:var(--fleet-edge); top:200px; width:344px; max-height:calc(100% - 232px); overflow:auto; scrollbar-width:thin; scrollbar-color:var(--fleet-line) transparent; padding:8px 10px 6px; background:#0e2530cc; border:1px solid var(--fleet-line); pointer-events:auto; text-shadow:none; }
+.air-manifest-collapsed { width:max-content; max-width:344px; }
+.air-manifest-header { display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 10px; }
+.air-manifest-header h3 { margin:0; font:500 16px/1.1 'Barlow Condensed',sans-serif; }
+.air-manifest-header h3 strong { margin-left:8px; color:var(--fleet-active); font-weight:500; }
+.air-manifest small { font-size:11px; color:var(--fleet-muted); }
+.air-manifest-header button { margin-left:auto; padding:3px 7px; border:1px solid var(--fleet-line); border-radius:1px; background:transparent; color:inherit; font:inherit; font-size:10px; cursor:pointer; }
+.air-manifest-header p { margin:0; width:100%; font-size:10px; color:var(--fleet-muted); }
+.air-manifest-warning { color:#ffb5a6 !important; }
+.air-manifest section { margin-top:8px; }
+.air-manifest h4 { display:flex; align-items:center; gap:6px; margin:0 0 2px; padding-bottom:2px; border-bottom:1px solid var(--fleet-line); font:500 11px 'Barlow',sans-serif; letter-spacing:.04em; text-transform:uppercase; }
+.air-manifest h4>span:last-child { margin-left:auto; color:var(--fleet-muted); font-size:9px; letter-spacing:0; text-transform:none; }
+.air-manifest-row { display:grid; grid-template-columns:18px 42px 1fr 86px 30px; align-items:center; gap:8px; width:100%; min-height:32px; padding:3px 4px; border:1px solid transparent; border-radius:1px; background:transparent; color:#f0f5f3; font:inherit; text-align:left; cursor:pointer; }
+.air-manifest-row:hover { border-color:var(--fleet-line); }
+.air-manifest-row[aria-pressed=true] { color:var(--fleet-gold); border-color:var(--fleet-gold); }
+.air-manifest button:hover { color:var(--fleet-gold); }
+.air-manifest button:focus-visible { outline:2px solid var(--fleet-gold); outline-offset:1px; }
+.air-manifest-row kbd { grid-column:1; font:500 10px/1.2 'Barlow Condensed',sans-serif; color:var(--fleet-muted); }
+.air-manifest-name { grid-column:2; font:500 13px 'Barlow Condensed',sans-serif; white-space:nowrap; }
+.air-manifest-info { display:flex; flex-direction:column; min-width:0; line-height:1.2; }
+.air-manifest-info>span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; }
+.air-manifest-info>small { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:9px; }
+.air-manifest-launching .air-manifest-info>span,.air-manifest-servicing .air-manifest-info>span { color:var(--fleet-gold); }
+.air-manifest-lost { color:#ffb5a6; }
+.air-manifest-count { font:500 13px 'Barlow Condensed',sans-serif; text-align:right; }
+.air-manifest-cells { display:flex; gap:3px; }
+/* One aircraft: the box fills upward with condition, the underline is payload or ammunition. */
+.air-manifest-cell { position:relative; display:block; width:12px; height:22px; color:#f0f5f3; }
+.air-manifest-cell::before { content:''; position:absolute; inset:0 0 4px; border:1px solid var(--fleet-line); background-color:#06111b99; background-image:linear-gradient(currentColor,currentColor); background-size:100% calc(var(--condition,0) * 100%); background-position:bottom; background-repeat:no-repeat; background-clip:padding-box; }
+.air-manifest-cell::after { content:''; position:absolute; left:0; right:0; bottom:0; height:2px; background:linear-gradient(90deg,var(--fleet-gold) calc(var(--armament,0) * 100%),#a8bcb94a 0); }
+.air-manifest-cell[data-status=ready] { color:var(--fleet-active); }
+.air-manifest-cell[data-status=returning] { color:var(--fleet-muted); }
+.air-manifest-cell[data-status=servicing] { color:var(--fleet-gold); }
+.air-manifest-cell[data-condition=damaged] { color:var(--fleet-gold); }
+.air-manifest-cell[data-condition=critical],.air-manifest-cell[data-status=lost] { color:#ffb5a6; }
+.air-manifest-cell[data-status=lost]::before { opacity:.6; background-image:linear-gradient(45deg,transparent 44%,currentColor 46%,currentColor 54%,transparent 56%),linear-gradient(-45deg,transparent 44%,currentColor 46%,currentColor 54%,transparent 56%); background-size:100% 100%; }
+.air-manifest footer { display:flex; gap:14px; margin-top:8px; padding-top:5px; border-top:1px solid var(--fleet-line); font-size:9px; color:var(--fleet-muted); }
+.air-manifest footer span { display:inline-flex; align-items:center; gap:5px; }
+.air-manifest-legend-condition { display:inline-block; width:6px; height:10px; border:1px solid var(--fleet-line); background:linear-gradient(to top,var(--fleet-active) 60%,transparent 60%); }
+.air-manifest-legend-armament { display:inline-block; width:10px; height:2px; background:var(--fleet-gold); }
+@container hud (max-width:1150px) {
+  .air-manifest { width:300px; }
+  .air-manifest-row { grid-template-columns:16px 40px 1fr 86px 26px; gap:6px; }
+}
+@container hud (max-width:800px) {
+  .air-manifest { top:300px; width:280px; max-height:calc(100% - 470px); }
+}
+@container hud (max-height:620px) and (min-width:601px) {
+  .air-manifest { top:170px; max-height:calc(100% - 320px); }
+}
+@container hud (max-width:600px) {
+  .air-manifest { display:none; }
+}
+@media (pointer:coarse) {
+  .air-manifest-row { min-height:36px; }
+}
