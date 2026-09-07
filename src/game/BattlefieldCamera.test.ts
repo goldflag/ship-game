@@ -13,12 +13,19 @@ test('camera ascends continuously, reverses from the displayed pose, and respect
   map.update(); map.applyTransition(.7);
   expect(camera.position.y).toBeGreaterThan(ship.position.y);
   expect(camera.position.y).toBeLessThan(destination.position.y);
+  const totalAngle = ship.quaternion.angleTo(destination.quaternion);
+  expect(camera.quaternion.angleTo(ship.quaternion)).toBeCloseTo(totalAngle / 2, 7);
+  expect(camera.quaternion.angleTo(destination.quaternion)).toBeCloseTo(totalAngle / 2, 7);
   const mid = camera.clone();
   map.beginTransition(); map.exit();
   camera.position.copy(ship.position); camera.quaternion.copy(ship.quaternion); map.applyTransition(0);
   expect(camera.position.toArray()).toEqual(mid.position.toArray());
+  expect(camera.quaternion.angleTo(mid.quaternion)).toBeLessThan(1e-7);
   camera.position.copy(ship.position); camera.quaternion.copy(ship.quaternion); camera.fov = ship.fov;
-  map.applyTransition(1.4);
+  map.applyTransition(.7);
+  expect(camera.quaternion.angleTo(ship.quaternion)).toBeCloseTo(mid.quaternion.angleTo(ship.quaternion) / 2, 7);
+  camera.position.copy(ship.position); camera.quaternion.copy(ship.quaternion); camera.fov = ship.fov;
+  map.applyTransition(.7);
   expect(camera.position.distanceTo(ship.position)).toBeLessThan(1e-8);
   expect(camera.quaternion.angleTo(ship.quaternion)).toBeLessThan(1e-7);
   expect(camera.fov).toBe(ship.fov); expect(camera.far).toBe(ship.far);
@@ -26,6 +33,7 @@ test('camera ascends continuously, reverses from the displayed pose, and respect
   map.beginTransition(true); map.enter([{ x: 0, z: 0 }], 1280, 800); map.applyTransition(0);
   expect(map.transitioning).toBe(false);
   expect(camera.position.toArray()).toEqual(destination.position.toArray());
+  expect(camera.quaternion.angleTo(destination.quaternion)).toBeLessThan(1e-7);
 });
 
 for (const [width, height] of [[1440, 900], [700, 550], [390, 844]]) test(`tilted battlefield projects targets and water commands consistently at ${width}×${height}`, () => {

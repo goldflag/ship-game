@@ -20,6 +20,8 @@ The current direction is a relatively restrained sea viewed from a camera hundre
 
 The current Atlantic palette uses `waterColor #19364a`, `transmissionColor #355166`, and the original `absorptionColor #945b57`. The four maps now share a restrained deep-blue family; the Pacific retains a small green shift without its previous bright turquoise crests. The 1,024 m largest FFT tile, foam textures, and Fresnel parameters are inherited. High water quality is the default, including the third ripple cascade and screen-space reflections. See the [palette comparison and capture notes](../assets/reviews/water-palette/README.md).
 
+Air operations expands the existing flat horizon ring to match the map camera's longer viewing range. Water Pro otherwise retains the smaller ring built for the ship camera, exposing a rectangular edge at maximum zoom. The expanded mesh is reused on subsequent visits; the detailed wave grid and simulation stay unchanged.
+
 ## Current port light and horizon
 
 Port sun peak intensity is **5.8** and hemisphere fill **1.75**, lifting shaded hulls and harbor buildings. Exposure remains **1**, with the existing sun angles and restrained forward scattering.

@@ -1,0 +1,32 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Carrier camera review</title>
+<style>body{margin:0;background:#132d38;color:#edf1ec;font:14px sans-serif}#scene{width:100vw;height:100vh}canvas{display:block}output{position:fixed;left:12px;top:12px;background:#132d38;padding:8px}</style>
+<div id="scene"></div><output>Loading carrier camera…</output><script type="module">
+import { Game } from '/src/game/Game.ts';
+import { shipPreset } from '/src/ships/presets.ts';
+window.addEventListener('unhandledrejection', event => window.reviewError = String(event.reason));
+const status = document.querySelector('output'); let ready;
+const loaded = new Promise(resolve => ready = resolve);
+const game = new Game(document.querySelector('#scene'), {quality:'medium',sea:'Fair',resolution:1}, {
+  ready, progress:s=>status.textContent=s, telemetry:()=>{}, pause:()=>{}, hud:()=>{}, error:s=>window.reviewError=s,
+}, shipPreset('enterprise-cv6'));
+window.reviewGame = game; game.start(); await loaded;
+game.setInPort(true);
+await game.prepareBattle({playerShipId:'enterprise-cv6',friendlyBots:[],enemies:['enterprise-cv6'],spawnDistance:20000,sea:'Fair'});
+game.setInPort(false); game.setPaused(true);
+game.scheduleFrame = () => {}; cancelAnimationFrame(game.raf); await game.frameTask;
+async function frame(dt = 1/60) {
+  game.renderer._nodes.nodeFrame.update();
+  await game.frame(game.lastTime + dt * 1000);
+}
+async function open() {
+  game.paused = false; game.setAirOperationsOpen(true); game.paused = true;
+  for (let i=0; i<15; i++) await frame(.1);
+}
+async function maximum() {
+  if (!game.airOperationsOpen) await open();
+  game.zoomAirMap(100000); await frame(); await frame();
+}
+window.carrierCameraReview = { game, frame, open, maximum };
+await maximum();
+status.textContent = 'Carrier camera ready — maximum zoom'; window.reviewReady = true;
+</script></html>
