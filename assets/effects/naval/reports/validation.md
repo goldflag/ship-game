@@ -1,5 +1,9 @@
 # Naval firing and shell effects
 
+## Muzzle smoke thinning — September 7, 2026
+
+Firing smoke now loses density after cooling, erodes into wisps and is mostly gone within about three seconds. The plume has a narrower trailing lobe and faster, broader leading gas. See the [matched frames, GPU fade measurements and validation](muzzle-dissipation/README.md). Earlier recipes and captures below remain historical evidence.
+
 ## Shell subtlety follow-up — September 6, 2026
 
 The airborne shell presentation now uses smaller, dimmer tips and thinner, shorter amber ribbons: 0.075 seconds of main-caliber travel, capped at 72 m. See the [matched before/after comparison and current verification](../../../reviews/shell-subtlety/README.md). The original brighter presentation below is retained as the baseline record.

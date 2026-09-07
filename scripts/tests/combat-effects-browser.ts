@@ -7,6 +7,61 @@ import { uniform, viewportDepthTexture } from 'three/tsl';
 import type { CombatSimulation } from '../../src/simulation/combat';
 import type { rtt } from 'three/tsl';
 
+/** Render the real muzzle recipe over its whole life, including overlapping
+ * barrels. Alpha readback catches dense late smoke and visible expiry jumps. */
+export async function checkCombatSmokeDissipation(verify = true) {
+  const renderer = new THREE.WebGPURenderer();
+  await renderer.init();
+  renderer.setSize(256, 256);
+  renderer.setClearColor(0, 0);
+  const target = new THREE.RenderTarget(256, 256);
+  target.depthTexture = new THREE.DepthTexture(256, 256);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(52, 1, .5, 1000);
+  camera.position.set(65, 55, 150); camera.lookAt(30, 30, 0); camera.updateMatrixWorld();
+  const effects = new CombatEffects();
+  const smoke = effects.root.getObjectByName('Propellant and impact volumes') as THREE.InstancedMesh;
+  // Keep the actual material/particle path; exclude flash light and ocean from
+  // the opacity measurement, so lighting cannot disguise a disappearing plume.
+  scene.add(smoke);
+  const sim = { shells: [], torpedoes: [], depthCharges: [], aircraft: [], actors: [], events: [], tick: 0 } as unknown as CombatSimulation;
+  const cases: { caliber: number; barrels: number; frames: { time: number; alpha: number; densePixels: number; particles: number }[] }[] = [];
+  try {
+    renderer.setRenderTarget(target);
+    await renderer.compileAsync(scene, camera);
+    for (const [caliber, barrels] of [[.127, 1], [.38, 8], [.46, 9]]) {
+      effects.reset();
+      sim.events.splice(0, sim.events.length, ...Array.from({ length: barrels }, (_, i) => ({ sequence: i + 1, tick: 0, kind: 'shot' as const,
+        position: [0, 25, (i - (barrels - 1) / 2) * 2] as [number, number, number], message: 'Smoke fade regression', shipId: 'player',
+        shell: { id: i + 1, caliberM: caliber, velocity: [820, 0, 0] as [number, number, number] } })));
+      effects.update(sim, 0, camera);
+      const frames: typeof cases[number]['frames'] = [];
+      for (let frame = 0; frame <= 60; frame++) {
+        if (frame > 0) for (let step = 0; step < 6; step++) effects.update(sim, 1 / 60, camera);
+        renderer.render(scene, camera);
+        const pixels = await renderer.readRenderTargetPixelsAsync(target, 0, 0, 256, 256);
+        let alpha = 0, densePixels = 0;
+        for (let i = 3; i < pixels.length; i += 4) {
+          alpha += pixels[i] / 255;
+          if (pixels[i] > 191) densePixels++;
+        }
+        frames.push({ time: frame / 10, alpha, densePixels, particles: effects.diagnostics().smoke });
+      }
+      cases.push({ caliber, barrels, frames });
+    }
+    if (verify) for (const sample of cases) {
+      const peak = Math.max(...sample.frames.map(frame => frame.alpha));
+      const at = (time: number) => sample.frames[Math.round(time * 10)];
+      const largestDrop = Math.max(...sample.frames.slice(11).map((frame, i) => sample.frames[i + 10].alpha - frame.alpha));
+      if (peak < 50 || at(2.5).alpha > peak * .3 || at(3.5).alpha > peak * .03
+        || largestDrop > peak * .12 || at(5).alpha !== 0 || at(5).particles !== 0) {
+        throw new Error(`Muzzle smoke holds too long or ends abruptly: ${JSON.stringify({ ...sample, peak, largestDrop })}`);
+      }
+    }
+    return { backend: 'webgpu', cases };
+  } finally { target.dispose(); effects.dispose(); renderer.dispose(); }
+}
+
 /** GPU regression: one submission per volume batch, visible from outside and
  * inside, with real scene-depth clipping and no residual pixels after reset. */
 export async function checkCombatVolumeRendering(forceWebGL = false, reversedDepthBuffer = false, turbulent = true) {
@@ -84,6 +139,7 @@ export async function checkCombatSmokeHorizon(review: {
   await review.still(splash ? 'horizon-splash' : 'horizon', 2.5, false, range);
   const { renderer, finalFrame } = review.game;
   const target = finalFrame.renderTarget;
+  if (!target) throw new Error('Horizon review requires a rendered frame');
   const { width, height } = target;
   const pixels = await renderer.readRenderTargetPixelsAsync(target, 0, 0, width, height);
   const mesh = review.game.effects.root.getObjectByName(splash ? 'Aerated water volumes' : 'Propellant and impact volumes')!;

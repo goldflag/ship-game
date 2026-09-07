@@ -1,0 +1,18 @@
+{
+  "date": "2026-09-07",
+  "baseCommit": "230c997446c41d3528eaf9e1a964fa3bbfab8582",
+  "sourceSha256": {
+    "src/game/CombatEffects.ts": "d9a97f0a62636711ce45e84115ed88269c8230f297aa183756d3b7436f2e4333",
+    "src/game/EffectParticles.ts": "28752a922414141d81653b1e2ee596714c8f62b8b266a56476defe5492558439",
+    "src/game/EffectVolume.ts": "73d479f7a25156749468919d0d2218dec8d23938034b42486d7e4d8822f5d84b"
+  },
+  "horizon": {
+    "backend": "webgpu",
+    "range": 5000,
+    "time": 2.5,
+    "width": 1920,
+    "height": 1080,
+    "checkedRows": 38,
+    "minimumContrast": 0.06704583425076356
+  }
+}
