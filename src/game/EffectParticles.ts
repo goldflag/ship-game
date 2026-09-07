@@ -15,7 +15,7 @@ function noise(x: number, y: number): number {
 }
 
 /** Original, deterministic density textures. No downloads or canvas/readback needed. */
-export function effectTexture(kind: 'smoke' | 'flash' | 'foam' | 'tracer'): THREE.DataTexture {
+export function effectTexture(kind: 'smoke' | 'flash' | 'foam' | 'tracer' | 'wake'): THREE.DataTexture {
   const size = 128, pixels = new Uint8Array(size * size * 4);
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
     const u = (x + .5) / size * 2 - 1, v = (y + .5) / size * 2 - 1;
@@ -29,6 +29,15 @@ export function effectTexture(kind: 'smoke' | 'flash' | 'foam' | 'tracer'): THRE
       const along = (v + 1) / 2, width = .12 + along * .7;
       alpha = Math.exp(-((u / width) ** 2) * 4) * smooth(along * 1.3) * smooth((1 - along) * 18);
       light = 1;
+    } else if (kind === 'wake') {
+      // +Y is fresh foam at the torpedo. The aerated center broadens and
+      // dissipates aft; a stretched splash ring leaves two long parallel rails.
+      const along = (v + 1) / 2, width = .2 + (1 - along) * .7;
+      const bubbles = noise(u * 11 + 41, along * 48 + 7);
+      const edge = smooth((1 - Math.abs(u)) * 8);
+      alpha = Math.exp(-((u / width) ** 2) * 2.5) * edge
+        * smooth(along * 1.4) * smooth((1 - along) * 32) * (.35 + bubbles * .65);
+      light = .8 + bubbles * .2;
     } else if (kind === 'foam') {
       const ring = Math.exp(-(((radius - .69 + (coarse - .5) * .11) / .13) ** 2));
       alpha = ring * (.22 + detail * .78) * smooth((1 - radius) * 9);
