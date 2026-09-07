@@ -83,7 +83,7 @@
 .battle-map-detail { margin:12px 0 0; max-width:75ch; color:var(--muted); line-height:1.5; }
 .battle-conditions { border:0; padding:0; margin:0 0 28px; min-width:0; }
 .battle-conditions legend { font:500 23px/1.2 'Barlow Condensed',sans-serif; margin-bottom:12px; }
-.battle-condition-options { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; }
+.battle-condition-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; }
 .battle-condition-options>div { min-width:0; }
 .battle-condition-options label { display:block; margin-bottom:7px; font-size:13px; }
 .battle-condition-options select { width:100%; min-width:0; min-height:44px; padding:8px 10px; color:#edf1ec; border:1px solid var(--line); border-radius:3px; background:#0e2530; font:inherit; cursor:pointer; }

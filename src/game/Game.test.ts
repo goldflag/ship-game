@@ -135,13 +135,12 @@ test('battle loading binds each mixed fleet hull and selected target to its own 
   const { game, scene, harbor, rig } = await port();
   const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => model(String(url).split('/').pop()!.replace('.glb', '')));
   try {
-    await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck', 'bismarck'], enemies: ['yamato', 'enterprise-cv6'], spawnDistance: 7500, mapId: 'pacific-islands', sea: 'Fair', timeOfDay: 'night', weather: 'fog' });
+    await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck', 'bismarck'], enemies: ['yamato', 'enterprise-cv6'], spawnDistance: 7500, mapId: 'pacific-islands', timeOfDay: 'night', weather: 'fog' });
     expect(loader).toHaveBeenCalledTimes(4);
     expect(scene.children).toContain(harbor);
     expect(scene.children).toHaveLength(8); // Harbor, aircraft, five hull roots, fleet draw adapter.
     expect(game.simulation.actors).toHaveLength(5);
     expect(game.diagnostics().mapId).toBe('pacific-islands');
-    expect(game.diagnostics().sea).toBe('Fair');
     expect(game.diagnostics().timeOfDay).toBe('night');
     expect(game.diagnostics().weather).toBe('fog');
     expect(game.simulation.islands).toHaveLength(3);
@@ -165,7 +164,7 @@ test('battle preparation reports each loading stage in order for the loading scr
   const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => model(String(url).split('/').pop()!.replace('.glb', '')));
   const stages: [string, number][] = [];
   try {
-    await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck'], enemies: ['yamato', 'enterprise-cv6'], spawnDistance: 7500, mapId: 'pacific-islands', sea: 'Fair' }, (label, fraction) => stages.push([label, fraction]));
+    await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck'], enemies: ['yamato', 'enterprise-cv6'], spawnDistance: 7500, mapId: 'pacific-islands' }, (label, fraction) => stages.push([label, fraction]));
     expect(stages[0][0]).toBe('Charting Pacific Islands');
     expect(stages.map(([, fraction]) => fraction)).toEqual([...stages.map(([, fraction]) => fraction)].sort((a, b) => a - b));
     expect(stages.every(([, fraction]) => fraction >= 0 && fraction < 1)).toBe(true);
