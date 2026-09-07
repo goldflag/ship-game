@@ -97,7 +97,7 @@ function interactiveCamera() {
     // Touch follows the same angular controls without requiring pointer lock.
     canvas.dispatchEvent(Object.assign(new Event('pointerdown'), { button: 0, pointerType: 'touch', pointerId: 1, clientX: 0, clientY: 0 }));
     canvas.dispatchEvent(Object.assign(new Event('pointermove'), { pointerId: 1, clientX: dx, clientY: dy }));
-    window.dispatchEvent(new Event('pointerup'));
+    window.dispatchEvent(Object.assign(new Event('pointerup'), { button: 0 }));
   };
   return { camera, canvas, rig, drag };
 }
@@ -234,7 +234,7 @@ test('legacy capture errors and rejected requests permit retry without firing on
     expect(rig.firing).toBe(false);
     clickSea();
     expect(rig.firing).toBe(true);
-    window.dispatchEvent(new Event('pointerup'));
+    window.dispatchEvent(Object.assign(new Event('pointerup'), { button: 0 }));
     expect(rig.firing).toBe(false);
   } finally { rig.dispose(); }
 });
@@ -372,7 +372,7 @@ for (const [pointerType, button] of [['mouse', 0], ['mouse', 2], ['touch', 0]] a
     const initial = camera.position.clone(), distance = initial.distanceTo(new Vector3(...view.position));
     canvas.dispatchEvent(Object.assign(new Event('pointerdown'), { button, pointerType, pointerId: 1, clientX: 0, clientY: 0 }));
     canvas.dispatchEvent(Object.assign(new Event('pointermove'), { pointerId: 1, clientX: 180, clientY: -50 }));
-    window.dispatchEvent(new Event('pointerup'));
+    window.dispatchEvent(Object.assign(new Event('pointerup'), { button: 0 }));
     rig.update(ship, 0, .016);
     expect(camera.position.distanceTo(initial)).toBeGreaterThan(20);
     expect(camera.position.distanceTo(new Vector3(...view.position))).toBeCloseTo(distance, 8);
@@ -625,5 +625,38 @@ test('a submerged submarine can also orbit to a near-vertical view of its hull',
   const ship = createShipState(); ship.y = -50;
   drag(0, 100000); rig.update(ship, ship.y, 0, true);
   expect(Math.hypot(camera.position.x, camera.position.z)).toBeLessThan((camera.position.y - ship.y) * .04);
+  rig.dispose();
+});
+
+test('RMB holds aim while the camera moves and releases independently of firing', () => {
+  const canvas = new EventTarget();
+  Object.assign(document, { pointerLockElement: canvas, exitPointerLock() {} });
+  const aim = mock(), optics = mock();
+  const rig = new CameraRig(new PerspectiveCamera(52, 16 / 9, .5, 60000), canvas as HTMLCanvasElement, undefined, { aim, optics, pause() {} });
+  const down = (button: number) => canvas.dispatchEvent(Object.assign(new Event('pointerdown'), { button, pointerType: 'mouse' }));
+  down(2);
+  expect(rig.aimLocked).toBe(true);
+  const bearing = rig.bearing;
+  canvas.dispatchEvent(Object.assign(new Event('pointermove'), { movementX: 100, movementY: 20 }));
+  expect(rig.bearing).not.toBe(bearing);
+  expect(aim).toHaveBeenCalledTimes(1);
+  expect(optics).not.toHaveBeenCalled();
+  down(0);
+  window.dispatchEvent(Object.assign(new Event('mouseup'), { button: 0 }));
+  expect(rig.aimLocked).toBe(true);
+  expect(rig.firing).toBe(false);
+  down(0);
+  window.dispatchEvent(Object.assign(new Event('mouseup'), { button: 2 }));
+  expect(rig.aimLocked).toBe(false);
+  expect(rig.firing).toBe(true);
+  canvas.dispatchEvent(Object.assign(new Event('mousedown'), { button: 2 }));
+  expect(rig.aimLocked).toBe(true);
+  window.dispatchEvent(Object.assign(new Event('mouseup'), { button: 2 }));
+  for (const cancel of [() => window.dispatchEvent(new Event('blur')), () => canvas.dispatchEvent(new Event('pointercancel')), () => rig.releasePointer(), () => rig.setEnabled(false)]) {
+    down(2);
+    expect(rig.aimLocked).toBe(true);
+    cancel();
+    expect(rig.aimLocked).toBe(false);
+  }
   rig.dispose();
 });

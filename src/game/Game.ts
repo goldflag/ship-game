@@ -509,7 +509,7 @@ export class Game {
       // Apply mouse aim before sampling the sight; follow the new rendered pose
       // after stepping, with camera damping applied only once per frame.
       this.rig.update(focus, focus.y, 0);
-      const aim = this.manualAim ? this.simulation.player.damage.sunk || this.airOperationsOpen || this.battlefieldCamera.transitioning || this.inspecting || this.shellFollow.view || this.followedAircraftId ? this.currentAim : this.readSightAim() : this.simulation.aimAt(this.aimModule, this.battery);
+      const aim = this.rig.aimLocked ? this.currentAim : this.manualAim ? this.simulation.player.damage.sunk || this.airOperationsOpen || this.battlefieldCamera.transitioning || this.inspecting || this.shellFollow.view || this.followedAircraftId ? this.currentAim : this.readSightAim() : this.simulation.aimAt(this.aimModule, this.battery);
       this.currentAim = aim;
       if (!this.inPort) this.simulation.advance(dt, this.input.sample(), { aim, fire: !this.simulation.player.damage.sunk && !this.airOperationsOpen && !this.battlefieldCamera.transitioning && (this.input.firing || this.rig.firing), battery: this.battery, ammunition: this.ammunition[this.battery], controlPriority: this.controlPriority, controlFocus: this.controlFocus }, () => {
         this.fleetViews.forEach(view => view.capturePreviousPose());

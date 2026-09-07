@@ -47,6 +47,7 @@ export class CameraRig {
   private followedShipId?: string;
   private abort = new AbortController();
   private mouseFire = false;
+  private mouseAimLock = false;
   private lockRequest?: { startedAt: number };
   private intentionalUnlock = false;
   private shellView?: ShellView;
@@ -67,12 +68,17 @@ export class CameraRig {
       if (!this.shellView && !this.inPort && !this.inspecting && e.pointerType === 'mouse') {
         if (!this.pointerLocked) { this.capturePointer(); return; }
         if (e.button === 0) this.mouseFire = true;
-        if (e.button === 2) this.actions.optics();
+        if (e.button === 2) { this.mouseAimLock = true; this.actions.aim(); }
         return;
       }
       this.dragging = true; this.pointerId = e.pointerId;
       this.previous = { x: e.clientX, y: e.clientY };
       canvas.setPointerCapture(e.pointerId);
+    }, options);
+    canvas.addEventListener('mousedown', e => {
+      if (!this.enabled || !this.pointerLocked || this.shellView || this.inPort || this.inspecting) return;
+      if (e.button === 0) this.mouseFire = true;
+      if (e.button === 2 && !this.mouseAimLock) { this.mouseAimLock = true; this.actions.aim(); }
     }, options);
     canvas.addEventListener('pointermove', e => {
       if (!this.enabled) return;
@@ -91,12 +97,19 @@ export class CameraRig {
         const sensitivity = .0025 * Math.tan(this.camera.fov * Math.PI / 360) / Math.tan(NORMAL_FOV * Math.PI / 360);
         this.azimuth += dx * sensitivity;
         this.elevation = MathUtils.clamp(this.elevation + dy * sensitivity, -MAX_UPWARD_TILT, MAX_DOWNWARD_TILT);
-        if (dx || dy) { if (this.opticsTransition) this.opticsTransition.aim = undefined; this.actions.aim(); }
+        if (dx || dy) { if (this.opticsTransition) this.opticsTransition.aim = undefined; if (!this.aimLocked) this.actions.aim(); }
       }
       this.previous = { x: e.clientX, y: e.clientY };
     }, options);
-    const release = () => { this.dragging = false; this.mouseFire = false; };
-    window.addEventListener('pointerup', release, options);
+    const release = () => { this.dragging = false; this.mouseFire = false; this.mouseAimLock = false; };
+    const releaseButton = (e: MouseEvent) => {
+      this.dragging = false;
+      if (e.button === 0) this.mouseFire = false;
+      if (e.button === 2) this.mouseAimLock = false;
+    };
+    window.addEventListener('pointerup', releaseButton, options);
+    // Mouse events also report releases while another button remains held.
+    window.addEventListener('mouseup', releaseButton, options);
     canvas.addEventListener('pointercancel', release, options);
     canvas.addEventListener('lostpointercapture', release, options);
     document.addEventListener('pointerlockchange', () => {
@@ -125,6 +138,7 @@ export class CameraRig {
   setSubmarine(equipment?: SubmarineDefinition): void { this.submarine = equipment; }
 
   get pointerLocked(): boolean { return document.pointerLockElement === this.canvas; }
+  get aimLocked(): boolean { return this.mouseAimLock; }
   get firing(): boolean { return this.enabled && !this.shellView && this.pointerLocked && this.mouseFire; }
   get magnification(): number { return Math.tan(NORMAL_FOV * Math.PI / 360) / Math.tan(this.camera.fov * Math.PI / 360); }
   get bearing(): number { return ((this.azimuth % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2); }
@@ -132,7 +146,7 @@ export class CameraRig {
   setShellView(view?: ShellView): void {
     if (!!view !== !!this.shellView) {
       this.opticsTransition = undefined;
-      this.dragging = false; this.mouseFire = false;
+      this.dragging = false; this.mouseFire = false; this.mouseAimLock = false;
       if (view) {
         this.returnBinoculars = this.binoculars; this.binoculars = false;
         this.followAzimuth = FOLLOW_AZIMUTH; this.followElevation = FOLLOW_ELEVATION; this.followDistance = FOLLOW_DISTANCE;
@@ -164,6 +178,7 @@ export class CameraRig {
     this.intentionalUnlock = true;
     this.lockRequest = undefined;
     this.mouseFire = false;
+    this.mouseAimLock = false;
     if (this.pointerLocked) document.exitPointerLock();
   }
   setEnabled(enabled: boolean): void {

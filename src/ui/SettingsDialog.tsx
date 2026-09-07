@@ -130,7 +130,7 @@ export function SettingsDialog({ settings, bindings, audioSettings, hudSettings,
         <div className="keybinding-fixed"><span>Pause / resume</span><kbd>Esc</kbd><span>Always available</span></div>
         <div className="keybinding-fixed"><span>Toggle binoculars</span><kbd>Shift</kbd><span>Fixed control</span></div>
         <div className="keybinding-fixed"><span>Hold for cursor</span><kbd>Ctrl</kbd><span>Fixed control</span></div>
-        <p className="settings-note">Move the mouse to aim; hold left mouse to fire. Right mouse also toggles binoculars. Scroll adjusts camera distance or magnification.</p>
+        <p className="settings-note">Move the mouse to aim; hold left mouse to fire. Hold right mouse to lock aim while looking around; release to resume aiming. Shift toggles binoculars. Scroll adjusts camera distance or magnification.</p>
         <button className="secondary-button" onClick={() => {
           setListening(null); setInvalid(false);
           const saved = onBindingsChange(defaultKeybindings());

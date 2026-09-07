@@ -284,3 +284,19 @@ test('the frame feeds every fleet wake the rendered pose, and only the player in
   await game.frame(200);
   expect(frames.at(-1)!.ships).toEqual([playerView]);
 });
+
+test('held aim stays fixed across camera movement and ship motion, then resumes at the sight', async () => {
+  const { game, rig } = await frameHarness();
+  game.manualAim = true;
+  await game.frame(16);
+  const aim = [...game.currentAim];
+  Object.defineProperty(rig, 'aimLocked', { configurable: true, value: true });
+  rig.recenter();
+  for (let i = 2; i < 20; i++) {
+    await game.frame(i * 16);
+    expect(game.currentAim).toEqual(aim);
+  }
+  Object.defineProperty(rig, 'aimLocked', { value: false });
+  await game.frame(320);
+  expect(game.currentAim).not.toEqual(aim);
+});
