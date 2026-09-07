@@ -22252,7 +22252,7 @@
         "station": 220.2676,
         "points": [
           [
-            7.1e-06,
+            0.0000071,
             -8.8391776
           ],
           [
@@ -23072,7 +23072,12 @@
       ],
       "bearingDeg": 0,
       "rangefinder": true,
-      "magazineId": "magazine-a"
+      "magazineId": "magazine-a",
+      "fire": {
+        "fuelSeconds": 90,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      }
     },
     {
       "id": "main-b",
@@ -23086,7 +23091,12 @@
       ],
       "bearingDeg": 0,
       "rangefinder": true,
-      "magazineId": "magazine-b"
+      "magazineId": "magazine-b",
+      "fire": {
+        "fuelSeconds": 90,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      }
     },
     {
       "id": "main-y",
@@ -23100,7 +23110,12 @@
       ],
       "bearingDeg": 180,
       "rangefinder": true,
-      "magazineId": "magazine-y"
+      "magazineId": "magazine-y",
+      "fire": {
+        "fuelSeconds": 90,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      }
     },
     {
       "id": "secondary-p1",
@@ -23114,7 +23129,12 @@
       ],
       "bearingDeg": -90,
       "rangefinder": false,
-      "magazineId": "magazine-p1"
+      "magazineId": "magazine-p1",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      }
     },
     {
       "id": "secondary-p2",
@@ -23128,7 +23148,12 @@
       ],
       "bearingDeg": -90,
       "rangefinder": false,
-      "magazineId": "magazine-p2"
+      "magazineId": "magazine-p2",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      }
     },
     {
       "id": "secondary-p3",
@@ -23142,7 +23167,12 @@
       ],
       "bearingDeg": -90,
       "rangefinder": false,
-      "magazineId": "magazine-p3"
+      "magazineId": "magazine-p3",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      }
     },
     {
       "id": "secondary-p4",
@@ -23156,7 +23186,12 @@
       ],
       "bearingDeg": -90,
       "rangefinder": false,
-      "magazineId": "magazine-p4"
+      "magazineId": "magazine-p4",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      }
     },
     {
       "id": "secondary-s1",
@@ -23170,7 +23205,12 @@
       ],
       "bearingDeg": 90,
       "rangefinder": false,
-      "magazineId": "magazine-s1"
+      "magazineId": "magazine-s1",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      }
     },
     {
       "id": "secondary-s2",
@@ -23184,7 +23224,12 @@
       ],
       "bearingDeg": 90,
       "rangefinder": false,
-      "magazineId": "magazine-s2"
+      "magazineId": "magazine-s2",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      }
     },
     {
       "id": "secondary-s3",
@@ -23198,7 +23243,12 @@
       ],
       "bearingDeg": 90,
       "rangefinder": false,
-      "magazineId": "magazine-s3"
+      "magazineId": "magazine-s3",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      }
     },
     {
       "id": "secondary-s4",
@@ -23212,13 +23262,18 @@
       ],
       "bearingDeg": 90,
       "rangefinder": false,
-      "magazineId": "magazine-s4"
+      "magazineId": "magazine-s4",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      }
     }
   ],
   "armor": [
     {
       "id": "belt-port-0-0-upper",
-      "name": "Port magazine belt \u00b7 upper",
+      "name": "Port magazine belt · upper",
       "center": [
         -8.611929152327033,
         1.6999999999999997,
@@ -23264,7 +23319,7 @@
     },
     {
       "id": "belt-port-0-0-taper",
-      "name": "Port magazine belt \u00b7 taper",
+      "name": "Port magazine belt · taper",
       "center": [
         -7.415940604717656,
         -1.85,
@@ -23310,7 +23365,7 @@
     },
     {
       "id": "belt-port-0-0-lower",
-      "name": "Port magazine belt \u00b7 lower",
+      "name": "Port magazine belt · lower",
       "center": [
         -5.835994722418672,
         -3.15,
@@ -23356,7 +23411,7 @@
     },
     {
       "id": "belt-port-0-1-upper",
-      "name": "Port magazine belt \u00b7 upper",
+      "name": "Port magazine belt · upper",
       "center": [
         -9.269526159337165,
         1.6999999999999997,
@@ -23402,7 +23457,7 @@
     },
     {
       "id": "belt-port-0-1-taper",
-      "name": "Port magazine belt \u00b7 taper",
+      "name": "Port magazine belt · taper",
       "center": [
         -8.069321037593856,
         -1.85,
@@ -23448,7 +23503,7 @@
     },
     {
       "id": "belt-port-0-1-lower",
-      "name": "Port magazine belt \u00b7 lower",
+      "name": "Port magazine belt · lower",
       "center": [
         -6.51865164665915,
         -3.15,
@@ -23494,7 +23549,7 @@
     },
     {
       "id": "belt-port-0-2-upper",
-      "name": "Port magazine belt \u00b7 upper",
+      "name": "Port magazine belt · upper",
       "center": [
         -9.899343150341327,
         1.6999999999999997,
@@ -23540,7 +23595,7 @@
     },
     {
       "id": "belt-port-0-2-taper",
-      "name": "Port magazine belt \u00b7 taper",
+      "name": "Port magazine belt · taper",
       "center": [
         -8.730524926806986,
         -1.85,
@@ -23586,7 +23641,7 @@
     },
     {
       "id": "belt-port-0-2-lower",
-      "name": "Port magazine belt \u00b7 lower",
+      "name": "Port magazine belt · lower",
       "center": [
         -7.1993627684500066,
         -3.15,
@@ -23632,7 +23687,7 @@
     },
     {
       "id": "belt-port-0-3-upper",
-      "name": "Port magazine belt \u00b7 upper",
+      "name": "Port magazine belt · upper",
       "center": [
         -10.51612303321939,
         1.6999999999999997,
@@ -23678,7 +23733,7 @@
     },
     {
       "id": "belt-port-0-3-taper",
-      "name": "Port magazine belt \u00b7 taper",
+      "name": "Port magazine belt · taper",
       "center": [
         -9.407347674532234,
         -1.85,
@@ -23724,7 +23779,7 @@
     },
     {
       "id": "belt-port-0-3-lower",
-      "name": "Port magazine belt \u00b7 lower",
+      "name": "Port magazine belt · lower",
       "center": [
         -7.915224636538512,
         -3.15,
@@ -23770,7 +23825,7 @@
     },
     {
       "id": "belt-port-0-4-upper",
-      "name": "Port magazine belt \u00b7 upper",
+      "name": "Port magazine belt · upper",
       "center": [
         -11.126845483130401,
         1.6999999999999997,
@@ -23816,7 +23871,7 @@
     },
     {
       "id": "belt-port-0-4-taper",
-      "name": "Port magazine belt \u00b7 taper",
+      "name": "Port magazine belt · taper",
       "center": [
         -10.105111604060234,
         -1.85,
@@ -23862,7 +23917,7 @@
     },
     {
       "id": "belt-port-0-4-lower",
-      "name": "Port magazine belt \u00b7 lower",
+      "name": "Port magazine belt · lower",
       "center": [
         -8.684095398767106,
         -3.15,
@@ -23908,7 +23963,7 @@
     },
     {
       "id": "belt-port-0-5-upper",
-      "name": "Port magazine belt \u00b7 upper",
+      "name": "Port magazine belt · upper",
       "center": [
         -11.731564781003259,
         1.6999999999999997,
@@ -23954,7 +24009,7 @@
     },
     {
       "id": "belt-port-0-5-taper",
-      "name": "Port magazine belt \u00b7 taper",
+      "name": "Port magazine belt · taper",
       "center": [
         -10.824450792075321,
         -1.85,
@@ -24000,7 +24055,7 @@
     },
     {
       "id": "belt-port-0-5-lower",
-      "name": "Port magazine belt \u00b7 lower",
+      "name": "Port magazine belt · lower",
       "center": [
         -9.509254183154741,
         -3.15,
@@ -24046,7 +24101,7 @@
     },
     {
       "id": "belt-port-0-6-upper",
-      "name": "Port magazine belt \u00b7 upper",
+      "name": "Port magazine belt · upper",
       "center": [
         -12.311252281593717,
         1.6999999999999997,
@@ -24092,7 +24147,7 @@
     },
     {
       "id": "belt-port-0-6-taper",
-      "name": "Port magazine belt \u00b7 taper",
+      "name": "Port magazine belt · taper",
       "center": [
         -11.535905101366529,
         -1.85,
@@ -24138,7 +24193,7 @@
     },
     {
       "id": "belt-port-0-6-lower",
-      "name": "Port magazine belt \u00b7 lower",
+      "name": "Port magazine belt · lower",
       "center": [
         -10.354803189876304,
         -3.15,
@@ -24184,7 +24239,7 @@
     },
     {
       "id": "belt-port-0-7-upper",
-      "name": "Port magazine belt \u00b7 upper",
+      "name": "Port magazine belt · upper",
       "center": [
         -12.852758345816842,
         1.6999999999999997,
@@ -24230,7 +24285,7 @@
     },
     {
       "id": "belt-port-0-7-taper",
-      "name": "Port magazine belt \u00b7 taper",
+      "name": "Port magazine belt · taper",
       "center": [
         -12.22058283894975,
         -1.85,
@@ -24276,7 +24331,7 @@
     },
     {
       "id": "belt-port-0-7-lower",
-      "name": "Port magazine belt \u00b7 lower",
+      "name": "Port magazine belt · lower",
       "center": [
         -11.204410057856887,
         -3.15,
@@ -24322,7 +24377,7 @@
     },
     {
       "id": "belt-starboard-0-0-upper",
-      "name": "Starboard magazine belt \u00b7 upper",
+      "name": "Starboard magazine belt · upper",
       "center": [
         8.611929152327033,
         1.6999999999999997,
@@ -24368,7 +24423,7 @@
     },
     {
       "id": "belt-starboard-0-0-taper",
-      "name": "Starboard magazine belt \u00b7 taper",
+      "name": "Starboard magazine belt · taper",
       "center": [
         7.415940604717656,
         -1.85,
@@ -24414,7 +24469,7 @@
     },
     {
       "id": "belt-starboard-0-0-lower",
-      "name": "Starboard magazine belt \u00b7 lower",
+      "name": "Starboard magazine belt · lower",
       "center": [
         5.835994722418672,
         -3.15,
@@ -24460,7 +24515,7 @@
     },
     {
       "id": "belt-starboard-0-1-upper",
-      "name": "Starboard magazine belt \u00b7 upper",
+      "name": "Starboard magazine belt · upper",
       "center": [
         9.269526159337165,
         1.6999999999999997,
@@ -24506,7 +24561,7 @@
     },
     {
       "id": "belt-starboard-0-1-taper",
-      "name": "Starboard magazine belt \u00b7 taper",
+      "name": "Starboard magazine belt · taper",
       "center": [
         8.069321037593856,
         -1.85,
@@ -24552,7 +24607,7 @@
     },
     {
       "id": "belt-starboard-0-1-lower",
-      "name": "Starboard magazine belt \u00b7 lower",
+      "name": "Starboard magazine belt · lower",
       "center": [
         6.51865164665915,
         -3.15,
@@ -24598,7 +24653,7 @@
     },
     {
       "id": "belt-starboard-0-2-upper",
-      "name": "Starboard magazine belt \u00b7 upper",
+      "name": "Starboard magazine belt · upper",
       "center": [
         9.899343150341327,
         1.6999999999999997,
@@ -24644,7 +24699,7 @@
     },
     {
       "id": "belt-starboard-0-2-taper",
-      "name": "Starboard magazine belt \u00b7 taper",
+      "name": "Starboard magazine belt · taper",
       "center": [
         8.730524926806986,
         -1.85,
@@ -24690,7 +24745,7 @@
     },
     {
       "id": "belt-starboard-0-2-lower",
-      "name": "Starboard magazine belt \u00b7 lower",
+      "name": "Starboard magazine belt · lower",
       "center": [
         7.1993627684500066,
         -3.15,
@@ -24736,7 +24791,7 @@
     },
     {
       "id": "belt-starboard-0-3-upper",
-      "name": "Starboard magazine belt \u00b7 upper",
+      "name": "Starboard magazine belt · upper",
       "center": [
         10.51612303321939,
         1.6999999999999997,
@@ -24782,7 +24837,7 @@
     },
     {
       "id": "belt-starboard-0-3-taper",
-      "name": "Starboard magazine belt \u00b7 taper",
+      "name": "Starboard magazine belt · taper",
       "center": [
         9.407347674532234,
         -1.85,
@@ -24828,7 +24883,7 @@
     },
     {
       "id": "belt-starboard-0-3-lower",
-      "name": "Starboard magazine belt \u00b7 lower",
+      "name": "Starboard magazine belt · lower",
       "center": [
         7.915224636538512,
         -3.15,
@@ -24874,7 +24929,7 @@
     },
     {
       "id": "belt-starboard-0-4-upper",
-      "name": "Starboard magazine belt \u00b7 upper",
+      "name": "Starboard magazine belt · upper",
       "center": [
         11.126845483130401,
         1.6999999999999997,
@@ -24920,7 +24975,7 @@
     },
     {
       "id": "belt-starboard-0-4-taper",
-      "name": "Starboard magazine belt \u00b7 taper",
+      "name": "Starboard magazine belt · taper",
       "center": [
         10.105111604060234,
         -1.85,
@@ -24966,7 +25021,7 @@
     },
     {
       "id": "belt-starboard-0-4-lower",
-      "name": "Starboard magazine belt \u00b7 lower",
+      "name": "Starboard magazine belt · lower",
       "center": [
         8.684095398767106,
         -3.15,
@@ -25012,7 +25067,7 @@
     },
     {
       "id": "belt-starboard-0-5-upper",
-      "name": "Starboard magazine belt \u00b7 upper",
+      "name": "Starboard magazine belt · upper",
       "center": [
         11.731564781003259,
         1.6999999999999997,
@@ -25058,7 +25113,7 @@
     },
     {
       "id": "belt-starboard-0-5-taper",
-      "name": "Starboard magazine belt \u00b7 taper",
+      "name": "Starboard magazine belt · taper",
       "center": [
         10.824450792075321,
         -1.85,
@@ -25104,7 +25159,7 @@
     },
     {
       "id": "belt-starboard-0-5-lower",
-      "name": "Starboard magazine belt \u00b7 lower",
+      "name": "Starboard magazine belt · lower",
       "center": [
         9.509254183154741,
         -3.15,
@@ -25150,7 +25205,7 @@
     },
     {
       "id": "belt-starboard-0-6-upper",
-      "name": "Starboard magazine belt \u00b7 upper",
+      "name": "Starboard magazine belt · upper",
       "center": [
         12.311252281593717,
         1.6999999999999997,
@@ -25196,7 +25251,7 @@
     },
     {
       "id": "belt-starboard-0-6-taper",
-      "name": "Starboard magazine belt \u00b7 taper",
+      "name": "Starboard magazine belt · taper",
       "center": [
         11.535905101366529,
         -1.85,
@@ -25242,7 +25297,7 @@
     },
     {
       "id": "belt-starboard-0-6-lower",
-      "name": "Starboard magazine belt \u00b7 lower",
+      "name": "Starboard magazine belt · lower",
       "center": [
         10.354803189876304,
         -3.15,
@@ -25288,7 +25343,7 @@
     },
     {
       "id": "belt-starboard-0-7-upper",
-      "name": "Starboard magazine belt \u00b7 upper",
+      "name": "Starboard magazine belt · upper",
       "center": [
         12.852758345816842,
         1.6999999999999997,
@@ -25334,7 +25389,7 @@
     },
     {
       "id": "belt-starboard-0-7-taper",
-      "name": "Starboard magazine belt \u00b7 taper",
+      "name": "Starboard magazine belt · taper",
       "center": [
         12.22058283894975,
         -1.85,
@@ -25380,7 +25435,7 @@
     },
     {
       "id": "belt-starboard-0-7-lower",
-      "name": "Starboard magazine belt \u00b7 lower",
+      "name": "Starboard magazine belt · lower",
       "center": [
         11.204410057856887,
         -3.15,
@@ -25794,7 +25849,7 @@
     },
     {
       "id": "belt-port-1-0-upper",
-      "name": "Port machinery belt \u00b7 upper",
+      "name": "Port machinery belt · upper",
       "center": [
         -13.693009538264015,
         1.6999999999999997,
@@ -25840,7 +25895,7 @@
     },
     {
       "id": "belt-port-1-0-taper",
-      "name": "Port machinery belt \u00b7 taper",
+      "name": "Port machinery belt · taper",
       "center": [
         -13.302707306819226,
         -1.85,
@@ -25886,7 +25941,7 @@
     },
     {
       "id": "belt-port-1-0-lower",
-      "name": "Port machinery belt \u00b7 lower",
+      "name": "Port machinery belt · lower",
       "center": [
         -12.617216298238189,
         -3.15,
@@ -25932,7 +25987,7 @@
     },
     {
       "id": "belt-port-1-1-upper",
-      "name": "Port machinery belt \u00b7 upper",
+      "name": "Port machinery belt · upper",
       "center": [
         -14.655982097003236,
         1.6999999999999997,
@@ -25978,7 +26033,7 @@
     },
     {
       "id": "belt-port-1-1-taper",
-      "name": "Port machinery belt \u00b7 taper",
+      "name": "Port machinery belt · taper",
       "center": [
         -14.482112862530911,
         -1.85,
@@ -26024,7 +26079,7 @@
     },
     {
       "id": "belt-port-1-1-lower",
-      "name": "Port machinery belt \u00b7 lower",
+      "name": "Port machinery belt · lower",
       "center": [
         -14.157766900968367,
         -3.15,
@@ -26070,7 +26125,7 @@
     },
     {
       "id": "belt-port-1-2-upper",
-      "name": "Port machinery belt \u00b7 upper",
+      "name": "Port machinery belt · upper",
       "center": [
         -15.27297541956939,
         1.6999999999999997,
@@ -26116,7 +26171,7 @@
     },
     {
       "id": "belt-port-1-2-taper",
-      "name": "Port machinery belt \u00b7 taper",
+      "name": "Port machinery belt · taper",
       "center": [
         -15.203113561564496,
         -1.85,
@@ -26162,7 +26217,7 @@
     },
     {
       "id": "belt-port-1-2-lower",
-      "name": "Port machinery belt \u00b7 lower",
+      "name": "Port machinery belt · lower",
       "center": [
         -15.034439456409775,
         -3.15,
@@ -26208,7 +26263,7 @@
     },
     {
       "id": "belt-port-1-3-upper",
-      "name": "Port machinery belt \u00b7 upper",
+      "name": "Port machinery belt · upper",
       "center": [
         -15.54650712210797,
         1.6999999999999997,
@@ -26254,7 +26309,7 @@
     },
     {
       "id": "belt-port-1-3-taper",
-      "name": "Port machinery belt \u00b7 taper",
+      "name": "Port machinery belt · taper",
       "center": [
         -15.566273756923746,
         -1.85,
@@ -26300,7 +26355,7 @@
     },
     {
       "id": "belt-port-1-3-lower",
-      "name": "Port machinery belt \u00b7 lower",
+      "name": "Port machinery belt · lower",
       "center": [
         -15.485682731761784,
         -3.15,
@@ -26346,7 +26401,7 @@
     },
     {
       "id": "belt-port-1-4-upper",
-      "name": "Port machinery belt \u00b7 upper",
+      "name": "Port machinery belt · upper",
       "center": [
         -15.59169169738088,
         1.6999999999999997,
@@ -26392,7 +26447,7 @@
     },
     {
       "id": "belt-port-1-4-taper",
-      "name": "Port machinery belt \u00b7 taper",
+      "name": "Port machinery belt · taper",
       "center": [
         -15.646099136559197,
         -1.85,
@@ -26438,7 +26493,7 @@
     },
     {
       "id": "belt-port-1-4-lower",
-      "name": "Port machinery belt \u00b7 lower",
+      "name": "Port machinery belt · lower",
       "center": [
         -15.633113846112845,
         -3.15,
@@ -26484,7 +26539,7 @@
     },
     {
       "id": "belt-port-1-5-upper",
-      "name": "Port machinery belt \u00b7 upper",
+      "name": "Port machinery belt · upper",
       "center": [
         -15.594503443649971,
         1.6999999999999997,
@@ -26530,7 +26585,7 @@
     },
     {
       "id": "belt-port-1-5-taper",
-      "name": "Port machinery belt \u00b7 taper",
+      "name": "Port machinery belt · taper",
       "center": [
         -15.64854556481218,
         -1.85,
@@ -26576,7 +26631,7 @@
     },
     {
       "id": "belt-port-1-5-lower",
-      "name": "Port machinery belt \u00b7 lower",
+      "name": "Port machinery belt · lower",
       "center": [
         -15.641880523131661,
         -3.15,
@@ -26622,7 +26677,7 @@
     },
     {
       "id": "belt-port-1-6-upper",
-      "name": "Port machinery belt \u00b7 upper",
+      "name": "Port machinery belt · upper",
       "center": [
         -15.565656536205859,
         1.6999999999999997,
@@ -26668,7 +26723,7 @@
     },
     {
       "id": "belt-port-1-6-taper",
-      "name": "Port machinery belt \u00b7 taper",
+      "name": "Port machinery belt · taper",
       "center": [
         -15.582017368100843,
         -1.85,
@@ -26714,7 +26769,7 @@
     },
     {
       "id": "belt-port-1-6-lower",
-      "name": "Port machinery belt \u00b7 lower",
+      "name": "Port machinery belt · lower",
       "center": [
         -15.508996675795693,
         -3.15,
@@ -26760,7 +26815,7 @@
     },
     {
       "id": "belt-port-1-7-upper",
-      "name": "Port machinery belt \u00b7 upper",
+      "name": "Port machinery belt · upper",
       "center": [
         -15.297342089078576,
         1.6999999999999997,
@@ -26806,7 +26861,7 @@
     },
     {
       "id": "belt-port-1-7-taper",
-      "name": "Port machinery belt \u00b7 taper",
+      "name": "Port machinery belt · taper",
       "center": [
         -15.22485970337447,
         -1.85,
@@ -26852,7 +26907,7 @@
     },
     {
       "id": "belt-port-1-7-lower",
-      "name": "Port machinery belt \u00b7 lower",
+      "name": "Port machinery belt · lower",
       "center": [
         -15.053902012844572,
         -3.15,
@@ -26898,7 +26953,7 @@
     },
     {
       "id": "belt-starboard-1-0-upper",
-      "name": "Starboard machinery belt \u00b7 upper",
+      "name": "Starboard machinery belt · upper",
       "center": [
         13.693009538264015,
         1.6999999999999997,
@@ -26944,7 +26999,7 @@
     },
     {
       "id": "belt-starboard-1-0-taper",
-      "name": "Starboard machinery belt \u00b7 taper",
+      "name": "Starboard machinery belt · taper",
       "center": [
         13.302707306819226,
         -1.85,
@@ -26990,7 +27045,7 @@
     },
     {
       "id": "belt-starboard-1-0-lower",
-      "name": "Starboard machinery belt \u00b7 lower",
+      "name": "Starboard machinery belt · lower",
       "center": [
         12.617216298238189,
         -3.15,
@@ -27036,7 +27091,7 @@
     },
     {
       "id": "belt-starboard-1-1-upper",
-      "name": "Starboard machinery belt \u00b7 upper",
+      "name": "Starboard machinery belt · upper",
       "center": [
         14.655982097003236,
         1.6999999999999997,
@@ -27082,7 +27137,7 @@
     },
     {
       "id": "belt-starboard-1-1-taper",
-      "name": "Starboard machinery belt \u00b7 taper",
+      "name": "Starboard machinery belt · taper",
       "center": [
         14.482112862530911,
         -1.85,
@@ -27128,7 +27183,7 @@
     },
     {
       "id": "belt-starboard-1-1-lower",
-      "name": "Starboard machinery belt \u00b7 lower",
+      "name": "Starboard machinery belt · lower",
       "center": [
         14.157766900968367,
         -3.15,
@@ -27174,7 +27229,7 @@
     },
     {
       "id": "belt-starboard-1-2-upper",
-      "name": "Starboard machinery belt \u00b7 upper",
+      "name": "Starboard machinery belt · upper",
       "center": [
         15.27297541956939,
         1.6999999999999997,
@@ -27220,7 +27275,7 @@
     },
     {
       "id": "belt-starboard-1-2-taper",
-      "name": "Starboard machinery belt \u00b7 taper",
+      "name": "Starboard machinery belt · taper",
       "center": [
         15.203113561564496,
         -1.85,
@@ -27266,7 +27321,7 @@
     },
     {
       "id": "belt-starboard-1-2-lower",
-      "name": "Starboard machinery belt \u00b7 lower",
+      "name": "Starboard machinery belt · lower",
       "center": [
         15.034439456409775,
         -3.15,
@@ -27312,7 +27367,7 @@
     },
     {
       "id": "belt-starboard-1-3-upper",
-      "name": "Starboard machinery belt \u00b7 upper",
+      "name": "Starboard machinery belt · upper",
       "center": [
         15.54650712210797,
         1.6999999999999997,
@@ -27358,7 +27413,7 @@
     },
     {
       "id": "belt-starboard-1-3-taper",
-      "name": "Starboard machinery belt \u00b7 taper",
+      "name": "Starboard machinery belt · taper",
       "center": [
         15.566273756923746,
         -1.85,
@@ -27404,7 +27459,7 @@
     },
     {
       "id": "belt-starboard-1-3-lower",
-      "name": "Starboard machinery belt \u00b7 lower",
+      "name": "Starboard machinery belt · lower",
       "center": [
         15.485682731761784,
         -3.15,
@@ -27450,7 +27505,7 @@
     },
     {
       "id": "belt-starboard-1-4-upper",
-      "name": "Starboard machinery belt \u00b7 upper",
+      "name": "Starboard machinery belt · upper",
       "center": [
         15.59169169738088,
         1.6999999999999997,
@@ -27496,7 +27551,7 @@
     },
     {
       "id": "belt-starboard-1-4-taper",
-      "name": "Starboard machinery belt \u00b7 taper",
+      "name": "Starboard machinery belt · taper",
       "center": [
         15.646099136559197,
         -1.85,
@@ -27542,7 +27597,7 @@
     },
     {
       "id": "belt-starboard-1-4-lower",
-      "name": "Starboard machinery belt \u00b7 lower",
+      "name": "Starboard machinery belt · lower",
       "center": [
         15.633113846112845,
         -3.15,
@@ -27588,7 +27643,7 @@
     },
     {
       "id": "belt-starboard-1-5-upper",
-      "name": "Starboard machinery belt \u00b7 upper",
+      "name": "Starboard machinery belt · upper",
       "center": [
         15.594503443649971,
         1.6999999999999997,
@@ -27634,7 +27689,7 @@
     },
     {
       "id": "belt-starboard-1-5-taper",
-      "name": "Starboard machinery belt \u00b7 taper",
+      "name": "Starboard machinery belt · taper",
       "center": [
         15.64854556481218,
         -1.85,
@@ -27680,7 +27735,7 @@
     },
     {
       "id": "belt-starboard-1-5-lower",
-      "name": "Starboard machinery belt \u00b7 lower",
+      "name": "Starboard machinery belt · lower",
       "center": [
         15.641880523131661,
         -3.15,
@@ -27726,7 +27781,7 @@
     },
     {
       "id": "belt-starboard-1-6-upper",
-      "name": "Starboard machinery belt \u00b7 upper",
+      "name": "Starboard machinery belt · upper",
       "center": [
         15.565656536205859,
         1.6999999999999997,
@@ -27772,7 +27827,7 @@
     },
     {
       "id": "belt-starboard-1-6-taper",
-      "name": "Starboard machinery belt \u00b7 taper",
+      "name": "Starboard machinery belt · taper",
       "center": [
         15.582017368100843,
         -1.85,
@@ -27818,7 +27873,7 @@
     },
     {
       "id": "belt-starboard-1-6-lower",
-      "name": "Starboard machinery belt \u00b7 lower",
+      "name": "Starboard machinery belt · lower",
       "center": [
         15.508996675795693,
         -3.15,
@@ -27864,7 +27919,7 @@
     },
     {
       "id": "belt-starboard-1-7-upper",
-      "name": "Starboard machinery belt \u00b7 upper",
+      "name": "Starboard machinery belt · upper",
       "center": [
         15.297342089078576,
         1.6999999999999997,
@@ -27910,7 +27965,7 @@
     },
     {
       "id": "belt-starboard-1-7-taper",
-      "name": "Starboard machinery belt \u00b7 taper",
+      "name": "Starboard machinery belt · taper",
       "center": [
         15.22485970337447,
         -1.85,
@@ -27956,7 +28011,7 @@
     },
     {
       "id": "belt-starboard-1-7-lower",
-      "name": "Starboard machinery belt \u00b7 lower",
+      "name": "Starboard machinery belt · lower",
       "center": [
         15.053902012844572,
         -3.15,
@@ -28370,7 +28425,7 @@
     },
     {
       "id": "belt-port-2-0-upper",
-      "name": "Port magazine belt \u00b7 upper",
+      "name": "Port magazine belt · upper",
       "center": [
         -14.888776488695854,
         1.6999999999999997,
@@ -28416,7 +28471,7 @@
     },
     {
       "id": "belt-port-2-0-taper",
-      "name": "Port magazine belt \u00b7 taper",
+      "name": "Port magazine belt · taper",
       "center": [
         -14.744732906900348,
         -1.85,
@@ -28462,7 +28517,7 @@
     },
     {
       "id": "belt-port-2-0-lower",
-      "name": "Port magazine belt \u00b7 lower",
+      "name": "Port magazine belt · lower",
       "center": [
         -14.497729126142712,
         -3.15,
@@ -28508,7 +28563,7 @@
     },
     {
       "id": "belt-port-2-1-upper",
-      "name": "Port magazine belt \u00b7 upper",
+      "name": "Port magazine belt · upper",
       "center": [
         -14.516292648296805,
         1.6999999999999997,
@@ -28554,7 +28609,7 @@
     },
     {
       "id": "belt-port-2-1-taper",
-      "name": "Port magazine belt \u00b7 taper",
+      "name": "Port magazine belt · taper",
       "center": [
         -14.323392056726664,
         -1.85,
@@ -28600,7 +28655,7 @@
     },
     {
       "id": "belt-port-2-1-lower",
-      "name": "Port magazine belt \u00b7 lower",
+      "name": "Port magazine belt · lower",
       "center": [
         -13.984456205997617,
         -3.15,
@@ -28646,7 +28701,7 @@
     },
     {
       "id": "belt-port-2-2-upper",
-      "name": "Port magazine belt \u00b7 upper",
+      "name": "Port magazine belt · upper",
       "center": [
         -14.042766810417364,
         1.6999999999999997,
@@ -28692,7 +28747,7 @@
     },
     {
       "id": "belt-port-2-2-taper",
-      "name": "Port magazine belt \u00b7 taper",
+      "name": "Port magazine belt · taper",
       "center": [
         -13.783258563199084,
         -1.85,
@@ -28738,7 +28793,7 @@
     },
     {
       "id": "belt-port-2-2-lower",
-      "name": "Port magazine belt \u00b7 lower",
+      "name": "Port magazine belt · lower",
       "center": [
         -13.321706823393704,
         -3.15,
@@ -28784,7 +28839,7 @@
     },
     {
       "id": "belt-port-2-3-upper",
-      "name": "Port magazine belt \u00b7 upper",
+      "name": "Port magazine belt · upper",
       "center": [
         -13.404937644382198,
         1.6999999999999997,
@@ -28830,7 +28885,7 @@
     },
     {
       "id": "belt-port-2-3-taper",
-      "name": "Port magazine belt \u00b7 taper",
+      "name": "Port magazine belt · taper",
       "center": [
         -13.050592332632284,
         -1.85,
@@ -28876,7 +28931,7 @@
     },
     {
       "id": "belt-port-2-3-lower",
-      "name": "Port magazine belt \u00b7 lower",
+      "name": "Port magazine belt · lower",
       "center": [
         -12.42660702557713,
         -3.15,
@@ -28922,7 +28977,7 @@
     },
     {
       "id": "belt-port-2-4-upper",
-      "name": "Port magazine belt \u00b7 upper",
+      "name": "Port magazine belt · upper",
       "center": [
         -12.625777159459146,
         1.6999999999999997,
@@ -28968,7 +29023,7 @@
     },
     {
       "id": "belt-port-2-4-taper",
-      "name": "Port magazine belt \u00b7 taper",
+      "name": "Port magazine belt · taper",
       "center": [
         -12.17005798075218,
         -1.85,
@@ -29014,7 +29069,7 @@
     },
     {
       "id": "belt-port-2-4-lower",
-      "name": "Port magazine belt \u00b7 lower",
+      "name": "Port magazine belt · lower",
       "center": [
         -11.37569911350254,
         -3.15,
@@ -29060,7 +29115,7 @@
     },
     {
       "id": "belt-port-2-5-upper",
-      "name": "Port magazine belt \u00b7 upper",
+      "name": "Port magazine belt · upper",
       "center": [
         -11.77877298380658,
         1.6999999999999997,
@@ -29106,7 +29161,7 @@
     },
     {
       "id": "belt-port-2-5-taper",
-      "name": "Port magazine belt \u00b7 taper",
+      "name": "Port magazine belt · taper",
       "center": [
         -11.27223892476149,
         -1.85,
@@ -29152,7 +29207,7 @@
     },
     {
       "id": "belt-port-2-5-lower",
-      "name": "Port magazine belt \u00b7 lower",
+      "name": "Port magazine belt · lower",
       "center": [
         -10.368303191671147,
         -3.15,
@@ -29198,7 +29253,7 @@
     },
     {
       "id": "belt-port-2-6-upper",
-      "name": "Port magazine belt \u00b7 upper",
+      "name": "Port magazine belt · upper",
       "center": [
         -10.876354046702383,
         1.6999999999999997,
@@ -29244,7 +29299,7 @@
     },
     {
       "id": "belt-port-2-6-taper",
-      "name": "Port magazine belt \u00b7 taper",
+      "name": "Port magazine belt · taper",
       "center": [
         -10.356392336069048,
         -1.85,
@@ -29290,7 +29345,7 @@
     },
     {
       "id": "belt-port-2-6-lower",
-      "name": "Port magazine belt \u00b7 lower",
+      "name": "Port magazine belt · lower",
       "center": [
         -9.39532751880493,
         -3.15,
@@ -29336,7 +29391,7 @@
     },
     {
       "id": "belt-port-2-7-upper",
-      "name": "Port magazine belt \u00b7 upper",
+      "name": "Port magazine belt · upper",
       "center": [
         -9.939479482273757,
         1.6999999999999997,
@@ -29382,7 +29437,7 @@
     },
     {
       "id": "belt-port-2-7-taper",
-      "name": "Port magazine belt \u00b7 taper",
+      "name": "Port magazine belt · taper",
       "center": [
         -9.334975312601589,
         -1.85,
@@ -29428,7 +29483,7 @@
     },
     {
       "id": "belt-port-2-7-lower",
-      "name": "Port magazine belt \u00b7 lower",
+      "name": "Port magazine belt · lower",
       "center": [
         -8.289415321961044,
         -3.15,
@@ -29474,7 +29529,7 @@
     },
     {
       "id": "belt-starboard-2-0-upper",
-      "name": "Starboard magazine belt \u00b7 upper",
+      "name": "Starboard magazine belt · upper",
       "center": [
         14.888776488695854,
         1.6999999999999997,
@@ -29520,7 +29575,7 @@
     },
     {
       "id": "belt-starboard-2-0-taper",
-      "name": "Starboard magazine belt \u00b7 taper",
+      "name": "Starboard magazine belt · taper",
       "center": [
         14.744732906900348,
         -1.85,
@@ -29566,7 +29621,7 @@
     },
     {
       "id": "belt-starboard-2-0-lower",
-      "name": "Starboard magazine belt \u00b7 lower",
+      "name": "Starboard magazine belt · lower",
       "center": [
         14.497729126142712,
         -3.15,
@@ -29612,7 +29667,7 @@
     },
     {
       "id": "belt-starboard-2-1-upper",
-      "name": "Starboard magazine belt \u00b7 upper",
+      "name": "Starboard magazine belt · upper",
       "center": [
         14.516292648296805,
         1.6999999999999997,
@@ -29658,7 +29713,7 @@
     },
     {
       "id": "belt-starboard-2-1-taper",
-      "name": "Starboard magazine belt \u00b7 taper",
+      "name": "Starboard magazine belt · taper",
       "center": [
         14.323392056726664,
         -1.85,
@@ -29704,7 +29759,7 @@
     },
     {
       "id": "belt-starboard-2-1-lower",
-      "name": "Starboard magazine belt \u00b7 lower",
+      "name": "Starboard magazine belt · lower",
       "center": [
         13.984456205997617,
         -3.15,
@@ -29750,7 +29805,7 @@
     },
     {
       "id": "belt-starboard-2-2-upper",
-      "name": "Starboard magazine belt \u00b7 upper",
+      "name": "Starboard magazine belt · upper",
       "center": [
         14.042766810417364,
         1.6999999999999997,
@@ -29796,7 +29851,7 @@
     },
     {
       "id": "belt-starboard-2-2-taper",
-      "name": "Starboard magazine belt \u00b7 taper",
+      "name": "Starboard magazine belt · taper",
       "center": [
         13.783258563199084,
         -1.85,
@@ -29842,7 +29897,7 @@
     },
     {
       "id": "belt-starboard-2-2-lower",
-      "name": "Starboard magazine belt \u00b7 lower",
+      "name": "Starboard magazine belt · lower",
       "center": [
         13.321706823393704,
         -3.15,
@@ -29888,7 +29943,7 @@
     },
     {
       "id": "belt-starboard-2-3-upper",
-      "name": "Starboard magazine belt \u00b7 upper",
+      "name": "Starboard magazine belt · upper",
       "center": [
         13.404937644382198,
         1.6999999999999997,
@@ -29934,7 +29989,7 @@
     },
     {
       "id": "belt-starboard-2-3-taper",
-      "name": "Starboard magazine belt \u00b7 taper",
+      "name": "Starboard magazine belt · taper",
       "center": [
         13.050592332632284,
         -1.85,
@@ -29980,7 +30035,7 @@
     },
     {
       "id": "belt-starboard-2-3-lower",
-      "name": "Starboard magazine belt \u00b7 lower",
+      "name": "Starboard magazine belt · lower",
       "center": [
         12.42660702557713,
         -3.15,
@@ -30026,7 +30081,7 @@
     },
     {
       "id": "belt-starboard-2-4-upper",
-      "name": "Starboard magazine belt \u00b7 upper",
+      "name": "Starboard magazine belt · upper",
       "center": [
         12.625777159459146,
         1.6999999999999997,
@@ -30072,7 +30127,7 @@
     },
     {
       "id": "belt-starboard-2-4-taper",
-      "name": "Starboard magazine belt \u00b7 taper",
+      "name": "Starboard magazine belt · taper",
       "center": [
         12.17005798075218,
         -1.85,
@@ -30118,7 +30173,7 @@
     },
     {
       "id": "belt-starboard-2-4-lower",
-      "name": "Starboard magazine belt \u00b7 lower",
+      "name": "Starboard magazine belt · lower",
       "center": [
         11.37569911350254,
         -3.15,
@@ -30164,7 +30219,7 @@
     },
     {
       "id": "belt-starboard-2-5-upper",
-      "name": "Starboard magazine belt \u00b7 upper",
+      "name": "Starboard magazine belt · upper",
       "center": [
         11.77877298380658,
         1.6999999999999997,
@@ -30210,7 +30265,7 @@
     },
     {
       "id": "belt-starboard-2-5-taper",
-      "name": "Starboard magazine belt \u00b7 taper",
+      "name": "Starboard magazine belt · taper",
       "center": [
         11.27223892476149,
         -1.85,
@@ -30256,7 +30311,7 @@
     },
     {
       "id": "belt-starboard-2-5-lower",
-      "name": "Starboard magazine belt \u00b7 lower",
+      "name": "Starboard magazine belt · lower",
       "center": [
         10.368303191671147,
         -3.15,
@@ -30302,7 +30357,7 @@
     },
     {
       "id": "belt-starboard-2-6-upper",
-      "name": "Starboard magazine belt \u00b7 upper",
+      "name": "Starboard magazine belt · upper",
       "center": [
         10.876354046702383,
         1.6999999999999997,
@@ -30348,7 +30403,7 @@
     },
     {
       "id": "belt-starboard-2-6-taper",
-      "name": "Starboard magazine belt \u00b7 taper",
+      "name": "Starboard magazine belt · taper",
       "center": [
         10.356392336069048,
         -1.85,
@@ -30394,7 +30449,7 @@
     },
     {
       "id": "belt-starboard-2-6-lower",
-      "name": "Starboard magazine belt \u00b7 lower",
+      "name": "Starboard magazine belt · lower",
       "center": [
         9.39532751880493,
         -3.15,
@@ -30440,7 +30495,7 @@
     },
     {
       "id": "belt-starboard-2-7-upper",
-      "name": "Starboard magazine belt \u00b7 upper",
+      "name": "Starboard magazine belt · upper",
       "center": [
         9.939479482273757,
         1.6999999999999997,
@@ -30486,7 +30541,7 @@
     },
     {
       "id": "belt-starboard-2-7-taper",
-      "name": "Starboard magazine belt \u00b7 taper",
+      "name": "Starboard magazine belt · taper",
       "center": [
         9.334975312601589,
         -1.85,
@@ -30532,7 +30587,7 @@
     },
     {
       "id": "belt-starboard-2-7-lower",
-      "name": "Starboard magazine belt \u00b7 lower",
+      "name": "Starboard magazine belt · lower",
       "center": [
         8.289415321961044,
         -3.15,
@@ -31038,7 +31093,7 @@
     },
     {
       "id": "steering-armored-deck",
-      "name": "After steering protection \u00b7 estimated deck",
+      "name": "After steering protection · estimated deck",
       "center": [
         0,
         1.1,
@@ -31084,7 +31139,7 @@
     },
     {
       "id": "forward-protected-deck",
-      "name": "Forward protective deck \u00b7 estimated",
+      "name": "Forward protective deck · estimated",
       "center": [
         0,
         1.1,
@@ -32251,7 +32306,7 @@
           [
             4.8999999999999995,
             4.65,
-            -35.0
+            -35
           ],
           [
             4.733036548816433,
@@ -32266,7 +32321,7 @@
           [
             4.8999999999999995,
             10.6581,
-            -35.0
+            -35
           ]
         ],
         "material": "steel",
@@ -32762,12 +32817,12 @@
           [
             -4.8999999999999995,
             4.65,
-            -35.0
+            -35
           ],
           [
             -4.8999999999999995,
             10.6581,
-            -35.0
+            -35
           ],
           [
             -4.733036548816433,
@@ -32803,7 +32858,7 @@
           [
             -4.8999999999999995,
             4.65,
-            -35.0
+            -35
           ],
           [
             -4.733036548816433,
@@ -32818,7 +32873,7 @@
           [
             -4.8999999999999995,
             10.6581,
-            -35.0
+            -35
           ]
         ],
         "material": "steel",
@@ -33314,12 +33369,12 @@
           [
             4.9,
             4.65,
-            -35.0
+            -35
           ],
           [
             4.9,
             10.6581,
-            -35.0
+            -35
           ],
           [
             4.733036548816433,
@@ -34456,7 +34511,17 @@
         16
       ],
       "capacityM3": 856.9377650665294,
-      "pumpM3PerSecond": 0.014
+      "pumpM3PerSecond": 0.014,
+      "fire": {
+        "fuelSeconds": 150,
+        "ignitionHeat": 0.65,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          -50
+        ]
+      }
     },
     {
       "id": "magazine-b-room",
@@ -34472,7 +34537,17 @@
         12
       ],
       "capacityM3": 786.24,
-      "pumpM3PerSecond": 0.014
+      "pumpM3PerSecond": 0.014,
+      "fire": {
+        "fuelSeconds": 150,
+        "ignitionHeat": 0.65,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          -35
+        ]
+      }
     },
     {
       "id": "magazine-y-room",
@@ -34488,7 +34563,17 @@
         18
       ],
       "capacityM3": 433.6038482471902,
-      "pumpM3PerSecond": 0.014
+      "pumpM3PerSecond": 0.014,
+      "fire": {
+        "fuelSeconds": 150,
+        "ignitionHeat": 0.65,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          60
+        ]
+      }
     },
     {
       "id": "magazine-p1-room",
@@ -34504,7 +34589,17 @@
         7
       ],
       "capacityM3": 120.12,
-      "pumpM3PerSecond": 0.014
+      "pumpM3PerSecond": 0.014,
+      "fire": {
+        "fuelSeconds": 150,
+        "ignitionHeat": 0.65,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          -10,
+          8.700000000000001,
+          -12.5
+        ]
+      }
     },
     {
       "id": "magazine-p2-room",
@@ -34520,7 +34615,17 @@
         7
       ],
       "capacityM3": 120.12,
-      "pumpM3PerSecond": 0.014
+      "pumpM3PerSecond": 0.014,
+      "fire": {
+        "fuelSeconds": 150,
+        "ignitionHeat": 0.65,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          -10,
+          8.700000000000001,
+          -2
+        ]
+      }
     },
     {
       "id": "magazine-p3-room",
@@ -34536,7 +34641,17 @@
         7
       ],
       "capacityM3": 120.12,
-      "pumpM3PerSecond": 0.014
+      "pumpM3PerSecond": 0.014,
+      "fire": {
+        "fuelSeconds": 150,
+        "ignitionHeat": 0.65,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          -10,
+          8.700000000000001,
+          23.5
+        ]
+      }
     },
     {
       "id": "magazine-p4-room",
@@ -34552,7 +34667,17 @@
         7
       ],
       "capacityM3": 105.79477627554456,
-      "pumpM3PerSecond": 0.014
+      "pumpM3PerSecond": 0.014,
+      "fire": {
+        "fuelSeconds": 150,
+        "ignitionHeat": 0.65,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          -10,
+          8.700000000000001,
+          34
+        ]
+      }
     },
     {
       "id": "magazine-s1-room",
@@ -34568,7 +34693,17 @@
         7
       ],
       "capacityM3": 120.12,
-      "pumpM3PerSecond": 0.014
+      "pumpM3PerSecond": 0.014,
+      "fire": {
+        "fuelSeconds": 150,
+        "ignitionHeat": 0.65,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          10,
+          8.700000000000001,
+          -12.5
+        ]
+      }
     },
     {
       "id": "magazine-s2-room",
@@ -34584,7 +34719,17 @@
         7
       ],
       "capacityM3": 120.12,
-      "pumpM3PerSecond": 0.014
+      "pumpM3PerSecond": 0.014,
+      "fire": {
+        "fuelSeconds": 150,
+        "ignitionHeat": 0.65,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          10,
+          8.700000000000001,
+          -2
+        ]
+      }
     },
     {
       "id": "magazine-s3-room",
@@ -34600,7 +34745,17 @@
         7
       ],
       "capacityM3": 120.12,
-      "pumpM3PerSecond": 0.014
+      "pumpM3PerSecond": 0.014,
+      "fire": {
+        "fuelSeconds": 150,
+        "ignitionHeat": 0.65,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          10,
+          8.700000000000001,
+          23.5
+        ]
+      }
     },
     {
       "id": "magazine-s4-room",
@@ -34616,7 +34771,17 @@
         7
       ],
       "capacityM3": 105.79477627554456,
-      "pumpM3PerSecond": 0.014
+      "pumpM3PerSecond": 0.014,
+      "fire": {
+        "fuelSeconds": 150,
+        "ignitionHeat": 0.65,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          10,
+          8.700000000000001,
+          34
+        ]
+      }
     },
     {
       "id": "boiler-1-1-room",
@@ -34632,7 +34797,17 @@
         6.4
       ],
       "capacityM3": 279.552,
-      "pumpM3PerSecond": 0.014
+      "pumpM3PerSecond": 0.014,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          -4.3,
+          8.700000000000001,
+          -12.5
+        ]
+      }
     },
     {
       "id": "boiler-1-2-room",
@@ -34648,7 +34823,17 @@
         6.4
       ],
       "capacityM3": 279.552,
-      "pumpM3PerSecond": 0.014
+      "pumpM3PerSecond": 0.014,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          -4.3,
+          8.700000000000001,
+          -5.5
+        ]
+      }
     },
     {
       "id": "turbine-1-room",
@@ -34664,7 +34849,17 @@
         4.6
       ],
       "capacityM3": 200.92799999999997,
-      "pumpM3PerSecond": 0.014
+      "pumpM3PerSecond": 0.014,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          -4.3,
+          8.700000000000001,
+          0.5
+        ]
+      }
     },
     {
       "id": "boiler-2-1-room",
@@ -34680,7 +34875,17 @@
         6.4
       ],
       "capacityM3": 279.552,
-      "pumpM3PerSecond": 0.014
+      "pumpM3PerSecond": 0.014,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          4.3,
+          8.700000000000001,
+          -12.5
+        ]
+      }
     },
     {
       "id": "boiler-2-2-room",
@@ -34696,7 +34901,17 @@
         6.4
       ],
       "capacityM3": 279.552,
-      "pumpM3PerSecond": 0.014
+      "pumpM3PerSecond": 0.014,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          4.3,
+          8.700000000000001,
+          -5.5
+        ]
+      }
     },
     {
       "id": "turbine-2-room",
@@ -34712,7 +34927,17 @@
         4.6
       ],
       "capacityM3": 200.92799999999997,
-      "pumpM3PerSecond": 0.014
+      "pumpM3PerSecond": 0.014,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          4.3,
+          8.700000000000001,
+          0.5
+        ]
+      }
     },
     {
       "id": "boiler-3-1-room",
@@ -34728,7 +34953,17 @@
         6.4
       ],
       "capacityM3": 279.552,
-      "pumpM3PerSecond": 0.014
+      "pumpM3PerSecond": 0.014,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          -4.3,
+          8.700000000000001,
+          11.5
+        ]
+      }
     },
     {
       "id": "boiler-3-2-room",
@@ -34744,7 +34979,17 @@
         6.4
       ],
       "capacityM3": 279.552,
-      "pumpM3PerSecond": 0.014
+      "pumpM3PerSecond": 0.014,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          -4.3,
+          8.700000000000001,
+          18.5
+        ]
+      }
     },
     {
       "id": "turbine-3-room",
@@ -34760,7 +35005,17 @@
         4.6
       ],
       "capacityM3": 200.92799999999997,
-      "pumpM3PerSecond": 0.014
+      "pumpM3PerSecond": 0.014,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          -4.3,
+          8.700000000000001,
+          24.5
+        ]
+      }
     },
     {
       "id": "boiler-4-1-room",
@@ -34776,7 +35031,17 @@
         6.4
       ],
       "capacityM3": 279.552,
-      "pumpM3PerSecond": 0.014
+      "pumpM3PerSecond": 0.014,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          4.3,
+          8.700000000000001,
+          11.5
+        ]
+      }
     },
     {
       "id": "boiler-4-2-room",
@@ -34792,7 +35057,17 @@
         6.4
       ],
       "capacityM3": 279.552,
-      "pumpM3PerSecond": 0.014
+      "pumpM3PerSecond": 0.014,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          4.3,
+          8.700000000000001,
+          18.5
+        ]
+      }
     },
     {
       "id": "turbine-4-room",
@@ -34808,7 +35083,17 @@
         4.6
       ],
       "capacityM3": 200.92799999999997,
-      "pumpM3PerSecond": 0.014
+      "pumpM3PerSecond": 0.014,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          4.3,
+          8.700000000000001,
+          24.5
+        ]
+      }
     },
     {
       "id": "steering-room",
@@ -34824,11 +35109,21 @@
         9
       ],
       "capacityM3": 46.02719773517445,
-      "pumpM3PerSecond": 0.014
+      "pumpM3PerSecond": 0.014,
+      "fire": {
+        "fuelSeconds": 80,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          91
+        ]
+      }
     },
     {
       "id": "flood-strip-port-1-0",
-      "name": "Port outer space 2.1 \u00b7 estimated",
+      "name": "Port outer space 2.1 · estimated",
       "center": [
         -0.6737859540343284,
         -5.25,
@@ -34840,11 +35135,21 @@
         19.6
       ],
       "capacityM3": 25.880430106997377,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -0.6737859540343284,
+          8.700000000000001,
+          -79.54
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-1-0",
-      "name": "Starboard outer space 2.1 \u00b7 estimated",
+      "name": "Starboard outer space 2.1 · estimated",
       "center": [
         0.6737859540343284,
         -5.25,
@@ -34856,11 +35161,21 @@
         19.6
       ],
       "capacityM3": 25.880430106997377,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0.6737859540343284,
+          8.700000000000001,
+          -79.54
+        ]
+      }
     },
     {
       "id": "flood-strip-port-1-1",
-      "name": "Port outer space 2.2 \u00b7 estimated",
+      "name": "Port outer space 2.2 · estimated",
       "center": [
         -1.0026608426332473,
         -3.75,
@@ -34872,11 +35187,21 @@
         19.6
       ],
       "capacityM3": 39.52521244504673,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -1.0026608426332473,
+          8.700000000000001,
+          -79.54
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-1-1",
-      "name": "Starboard outer space 2.2 \u00b7 estimated",
+      "name": "Starboard outer space 2.2 · estimated",
       "center": [
         1.0026608426332473,
         -3.75,
@@ -34888,11 +35213,21 @@
         19.6
       ],
       "capacityM3": 39.52521244504673,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          1.0026608426332473,
+          8.700000000000001,
+          -79.54
+        ]
+      }
     },
     {
       "id": "flood-strip-port-1-2",
-      "name": "Port outer space 2.3 \u00b7 estimated",
+      "name": "Port outer space 2.3 · estimated",
       "center": [
         -1.5992288753509518,
         -2.25,
@@ -34904,11 +35239,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -1.5992288753509518,
+          8.700000000000001,
+          -79.54
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-1-2",
-      "name": "Starboard outer space 2.3 \u00b7 estimated",
+      "name": "Starboard outer space 2.3 · estimated",
       "center": [
         1.5992288753509518,
         -2.25,
@@ -34920,11 +35265,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          1.5992288753509518,
+          8.700000000000001,
+          -79.54
+        ]
+      }
     },
     {
       "id": "flood-strip-port-1-3",
-      "name": "Port outer space 2.4 \u00b7 estimated",
+      "name": "Port outer space 2.4 · estimated",
       "center": [
         -2.187309131479264,
         -0.75,
@@ -34936,11 +35291,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -2.187309131479264,
+          8.700000000000001,
+          -79.54
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-1-3",
-      "name": "Starboard outer space 2.4 \u00b7 estimated",
+      "name": "Starboard outer space 2.4 · estimated",
       "center": [
         2.187309131479264,
         -0.75,
@@ -34952,11 +35317,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          2.187309131479264,
+          8.700000000000001,
+          -79.54
+        ]
+      }
     },
     {
       "id": "flood-strip-port-1-4",
-      "name": "Port outer space 2.5 \u00b7 estimated",
+      "name": "Port outer space 2.5 · estimated",
       "center": [
         -2.73690708899498,
         0.75,
@@ -34968,11 +35343,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -2.73690708899498,
+          8.700000000000001,
+          -79.54
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-1-4",
-      "name": "Starboard outer space 2.5 \u00b7 estimated",
+      "name": "Starboard outer space 2.5 · estimated",
       "center": [
         2.73690708899498,
         0.75,
@@ -34984,11 +35369,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          2.73690708899498,
+          8.700000000000001,
+          -79.54
+        ]
+      }
     },
     {
       "id": "flood-strip-port-1-5",
-      "name": "Port outer space 2.6 \u00b7 estimated",
+      "name": "Port outer space 2.6 · estimated",
       "center": [
         -3.3576444360733033,
         2.25,
@@ -35000,11 +35395,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -3.3576444360733033,
+          8.700000000000001,
+          -79.54
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-1-5",
-      "name": "Starboard outer space 2.6 \u00b7 estimated",
+      "name": "Starboard outer space 2.6 · estimated",
       "center": [
         3.3576444360733033,
         2.25,
@@ -35016,11 +35421,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          3.3576444360733033,
+          8.700000000000001,
+          -79.54
+        ]
+      }
     },
     {
       "id": "flood-strip-port-2-3",
-      "name": "Port outer space 3.4 \u00b7 estimated",
+      "name": "Port outer space 3.4 · estimated",
       "center": [
         -6.9256324644178155,
         -0.75,
@@ -35032,11 +35447,21 @@
         19.6
       ],
       "capacityM3": 24.963347225124213,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -6.9256324644178155,
+          8.700000000000001,
+          -59.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-2-3",
-      "name": "Starboard outer space 3.4 \u00b7 estimated",
+      "name": "Starboard outer space 3.4 · estimated",
       "center": [
         6.9256324644178155,
         -0.75,
@@ -35048,11 +35473,21 @@
         19.6
       ],
       "capacityM3": 24.963347225124213,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          6.9256324644178155,
+          8.700000000000001,
+          -59.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-port-2-4",
-      "name": "Port outer space 3.5 \u00b7 estimated",
+      "name": "Port outer space 3.5 · estimated",
       "center": [
         -7.346602744126319,
         0.75,
@@ -35064,11 +35499,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -7.346602744126319,
+          8.700000000000001,
+          -59.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-2-4",
-      "name": "Starboard outer space 3.5 \u00b7 estimated",
+      "name": "Starboard outer space 3.5 · estimated",
       "center": [
         7.346602744126319,
         0.75,
@@ -35080,11 +35525,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          7.346602744126319,
+          8.700000000000001,
+          -59.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-port-2-5",
-      "name": "Port outer space 3.6 \u00b7 estimated",
+      "name": "Port outer space 3.6 · estimated",
       "center": [
         -7.862244961762428,
         2.25,
@@ -35096,11 +35551,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -7.862244961762428,
+          8.700000000000001,
+          -59.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-2-5",
-      "name": "Starboard outer space 3.6 \u00b7 estimated",
+      "name": "Starboard outer space 3.6 · estimated",
       "center": [
         7.862244961762428,
         2.25,
@@ -35112,11 +35577,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          7.862244961762428,
+          8.700000000000001,
+          -59.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-port-3-0",
-      "name": "Port outer space 4.1 \u00b7 estimated",
+      "name": "Port outer space 4.1 · estimated",
       "center": [
         -7.137352939674257,
         -5.25,
@@ -35128,11 +35603,21 @@
         19.6
       ],
       "capacityM3": 33.74747730477179,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -7.137352939674257,
+          8.700000000000001,
+          -39.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-3-0",
-      "name": "Starboard outer space 4.1 \u00b7 estimated",
+      "name": "Starboard outer space 4.1 · estimated",
       "center": [
         7.137352939674257,
         -5.25,
@@ -35144,11 +35629,21 @@
         19.6
       ],
       "capacityM3": 33.74747730477179,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          7.137352939674257,
+          8.700000000000001,
+          -39.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-port-3-1",
-      "name": "Port outer space 4.2 \u00b7 estimated",
+      "name": "Port outer space 4.2 · estimated",
       "center": [
         -8.10706148684919,
         -3.75,
@@ -35160,11 +35655,21 @@
         19.6
       ],
       "capacityM3": 73.97998673690577,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -8.10706148684919,
+          8.700000000000001,
+          -39.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-3-1",
-      "name": "Starboard outer space 4.2 \u00b7 estimated",
+      "name": "Starboard outer space 4.2 · estimated",
       "center": [
         8.10706148684919,
         -3.75,
@@ -35176,11 +35681,21 @@
         19.6
       ],
       "capacityM3": 73.97998673690577,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          8.10706148684919,
+          8.700000000000001,
+          -39.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-port-3-2",
-      "name": "Port outer space 4.3 \u00b7 estimated",
+      "name": "Port outer space 4.3 · estimated",
       "center": [
         -8.749577401027084,
         -2.25,
@@ -35192,11 +35707,21 @@
         19.6
       ],
       "capacityM3": 100.63750940468836,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -8.749577401027084,
+          8.700000000000001,
+          -39.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-3-2",
-      "name": "Starboard outer space 4.3 \u00b7 estimated",
+      "name": "Starboard outer space 4.3 · estimated",
       "center": [
         8.749577401027084,
         -2.25,
@@ -35208,11 +35733,21 @@
         19.6
       ],
       "capacityM3": 100.63750940468836,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          8.749577401027084,
+          8.700000000000001,
+          -39.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-port-3-3",
-      "name": "Port outer space 4.4 \u00b7 estimated",
+      "name": "Port outer space 4.4 · estimated",
       "center": [
         -9.109139887782932,
         -0.75,
@@ -35224,11 +35759,21 @@
         19.6
       ],
       "capacityM3": 115.55549809519808,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -9.109139887782932,
+          8.700000000000001,
+          -39.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-3-3",
-      "name": "Starboard outer space 4.4 \u00b7 estimated",
+      "name": "Starboard outer space 4.4 · estimated",
       "center": [
         9.109139887782932,
         -0.75,
@@ -35240,11 +35785,21 @@
         19.6
       ],
       "capacityM3": 115.55549809519808,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          9.109139887782932,
+          8.700000000000001,
+          -39.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-port-3-4",
-      "name": "Port outer space 4.5 \u00b7 estimated",
+      "name": "Port outer space 4.5 · estimated",
       "center": [
         -9.149979860031605,
         0.75,
@@ -35256,11 +35811,21 @@
         19.6
       ],
       "capacityM3": 128.2010396072121,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -9.149979860031605,
+          8.700000000000001,
+          -39.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-3-4",
-      "name": "Starboard outer space 4.5 \u00b7 estimated",
+      "name": "Starboard outer space 4.5 · estimated",
       "center": [
         9.149979860031605,
         0.75,
@@ -35272,11 +35837,21 @@
         19.6
       ],
       "capacityM3": 128.2010396072121,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          9.149979860031605,
+          8.700000000000001,
+          -39.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-port-3-5",
-      "name": "Port outer space 4.6 \u00b7 estimated",
+      "name": "Port outer space 4.6 · estimated",
       "center": [
         -11.388446377897264,
         2.25,
@@ -35288,11 +35863,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -11.388446377897264,
+          8.700000000000001,
+          -39.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-3-5",
-      "name": "Starboard outer space 4.6 \u00b7 estimated",
+      "name": "Starboard outer space 4.6 · estimated",
       "center": [
         11.388446377897264,
         2.25,
@@ -35304,11 +35889,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          11.388446377897264,
+          8.700000000000001,
+          -39.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-port-4-0",
-      "name": "Port outer space 5.1 \u00b7 estimated",
+      "name": "Port outer space 5.1 · estimated",
       "center": [
         -12.618985620307924,
         -5.25,
@@ -35320,11 +35915,21 @@
         19.6
       ],
       "capacityM3": 14.894054916929136,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -12.618985620307924,
+          8.700000000000001,
+          -19.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-4-0",
-      "name": "Starboard outer space 5.1 \u00b7 estimated",
+      "name": "Starboard outer space 5.1 · estimated",
       "center": [
         12.618985620307924,
         -5.25,
@@ -35336,11 +35941,21 @@
         19.6
       ],
       "capacityM3": 14.894054916929136,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          12.618985620307924,
+          8.700000000000001,
+          -19.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-port-4-1",
-      "name": "Port outer space 5.2 \u00b7 estimated",
+      "name": "Port outer space 5.2 · estimated",
       "center": [
         -13.179964532852175,
         -3.75,
@@ -35352,11 +35967,21 @@
         19.6
       ],
       "capacityM3": 38.16866609357305,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -13.179964532852175,
+          8.700000000000001,
+          -19.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-4-1",
-      "name": "Starboard outer space 5.2 \u00b7 estimated",
+      "name": "Starboard outer space 5.2 · estimated",
       "center": [
         13.179964532852175,
         -3.75,
@@ -35368,11 +35993,21 @@
         19.6
       ],
       "capacityM3": 38.16866609357305,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          13.179964532852175,
+          8.700000000000001,
+          -19.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-port-4-2",
-      "name": "Port outer space 5.3 \u00b7 estimated",
+      "name": "Port outer space 5.3 · estimated",
       "center": [
         -13.398915526068212,
         -2.25,
@@ -35384,11 +36019,21 @@
         19.6
       ],
       "capacityM3": 47.25278515739131,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -13.398915526068212,
+          8.700000000000001,
+          -19.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-4-2",
-      "name": "Starboard outer space 5.3 \u00b7 estimated",
+      "name": "Starboard outer space 5.3 · estimated",
       "center": [
         13.398915526068212,
         -2.25,
@@ -35400,11 +36045,21 @@
         19.6
       ],
       "capacityM3": 47.25278515739131,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          13.398915526068212,
+          8.700000000000001,
+          -19.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-port-4-3",
-      "name": "Port outer space 5.4 \u00b7 estimated",
+      "name": "Port outer space 5.4 · estimated",
       "center": [
         -13.506485386359692,
         -0.75,
@@ -35416,11 +36071,21 @@
         19.6
       ],
       "capacityM3": 51.7157812105855,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -13.506485386359692,
+          8.700000000000001,
+          -19.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-4-3",
-      "name": "Starboard outer space 5.4 \u00b7 estimated",
+      "name": "Starboard outer space 5.4 · estimated",
       "center": [
         13.506485386359692,
         -0.75,
@@ -35432,11 +36097,21 @@
         19.6
       ],
       "capacityM3": 51.7157812105855,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          13.506485386359692,
+          8.700000000000001,
+          -19.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-port-4-4",
-      "name": "Port outer space 5.5 \u00b7 estimated",
+      "name": "Port outer space 5.5 · estimated",
       "center": [
         -11.344636473357678,
         0.75,
@@ -35448,11 +36123,21 @@
         19.6
       ],
       "capacityM3": 144.57505834134926,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -11.344636473357678,
+          8.700000000000001,
+          -19.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-4-4",
-      "name": "Starboard outer space 5.5 \u00b7 estimated",
+      "name": "Starboard outer space 5.5 · estimated",
       "center": [
         11.344636473357678,
         0.75,
@@ -35464,11 +36149,21 @@
         19.6
       ],
       "capacityM3": 144.57505834134926,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          11.344636473357678,
+          8.700000000000001,
+          -19.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-port-4-5",
-      "name": "Port outer space 5.6 \u00b7 estimated",
+      "name": "Port outer space 5.6 · estimated",
       "center": [
         -13.836625096058846,
         2.25,
@@ -35480,11 +36175,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -13.836625096058846,
+          8.700000000000001,
+          -19.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-4-5",
-      "name": "Starboard outer space 5.6 \u00b7 estimated",
+      "name": "Starboard outer space 5.6 · estimated",
       "center": [
         13.836625096058846,
         2.25,
@@ -35496,11 +36201,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          13.836625096058846,
+          8.700000000000001,
+          -19.540000000000006
+        ]
+      }
     },
     {
       "id": "flood-strip-port-5-0",
-      "name": "Port outer space 6.1 \u00b7 estimated",
+      "name": "Port outer space 6.1 · estimated",
       "center": [
         -13.813344994473457,
         -5.25,
@@ -35512,11 +36227,21 @@
         19.6
       ],
       "capacityM3": 64.44716541230777,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -13.813344994473457,
+          8.700000000000001,
+          0.45999999999999375
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-5-0",
-      "name": "Starboard outer space 6.1 \u00b7 estimated",
+      "name": "Starboard outer space 6.1 · estimated",
       "center": [
         13.813344994473457,
         -5.25,
@@ -35528,11 +36253,21 @@
         19.6
       ],
       "capacityM3": 64.44716541230777,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          13.813344994473457,
+          8.700000000000001,
+          0.45999999999999375
+        ]
+      }
     },
     {
       "id": "flood-strip-port-5-1",
-      "name": "Port outer space 6.2 \u00b7 estimated",
+      "name": "Port outer space 6.2 · estimated",
       "center": [
         -13.900703929078578,
         -3.75,
@@ -35544,11 +36279,21 @@
         19.6
       ],
       "capacityM3": 68.07162471064129,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -13.900703929078578,
+          8.700000000000001,
+          0.45999999999999375
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-5-1",
-      "name": "Starboard outer space 6.2 \u00b7 estimated",
+      "name": "Starboard outer space 6.2 · estimated",
       "center": [
         13.900703929078578,
         -3.75,
@@ -35560,11 +36305,21 @@
         19.6
       ],
       "capacityM3": 68.07162471064129,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          13.900703929078578,
+          8.700000000000001,
+          0.45999999999999375
+        ]
+      }
     },
     {
       "id": "flood-strip-port-5-2",
-      "name": "Port outer space 6.3 \u00b7 estimated",
+      "name": "Port outer space 6.3 · estimated",
       "center": [
         -13.937307958436012,
         -2.25,
@@ -35576,11 +36331,21 @@
         19.6
       ],
       "capacityM3": 69.59029953378011,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -13.937307958436012,
+          8.700000000000001,
+          0.45999999999999375
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-5-2",
-      "name": "Starboard outer space 6.3 \u00b7 estimated",
+      "name": "Starboard outer space 6.3 · estimated",
       "center": [
         13.937307958436012,
         -2.25,
@@ -35592,11 +36357,21 @@
         19.6
       ],
       "capacityM3": 69.59029953378011,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          13.937307958436012,
+          8.700000000000001,
+          0.45999999999999375
+        ]
+      }
     },
     {
       "id": "flood-strip-port-5-3",
-      "name": "Port outer space 6.4 \u00b7 estimated",
+      "name": "Port outer space 6.4 · estimated",
       "center": [
         -13.949648865771294,
         -0.75,
@@ -35608,11 +36383,21 @@
         19.6
       ],
       "capacityM3": 70.10231489366761,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -13.949648865771294,
+          8.700000000000001,
+          0.45999999999999375
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-5-3",
-      "name": "Starboard outer space 6.4 \u00b7 estimated",
+      "name": "Starboard outer space 6.4 · estimated",
       "center": [
         13.949648865771294,
         -0.75,
@@ -35624,11 +36409,21 @@
         19.6
       ],
       "capacityM3": 70.10231489366761,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          13.949648865771294,
+          8.700000000000001,
+          0.45999999999999375
+        ]
+      }
     },
     {
       "id": "flood-strip-port-5-4",
-      "name": "Port outer space 6.5 \u00b7 estimated",
+      "name": "Port outer space 6.5 · estimated",
       "center": [
         -11.750465199482441,
         0.75,
@@ -35640,11 +36435,21 @@
         19.6
       ],
       "capacityM3": 161.41259999158288,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -11.750465199482441,
+          8.700000000000001,
+          0.45999999999999375
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-5-4",
-      "name": "Starboard outer space 6.5 \u00b7 estimated",
+      "name": "Starboard outer space 6.5 · estimated",
       "center": [
         11.750465199482441,
         0.75,
@@ -35656,11 +36461,21 @@
         19.6
       ],
       "capacityM3": 161.41259999158288,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          11.750465199482441,
+          8.700000000000001,
+          0.45999999999999375
+        ]
+      }
     },
     {
       "id": "flood-strip-port-5-5",
-      "name": "Port outer space 6.6 \u00b7 estimated",
+      "name": "Port outer space 6.6 · estimated",
       "center": [
         -14.612275916171079,
         2.25,
@@ -35672,11 +36487,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -14.612275916171079,
+          8.700000000000001,
+          0.45999999999999375
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-5-5",
-      "name": "Starboard outer space 6.6 \u00b7 estimated",
+      "name": "Starboard outer space 6.6 · estimated",
       "center": [
         14.612275916171079,
         2.25,
@@ -35688,11 +36513,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          14.612275916171079,
+          8.700000000000001,
+          0.45999999999999375
+        ]
+      }
     },
     {
       "id": "flood-strip-port-6-0",
-      "name": "Port outer space 7.1 \u00b7 estimated",
+      "name": "Port outer space 7.1 · estimated",
       "center": [
         -12.629456211209298,
         -5.25,
@@ -35704,11 +36539,21 @@
         19.6
       ],
       "capacityM3": 15.328472194601758,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -12.629456211209298,
+          8.700000000000001,
+          20.459999999999994
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-6-0",
-      "name": "Starboard outer space 7.1 \u00b7 estimated",
+      "name": "Starboard outer space 7.1 · estimated",
       "center": [
         12.629456211209298,
         -5.25,
@@ -35720,11 +36565,21 @@
         19.6
       ],
       "capacityM3": 15.328472194601758,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          12.629456211209298,
+          8.700000000000001,
+          20.459999999999994
+        ]
+      }
     },
     {
       "id": "flood-strip-port-6-1",
-      "name": "Port outer space 7.2 \u00b7 estimated",
+      "name": "Port outer space 7.2 · estimated",
       "center": [
         -13.1806896430254,
         -3.75,
@@ -35736,11 +36591,21 @@
         19.6
       ],
       "capacityM3": 38.19875039258088,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -13.1806896430254,
+          8.700000000000001,
+          20.459999999999994
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-6-1",
-      "name": "Starboard outer space 7.2 \u00b7 estimated",
+      "name": "Starboard outer space 7.2 · estimated",
       "center": [
         13.1806896430254,
         -3.75,
@@ -35752,11 +36617,21 @@
         19.6
       ],
       "capacityM3": 38.19875039258088,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          13.1806896430254,
+          8.700000000000001,
+          20.459999999999994
+        ]
+      }
     },
     {
       "id": "flood-strip-port-6-2",
-      "name": "Port outer space 7.3 \u00b7 estimated",
+      "name": "Port outer space 7.3 · estimated",
       "center": [
         -13.401259737086296,
         -2.25,
@@ -35768,11 +36643,21 @@
         19.6
       ],
       "capacityM3": 47.350044784699755,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -13.401259737086296,
+          8.700000000000001,
+          20.459999999999994
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-6-2",
-      "name": "Starboard outer space 7.3 \u00b7 estimated",
+      "name": "Starboard outer space 7.3 · estimated",
       "center": [
         13.401259737086296,
         -2.25,
@@ -35784,11 +36669,21 @@
         19.6
       ],
       "capacityM3": 47.350044784699755,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          13.401259737086296,
+          8.700000000000001,
+          20.459999999999994
+        ]
+      }
     },
     {
       "id": "flood-strip-port-6-3",
-      "name": "Port outer space 7.4 \u00b7 estimated",
+      "name": "Port outer space 7.4 · estimated",
       "center": [
         -13.508091388440132,
         -0.75,
@@ -35800,11 +36695,21 @@
         19.6
       ],
       "capacityM3": 51.78241308058144,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -13.508091388440132,
+          8.700000000000001,
+          20.459999999999994
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-6-3",
-      "name": "Starboard outer space 7.4 \u00b7 estimated",
+      "name": "Starboard outer space 7.4 · estimated",
       "center": [
         13.508091388440132,
         -0.75,
@@ -35816,11 +36721,21 @@
         19.6
       ],
       "capacityM3": 51.78241308058144,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          13.508091388440132,
+          8.700000000000001,
+          20.459999999999994
+        ]
+      }
     },
     {
       "id": "flood-strip-port-6-4",
-      "name": "Port outer space 7.5 \u00b7 estimated",
+      "name": "Port outer space 7.5 · estimated",
       "center": [
         -11.35712941992283,
         0.75,
@@ -35832,11 +36747,21 @@
         19.6
       ],
       "capacityM3": 145.09338169941586,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -11.35712941992283,
+          8.700000000000001,
+          20.459999999999994
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-6-4",
-      "name": "Starboard outer space 7.5 \u00b7 estimated",
+      "name": "Starboard outer space 7.5 · estimated",
       "center": [
         11.35712941992283,
         0.75,
@@ -35848,11 +36773,21 @@
         19.6
       ],
       "capacityM3": 145.09338169941586,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          11.35712941992283,
+          8.700000000000001,
+          20.459999999999994
+        ]
+      }
     },
     {
       "id": "flood-strip-port-6-5",
-      "name": "Port outer space 7.6 \u00b7 estimated",
+      "name": "Port outer space 7.6 · estimated",
       "center": [
         -13.904230626106266,
         2.25,
@@ -35864,11 +36799,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -13.904230626106266,
+          8.700000000000001,
+          20.459999999999994
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-6-5",
-      "name": "Starboard outer space 7.6 \u00b7 estimated",
+      "name": "Starboard outer space 7.6 · estimated",
       "center": [
         13.904230626106266,
         2.25,
@@ -35880,11 +36825,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          13.904230626106266,
+          8.700000000000001,
+          20.459999999999994
+        ]
+      }
     },
     {
       "id": "flood-strip-port-7-4",
-      "name": "Port outer space 8.5 \u00b7 estimated",
+      "name": "Port outer space 8.5 · estimated",
       "center": [
         -11.65538235549927,
         0.75,
@@ -35896,11 +36851,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -11.65538235549927,
+          8.700000000000001,
+          40.459999999999994
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-7-4",
-      "name": "Starboard outer space 8.5 \u00b7 estimated",
+      "name": "Starboard outer space 8.5 · estimated",
       "center": [
         11.65538235549927,
         0.75,
@@ -35912,11 +36877,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          11.65538235549927,
+          8.700000000000001,
+          40.459999999999994
+        ]
+      }
     },
     {
       "id": "flood-strip-port-7-5",
-      "name": "Port outer space 8.6 \u00b7 estimated",
+      "name": "Port outer space 8.6 · estimated",
       "center": [
         -12.02772502601147,
         2.25,
@@ -35928,11 +36903,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -12.02772502601147,
+          8.700000000000001,
+          40.459999999999994
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-7-5",
-      "name": "Starboard outer space 8.6 \u00b7 estimated",
+      "name": "Starboard outer space 8.6 · estimated",
       "center": [
         12.02772502601147,
         2.25,
@@ -35944,11 +36929,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          12.02772502601147,
+          8.700000000000001,
+          40.459999999999994
+        ]
+      }
     },
     {
       "id": "flood-strip-port-8-1",
-      "name": "Port outer space 9.2 \u00b7 estimated",
+      "name": "Port outer space 9.2 · estimated",
       "center": [
         -4.438896644696593,
         -3.75,
@@ -35960,11 +36955,21 @@
         19.6
       ],
       "capacityM3": 7.384293581024578,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -4.438896644696593,
+          8.700000000000001,
+          60.459999999999994
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-8-1",
-      "name": "Starboard outer space 9.2 \u00b7 estimated",
+      "name": "Starboard outer space 9.2 · estimated",
       "center": [
         4.438896644696593,
         -3.75,
@@ -35976,11 +36981,21 @@
         19.6
       ],
       "capacityM3": 7.384293581024578,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          4.438896644696593,
+          8.700000000000001,
+          60.459999999999994
+        ]
+      }
     },
     {
       "id": "flood-strip-port-8-2",
-      "name": "Port outer space 9.3 \u00b7 estimated",
+      "name": "Port outer space 9.3 · estimated",
       "center": [
         -5.52373303923309,
         -2.25,
@@ -35992,11 +37007,21 @@
         19.6
       ],
       "capacityM3": 52.39337450813973,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -5.52373303923309,
+          8.700000000000001,
+          60.459999999999994
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-8-2",
-      "name": "Starboard outer space 9.3 \u00b7 estimated",
+      "name": "Starboard outer space 9.3 · estimated",
       "center": [
         5.52373303923309,
         -2.25,
@@ -36008,11 +37033,21 @@
         19.6
       ],
       "capacityM3": 52.39337450813973,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          5.52373303923309,
+          8.700000000000001,
+          60.459999999999994
+        ]
+      }
     },
     {
       "id": "flood-strip-port-8-3",
-      "name": "Port outer space 9.4 \u00b7 estimated",
+      "name": "Port outer space 9.4 · estimated",
       "center": [
         -6.283559616300464,
         -0.75,
@@ -36024,11 +37059,21 @@
         19.6
       ],
       "capacityM3": 83.91803211552964,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -6.283559616300464,
+          8.700000000000001,
+          60.459999999999994
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-8-3",
-      "name": "Starboard outer space 9.4 \u00b7 estimated",
+      "name": "Starboard outer space 9.4 · estimated",
       "center": [
         6.283559616300464,
         -0.75,
@@ -36040,11 +37085,21 @@
         19.6
       ],
       "capacityM3": 83.91803211552964,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          6.283559616300464,
+          8.700000000000001,
+          60.459999999999994
+        ]
+      }
     },
     {
       "id": "flood-strip-port-8-4",
-      "name": "Port outer space 9.5 \u00b7 estimated",
+      "name": "Port outer space 9.5 · estimated",
       "center": [
         -8.230979858303073,
         0.75,
@@ -36056,11 +37111,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -8.230979858303073,
+          8.700000000000001,
+          60.459999999999994
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-8-4",
-      "name": "Starboard outer space 9.5 \u00b7 estimated",
+      "name": "Starboard outer space 9.5 · estimated",
       "center": [
         8.230979858303073,
         0.75,
@@ -36072,11 +37137,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          8.230979858303073,
+          8.700000000000001,
+          60.459999999999994
+        ]
+      }
     },
     {
       "id": "flood-strip-port-8-5",
-      "name": "Port outer space 9.6 \u00b7 estimated",
+      "name": "Port outer space 9.6 · estimated",
       "center": [
         -8.913067139792442,
         2.25,
@@ -36088,11 +37163,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -8.913067139792442,
+          8.700000000000001,
+          60.459999999999994
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-8-5",
-      "name": "Starboard outer space 9.6 \u00b7 estimated",
+      "name": "Starboard outer space 9.6 · estimated",
       "center": [
         8.913067139792442,
         2.25,
@@ -36104,11 +37189,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          8.913067139792442,
+          8.700000000000001,
+          60.459999999999994
+        ]
+      }
     },
     {
       "id": "flood-strip-port-9-2",
-      "name": "Port outer space 10.3 \u00b7 estimated",
+      "name": "Port outer space 10.3 · estimated",
       "center": [
         -2.090135629813373,
         -2.25,
@@ -36120,11 +37215,21 @@
         19.6
       ],
       "capacityM3": 17.038871148879124,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -2.090135629813373,
+          8.700000000000001,
+          80.46
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-9-2",
-      "name": "Starboard outer space 10.3 \u00b7 estimated",
+      "name": "Starboard outer space 10.3 · estimated",
       "center": [
         2.090135629813373,
         -2.25,
@@ -36136,11 +37241,21 @@
         19.6
       ],
       "capacityM3": 17.038871148879124,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          2.090135629813373,
+          8.700000000000001,
+          80.46
+        ]
+      }
     },
     {
       "id": "flood-strip-port-9-3",
-      "name": "Port outer space 10.4 \u00b7 estimated",
+      "name": "Port outer space 10.4 · estimated",
       "center": [
         -2.9339861025020477,
         -0.75,
@@ -36152,11 +37267,21 @@
         19.6
       ],
       "capacityM3": 52.04961968839191,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -2.9339861025020477,
+          8.700000000000001,
+          80.46
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-9-3",
-      "name": "Starboard outer space 10.4 \u00b7 estimated",
+      "name": "Starboard outer space 10.4 · estimated",
       "center": [
         2.9339861025020477,
         -0.75,
@@ -36168,11 +37293,21 @@
         19.6
       ],
       "capacityM3": 52.04961968839191,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          2.9339861025020477,
+          8.700000000000001,
+          80.46
+        ]
+      }
     },
     {
       "id": "flood-strip-port-9-4",
-      "name": "Port outer space 10.5 \u00b7 estimated",
+      "name": "Port outer space 10.5 · estimated",
       "center": [
         -4.106145260047913,
         0.75,
@@ -36184,11 +37319,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -4.106145260047913,
+          8.700000000000001,
+          80.46
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-9-4",
-      "name": "Starboard outer space 10.5 \u00b7 estimated",
+      "name": "Starboard outer space 10.5 · estimated",
       "center": [
         4.106145260047913,
         0.75,
@@ -36200,11 +37345,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          4.106145260047913,
+          8.700000000000001,
+          80.46
+        ]
+      }
     },
     {
       "id": "flood-strip-port-9-5",
-      "name": "Port outer space 10.6 \u00b7 estimated",
+      "name": "Port outer space 10.6 · estimated",
       "center": [
         -4.745042172741891,
         2.25,
@@ -36216,11 +37371,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -4.745042172741891,
+          8.700000000000001,
+          80.46
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-9-5",
-      "name": "Starboard outer space 10.6 \u00b7 estimated",
+      "name": "Starboard outer space 10.6 · estimated",
       "center": [
         4.745042172741891,
         2.25,
@@ -36232,11 +37397,21 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          4.745042172741891,
+          8.700000000000001,
+          80.46
+        ]
+      }
     },
     {
       "id": "flood-strip-port-10-4",
-      "name": "Port outer space 11.5 \u00b7 estimated",
+      "name": "Port outer space 11.5 · estimated",
       "center": [
         -0.7042836201071739,
         0.75,
@@ -36248,11 +37423,21 @@
         18.698400000000014
       ],
       "capacityM3": 25.89705152359433,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -0.7042836201071739,
+          8.700000000000001,
+          100
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-10-4",
-      "name": "Starboard outer space 11.5 \u00b7 estimated",
+      "name": "Starboard outer space 11.5 · estimated",
       "center": [
         0.7042836201071739,
         0.75,
@@ -36264,11 +37449,21 @@
         18.698400000000014
       ],
       "capacityM3": 25.89705152359433,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0.7042836201071739,
+          8.700000000000001,
+          100
+        ]
+      }
     },
     {
       "id": "flood-strip-port-10-5",
-      "name": "Port outer space 11.6 \u00b7 estimated",
+      "name": "Port outer space 11.6 · estimated",
       "center": [
         -0.910197132408619,
         2.25,
@@ -36280,11 +37475,21 @@
         18.698400000000014
       ],
       "capacityM3": 34.047267536340165,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -0.910197132408619,
+          8.700000000000001,
+          100
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-10-5",
-      "name": "Starboard outer space 11.6 \u00b7 estimated",
+      "name": "Starboard outer space 11.6 · estimated",
       "center": [
         0.910197132408619,
         2.25,
@@ -36296,11 +37501,21 @@
         18.698400000000014
       ],
       "capacityM3": 34.047267536340165,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0.910197132408619,
+          8.700000000000001,
+          100
+        ]
+      }
     },
     {
       "id": "flood-end-bow-0",
-      "name": "Bow end space 1 \u00b7 estimated",
+      "name": "Bow end space 1 · estimated",
       "center": [
         0,
         -5.25,
@@ -36312,11 +37527,21 @@
         9.98
       ],
       "capacityM3": 8.450265600000002,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          -98.04
+        ]
+      }
     },
     {
       "id": "flood-end-bow-1",
-      "name": "Bow end space 2 \u00b7 estimated",
+      "name": "Bow end space 2 · estimated",
       "center": [
         0,
         -3.75,
@@ -36328,11 +37553,21 @@
         9.98
       ],
       "capacityM3": 8.450265600000002,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          -99.04
+        ]
+      }
     },
     {
       "id": "flood-end-bow-2",
-      "name": "Bow end space 3 \u00b7 estimated",
+      "name": "Bow end space 3 · estimated",
       "center": [
         0,
         -2.25,
@@ -36344,11 +37579,21 @@
         9.98
       ],
       "capacityM3": 8.450265600000002,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          -101.04
+        ]
+      }
     },
     {
       "id": "flood-end-bow-3",
-      "name": "Bow end space 4 \u00b7 estimated",
+      "name": "Bow end space 4 · estimated",
       "center": [
         0,
         -0.75,
@@ -36360,11 +37605,21 @@
         9.98
       ],
       "capacityM3": 8.450265600000002,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          -102.04
+        ]
+      }
     },
     {
       "id": "flood-end-bow-4",
-      "name": "Bow end space 5 \u00b7 estimated",
+      "name": "Bow end space 5 · estimated",
       "center": [
         0,
         0.75,
@@ -36376,11 +37631,21 @@
         9.98
       ],
       "capacityM3": 8.450265600000002,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          -103.04
+        ]
+      }
     },
     {
       "id": "flood-end-bow-5",
-      "name": "Bow end space 6 \u00b7 estimated",
+      "name": "Bow end space 6 · estimated",
       "center": [
         0,
         2.25,
@@ -36392,11 +37657,21 @@
         9.98
       ],
       "capacityM3": 8.450265600000002,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          -104.04
+        ]
+      }
     },
     {
       "id": "flood-end-stern-0",
-      "name": "Stern end space 1 \u00b7 estimated",
+      "name": "Stern end space 1 · estimated",
       "center": [
         0,
         -5.25,
@@ -36408,11 +37683,21 @@
         5.98
       ],
       "capacityM3": 5.063385600000001,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          82.04
+        ]
+      }
     },
     {
       "id": "flood-end-stern-1",
-      "name": "Stern end space 2 \u00b7 estimated",
+      "name": "Stern end space 2 · estimated",
       "center": [
         0,
         -3.75,
@@ -36424,11 +37709,21 @@
         9.98
       ],
       "capacityM3": 8.450265600000002,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          87.04
+        ]
+      }
     },
     {
       "id": "flood-end-stern-2",
-      "name": "Stern end space 3 \u00b7 estimated",
+      "name": "Stern end space 3 · estimated",
       "center": [
         0,
         -2.25,
@@ -36440,11 +37735,21 @@
         4.98
       ],
       "capacityM3": 4.216665600000001,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          98.54
+        ]
+      }
     },
     {
       "id": "flood-end-stern-3",
-      "name": "Stern end space 4 \u00b7 estimated",
+      "name": "Stern end space 4 · estimated",
       "center": [
         0,
         -0.75,
@@ -36456,11 +37761,21 @@
         9.98
       ],
       "capacityM3": 8.450265600000002,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          105.04
+        ]
+      }
     },
     {
       "id": "flood-end-stern-4",
-      "name": "Stern end space 5 \u00b7 estimated",
+      "name": "Stern end space 5 · estimated",
       "center": [
         0,
         0.75,
@@ -36472,11 +37787,21 @@
         1.98
       ],
       "capacityM3": 1.6765056000000003,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          111.04
+        ]
+      }
     },
     {
       "id": "flood-end-stern-5",
-      "name": "Stern end space 6 \u00b7 estimated",
+      "name": "Stern end space 6 · estimated",
       "center": [
         0,
         2.25,
@@ -36488,11 +37813,21 @@
         1.98
       ],
       "capacityM3": 1.6765056000000003,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          111.04
+        ]
+      }
     },
     {
       "id": "reserve-cell-0-0-0",
-      "name": "Port deep reserve space 1 \u00b7 estimated",
+      "name": "Port deep reserve space 1 · estimated",
       "center": [
         -7.8486,
         -5.965999999999999,
@@ -38150,11 +39485,21 @@
         }
       ],
       "capacityM3": 332.78596562782735,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -7.8486,
+          8.700000000000001,
+          -85.155
+        ]
+      }
     },
     {
       "id": "reserve-cell-0-0-1",
-      "name": "Port middle reserve space 1 \u00b7 estimated",
+      "name": "Port middle reserve space 1 · estimated",
       "center": [
         -7.8486,
         -0.21959999999999935,
@@ -41408,11 +42753,21 @@
         }
       ],
       "capacityM3": 903.4011279491998,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -7.8486,
+          8.700000000000001,
+          -85.155
+        ]
+      }
     },
     {
       "id": "reserve-cell-0-0-2",
-      "name": "Port upper reserve space 1 \u00b7 estimated",
+      "name": "Port upper reserve space 1 · estimated",
       "center": [
         -7.8486,
         5.526800000000001,
@@ -43610,11 +44965,21 @@
         }
       ],
       "capacityM3": 1300.3688286155907,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -7.8486,
+          8.700000000000001,
+          -85.155
+        ]
+      }
     },
     {
       "id": "reserve-cell-0-1-0",
-      "name": "Starboard deep reserve space 1 \u00b7 estimated",
+      "name": "Starboard deep reserve space 1 · estimated",
       "center": [
         7.8486,
         -5.965999999999999,
@@ -45272,11 +46637,21 @@
         }
       ],
       "capacityM3": 332.78596562782735,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          7.8486,
+          8.700000000000001,
+          -85.155
+        ]
+      }
     },
     {
       "id": "reserve-cell-0-1-1",
-      "name": "Starboard middle reserve space 1 \u00b7 estimated",
+      "name": "Starboard middle reserve space 1 · estimated",
       "center": [
         7.8486,
         -0.21959999999999935,
@@ -48530,11 +49905,21 @@
         }
       ],
       "capacityM3": 903.4011279491999,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          7.8486,
+          8.700000000000001,
+          -85.155
+        ]
+      }
     },
     {
       "id": "reserve-cell-0-1-2",
-      "name": "Starboard upper reserve space 1 \u00b7 estimated",
+      "name": "Starboard upper reserve space 1 · estimated",
       "center": [
         7.8486,
         5.526800000000001,
@@ -50732,11 +52117,21 @@
         }
       ],
       "capacityM3": 1300.3688286155914,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          7.8486,
+          8.700000000000001,
+          -85.155
+        ]
+      }
     },
     {
       "id": "reserve-cell-1-0-0",
-      "name": "Port deep reserve space 2 \u00b7 estimated",
+      "name": "Port deep reserve space 2 · estimated",
       "center": [
         -7.8486,
         -5.965999999999999,
@@ -54038,11 +55433,21 @@
         }
       ],
       "capacityM3": 1721.3147502452525,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -7.8486,
+          8.700000000000001,
+          -28.385
+        ]
+      }
     },
     {
       "id": "reserve-cell-1-0-1",
-      "name": "Port middle reserve space 2 \u00b7 estimated",
+      "name": "Port middle reserve space 2 · estimated",
       "center": [
         -7.8486,
         -0.21959999999999935,
@@ -56576,11 +57981,21 @@
         }
       ],
       "capacityM3": 1942.5819107188945,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -7.8486,
+          8.700000000000001,
+          -28.385
+        ]
+      }
     },
     {
       "id": "reserve-cell-1-0-2",
-      "name": "Port upper reserve space 2 \u00b7 estimated",
+      "name": "Port upper reserve space 2 · estimated",
       "center": [
         -7.8486,
         5.526800000000001,
@@ -57302,11 +58717,21 @@
         }
       ],
       "capacityM3": 2578.4731222664104,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 80,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          -7.8486,
+          8.700000000000001,
+          -28.385
+        ]
+      }
     },
     {
       "id": "reserve-cell-1-1-0",
-      "name": "Starboard deep reserve space 2 \u00b7 estimated",
+      "name": "Starboard deep reserve space 2 · estimated",
       "center": [
         7.8486,
         -5.965999999999999,
@@ -60608,11 +62033,21 @@
         }
       ],
       "capacityM3": 1721.3147502452528,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          7.8486,
+          8.700000000000001,
+          -28.385
+        ]
+      }
     },
     {
       "id": "reserve-cell-1-1-1",
-      "name": "Starboard middle reserve space 2 \u00b7 estimated",
+      "name": "Starboard middle reserve space 2 · estimated",
       "center": [
         7.8486,
         -0.21959999999999935,
@@ -63146,11 +64581,21 @@
         }
       ],
       "capacityM3": 1942.5819107188945,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          7.8486,
+          8.700000000000001,
+          -28.385
+        ]
+      }
     },
     {
       "id": "reserve-cell-1-1-2",
-      "name": "Starboard upper reserve space 2 \u00b7 estimated",
+      "name": "Starboard upper reserve space 2 · estimated",
       "center": [
         7.8486,
         5.526800000000001,
@@ -63872,11 +65317,21 @@
         }
       ],
       "capacityM3": 2578.473122266411,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          7.8486,
+          8.700000000000001,
+          -28.385
+        ]
+      }
     },
     {
       "id": "reserve-cell-2-0-0",
-      "name": "Port deep reserve space 3 \u00b7 estimated",
+      "name": "Port deep reserve space 3 · estimated",
       "center": [
         -7.8486,
         -5.965999999999999,
@@ -67418,11 +68873,21 @@
         }
       ],
       "capacityM3": 2035.8603092967844,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -7.8486,
+          8.700000000000001,
+          28.385
+        ]
+      }
     },
     {
       "id": "reserve-cell-2-0-1",
-      "name": "Port middle reserve space 3 \u00b7 estimated",
+      "name": "Port middle reserve space 3 · estimated",
       "center": [
         -7.8486,
         -0.21959999999999935,
@@ -70100,11 +71565,21 @@
         }
       ],
       "capacityM3": 2542.6957285491244,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -7.8486,
+          8.700000000000001,
+          28.385
+        ]
+      }
     },
     {
       "id": "reserve-cell-2-0-2",
-      "name": "Port upper reserve space 3 \u00b7 estimated",
+      "name": "Port upper reserve space 3 · estimated",
       "center": [
         -7.8486,
         5.526800000000001,
@@ -70730,11 +72205,21 @@
         }
       ],
       "capacityM3": 2634.0391566592234,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -7.8486,
+          8.700000000000001,
+          28.385
+        ]
+      }
     },
     {
       "id": "reserve-cell-2-1-0",
-      "name": "Starboard deep reserve space 3 \u00b7 estimated",
+      "name": "Starboard deep reserve space 3 · estimated",
       "center": [
         7.8486,
         -5.965999999999999,
@@ -74276,11 +75761,21 @@
         }
       ],
       "capacityM3": 2035.8603092967844,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          7.8486,
+          8.700000000000001,
+          28.385
+        ]
+      }
     },
     {
       "id": "reserve-cell-2-1-1",
-      "name": "Starboard middle reserve space 3 \u00b7 estimated",
+      "name": "Starboard middle reserve space 3 · estimated",
       "center": [
         7.8486,
         -0.21959999999999935,
@@ -76958,11 +78453,21 @@
         }
       ],
       "capacityM3": 2542.6957285491244,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          7.8486,
+          8.700000000000001,
+          28.385
+        ]
+      }
     },
     {
       "id": "reserve-cell-2-1-2",
-      "name": "Starboard upper reserve space 3 \u00b7 estimated",
+      "name": "Starboard upper reserve space 3 · estimated",
       "center": [
         7.8486,
         5.526800000000001,
@@ -77588,11 +79093,21 @@
         }
       ],
       "capacityM3": 2634.039156659224,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          7.8486,
+          8.700000000000001,
+          28.385
+        ]
+      }
     },
     {
       "id": "reserve-cell-3-0-0",
-      "name": "Port deep reserve space 4 \u00b7 estimated",
+      "name": "Port deep reserve space 4 · estimated",
       "center": [
         -7.8486,
         -5.965999999999999,
@@ -79058,11 +80573,21 @@
         }
       ],
       "capacityM3": 210.79242866063043,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -7.8486,
+          8.700000000000001,
+          85.155
+        ]
+      }
     },
     {
       "id": "reserve-cell-3-0-1",
-      "name": "Port middle reserve space 4 \u00b7 estimated",
+      "name": "Port middle reserve space 4 · estimated",
       "center": [
         -7.8486,
         -0.21959999999999935,
@@ -83456,11 +84981,21 @@
         }
       ],
       "capacityM3": 967.026884120037,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -7.8486,
+          8.700000000000001,
+          85.155
+        ]
+      }
     },
     {
       "id": "reserve-cell-3-0-2",
-      "name": "Port upper reserve space 4 \u00b7 estimated",
+      "name": "Port upper reserve space 4 · estimated",
       "center": [
         -7.8486,
         5.526800000000001,
@@ -85262,11 +86797,21 @@
         }
       ],
       "capacityM3": 1379.0631703372092,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -7.8486,
+          8.700000000000001,
+          85.155
+        ]
+      }
     },
     {
       "id": "reserve-cell-3-1-0",
-      "name": "Starboard deep reserve space 4 \u00b7 estimated",
+      "name": "Starboard deep reserve space 4 · estimated",
       "center": [
         7.8486,
         -5.965999999999999,
@@ -86732,11 +88277,21 @@
         }
       ],
       "capacityM3": 210.7924286606305,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          7.8486,
+          8.700000000000001,
+          85.155
+        ]
+      }
     },
     {
       "id": "reserve-cell-3-1-1",
-      "name": "Starboard middle reserve space 4 \u00b7 estimated",
+      "name": "Starboard middle reserve space 4 · estimated",
       "center": [
         7.8486,
         -0.21959999999999935,
@@ -91130,11 +92685,21 @@
         }
       ],
       "capacityM3": 967.026884120037,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          7.8486,
+          8.700000000000001,
+          85.155
+        ]
+      }
     },
     {
       "id": "reserve-cell-3-1-2",
-      "name": "Starboard upper reserve space 4 \u00b7 estimated",
+      "name": "Starboard upper reserve space 4 · estimated",
       "center": [
         7.8486,
         5.526800000000001,
@@ -92936,7 +94501,17 @@
         }
       ],
       "capacityM3": 1379.0631703372092,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          7.8486,
+          8.700000000000001,
+          85.155
+        ]
+      }
     }
   ],
   "modules": [
@@ -93383,6 +94958,60 @@
       "hp": 150,
       "compartmentId": "steering-room",
       "immersionToleranceM": 0.8
+    },
+    {
+      "id": "support-generator-1",
+      "name": "Generator 1",
+      "kind": "generator",
+      "hp": 60,
+      "compartmentId": "boiler-1-1-room",
+      "center": [
+        -2.1999999999999997,
+        -5,
+        -10.58
+      ],
+      "size": [
+        1.2,
+        1.2,
+        1.2
+      ],
+      "immersionToleranceM": 0.36
+    },
+    {
+      "id": "support-generator-2",
+      "name": "Generator 2",
+      "kind": "generator",
+      "hp": 60,
+      "compartmentId": "turbine-4-room",
+      "center": [
+        6.4,
+        -5,
+        25.88
+      ],
+      "size": [
+        1.2,
+        1.2,
+        0.9199999999999999
+      ],
+      "immersionToleranceM": 0.36
+    },
+    {
+      "id": "support-director",
+      "name": "Fire-control station",
+      "kind": "fire-control",
+      "hp": 65,
+      "compartmentId": "reserve-cell-1-0-2",
+      "center": [
+        -6.5405,
+        6.0056666675,
+        -23.65416667
+      ],
+      "size": [
+        1.8,
+        0.4788666675,
+        1.8
+      ],
+      "immersionToleranceM": 0.0957733335
     }
   ],
   "connections": [
@@ -100169,7 +101798,7 @@
     {
       "id": "tower-base",
       "center": [
-        0.0,
+        0,
         11.3131,
         -20.6
       ],
@@ -100182,7 +101811,7 @@
     {
       "id": "tower-middle",
       "center": [
-        0.0,
+        0,
         14.3631,
         -18.1
       ],
@@ -103487,5 +105116,966 @@
     "buoyancyScale": 1.2394089587305541,
     "shellThicknessMm": 12,
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
+  },
+  "localDamage": {
+    "version": 1,
+    "regions": [
+      {
+        "id": "underwater-port-1",
+        "name": "Underwater hull · port · bow",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          -8.848600000000001,
+          -4.9196,
+          -99.34750000000001
+        ],
+        "size": [
+          17.697200000000002,
+          9.8392,
+          28.387
+        ]
+      },
+      {
+        "id": "underwater-port-2",
+        "name": "Underwater hull · port · forward",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          -8.848600000000001,
+          -4.9196,
+          -70.9625
+        ],
+        "size": [
+          17.697200000000002,
+          9.8392,
+          28.387
+        ]
+      },
+      {
+        "id": "underwater-port-3",
+        "name": "Underwater hull · port · forward amidships",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          -8.848600000000001,
+          -4.9196,
+          -42.5775
+        ],
+        "size": [
+          17.697200000000002,
+          9.8392,
+          28.387
+        ]
+      },
+      {
+        "id": "underwater-port-4",
+        "name": "Underwater hull · port · amidships forward",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          -8.848600000000001,
+          -4.9196,
+          -14.192499999999995
+        ],
+        "size": [
+          17.697200000000002,
+          9.8392,
+          28.387
+        ]
+      },
+      {
+        "id": "underwater-port-5",
+        "name": "Underwater hull · port · amidships aft",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          -8.848600000000001,
+          -4.9196,
+          14.192499999999995
+        ],
+        "size": [
+          17.697200000000002,
+          9.8392,
+          28.387
+        ]
+      },
+      {
+        "id": "underwater-port-6",
+        "name": "Underwater hull · port · aft amidships",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          -8.848600000000001,
+          -4.9196,
+          42.5775
+        ],
+        "size": [
+          17.697200000000002,
+          9.8392,
+          28.387
+        ]
+      },
+      {
+        "id": "underwater-port-7",
+        "name": "Underwater hull · port · aft",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          -8.848600000000001,
+          -4.9196,
+          70.96249999999999
+        ],
+        "size": [
+          17.697200000000002,
+          9.8392,
+          28.387
+        ]
+      },
+      {
+        "id": "underwater-port-8",
+        "name": "Underwater hull · port · stern",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          -8.848600000000001,
+          -4.9196,
+          99.34750000000001
+        ],
+        "size": [
+          17.697200000000002,
+          9.8392,
+          28.387
+        ]
+      },
+      {
+        "id": "underwater-starboard-1",
+        "name": "Underwater hull · starboard · bow",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          8.848600000000001,
+          -4.9196,
+          -99.34750000000001
+        ],
+        "size": [
+          17.697200000000002,
+          9.8392,
+          28.387
+        ]
+      },
+      {
+        "id": "underwater-starboard-2",
+        "name": "Underwater hull · starboard · forward",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          8.848600000000001,
+          -4.9196,
+          -70.9625
+        ],
+        "size": [
+          17.697200000000002,
+          9.8392,
+          28.387
+        ]
+      },
+      {
+        "id": "underwater-starboard-3",
+        "name": "Underwater hull · starboard · forward amidships",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          8.848600000000001,
+          -4.9196,
+          -42.5775
+        ],
+        "size": [
+          17.697200000000002,
+          9.8392,
+          28.387
+        ]
+      },
+      {
+        "id": "underwater-starboard-4",
+        "name": "Underwater hull · starboard · amidships forward",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          8.848600000000001,
+          -4.9196,
+          -14.192499999999995
+        ],
+        "size": [
+          17.697200000000002,
+          9.8392,
+          28.387
+        ]
+      },
+      {
+        "id": "underwater-starboard-5",
+        "name": "Underwater hull · starboard · amidships aft",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          8.848600000000001,
+          -4.9196,
+          14.192499999999995
+        ],
+        "size": [
+          17.697200000000002,
+          9.8392,
+          28.387
+        ]
+      },
+      {
+        "id": "underwater-starboard-6",
+        "name": "Underwater hull · starboard · aft amidships",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          8.848600000000001,
+          -4.9196,
+          42.5775
+        ],
+        "size": [
+          17.697200000000002,
+          9.8392,
+          28.387
+        ]
+      },
+      {
+        "id": "underwater-starboard-7",
+        "name": "Underwater hull · starboard · aft",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          8.848600000000001,
+          -4.9196,
+          70.96249999999999
+        ],
+        "size": [
+          17.697200000000002,
+          9.8392,
+          28.387
+        ]
+      },
+      {
+        "id": "underwater-starboard-8",
+        "name": "Underwater hull · starboard · stern",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          8.848600000000001,
+          -4.9196,
+          99.34750000000001
+        ],
+        "size": [
+          17.697200000000002,
+          9.8392,
+          28.387
+        ]
+      },
+      {
+        "id": "upper-hull-port-1",
+        "name": "Upper hull · port · bow",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          -8.848600000000001,
+          4.45,
+          -99.34750000000001
+        ],
+        "size": [
+          17.697200000000002,
+          8.9,
+          28.387
+        ]
+      },
+      {
+        "id": "upper-hull-port-2",
+        "name": "Upper hull · port · forward",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          -8.848600000000001,
+          4.45,
+          -70.9625
+        ],
+        "size": [
+          17.697200000000002,
+          8.9,
+          28.387
+        ]
+      },
+      {
+        "id": "upper-hull-port-3",
+        "name": "Upper hull · port · forward amidships",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          -8.848600000000001,
+          4.45,
+          -42.5775
+        ],
+        "size": [
+          17.697200000000002,
+          8.9,
+          28.387
+        ]
+      },
+      {
+        "id": "upper-hull-port-4",
+        "name": "Upper hull · port · amidships forward",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          -8.848600000000001,
+          4.45,
+          -14.192499999999995
+        ],
+        "size": [
+          17.697200000000002,
+          8.9,
+          28.387
+        ]
+      },
+      {
+        "id": "upper-hull-port-5",
+        "name": "Upper hull · port · amidships aft",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          -8.848600000000001,
+          4.45,
+          14.192499999999995
+        ],
+        "size": [
+          17.697200000000002,
+          8.9,
+          28.387
+        ]
+      },
+      {
+        "id": "upper-hull-port-6",
+        "name": "Upper hull · port · aft amidships",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          -8.848600000000001,
+          4.45,
+          42.5775
+        ],
+        "size": [
+          17.697200000000002,
+          8.9,
+          28.387
+        ]
+      },
+      {
+        "id": "upper-hull-port-7",
+        "name": "Upper hull · port · aft",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          -8.848600000000001,
+          4.45,
+          70.96249999999999
+        ],
+        "size": [
+          17.697200000000002,
+          8.9,
+          28.387
+        ]
+      },
+      {
+        "id": "upper-hull-port-8",
+        "name": "Upper hull · port · stern",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          -8.848600000000001,
+          4.45,
+          99.34750000000001
+        ],
+        "size": [
+          17.697200000000002,
+          8.9,
+          28.387
+        ]
+      },
+      {
+        "id": "upper-hull-starboard-1",
+        "name": "Upper hull · starboard · bow",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          8.848600000000001,
+          4.45,
+          -99.34750000000001
+        ],
+        "size": [
+          17.697200000000002,
+          8.9,
+          28.387
+        ]
+      },
+      {
+        "id": "upper-hull-starboard-2",
+        "name": "Upper hull · starboard · forward",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          8.848600000000001,
+          4.45,
+          -70.9625
+        ],
+        "size": [
+          17.697200000000002,
+          8.9,
+          28.387
+        ]
+      },
+      {
+        "id": "upper-hull-starboard-3",
+        "name": "Upper hull · starboard · forward amidships",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          8.848600000000001,
+          4.45,
+          -42.5775
+        ],
+        "size": [
+          17.697200000000002,
+          8.9,
+          28.387
+        ]
+      },
+      {
+        "id": "upper-hull-starboard-4",
+        "name": "Upper hull · starboard · amidships forward",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          8.848600000000001,
+          4.45,
+          -14.192499999999995
+        ],
+        "size": [
+          17.697200000000002,
+          8.9,
+          28.387
+        ]
+      },
+      {
+        "id": "upper-hull-starboard-5",
+        "name": "Upper hull · starboard · amidships aft",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          8.848600000000001,
+          4.45,
+          14.192499999999995
+        ],
+        "size": [
+          17.697200000000002,
+          8.9,
+          28.387
+        ]
+      },
+      {
+        "id": "upper-hull-starboard-6",
+        "name": "Upper hull · starboard · aft amidships",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          8.848600000000001,
+          4.45,
+          42.5775
+        ],
+        "size": [
+          17.697200000000002,
+          8.9,
+          28.387
+        ]
+      },
+      {
+        "id": "upper-hull-starboard-7",
+        "name": "Upper hull · starboard · aft",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          8.848600000000001,
+          4.45,
+          70.96249999999999
+        ],
+        "size": [
+          17.697200000000002,
+          8.9,
+          28.387
+        ]
+      },
+      {
+        "id": "upper-hull-starboard-8",
+        "name": "Upper hull · starboard · stern",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          8.848600000000001,
+          4.45,
+          99.34750000000001
+        ],
+        "size": [
+          17.697200000000002,
+          8.9,
+          28.387
+        ]
+      },
+      {
+        "id": "upperworks-port-1",
+        "name": "Upperworks · port · bow",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          -8.848600000000001,
+          18.89405,
+          -99.34750000000001
+        ],
+        "size": [
+          17.697200000000002,
+          19.988100000000003,
+          28.387
+        ]
+      },
+      {
+        "id": "upperworks-port-2",
+        "name": "Upperworks · port · forward",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          -8.848600000000001,
+          18.89405,
+          -70.9625
+        ],
+        "size": [
+          17.697200000000002,
+          19.988100000000003,
+          28.387
+        ]
+      },
+      {
+        "id": "upperworks-port-3",
+        "name": "Upperworks · port · forward amidships",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          -8.848600000000001,
+          18.89405,
+          -42.5775
+        ],
+        "size": [
+          17.697200000000002,
+          19.988100000000003,
+          28.387
+        ]
+      },
+      {
+        "id": "upperworks-port-4",
+        "name": "Upperworks · port · amidships forward",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          -8.848600000000001,
+          18.89405,
+          -14.192499999999995
+        ],
+        "size": [
+          17.697200000000002,
+          19.988100000000003,
+          28.387
+        ]
+      },
+      {
+        "id": "upperworks-port-5",
+        "name": "Upperworks · port · amidships aft",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          -8.848600000000001,
+          18.89405,
+          14.192499999999995
+        ],
+        "size": [
+          17.697200000000002,
+          19.988100000000003,
+          28.387
+        ]
+      },
+      {
+        "id": "upperworks-port-6",
+        "name": "Upperworks · port · aft amidships",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          -8.848600000000001,
+          18.89405,
+          42.5775
+        ],
+        "size": [
+          17.697200000000002,
+          19.988100000000003,
+          28.387
+        ]
+      },
+      {
+        "id": "upperworks-port-7",
+        "name": "Upperworks · port · aft",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          -8.848600000000001,
+          18.89405,
+          70.96249999999999
+        ],
+        "size": [
+          17.697200000000002,
+          19.988100000000003,
+          28.387
+        ]
+      },
+      {
+        "id": "upperworks-port-8",
+        "name": "Upperworks · port · stern",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          -8.848600000000001,
+          18.89405,
+          99.34750000000001
+        ],
+        "size": [
+          17.697200000000002,
+          19.988100000000003,
+          28.387
+        ]
+      },
+      {
+        "id": "upperworks-starboard-1",
+        "name": "Upperworks · starboard · bow",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          8.848600000000001,
+          18.89405,
+          -99.34750000000001
+        ],
+        "size": [
+          17.697200000000002,
+          19.988100000000003,
+          28.387
+        ]
+      },
+      {
+        "id": "upperworks-starboard-2",
+        "name": "Upperworks · starboard · forward",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          8.848600000000001,
+          18.89405,
+          -70.9625
+        ],
+        "size": [
+          17.697200000000002,
+          19.988100000000003,
+          28.387
+        ]
+      },
+      {
+        "id": "upperworks-starboard-3",
+        "name": "Upperworks · starboard · forward amidships",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          8.848600000000001,
+          18.89405,
+          -42.5775
+        ],
+        "size": [
+          17.697200000000002,
+          19.988100000000003,
+          28.387
+        ]
+      },
+      {
+        "id": "upperworks-starboard-4",
+        "name": "Upperworks · starboard · amidships forward",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          8.848600000000001,
+          18.89405,
+          -14.192499999999995
+        ],
+        "size": [
+          17.697200000000002,
+          19.988100000000003,
+          28.387
+        ]
+      },
+      {
+        "id": "upperworks-starboard-5",
+        "name": "Upperworks · starboard · amidships aft",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          8.848600000000001,
+          18.89405,
+          14.192499999999995
+        ],
+        "size": [
+          17.697200000000002,
+          19.988100000000003,
+          28.387
+        ]
+      },
+      {
+        "id": "upperworks-starboard-6",
+        "name": "Upperworks · starboard · aft amidships",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          8.848600000000001,
+          18.89405,
+          42.5775
+        ],
+        "size": [
+          17.697200000000002,
+          19.988100000000003,
+          28.387
+        ]
+      },
+      {
+        "id": "upperworks-starboard-7",
+        "name": "Upperworks · starboard · aft",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          8.848600000000001,
+          18.89405,
+          70.96249999999999
+        ],
+        "size": [
+          17.697200000000002,
+          19.988100000000003,
+          28.387
+        ]
+      },
+      {
+        "id": "upperworks-starboard-8",
+        "name": "Upperworks · starboard · stern",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          8.848600000000001,
+          18.89405,
+          99.34750000000001
+        ],
+        "size": [
+          17.697200000000002,
+          19.988100000000003,
+          28.387
+        ]
+      },
+      {
+        "id": "mount-main-a",
+        "name": "A turret",
+        "kind": "mount",
+        "mountId": "main-a",
+        "center": [
+          0,
+          6.838099999999999,
+          -50
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.025
+      },
+      {
+        "id": "mount-main-b",
+        "name": "B turret",
+        "kind": "mount",
+        "mountId": "main-b",
+        "center": [
+          0,
+          10.5381,
+          -35
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.025
+      },
+      {
+        "id": "mount-main-y",
+        "name": "Y turret",
+        "kind": "mount",
+        "mountId": "main-y",
+        "center": [
+          0,
+          6.838099999999999,
+          60
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.025
+      },
+      {
+        "id": "mount-secondary-p1",
+        "name": "P1 5.25-inch",
+        "kind": "mount",
+        "mountId": "secondary-p1",
+        "center": [
+          -11.4,
+          6.838099999999999,
+          -12.5
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-secondary-p2",
+        "name": "P2 5.25-inch",
+        "kind": "mount",
+        "mountId": "secondary-p2",
+        "center": [
+          -11.4,
+          9.9881,
+          -2
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-secondary-p3",
+        "name": "P3 5.25-inch",
+        "kind": "mount",
+        "mountId": "secondary-p3",
+        "center": [
+          -11.4,
+          9.9881,
+          23.5
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-secondary-p4",
+        "name": "P4 5.25-inch",
+        "kind": "mount",
+        "mountId": "secondary-p4",
+        "center": [
+          -11.4,
+          6.838099999999999,
+          34
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-secondary-s1",
+        "name": "S1 5.25-inch",
+        "kind": "mount",
+        "mountId": "secondary-s1",
+        "center": [
+          11.4,
+          6.838099999999999,
+          -12.5
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-secondary-s2",
+        "name": "S2 5.25-inch",
+        "kind": "mount",
+        "mountId": "secondary-s2",
+        "center": [
+          11.4,
+          9.9881,
+          -2
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-secondary-s3",
+        "name": "S3 5.25-inch",
+        "kind": "mount",
+        "mountId": "secondary-s3",
+        "center": [
+          11.4,
+          9.9881,
+          23.5
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-secondary-s4",
+        "name": "S4 5.25-inch",
+        "kind": "mount",
+        "mountId": "secondary-s4",
+        "center": [
+          11.4,
+          6.838099999999999,
+          34
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      }
+    ],
+    "basis": "Original game calibration: eight longitudinal sections, independent sides and three height bands, with separate gunhouse budgets. Generator/director proxy positions and fire loads are estimated; no historical structural tolerance, electrical routing, ventilation or crew-performance claim."
   }
 }

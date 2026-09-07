@@ -3,6 +3,7 @@ import type { Combatant } from '../simulation/damage';
 import { add, scale } from '../simulation/geometry';
 import { motionVelocity } from '../simulation/ship';
 import { muzzleCenterWorld, shotDirection, type MountState } from '../simulation/weapons';
+import { supportPerformance } from '../simulation/machinery';
 import { ballisticStep } from '../simulation/ballistics';
 
 export interface GunAimPoint {
@@ -15,6 +16,7 @@ export interface GunAimPoint {
  */
 export function gunAimPoints(actor: Combatant, definition: ShipDefinition, battery: Battery, aim: Vec3): GunAimPoint[] {
   let number = 0;
+  const workRate = .25 + .75 * supportPerformance(actor, definition).power;
   return definition.mounts.flatMap((mount, i) => {
     if (mount.battery !== battery) return [];
     const state = actor.mounts[i], origin = muzzleCenterWorld(mount, state, actor.motion);
@@ -33,6 +35,6 @@ export function gunAimPoints(actor: Combatant, definition: ShipDefinition, batte
     const point = ballisticStep(origin, velocity, high, drag).position;
     point[1] = Math.max(0, point[1]);
     return [{ id: mount.id, number: ++number, name: mount.name, point,
-      aligned: state.status === 'ready' || state.status === 'reloading', status: state.status, reload: state.reload }];
+      aligned: state.status === 'ready' || state.status === 'reloading', status: state.status, reload: state.reload / workRate }];
   });
 }

@@ -21,3 +21,7 @@ The export checks certify the blueprint/model contract, not historical accuracy.
 | Moving fittings | Gun and torpedo mount articulation is functional. Screw and rudder pivots are retained but remain static while sailing. Both screw pivots were manually rotated in the loaded game model for inspection; this is not new sailing animation. |
 | GameModels3D | Inspected via seventeen retained raster captures of WoWS Fletcher pasd021. Identical cameras and one global 15 m/viewer-unit registration support raster silhouette comparison; source waterline/refit are unverified. No game topology, transforms, UVs or textures entered the production recipe. |
 | Plans access | ONI 222-US page 89 side/top recognition drawings, Navy OP 1112 p.288 mount drawing and All Hands October 1952 p.3 propeller photograph were actually inspected and preserved. Sigsbee and Bath Iron Works full plates could not be retrieved; no dimensional claims are based on those inaccessible plates. |
+
+## Local damage and fire calibration — 2026-09-06
+
+Local regions, generator and director proxies, combustible loads and smoke outlets are independently authored gameplay estimates from the existing layout. They are not historically measured structural subdivisions, generator schedules or ventilation plans. Electrical supply is aggregated with manual gun fallback; directors share a targeting penalty. Breach overlap uses bounded aperture sampling. See `assets/ships/author-local-damage.ts`.

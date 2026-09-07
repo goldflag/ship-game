@@ -10,3 +10,7 @@
 - Open — Gun ballistics, ammunition, AP/HE, reload, traverse/elevation and damage are provisional game calibration.
 - Reviewed — Functional guns retain independent yaw, elevation, recoil and muzzle sockets. Hull sections and CPU hit/flood geometry share the versioned blueprint. Screw and rudder retain separate pivot empties.
 - Scope — Cargo handling, sonar, depth-charge attacks and minesweeping are not implemented. Small fittings are visual-only; surface combat uses the shared renderer-free simulation.
+
+## Local damage and fire calibration — 2026-09-06
+
+Local regions, generator and director proxies, combustible loads and smoke outlets are independently authored gameplay estimates from the existing layout. They are not historically measured structural subdivisions, generator schedules or ventilation plans. Electrical supply is aggregated with manual gun fallback; directors share a targeting penalty. Breach overlap uses bounded aperture sampling. See `assets/ships/author-local-damage.ts`.
