@@ -1,3 +1,4 @@
+import { Select, SelectOption, Button, Input } from './components';
 import { assetUrl } from '../assetUrl';
 import { OCEAN_MAPS, oceanMap, DEFAULT_MAP, mapIslands } from '../maps/catalog';
 import { battleEnvironment, formatBattleTime } from '../maps/conditions';
@@ -69,13 +70,13 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, error }:
     return <li key={`${team}-${index}`}>
       <img src={assetUrl(`models/${id}-thumbnail.png`)} width="120" height="36" alt=""/>
       <span className="battle-roster-name"><span>{shipName(id)}</span><small>{teamLabel(team)} bot {index + 1}</small></span>
-      <select id={controlId} className="battle-roster-ai" aria-label={`AI level for ${who}`} title={description} value={aiLevel} aria-describedby={`${controlId}-description`} onChange={event => onChange({ ...setup,
-        [team]: setup[team].map((selection, i) => i === index ? { shipId: id, aiLevel: event.target.value as ShipAiLevel } : selection),
+      <Select id={controlId} className="battle-roster-ai" aria-label={`AI level for ${who}`} title={description} value={aiLevel} aria-describedby={`${controlId}-description`} onValueChange={value => onChange({ ...setup,
+        [team]: setup[team].map((selection, i) => i === index ? { shipId: id, aiLevel: value as ShipAiLevel } : selection),
       })}>
-        {SHIP_AI_LEVELS.map(level => <option key={level.id} value={level.id}>{level.name}</option>)}
-      </select>
+        {SHIP_AI_LEVELS.map(level => <SelectOption key={level.id} value={level.id}>{level.name}</SelectOption>)}
+      </Select>
       <span className="battle-sr-only" id={`${controlId}-description`}>{description}</span>
-      <button className="icon-button" title="Remove" aria-label={`Remove ${who}`} onClick={() => removeShip(team, index)}><Icon name="close" size={16}/></button>
+      <Button variant="icon" title="Remove" aria-label={`Remove ${who}`} onClick={() => removeShip(team, index)}><Icon name="close" size={16}/></Button>
     </li>;
   });
   const team = (team: Team) => {
@@ -90,12 +91,12 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, error }:
         <span className={full ? 'battle-team-full' : undefined}>{count} / {MAX_TEAM_SHIPS} ships{full && ' · full'}</span>
         {setup[team].length > 0 && <div className="battle-roster-all">
           <label htmlFor={`battle-ai-all-${team}`}>All bots</label>
-          <select id={`battle-ai-all-${team}`} value={shared} title={`Set every ${teamLabel(team).toLocaleLowerCase()} bot to one AI level`} onChange={event => {
-            if (event.target.value) onChange({ ...setup, [team]: setup[team].map(entry => ({ shipId: botSelection(entry).shipId, aiLevel: event.target.value as ShipAiLevel })) });
+          <Select id={`battle-ai-all-${team}`} value={shared} title={`Set every ${teamLabel(team).toLocaleLowerCase()} bot to one AI level`} onValueChange={value => {
+            if (value) onChange({ ...setup, [team]: setup[team].map(entry => ({ shipId: botSelection(entry).shipId, aiLevel: value as ShipAiLevel })) });
           }}>
-            <option value="" disabled>{shared ? 'Set all…' : 'Mixed'}</option>
-            {SHIP_AI_LEVELS.map(level => <option key={level.id} value={level.id}>{level.name}</option>)}
-          </select>
+            <SelectOption value="" disabled>{shared ? 'Set all…' : 'Mixed'}</SelectOption>
+            {SHIP_AI_LEVELS.map(level => <SelectOption key={level.id} value={level.id}>{level.name}</SelectOption>)}
+          </Select>
         </div>}
       </header>
       <ol className="battle-roster">
@@ -109,7 +110,7 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, error }:
       <header><h3 id="catalog-title">Ships</h3><span role="status">{filteredShips.length} / {ships.length} hulls</span></header>
       <div className="battle-catalog-filter">
         <label htmlFor="battle-ship-filter" className="battle-sr-only">Filter ships</label>
-        <input id="battle-ship-filter" type="search" placeholder="Search hulls…" value={filter} onChange={event => setFilter(event.target.value)} aria-controls="battle-ship-results" />
+        <Input id="battle-ship-filter" type="search" placeholder="Search hulls…" value={filter} onChange={event => setFilter(event.target.value)} aria-controls="battle-ship-results" />
         {filter && <button onClick={() => setFilter('')}>Clear</button>}
       </div>
       <ul id="battle-ship-results" className="battle-catalog-list">
@@ -130,7 +131,7 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, error }:
       <legend>Battle waters</legend>
       <div className="battle-map-options">
         {OCEAN_MAPS.map(option => <label key={option.id} className="battle-map-option" title={option.description}>
-          <input type="radio" name="ocean-map" value={option.id} checked={map.id === option.id} onChange={() => onChange({ ...setup, mapId: option.id })}/>
+          <Input type="radio" name="ocean-map" value={option.id} checked={map.id === option.id} onChange={() => onChange({ ...setup, mapId: option.id })}/>
           <img src={assetUrl(`maps/${option.id}.webp`)} alt="" width="320" height="180"/>
           <span>{option.name}</span><small>{option.region}</small>
         </label>)}
@@ -147,7 +148,7 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, error }:
         ].map(control => <div className="battle-condition-slider" key={control.key}>
           <label htmlFor={control.id}>{control.label}</label>
           <output htmlFor={control.id}>{control.reading}</output>
-          <input id={control.id} type="range" min={0} max={control.max} step={control.step} value={control.value}
+          <Input id={control.id} type="range" min={0} max={control.max} step={control.step} value={control.value}
             aria-valuetext={control.reading} aria-describedby={`${control.id}-description`}
             onChange={event => onChange({ ...setup, [control.key]: Number(event.target.value) })}/>
           <div className="battle-slider-scale" aria-hidden="true"><span>{control.ends[0]}</span><span>{control.ends[1]}</span></div>
@@ -158,14 +159,14 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, error }:
   const distance = (<div className="battle-deployment">
       <label htmlFor="battle-spawn-distance">Spawn distance</label>
       <output htmlFor="battle-spawn-distance">{setup.spawnDistance / 1000} km</output>
-      <input id="battle-spawn-distance" type="range" min={MIN_BATTLE_SPAWN_DISTANCE} max={MAX_BATTLE_SPAWN_DISTANCE} step={500} value={setup.spawnDistance}
+      <Input id="battle-spawn-distance" type="range" min={MIN_BATTLE_SPAWN_DISTANCE} max={MAX_BATTLE_SPAWN_DISTANCE} step={500} value={setup.spawnDistance}
         aria-valuetext={`${setup.spawnDistance / 1000} kilometers`} aria-describedby="battle-spawn-description"
         onChange={event => onChange({ ...setup, spawnDistance: Number(event.target.value), spawns: undefined })}/>
       <div className="battle-distance-limits" aria-hidden="true"><span>{MIN_BATTLE_SPAWN_DISTANCE / 1000} km</span><span>{MAX_BATTLE_SPAWN_DISTANCE / 1000} km</span></div>
       <p id="battle-spawn-description">Distance between the leading ships in each formation. Changing this resets custom positions.</p>
     </div>);
   return <dialog ref={dialog} className="battle-setup" aria-labelledby="battle-setup-title" aria-describedby="battle-setup-description" onCancel={event => { event.preventDefault(); onClose(); }}>
-    <div className="battle-setup-heading"><h2 id="battle-setup-title">Custom battle</h2><button className="icon-button" aria-label="Close battle setup" onClick={onClose}><Icon name="close"/></button></div>
+    <div className="battle-setup-heading"><h2 id="battle-setup-title">Custom battle</h2><Button variant="icon" aria-label="Close battle setup" onClick={onClose}><Icon name="close"/></Button></div>
     <p id="battle-setup-description">Pick ships from the catalog to build both fleets. You command one ship; bots command the rest.</p>
     <div className="battle-board">
       {catalog}
@@ -177,7 +178,7 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, error }:
     {error && <p className="battle-error" role="alert">{error} Your fleet is kept here; try launching again.</p>}
     <footer>
       <div className="battle-briefing"><Icon name="compass" size={21}/><p><strong>{map.name}</strong><span>{formatBattleTime(timeHours)} · {cloudCover}% clouds · {windSpeed} m/s wind</span><span>{setup.friendlyBots.length + 1} v {setup.enemies.length} ships · {setup.spawnDistance / 1000} km apart</span><span>Defeat the opposing fleet to win.</span></p></div>
-      <button className="secondary-button" onClick={onClose}>Back to port</button><button className="primary-button" disabled={!setup.enemies.length || !!placementError} onClick={onLaunch}>Start battle<Icon name="arrow" size={18}/></button>
+      <Button variant="secondary" onClick={onClose}>Back to port</Button><Button variant="primary" disabled={!setup.enemies.length || !!placementError} onClick={onLaunch}>Start battle<Icon name="arrow" size={18}/></Button>
     </footer>
   </dialog>;
 }

@@ -1,4 +1,6 @@
+import { Button, Select, SelectOption } from './components';
 import { useState, type ReactNode } from 'react';
+import { Icon } from './Icons';
 import type { Game } from '../game/Game';
 import type { CombatTelemetry } from '../simulation/combat';
 
@@ -39,14 +41,15 @@ export function BattleStatus({ combat, game, children, spectatedShipId }: { comb
       {teammates.length ? <>
         <label htmlFor="spectated-ship">Spectating teammate</label>
         <div className="fleet-spectator-controls">
-          <button disabled={teammates.length < 2} onClick={() => game?.cycleSpectator(-1)} aria-label="Spectate previous teammate">Previous</button>
-          <select id="spectated-ship" value={spectatedShipId ?? ''} onChange={event => game?.spectateTeammate(event.target.value)}>
-            {!spectatedShipId && <option value="" disabled>Choose teammate</option>}
-            {teammates.map(contact => <option key={contact.id} value={contact.id}>{contactLabel(contact)}</option>)}
-          </select>
-          <button disabled={teammates.length < 2} onClick={() => game?.cycleSpectator(1)} aria-label="Spectate next teammate">Next</button>
+          <Button variant="icon" disabled={teammates.length < 2} onClick={event => { game?.cycleSpectator(-1); event.currentTarget.blur(); }} aria-label="Spectate previous teammate" title="Previous teammate · Left arrow" aria-keyshortcuts="ArrowLeft"><Icon name="chevron" size={16} style={{ transform: 'rotate(90deg)' }}/></Button>
+          <Select id="spectated-ship" value={spectatedShipId ?? ''} onValueChange={value => game?.spectateTeammate(value)}>
+            {!spectatedShipId && <SelectOption value="" disabled>Choose teammate</SelectOption>}
+            {teammates.map(contact => <SelectOption key={contact.id} value={contact.id}>{contactLabel(contact)}</SelectOption>)}
+          </Select>
+          <Button variant="icon" disabled={teammates.length < 2} onClick={event => { game?.cycleSpectator(1); event.currentTarget.blur(); }} aria-label="Spectate next teammate" title="Next teammate · Right arrow" aria-keyshortcuts="ArrowRight"><Icon name="chevron" size={16} style={{ transform: 'rotate(-90deg)' }}/></Button>
         </div>
-        <small>Click sea to look around · Scroll to zoom · Hold Ctrl for cursor</small>
+        <small>← / → switch teammates · Hold Ctrl for cursor</small>
+        <small>Click sea to look around · Scroll to zoom</small>
       </> : <small role="status">No teammates remaining to spectate</small>}
     </div>}
     {children}

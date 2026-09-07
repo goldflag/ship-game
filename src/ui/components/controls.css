@@ -1,0 +1,44 @@
+:root {
+  --control-surface: #0e2530;
+  --control-hover: #233e48;
+  --control-text: #e1e9e9;
+  --control-muted: #bacbd0;
+  --control-border: #728b9266;
+  --control-accent: #e0c58d;
+  --control-radius: 3px;
+}
+.ui-button, .ui-select, .ui-input {
+  font: inherit; color: var(--control-text); border: 1px solid var(--control-border);
+  border-radius: var(--control-radius); background: var(--control-surface);
+  min-height: 36px; padding: 7px 10px; text-shadow: none;
+}
+.ui-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.ui-button, .ui-select { cursor: pointer; touch-action: manipulation; }
+.ui-button:hover:not(:disabled), .ui-select:hover:not(:disabled) { background: var(--control-hover); border-color: var(--control-accent); }
+.ui-button.primary-button { background: var(--control-accent); color: #152b32; border-color: var(--control-accent); }
+.ui-button.primary-button:hover:not(:disabled) { background: #efd5a0; }
+.ui-button.icon-button { display: inline-flex; align-items: center; justify-content: center; padding: 7px; }
+.ui-button:disabled, .ui-select:disabled, .ui-input:disabled { opacity: .4; cursor: default; }
+/* An inset mark stays visible under the game's global no-outline policy. */
+.ui-button:focus-visible, .ui-select:focus-visible, .ui-input:focus-visible { box-shadow: inset 0 0 0 2px var(--control-accent); }
+.ui-select { display: inline-flex; justify-content: space-between; align-items: center; gap: 10px; min-width: 0; text-align: left; }
+.ui-select-value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ui-select > svg { flex: 0 0 auto; color: var(--control-accent); }
+.ui-select[aria-expanded=true] { border-color: var(--control-accent); }
+.ui-select[aria-expanded=true] > svg { transform: rotate(180deg); }
+.ui-select-menu {
+  position: fixed; inset: auto; margin: 0; padding: 4px; box-sizing: border-box;
+  border: 1px solid var(--control-border); border-radius: var(--control-radius);
+  background: var(--control-surface); color: var(--control-text); text-shadow: none;
+  font: 400 14px/1.35 'Barlow', sans-serif; text-align: left; letter-spacing: normal; text-transform: none;
+  overflow: auto; overscroll-behavior: contain; scrollbar-width: thin;
+  scrollbar-color: var(--control-muted) var(--control-surface);
+  box-shadow: 0 8px 24px #06172066; pointer-events: auto;
+}
+.ui-select-option { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; padding: 8px; cursor: pointer; overflow-wrap: anywhere; }
+.ui-select-option > svg { flex-shrink: 0; color: var(--control-accent); }
+.ui-select-option[data-active=true]:not([aria-disabled=true]) { background: var(--control-hover); }
+.ui-select-option[aria-selected=true] { color: var(--control-accent); }
+.ui-select-option[aria-disabled=true] { color: var(--control-muted); opacity: .6; cursor: default; }
+.ui-input:is([type=range], [type=checkbox], [type=radio]) { min-height: auto; padding: 0; accent-color: var(--control-accent); }
+@media (pointer: coarse) { .ui-button, .ui-select, .ui-select-option { min-height: 44px; } }
