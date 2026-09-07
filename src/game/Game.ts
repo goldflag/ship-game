@@ -878,7 +878,7 @@ export class Game {
     this.water.color.update({ waterColor: colors.waterColor, transmissionColor: colors.transmissionColor, absorptionColor: colors.absorptionColor });
     this.surfaceWaterAbsorption.copy(this.water.color.absorptionColor);
     this.water.foam.waves.opacity = this.inPort ? .45 : map.water.foam;
-    this.effects.setWind(this.water.waves.windSpeed.value);
+    this.effects.setWind(this.water.waves.windSpeed.value, this.water.waves.windDirection.value);
     this.funnelSmoke.setWind(this.water.waves.windSpeed.value, this.water.waves.windDirection.value);
   }
   private updatePortLighting(): void {
