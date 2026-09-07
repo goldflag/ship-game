@@ -22897,9 +22897,11 @@
         "muzzleSpeed": 881,
         "projectileMassKg": 0.9,
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay calibration, based on the existing original Baltimore Bofors fitting. Four evenly spaced barrel axes approximate the authored spacing; not a historical fire-control model."
+          "dragPerSecond": 0.18836,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 692.757864,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -22953,9 +22955,11 @@
         "muzzleSpeed": 881,
         "projectileMassKg": 0.9,
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay calibration, based on the existing original Baltimore Bofors fitting. Four evenly spaced barrel axes approximate the authored spacing; not a historical fire-control model."
+          "dragPerSecond": 0.18836,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 692.757864,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -23009,9 +23013,11 @@
         "muzzleSpeed": 881,
         "projectileMassKg": 0.9,
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay calibration, based on the existing original Baltimore Bofors fitting. Four evenly spaced barrel axes approximate the authored spacing; not a historical fire-control model."
+          "dragPerSecond": 0.18836,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 692.757864,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -23065,9 +23071,11 @@
         "muzzleSpeed": 881,
         "projectileMassKg": 0.9,
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay calibration, based on the existing original Baltimore Bofors fitting. Four evenly spaced barrel axes approximate the authored spacing; not a historical fire-control model."
+          "dragPerSecond": 0.18836,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 692.757864,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -23121,9 +23129,11 @@
         "muzzleSpeed": 881,
         "projectileMassKg": 0.9,
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay calibration, based on the existing original Baltimore Bofors fitting. Four evenly spaced barrel axes approximate the authored spacing; not a historical fire-control model."
+          "dragPerSecond": 0.18836,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 692.757864,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -23177,9 +23187,11 @@
         "muzzleSpeed": 881,
         "projectileMassKg": 0.9,
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay calibration, based on the existing original Baltimore Bofors fitting. Four evenly spaced barrel axes approximate the authored spacing; not a historical fire-control model."
+          "dragPerSecond": 0.18836,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 692.757864,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -23233,9 +23245,11 @@
         "muzzleSpeed": 881,
         "projectileMassKg": 0.9,
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay calibration, based on the existing original Baltimore Bofors fitting. Four evenly spaced barrel axes approximate the authored spacing; not a historical fire-control model."
+          "dragPerSecond": 0.18836,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 692.757864,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -23289,9 +23303,11 @@
         "muzzleSpeed": 881,
         "projectileMassKg": 0.9,
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay calibration, based on the existing original Baltimore Bofors fitting. Four evenly spaced barrel axes approximate the authored spacing; not a historical fire-control model."
+          "dragPerSecond": 0.18836,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 692.757864,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -23345,9 +23361,11 @@
         "muzzleSpeed": 881,
         "projectileMassKg": 0.9,
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay calibration, based on the existing original Baltimore Bofors fitting. Four evenly spaced barrel axes approximate the authored spacing; not a historical fire-control model."
+          "dragPerSecond": 0.18836,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 692.757864,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -23401,9 +23419,11 @@
         "muzzleSpeed": 881,
         "projectileMassKg": 0.9,
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay calibration, based on the existing original Baltimore Bofors fitting. Four evenly spaced barrel axes approximate the authored spacing; not a historical fire-control model."
+          "dragPerSecond": 0.18836,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 692.757864,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -23457,9 +23477,11 @@
         "muzzleSpeed": 881,
         "projectileMassKg": 0.9,
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay calibration, based on the existing original Baltimore Bofors fitting. Four evenly spaced barrel axes approximate the authored spacing; not a historical fire-control model."
+          "dragPerSecond": 0.18836,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 692.757864,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -23513,9 +23535,11 @@
         "muzzleSpeed": 881,
         "projectileMassKg": 0.9,
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay calibration, based on the existing original Baltimore Bofors fitting. Four evenly spaced barrel axes approximate the authored spacing; not a historical fire-control model."
+          "dragPerSecond": 0.18836,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 692.757864,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     }
@@ -114426,5 +114450,5 @@
     "basis": "Original game calibration: eight longitudinal sections, independent sides and three height bands, with separate gunhouse budgets. Generator/director proxy positions and fire loads are estimated; no historical structural tolerance, electrical routing, ventilation or crew-performance claim."
   },
   "compilerVersion": 1,
-  "contentHash": "d51b9a257be75c99ac6cfd835255d4c4de2f78fa51421b8c6a1ffae635c0dffc"
+  "contentHash": "0a4e6833aab039ae9b4591acf42971a019cd382e1ade3f28d4291e119eac9865"
 }
