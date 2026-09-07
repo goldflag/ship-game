@@ -127,3 +127,89 @@
 .spawn-selection label:first-child { flex:3; }
 .spawn-planner>.battle-error:empty { display:none; }
 @media(max-width:600px) { .spawn-marker { width:30px; height:30px; font-size:10px; gap:2px; } .spawn-bow { width:6px; height:14px; } }
+
+/* Selected command-desk layout: configuration, fleet, and deployment. */
+.battle-setup.battle-wide[open] { width:min(1600px,calc(100vw - 64px)); height:min(780px,calc(100dvh - 64px)); max-height:calc(100dvh - 64px); padding:20px 24px; overflow:hidden; margin:auto; display:flex; flex-direction:column; }
+.battle-wide .battle-setup-heading { flex-shrink:0; }
+.battle-wide .battle-setup-heading h2 { font-size:30px; }
+.battle-wide .battle-setup-heading+p { margin:5px 0 16px; font-size:13px; }
+.battle-wide .battle-briefing { padding:10px 0 0; font-size:12px; }
+.battle-wide .battle-briefing p { display:flex; flex-wrap:wrap; gap:6px 16px; }
+.battle-wide footer { flex-shrink:0; padding-top:12px; margin-top:auto; }
+.battle-wide .battle-error { margin:5px 0; font-size:12px; }
+.battle-desk { flex:1; min-height:0; display:grid; gap:20px; overflow:hidden; }
+.battle-desk { grid-template-columns:230px minmax(450px,1.6fr) minmax(300px,1fr); }
+.battle-desk>* { min-width:0; overflow:auto; scrollbar-width:thin; }
+.battle-desk>aside:first-child { padding-right:16px; border-right:1px solid var(--line); }
+.battle-wide fieldset { margin:0 0 16px; }
+.battle-wide legend,.battle-wide h3 { font:500 21px/1.2 'Barlow Condensed',sans-serif; }
+.battle-wide legend { margin-bottom:8px; }
+.battle-wide .battle-map-options { grid-template-columns:1fr 1fr; gap:6px; }
+.battle-wide .battle-map-option { padding-bottom:6px; gap:2px; }
+.battle-wide .battle-map-option img { height:48px; }
+.battle-wide .battle-map-option input { top:5px; left:5px; width:14px; height:14px; }
+.battle-wide .battle-map-option>span { margin:3px 6px 0; font-size:16px; }
+.battle-wide .battle-map-option>small { margin:0 6px; font-size:11px; }
+.battle-wide .battle-map-detail { font-size:12px; margin-top:8px; }
+.battle-wide .battle-condition-options { gap:10px; grid-template-columns:1fr; }
+.battle-wide .battle-condition-options label { margin-bottom:4px; }
+.battle-wide select { min-height:32px; padding:5px 6px; font-size:12px; }
+.battle-wide .battle-condition-options p { font-size:12px; margin-top:4px; }
+.battle-wide .battle-builder { display:flex; flex-direction:column; gap:16px; }
+.battle-wide .battle-catalog { width:100%; }
+.battle-wide .battle-builder header { padding-bottom:7px; }
+.battle-wide .battle-catalog-filter { margin:8px 0 4px; }
+.battle-wide .battle-catalog-filter>label { position:absolute; clip-path:inset(50%); width:1px; height:1px; overflow:hidden; }
+.battle-wide .battle-catalog-list { max-height:200px; }
+.battle-wide .battle-catalog-list li { grid-template-columns:54px minmax(90px,1fr) auto; grid-template-areas:'thumb name actions' 'thumb size actions'; gap:2px 8px; padding:7px 0; }
+.battle-wide .battle-catalog-list img { width:54px; }
+.battle-wide .battle-catalog-actions { margin:0; gap:4px; }
+.battle-wide .battle-catalog-actions button { padding:5px 7px; font-size:11px; }
+.battle-wide .battle-catalog-actions svg { display:none; }
+.battle-wide .battle-rosters { width:100%; gap:16px; }
+.battle-wide .battle-roster { max-height:210px; overflow:auto; scrollbar-width:thin; }
+.battle-wide .battle-roster li { grid-template-columns:44px minmax(0,1fr) 28px; gap:4px 7px; padding:7px 0; }
+.battle-wide .battle-roster img { width:44px; height:24px; }
+.battle-wide .battle-roster-name { font-size:13px; }
+.battle-wide .battle-roster-ai { gap:4px; }
+.battle-wide .battle-roster-ai p { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+.battle-wide .battle-deployment { margin-top:12px; padding-top:12px; }
+.battle-wide .battle-deployment p { font-size:12px; margin-top:5px; }
+.battle-wide .spawn-planner { margin:0; padding:0; border:0; }
+.battle-wide .spawn-controls { gap:8px; margin:8px 0; }
+.battle-wide .spawn-controls label { min-width:90px; font-size:12px; gap:4px; }
+.battle-wide .spawn-controls button { min-height:32px; font-size:12px; padding:5px 8px; }
+.battle-wide .spawn-chart { max-width:400px; }
+.battle-wide .spawn-planner>p { font-size:11px; margin:8px 0; }
+.battle-pages { display:flex; flex-wrap:wrap; gap:8px; flex-shrink:0; border-bottom:1px solid var(--line); padding-bottom:10px; margin-bottom:16px; }
+.battle-pages button { padding:8px 14px; min-height:36px; border:1px solid transparent; border-radius:3px; background:transparent; color:var(--muted); font:500 14px 'Barlow',sans-serif; cursor:pointer; }
+.battle-pages button[aria-pressed=true] { color:var(--accent); border-color:var(--accent); background:#9fe0ca0c; }
+.battle-pages button:hover { color:var(--accent); }
+.battle-wide button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.battle-desk[hidden],.battle-waters-page[hidden] { display:none; }
+.battle-waters-page { flex:1; min-height:0; overflow:auto; }
+.battle-wide .battle-waters-page .battle-map-options { grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; }
+.battle-wide .battle-waters-page .battle-map-option img { height:auto; aspect-ratio:16/9; }
+.battle-wide .battle-waters-page .battle-map-option>span { font-size:21px; margin:8px 12px 0; }
+.battle-wide .battle-waters-page .battle-map-option>small { margin:4px 12px 8px; font-size:13px; }
+.battle-wide .battle-waters-page .battle-map-option input { width:18px; height:18px; top:10px; left:10px; }
+/* Reveal AI help for keyboard and pointer users without permanently expanding every bot. */
+.battle-wide .battle-roster-ai:focus-within p { position:static; width:auto; height:auto; clip-path:none; }
+@media(max-width:1150px) {
+ .battle-desk { grid-template-columns:200px minmax(350px,1fr); overflow:auto; }
+ .battle-desk>aside:last-child { grid-column:1/-1; }
+ .battle-wide .battle-catalog-list li { grid-template-columns:54px 1fr; grid-template-areas:'thumb name' 'thumb size' 'actions actions'; }
+}
+@media(max-width:720px) {
+ .battle-setup.battle-wide[open] { width:calc(100vw - 20px); padding:14px; height:calc(100dvh - 20px); max-height:calc(100dvh - 20px); }
+ .battle-desk { display:block; overflow:auto; }
+ .battle-desk>aside:first-child { padding:0; border:0; }
+ .battle-desk>* { overflow:visible; }
+ .battle-wide .battle-condition-options { grid-template-columns:1fr 1fr; }
+ .battle-wide .battle-waters-page .battle-map-options { grid-template-columns:1fr 1fr; gap:10px; }
+ .battle-wide .battle-rosters { grid-template-columns:1fr; }
+ .battle-wide .battle-briefing { display:none; }
+ .battle-pages { gap:4px; }
+ .battle-pages button { min-height:44px; padding:7px 9px; font-size:13px; }
+ .battle-wide select,.battle-wide .battle-catalog-actions button,.battle-wide .battle-roster .icon-button { min-height:44px; }
+}
