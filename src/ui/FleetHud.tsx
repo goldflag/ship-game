@@ -78,10 +78,6 @@ function AmmoGlyph({ secondary = false, torpedo = false, depthCharge = false, am
   </svg>;
 }
 
-function BinocularGlyph() {
-  return <svg className="fleet-optics-glyph" viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m10 41 6-25h11l2 25m6 0 2-25h11l6 25M27 25h10M28 32h8M18 16v-5h7v5m14 0v-5h7v5"/><circle cx="19" cy="43" r="10" fill="#233e4a"/><circle cx="45" cy="43" r="10" fill="#233e4a"/><circle cx="19" cy="43" r="6" strokeOpacity=".45"/><circle cx="45" cy="43" r="6" strokeOpacity=".45"/></svg>;
-}
-
 function ActiveArmament({ data, game, bindings }: FleetHudProps) {
   const selectedShip = useShip();
   const combat = data.combat;
@@ -117,8 +113,6 @@ function ActiveArmament({ data, game, bindings }: FleetHudProps) {
           {group.reload > 0 && Number.isFinite(group.reload) && group.ready === 0 && <span className="fleet-slot-cooldown">{Math.ceil(group.reload)}<small>s</small></span>}
           <kbd>{shortcut(index)}</kbd>
         </button>)}
-        <button className="fleet-weapon-slot fleet-utility-slot" aria-label="Toggle binocular aiming · Shift" aria-pressed={!!data.binoculars} onClick={event => { game?.toggleBinoculars(); event.currentTarget.blur(); }}><span className="fleet-slot-label">BINOCULARS</span><BinocularGlyph/><strong className="fleet-slot-value">{data.binoculars ? `${(data.magnification ?? 1).toFixed(1)}×` : ''}</strong><kbd>SHIFT</kbd></button>
-        <button className="fleet-weapon-slot fleet-fire-slot" aria-label={`${depthCharges ? 'Drop depth charge' : torpedoes ? 'Launch torpedo' : 'Fire aligned guns'} · Left mouse or ${bindingLabel(bindings, 'fire')}`} disabled={!combat.ready || combat.playerSunk} onClick={event => { game?.fire(); event.currentTarget.blur(); }}><span className="fleet-slot-label">{depthCharges ? 'DROP' : 'FIRE'}</span><Icon name="turret" size={39}/><kbd>{bindingLabel(bindings, 'fire')} / LMB</kbd></button>
       </div>
     </div>
   </section>;

@@ -48,3 +48,15 @@ After integration, `bun run build` passed all asset checks, TypeScript and Vite;
 76 focused tests passed across the Game, GameFrame, FleetHud, ShipView, gunAim,
 weaponGroups and ammunition suites. Prior browser evidence above predates this
 integration; the integration-specific behavior is covered by those tests.
+
+## Single-row follow-up
+
+Removed the binocular and fire utility buttons from the weapon strip; their
+keyboard/mouse controls remain available. Removed the grid wrapping rules so
+only fitted weapon groups occupy one row. Prior screenshots and two-row bounds
+above are retained as historical evidence and predate this adjustment.
+
+`bun run build` passed, and the FleetHud/InputController suites passed all 22
+tests. In the live Orca browser, all five Bismarck weapon buttons shared the same
+top coordinate at 1189 × 916 (834.996 px) and 390 × 844 (112.5 px), stayed within
+the viewport, and neither utility button remained in the DOM.
