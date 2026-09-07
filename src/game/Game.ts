@@ -104,7 +104,6 @@ export class Game {
   selectedFlightId?: string;
   private water?: WaterSystem;
   private landscape?: THREE.Group;
-  private battleSea?: GameSettings['sea'];
   private battleTimeOfDay?: TimeOfDayId;
   private battleWeather?: WeatherId;
   private surfaceWaterAbsorption = new THREE.Color();
@@ -365,7 +364,6 @@ export class Game {
       const simulation = new CombatSimulation(definition, { friendlyBots: setup.friendlyBots.map(shipPreset), enemies: setup.enemies.map(shipPreset), spawnDistance: setup.spawnDistance, mapId: setup.mapId,
         seed: crypto.getRandomValues(new Uint32Array(1))[0] });
       await this.replaceFleet(simulation, definition, progress);
-      this.battleSea = setup.sea ?? this.settings?.sea ?? 'Atlantic';
       this.battleTimeOfDay = setup.timeOfDay ?? 'map';
       this.battleWeather = setup.weather ?? 'map';
       progress?.('Forming the battle lines', 0.9);
@@ -765,7 +763,9 @@ export class Game {
     return this.diagnostics();
   }
   diagnostics() {
-    return { mapId: this.simulation.mapId ?? DEFAULT_MAP, sea: this.battleSea ?? this.settings?.sea,
+    return { mapId: this.simulation.mapId ?? DEFAULT_MAP,
+      waves: this.water ? { amplitude: this.water.waves.amplitude.value, windSpeed: this.water.waves.windSpeed.value,
+        peakWavelength: this.water.waves.peakWavelength.value } : undefined,
       timeOfDay: this.battleTimeOfDay ?? 'map', weather: this.battleWeather ?? 'map',
       environment: this.sky ? { sunElevation: this.sky.sun.elevationDeg, sunAzimuth: this.sky.sun.azimuthDeg,
         sunIntensity: this.sky.sun.peakIntensity, ambient: this.ambientLight.intensity,
@@ -821,14 +821,11 @@ export class Game {
   private updateSeaState(): void {
     if (!this.water) return;
     const map = oceanMap(this.simulation.mapId ?? DEFAULT_MAP);
-    const sea = this.battleSea ?? this.settings.sea;
-    const amplitude = sea === 'Fair' ? .09 : sea === 'Heavy' ? .48 : .18;
-    const wind = sea === 'Fair' ? 5 : sea === 'Heavy' ? 16 : 9;
-    const wavelength = sea === 'Fair' ? 12 : sea === 'Heavy' ? 36 : 20;
+    const { waves } = battleEnvironment(map, this.battleTimeOfDay, this.battleWeather);
     // Retain the smaller wave scale across all oceans; port stays sheltered.
-    this.water.waves.amplitude.value = this.inPort ? .12 : amplitude * map.water.amplitudeScale;
-    this.water.waves.windSpeed.value = this.inPort ? 4 : wind * map.water.windScale;
-    this.water.waves.peakWavelength.value = this.inPort ? 14 : wavelength * map.water.wavelengthScale;
+    this.water.waves.amplitude.value = this.inPort ? .12 : waves.amplitude;
+    this.water.waves.windSpeed.value = this.inPort ? 4 : waves.windSpeed;
+    this.water.waves.peakWavelength.value = this.inPort ? 14 : waves.peakWavelength;
     this.water.waves.choppiness.value = .55;
     this.water.waves.windDirection.value = (this.inPort ? 35 : map.water.windDirection) * Math.PI / 180;
     this.water.waves.dirty = true;

@@ -9,7 +9,7 @@
 import { Game } from '/src/game/Game.ts';
 import { shipPreset } from '/src/ships/presets.ts';
 const noop = () => {}, query = new URLSearchParams(location.search);
-const game = new Game(document.querySelector('#scene'), { quality:query.get('quality') ?? 'high', sea:'Atlantic', resolution:1 }, {
+const game = new Game(document.querySelector('#scene'), { quality:query.get('quality') ?? 'high', resolution:1 }, {
   progress:noop, ready:noop, telemetry:noop, pause:noop, hud:noop,
   error:message => { window.visibilityError=message; document.querySelector('#status').textContent=message; },
 }, shipPreset('type-viic'));

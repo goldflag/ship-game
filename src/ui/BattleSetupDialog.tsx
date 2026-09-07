@@ -63,11 +63,6 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, error }:
             {WEATHER_PRESETS.map(preset => <option key={preset.id} value={preset.id}>{preset.name}</option>)}
           </select><p id="battle-weather-description">{weather.description}</p>
         </div>
-        <div><label htmlFor="battle-sea">Sea conditions</label>
-          <select id="battle-sea" value={setup.sea ?? 'Atlantic'} aria-describedby="battle-sea-description" onChange={event => onChange({ ...setup, sea: event.target.value as BattleSetup['sea'] })}>
-            <option value="Fair">Fair</option><option value="Atlantic">Moderate</option><option value="Heavy">Heavy</option>
-          </select><p id="battle-sea-description">Wave strength, independent of weather.</p>
-        </div>
       </div>
     </fieldset>
     <fieldset className="battle-builder">
@@ -122,7 +117,7 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, error }:
       <div className="battle-distance-limits" aria-hidden="true"><span>{MIN_BATTLE_SPAWN_DISTANCE / 1000} km</span><span>{MAX_BATTLE_SPAWN_DISTANCE / 1000} km</span></div>
       <p id="battle-spawn-description">Distance between the two formations. Both teams start facing each other.</p>
     </div>
-    <div className="battle-briefing"><Icon name="compass" size={21}/><p><strong>{map.name}</strong><span>{time.id === 'map' ? 'Map daylight' : time.name} · {weather.id === 'map' ? 'Map weather' : weather.name} · {setup.sea === 'Fair' ? 'Fair' : setup.sea === 'Heavy' ? 'Heavy' : 'Moderate'} seas</span><span>Defeat the opposing fleet to win.</span></p></div>
+    <div className="battle-briefing"><Icon name="compass" size={21}/><p><strong>{map.name}</strong><span>{time.id === 'map' ? 'Map daylight' : time.name} · {weather.id === 'map' ? 'Map weather' : weather.name}</span><span>Defeat the opposing fleet to win.</span></p></div>
     {error && <p className="battle-error" role="alert">{error} Your fleet is kept here; try launching again.</p>}
     <footer><button className="secondary-button" onClick={onClose}>Back to port</button><button className="primary-button" disabled={!setup.enemies.length} onClick={onLaunch}>Start battle<Icon name="arrow" size={18}/></button></footer>
   </dialog>;
