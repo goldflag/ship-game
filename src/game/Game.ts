@@ -36,7 +36,6 @@ import { FIXED_DT } from '../simulation/ship';
 import { DEPTH_STEP_M, orderDepth } from '../simulation/submarine';
 import { GunAimIndicators } from './GunAimIndicators';
 import { HitDirectionIndicators } from './HitDirectionIndicators';
-import { gunAimPoints } from './gunAim';
 import { disposeObjects } from './disposeObjects';
 import { CombatEffects } from './CombatEffects';
 import { configureRenderOrder } from './renderOrder';
@@ -541,7 +540,7 @@ export class Game {
       this.battlefieldCamera.applyTransition(realDt);
       this.cameraFrameListeners.forEach(listener => listener());
       const showGunAim = !this.airOperationsOpen && !this.battlefieldCamera.transitioning && !this.inPort && !this.inspecting && !this.shellFollow.view && !this.followedAircraftId && !this.simulation.player.damage.sunk;
-      this.gunAim.update(showGunAim ? gunAimPoints(this.simulation.player, this.definition, this.battery, aim) : [], this.camera, showGunAim);
+      this.gunAim.update(showGunAim ? this.playerView!.gunAimPoints(this.battery, aim) : [], this.camera, showGunAim);
       this.hitDirections.update(this.simulation, this.camera, !this.inPort);
       this.torpedoPreview.update(this.simulation.player, this.playerView!.motion, aim, showGunAim && this.battery === 'torpedo' && this.host?.dataset.shipLabels !== 'false');
       this.inspectionHover?.update(this.inPort && !this.paused && !this.switchingShip ? this.playerView?.inspection : undefined);

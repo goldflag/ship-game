@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu';
-import type { ShipDefinition } from '../ships/blueprint';
+import type { Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { barrelIds } from '../ships/blueprint';
 import type { Combatant } from '../simulation/damage';
 import { radians, wrapAngle } from '../simulation/geometry';
@@ -11,6 +11,7 @@ import { tubeLocalPosition } from '../simulation/torpedoes';
 import { PreparedPoseGroup } from './FrameScene';
 import { ShipPoseMatrices } from './ShipPoseMatrices';
 import { ShipRigView } from './ShipRigView';
+import { gunAimPoints } from './gunAim';
 
 /** Renderer adapter. Simulation geometry and transforms come from the same definition. */
 export class ShipView {
@@ -148,8 +149,12 @@ export class ShipView {
     const current = this.actor.motion, previous = this.previousMotion;
     const motion = this.motion, mounts = this.renderedMounts;
     Object.assign(motion, current);
-    for (const key of ['x', 'y', 'z', 'roll', 'pitch', 'speed'] as const) {
+    for (const key of ['x', 'y', 'z', 'roll', 'pitch', 'speed', 'swaySpeed'] as const) {
       motion[key] = THREE.MathUtils.lerp(previous[key], current[key], t);
+    }
+    // Trajectory previews inherit velocity at the same display time as the hull.
+    for (const key of ['verticalSpeed', 'driftX', 'driftZ'] as const) {
+      motion[key] = THREE.MathUtils.lerp(previous[key] ?? 0, current[key] ?? 0, t);
     }
     motion.heading = previous.heading + wrapAngle(current.heading - previous.heading) * t;
     mounts.forEach((m, i) => {
@@ -185,6 +190,10 @@ export class ShipView {
       else node.rotateX((this.actor.submarine?.planes ?? 0) * radians(kind === 'bowPlanes' ? -20 : 20));
     });
     this.updateInspection();
+  }
+  /** Match the displayed barrels; readiness remains from the authoritative tick. */
+  gunAimPoints(battery: Battery, aim: Vec3) {
+    return gunAimPoints({ ...this.actor, motion: this.motion, mounts: this.renderedMounts }, this.definition, battery, aim);
   }
   private updateInspection(): void {
     this.inspection.update({ ...this.actor, motion: this.motion, mounts: this.renderedMounts });
