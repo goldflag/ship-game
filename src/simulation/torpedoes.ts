@@ -6,7 +6,7 @@ import { add, clamp, localToWorld, radians, rotate, scale, segmentBox, sub, worl
 import { motionVelocity } from './ship';
 import { structuralHits } from './structure';
 import { addBreach } from './damage';
-import { equipmentCondition } from './machinery';
+import { launcherAvailable, equipmentCondition } from './machinery';
 import { damageBlastHull } from './durability';
 
 export type TubeDefinition = NonNullable<ShipDefinition['torpedoTubes']>[number];
@@ -35,7 +35,7 @@ export function trainTorpedoLaunchers(actor: FleetActor, aimFor: (tube: TubeDefi
     const tubes = actor.definition.torpedoTubes!.filter(t => t.launcherId === launcher.id);
     const tube = tubes.find(t => (actor.torpedoTubes?.find(s => s.id === t.id)?.ammo ?? 0) > 0) ?? tubes[0];
     const magazine = actor.definition.modules.find(m => m.id === tube.magazineId);
-    if (actor.damage.sunk || actor.damage.stability.combatLost || !magazine || equipmentCondition(actor, actor.definition, magazine).availability <= 0) continue;
+    if (actor.damage.sunk || actor.damage.stability.combatLost || !launcherAvailable(actor, actor.definition, tube.launcherModuleId) || !magazine || equipmentCondition(actor, actor.definition, magazine).availability <= 0) continue;
     const aim = aimFor(tube);
     if (!aim?.every(Number.isFinite)) continue;
     const local = worldToLocal(aim, actor.motion);
@@ -69,7 +69,7 @@ export function tubeSolution(actor: FleetActor, tube: TubeDefinition, state: Tub
   const train = actor.torpedoLaunchers?.find(l => l.id === tube.launcherId)?.train ?? radians(tube.bearingDeg);
   const relative = wrapAngle(heading - actor.motion.heading);
   const inArc = launcher ? launcher.launchArcsDeg.some(([a, b]) => relative >= radians(a) && relative <= radians(b)) : Math.abs(wrapAngle(relative - train)) <= radians(tube.arcDeg) + 1e-8;
-  state.status = actor.damage.sunk || actor.damage.stability.combatLost || !magazine || equipmentCondition(actor, actor.definition, magazine).availability <= 0 ? 'disabled' : state.ammo === 0 ? 'empty' :
+  state.status = actor.damage.sunk || actor.damage.stability.combatLost || !launcherAvailable(actor, actor.definition, tube.launcherModuleId) || !magazine || equipmentCondition(actor, actor.definition, magazine).availability <= 0 ? 'disabled' : state.ammo === 0 ? 'empty' :
     actor.definition.submarine && hullDepth(actor.motion) > actor.definition.submarine.maxTorpedoDepthM ? 'too-deep' :
     !launcher && origin[1] > 0 ? 'above-water' :
     !aim.every(Number.isFinite) || !inArc ? 'out-of-arc' :

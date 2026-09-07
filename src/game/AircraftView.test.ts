@@ -10,12 +10,15 @@ import { aircraftContactAppearance } from './AircraftContacts';
 
 const drawCount = (mesh: InstancedMesh) => (mesh.geometry as InstancedBufferGeometry).instanceCount;
 
-test('follow-camera zoom keeps a readable contact before thin aircraft fade into the sea', () => {
-  // A 12 m aircraft at 600 m spans ~22 pixels at 1080p, but its edge-on
-  // wings/fuselage cover very few of those pixels. Supplement it before 14 px.
-  expect(aircraftContactAppearance(22).opacity).toBeGreaterThan(.5);
-  expect(aircraftContactAppearance(70).opacity).toBe(0);
-  expect(aircraftContactAppearance(3).opacity).toBeGreaterThan(.5);
+test('distant contacts stay faint and never enlarge or darken a resolved airframe', () => {
+  for (const span of [.25, .5, 1, 2, 3, 6, 10, 12, 22, 70]) {
+    const appearance = aircraftContactAppearance(span);
+    expect(appearance.pixels).toBeLessThanOrEqual(span);
+    expect(appearance.pixels).toBeLessThanOrEqual(3);
+    expect(appearance.opacity).toBeLessThanOrEqual(.3);
+    if (span >= 12) expect(appearance.opacity).toBe(0);
+    else expect(appearance.opacity).toBeGreaterThan(0);
+  }
 });
 
 test('hangar starts hidden; explicitly spotted aircraft follow the carrier pose and respect port visibility', async () => {
@@ -67,7 +70,7 @@ test('distant flying aircraft retain a silhouette across LODs, while deck, lost 
       camera.position.set(0, 300, distance); camera.lookAt(0, 300, 0); camera.updateMatrixWorld(true);
       view.update(sim, camera, true);
       expect(view.diagnostics().instances).toBe(1);
-      expect(view.diagnostics().contacts).toBe(distance >= 401 ? 1 : 0);
+      expect(view.diagnostics().contacts).toBe(distance >= 1500 ? 1 : 0);
       if (distance >= 1500) expect(view.root.children.filter(c => c instanceof InstancedMesh && c.name.endsWith('/2')).reduce((n, c) => n + drawCount(c as InstancedMesh), 0)).toBe(1);
       if (distance >= 1500) expect(contacts()?.count).toBe(contacts()?.instanceMatrix.count);
       else if (distance === 100) expect(contacts()?.visible).toBe(false);

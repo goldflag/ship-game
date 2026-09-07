@@ -10156,7 +10156,19 @@
         0.275,
         1.56105225
       ],
-      "immersionToleranceM": 0.05500000000000001
+      "immersionToleranceM": 0.05500000000000001,
+      "servesMountIds": [
+        "aft-5in",
+        "fore-3in",
+        "bow-aa-starboard",
+        "bridge-aa-starboard-1",
+        "bridge-aa-starboard-2",
+        "aft-aa-starboard",
+        "bow-aa-port",
+        "bridge-aa-port-1",
+        "bridge-aa-port-2",
+        "aft-aa-port"
+      ]
     }
   ],
   "compartments": [
@@ -18225,5 +18237,5 @@
     "radars": []
   },
   "compilerVersion": 1,
-  "contentHash": "a654005a9e33d2ce2131e91ef771b16d234bc8b580bc1e99877826cf28aa5f5d"
+  "contentHash": "a139ed05c86f306caed0bd8b839b42616157d56692bbd606ddc770a5bc62087f"
 }

@@ -1,3 +1,5 @@
+import { shellHullBounds } from './spatial';
+import { equipmentPose, equipmentBox } from './equipmentPose';
 import { heatModule, heatMount, heatRoom } from './damageControl';
 import type { ShipDefinition, Vec3, Volume } from '../ships/blueprint';
 import { contactArmor, nearbyContacts, shipContacts, type Combatant, type DamageEvent, type Shell } from './damage';
@@ -35,7 +37,10 @@ export function burstShell(shell: Shell, actors: (Combatant & { definition: Ship
       if (distance < radius) targets.push({ kind, index, id, name, point, distance });
     };
     const nearest = (v: Pick<Volume, 'center' | 'size'>): Vec3 => origin.map((n, i) => clamp(n, v.center[i] - v.size[i] / 2, v.center[i] + v.size[i] / 2)) as Vec3;
-    candidates.modules.forEach(index => { const m = def.modules[index]; target('module', index, m.id, m.name, nearest(m)); });
+    candidates.modules.forEach(index => { const m = def.modules[index], pose = equipmentPose(actor, def, m), box = equipmentBox(def, m);
+      const point = pose ? worldToLocal(origin, pose) : origin;
+      const closest = point.map((n, i) => clamp(n, box.center[i] - box.size[i] / 2, box.center[i] + box.size[i] / 2)) as Vec3;
+      target('module', index, m.id, m.name, pose ? localToWorld(closest, pose) : closest); });
     // Room fuel can ignite even after its equipment is destroyed. The same
     // protected ray is paid; heat never teleports through intact armor.
     def.compartments.forEach((room, index) => {
@@ -61,12 +66,18 @@ export function burstShell(shell: Shell, actors: (Combatant & { definition: Ship
       const destination = localToWorld(target.point, actor.motion);
       for (const { actor: shield, candidates } of shields) {
         const protection = shield.definition, from = worldToLocal(shell.position, shield.motion), to = worldToLocal(destination, shield.motion);
-        if (!segmentOverlapsBox(from, to, { center: [0, 10, 0], size: [protection.hull.beam + 30, 60, protection.hull.length + 40] })) continue;
+        if (!segmentOverlapsBox(from, to, shellHullBounds(protection))) continue;
         const direction = normalize(sub(to, from));
         for (const hit of shipContacts(probe, shell.position, destination, shield, protection, candidates)) {
           if (hit.kind === 'module') {
-            if (shield === actor && target.kind === 'module' && hit.index === target.index) continue;
-            budget -= 50; blockedPressure = true;
+            const module = protection.modules[hit.index], self = shield === actor && target.kind === 'module' && hit.index === target.index;
+            if (self) {
+              const pose=equipmentPose(actor,def,module), box=equipmentBox(def,module), local=pose?worldToLocal(origin,pose):origin;
+              // A burst already inside the enclosure does not pay its skin again.
+              if (module.protectionMm === undefined || local.every((v,i)=>Math.abs(v-box.center[i]) < box.size[i]/2-1e-6)) continue;
+            }
+            const resistance = module.protectionMm ?? 50;
+            budget -= resistance; blockedPressure ||= resistance > 0;
           } else {
             const armor = hit.kind === 'armor' ? contactArmor(protection,hit) : undefined;
             const thickness = armor?.thicknessMm ?? (hit.kind === 'mount' ? protection.mounts[hit.index].weapon.armorMm : protection.connections[hit.index].thicknessMm!);
@@ -101,7 +112,7 @@ export function burstShell(shell: Shell, actors: (Combatant & { definition: Ship
       }
       if (!damage && !connectionIds) continue;
       burstShip ||= actor.motion.id;
-      const localDamage = localDamageEvidence(actor, def, target.point, target.kind === 'mount' ? target.id : undefined);
+      const localDamage = localDamageEvidence(actor, def, target.point, target.kind === 'mount' ? target.id : undefined, target.kind === 'module' ? target.id : undefined);
       const hullDamage = damage > 0 ? damageShellHull(shell, actor, shell.he
         ? Math.min(shell.he.damage, damage) * HULL_DAMAGE.heEquipment
         : shell.damage * HULL_DAMAGE.equipment * Math.min(1, damage / (shell.damage * .75)), localDamage) : 0;

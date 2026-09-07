@@ -54934,21 +54934,221 @@
       "immersionToleranceM": 0.3
     },
     {
-      "id": "support-director",
-      "name": "Fire-control station",
+      "id": "equipment-mk37-director",
+      "name": "mk37 director",
       "kind": "fire-control",
-      "hp": 65,
-      "compartmentId": "boiler-forward-space",
+      "placement": "fixed",
       "center": [
         0,
-        0.65,
-        -16
+        14.37,
+        -19.975
       ],
       "size": [
-        1.8,
-        1.25,
-        1.8
+        2.9,
+        2.1,
+        3.35
       ],
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "gun-1",
+        "gun-2",
+        "gun-3",
+        "gun-4",
+        "gun-5"
+      ]
+    },
+    {
+      "id": "equipment-torpedo-forward",
+      "name": "Forward quintuple torpedo mount",
+      "kind": "launcher",
+      "placement": "fixed",
+      "torpedoLauncherId": "torpedo-forward",
+      "center": [
+        0,
+        6.63,
+        -2
+      ],
+      "size": [
+        3.72,
+        1.6,
+        7.1
+      ],
+      "hp": 100,
+      "protectionMm": 8,
+      "immersionToleranceM": 0.3
+    },
+    {
+      "id": "equipment-torpedo-aft",
+      "name": "Aft quintuple torpedo mount",
+      "kind": "launcher",
+      "placement": "fixed",
+      "torpedoLauncherId": "torpedo-aft",
+      "center": [
+        0,
+        6.63,
+        12.3
+      ],
+      "size": [
+        3.72,
+        1.6,
+        7.1
+      ],
+      "hp": 100,
+      "protectionMm": 8,
+      "immersionToleranceM": 0.3
+    },
+    {
+      "id": "equipment-dc-rack-port",
+      "name": "Port stern rack",
+      "kind": "launcher",
+      "placement": "fixed",
+      "center": [
+        -2,
+        3.3,
+        53.349999999999994
+      ],
+      "size": [
+        1.1,
+        0.8,
+        5.65
+      ],
+      "hp": 70,
+      "protectionMm": 3,
+      "immersionToleranceM": 0.25
+    },
+    {
+      "id": "equipment-dc-thrower-port-1",
+      "name": "Port K-gun 1",
+      "kind": "launcher",
+      "placement": "fixed",
+      "center": [
+        -4.4,
+        3.65,
+        34.5
+      ],
+      "size": [
+        0.8,
+        0.9,
+        1.3
+      ],
+      "hp": 45,
+      "protectionMm": 3,
+      "immersionToleranceM": 0.25
+    },
+    {
+      "id": "equipment-dc-thrower-port-2",
+      "name": "Port K-gun 2",
+      "kind": "launcher",
+      "placement": "fixed",
+      "center": [
+        -4.4,
+        3.65,
+        42.8
+      ],
+      "size": [
+        0.8,
+        0.9,
+        1.3
+      ],
+      "hp": 45,
+      "protectionMm": 3,
+      "immersionToleranceM": 0.25
+    },
+    {
+      "id": "equipment-dc-thrower-port-3",
+      "name": "Port K-gun 3",
+      "kind": "launcher",
+      "placement": "fixed",
+      "center": [
+        -4.1,
+        3.65,
+        46
+      ],
+      "size": [
+        0.8,
+        0.9,
+        1.3
+      ],
+      "hp": 45,
+      "protectionMm": 3,
+      "immersionToleranceM": 0.25
+    },
+    {
+      "id": "equipment-dc-rack-starboard",
+      "name": "Starboard stern rack",
+      "kind": "launcher",
+      "placement": "fixed",
+      "center": [
+        2,
+        3.3,
+        53.349999999999994
+      ],
+      "size": [
+        1.1,
+        0.8,
+        5.65
+      ],
+      "hp": 70,
+      "protectionMm": 3,
+      "immersionToleranceM": 0.25
+    },
+    {
+      "id": "equipment-dc-thrower-starboard-1",
+      "name": "Starboard K-gun 1",
+      "kind": "launcher",
+      "placement": "fixed",
+      "center": [
+        4.4,
+        3.65,
+        34.5
+      ],
+      "size": [
+        0.8,
+        0.9,
+        1.3
+      ],
+      "hp": 45,
+      "protectionMm": 3,
+      "immersionToleranceM": 0.25
+    },
+    {
+      "id": "equipment-dc-thrower-starboard-2",
+      "name": "Starboard K-gun 2",
+      "kind": "launcher",
+      "placement": "fixed",
+      "center": [
+        4.4,
+        3.65,
+        42.8
+      ],
+      "size": [
+        0.8,
+        0.9,
+        1.3
+      ],
+      "hp": 45,
+      "protectionMm": 3,
+      "immersionToleranceM": 0.25
+    },
+    {
+      "id": "equipment-dc-thrower-starboard-3",
+      "name": "Starboard K-gun 3",
+      "kind": "launcher",
+      "placement": "fixed",
+      "center": [
+        4.1,
+        3.65,
+        46
+      ],
+      "size": [
+        0.8,
+        0.9,
+        1.3
+      ],
+      "hp": 45,
+      "protectionMm": 3,
       "immersionToleranceM": 0.25
     }
   ],
@@ -60241,6 +60441,7 @@
       "ammo": 1,
       "magazineId": "torpedo-magazine",
       "launcherId": "torpedo-forward",
+      "launcherModuleId": "equipment-torpedo-forward",
       "weapon": {
         "id": "us-mk15-fast",
         "name": "21-inch Mk 15",
@@ -60271,6 +60472,7 @@
       "ammo": 1,
       "magazineId": "torpedo-magazine",
       "launcherId": "torpedo-forward",
+      "launcherModuleId": "equipment-torpedo-forward",
       "weapon": {
         "id": "us-mk15-fast",
         "name": "21-inch Mk 15",
@@ -60301,6 +60503,7 @@
       "ammo": 1,
       "magazineId": "torpedo-magazine",
       "launcherId": "torpedo-forward",
+      "launcherModuleId": "equipment-torpedo-forward",
       "weapon": {
         "id": "us-mk15-fast",
         "name": "21-inch Mk 15",
@@ -60331,6 +60534,7 @@
       "ammo": 1,
       "magazineId": "torpedo-magazine",
       "launcherId": "torpedo-forward",
+      "launcherModuleId": "equipment-torpedo-forward",
       "weapon": {
         "id": "us-mk15-fast",
         "name": "21-inch Mk 15",
@@ -60361,6 +60565,7 @@
       "ammo": 1,
       "magazineId": "torpedo-magazine",
       "launcherId": "torpedo-forward",
+      "launcherModuleId": "equipment-torpedo-forward",
       "weapon": {
         "id": "us-mk15-fast",
         "name": "21-inch Mk 15",
@@ -60391,6 +60596,7 @@
       "ammo": 1,
       "magazineId": "torpedo-magazine",
       "launcherId": "torpedo-aft",
+      "launcherModuleId": "equipment-torpedo-aft",
       "weapon": {
         "id": "us-mk15-fast",
         "name": "21-inch Mk 15",
@@ -60421,6 +60627,7 @@
       "ammo": 1,
       "magazineId": "torpedo-magazine",
       "launcherId": "torpedo-aft",
+      "launcherModuleId": "equipment-torpedo-aft",
       "weapon": {
         "id": "us-mk15-fast",
         "name": "21-inch Mk 15",
@@ -60451,6 +60658,7 @@
       "ammo": 1,
       "magazineId": "torpedo-magazine",
       "launcherId": "torpedo-aft",
+      "launcherModuleId": "equipment-torpedo-aft",
       "weapon": {
         "id": "us-mk15-fast",
         "name": "21-inch Mk 15",
@@ -60481,6 +60689,7 @@
       "ammo": 1,
       "magazineId": "torpedo-magazine",
       "launcherId": "torpedo-aft",
+      "launcherModuleId": "equipment-torpedo-aft",
       "weapon": {
         "id": "us-mk15-fast",
         "name": "21-inch Mk 15",
@@ -60511,6 +60720,7 @@
       "ammo": 1,
       "magazineId": "torpedo-magazine",
       "launcherId": "torpedo-aft",
+      "launcherModuleId": "equipment-torpedo-aft",
       "weapon": {
         "id": "us-mk15-fast",
         "name": "21-inch Mk 15",
@@ -60545,6 +60755,7 @@
       ],
       "ammo": 8,
       "magazineId": "depth-charge-magazine",
+      "launcherModuleId": "equipment-dc-rack-port",
       "weapon": {
         "id": "us-mk6-depth-charge",
         "name": "Mk 6 depth charge",
@@ -60576,6 +60787,7 @@
       ],
       "ammo": 2,
       "magazineId": "depth-charge-magazine",
+      "launcherModuleId": "equipment-dc-thrower-port-1",
       "weapon": {
         "id": "us-mk6-depth-charge",
         "name": "Mk 6 depth charge",
@@ -60607,6 +60819,7 @@
       ],
       "ammo": 2,
       "magazineId": "depth-charge-magazine",
+      "launcherModuleId": "equipment-dc-thrower-port-2",
       "weapon": {
         "id": "us-mk6-depth-charge",
         "name": "Mk 6 depth charge",
@@ -60638,6 +60851,7 @@
       ],
       "ammo": 2,
       "magazineId": "depth-charge-magazine",
+      "launcherModuleId": "equipment-dc-thrower-port-3",
       "weapon": {
         "id": "us-mk6-depth-charge",
         "name": "Mk 6 depth charge",
@@ -60669,6 +60883,7 @@
       ],
       "ammo": 8,
       "magazineId": "depth-charge-magazine",
+      "launcherModuleId": "equipment-dc-rack-starboard",
       "weapon": {
         "id": "us-mk6-depth-charge",
         "name": "Mk 6 depth charge",
@@ -60700,6 +60915,7 @@
       ],
       "ammo": 2,
       "magazineId": "depth-charge-magazine",
+      "launcherModuleId": "equipment-dc-thrower-starboard-1",
       "weapon": {
         "id": "us-mk6-depth-charge",
         "name": "Mk 6 depth charge",
@@ -60731,6 +60947,7 @@
       ],
       "ammo": 2,
       "magazineId": "depth-charge-magazine",
+      "launcherModuleId": "equipment-dc-thrower-starboard-2",
       "weapon": {
         "id": "us-mk6-depth-charge",
         "name": "Mk 6 depth charge",
@@ -60762,6 +60979,7 @@
       ],
       "ammo": 2,
       "magazineId": "depth-charge-magazine",
+      "launcherModuleId": "equipment-dc-thrower-starboard-3",
       "weapon": {
         "id": "us-mk6-depth-charge",
         "name": "Mk 6 depth charge",
@@ -61757,6 +61975,176 @@
           1
         ],
         "durabilityFraction": 0.008
+      },
+      {
+        "id": "launcher-equipment-torpedo-forward",
+        "name": "Forward quintuple torpedo mount",
+        "kind": "launcher",
+        "moduleId": "equipment-torpedo-forward",
+        "center": [
+          0,
+          6.63,
+          -2
+        ],
+        "size": [
+          3.72,
+          1.6,
+          7.1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "launcher-equipment-torpedo-aft",
+        "name": "Aft quintuple torpedo mount",
+        "kind": "launcher",
+        "moduleId": "equipment-torpedo-aft",
+        "center": [
+          0,
+          6.63,
+          12.3
+        ],
+        "size": [
+          3.72,
+          1.6,
+          7.1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "launcher-equipment-dc-rack-port",
+        "name": "Port stern rack",
+        "kind": "launcher",
+        "moduleId": "equipment-dc-rack-port",
+        "center": [
+          -2,
+          3.3,
+          53.349999999999994
+        ],
+        "size": [
+          1.1,
+          0.8,
+          5.65
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "launcher-equipment-dc-thrower-port-1",
+        "name": "Port K-gun 1",
+        "kind": "launcher",
+        "moduleId": "equipment-dc-thrower-port-1",
+        "center": [
+          -4.4,
+          3.65,
+          34.5
+        ],
+        "size": [
+          0.8,
+          0.9,
+          1.3
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "launcher-equipment-dc-thrower-port-2",
+        "name": "Port K-gun 2",
+        "kind": "launcher",
+        "moduleId": "equipment-dc-thrower-port-2",
+        "center": [
+          -4.4,
+          3.65,
+          42.8
+        ],
+        "size": [
+          0.8,
+          0.9,
+          1.3
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "launcher-equipment-dc-thrower-port-3",
+        "name": "Port K-gun 3",
+        "kind": "launcher",
+        "moduleId": "equipment-dc-thrower-port-3",
+        "center": [
+          -4.1,
+          3.65,
+          46
+        ],
+        "size": [
+          0.8,
+          0.9,
+          1.3
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "launcher-equipment-dc-rack-starboard",
+        "name": "Starboard stern rack",
+        "kind": "launcher",
+        "moduleId": "equipment-dc-rack-starboard",
+        "center": [
+          2,
+          3.3,
+          53.349999999999994
+        ],
+        "size": [
+          1.1,
+          0.8,
+          5.65
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "launcher-equipment-dc-thrower-starboard-1",
+        "name": "Starboard K-gun 1",
+        "kind": "launcher",
+        "moduleId": "equipment-dc-thrower-starboard-1",
+        "center": [
+          4.4,
+          3.65,
+          34.5
+        ],
+        "size": [
+          0.8,
+          0.9,
+          1.3
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "launcher-equipment-dc-thrower-starboard-2",
+        "name": "Starboard K-gun 2",
+        "kind": "launcher",
+        "moduleId": "equipment-dc-thrower-starboard-2",
+        "center": [
+          4.4,
+          3.65,
+          42.8
+        ],
+        "size": [
+          0.8,
+          0.9,
+          1.3
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "launcher-equipment-dc-thrower-starboard-3",
+        "name": "Starboard K-gun 3",
+        "kind": "launcher",
+        "moduleId": "equipment-dc-thrower-starboard-3",
+        "center": [
+          4.1,
+          3.65,
+          46
+        ],
+        "size": [
+          0.8,
+          0.9,
+          1.3
+        ],
+        "durabilityFraction": 0.008
       }
     ],
     "basis": "Original game calibration: eight longitudinal sections, independent sides and three height bands, with separate gunhouse budgets. Generator/director proxy positions and fire loads are estimated; no historical structural tolerance, electrical routing, ventilation or crew-performance claim."
@@ -62136,5 +62524,5 @@
     ]
   },
   "compilerVersion": 1,
-  "contentHash": "ccee6ace00f2a6715a504e0bc3899bdbcf88e4f962147ccab797120bbd254013"
+  "contentHash": "66114db0980d7134d6fc1cfc5c6875923d57c6f8f6c7191d8b965244f61621fd"
 }

@@ -69901,7 +69901,106 @@
         0.21872,
         0.31333325
       ],
-      "immersionToleranceM": 0.043744000000000005
+      "immersionToleranceM": 0.043744000000000005,
+      "servesMountIds": [
+        "deck-gun",
+        "flak-gun"
+      ]
+    },
+    {
+      "id": "equipment-bow-tube-1",
+      "name": "Bow tube 1",
+      "kind": "launcher",
+      "compartmentId": "forward-torpedo-room",
+      "center": [
+        -0.38,
+        -0.92,
+        -22.485002
+      ],
+      "size": [
+        0.55,
+        0.55,
+        6
+      ],
+      "hp": 80,
+      "protectionMm": 8,
+      "immersionToleranceM": 0.2
+    },
+    {
+      "id": "equipment-bow-tube-2",
+      "name": "Bow tube 2",
+      "kind": "launcher",
+      "compartmentId": "forward-torpedo-room",
+      "center": [
+        0.38,
+        -0.92,
+        -22.485002
+      ],
+      "size": [
+        0.55,
+        0.55,
+        6
+      ],
+      "hp": 80,
+      "protectionMm": 8,
+      "immersionToleranceM": 0.2
+    },
+    {
+      "id": "equipment-bow-tube-3",
+      "name": "Bow tube 3",
+      "kind": "launcher",
+      "compartmentId": "forward-torpedo-room",
+      "center": [
+        -0.38,
+        -1.8,
+        -22.485002
+      ],
+      "size": [
+        0.55,
+        0.55,
+        6
+      ],
+      "hp": 80,
+      "protectionMm": 8,
+      "immersionToleranceM": 0.2
+    },
+    {
+      "id": "equipment-bow-tube-4",
+      "name": "Bow tube 4",
+      "kind": "launcher",
+      "compartmentId": "forward-torpedo-room",
+      "center": [
+        0.38,
+        -1.8,
+        -22.485002
+      ],
+      "size": [
+        0.55,
+        0.55,
+        6
+      ],
+      "hp": 80,
+      "protectionMm": 8,
+      "immersionToleranceM": 0.2
+    },
+    {
+      "id": "equipment-stern-tube",
+      "name": "Stern tube 5",
+      "kind": "launcher",
+      "compartmentId": "motor-room",
+      "center": [
+        0,
+        -0.24,
+        20.985001999999998
+      ],
+      "size": [
+        0.55,
+        0.55,
+        6
+      ],
+      "hp": 80,
+      "protectionMm": 8,
+      "immersionToleranceM": 0.2
     }
   ],
   "connections": [
@@ -70540,6 +70639,7 @@
       "arcDeg": 15,
       "ammo": 3,
       "magazineId": "forward-torpedoes",
+      "launcherModuleId": "equipment-bow-tube-1",
       "weapon": {
         "id": "g7a-ti-fast",
         "name": "53.3 cm G7a T I",
@@ -70569,6 +70669,7 @@
       "arcDeg": 15,
       "ammo": 3,
       "magazineId": "forward-torpedoes",
+      "launcherModuleId": "equipment-bow-tube-2",
       "weapon": {
         "id": "g7a-ti-fast",
         "name": "53.3 cm G7a T I",
@@ -70598,6 +70699,7 @@
       "arcDeg": 15,
       "ammo": 3,
       "magazineId": "forward-torpedoes",
+      "launcherModuleId": "equipment-bow-tube-3",
       "weapon": {
         "id": "g7a-ti-fast",
         "name": "53.3 cm G7a T I",
@@ -70627,6 +70729,7 @@
       "arcDeg": 15,
       "ammo": 3,
       "magazineId": "forward-torpedoes",
+      "launcherModuleId": "equipment-bow-tube-4",
       "weapon": {
         "id": "g7a-ti-fast",
         "name": "53.3 cm G7a T I",
@@ -70656,6 +70759,7 @@
       "arcDeg": 15,
       "ammo": 2,
       "magazineId": "aft-torpedoes",
+      "launcherModuleId": "equipment-stern-tube",
       "weapon": {
         "id": "g7a-ti-fast",
         "name": "53.3 cm G7a T I",
@@ -72226,6 +72330,91 @@
           1
         ],
         "durabilityFraction": 0.008
+      },
+      {
+        "id": "launcher-equipment-bow-tube-1",
+        "name": "Bow tube 1",
+        "kind": "launcher",
+        "moduleId": "equipment-bow-tube-1",
+        "center": [
+          -0.38,
+          -0.92,
+          -22.485002
+        ],
+        "size": [
+          0.55,
+          0.55,
+          6
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "launcher-equipment-bow-tube-2",
+        "name": "Bow tube 2",
+        "kind": "launcher",
+        "moduleId": "equipment-bow-tube-2",
+        "center": [
+          0.38,
+          -0.92,
+          -22.485002
+        ],
+        "size": [
+          0.55,
+          0.55,
+          6
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "launcher-equipment-bow-tube-3",
+        "name": "Bow tube 3",
+        "kind": "launcher",
+        "moduleId": "equipment-bow-tube-3",
+        "center": [
+          -0.38,
+          -1.8,
+          -22.485002
+        ],
+        "size": [
+          0.55,
+          0.55,
+          6
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "launcher-equipment-bow-tube-4",
+        "name": "Bow tube 4",
+        "kind": "launcher",
+        "moduleId": "equipment-bow-tube-4",
+        "center": [
+          0.38,
+          -1.8,
+          -22.485002
+        ],
+        "size": [
+          0.55,
+          0.55,
+          6
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "launcher-equipment-stern-tube",
+        "name": "Stern tube 5",
+        "kind": "launcher",
+        "moduleId": "equipment-stern-tube",
+        "center": [
+          0,
+          -0.24,
+          20.985001999999998
+        ],
+        "size": [
+          0.55,
+          0.55,
+          6
+        ],
+        "durabilityFraction": 0.008
       }
     ],
     "basis": "Original game calibration: eight longitudinal sections, independent sides and three height bands, with separate gunhouse budgets. Generator/director proxy positions and fire loads are estimated; no historical structural tolerance, electrical routing, ventilation or crew-performance claim."
@@ -72613,5 +72802,5 @@
     "radars": []
   },
   "compilerVersion": 1,
-  "contentHash": "01b1facde68170e9493eb5d018d3b9b219b7d423ed198245681cb589f3700b0f"
+  "contentHash": "57b226f0b3326ad44d734511e2b4e0d22f45972fc41df79a92f9438ade70cff1"
 }

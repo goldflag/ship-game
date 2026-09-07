@@ -1,0 +1,14 @@
+{
+  "aircraft": {
+    "batches": 51,
+    "bombs": 6,
+    "contacts": 12,
+    "culled": 0,
+    "instances": 18,
+    "models": 9,
+    "payloads": 12,
+    "silhouettes": 12,
+    "tracers": 0
+  },
+  "backend": "webgpu"
+}

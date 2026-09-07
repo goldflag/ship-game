@@ -2,12 +2,12 @@ import type { Armor, AuthoredSurface, ShipDefinition, Vec3 } from './blueprint';
 import { structuralSurfaces } from '../simulation/structure';
 
 export type InspectionMode = 'exterior' | 'armor' | 'internals' | 'compartments';
-export type InspectionKind = 'armor' | 'engine' | 'magazine' | 'steering' | 'generator' | 'fire-control' | 'weapon' | 'compartment';
+export type InspectionKind = 'armor' | 'engine' | 'magazine' | 'steering' | 'generator' | 'fire-control' | 'weapon' | 'launcher' | 'compartment';
 export const INSPECTION_COLORS: Record<Exclude<InspectionKind, 'armor'>, string> = {
-  weapon: '#e4c581', engine: '#90bca5', magazine: '#dca48e', steering: '#b4b2db', generator: '#dfbd83', 'fire-control': '#9ecad1', compartment: '#9ecad1',
+  launcher: '#dca48e', weapon: '#e4c581', engine: '#90bca5', magazine: '#dca48e', steering: '#b4b2db', generator: '#dfbd83', 'fire-control': '#9ecad1', compartment: '#9ecad1',
 };
 export const INSPECTION_KIND_LABELS: Record<Exclude<InspectionKind, 'armor'>, string> = {
-  weapon: 'Gun mount', engine: 'Machinery', magazine: 'Magazine', steering: 'Steering gear', generator: 'Electrical supply', 'fire-control': 'Fire control', compartment: 'Compartment',
+  launcher: 'Launcher', weapon: 'Gun mount', engine: 'Machinery', magazine: 'Magazine', steering: 'Steering gear', generator: 'Electrical supply', 'fire-control': 'Fire control', compartment: 'Compartment',
 };
 /** A fixed scale keeps equal thicknesses the same color across every ship. */
 export const ARMOR_COLOR_STOPS = [
@@ -23,6 +23,8 @@ export interface InspectionEntry {
   thicknessMm?: number; capacityM3?: number; pumpM3PerSecond?: number; hp?: number;
   /** Name of the compartment housing a module. */
   within?: string;
+  /** Named consumers of a director or launcher damage owner. */
+  consumers?: string[];
   mountIndex?: number; moduleIndex?: number; compartmentIndex?: number; bearingDeg?: number;
 }
 export function armorThicknessColor(thicknessMm: number): string {
@@ -63,7 +65,7 @@ export function inspectionEntries(def: ShipDefinition): InspectionEntry[] {
       center: [m.position[0], m.position[1] + m.weapon.gunhouseSize[2] / 2, m.position[2]] as Vec3,
       size: [m.weapon.gunhouseSize[1], m.weapon.gunhouseSize[2], m.weapon.gunhouseSize[0]] as Vec3,
     })),
-    ...def.modules.map((m, moduleIndex) => ({ id: `module:${m.id}`, name: m.name, kind: m.kind, center: m.center, size: m.size, hp: m.hp, moduleIndex, within: def.compartments.find(c => c.id === m.compartmentId)?.name })),
+    ...def.modules.map((m, moduleIndex) => ({ id: `module:${m.id}`, name: m.name, kind: m.kind, center: m.center, size: m.size, hp: m.hp, moduleIndex, consumers: m.kind === 'fire-control' ? def.mounts.filter(mount => m.servesMountIds === undefined || m.servesMountIds.includes(mount.id)).map(mount=>mount.name) : m.kind === 'launcher' ? [...(def.torpedoTubes ?? []),...(def.depthChargeLaunchers ?? [])].filter(l=>l.launcherModuleId===m.id).map(l=>l.name) : undefined, within: def.compartments.find(c => c.id === m.compartmentId)?.name })),
     ...def.compartments.map((c, compartmentIndex) => ({ id: `compartment:${c.id}`, name: c.name, kind: 'compartment' as const, center: c.center, size: c.size, cells: c.cells, capacityM3: c.capacityM3, pumpM3PerSecond: c.pumpM3PerSecond, compartmentIndex })),
   ];
 }
@@ -77,10 +79,11 @@ export function entryInMode(entry: InspectionEntry, mode: InspectionMode): boole
   return mode === 'internals' && entry.kind !== 'armor' && entry.kind !== 'compartment';
 }
 export const INSPECTION_EFFECTS: Record<Exclude<InspectionKind, 'armor'>, string> = {
+  launcher: 'Destruction disables connected weapons. Surviving equipment can be repaired or recover after flooding recedes.',
   engine: 'Damage reduces propulsion power.', steering: 'Damage reduces rudder authority.',
   magazine: 'Loss disables connected weapons. Fire can ignite ammunition and open the hull.',
   generator: 'Damage reduces electrical supply to pumps, gun mechanisms and fire control.',
-  'fire-control': 'Damage degrades gunnery accuracy.',
+  'fire-control': 'Damage reduces accuracy for the guns served by this director. Guns retain local control.',
   weapon: 'Can be damaged or destroyed. Disabled guns stop aiming and firing.',
   compartment: 'Breaches admit water; flooding changes list, trim and buoyancy.',
 };

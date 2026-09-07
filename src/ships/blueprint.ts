@@ -13,7 +13,7 @@ export interface DepthChargePart {
 }
 export interface DepthChargeLauncher {
   id: string; name: string; partId: string; position: Vec3; velocity: Vec3;
-  ammo: number; magazineId: string;
+  ammo: number; magazineId: string; launcherModuleId?: string;
 }
 export type Ammunition = 'ap' | 'he';
 export interface HEProjectile {
@@ -32,7 +32,7 @@ export interface TorpedoPart {
 export interface TorpedoTube {
   id: string; name: string; partId: string; position: Vec3; bearingDeg: number;
   /** Allowed gyro offset either side of the tube, in degrees. */
-  arcDeg: number; ammo: number; magazineId: string;
+  arcDeg: number; ammo: number; magazineId: string; launcherModuleId?: string;
   /** Position is the muzzle in the launcher's zero-bearing ship frame. */
   launcherId?: string;
 }
@@ -51,8 +51,10 @@ export interface GunPart {
   ap?: APProjectile;
   he?: HEProjectile;
   /** Omitted in original v1 twin parts. Spacing is between adjacent barrel axes. */
-  barrelCount?: 1 | 2 | 3 | 4;
-  mountingStyle?: 'enclosed' | 'open-pedestal' | 'open-quad' | 'oerlikon';
+  barrelCount?: 1 | 2 | 3 | 4 | 8;
+  /** Vertical bore-axis spacing for an octuple two-row mount. */
+  barrelVerticalSpacing?: number;
+  mountingStyle?: 'enclosed' | 'open-pedestal' | 'open-quad' | 'oerlikon' | 'pom-pom';
   barrelBaseRadius?: number;
   rangefinderWidth?: number;
   rangefinderForward?: number;
@@ -68,10 +70,12 @@ export const barrelIds = (weapon: GunPart): readonly string[] => {
     case 1: return ['center'];
     case 3: return ['left', 'center', 'right'];
     case 4: return ['left-outer', 'left', 'right', 'right-outer'];
+    case 8: return ['lower-left-outer', 'lower-left', 'lower-right', 'lower-right-outer', 'upper-left-outer', 'upper-left', 'upper-right', 'upper-right-outer'];
     default: return ['left', 'right'];
   }
 };
-export const barrelOffset = (weapon: GunPart, index: number): number => (index - ((weapon.barrelCount ?? 2) - 1) / 2) * weapon.barrelSpacing;
+export const barrelOffset = (weapon: GunPart, index: number): number => ((weapon.barrelCount === 8 ? index % 4 - 1.5 : index - ((weapon.barrelCount ?? 2) - 1) / 2)) * weapon.barrelSpacing;
+export const barrelHeightOffset = (weapon: GunPart, index: number): number => weapon.barrelCount === 8 ? (index < 4 ? -.5 : .5) * weapon.barrelVerticalSpacing! : 0;
 export interface PartCatalog { schemaVersion: 1; parts: GunPart[]; torpedoes?: TorpedoPart[]; depthCharges?: DepthChargePart[]; }
 export interface Mount {
   id: string; name: string; partId: string; battery: 'main' | 'secondary'; position: Vec3;
@@ -108,7 +112,14 @@ export interface AuthoredStructure {
   surface?: AuthoredSurface;
 }
 export interface Module extends Volume {
-  name: string; kind: 'engine' | 'steering' | 'magazine' | 'generator' | 'fire-control'; hp: number; compartmentId: string;
+  name: string; kind: 'engine' | 'steering' | 'magazine' | 'generator' | 'fire-control' | 'launcher'; hp: number; compartmentId?: string;
+  /** Explicit exposed fixed equipment; absent retains room containment. */
+  placement?: 'fixed';
+  /** A launcher box is authored in the zero-bearing ship frame. */
+  torpedoLauncherId?: string;
+  protectionMm?: number;
+  /** Omitted on every director retains legacy global coverage. */
+  servesMountIds?: string[];
   /** Water above the equipment's lower face disables it. Omit for sealed equipment. */
   immersionToleranceM?: number;
   role?: 'boiler' | 'turbine' | 'shaft' | 'combined-drive';
@@ -126,8 +137,8 @@ export interface FireProfile {
   ventPosition?: Vec3;
 }
 export interface DamageRegion extends Volume {
-  name: string; kind: 'hull' | 'superstructure' | 'mount';
-  durabilityFraction: number; mountId?: string;
+  name: string; kind: 'hull' | 'superstructure' | 'mount' | 'launcher';
+  durabilityFraction: number; mountId?: string; moduleId?: string;
 }
 export interface FloodConnection {
   id?: string; fromId: string; toId: string; areaM2: number;
@@ -344,10 +355,11 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
   ['forwardSpeed', 'reverseSpeed', 'acceleration', 'braking', 'rudderRate', 'maxYawRate'].forEach(k => numeric(handling[k], `handling.${k}`, .00001, 100));
   const parts = list(catalog.parts, 'parts').map((p, i) => record(p, `parts[${i}]`));
   unique(parts, 'parts');
-  const requiredNumbers = ['massKg', 'barbetteRadius', 'pivotHeight', 'trunnionForward', 'muzzleForward', 'barrelSpacing', 'caliberM', 'traverseDeg', 'traverseRateDeg', 'elevationRateDeg', 'reloadSeconds', 'muzzleSpeed', 'projectileMassKg', 'penetrationMm', 'damage', 'recoilM', 'ammoPerBarrel', 'armorMm'];
+  const requiredNumbers = ['massKg', 'barbetteRadius', 'pivotHeight', 'muzzleForward', 'barrelSpacing', 'caliberM', 'traverseDeg', 'traverseRateDeg', 'elevationRateDeg', 'reloadSeconds', 'muzzleSpeed', 'projectileMassKg', 'penetrationMm', 'damage', 'recoilM', 'ammoPerBarrel', 'armorMm'];
   parts.forEach(p => {
     literal(p.kind, ['gun'], `${p.id}.kind`); text(p.name, `${p.id}.name`);
     requiredNumbers.forEach(k => numeric(p[k], `${p.id}.${k}`, .00001));
+    numeric(p.trunnionForward, `${p.id}.trunnionForward`, -100, 100);
     vector(p.gunhouseSize, `${p.id}.gunhouseSize`, .001);
     numeric(p.traverseDeg, `${p.id}.traverseDeg`, 0, 180);
     numeric(p.elevationMinDeg, `${p.id}.elevationMinDeg`, -15, 0);
@@ -380,8 +392,10 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
       text(he.basis, 'he.basis');
       if ((he.explosiveKg as number) >= (p.projectileMassKg as number)) fail(`${p.id}.he`, 'explosive filling must be less than projectile mass');
     }
-    if (p.barrelCount !== undefined) literal(p.barrelCount, [1, 2, 3, 4], `${p.id}.barrelCount`);
-    if (p.mountingStyle !== undefined) literal(p.mountingStyle, ['enclosed', 'open-pedestal', 'open-quad', 'oerlikon'], `${p.id}.mountingStyle`);
+    if (p.barrelCount !== undefined) literal(p.barrelCount, [1, 2, 3, 4, 8], `${p.id}.barrelCount`);
+    if (p.mountingStyle !== undefined) literal(p.mountingStyle, ['enclosed', 'open-pedestal', 'open-quad', 'oerlikon', 'pom-pom'], `${p.id}.mountingStyle`);
+    if (p.barrelCount === 8 && p.mountingStyle !== 'pom-pom') fail(String(p.id), 'eight barrels require the pom-pom common-cradle recipe');
+    if (p.barrelCount === 8 || p.barrelVerticalSpacing !== undefined) numeric(p.barrelVerticalSpacing, `${p.id}.barrelVerticalSpacing`, .001, 10);
     for (const k of ['barrelBaseRadius', 'rangefinderWidth', 'gunhouseBaseHeight', 'rollerRadius']) if (p[k] !== undefined) numeric(p[k], `${p.id}.${k}`, .001, 100);
     if(p.rangefinderForward!==undefined)numeric(p.rangefinderForward,`${p.id}.rangefinderForward`,-100,100);
     if (p.gunhouseShape !== undefined) {
@@ -458,26 +472,42 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
   });
   const modules = volumes(b.modules, 'modules');
   modules.forEach(m => {
-    text(m.name, `${m.id}.name`); literal(m.kind, ['engine', 'steering', 'magazine', 'generator', 'fire-control'], `${m.id}.kind`);
+    text(m.name, `${m.id}.name`); literal(m.kind, ['engine', 'steering', 'magazine', 'generator', 'fire-control', 'launcher'], `${m.id}.kind`);
     numeric(m.hp, `${m.id}.hp`, .001);
     if (m.role !== undefined) {
       literal(m.role, ['boiler', 'turbine', 'shaft', 'combined-drive'], `${m.id}.role`);
       if (m.kind !== 'engine') fail(String(m.id), 'only propulsion equipment has a machinery role');
     }
     if (m.immersionToleranceM !== undefined) numeric(m.immersionToleranceM, `${m.id}.immersionToleranceM`, 0, (m.size as number[])[1]);
-    if (!compartments.some(c => c.id === m.compartmentId)) fail(String(m.id), 'unknown compartment');
-    const c = compartments.find(c => c.id === m.compartmentId)!;
-    if ((m.center as number[]).some((n, i) => Math.abs(n - (c.center as number[])[i]) + (m.size as number[])[i] / 2 > (c.size as number[])[i] / 2 + 1e-6)) fail(String(m.id), 'module must fit its assigned compartment');
+    if (m.placement !== undefined) {
+      literal(m.placement, ['fixed'], `${m.id}.placement`);
+      if (m.kind !== 'fire-control' && m.kind !== 'launcher') fail(String(m.id), 'only directors and launchers support exposed fixed placement');
+    }
+    if (m.compartmentId !== undefined || m.placement !== 'fixed') {
+      if (!compartments.some(c => c.id === m.compartmentId)) fail(String(m.id), 'unknown compartment');
+      const c = compartments.find(c => c.id === m.compartmentId)!;
+      if ((m.center as number[]).some((n, i) => Math.abs(n - (c.center as number[])[i]) + (m.size as number[])[i] / 2 > (c.size as number[])[i] / 2 + 1e-6)) fail(String(m.id), 'module must fit its assigned compartment');
+    } else if ((m.center as number[]).some((n, i) => Math.abs(n) + (m.size as number[])[i] / 2 > (i === 0 ? (h.beam as number) : i === 1 ? 200 : (h.length as number)))) fail(String(m.id), 'fixed equipment outside ship envelope');
+    if (m.protectionMm !== undefined) numeric(m.protectionMm, `${m.id}.protectionMm`, 0, 1000);
+    if (m.torpedoLauncherId !== undefined && (m.kind !== 'launcher' || m.placement !== 'fixed' || m.compartmentId !== undefined || !Array.isArray(b.torpedoLaunchers) || !b.torpedoLaunchers.some((l: any) => l.id === m.torpedoLauncherId))) fail(String(m.id), 'unknown torpedo launcher pose');
+    if (m.servesMountIds !== undefined) {
+      if (m.kind !== 'fire-control') fail(String(m.id), 'only directors declare mount coverage');
+      const ids = list(m.servesMountIds, `${m.id}.servesMountIds`, 256);
+      if (new Set(ids).size !== ids.length || ids.some(id => !mounts.some(mount => mount.id === id))) fail(String(m.id), 'invalid director mount coverage');
+    }
   });
+  if (modules.some(m => m.servesMountIds !== undefined) && modules.some(m => m.kind === 'fire-control' && m.servesMountIds === undefined)) fail('modules', 'explicit coverage requires every director to declare served mounts');
   if (b.localDamage !== undefined) {
     const local = record(b.localDamage, 'localDamage');
     literal(local.version, [1], 'localDamage.version'); text(local.basis, 'localDamage.basis');
     const regions = volumes(local.regions, 'localDamage.regions');
     if (!regions.length) fail('localDamage.regions', 'at least one damage region required');
     regions.forEach(r => {
-      text(r.name, `${r.id}.name`); literal(r.kind, ['hull', 'superstructure', 'mount'], `${r.id}.kind`);
+      text(r.name, `${r.id}.name`); literal(r.kind, ['hull', 'superstructure', 'mount', 'launcher'], `${r.id}.kind`);
       numeric(r.durabilityFraction, `${r.id}.durabilityFraction`, .001, 2);
       if (r.mountId !== undefined && !mounts.some(m => m.id === r.mountId)) fail(String(r.id), 'unknown mount');
+      if ((r.kind === 'launcher') !== (r.moduleId !== undefined) || r.moduleId !== undefined && !modules.some(m => m.kind === 'launcher' && m.id === r.moduleId)) fail(String(r.id), 'launcher region requires a launcher module ID');
+      if (r.moduleId !== undefined && regions.filter(other=>other.moduleId===r.moduleId).length > 1) fail(String(r.id), 'launcher requires one structural region owner');
       if ((r.kind === 'mount') !== (r.mountId !== undefined)) fail(String(r.id), 'mount regions require a mount ID');
       if ((r.center as number[]).some((v, i) => Math.abs(v) > (i === 0 ? (h.beam as number) * 2 : i === 1 ? 200 : (h.length as number)))) fail(String(r.id), 'damage region outside ship envelope');
     });
@@ -626,6 +656,20 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
   const namedConnections = list(b.connections, 'connections', 512).map(c => record(c, 'connection')).filter(c => c.id !== undefined);
   unique(namedConnections, 'connections');
   const accuracy = record(b.accuracy, 'accuracy');
+  const launcherWeapons = [...(Array.isArray(b.torpedoTubes) ? b.torpedoTubes : []), ...(Array.isArray(b.depthChargeLaunchers) ? b.depthChargeLaunchers : [])] as Record<string, unknown>[];
+  for (const module of modules.filter(m=>m.kind==='launcher')) {
+    if (!launcherWeapons.some(w=>w.launcherModuleId===module.id)) fail(String(module.id), 'launcher damage owner needs a connected weapon');
+    if (module.torpedoLauncherId !== undefined && modules.filter(m=>m.torpedoLauncherId===module.torpedoLauncherId).length > 1) fail(String(module.id), 'shared launcher requires one damage owner');
+  }
+  for (const weapon of launcherWeapons) {
+    if (weapon.launcherModuleId === undefined) continue;
+    const owner = modules.find(m => m.id === weapon.launcherModuleId && m.kind === 'launcher');
+    if (!owner || owner.torpedoLauncherId !== weapon.launcherId) fail(String(weapon.id), 'invalid launcher damage owner');
+  }
+  for (const launcher of (Array.isArray(b.torpedoLaunchers) ? b.torpedoLaunchers : []) as Record<string, unknown>[]) {
+    const tubes = (b.torpedoTubes as Record<string, unknown>[]).filter(t => t.launcherId === launcher.id);
+    if (new Set(tubes.map(t => t.launcherModuleId)).size > 1) fail(String(launcher.id), 'shared launcher requires one damage owner');
+  }
   if (b.airWing !== undefined) {
     const wing = record(b.airWing, 'airWing');
     if (wing.version !== 1) fail('airWing.version', 'expected version 1');

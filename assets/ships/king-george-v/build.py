@@ -189,6 +189,7 @@ def gun_rod(name,a,b,r,material='edge',col=None,r2=None,vertices=10):
  return rod(name,a,b,r,material,col,r2,vertices)
 COL=collections['Batteries']
 for mount in D['mounts']:
+ if mount['weapon'].get('mountingStyle')=='pom-pom':continue
  ASSEMBLY=mount['id'];spec=mount['weapon'];main=mount['battery']=='main'
  gunhouse=create_gun_mount(mount,COL,dict(mesh=mesh,cyl=cyl,rod=gun_rod,box=box),materials,deckz)
  if main:
@@ -637,23 +638,28 @@ for i,(x,y,z) in enumerate([(4,6.6,DECK+6.28),(4,-6.6,DECK+6.28),(-24.2,6.6,DECK
  ASSEMBLY='pom-pom-'+str(i+1)
  outline=[(x+2.75*math.cos(a*math.tau/32),y+2.62*math.sin(a*math.tau/32)) for a in range(32)]
  gallery('Pom-pom splinter platform',outline,z,.83)
- before=set(scene.objects)
- cyl('Pom-pom geared roller',(x,y,z+.27),.91,.30,'edge',vertices=28)
- cyl('Pom-pom pedestal',(x,y,z+.67),.46,.70,'naval',vertices=20)
- box('Pom-pom open cradle',(x-.25,y,z+1.16),(1.3,1.98,.36),'edge')
- for yy in [-.81,-.27,.27,.81]:
-  for zz in [z+1.14,z+1.60]:
-   rod('2-pounder water jacket',(x-.33,y+yy,zz),(x+.94,y+yy,zz+.41),.094,'naval',vertices=12)
-   rod('2-pounder barrel',(x+.9,y+yy,zz+.4),(x+2.05,y+yy,zz+.78),.052,'edge',vertices=12)
-   rod('2-pounder muzzle',(x+2.03,y+yy,zz+.773),(x+2.11,y+yy,zz+.797),.07,'naval',vertices=10)
-   box('Pom-pom breech',(x-.65,y+yy,zz-.03),(.55,.20,.23),'naval')
- for sign in [-1,1]:
-  box('Pom-pom ammunition feed',(x-.4,y+sign*1.28,z+1.37),(1.3,.60,.76),'naval')
-  box('Feed-box lid',(x-.4,y+sign*1.28,z+1.77),(1.35,.66,.07),'roof')
-  box('Gunner seat',(x-1.15,y+sign*.72,z+.80),(.5,.48,.11),'canvas')
-  rod('Control wheel axis',(x-.9,y+sign*1.20,z+1.04),(x-.9,y+sign*1.48,z+1.04),.08,'edge',vertices=10)
- rod('Pom-pom sight',(x-.2,y,z+1.85),(x-.2,y,z+2.3),.04,'edge',vertices=6)
- node=pivot(ASSEMBLY+'.yaw',(x,y,z));attach_world(set(scene.objects)-before-{node},node)
+ mount=next((m for m in D['mounts'] if m['id']==ASSEMBLY),None)
+ if mount:
+  create_gun_mount(mount,COL,dict(mesh=mesh,cyl=cyl,rod=gun_rod,box=box),materials,DECK)
+ else:
+  before=set(scene.objects)
+  cyl('Pom-pom geared roller',(x,y,z+.27),.91,.30,'edge',vertices=28)
+  cyl('Pom-pom pedestal',(x,y,z+.67),.46,.70,'naval',vertices=20)
+  box('Pom-pom open cradle',(x-.25,y,z+1.16),(1.3,1.98,.36),'edge')
+  for yy in [-.81,-.27,.27,.81]:
+   for zz in [z+1.14,z+1.60]:
+    rod('2-pounder water jacket',(x-.33,y+yy,zz),(x+.94,y+yy,zz+.41),.094,'naval',vertices=12)
+    rod('2-pounder barrel',(x+.9,y+yy,zz+.4),(x+2.05,y+yy,zz+.78),.052,'edge',vertices=12)
+    rod('2-pounder muzzle',(x+2.03,y+yy,zz+.773),(x+2.11,y+yy,zz+.797),.07,'naval',vertices=10)
+    box('Pom-pom breech',(x-.65,y+yy,zz-.03),(.55,.20,.23),'naval')
+  for sign in [-1,1]:
+   box('Pom-pom ammunition feed',(x-.4,y+sign*1.28,z+1.37),(1.3,.60,.76),'naval')
+   box('Feed-box lid',(x-.4,y+sign*1.28,z+1.77),(1.35,.66,.07),'roof')
+   box('Gunner seat',(x-1.15,y+sign*.72,z+.80),(.5,.48,.11),'canvas')
+   rod('Control wheel axis',(x-.9,y+sign*1.20,z+1.04),(x-.9,y+sign*1.48,z+1.04),.08,'edge',vertices=10)
+  rod('Pom-pom sight',(x-.2,y,z+1.85),(x-.2,y,z+2.3),.04,'edge',vertices=6)
+  node=pivot(ASSEMBLY+'.yaw',(x,y,z));attach_world(set(scene.objects)-before-{node},node)
+
 def up_launcher(id,x,y,z,parent=None):
  global ASSEMBLY
  ASSEMBLY=id;before=set(scene.objects)

@@ -1,0 +1,173 @@
+{
+  "backend": "webgpu",
+  "frames": [
+    {
+      "changedPixels": 6,
+      "distance": 150,
+      "model": "f4f-4-wildcat",
+      "modelWidth": 40,
+      "width": 40,
+      "zoom": 1
+    },
+    {
+      "changedPixels": 18,
+      "distance": 400,
+      "model": "f4f-4-wildcat",
+      "modelWidth": 16,
+      "width": 16,
+      "zoom": 1
+    },
+    {
+      "changedPixels": 22,
+      "distance": 800,
+      "model": "f4f-4-wildcat",
+      "modelWidth": 1,
+      "width": 8,
+      "zoom": 1
+    },
+    {
+      "changedPixels": 22,
+      "distance": 1600,
+      "model": "f4f-4-wildcat",
+      "modelWidth": 0,
+      "width": 8,
+      "zoom": 1
+    },
+    {
+      "changedPixels": 22,
+      "distance": 3200,
+      "model": "f4f-4-wildcat",
+      "modelWidth": 0,
+      "width": 8,
+      "zoom": 1
+    },
+    {
+      "changedPixels": 22,
+      "distance": 6400,
+      "model": "f4f-4-wildcat",
+      "modelWidth": 0,
+      "width": 8,
+      "zoom": 1
+    },
+    {
+      "changedPixels": 9,
+      "distance": 3200,
+      "model": "f4f-4-wildcat",
+      "modelWidth": 20,
+      "width": 20,
+      "zoom": 16
+    },
+    {
+      "changedPixels": 5,
+      "distance": 150,
+      "model": "sbd-3-dauntless",
+      "modelWidth": 40,
+      "width": 40,
+      "zoom": 1
+    },
+    {
+      "changedPixels": 14,
+      "distance": 400,
+      "model": "sbd-3-dauntless",
+      "modelWidth": 8,
+      "width": 8,
+      "zoom": 1
+    },
+    {
+      "changedPixels": 22,
+      "distance": 800,
+      "model": "sbd-3-dauntless",
+      "modelWidth": 1,
+      "width": 8,
+      "zoom": 1
+    },
+    {
+      "changedPixels": 22,
+      "distance": 1600,
+      "model": "sbd-3-dauntless",
+      "modelWidth": 2,
+      "width": 8,
+      "zoom": 1
+    },
+    {
+      "changedPixels": 22,
+      "distance": 3200,
+      "model": "sbd-3-dauntless",
+      "modelWidth": 0,
+      "width": 8,
+      "zoom": 1
+    },
+    {
+      "changedPixels": 22,
+      "distance": 6400,
+      "model": "sbd-3-dauntless",
+      "modelWidth": 0,
+      "width": 8,
+      "zoom": 1
+    },
+    {
+      "changedPixels": 13,
+      "distance": 3200,
+      "model": "sbd-3-dauntless",
+      "modelWidth": 32,
+      "width": 32,
+      "zoom": 16
+    },
+    {
+      "changedPixels": 0,
+      "distance": 150,
+      "model": "tbd-1-devastator",
+      "modelWidth": 52,
+      "width": 52,
+      "zoom": 1
+    },
+    {
+      "changedPixels": 18,
+      "distance": 400,
+      "model": "tbd-1-devastator",
+      "modelWidth": 20,
+      "width": 20,
+      "zoom": 1
+    },
+    {
+      "changedPixels": 22,
+      "distance": 800,
+      "model": "tbd-1-devastator",
+      "modelWidth": 2,
+      "width": 8,
+      "zoom": 1
+    },
+    {
+      "changedPixels": 22,
+      "distance": 1600,
+      "model": "tbd-1-devastator",
+      "modelWidth": 2,
+      "width": 8,
+      "zoom": 1
+    },
+    {
+      "changedPixels": 22,
+      "distance": 3200,
+      "model": "tbd-1-devastator",
+      "modelWidth": 0,
+      "width": 8,
+      "zoom": 1
+    },
+    {
+      "changedPixels": 22,
+      "distance": 6400,
+      "model": "tbd-1-devastator",
+      "modelWidth": 0,
+      "width": 8,
+      "zoom": 1
+    },
+    {
+      "changedPixels": 12,
+      "distance": 3200,
+      "model": "tbd-1-devastator",
+      "modelWidth": 36,
+      "width": 36,
+      "zoom": 16
+    }
+  ]
+}

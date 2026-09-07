@@ -33515,22 +33515,62 @@
       "immersionToleranceM": 0.36
     },
     {
-      "id": "support-director",
-      "name": "Fire-control station",
+      "id": "equipment-forward-mk33-director",
+      "name": "forward mk33 director",
       "kind": "fire-control",
-      "hp": 65,
-      "compartmentId": "reserve-cell-1-1-2",
+      "placement": "fixed",
       "center": [
-        12.2682,
-        7.7046666625,
-        -42.40768125
+        11.049000000000001,
+        27.6993,
+        -30.47999999999999
       ],
       "size": [
-        0.2921,
-        0.1312333325,
-        1.8
+        2.5,
+        1.4,
+        2.2
       ],
-      "immersionToleranceM": 0.0262466665
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "five-inch-port-1",
+        "five-inch-port-2",
+        "five-inch-port-3",
+        "five-inch-port-4",
+        "five-inch-starboard-1",
+        "five-inch-starboard-2",
+        "five-inch-starboard-3",
+        "five-inch-starboard-4"
+      ]
+    },
+    {
+      "id": "equipment-aft-mk33-director",
+      "name": "aft mk33 director",
+      "kind": "fire-control",
+      "placement": "fixed",
+      "center": [
+        11.049000000000001,
+        27.0135,
+        17.312640000000002
+      ],
+      "size": [
+        2.5,
+        1.4,
+        2.2
+      ],
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "five-inch-port-1",
+        "five-inch-port-2",
+        "five-inch-port-3",
+        "five-inch-port-4",
+        "five-inch-starboard-1",
+        "five-inch-starboard-2",
+        "five-inch-starboard-3",
+        "five-inch-starboard-4"
+      ]
     }
   ],
   "compartments": [
@@ -97217,5 +97257,5 @@
     ]
   },
   "compilerVersion": 1,
-  "contentHash": "8dae05042d16a0524dfe7617d83d8ae090cb141d881c5206bbe3645343c2df6c"
+  "contentHash": "be93ad44f18bec4351c0a851936b856aa0f4a0df16844ad83c651cb26d77b5c3"
 }

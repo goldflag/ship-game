@@ -22,7 +22,7 @@ test('KGV is selectable with ten 14-inch guns, sixteen 5.25-inch guns and honest
   expect(def.mounts.filter(m => m.battery === 'main').map(m => [m.id, barrelIds(m.weapon).length])).toEqual([
     ['main-a', 4], ['main-b', 2], ['main-y', 4],
   ]);
-  expect(def.mounts.filter(m => m.battery === 'secondary')).toHaveLength(8);
+  expect(def.mounts.filter(m => m.weapon.caliberM === .13335)).toHaveLength(8);
   const battery = shipStatistics(def).find(s => s.id === 'main-battery')!;
   const row = (label: string) => battery.rows.find(r => r.label === label)!.value;
   expect(row('Layout')).toBe('2 × 4 + 1 × 2');

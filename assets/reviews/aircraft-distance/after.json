@@ -1,0 +1,215 @@
+{
+  "backend": "webgpu",
+  "frames": [
+    {
+      "addedAlpha": 0,
+      "changedPixels": 0,
+      "distance": 150,
+      "model": "f4f-4-wildcat",
+      "modelWidth": 40,
+      "span": 40.520584637431746,
+      "width": 40,
+      "zoom": 1
+    },
+    {
+      "addedAlpha": 0,
+      "changedPixels": 0,
+      "distance": 400,
+      "model": "f4f-4-wildcat",
+      "modelWidth": 16,
+      "span": 15.195219239036906,
+      "width": 16,
+      "zoom": 1
+    },
+    {
+      "addedAlpha": 15,
+      "changedPixels": 3,
+      "distance": 800,
+      "model": "f4f-4-wildcat",
+      "modelWidth": 1,
+      "span": 7.597609619518453,
+      "width": 2,
+      "zoom": 1
+    },
+    {
+      "addedAlpha": 33,
+      "changedPixels": 4,
+      "distance": 1600,
+      "model": "f4f-4-wildcat",
+      "modelWidth": 0,
+      "span": 3.7988048097592264,
+      "width": 2,
+      "zoom": 1
+    },
+    {
+      "addedAlpha": 9,
+      "changedPixels": 4,
+      "distance": 3200,
+      "model": "f4f-4-wildcat",
+      "modelWidth": 0,
+      "span": 1.8994024048796132,
+      "width": 2,
+      "zoom": 1
+    },
+    {
+      "addedAlpha": 0,
+      "changedPixels": 0,
+      "distance": 6400,
+      "model": "f4f-4-wildcat",
+      "modelWidth": 0,
+      "span": 0.9497012024398066,
+      "width": 0,
+      "zoom": 1
+    },
+    {
+      "addedAlpha": 0,
+      "changedPixels": 0,
+      "distance": 3200,
+      "model": "f4f-4-wildcat",
+      "modelWidth": 20,
+      "span": 30.39043847807381,
+      "width": 20,
+      "zoom": 16
+    },
+    {
+      "addedAlpha": 0,
+      "changedPixels": 0,
+      "distance": 150,
+      "model": "sbd-3-dauntless",
+      "modelWidth": 40,
+      "span": 44.26679076089053,
+      "width": 40,
+      "zoom": 1
+    },
+    {
+      "addedAlpha": 0,
+      "changedPixels": 0,
+      "distance": 400,
+      "model": "sbd-3-dauntless",
+      "modelWidth": 8,
+      "span": 16.60004653533395,
+      "width": 8,
+      "zoom": 1
+    },
+    {
+      "addedAlpha": 11,
+      "changedPixels": 3,
+      "distance": 800,
+      "model": "sbd-3-dauntless",
+      "modelWidth": 1,
+      "span": 8.300023267666974,
+      "width": 2,
+      "zoom": 1
+    },
+    {
+      "addedAlpha": 32,
+      "changedPixels": 3,
+      "distance": 1600,
+      "model": "sbd-3-dauntless",
+      "modelWidth": 2,
+      "span": 4.150011633833487,
+      "width": 2,
+      "zoom": 1
+    },
+    {
+      "addedAlpha": 14,
+      "changedPixels": 4,
+      "distance": 3200,
+      "model": "sbd-3-dauntless",
+      "modelWidth": 0,
+      "span": 2.0750058169167436,
+      "width": 2,
+      "zoom": 1
+    },
+    {
+      "addedAlpha": 0,
+      "changedPixels": 0,
+      "distance": 6400,
+      "model": "sbd-3-dauntless",
+      "modelWidth": 0,
+      "span": 1.0375029084583718,
+      "width": 0,
+      "zoom": 1
+    },
+    {
+      "addedAlpha": 0,
+      "changedPixels": 0,
+      "distance": 3200,
+      "model": "sbd-3-dauntless",
+      "modelWidth": 32,
+      "span": 33.2000930706679,
+      "width": 32,
+      "zoom": 16
+    },
+    {
+      "addedAlpha": 0,
+      "changedPixels": 0,
+      "distance": 150,
+      "model": "tbd-1-devastator",
+      "modelWidth": 52,
+      "span": 53.327581997040916,
+      "width": 52,
+      "zoom": 1
+    },
+    {
+      "addedAlpha": 0,
+      "changedPixels": 0,
+      "distance": 400,
+      "model": "tbd-1-devastator",
+      "modelWidth": 20,
+      "span": 19.997843248890344,
+      "width": 20,
+      "zoom": 1
+    },
+    {
+      "addedAlpha": 4,
+      "changedPixels": 3,
+      "distance": 800,
+      "model": "tbd-1-devastator",
+      "modelWidth": 2,
+      "span": 9.998921624445172,
+      "width": 2,
+      "zoom": 1
+    },
+    {
+      "addedAlpha": 28,
+      "changedPixels": 3,
+      "distance": 1600,
+      "model": "tbd-1-devastator",
+      "modelWidth": 2,
+      "span": 4.999460812222586,
+      "width": 2,
+      "zoom": 1
+    },
+    {
+      "addedAlpha": 25,
+      "changedPixels": 4,
+      "distance": 3200,
+      "model": "tbd-1-devastator",
+      "modelWidth": 0,
+      "span": 2.499730406111293,
+      "width": 2,
+      "zoom": 1
+    },
+    {
+      "addedAlpha": 0,
+      "changedPixels": 0,
+      "distance": 6400,
+      "model": "tbd-1-devastator",
+      "modelWidth": 0,
+      "span": 1.2498652030556465,
+      "width": 0,
+      "zoom": 1
+    },
+    {
+      "addedAlpha": 0,
+      "changedPixels": 0,
+      "distance": 3200,
+      "model": "tbd-1-devastator",
+      "modelWidth": 36,
+      "span": 39.99568649778069,
+      "width": 36,
+      "zoom": 16
+    }
+  ]
+}

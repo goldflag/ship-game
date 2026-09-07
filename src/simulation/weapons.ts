@@ -1,6 +1,6 @@
 import { hullDepth } from './ship';
 import type { Ammunition, ShipDefinition, Vec3 } from '../ships/blueprint';
-import { barrelOffset } from '../ships/blueprint';
+import { barrelOffset, barrelHeightOffset } from '../ships/blueprint';
 import { add, clamp, length, localToWorld, normalize, radians, rotate, sub, wrapAngle, worldToLocal, type Pose } from './geometry';
 import { GRAVITY, solveDragArc, travelFactor } from './ballistics';
 import { BarrelObstructionTree } from './obstruction';
@@ -64,9 +64,9 @@ export function queueAmmunition(m: MountDefinition, state: MountState, requested
 }
 export function muzzleLocal(m: MountDefinition, state: Pick<MountState, 'train' | 'elevation'>, barrel: number): Vec3 {
   const bearing = radians(m.bearingDeg) + state.train, w = m.weapon;
-  const forward = w.trunnionForward + (w.muzzleForward - w.trunnionForward) * Math.cos(state.elevation);
+  const forward = w.trunnionForward + (w.muzzleForward - w.trunnionForward) * Math.cos(state.elevation) - barrelHeightOffset(w, barrel) * Math.sin(state.elevation);
   const lateral = barrelOffset(w, barrel);
-  return add(m.position, [Math.cos(bearing) * lateral + Math.sin(bearing) * forward, w.pivotHeight + (w.muzzleForward - w.trunnionForward) * Math.sin(state.elevation), Math.sin(bearing) * lateral - Math.cos(bearing) * forward]);
+  return add(m.position, [Math.cos(bearing) * lateral + Math.sin(bearing) * forward, w.pivotHeight + barrelHeightOffset(w, barrel) * Math.cos(state.elevation) + (w.muzzleForward - w.trunnionForward) * Math.sin(state.elevation), Math.sin(bearing) * lateral - Math.cos(bearing) * forward]);
 }
 export const muzzleWorld = (m: MountDefinition, state: MountState, barrel: number, pose: Pose) => localToWorld(muzzleLocal(m, state, barrel), pose);
 /** The aiming reference is the battery mount's barrel center, including odd/single layouts. */
@@ -79,10 +79,11 @@ export function muzzleCenterLocal(m: MountDefinition, state: Pick<MountState, 't
   // Preserve the barrel-by-barrel division/addition order exactly; share only
   // invariant trigonometry and avoid intermediate vectors.
   for (let barrel = 0; barrel < count; barrel++) {
-    const lateral = barrelOffset(w, barrel);
-    x += (m.position[0] + (cosine * lateral + sine * forward)) / count;
-    y += (m.position[1] + vertical) / count;
-    z += (m.position[2] + (sine * lateral - cosine * forward)) / count;
+    const lateral = barrelOffset(w, barrel), row = barrelHeightOffset(w, barrel);
+    const boreForward = forward - row * Math.sin(state.elevation);
+    x += (m.position[0] + (cosine * lateral + sine * boreForward)) / count;
+    y += (m.position[1] + vertical + row * Math.cos(state.elevation)) / count;
+    z += (m.position[2] + (sine * lateral - cosine * boreForward)) / count;
   }
   return [x, y, z];
 }

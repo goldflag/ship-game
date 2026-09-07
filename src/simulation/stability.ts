@@ -1,5 +1,5 @@
 import { meanHullY } from './ship';
-import { equipmentCondition, systemHealth } from './machinery';
+import { launcherAvailable, equipmentCondition, systemHealth } from './machinery';
 import type { ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { Combatant } from './damage';
 import { flotation, hydrostatics, rightingArms } from './hydrostatics';
@@ -124,9 +124,9 @@ export function updateCapability(actor: Combatant, def: ShipDefinition): void {
   const airRecoverable = armedFlight || strikeReserves && (actor.damage.modules.find(m => m.id === service?.id)?.hp ?? 0) > 0;
   const airUsable = armedFlight || strikeReserves && !!service && equipmentCondition(actor, def, service).availability > 0;
   const usable = airUsable || loadedGuns.some(({ definition: m }) => !m.magazineId || equipmentCondition(actor, def, def.modules.find(mod => mod.id === m.magazineId)!).availability > 0) ||
-    [...loadedTubes, ...loadedCharges].some(t => equipmentCondition(actor, def, def.modules.find(m => m.id === t.magazineId)!).availability > 0);
+    [...loadedTubes, ...loadedCharges].some(t => launcherAvailable(actor, def, t.launcherModuleId) && equipmentCondition(actor, def, def.modules.find(m => m.id === t.magazineId)!).availability > 0);
   const recoverable = airRecoverable || loadedGuns.some(({ definition: m }) => !m.magazineId || actor.damage.modules.find(mod => mod.id === m.magazineId)!.hp > 0) ||
-    [...loadedTubes, ...loadedCharges].some(t => (actor.damage.modules.find(m => m.id === t.magazineId)?.hp ?? 0) > 0);
+    [...loadedTubes, ...loadedCharges].some(t => launcherAvailable(actor, def, t.launcherModuleId, true) && (actor.damage.modules.find(m => m.id === t.magazineId)?.hp ?? 0) > 0);
   const mobile = systemHealth(actor, def, 'engine') > .001;
   // Flooded supplies may recover. Only permanent loss of all weapons/ammunition
   // removes an afloat ship from the battle, until reset.

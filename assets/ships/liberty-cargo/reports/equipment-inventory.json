@@ -1,0 +1,116 @@
+{
+  "version": 1,
+  "basis": "Original blueprint/recipe equipment inventory. Placement, HP, coverage and protection are game approximations; historical uncertainties remain in discrepancies.md.",
+  "functional": {
+    "guns": [
+      {
+        "id": "aft-5in",
+        "partId": "us-5in38-mk21-single"
+      },
+      {
+        "id": "fore-3in",
+        "partId": "us-3in50-single"
+      },
+      {
+        "id": "bow-aa-starboard",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "bridge-aa-starboard-1",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "bridge-aa-starboard-2",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "aft-aa-starboard",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "bow-aa-port",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "bridge-aa-port-1",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "bridge-aa-port-2",
+        "partId": "oerlikon-20mm-single"
+      },
+      {
+        "id": "aft-aa-port",
+        "partId": "oerlikon-20mm-single"
+      }
+    ],
+    "equipment": [
+      {
+        "id": "boiler-port",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "boiler-starboard",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "main-engine",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "shaft",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "steering",
+        "kind": "steering",
+        "placement": "room"
+      },
+      {
+        "id": "forward-magazine",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "aft-magazine",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "support-generator-1",
+        "kind": "generator",
+        "placement": "room"
+      },
+      {
+        "id": "support-generator-2",
+        "kind": "generator",
+        "placement": "room"
+      },
+      {
+        "id": "support-director",
+        "kind": "fire-control",
+        "placement": "room",
+        "servesMountIds": [
+          "aft-5in",
+          "fore-3in",
+          "bow-aa-starboard",
+          "bridge-aa-starboard-1",
+          "bridge-aa-starboard-2",
+          "aft-aa-starboard",
+          "bow-aa-port",
+          "bridge-aa-port-1",
+          "bridge-aa-port-2",
+          "aft-aa-port"
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "Other visual fittings require a dated per-fitting evidence audit before registration.",
+    "Existing support-director location remains an internal proxy until a sourced exposed station is authored."
+  ]
+}

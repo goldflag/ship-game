@@ -1,3 +1,4 @@
+import { equipmentPose, equipmentBox } from './equipmentPose';
 import { hullContacts } from './hullContact';
 import { structuralHits, EXTERIOR_PLATING_REPLACEMENT_M } from './structure';
 import { createStability, updateSinking, updateStability, waterLevel, type StabilityState } from './stability';
@@ -43,7 +44,7 @@ export interface DamageState {
   integrity: number; maxIntegrity: number; hullDamageRemainder: number; modules: { id: string; hp: number; detonated: boolean; ignition: number }[];
   compartments: CompartmentState[]; connections: ConnectionState[]; sunk: boolean; defeatCause?: DefeatCause;
 }
-export interface Combatant { torpedoLaunchers?: import('./torpedoes').TorpedoLauncherState[]; depthChargeLaunchers?: { id: string; ammo: number }[]; airWing?: import('./aircraft').AirWingState; motion: ShipState; mounts: MountState[]; damage: DamageState; torpedoTubes?: { id: string; ammo: number }[]; submarine?: import('./submarine').SubmarineState; }
+export interface Combatant { sea?: { state: import('./sea').SeaState; time: number }; torpedoLaunchers?: import('./torpedoes').TorpedoLauncherState[]; depthChargeLaunchers?: { id: string; ammo: number }[]; airWing?: import('./aircraft').AirWingState; motion: ShipState; mounts: MountState[]; damage: DamageState; torpedoTubes?: { id: string; ammo: number }[]; submarine?: import('./submarine').SubmarineState; }
 export type ShellType = 'AP' | 'HE';
 export interface SurfaceImpact {
   position: Vec3; normal: Vec3; direction: Vec3; mountId?: string;
@@ -73,7 +74,7 @@ export interface Shell {
   detonateAtAge?: number;
   lastHitShipId?: string;
   /** Position is ship-local, or mount-local when attached to an articulated gunhouse. */
-  lodged?: { shipId: string; position: Vec3; mountId?: string };
+  lodged?: { shipId: string; position: Vec3; mountId?: string; moduleId?: string };
 }
 /** Serializable evidence for render-side effects; never feeds back into damage. */
 export interface BallisticEffectData {
@@ -143,7 +144,7 @@ export function nearbyContacts(originWorld: Vec3, radius: number, actor: Combata
     const mount = a.plate?.mountId ? def.mounts.findIndex(m => m.id === a.plate!.mountId) : -1;
     if (near(mount < 0 ? origin : mountOrigins[mount], a)) result.armor.push(i);
   });
-  def.modules.forEach((m, i) => { if (near(origin, m)) result.modules.push(i); });
+  def.modules.forEach((m, i) => { const pose = equipmentPose(actor, def, m); if (near(pose ? worldToLocal(origin, pose) : origin, equipmentBox(def, m))) result.modules.push(i); });
   def.connections.forEach((c, i) => { if (c.bounds && c.thicknessMm !== undefined && actor.damage.connections[i].state !== 'open' && near(origin, c.bounds)) result.connections.push(i); });
   def.mounts.forEach((m, i) => {
     const w = m.weapon;
@@ -187,8 +188,9 @@ export function shipContacts(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor
     }
   });
   eachCandidate(def.modules, candidates?.modules, (m, index) => {
-    const key = `${actor.motion.id}:module:${m.id}`, hit = segmentBox(from, to, m);
-    if (hit && !shell.visited.includes(key)) hits.push({ ...hit, key, kind: 'module', index });
+    const pose = equipmentPose(actor, def, m), box = equipmentBox(def, m);
+    const key = `${actor.motion.id}:module:${m.id}`, hit = segmentBox(pose ? worldToLocal(from, pose) : from, pose ? worldToLocal(to, pose) : to, box);
+    if (hit && !shell.visited.includes(key)) hits.push({ ...hit, ...(pose ? { point: localToWorld(hit.point, pose), normal: rotate(hit.normal, pose) } : {}), key, kind: 'module', index });
   });
   eachCandidate(def.connections, candidates?.connections, (c, index) => {
     if (!c.bounds || c.thicknessMm === undefined || actor.damage.connections[index].state === 'open') return;
@@ -257,7 +259,7 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
     const target = hit.kind === 'armor' ? contactArmor(def,hit) : hit.kind === 'module' ? def.modules[hit.index] : hit.kind === 'mount' ? def.mounts[hit.index] : { id: connectionId(boundary), name: `Watertight boundary ${connectionId(boundary)}` };
     const evidence: ImpactRecord = { shellId: shell.id, shipId: actor.motion.id, targetId: target.id, targetName: target.name, kind: hit.kind, position: [...hit.point], impactSpeedMps: length(shell.velocity), penetrationBeforeMm: shell.penetrationMm, penetrationAfterMm: shell.penetrationMm, outcome: 'damaged' };
     const mountId = hit.kind === 'mount' ? def.mounts[hit.index].id : hit.kind === 'armor' ? contactArmor(def, hit).plate?.mountId : undefined;
-    evidence.localDamage = localDamageEvidence(actor, def, hit.point, mountId);
+    evidence.localDamage = localDamageEvidence(actor, def, hit.point, mountId, hit.kind === 'module' ? def.modules[hit.index].id : undefined);
     evidence.throughWreckage = shell.wreckageShips?.includes(actor.motion.id) || undefined;
     if (evidence.localDamage && evidence.localDamage.condition < .1 && !shell.wreckageShips?.includes(actor.motion.id)) (shell.wreckageShips ??= []).push(actor.motion.id);
     // A successful AP equipment strike must be consequential even when its
@@ -314,8 +316,9 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
         // Keep the burst on the incoming side. An origin exactly on the plate
         // makes fresh blast rays pay that armor in both directions.
         const origin = add(hit.point, scale(direction, -1e-4));
-        const point = mount ? worldToLocal(origin, { x: mount.position[0], y: mount.position[1], z: mount.position[2], heading: radians(mount.bearingDeg) + actor.mounts[index].train, roll: 0, pitch: 0 }) : origin;
-        shell.lodged = { shipId: actor.motion.id, position: point, mountId };
+        const module=hit.kind==='module'?def.modules[hit.index]:undefined, pose=module&&equipmentPose(actor,def,module);
+        const point = pose ? worldToLocal(origin,pose) : mount ? worldToLocal(origin, { x: mount.position[0], y: mount.position[1], z: mount.position[2], heading: radians(mount.bearingDeg) + actor.mounts[index].train, roll: 0, pitch: 0 }) : origin;
+        shell.lodged = { shipId: actor.motion.id, position: point, mountId, moduleId:module?.id };
       }
       evidence.outcome = kind; evidence.terminal = !shell.lodged;
       shell.position = [...position]; report(kind, message); return true;
@@ -393,10 +396,15 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
       report('penetration', `Penetrated ${a.name}`);
     } else if (hit.kind === 'module') {
       const m = def.modules[hit.index], state = actor.damage.modules[hit.index];
+      evidence.resistanceMm = m.protectionMm ?? 50;
+      arm(evidence.resistanceMm);
+      // Authored enclosure protection gates the hit; omitted protection retains
+      // the original internal-equipment contact semantics.
+      if (m.protectionMm !== undefined && shell.penetrationMm <= m.protectionMm) return stop('stopped', `Stopped by ${m.name} protection`);
       evidence.damage = damageEquipment(state.hp); evidence.compartmentId = m.compartmentId;
       state.hp = Math.max(0, state.hp - evidence.damage);
       evidence.outcome = state.hp === 0 ? 'destroyed' : 'damaged';
-      evidence.resistanceMm = 50; arm(50); pay(50);
+      pay(evidence.resistanceMm);
       evidence.terminal = shell.penetrationMm === 0;
       if (evidence.terminal && shell.detonateAtAge !== undefined) { shell.lodged = { shipId: actor.motion.id, position: [...hit.point] }; evidence.terminal = false; }
       report('module', `${m.name} ${state.hp === 0 ? 'disabled' : 'damaged'}`);

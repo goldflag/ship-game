@@ -35,3 +35,7 @@ Local regions, generator and director proxies, combustible loads and smoke outle
 ## Ensign and radar animation
 
 The version-1 blueprint rig selects a period national ensign and a retained or original flagstaff hoist. Flag dimensions and stern/bridge placement are gameplay approximations; harbor/underway flag etiquette and halyard handling are not modeled. See `assets/parts/ensigns-sources.md` for design references. Radar rates and director sector sweeps are visual calibration, not verified operating procedures or combat tracking. Existing aerial shapes retain their prior evidence limitations. Cloth uses gravity, apparent wind and constrained fabric; it does not simulate cloth tearing, rigging collisions or fluid dynamics.
+
+## Damageable equipment rollout — 2026-09-07
+
+KGV-006/011: six fixed director housing volumes now own damage and battery coverage; placement/coverage remain game approximations. KGV-007: the four pom-pom stations remain decorative under `equipment-evidence.json` until station and mechanism acceptance is complete. The working eight-barrel component is retained only as a review prototype, not fitted in the live preset. See [equipment review](equipment-review.md) for sources, the high-elevation clearance concern and unresolved model acceptance.
