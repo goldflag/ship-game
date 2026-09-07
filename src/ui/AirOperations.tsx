@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type PointerEvent, type RefObject, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent, type RefObject } from 'react';
 import type { Game } from '../game/Game';
 import type { Telemetry } from '../game/types';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
@@ -50,10 +50,21 @@ function SquadronIcon({ role, size = 20 }: { role: FlightSummary['role']; size?:
 
 export function SquadronLabels({ data, game, onOrder, onTarget }: { data: Telemetry; game: Game | null; onOrder?(id: string, team: string): void; onTarget?(id: string, team: string): boolean }) {
   const labels = useRef<HTMLDivElement>(null);
-  useMapProjection(labels, game, !!data.airOperationsOpen);
+  useLayoutEffect(() => {
+    if (!game) return;
+    const update = () => {
+      labels.current?.querySelectorAll<HTMLElement>('[data-flight-id]').forEach(element => {
+        const point = game.projectSquadron(element.dataset.ownerId!, element.dataset.flightId!);
+        element.style.display = point ? '' : 'none';
+        if (point) { element.style.left = `${point.x}px`; element.style.top = `${point.y}px`; }
+      });
+    };
+    update();
+    return game.onCameraFrame(update);
+  }, [game, data.squadronMarkers]);
   return <div ref={labels} className={`air-squadron-labels ${data.airOperationsOpen ? 'air-labels-map' : ''}`} aria-label="Squadron names and status">
-    {data.squadronMarkers?.filter(f => f.screen).map(f => <button key={f.id} className={`air-squadron-tag ${f.team === 'enemy' ? 'air-hostile' : 'air-friendly'} ${data.selectedFlightId === f.id ? 'air-selected' : ''}`}
-      data-map-position={JSON.stringify(f.position)} style={{ left: f.screen!.x, top: f.screen!.y }} title={`${f.name} · ${roleLabel(f.role)} · ${mission(f)} · ${f.hp}% condition`}
+    {data.squadronMarkers?.map(f => <button key={f.id} className={`air-squadron-tag ${f.team === 'enemy' ? 'air-hostile' : 'air-friendly'} ${data.selectedFlightId === f.id ? 'air-selected' : ''}`}
+      data-flight-id={f.id} data-owner-id={f.ownerId} style={{ left: f.screen?.x, top: f.screen?.y, display: f.screen ? undefined : 'none' }} title={`${f.name} · ${roleLabel(f.role)} · ${mission(f)} · ${f.hp}% condition`}
       aria-label={`${f.name} · ${roleLabel(f.role)} · ${f.surviving} aircraft · ${f.activity}`}
       tabIndex={data.airOperationsOpen ? 0 : -1}
       onClick={e => { if (!onTarget?.(f.id, f.team) && f.ownerId === data.ship.id) game?.selectFlight(f.id); e.currentTarget.blur(); }}
@@ -64,7 +75,7 @@ export function SquadronLabels({ data, game, onOrder, onTarget }: { data: Teleme
 }
 
 /** Instruments over the actual 3D scene. M changes the camera, never opens a dialog. */
-export function AirOperations({ data, game, bindings, armament }: { data: Telemetry; game: Game | null; bindings: Keybindings; armament?: ReactNode }) {
+export function AirOperations({ data, game, bindings }: { data: Telemetry; game: Game | null; bindings: Keybindings }) {
   const wing = data.combat!.airWing!;
   const mapOpen = !!data.airOperationsOpen;
   const [pendingSelection, setPendingSelection] = useState<string>();
@@ -164,7 +175,8 @@ export function AirOperations({ data, game, bindings, armament }: { data: Teleme
       const focused = document.activeElement;
       if (document.hidden || document.querySelector('dialog[open]') || (focused instanceof HTMLElement && (focused.matches('input, textarea, select') || focused.isContentEditable))) nav.clear();
       else if (!drag.current) {
-        const [dx, dy] = nav.step(dt, state.current.size.width, state.current.size.height);
+        const rect = element.getBoundingClientRect();
+        const [dx, dy] = nav.step(dt, rect.width, rect.height);
         if (dx || dy) game?.panAirMap(dx, dy);
       }
       frame = requestAnimationFrame(tick);
@@ -257,9 +269,7 @@ export function AirOperations({ data, game, bindings, armament }: { data: Teleme
       </nav>
     </section>}
     <SquadronLabels data={data} game={game} onOrder={commandFlight} onTarget={(id, team) => { if (!armed.current) return false; commandFlight(id, team); return true; }}/>
-    <section className={`air-squadron-command ${mapOpen ? 'air-command-map' : ''}`} aria-label="Squadron commands">
-      {!mapOpen && armament}
-      {!mapOpen && <button className="air-open-map" onClick={e => { game?.setAirOperationsOpen(true); e.currentTarget.blur(); }}>Command map <kbd>{bindingLabel(bindings, 'airOperations')}</kbd></button>}
+    {mapOpen && <section className="air-squadron-command air-command-map" aria-label="Squadron commands">
       {mapOpen && <>
         <nav className="air-selected-orders" aria-label="Squadron actions">
           {SQUADRON_ACTIONS.filter(a => !selected || actionAvailable(a, selected.role)).map(action => <button key={action.kind} disabled={!canCommand || !selected?.surviving} aria-pressed={armedAction?.kind === action.kind} aria-keyshortcuts={action.key.toLowerCase()} title={`${action.key} · ${action.label}, then click ${action.target}. Esc cancels.`} onClick={e => { perform(action.key); e.currentTarget.blur(); }}>{action.label}<kbd>{action.key}</kbd></button>)}
@@ -283,6 +293,6 @@ export function AirOperations({ data, game, bindings, armament }: { data: Teleme
           <span className="air-box-strength" aria-hidden="true">{Array.from({ length: f.total }, (_, index) => <i key={index} className={index < f.surviving ? 'alive' : ''}/>)}</span>
         </button>)}
       </div>
-    </section>
+    </section>}
   </>;
 }

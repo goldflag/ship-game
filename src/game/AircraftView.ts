@@ -135,10 +135,9 @@ export class AircraftView {
       const depth = -this.viewPosition.copy(this.position).applyMatrix4(camera.matrixWorldInverse).z;
       const span = dimensions.wingspan * camera.projectionMatrix.elements[5] * this.height / (2 * Math.max(.001, depth));
       if (!deck && !inPort && !crashing) this.contacts.add(this.position, dimensions.wingspan, camera, aircraftAttitude(plane, alpha).bank);
-      // Once the complete airframe is smaller than its existing nine-pixel
-      // contact, that depth-tested silhouette carries the distant aircraft.
-      // Binocular magnification and aircraft follow automatically restore detail.
-      if (!deck && !inPort && !crashing && span < 9) { this.silhouettes++; continue; }
+      // Keep the lowest-detail airframe at every distance. The contact supplements
+      // thin/subpixel geometry instead of replacing it at a hard zoom threshold.
+      if (!deck && !inPort && !crashing && span < 9) this.silhouettes++;
       const lod = span > 90 ? 0 : span > 28 ? 1 : 2;
       const model = this.models.get(`${plane.modelId}/${lod}`);
       if (!model) continue;
