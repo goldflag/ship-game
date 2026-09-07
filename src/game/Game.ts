@@ -27,7 +27,7 @@ import { HitLabels } from './HitLabels';
 import { TorpedoPreview } from './TorpedoPreview';
 import { HullDamageFeedback } from './HullDamageFeedback';
 import { FIXED_DT } from '../simulation/ship';
-import { orderDepth } from '../simulation/submarine';
+import { DEPTH_STEP_M, orderDepth } from '../simulation/submarine';
 import { GunAimIndicators } from './GunAimIndicators';
 import { HitDirectionIndicators } from './HitDirectionIndicators';
 import { gunAimPoints } from './gunAim';
@@ -171,7 +171,7 @@ export class Game {
       chartSize: direction => this.resizeChart(direction), gunnery: () => this.setGunneryOpen(!this.gunneryOpen),
       shellFollow: () => this.toggleShellFollow(),
       airOperations: () => this.setAirOperationsOpen(!this.airOperationsOpen),
-      depth: direction => this.setDepth((this.simulation.player.submarine?.targetDepthM ?? 0) + direction * 10),
+      depth: direction => this.setDepth((this.simulation.player.submarine?.targetDepthM ?? 0) + direction * DEPTH_STEP_M),
       emergencyBlow: () => this.setDepth(0, true),
     });
     this.input.setEnabled(false);
@@ -657,7 +657,20 @@ export class Game {
   toggleBinoculars(): void {
     if (this.paused || this.inPort || this.inspecting || this.airOperationsOpen) return;
     if (this.shellFollow.view || this.followedAircraftId) { this.stopShellFollow(); return; }
-    this.rig.toggleBinoculars(this.manualAim ? this.readSightAim() : this.currentAim, this.simulation.ship);
+    const ship = this.simulation.ship;
+    let aim = this.manualAim ? this.readSightAim() : this.currentAim;
+    if (!this.rig.binoculars && this.definition.submarine && ship.y < -.5) {
+      const bearing = this.rig.bearing;
+      const ahead = (aim[0] - ship.x) * Math.sin(bearing) - (aim[2] - ship.z) * Math.cos(bearing);
+      // During a shallow dive the chase sight can meet the sea over our own
+      // stern. Moving to the scope would turn around to keep that point in view.
+      // Continue along the viewing bearing, including deliberate stern aiming.
+      if (ahead < this.definition.hull.length) {
+        const range = (this.definition.torpedoTubes?.[0]?.weapon.rangeM ?? 5000) * .98;
+        aim = [ship.x + Math.sin(bearing) * range, .5, ship.z - Math.cos(bearing) * range];
+      }
+    }
+    this.rig.toggleBinoculars(aim, ship);
   }
   private readSightAim(): Vec3 {
     const aim = sightAim(this.camera.position.toArray(), this.camera.getWorldDirection(new THREE.Vector3()).toArray(),

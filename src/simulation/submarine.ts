@@ -5,6 +5,8 @@ import { systemHealth } from './machinery';
 import type { HelmCommand } from './ship';
 import { clamp } from './geometry';
 
+export const DEPTH_STEP_M = 2;
+
 export interface SubmarineState {
   targetDepthM: number;
   ballastM3: number;
