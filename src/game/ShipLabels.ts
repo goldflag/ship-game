@@ -18,6 +18,7 @@ type Label = {
   actor: FleetActor; view: ShipView; anchor: Vector3; root: HTMLDivElement;
   meter: HTMLDivElement; fill: HTMLDivElement; health: HTMLSpanElement; hp: number; sunk: boolean;
   loss: HTMLDivElement; damageNumber: HTMLSpanElement; feedback: HullDamageFeedback;
+  lossAmount: number; lossOpacity: number; integrity: number;
 };
 
 /** Screen overlay follows rendered hull poses at frame rate, without React rerenders. */
@@ -59,7 +60,7 @@ export class ShipLabels {
       // Measure the authored model once. Inspection helpers never change the anchor.
       const bounds = new Box3().setFromObject(view.root.children[0]);
       const top = bounds.isEmpty() ? actor.definition.hull.depth : bounds.max.y - view.root.position.y;
-      return [{ actor, view, root, meter, fill, health, loss, damageNumber, feedback: new HullDamageFeedback(actor.damage.integrity), anchor: new Vector3(0, top + 5, 0), hp: -1, sunk: false }];
+      return [{ actor, view, root, meter, fill, health, loss, damageNumber, feedback: new HullDamageFeedback(actor.damage.integrity), anchor: new Vector3(0, top + 5, 0), hp: -1, sunk: false, lossAmount: -1, lossOpacity: -1, integrity: -1 }];
     });
   }
 
@@ -71,13 +72,22 @@ export class ShipLabels {
       const { actor, view, root } = label;
       const hp = Math.round(MathUtils.clamp(actor.damage.integrity, 0, actor.damage.maxIntegrity));
       const damage = label.feedback.update(actor.damage.integrity, time);
-      label.loss.style.left = `${actor.damage.integrity / actor.damage.maxIntegrity * 100}%`;
-      label.loss.style.width = `${damage.amount / actor.damage.maxIntegrity * 100}%`;
-      label.loss.style.opacity = String(damage.opacity);
-      label.damageNumber.hidden = damage.amount <= 0;
-      label.damageNumber.textContent = `−${Math.max(1, Math.round(damage.amount)).toLocaleString()}`;
-      label.damageNumber.style.opacity = String(damage.opacity);
-      label.damageNumber.setAttribute('aria-label', `${Math.max(1, Math.round(damage.amount))} hull HP lost`);
+      if (label.integrity !== actor.damage.integrity) {
+        label.integrity = actor.damage.integrity;
+        label.loss.style.left = `${actor.damage.integrity / actor.damage.maxIntegrity * 100}%`;
+      }
+      if (label.lossAmount !== damage.amount) {
+        label.lossAmount = damage.amount;
+        label.loss.style.width = `${damage.amount / actor.damage.maxIntegrity * 100}%`;
+        label.damageNumber.hidden = damage.amount <= 0;
+        label.damageNumber.textContent = `−${Math.max(1, Math.round(damage.amount)).toLocaleString()}`;
+        label.damageNumber.setAttribute('aria-label', `${Math.max(1, Math.round(damage.amount))} hull HP lost`);
+      }
+      if (label.lossOpacity !== damage.opacity) {
+        label.lossOpacity = damage.opacity;
+        label.loss.style.opacity = String(damage.opacity);
+        label.damageNumber.style.opacity = String(damage.opacity);
+      }
       if (label.hp !== hp || label.sunk !== actor.damage.sunk || label.health.dataset.status !== actor.damage.stability.status) {
         label.health.dataset.status = actor.damage.stability.status;
         label.hp = hp; label.sunk = actor.damage.sunk;

@@ -5,6 +5,7 @@ import { sightAim, torpedoCourseAim } from './aiming';
 import { createShipState } from '../simulation/ship';
 import { localToWorld, normalize, sub } from '../simulation/geometry';
 import type { Vec3 } from '../ships/blueprint';
+import { shipPreset } from '../ships/presets';
 
 test('the sight selects the first target armor surface before the sea behind it', () => {
   const pose = { ...createShipState('target'), x: 650, z: -550, heading: .7 };
@@ -16,6 +17,26 @@ test('the sight selects the first target armor surface before the sea behind it'
   expect(Math.hypot(point[0], point[2])).toBeLessThan(Math.hypot(pose.x, pose.z));
   const miss = sightAim(origin, normalize([0, -1, -10]), { pose, armor: [{ id: 'hull', name: 'Hull', center, size: [36, 16, 250], thicknessMm: 100 }] });
   expect(miss).toEqual([0, .5, -795]);
+});
+
+test('fleet aim bounds preserve narrow-phase hits across rolled hulls, structures and trained mounts', () => {
+  for (const id of ['bismarck', 'yamato', 'baltimore', 'enterprise-cv6', 'type-viic', 'fletcher', 'flower-corvette', 'liberty-cargo', 'liberty-collier', 'victory-cargo']) {
+    const definition = shipPreset(id);
+    const pose = { ...createShipState(id), x: 350, y: -2, z: -1700, heading: .7, pitch: .12, roll: -.23 };
+    const trains = definition.mounts.map((_, i) => i % 2 ? 2.4 : -2.1);
+    const candidate = { definition, armor: definition.armor, pose, trains };
+    // A separate armor list deliberately uses the unrestricted narrow phase.
+    const reference = { ...candidate, armor: [...definition.armor] };
+    const centers: Vec3[] = [[0, 0, 0], [0, 45, 0], [100, 20, 300],
+      ...definition.mounts.map(m => [m.position[0], m.position[1] + m.weapon.gunhouseSize[2] / 2, m.position[2]] as Vec3),
+      ...definition.armor.filter((_, i) => i % Math.max(1, Math.floor(definition.armor.length / 12)) === 0).map(a => a.center)];
+    for (const [i, center] of centers.entries()) {
+      const point = localToWorld(center, pose);
+      const origin = localToWorld([i % 2 ? -900 : 900, center[1] + 80, center[2] + (i % 3 - 1) * 300], pose);
+      const direction = normalize(sub(point, origin));
+      expect(sightAim(origin, direction, candidate)).toEqual(sightAim(origin, direction, reference));
+    }
+  }
 });
 
 test('a sea sight points at the CPU waterline and horizon aim stays finite and bounded', () => {

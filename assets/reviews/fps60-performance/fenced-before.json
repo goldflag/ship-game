@@ -1,0 +1,56 @@
+{
+  "view": "battle",
+  "camera": [
+    190,
+    100,
+    -139.9302333333186
+  ],
+  "stateHash": "a7fc65a456859bf6b9d277a2a5b2f892ea273ade1324f2cf7eea977f75ad127a",
+  "completedGpuWork": true,
+  "samples": 120,
+  "drawCalls": {
+    "median": 2748,
+    "p95": 2765,
+    "mean": 2747.141666666667
+  },
+  "triangles": {
+    "median": 2538148,
+    "p95": 2539932,
+    "mean": 2533612.55
+  },
+  "ships": 60,
+  "tick": 3750,
+  "framebuffer": [
+    1920,
+    1080
+  ],
+  "frameWorkMs": {
+    "median": 70.30000001192093,
+    "p95": 79,
+    "mean": 70.68499999940396
+  },
+  "phases": {
+    "simulation": {
+      "median": 4.300000011920929,
+      "p95": 5.299999952316284,
+      "mean": 4.431666666766008
+    },
+    "render": {
+      "median": 10.600000023841858,
+      "p95": 11.800000011920929,
+      "mean": 10.719999998807907
+    },
+    "water": {
+      "median": 30,
+      "p95": 32,
+      "mean": 29.947499998907247
+    }
+  },
+  "shells": 118,
+  "draws": {
+    "batches": 187,
+    "instances": 6699,
+    "reduced": 2563,
+    "subpixel": 933
+  }
+}

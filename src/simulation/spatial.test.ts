@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import { shipPresets, shipPreset } from '../ships/presets';
 import { localToWorld, segmentBox, worldToLocal } from './geometry';
-import { mayReachHull, shellHullRadius } from './spatial';
+import { mayReachHull, shellHullRadius, torpedoHullRadius } from './spatial';
 import type { Vec3 } from '../ships/blueprint';
 
 test('fleet shell rejection retains swept hits through rotated, listing and sinking hulls', () => {
@@ -17,6 +17,21 @@ test('fleet shell rejection retains swept hits through rotated, listing and sink
         const corner = localToWorld([x*box.size[0]/2, 10+y*30, z*box.size[2]/2], pose);
         expect(mayReachHull(corner, corner, pose, radius)).toBe(true);
       }
+      expect(mayReachHull([0, 0, 0], [10, 0, 10], pose, radius)).toBe(false);
+    }
+  }
+});
+
+test('torpedo broad phase contains every hull-box corner at diving, listing and sinking poses', () => {
+  for (const id of Object.keys(shipPresets)) {
+    const def = shipPreset(id), h = def.hull, radius = torpedoHullRadius(def);
+    for (let i = 0; i < 40; i++) {
+      const pose = { x: 7000, y: -i * 10, z: -9000, heading: i * .19, roll: i * .12, pitch: -i * .07 };
+      for (const x of [-h.beam / 2, h.beam / 2]) for (const y of [-h.draft, h.depth - h.draft]) for (const z of [-h.length / 2, h.length / 2]) {
+        const corner = localToWorld([x, y, z], pose);
+        expect(mayReachHull(corner, corner, pose, radius)).toBe(true);
+      }
+      expect(mayReachHull(localToWorld([-1000, 0, 0], pose), localToWorld([1000, 0, 0], pose), pose, radius)).toBe(true);
       expect(mayReachHull([0, 0, 0], [10, 0, 10], pose, radius)).toBe(false);
     }
   }

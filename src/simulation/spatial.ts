@@ -6,6 +6,18 @@ export function shellHullRadius(definition: ShipDefinition): number {
   return Math.hypot((definition.hull.beam + 30) / 2, 40, (definition.hull.length + 40) / 2);
 }
 
+const torpedoRadii = new WeakMap<ShipDefinition, number>();
+/** Enclose the torpedo's authored hull box, including submerged and listed poses. */
+export function torpedoHullRadius(definition: ShipDefinition): number {
+  let radius = torpedoRadii.get(definition);
+  if (radius === undefined) {
+    const h = definition.hull;
+    radius = Math.hypot(h.beam / 2, Math.max(h.draft, Math.abs(h.depth - h.draft)), h.length / 2) + 1e-5;
+    torpedoRadii.set(definition, radius);
+  }
+  return radius;
+}
+
 /** Conservative world-space rejection before expensive ship-local transforms.
  * Keep the complete segment, so fast shells crossing a hull cannot tunnel.
  */

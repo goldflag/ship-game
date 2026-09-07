@@ -5,6 +5,8 @@
 <div id="scene"></div><output id="status">Loading…</output>
 <script type="module">
 import { Game } from '/src/game/Game.ts';
+import { mixedSimulation, reviewHelm, reviewIntent } from './mixed-fleet.ts';
+import { measureFleetFrames } from './measure-fleet-frames.js';
 const status = document.querySelector('#status');
 let ready;
 const loaded = new Promise(resolve => ready = resolve);
@@ -15,11 +17,19 @@ window.review = {game};
 game.start(); await loaded;
 game.setInPort(true);
 const perTeam = Number(new URLSearchParams(location.search).get('team') ?? 24);
-await game.prepareBattle({playerShipId:'bismarck',friendlyBots:Array(perTeam-1).fill('bismarck'),enemies:Array(perTeam).fill('bismarck'),spawnDistance:5000});
+if(new URLSearchParams(location.search).has('mixed')) {
+ const sim=mixedSimulation(perTeam); await game.replaceFleet(sim,sim.definition);
+} else await game.prepareBattle({playerShipId:'bismarck',friendlyBots:Array(perTeam-1).fill('bismarck'),enemies:Array(perTeam).fill('bismarck'),spawnDistance:5000});
 game.setInPort(false); game.setPaused(true);
 game.rig.update = () => {};
 game.camera.position.set(1800,1300,1800); game.camera.lookAt(0,0,-2500); game.camera.updateMatrixWorld();
 game.scheduleFrame = () => {}; cancelAnimationFrame(game.raf); await game.frameTask; cancelAnimationFrame(game.raf);
+window.review.advance = async (ticks=3600) => {
+ for(let i=0;i<ticks;i++) {game.simulation.step(reviewHelm,reviewIntent);if(i%120===0)await new Promise(requestAnimationFrame);}
+ game.fleetViews.forEach(v=>v.snap()); await game.frame(performance.now());
+ return {tick:game.simulation.tick,ships:game.simulation.actors.length,shells:game.simulation.shells.length,aircraft:game.simulation.aircraft.length};
+};
+window.review.measureFrames = options => measureFleetFrames(game, options);
 window.review.measure = async (samples=16) => {
  const renderer = game.renderer;
  const stats = values => {values.sort((a,b)=>a-b);return {median:values[Math.floor(values.length/2)],p90:values[Math.floor(values.length*.9)]};};
@@ -30,7 +40,7 @@ window.review.measure = async (samples=16) => {
   for(let frame=-4;frame<samples;frame++) for(const visible of frame%2 ? [true,false] : [false,true]) {
    await new Promise(requestAnimationFrame);
    game.fleetViews.forEach(view=>view.root.visible=visible);
-   renderer.info.reset(); const start=performance.now(); game.renderFrame(); const cpu=performance.now()-start;
+   renderer.info.reset(); const start=performance.now(); game.fleetDraws?.update(game.camera,renderer.domElement.height); game.renderFrame(); const cpu=performance.now()-start;
    const gpu=renderer.backend.trackTimestamp ? await renderer.resolveTimestampsAsync('render') : null;
    if(frame<0)continue;
    const row=results[visible?'fleet':'sea']??={cpu:[],gpu:[]};row.cpu.push(cpu);if(gpu!==null)row.gpu.push(gpu);
@@ -38,7 +48,7 @@ window.review.measure = async (samples=16) => {
   }
   let nodes=0,materials=new Set();game.fleetViews.forEach(v=>v.root.traverse(o=>{nodes++;if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material])materials.add(m);}));
   return {ships:game.fleetViews.length,nodes,materials:materials.size,results:Object.fromEntries(Object.entries(results).map(([key,row])=>[key,{submitMs:stats(row.cpu),gpuMs:stats(row.gpu),drawCalls:row.drawCalls,triangles:row.triangles}]))};
- } finally {renderer.backend.trackTimestamp=tracking;renderer.info.autoReset=auto;game.fleetViews.forEach(v=>v.root.visible=true);game.renderFrame();}
+ } finally {renderer.backend.trackTimestamp=tracking;renderer.info.autoReset=auto;game.fleetViews.forEach(v=>v.root.visible=true);game.fleetDraws?.update(game.camera,renderer.domElement.height);game.renderFrame();}
 };
 status.textContent='Ready'; window.reviewReady=true;
 </script>

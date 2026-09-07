@@ -8,13 +8,17 @@ import { ShipInspection } from './ShipInspection';
 import type { InspectionMode } from '../ships/inspection';
 import { ShipImpactMarks } from './ShipImpactMarks';
 import { tubeLocalPosition } from '../simulation/torpedoes';
+import { PreparedPoseGroup } from './FrameScene';
+import { ShipPoseMatrices } from './ShipPoseMatrices';
 
 /** Renderer adapter. Simulation geometry and transforms come from the same definition. */
 export class ShipView {
-  readonly root = new THREE.Group();
+  readonly root = new PreparedPoseGroup();
   readonly inspection: ShipInspection;
   readonly motion: Combatant['motion'];
   readonly impactMarks: ShipImpactMarks;
+  /** Original template materials identify surfaces that can share a fleet draw. */
+  readonly renderMeshes: { mesh: THREE.Mesh; material: THREE.Material }[] = [];
   private damageSource: Combatant['damage'];
   private previousMotion: Combatant['motion'];
   private motionSource: Combatant['motion'];
@@ -26,10 +30,11 @@ export class ShipView {
   private tubeBindings: THREE.Object3D[];
   get internals() { return this.inspection.root; }
   private bindings: { yaw: THREE.Object3D; elevation: THREE.Object3D[]; recoil: THREE.Object3D[]; muzzles: THREE.Object3D[] }[];
-  private surfaces: { material: THREE.MeshStandardMaterial; opacity: number; transparent: boolean; depthWrite: boolean }[] = [];
+  private surfaces: { material: THREE.MeshStandardMaterial | THREE.MeshStandardNodeMaterial; opacity: number; transparent: boolean; depthWrite: boolean }[] = [];
   private inspecting = false;
+  private readonly poseMatrices: ShipPoseMatrices;
   private appendages: { node: THREE.Object3D; base: THREE.Quaternion; kind: keyof NonNullable<ShipDefinition['submarine']>['appendages']; index: number }[] = [];
-  constructor(model: THREE.Group, readonly definition: ShipDefinition, readonly actor: Combatant, reversedDepthBuffer = false) {
+  constructor(readonly model: THREE.Group, readonly definition: ShipDefinition, readonly actor: Combatant, reversedDepthBuffer = false) {
     this.motionSource = actor.motion;
     this.damageSource = actor.damage;
     this.motion = { ...actor.motion };
@@ -47,12 +52,13 @@ export class ShipView {
       if (o.userData.nodeId) nodes.set(o.userData.nodeId, o);
       if (o instanceof THREE.Mesh) {
         o.castShadow = true; o.receiveShadow = true;
+        if (!Array.isArray(o.material)) this.renderMeshes.push({ mesh: o, material: o.material });
         const copy = (m: THREE.Material) => {
           const cached = materials.get(m);
           if (cached) return cached;
           const material = m.clone();
           materials.set(m, material);
-          if (material instanceof THREE.MeshStandardMaterial) {
+          if (material instanceof THREE.MeshStandardMaterial || material instanceof THREE.MeshStandardNodeMaterial) {
             if (material.map) material.map.anisotropy = 8;
             this.surfaces.push({ material, opacity: material.opacity, transparent: material.transparent, depthWrite: material.depthWrite });
           }
@@ -68,7 +74,15 @@ export class ShipView {
     if (definition.submarine) for (const kind of ['bowPlanes', 'sternPlanes', 'rudders', 'propellers'] as const) {
       this.appendages.push(...definition.submarine.appendages[kind].map((id, index) => ({ node: node(id), base: node(id).quaternion.clone(), kind, index })));
     }
+    // Only these bound joints change local transforms during play. Retain every
+    // assembly/socket node, but compose its fixed local matrix once at loading.
+    const moving = new Set<THREE.Object3D>([
+      ...this.bindings.flatMap(b => [b.yaw, ...b.elevation, ...b.recoil]),
+      ...this.launcherBindings, ...this.appendages.map(a => a.node),
+    ]);
+    model.traverse(o => { if (!moving.has(o) && !o.animations.length) { o.updateMatrix(); o.matrixAutoUpdate = false; } });
     this.root.add(model, this.internals);
+    this.poseMatrices = new ShipPoseMatrices(this.root, model, moving);
     this.impactMarks = new ShipImpactMarks(this.root, model, new Map(definition.mounts.map((m, i) => [m.id, this.bindings[i].yaw])), reversedDepthBuffer);
     this.update();
   }
@@ -86,6 +100,13 @@ export class ShipView {
     }
     this.updateInspection();
   }
+  /** Prepare the matrices consumed by this frame's surface and aircraft draws. */
+  updateRenderMatrices(): void {
+    this.poseMatrices.update();
+    if (this.internals.visible) this.internals.updateMatrixWorld(true);
+    for (const mark of this.impactMarks.renderMeshes) mark.updateMatrixWorld(true);
+  }
+
   /** Read-only check of the loaded joints against the CPU poses sampled for this frame. */
   muzzleErrors(): number[] {
     this.root.updateMatrixWorld(true);

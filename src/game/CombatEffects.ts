@@ -88,16 +88,12 @@ export class CombatEffects {
       item.age += dt;
       item.light.intensity = item.age < item.duration ? item.power * Math.exp(-item.age / item.duration * 5) : 0;
     }
-    const updatePool = (pool: EffectParticlePool, elapsed: number) => pool.update(elapsed, camera, this.wind,
-      hidePlayerSmoke && pool === this.smoke ? sim.player.motion.id : undefined);
-    this.pools.forEach(pool => updatePool(pool, dt));
-    let emitted = false;
+    for (const pool of this.pools) pool.advance(dt, this.wind);
     for (const event of sim.events) {
       if (event.sequence <= this.sequence) continue;
       this.sequence = event.sequence;
-      this.emit(event); emitted = true;
+      this.emit(event);
     }
-    if (emitted) this.pools.forEach(pool => updatePool(pool, 0));
     if (dt > 0 && sim.tick >= this.fireTick + 15) {
       this.fireTick = sim.tick;
       let count = 0;
@@ -112,8 +108,9 @@ export class CombatEffects {
         const smoke = this.smoke.emit(this.position); smoke.size = 3; smoke.growth = 2; smoke.life = 5;
         smoke.velocity.set(0, 3, 0); smoke.opacity = .35 * intensity; smoke.color.copy(SMOKE).multiplyScalar(.4);
       }
-      this.pools.forEach(pool => updatePool(pool, 0));
     }
+    for (const pool of this.pools) pool.publish(camera,
+      hidePlayerSmoke && pool === this.smoke ? sim.player.motion.id : undefined);
     this.updateShells(sim, camera);
     this.updateTorpedoes(sim);
     this.depthChargeCount = Math.min(sim.depthCharges.length, 128);

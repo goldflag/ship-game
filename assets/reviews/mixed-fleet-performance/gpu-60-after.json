@@ -1,0 +1,46 @@
+{
+  "completedGpuWork": true,
+  "drawCalls": {
+    "mean": 5199.266666666666,
+    "median": 5193,
+    "p95": 5223
+  },
+  "draws": {
+    "batches": 187,
+    "instances": 2337,
+    "reduced": 1590,
+    "subpixel": 5295
+  },
+  "frameWorkMs": {
+    "mean": 70.38250000029802,
+    "median": 70.60000002384186,
+    "p95": 76.80000001192093
+  },
+  "framebuffer": [
+    1920,
+    1080
+  ],
+  "phases": {
+    "render": {
+      "mean": 10.985000000397365,
+      "median": 10.900000035762787,
+      "p95": 11.899999976158142
+    },
+    "simulation": {
+      "mean": 4.537499996523063,
+      "median": 4.399999976158142,
+      "p95": 5.5
+    },
+    "water": {
+      "mean": 30.05583333472411,
+      "median": 30,
+      "p95": 31.5
+    }
+  },
+  "samples": 120,
+  "shells": 118,
+  "ships": 60,
+  "stateHash": "6d21de756687f7a003b07c7e42a0942829826bc65ef029462e4a58df7659d700",
+  "tick": 3750,
+  "origin": "http://localhost:5287/scripts/diagnostics/fleet-performance.html?team=30&mixed"
+}

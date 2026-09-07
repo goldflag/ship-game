@@ -1,0 +1,132 @@
+{
+  "audio": {
+    "failed": [],
+    "inPort": false,
+    "loaded": 13,
+    "paused": false,
+    "played": 418,
+    "settings": {
+      "effects": 0.8,
+      "interface": 0.65,
+      "master": 0.65,
+      "muted": false
+    },
+    "state": "running",
+    "total": 13,
+    "voices": 20
+  },
+  "camera": "battle",
+  "elapsedMs": 60824.899999999994,
+  "endTick": 5408,
+  "events": {
+    "aircraft-fire": 22,
+    "aircraft-launch": 18,
+    "aircraft-lost": 2,
+    "burst": 655,
+    "contact": 251,
+    "module": 16,
+    "penetration": 237,
+    "ricochet": 16,
+    "shot": 577,
+    "splash": 222,
+    "stopped": 30
+  },
+  "focusFrames": 0,
+  "fps": 14.845893704716326,
+  "framebuffer": [
+    1920,
+    1080
+  ],
+  "frames": 903,
+  "hiddenFrames": 0,
+  "hud": true,
+  "intervalMs": {
+    "max": 1008.6999999999971,
+    "mean": 67.35869324473975,
+    "p50": 16.700000000004366,
+    "p95": 42.099999999998545,
+    "p99": 1008.1000000000058
+  },
+  "maxAircraft": 48,
+  "maxShells": 194,
+  "over20Ms": 229,
+  "production": true,
+  "ships": 60,
+  "simulationSeconds": 20.133333333333333,
+  "startTick": 4200,
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.7871.47 Safari/537.36",
+  "windows": [
+    {
+      "fps": 54.6196630787084,
+      "frames": 273,
+      "seconds": 4.998199999999994
+    },
+    {
+      "fps": 55.28624654460957,
+      "frames": 276,
+      "seconds": 4.992200000000002
+    },
+    {
+      "fps": 54.49863254346924,
+      "frames": 273,
+      "seconds": 5.009299999999992
+    },
+    {
+      "fps": 8.588114050154575,
+      "frames": 40,
+      "seconds": 4.657600000000006
+    },
+    {
+      "fps": 0.9982032341784789,
+      "frames": 5,
+      "seconds": 5.0089999999999995
+    },
+    {
+      "fps": 0.9950050745258818,
+      "frames": 5,
+      "seconds": 5.025099999999991
+    },
+    {
+      "fps": 0.9950248756218905,
+      "frames": 5,
+      "seconds": 5.025
+    },
+    {
+      "fps": 0.9935419771485345,
+      "frames": 5,
+      "seconds": 5.0325
+    },
+    {
+      "fps": 0.9967108541812019,
+      "frames": 5,
+      "seconds": 5.016500000000001
+    },
+    {
+      "fps": 0.9982430921578016,
+      "frames": 5,
+      "seconds": 5.0088000000000035
+    },
+    {
+      "fps": 0.9948862844976826,
+      "frames": 5,
+      "seconds": 5.025699999999997
+    },
+    {
+      "fps": 0.9950842836388218,
+      "frames": 5,
+      "seconds": 5.024700000000012
+    },
+    {
+      "fps": 0.9997000899730196,
+      "frames": 1,
+      "seconds": 1.0002999999999884
+    }
+  ],
+  "workMs": {
+    "max": 48.09999996423721,
+    "mean": 18.326910298594075,
+    "p50": 16,
+    "p95": 35.30000001192093,
+    "p99": 40.5
+  }
+}
