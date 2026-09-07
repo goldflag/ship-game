@@ -1,3 +1,4 @@
+import { assetUrl } from '../assetUrl';
 import kingGeorgeV from '../../public/models/king-george-v.json';
 import bismarck from '../../public/models/bismarck.json';
 import yamato from '../../public/models/yamato.json';
@@ -34,8 +35,8 @@ export function shipPreset(id: string | null): ShipDefinition & { contentHash: s
 }
 export const selectedShip = shipPreset(typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('ship'));
 
-/** Published authoring evidence is optional preset metadata, independent of combat. */
-export const shipReviewUrls: Partial<Record<string, string>> = Object.fromEntries(
-  // Vite's SPA fallback serves the game for public directory URLs.
-  ['bismarck', 'yamato', 'baltimore', 'enterprise-cv6', 'type-viic', 'king-george-v'].map(id => [id, `/ship-reference/${id}/index.html`]),
-);
+/** Review pages published under public/ship-reference when the build ran; injected by vite.config.ts. */
+declare const __SHIP_REVIEW_IDS__: string[] | undefined;
+export const availableShipReviews: ReadonlySet<string> = new Set(typeof __SHIP_REVIEW_IDS__ === 'undefined' ? [] : __SHIP_REVIEW_IDS__);
+/** Published authoring evidence is optional preset metadata, independent of combat. The explicit filename avoids Vite's SPA fallback. */
+export const shipReviewUrl = (id: string) => availableShipReviews.has(id) ? assetUrl(`ship-reference/${id}/index.html`) : undefined;

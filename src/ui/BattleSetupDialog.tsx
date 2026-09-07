@@ -1,3 +1,4 @@
+import { assetUrl } from '../assetUrl';
 import { OCEAN_MAPS, oceanMap, DEFAULT_MAP } from '../maps/catalog';
 import { TIME_OF_DAY_PRESETS, WEATHER_PRESETS } from '../maps/conditions';
 import { useEffect, useRef, useState } from 'react';
@@ -59,7 +60,7 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, error }:
     const controlId = `battle-ai-${team}-${index}`;
     const description = SHIP_AI_LEVELS.find(level => level.id === aiLevel)!.description;
     return <li key={`${team}-${index}`}>
-    <img src={`/models/${id}-thumbnail.png`} width="120" height="36" alt=""/>
+    <img src={assetUrl(`models/${id}-thumbnail.png`)} width="120" height="36" alt=""/>
     <span className="battle-roster-name"><span>{shipName(id)}</span><small>{team === 'enemies' ? 'Enemy' : 'Friendly'} bot {index + 1}</small></span>
     <button className="icon-button" aria-label={`Remove ${shipName(id)}, ${team === 'enemies' ? 'enemy' : 'friendly'} bot ${index + 1}`} onClick={() => onChange({ ...setup, [team]: setup[team].filter((_, i) => i !== index), spawns: setup.spawns ? { ...setup.spawns, [team === 'friendlyBots' ? 'friendly' : 'enemy']: setup.spawns[team === 'friendlyBots' ? 'friendly' : 'enemy'].filter((_, i) => i !== index + (team === 'friendlyBots' ? 1 : 0)) } : undefined })}><Icon name="close" size={16}/></button>
     <div className="battle-roster-ai">
@@ -78,7 +79,7 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, error }:
       <div className="battle-map-options">
         {OCEAN_MAPS.map(option => <label key={option.id} className="battle-map-option">
           <input type="radio" name="ocean-map" value={option.id} checked={map.id === option.id} onChange={() => onChange({ ...setup, mapId: option.id })}/>
-          <img src={`/maps/${option.id}.webp`} alt="" width="320" height="180"/>
+          <img src={assetUrl(`maps/${option.id}.webp`)} alt="" width="320" height="180"/>
           <span>{option.name}</span><small>{option.region}</small>
         </label>)}
       </div>
@@ -112,7 +113,7 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, error }:
         </div>
         <ul id="battle-ship-results" className="battle-catalog-list">
           {filteredShips.map(ship => <li key={ship.id} className={ship.id === setup.playerShipId ? 'battle-catalog-commanded' : undefined}>
-            <img src={`/models/${ship.id}-thumbnail.png`} width="80" height="32" alt="" loading="lazy"/>
+            <img src={assetUrl(`models/${ship.id}-thumbnail.png`)} width="80" height="32" alt="" loading="lazy"/>
             <strong>{ship.name}</strong>
             <small>{Math.round(ship.hull.length)} m · {Math.round(ship.hull.massKg / 1000).toLocaleString()} t</small>
             <div className="battle-catalog-actions" role="group" aria-label={`Add ${ship.name}`}>
@@ -128,7 +129,7 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, error }:
         <section aria-labelledby="friendly-title">
           <header><h3 id="friendly-title">Friendly team</h3><span>{setup.friendlyBots.length + 1} / {MAX_TEAM_SHIPS} ships</span></header>
           <ol className="battle-roster">
-            <li className="battle-player"><img src={`/models/${setup.playerShipId}-thumbnail.png`} width="120" height="36" alt=""/><span className="battle-roster-name"><span>{shipName(setup.playerShipId)}</span><small>Your ship · You</small></span><Icon name="anchor" size={18}/></li>
+            <li className="battle-player"><img src={assetUrl(`models/${setup.playerShipId}-thumbnail.png`)} width="120" height="36" alt=""/><span className="battle-roster-name"><span>{shipName(setup.playerShipId)}</span><small>Your ship · You</small></span><Icon name="anchor" size={18}/></li>
             {bots('friendlyBots')}
           </ol>
           {!setup.friendlyBots.length && <p className="battle-empty">Sail solo, or add friendly bots from the catalog.</p>}
