@@ -1,3 +1,4 @@
+import { HULL_HP_SCALE } from './durability';
 import { expect, test } from 'bun:test';
 import { shipPreset } from '../ships/presets';
 import type { ShipDefinition } from '../ships/blueprint';
@@ -36,7 +37,7 @@ test('score counts actual enemy hull damage, caps overkill and awards a loss onc
   const sim = fixture();
   const maxHp = sim.target.damage.maxIntegrity;
   hit(sim, sim.target, sim.player);
-  expect(score(sim)).toEqual([17, 0]);
+  expect(score(sim)).toEqual([17 * HULL_HP_SCALE, 0]);
   hit(sim, sim.target, sim.player, 10000);
   expect(score(sim)).toEqual([maxHp, 1]);
   const log = sim.telemetry('secondary', intent.aim).damageLog;
@@ -59,13 +60,13 @@ test('main battery destruction earns damage but no frag while a secondary gun su
   expect(sim.target.damage.stability.status).toBe('operational');
   expect(sim.target.damage.stability.combatLost).toBe(false);
   expect(sim.target.mounts[1].hp).toBe(100);
-  expect(score(sim)).toEqual([85, 0]);
+  expect(score(sim)).toEqual([85 * HULL_HP_SCALE, 0]);
   sim.target.damage.compartments[0].waterM3 = 1000;
   sim.step(helm, intent);
   expect(sim.target.damage.sunk).toBe(true);
-  expect(score(sim)).toEqual([85, 1]);
+  expect(score(sim)).toEqual([85 * HULL_HP_SCALE, 1]);
   sim.step(helm, intent);
-  expect(score(sim)).toEqual([85, 1]);
+  expect(score(sim)).toEqual([85 * HULL_HP_SCALE, 1]);
 });
 
 test('stopped rounds, allied hits and bot kills do not increase the player score', () => {
@@ -75,22 +76,22 @@ test('stopped rounds, allied hits and bot kills do not increase the player score
   hit(sim, sim.player, sim.target);
   hit(sim, sim.target, sim.actors[1], 10000);
   expect(score(sim)).toEqual([0, 0]);
-  expect(sim.telemetry('main', intent.aim).damageLog).toMatchObject([{ sourceId: 'enemy-1', targetId: 'player', damage: 17, hits: 1 }]);
+  expect(sim.telemetry('main', intent.aim).damageLog).toMatchObject([{ sourceId: 'enemy-1', targetId: 'player', damage: 17 * HULL_HP_SCALE, hits: 1 }]);
 });
 
 test('the final hostile damaging hit earns the frag, including delayed flooding', () => {
   const sim = fixture(), ally = sim.actors[1];
   hit(sim, sim.target, sim.player);
   hit(sim, sim.target, ally, 10000);
-  expect(score(sim)).toEqual([17, 0]);
+  expect(score(sim)).toEqual([17 * HULL_HP_SCALE, 0]);
   sim.selectTarget('enemy-2');
   hit(sim, sim.target, sim.player);
   sim.target.damage.compartments.forEach((c, i) => c.waterM3 = sim.target.definition.compartments[i].capacityM3);
   sim.step(helm, intent);
   expect(sim.target.damage.sunk).toBe(true);
-  expect(score(sim)).toEqual([34, 1]);
+  expect(score(sim)).toEqual([34 * HULL_HP_SCALE, 1]);
   sim.step(helm, intent);
-  expect(score(sim)).toEqual([34, 1]);
+  expect(score(sim)).toEqual([34 * HULL_HP_SCALE, 1]);
 });
 
 test('another shell in the lethal tick cannot take the frag from an already disarmed ship', () => {
@@ -101,5 +102,5 @@ test('another shell in the lethal tick cannot take the frag from an already disa
     velocity: rotate([820, 0, 0], sim.target.motion), age: 0, damage: 100, penetrationMm: 100, caliberM: .38, visited: [],
   });
   sim.step(helm, intent); // Shells resolve in reverse order: player, then ally.
-  expect(score(sim)).toEqual([17, 1]); // Only 20 equipment HP remained to destroy.
+  expect(score(sim)).toEqual([17 * HULL_HP_SCALE, 1]); // Only 20 equipment HP remained to destroy.
 });

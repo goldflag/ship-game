@@ -29,7 +29,7 @@ export class HitLabels {
         for (const tag of ['strong', 'span', 'small']) label.appendChild(document.createElement(tag));
         this.root.appendChild(label); this.labels.set(cue.id, label);
       }
-      label.children[0].textContent = cue.damage > 0 ? `−${cue.damage.toLocaleString(undefined, { maximumFractionDigits: 1 })} HP` : '0 HP';
+      label.children[0].textContent = cue.damage > 0 ? `−${cue.damage.toLocaleString(undefined, { maximumFractionDigits: 0 })} HP` : '0 HP';
       label.children[1].textContent = cue.part;
       label.children[2].textContent = cue.result;
       label.dataset.damage = String(cue.damage > 0);
