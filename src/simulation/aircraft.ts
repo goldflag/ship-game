@@ -34,6 +34,8 @@ export interface AirRelease { id: number; ownerId: string; position: Vec3; veloc
 export const hasFoldingWings = (modelId: string) => ['f4f-4-wildcat', 'tbd-1-devastator'].includes(modelId);
 const WING_FOLD_SECONDS = 4; // Gameplay timing; manual crew/hydraulic operation is abstracted.
 export const AIRCRAFT_ENDURANCE_SECONDS = 1050;
+/** Gun bursts a fighter carries when ready; service restores the full load. */
+export const FIGHTER_AMMO_BURSTS = 16;
 export const deckClearance = (p: Aircraft) => aircraftGroundPose(p.modelId).clearance;
 export const flightSize = (actor: FleetActor) => actor.definition.airWing?.flightSize ?? 3;
 export const deckCapacity = (actor: FleetActor) => actor.definition.airWing?.deckCapacity ?? 18;
@@ -77,7 +79,7 @@ export function createAirWing(def: ShipDefinition, ownerId: string, team: Team):
   const state: AirWingState = { launchCooldown: 0, flights: [], flightSequence: 0, transferCooldown: 0, planes: def.airWing.squadrons.flatMap(s => Array.from({ length: s.count }, (_, i) => ({
     id: `${ownerId}/${s.id}/${i + 1}`, ownerId, team, squadronId: s.id, modelId: s.modelId, role: s.role,
     phase: 'ready' as const, wingFold: hasFoldingWings(s.modelId) ? 1 : 0, position: [0, 0, 0] as Vec3, previousPosition: [0, 0, 0] as Vec3, velocity: [0, 0, 0] as Vec3,
-    heading: 0, pitch: 0, bank: 0, hp: 100, ammo: s.role === 'fighter' ? 16 : 0, payload: s.role !== 'fighter', timer: 0, flightTime: 0, cooldown: 0, kills: 0,
+    heading: 0, pitch: 0, bank: 0, hp: 100, ammo: s.role === 'fighter' ? FIGHTER_AMMO_BURSTS : 0, payload: s.role !== 'fighter', timer: 0, flightTime: 0, cooldown: 0, kills: 0,
     controls: initialFlightControls(), pilot: initialAirPilot(),
   }))) };
   return state;
@@ -279,7 +281,7 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
         if (p.deckSlot !== undefined) deckPose(p, actor, aircraftDeckSpot(actor, p));
         if (p.phase === 'rearming' && airServiceAvailable(actor)) {
           p.timer -= dt;
-          if (p.timer <= 0) { p.phase = 'ready'; p.deckSlot = undefined; p.deckPosition = undefined; p.flightTime = 0; p.ammo = p.role === 'fighter' ? 16 : 0; p.payload = p.role !== 'fighter'; p.hp = 100; }
+          if (p.timer <= 0) { p.phase = 'ready'; p.deckSlot = undefined; p.deckPosition = undefined; p.flightTime = 0; p.ammo = p.role === 'fighter' ? FIGHTER_AMMO_BURSTS : 0; p.payload = p.role !== 'fighter'; p.hp = 100; }
         }
         if (p.phase === 'queued' && state.launchCooldown <= 0 && airServiceAvailable(actor)
           && !approachingDeck && !state.planes.some(other => ['taxi', 'rollout', 'parking'].includes(other.phase)) && spotAircraft(actor, p)) {
