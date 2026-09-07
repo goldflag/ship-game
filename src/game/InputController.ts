@@ -15,6 +15,7 @@ export interface InputActions {
   shellFollow(): void;
   depth?(direction: number): void;
   emergencyBlow?(): void;
+  airOperations?(): void;
 }
 
 export class InputController {
@@ -87,6 +88,7 @@ export class InputController {
       if (action === 'dive') this.actions.depth?.(1);
       if (action === 'rise') this.actions.depth?.(-1);
       if (action === 'emergencyBlow') this.actions.emergencyBlow?.();
+      if (action === 'airOperations') this.actions.airOperations?.();
     }
   };
 

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Torpedo trail regression review</title>
+<style>html,body,#scene{margin:0;width:100%;height:100%;overflow:hidden}output{position:absolute;top:16px;left:16px;color:white;font:16px sans-serif}</style>
+<div id="scene"></div><output>Preparing torpedo review…</output>
+<script type="module">
+import { Game } from '/src/game/Game.ts';
+import { shipPreset } from '/src/ships/presets.ts';
+const noop=()=>{}, status=document.querySelector('output');
+const game=new Game(document.querySelector('#scene'),{quality:'medium',sea:'Fair',resolution:1},
+  {progress:noop,ready:noop,telemetry:noop,pause:noop,hud:noop,error:message=>status.textContent=message},shipPreset('fletcher'));
+game.scheduleFrame=noop;
+window.trailGame=game;
+game.start();
+await game.initialization;
+game.setInPort(true);
+await game.prepareBattle({playerShipId:'fletcher',friendlyBots:[],enemies:['type-viic'],spawnDistance:5000});
+game.setInPort(false);game.setPaused(true);
+game.simulation.actors.forEach(actor=>{if(actor!==game.simulation.player)actor.controller='idle';});
+game.fleetViews.forEach(view=>view.snap());
+const weapon=game.definition.torpedoTubes[0].weapon;
+window.trailFixture=async(degrees=45,depth=2,distance=60)=>{
+  const heading=degrees*Math.PI/180;
+  game.simulation.torpedoes.splice(0,game.simulation.torpedoes.length,{id:1,ownerId:'player',tubeId:'torpedo-forward-1',
+    position:[100,-depth,-100],velocity:[Math.sin(heading)*weapon.speed,0,-Math.cos(heading)*weapon.speed],distance,age:4,weapon});
+  game.effects.update(game.simulation,0,game.camera);
+  game.camera.position.set(160,105,90);game.camera.lookAt(55,0,-55);game.camera.updateMatrixWorld();
+  status.textContent=`Torpedo heading ${degrees}° · depth ${depth} m · run ${distance} m`;
+  return window.captureTrail();
+};
+window.captureTrail=async()=>{
+  game.renderer.setSize(1440,900);game.camera.aspect=1440/900;game.camera.updateProjectionMatrix();
+  game.water.resize(1440,900);game.sky.resize(1440,900);game.resizePending=false;
+  game.water.deterministic=true;game.sky.update(0);await game.water.update(0);game.pipeline.render();
+  if(game.renderer.backend.device)await game.renderer.backend.device.queue.onSubmittedWorkDone();
+  return game.renderer.domElement.toDataURL('image/png');
+};
+// Exercise the actual trainable launcher and CPU flight, including water entry.
+window.launchTrail=async()=>{
+  game.simulation.reset();game.effects.reset();
+  const aim=[1000,0,-1000], helm={throttle:0,rudder:0};
+  const step=(seconds,fire=false)=>{
+    for(let i=0;i<seconds*60;i++){
+      game.simulation.step(helm,{battery:'torpedo',aim,fire});
+      game.effects.update(game.simulation,1/60,game.camera);
+    }
+  };
+  step(8);step(1/60,true);step(5);
+  game.fleetViews.forEach(view=>view.snap());
+  status.textContent='CPU launch · 45° starboard · five seconds after firing';
+  return window.captureTrail();
+};
+await window.trailFixture();window.trailReady=true;
+</script></html>

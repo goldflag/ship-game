@@ -19,15 +19,15 @@ test('port renders only the player deck, follows its displayed pose, and retains
     const carrier = new Group(); carrier.position.set(123, 5, 456); carrier.rotation.set(.04, .6, .08); carrier.updateMatrixWorld(true);
     const roots = new Map([['player', carrier]]), camera = new PerspectiveCamera();
     view.update(sim, camera, true, true, roots);
-    expect(view.diagnostics().instances).toBe(18);
+    expect(view.diagnostics().instances).toBe(12);
     const firstBatch = view.root.children.find(c => c instanceof InstancedMesh && c !== view.root.children[1] && c.count > 0) as InstancedMesh;
     const matrix = new Matrix4(); firstBatch.getMatrixAt(0, matrix);
     const spot = aircraftDeckSpot(sim.player, sim.player.airWing!.planes[0]);
     const expected = carrier.matrixWorld.clone().multiply(new Matrix4().makeTranslation(...spot));
     matrix.elements.forEach((value, i) => expect(value).toBeCloseTo(expected.elements[i], 3));
     sim.player.airWing!.planes[0].phase = 'lost';
-    view.update(sim, camera, true, true, roots); expect(view.diagnostics().instances).toBe(17);
-    view.update(sim, camera, true, false, roots); expect(view.diagnostics().instances).toBe(35);
+    view.update(sim, camera, true, true, roots); expect(view.diagnostics().instances).toBe(11);
+    view.update(sim, camera, true, false, roots); expect(view.diagnostics().instances).toBe(23);
     view.update(sim, camera, false, true, roots); expect(view.root.visible).toBe(false);
   } finally { await view.dispose(); loader.mockRestore(); }
 });
@@ -59,5 +59,29 @@ test('distant flying aircraft retain a silhouette across LODs, while deck, lost 
     plane.phase = 'ready'; view.update(sim, camera, true); expect(contacts()?.visible).toBe(false);
     plane.phase = 'lost'; view.update(sim, camera, true); expect(contacts()?.visible).toBe(false);
     plane.phase = 'outbound'; view.update(sim, camera, false); expect(view.root.visible).toBe(false);
+  } finally { await view.dispose(); loader.mockRestore(); }
+});
+
+test('large carrier fleets retain every visible aircraft without oversized GPU uniform bindings', async () => {
+  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async () => {
+    const scene = new Group(); scene.add(new Mesh(new BoxGeometry(), new MeshBasicMaterial()));
+    return { scene } as Awaited<ReturnType<GLTFLoader['loadAsync']>>;
+  });
+  const view = new AircraftView();
+  try {
+    await view.load();
+    const sim = new CombatSimulation(shipPreset('enterprise-cv6'), { friendlyBots: [], enemies: [shipPreset('bismarck')] });
+    const template = sim.aircraft[0];
+    // Isolate rendering of the largest permitted shared model population:
+    // 60 decks of 24 aircraft plus the battle's 144 airborne capacity.
+    sim.player.airWing!.planes = Array.from({ length: 1584 }, (_, i) => ({ ...structuredClone(template), id: `player/render-${i}`, phase: 'outbound', payload: false }));
+    view.update(sim, new PerspectiveCamera(), true);
+    expect(view.diagnostics().instances).toBe(1584);
+    const modelBatches = view.root.children.filter(c => c instanceof InstancedMesh && c.count > 0 && c !== view.root.children[1] && c.name !== 'Distant aircraft silhouettes') as InstancedMesh[];
+    expect(modelBatches.reduce((n, b) => n + b.count, 0)).toBe(1584);
+    for (const batch of modelBatches) {
+      expect(batch.instanceMatrix.array.byteLength).toBeLessThanOrEqual(65536);
+      expect(batch.count).toBeLessThanOrEqual(batch.instanceMatrix.count);
+    }
   } finally { await view.dispose(); loader.mockRestore(); }
 });
