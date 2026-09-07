@@ -28,7 +28,7 @@ export class AircraftView {
   private payloadMaterial = new THREE.MeshStandardMaterial({ color: '#4c5356', roughness: .65 });
   private payloads = new THREE.InstancedMesh(this.payloadGeometry, this.payloadMaterial, 768);
   private loadPromise?: Promise<void>;
-  constructor() { this.traces.geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(128 * 6), 3)); this.traces.geometry.setDrawRange(0, 0); this.root.add(this.traces, this.payloads, this.contacts.mesh); this.payloads.count = 0; this.payloads.visible = false; this.payloads.frustumCulled = false; this.traces.frustumCulled = false; }
+  constructor() { this.traces.geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(512 * 6), 3)); this.traces.geometry.setDrawRange(0, 0); this.root.add(this.traces, this.payloads, this.contacts.mesh); this.payloads.count = 0; this.payloads.visible = false; this.payloads.frustumCulled = false; this.traces.frustumCulled = false; }
   resize(height: number) { this.contacts.resize(height); }
   load(): Promise<void> {
     return this.loadPromise ??= this.loadModels();
@@ -132,8 +132,19 @@ export class AircraftView {
     }
     this.payloads.count = payloadCount; this.payloads.visible = payloadCount > 0; this.payloads.instanceMatrix.needsUpdate = true;
     const lines: number[] = [];
-    for (const event of sim.events) {
-      if (event.kind === 'aircraft-fire' && event.aircraft?.target && sim.tick - event.tick < 8) lines.push(...event.position, ...event.aircraft.target);
+    for (let i = sim.events.length - 1; i >= 0; i--) {
+      const event = sim.events[i];
+      if (event.kind === 'aircraft-fire' && event.aircraft?.target) {
+        const speed = event.aircraft.tracerSpeed;
+        if (speed) {
+          const from = new THREE.Vector3(...event.position), delta = new THREE.Vector3(...event.aircraft.target).sub(from), distance = delta.length();
+          const travel = (sim.tick - event.tick + alpha) / 60 * speed;
+          if (distance > 0 && travel <= distance + 45) {
+            const end = Math.min(distance, travel + 20), start = Math.max(0, travel - 25);
+            if (start < end) lines.push(...from.clone().addScaledVector(delta, start / distance).toArray(), ...from.addScaledVector(delta, end / distance).toArray());
+          }
+        } else if (sim.tick - event.tick < 8) lines.push(...event.position, ...event.aircraft.target);
+      }
       if (event.kind === 'aircraft-lost' && sim.tick - event.tick < 90) {
         const age = (sim.tick - event.tick) / 60;
         lines.push(event.position[0], event.position[1] - age * age * 12, event.position[2], event.position[0], event.position[1] - age * age * 12 + 12, event.position[2]);

@@ -5,9 +5,11 @@ import { MAX_AIRBORNE } from '../simulation/aircraft';
 /** Screen coverage for aircraft whose thin triangles no longer cover a pixel.
  * This only supplements the rendered silhouette; simulation size stays unchanged. */
 export function aircraftContactAppearance(spanPixels: number, distance: number) {
-  const fadeIn = 1 - THREE.MathUtils.smoothstep(spanPixels, 5, 14);
+  // Wingspan overestimates coverage when following a thin, edge-on aircraft.
+  // Bring the contact in while the model is still readable, with a broad overlap.
+  const fadeIn = 1 - THREE.MathUtils.smoothstep(spanPixels, 14, 48);
   const fadeOut = 1 - THREE.MathUtils.smoothstep(distance, 16000, 20000);
-  return { pixels: 7, opacity: .8 * fadeIn * fadeOut };
+  return { pixels: 9, opacity: .9 * fadeIn * fadeOut };
 }
 
 function silhouetteTexture() {

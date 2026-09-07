@@ -1,0 +1,30 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Carrier air combat regression</title>
+<style>body{margin:0;background:#132d38;color:#edf1ec;font:14px sans-serif}#scene{width:1280px;height:720px}canvas{display:block}output{position:fixed;left:12px;top:12px;background:#132d38;padding:8px}</style>
+<div id="scene"></div><output>Loading AA review…</output><script type="module">
+import { Game } from '/src/game/Game.ts';
+import { shipPreset } from '/src/ships/presets.ts';
+window.addEventListener('unhandledrejection',event=>window.reviewError=String(event.reason));
+const status=document.querySelector('output');let ready;
+const loaded=new Promise(resolve=>ready=resolve);
+const game=new Game(document.querySelector('#scene'),{quality:'medium',sea:'Fair',resolution:1},{
+  ready,progress:s=>status.textContent=s,telemetry:()=>{},pause:()=>{},hud:()=>{},error:s=>window.reviewError=s,
+},shipPreset('bismarck'));
+window.reviewGame=game;game.start();await loaded;
+game.setInPort(true);
+await game.prepareBattle({playerShipId:'bismarck',friendlyBots:[],enemies:['enterprise-cv6'],spawnDistance:1000,sea:'Fair'});
+game.setInPort(false);game.setPaused(true);game.scheduleFrame=()=>{};cancelAnimationFrame(game.raf);await game.frameTask;
+game.rig.update=()=>{};game.simulation.target.controller='idle';
+const planes=game.simulation.target.airWing.planes.slice(0,6);
+let shots=0;const ammo=game.simulation.player.mounts.reduce((n,m)=>n+m.ammo,0);
+for(let tick=0;tick<600;tick++){
+  planes.forEach((p,i)=>Object.assign(p,{phase:'outbound',hp:100,position:[550+i*18,180+i*12,-60+i*25],velocity:[0,0,0],heading:0,bank:0,pitch:0}));
+  game.simulation.step({throttle:0,rudder:0},{aim:[0,0,-1000],battery:'main',fire:false});
+  shots+=game.simulation.events.filter(e=>e.tick===game.simulation.tick-1&&e.kind==='aircraft-fire'&&e.shipId==='player').length;
+}
+game.fleetViews.forEach(v=>v.snap());
+game.camera.position.set(340,240,520);game.camera.lookAt(180,80,0);game.camera.updateMatrixWorld();
+async function still(){for(let i=0;i<2;i++){game.renderer._nodes.nodeFrame.update();await game.frame(performance.now());}game.pipeline.render();return game.renderer.domElement.toDataURL('image/png');}
+window.airCombatReview={game,still,report:()=>({shots,ammoSpent:ammo-game.simulation.player.mounts.reduce((n,m)=>n+m.ammo,0),
+  maxMuzzleError:Math.max(...game.playerView.muzzleErrors()),rendered:game.aircraftView.diagnostics(),backend:game.diagnostics().backend})};
+await still();status.textContent='AA review ready';window.reviewReady=true;
+</script></html>

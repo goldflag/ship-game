@@ -25,6 +25,8 @@ export interface Telemetry {
   followedAircraftId?: string;
   airOperationsOpen?: boolean;
   selectedFlightId?: string;
+  airMap?: import('../ui/airChart').ChartView;
+  squadronMarkers?: (import('../simulation/airTelemetry').FlightSummary & { team: import('../simulation/battle').Team; ownerId: string; screen: { x: number; y: number } | null })[];
   fps: number;
   backend: string;
   trail: { x: number; z: number }[];

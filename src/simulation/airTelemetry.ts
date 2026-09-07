@@ -1,6 +1,6 @@
 import type { AircraftRole, Vec3 } from '../ships/blueprint';
 import type { FleetActor } from './battle';
-import { activeFlight, airServiceAvailable, airborne, deckCapacity, flightSize, onFlightDeck, recoveryQueue, type Aircraft, type AirOrder } from './aircraft';
+import { squadronFlights, activeFlight, airServiceAvailable, airborne, deckCapacity, flightSize, onFlightDeck, recoveryQueue, type Aircraft, type AirOrder } from './aircraft';
 import { length, sub } from './geometry';
 
 export type AirStatus = 'ready' | 'launching' | 'on-mission' | 'returning' | 'servicing' | 'lost';
@@ -12,7 +12,7 @@ export interface FlightSummary {
   id: string; name: string; squadronId: string; role: AircraftRole; order: AirOrder;
   active: boolean; status: AirStatus; total: number; surviving: number; airborne: number;
   hp: number; armed: number; enduranceSeconds: number; rearmSeconds: number;
-  position: Vec3; heading: number; targetName?: string; route: Vec3[]; etaSeconds?: number;
+  position: Vec3; destination: Vec3; activity: string; heading: number; targetName?: string; route: Vec3[]; etaSeconds?: number;
   queuePosition?: number; notice?: string; aircraftIds: string[];
 }
 export function airWingTelemetry(actor: FleetActor, actors: FleetActor[]) {
@@ -21,8 +21,8 @@ export function airWingTelemetry(actor: FleetActor, actors: FleetActor[]) {
   const queue = recoveryQueue(actor);
   const counts: Record<AirStatus, number> = { ready: 0, launching: 0, 'on-mission': 0, returning: 0, servicing: 0, lost: 0 };
   state.planes.forEach(p => { counts[airStatus(p)]++; });
-  const groups: FlightSummary[] = state.flights.flatMap(f => {
-    const planes = state.planes.filter(p => p.flightId === f.id);
+  const groups: FlightSummary[] = squadronFlights(actor).flatMap(f => {
+    const planes = state.planes.filter(p => f.planeIds.includes(p.id));
     if (!planes.length) return [];
     const surviving = planes.filter(p => p.phase !== 'lost');
     const flying = surviving.filter(airborne);
@@ -31,8 +31,8 @@ export function airWingTelemetry(actor: FleetActor, actors: FleetActor[]) {
     const status = !surviving.length ? 'lost' : surviving.some(p => airStatus(p) === 'launching') ? 'launching'
       : surviving.some(p => airStatus(p) === 'on-mission') ? 'on-mission' : surviving.some(p => airStatus(p) === 'returning') ? 'returning'
       : surviving.some(p => airStatus(p) === 'servicing') ? 'servicing' : 'ready';
-    const target = f.order.kind === 'attack' ? actors.find(a => a.motion.id === (f.order as { targetId: string }).targetId) : undefined;
-    const escort = f.order.kind === 'escort' ? actors.flatMap(a => a.airWing?.flights ?? []).find(g => g.id === (f.order as { flightId: string }).flightId) : undefined;
+    const target = (f.order.kind === 'attack' || f.order.kind === 'defend') ? actors.find(a => a.motion.id === (f.order as { targetId: string }).targetId) : undefined;
+    const escort = (f.order.kind === 'escort' || f.order.kind === 'intercept') ? actors.flatMap(a => a.airWing?.flights ?? []).find(g => g.id === (f.order as { flightId: string }).flightId) : undefined;
     const home: Vec3 = [actor.motion.x, actor.motion.y, actor.motion.z];
     const position = flying.length ? flying.reduce<Vec3>((point, p) => point.map((v, i) => v + p.position[i] / flying.length) as Vec3, [0, 0, 0]) : home;
     const destination: Vec3 = status === 'returning' || f.order.kind === 'return' ? home : target ? [target.motion.x, 0, target.motion.z]
@@ -46,7 +46,12 @@ export function airWingTelemetry(actor: FleetActor, actors: FleetActor[]) {
       armed: surviving.filter(p => p.role === 'fighter' ? p.ammo > 0 : p.payload).length,
       enduranceSeconds: Math.max(0, Math.floor(Math.min(650, ...flying.map(p => 650 - p.flightTime)))),
       rearmSeconds: Math.ceil(Math.max(0, ...surviving.filter(p => p.phase === 'rearming').map(p => p.timer))),
-      position, heading: lead.heading, route, targetName: target?.definition.name ?? escort?.name,
+      position, destination: [destination[0], 0, destination[2]],
+      activity: status !== 'on-mission' ? AIR_STATUS_LABELS[status]
+        : surviving.some(p => p.phase === 'attack') ? (lead.role === 'fighter' ? 'Engaging' : 'Attacking')
+        : f.order.kind === 'patrol' ? (Math.hypot(position[0] - destination[0], position[2] - destination[2]) < 1300 ? 'Loitering' : 'En route')
+        : f.order.kind === 'defend' ? 'Defending' : f.order.kind === 'intercept' ? 'Intercepting' : f.order.kind === 'escort' ? 'Escorting' : 'En route',
+      heading: lead.heading, route, targetName: target?.definition.name ?? escort?.name,
       etaSeconds: flying.length && (status === 'returning' || f.order.kind === 'attack') ? Math.ceil(distance / Math.max(35, length(lead.velocity))) : undefined,
       queuePosition: queueIndex >= 0 ? queueIndex + 1 : undefined,
       notice: f.notice ?? (flying.some(p => p.flightTime > 470) ? 'Low endurance · Returning to carrier' : undefined), aircraftIds: planes.map(p => p.id),

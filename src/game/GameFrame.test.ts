@@ -43,7 +43,7 @@ async function frameHarness() {
   const helm = { throttle: 1, rudder: 0 };
   const game = Object.assign(Object.create(Game.prototype), {
     definition: simulation.definition, simulation, playerView, targetView, fleetViews: [playerView, targetView], camera, rig, ship: new Group(), shellFollow: new ShellFollow(),
-    renderer: { domElement: { setAttribute() {} } }, manualAim: false,
+    renderer: { domElement: { setAttribute() {} } }, manualAim: false, battlefieldCamera: { exit() {} },
     shipLabels: { update() {} },
     playerDamageFeedback: new HullDamageFeedback(simulation.player.damage.integrity),
     gunAim: { update(points: GunAimPoint[], _camera: PerspectiveCamera, visible: boolean) { gunAimFrames.push({ points, visible }); } },
