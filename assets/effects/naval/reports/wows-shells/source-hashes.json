@@ -1,0 +1,6 @@
+{
+  "src/game/CombatEffects.ts": "610a94110600cf6807d66e223780d0d2f86b7b3e63e1565dab0772a2944ae514",
+  "src/game/ShellTrails.ts": "a24259c1addc7ff15e5c25375e4690d29f0795a0b4a02d2d659e1ca5bbd9cdb5",
+  "assets/effects/naval/shellGeometry.ts": "ca1b02e48b8aadea6eeba1fd32ecec5de05e19e156a3de428f3cc57c5422126a",
+  "scripts/diagnostics/combat-effects.html": "fd7daaa960f94baa774751290a32981ed18ece734fd7818fde818f1d56ae6d4f"
+}

@@ -198,7 +198,8 @@ test('salvos are bounded, do not replay events, pause cleanly, and reset without
   const active = effects.diagnostics();
   expect(active.smoke + active.spray + active.flashes + active.foam).toBeLessThanOrEqual(active.particleCapacity);
   sim.events.length = 0; effects.reset(); effects.update(sim, 0, camera);
-  expect(effects.diagnostics()).toEqual({ shells: 0, torpedoes: 0, depthCharges: 0, smoke: 0, aircraftSmoke: 0, flakSmoke: 0, spray: 0, flashes: 0, foam: 0, particleCapacity: active.particleCapacity });
+  expect(effects.diagnostics()).toEqual({ shells: 0, torpedoes: 0, depthCharges: 0, smoke: 0, aircraftSmoke: 0, flakSmoke: 0, spray: 0, flashes: 0, foam: 0,
+    shellTrails: { histories: 0, segments: 0 }, particleCapacity: active.particleCapacity });
   sim.events.push({ ...event, sequence: 150 }); effects.update(sim, 0, camera);
   expect(effects.diagnostics().flashes).toBeGreaterThan(0);
   for (let i = 0; i < 13 * 60; i++) effects.update(sim, 1 / 60, camera);
@@ -293,7 +294,8 @@ test('billboards reorient while paused and expired storage is reused', () => {
 
 test('the shell pool keeps its shader capacity through empty frames, salvos and resets', () => {
   const sim = new CombatSimulation(compileShip(blueprint, catalog));
-  const effects = new CombatEffects(), camera = new Camera();
+  const effects = new CombatEffects(), camera = new PerspectiveCamera(52, 16 / 9, .1, 30000);
+  camera.position.set(0, 500, 800); camera.lookAt(0, 0, 0); camera.updateMatrixWorld();
   const pool = effects.root.getObjectByName('Shell bodies') as InstancedMesh;
   const tracers = ['Shell streaks', 'Shell glows'].map(name => effects.root.getObjectByName(name) as InstancedMesh);
   const matrix = new Matrix4(), scale = new Vector3();
@@ -335,6 +337,28 @@ test('the shell pool keeps its shader capacity through empty frames, salvos and 
   } finally {
     effects.dispose();
   }
+});
+
+test('shell-follow and binoculars expose the detailed round; distant shells use the cheap silhouette', () => {
+  const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects();
+  const camera = new PerspectiveCamera(52, 16 / 9, .1, 30000);
+  const shell = { id: 1, ownerId: 'player', position: [0, 0, -20] as [number, number, number],
+    velocity: [800, 0, 0] as [number, number, number], age: 1, caliberM: .38, visited: [], penetrationMm: 0, damage: 0 };
+  sim.shells.push(shell);
+  const body = effects.root.getObjectByName('Shell bodies') as InstancedMesh;
+  const detailed = effects.root.getObjectByName('Detailed shell bodies') as InstancedMesh;
+  const matrix = new Matrix4();
+  const scale = (mesh: InstancedMesh) => { mesh.getMatrixAt(0, matrix); return new Vector3().setFromMatrixScale(matrix).x; };
+  try {
+    camera.updateMatrixWorld(); effects.update(sim, 0, camera);
+    expect(scale(body)).toBe(0); expect(scale(detailed)).toBeCloseTo(.38, 6);
+    expect(detailed.geometry.getAttribute('position').count).toBeGreaterThan(body.geometry.getAttribute('position').count * 5);
+    shell.position[2] = -1000; effects.update(sim, 0, camera);
+    expect(scale(body)).toBeCloseTo(.38, 6); expect(scale(detailed)).toBe(0);
+    camera.fov = 2; camera.updateProjectionMatrix(); effects.update(sim, 0, camera);
+    expect(scale(body)).toBe(0); expect(scale(detailed)).toBeCloseTo(.38, 6);
+    effects.reset(); expect(scale(detailed)).toBe(0);
+  } finally { effects.dispose(); }
 });
 
 test('tracers end at the CPU shell, grow from the muzzle, and stay legible across range and zoom', () => {
