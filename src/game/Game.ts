@@ -14,6 +14,7 @@ import { Fn, float, max, mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
 import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
 import { VisualWaveSampler } from './VisualWaveSampler';
 import { UnderwaterPassVisibility } from './UnderwaterPassVisibility';
+import { HorizonHaze } from './HorizonHaze';
 import { FrameScene } from './FrameScene';
 import { FleetShipDraws } from './FleetShipDraws';
 import { batchShipModel } from './ShipBatching';
@@ -68,6 +69,7 @@ export class Game {
   private renderer: THREE.WebGPURenderer;
   private scene = new FrameScene();
   private underwaterPassVisibility?: UnderwaterPassVisibility;
+  private horizonHaze = new HorizonHaze();
   private ambientLight = new THREE.HemisphereLight('#dcebf2', '#65757e', .65);
   private camera = new THREE.PerspectiveCamera(52, 1, 0.5, 60000);
   private rig: CameraRig;
@@ -254,9 +256,13 @@ export class Game {
     params.clipmap.levels = 6;
     params.foam.surface.opacity = 0.13;
     params.foam.waves.opacity = 0.45;
+    // A broader directional spectrum breaks up parallel ripples into the
+    // small crossing waves of the supplied naval-game water references.
+    params.waves.fft.spectralSharpness = .8;
     params.postProcessing.underwaterParticles.enabled = false;
     params.spray.enabled = false;
     this.water.loadPreset(params);
+    this.water.waves.jonswapGamma.value = 2.2;
     this.underwaterPassVisibility = new UnderwaterPassVisibility(this.water, this.renderer);
     this.torpedoPreview.setWater(this.water);
     this.surfaceWaterAbsorption.copy(this.water.color.absorptionColor);
@@ -295,6 +301,7 @@ export class Game {
     skyProvider.createFogSampler = () => Fn(([direction]: [THREE.Node]) => daylightFog(direction).add(
       moon.moonColor.mul(moon.moonIntensity).mul(moon.moonAmbient).mul(moon.moonPhaseIllumination)
         .mul(max(0, moon.moonDirection.y)).mul(moon.skyDarkness)));
+    this.horizonHaze.apply(this.sky, skyProvider, this.water);
     this.water.setSky(skyProvider);
     const sunlight = this.water.lighting.sunLight;
     const shadowSize = this.settings.quality === 'medium' ? 1024 : this.settings.quality === 'ultra' ? 4096 : 2048;
@@ -921,7 +928,7 @@ export class Game {
     this.water.waves.amplitude.value = this.inPort ? .12 : waves.amplitude;
     this.water.waves.windSpeed.value = this.inPort ? 4 : waves.windSpeed;
     this.water.waves.peakWavelength.value = this.inPort ? 14 : waves.peakWavelength;
-    this.water.waves.choppiness.value = .55;
+    this.water.waves.choppiness.value = .65;
     this.water.waves.windDirection.value = (this.inPort ? 35 : map.water.windDirection) * Math.PI / 180;
     this.water.waves.dirty = true;
     const colors = this.inPort ? oceanMap(DEFAULT_MAP).water : map.water;
@@ -941,7 +948,7 @@ export class Game {
     this.sky.timeOfDay.applyParams({ autoAdvanceSecondsPerDay: 0, time: elevation < 0 ? 0 : .5,
       latitude: 90 - Math.abs(elevation), azimuth: elevation < 0 ? azimuth : azimuth - 180 });
     this.sky.sun.setFromAngles(elevation, azimuth);
-    this.sky.sun.peakIntensity=this.inPort ? 5 : sky.intensity;
+    this.sky.sun.peakIntensity=this.inPort ? 5.8 : sky.intensity;
     this.effects.setSun(elevation < 0 ? this.sky.sun.direction.value.clone().negate() : this.sky.sun.direction.value);
     this.sky.clouds.shape.altitude.value = this.inPort ? 1700 : sky.altitude;
     this.sky.clouds.shape.thickness.value = this.inPort ? 2400 : sky.thickness;
@@ -950,7 +957,8 @@ export class Game {
     this.sky.clouds.wind.speed = this.inPort ? 12 : environment.cloudWind;
     this.sky.clouds.lighting.ambientIntensity.value = this.inPort ? 1.1 : environment.cloudAmbient;
     this.sky.clouds.lighting.baseShadowStrength.value = this.inPort ? .2 : environment.cloudShadow;
-    this.ambientLight.intensity = this.inPort ? 1.1 : sky.ambient;
+    // Lift shaded hulls and harbor buildings without raising sea/sky exposure.
+    this.ambientLight.intensity = this.inPort ? 1.75 : sky.ambient;
     // Diffuse fill softens the dark blue dome toward the hills. Keep the port's
     // forward sun haze restrained so it cannot wash out the sky and reflections.
     this.sky.atmosphere.turbidity.value = this.inPort ? 3.2 : sky.turbidity;
@@ -964,8 +972,8 @@ export class Game {
       this.water.fog.color = this.inPort ? '#819aa5' : environment.fog.color;
       this.water.fog.fadeStart = this.inPort ? 650 : environment.fog.start;
       this.water.fog.fadeEnd = this.inPort ? 5600 : environment.fog.end;
-      this.water.fog.fadePower = this.inPort ? .85 : 1.4;
-      this.water.fog.skyBlendDistance = this.inPort ? 2600 : environment.fog.skyBlend;
+      this.water.fog.fadePower = this.inPort ? .85 : 1;
+      this.water.fog.skyBlendDistance = this.inPort ? 2600 : environment.fog.skyBlend * .65;
     }
   }
   cycleCamera(): void { if (this.airOperationsOpen) { this.setAirOperationsOpen(false); return; } const aircraft = !!this.followedAircraftId; this.stopShellFollow(); if (!aircraft) this.rig.cycle(); }
@@ -1003,6 +1011,7 @@ export class Game {
     this.funnelSmoke.dispose();
     await this.visualWaveSampler?.drain();
     this.water?.dispose();
+    this.horizonHaze.dispose();
     this.sky?.dispose();
     const geometries = new Set<THREE.BufferGeometry>();
     const materials = new Set<THREE.Material>();

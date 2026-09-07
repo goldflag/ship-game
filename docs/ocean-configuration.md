@@ -6,10 +6,10 @@ The current direction is a relatively restrained sea viewed from a camera hundre
 
 | Water parameter | Black Flag preset | Default game (Atlantic) | Intent |
 | --- | --- | --- | --- |
-| FFT amplitude multiplier | 1 | 0.45 | Keep wave displacement small beside the hull. This is not a wave height in meters. |
+| FFT amplitude multiplier | 1 | 0.24 | Keep wave displacement small beside the hull. This is not a wave height in meters. |
 | Wind speed | 15 | 9 | Lower wind-driven wave energy. |
-| Peak wavelength | 47 m | 28 m | Shorter surface waves give the hull a stronger sense of scale. |
-| Choppiness | 1.5 | 0.8 | Reduce sharp, horizontally displaced crests. |
+| Peak wavelength | 47 m | 20 m | Shorter surface waves give the hull a stronger sense of scale. |
+| Choppiness | 1.5 | 0.65 | Reduce sharp, horizontally displaced crests. |
 | Surface foam opacity | 0.30 | 0.13 | Less persistent white texture across the surface. |
 | Wave foam opacity | 0.60 | 0.45 | Retain whitecaps with less visual noise. |
 | Water fog fade | 300–1,210 m | 2,500–16,000 m | Longer sightlines for the distant chase camera and eventual naval encounters. |
@@ -18,7 +18,15 @@ The current direction is a relatively restrained sea viewed from a camera hundre
 | Ocean floor | Visible, depth 8 m | Hidden; configured depth 200 m | An open sea without a visible shallow seabed. |
 | Spray / underwater particles | Enabled | Disabled | Omit extra particle effects from this first sailing build. |
 
-Base water colors remain the Black Flag colors: `waterColor #224659`, `transmissionColor #226755`, `absorptionColor #945b57`. The 1,024 m largest FFT tile, spectrum settings, foam textures, and Fresnel parameters are inherited. High water quality is the default, including the third ripple cascade and screen-space reflections.
+The current Atlantic palette uses `waterColor #19364a`, `transmissionColor #355166`, and the original `absorptionColor #945b57`. The four maps now share a restrained deep-blue family; the Pacific retains a small green shift without its previous bright turquoise crests. The 1,024 m largest FFT tile, foam textures, and Fresnel parameters are inherited. High water quality is the default, including the third ripple cascade and screen-space reflections. See the [palette comparison and capture notes](../assets/reviews/water-palette/README.md).
+
+## Current port light and horizon
+
+Port sun peak intensity is **5.8** and hemisphere fill **1.75**, lifting shaded hulls and harbor buildings. Exposure remains **1**, with the existing sun angles and restrained forward scattering.
+
+`src/game/HorizonHaze.ts` replaces the brown aerosol band with softly blended cool gray-blue radiance sampled just above the horizon. Sky, reflections and distant water share that color. The roughly 2.6-degree angular blend fades into grazing-angle water from 250–1,800 m and disables its water contribution below the surface. Clouds dissolve over 16–32 km. Battle fog uses power 1 and 65% of the authored sky-color blend distance, retaining each map/weather's fog start and end distances. Port fog keeps its existing range. The supplied naval-game screenshots set the current target: dark blue body color, cool blue highlights and small crossing waves. Spectral sharpness is 0.8 (previously 1.57), JONSWAP gamma 2.2 (previously 3.3), and choppiness 0.65 (previously 0.55). Clear/Fog, Map default/Partly cloudy, Overcast and Storm amplitudes are 0.12, 0.24, 0.34 and 0.48 respectively; port stays at 0.12. Wavelengths, wind speeds and CPU ship motion are unchanged.
+
+This runs in the sky and water materials, so nearby hulls and transparent combat effects retain their own shading and material fog; no depth-based post-fog is added. The sky color reads the existing Sky Pro 2.2 angular LUT, avoiding an extra atmospheric integration. The surface extension uses a version-specific Water Pro 3.5.1 material adapter documented in the review notes. The following correction sections record earlier iterations and their evidence.
 
 The vendored Fresnel shader's grazing-angle guard is reduced from 0.05 to 0.0001. The old guard gave shallow wave slopes identical reflectance, turning distant water into a flat color that was conspicuous at 24×. The smaller positive guard preserves wave shading at naval sight angles; texture filtering already follows the camera projection. It adds no wave samples, mesh detail or render passes. Pixel filtering and weather haze still soften the far horizon. See the [water detail review](../assets/reviews/water-detail/README.md) and [vendor patch record](../vendor/threejs-water-pro/PATCHES.md).
 
@@ -30,7 +38,7 @@ The original linear RGB coefficients are saved once after loading the preset. Ea
 
 The dev-only `/scripts/diagnostics/underwater-visibility.html?test` runs the actual `Game.frame` and GPU water pipeline at 7, 50 and 150 m. It compares visible-hull pixels with the same view without the hull, and checks surface/periscope restoration. `window.visibilityResult.passed` must be true. Add `&legacy` to restore the old coefficients as a negative control; its dive checks must fail. See the [before/after evidence](../assets/reviews/underwater-visibility/README.md).
 
-Weather presets own the wave settings. Clear and Fog use amplitude 0.09, wind 5 and wavelength 12 m. Map default and Partly cloudy use amplitude 0.18, wind 9 and wavelength 20 m. Overcast uses amplitude 0.28, wind 12 and wavelength 28 m; Storm clouds uses amplitude 0.48, wind 16 and wavelength 36 m. Map-specific multipliers apply to those values. These retain the current small-wave calibration. The sheltered port uses amplitude 0.12, wind 4 and wavelength 14 m. Choppiness stays 0.55. Transitions refresh the wave spectrum so weather changes take effect at launch. See the [weather/sea consolidation review](../assets/maps/review/weather-seas/README.md).
+Weather presets own the wave settings. Clear and Fog use amplitude 0.12, wind 5 and wavelength 12 m. Map default and Partly cloudy use amplitude 0.24, wind 9 and wavelength 20 m. Overcast uses amplitude 0.34, wind 12 and wavelength 28 m; Storm clouds uses amplitude 0.48, wind 16 and wavelength 36 m. Map-specific multipliers apply to those values. These retain the current small-wave calibration. The sheltered port uses amplitude 0.12, wind 4 and wavelength 14 m. Choppiness is 0.65. Transitions refresh the wave spectrum so weather changes take effect at launch. See the [weather/sea consolidation review](../assets/maps/review/weather-seas/README.md).
 
 Nearby ships receive bow and stern wake generators scaled to their hull; their configuration is described under **Ship wake** below. Buoyancy samples a 190 × 28 m footprint with 1.8 s smoothing and 0.45 rotation influence. These values were chosen for visually stable battleship motion, not hydrodynamic accuracy.
 
