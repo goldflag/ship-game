@@ -21,7 +21,7 @@ export interface InputActions {
 export class InputController {
   order = 1;
   private keys = new Set<string>();
-  private touchRudder = 0;
+  rudderOrder = 0;
   private enabled = true;
   private shiftTap = false;
   private abort = new AbortController();
@@ -72,6 +72,8 @@ export class InputController {
     if (!event.repeat) {
       if (action === 'throttleUp') this.setOrder(this.order + 1);
       if (action === 'throttleDown') this.setOrder(this.order - 1);
+      if (action === 'port') this.setRudder(this.rudderOrder - .5);
+      if (action === 'starboard') this.setRudder(this.rudderOrder + .5);
       if (action === 'stop') this.setOrder(1);
       if (action === 'camera') this.actions.camera();
       if (action === 'recenter') this.actions.recenter();
@@ -93,16 +95,14 @@ export class InputController {
   };
 
   setOrder(order: number): void { this.order = Math.max(0, Math.min(ENGINE_ORDERS.length - 1, Math.round(order))); }
-  setRudder(rudder: number): void { this.touchRudder = rudder; }
+  setRudder(rudder: number): void { if (Number.isFinite(rudder)) this.rudderOrder = Math.max(-1, Math.min(1, Math.round(rudder * 2) / 2)); }
   setEnabled(enabled: boolean): void { this.enabled = enabled; this.clear(); }
-  clear(): void { this.keys.clear(); this.touchRudder = 0; this.shiftTap = false; }
+  clear(): void { this.keys.clear(); this.shiftTap = false; }
   setBindings(bindings: Keybindings): void { this.bindings = bindings; this.clear(); }
   private held(action: InputAction): boolean { return this.bindings[action].some(key => key !== null && this.keys.has(key)); }
   get firing(): boolean { return this.enabled && this.held('fire'); }
   sample(): HelmCommand {
-    const left = this.held('port');
-    const right = this.held('starboard');
-    return { throttle: ENGINE_ORDERS[this.order], rudder: this.enabled ? (Number(right) - Number(left) || this.touchRudder) : 0 };
+    return { throttle: ENGINE_ORDERS[this.order], rudder: this.enabled ? this.rudderOrder : 0 };
   }
   dispose(): void { this.abort.abort(); this.clear(); }
 }

@@ -1,6 +1,6 @@
 import { AirOperations } from './AirOperations';
 import { FlightControl } from './FlightControl';
-import { type CSSProperties, type PointerEvent } from 'react';
+import { type CSSProperties } from 'react';
 import type { Battery } from '../ships/blueprint';
 import { ammunitionName, batteryName, torpedoArcLabel } from '../ships/armament';
 import type { Game } from '../game/Game';
@@ -103,7 +103,7 @@ function ActiveArmament({ data, game, bindings }: FleetHudProps) {
       </div>;
     })}</div>
     <div className="fleet-battery-heading"><span>{!depthCharges && `${caliber(combat.battery)} mm · `}{batteryName(combat.battery)}</span><strong>{combat.ready}/{combat.total} can fire</strong></div>
-    {torpedoes && <p className="fleet-torpedo-help">{torpedoArcLabel(selectedShip)} · {((selectedShip.torpedoTubes?.[0].weapon.rangeM ?? 0) / 1000).toFixed(1)} km · Arms at {selectedShip.torpedoTubes?.[0].weapon.armingDistanceM} m</p>}
+    {torpedoes && <p className="fleet-torpedo-help">{torpedoArcLabel(selectedShip)} · {((selectedShip.torpedoTubes?.[0].weapon.rangeM ?? 0) / 1000).toFixed(1)} km · Arms at {selectedShip.torpedoTubes?.[0].weapon.armingDistanceM} m · Line shows straight course</p>}
     {depthCharges && <p className="fleet-torpedo-help">Stern racks / side throwers · Burst at {selectedShip.depthChargeLaunchers?.[0].weapon.detonationDepthM} m<br/>Drop on a close pass; keep moving clear of the blast.</p>}
     <div className="fleet-weapon-row">
       {combat.batteries.filter(battery => battery.total > 0).map(battery => <button key={battery.battery} className="fleet-weapon-slot" aria-label={`Select ${battery.battery === 'depth-charge' ? 'depth charges' : battery.battery === 'torpedo' ? 'torpedoes' : `${battery.battery} ${battery.ammunition.toUpperCase()} battery`} · ${battery.ammo} ${ammunitionName(battery.battery)} · ${bindingLabel(bindings, shortcut(battery.battery))}`} aria-pressed={combat.battery === battery.battery} disabled={!battery.total} onClick={event => { if (game) game.battery = battery.battery; event.currentTarget.blur(); }}>
@@ -112,7 +112,7 @@ function ActiveArmament({ data, game, bindings }: FleetHudProps) {
         {battery.reload > 0 && Number.isFinite(battery.reload) && battery.ready === 0 && <span className="fleet-slot-cooldown">{Math.ceil(battery.reload)}<small>s</small></span>}
         <kbd>{bindingLabel(bindings, shortcut(battery.battery))}</kbd>
       </button>)}
-      <button className="fleet-weapon-slot fleet-utility-slot" aria-label="Toggle binocular aiming · Shift" aria-pressed={!!data.binoculars} onClick={event => { game?.toggleBinoculars(); event.currentTarget.blur(); }}><span className="fleet-slot-label">BINOCULARS</span><BinocularGlyph/><strong className="fleet-slot-value">{data.binoculars ? `${data.magnification}×` : ''}</strong><kbd>SHIFT</kbd></button>
+      <button className="fleet-weapon-slot fleet-utility-slot" aria-label="Toggle binocular aiming · Shift" aria-pressed={!!data.binoculars} onClick={event => { game?.toggleBinoculars(); event.currentTarget.blur(); }}><span className="fleet-slot-label">BINOCULARS</span><BinocularGlyph/><strong className="fleet-slot-value">{data.binoculars ? `${(data.magnification ?? 1).toFixed(1)}×` : ''}</strong><kbd>SHIFT</kbd></button>
       <button className="fleet-weapon-slot" aria-label={`Gunnery and target damage · ${bindingLabel(bindings, 'gunnery')}`} aria-expanded={!!data.gunneryOpen} onClick={event => { game?.setGunneryOpen(!data.gunneryOpen); event.currentTarget.blur(); }}><span className="fleet-slot-label">GUNNERY</span><Icon name="target" size={39}/><kbd>{bindingLabel(bindings, 'gunnery')}</kbd></button>
       <button className="fleet-weapon-slot fleet-fire-slot" aria-label={`${depthCharges ? 'Drop depth charge' : torpedoes ? 'Launch torpedo' : 'Fire aligned guns'} · Left mouse or ${bindingLabel(bindings, 'fire')}`} disabled={!combat.ready || combat.playerSunk} onClick={event => { game?.fire(); event.currentTarget.blur(); }}><span className="fleet-slot-label">{depthCharges ? 'DROP' : 'FIRE'}</span><Icon name="turret" size={39}/><kbd>{bindingLabel(bindings, 'fire')} / LMB</kbd></button>
     </div>
@@ -128,10 +128,6 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
   const maxIntegrity = data.combat?.playerMaxIntegrity ?? maxHullIntegrity(selectedShip);
   const hp = Math.round(integrity * maxIntegrity);
   const damage = data.playerDamage;
-  const steer = (event: PointerEvent<HTMLButtonElement>, value: number) => {
-    event.currentTarget.setPointerCapture(event.pointerId); game?.input.setRudder(value);
-  };
-  const releaseRudder = () => game?.input.setRudder(0);
   const mapSize = [240, 280, 320, 360, 400][data.chartSize ?? 2];
   const followingShell = data.shellFollow === 'flight' || data.shellFollow === 'impact';
   const following = followingShell || !!data.followedAircraftId;
@@ -150,7 +146,7 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
       {data.binoculars ? <><svg viewBox="0 0 540 80" fill="none"><path d="M10 40h238m44 0h238M270 15v14m0 22v14" stroke="currentColor"/>
         {Array.from({ length: 21 }, (_, i) => i === 10 ? null : <g key={i}><path d={`M${20 + i * 25} 40v${i % 2 === 0 ? 9 : 5}`} stroke="currentColor"/>{i % 2 === 0 && <text x={20 + i * 25} y="65" fill="currentColor" textAnchor="middle" fontSize="10">{Math.abs(i - 10)}</text>}</g>)}
         <circle cx="270" cy="40" r="5" stroke="currentColor"/><circle cx="270" cy="40" r="1.5" fill="currentColor"/></svg>
-        <div className="fleet-scope-readout"><strong>{((data.combat?.range ?? 0) / 1000).toFixed(2)} <small>km</small></strong><span>{data.magnification}× <small>SCROLL TO ZOOM</small></span></div></> :
+        <div className="fleet-scope-readout"><strong>{((data.combat?.range ?? 0) / 1000).toFixed(2)} <small>km</small></strong><span>{(data.magnification ?? 1).toFixed(1)}× <small>SCROLL TO ZOOM</small></span></div></> :
         <svg viewBox="0 0 44 44" fill="none"><path d="M3 22h9m20 0h9M22 3v9m0 20v9" stroke="currentColor"/><circle cx="22" cy="22" r="5" stroke="currentColor"/><circle cx="22" cy="22" r="1" fill="currentColor"/></svg>}
     </div>}
     {!data.pointerLocked && !data.inspecting && !data.gunneryOpen && !following && !data.airOperationsOpen && <button className="fleet-capture-hint" onClick={() => game?.capturePointer()}>Click sea to aim <span>Hold Ctrl for cursor</span></button>}
@@ -164,10 +160,13 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
         <div className="fleet-speed"><strong>{speed}</strong><span>kts</span></div>
         <div className="fleet-throttle" role="group" aria-label="Engine telegraph">{[{ label: 'FULL', index: 5 }, { label: '3/4', index: 4 }, { label: '1/2', index: 3 }, { label: '1/4', index: 2 }, { label: 'STOP', index: 1 }, { label: 'FULL', index: 0 }].map(({ label, index }) => <button key={index} aria-label={`Engine ${ENGINE_LABELS[index].toLowerCase()}`} title={ENGINE_LABELS[index]} aria-pressed={data.order === index} onClick={event => { game?.input.setOrder(index); event.currentTarget.blur(); }}><span>{label}</span>{index === 0 && <small>ASTERN</small>}</button>)}</div>
       </div></div>
-      <div className="fleet-steering" aria-label={`Rudder ${Math.abs(rudder)} degrees ${rudder < 0 ? 'port' : rudder > 0 ? 'starboard' : 'amidships'}`}><kbd>{bindingLabel(bindings, 'port')}</kbd><span>PORT</span><div><i style={{ left: `${50 + data.ship.rudder * 47}%` }}/></div><span>STBD</span><kbd>{bindingLabel(bindings, 'starboard')}</kbd></div>
+      <div className="fleet-steering" role="group" aria-label="Rudder order">
+        <div className="fleet-steering-heading"><span>PORT</span><strong>{rudder === 0 ? 'AMIDSHIPS' : `${Math.abs(rudder)}° ${rudder < 0 ? 'PORT' : 'STBD'}`}</strong><span>STBD</span></div>
+        <div className="fleet-rudder-orders">{[-1, -.5, 0, .5, 1].map(value => <button key={value} aria-label={value === 0 ? 'Rudder amidships' : `${Math.abs(value) === 1 ? 'Hard' : 'Half'} ${value < 0 ? 'port' : 'starboard'} rudder`} aria-pressed={(data.rudderOrder ?? 0) === value} onClick={event => { game?.input.setRudder(value); event.currentTarget.blur(); }}>{value === 0 ? '0' : Math.abs(value) === 1 ? 'FULL' : '½'}</button>)}</div>
+        <div className="fleet-rudder-track" aria-label={`Actual rudder ${rudder} degrees`}><i style={{ left: `${50 + data.ship.rudder * 48}%` }}/></div>
+      </div>
       {data.combat && data.combat.playerStatus !== 'operational' && <p className="fleet-flood-warning">{data.combat.playerStatus === 'capsized' ? 'Capsized' : data.combat.playerStatus === 'sinking' ? 'Sinking' : `Afloat · ${data.combat.playerStatus.replaceAll('-', ' ')}`}</p>}
       {(data.combat?.playerWater ?? 0) > .1 && <p className="fleet-flood-warning">Flooding · {data.combat!.playerWater.toFixed(1)} m³</p>}
-      <div className="fleet-touch-helm"><button aria-label="Hold to steer port" onPointerDown={event => steer(event, -1)} onPointerUp={releaseRudder} onPointerCancel={releaseRudder} onLostPointerCapture={releaseRudder}>PORT</button><button aria-label="Hold to steer starboard" onPointerDown={event => steer(event, 1)} onPointerUp={releaseRudder} onPointerCancel={releaseRudder} onLostPointerCapture={releaseRudder}>STARBOARD</button></div>
     </section>
 
     <ActiveArmament data={data} game={game} visible={visible} bindings={bindings}/>

@@ -7,7 +7,8 @@ import type { ShellView } from './ShellFollow';
 
 export type CameraMode = 'Chase' | 'Bridge' | 'Tactical';
 const NORMAL_FOV = 52;
-const MAGNIFICATIONS = [2, 4, 6, 8, 12, 16, 24];
+const MIN_MAGNIFICATION = 2, MAX_MAGNIFICATION = 32;
+const MAX_DOWNWARD_TILT = Math.PI / 2 - .015;
 const MIN_ORBIT_ELEVATION = .08;
 const MAX_UPWARD_TILT = Math.PI / 6;
 const CAMERA_CLEARANCE = 12;
@@ -16,7 +17,11 @@ const PORT_ELEVATION = .2;
 export class CameraRig {
   mode: CameraMode = 'Chase';
   binoculars = false;
-  private zoomIndex = 1;
+  private scopeMagnification = 4;
+  private displayedDistance = 345;
+  private opticsTransition?: { offset: Vector3; aim?: Vec3; elapsed: number };
+  private readonly motionPreference = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+  private get reducedMotion(): boolean { return this.motionPreference?.matches ?? false; }
   private azimuth = .82;
   private elevation = .1;
   private distance = 345;
@@ -73,8 +78,8 @@ export class CameraRig {
         // Angular sensitivity follows the visible field of view at every magnification.
         const sensitivity = .0025 * Math.tan(this.camera.fov * Math.PI / 360) / Math.tan(NORMAL_FOV * Math.PI / 360);
         this.azimuth += dx * sensitivity;
-        this.elevation = MathUtils.clamp(this.elevation + dy * sensitivity, -MAX_UPWARD_TILT, 1.3);
-        if (dx || dy) this.actions.aim();
+        this.elevation = MathUtils.clamp(this.elevation + dy * sensitivity, -MAX_UPWARD_TILT, MAX_DOWNWARD_TILT);
+        if (dx || dy) { if (this.opticsTransition) this.opticsTransition.aim = undefined; this.actions.aim(); }
       }
       this.previous = { x: e.clientX, y: e.clientY };
     }, options);
@@ -96,10 +101,9 @@ export class CameraRig {
     canvas.addEventListener('wheel', e => {
       if (!this.enabled || this.shellView) return;
       e.preventDefault();
-      if (this.binoculars) {
-        this.zoomIndex = MathUtils.clamp(this.zoomIndex + Math.sign(-e.deltaY), 0, MAGNIFICATIONS.length - 1);
-        this.updateProjection();
-      } else this.distance = MathUtils.clamp(this.distance * Math.exp(e.deltaY * .001), (this.inPort ? 90 : 185) * this.distanceScale, this.inPort ? 650 * this.portHullScale : 1400);
+      const delta = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? this.canvas.clientHeight || 800 : 1);
+      if (this.binoculars) this.scopeMagnification = MathUtils.clamp(this.scopeMagnification * Math.exp(-delta * .0015), MIN_MAGNIFICATION, MAX_MAGNIFICATION);
+      else this.distance = MathUtils.clamp(this.distance * Math.exp(delta * .001), (this.inPort ? 90 : 45) * this.distanceScale, this.inPort ? 650 * this.portHullScale : 1400 * this.hullScale);
     }, { ...options, passive: false });
     canvas.addEventListener('contextmenu', e => e.preventDefault(), options);
   }
@@ -109,11 +113,12 @@ export class CameraRig {
 
   get pointerLocked(): boolean { return document.pointerLockElement === this.canvas; }
   get firing(): boolean { return this.enabled && this.pointerLocked && this.mouseFire; }
-  get magnification(): number { return this.binoculars ? MAGNIFICATIONS[this.zoomIndex] : 1; }
+  get magnification(): number { return Math.tan(NORMAL_FOV * Math.PI / 360) / Math.tan(this.camera.fov * Math.PI / 360); }
   get bearing(): number { return ((this.azimuth % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2); }
 
   setShellView(view?: ShellView): void {
     if (!!view !== !!this.shellView) {
+      this.opticsTransition = undefined;
       if (view) { this.returnBinoculars = this.binoculars; this.binoculars = false; }
       else { this.binoculars = this.returnBinoculars; this.followedShipId = undefined; }
       this.updateProjection();
@@ -149,23 +154,34 @@ export class CameraRig {
     if (inspecting) this.releasePointer();
     this.recenter();
   }
-  private updateProjection(): void {
-    this.camera.fov = 2 * Math.atan(Math.tan(NORMAL_FOV * Math.PI / 360) / this.magnification) * 180 / Math.PI;
+  private updateProjection(dt = 0, snap = true): void {
+    const target = this.binoculars ? this.scopeMagnification : 1;
+    const lens = snap || this.reducedMotion ? target : Math.exp(MathUtils.lerp(Math.log(this.magnification), Math.log(target), 1 - Math.exp(-12 * dt)));
+    this.camera.fov = 2 * Math.atan(Math.tan(NORMAL_FOV * Math.PI / 360) / lens) * 180 / Math.PI;
     this.camera.updateProjectionMatrix();
   }
   toggleBinoculars(aim: Vec3, ship: ShipState): void {
     if (this.inPort || this.inspecting) return;
+    const position = this.camera.position.clone(), orientation = this.camera.quaternion.clone(), fov = this.camera.fov;
+    this.opticsTransition = undefined;
     this.binoculars = !this.binoculars;
-    this.updateProjection();
     this.aimAt(aim, ship);
+    if (!this.reducedMotion) {
+      this.opticsTransition = { offset: position.clone().sub(this.camera.position), aim: [...aim], elapsed: 0 };
+      this.camera.position.copy(position); this.camera.quaternion.copy(orientation);
+      this.camera.fov = fov; this.camera.updateProjectionMatrix(); this.camera.updateMatrixWorld();
+    }
   }
   aimAt(aim: Vec3, ship: ShipState): void {
     this.azimuth = Math.atan2(aim[0] - ship.x, ship.z - aim[2]);
     this.update(ship, ship.y, 0, true);
-    const delta = new Vector3(...aim).sub(this.camera.position);
-    this.azimuth = Math.atan2(delta.x, -delta.z);
-    this.elevation = Math.atan2(-delta.y, Math.hypot(delta.x, delta.z));
-    this.update(ship, ship.y, 0, true);
+    // Orbit height depends on pitch; solve position and sight together.
+    for (let i = 0; i < 8; i++) {
+      const delta = new Vector3(...aim).sub(this.camera.position);
+      this.azimuth = Math.atan2(delta.x, -delta.z);
+      this.elevation = Math.atan2(-delta.y, Math.hypot(delta.x, delta.z));
+      this.update(ship, ship.y, 0, true);
+    }
   }
   cycle(): void {
     const modes: CameraMode[] = ['Chase', 'Bridge', 'Tactical'];
@@ -175,6 +191,7 @@ export class CameraRig {
     this.recenter();
   }
   recenter(): void {
+    this.opticsTransition = undefined;
     this.azimuth = this.inPort || this.inspecting ? 1.08 : this.lastShip?.heading ?? 0;
     this.elevation = this.inPort || this.inspecting ? PORT_ELEVATION : this.mode === 'Tactical' ? .85 : this.mode === 'Bridge' ? .025 : .1;
   }
@@ -188,7 +205,8 @@ export class CameraRig {
     this.updateProjection();
     this.azimuth = inPort ? 1.08 : .82;
     this.elevation = inPort ? PORT_ELEVATION : .1;
-    this.distance = (inPort ? 325 : 345) * this.distanceScale;
+    this.distance = this.displayedDistance = (inPort ? 325 : 345) * this.distanceScale;
+    this.opticsTransition = undefined;
     this.releasePointer();
   }
   /** Preserve relative zoom and orbit when switching between differently sized hulls. */
@@ -200,6 +218,7 @@ export class CameraRig {
     this.portHullScale = length / 250.5;
     this.hullScale = MathUtils.clamp(this.portHullScale, .35, 1.5);
     this.distance *= this.distanceScale / previousScale;
+    this.displayedDistance *= this.distanceScale / previousScale;
   }
   private get distanceScale(): number { return this.inPort ? this.portHullScale : this.hullScale; }
   private battleTerrain: (x: number, z: number) => number = () => 0;
@@ -211,6 +230,8 @@ export class CameraRig {
   }
   update(ship: ShipState, height: number, dt: number, snap = false): void {
     this.lastShip = ship;
+    this.updateProjection(dt, snap);
+    this.displayedDistance = snap || this.reducedMotion ? this.distance : MathUtils.lerp(this.displayedDistance, this.distance, 1 - Math.exp(-12 * dt));
     if (this.shellView) {
       this.target.fromArray(this.shellView.position);
       this.shellDirection.fromArray(this.shellView.velocity).normalize();
@@ -236,7 +257,7 @@ export class CameraRig {
     if (this.inPort || this.inspecting) {
       const framingScale = this.inPort ? this.portHullScale : 1;
       this.target.set(ship.x + Math.sin(ship.heading) * 25 * framingScale, height + 20 * framingScale, ship.z - Math.cos(ship.heading) * 25 * framingScale);
-      const distance = this.distance * Math.max(1, 1.1 / this.camera.aspect);
+      const distance = this.displayedDistance * Math.max(1, 1.1 / this.camera.aspect);
       const angle = this.azimuth - ship.heading;
       // Port stays aimed at the ship. Combat inspection can tilt toward the sky
       // below the lowest orbit while the camera stays above the water.
@@ -260,22 +281,41 @@ export class CameraRig {
         this.desired.set(...localToWorld(periscope ? this.submarine!.periscopeEye : this.bridge, { ...ship, y: height }));
         if (this.binoculars && !periscope) this.desired.y += 8;
       } else {
-        let distance = (this.mode === 'Tactical' ? Math.max(650, this.distance) : this.distance) * Math.max(1, 1.2 / this.camera.aspect);
-        let lift = this.mode === 'Tactical' ? distance * .95 + 25 : (distance * .28 + 25) * this.hullScale;
+        let distance = (this.mode === 'Tactical' ? Math.max(160 * this.hullScale, this.displayedDistance) : this.displayedDistance) * Math.max(1, 1.2 / this.camera.aspect);
+        const orbitElevation = Math.max(.08, this.elevation);
+        let lift = Math.sin(orbitElevation) * distance + 12 * this.hullScale;
+        distance *= Math.cos(orbitElevation);
         if (this.submarine && this.mode === 'Chase') {
           const blend = MathUtils.clamp((-height - .5) / 5, 0, 1);
-          const zoom = this.distance / (345 * this.hullScale);
+          const zoom = this.displayedDistance / (345 * this.hullScale);
           // Stay just behind the stern: the full surface follow distance is
           // beyond underwater visibility, especially in a portrait viewport.
           const close = this.hullLength * Math.max(.6, .66 * zoom) * Math.max(1, .55 / this.camera.aspect);
-          distance = MathUtils.lerp(distance, close, blend);
-          lift = MathUtils.lerp(lift, 3.5, blend);
+          const underwaterElevation = Math.max(0, orbitElevation - .1) * (Math.PI / 2) / (Math.PI / 2 - .1);
+          distance = MathUtils.lerp(distance, close * Math.cos(underwaterElevation), blend);
+          lift = MathUtils.lerp(lift, Math.sin(underwaterElevation) * close + 3.5, blend);
         }
         this.desired.set(ship.x - Math.sin(this.azimuth) * distance, height + lift, ship.z + Math.cos(this.azimuth) * distance);
       }
       this.constrainCameraHeight(this.desired);
       this.camera.position.copy(this.desired);
-      this.look.set(Math.sin(this.azimuth) * Math.cos(this.elevation), -Math.sin(this.elevation), -Math.cos(this.azimuth) * Math.cos(this.elevation)).multiplyScalar(1000).add(this.desired);
+      if (this.opticsTransition && !snap) {
+        this.opticsTransition.elapsed += dt;
+        const progress = MathUtils.clamp(this.opticsTransition.elapsed / .42, 0, 1);
+        const ease = 1 - (1 - progress) ** 3;
+        this.camera.position.addScaledVector(this.opticsTransition.offset, 1 - ease);
+        this.constrainCameraHeight(this.camera.position);
+        if (this.opticsTransition.aim) {
+          this.look.fromArray(this.opticsTransition.aim);
+          this.camera.lookAt(this.look); this.camera.updateMatrixWorld();
+          if (progress < 1) return;
+          const delta = this.look.clone().sub(this.camera.position);
+          this.azimuth = Math.atan2(delta.x, -delta.z);
+          this.elevation = Math.atan2(-delta.y, Math.hypot(delta.x, delta.z));
+        }
+        if (progress >= 1) this.opticsTransition = undefined;
+      }
+      this.look.set(Math.sin(this.azimuth) * Math.cos(this.elevation), -Math.sin(this.elevation), -Math.cos(this.azimuth) * Math.cos(this.elevation)).multiplyScalar(1000).add(this.camera.position);
     }
     this.camera.lookAt(this.look);
     this.camera.updateMatrixWorld();
