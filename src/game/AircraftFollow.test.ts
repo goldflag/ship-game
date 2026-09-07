@@ -11,6 +11,8 @@ test('aircraft camera samples airborne interpolation and follows deck poses with
   const sim = new CombatSimulation(shipPreset('enterprise-cv6'));
   const plane = sim.player.airWing!.planes[0];
   const hull = { ...sim.ship, x: 350, roll: .1, heading: 1 };
+  expect(aircraftFollowView(plane, sim.player, hull, .5)).toBeUndefined();
+  plane.deckSlot = 0;
   const before = structuredClone(plane);
   expect(aircraftFollowView(plane, sim.player, hull, .5)?.position).toEqual(localToWorld(aircraftDeckSpot(sim.player, plane), hull));
   expect(plane).toEqual(before);
@@ -31,6 +33,8 @@ test('follow selects only surviving own aircraft, cancels shell follow, and came
   const selected = () => Reflect.get(game, 'followedAircraftId');
   game.followAircraft(sim.target.airWing!.planes[0].id); expect(selected()).toBeUndefined();
   const own = sim.player.airWing!.planes[0];
+  game.followAircraft(own.id); expect(selected()).toBeUndefined();
+  own.deckSlot = 0;
   game.followAircraft(own.id); expect(selected()).toBe(own.id); expect(shellFollow.enabled).toBe(false);
   game.cycleCamera(); expect(selected()).toBeUndefined(); expect(cycles).toBe(0);
   game.followAircraft(own.id); game.returnToShip(); expect(selected()).toBeUndefined();

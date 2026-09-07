@@ -1,0 +1,79 @@
+bun test v1.2.18 (0d4089ea)
+
+scripts/aircraft/glb.test.ts:
+(pass) aircraft GLB contract > measures exported binary geometry and exercises every independent control [4.69ms]
+(pass) aircraft GLB contract > rejects stale source hash and mismatched aircraft identity [0.19ms]
+(pass) aircraft GLB contract > rejects malformed and externally dependent files [0.52ms]
+(pass) aircraft GLB contract > checks actual vertex values instead of trusting accessor bounds [0.66ms]
+(pass) aircraft GLB contract > rejects out-of-bounds accessors [0.20ms]
+(pass) aircraft GLB contract > rejects duplicate IDs and multiply-parented nodes [0.18ms]
+(pass) aircraft GLB contract > rejects missing and detached moving geometry [0.38ms]
+(pass) aircraft GLB contract > rejects objects leaked from another interactive Blender scene [0.17ms]
+(pass) aircraft GLB contract > rejects backwards aircraft and swapped port/starboard controls [1.06ms]
+(pass) aircraft GLB contract > rejects dimensions outside the three percent allowance [0.58ms]
+(pass) aircraft GLB contract > production checks require a texture actually bound to finite UV geometry [1.13ms]
+(pass) aircraft GLB contract > rejects malformed UV accessors and broken embedded texture bindings [1.86ms]
+(pass) aircraft GLB contract > all three LOD binaries retain dimensions, source identity, textures and six independent controls [3.15ms]
+(pass) aircraft GLB contract > rejects identical, reversed and merely nominal LOD reductions [2.14ms]
+(pass) aircraft GLB contract > rejects collinear triangles from actual binary positions even when bounds agree [0.39ms]
+(pass) aircraft GLB contract > rejects zero/nonfinite normals, mismatched counts and missing production normals [0.39ms]
+(pass) measured aircraft shape contract > accepts retained measured source stations without requiring manufacturing sections [4.17ms]
+(pass) measured aircraft shape contract > rejects inverted canopy/body contours and negative widths before building [0.45ms]
+(pass) measured aircraft shape contract > rejects nonfinite, unordered, reversed chord and incomplete span stations [0.28ms]
+(pass) measured aircraft shape contract > requires a useful fin, valid fittings and named reference evidence [0.12ms]
+(pass) versioned aircraft catalog > accepts a WWII-era authored variant [0.32ms]
+(pass) versioned aircraft catalog > rejects incompatible schemas, duplicate IDs, path traversal, and invalid dimensions [0.27ms]
+
+src/simulation/squadronCommands.test.ts:
+(pass) a ready six-plane bomber squadron launches to water within ten seconds and retains its static station [151.88ms]
+(pass) role and team validation is atomic for launches, interception, defense, and retasking [39.56ms]
+(pass) squadron identity, losses and hotkey order persist across recall and relaunch [889.75ms]
+
+src/simulation/airOperations.test.ts:
+(pass) 48 aircraft start hidden in the hangar with eight stable squadron selections [2.04ms]
+(pass) six-plane flights retain separate orders and four active slots include queued flights [2.91ms]
+(pass) a full 24-plane rotation recovers, rearms and launches again without endurance losses [2209.07ms]
+
+src/game/InputController.test.ts:
+(pass) keyboard gameplay controls > custom engine keys replace defaults and only notch once per press [0.50ms]
+(pass) keyboard gameplay controls > custom steering and firing hold until release and clear on a remap or pause [0.26ms]
+(pass) keyboard gameplay controls > view shortcuts honor custom bindings and keep Esc available [0.06ms]
+(pass) keyboard gameplay controls > air operations opens once per press and respects remapped controls [0.03ms]
+(pass) keyboard gameplay controls > shell follow toggles once per press, supports rebinding and is inactive while paused [0.16ms]
+(pass) keyboard gameplay controls > Shift taps toggle optics, Shift-plus resizes chart, and Ctrl holds the cursor [0.13ms]
+(pass) keyboard gameplay controls > depth orders notch once, emergency blow is reachable, and pause blocks both [0.17ms]
+(pass) keyboard gameplay controls > battery, chart and gunnery bindings replace the new HUD defaults [0.17ms]
+(pass) keyboard gameplay controls > dialogs and browser shortcuts do not trigger or consume gameplay input [0.14ms]
+
+src/game/GameFrame.test.ts:
+(pass) map and port transitions restore their own absorption after underwater attenuation [86.73ms]
+(pass) turning through north takes the short heading path without changing authoritative combat state [133.71ms]
+(pass) firing enters shell view without feeding its camera into aim, freezes on pause and restores optics [353.87ms]
+(pass) target inspection follows the interpolated underway target and resets without a streak [33.41ms]
+(pass) pause holds the interpolated pose and resume continues without a tick-sized jump [12.59ms]
+(pass) manual aiming and binoculars keep the camera attached to the displayed ship at full speed [146.76ms]
+(pass) repositioning for port and launch clears the old ship poses [15.31ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.03333333333333333 [78.25ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.01694915254237288 [42.59ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.016666666666666666 [39.36ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.008333333333333333 [26.26ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.006944444444444444 [25.07ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.006944444444444444,0.02127659574468085,0.013888888888888888,0.043 [53.80ms]
+(pass) all fleet impact marks share one cosmetic work budget, renewed for each frame [14.86ms]
+
+src/game/AirOperations.test.tsx:
+(pass) an armed action refuses an incompatible click without issuing a different mission [0.09ms]
+(pass) air chart fits distant aircraft in wide and narrow windows and maps clicks back to world coordinates [0.03ms]
+(pass) the operations roster exposes the full inventory and retains a flight target when the ship target changes [11.39ms]
+(pass) the map releases aim, blocks firing and restores aiming on close without losing flight selection [1.30ms]
+(pass) older keybindings keep a custom M binding while adding a reachable map shortcut [0.21ms]
+
+src/game/BattlefieldCamera.test.ts:
+(pass) tilted battlefield projects targets and water commands consistently at 1440×900 [0.58ms]
+(pass) tilted battlefield projects targets and water commands consistently at 700×550 [0.08ms]
+(pass) tilted battlefield projects targets and water commands consistently at 390×844 [0.04ms]
+
+ 59 pass
+ 0 fail
+ 4163 expect() calls
+Ran 59 tests across 7 files. [4.68s]
