@@ -1,0 +1,82 @@
+{
+  "ship": "bismarck",
+  "contentHash": "9477e135c39e1356ad54f9923b0d801a19372a71537263b475b38c42e0fe7a16",
+  "before": {
+    "flags": [
+      {
+        "design": "kriegsmarine",
+        "position": [
+          0,
+          15.3,
+          123.29
+        ],
+        "visible": true,
+        "tip": [
+          3.856612205505371,
+          -0.9648191332817078,
+          2.854135751724243
+        ]
+      }
+    ],
+    "radars": [
+      {
+        "nodeId": "fumo-fore.yaw",
+        "angle": 0.6668212165659984,
+        "rpm": 2,
+        "sweepDeg": 65
+      },
+      {
+        "nodeId": "fumo-conning.yaw",
+        "angle": 1.1260078910690994,
+        "rpm": 2,
+        "sweepDeg": 65
+      },
+      {
+        "nodeId": "fumo-aft.yaw",
+        "angle": 0.8690498536871181,
+        "rpm": 2,
+        "sweepDeg": 65
+      }
+    ]
+  },
+  "after": {
+    "flags": [
+      {
+        "design": "kriegsmarine",
+        "position": [
+          0,
+          15.3,
+          123.29
+        ],
+        "visible": true,
+        "tip": [
+          3.5826170444488525,
+          -1.0154017210006714,
+          3.178858518600464
+        ]
+      }
+    ],
+    "radars": [
+      {
+        "nodeId": "fumo-fore.yaw",
+        "angle": 0.8890720251837828,
+        "rpm": 2,
+        "sweepDeg": 65
+      },
+      {
+        "nodeId": "fumo-conning.yaw",
+        "angle": 1.121708532709304,
+        "rpm": 2,
+        "sweepDeg": 65
+      },
+      {
+        "nodeId": "fumo-aft.yaw",
+        "angle": 0.6409347343679311,
+        "rpm": 2,
+        "sweepDeg": 65
+      }
+    ]
+  },
+  "pauseHeld": true,
+  "maxWeaponErrorM": 0.002166293408939459
+}

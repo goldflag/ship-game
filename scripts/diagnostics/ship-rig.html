@@ -1,0 +1,40 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Ship ensign and radar review</title>
+<style>html,body,#scene{margin:0;width:100%;height:100%;overflow:hidden}#status{position:absolute;left:20px;top:10px;color:#eee;background:#11252ddd;padding:12px;font:14px monospace;pointer-events:none}</style>
+<div id="scene"></div><pre id="status">Loading ship rig review…</pre>
+<script type="module">
+import { Game } from '/src/game/Game.ts';
+import { shipPreset } from '/src/ships/presets.ts';
+const noop=()=>{}, params=new URLSearchParams(location.search);
+const game=new Game(document.querySelector('#scene'), {quality:'medium',resolution:1}, {
+  progress:noop,ready:noop,telemetry:noop,pause:noop,hud:noop,error:m=>document.querySelector('#status').textContent=m,
+}, shipPreset(params.get('ship')));
+window.rigGame=game;
+// Controlled frames make pause/motion comparisons reproducible, even in a background tab.
+game.scheduleFrame=noop;
+game.start(); await game.initialization;
+game.setInPort(true);
+window.reviewRig = (focus='flag', wind=9, speed=0) => {
+  game.water.waves.windSpeed.value=wind;
+  game.water.waves.windDirection.value=.5;
+  game.simulation.player.motion.speed=speed; game.playerView.snap();
+  game.rig.update=noop;
+  const view=game.playerView, rig=view.rig;
+  const object=focus==='flag'?rig.flags[0]?.mesh:rig.radars[0]?.node;
+  if(!object)throw Error('No requested rig component');
+  view.root.updateMatrixWorld(true);
+  const center=object.getWorldPosition(game.camera.position.clone());
+  game.camera.position.copy(center).add({x:focus==='flag'?10:20,y:focus==='flag'?3:8,z:focus==='flag'?13:25});
+  game.camera.lookAt(center); game.camera.updateMatrixWorld(true);
+  document.querySelector('#status').textContent=`${view.definition.name} · ${focus}\nWind ${wind} m/s · Ship ${speed} m/s`;
+  return game.diagnostics();
+};
+window.reviewRig(params.get('focus')??'flag');
+window.advanceRig=async(seconds=3)=>{
+  game.setPaused(false);
+  for(let i=0;i<Math.round(seconds*10);i++)await game.frame(game.lastTime+100);
+  game.setPaused(true);
+  return game.diagnostics();
+};
+await window.advanceRig();
+document.body.dataset.ready='true';
+</script></html>

@@ -174,6 +174,7 @@ export interface ShipBlueprint {
   depthChargeLaunchers?: DepthChargeLauncher[];
   submarine?: SubmarineDefinition;
   airWing?: AirWingDefinition;
+  rig?: import('./rig').ShipRig;
   modules: Module[]; compartments: Compartment[];
   connections: FloodConnection[];
   /** Additive v1 mechanics. Older definitions retain their provisional averages. */
@@ -248,6 +249,27 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
   const h = record(b.hull, 'hull');
   literal(h.kind, ['authored-stations-v1'], 'hull.kind');
   ['length', 'beam', 'draft', 'depth', 'massKg', 'waterplaneAreaM2', 'reserveBuoyancyM3'].forEach(k => numeric(h[k], `hull.${k}`, .001));
+  if (b.rig !== undefined) {
+    const rig = record(b.rig, 'rig'); literal(rig.version, [1], 'rig.version');
+    const flags = list(rig.ensigns, 'rig.ensigns', 8).map(f => record(f, 'ensign'));
+    const radars = list(rig.radars, 'rig.radars', 16).map(r => record(r, 'radar'));
+    unique([...flags, ...radars], 'rig');
+    flags.forEach(f => {
+      literal(f.design, ['us-48', 'white-ensign', 'ijn', 'kriegsmarine'], 'ensign.design');
+      const p = vector(f.position, 'ensign.position');
+      if (Math.abs(p[0]) > Number(h.beam) || Math.abs(p[2]) > Number(h.length) / 2 + 2 || p[1] < 0 || p[1] > 100) fail('ensign.position', 'outside the ship envelope');
+      numeric(f.width, 'ensign.width', .3, 12);
+      numeric(f.staffHeight, 'ensign.staffHeight', 0, p[1]);
+    });
+    const nodes = new Set<string>();
+    radars.forEach(r => {
+      const joint = text(r.nodeId, 'radar.nodeId');
+      if (!/^[a-z][a-z0-9.-]{0,95}$/.test(joint) || nodes.has(joint)) fail('radar.nodeId', 'requires distinct stable joint IDs');
+      nodes.add(joint); numeric(r.rpm, 'radar.rpm', .1, 60);
+      if (r.sweepDeg !== undefined) numeric(r.sweepDeg, 'radar.sweepDeg', 1, 180);
+      if (r.phaseDeg !== undefined) numeric(r.phaseDeg, 'radar.phaseDeg', -360, 360);
+    });
+  }
   for (const key of ['halfBreadths', 'deckHeights', 'keelHeights']) {
     const stations = list(h[key], `hull.${key}`, 512);
     if (stations.length < 2) fail(key, 'at least two stations required');

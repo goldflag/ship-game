@@ -1,0 +1,44 @@
+{
+  "ship": "liberty-collier",
+  "contentHash": "f161a9ca3c2246764267e51f32d5f44097f9e53105e3fe57e9f197cff3423662",
+  "before": {
+    "flags": [
+      {
+        "design": "us-48",
+        "position": [
+          0,
+          7.595,
+          64.615
+        ],
+        "visible": true,
+        "tip": [
+          2.5368270874023438,
+          -0.30192962288856506,
+          0.8494827151298523
+        ]
+      }
+    ],
+    "radars": []
+  },
+  "after": {
+    "flags": [
+      {
+        "design": "us-48",
+        "position": [
+          0,
+          7.595,
+          64.615
+        ],
+        "visible": true,
+        "tip": [
+          2.3449273109436035,
+          -0.31884196400642395,
+          1.323899269104004
+        ]
+      }
+    ],
+    "radars": []
+  },
+  "pauseHeld": true,
+  "maxWeaponErrorM": 9.589899741464416e-06
+}

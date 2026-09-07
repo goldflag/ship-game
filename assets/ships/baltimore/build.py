@@ -16,6 +16,7 @@ ROOT=Path(__file__).resolve().parents[3]
 sys.path.insert(0,str(ROOT/'scripts/ships'))
 from blender_components import create_gun_mount
 from blender_supports import SupportSurface
+from blender_rig import radar_pivot
 from blender_fidelity import authored_hull, authored_structure, Fittings, loft_breadth
 sys.path.insert(0,str(ROOT/'assets/parts'))
 from aa_articulation import articulate_aa
@@ -181,6 +182,7 @@ def director(id,x,z,main=False):
  floor=director_support.below(x,0,z)
  if z-floor>.015:cyl(id+' station foundation',(x,0,(floor+z)/2),1.32 if main else 1.15,z-floor+.02,'naval',vertices=32)
  cyl(id+' base',(x,0,z+.35),1.32 if main else 1.15,.7,'edge',vertices=32)
+ before=set(scene.objects)
  if main:ellipse(id+' Mk 34 shield',x,0,z+.7,1.45,1.28,2.0)
  else:
   # The Mk 37 housing is rectangular on the Navy plan; its round support is separate.
@@ -198,6 +200,7 @@ def director(id,x,z,main=False):
  else:
   radar_grid(id+' Mk 4 antenna',x,0,z+4.35,2.75,1.65)
   for y in [-.70,.70]:rod('Mk 4 aerial support',(x-.45,y,z+3.11),(x,y,z+4.3),.07,'edge')
+ radar_pivot(id+'.yaw',(x,0,z+.7),set(scene.objects)-before)
 # The original bridge sheet and dated Navy profile agree: 8-inch directors
 # occupy the lower, outward stations; 5-inch directors are higher and inboard.
 director('forward-main-director',21.4,17.85,True)
@@ -211,9 +214,13 @@ for name,x,y,base,top in [('foremast',7.8,0,10.4,38.0),('mainmast',-24.2,0,10.4,
  z=top-6.4;mx=x-1.15
  rod(name+' yard',(mx,-5.5,z),(mx,5.5,z),.09,'naval',r2=.055,vertices=12)
  for side in [-1,1]:rod(name+' yard brace',(mx,0,z+3),(mx,side*5.5,z),.033,'edge',vertices=6)
- if name=='mainmast':radar_grid('SK search array',x-1.5,0,top-1.9,4.9,3.1)
+ before=set(scene.objects)
+ if name=='mainmast':
+  radar_grid('SK search array',x-1.5,0,top-1.9,4.9,3.1)
+  radar_pivot('radar-sk.yaw',(x-1.5,0,top-3.45),set(scene.objects)-before)
  else:
   box('SG radar scanner',(x-1.5,0,top-.6),(.42,1.35,.35),'naval')
+  radar_pivot('radar-sg.yaw',(x-1.5,0,top-.6),set(scene.objects)-before)
   rod('Forward mast top',(x-1.5,0,top),(x-1.5,0,top+1.1),.025,'edge',vertices=6)
  for side in [-1,1]:
   rod('Signal halyard',(mx,side*4.8,z),(x+1,side*3.2,14.5),.012,'edge',vertices=5)
@@ -449,5 +456,7 @@ for group in ['armor','modules','compartments','obstructions']:
 scene['definitionHash']=D['contentHash']
 scene['historicalConfiguration']=D['configuration']
 scene['accuracyStatus']='Under review: see the source and discrepancy registers'
+from blender_rig import create_flagstaffs
+create_flagstaffs(D)
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'source.blend'))
 print('Baltimore original recipe:',len(scene.objects),'objects; source saved')
