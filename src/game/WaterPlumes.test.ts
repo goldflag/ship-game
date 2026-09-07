@@ -3,26 +3,27 @@ import { Camera, PerspectiveCamera, Vector3 } from 'three/webgpu';
 import { effectTexture } from './EffectParticles';
 import { WaterPlumes } from './WaterPlumes';
 
-// Inspect the compact instance positions actually consumed by the vertex shader.
+// Inspect only vertices referenced by the current draw, as the renderer does.
 function visibleVertices(plumes: WaterPlumes): Vector3[] {
-  const geometry = plumes.mesh.geometry, position = geometry.getAttribute('waterParcel');
-  const alpha = geometry.getAttribute('waterShape');
-  return Array.from({ length: geometry.instanceCount }, (_, i) => i)
-    .filter(i => alpha.getW(i) > .001).map(i => new Vector3().fromBufferAttribute(position, i));
+  const geometry = plumes.mesh.geometry, position = geometry.getAttribute('position');
+  const alpha = geometry.getAttribute('waterOpacity'), indices = geometry.getIndex()!;
+  const used = new Set<number>();
+  for (let i = 0; i < geometry.drawRange.count; i++) used.add(indices.getX(i));
+  return [...used].filter(i => alpha.getX(i) > .001).map(i => new Vector3().fromBufferAttribute(position, i));
 }
 
-test('water rises from the impact, slows under gravity, and falls completely into the sea', () => {
-  const map = effectTexture('spray'), plumes = new WaterPlumes(2, map), camera = new Camera();
+test('water sheets rise from the impact, slow under gravity, and fall completely into the sea', () => {
+  const map = effectTexture('water'), plumes = new WaterPlumes(48, map), camera = new Camera();
   plumes.emit(new Vector3(0, 4.35, 0), 1, new Vector3(0, -1, 0), () => .5);
   const heights: number[] = [];
-  for (const dt of [.06, .5, 1, 1, 1]) {
+  for (const dt of [.06, .5, 1.5, 1.5, 1.5]) {
     plumes.advance(dt); plumes.publish(camera);
     const vertices = visibleVertices(plumes);
     expect(vertices.length).toBeGreaterThan(0);
     expect(vertices.every(p => p.y > 4.35)).toBe(true);
     heights.push(Math.max(...vertices.map(p => p.y)));
   }
-  expect(heights[0]).toBeLessThan(7);
+  expect(heights[0]).toBeLessThan(6);
   expect(heights[1]).toBeGreaterThan(heights[0] + 10);
   expect(heights[2]).toBeGreaterThan(heights[1]);
   expect(heights[4]).toBeLessThan(heights[3]);
@@ -32,10 +33,10 @@ test('water rises from the impact, slows under gravity, and falls completely int
   plumes.dispose(); map.dispose();
 });
 
-test('water motion is frame-rate independent and camera rotation cannot move it', () => {
-  const map = effectTexture('spray'), camera = new Camera();
+test('water sheet motion is frame-rate independent and changing camera cannot turn the water', () => {
+  const map = effectTexture('water'), camera = new Camera();
   const results = [30, 60, 144].map(fps => {
-    const plumes = new WaterPlumes(2, map);
+    const plumes = new WaterPlumes(48, map);
     plumes.emit(new Vector3(5, .35, 8), 1, new Vector3(.9, -.2, 0).normalize(), () => .42);
     for (let i = 0; i < fps * 2; i++) plumes.advance(1 / fps);
     plumes.publish(camera);
@@ -54,9 +55,9 @@ test('water motion is frame-rate independent and camera rotation cannot move it'
 });
 
 test('caliber increases the plume and oblique entries carry water downrange', () => {
-  const map = effectTexture('spray'), camera = new Camera();
+  const map = effectTexture('water'), camera = new Camera();
   const bounds = (scale: number, direction: Vector3) => {
-    const plumes = new WaterPlumes(2, map);
+    const plumes = new WaterPlumes(48, map);
     plumes.emit(new Vector3(0, .35, 0), scale, direction, () => .5);
     plumes.advance(1); plumes.publish(camera);
     const vertices = visibleVertices(plumes);
@@ -74,38 +75,39 @@ test('caliber increases the plume and oblique entries carry water downrange', ()
 });
 
 test('overlapping salvos stay bounded and reset leaves no rendered geometry', () => {
-  const map = effectTexture('spray'), plumes = new WaterPlumes(2, map), camera = new Camera();
+  const map = effectTexture('water'), plumes = new WaterPlumes(48, map), camera = new Camera();
   for (let i = 0; i < 100; i++) plumes.emit(new Vector3(i, .35, 0), 1, new Vector3(0, -1, 0), () => .5);
   plumes.advance(.5); plumes.publish(camera);
-  expect(plumes.count).toBe(2);
-  expect(plumes.particleCount).toBeLessThanOrEqual(plumes.particleCapacity);
+  expect(plumes.count).toBe(48);
   expect(visibleVertices(plumes).every(p => Number.isFinite(p.x + p.y + p.z))).toBe(true);
   plumes.reset(); plumes.publish(camera);
   expect(plumes.count).toBe(0);
   expect(plumes.mesh.geometry.drawRange.count).toBe(0);
   plumes.emit(new Vector3(0, .35, 0), 1, new Vector3(0, -1, 0), () => .5);
   plumes.advance(.5); plumes.publish(camera);
-  expect(plumes.count).toBe(1);
+  expect(plumes.count).toBe(24);
   expect(visibleVertices(plumes).every(p => Math.abs(p.x) < 20)).toBe(true);
   plumes.dispose(); map.dispose();
 });
 
-test('distant splashes reduce geometry, zoom restores it, and offscreen splashes keep aging', () => {
-  const map = effectTexture('spray'), plumes = new WaterPlumes(2, map);
+test('offscreen sheets keep aging and distant views retain the original streaks', () => {
+  const map = effectTexture('water'), plumes = new WaterPlumes(48, map);
   const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
   plumes.emit(new Vector3(0, .35, 0), 1, new Vector3(0, -1, 0), () => .5);
   plumes.advance(1);
   camera.position.set(0, 30, 180); camera.lookAt(0, 20, 0); camera.updateMatrixWorld();
-  plumes.publish(camera); const near = plumes.particleCount;
+  plumes.publish(camera); const near = visibleVertices(plumes);
   camera.position.z = 5000; camera.lookAt(0, 20, 0); camera.updateMatrixWorld();
   plumes.publish(camera);
-  expect(plumes.particleCount).toBeLessThan(near * .6);
-  expect(plumes.count).toBe(1);
+  expect(visibleVertices(plumes)).toEqual(near);
   camera.fov = 4.33; camera.updateProjectionMatrix(); plumes.publish(camera);
-  expect(plumes.particleCount).toBe(near);
+  expect(visibleVertices(plumes)).toEqual(near);
   camera.lookAt(0, 30, 10000); camera.updateMatrixWorld(); plumes.publish(camera);
   expect(plumes.mesh.geometry.drawRange.count).toBe(0);
-  plumes.advance(10); camera.lookAt(0, 20, 0); camera.updateMatrixWorld(); plumes.publish(camera);
-  expect(plumes.count).toBe(0);
+  plumes.advance(.5); camera.lookAt(0, 20, 0); camera.updateMatrixWorld(); plumes.publish(camera);
+  expect(plumes.count).toBeGreaterThan(0);
+  expect(visibleVertices(plumes)).not.toEqual(near);
+  plumes.advance(10); plumes.publish(camera);
+  expect(plumes.mesh.geometry.drawRange.count).toBe(0);
   plumes.dispose(); map.dispose();
 });

@@ -15,7 +15,7 @@ function noise(x: number, y: number): number {
 }
 
 /** Original, deterministic density textures. No downloads or canvas/readback needed. */
-export function effectTexture(kind: 'smoke' | 'flash' | 'foam' | 'tracer' | 'wake' | 'droplet' | 'spray'): THREE.DataTexture {
+export function effectTexture(kind: 'smoke' | 'flash' | 'foam' | 'tracer' | 'wake' | 'droplet' | 'water'): THREE.DataTexture {
   const size = 128, pixels = new Uint8Array(size * size * 4);
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
     const u = (x + .5) / size * 2 - 1, v = (y + .5) / size * 2 - 1;
@@ -24,12 +24,14 @@ export function effectTexture(kind: 'smoke' | 'flash' | 'foam' | 'tracer' | 'wak
     const detail = noise(u * 12 + 71, v * 12 + 53) * .65 + noise(u * 29 + 9, v * 29 + 17) * .35;
     const density = smooth((1 - radius + (coarse - .5) * .5) * 2.8) * (.5 + detail * .5);
     let alpha: number, light: number;
-    if (kind === 'spray') {
-      // Porous water parcels have granular edges instead of smoke's soft rim.
-      const grains = noise(u * 45 + 17, v * 45 + 31);
-      const torn = smooth((detail * .55 + grains * .45 - .24) * 3);
-      alpha = smooth((1 - radius + (coarse - .5) * .55) * 5) * torn;
-      light = .67 + detail * .2 + grains * .13;
+    if (kind === 'water') {
+      // Stretched turbulent filaments, with a ragged wet edge. A water sheet
+      // must read lengthwise, rather than as another round smoke lobe.
+      const strands = noise(u * 13 + 21, v * 6 + 7);
+      const fine = noise(u * 39 + 5, v * 23 + 17);
+      const edge = 1 - Math.abs(u) + (noise(u * 4 + 9, v * 8 + 3) - .5) * .38;
+      alpha = smooth(edge * 5) * (.3 + strands * .5 + fine * .2);
+      light = .52 + strands * .32 + fine * .16;
     } else if (kind === 'droplet') {
       alpha = smooth((1 - radius) * 3.5) * (.6 + detail * .4);
       light = clamp(.68 + v * .16 + coarse * .2);

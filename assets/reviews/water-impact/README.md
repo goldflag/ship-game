@@ -1,6 +1,6 @@
 # Shell water impacts — September 7, 2026
 
-This is the retained first-pass sheet review. The [current water-body animation and measured performance](polish/README.md) supersede this implementation.
+This first-pass streaked appearance is the selected direction. The [restored streaks, current animation and checks](streaks/README.md) retain this recipe with current lighting and offscreen culling.
 
 The splash now rises as a coherent, irregular water column with a low outward crown. Thin sheets lose cohesion as gravity pulls them back into the sea; small round droplets continue falling, and lighter mist drifts with the ocean wind. Incoming direction inclines the plume, caliber controls its size, and the CPU event's surface height anchors both the column and returning spray.
 

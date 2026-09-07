@@ -2,7 +2,7 @@
 
 ## Water impact polish — September 7, 2026
 
-Shell splashes now form dense ballistic water bodies with irregular breakup, fine spray, a low crown and returning-water foam. This supersedes the sheet and spherical-volume revisions below. See the [current animation, lighting checks and paired GPU measurements](../../../reviews/water-impact/polish/README.md). Earlier captures remain historical evidence.
+Shell splashes use the first PR #80 iteration’s long water streaks, curved sheets and low crown, restored after owner review. The original breakup, mist and lighter foam are retained with current lighting and offscreen culling. See the [current animation and rendering checks](../../../reviews/water-impact/streaks/README.md). The later parcel-column experiment remains historical evidence.
 
 ## Muzzle smoke thinning — September 7, 2026
 

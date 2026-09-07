@@ -1,4 +1,6 @@
-# Shell water impacts — final animation review
+# Shell water impacts — retained parcel-column experiment
+
+This revision is historical. The current implementation restores the [first iteration’s streaked water](../streaks/README.md), following the owner’s visual preference.
 
 The splash rises as an irregular, dense water column with a low outward crown. Its rounded masses separate at the crest and shrink into fine falling rain. Light mist drifts downwind, and returning water briefly renews the foam on the displaced ocean. The incoming shell direction, caliber and CPU impact height shape the effect. Day, storm and moon lighting affect water already in the air.
 

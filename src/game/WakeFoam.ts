@@ -125,11 +125,8 @@ export class WakeFoam {
     this.pixels.fill(0);
     for (const impact of this.impacts) {
       const age = this.time.value - impact.born;
-      const radius = (5 + age * 4) * impact.scale;
-      // Falling water renews aeration after the initial crown has collapsed.
-      // Keep that return visible through the water material's dissolve mask.
-      const returning = Math.exp(-(((age - 4 * Math.sqrt(impact.scale)) / 1.5) ** 2)) * .35;
-      const strength = smooth(age / .15) * Math.min(1, Math.exp(-age / 6) + returning) * (1 - smooth((age - 7) / 3));
+      const radius = (4 + age * 3.5) * impact.scale;
+      const strength = smooth(age / .25) * Math.exp(-age / 3.2) * (1 - smooth((age - 7) / 3));
       // Aerated center and a broken outward crest share the actual displaced,
       // lit ocean surface instead of hovering on a horizontal sprite plane.
       this.stamp(impact.x, impact.z, 1, 0, radius, radius, strength * .9);

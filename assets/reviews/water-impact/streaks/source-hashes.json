@@ -1,0 +1,15 @@
+{
+  "algorithm": "sha256",
+  "selectedOriginalCommit": "065055956463752d2f693ebf7fc2ec6147babe95",
+  "sourceHashes": {
+    "src/game/WaterPlumes.ts": "1c079e444fe888ec720350964546af98e331a164b1316ad87cb63c4e439e1dda",
+    "src/game/EffectParticles.ts": "4260900d42ad0408153d4478fc3a839492b8c52f388735e8fec8c9faf6d9c92c",
+    "src/game/CombatEffects.ts": "5f1f5341c0b96183c03d59b54f28ce98e6d11201daa03281a602444ed974d7bc",
+    "src/game/WakeFoam.ts": "9eed1a7d768c36cd8064f5376ab64ebb7b35f8f8d5628a481167fb3f52e2548e",
+    "src/game/Game.ts": "87bbe129cff60278a6b2c1e1d06d8f8d1ad89ad11fd768da784be4f2f15b57d7",
+    "src/game/WaterPlumes.test.ts": "3aea85f06e4497c478b2f67931dc135fd2d0cda98a8243b59710503f52239bce",
+    "scripts/diagnostics/combat-effects.html": "837f754c5dd5ff9cb3e2de80f96502d1506164a117ced619d0772c66e5be0689",
+    "scripts/diagnostics/water-plume-render.html": "7038abebeccaec63ac01b09fa7b02768f8ab5107278d40a9f7bf6385a319e930",
+    "scripts/diagnostics/water-performance.ts": "5cd65d2e435a0d6bdbcd7d5e73ed0e3d9e480963edebce0854954c3726a254b0"
+  }
+}

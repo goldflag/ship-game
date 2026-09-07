@@ -7,7 +7,7 @@ import * as THREE from 'three/webgpu';
 import { WaterPlumes } from '/src/game/WaterPlumes.ts';
 import { effectTexture } from '/src/game/EffectParticles.ts';
 
-// Exercise the production material, instance buffers and depth test on both
+// Exercise the production material, sheet buffers and depth test on both
 // backends. This supplements the full ocean/game visual and performance review.
 async function check(forceWebGL, reversedDepthBuffer) {
   const renderer = new THREE.WebGPURenderer({ forceWebGL, reversedDepthBuffer });
@@ -17,7 +17,7 @@ async function check(forceWebGL, reversedDepthBuffer) {
   const scene = new THREE.Scene(); scene.background = new THREE.Color('#19364a');
   const camera = new THREE.PerspectiveCamera(52, 1, .1, 10000);
   camera.position.set(0, 22, 95); camera.lookAt(0, 22, 0); camera.updateMatrixWorld();
-  const map = effectTexture('spray'), plumes = new WaterPlumes(16, map);
+  const map = effectTexture('water'), plumes = new WaterPlumes(384, map);
   scene.add(plumes.mesh);
   const canvas = document.createElement('canvas'); canvas.width = canvas.height = 384;
   const context = canvas.getContext('2d', { willReadFrequently: true });
@@ -37,7 +37,7 @@ async function check(forceWebGL, reversedDepthBuffer) {
   try {
     const empty = await pixels();
     emit(); plumes.advance(1.5); plumes.publish(camera);
-    const single = await pixels(), singleInstances = plumes.particleCount;
+    const single = await pixels(), singleSheets = plumes.count;
     plumes.advance(0); plumes.publish(camera); const paused = await pixels();
     plumes.setSun(new THREE.Vector3(-.55, .74, -.39).normalize(), .08);
     const night = await pixels(); plumes.setSun(new THREE.Vector3(-.55, .74, -.39).normalize());
@@ -52,16 +52,16 @@ async function check(forceWebGL, reversedDepthBuffer) {
     plumes.reset();
     for (let i = 0; i < 32; i++) emit((i % 4 - 1.5) * 9, (Math.floor(i / 4) - 3.5) * 5);
     plumes.advance(1.5); plumes.publish(camera);
-    const saturated = await pixels(), saturatedInstances = plumes.particleCount;
+    const saturated = await pixels(), saturatedSheets = plumes.count;
     plumes.reset(); plumes.publish(camera); const cleared = await pixels();
     emit(); plumes.advance(1.5); plumes.publish(camera); const restarted = await pixels();
     const result = { backend: renderer.backend.isWebGPUBackend ? 'WebGPU' : 'WebGL', requestedReversedDepth: reversedDepthBuffer,
-      reversedDepth: renderer.reversedDepthBuffer, errors, singleInstances, saturatedInstances,
+      reversedDepth: renderer.reversedDepthBuffer, errors, singleSheets, saturatedSheets,
       visiblePixels: difference(empty, single), pausedPixels: difference(single, paused), occludedPixels: difference(wall, occluded),
       saturatedPixels: difference(empty, saturated), resetPixels: difference(empty, cleared), restartedPixels: difference(empty, restarted),
       nightToDayBrightness: nightLight / dayLight };
     result.pass = result.visiblePixels > 300 && result.pausedPixels === 0 && result.occludedPixels === 0
-      && saturatedInstances > singleInstances * 5 && result.saturatedPixels > result.visiblePixels
+      && saturatedSheets > singleSheets * 5 && result.saturatedPixels > result.visiblePixels
       && result.resetPixels === 0 && result.restartedPixels > 300 && result.nightToDayBrightness < .7 && errors.length === 0;
     return result;
   } finally { plumes.dispose(); map.dispose(); renderer.dispose(); }

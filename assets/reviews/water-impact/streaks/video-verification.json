@@ -1,0 +1,15 @@
+{
+  "duration": 8.001,
+  "frames": [
+    {
+      "time": 2.8,
+      "sha256": "c2c86df27b9b069fdbf6bbb2286c704d83241313af02b9ab5c9215da1896178f"
+    },
+    {
+      "time": 5.5,
+      "sha256": "057aa24a8b398bbb46593bdace5d86ccd9bb4a9cad4a535ae099354fb7536403"
+    }
+  ],
+  "height": 1080,
+  "width": 1920
+}
