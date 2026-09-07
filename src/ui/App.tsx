@@ -59,7 +59,7 @@ export function App() {
   const [error, setError] = useState('');
   const [hud, setHud] = useState(true);
   const [battleSetupOpen, setBattleSetupOpen] = useState(false);
-  const [battleSetup, setBattleSetup] = useState<BattleSetup>({ playerShipId: initialShip.id, friendlyBots: [], enemies: ['bismarck'], spawnDistance: BATTLE_SPAWN_DISTANCE, mapId: 'north-atlantic', timeOfDay: 'map', weather: 'map' });
+  const [battleSetup, setBattleSetup] = useState<BattleSetup>({ playerShipId: initialShip.id, friendlyBots: [], enemies: ['bismarck'], spawnDistance: BATTLE_SPAWN_DISTANCE, mapId: 'north-atlantic', timeHours: 12, cloudCover: 38, windSpeed: 9 });
   const [battleLoading, setBattleLoading] = useState<BattleLoadingState | null>(null);
   const [battleError, setBattleError] = useState('');
   const battlePending = useRef(false);

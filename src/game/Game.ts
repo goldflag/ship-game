@@ -8,7 +8,7 @@ import { squadronFlights, airborne, onFlightDeck, type AirOrder } from '../simul
 import { aircraftFollowView } from './AircraftFollow';
 import { AircraftView } from './AircraftView';
 import { oceanMap, DEFAULT_MAP, landHeight } from '../maps/catalog';
-import { battleEnvironment, type TimeOfDayId, type WeatherId } from '../maps/conditions';
+import { battleEnvironment, type BattleConditions, type TimeOfDayId, type WeatherId } from '../maps/conditions';
 import { createBattleLandscape, disposeBattleLandscape } from './BattleLandscape';
 import type { ControlPriority } from '../simulation/damageControl';
 import * as THREE from 'three/webgpu';
@@ -149,6 +149,7 @@ export class Game {
   private landscape?: THREE.Group;
   private battleTimeOfDay?: TimeOfDayId;
   private battleWeather?: WeatherId;
+  private battleConditions?: BattleConditions;
   private surfaceWaterAbsorption = new THREE.Color();
   private surfaceWaterDistortion = 0;
   private sky?: SkySystem;
@@ -443,6 +444,7 @@ export class Game {
       await this.replaceFleet(simulation, definition, progress);
       this.battleTimeOfDay = setup.timeOfDay ?? 'map';
       this.battleWeather = setup.weather ?? 'map';
+      this.battleConditions = { timeHours: setup.timeHours, cloudCover: setup.cloudCover, windSpeed: setup.windSpeed };
       progress?.('Forming the battle lines', 0.9);
     } finally { this.switchingShip = false; }
   }
@@ -768,7 +770,7 @@ export class Game {
       if (this.water) { this.water.fog.fadeStart = 400000; this.water.fog.fadeEnd = 900000; }
     } else {
       this.battlefieldCamera.exit();
-      const { fog } = battleEnvironment(oceanMap(this.simulation.mapId), this.battleTimeOfDay, this.battleWeather);
+      const { fog } = battleEnvironment(oceanMap(this.simulation.mapId), this.battleTimeOfDay, this.battleWeather, this.battleConditions);
       if (this.water) { this.water.fog.fadeStart = fog.start; this.water.fog.fadeEnd = fog.end; }
       this.rig.update(this.playerView?.motion ?? this.simulation.ship, this.simulation.ship.y, 0, true);
       this.rig.setEnabled(true); this.rig.capturePointer();
@@ -1006,7 +1008,7 @@ export class Game {
     return { mapId: this.simulation.mapId ?? DEFAULT_MAP,
       waves: this.water ? { amplitude: this.water.waves.amplitude.value, windSpeed: this.water.waves.windSpeed.value,
         peakWavelength: this.water.waves.peakWavelength.value } : undefined,
-      timeOfDay: this.battleTimeOfDay ?? 'map', weather: this.battleWeather ?? 'map',
+      ...this.battleConditions, timeOfDay: this.battleTimeOfDay ?? 'map', weather: this.battleWeather ?? 'map',
       environment: this.sky ? { sunElevation: this.sky.sun.elevationDeg, sunAzimuth: this.sky.sun.azimuthDeg,
         sunIntensity: this.sky.sun.peakIntensity, ambient: this.ambientLight.intensity,
         cloudCoverage: this.sky.clouds.shape.coverage.value, cloudWind: this.sky.clouds.wind.speed,
@@ -1063,7 +1065,7 @@ export class Game {
   private updateSeaState(): void {
     if (!this.water) return;
     const map = oceanMap(this.simulation.mapId ?? DEFAULT_MAP);
-    const { waves } = battleEnvironment(map, this.battleTimeOfDay, this.battleWeather);
+    const { waves } = battleEnvironment(map, this.battleTimeOfDay, this.battleWeather, this.battleConditions);
     // Retain the smaller wave scale across all oceans; port stays sheltered.
     this.water.waves.amplitude.value = this.inPort ? .12 : waves.amplitude;
     this.water.waves.windSpeed.value = this.inPort ? 4 : waves.windSpeed;
@@ -1081,7 +1083,7 @@ export class Game {
   private updatePortLighting(): void {
     if(!this.sky)return;
     const map = oceanMap(this.simulation.mapId ?? DEFAULT_MAP);
-    const environment = battleEnvironment(map, this.battleTimeOfDay, this.battleWeather), sky = environment.sky;
+    const environment = battleEnvironment(map, this.battleTimeOfDay, this.battleWeather, this.battleConditions), sky = environment.sky;
     const elevation = this.inPort ? 36 : sky.elevation, azimuth = this.inPort ? 58 : sky.azimuth;
     // Freeze the celestial clock at an arc endpoint matching the authored angles.
     // This keeps SunDriver's moon opposite the sun without advancing battle time.

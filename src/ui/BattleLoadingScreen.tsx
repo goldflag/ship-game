@@ -1,6 +1,6 @@
 import { assetUrl } from '../assetUrl';
 import { oceanMap, DEFAULT_MAP } from '../maps/catalog';
-import { TIME_OF_DAY_PRESETS, WEATHER_PRESETS } from '../maps/conditions';
+import { TIME_OF_DAY_PRESETS, WEATHER_PRESETS, formatBattleTime } from '../maps/conditions';
 import { shipPreset } from '../ships/presets';
 import { botSelection, type BattleSetup } from '../simulation/battle';
 import { Icon } from './Icons';
@@ -35,7 +35,7 @@ export function BattleLoadingScreen({ setup, state, onLeft }: Props) {
       <span className="battle-loading-region">{map.region.toUpperCase()}</span>
     </div>
     <div className="battle-loading-content">
-      <p className="battle-loading-kicker">Custom battle · {time && time.id !== 'map' ? time.name : 'Map daylight'} · {weather && weather.id !== 'map' ? weather.name : 'Map weather'} · {setup.spawnDistance / 1000} km</p>
+      <p className="battle-loading-kicker">Custom battle · {setup.timeHours !== undefined ? formatBattleTime(setup.timeHours) : time && time.id !== 'map' ? time.name : 'Map daylight'} · {setup.cloudCover !== undefined ? `${setup.cloudCover}% clouds` : weather && weather.id !== 'map' ? weather.name : 'Map weather'}{setup.windSpeed !== undefined && ` · ${setup.windSpeed} m/s wind`} · {setup.spawnDistance / 1000} km</p>
       <h1>{map.name.toUpperCase()}</h1>
       <p className="loading-subtitle">{map.description}</p>
       <div className="battle-loading-fleets">

@@ -8,11 +8,11 @@ export interface SeaState { amplitudeM: number; wavelengthM: number; direction: 
 /** Deterministic long-wave envelope. GPU detail never supplies combat samples.
  * Omitted weather keeps renderer-free fixtures in still water; the battle setup
  * explicitly passes its chosen weather, including Map default. */
-export function createSeaState(mapId: OceanMapId, weather: WeatherId | undefined, seed: number): SeaState {
-  const map = oceanMap(mapId), waves = battleEnvironment(map, 'map', weather ?? 'clear').waves;
-  return { amplitudeM: weather === undefined ? 0 : waves.amplitude * 4,
+export function createSeaState(mapId: OceanMapId, weather: WeatherId | undefined, seed: number, windSpeed?: number): SeaState {
+  const map = oceanMap(mapId), waves = battleEnvironment(map, 'map', weather ?? 'clear', { windSpeed }).waves;
+  return { amplitudeM: weather === undefined && windSpeed === undefined ? 0 : waves.amplitude * 4,
     wavelengthM: waves.peakWavelength * 4, direction: map.water.windDirection * Math.PI / 180,
-    windMps: weather === undefined ? 0 : waves.windSpeed, phase: seed / 0xffffffff * Math.PI * 2 };
+    windMps: weather === undefined && windSpeed === undefined ? 0 : waves.windSpeed, phase: seed / 0xffffffff * Math.PI * 2 };
 }
 export function seaHeight(sea: SeaState, x: number, z: number, time: number): number {
   if (sea.amplitudeM === 0) return 0;

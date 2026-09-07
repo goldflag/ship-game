@@ -112,3 +112,25 @@ test('night, fog and storm lighting reach the live uniforms; the sky stays fixed
   expect(game.water.fog.color).toBe('#819aa5');
   expect(game.water.fog.fadeEnd).toBe(5600);
 });
+
+test('continuous battle conditions keep clouds independent of CPU and visual wind', () => {
+  for (const map of OCEAN_MAPS) {
+    const clear = battleEnvironment(map, 'map', 'map', { timeHours: 12, cloudCover: 0, windSpeed: 18 });
+    const cloudy = battleEnvironment(map, 'map', 'map', { timeHours: 12, cloudCover: 100, windSpeed: 18 });
+    expect(clear.sky.coverage).toBe(0);
+    expect(cloudy.sky.coverage).toBe(1);
+    expect(clear.waves).toEqual(cloudy.waves);
+    expect(clear.waves.windSpeed).toBe(18);
+    expect(clear.sky.elevation).toBe(70);
+    const calmNight = battleEnvironment(map, 'map', 'map', { timeHours: 0, cloudCover: 100, windSpeed: 0 });
+    expect(calmNight.sky.elevation).toBe(-70);
+    expect(calmNight.sky.ambient).toBeLessThan(cloudy.sky.ambient);
+    expect(calmNight.waves.amplitude).toBe(0);
+    expect(calmNight.cloudWind).toBe(0);
+    expect(battleEnvironment(map, 'map', 'map', { timeHours: 24 }).sky.elevation).toBeCloseTo(calmNight.sky.elevation);
+  }
+  const setup = { playerShipId: 'bismarck', friendlyBots: [], enemies: ['bismarck'], spawnDistance: 5000 };
+  for (const key of ['timeHours', 'cloudCover', 'windSpeed']) {
+    for (const value of [NaN, Infinity, -1, 101]) expect(() => validateBattleSetup({ ...setup, [key]: value }, ['bismarck'])).toThrow();
+  }
+});

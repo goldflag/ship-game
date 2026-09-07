@@ -97,3 +97,13 @@ test('storm troughs do not dive a surfaced submarine or switch its engines and w
   }
   expect(troughs).toBeGreaterThan(100);
 });
+
+test('explicit wind reaches CPU sea through battle fleet resolution', () => {
+  for (const windSpeed of [0, 9, 30]) {
+    const fleet = resolveBattleFleet({ playerShipId: 'bismarck', friendlyBots: [], enemies: ['bismarck'], spawnDistance: 5000, cloudCover: 0, windSpeed }, shipPreset);
+    const sim = new CombatSimulation(def, fleet);
+    expect(sim.sea.windMps).toBe(windSpeed);
+    if (windSpeed === 0) expect(sim.sea.amplitudeM).toBe(0);
+    else expect(sim.sea.amplitudeM).toBeGreaterThan(0);
+  }
+});
