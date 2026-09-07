@@ -1,4 +1,5 @@
 import { OCEAN_MAPS, oceanMap, DEFAULT_MAP } from '../maps/catalog';
+import { TIME_OF_DAY_PRESETS, WEATHER_PRESETS } from '../maps/conditions';
 import { useEffect, useRef, useState } from 'react';
 import { shipPresets } from '../ships/presets';
 import { MIN_BATTLE_SPAWN_DISTANCE, MAX_BATTLE_SPAWN_DISTANCE, MAX_TEAM_SHIPS, type BattleSetup } from '../simulation/battle';
@@ -24,6 +25,8 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, loading,
   const terms = filter.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
   const filteredShips = ships.filter(ship => terms.every(term => `${ship.name} ${ship.id}`.toLocaleLowerCase().includes(term)));
   const map = oceanMap(setup.mapId ?? DEFAULT_MAP);
+  const time = TIME_OF_DAY_PRESETS.find(preset => preset.id === (setup.timeOfDay ?? 'map'))!;
+  const weather = WEATHER_PRESETS.find(preset => preset.id === (setup.weather ?? 'map'))!;
   const friendlyFull = setup.friendlyBots.length >= MAX_TEAM_SHIPS - 1;
   const enemyFull = setup.enemies.length >= MAX_TEAM_SHIPS;
   const bots = (team: 'friendlyBots' | 'enemies') => setup[team].map((id, index) => <li key={`${team}-${index}`}>
@@ -43,10 +46,26 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, loading,
           <span>{option.name}</span><small>{option.region}</small>
         </label>)}
       </div>
-      <div className="battle-map-detail"><p id="battle-map-description">{map.description}</p>
-        <label>Sea conditions<select value={setup.sea ?? 'Atlantic'} onChange={event => onChange({ ...setup, sea: event.target.value as BattleSetup['sea'] })}>
-          <option value="Fair">Fair</option><option value="Atlantic">Moderate</option><option value="Heavy">Heavy</option>
-        </select></label>
+      <p className="battle-map-detail" id="battle-map-description">{map.description}</p>
+    </fieldset>
+    <fieldset disabled={loading} className="battle-conditions">
+      <legend>Battle conditions</legend>
+      <div className="battle-condition-options">
+        <div><label htmlFor="battle-time">Time of day</label>
+          <select id="battle-time" value={time.id} aria-describedby="battle-time-description" onChange={event => onChange({ ...setup, timeOfDay: event.target.value as BattleSetup['timeOfDay'] })}>
+            {TIME_OF_DAY_PRESETS.map(preset => <option key={preset.id} value={preset.id}>{preset.name}</option>)}
+          </select><p id="battle-time-description">{time.description}</p>
+        </div>
+        <div><label htmlFor="battle-weather">Weather</label>
+          <select id="battle-weather" value={weather.id} aria-describedby="battle-weather-description" onChange={event => onChange({ ...setup, weather: event.target.value as BattleSetup['weather'] })}>
+            {WEATHER_PRESETS.map(preset => <option key={preset.id} value={preset.id}>{preset.name}</option>)}
+          </select><p id="battle-weather-description">{weather.description}</p>
+        </div>
+        <div><label htmlFor="battle-sea">Sea conditions</label>
+          <select id="battle-sea" value={setup.sea ?? 'Atlantic'} aria-describedby="battle-sea-description" onChange={event => onChange({ ...setup, sea: event.target.value as BattleSetup['sea'] })}>
+            <option value="Fair">Fair</option><option value="Atlantic">Moderate</option><option value="Heavy">Heavy</option>
+          </select><p id="battle-sea-description">Wave strength, independent of weather.</p>
+        </div>
       </div>
     </fieldset>
     <fieldset disabled={loading} className="battle-builder">
@@ -101,7 +120,7 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, loading,
       <div className="battle-distance-limits" aria-hidden="true"><span>{MIN_BATTLE_SPAWN_DISTANCE / 1000} km</span><span>{MAX_BATTLE_SPAWN_DISTANCE / 1000} km</span></div>
       <p id="battle-spawn-description">Distance between the two formations. Both teams start facing each other.</p>
     </div>
-    <div className="battle-briefing"><Icon name="compass" size={21}/><p><strong>{map.name}</strong><span>Defeat the opposing fleet to win.</span></p></div>
+    <div className="battle-briefing"><Icon name="compass" size={21}/><p><strong>{map.name}</strong><span>{time.id === 'map' ? 'Map daylight' : time.name} · {weather.id === 'map' ? 'Map weather' : weather.name} · {setup.sea === 'Fair' ? 'Fair' : setup.sea === 'Heavy' ? 'Heavy' : 'Moderate'} seas</span><span>Defeat the opposing fleet to win.</span></p></div>
     {error && <p className="battle-error" role="alert">{error} Your fleet is kept here; try launching again.</p>}
     <footer><button className="secondary-button" disabled={loading} onClick={onClose}>Back to port</button><button className="primary-button" aria-busy={loading} disabled={loading || !setup.enemies.length} onClick={onLaunch}>{loading ? 'Preparing fleets…' : 'Start battle'}<Icon name="arrow" size={18}/></button></footer>
   </dialog>;

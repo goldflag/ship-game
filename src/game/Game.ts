@@ -2,10 +2,11 @@ import { airborne, onFlightDeck, type AirOrder } from '../simulation/aircraft';
 import { aircraftFollowView } from './AircraftFollow';
 import { AircraftView } from './AircraftView';
 import { oceanMap, DEFAULT_MAP, landHeight } from '../maps/catalog';
+import { battleEnvironment, type TimeOfDayId, type WeatherId } from '../maps/conditions';
 import { createBattleLandscape, disposeBattleLandscape } from './BattleLandscape';
 import type { ControlPriority } from '../simulation/damageControl';
 import * as THREE from 'three/webgpu';
-import { float, mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
+import { Fn, float, max, mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
 import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { WaterSystem, getPresetParams } from '../../vendor/threejs-water-pro/build/index.js';
@@ -88,6 +89,8 @@ export class Game {
   private water?: WaterSystem;
   private landscape?: THREE.Group;
   private battleSea?: GameSettings['sea'];
+  private battleTimeOfDay?: TimeOfDayId;
+  private battleWeather?: WeatherId;
   private surfaceWaterAbsorption = new THREE.Color();
   private sky?: SkySystem;
   private shipWake?: ShipWake;
@@ -242,8 +245,16 @@ export class Game {
     this.sky.clouds.lighting.ambientIntensity.value = 1.1;
     this.sky.clouds.lighting.groundBounceAlbedo.value.setRGB(0.09, 0.105, 0.12);
     this.sky.clouds.wind.speed = 12;
+    this.sky.timeOfDay.moonPhase.value = .5;
     this.updatePortLighting();
-    this.water.setSky(this.sky.createSkyProvider({ envMap: { width: 384, cloudMarchSteps: 16, skipFrames: 8 } }));
+    const skyProvider = this.sky.createSkyProvider({ envMap: { width: 384, cloudMarchSteps: 16, skipFrames: 8 } });
+    const daylightFog = skyProvider.createFogSampler(), moon = this.sky.timeOfDay;
+    // Sky Pro's provider fog is sun-only. Preserve its moon ambient in Water
+    // Pro's far-distance blend so the night backdrop is not fogged to black.
+    skyProvider.createFogSampler = () => Fn(([direction]: [THREE.Node]) => daylightFog(direction).add(
+      moon.moonColor.mul(moon.moonIntensity).mul(moon.moonAmbient).mul(moon.moonPhaseIllumination)
+        .mul(max(0, moon.moonDirection.y)).mul(moon.skyDarkness)));
+    this.water.setSky(skyProvider);
     const sunlight = this.water.lighting.sunLight;
     const shadowSize = this.settings.quality === 'medium' ? 1024 : this.settings.quality === 'ultra' ? 4096 : 2048;
     sunlight.shadow.mapSize.set(shadowSize, shadowSize);
@@ -257,7 +268,12 @@ export class Game {
     this.water.lighting.addSunSyncListener(() => {
       sunlight.target.position.copy(this.ship.position);
       if (this.inPort) sunlight.target.position.x -= 160;
-      sunlight.position.copy(this.sky!.sun.direction.value).multiplyScalar(this.inPort ? 800 : 500).add(sunlight.target.position);
+      const lightDirection = this.sky!.timeOfDay.skyDarkness.value > .5 ? this.sky!.timeOfDay.moonDirection.value : this.sky!.sun.direction.value;
+      if (this.sky!.timeOfDay.skyDarkness.value > .5) {
+        sunlight.intensity = .35 * this.sky!.timeOfDay.moonIntensity.value * this.sky!.timeOfDay.moonPhaseIllumination.value;
+        sunlight.color.copy(this.sky!.timeOfDay.moonColor.value);
+      }
+      sunlight.position.copy(lightDirection).multiplyScalar(this.inPort ? 800 : 500).add(sunlight.target.position);
       sunlight.target.updateMatrixWorld();
     });
 
@@ -322,6 +338,8 @@ export class Game {
         seed: crypto.getRandomValues(new Uint32Array(1))[0] });
       await this.replaceFleet(simulation, definition);
       this.battleSea = setup.sea ?? this.settings?.sea ?? 'Atlantic';
+      this.battleTimeOfDay = setup.timeOfDay ?? 'map';
+      this.battleWeather = setup.weather ?? 'map';
     } finally { this.switchingShip = false; }
   }
 
@@ -684,7 +702,13 @@ export class Game {
     return this.diagnostics();
   }
   diagnostics() {
-    return { mapId: this.simulation.mapId ?? DEFAULT_MAP, sea: this.battleSea ?? this.settings?.sea, islands: this.simulation.islands, shipId: this.definition.id, contentHash: this.definition.contentHash, backend: this.water?.backend,
+    return { mapId: this.simulation.mapId ?? DEFAULT_MAP, sea: this.battleSea ?? this.settings?.sea,
+      timeOfDay: this.battleTimeOfDay ?? 'map', weather: this.battleWeather ?? 'map',
+      environment: this.sky ? { sunElevation: this.sky.sun.elevationDeg, sunAzimuth: this.sky.sun.azimuthDeg,
+        sunIntensity: this.sky.sun.peakIntensity, ambient: this.ambientLight.intensity,
+        cloudCoverage: this.sky.clouds.shape.coverage.value, cloudWind: this.sky.clouds.wind.speed,
+        cloudAmbient: this.sky.clouds.lighting.ambientIntensity.value, fogEnd: this.water?.fog.fadeEnd } : undefined,
+      islands: this.simulation.islands, shipId: this.definition.id, contentHash: this.definition.contentHash, backend: this.water?.backend,
       camera: { mode: this.rig.mode, binoculars: this.rig.binoculars, magnification: this.rig.magnification, fov: this.camera.fov,
         shellFollow: this.shellFollow.phase, followedAircraftId: this.followedAircraftId, followedShellId: this.shellFollow.shellId,
         pointerLocked: this.rig.pointerLocked, position: this.camera.position.toArray(), aim: this.currentAim, manualAim: this.manualAim,
@@ -753,13 +777,23 @@ export class Game {
   }
   private updatePortLighting(): void {
     if(!this.sky)return;
-    const map = oceanMap(this.simulation.mapId ?? DEFAULT_MAP), sky = map.sky;
-    this.sky.sun.setFromAngles(this.inPort ? 36 : sky.elevation, this.inPort ? 58 : sky.azimuth);
+    const map = oceanMap(this.simulation.mapId ?? DEFAULT_MAP);
+    const environment = battleEnvironment(map, this.battleTimeOfDay, this.battleWeather), sky = environment.sky;
+    const elevation = this.inPort ? 36 : sky.elevation, azimuth = this.inPort ? 58 : sky.azimuth;
+    // Freeze the celestial clock at an arc endpoint matching the authored angles.
+    // This keeps SunDriver's moon opposite the sun without advancing battle time.
+    this.sky.timeOfDay.applyParams({ autoAdvanceSecondsPerDay: 0, time: elevation < 0 ? 0 : .5,
+      latitude: 90 - Math.abs(elevation), azimuth: elevation < 0 ? azimuth : azimuth - 180 });
+    this.sky.sun.setFromAngles(elevation, azimuth);
     this.sky.sun.peakIntensity=this.inPort ? 5 : sky.intensity;
-    this.effects.setSun(this.sky.sun.direction.value);
+    this.effects.setSun(elevation < 0 ? this.sky.sun.direction.value.clone().negate() : this.sky.sun.direction.value);
     this.sky.clouds.shape.altitude.value = this.inPort ? 1700 : sky.altitude;
     this.sky.clouds.shape.thickness.value = this.inPort ? 2400 : sky.thickness;
     this.sky.clouds.shape.coverage.value=this.inPort ? .38 : sky.coverage;
+    this.sky.clouds.shape.horizonCoverageAmount.value = this.inPort ? .06 : environment.horizonCoverage;
+    this.sky.clouds.wind.speed = this.inPort ? 12 : environment.cloudWind;
+    this.sky.clouds.lighting.ambientIntensity.value = this.inPort ? 1.1 : environment.cloudAmbient;
+    this.sky.clouds.lighting.baseShadowStrength.value = this.inPort ? .2 : environment.cloudShadow;
     this.ambientLight.intensity = this.inPort ? 1.1 : sky.ambient;
     // Diffuse fill softens the dark blue dome toward the hills. Keep the port's
     // forward sun haze restrained so it cannot wash out the sky and reflections.
@@ -771,11 +805,11 @@ export class Game {
     // Water Pro owns scene.fogNode, including the water/sky horizon blend.
     // Its live uniforms must change with the scene; THREE.Fog is overridden.
     if (this.water) {
-      this.water.fog.color = this.inPort ? '#819aa5' : map.fog.color;
-      this.water.fog.fadeStart = this.inPort ? 650 : map.fog.start;
-      this.water.fog.fadeEnd = this.inPort ? 5600 : map.fog.end;
+      this.water.fog.color = this.inPort ? '#819aa5' : environment.fog.color;
+      this.water.fog.fadeStart = this.inPort ? 650 : environment.fog.start;
+      this.water.fog.fadeEnd = this.inPort ? 5600 : environment.fog.end;
       this.water.fog.fadePower = this.inPort ? .85 : 1.4;
-      this.water.fog.skyBlendDistance = this.inPort ? 2600 : map.fog.skyBlend;
+      this.water.fog.skyBlendDistance = this.inPort ? 2600 : environment.fog.skyBlend;
     }
   }
   cycleCamera(): void { const aircraft = !!this.followedAircraftId; this.stopShellFollow(); if (!aircraft) this.rig.cycle(); }
