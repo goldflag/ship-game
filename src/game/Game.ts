@@ -23,6 +23,8 @@ import { ShipView } from './ShipView';
 import { ArmorOverlay } from './ArmorOverlay';
 import { InspectionHover, type InspectionHoverInfo } from './InspectionHover';
 import { ShipLabels } from './ShipLabels';
+import { HitLabels } from './HitLabels';
+import { TorpedoPreview } from './TorpedoPreview';
 import { HullDamageFeedback } from './HullDamageFeedback';
 import { FIXED_DT } from '../simulation/ship';
 import { orderDepth } from '../simulation/submarine';
@@ -72,6 +74,8 @@ export class Game {
   private visualWaveSampler?: VisualWaveSampler;
   private fleetModels: THREE.Group[] = [];
   private shipLabels: ShipLabels;
+  private hitLabels: HitLabels;
+  private torpedoPreview = new TorpedoPreview();
   private playerDamageFeedback: HullDamageFeedback;
   private gunAim: GunAimIndicators;
   private hitDirections: HitDirectionIndicators;
@@ -145,6 +149,7 @@ export class Game {
     this.renderer.domElement.tabIndex = 0;
     this.host.appendChild(this.renderer.domElement);
     this.shipLabels = new ShipLabels(this.host);
+    this.hitLabels = new HitLabels(this.host);
     this.gunAim = new GunAimIndicators(this.host);
     this.hitDirections = new HitDirectionIndicators(this.host.parentElement ?? this.host);
     this.rig = new CameraRig(this.camera, this.renderer.domElement, this.definition.viewpoints?.bridge, {
@@ -208,7 +213,7 @@ export class Game {
     this.targetView.root.visible = !this.inPort;
     if (this.definition.airWing) await this.aircraftView.load();
     this.assertActive();
-    this.scene.add(this.playerView.root, this.targetView.root, this.effects.root, this.aircraftView.root);
+    this.scene.add(this.playerView.root, this.targetView.root, this.effects.root, this.aircraftView.root, this.torpedoPreview.root);
     this.scene.add(this.ambientLight);
 
     this.callbacks.progress('Building the Atlantic', 0.37);
@@ -236,6 +241,7 @@ export class Game {
     params.spray.enabled = false;
     this.water.loadPreset(params);
     this.underwaterPassVisibility = new UnderwaterPassVisibility(this.water, this.renderer);
+    this.torpedoPreview.setWater(this.water);
     this.surfaceWaterAbsorption.copy(this.water.color.absorptionColor);
     this.updateSeaState();
 
@@ -483,6 +489,7 @@ export class Game {
       const showGunAim = !this.inPort && !this.inspecting && !this.shellFollow.view && !this.followedAircraftId && !this.simulation.player.damage.sunk;
       this.gunAim.update(showGunAim ? gunAimPoints(this.simulation.player, this.definition, this.battery, aim) : [], this.camera, showGunAim);
       this.hitDirections.update(this.simulation, this.camera, !this.inPort);
+      this.torpedoPreview.update(this.simulation.player, this.playerView!.motion, aim, showGunAim && this.battery === 'torpedo' && this.host?.dataset.shipLabels !== 'false');
       this.inspectionHover?.update(this.inPort && !this.paused && !this.switchingShip ? this.playerView?.inspection : undefined);
       this.fleetViews.forEach(view => view.updateRenderMatrices());
       this.aircraftView.update(this.simulation, this.camera, !this.inspecting && (!this.inPort || this.playerView?.inspection.mode === 'exterior'), this.inPort, new Map(this.fleetViews.map(view => [view.actor.motion.id, view.root])));
@@ -515,6 +522,7 @@ export class Game {
       } finally { this.scene.endFrame(); }
       const combatTime = this.simulation.tick * FIXED_DT;
       this.shipLabels.update(this.camera, combatTime);
+      this.hitLabels.update(this.simulation, this.fleetViews, this.camera, !this.inPort && !this.inspecting);
       const playerDamage = this.playerDamageFeedback.update(this.simulation.player.damage.integrity, combatTime);
       this.fps += (1 / realDt - this.fps) * 0.04;
       if (state.tick - this.lastTrailTick >= 120) {
@@ -524,7 +532,7 @@ export class Game {
       }
       if (time - this.hudTime > 100) {
         this.hudTime = time;
-        this.callbacks.telemetry({ ship: { ...state }, order: this.input.order, camera: this.rig.mode,
+        this.callbacks.telemetry({ ship: { ...state }, order: this.input.order, rudderOrder: this.input.rudderOrder, camera: this.rig.mode,
           binoculars: this.rig.binoculars, magnification: this.rig.magnification, pointerLocked: this.rig.pointerLocked,
           viewBearing: this.rig.bearing, chartSize: this.chartSize, gunneryOpen: this.gunneryOpen, airOperationsOpen: this.airOperationsOpen, selectedFlightId: this.selectedFlightId,
           shellFollow: this.shellFollow.phase, followedAircraftId: this.followedAircraftId,
@@ -794,14 +802,14 @@ export class Game {
     if (!this.water) return;
     const map = oceanMap(this.simulation.mapId ?? DEFAULT_MAP);
     const sea = this.battleSea ?? this.settings.sea;
-    const amplitude = sea === 'Fair' ? .22 : sea === 'Heavy' ? .95 : .45;
+    const amplitude = sea === 'Fair' ? .09 : sea === 'Heavy' ? .48 : .18;
     const wind = sea === 'Fair' ? 5 : sea === 'Heavy' ? 16 : 9;
-    const wavelength = sea === 'Fair' ? 20 : sea === 'Heavy' ? 50 : 28;
+    const wavelength = sea === 'Fair' ? 12 : sea === 'Heavy' ? 36 : 20;
     // Retain the smaller wave scale across all oceans; port stays sheltered.
     this.water.waves.amplitude.value = this.inPort ? .12 : amplitude * map.water.amplitudeScale;
     this.water.waves.windSpeed.value = this.inPort ? 4 : wind * map.water.windScale;
     this.water.waves.peakWavelength.value = this.inPort ? 14 : wavelength * map.water.wavelengthScale;
-    this.water.waves.choppiness.value = .8;
+    this.water.waves.choppiness.value = .55;
     this.water.waves.windDirection.value = (this.inPort ? 35 : map.water.windDirection) * Math.PI / 180;
     this.water.waves.dirty = true;
     const colors = this.inPort ? oceanMap(DEFAULT_MAP).water : map.water;
@@ -862,6 +870,8 @@ export class Game {
     this.abort.abort(); this.observer.disconnect(); this.input.dispose(); this.rig.dispose();
     this.inspectionHover.dispose();
     this.shipLabels.dispose();
+    this.hitLabels.dispose();
+    this.torpedoPreview.dispose();
     this.gunAim.dispose();
     this.hitDirections.dispose();
     await this.initialization;

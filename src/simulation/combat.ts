@@ -22,7 +22,7 @@ import { resolveShipCollisions } from './collisions';
 import { createDamage, systemHealth, updateFlooding, type BallisticEffectData, type DamageEvent, type Shell, type ImpactRecord, type DefeatCause } from './damage';
 
 export interface CombatIntent { aim: Vec3; fire: boolean; battery: Battery; ammunition?: Ammunition; controlPriority?: ControlPriority; controlFocus?: string; }
-export interface CombatEvent extends BallisticEffectData { sequence: number; tick: number; kind: DamageEvent['kind'] | 'shot' | 'splash' | 'torpedo-launch' | 'torpedo-hit' | 'torpedo-dud' | 'torpedo-expired' | 'aircraft-launch' | 'aircraft-recovered' | 'aircraft-lost' | 'aircraft-fire' | 'aircraft-release' | 'bomb-release' | 'depth-charge-launch' | 'depth-charge-splash' | 'depth-charge-blast' | 'depth-charge-hit'; aircraft?: { id: string; target?: Vec3 }; depthCharge?: { id: number; radiusM: number }; torpedo?: { id: number; velocity: Vec3; diameterM: number }; position: Vec3; message: string; shipId: string; impact?: ImpactRecord; defeatCause?: DefeatCause; }
+export interface CombatEvent extends BallisticEffectData { sequence: number; tick: number; kind: DamageEvent['kind'] | 'shot' | 'splash' | 'torpedo-launch' | 'torpedo-hit' | 'torpedo-dud' | 'torpedo-expired' | 'aircraft-launch' | 'aircraft-recovered' | 'aircraft-lost' | 'aircraft-fire' | 'aircraft-release' | 'bomb-release' | 'depth-charge-launch' | 'depth-charge-splash' | 'depth-charge-blast' | 'depth-charge-hit'; aircraft?: { id: string; target?: Vec3 }; depthCharge?: { id: number; radiusM: number }; torpedo?: { id: number; velocity: Vec3; diameterM: number }; position: Vec3; message: string; shipId: string; hullDamage?: number; impact?: ImpactRecord; defeatCause?: DefeatCause; }
 export interface ShellHistory { shellId: number; ownerId: string; tick: number; ammunition: Ammunition; impacts: ImpactRecord[]; outcome: 'flying' | 'splash' | 'passed-through' | 'expired' | 'stopped' | 'ricochet' | 'internal' | 'burst'; }
 export interface CombatTelemetry {
   airWing?: AirWingTelemetry;
@@ -386,7 +386,7 @@ export class CombatSimulation {
           this.recordDamage(owner, actor, torpedo.id, `${w.name}${torpedo.tubeId === 'aircraft.payload' ? ' · Air torpedo' : ' · Torpedo'}`, Math.max(0, hp - actor.damage.integrity));
           this.lastDamager.set(actor.motion.id, owner.motion.id);
         }
-        this.emit({ kind: armed ? 'torpedo-hit' : 'torpedo-dud', position: localToWorld(point, actor.motion), shipId: actor.motion.id, message, torpedo: evidence });
+        this.emit({ kind: armed ? 'torpedo-hit' : 'torpedo-dud', position: localToWorld(point, actor.motion), shipId: actor.motion.id, message, hullDamage: Math.max(0, hp - actor.damage.integrity), torpedo: evidence });
       }
       torpedo.position = to; torpedo.distance += travel;
       if (!hit && torpedo.distance >= w.rangeM - 1e-6) this.emit({ kind: 'torpedo-expired', position: [...to], shipId: torpedo.ownerId, message: 'Torpedo reached maximum range', torpedo: evidence });
@@ -411,7 +411,7 @@ export class CombatSimulation {
           this.recordDamage(owner, actor, charge.id, `${charge.weapon.name} · Depth charge`, Math.max(0, hp - actor.damage.integrity));
           this.lastDamager.set(actor.motion.id, owner.motion.id);
         }
-        this.emit({ kind: 'depth-charge-hit', position: [...charge.position], shipId: actor.motion.id, message, depthCharge: evidence });
+        this.emit({ kind: 'depth-charge-hit', position: [...charge.position], shipId: actor.motion.id, message, hullDamage: Math.max(0, hp - actor.damage.integrity), depthCharge: evidence });
       }
       this.depthCharges.splice(i, 1);
     }

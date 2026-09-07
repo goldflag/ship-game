@@ -45,7 +45,7 @@ async function frameHarness() {
   const game = Object.assign(Object.create(Game.prototype), {
     definition: simulation.definition, simulation, playerView, targetView, fleetViews: [playerView, targetView], camera, rig, ship: new Group(), shellFollow: new ShellFollow(),
     renderer: { domElement: { setAttribute() {} } }, manualAim: false,
-    shipLabels: { update() {} },
+    shipLabels: { update() {} }, hitLabels: { update() {} }, torpedoPreview: { update() {} },
     playerDamageFeedback: new HullDamageFeedback(simulation.player.damage.integrity),
     gunAim: { update(points: GunAimPoint[], _camera: PerspectiveCamera, visible: boolean) { gunAimFrames.push({ points, visible }); } },
     hitDirections: { update() {} },
@@ -121,6 +121,7 @@ test('firing enters shell view without feeding its camera into aim, freezes on p
   game.manualAim = true;
   rig.aimAt([2500, 0, -2500], playerView.motion);
   game.toggleBinoculars();
+  for (let i = 0; i < 180; i++) rig.update(playerView.motion, playerView.motion.y, 1 / 60);
   const fov = camera.fov;
   let time = 0;
   for (let i = 0; i < 600; i++) await game.frame(time += 1000 / 60);
@@ -147,7 +148,7 @@ test('firing enters shell view without feeding its camera into aim, freezes on p
   game.toggleShellFollow();
   expect(game.shellFollow.phase).toBe('off');
   expect(rig.binoculars).toBe(true);
-  expect(camera.fov).toBe(fov);
+  expect(camera.fov).toBeCloseTo(fov, 10);
   expect(camera.position.distanceTo(playerView.root.position)).toBeLessThan(100);
   game.toggleShellFollow();
   game.setInPort(true);
@@ -197,6 +198,7 @@ test('manual aiming and binoculars keep the camera attached to the displayed shi
   let time = 0;
   for (const binoculars of [false, true, false]) {
     if (rig.binoculars !== binoculars) game.toggleBinoculars();
+    for (let frame = 0; frame < 180; frame++) await game.frame(time += 1000 / 144);
     await game.frame(time += 1000 / 144);
     const offset = camera.position.clone().sub(playerView.root.position);
     for (let frame = 0; frame < 30; frame++) {
