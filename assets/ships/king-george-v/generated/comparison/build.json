@@ -1,8 +1,7 @@
 {
   "schemaVersion": 1,
-  "inputHash": "c5431b04f137e06828a1a7bd7b0548a6c778b64db1df56268146bdfb5ad3ca81",
+  "inputHash": "08c3c2cdbce8bbd1ba47290bfa8c8e2142935f2fdcd061d9e2c5fb5a308a5a08",
   "files": {
-    "authored-contact-sheet.png": "d5ef9ebb7e3bc34f55e11b9d5588bded0cce1c7a6b68203f2958bb8fef59ec47",
     "authored/aft-funnel.png": "b1485125cf5ad44cc59cf3f481a10ff4828e1c2821d6aa3d00969039c0347094",
     "authored/aft-superstructure.png": "2a6b2cecc59a8ff638e2892288f80a439f07435e0b581faaf280e30322d57eae",
     "authored/aircraft-deck.png": "783ff53ea0402ae613acee14e4ea66d90876b0ed97f944bc96bf025d1211146a",
@@ -34,6 +33,7 @@
     "authored/stern.png": "b062dd68ff6bbda3220a1363006d233b8b05b57e2700a70d511c7db5fe726344",
     "authored/top.png": "b56e04622863ecb4fec51cc54984d4ed4668eede15f88e9d335002237e0c25fb",
     "authored/underside.png": "d4c3785adcfacca9b351af39d367f78eac1bffb3520be845fc07179ab97601d7",
+    "authored-contact-sheet.png": "d5ef9ebb7e3bc34f55e11b9d5588bded0cce1c7a6b68203f2958bb8fef59ec47",
     "blueprint.json": "ce5a3a39a308e0d57bf82f970a07e9074b71f19af5b646c0c304ba09a3dc78d2",
     "fonts/Barlow-OFL.txt": "10b0e6bb43166a50fbe7cde2895bd7f703738a5da843acb5c97c95dc9ea26817",
     "fonts/BarlowCondensed-OFL.txt": "10b0e6bb43166a50fbe7cde2895bd7f703738a5da843acb5c97c95dc9ea26817",
@@ -65,9 +65,7 @@
     "historical/top-crop.png": "504f0b39d87f05f49d6a62da4ddda8e6e72b5157520cc5b0e975b0e5ae734d2d",
     "historical/top.png": "d933f9edfa937ad5083288a78b2e0e50195c83249110dad591768629f740cb43",
     "historical/twm-mkiii-construction-1940.jpg": "d7160608dae41f60c67a14127415cf3494153c6dd9505a1d3d1086e012f48496",
-    "index.html": "681728dc32ce812874867385966de6e653f5ddc9e47884902a1d8d392f06ec91",
-    "king-george-v-review.zip": "f1b19a82e637d3b1b1253ca55545af94efbd3a9b12ed72c8535800c0ce2df5d9",
-    "king-george-v.glb": "1a68d5a74695caf711f6a952e66d426463e5db92994872b9582e6acf40745fcb",
+    "index.html": "0f1fafd9332a478c94fa04e389f42e4abe1550788ed78030356db137f0c1349c",
     "measurements.json": "de825816d49877ce17cd71f997de60ed1cf02518866c30ec2d75046657373a3c",
     "modeling-spec.json": "6f12df5d0b089b23357981519e08cf5c221a16afc41af927b011e343c96521cd",
     "overlays/aft-funnel.png": "89c7b752dcb016a2ae007c918bcfef0e6928d86ac0f5d1d9d0fb7b7329d5cb48",

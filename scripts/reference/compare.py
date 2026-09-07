@@ -3,7 +3,7 @@
 Reads only raster reference pack, reviewed spec, published measurements and our own
 blueprint. The raw reference mesh cache is deliberately not a dependency.
 """
-import base64, hashlib, html, json, math, shutil, sys, zipfile
+import base64, hashlib, html, json, math, shutil, sys
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 from index import index_pack
@@ -125,7 +125,7 @@ def historical_figure(name):
  if url:caption+=f' · <a href="{html.escape(url,quote=True)}">Source discussion</a>'
  return f'<figure><img loading="lazy" src="historical/{name}" alt="{html.escape(record["alt"],quote=True)}"><figcaption>{caption}</figcaption></figure>'
 body=f'''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{html.escape(spec['review']['title'])} reference review</title><link rel="stylesheet" href="fonts/fonts.css"><style>{css}</style><main>
-<nav aria-label="Review navigation"><a href="../../../?ship={ship}">Open ship in game</a><a href="#dimensions">Dimensions</a><a href="#sections">Protection and spaces</a><a href="#evidence">Sources and limits</a><a href="{ship}-review.zip" download>Download review pack</a><a href="{ship}.glb" download>Download GLB</a></nav>
+<nav aria-label="Review navigation"><a href="../../../?ship={ship}">Open ship in game</a><a href="#dimensions">Dimensions</a><a href="#sections">Protection and spaces</a><a href="#evidence">Sources and limits</a><a href="/models/{ship}.glb" download>Download GLB</a></nav>
 <h1>{html.escape(spec['review']['title'])}</h1><p>{html.escape(spec['review']['intro'])}</p>
 <p class="note">Engineering targets passed · hull sections and internal envelopes remain reconstructed. Build {report['contentHash'][:12]} · {reg['gameVersion']} reference · no historical accuracy certification.</p>
 <div class="controls"><label for="view">Comparison view<select id="view">{options}</select></label><label for="reference">Reference layer<select id="reference"><option value="reference">GameModels3D clay render</option><option value="historical">Historical drawing</option></select></label><label for="opacity">Authored overlay <output id="opacity-value">50%</output><input id="opacity" type="range" min="0" max="100" value="50"></label></div>
@@ -147,14 +147,7 @@ body=f'''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewpo
 </main><script>const available=new Set(['starboard','port','top']);const view=document.getElementById('view'),reference=document.getElementById('reference');function update(){{const id=view.value;reference.options[1].disabled=!available.has(id);if(!available.has(id))reference.value='reference';const own='authored/'+id+'.png',ref=reference.value+'/'+id+'.png';document.getElementById('authored-image').src=own;document.getElementById('own-side').src=own;document.getElementById('reference-image').src=ref;document.getElementById('ref-side').src=ref;document.getElementById('sheet-link').href='sheets/'+id+'.png';document.getElementById('reference-caption').textContent=reference.value==='historical'?'Historical reconstruction · source register and original credit':'GameModels3D · comparison evidence';document.getElementById('view-note').textContent=reference.value==='historical'?'Historical image: one uniform scale from complete hull endpoints, vertically registered at the keel. Original image and crops preserved. No component fitting.':id==='perspective'?'Perspective view · qualitative comparison only; not a dimensional projection.':'Matched orthographic cameras. Game reference uses one global {reg['registration']['uniformScale']} m/viewer-unit registration; source waterline/load remains unverified.';}}view.addEventListener('change',update);reference.addEventListener('change',update);document.getElementById('opacity').addEventListener('input',e=>{{document.querySelector('.overlay').style.setProperty('--alpha',e.target.value/100);document.getElementById('opacity-value').value=e.target.value+'%';}});document.getElementById('section').addEventListener('change',e=>document.getElementById('section-image').src='sections/'+e.target.value+'.svg');</script></html>'''
 (out/'index.html').write_text(body)
 shutil.copyfile(refs/'gamemodels3d/index.html',out/'reference/index.html')
-shutil.copyfile(ROOT/'public/models'/(ship+'.glb'),out/(ship+'.glb'))
-# Standalone review with original inputs and all page dependencies. The generated
-# Blender scene and unlinked authored overview remain in assets, avoiding another
-# copy of rebuildable/convenience outputs in the portable archive.
-archive=out/(ship+'-review.zip')
-with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as z:
- for p in sorted(out.rglob('*')):
-  if p.is_file() and p!=archive and p.name not in ['build.json','authored-contact-sheet.png']:z.write(p,p.relative_to(out))
- for path,name in [(source/'build.py','authoring/build.py'),(ROOT/'assets/parts/guns.json','authoring/guns.json')]:z.write(path,name)
- z.writestr('authoring/README.txt','The editable blueprint is ../blueprint.json. Original build.py and guns.json are retained here. Rebuild with the repository shared ship pipeline; the generated Blender scene remains at assets/ships/'+ship+'/generated/source.blend. All interactive review views and their downloads are included.\n')
-print('COMPARISON PACK',len(views),'views;',archive.stat().st_size,'bytes',flush=True)
+# The runtime GLB is linked from public/models rather than copied: the review page is
+# served next to it, and no portable archive is produced (large generated binaries stay
+# out of version control).
+print('COMPARISON PAGE',len(views),'views',flush=True)

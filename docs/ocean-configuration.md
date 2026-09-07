@@ -32,6 +32,8 @@ Weather presets own the wave settings. Clear and Fog use amplitude 0.09, wind 5 
 
 Nearby ships receive bow and stern wake generators scaled to their hull; their configuration is described under **Ship wake** below. Buoyancy samples a 190 × 28 m footprint with 1.8 s smoothing and 0.45 rotation influence. These values were chosen for visually stable battleship motion, not hydrodynamic accuracy.
 
+Funnel exhaust, gun and impact smoke, burning-turret smoke and falling-aircraft trails use the ocean's wind direction and weather-adjusted speed. Direction is in radians from +X toward +Z; visual drift uses 35% of ocean wind speed with each particle's existing response factor. Returning to port restores the sheltered wind (speed 4, direction 35°). Wind affects these visual particles only; CPU ballistics and ship handling are unchanged.
+
 The demo's image-based sky is replaced by Sky Pro's animated clouds and atmosphere. That changes what the water reflects even if its material settings stay the same. Cloud reflections are baked at width 384 with 16 cloud march steps and 8 skipped frames. The game uses ACES tone mapping and neutral exposure; it does not add the demo's optional bloom or film grain.
 
 Water Pro's `scene.fogNode` owns distance fog, including transparent effects and the ocean's sky-color blend. The final composition uses Water Pro's output directly, without Sky Pro's additional `applyTo` fog pass: that pass reads opaque depth behind transparent smoke and can erase it at the ocean horizon. Sky Pro still supplies the sky, clouds, lighting and reflections. See the [horizon regression review](../assets/effects/naval/reports/validation.md#horizon-smoke-cutoff-2026-09-05).
