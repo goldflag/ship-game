@@ -5,6 +5,8 @@ import { aircraftDeckSpot, onFlightDeck } from '../simulation/aircraft';
 import { aircraftAttitude, aircraftControls } from '../simulation/aircraftFlight';
 import { disposeObjects } from './disposeObjects';
 import { AircraftContacts } from './AircraftContacts';
+import { ShipMaterialPalette } from './ShipMaterialPalette';
+import { batchShipModel } from './ShipBatching';
 
 // Per model: 60 carriers × 6 deck aircraft plus the bounded airborne group.
 const CAPACITY = 504;
@@ -31,9 +33,13 @@ export class AircraftView {
     return this.loadPromise ??= this.loadModels();
   }
   private async loadModels() {
+    const palette = new ShipMaterialPalette();
     const results = await Promise.allSettled(['f4f-4-wildcat', 'sbd-3-dauntless', 'tbd-1-devastator'].flatMap(id => [0, 1, 2].map(async lod => {
       const url = lod ? `/models/aircraft/LOD${lod}/${id}-lod${lod}.glb` : `/models/aircraft/${id}.glb`;
       const root = (await new GLTFLoader().loadAsync(url)).scene;
+      // The shared authoring-node boundaries preserve propellers, controls,
+      // landing gear and sockets while rigid paint surfaces share a draw.
+      palette.apply(root); batchShipModel(root);
       const model: Model = { root, joints: [], meshes: [], count: 0, wingspan: new THREE.Box3().setFromObject(root).getSize(new THREE.Vector3()).x };
       root.traverse(object => {
         const id = object.userData.nodeId as string | undefined;

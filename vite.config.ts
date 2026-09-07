@@ -24,6 +24,7 @@ export default defineConfig({
       input: {
         game: fileURLToPath(new URL('./index.html', import.meta.url)),
         aircraftReview: fileURLToPath(new URL('./aircraft-review.html', import.meta.url)),
+        fleetPerformance: fileURLToPath(new URL('./scripts/diagnostics/live-performance.html', import.meta.url)),
       },
       output: { manualChunks: { 'three-engine': ['three/webgpu', 'three/tsl'], 'react': ['react', 'react-dom/client'] } },
     },
