@@ -13,6 +13,11 @@
 .air-map-tools span { width:80px; text-align:center; font-size:10px; }
 .air-map-ship { cursor:pointer; stroke:currentColor; fill:none; }
 .air-map-ship text,.air-station text { stroke:#07131b; stroke-width:3px; paint-order:stroke; fill:currentColor; font:500 10px 'Barlow',sans-serif; }
+.air-map-ship-health-track { fill:#06111b; stroke:#c9dce04a; stroke-width:1; }
+.air-map-ship-health-fill { fill:currentColor; stroke:none; }
+.air-map-ship-health text { fill:#f0f5f3; font:500 12px 'Barlow Condensed',sans-serif; font-variant-numeric:tabular-nums; }
+.air-map-ship.air-map-ship-sunk { color:var(--fleet-muted); opacity:.4; pointer-events:none; cursor:default; }
+.air-map-ship-sunk .air-map-ship-marker { display:none; }
 .air-friendly { color:var(--fleet-active); }
 .air-hostile { color:#ffb5a6; }
 .air-selected { color:var(--fleet-gold); }

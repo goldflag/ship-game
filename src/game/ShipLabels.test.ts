@@ -71,13 +71,15 @@ test('overhead condition percentages, meters and loss spans use each ship maximu
       expect(host.find('ship-label-fill')!.style.transform).toBe('scaleX(0.6)');
       expect(host.find('ship-label-loss')!.style.left).toBe('60%');
       expect(host.find('ship-label-loss')!.style.width).toBe('40%');
-      expect(host.find('ship-label-meter')!.children).toContain(host.find('ship-label-health')!);
+      expect(host.find('ship-label-meter')!.children).not.toContain(host.find('ship-label-health')!);
       actor.damage.sunk = true;
       labels.update(camera, 2);
       expect(host.find('ship-label-meter')!.hidden).toBe(true);
+      expect(host.find('ship-label-health')!.hidden).toBe(true);
       actor.damage.sunk = false;
       labels.update(camera, 3);
       expect(host.find('ship-label-meter')!.hidden).toBe(false);
+      expect(host.find('ship-label-health')!.hidden).toBe(false);
       camera.lookAt(0, 0, 5000);
       labels.update(camera, 1);
       expect(label.hidden).toBe(true);
