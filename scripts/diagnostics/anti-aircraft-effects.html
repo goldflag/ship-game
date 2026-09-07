@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AA tracers and bursts · runtime review</title>
+<style>
+  body{margin:0;background:#132d38;color:#edf1ec;font:14px sans-serif}
+  #scene{width:100vw;height:100vh}canvas{display:block}
+  nav{position:fixed;top:16px;left:20px;display:flex;gap:8px;flex-wrap:wrap}
+  button{background:#21373b;color:inherit;border:1px solid #79958d;padding:8px 16px;cursor:pointer}
+</style>
+<div id="scene"></div>
+<nav>
+  <button onclick="aaEffectsReview.sample('light',2)">Light AA · 2 seconds</button>
+  <button onclick="aaEffectsReview.sample('heavy',1.25)">Heavy AA · in flight</button>
+  <button onclick="aaEffectsReview.sample('heavy',2.1)">Heavy AA · burst</button>
+  <button onclick="aaEffectsReview.sample('heavy',4)">Heavy AA · drifting smoke</button>
+  <button onclick="aaEffectsReview.sample('heavy',9)">Expired smoke</button>
+</nav>
+<script type="module">
+import { Game } from '/src/game/Game.ts';
+import { muzzleWorld } from '/src/simulation/weapons.ts';
+import { ballisticStep } from '/src/simulation/ballistics.ts';
+import { normalize, scale, sub } from '/src/simulation/geometry.ts';
+
+let ready; const loaded = new Promise(resolve => ready = resolve);
+const game = new Game(document.querySelector('#scene'), {quality:'medium',resolution:1}, {
+  progress: message => window.reviewProgress = message, ready, telemetry:()=>{},pause:()=>{},hud:()=>{},error:message=>window.reviewError=message,
+});
+game.start(); await loaded; game.setInPort(false); game.setPaused(true); game.rig.update=()=>{};
+const sim=game.simulation;
+async function sample(kind,seconds) {
+  sim.reset(); game.effects.reset(); game.shipWake.reset();
+  sim.target.motion.x=10000; game.targetView.snap();
+  game.camera.fov=44;
+  game.camera.position.set(210,155,180);game.camera.lookAt(-70,220,-1200);
+  // Inspect flight from behind the shells; the burst close-up lies beyond them
+  // before detonation and would put the in-flight sample outside the camera.
+  if(kind==='heavy' && seconds>=2) {game.camera.position.set(200,265,-1200);game.camera.lookAt(0,350,-1800);}
+  game.camera.updateProjectionMatrix();game.camera.updateMatrixWorld(true);
+  const actor=sim.player;
+  let sequence=0;
+  // Controlled firing snapshots use real fitted muzzles/calibers/speeds and the
+  // production ballistic endpoint. Combat outcome remains the existing approximation.
+  for(const [i,mount] of actor.definition.mounts.entries()) {
+    const heavy=mount.weapon.caliberM>.08;
+    if(mount.weapon.elevationMaxDeg<70 || mount.weapon.caliberM>.14 || heavy!==(kind==='heavy')) continue;
+    const position=muzzleWorld(mount,actor.mounts[i],0,actor.motion);
+    const aim=[(i%4-1.5)*60,kind==='heavy'?350:240,kind==='heavy'?-1800:-650];
+    const direction=normalize(sub(aim,position)),speed=mount.weapon.muzzleSpeed;
+    const flightTime=kind==='heavy'?2:Math.hypot(...sub(aim,position))/speed;
+    const target=ballisticStep(position,scale(direction,speed),flightTime).position;
+    sim.events.push({sequence:++sequence,tick:0,kind:'aircraft-fire',shipId:actor.motion.id,position,message:'AA review',
+      aircraft:{id:'review-target',target,direction,velocity:[0,0,0],tracerSpeed:speed,...(heavy?{airburst:{flightTime,caliberM:mount.weapon.caliberM}}:{})}});
+  }
+  for(let i=0;i<=Math.round(seconds*60);i++) {
+    sim.tick=i+1;
+    game.aircraftView.gunfire.update(sim,game.camera);
+    game.effects.update(sim,i?1/60:0,game.camera);
+    // Exercise the original failure: history disappears before these shots finish.
+    if(i===15) sim.events.length=0;
+  }
+  for(let i=0;i<3;i++){await new Promise(requestAnimationFrame);await game.frameTask;}
+  game.pipeline.render();
+  const tracers=game.aircraftView.gunfire.diagnostics();
+  const tips=game.aircraftView.gunfire.root.getObjectByName('Aircraft tracer tips');
+  let visibleTracers=0;
+  for(let i=0;i<tracers;i++) {
+    const a=tips.instanceMatrix.array;
+    const p=game.camera.position.clone().set(a[i*16+12],a[i*16+13],a[i*16+14]);
+    const depth=p.clone().applyMatrix4(game.camera.matrixWorldInverse).z;
+    p.project(game.camera);
+    if(depth<0 && Math.abs(p.x)<1 && Math.abs(p.y)<1) visibleTracers++;
+  }
+  return {kind,seconds,backend:game.diagnostics().backend,tracers,visibleTracers,effects:game.effects.diagnostics()};
+}
+window.aaEffectsReview={game,sample};
+await sample('heavy',2.1);window.reviewReady=true;
+</script>
+</html>

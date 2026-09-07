@@ -90,7 +90,9 @@ export function updateAntiAircraft(actor: FleetActor, m: MountDefinition, state:
     const direction = dispersedDirection(shotDirection(m, state, actor.motion), .006 + closest / 200000, ctx.seed ?? 0, ctx.nextId());
     const endpoint = ballisticStep(position, add(scale(direction, m.weapon.muzzleSpeed), velocity), flightTime).position;
     if (length(sub(endpoint, aim)) < (heavy ? 14 : 6)) target.hp -= heavy ? 2.5 : m.weapon.caliberM > .025 ? 1.2 : .8;
-    ctx.emit({ kind: 'aircraft-fire', shipId: actor.motion.id, position, message: `${m.name} · AA fire`, aircraft: { id: target.id, target: endpoint, tracerSpeed: m.weapon.muzzleSpeed } });
+    ctx.emit({ kind: 'aircraft-fire', shipId: actor.motion.id, position, message: `${m.name} · AA fire`,
+      aircraft: { id: target.id, target: endpoint, tracerSpeed: m.weapon.muzzleSpeed, direction, velocity: [...velocity],
+        ...(heavy ? { airburst: { flightTime, caliberM: m.weapon.caliberM } } : {}) } });
   }
   return true;
 }

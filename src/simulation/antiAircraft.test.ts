@@ -5,6 +5,8 @@ import { compileShip } from '../ships/blueprint';
 import { shipPreset, shipPresets } from '../ships/presets';
 import { antiAircraftRange } from './antiAircraft';
 import { CombatSimulation } from './combat';
+import { ballisticStep } from './ballistics';
+import { add, scale } from './geometry';
 
 function fixture() {
   const sim = new CombatSimulation(compileShip(blueprint, catalog), { friendlyBots: [], enemies: [shipPreset('enterprise-cv6')], seed: 93 });
@@ -26,6 +28,15 @@ test('Bismarck automatically tracks and fires visible AA bursts with finite ammu
   const shots = sim.events.filter(e => e.kind === 'aircraft-fire' && e.shipId === 'player');
   expect(shots.length).toBeGreaterThan(0);
   expect(shots.every(e => !!e.aircraft?.target && e.position[1] > 0)).toBe(true);
+  const heavyShots = shots.filter(e => e.aircraft?.airburst);
+  expect(heavyShots.length).toBeGreaterThan(0);
+  expect(shots.some(e => !e.aircraft?.airburst)).toBe(true);
+  for (const event of heavyShots) {
+    const data = event.aircraft!, burst = data.airburst!;
+    expect(burst.caliberM).toBeGreaterThan(.08);
+    expect(burst.flightTime).toBeGreaterThan(0);
+    expect(ballisticStep(event.position, add(scale(data.direction!, data.tracerSpeed!), data.velocity!), burst.flightTime).position).toEqual(data.target!);
+  }
   expect(sim.player.mounts.reduce((sum, m) => sum + m.ammo, 0)).toBeLessThan(ammo);
   expect(plane.hp).toBeLessThan(100);
   expect(sim.player.mounts.filter(m => m.id.includes('-aa-')).some(m => m.elevation > .1)).toBe(true);
