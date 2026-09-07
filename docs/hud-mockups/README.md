@@ -6,7 +6,7 @@ Run `bun run dev` and open the game, then choose **Set sail**. The controls are 
 
 ## Current implementation
 
-`src/ui/FleetHud.tsx` and `FleetHud.css` contain the sailing instruments. The lower-left group combines ship condition, compass, gun marks, speed, vertical engine telegraph and rudder. The centered armament strip shows live mount readiness, ammunition for both AP batteries, binoculars and firing controls. The Gunnery overlay and its G shortcut have been removed; damage remains visible through hit feedback, hull indicators and the damage log. The upper-left mission text and the toolbar above the minimap have been removed.
+`src/ui/FleetHud.tsx` and `FleetHud.css` contain the sailing instruments. The lower-left group combines ship condition, compass, gun marks, speed, vertical engine telegraph and rudder. The centered armament strip shows live mount readiness, separate caliber-labeled weapon groups with live ammunition and direct numbered shortcuts in one row. Binoculars and firing use their existing keyboard and mouse controls; their extra HUD buttons are removed. Carriers use the same gun controls outside the air map. The Gunnery overlay and its G shortcut have been removed; damage remains visible through hit feedback, hull indicators and the damage log. The upper-left mission text and the toolbar above the minimap have been removed.
 
 The sailing sight stays at the exact viewport center. Mouse movement turns the view while the cursor is captured; Shift or right mouse opens binoculars and the wheel selects 2×–12× magnification. Only binoculars show the numbered aiming scale. The CPU simulation receives the center sight's target-surface or sea-plane aim point.
 

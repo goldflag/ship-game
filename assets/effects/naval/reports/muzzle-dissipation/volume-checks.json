@@ -1,0 +1,150 @@
+[
+  {
+    "backend": "webgpu",
+    "effect": "smoke",
+    "frames": [
+      {
+        "draws": 1,
+        "view": "outside",
+        "visiblePixels": 15102
+      },
+      {
+        "draws": 2,
+        "view": "in front of horizon",
+        "visiblePixels": 15102
+      },
+      {
+        "draws": 2,
+        "view": "behind opaque surface",
+        "visiblePixels": 0
+      },
+      {
+        "draws": 1,
+        "view": "reverse oblique",
+        "visiblePixels": 15656
+      },
+      {
+        "draws": 1,
+        "view": "inside",
+        "visiblePixels": 65536
+      },
+      {
+        "draws": 1,
+        "view": "reset",
+        "visiblePixels": 0
+      }
+    ],
+    "reversedDepth": false
+  },
+  {
+    "backend": "webgpu",
+    "effect": "water",
+    "frames": [
+      {
+        "draws": 1,
+        "view": "outside",
+        "visiblePixels": 15075
+      },
+      {
+        "draws": 2,
+        "view": "in front of horizon",
+        "visiblePixels": 15075
+      },
+      {
+        "draws": 2,
+        "view": "behind opaque surface",
+        "visiblePixels": 0
+      },
+      {
+        "draws": 1,
+        "view": "reverse oblique",
+        "visiblePixels": 15643
+      },
+      {
+        "draws": 1,
+        "view": "inside",
+        "visiblePixels": 65536
+      },
+      {
+        "draws": 1,
+        "view": "reset",
+        "visiblePixels": 0
+      }
+    ],
+    "reversedDepth": false
+  },
+  {
+    "backend": "webgpu",
+    "effect": "smoke",
+    "frames": [
+      {
+        "draws": 1,
+        "view": "outside",
+        "visiblePixels": 15102
+      },
+      {
+        "draws": 2,
+        "view": "in front of horizon",
+        "visiblePixels": 15102
+      },
+      {
+        "draws": 2,
+        "view": "behind opaque surface",
+        "visiblePixels": 0
+      },
+      {
+        "draws": 1,
+        "view": "reverse oblique",
+        "visiblePixels": 15656
+      },
+      {
+        "draws": 1,
+        "view": "inside",
+        "visiblePixels": 65536
+      },
+      {
+        "draws": 1,
+        "view": "reset",
+        "visiblePixels": 0
+      }
+    ],
+    "reversedDepth": true
+  },
+  {
+    "backend": "webgpu",
+    "effect": "water",
+    "frames": [
+      {
+        "draws": 1,
+        "view": "outside",
+        "visiblePixels": 15075
+      },
+      {
+        "draws": 2,
+        "view": "in front of horizon",
+        "visiblePixels": 15075
+      },
+      {
+        "draws": 2,
+        "view": "behind opaque surface",
+        "visiblePixels": 0
+      },
+      {
+        "draws": 1,
+        "view": "reverse oblique",
+        "visiblePixels": 15643
+      },
+      {
+        "draws": 1,
+        "view": "inside",
+        "visiblePixels": 65536
+      },
+      {
+        "draws": 1,
+        "view": "reset",
+        "visiblePixels": 0
+      }
+    ],
+    "reversedDepth": true
+  }
+]

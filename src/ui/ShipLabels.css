@@ -15,9 +15,14 @@
 
 .hit-label-layer { position:absolute; inset:0; overflow:hidden; pointer-events:none; font-variant-numeric:tabular-nums; }
 .ocean-viewport[data-ship-labels=false] .hit-label-layer { visibility:hidden; }
-.hit-label-layer[hidden],.hit-label[hidden] { display:none; }
-.hit-label { position:absolute; top:0; left:0; width:170px; text-align:center; color:#f0f5f3; text-shadow:0 1px 2px #07131b,0 2px 4px #07131b; }
-.hit-label strong { display:block; color:#e8c56c; font:600 20px/1.1 'Barlow Condensed',sans-serif; }
-.hit-label[data-damage=false] strong { color:#c1d0d4; }
-.hit-label span { display:block; font:500 12px/1.2 'Barlow Condensed',sans-serif; }
-.hit-label small { display:block; margin-top:2px; font:500 10px/1.2 'Barlow',sans-serif; }
+.hit-label-layer[hidden],.hit-label[hidden],.hit-label [hidden] { display:none; }
+.hit-label { position:absolute; top:0; left:0; width:150px; text-align:center; color:#f0f5f3; text-shadow:0 1px 2px #07131b,0 2px 4px #07131b; }
+.hit-label strong { display:block; color:#e8c56c; font:600 16px/1.1 'Barlow Condensed',sans-serif; }
+.hit-label-part { display:flex; align-items:center; justify-content:center; gap:4px; font:500 11px/1.2 'Barlow Condensed',sans-serif; }
+.hit-label-name { min-width:0; overflow-wrap:anywhere; }
+.hit-label-outcome { display:inline-flex; flex-shrink:0; align-items:center; gap:2px; color:#c1d0d4; }
+.hit-label-outcome[data-outcome=penetration] { color:#86e4c5; }
+.hit-label-outcome[data-outcome=ricochet] { color:#e8c56c; }
+.hit-label-outcome[data-outcome=destroyed] { color:#ee9b86; }
+.hit-label-outcome svg { width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; filter:drop-shadow(0 1px 1px #07131b); }
+.hit-label small { display:block; margin-top:1px; font:500 9px/1.2 'Barlow',sans-serif; }

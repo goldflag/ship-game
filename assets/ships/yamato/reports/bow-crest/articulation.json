@@ -1,0 +1,97 @@
+{
+  "shipId": "yamato",
+  "contentHash": "b32c7aeedcf0fbacc2314d51a1030deee640e551686bcab15ea71ad16ac76c24",
+  "backend": "webgpu",
+  "poses": [
+    {
+      "trainFraction": -1,
+      "elevationFraction": 0,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.0027435334140913635
+    },
+    {
+      "trainFraction": -1,
+      "elevationFraction": 0.48,
+      "recoilFraction": 0.5,
+      "maxMuzzleErrorM": 0.0027435334140913635
+    },
+    {
+      "trainFraction": -1,
+      "elevationFraction": 1,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.0027435334140913635
+    },
+    {
+      "trainFraction": -0.43,
+      "elevationFraction": 0,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.0027435334140913635
+    },
+    {
+      "trainFraction": -0.43,
+      "elevationFraction": 0.48,
+      "recoilFraction": 0.5,
+      "maxMuzzleErrorM": 0.0027435334140913635
+    },
+    {
+      "trainFraction": -0.43,
+      "elevationFraction": 1,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.0027435334140913635
+    },
+    {
+      "trainFraction": 0,
+      "elevationFraction": 0,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.0027435362018670877
+    },
+    {
+      "trainFraction": 0,
+      "elevationFraction": 0.48,
+      "recoilFraction": 0.5,
+      "maxMuzzleErrorM": 0.002743574875073751
+    },
+    {
+      "trainFraction": 0,
+      "elevationFraction": 1,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.0027437568104304996
+    },
+    {
+      "trainFraction": 0.57,
+      "elevationFraction": 0,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.002748042829041156
+    },
+    {
+      "trainFraction": 0.57,
+      "elevationFraction": 0.48,
+      "recoilFraction": 0.5,
+      "maxMuzzleErrorM": 0.002747852357448714
+    },
+    {
+      "trainFraction": 0.57,
+      "elevationFraction": 1,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.002746956084311058
+    },
+    {
+      "trainFraction": 1,
+      "elevationFraction": 0,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.002746863355506648
+    },
+    {
+      "trainFraction": 1,
+      "elevationFraction": 0.48,
+      "recoilFraction": 0.5,
+      "maxMuzzleErrorM": 0.0027467328127968892
+    },
+    {
+      "trainFraction": 1,
+      "elevationFraction": 1,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.00274611857590037
+    }
+  ]
+}

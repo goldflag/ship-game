@@ -140,7 +140,7 @@ export function SettingsDialog({ settings, bindings, audioSettings, hudSettings,
     </div>
     <footer className="settings-footer">
       {section === 'keys' && <div className={`keybinding-status ${invalid ? 'keybinding-error' : ''}`} role="status" aria-live="polite">
-        {listening && !invalid ? `Press a key for ${INPUT_ACTIONS.find(entry => entry.id === listening.action)!.label.toLowerCase()}.` : notice || 'Your bindings are saved in this browser.'}
+        {listening && !invalid ? `Press a key for ${INPUT_ACTIONS.find(entry => entry.id === listening.action)!.label.toLowerCase()}.` : notice || 'Weapon groups follow the HUD order for each ship: main guns, secondaries, torpedoes, then depth charges. Bindings are saved in this browser.'}
       </div>}
       <button className="secondary-button" data-sound="back" onClick={onClose}>Back to menu <kbd>Esc</kbd></button>
     </footer>

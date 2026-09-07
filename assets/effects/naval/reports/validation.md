@@ -1,8 +1,12 @@
 # Naval firing and shell effects
 
-## Water sheet splash revision — September 7, 2026
+## Water impact polish — September 7, 2026
 
-Water impacts now use ballistic water sheets, an outward crown, finer falling droplets and separate wind-carried mist. This replaces the spherical aerated-water volumes described below. See the [current captures, animation and validation](../../../reviews/water-impact/README.md). Previous images and recipes remain historical evidence.
+Shell splashes now form dense ballistic water bodies with irregular breakup, fine spray, a low crown and returning-water foam. This supersedes the sheet and spherical-volume revisions below. See the [current animation, lighting checks and paired GPU measurements](../../../reviews/water-impact/polish/README.md). Earlier captures remain historical evidence.
+
+## Muzzle smoke thinning — September 7, 2026
+
+Firing smoke now loses density after cooling, erodes into wisps and is mostly gone within about three seconds. The plume has a narrower trailing lobe and faster, broader leading gas. See the [matched frames, GPU fade measurements and validation](muzzle-dissipation/README.md). Earlier recipes and captures below remain historical evidence.
 
 ## Shell subtlety follow-up — September 6, 2026
 

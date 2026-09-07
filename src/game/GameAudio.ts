@@ -1,3 +1,4 @@
+import { selectedWeapon } from '../ships/weaponGroups';
 import type { CombatSimulation } from '../simulation/combat';
 import type { Battery, Vec3 } from '../ships/blueprint';
 import { CombatAudioEvents, SOUND_IDS, sanitizeAudio, spatialMix, type AudioBus, type AudioSettings, type SoundId } from './audio';
@@ -121,7 +122,7 @@ export class GameAudio {
   reset(simulation: CombatSimulation): void {
     this.stopEffects(); this.events.reset(simulation.events); this.reloading.clear(); this.order = undefined;
   }
-  update(simulation: CombatSimulation, order: number, battery: Battery, listener: Vec3, right: Vec3): void {
+  update(simulation: CombatSimulation, order: number, battery: Battery, listener: Vec3, right: Vec3, weaponGroupId?: string): void {
     this.listener = listener; this.right = right;
     const cues = this.events.consume(simulation.events, simulation.tick);
     if (!this.paused && !this.inPort) {
@@ -129,7 +130,8 @@ export class GameAudio {
       if (this.order !== undefined && this.order !== order) this.play('telegraph', 'interface', .4);
       let ready = false;
       simulation.player.mounts.forEach(mount => {
-        if (this.reloading.get(mount.id) && mount.reload <= 0 && mount.status === 'ready' && simulation.definition.mounts.find(m => m.id === mount.id)?.battery === battery) ready = true;
+        const definition = simulation.definition.mounts.find(m => m.id === mount.id);
+        if (this.reloading.get(mount.id) && mount.reload <= 0 && mount.status === 'ready' && definition && selectedWeapon(definition.battery, definition.weapon, battery, weaponGroupId)) ready = true;
         this.reloading.set(mount.id, mount.reload > 0);
       });
       if (ready) this.play('reload', 'interface', .35);

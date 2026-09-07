@@ -67,10 +67,23 @@ async function frameHarness() {
     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
-  }) as { frame(time: number): Promise<void>; setInPort(inPort: boolean): void; toggleBinoculars(): void; toggleShellFollow(): void; shellFollow: ShellFollow;
+  }) as { frame(time: number, warmingUp?: boolean): Promise<void>; setInPort(inPort: boolean): void; toggleBinoculars(): void; toggleShellFollow(): void; shellFollow: ShellFollow;
     manualAim: boolean; currentAim: number[]; paused: boolean; inspecting: boolean };
   return { game, simulation, playerView, targetView, camera, rig, helm, wakePositions, focusPositions, gunAimFrames };
 }
+
+test('render warmup draws without advancing combat or starting a second animation loop', async () => {
+  const { game, simulation } = await frameHarness();
+  const before = structuredClone(simulation.ship);
+  let renders = 0, scheduled = 0;
+  Object.assign(game, { pipeline: { render() { renders++; } }, scheduleFrame() { scheduled++; } });
+  for (let i = 0; i < 12; i++) await game.frame(10000 + i * 1000, true);
+  expect(simulation.ship).toEqual(before);
+  expect(renders).toBe(12); expect(scheduled).toBe(0);
+  await game.frame(21020);
+  expect(simulation.ship.tick).toBeGreaterThan(before.tick);
+  expect(scheduled).toBe(1);
+});
 
 test('map and port transitions restore their own absorption after underwater attenuation', async () => {
   const { game, simulation } = await frameHarness();
@@ -173,6 +186,32 @@ test('firing enters shell view without feeding its camera into aim, freezes on p
   expect(rig.binoculars).toBe(false);
 });
 
+test('death exits binoculars without a surviving teammate and prevents scope reentry', async () => {
+  const { game, simulation, rig, camera, playerView } = await frameHarness();
+  await game.frame(16);
+  game.toggleBinoculars();
+  await game.frame(32);
+  expect(rig.binoculars).toBe(true);
+  simulation.player.damage.sunk = true;
+  await game.frame(48);
+  expect(rig.binoculars).toBe(false);
+  expect(camera.fov).toBeCloseTo(52);
+  expect(playerView.root.visible).toBe(true);
+  game.toggleBinoculars();
+  expect(rig.binoculars).toBe(false);
+});
+
+test('shell-follow cannot restore binoculars after player death', async () => {
+  const { game, simulation, rig, camera } = await frameHarness();
+  await game.frame(16);
+  game.toggleBinoculars();
+  rig.setShellView({ position: [0, 100, 0], velocity: [0, 0, -100] });
+  simulation.player.damage.sunk = true;
+  await game.frame(32);
+  expect(rig.binoculars).toBe(false);
+  expect(camera.fov).toBeCloseTo(52);
+});
+
 test('target inspection follows the interpolated underway target and resets without a streak', async () => {
   const { game, simulation, targetView, focusPositions } = await frameHarness();
   simulation.targetUnderway = true;
@@ -258,6 +297,30 @@ test('gun circles follow the displayed barrels between simulation ticks in rolli
       expect(actual[i].status).toBe(simulation.player.mounts[i].status);
     }
   }
+});
+
+for (const fps of [60, 144]) test(`a stationary binocular sight has no abrupt vertical gun-circle jumps as the ship bobs at ${fps} fps`, async () => {
+  const { game, simulation, playerView, camera, rig, helm, gunAimFrames } = await frameHarness();
+  helm.throttle = 0; simulation.ship.speed = 0; playerView.snap();
+  Object.assign(simulation.sea, { amplitudeM: .96, windMps: 0 });
+  Object.assign(rig, { scopeMagnification: 24 });
+  game.manualAim = true;
+  rig.aimAt([5000, .5, -2000], playerView.motion);
+  game.toggleBinoculars();
+  let time = 0;
+  for (let frame = 0; frame < 1200; frame++) await game.frame(time += 1000 / 60);
+  let previousY: number | undefined, maxJump = 0, minHeave = Infinity, maxHeave = -Infinity;
+  for (let frame = 0; frame < fps * 5; frame++) {
+    await game.frame(time += 1000 / fps);
+    const point = gunAimFrames.at(-1)!.points[0];
+    const screen = projectGunAim(new Vector3(...point.point), camera, 1440, 900);
+    expect(screen.edge).toBe(false);
+    if (previousY !== undefined) maxJump = Math.max(maxJump, Math.abs(screen.y - previousY));
+    previousY = screen.y;
+    minHeave = Math.min(minHeave, playerView.motion.y); maxHeave = Math.max(maxHeave, playerView.motion.y);
+  }
+  expect(maxHeave - minHeave).toBeGreaterThan(.01);
+  expect(maxJump).toBeLessThan(1);
 });
 
 test('repositioning for port and launch clears the old ship poses', async () => {

@@ -1,6 +1,6 @@
 /* Fleet action: an open sea, a centered sight, and edge-mounted naval instruments. */
 .fleet-hud { --fleet-active:#86e4c5; --fleet-gold:#e8c56c; --fleet-muted:#c1d0d4; --fleet-line:#c9dce04a; --fleet-edge:24px; --fleet-bottom:20px; --chart-limit:min(400px, 31cqw, 68cqh); --chart-width:calc(var(--chart-limit) * var(--map-factor)); position:absolute; inset:0; pointer-events:none; color:#f0f5f3; font-size:12px; font-variant-numeric:tabular-nums; text-shadow:0 2px 4px #07131bea; transition:opacity .18s; }
-.fleet-hud-hidden > :not(.fleet-sight),
+.fleet-hud-hidden > :not(.fleet-sight-optics),
 .fleet-hud-hidden .fleet-scope-readout { opacity:0; visibility:hidden; }
 .fleet-hud button { pointer-events:auto; }
 .fleet-hud button:focus-visible { outline:2px solid var(--fleet-active); outline-offset:3px; }
@@ -75,7 +75,7 @@
 .fleet-shell-status { position:absolute; top:88px; left:50%; transform:translateX(-50%); display:grid; gap:3px; text-align:center; }
 .fleet-shell-status strong { color:var(--fleet-active); font:500 20px 'Barlow Condensed',sans-serif; }
 .fleet-shell-status span { color:#f0f5f3; font-size:11px; }
-.fleet-turrets { display:flex; gap:7px; justify-content:center; margin-bottom:11px; color:var(--fleet-muted); }
+.fleet-turrets { display:flex; flex-wrap:wrap; gap:12px 7px; justify-content:center; margin-bottom:11px; color:var(--fleet-muted); }
 .fleet-mount { position:relative; width:30px; height:34px; flex-shrink:1; min-width:20px; }
 .fleet-mount>svg { width:100%; height:30px; fill:none; stroke:#d5e5e542; stroke-width:1.4; }
 .fleet-mount .fleet-reload-progress { stroke:currentColor; stroke-width:2; }
@@ -108,16 +108,13 @@
 .fleet-weapon-slot:disabled { cursor:default; opacity:.5; }
 .fleet-slot-label { position:absolute; top:5px; left:0; right:0; text-align:center; font:500 9px/1 'Barlow Condensed',sans-serif; color:#d0dedc; }
 .fleet-ammo-glyph { width:48px; height:48px; }
-.fleet-optics-glyph { width:38px; height:38px; }
-.fleet-weapon-slot>svg:not(.fleet-ammo-glyph):not(.fleet-optics-glyph) { width:32px; height:32px; }
+.fleet-weapon-slot>svg:not(.fleet-ammo-glyph) { width:32px; height:32px; }
 .fleet-weapon-slot .fleet-ammo-count { position:absolute; right:5px; bottom:4px; font:500 20px/1 'Barlow Condensed',sans-serif; color:#f0f5f3; }
 .fleet-weapon-slot>kbd { position:absolute; top:calc(100% + 4px); left:50%; transform:translateX(-50%); background:transparent; border:0; color:var(--fleet-muted); min-width:23px; font-size:11px; text-shadow:inherit; white-space:nowrap; }
 .fleet-weapon-slot[aria-pressed=true]>kbd { background:transparent; color:var(--fleet-active); }
-.fleet-utility-slot { margin-left:7px; }
 .fleet-slot-cooldown { position:absolute; inset:17px 0 auto; text-align:center; background:transparent; color:#e0c58d; font:500 16px/1 'Barlow Condensed',sans-serif; }
 .fleet-slot-cooldown small { font-size:10px; margin-left:2px; }
 .fleet-weapon-slot:has(.fleet-slot-cooldown) .fleet-ammo-glyph { opacity:.3; }
-.fleet-slot-value { position:absolute; bottom:4px; right:6px; color:var(--fleet-active); font:500 16px/1 'Barlow Condensed',sans-serif; }
 
 .fleet-map-area { position:absolute; right:0; bottom:0; width:var(--chart-width); }
 .navigation-chart { position:relative; aspect-ratio:1; background:transparent; border-top:1px solid #c9dce066; border-left:1px solid #c9dce066; color:#d5e5e5; }
@@ -170,7 +167,6 @@
   .fleet-slot-label { font-size:8px; }
   .fleet-ammo-glyph { width:42px; height:42px; }
   .fleet-weapon-slot .fleet-ammo-count { font-size:18px; }
-  .fleet-utility-slot { margin-left:3px; }
 }
 @container hud (max-width:600px) {
   .fleet-hud { --fleet-edge:12px; --fleet-bottom:12px; --chart-limit:50cqw; }
@@ -290,15 +286,11 @@
 .fleet-armament-expanded { width:440px; }
 @container hud (max-width:900px) and (min-width:601px) {
   .fleet-armament-expanded { left:204px; right:calc(var(--chart-width) + 12px); width:auto; transform:none; }
-  .fleet-armament-expanded .fleet-weapon-row { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); row-gap:26px; }
-  .fleet-armament-expanded .fleet-utility-slot { margin-left:0; }
-  .fleet-armament-expanded .fleet-fire-slot { grid-column:2 / -1; }
+
   .fleet-armament-expanded .fleet-turrets { gap:4px; }
 }
 @container hud (max-width:600px) {
   .fleet-armament-expanded { width:calc(100cqw - 24px); max-width:380px; }
-  .fleet-armament-expanded .fleet-weapon-row { gap:4px; }
-  .fleet-armament-expanded .fleet-utility-slot { margin-left:0; }
 }
 
 /* The sailing HUD uses outlines and text instead of surface fills. */
@@ -316,3 +308,6 @@
 .fleet-spectator-controls { display:flex; gap:6px; min-width:0; }
 .fleet-spectator-controls select { min-width:0; flex:1; }
 .fleet-spectator-controls button { flex-shrink:0; }
+
+/* Carrier guns and squadron controls share one flowing stack. */
+.air-squadron-command .fleet-armament { position:relative; inset:auto; transform:none; width:100%; max-width:440px; margin:0 auto 12px; }

@@ -1,0 +1,205 @@
+$ bun scripts/ships/pipeline.ts build yamato
+Building yamato (18e762f1354f)
+build.py completed; log in /Users/bill/orca/workspaces/ship-game/handfish/.build/ships/yamato
+export.py completed; log in /Users/bill/orca/workspaces/ship-game/handfish/.build/ships/yamato
+thumbnail.py completed; log in /Users/bill/orca/workspaces/ship-game/handfish/.build/ships/yamato
+Baked port thumbnail: /Users/bill/orca/workspaces/ship-game/handfish/public/models/yamato-thumbnail.png
+measure passed
+authored-capture passed
+comparison-sheets passed
+Local review page: /ship-reference/yamato/index.html
+{
+  "contentHash": "18e762f1354f7f5b2036b7fc94b4c149c6762b704b1df30a524de85f796bf7b5",
+  "hullBounds": [
+    [
+      -19.450002670288086,
+      -10.399999618530273,
+      -131.5
+    ],
+    [
+      19.450000762939453,
+      9.399999618530273,
+      131.5
+    ]
+  ],
+  "mounts": [
+    {
+      "id": "main-1",
+      "measuredPivot": [
+        0.000003835293227893999,
+        3.5999999046325684,
+        -50.79999923706055
+      ],
+      "barrels": 3,
+      "articulationChecks": 9
+    },
+    {
+      "id": "main-2",
+      "measuredPivot": [
+        0.0000021139412638149224,
+        6.800000190734863,
+        -28
+      ],
+      "barrels": 3,
+      "articulationChecks": 9
+    },
+    {
+      "id": "main-3",
+      "measuredPivot": [
+        -0.000004884714144282043,
+        4.699999809265137,
+        64.69999694824219
+      ],
+      "barrels": 3,
+      "articulationChecks": 9
+    },
+    {
+      "id": "secondary-forward",
+      "measuredPivot": [
+        0,
+        13,
+        -10
+      ],
+      "barrels": 3,
+      "articulationChecks": 9
+    },
+    {
+      "id": "secondary-aft",
+      "measuredPivot": [
+        -0.000003533301651259535,
+        11.600000381469727,
+        46.79999923706055
+      ],
+      "barrels": 3,
+      "articulationChecks": 9
+    },
+    {
+      "id": "ha--1-1",
+      "measuredPivot": [
+        12.09999942779541,
+        13.300000190734863,
+        9.000000953674316
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "ha--1-2",
+      "measuredPivot": [
+        12.099998474121094,
+        13.300000190734863,
+        19.5
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "ha--1-3",
+      "measuredPivot": [
+        12.099998474121094,
+        13.300000190734863,
+        30
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "ha--1-4",
+      "measuredPivot": [
+        7.299999237060547,
+        15.100000381469727,
+        13.200000762939453
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "ha--1-5",
+      "measuredPivot": [
+        7.2999982833862305,
+        15.100000381469727,
+        24.200000762939453
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "ha--1-6",
+      "measuredPivot": [
+        7.299997806549072,
+        15.100000381469727,
+        33.70000076293945
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "ha-1-1",
+      "measuredPivot": [
+        -12.100001335144043,
+        13.300000190734863,
+        8.999999046325684
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "ha-1-2",
+      "measuredPivot": [
+        -12.10000228881836,
+        13.300000190734863,
+        19.5
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "ha-1-3",
+      "measuredPivot": [
+        -12.10000228881836,
+        13.300000190734863,
+        30
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "ha-1-4",
+      "measuredPivot": [
+        -7.30000114440918,
+        15.100000381469727,
+        13.19999885559082
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "ha-1-5",
+      "measuredPivot": [
+        -7.300002098083496,
+        15.100000381469727,
+        24.200000762939453
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "ha-1-6",
+      "measuredPivot": [
+        -7.300002574920654,
+        15.100000381469727,
+        33.70000076293945
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    }
+  ],
+  "torpedoTubes": [],
+  "depthChargeLaunchers": [],
+  "meshes": 154,
+  "primitives": 407,
+  "triangles": 283214,
+  "bytes": 12108348,
+  "result": "passed",
+  "historicalAccuracy": "not certified; see reference register and discrepancy report"
+}

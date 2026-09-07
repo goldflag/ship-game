@@ -1,0 +1,94 @@
+{
+  "centerClear": true,
+  "guns": {
+    "bottom": 798.24609375,
+    "height": 114.75,
+    "left": 406.998046875,
+    "right": 736.998046875,
+    "top": 683.49609375,
+    "width": 330,
+    "x": 406.998046875,
+    "y": 683.49609375
+  },
+  "size": [
+    1189,
+    916
+  ],
+  "slots": [
+    {
+      "bounds": {
+        "bottom": 780.24609375,
+        "height": 48,
+        "left": 442.248046875,
+        "right": 496.998046875,
+        "top": 732.24609375,
+        "width": 54.75,
+        "x": 442.248046875,
+        "y": 732.24609375
+      },
+      "name": "Select 5-inch/38 Mk 21 open mount \u00b7 1728 shells \u00b7 1"
+    },
+    {
+      "bounds": {
+        "bottom": 780.24609375,
+        "height": 48,
+        "left": 502.248046875,
+        "right": 556.998046875,
+        "top": 732.24609375,
+        "width": 54.75,
+        "x": 502.248046875,
+        "y": 732.24609375
+      },
+      "name": "Select 1.1-inch/75 quadruple mount \u00b7 7680 shells \u00b7 2"
+    },
+    {
+      "bounds": {
+        "bottom": 780.24609375,
+        "height": 48,
+        "left": 562.248046875,
+        "right": 616.998046875,
+        "top": 732.24609375,
+        "width": 54.75,
+        "x": 562.248046875,
+        "y": 732.24609375
+      },
+      "name": "Select 20 mm Oerlikon single mount \u00b7 32400 shells \u00b7 3"
+    },
+    {
+      "bounds": {
+        "bottom": 780.24609375,
+        "height": 48,
+        "left": 622.248046875,
+        "right": 676.998046875,
+        "top": 732.24609375,
+        "width": 54.75,
+        "x": 622.248046875,
+        "y": 732.24609375
+      },
+      "name": "Toggle binocular aiming \u00b7 Shift"
+    },
+    {
+      "bounds": {
+        "bottom": 780.24609375,
+        "height": 48,
+        "left": 682.248046875,
+        "right": 736.998046875,
+        "top": 732.24609375,
+        "width": 54.75,
+        "x": 682.248046875,
+        "y": 732.24609375
+      },
+      "name": "Fire aligned guns \u00b7 Left mouse or Q"
+    }
+  ],
+  "squadrons": {
+    "bottom": 903.99609375,
+    "height": 70.5,
+    "left": 210,
+    "right": 933.99609375,
+    "top": 833.49609375,
+    "width": 723.99609375,
+    "x": 210,
+    "y": 833.49609375
+  }
+}

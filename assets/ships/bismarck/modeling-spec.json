@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "revision": "independent-1941-04",
-  "configuration": "24 May 1941; no Tirpitz additions; standard-draft display",
+  "configuration": "May 1941 equipment reconstruction with March–May 1941 Baltic paint; standard-draft display",
   "authoringBoundary": "blueprint.json and original catalog polygons only. Reference renderer outputs raster evidence; production geometry never consumes game offsets or attachment transforms.",
   "coordinates": {
     "runtime": "metres; +X starboard, +Y up, -Z bow",
@@ -107,7 +107,7 @@
         76.35
       ],
       "toleranceM": 0.03,
-      "note": "Build checks exact registration; all absolute positions inherit \u00b10.5 m frame datum uncertainty."
+      "note": "Build checks exact registration; all absolute positions inherit ±0.5 m frame datum uncertainty."
     },
     {
       "selector": "mounts[main].position.y",
@@ -185,7 +185,7 @@
       ],
       "basis": "inferred",
       "valueLocation": "blueprint.json",
-      "note": "Standard displacement selected from source; HP, compartment usable volume, reserve threshold (10000 m\u00b3) and handling are gameplay calibration. No derived hydrostatics claim."
+      "note": "Standard displacement selected from source; HP, compartment usable volume, reserve threshold (10000 m³) and handling are gameplay calibration. No derived hydrostatics claim."
     },
     {
       "selector": "build.py: bridge galleries, conning support, funnel cap/platforms, directors, aircraft handling, AA and deck fittings",
@@ -463,10 +463,10 @@
     192.55
   ],
   "review": {
-    "title": "Bismarck \u00b7 24 May 1941",
-    "intro": "Independent reconstruction at a 9.33 m standard draft. Compare the exported ship with GameModels3D and historical drawings, using fixed cameras and a single scale registration.",
-    "historicalCredit": "Manuel P. Gonz\u00e1lez L\u00f3pez / KBismarck.com",
-    "historicalLabel": "Historical reconstruction \u00b7 Gonz\u00e1lez L\u00f3pez \u00b7 uniform scale, keel registration",
+    "title": "Bismarck · Baltic paint, March–May 1941",
+    "intro": "Independent May 1941 equipment reconstruction at a 9.33 m standard draft, wearing the requested earlier Baltic trials paint. The retained 24 May drawing below supports geometry, not this earlier paint scheme. Compare the exported ship with GameModels3D and historical drawings using fixed cameras and a single scale registration.",
+    "historicalCredit": "Manuel P. González López / KBismarck.com",
+    "historicalLabel": "Historical reconstruction · González López · uniform scale, keel registration",
     "limits": "Body-plan offsets and exact bridge/gunhouse dimensions remain estimates. The fourth pass corrects secondary roof profiles, separates the navigation/conning bridge and fits transverse armor within the hull. The reference game retains its own proportions and unknown load; export checks do not certify historical accuracy.",
     "images": [
       {
@@ -477,33 +477,33 @@
       {
         "file": "proteccion7.gif",
         "alt": "KBismarck armor section schematic at frames 174.3 and 202.7",
-        "caption": "Historical technical reconstruction \u00b7 unscaled schematic, no forced overlay",
+        "caption": "Historical technical reconstruction · unscaled schematic, no forced overlay",
         "url": "https://www.kbismarck.com/proteccioni.html"
       },
       {
         "file": "380mmp.gif",
         "alt": "Main battery ammunition and handling room diagram",
-        "caption": "Propellant magazines above shell rooms \u00b7 simplified envelopes in the blueprint"
+        "caption": "Propellant magazines above shell rooms · simplified envelopes in the blueprint"
       },
       {
         "file": "propulsion2.gif",
         "alt": "Technical reconstruction of the boiler and turbine room order",
-        "caption": "Machinery sequence \u00b7 approximate envelopes follow sections VIII, X, XI and XIII"
+        "caption": "Machinery sequence · approximate envelopes follow sections VIII, X, XI and XIII"
       },
       {
         "file": "photo023.jpg",
         "alt": "Historical Bismarck photograph retained as appearance evidence",
-        "caption": "Historical photograph \u00b7 see source register for fit and date limits"
+        "caption": "Historical photograph · see source register for fit and date limits"
       },
       {
         "file": "photo076.jpg",
         "alt": "Historical Bismarck photograph retained as appearance evidence",
-        "caption": "Historical photograph \u00b7 see source register for fit and date limits"
+        "caption": "Historical photograph · see source register for fit and date limits"
       },
       {
         "file": "bundesarchiv-rm25-231-0004.jpg",
         "alt": "Original Bundesarchiv profile excerpt showing deck levels and bridge/funnel arrangement",
-        "caption": "BArch RM 25/231, image 0004 \u00b7 unscaled excerpt; fit revision unknown"
+        "caption": "BArch RM 25/231, image 0004 · unscaled excerpt; fit revision unknown"
       }
     ],
     "sectionReference": "proteccion7.gif",

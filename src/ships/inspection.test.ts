@@ -42,7 +42,7 @@ test('inspection lists exactly the armor, mounts, modules and compartments used 
     const def = shipPreset(id), entries = inspectionEntries(def);
     const structureCount=def.structuralPlating?1+(def.structures?.length??0):0;
     expect(entriesForMode(entries, 'armor').length).toBe(structureCount + def.armor.length + def.mounts.filter(m => !def.armor.some(a => a.plate?.mountId === m.id)).length);
-    expect(entriesForMode(entries, 'internals').length).toBe(def.modules.length + def.compartments.length);
+    expect(entriesForMode(entries, 'internals').length).toBe(def.modules.length + def.mounts.length);
     expect(entriesForMode(entries, 'exterior')).toEqual([]);
     if (def.armor.length) {
       const armor = entries.find(e => e.id === `armor:${def.armor[0].id}`)!;
@@ -68,7 +68,7 @@ test('inspection filters and highlights without changing combat state and follow
   view.setMode('internals', 'module:engine-port'); view.update(sim.player);
   expect(view.root.children.filter(c => c.visible).map(c => c.userData.inspectionId)).toEqual(['module:engine-port']);
   view.setMode('internals'); view.update(sim.player);
-  expect(view.root.children.filter(c => c.visible).length).toBe(def.modules.length + def.compartments.length);
+  expect(view.root.children.filter(c => c.visible).length).toBe(def.modules.length + def.mounts.length);
   expect(JSON.stringify(sim.player)).toBe(before);
   view.setMode('armor', 'module:engine-port');
   expect(view.selectedId).toBeUndefined();
@@ -106,18 +106,20 @@ test('armor picking follows the ship transform, finds the nearest layer and excl
   expect(view.pick(ray)).toBeUndefined();
 });
 
-test('internals picking prefers modules over their enclosing compartments and highlights the hovered volume', () => {
+test('equipment and flooding picking stay separate and highlight the hovered volume', () => {
   const def = shipPreset('bismarck'), sim = new CombatSimulation(def), view = new ShipInspection(def);
   const before = JSON.stringify(sim.player);
   view.setMode('internals'); view.update(sim.player);
   const engine = def.modules.find(m => m.kind === 'engine')!, [x, y, z] = engine.center;
   const ray = new Raycaster(new Vector3(x, y + 50, z), new Vector3(0, -1, 0));
   expect(view.pick(ray)?.id).toBe(`module:${engine.id}`);
+  view.setMode('compartments'); view.update(sim.player);
   // The shell room has no module of its own; the magazine module directly beneath it must not hijack the pick.
   const shellRoom = def.compartments.find(c => c.id === 'anton-shell-room')!;
   const picked = view.pick(new Raycaster(new Vector3(shellRoom.center[0], shellRoom.center[1] + 50, shellRoom.center[2]), new Vector3(0, -1, 0)));
   expect(picked?.kind).toBe('compartment');
   expect(Math.abs(picked!.center[2] - shellRoom.center[2])).toBeLessThan(picked!.size[2] / 2);
+  view.setMode('internals'); view.update(sim.player);
   view.setHovered(`module:${engine.id}`); view.update(sim.player);
   expect(view.hoveredId).toBe(`module:${engine.id}`);
   const group = view.root.children.find(c => c.userData.inspectionId === `module:${engine.id}`)!;
@@ -159,5 +161,37 @@ test('hover highlights and outlines only its opaque plate, then clears without c
   view.setHovered(id); view.setMode('internals'); view.update(sim.player);
   expect(view.hoveredId).toBeUndefined();
   expect(group.children[1].visible).toBe(false);
+  expect(JSON.stringify(sim.player)).toBe(before);
+});
+
+
+test('KGV equipment view hides flooding spaces and includes every damageable gun', () => {
+  const def = shipPreset('king-george-v'), sim = new CombatSimulation(def), view = new ShipInspection(def);
+  view.setMode('internals'); view.update(sim.player);
+  const visible = view.root.children.filter(c => c.visible && c.userData.inspectionId);
+  expect(visible.some(c => c.userData.inspectionId.startsWith('compartment:'))).toBe(false);
+  for (const mount of def.mounts) expect(visible.some(c => c.userData.inspectionId === `weapon:${mount.id}`)).toBe(true);
+});
+
+test('equipment guns follow combat damage and train, and flooding remains independently selectable', () => {
+  const def = shipPreset('king-george-v'), sim = new CombatSimulation(def), view = new ShipInspection(def);
+  const id = `weapon:${def.mounts[0].id}`;
+  sim.player.mounts[0].hp = 0;
+  sim.player.mounts[0].train = .4;
+  const before = JSON.stringify(sim.player);
+  view.setMode('internals', id); view.update(sim.player);
+  const gun = view.root.children.find(c => c.userData.inspectionId === id)!;
+  expect(gun.visible).toBe(true);
+  expect(gun.rotation.y).toBeCloseTo(-(def.mounts[0].bearingDeg * Math.PI / 180 + .4));
+  expect(((gun.children[0] as Mesh).material as import('three/webgpu').MeshBasicMaterial).color.getHexString()).toBe('d36b4f');
+  const center = gun.position;
+  expect(view.pick(new Raycaster(new Vector3(center.x, center.y + 50, center.z), new Vector3(0, -1, 0)))?.id).toBe(id);
+  view.setMode('compartments'); view.update(sim.player);
+  expect(view.selectedId).toBeUndefined();
+  expect(gun.visible).toBe(false);
+  expect(view.root.children.filter(c => c.visible && c.userData.inspectionId)).toHaveLength(def.compartments.length);
+  const roomId = `compartment:${def.compartments[0].id}`;
+  view.setMode('compartments', roomId); view.update(sim.player);
+  expect(view.root.children.filter(c => c.visible && c.userData.inspectionId).map(c => c.userData.inspectionId)).toEqual([roomId]);
   expect(JSON.stringify(sim.player)).toBe(before);
 });

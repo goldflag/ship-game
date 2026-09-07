@@ -83,6 +83,8 @@ export interface EffectParticle {
   heat: number;
   cooling: number;
   density: number;
+  /** Time scale for thinning after cooling; zero keeps the recipe's density. */
+  dissipationTime: number;
   seed: number;
   opacity: number;
   drag: number;
@@ -129,7 +131,9 @@ export class EffectParticlePool {
       this.sphere = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4).setUsage(THREE.DynamicDrawUsage);
       this.volume = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4).setUsage(THREE.DynamicDrawUsage);
       this.tint = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 3), 3).setUsage(THREE.DynamicDrawUsage);
-      this.progress = new THREE.InstancedBufferAttribute(new Float32Array(capacity), 1).setUsage(THREE.DynamicDrawUsage);
+      // Pack lifetime and density progress together to stay within WebGPU's
+      // eight vertex-buffer limit for the volume's instanced plane.
+      this.progress = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 2), 2).setUsage(THREE.DynamicDrawUsage);
       geometry.setAttribute('effectSphere', this.sphere);
       geometry.setAttribute('effectVolume', this.volume);
       geometry.setAttribute('effectTint', this.tint);
@@ -145,7 +149,7 @@ export class EffectParticlePool {
     this.mesh.frustumCulled = false;
     this.particles = Array.from({ length: capacity }, () => ({ position: new THREE.Vector3(), velocity: new THREE.Vector3(),
       color: new THREE.Color(), age: 0, life: 0, size: 1, growth: 0, growthDecay: 0, diffusion: 0,
-      heat: 0, cooling: 1, density: 4, seed: 0, opacity: 1, drag: 0, gravity: 0,
+      heat: 0, cooling: 1, density: 4, dissipationTime: 0, seed: 0, opacity: 1, drag: 0, gravity: 0,
       wind: 0, angle: 0, spin: 0, stretch: 1, fadeIn: 0, align: 'billboard', waterline: false, surfaceY: 0, distance: 0 }));
   }
 
@@ -153,7 +157,7 @@ export class EffectParticlePool {
     const p = this.particles[this.cursor++ % this.capacity];
     p.position.copy(position); p.velocity.set(0, 0, 0); p.color.setRGB(1, 1, 1);
     p.age = 0; p.life = 1; p.size = 1; p.growth = 0; p.opacity = 1;
-    p.growthDecay = 0; p.diffusion = 0; p.heat = 0; p.cooling = 1; p.density = 4;
+    p.growthDecay = 0; p.diffusion = 0; p.heat = 0; p.cooling = 1; p.density = 4; p.dissipationTime = 0;
     p.seed = (this.cursor * .61803398875 % 1) * 100;
     p.drag = 0; p.gravity = 0; p.wind = 0; p.angle = 0; p.spin = 0;
     p.stretch = 1; p.fadeIn = 0; p.align = 'billboard'; p.waterline = false; p.surfaceY = 0;
@@ -259,7 +263,10 @@ export class EffectParticlePool {
         this.sphere.setXYZW(index, p.position.x, p.position.y, p.position.z, size / 2);
         this.volume.setXYZW(index, p.age, p.seed, p.heat * (1 - smooth(p.age / p.cooling)), p.density);
         this.tint.setXYZ(index, p.color.r, p.color.g, p.color.b);
-        this.progress!.setX(index, t);
+        // Ease into thinning after the flash; approach empty gas continuously,
+        // well before storage expires. The same clock freezes on pause.
+        const dispersal = p.dissipationTime > 0 ? Math.max(0, p.age - p.cooling) / p.dissipationTime : 0;
+        this.progress!.setXY(index, t, 1 - Math.exp(-dispersal * dispersal));
       }
     });
     this.alpha.array.fill(0, this.active.length);

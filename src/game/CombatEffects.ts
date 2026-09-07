@@ -334,23 +334,25 @@ export class CombatEffects {
       p.opacity = .8; p.drag = 3;
     }
     // The same evolving 3D density field cools from fire into propellant smoke.
-    // Few overlapping volumes avoid a stack of identical flat cotton-ball sprites.
+    // A narrower trailing lobe and a faster, broader leading lobe give the blast
+    // a direction. Different thinning times keep the whole plume from fading as one shell.
     for (let i = 0; i < 3; i++) {
       const p = this.smoke.emit(this.position, sourceId), angle = random() * Math.PI * 2;
-      const spread = random() * 6 * size;
-      p.position.addScaledVector(this.direction, (4 + i * 10) * size)
+      const spread = random() * (2 + i * 3) * size;
+      p.position.addScaledVector(this.direction, (3 + i * 9) * size)
         .addScaledVector(this.across, Math.cos(angle) * spread)
         .addScaledVector(this.vertical, Math.sin(angle) * spread);
-      p.velocity.copy(this.direction).multiplyScalar((45 + random() * 32) * size)
+      p.velocity.copy(this.direction).multiplyScalar((38 + i * 18 + random() * 14) * size)
         .addScaledVector(this.across, Math.cos(angle) * (5 + random() * 8) * size)
         .addScaledVector(this.vertical, Math.sin(angle) * (3 + random() * 6) * size);
       p.velocity.y += 2;
-      p.size = (14 + random() * 9) * size; p.growth = (48 + random() * 24) * size; p.growthDecay = 2.6;
+      p.size = (9 + i * 3 + random() * 7) * size; p.growth = (32 + i * 4 + random() * 16) * size; p.growthDecay = 2.2;
       p.diffusion = (.9 + random() * .6) * size;
-      p.life = 4.5 + random() * 1.5; p.drag = 2.3 + random() * .35;
+      p.life = 3.3 + random() * .9; p.drag = 2 + random() * .35;
       p.gravity = -1 - random() * 1.2; p.wind = .5 + random() * .25;
       p.heat = .85 + random() * .15; p.cooling = (.62 + random() * .2) * Math.sqrt(size);
-      p.opacity = .92; p.density = 3.2 + random() * 1.1;
+      p.dissipationTime = .85 + i * .08;
+      p.opacity = .86; p.density = 2.4 + random() * .7;
       p.color.copy(SMOKE).multiplyScalar(.88 + random() * .16);
     }
     if (scale > .6 && this.position.y < 22) {

@@ -37,7 +37,7 @@ export class InspectionHover {
     if (this.inspection !== inspection) this.inspection?.setHovered(undefined);
     this.inspection = inspection;
     const point = this.pointer;
-    const hoverable = inspection?.mode === 'armor' || inspection?.mode === 'internals';
+    const hoverable = inspection?.mode === 'armor' || inspection?.mode === 'internals' || inspection?.mode === 'compartments';
     if (!inspection || !hoverable || !point || document.hidden || document.elementFromPoint(point.x, point.y) !== this.canvas) {
       this.publish(null); return;
     }

@@ -18,7 +18,7 @@ describe('keyboard gameplay controls', () => {
     Object.defineProperty(globalThis, 'window', { configurable: true, value: events });
     Object.defineProperty(globalThis, 'document', { configurable: true, value: { querySelector: () => modal ? {} : null } });
     Object.defineProperty(globalThis, 'HTMLElement', { configurable: true, value: class {} });
-    actions = { pause: mock(), camera: mock(), recenter: mock(), hud: mock(), fullscreen: mock(), optics: mock(), battery: mock(), cursor: mock(), chartSize: mock(), shellFollow: mock(), shellType: mock(), depth: mock(), depthPreset: mock(), emergencyBlow: mock(), periscope: mock(), airOperations: mock() };
+    actions = { pause: mock(), camera: mock(), recenter: mock(), hud: mock(), fullscreen: mock(), optics: mock(), weaponGroup: mock(), cursor: mock(), chartSize: mock(), shellFollow: mock(), shellType: mock(), depth: mock(), depthPreset: mock(), emergencyBlow: mock(), periscope: mock(), airOperations: mock() };
     input = new InputController(actions, defaultKeybindings());
   });
   afterEach(() => {
@@ -168,16 +168,29 @@ describe('keyboard gameplay controls', () => {
     expect(actions.depth).toHaveBeenCalledTimes(2); expect(actions.emergencyBlow).toHaveBeenCalledTimes(1);
   });
 
+  test('all ten direct weapon keys dispatch fixed slots and respect repeat, pause and dialogs', () => {
+    for (const [index, digit] of Array.from('1234567890').entries()) {
+      key('keydown', `Digit${digit}`);
+      expect(actions.weaponGroup).toHaveBeenLastCalledWith(index);
+      key('keydown', `Digit${digit}`, { repeat: true });
+      key('keyup', `Digit${digit}`);
+    }
+    expect(actions.weaponGroup).toHaveBeenCalledTimes(10);
+    input.setEnabled(false); key('keydown', 'Digit3');
+    input.setEnabled(true); modal = true; key('keydown', 'Digit3');
+    expect(actions.weaponGroup).toHaveBeenCalledTimes(10);
+  });
+
   test('battery and chart bindings replace the new HUD defaults', () => {
     const bindings = defaultKeybindings();
-    bindings.mainBattery = ['KeyM', null]; bindings.secondaryBattery = ['KeyN', null];
+    bindings.weaponGroup1 = ['KeyM', null]; bindings.weaponGroup2 = ['KeyN', null];
     bindings.periscope = ['KeyI', null]; bindings.airOperations = ['KeyK', null];
     bindings.chartLarger = ['KeyP', null]; bindings.chartSmaller = ['KeyO', null];
     input.setBindings(bindings);
     for (const code of ['Digit1', 'Digit2', 'Equal', 'NumpadAdd', 'Minus', 'NumpadSubtract', 'KeyG']) key('keydown', code);
-    expect(actions.battery).not.toHaveBeenCalled(); expect(actions.chartSize).not.toHaveBeenCalled();
-    key('keydown', 'KeyM'); expect(actions.battery).toHaveBeenLastCalledWith('main');
-    key('keydown', 'KeyN'); expect(actions.battery).toHaveBeenLastCalledWith('secondary');
+    expect(actions.weaponGroup).not.toHaveBeenCalled(); expect(actions.chartSize).not.toHaveBeenCalled();
+    key('keydown', 'KeyM'); expect(actions.weaponGroup).toHaveBeenLastCalledWith(0);
+    key('keydown', 'KeyN'); expect(actions.weaponGroup).toHaveBeenLastCalledWith(1);
     key('keydown', 'KeyP'); expect(actions.chartSize).toHaveBeenLastCalledWith(1);
     key('keydown', 'KeyO'); expect(actions.chartSize).toHaveBeenLastCalledWith(-1);
   });

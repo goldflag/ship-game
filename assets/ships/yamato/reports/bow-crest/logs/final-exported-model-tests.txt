@@ -1,0 +1,27 @@
+bun test v1.3.3 (274e01c7)
+
+src/simulation/yamato.test.ts:
+(pass) Yamato has nine main guns with documented 3.50 metre adjacent bore spacing [1.83ms]
+(pass) a trained Yamato broadside fires nine distinct shells and debits three rounds per turret [1040.84ms]
+(pass) unsupported or fractional barrel counts cannot enter a compiled ship [7.45ms]
+(pass) both Yamato secondary triples clear the hull on a broadside and reload together [895.15ms]
+
+src/game/ShipView.test.ts:
+(pass) a turret disabled during a tick stops its rendered traverse and elevation immediately [142.93ms]
+(pass) liberty-cargo: exported guns follow full train/elevation/recoil and preserve appendage pivots [23.24ms]
+(pass) liberty-collier: exported guns follow full train/elevation/recoil and preserve appendage pivots [17.28ms]
+(pass) victory-cargo: exported guns follow full train/elevation/recoil and preserve appendage pivots [17.55ms]
+(pass) flower-corvette: exported guns follow full train/elevation/recoil and preserve appendage pivots [13.20ms]
+(pass) Baltimore exported hierarchy binds all 69 main, DP and Bofors muzzles through train, pitch and recoil [53.56ms]
+(pass) actual exported joints follow authoritative muzzle positions through rear traverse and recoil [55.39ms]
+(pass) Enterprise single and quadruple exported guns align at their traverse and elevation limits [45.71ms]
+(pass) Yamato center and outer barrels remain aligned through fore and aft traverse, elevation and recoil [91.94ms]
+(pass) fleet exteriors defer inspection geometry until a ship is inspected [324.87ms]
+(pass) fleet meshes reuse materials within each ship while inspection stays independent [317.49ms]
+(pass) VIIC dive planes, rudders and screws use the retained pivot hierarchy underwater [73.24ms]
+(pass) Fletcher gun and torpedo joints follow interpolated CPU poses on both broadsides and after reset [24.84ms]
+
+ 17 pass
+ 0 fail
+ 371 expect() calls
+Ran 17 tests across 2 files. [3.42s]
