@@ -20,14 +20,16 @@
 .fleet-sight { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#edf5f0d9; filter:drop-shadow(0 1px 2px #10232e); }
 .fleet-sight>svg { width:100%; display:block; }
 .fleet-sight-chase { width:38px; }
-.fleet-sight-optics { width:min(640px,78cqw,94cqh); }
-.fleet-scope-readout { position:absolute; top:calc(50% + min(110px,19cqh)); left:50%; transform:translateX(-50%); display:flex; align-items:baseline; gap:30px; white-space:nowrap; font:500 19px/1 'Barlow Condensed',sans-serif; }
+/* The lens stays in viewport pixels; compensate for the instrument layer's scale. */
+.fleet-sight-optics { width:calc((var(--binocular-width) - 4px) / var(--hud-scale,1)); height:180px; }
+.fleet-sight-optics>.fleet-scope-reticle { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:40px; height:min(180px,32cqw,40cqh); }
+.fleet-scope-readout { position:absolute; top:calc(50% + min(110px,19cqh,16cqw)); left:50%; transform:translateX(-50%); display:flex; align-items:baseline; gap:30px; white-space:nowrap; font:500 19px/1 'Barlow Condensed',sans-serif; }
 .fleet-scope-readout strong { font-weight:500; }
 .fleet-scope-readout small { font:400 10px 'Barlow',sans-serif; }
 .fleet-scope-readout>span>small { display:block; margin-top:6px; font-size:8px; color:var(--fleet-muted); }
 .fleet-capture-hint { position:absolute; top:calc(50% + 44px); left:50%; transform:translateX(-50%); padding:7px 13px; background:transparent; border:0; border-radius:2px; color:#f0f5f3; font-size:11px; white-space:nowrap; }
 .fleet-capture-hint span { margin-left:12px; color:var(--fleet-muted); font-size:10px; }
-.fleet-in-optics .fleet-capture-hint { top:calc(50% + min(110px,19cqh) + 56px); }
+.fleet-in-optics .fleet-capture-hint { top:calc(50% + min(110px,19cqh,16cqw) + 56px); }
 
 .fleet-ship { position:absolute; left:var(--fleet-edge); bottom:var(--fleet-bottom); width:240px; }
 .fleet-ship-silhouette { width:96px; height:24px; display:block; margin-bottom:5px; color:var(--fleet-active); filter:drop-shadow(0 2px 3px #07131b); }
@@ -193,7 +195,6 @@
   .fleet-shell-status strong { font-size:16px; }
   .fleet-turrets { gap:5px; }
   .fleet-mount { max-width:32px; }
-  .fleet-sight-optics { width:min(78cqw,94cqh); }
   .fleet-capture-hint { top:calc(50% + 36px); font-size:10px; }
   .fleet-capture-hint span { display:none; }
   .fleet-hud .gunnery { top:100px; left:12px; right:12px; width:auto; max-height:calc(100cqh - 112px); }
@@ -202,6 +203,8 @@
   .fleet-hud { --fleet-bottom:12px; }
   .fleet-compass { top:13px; }
   .fleet-top-actions { top:10px; }
+  .fleet-scope-readout { top:auto; bottom:calc(50% + 42px); }
+  .fleet-sight-optics>.fleet-scope-reticle { height:180px; clip-path:inset(32% 0); }
   .fleet-armament { padding-bottom:22px; }
   .fleet-turrets,.fleet-battery-heading { display:none; }
   .fleet-weapon-slot { height:48px; }
