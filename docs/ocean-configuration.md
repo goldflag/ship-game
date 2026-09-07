@@ -70,6 +70,33 @@ Pausing switches the ocean to fixed-step mode with zero elapsed time, allowing r
 
 The dev-only `/scripts/diagnostics/ship-wake.html` page runs the actual Game frame loop with controlled input and clock, then reads the native WebGPU wake buffers and foam coverage texture. It checks no wake at rest, foam 150 m behind the stern, widening with age, bounded displacement, retention through turns and camera orbit, exact field preservation while paused, fading after stopping, and clearing on return to port. Results are exposed as `window.wakeDiagnostic`; `?quality=medium` or `?quality=ultra` select the other field resolutions. Private buffer inspection is specific to Water Pro 3.5.1. Fleet regression tests additionally cover 60 independent trails, a stopped player, submerged ships, per-ship teleports, tile reassignment, the native generator limit, fleet replacement, and port cleanup.
 
+## Night and sunrise lighting
+
+The numeric time slider now blends the authored night, dawn/dusk and map fog
+colors by solar elevation. The original implementation changed the sun position
+but retained the map's daytime fog. Hemisphere fill retains 50% of the map/weather
+daylight setting at night and reaches full strength at 18° elevation. This keeps
+ship details readable while preserving a darker sea and sky.
+
+`Game.updateSceneLighting` supplies the same active celestial light to Water Pro's
+shader uniforms, its scene directional light and combat effects. It runs after
+Sky Pro updates and after Water Pro resynchronizes its provider light, including
+paused frames. Moonlight fades near the horizon; the low sun receives a warmer
+tint and reduced direct intensity, reaching the original daylight at 18°.
+
+Moon ambient is 0.07 with tint `#b4c9f0`. The custom water and foam colors use 24%
+of their original linear radiance at night, reaching 100% at 18°; each application
+starts from the original map/Black Flag swatches. Absorption and wave energy are
+unchanged. Port restores its original colors, fill and direct light.
+
+Cloud ambient gain remains 1.1 × weather scale because Sky Pro already attenuates
+the incoming solar radiance. Its shared cloud baker and aerial haze now include
+lunar diffuse light; its night composite preserves premultiplied color when
+adjusting opacity. These [vendor patches](../vendor/threejs-sky-pro/PATCHES.md)
+also apply to water reflections. They add no render passes or cloud march samples.
+The settings are artistic gameplay lighting, not a geographic or calibrated
+astronomical model. See the [fixed-camera review](../assets/reviews/night-lighting/README.md).
+
 ## Daylight correction
 
 The first pass used sun elevation 28°, sun peak intensity 3.2, environment lighting 0.55, and hemisphere fill 0.4, plus a blue HUD gradient reaching 79% opacity at the bottom. Their combined effect was too dark for daytime.
