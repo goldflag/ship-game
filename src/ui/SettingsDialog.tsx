@@ -4,6 +4,7 @@ import { bindingError, defaultKeybindings, INPUT_ACTIONS, keyLabel, type InputAc
 import { Icon } from './Icons';
 import './SettingsDialog.css';
 import { DEFAULT_AUDIO, type AudioSettings, type SoundId } from '../game/audio';
+import { DEFAULT_HUD, type HudSettings } from '../game/hudSettings';
 
 // Extends the naval pause menu: compact brass commands and labeled control rows.
 // Graphics require a scene reload; keybindings apply immediately while play stays paused.
@@ -11,6 +12,9 @@ interface SettingsDialogProps {
   settings: GameSettings;
   bindings: Keybindings;
   audioSettings: AudioSettings;
+  hudSettings: HudSettings;
+  hudScale: number;
+  onHudChange(settings: HudSettings): boolean;
   onAudioChange(settings: AudioSettings): boolean;
   onPreviewSound(id: SoundId): void;
   onBindingsChange(bindings: Keybindings): boolean;
@@ -18,9 +22,11 @@ interface SettingsDialogProps {
   onClose(): void;
 }
 
-export function SettingsDialog({ settings, bindings, audioSettings, onAudioChange, onPreviewSound, onBindingsChange, onApply, onClose }: SettingsDialogProps) {
+export function SettingsDialog({ settings, bindings, audioSettings, hudSettings, hudScale, onHudChange, onAudioChange, onPreviewSound, onBindingsChange, onApply, onClose }: SettingsDialogProps) {
   const dialog = useRef<HTMLDialogElement>(null);
-  const [section, setSection] = useState<'scene' | 'keys' | 'sound'>('scene');
+  const [section, setSection] = useState<'scene' | 'hud' | 'keys' | 'sound'>('scene');
+  const [hudSaved, setHudSaved] = useState(true);
+  const changeHud = (next: HudSettings) => setHudSaved(onHudChange(next));
   const [audioSaved, setAudioSaved] = useState(true);
   const changeAudio = (next: AudioSettings) => setAudioSaved(onAudioChange(next));
   const [draft, setDraft] = useState(settings);
@@ -69,6 +75,7 @@ export function SettingsDialog({ settings, bindings, audioSettings, onAudioChang
     <div className="menu-heading"><h2 id="settings-title">Settings</h2><button className="icon-button" aria-label="Close settings" autoFocus onClick={onClose}><Icon name="close"/></button></div>
     <div className="settings-sections" role="group" aria-label="Settings sections">
       <button aria-pressed={section === 'scene'} onClick={() => { setSection('scene'); setListening(null); }}>Graphics</button>
+      <button aria-pressed={section === 'hud'} onClick={() => { setSection('hud'); setListening(null); }}>HUD</button>
       <button aria-pressed={section === 'keys'} onClick={() => setSection('keys')}>Keybindings</button>
       <button aria-pressed={section === 'sound'} onClick={() => { setSection('sound'); setListening(null); }}>Sound</button>
     </div>
@@ -79,6 +86,17 @@ export function SettingsDialog({ settings, bindings, audioSettings, onAudioChang
         <label className="setting-row">Render scale<select value={draft.resolution} onChange={event => setDraft({ ...draft, resolution: Number(event.target.value) })}><option value={0.65}>65%</option><option value={0.8}>80%</option><option value={1}>100%</option></select></label>
         <p className="settings-note">Applying these settings ends the current trial and reloads the scene in port. Lower detail or render scale can improve performance.</p>
         <button className="primary-button" disabled={!changed} onClick={() => onApply(draft)}>Apply & reload port <Icon name="arrow" size={17}/></button>
+      </section> : section === 'hud' ? <section aria-label="HUD settings">
+        <p className="settings-description">Size the battle instruments to suit your display. Changes apply immediately, including during a battle.</p>
+        <label className="setting-row">HUD scaling<select value={hudSettings.mode} onChange={event => changeHud({ ...hudSettings, mode: event.target.value as HudSettings['mode'] })}><option value="auto">Automatic</option><option value="manual">Manual</option></select></label>
+        <p className="settings-note">{hudSettings.mode === 'auto' ? 'Adapts to your game window as you resize it or move between displays. Adjust the automatic size below.' : 'Keeps your chosen size when you resize the game window or move between displays.'}</p>
+        <label className="hud-size-setting" htmlFor="hud-size"><span>{hudSettings.mode === 'auto' ? 'Size adjustment' : 'HUD size'}</span><output htmlFor="hud-size">{Math.round(hudSettings.scale * 100)}%</output>
+          <input id="hud-size" type="range" min="50" max="200" step="5" value={Math.round(hudSettings.scale * 100)} aria-valuetext={`${Math.round(hudSettings.scale * 100)} percent`} onChange={event => changeHud({ ...hudSettings, scale: Number(event.target.value) / 100 })}/>
+        </label>
+        <p className="hud-scale-readout">Current HUD scale <strong>{Math.round(hudScale * 100)}%</strong></p>
+        <p className="settings-note">Scales instruments, the minimap, ship names and hit readouts. Menus keep their normal size.</p>
+        <p className="settings-note" role="status">{hudSaved ? 'HUD settings are saved in this browser.' : 'HUD settings applied for this session. Browser storage is unavailable.'}</p>
+        <button className="secondary-button" onClick={() => changeHud({ ...DEFAULT_HUD })}>Reset HUD to automatic</button>
       </section> : section === 'sound' ? <section aria-label="Sound settings">
         <p className="settings-description">Balance the guns and instruments. Changes apply immediately.</p>
         <label className="setting-row audio-mute">Mute all sound<input type="checkbox" checked={audioSettings.muted} onChange={event => changeAudio({ ...audioSettings, muted: event.target.checked })}/></label>
