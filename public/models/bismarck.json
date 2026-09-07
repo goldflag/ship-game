@@ -28457,6 +28457,1574 @@
           "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
         }
       }
+    },
+    {
+      "id": "starboard-aa-105-1",
+      "name": "Starboard 105 mm AA 1",
+      "partId": "flak-105-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        12.15,
+        5.79,
+        -20
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-105-bismarck-1941",
+        "name": "10.5 cm twin AA",
+        "kind": "gun",
+        "massKg": 27000,
+        "barbetteRadius": 1.5,
+        "gunhouseSize": [
+          2.3,
+          2.94,
+          2.44
+        ],
+        "pivotHeight": 1.63,
+        "trunnionForward": 0.12,
+        "muzzleForward": 4.82,
+        "barrelSpacing": 0.8,
+        "caliberM": 0.105,
+        "traverseDeg": 180,
+        "traverseRateDeg": 18,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 18,
+        "reloadSeconds": 4,
+        "muzzleSpeed": 900,
+        "projectileMassKg": 15.1,
+        "penetrationMm": 50,
+        "damage": 12,
+        "recoilM": 0.18,
+        "ammoPerBarrel": 400,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-105-2",
+      "name": "Starboard 105 mm AA 2",
+      "partId": "flak-105-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        11.6,
+        5.79,
+        -0.1
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-105-bismarck-1941",
+        "name": "10.5 cm twin AA",
+        "kind": "gun",
+        "massKg": 27000,
+        "barbetteRadius": 1.5,
+        "gunhouseSize": [
+          2.3,
+          2.94,
+          2.44
+        ],
+        "pivotHeight": 1.63,
+        "trunnionForward": 0.12,
+        "muzzleForward": 4.82,
+        "barrelSpacing": 0.8,
+        "caliberM": 0.105,
+        "traverseDeg": 180,
+        "traverseRateDeg": 18,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 18,
+        "reloadSeconds": 4,
+        "muzzleSpeed": 900,
+        "projectileMassKg": 15.1,
+        "penetrationMm": 50,
+        "damage": 12,
+        "recoilM": 0.18,
+        "ammoPerBarrel": 400,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-105-3",
+      "name": "Starboard 105 mm AA 3",
+      "partId": "flak-105-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        11.6,
+        5.79,
+        16
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-105-bismarck-1941",
+        "name": "10.5 cm twin AA",
+        "kind": "gun",
+        "massKg": 27000,
+        "barbetteRadius": 1.5,
+        "gunhouseSize": [
+          2.3,
+          2.94,
+          2.44
+        ],
+        "pivotHeight": 1.63,
+        "trunnionForward": 0.12,
+        "muzzleForward": 4.82,
+        "barrelSpacing": 0.8,
+        "caliberM": 0.105,
+        "traverseDeg": 180,
+        "traverseRateDeg": 18,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 18,
+        "reloadSeconds": 4,
+        "muzzleSpeed": 900,
+        "projectileMassKg": 15.1,
+        "penetrationMm": 50,
+        "damage": 12,
+        "recoilM": 0.18,
+        "ammoPerBarrel": 400,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-105-4",
+      "name": "Starboard 105 mm AA 4",
+      "partId": "flak-105-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        10.35,
+        5.79,
+        32
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-105-bismarck-1941",
+        "name": "10.5 cm twin AA",
+        "kind": "gun",
+        "massKg": 27000,
+        "barbetteRadius": 1.5,
+        "gunhouseSize": [
+          2.3,
+          2.94,
+          2.44
+        ],
+        "pivotHeight": 1.63,
+        "trunnionForward": 0.12,
+        "muzzleForward": 4.82,
+        "barrelSpacing": 0.8,
+        "caliberM": 0.105,
+        "traverseDeg": 180,
+        "traverseRateDeg": 18,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 18,
+        "reloadSeconds": 4,
+        "muzzleSpeed": 900,
+        "projectileMassKg": 15.1,
+        "penetrationMm": 50,
+        "damage": 12,
+        "recoilM": 0.18,
+        "ammoPerBarrel": 400,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-37-1",
+      "name": "Starboard 37 mm AA 1",
+      "partId": "flak-37-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        7.8,
+        9.4,
+        -39
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-37-bismarck-1941",
+        "name": "3.7 cm twin AA",
+        "kind": "gun",
+        "massKg": 3000,
+        "barbetteRadius": 0.76,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 2.34,
+        "barrelSpacing": 0.55,
+        "caliberM": 0.037,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 1.5,
+        "muzzleSpeed": 820,
+        "projectileMassKg": 0.74,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1200,
+        "armorMm": 1,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-37-2",
+      "name": "Starboard 37 mm AA 2",
+      "partId": "flak-37-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        8.1,
+        12.65,
+        -16.5
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-37-bismarck-1941",
+        "name": "3.7 cm twin AA",
+        "kind": "gun",
+        "massKg": 3000,
+        "barbetteRadius": 0.76,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 2.34,
+        "barrelSpacing": 0.55,
+        "caliberM": 0.037,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 1.5,
+        "muzzleSpeed": 820,
+        "projectileMassKg": 0.74,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1200,
+        "armorMm": 1,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-37-3",
+      "name": "Starboard 37 mm AA 3",
+      "partId": "flak-37-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        7.4,
+        9.4,
+        37.6
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-37-bismarck-1941",
+        "name": "3.7 cm twin AA",
+        "kind": "gun",
+        "massKg": 3000,
+        "barbetteRadius": 0.76,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 2.34,
+        "barrelSpacing": 0.55,
+        "caliberM": 0.037,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 1.5,
+        "muzzleSpeed": 820,
+        "projectileMassKg": 0.74,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1200,
+        "armorMm": 1,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-37-4",
+      "name": "Starboard 37 mm AA 4",
+      "partId": "flak-37-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        6.7,
+        9.4,
+        49
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-37-bismarck-1941",
+        "name": "3.7 cm twin AA",
+        "kind": "gun",
+        "massKg": 3000,
+        "barbetteRadius": 0.76,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 2.34,
+        "barrelSpacing": 0.55,
+        "caliberM": 0.037,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 1.5,
+        "muzzleSpeed": 820,
+        "projectileMassKg": 0.74,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1200,
+        "armorMm": 1,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-20-1",
+      "name": "Starboard 20 mm AA 1",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        5.5,
+        9.4,
+        -42.5
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-20-bismarck-1941",
+        "name": "2 cm single AA",
+        "kind": "gun",
+        "massKg": 450,
+        "barbetteRadius": 0.42,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.57,
+        "barrelSpacing": 0.1,
+        "caliberM": 0.02,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 0.8,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.12,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1100,
+        "armorMm": 1,
+        "barrelCount": 1,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-20-2",
+      "name": "Starboard 20 mm AA 2",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        7.2,
+        12.66,
+        -29.1
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-20-bismarck-1941",
+        "name": "2 cm single AA",
+        "kind": "gun",
+        "massKg": 450,
+        "barbetteRadius": 0.42,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.57,
+        "barrelSpacing": 0.1,
+        "caliberM": 0.02,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 0.8,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.12,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1100,
+        "armorMm": 1,
+        "barrelCount": 1,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-20-3",
+      "name": "Starboard 20 mm AA 3",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        6.3,
+        15.6,
+        -25.4
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-20-bismarck-1941",
+        "name": "2 cm single AA",
+        "kind": "gun",
+        "massKg": 450,
+        "barbetteRadius": 0.42,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.57,
+        "barrelSpacing": 0.1,
+        "caliberM": 0.02,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 0.8,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.12,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1100,
+        "armorMm": 1,
+        "barrelCount": 1,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-20-4",
+      "name": "Starboard 20 mm AA 4",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        5.2,
+        20.92,
+        -11.3
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-20-bismarck-1941",
+        "name": "2 cm single AA",
+        "kind": "gun",
+        "massKg": 450,
+        "barbetteRadius": 0.42,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.57,
+        "barrelSpacing": 0.1,
+        "caliberM": 0.02,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 0.8,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.12,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1100,
+        "armorMm": 1,
+        "barrelCount": 1,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-20-5",
+      "name": "Starboard 20 mm AA 5",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        5,
+        12.65,
+        35
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-20-bismarck-1941",
+        "name": "2 cm single AA",
+        "kind": "gun",
+        "massKg": 450,
+        "barbetteRadius": 0.42,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.57,
+        "barrelSpacing": 0.1,
+        "caliberM": 0.02,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 0.8,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.12,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1100,
+        "armorMm": 1,
+        "barrelCount": 1,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-20-6",
+      "name": "Starboard 20 mm AA 6",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        6.8,
+        9.4,
+        46.1
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-20-bismarck-1941",
+        "name": "2 cm single AA",
+        "kind": "gun",
+        "massKg": 450,
+        "barbetteRadius": 0.42,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.57,
+        "barrelSpacing": 0.1,
+        "caliberM": 0.02,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 0.8,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.12,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1100,
+        "armorMm": 1,
+        "barrelCount": 1,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-105-1",
+      "name": "Port 105 mm AA 1",
+      "partId": "flak-105-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -12.15,
+        5.79,
+        -20
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-105-bismarck-1941",
+        "name": "10.5 cm twin AA",
+        "kind": "gun",
+        "massKg": 27000,
+        "barbetteRadius": 1.5,
+        "gunhouseSize": [
+          2.3,
+          2.94,
+          2.44
+        ],
+        "pivotHeight": 1.63,
+        "trunnionForward": 0.12,
+        "muzzleForward": 4.82,
+        "barrelSpacing": 0.8,
+        "caliberM": 0.105,
+        "traverseDeg": 180,
+        "traverseRateDeg": 18,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 18,
+        "reloadSeconds": 4,
+        "muzzleSpeed": 900,
+        "projectileMassKg": 15.1,
+        "penetrationMm": 50,
+        "damage": 12,
+        "recoilM": 0.18,
+        "ammoPerBarrel": 400,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-105-2",
+      "name": "Port 105 mm AA 2",
+      "partId": "flak-105-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -11.6,
+        5.79,
+        -0.1
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-105-bismarck-1941",
+        "name": "10.5 cm twin AA",
+        "kind": "gun",
+        "massKg": 27000,
+        "barbetteRadius": 1.5,
+        "gunhouseSize": [
+          2.3,
+          2.94,
+          2.44
+        ],
+        "pivotHeight": 1.63,
+        "trunnionForward": 0.12,
+        "muzzleForward": 4.82,
+        "barrelSpacing": 0.8,
+        "caliberM": 0.105,
+        "traverseDeg": 180,
+        "traverseRateDeg": 18,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 18,
+        "reloadSeconds": 4,
+        "muzzleSpeed": 900,
+        "projectileMassKg": 15.1,
+        "penetrationMm": 50,
+        "damage": 12,
+        "recoilM": 0.18,
+        "ammoPerBarrel": 400,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-105-3",
+      "name": "Port 105 mm AA 3",
+      "partId": "flak-105-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -11.6,
+        5.79,
+        16
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-105-bismarck-1941",
+        "name": "10.5 cm twin AA",
+        "kind": "gun",
+        "massKg": 27000,
+        "barbetteRadius": 1.5,
+        "gunhouseSize": [
+          2.3,
+          2.94,
+          2.44
+        ],
+        "pivotHeight": 1.63,
+        "trunnionForward": 0.12,
+        "muzzleForward": 4.82,
+        "barrelSpacing": 0.8,
+        "caliberM": 0.105,
+        "traverseDeg": 180,
+        "traverseRateDeg": 18,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 18,
+        "reloadSeconds": 4,
+        "muzzleSpeed": 900,
+        "projectileMassKg": 15.1,
+        "penetrationMm": 50,
+        "damage": 12,
+        "recoilM": 0.18,
+        "ammoPerBarrel": 400,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-105-4",
+      "name": "Port 105 mm AA 4",
+      "partId": "flak-105-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -10.35,
+        5.79,
+        32
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-105-bismarck-1941",
+        "name": "10.5 cm twin AA",
+        "kind": "gun",
+        "massKg": 27000,
+        "barbetteRadius": 1.5,
+        "gunhouseSize": [
+          2.3,
+          2.94,
+          2.44
+        ],
+        "pivotHeight": 1.63,
+        "trunnionForward": 0.12,
+        "muzzleForward": 4.82,
+        "barrelSpacing": 0.8,
+        "caliberM": 0.105,
+        "traverseDeg": 180,
+        "traverseRateDeg": 18,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 18,
+        "reloadSeconds": 4,
+        "muzzleSpeed": 900,
+        "projectileMassKg": 15.1,
+        "penetrationMm": 50,
+        "damage": 12,
+        "recoilM": 0.18,
+        "ammoPerBarrel": 400,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-37-1",
+      "name": "Port 37 mm AA 1",
+      "partId": "flak-37-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -7.8,
+        9.4,
+        -39
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-37-bismarck-1941",
+        "name": "3.7 cm twin AA",
+        "kind": "gun",
+        "massKg": 3000,
+        "barbetteRadius": 0.76,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 2.34,
+        "barrelSpacing": 0.55,
+        "caliberM": 0.037,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 1.5,
+        "muzzleSpeed": 820,
+        "projectileMassKg": 0.74,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1200,
+        "armorMm": 1,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-37-2",
+      "name": "Port 37 mm AA 2",
+      "partId": "flak-37-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -8.1,
+        12.65,
+        -16.5
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-37-bismarck-1941",
+        "name": "3.7 cm twin AA",
+        "kind": "gun",
+        "massKg": 3000,
+        "barbetteRadius": 0.76,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 2.34,
+        "barrelSpacing": 0.55,
+        "caliberM": 0.037,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 1.5,
+        "muzzleSpeed": 820,
+        "projectileMassKg": 0.74,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1200,
+        "armorMm": 1,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-37-3",
+      "name": "Port 37 mm AA 3",
+      "partId": "flak-37-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -7.4,
+        9.4,
+        37.6
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-37-bismarck-1941",
+        "name": "3.7 cm twin AA",
+        "kind": "gun",
+        "massKg": 3000,
+        "barbetteRadius": 0.76,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 2.34,
+        "barrelSpacing": 0.55,
+        "caliberM": 0.037,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 1.5,
+        "muzzleSpeed": 820,
+        "projectileMassKg": 0.74,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1200,
+        "armorMm": 1,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-37-4",
+      "name": "Port 37 mm AA 4",
+      "partId": "flak-37-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -6.7,
+        9.4,
+        49
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-37-bismarck-1941",
+        "name": "3.7 cm twin AA",
+        "kind": "gun",
+        "massKg": 3000,
+        "barbetteRadius": 0.76,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 2.34,
+        "barrelSpacing": 0.55,
+        "caliberM": 0.037,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 1.5,
+        "muzzleSpeed": 820,
+        "projectileMassKg": 0.74,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1200,
+        "armorMm": 1,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-20-1",
+      "name": "Port 20 mm AA 1",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -5.5,
+        9.4,
+        -42.5
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-20-bismarck-1941",
+        "name": "2 cm single AA",
+        "kind": "gun",
+        "massKg": 450,
+        "barbetteRadius": 0.42,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.57,
+        "barrelSpacing": 0.1,
+        "caliberM": 0.02,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 0.8,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.12,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1100,
+        "armorMm": 1,
+        "barrelCount": 1,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-20-2",
+      "name": "Port 20 mm AA 2",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -7.2,
+        12.66,
+        -29.1
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-20-bismarck-1941",
+        "name": "2 cm single AA",
+        "kind": "gun",
+        "massKg": 450,
+        "barbetteRadius": 0.42,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.57,
+        "barrelSpacing": 0.1,
+        "caliberM": 0.02,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 0.8,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.12,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1100,
+        "armorMm": 1,
+        "barrelCount": 1,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-20-3",
+      "name": "Port 20 mm AA 3",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -6.3,
+        15.6,
+        -25.4
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-20-bismarck-1941",
+        "name": "2 cm single AA",
+        "kind": "gun",
+        "massKg": 450,
+        "barbetteRadius": 0.42,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.57,
+        "barrelSpacing": 0.1,
+        "caliberM": 0.02,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 0.8,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.12,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1100,
+        "armorMm": 1,
+        "barrelCount": 1,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-20-4",
+      "name": "Port 20 mm AA 4",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -5.2,
+        20.92,
+        -11.3
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-20-bismarck-1941",
+        "name": "2 cm single AA",
+        "kind": "gun",
+        "massKg": 450,
+        "barbetteRadius": 0.42,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.57,
+        "barrelSpacing": 0.1,
+        "caliberM": 0.02,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 0.8,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.12,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1100,
+        "armorMm": 1,
+        "barrelCount": 1,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-20-5",
+      "name": "Port 20 mm AA 5",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -5,
+        12.65,
+        35
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-20-bismarck-1941",
+        "name": "2 cm single AA",
+        "kind": "gun",
+        "massKg": 450,
+        "barbetteRadius": 0.42,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.57,
+        "barrelSpacing": 0.1,
+        "caliberM": 0.02,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 0.8,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.12,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1100,
+        "armorMm": 1,
+        "barrelCount": 1,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-20-6",
+      "name": "Port 20 mm AA 6",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -6.8,
+        9.4,
+        46.1
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-20-bismarck-1941",
+        "name": "2 cm single AA",
+        "kind": "gun",
+        "massKg": 450,
+        "barbetteRadius": 0.42,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.57,
+        "barrelSpacing": 0.1,
+        "caliberM": 0.02,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 0.8,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.12,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1100,
+        "armorMm": 1,
+        "barrelCount": 1,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
     }
   ],
   "armor": [
@@ -106593,7 +108161,7 @@
   "accuracy": {
     "exterior": "Independent 1941-04: revised secondary gunhouses, separated navigation/conning bridge and scalloped tower galleries. Principal dimensions documented; local shapes and fittings remain image estimates.",
     "internals": "Plate thicknesses and machinery sequence evidence-based; room boundaries and hull-conforming plate envelopes approximate. Standard-draft datum, not battle displacement.",
-    "weapons": "Independent gunhouse polygons; historical bore and turret frames. Simplified geometry and AP budget, no fuze, spall or material penetration model."
+    "weapons": "Independent gunhouse polygons; historical bore and turret frames. Simplified geometry and AP budget, no fuze, spall or material penetration model. AA: eight twin 105 mm, eight twin 37 mm and twelve single 20 mm mounts use original visual placements and provisional CPU fire control. Two upper quad 20 mm fittings remain decorative."
   },
   "structures": [
     {
@@ -115197,10 +116765,486 @@
           1
         ],
         "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-105-1",
+        "name": "Starboard 105 mm AA 1",
+        "kind": "mount",
+        "mountId": "starboard-aa-105-1",
+        "center": [
+          12.15,
+          5.79,
+          -20
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-105-2",
+        "name": "Starboard 105 mm AA 2",
+        "kind": "mount",
+        "mountId": "starboard-aa-105-2",
+        "center": [
+          11.6,
+          5.79,
+          -0.1
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-105-3",
+        "name": "Starboard 105 mm AA 3",
+        "kind": "mount",
+        "mountId": "starboard-aa-105-3",
+        "center": [
+          11.6,
+          5.79,
+          16
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-105-4",
+        "name": "Starboard 105 mm AA 4",
+        "kind": "mount",
+        "mountId": "starboard-aa-105-4",
+        "center": [
+          10.35,
+          5.79,
+          32
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-37-1",
+        "name": "Starboard 37 mm AA 1",
+        "kind": "mount",
+        "mountId": "starboard-aa-37-1",
+        "center": [
+          7.8,
+          9.4,
+          -39
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-37-2",
+        "name": "Starboard 37 mm AA 2",
+        "kind": "mount",
+        "mountId": "starboard-aa-37-2",
+        "center": [
+          8.1,
+          12.65,
+          -16.5
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-37-3",
+        "name": "Starboard 37 mm AA 3",
+        "kind": "mount",
+        "mountId": "starboard-aa-37-3",
+        "center": [
+          7.4,
+          9.4,
+          37.6
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-37-4",
+        "name": "Starboard 37 mm AA 4",
+        "kind": "mount",
+        "mountId": "starboard-aa-37-4",
+        "center": [
+          6.7,
+          9.4,
+          49
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-20-1",
+        "name": "Starboard 20 mm AA 1",
+        "kind": "mount",
+        "mountId": "starboard-aa-20-1",
+        "center": [
+          5.5,
+          9.4,
+          -42.5
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-20-2",
+        "name": "Starboard 20 mm AA 2",
+        "kind": "mount",
+        "mountId": "starboard-aa-20-2",
+        "center": [
+          7.2,
+          12.66,
+          -29.1
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-20-3",
+        "name": "Starboard 20 mm AA 3",
+        "kind": "mount",
+        "mountId": "starboard-aa-20-3",
+        "center": [
+          6.3,
+          15.6,
+          -25.4
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-20-4",
+        "name": "Starboard 20 mm AA 4",
+        "kind": "mount",
+        "mountId": "starboard-aa-20-4",
+        "center": [
+          5.2,
+          20.92,
+          -11.3
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-20-5",
+        "name": "Starboard 20 mm AA 5",
+        "kind": "mount",
+        "mountId": "starboard-aa-20-5",
+        "center": [
+          5,
+          12.65,
+          35
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-20-6",
+        "name": "Starboard 20 mm AA 6",
+        "kind": "mount",
+        "mountId": "starboard-aa-20-6",
+        "center": [
+          6.8,
+          9.4,
+          46.1
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-105-1",
+        "name": "Port 105 mm AA 1",
+        "kind": "mount",
+        "mountId": "port-aa-105-1",
+        "center": [
+          -12.15,
+          5.79,
+          -20
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-105-2",
+        "name": "Port 105 mm AA 2",
+        "kind": "mount",
+        "mountId": "port-aa-105-2",
+        "center": [
+          -11.6,
+          5.79,
+          -0.1
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-105-3",
+        "name": "Port 105 mm AA 3",
+        "kind": "mount",
+        "mountId": "port-aa-105-3",
+        "center": [
+          -11.6,
+          5.79,
+          16
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-105-4",
+        "name": "Port 105 mm AA 4",
+        "kind": "mount",
+        "mountId": "port-aa-105-4",
+        "center": [
+          -10.35,
+          5.79,
+          32
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-37-1",
+        "name": "Port 37 mm AA 1",
+        "kind": "mount",
+        "mountId": "port-aa-37-1",
+        "center": [
+          -7.8,
+          9.4,
+          -39
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-37-2",
+        "name": "Port 37 mm AA 2",
+        "kind": "mount",
+        "mountId": "port-aa-37-2",
+        "center": [
+          -8.1,
+          12.65,
+          -16.5
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-37-3",
+        "name": "Port 37 mm AA 3",
+        "kind": "mount",
+        "mountId": "port-aa-37-3",
+        "center": [
+          -7.4,
+          9.4,
+          37.6
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-37-4",
+        "name": "Port 37 mm AA 4",
+        "kind": "mount",
+        "mountId": "port-aa-37-4",
+        "center": [
+          -6.7,
+          9.4,
+          49
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-20-1",
+        "name": "Port 20 mm AA 1",
+        "kind": "mount",
+        "mountId": "port-aa-20-1",
+        "center": [
+          -5.5,
+          9.4,
+          -42.5
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-20-2",
+        "name": "Port 20 mm AA 2",
+        "kind": "mount",
+        "mountId": "port-aa-20-2",
+        "center": [
+          -7.2,
+          12.66,
+          -29.1
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-20-3",
+        "name": "Port 20 mm AA 3",
+        "kind": "mount",
+        "mountId": "port-aa-20-3",
+        "center": [
+          -6.3,
+          15.6,
+          -25.4
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-20-4",
+        "name": "Port 20 mm AA 4",
+        "kind": "mount",
+        "mountId": "port-aa-20-4",
+        "center": [
+          -5.2,
+          20.92,
+          -11.3
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-20-5",
+        "name": "Port 20 mm AA 5",
+        "kind": "mount",
+        "mountId": "port-aa-20-5",
+        "center": [
+          -5,
+          12.65,
+          35
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-20-6",
+        "name": "Port 20 mm AA 6",
+        "kind": "mount",
+        "mountId": "port-aa-20-6",
+        "center": [
+          -6.8,
+          9.4,
+          46.1
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
       }
     ],
     "basis": "Original game calibration: eight longitudinal sections, independent sides and three height bands, with separate gunhouse budgets. Generator/director proxy positions and fire loads are estimated; no historical structural tolerance, electrical routing, ventilation or crew-performance claim."
   },
   "compilerVersion": 1,
-  "contentHash": "85df3663a0d6b3246a53ba931b4b1c92deaada7229778e6a837af1fe6fad3ff3"
+  "contentHash": "9e7df16886d6a66393dd2155e98afb67533c3863f7061598a68fdbe3436d97d8"
 }

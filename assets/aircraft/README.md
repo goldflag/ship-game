@@ -21,6 +21,7 @@ The common content hash covers the complete catalog, both recipe files and all t
 bun run aircraft:inputs all
 bun run aircraft:build all              # Reproducible isolated local Blender build
 bun run aircraft:check all
+bun run aircraft:thumbnail f4f-4-wildcat # Bake a transparent squadron-card render
 bun run aircraft:review all             # Rebuild and refresh six fixed review views
 python3 scripts/aircraft/compare.py all  # Actual GLB over registered source drawings
 python3 assets/aircraft/review_sheets.py # Overview sheets from actual renders
@@ -46,3 +47,7 @@ Consult the [source register](references/sources.json), individual shape/referen
 Wings stay extended; wing-fold mechanisms are absent. The SBD has fixed wings. Gear travel and linkage clearance are approximate, and the neutral model combines a level engine-shaft attitude with extended landing gear rather than a supported tail-down deck stance. Source payload sockets remain empty. Combat attaches simple payload visuals and provides approximate takeoff, landing, aircraft combat and damage; crews and aerodynamic flight dynamics remain absent. See [air operations](../../docs/air-operations.md).
 
 Cockpit interiors, canopy curvature, cross-sections between measured stations, surface details and generic period finishes are reconstructed. Reference quality and variant coverage differ: the Avenger Navy sheet explicitly covers TBF-1/1C, while the SBD and Helldiver use documented cross-variant interpretations; the TBD reference is a credited modern technical drawing. Other aircraft preserve their own drawing and variant limitations in their shape files. The fleet spans early and late WWII and does not represent one carrier air group or a single historical date.
+
+## Squadron card renders
+
+[thumbnail.py](thumbnail.py) renders transparent 320×144 PNGs of the validated runtime GLB with local Blender. Wildcat, Dauntless and Devastator are baked for the current carrier cards. Run `bun run aircraft:thumbnail <aircraft-id|all>` to regenerate. Each image publishes to `public/models/aircraft/<id>-thumbnail.png`; camera settings, Blender version and independent model/recipe/image hashes remain under `<id>/generated/thumbnail/render.json`. Existing baked images refresh when their aircraft is rebuilt, and `aircraft:check` detects stale thumbnails. The presentation recipe does not alter the geometry content hash or original model sources.

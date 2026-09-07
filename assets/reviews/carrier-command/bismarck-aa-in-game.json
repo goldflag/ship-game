@@ -1,0 +1,13 @@
+{
+  "shots": 196,
+  "ammoSpent": 196,
+  "maxMuzzleError": 0.002160077816220066,
+  "rendered": {
+    "models": 9,
+    "instances": 6,
+    "batches": 27,
+    "contacts": 6,
+    "payloads": 0
+  },
+  "backend": "webgpu"
+}

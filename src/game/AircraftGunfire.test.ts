@@ -33,3 +33,22 @@ test('aircraft tracers travel in separated bursts, remain short and cannot becom
     sim.reset(); gunfire.update(sim, camera); expect(gunfire.diagnostics()).toBe(0);
   } finally { gunfire.dispose(); }
 });
+
+test('ship AA uses the actual muzzle, speed and endpoint without fighter wing offsets', () => {
+  const sim = new CombatSimulation(shipPreset('bismarck')), gunfire = new AircraftGunfire();
+  const camera = new PerspectiveCamera(52, 1, .5, 60000);
+  sim.events.push({ sequence: 1, tick: 0, kind: 'aircraft-fire', position: [0, 20, 0], shipId: 'player', message: 'AA fire',
+    aircraft: { id: 'hostile', target: [0, 20, -2400], tracerSpeed: 800 } });
+  try {
+    const streaks = gunfire.root.getObjectByName('Aircraft tracer cores') as InstancedMesh;
+    sim.tick = 31; gunfire.update(sim, camera);
+    expect(gunfire.diagnostics()).toBe(1);
+    expect(at(streaks).position.x).toBe(0); expect(at(streaks).position.y).toBe(20);
+    expect(at(streaks).position.z).toBeCloseTo(-391.2, 3);
+    expect(at(streaks).scale.y).toBeLessThan(25);
+    sim.tick = 121; gunfire.update(sim, camera);
+    expect(gunfire.diagnostics()).toBe(1); expect(at(streaks).position.z).toBeLessThan(-1500);
+    sim.tick = 182; gunfire.update(sim, camera);
+    expect(gunfire.diagnostics()).toBe(0);
+  } finally { gunfire.dispose(); }
+});

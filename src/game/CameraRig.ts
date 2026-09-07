@@ -13,6 +13,9 @@ const MIN_ORBIT_ELEVATION = .08;
 const MAX_UPWARD_TILT = Math.PI / 6;
 const CAMERA_CLEARANCE = 12;
 const PORT_ELEVATION = .2;
+const FOLLOW_DISTANCE = Math.hypot(45, 12, 12);
+const FOLLOW_AZIMUTH = Math.atan2(12, 45);
+const FOLLOW_ELEVATION = Math.atan2(12, Math.hypot(45, 12));
 const POINTER_LOCK_RETRY_MS = 1000;
 
 export class CameraRig {
@@ -50,13 +53,18 @@ export class CameraRig {
   private returnBinoculars = false;
   private shellDirection = new Vector3();
   private shellRight = new Vector3();
+  private shellUp = new Vector3();
+  private followAzimuth = FOLLOW_AZIMUTH;
+  private followElevation = FOLLOW_ELEVATION;
+  private followDistance = FOLLOW_DISTANCE;
 
   constructor(readonly camera: PerspectiveCamera, private canvas: HTMLCanvasElement, private bridge: Vec3 = [0, 29, -31],
     private actions: { pause(): void; aim(): void; optics(): void } = { pause() {}, aim() {}, optics() {} }) {
     const options = { signal: this.abort.signal };
     canvas.addEventListener('pointerdown', e => {
       if (!this.enabled || (e.button !== 0 && e.button !== 2)) return;
-      if (!this.inPort && !this.inspecting && e.pointerType === 'mouse') {
+      if (this.shellView && this.pointerLocked) return;
+      if (!this.shellView && !this.inPort && !this.inspecting && e.pointerType === 'mouse') {
         if (!this.pointerLocked) { this.capturePointer(); return; }
         if (e.button === 0) this.mouseFire = true;
         if (e.button === 2) this.actions.optics();
@@ -67,12 +75,15 @@ export class CameraRig {
       canvas.setPointerCapture(e.pointerId);
     }, options);
     canvas.addEventListener('pointermove', e => {
-      if (!this.enabled || this.shellView) return;
+      if (!this.enabled) return;
       const locked = this.pointerLocked;
       if (!locked && (!this.dragging || e.pointerId !== this.pointerId)) return;
       const dx = locked ? e.movementX : e.clientX - this.previous.x;
       const dy = locked ? e.movementY : e.clientY - this.previous.y;
-      if (this.inPort || this.inspecting) {
+      if (this.shellView) {
+        this.followAzimuth = MathUtils.euclideanModulo(this.followAzimuth - dx * .005, Math.PI * 2);
+        this.followElevation = MathUtils.clamp(this.followElevation + dy * .004, -Math.PI / 2 + .06, Math.PI / 2 - .06);
+      } else if (this.inPort || this.inspecting) {
         this.azimuth -= dx * .005;
         this.elevation = MathUtils.clamp(this.elevation + dy * .003, this.inPort ? MIN_ORBIT_ELEVATION : -MAX_UPWARD_TILT, 1.35);
       } else {
@@ -100,10 +111,11 @@ export class CameraRig {
     document.addEventListener('pointerlockerror', () => { this.lockRequest = undefined; }, options);
     window.addEventListener('blur', release, options);
     canvas.addEventListener('wheel', e => {
-      if (!this.enabled || this.shellView) return;
+      if (!this.enabled) return;
       e.preventDefault();
       const delta = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? this.canvas.clientHeight || 800 : 1);
-      if (this.binoculars) this.scopeMagnification = MathUtils.clamp(this.scopeMagnification * Math.exp(-delta * .0015), MIN_MAGNIFICATION, MAX_MAGNIFICATION);
+      if (this.shellView) this.followDistance = MathUtils.clamp(this.followDistance * Math.exp(delta * .001), 12, 800);
+      else if (this.binoculars) this.scopeMagnification = MathUtils.clamp(this.scopeMagnification * Math.exp(-delta * .0015), MIN_MAGNIFICATION, MAX_MAGNIFICATION);
       else this.distance = MathUtils.clamp(this.distance * Math.exp(delta * .001), (this.inPort ? 90 : 45) * this.distanceScale, this.inPort ? 650 * this.portHullScale : 1400 * this.hullScale);
     }, { ...options, passive: false });
     canvas.addEventListener('contextmenu', e => e.preventDefault(), options);
@@ -113,14 +125,19 @@ export class CameraRig {
   setSubmarine(equipment?: SubmarineDefinition): void { this.submarine = equipment; }
 
   get pointerLocked(): boolean { return document.pointerLockElement === this.canvas; }
-  get firing(): boolean { return this.enabled && this.pointerLocked && this.mouseFire; }
+  get firing(): boolean { return this.enabled && !this.shellView && this.pointerLocked && this.mouseFire; }
   get magnification(): number { return Math.tan(NORMAL_FOV * Math.PI / 360) / Math.tan(this.camera.fov * Math.PI / 360); }
   get bearing(): number { return ((this.azimuth % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2); }
 
   setShellView(view?: ShellView): void {
     if (!!view !== !!this.shellView) {
       this.opticsTransition = undefined;
-      if (view) { this.returnBinoculars = this.binoculars; this.binoculars = false; }
+      this.dragging = false; this.mouseFire = false;
+      if (view) {
+        this.returnBinoculars = this.binoculars; this.binoculars = false;
+        this.followAzimuth = FOLLOW_AZIMUTH; this.followElevation = FOLLOW_ELEVATION; this.followDistance = FOLLOW_DISTANCE;
+        this.shellRight.set(1, 0, 0);
+      }
       else { this.binoculars = this.returnBinoculars; this.followedShipId = undefined; }
       this.updateProjection();
     }
@@ -243,12 +260,17 @@ export class CameraRig {
       this.target.fromArray(this.shellView.position);
       this.shellDirection.fromArray(this.shellView.velocity).normalize();
       if (this.shellDirection.lengthSq() === 0) this.shellDirection.set(0, 0, -1);
-      this.shellRight.set(-this.shellDirection.z, 0, this.shellDirection.x).normalize();
-      this.camera.position.copy(this.target).addScaledVector(this.shellDirection, -45).addScaledVector(this.shellRight, 12);
-      this.camera.position.y += 12;
+      // Keep a stable frame through steep/vertical flight, independent of the
+      // ship's saved aiming angles. Translation follows the target exactly.
+      if (Math.hypot(this.shellDirection.x, this.shellDirection.z) > .001) this.shellRight.set(-this.shellDirection.z, 0, this.shellDirection.x).normalize();
+      this.shellUp.crossVectors(this.shellRight, this.shellDirection).normalize();
+      const radius = Math.cos(this.followElevation) * this.followDistance;
+      this.camera.position.copy(this.target)
+        .addScaledVector(this.shellDirection, -Math.cos(this.followAzimuth) * radius)
+        .addScaledVector(this.shellRight, Math.sin(this.followAzimuth) * radius)
+        .addScaledVector(this.shellUp, Math.sin(this.followElevation) * this.followDistance);
       this.constrainCameraHeight(this.camera.position);
-      this.look.copy(this.target).addScaledVector(this.shellDirection, 35);
-      this.camera.lookAt(this.look);
+      this.camera.lookAt(this.target);
       this.camera.updateMatrixWorld();
       return;
     }

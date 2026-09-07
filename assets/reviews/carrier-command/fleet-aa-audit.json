@@ -1,0 +1,75 @@
+{
+  "method": "Each ship against one hostile aircraft at 700 m horizontal range and 250 m altitude, ten seconds at each cardinal bearing; aircraft position/health refreshed each tick, no surface fire requested. Counts identify firing mounts, not historical completeness or hit rates.",
+  "results": [
+    {
+      "id": "bismarck",
+      "eligible": 28,
+      "firingMounts": 28,
+      "shots": 764,
+      "notFiredInCardinalProbe": []
+    },
+    {
+      "id": "yamato",
+      "eligible": 0,
+      "firingMounts": 0,
+      "shots": 0,
+      "notFiredInCardinalProbe": []
+    },
+    {
+      "id": "baltimore",
+      "eligible": 6,
+      "firingMounts": 6,
+      "shots": 68,
+      "notFiredInCardinalProbe": []
+    },
+    {
+      "id": "enterprise-cv6",
+      "eligible": 42,
+      "firingMounts": 42,
+      "shots": 1513,
+      "notFiredInCardinalProbe": []
+    },
+    {
+      "id": "type-viic",
+      "eligible": 1,
+      "firingMounts": 1,
+      "shots": 16,
+      "notFiredInCardinalProbe": []
+    },
+    {
+      "id": "liberty-cargo",
+      "eligible": 10,
+      "firingMounts": 10,
+      "shots": 305,
+      "notFiredInCardinalProbe": []
+    },
+    {
+      "id": "liberty-collier",
+      "eligible": 8,
+      "firingMounts": 8,
+      "shots": 231,
+      "notFiredInCardinalProbe": []
+    },
+    {
+      "id": "victory-cargo",
+      "eligible": 10,
+      "firingMounts": 10,
+      "shots": 305,
+      "notFiredInCardinalProbe": []
+    },
+    {
+      "id": "flower-corvette",
+      "eligible": 3,
+      "firingMounts": 3,
+      "shots": 213,
+      "notFiredInCardinalProbe": []
+    },
+    {
+      "id": "fletcher",
+      "eligible": 12,
+      "firingMounts": 12,
+      "shots": 320,
+      "notFiredInCardinalProbe": []
+    }
+  ]
+}

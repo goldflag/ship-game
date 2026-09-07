@@ -15,15 +15,15 @@ const inFlight = (p: Aircraft) => ['outbound', 'attack', 'returning', 'landing',
 
 /** Reassess periodically; retain a useful target instead of switching every tick.
  * Loaded strike aircraft closing on our carrier take priority over distant fighters. */
-export function fighterTarget(p: Aircraft, planes: Aircraft[], carrier: Vec3, dt: number): Aircraft | undefined {
+export function fighterTarget(p: Aircraft, planes: Aircraft[], carrier: Vec3, dt: number, targetFlightId?: string): Aircraft | undefined {
   const pilot = p.pilot;
   pilot.think -= dt;
-  const current = planes.find(other => other.id === pilot.hostileId && other.team !== p.team && inFlight(other));
+  const current = planes.find(other => other.id === pilot.hostileId && (!targetFlightId || other.flightId === targetFlightId) && other.team !== p.team && inFlight(other));
   if (pilot.think > 0 && current && length(sub(current.position, p.position)) < 6500 && length(sub(current.position, carrier)) < 7500) return current;
   pilot.think = .65;
   let best: Aircraft | undefined, bestScore = Infinity;
   for (const other of planes) {
-    if (other.team === p.team || !inFlight(other)) continue;
+    if (other.team === p.team || !inFlight(other) || (targetFlightId && other.flightId !== targetFlightId)) continue;
     const distance = length(sub(other.position, p.position)), homeDistance = length(sub(other.position, carrier));
     if (distance > 6500 || homeDistance > 7500) continue;
     const inbound = dot(other.velocity, sub(carrier, other.position)) > 0;
@@ -46,7 +46,7 @@ export function fighterGunAim(p: Aircraft, hostile: Aircraft) {
   const time = times.length ? Math.min(...times) : length(relative) / 720;
   const direction = normalize(add(relative, scale(velocity, time)));
   const forward: Vec3 = [Math.sin(p.heading) * Math.cos(p.pitch), Math.sin(p.pitch), -Math.cos(p.heading) * Math.cos(p.pitch)];
-  return { alignment: dot(forward, direction), direction, distance: length(relative), point: add(hostile.position, scale(hostile.velocity, time)) };
+  return { time, alignment: dot(forward, direction), direction, distance: length(relative), point: add(hostile.position, scale(hostile.velocity, time)) };
 }
 
 export function clearFighterLane(p: Aircraft, aim: Vec3, planes: Aircraft[]) {
