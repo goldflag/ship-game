@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { shipPresets } from '../ships/presets';
 import { MIN_BATTLE_SPAWN_DISTANCE, MAX_BATTLE_SPAWN_DISTANCE, MAX_TEAM_SHIPS, type BattleSetup } from '../simulation/battle';
 import { Icon } from './Icons';
+import { backdropUrl } from './BattleLoadingScreen';
 import './BattleSetupDialog.css';
 
 const ships = Object.values(shipPresets);
@@ -12,18 +13,19 @@ interface Props {
   onChange(setup: BattleSetup): void;
   onLaunch(): void;
   onClose(): void;
-  loading: boolean;
   error: string;
 }
 
 /** Fleet harbor extension: a ship catalog feeds two rosters with one click per hull; the player slot stays protected. */
-export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, loading, error }: Props) {
+export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, error }: Props) {
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => { dialog.current?.showModal(); }, []);
   const [filter, setFilter] = useState('');
   const terms = filter.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
   const filteredShips = ships.filter(ship => terms.every(term => `${ship.name} ${ship.id}`.toLocaleLowerCase().includes(term)));
   const map = oceanMap(setup.mapId ?? DEFAULT_MAP);
+  // Warm the loading screen's backdrop so it is on screen the moment the battle starts loading.
+  useEffect(() => { new Image().src = backdropUrl(map.id); }, [map.id]);
   const friendlyFull = setup.friendlyBots.length >= MAX_TEAM_SHIPS - 1;
   const enemyFull = setup.enemies.length >= MAX_TEAM_SHIPS;
   const bots = (team: 'friendlyBots' | 'enemies') => setup[team].map((id, index) => <li key={`${team}-${index}`}>
@@ -31,10 +33,10 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, loading,
     <span className="battle-roster-name"><span>{shipName(id)}</span><small>{team === 'enemies' ? 'Enemy' : 'Friendly'} bot {index + 1}</small></span>
     <button className="icon-button" aria-label={`Remove ${shipName(id)}, ${team === 'enemies' ? 'enemy' : 'friendly'} bot ${index + 1}`} onClick={() => onChange({ ...setup, [team]: setup[team].filter((_, i) => i !== index) })}><Icon name="close" size={16}/></button>
   </li>);
-  return <dialog ref={dialog} className="battle-setup" aria-labelledby="battle-setup-title" aria-describedby="battle-setup-description" onCancel={event => { event.preventDefault(); if (!loading) onClose(); }}>
-    <div className="battle-setup-heading"><h2 id="battle-setup-title">Custom battle</h2><button className="icon-button" aria-label="Close battle setup" disabled={loading} onClick={onClose}><Icon name="close"/></button></div>
+  return <dialog ref={dialog} className="battle-setup" aria-labelledby="battle-setup-title" aria-describedby="battle-setup-description" onCancel={event => { event.preventDefault(); onClose(); }}>
+    <div className="battle-setup-heading"><h2 id="battle-setup-title">Custom battle</h2><button className="icon-button" aria-label="Close battle setup" onClick={onClose}><Icon name="close"/></button></div>
     <p id="battle-setup-description">Pick ships from the catalog to build both fleets. You command one ship; bots command the rest.</p>
-    <fieldset disabled={loading} className="battle-map-picker">
+    <fieldset className="battle-map-picker">
       <legend>Battle waters</legend>
       <div className="battle-map-options">
         {OCEAN_MAPS.map(option => <label key={option.id} className="battle-map-option">
@@ -49,7 +51,7 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, loading,
         </select></label>
       </div>
     </fieldset>
-    <fieldset disabled={loading} className="battle-builder">
+    <fieldset className="battle-builder">
       <legend className="battle-sr-only">Fleet selection</legend>
       <section className="battle-catalog" aria-labelledby="catalog-title">
         <header><h3 id="catalog-title">Ships</h3><span role="status">{filteredShips.length} / {ships.length} hulls</span></header>
@@ -95,7 +97,7 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, loading,
     <div className="battle-deployment">
       <label htmlFor="battle-spawn-distance">Spawn distance</label>
       <output htmlFor="battle-spawn-distance">{setup.spawnDistance / 1000} km</output>
-      <input id="battle-spawn-distance" type="range" min={MIN_BATTLE_SPAWN_DISTANCE} max={MAX_BATTLE_SPAWN_DISTANCE} step={500} value={setup.spawnDistance} disabled={loading}
+      <input id="battle-spawn-distance" type="range" min={MIN_BATTLE_SPAWN_DISTANCE} max={MAX_BATTLE_SPAWN_DISTANCE} step={500} value={setup.spawnDistance}
         aria-valuetext={`${setup.spawnDistance / 1000} kilometers`} aria-describedby="battle-spawn-description"
         onChange={event => onChange({ ...setup, spawnDistance: Number(event.target.value) })}/>
       <div className="battle-distance-limits" aria-hidden="true"><span>{MIN_BATTLE_SPAWN_DISTANCE / 1000} km</span><span>{MAX_BATTLE_SPAWN_DISTANCE / 1000} km</span></div>
@@ -103,6 +105,6 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, loading,
     </div>
     <div className="battle-briefing"><Icon name="compass" size={21}/><p><strong>{map.name}</strong><span>Defeat the opposing fleet to win.</span></p></div>
     {error && <p className="battle-error" role="alert">{error} Your fleet is kept here; try launching again.</p>}
-    <footer><button className="secondary-button" disabled={loading} onClick={onClose}>Back to port</button><button className="primary-button" aria-busy={loading} disabled={loading || !setup.enemies.length} onClick={onLaunch}>{loading ? 'Preparing fleets…' : 'Start battle'}<Icon name="arrow" size={18}/></button></footer>
+    <footer><button className="secondary-button" onClick={onClose}>Back to port</button><button className="primary-button" disabled={!setup.enemies.length} onClick={onLaunch}>Start battle<Icon name="arrow" size={18}/></button></footer>
   </dialog>;
 }
