@@ -1,5 +1,6 @@
 import { airborne, createAirWing, launchSquadron, orderFlight, recallAircraft, stepAircraft, type AirRelease, type AirOrder } from './aircraft';
 import { airWingTelemetry, type AirWingTelemetry } from './airTelemetry';
+import { DEFAULT_AI_LEVEL, type ShipAiLevel } from './aiLevels';
 import { DEFAULT_MAP, mapIslands, type Island, type OceanMapId } from '../maps/catalog';
 import { avoidLand, firstLandHit, resolveLandContact } from './land';
 import { updateCapability, type VesselStatus } from './stability';
@@ -101,8 +102,12 @@ export class CombatSimulation {
     this.player = this.createActor('player', definition, 'friendly', 'player');
     this.actors = [this.player];
     if (fleet) {
-      fleet.friendlyBots.forEach((def, i) => this.actors.push(this.createActor(`friendly-${i + 1}`, def, 'friendly', 'bot')));
-      fleet.enemies.forEach((def, i) => this.actors.push(this.createActor(`enemy-${i + 1}`, def, 'enemy', 'bot')));
+      for (const [team, entries] of [['friendly', fleet.friendlyBots], ['enemy', fleet.enemies]] as const) {
+        entries.forEach((entry, i) => {
+          const { definition: def, aiLevel } = 'definition' in entry ? entry : { definition: entry, aiLevel: DEFAULT_AI_LEVEL };
+          this.actors.push(this.createActor(`${team}-${i + 1}`, def, team, 'bot', aiLevel));
+        });
+      }
       for (const team of ['friendly', 'enemy'] as const) this.actors.filter(actor => actor.team === team).forEach((actor, i) => Object.assign(actor.motion, deployment(i, team, this.spawnDistance)));
       this.target = this.actors.find(actor => actor.team === 'enemy')!;
     } else {
@@ -116,7 +121,7 @@ export class CombatSimulation {
   /** Reset every hull while preserving actor identities used by renderer bindings. */
   reset(): void {
     for (const team of ['friendly', 'enemy'] as const) this.actors.filter(actor => actor.team === team).forEach((actor, i) => {
-      Object.assign(actor, this.createActor(actor.motion.id, actor.definition, actor.team, actor.controller));
+      Object.assign(actor, this.createActor(actor.motion.id, actor.definition, actor.team, actor.controller, actor.bot?.aiLevel));
       delete actor.targetId;
       if (this.isBattle) Object.assign(actor.motion, deployment(i, team, this.spawnDistance));
     });
@@ -124,13 +129,13 @@ export class CombatSimulation {
     if (!this.isBattle) Object.assign(this.target, this.createTarget());
     this.clearCombat(); this.tick = 0; this.accumulator = 0; this.result = 'active';
   }
-  private createActor(id: string, definition: ShipDefinition, team: Team, controller: FleetActor['controller']): FleetActor {
+  private createActor(id: string, definition: ShipDefinition, team: Team, controller: FleetActor['controller'], aiLevel: ShipAiLevel = DEFAULT_AI_LEVEL): FleetActor {
     return { definition, team, controller, airWing: createAirWing(definition, id, team), motion: createShipState(id), mounts: definition.mounts.map(createMountState), damage: createDamage(definition),
       torpedoTubes: (definition.torpedoTubes ?? []).map(createTubeState), tubeLaunchCooldown: 0,
       torpedoLaunchers: (definition.torpedoLaunchers ?? []).map(l => ({ id: l.id, train: 0 })),
       depthChargeLaunchers: (definition.depthChargeLaunchers ?? []).map(createDepthChargeLauncherState), depthChargeCooldown: 0,
       ...(definition.submarine ? { submarine: createSubmarineState() } : {}),
-      ...(controller === 'bot' ? { bot: createBotState(id, definition, this.seed) } : {}) };
+      ...(controller === 'bot' ? { bot: createBotState(id, definition, this.seed, aiLevel) } : {}) };
   }
   private createTarget() {
     const target = this.createActor('target', this.definition, 'enemy', 'idle');
@@ -248,7 +253,8 @@ export class CombatSimulation {
         updateBot(actor, target, this.tick * FIXED_DT);
         actor.targetId = target?.motion.id;
         targets.set(actor, target);
-        commands.set(actor, avoidLand(actor, botHelm(actor, target, this.actors), this.islands));
+        const command = botHelm(actor, target, this.actors);
+        commands.set(actor, actor.bot!.aiLevel === 'static' ? command : avoidLand(actor, command, this.islands));
       } else commands.set(actor, actor === this.player ? helm : { throttle: this.targetUnderway ? .25 : 0, rudder: 0 });
     }
     for (const actor of this.actors) {
