@@ -135,6 +135,8 @@ Shell strikes also leave lasting marks on the ship itself: penetrations have dar
 
 Production builds publish losslessly compressed ship transfers alongside the original GLBs. `src/game/loadShipModel.ts` decompresses them before the normal GLTF parse and definition-hash check; development uses the original models. The build also extracts the supplied ocean/sky libraries' embedded textures into separate hashed files, allowing the game code to start before every texture downloads. Both steps preserve the original asset bytes. See the [startup measurements](assets/reviews/startup/README.md).
 
+Fleet loading prepares one ship type at a time to limit overlapping parse and geometry buffers. Hit-surface caches retain triangle-range bounds and use one temporary query mesh, keeping dense models from allocating thousands of persistent mesh objects. See the [memory regression checks](assets/reviews/runtime-memory/README.md).
+
 Sound uses an [original ElevenLabs-generated naval set](assets/audio/naval/README.md): mechanical UI clicks, engine telegraph and reload cues, a departure horn, caliber-based gunfire, armor hits, ricochets, splashes and magazine explosions. Click or press a key to enable browser audio. **Esc → Settings → Sound** adjusts master, effects and interface levels or mutes everything; changes apply immediately and persist without restarting the battle. Pause stops combat tails; background tabs are silent. `bun run audio:build` rebuilds the processed assets locally from the retained originals and prompts.
 
 - `src/ships/blueprint.ts`: validated, versioned JSON blueprints and compiled ship definitions.

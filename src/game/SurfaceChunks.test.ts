@@ -2,6 +2,15 @@ import { expect, test } from 'bun:test';
 import * as THREE from 'three/webgpu';
 import { raycastSurface, surfaceChunks } from './SurfaceChunks';
 
+test('warming dense hit surfaces does not allocate a geometry per chunk', () => {
+  const source = new THREE.BoxGeometry(100, 40, 20, 80, 32, 16);
+  const before = new THREE.BufferGeometry();
+  expect(surfaceChunks(source).length).toBeGreaterThan(100);
+  const after = new THREE.BufferGeometry();
+  expect(after.id - before.id).toBe(1);
+  source.dispose(); before.dispose(); after.dispose();
+});
+
 test('chunked surface queries preserve dense indexed and non-indexed mesh hits after transforms', () => {
   for (const indexed of [true, false]) {
     const original = new THREE.BoxGeometry(100, 40, 20, 80, 32, 16);

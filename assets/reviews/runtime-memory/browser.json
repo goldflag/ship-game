@@ -1,0 +1,45 @@
+{
+  "errors": [],
+  "samples": [
+    {
+      "label": "initial port",
+      "usedSize": 70739612,
+      "totalSize": 73621504,
+      "embedderHeapUsedSize": 4777672,
+      "backingStorageSize": 403045183,
+      "geometry": 649,
+      "textures": 149,
+      "tick": 0
+    },
+    {
+      "label": "10 ships loaded",
+      "usedSize": 102854332,
+      "totalSize": 107257856,
+      "embedderHeapUsedSize": 5519464,
+      "backingStorageSize": 695802837,
+      "geometry": 658,
+      "textures": 159,
+      "tick": 24
+    },
+    {
+      "label": "30 seconds battle",
+      "usedSize": 111268820,
+      "totalSize": 118792192,
+      "embedderHeapUsedSize": 6543328,
+      "backingStorageSize": 697166342,
+      "geometry": 721,
+      "textures": 167,
+      "tick": 1444
+    },
+    {
+      "label": "switched back to port",
+      "usedSize": 94755816,
+      "totalSize": 98689024,
+      "embedderHeapUsedSize": 6172144,
+      "backingStorageSize": 351393145,
+      "geometry": 702,
+      "textures": 153,
+      "tick": 0
+    }
+  ]
+}

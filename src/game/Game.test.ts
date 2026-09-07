@@ -184,7 +184,12 @@ test('battle loading binds each mixed fleet hull and selected target to its own 
 
 test('battle preparation reports each loading stage in order for the loading screen', async () => {
   const { game, rig } = await port();
-  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => model(String(url).split('/').pop()!.replace('.glb', '')));
+  let active = 0, peak = 0;
+  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => {
+    peak = Math.max(peak, ++active);
+    try { return await model(String(url).split('/').pop()!.replace('.glb', '')); }
+    finally { active--; }
+  });
   const stages: [string, number][] = [];
   try {
     await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck'], enemies: ['yamato', 'enterprise-cv6'], spawnDistance: 7500, mapId: 'pacific-islands' }, (label, fraction) => stages.push([label, fraction]));
@@ -194,8 +199,8 @@ test('battle preparation reports each loading stage in order for the loading scr
     expect(stages.map(([label]) => label)).toContain('Spotting the air wing');
     expect(stages.map(([label]) => label)).toContain('Mustering the fleets');
     expect(stages.at(-1)?.[0]).toBe('Forming the battle lines');
-    // Parallel model preparation can finish after every download has arrived;
-    // each completion then says "aboard" instead of naming the next download.
+    expect(peak).toBe(1); // Never retain multiple in-flight GLB parses.
+    expect(loader).toHaveBeenCalledTimes(4);
     expect(stages.filter(([label]) => label.startsWith('Loading ') || label.endsWith(' aboard'))).toHaveLength(5);
     // A disposed session never renders again, so a pending frame wait must not hang the loading screen.
     Object.assign(game, { disposed: true });

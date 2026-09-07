@@ -467,13 +467,16 @@ export class Game {
     const clones: THREE.Group[] = [];
     let draws: FleetShipDraws | undefined;
     try {
-      // Hulls load in parallel; each arrival advances the shared fraction toward the aircraft stage.
+      // Parsing, painting, batching and LOD generation all allocate large temporary
+      // buffers. Finish one model before fetching the next to bound peak memory.
       let loaded = 0;
       const hullShare = 0.6 / definitions.length;
       progress?.(`Loading ${definitions[0].name}`, 0.08);
-      const loads = await Promise.allSettled(definitions.map(async def => {
+      for (const def of definitions) {
+        this.assertActive();
         const model = (await loadShipModel(assetUrl(def.modelUrl))).scene;
         models.set(def.id, model);
+        this.assertActive();
         const hash = 'contentHash' in def ? def.contentHash : undefined;
         if (!hash || model.userData.definitionHash !== hash) throw new Error('The ship model and definition have different versions. Rebuild the ship assets and reload.');
         palette.apply(model);
@@ -482,9 +485,7 @@ export class Game {
         loaded += 1;
         const next = definitions.find(d => !models.has(d.id));
         progress?.(next ? `Loading ${next.name}` : `${def.name} aboard`, 0.08 + hullShare * loaded);
-      }));
-      const failure = loads.find(result => result.status === 'rejected');
-      if (failure?.status === 'rejected') throw failure.reason;
+      }
       if (simulation.actors.some(a => a.definition.airWing)) { progress?.('Spotting the air wing', 0.7); await this.aircraftView.load(); }
       this.assertActive();
       if (!this.inPort) throw new Error('Return to port before changing fleets.');
