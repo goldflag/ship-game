@@ -12,6 +12,7 @@ export interface Telemetry {
   mapId?: OceanMapId;
   islands?: Island[];
   ship: ShipState;
+  shipDefinition?: import('../ships/blueprint').ShipDefinition;
   order: number;
   rudderOrder?: number;
   camera: CameraMode;

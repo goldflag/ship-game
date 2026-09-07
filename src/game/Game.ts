@@ -34,7 +34,7 @@ import { ShipLabels } from './ShipLabels';
 import { HitLabels } from './HitLabels';
 import { TorpedoPreview } from './TorpedoPreview';
 import { HullDamageFeedback } from './HullDamageFeedback';
-import { FIXED_DT } from '../simulation/ship';
+import { ENGINE_ORDERS, FIXED_DT } from '../simulation/ship';
 import { DEPTH_STEP_M, orderDepth } from '../simulation/submarine';
 import { GunAimIndicators } from './GunAimIndicators';
 import { HitDirectionIndicators } from './HitDirectionIndicators';
@@ -89,6 +89,7 @@ export class Game {
   private hitLabels: HitLabels;
   private torpedoPreview = new TorpedoPreview();
   private playerDamageFeedback: HullDamageFeedback;
+  private damageFeedbackShipId?: string;
   private gunAim: GunAimIndicators;
   private hitDirections: HitDirectionIndicators;
   private hudScale = 1;
@@ -646,7 +647,12 @@ export class Game {
       const combatTime = this.simulation.tick * FIXED_DT;
       this.shipLabels.update(this.camera, combatTime);
       this.hitLabels.update(this.simulation, this.fleetViews, this.camera, !this.inPort && !this.inspecting);
-      const playerDamage = this.playerDamageFeedback.update(this.simulation.player.damage.integrity, combatTime);
+      const damageSubject = this.simulation.actors.find(actor => actor.motion.id === this.spectatedShipId) ?? this.simulation.player;
+      if (this.damageFeedbackShipId !== damageSubject.motion.id) {
+        this.damageFeedbackShipId = damageSubject.motion.id;
+        this.playerDamageFeedback = new HullDamageFeedback(damageSubject.damage.integrity);
+      }
+      const playerDamage = this.playerDamageFeedback.update(damageSubject.damage.integrity, combatTime);
       this.fps += (1 / realDt - this.fps) * 0.04;
       if (state.tick - this.lastTrailTick >= 120) {
         this.trail.push({ x: state.x, z: state.z });
@@ -655,7 +661,8 @@ export class Game {
       }
       if (!warmingUp && time - this.hudTime > 100) {
         this.hudTime = time;
-        this.callbacks.telemetry({ ship: { ...state }, order: this.input.order, rudderOrder: this.input.rudderOrder, camera: this.rig.mode,
+        const hud = this.shipTelemetry(aim);
+        this.callbacks.telemetry({ ...hud, camera: this.rig.mode,
           binoculars: this.rig.binoculars, magnification: this.rig.magnification, pointerLocked: this.rig.pointerLocked,
           viewBearing: this.rig.bearing, chartSize: this.chartSize, airOperationsOpen: this.airOperationsOpen, selectedFlightId: this.selectedFlightId,
           airMap: this.airOperationsOpen ? { ...this.battlefieldCamera.view } : undefined,
@@ -666,8 +673,7 @@ export class Game {
             })),
           shellFollow: this.shellFollow.phase, followedAircraftId: this.followedAircraftId, spectatedShipId: this.spectatedShipId,
           playerDamage,
-          mapId: this.simulation.mapId, islands: this.simulation.islands, fps: Math.round(this.fps), backend: this.water!.backend, trail: [...this.trail],
-          combat: this.simulation.telemetry(this.battery, aim, this.weaponGroupId), inspecting: this.inspecting, aimModule: this.manualAim ? 'point' : this.aimModule,
+          mapId: this.simulation.mapId, islands: this.simulation.islands, fps: Math.round(this.fps), backend: this.water!.backend, trail: this.spectatedShipId ? [] : [...this.trail], inspecting: this.inspecting, aimModule: this.manualAim ? 'point' : this.aimModule,
           aimMarker: this.projectAim(aim) });
       }
       if (!warmingUp) this.scheduleFrame();
@@ -799,6 +805,24 @@ export class Game {
     this.stopShellFollow();
     if (this.airOperationsOpen) this.setAirOperationsOpen(false);
     this.followedAircraftId = id;
+  }
+  /** Instruments follow the spectator without transferring control of the actor. */
+  private shipTelemetry(aim: Vec3) {
+    const subject = this.spectatedShipId
+      ? this.simulation.actors.find(actor => actor.motion.id === this.spectatedShipId) ?? this.simulation.player
+      : this.simulation.player;
+    const spectating = subject !== this.simulation.player;
+    const group = spectating ? weaponGroups(subject.definition)[0] : undefined;
+    const orders = ENGINE_ORDERS;
+    const throttle = subject.helm?.throttle ?? 0;
+    const order = orders.reduce<number>((best, value, index) => Math.abs(value - throttle) < Math.abs(orders[best] - throttle) ? index : best, 1);
+    return {
+      ship: { ...subject.motion }, shipDefinition: subject.definition,
+      order: spectating ? order : this.input.order,
+      rudderOrder: spectating ? subject.helm?.rudder ?? 0 : this.input.rudderOrder,
+      combat: this.simulation.telemetry(spectating ? group?.battery ?? 'main' : this.battery,
+        aim, spectating ? group?.id : this.weaponGroupId, subject),
+    };
   }
   private get cameraShipView(): ShipView {
     return this.fleetViews.find(view => view.actor.motion.id === this.spectatedShipId)

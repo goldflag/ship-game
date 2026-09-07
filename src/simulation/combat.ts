@@ -160,7 +160,7 @@ export class CombatSimulation {
     this.clearCombat(); this.tick = 0; this.accumulator = 0; this.result = 'active';
   }
   private createActor(id: string, definition: ShipDefinition, team: Team, controller: FleetActor['controller'], aiLevel: ShipAiLevel = DEFAULT_AI_LEVEL): FleetActor {
-    return { definition, team, controller, sea: { state: this.sea, time: 0 }, airWing: createAirWing(definition, id, team), motion: createShipState(id), mounts: definition.mounts.map(createMountState), damage: createDamage(definition),
+    return { definition, team, controller, helm: { throttle: 0, rudder: 0 }, sea: { state: this.sea, time: 0 }, airWing: createAirWing(definition, id, team), motion: createShipState(id), mounts: definition.mounts.map(createMountState), damage: createDamage(definition),
       torpedoTubes: (definition.torpedoTubes ?? []).map(createTubeState), tubeLaunchCooldown: 0,
       torpedoLaunchers: (definition.torpedoLaunchers ?? []).map(l => ({ id: l.id, train: 0 })),
       depthChargeLaunchers: (definition.depthChargeLaunchers ?? []).map(createDepthChargeLauncherState), depthChargeCooldown: 0,
@@ -301,7 +301,8 @@ export class CombatSimulation {
     for (const actor of this.actors) {
       const def = actor.definition;
       const propulsion = submarinePropulsion(actor, def);
-      stepShip(actor.motion, commands.get(actor)!, propulsion?.handling ?? def.handling, propulsion?.power ?? systemHealth(actor, def, 'engine'), systemHealth(actor, def, 'steering'), this.sea.windMps ? seaHandling(actor, this.sea) : undefined);
+      actor.helm = { ...commands.get(actor)! };
+      stepShip(actor.motion, actor.helm, propulsion?.handling ?? def.handling, propulsion?.power ?? systemHealth(actor, def, 'engine'), systemHealth(actor, def, 'steering'), this.sea.windMps ? seaHandling(actor, this.sea) : undefined);
     }
     resolveShipCollisions(this.actors, this.contactImpact);
     for (const actor of this.actors) resolveLandContact(actor, this.islands, this.contactImpact);
@@ -473,79 +474,85 @@ export class CombatSimulation {
       this.depthCharges.splice(i, 1);
     }
   }
-  telemetry(battery: Battery, aim: Vec3, weaponGroupId?: string): CombatTelemetry {
-    const gunWorkRate = .25 + .75 * supportPerformance(this.player, this.player.definition).power;
-    const mounts = battery === 'depth-charge' ? (this.definition.depthChargeLaunchers ?? []).map((l, i) => {
-      const s = this.player.depthChargeLaunchers![i];
-      return { id: l.id, name: l.name, status: s.status, reload: Math.max(s.reload, this.player.depthChargeCooldown ?? 0), ammo: s.ammo };
-    }) : battery === 'torpedo' ? (this.definition.torpedoTubes ?? []).map((tube, i) => {
-      const s = this.player.torpedoTubes![i];
-      return { id: tube.id, name: tube.name, status: s.status, reload: Math.max(s.reload, this.player.tubeLaunchCooldown ?? 0), ammo: s.ammo };
-    }) : this.definition.mounts.filter(m => selectedWeapon(m.battery, m.weapon, battery, weaponGroupId)).map(m => {
-      const s = this.player.mounts.find(s => s.id === m.id)!;
+  /** Ship instruments may observe a teammate; player death and scoring remain session-owned. */
+  telemetry(battery: Battery, aim: Vec3, weaponGroupId?: string, subject: FleetActor = this.player): CombatTelemetry {
+    const definition = subject.definition, ship = subject.motion;
+    const groups = weaponGroups(definition);
+    const ammunitionFor = (key: string, fallback = key): Ammunition => subject === this.player
+      ? this.ammunitionSelection[key] ?? this.ammunitionSelection[fallback] ?? 'ap'
+      : subject.mounts.find(m => groups.find(g => g.id === key || g.battery === key)?.mountIds.includes(m.id))?.loaded ?? 'ap';
+    const gunWorkRate = .25 + .75 * supportPerformance(subject, subject.definition).power;
+    const mounts = battery === 'depth-charge' ? (definition.depthChargeLaunchers ?? []).map((l, i) => {
+      const s = subject.depthChargeLaunchers![i];
+      return { id: l.id, name: l.name, status: s.status, reload: Math.max(s.reload, subject.depthChargeCooldown ?? 0), ammo: s.ammo };
+    }) : battery === 'torpedo' ? (definition.torpedoTubes ?? []).map((tube, i) => {
+      const s = subject.torpedoTubes![i];
+      return { id: tube.id, name: tube.name, status: s.status, reload: Math.max(s.reload, subject.tubeLaunchCooldown ?? 0), ammo: s.ammo };
+    }) : definition.mounts.filter(m => selectedWeapon(m.battery, m.weapon, battery, weaponGroupId)).map(m => {
+      const s = subject.mounts.find(s => s.id === m.id)!;
       return { id: m.id, name: m.name, status: s.status, reload: s.reload / gunWorkRate, ammo: availableAmmunition(s), loaded: s.loaded, queued: s.queued };
     });
-    const selectedGroup = weaponGroups(this.definition).find(g => g.id === weaponGroupId);
+    const selectedGroup = groups.find(g => g.id === weaponGroupId);
     const selectedMounts = weaponGroupId === undefined ? mounts : mounts.filter(m => selectedGroup?.mountIds.includes(m.id));
     const significant = [...this.events].reverse().find(e => ['module', 'sunk', 'stopped', 'ricochet', 'penetration', 'contact', 'burst', 'torpedo-launch', 'torpedo-hit', 'torpedo-dud', 'torpedo-expired', 'depth-charge-launch', 'depth-charge-blast', 'depth-charge-hit'].includes(e.kind));
-    const flightTimes = this.definition.mounts.flatMap((m, i) => {
-      const state = this.player.mounts[i];
+    const flightTimes = definition.mounts.flatMap((m, i) => {
+      const state = subject.mounts[i];
       const time = state.aimCache?.time;
       return selectedWeapon(m.battery, m.weapon, battery, weaponGroupId) && ['ready', 'reloading', 'turning'].includes(state.status) && time !== undefined && Number.isFinite(time) && time > 0 ? [time] : [];
     });
     return {
-      airWing: (() => { const wing = airWingTelemetry(this.player, this.actors); if (wing) wing.available &&= this.result === 'active'; return wing; })(),
+      airWing: (() => { const wing = airWingTelemetry(subject, this.actors); if (wing) wing.available &&= this.result === 'active'; return wing; })(),
       airContacts: this.aircraft.filter(airborne).map(p => ({ id: p.id, team: p.team, x: p.position[0], z: p.position[2], heading: p.heading, role: p.role, ownerId: p.ownerId, flightId: p.flightId, phase: p.phase })),
-      battery, weaponGroupId, range: Math.hypot(aim[0] - this.ship.x, aim[2] - this.ship.z), ready: selectedMounts.filter(m => m.status === 'ready').length, total: selectedMounts.length,
+      battery, weaponGroupId, range: Math.hypot(aim[0] - ship.x, aim[2] - ship.z), ready: selectedMounts.filter(m => m.status === 'ready').length, total: selectedMounts.length,
       flightTimeSeconds: flightTimes.length ? flightTimes.reduce((sum, time) => sum + time, 0) / flightTimes.length : undefined,
-      ammunition: this.ammunitionSelection[weaponGroupId ?? battery] ?? 'ap', heSupported: this.definition.mounts.some(m => selectedWeapon(m.battery, m.weapon, battery, weaponGroupId) && m.weapon.he !== undefined),
-      ammunitionStock: (battery === 'torpedo' || battery === 'depth-charge' ? [] : selectedMounts).reduce((stock, m) => { const s = this.player.mounts.find(s => s.id === m.id)!; stock.ap += availableAmmunition(s, 'ap'); stock.he += availableAmmunition(s, 'he'); return stock; }, { ap: 0, he: 0 }),
+      ammunition: ammunitionFor(weaponGroupId ?? battery), heSupported: definition.mounts.some(m => selectedWeapon(m.battery, m.weapon, battery, weaponGroupId) && m.weapon.he !== undefined),
+      ammunitionStock: (battery === 'torpedo' || battery === 'depth-charge' ? [] : selectedMounts).reduce((stock, m) => { const s = subject.mounts.find(s => s.id === m.id)!; stock.ap += availableAmmunition(s, 'ap'); stock.he += availableAmmunition(s, 'he'); return stock; }, { ap: 0, he: 0 }),
       targetMounts: this.target.definition.mounts.map((m, i) => ({ id: m.id, name: m.name, condition: this.target.mounts[i].hp / 100 })),
       targetId: this.target.motion.id, targetName: this.target.definition.name,
       ...(this.target.submarine ? { targetDepthM: hullDepth(this.target.motion) } : {}),
-      targetRange: Math.hypot(this.target.motion.x - this.ship.x, this.target.motion.z - this.ship.z),
+      targetRange: Math.hypot(this.target.motion.x - ship.x, this.target.motion.z - ship.z),
       battle: this.isBattle, result: this.result, playerSunk: this.player.damage.sunk,
       contacts: this.actors.map(actor => ({ id: actor.motion.id, shipId: actor.definition.id, name: actor.definition.name, team: actor.team, controller: actor.controller,
         targetId: actor.targetId, x: actor.motion.x, z: actor.motion.z, heading: actor.motion.heading, integrity: actor.damage.integrity / actor.damage.maxIntegrity, sunk: actor.damage.sunk, status: actor.damage.stability.status, combatLost: actor.damage.stability.combatLost })),
-      targetStatus: this.target.damage.stability.status, playerStatus: this.player.damage.stability.status, targetList: this.target.motion.roll * 180 / Math.PI, targetTrim: this.target.motion.pitch * 180 / Math.PI, targetDraftChange: -meanHullY(this.target.motion),
-      playerList: this.ship.roll * 180 / Math.PI, playerTrim: this.ship.pitch * 180 / Math.PI, playerDraftChange: -meanHullY(this.ship),
-      control: structuredClone(this.player.damage.control), targetFires: [...this.target.damage.control.rooms, ...this.target.damage.control.mounts].filter(f => f.intensity > 0).length,
-      playerSupport: supportPerformance(this.player, this.player.definition), targetSupport: supportPerformance(this.target, this.target.definition),
-      playerFires: fireReadout(this.player, this.player.definition), targetFireDetails: fireReadout(this.target, this.target.definition), targetRegions: regionReadout(this.target, this.target.definition),
-      controlTargets: [...this.player.definition.compartments.map(c => ({ id: c.id, name: c.name })), ...this.player.definition.mounts.map(m => ({ id: m.id, name: m.name }))],
+      targetStatus: this.target.damage.stability.status, playerStatus: subject.damage.stability.status, targetList: this.target.motion.roll * 180 / Math.PI, targetTrim: this.target.motion.pitch * 180 / Math.PI, targetDraftChange: -meanHullY(this.target.motion),
+      playerList: ship.roll * 180 / Math.PI, playerTrim: ship.pitch * 180 / Math.PI, playerDraftChange: -meanHullY(ship),
+      control: structuredClone(subject.damage.control), targetFires: [...this.target.damage.control.rooms, ...this.target.damage.control.mounts].filter(f => f.intensity > 0).length,
+      playerSupport: supportPerformance(subject, subject.definition), targetSupport: supportPerformance(this.target, this.target.definition),
+      playerFires: fireReadout(subject, subject.definition), targetFireDetails: fireReadout(this.target, this.target.definition), targetRegions: regionReadout(this.target, this.target.definition),
+      controlTargets: [...subject.definition.compartments.map(c => ({ id: c.id, name: c.name })), ...subject.definition.mounts.map(m => ({ id: m.id, name: m.name }))],
       targetIntegrity: this.target.damage.integrity / this.target.damage.maxIntegrity, targetWater: this.target.damage.compartments.reduce((n, c) => n + c.waterM3, 0),
       targetEquipmentIntegrity: equipmentIntegrity(this.target, this.target.definition),
       targetPower: systemHealth(this.target, this.target.definition, 'engine'), targetSteering: systemHealth(this.target, this.target.definition, 'steering'), targetSunk: this.target.damage.sunk, targetUnderway: this.targetUnderway,
       mounts: selectedMounts, modules: this.target.definition.modules.map((m, i) => ({ id: m.id, name: m.name, condition: this.target.damage.modules[i].hp / m.hp, ...equipmentCondition(this.target, this.target.definition, m) })),
-      playerIntegrity: this.player.damage.integrity / this.player.damage.maxIntegrity,
-      playerMaxIntegrity: this.player.damage.maxIntegrity, playerDamageDealt: this.playerDamageDealt, playerFrags: this.playerFrags,
+      playerIntegrity: subject.damage.integrity / subject.damage.maxIntegrity,
+      playerMaxIntegrity: subject.damage.maxIntegrity, playerDamageDealt: this.playerDamageDealt, playerFrags: this.playerFrags,
       damageLog: this.damageLog.snapshot(),
-      playerWater: this.player.damage.compartments.reduce((n, c) => n + c.waterM3, 0),
-      ...(this.player.submarine && this.definition.submarine ? { submarine: {
-        depthM: hullDepth(this.ship), targetDepthM: this.player.submarine.targetDepthM,
-        verticalSpeed: this.ship.verticalSpeed ?? 0, ballastM3: this.player.submarine.ballastM3,
-        ballastFraction: this.player.submarine.ballastM3 / this.definition.submarine.ballastCapacityM3,
-        emergencyBlow: this.player.submarine.emergencyBlow, propulsion: hullDepth(this.ship) > .5 ? 'Electric' as const : 'Diesel' as const,
-        maxDepthM: this.definition.submarine.maxDepthM, periscopeDepthM: this.definition.submarine.periscopeDepthM, maxTorpedoDepthM: this.definition.submarine.maxTorpedoDepthM,
+      playerWater: subject.damage.compartments.reduce((n, c) => n + c.waterM3, 0),
+      ...(subject.submarine && definition.submarine ? { submarine: {
+        depthM: hullDepth(ship), targetDepthM: subject.submarine.targetDepthM,
+        verticalSpeed: ship.verticalSpeed ?? 0, ballastM3: subject.submarine.ballastM3,
+        ballastFraction: subject.submarine.ballastM3 / definition.submarine.ballastCapacityM3,
+        emergencyBlow: subject.submarine.emergencyBlow, propulsion: hullDepth(ship) > .5 ? 'Electric' as const : 'Diesel' as const,
+        maxDepthM: definition.submarine.maxDepthM, periscopeDepthM: definition.submarine.periscopeDepthM, maxTorpedoDepthM: definition.submarine.maxTorpedoDepthM,
       } } : {}),
       targetDefeatCause: this.target.damage.defeatCause,
       shellHistory: this.shellHistory.filter(h => h.impacts.some(i => i.shipId === this.target.motion.id)).slice(-8).reverse().map(h => ({ ...h, impacts: h.impacts.filter(i => i.shipId === this.target.motion.id).map(i => ({ ...i, position: [...i.position] })) })),
       targetPosition: { x: this.target.motion.x, z: this.target.motion.z, heading: this.target.motion.heading },
-      weaponGroups: weaponGroups(this.definition).map(group => {
-        const states = (group.battery === 'depth-charge' ? this.player.depthChargeLaunchers ?? [] : group.battery === 'torpedo' ? this.player.torpedoTubes ?? [] : this.player.mounts).filter(m => group.mountIds.includes(m.id));
+      weaponGroups: groups.map(group => {
+        const states = (group.battery === 'depth-charge' ? subject.depthChargeLaunchers ?? [] : group.battery === 'torpedo' ? subject.torpedoTubes ?? [] : subject.mounts).filter(m => group.mountIds.includes(m.id));
         const reloading = states.filter(m => m.reload > 0);
-        return { ...group, ammunition: this.ammunitionSelection[group.id] ?? this.ammunitionSelection[group.battery] ?? 'ap',
+        return { ...group, ammunition: ammunitionFor(group.id, group.battery),
           ammo: states.reduce((n, m) => n + ('loaded' in m ? availableAmmunition(m) : m.ammo), 0),
           ready: states.filter(m => m.status === 'ready').length, total: states.length,
           reload: reloading.length ? Math.min(...reloading.map(m => m.reload)) / (group.battery === 'main' || group.battery === 'secondary' ? gunWorkRate : 1) : 0 };
       }),
-      batteries: (['main', 'secondary', ...(this.definition.torpedoTubes?.length ? ['torpedo'] : []), ...(this.definition.depthChargeLaunchers?.length ? ['depth-charge'] : [])] as Battery[]).map(battery => {
-        const states = battery === 'depth-charge' ? this.player.depthChargeLaunchers! : battery === 'torpedo' ? this.player.torpedoTubes! : this.definition.mounts.filter(m => m.battery === battery).map(m => this.player.mounts.find(s => s.id === m.id)!);
+      batteries: (['main', 'secondary', ...(definition.torpedoTubes?.length ? ['torpedo'] : []), ...(definition.depthChargeLaunchers?.length ? ['depth-charge'] : [])] as Battery[]).map(battery => {
+        const states = battery === 'depth-charge' ? subject.depthChargeLaunchers! : battery === 'torpedo' ? subject.torpedoTubes! : definition.mounts.filter(m => m.battery === battery).map(m => subject.mounts.find(s => s.id === m.id)!);
         const reloading = states.filter(m => m.reload > 0);
-        return { battery, ammunition: this.ammunitionSelection[battery], ammo: states.reduce((n, m) => n + ('loaded' in m ? availableAmmunition(m) : m.ammo), 0), ready: states.filter(m => m.status === 'ready').length, total: states.length,
+        return { battery, ammunition: ammunitionFor(battery), ammo: states.reduce((n, m) => n + ('loaded' in m ? availableAmmunition(m) : m.ammo), 0), ready: states.filter(m => m.status === 'ready').length, total: states.length,
           reload: reloading.length ? Math.min(...reloading.map(m => m.reload)) / (battery === 'main' || battery === 'secondary' ? gunWorkRate : 1) : 0 };
       }),
-      message: significant ? `${this.actors.find(actor => actor.motion.id === significant.shipId)?.definition.name ?? 'Ship'} · ${significant.message}` : battery === 'depth-charge' ? 'Drop during a close pass. Charges sink before exploding; keep moving clear of the blast.' : battery === 'torpedo' ? `${this.definition.torpedoLaunchers?.length ? 'Bring a broadside toward the sight.' : 'Turn bow or stern toward the sight.'} Torpedoes keep their launch course; lead moving targets.` : 'Only aligned, loaded guns fire. Turn the ship to bring guns marked Out of arc onto the target.',
+      message: significant ? `${this.actors.find(actor => actor.motion.id === significant.shipId)?.definition.name ?? 'Ship'} · ${significant.message}` : battery === 'depth-charge' ? 'Drop during a close pass. Charges sink before exploding; keep moving clear of the blast.' : battery === 'torpedo' ? `${definition.torpedoLaunchers?.length ? 'Bring a broadside toward the sight.' : 'Turn bow or stern toward the sight.'} Torpedoes keep their launch course; lead moving targets.` : 'Only aligned, loaded guns fire. Turn the ship to bring guns marked Out of arc onto the target.',
     };
   }
 }

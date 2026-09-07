@@ -166,3 +166,21 @@ test('weapon slots show separate types, custom shortcuts, and one selected group
     }
   }
 });
+
+
+test('spectator HUD uses the observed definition inside the player ship context', () => {
+  const player = shipPreset('bismarck'), watched = shipPreset('fletcher');
+  const sim = new CombatSimulation(player, { friendlyBots: [watched], enemies: [player] });
+  sim.player.damage.sunk = true;
+  const friend = sim.actors[1];
+  friend.damage.integrity = friend.damage.maxIntegrity / 2;
+  const data: Telemetry = { ship: friend.motion, shipDefinition: watched, spectatedShipId: friend.motion.id,
+    order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat: sim.telemetry('main', [0, 0, 0], undefined, friend) };
+  const html = renderToStaticMarkup(<ShipContext.Provider value={player}><FleetHud data={data} game={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
+  expect(html).toContain(`<h1>${watched.name.toUpperCase()}</h1>`);
+  expect(html).not.toContain(`<h1>${player.name.toUpperCase()}</h1>`);
+  expect(html).toContain(`aria-label="${friend.damage.integrity} of ${friend.damage.maxIntegrity} HP"`);
+  expect(html).toContain('Spectating teammate');
+  expect(html).not.toContain('380 mm');
+  expect(html).toContain('disabled="" aria-label="Engine full"');
+});
