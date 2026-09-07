@@ -395,7 +395,7 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
         const error = Math.hypot(landing[0] - impactAim[0], landing[2] - impactAim[2]);
         if (error < 22 && p.pitch < -.25 && p.position[1] > targetPoint[1] + 90 && ctx.shells.length < 256) {
           const id = ctx.nextId();
-          ctx.shells.push({ id, ownerId: p.ownerId, position: add(p.position, [0, -1, 0]), velocity: [...p.velocity], age: 0, penetrationMm: 0, damage: 380, caliberM: .35, visited: [], ammunition: 'he', type: 'HE', he: { explosiveKg: 120, fragmentPenetrationMm: 75, damage: 380, stockFraction: 1, basis: 'Provisional 500 lb gameplay bomb; contact fuze' } });
+          ctx.shells.push({ id, ownerId: p.ownerId, weaponLabel: '500 lb HE bomb', position: add(p.position, [0, -1, 0]), velocity: [...p.velocity], age: 0, penetrationMm: 0, damage: 380, caliberM: .35, visited: [], ammunition: 'he', type: 'HE', he: { explosiveKg: 120, fragmentPenetrationMm: 75, damage: 380, stockFraction: 1, basis: 'Provisional 500 lb gameplay bomb; contact fuze' } });
           p.payload = false; p.phase = 'returning';
           ctx.emit({ kind: 'bomb-release', position: [...p.position], shipId: p.ownerId, message: 'Bomb away', shell: { id, caliberM: .35, velocity: [...p.velocity], ammunition: 'he', type: 'HE' }, aircraft: { id: p.id } });
         } else if (p.position[1] < targetPoint[1] + 100 || dot(sub(targetPoint, p.position), forward) < -100) p.pilot.attackStage = 'egress';
