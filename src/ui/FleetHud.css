@@ -1,6 +1,6 @@
 /* Fleet action: an open sea, a centered sight, and edge-mounted naval instruments. */
 .fleet-hud { --fleet-active:#86e4c5; --fleet-gold:#e8c56c; --fleet-muted:#c1d0d4; --fleet-line:#c9dce04a; --fleet-edge:24px; --fleet-bottom:20px; --chart-limit:min(400px, 31cqw, 68cqh); --chart-width:calc(var(--chart-limit) * var(--map-factor)); position:absolute; inset:0; pointer-events:none; color:#f0f5f3; font-size:12px; font-variant-numeric:tabular-nums; text-shadow:0 2px 4px #07131bea; transition:opacity .18s; }
-.fleet-hud-hidden > :not(.fleet-sight),
+.fleet-hud-hidden > :not(.fleet-sight-optics),
 .fleet-hud-hidden .fleet-scope-readout { opacity:0; visibility:hidden; }
 .fleet-hud button { pointer-events:auto; }
 .fleet-hud button:focus-visible { outline:2px solid var(--fleet-active); outline-offset:3px; }

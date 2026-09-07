@@ -354,17 +354,39 @@ export class Game {
     this.finalFrame = rtt(vec4(mix(sceneDisplay.rgb, armorDisplay.rgb, armorDisplay.a.mul(this.armorOverlay.enabled)), sceneDisplay.a));
     this.pipeline = new THREE.RenderPipeline(this.renderer, fxaa(this.finalFrame));
     this.pipeline.outputColorTransform = false;
-    await this.renderer.compileAsync(this.scene, this.camera);
-    this.assertActive();
-    this.sky.update(1 / 60);
-    await this.water.update(1 / 60);
-    this.assertActive();
-    this.pipeline.render();
+    await this.warmupRendering();
     this.callbacks.progress('Ready to get underway', 1);
     this.callbacks.ready();
     this.input.setEnabled(!this.paused && !this.inPort);
     this.lastTime = performance.now();
     this.scheduleFrame();
+  }
+
+  private async warmupRendering(): Promise<void> {
+    // Exercise the actual ship batches, ocean captures and post-processing targets.
+    // Compiling the scene against the canvas misses those pipeline variants.
+    // Twelve frames also cover the sky reflection's nine-frame update cycle and
+    // both ping-pong targets, including the asynchronous underwater visibility bound.
+    // Prepare scenery behind the initial camera too, before the first port drag.
+    const culled: THREE.Object3D[] = [];
+    this.scene.traverse(object => {
+      if (object.frustumCulled) { culled.push(object); object.frustumCulled = false; }
+    });
+    try {
+      for (let frame = 0; frame < 12; frame++) {
+        this.callbacks.progress('Preparing the harbor view', .84 + frame / 12 * .14);
+        await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+        this.assertActive();
+        await this.frame(performance.now(), true);
+      }
+    } finally {
+      culled.forEach(object => { object.frustumCulled = true; });
+    }
+    await this.frame(performance.now(), true);
+    // A submitted frame is not necessarily finished on the GPU. A tiny readback
+    // drains the startup work on both WebGPU and the WebGL compatibility backend.
+    await this.renderer.readRenderTargetPixelsAsync(this.finalFrame!.renderTarget!, 0, 0, 1, 1);
+    this.assertActive();
   }
 
   /** Replace only ship-owned resources; the harbor, ocean, renderer and camera stay alive. */
@@ -494,9 +516,9 @@ export class Game {
     if (!this.disposed) this.raf = requestAnimationFrame(time => { this.frameTask = this.frame(time); });
   }
 
-  private async frame(time: number): Promise<void> {
+  private async frame(time: number, warmingUp = false): Promise<void> {
     if (this.disposed) return;
-    const realDt = Math.min(Math.max((time - this.lastTime) / 1000, 0.001), 0.1);
+    const realDt = warmingUp ? 1 / 60 : Math.min(Math.max((time - this.lastTime) / 1000, 0.001), 0.1);
     this.lastTime = time;
     const dt = this.paused ? 0 : realDt;
     try {
@@ -511,7 +533,7 @@ export class Game {
       this.rig.update(focus, focus.y, 0);
       const aim = this.manualAim ? this.simulation.player.damage.sunk || this.airOperationsOpen || this.battlefieldCamera.transitioning || this.inspecting || this.shellFollow.view || this.followedAircraftId ? this.currentAim : this.readSightAim() : this.simulation.aimAt(this.aimModule, this.battery);
       this.currentAim = aim;
-      if (!this.inPort) this.simulation.advance(dt, this.input.sample(), { aim, fire: !this.simulation.player.damage.sunk && !this.airOperationsOpen && !this.battlefieldCamera.transitioning && (this.input.firing || this.rig.firing), battery: this.battery, ammunition: this.ammunition[this.battery], controlPriority: this.controlPriority, controlFocus: this.controlFocus }, () => {
+      if (!this.inPort && !warmingUp) this.simulation.advance(dt, this.input.sample(), { aim, fire: !this.simulation.player.damage.sunk && !this.airOperationsOpen && !this.battlefieldCamera.transitioning && (this.input.firing || this.rig.firing), battery: this.battery, ammunition: this.ammunition[this.battery], controlPriority: this.controlPriority, controlFocus: this.controlFocus }, () => {
         this.fleetViews.forEach(view => view.capturePreviousPose());
       });
       const alpha = this.inPort ? 1 : this.simulation.interpolationAlpha;
@@ -532,6 +554,7 @@ export class Game {
         ? aircraftFollowView(followedPlane, this.simulation.player, carrierView.motion, alpha) : undefined;
       if (this.followedAircraftId && !planeView) this.stopShellFollow();
       this.rig.setShellView(planeView ?? this.shellFollow.view);
+      if (this.simulation.player.damage.sunk) this.rig.exitBinoculars();
       if (this.airOperationsOpen) this.battlefieldCamera.update();
       else {
         this.updateSpectator();
@@ -555,7 +578,7 @@ export class Game {
       this.funnelSmoke.root.visible = !this.inspecting && (!this.inPort || this.playerView!.inspection.mode === 'exterior');
       this.funnelSmoke.update(this.inPort ? [this.playerView!] : this.fleetViews, dt, this.camera,
         this.rig.binoculars && !this.shellFollow.view ? this.simulation.player.motion.id : undefined);
-      this.audio?.update(this.simulation, this.input.order, this.battery,
+      if (!warmingUp) this.audio?.update(this.simulation, this.input.order, this.battery,
         this.camera.position.toArray(), new THREE.Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0).toArray());
       this.playerView!.root.visible = this.airOperationsOpen || this.battlefieldCamera.transitioning || !this.rig.binoculars;
       this.harbor?.update(dt, this.camera);
@@ -595,7 +618,7 @@ export class Game {
         if (this.trail.length > 240) this.trail.shift();
         this.lastTrailTick = state.tick;
       }
-      if (time - this.hudTime > 100) {
+      if (!warmingUp && time - this.hudTime > 100) {
         this.hudTime = time;
         this.callbacks.telemetry({ ship: { ...state }, order: this.input.order, rudderOrder: this.input.rudderOrder, camera: this.rig.mode,
           binoculars: this.rig.binoculars, magnification: this.rig.magnification, pointerLocked: this.rig.pointerLocked,
@@ -612,8 +635,9 @@ export class Game {
           combat: this.simulation.telemetry(this.battery, aim), inspecting: this.inspecting, aimModule: this.manualAim ? 'point' : this.aimModule,
           aimMarker: this.projectAim(aim) });
       }
-      this.scheduleFrame();
+      if (!warmingUp) this.scheduleFrame();
     } catch (error) {
+      if (warmingUp) throw error;
       if (!this.disposed) this.callbacks.error(error instanceof Error ? error.message : String(error));
     }
   }

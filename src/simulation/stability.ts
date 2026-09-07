@@ -10,7 +10,6 @@ import { availableAmmunition, type MountDefinition, type MountState } from './we
 export type VesselStatus = 'operational' | 'immobile' | 'disarmed' | 'disabled' | 'sinking' | 'capsized';
 export interface StabilityState {
   sampleRoll?: number; samplePitch?: number; rollSlope?: number; pitchSlope?: number;
-  targetHeave?: number;
   elapsed: number; targetY: number; rollRate: number; pitchRate: number; capsizeSeconds: number; water: WaterBody[];
   rollArm: number; pitchArm: number; displacementM3: number; reserveM3: number; status: VesselStatus; combatLost: boolean;
 }
@@ -53,7 +52,6 @@ export function updateStability(actor: Combatant, def: ShipDefinition, dt: numbe
     state.rollArm = arms.roll + (wave?.roll ?? 0) * def.hull.beam * .07;
     state.pitchArm = arms.pitch + (wave?.pitch ?? 0) * def.hull.length * .4;
     state.targetY = f.y;
-    state.targetHeave = wave?.heave ?? 0;
   }
   if (actor.damage.sunk) actor.motion.waveHeave = 0;
   const step = dt;
@@ -61,8 +59,15 @@ export function updateStability(actor: Combatant, def: ShipDefinition, dt: numbe
   if (!actor.submarine && !actor.damage.sunk) {
     const previousY = actor.motion.y, previousHeave = actor.motion.waveHeave ?? 0;
     const meanY = meanHullY(actor.motion);
-    actor.motion.waveHeave = previousHeave + clamp((state.targetHeave ?? 0) - previousHeave, -step, step);
-    actor.motion.y = meanY + clamp(state.targetY - meanY, -step, step) + actor.motion.waveHeave;
+    // Sea samples arrive at 60 Hz independently of the expensive 2 Hz flotation
+    // solve. Ease heave continuously, like a surfaced submarine: chasing held
+    // samples at a fixed speed made vertical velocity start/stop abruptly and
+    // kicked the inherited shell velocity and gun-aim circles twice a second.
+    const blend = 1 - Math.exp(-step / 1.5);
+    actor.motion.waveHeave = previousHeave + ((sea?.heave ?? 0) - previousHeave) * blend;
+    // Small flotation corrections must also ease in; snapping to a freshly
+    // sampled equilibrium creates a one-tick vertical-velocity impulse.
+    actor.motion.y = meanY + clamp((state.targetY - meanY) * blend, -step, step) + actor.motion.waveHeave;
     actor.motion.verticalSpeed = (actor.motion.y - previousY) / step;
   }
   state.rollRate = (state.rollRate + 9.81 * (state.rollArm + (state.rollSlope ?? 0) * (actor.motion.roll - (state.sampleRoll ?? actor.motion.roll))) / (def.hull.beam * .4) ** 2 * step) * Math.exp(-step / 4);

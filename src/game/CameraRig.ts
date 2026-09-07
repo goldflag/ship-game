@@ -184,6 +184,13 @@ export class CameraRig {
     this.camera.fov = 2 * Math.atan(Math.tan(NORMAL_FOV * Math.PI / 360) / lens) * 180 / Math.PI;
     this.camera.updateProjectionMatrix();
   }
+  exitBinoculars(): void {
+    this.returnBinoculars = false;
+    if (!this.binoculars) return;
+    this.binoculars = false;
+    this.opticsTransition = undefined;
+    this.updateProjection();
+  }
   toggleBinoculars(aim: Vec3, ship: ShipState): void {
     if (this.inPort || this.inspecting) return;
     const position = this.camera.position.clone(), orientation = this.camera.quaternion.clone(), fov = this.camera.fov;

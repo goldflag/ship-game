@@ -1,0 +1,4375 @@
+{
+  "stages": [
+    {
+      "label": "Loading game files…",
+      "ms": 310.7999999523163
+    },
+    {
+      "label": "Preparing the harbor…",
+      "ms": 788.2999999523163
+    },
+    {
+      "label": "Starting graphics…",
+      "ms": 1022.4000000953674
+    },
+    {
+      "label": "Loading Bismarck…",
+      "ms": 1129.4000000953674
+    },
+    {
+      "label": "Building the Atlantic…",
+      "ms": 4021.4000000953674
+    },
+    {
+      "label": "Lighting the sky…",
+      "ms": 6877.400000095367
+    },
+    {
+      "label": "Building the naval anchorage…",
+      "ms": 7466.100000143051
+    },
+    {
+      "label": "Preparing the harbor view…",
+      "ms": 16108.400000095367
+    }
+  ],
+  "pipelines": [
+    {
+      "method": "createComputePipeline",
+      "start": 3863.5,
+      "work": 0
+    },
+    {
+      "method": "createComputePipeline",
+      "start": 3871.7999999523163,
+      "work": 0
+    },
+    {
+      "method": "createComputePipeline",
+      "start": 3883.600000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createComputePipeline",
+      "start": 3893.2000000476837,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createComputePipeline",
+      "start": 3896.2999999523163,
+      "work": 0
+    },
+    {
+      "method": "createComputePipeline",
+      "start": 3903,
+      "work": 0
+    },
+    {
+      "method": "createComputePipeline",
+      "start": 3908,
+      "work": 0
+    },
+    {
+      "method": "createComputePipeline",
+      "start": 3912.4000000953674,
+      "work": 0
+    },
+    {
+      "method": "createComputePipeline",
+      "start": 3922.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createComputePipeline",
+      "start": 3929.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createComputePipeline",
+      "start": 3930.7999999523163,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createComputePipeline",
+      "start": 3933.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createComputePipeline",
+      "start": 3936.600000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createComputePipeline",
+      "start": 3940.2000000476837,
+      "work": 0
+    },
+    {
+      "method": "createComputePipeline",
+      "start": 3947.9000000953674,
+      "work": 0
+    },
+    {
+      "method": "createComputePipeline",
+      "start": 3956.4000000953674,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createComputePipeline",
+      "start": 3958.7000000476837,
+      "work": 0
+    },
+    {
+      "method": "createComputePipeline",
+      "start": 3960.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4097.299999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4276.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4295.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4301.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4303.600000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4315.100000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4357.100000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4357.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4379.900000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4409.200000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4442.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4461,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4468.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4473.700000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4477.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4491.299999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4498,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4505.799999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4511.100000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4517.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4523.5,
+      "work": 0.20000004768371582
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4530.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4537.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4542.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4548.5,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4559.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4564,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4570.900000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4576.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4610.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4612.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4619.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4625.700000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4630.200000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4634.600000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4639.200000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4643.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4647.5,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4651.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4655.400000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4658.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4671.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4679.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4682.799999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4687.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4691.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4696,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 4699.5,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 7099,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 7104.700000047684,
+      "work": 0.20000004768371582
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 7108.700000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 7453,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 7454.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 7455.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 7456.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 10986,
+      "work": 0
+    },
+    {
+      "method": "createComputePipeline",
+      "start": 10994.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11003.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11046.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11052.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11088.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11089.400000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11136.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11153.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11154.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11155.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11156.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11157.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11158.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11159.100000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11159.900000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11162.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11164.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11165.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11167,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11167.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11168.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11169.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11170,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11170.700000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11171.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11172.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11173.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11173.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11174.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11175.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11176,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11176.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11177.5,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11178.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11180.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11181,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11181.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11182.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11183.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11184,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11184.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11185.299999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11186.5,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11187.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11189.799999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11191.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11192.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11193.600000143051,
+      "work": 0.19999980926513672
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11196.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11198.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11199.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11211,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11213.799999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11215.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11218.100000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11219.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11220,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11220.600000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11221.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11222.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11223.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11224.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11225.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11227,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11227.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11229.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11371.799999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11428.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11442.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11447.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11501.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11562.299999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11585.799999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11623.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11639.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11655.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11667.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11673.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11680.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11691.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11707.299999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11718.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11724.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11731.200000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11735.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11756,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11765.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11769.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11772.700000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11776.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11788,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11791.900000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11806.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11829.5,
+      "work": 0.20000004768371582
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11847.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11851.5,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11855.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11870.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11886.900000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11891.900000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11896.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11901,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11904.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11918,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11921.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11926.100000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11931.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11936.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11942.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11949,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11954.799999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11960.700000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11967.200000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11973.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11979.400000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11983.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11988.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 11998.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12002.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12005.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12009.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12015.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12018.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12022.600000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12034,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12038.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12044.700000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12050.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12056.600000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12062.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12067.900000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12073.900000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12079.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12083.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12086.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12090.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12093.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12099.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12104.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12108.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12112.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12117.200000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12121.900000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12126.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12130.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12140.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12144.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12151.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12156,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12160.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12166.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12172.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12179.100000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12185.400000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12190.799999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12196,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12201.700000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12206.600000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12211.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12216.600000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12221.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12246.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12267.600000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12283.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12297.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12317.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12333,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12362.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12384.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12413.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12430.5,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12451.100000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12472.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12501.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12523,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12542,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12558.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12577.700000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12605,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12624.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12642.299999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12663.299999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12684.5,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12710.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12732.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12747.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12762,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12778.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12795.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12821.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12840.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12864.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12886,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12905.299999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12937.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12959.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 12977.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13001.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13020.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13038.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13066.799999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13088.600000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13108.5,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13130.900000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13152.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13179.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13201.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13222.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13243.200000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13263.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13291.299999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13309,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13329.200000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13352.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13370.700000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13387.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13411.400000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13429.400000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13444,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13464.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13470.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13476.400000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13481.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13537.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13578.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13602.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13674.600000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13696.299999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13703,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13708.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13714.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13719.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13723.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13728.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13733.900000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13737.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13741,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13749.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13753.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13757.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13760.600000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13764.900000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13767.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13770,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13771.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13774.799999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13776.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13778.600000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13781.100000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13783.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13785.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13789.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13790.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13792.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13794.5,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13797.200000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13806.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13820.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13824.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13856.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13862.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13880.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13904.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13923.600000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13928.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13936.299999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 13979.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14001.700000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14023.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14039.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14067.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14073.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14079.700000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14086.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14091.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14104.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14113.799999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14119.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14123.200000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14128.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14145.5,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14154.799999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14168.200000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14172.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14176.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14187.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14193.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14198.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14218.900000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14231.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14237,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14241.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14255.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14275.400000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14280.5,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14285.799999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14292.299999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14297.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14302.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14306.299999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14311.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14317.100000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14321.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14326.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14332.600000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14337,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14340.700000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14347.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14354.799999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14360.900000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14366.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14372.299999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14378.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14390.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14394.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14400.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14403.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14407.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14412.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14417.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14421.299999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14425.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14429,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14435,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14438.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14442.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14447.200000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14451.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14455.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14459.900000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14464.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14468.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14474,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14478.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14483.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14495.799999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14501.5,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14505.900000095367,
+      "work": 0.20000004768371582
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14512,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14518.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14523.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14529.200000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14535.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14540.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14546.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14550.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14554.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14557.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14561.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14565.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14569.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14573.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14577.100000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14582.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14586.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14592.299999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14622.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14640.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14658.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14676.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14693,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14715.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14730,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14749.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14767.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14783.200000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14799.700000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14828.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14842,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14856.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14876,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14890.5,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14912.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14925.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14939.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14954,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14970.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 14984.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15009.799999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15029.900000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15049.200000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15067.400000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15083.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15106.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15121.900000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15139.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15158.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15172.900000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15193,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15207.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15222.200000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15237,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15252.5,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15272.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15301.700000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15320.5,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15336,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15351.400000095367,
+      "work": 0.20000004768371582
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15366.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15392.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15407.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15423.5,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15441.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15462.600000143051,
+      "work": 0.19999980926513672
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15482.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15506.799999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15530.299999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15545.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15563.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15585.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15613.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15633.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15654.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15669.400000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15683.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15686.600000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15692.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15698,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15735.299999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15757.600000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15778.299999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15817.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15886.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15918.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15983.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15984.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15984.5,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 15984.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 16001.200000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 16011.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 16018.5,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 16024.100000143051,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 16030.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 16034.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 16038.200000047684,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 16042,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 16046.400000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 16051.5,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 16055,
+      "work": 0.20000004768371582
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 16062.299999952316,
+      "work": 0.10000014305114746
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 16066.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 16071.100000143051,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 16076.299999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 16091.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 16093.700000047684,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 16094.400000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 16094.900000095367,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 16118.400000095367,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 35399.799999952316,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 35404.90000009537,
+      "work": 0
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 35413.10000014305,
+      "work": 0.09999990463256836
+    },
+    {
+      "method": "createRenderPipeline",
+      "start": 35415.90000009537,
+      "work": 0.09999990463256836
+    }
+  ],
+  "frames": [
+    {
+      "ms": -75.90000000000146,
+      "interval": -75.90000000000146
+    },
+    {
+      "ms": 153.5,
+      "interval": 229.40000000000146
+    },
+    {
+      "ms": 257.40000000000146,
+      "interval": 103.90000000000146
+    },
+    {
+      "ms": 556,
+      "interval": 298.59999999999854
+    },
+    {
+      "ms": 646.3000000000029,
+      "interval": 90.30000000000291
+    },
+    {
+      "ms": 736.6999999999971,
+      "interval": 90.39999999999418
+    },
+    {
+      "ms": 778.1999999999971,
+      "interval": 41.5
+    },
+    {
+      "ms": 847.6999999999971,
+      "interval": 69.5
+    },
+    {
+      "ms": 875.4000000000015,
+      "interval": 27.700000000004366
+    },
+    {
+      "ms": 937.9000000000015,
+      "interval": 62.5
+    },
+    {
+      "ms": 972.5999999999985,
+      "interval": 34.69999999999709
+    },
+    {
+      "ms": 1000.5,
+      "interval": 27.900000000001455
+    },
+    {
+      "ms": 1063,
+      "interval": 62.5
+    },
+    {
+      "ms": 1097.5999999999985,
+      "interval": 34.599999999998545
+    },
+    {
+      "ms": 1125.4000000000015,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 1187.9000000000015,
+      "interval": 62.5
+    },
+    {
+      "ms": 1215.699999999997,
+      "interval": 27.799999999995634
+    },
+    {
+      "ms": 1250.4000000000015,
+      "interval": 34.700000000004366
+    },
+    {
+      "ms": 1319.9000000000015,
+      "interval": 69.5
+    },
+    {
+      "ms": 1354.699999999997,
+      "interval": 34.799999999995634
+    },
+    {
+      "ms": 1396.300000000003,
+      "interval": 41.60000000000582
+    },
+    {
+      "ms": 1431,
+      "interval": 34.69999999999709
+    },
+    {
+      "ms": 1451.800000000003,
+      "interval": 20.80000000000291
+    },
+    {
+      "ms": 1493.4000000000015,
+      "interval": 41.599999999998545
+    },
+    {
+      "ms": 1521.4000000000015,
+      "interval": 28
+    },
+    {
+      "ms": 1556,
+      "interval": 34.599999999998545
+    },
+    {
+      "ms": 1583.800000000003,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 1632.300000000003,
+      "interval": 48.5
+    },
+    {
+      "ms": 1667.199999999997,
+      "interval": 34.89999999999418
+    },
+    {
+      "ms": 1688.0999999999985,
+      "interval": 20.900000000001455
+    },
+    {
+      "ms": 1743.5,
+      "interval": 55.400000000001455
+    },
+    {
+      "ms": 1771.300000000003,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 1799,
+      "interval": 27.69999999999709
+    },
+    {
+      "ms": 1861.5,
+      "interval": 62.5
+    },
+    {
+      "ms": 1882.300000000003,
+      "interval": 20.80000000000291
+    },
+    {
+      "ms": 1910.199999999997,
+      "interval": 27.89999999999418
+    },
+    {
+      "ms": 1965.800000000003,
+      "interval": 55.60000000000582
+    },
+    {
+      "ms": 1993.5,
+      "interval": 27.69999999999709
+    },
+    {
+      "ms": 2021.300000000003,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 2076.800000000003,
+      "interval": 55.5
+    },
+    {
+      "ms": 2104.699999999997,
+      "interval": 27.89999999999418
+    },
+    {
+      "ms": 2139.300000000003,
+      "interval": 34.60000000000582
+    },
+    {
+      "ms": 2202,
+      "interval": 62.69999999999709
+    },
+    {
+      "ms": 2229.5999999999985,
+      "interval": 27.599999999998545
+    },
+    {
+      "ms": 2264.199999999997,
+      "interval": 34.599999999998545
+    },
+    {
+      "ms": 2327,
+      "interval": 62.80000000000291
+    },
+    {
+      "ms": 2354.800000000003,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 2375.4000000000015,
+      "interval": 20.599999999998545
+    },
+    {
+      "ms": 2410.0999999999985,
+      "interval": 34.69999999999709
+    },
+    {
+      "ms": 2438,
+      "interval": 27.900000000001455
+    },
+    {
+      "ms": 2465.800000000003,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 2493.5,
+      "interval": 27.69999999999709
+    },
+    {
+      "ms": 2528.199999999997,
+      "interval": 34.69999999999709
+    },
+    {
+      "ms": 2549.0999999999985,
+      "interval": 20.900000000001455
+    },
+    {
+      "ms": 2576.800000000003,
+      "interval": 27.700000000004366
+    },
+    {
+      "ms": 2597.5999999999985,
+      "interval": 20.799999999995634
+    },
+    {
+      "ms": 2646.5,
+      "interval": 48.900000000001455
+    },
+    {
+      "ms": 2674,
+      "interval": 27.5
+    },
+    {
+      "ms": 2708.800000000003,
+      "interval": 34.80000000000291
+    },
+    {
+      "ms": 2736.5,
+      "interval": 27.69999999999709
+    },
+    {
+      "ms": 2792.0999999999985,
+      "interval": 55.599999999998545
+    },
+    {
+      "ms": 2813,
+      "interval": 20.900000000001455
+    },
+    {
+      "ms": 2847.699999999997,
+      "interval": 34.69999999999709
+    },
+    {
+      "ms": 2910.199999999997,
+      "interval": 62.5
+    },
+    {
+      "ms": 2931.0999999999985,
+      "interval": 20.900000000001455
+    },
+    {
+      "ms": 2965.699999999997,
+      "interval": 34.599999999998545
+    },
+    {
+      "ms": 3014.300000000003,
+      "interval": 48.60000000000582
+    },
+    {
+      "ms": 3042.0999999999985,
+      "interval": 27.799999999995634
+    },
+    {
+      "ms": 3090.699999999997,
+      "interval": 48.599999999998545
+    },
+    {
+      "ms": 3201.699999999997,
+      "interval": 111
+    },
+    {
+      "ms": 3236.5,
+      "interval": 34.80000000000291
+    },
+    {
+      "ms": 3306.0999999999985,
+      "interval": 69.59999999999854
+    },
+    {
+      "ms": 3347.5999999999985,
+      "interval": 41.5
+    },
+    {
+      "ms": 3445,
+      "interval": 97.40000000000146
+    },
+    {
+      "ms": 3472.5999999999985,
+      "interval": 27.599999999998545
+    },
+    {
+      "ms": 3500.5,
+      "interval": 27.900000000001455
+    },
+    {
+      "ms": 3528.199999999997,
+      "interval": 27.69999999999709
+    },
+    {
+      "ms": 3549,
+      "interval": 20.80000000000291
+    },
+    {
+      "ms": 3576.800000000003,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 3618.5,
+      "interval": 41.69999999999709
+    },
+    {
+      "ms": 3639.300000000003,
+      "interval": 20.80000000000291
+    },
+    {
+      "ms": 3667.0999999999985,
+      "interval": 27.799999999995634
+    },
+    {
+      "ms": 3688,
+      "interval": 20.900000000001455
+    },
+    {
+      "ms": 3743.4000000000015,
+      "interval": 55.400000000001455
+    },
+    {
+      "ms": 3771.199999999997,
+      "interval": 27.799999999995634
+    },
+    {
+      "ms": 3806,
+      "interval": 34.80000000000291
+    },
+    {
+      "ms": 3854.699999999997,
+      "interval": 48.69999999999709
+    },
+    {
+      "ms": 3882.4000000000015,
+      "interval": 27.700000000004366
+    },
+    {
+      "ms": 3910.0999999999985,
+      "interval": 27.69999999999709
+    },
+    {
+      "ms": 3958.9000000000015,
+      "interval": 48.80000000000291
+    },
+    {
+      "ms": 3986.5,
+      "interval": 27.599999999998545
+    },
+    {
+      "ms": 4007.4000000000015,
+      "interval": 20.900000000001455
+    },
+    {
+      "ms": 4069.800000000003,
+      "interval": 62.400000000001455
+    },
+    {
+      "ms": 4090.699999999997,
+      "interval": 20.89999999999418
+    },
+    {
+      "ms": 4118.4000000000015,
+      "interval": 27.700000000004366
+    },
+    {
+      "ms": 4167.0999999999985,
+      "interval": 48.69999999999709
+    },
+    {
+      "ms": 4194.800000000003,
+      "interval": 27.700000000004366
+    },
+    {
+      "ms": 4215.9000000000015,
+      "interval": 21.099999999998545
+    },
+    {
+      "ms": 4278.4000000000015,
+      "interval": 62.5
+    },
+    {
+      "ms": 4305.9000000000015,
+      "interval": 27.5
+    },
+    {
+      "ms": 4333.800000000003,
+      "interval": 27.900000000001455
+    },
+    {
+      "ms": 4375.4000000000015,
+      "interval": 41.599999999998545
+    },
+    {
+      "ms": 4403.199999999997,
+      "interval": 27.799999999995634
+    },
+    {
+      "ms": 4424,
+      "interval": 20.80000000000291
+    },
+    {
+      "ms": 4451.699999999997,
+      "interval": 27.69999999999709
+    },
+    {
+      "ms": 4486.5999999999985,
+      "interval": 34.900000000001455
+    },
+    {
+      "ms": 4514.4000000000015,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 4535.0999999999985,
+      "interval": 20.69999999999709
+    },
+    {
+      "ms": 4562.800000000003,
+      "interval": 27.700000000004366
+    },
+    {
+      "ms": 4597.800000000003,
+      "interval": 35
+    },
+    {
+      "ms": 4625.4000000000015,
+      "interval": 27.599999999998545
+    },
+    {
+      "ms": 4653.199999999997,
+      "interval": 27.799999999995634
+    },
+    {
+      "ms": 4681,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 4701.9000000000015,
+      "interval": 20.900000000001455
+    },
+    {
+      "ms": 4736.5,
+      "interval": 34.599999999998545
+    },
+    {
+      "ms": 4764.300000000003,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 4792.199999999997,
+      "interval": 27.89999999999418
+    },
+    {
+      "ms": 4854.5,
+      "interval": 62.30000000000291
+    },
+    {
+      "ms": 4882.300000000003,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 4903.199999999997,
+      "interval": 20.89999999999418
+    },
+    {
+      "ms": 4951.699999999997,
+      "interval": 48.5
+    },
+    {
+      "ms": 4979.5,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 5000.300000000003,
+      "interval": 20.80000000000291
+    },
+    {
+      "ms": 5028.199999999997,
+      "interval": 27.89999999999418
+    },
+    {
+      "ms": 5076.800000000003,
+      "interval": 48.60000000000582
+    },
+    {
+      "ms": 5104.5999999999985,
+      "interval": 27.799999999995634
+    },
+    {
+      "ms": 5125.4000000000015,
+      "interval": 20.80000000000291
+    },
+    {
+      "ms": 5174,
+      "interval": 48.599999999998545
+    },
+    {
+      "ms": 5201.800000000003,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 5229.5,
+      "interval": 27.69999999999709
+    },
+    {
+      "ms": 5257.300000000003,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 5306.0999999999985,
+      "interval": 48.799999999995634
+    },
+    {
+      "ms": 5340.800000000003,
+      "interval": 34.700000000004366
+    },
+    {
+      "ms": 5368.4000000000015,
+      "interval": 27.599999999998545
+    },
+    {
+      "ms": 5430.9000000000015,
+      "interval": 62.5
+    },
+    {
+      "ms": 5465.5999999999985,
+      "interval": 34.69999999999709
+    },
+    {
+      "ms": 5493.4000000000015,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 5542.0999999999985,
+      "interval": 48.69999999999709
+    },
+    {
+      "ms": 5569.9000000000015,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 5597.5999999999985,
+      "interval": 27.69999999999709
+    },
+    {
+      "ms": 5632.199999999997,
+      "interval": 34.599999999998545
+    },
+    {
+      "ms": 5660,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 5680.9000000000015,
+      "interval": 20.900000000001455
+    },
+    {
+      "ms": 5708.699999999997,
+      "interval": 27.799999999995634
+    },
+    {
+      "ms": 5736.4000000000015,
+      "interval": 27.700000000004366
+    },
+    {
+      "ms": 5757.199999999997,
+      "interval": 20.799999999995634
+    },
+    {
+      "ms": 5785,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 5833.699999999997,
+      "interval": 48.69999999999709
+    },
+    {
+      "ms": 5889.300000000003,
+      "interval": 55.60000000000582
+    },
+    {
+      "ms": 5917,
+      "interval": 27.69999999999709
+    },
+    {
+      "ms": 5972.5999999999985,
+      "interval": 55.599999999998545
+    },
+    {
+      "ms": 6007.4000000000015,
+      "interval": 34.80000000000291
+    },
+    {
+      "ms": 6035,
+      "interval": 27.599999999998545
+    },
+    {
+      "ms": 6083.699999999997,
+      "interval": 48.69999999999709
+    },
+    {
+      "ms": 6111.5,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 6139.199999999997,
+      "interval": 27.69999999999709
+    },
+    {
+      "ms": 6187.800000000003,
+      "interval": 48.60000000000582
+    },
+    {
+      "ms": 6215.5999999999985,
+      "interval": 27.799999999995634
+    },
+    {
+      "ms": 6236.4000000000015,
+      "interval": 20.80000000000291
+    },
+    {
+      "ms": 6292,
+      "interval": 55.599999999998545
+    },
+    {
+      "ms": 6319.800000000003,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 6340.5999999999985,
+      "interval": 20.799999999995634
+    },
+    {
+      "ms": 6389.199999999997,
+      "interval": 48.599999999998545
+    },
+    {
+      "ms": 6423.9000000000015,
+      "interval": 34.700000000004366
+    },
+    {
+      "ms": 6451.699999999997,
+      "interval": 27.799999999995634
+    },
+    {
+      "ms": 6507.300000000003,
+      "interval": 55.60000000000582
+    },
+    {
+      "ms": 6542,
+      "interval": 34.69999999999709
+    },
+    {
+      "ms": 6570,
+      "interval": 28
+    },
+    {
+      "ms": 6611.5,
+      "interval": 41.5
+    },
+    {
+      "ms": 6639.199999999997,
+      "interval": 27.69999999999709
+    },
+    {
+      "ms": 6667,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 6701.699999999997,
+      "interval": 34.69999999999709
+    },
+    {
+      "ms": 6736.4000000000015,
+      "interval": 34.700000000004366
+    },
+    {
+      "ms": 6764.199999999997,
+      "interval": 27.799999999995634
+    },
+    {
+      "ms": 6792,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 6833.699999999997,
+      "interval": 41.69999999999709
+    },
+    {
+      "ms": 6889.300000000003,
+      "interval": 55.60000000000582
+    },
+    {
+      "ms": 6917,
+      "interval": 27.69999999999709
+    },
+    {
+      "ms": 6944.699999999997,
+      "interval": 27.69999999999709
+    },
+    {
+      "ms": 7000.4000000000015,
+      "interval": 55.700000000004366
+    },
+    {
+      "ms": 7035.199999999997,
+      "interval": 34.799999999995634
+    },
+    {
+      "ms": 7062.9000000000015,
+      "interval": 27.700000000004366
+    },
+    {
+      "ms": 7111.5,
+      "interval": 48.599999999998545
+    },
+    {
+      "ms": 7139.199999999997,
+      "interval": 27.69999999999709
+    },
+    {
+      "ms": 7174.0999999999985,
+      "interval": 34.900000000001455
+    },
+    {
+      "ms": 7229.5,
+      "interval": 55.400000000001455
+    },
+    {
+      "ms": 7264.300000000003,
+      "interval": 34.80000000000291
+    },
+    {
+      "ms": 7298.9000000000015,
+      "interval": 34.599999999998545
+    },
+    {
+      "ms": 7361.5,
+      "interval": 62.599999999998545
+    },
+    {
+      "ms": 7396.300000000003,
+      "interval": 34.80000000000291
+    },
+    {
+      "ms": 7424,
+      "interval": 27.69999999999709
+    },
+    {
+      "ms": 7486.4000000000015,
+      "interval": 62.400000000001455
+    },
+    {
+      "ms": 7521.199999999997,
+      "interval": 34.799999999995634
+    },
+    {
+      "ms": 7563,
+      "interval": 41.80000000000291
+    },
+    {
+      "ms": 7618.300000000003,
+      "interval": 55.30000000000291
+    },
+    {
+      "ms": 7660.0999999999985,
+      "interval": 41.799999999995634
+    },
+    {
+      "ms": 7694.699999999997,
+      "interval": 34.599999999998545
+    },
+    {
+      "ms": 7729.5,
+      "interval": 34.80000000000291
+    },
+    {
+      "ms": 7764.0999999999985,
+      "interval": 34.599999999998545
+    },
+    {
+      "ms": 7792.199999999997,
+      "interval": 28.099999999998545
+    },
+    {
+      "ms": 7840.699999999997,
+      "interval": 48.5
+    },
+    {
+      "ms": 7868.4000000000015,
+      "interval": 27.700000000004366
+    },
+    {
+      "ms": 7896,
+      "interval": 27.599999999998545
+    },
+    {
+      "ms": 7958.699999999997,
+      "interval": 62.69999999999709
+    },
+    {
+      "ms": 8000.300000000003,
+      "interval": 41.60000000000582
+    },
+    {
+      "ms": 8028.0999999999985,
+      "interval": 27.799999999995634
+    },
+    {
+      "ms": 8083.5999999999985,
+      "interval": 55.5
+    },
+    {
+      "ms": 8118.5999999999985,
+      "interval": 35
+    },
+    {
+      "ms": 8146.199999999997,
+      "interval": 27.599999999998545
+    },
+    {
+      "ms": 8201.699999999997,
+      "interval": 55.5
+    },
+    {
+      "ms": 8229.5,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 8250.400000000001,
+      "interval": 20.900000000001455
+    },
+    {
+      "ms": 8312.800000000003,
+      "interval": 62.400000000001455
+    },
+    {
+      "ms": 8347.5,
+      "interval": 34.69999999999709
+    },
+    {
+      "ms": 8382.300000000003,
+      "interval": 34.80000000000291
+    },
+    {
+      "ms": 8437.800000000003,
+      "interval": 55.5
+    },
+    {
+      "ms": 8458.900000000001,
+      "interval": 21.099999999998545
+    },
+    {
+      "ms": 8493.300000000003,
+      "interval": 34.400000000001455
+    },
+    {
+      "ms": 8548.900000000001,
+      "interval": 55.599999999998545
+    },
+    {
+      "ms": 8583.5,
+      "interval": 34.599999999998545
+    },
+    {
+      "ms": 8604.300000000003,
+      "interval": 20.80000000000291
+    },
+    {
+      "ms": 8653,
+      "interval": 48.69999999999709
+    },
+    {
+      "ms": 8687.699999999997,
+      "interval": 34.69999999999709
+    },
+    {
+      "ms": 8715.599999999999,
+      "interval": 27.900000000001455
+    },
+    {
+      "ms": 8757.199999999997,
+      "interval": 41.599999999998545
+    },
+    {
+      "ms": 8785,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 8812.699999999997,
+      "interval": 27.69999999999709
+    },
+    {
+      "ms": 8840.599999999999,
+      "interval": 27.900000000001455
+    },
+    {
+      "ms": 8875.300000000003,
+      "interval": 34.700000000004366
+    },
+    {
+      "ms": 8903,
+      "interval": 27.69999999999709
+    },
+    {
+      "ms": 8930.800000000003,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 8958.699999999997,
+      "interval": 27.89999999999418
+    },
+    {
+      "ms": 9007.199999999997,
+      "interval": 48.5
+    },
+    {
+      "ms": 9035.199999999997,
+      "interval": 28
+    },
+    {
+      "ms": 9062.900000000001,
+      "interval": 27.700000000004366
+    },
+    {
+      "ms": 9118.400000000001,
+      "interval": 55.5
+    },
+    {
+      "ms": 9146.199999999997,
+      "interval": 27.799999999995634
+    },
+    {
+      "ms": 9167,
+      "interval": 20.80000000000291
+    },
+    {
+      "ms": 9215.5,
+      "interval": 48.5
+    },
+    {
+      "ms": 9243.300000000003,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 9271.099999999999,
+      "interval": 27.799999999995634
+    },
+    {
+      "ms": 9305.900000000001,
+      "interval": 34.80000000000291
+    },
+    {
+      "ms": 9354.400000000001,
+      "interval": 48.5
+    },
+    {
+      "ms": 9382.300000000003,
+      "interval": 27.900000000001455
+    },
+    {
+      "ms": 9403,
+      "interval": 20.69999999999709
+    },
+    {
+      "ms": 9451.699999999997,
+      "interval": 48.69999999999709
+    },
+    {
+      "ms": 9472.599999999999,
+      "interval": 20.900000000001455
+    },
+    {
+      "ms": 9500.199999999997,
+      "interval": 27.599999999998545
+    },
+    {
+      "ms": 9528.099999999999,
+      "interval": 27.900000000001455
+    },
+    {
+      "ms": 9576.599999999999,
+      "interval": 48.5
+    },
+    {
+      "ms": 9625.300000000003,
+      "interval": 48.700000000004366
+    },
+    {
+      "ms": 9653,
+      "interval": 27.69999999999709
+    },
+    {
+      "ms": 9694.699999999997,
+      "interval": 41.69999999999709
+    },
+    {
+      "ms": 9722.599999999999,
+      "interval": 27.900000000001455
+    },
+    {
+      "ms": 9743.400000000001,
+      "interval": 20.80000000000291
+    },
+    {
+      "ms": 9764.099999999999,
+      "interval": 20.69999999999709
+    },
+    {
+      "ms": 9798.800000000003,
+      "interval": 34.700000000004366
+    },
+    {
+      "ms": 9826.599999999999,
+      "interval": 27.799999999995634
+    },
+    {
+      "ms": 9847.5,
+      "interval": 20.900000000001455
+    },
+    {
+      "ms": 9868.400000000001,
+      "interval": 20.900000000001455
+    },
+    {
+      "ms": 9903,
+      "interval": 34.599999999998545
+    },
+    {
+      "ms": 9924,
+      "interval": 21
+    },
+    {
+      "ms": 9945,
+      "interval": 21
+    },
+    {
+      "ms": 9965.5,
+      "interval": 20.5
+    },
+    {
+      "ms": 9993.300000000003,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 10055.900000000001,
+      "interval": 62.599999999998545
+    },
+    {
+      "ms": 10083.599999999999,
+      "interval": 27.69999999999709
+    },
+    {
+      "ms": 10104.400000000001,
+      "interval": 20.80000000000291
+    },
+    {
+      "ms": 10167,
+      "interval": 62.599999999998545
+    },
+    {
+      "ms": 10194.699999999997,
+      "interval": 27.69999999999709
+    },
+    {
+      "ms": 10215.599999999999,
+      "interval": 20.900000000001455
+    },
+    {
+      "ms": 10250.400000000001,
+      "interval": 34.80000000000291
+    },
+    {
+      "ms": 10278,
+      "interval": 27.599999999998545
+    },
+    {
+      "ms": 10298.900000000001,
+      "interval": 20.900000000001455
+    },
+    {
+      "ms": 10319.699999999997,
+      "interval": 20.799999999995634
+    },
+    {
+      "ms": 10368.300000000003,
+      "interval": 48.60000000000582
+    },
+    {
+      "ms": 10396.199999999997,
+      "interval": 27.89999999999418
+    },
+    {
+      "ms": 10416.900000000001,
+      "interval": 20.700000000004366
+    },
+    {
+      "ms": 10437.800000000003,
+      "interval": 20.900000000001455
+    },
+    {
+      "ms": 10479.400000000001,
+      "interval": 41.599999999998545
+    },
+    {
+      "ms": 10500.300000000003,
+      "interval": 20.900000000001455
+    },
+    {
+      "ms": 10521,
+      "interval": 20.69999999999709
+    },
+    {
+      "ms": 10535.099999999999,
+      "interval": 14.099999999998545
+    },
+    {
+      "ms": 10590.5,
+      "interval": 55.400000000001455
+    },
+    {
+      "ms": 10611.300000000003,
+      "interval": 20.80000000000291
+    },
+    {
+      "ms": 10632.199999999997,
+      "interval": 20.89999999999418
+    },
+    {
+      "ms": 10653.099999999999,
+      "interval": 20.900000000001455
+    },
+    {
+      "ms": 10701.699999999997,
+      "interval": 48.599999999998545
+    },
+    {
+      "ms": 10722.5,
+      "interval": 20.80000000000291
+    },
+    {
+      "ms": 10743.300000000003,
+      "interval": 20.80000000000291
+    },
+    {
+      "ms": 10764.300000000003,
+      "interval": 21
+    },
+    {
+      "ms": 10799,
+      "interval": 34.69999999999709
+    },
+    {
+      "ms": 10819.800000000003,
+      "interval": 20.80000000000291
+    },
+    {
+      "ms": 10840.5,
+      "interval": 20.69999999999709
+    },
+    {
+      "ms": 10868.300000000003,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 10889.199999999997,
+      "interval": 20.89999999999418
+    },
+    {
+      "ms": 10916.800000000003,
+      "interval": 27.60000000000582
+    },
+    {
+      "ms": 10937.800000000003,
+      "interval": 21
+    },
+    {
+      "ms": 10958.599999999999,
+      "interval": 20.799999999995634
+    },
+    {
+      "ms": 10972.599999999999,
+      "interval": 14
+    },
+    {
+      "ms": 11007.300000000003,
+      "interval": 34.700000000004366
+    },
+    {
+      "ms": 11055.800000000003,
+      "interval": 48.5
+    },
+    {
+      "ms": 11076.699999999997,
+      "interval": 20.89999999999418
+    },
+    {
+      "ms": 11097.400000000001,
+      "interval": 20.700000000004366
+    },
+    {
+      "ms": 11146,
+      "interval": 48.599999999998545
+    },
+    {
+      "ms": 11166.800000000003,
+      "interval": 20.80000000000291
+    },
+    {
+      "ms": 11187.699999999997,
+      "interval": 20.89999999999418
+    },
+    {
+      "ms": 11215.5,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 11257.199999999997,
+      "interval": 41.69999999999709
+    },
+    {
+      "ms": 11277.900000000001,
+      "interval": 20.700000000004366
+    },
+    {
+      "ms": 11299,
+      "interval": 21.099999999998545
+    },
+    {
+      "ms": 11326.599999999999,
+      "interval": 27.599999999998545
+    },
+    {
+      "ms": 11375.300000000003,
+      "interval": 48.700000000004366
+    },
+    {
+      "ms": 11396.099999999999,
+      "interval": 20.799999999995634
+    },
+    {
+      "ms": 11416.900000000001,
+      "interval": 20.80000000000291
+    },
+    {
+      "ms": 11430.800000000003,
+      "interval": 13.900000000001455
+    },
+    {
+      "ms": 11479.400000000001,
+      "interval": 48.599999999998545
+    },
+    {
+      "ms": 11500.199999999997,
+      "interval": 20.799999999995634
+    },
+    {
+      "ms": 11521.099999999999,
+      "interval": 20.900000000001455
+    },
+    {
+      "ms": 11548.800000000003,
+      "interval": 27.700000000004366
+    },
+    {
+      "ms": 11597.400000000001,
+      "interval": 48.599999999998545
+    },
+    {
+      "ms": 11625.300000000003,
+      "interval": 27.900000000001455
+    },
+    {
+      "ms": 11653,
+      "interval": 27.69999999999709
+    },
+    {
+      "ms": 11694.599999999999,
+      "interval": 41.599999999998545
+    },
+    {
+      "ms": 11715.5,
+      "interval": 20.900000000001455
+    },
+    {
+      "ms": 11743.300000000003,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 11764.099999999999,
+      "interval": 20.799999999995634
+    },
+    {
+      "ms": 11791.900000000001,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 11819.699999999997,
+      "interval": 27.799999999995634
+    },
+    {
+      "ms": 11861.400000000001,
+      "interval": 41.700000000004366
+    },
+    {
+      "ms": 11896,
+      "interval": 34.599999999998545
+    },
+    {
+      "ms": 11923.900000000001,
+      "interval": 27.900000000001455
+    },
+    {
+      "ms": 11951.699999999997,
+      "interval": 27.799999999995634
+    },
+    {
+      "ms": 11979.300000000003,
+      "interval": 27.60000000000582
+    },
+    {
+      "ms": 12007.099999999999,
+      "interval": 27.799999999995634
+    },
+    {
+      "ms": 12055.800000000003,
+      "interval": 48.700000000004366
+    },
+    {
+      "ms": 12069.800000000003,
+      "interval": 14
+    },
+    {
+      "ms": 12104.400000000001,
+      "interval": 34.599999999998545
+    },
+    {
+      "ms": 12125.300000000003,
+      "interval": 20.900000000001455
+    },
+    {
+      "ms": 12173.800000000003,
+      "interval": 48.5
+    },
+    {
+      "ms": 12201.699999999997,
+      "interval": 27.89999999999418
+    },
+    {
+      "ms": 12229.300000000003,
+      "interval": 27.60000000000582
+    },
+    {
+      "ms": 12250.199999999997,
+      "interval": 20.89999999999418
+    },
+    {
+      "ms": 12299,
+      "interval": 48.80000000000291
+    },
+    {
+      "ms": 12333.599999999999,
+      "interval": 34.599999999998545
+    },
+    {
+      "ms": 12354.400000000001,
+      "interval": 20.80000000000291
+    },
+    {
+      "ms": 12410,
+      "interval": 55.599999999998545
+    },
+    {
+      "ms": 12437.800000000003,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 12465.5,
+      "interval": 27.69999999999709
+    },
+    {
+      "ms": 12521.099999999999,
+      "interval": 55.599999999998545
+    },
+    {
+      "ms": 12548.900000000001,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 12583.5,
+      "interval": 34.599999999998545
+    },
+    {
+      "ms": 12646,
+      "interval": 62.5
+    },
+    {
+      "ms": 12673.900000000001,
+      "interval": 27.900000000001455
+    },
+    {
+      "ms": 12701.5,
+      "interval": 27.599999999998545
+    },
+    {
+      "ms": 12743.400000000001,
+      "interval": 41.900000000001455
+    },
+    {
+      "ms": 12778.199999999997,
+      "interval": 34.799999999995634
+    },
+    {
+      "ms": 12812.800000000003,
+      "interval": 34.60000000000582
+    },
+    {
+      "ms": 12854.400000000001,
+      "interval": 41.599999999998545
+    },
+    {
+      "ms": 12882.099999999999,
+      "interval": 27.69999999999709
+    },
+    {
+      "ms": 12910,
+      "interval": 27.900000000001455
+    },
+    {
+      "ms": 12944.599999999999,
+      "interval": 34.599999999998545
+    },
+    {
+      "ms": 12972.400000000001,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 13007.099999999999,
+      "interval": 34.69999999999709
+    },
+    {
+      "ms": 13035,
+      "interval": 27.900000000001455
+    },
+    {
+      "ms": 13083.599999999999,
+      "interval": 48.599999999998545
+    },
+    {
+      "ms": 13118.400000000001,
+      "interval": 34.80000000000291
+    },
+    {
+      "ms": 13153,
+      "interval": 34.599999999998545
+    },
+    {
+      "ms": 13208.5,
+      "interval": 55.5
+    },
+    {
+      "ms": 13243.199999999997,
+      "interval": 34.69999999999709
+    },
+    {
+      "ms": 13277.900000000001,
+      "interval": 34.700000000004366
+    },
+    {
+      "ms": 13340.5,
+      "interval": 62.599999999998545
+    },
+    {
+      "ms": 13375.199999999997,
+      "interval": 34.69999999999709
+    },
+    {
+      "ms": 13403,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 13458.599999999999,
+      "interval": 55.599999999998545
+    },
+    {
+      "ms": 13500.199999999997,
+      "interval": 41.599999999998545
+    },
+    {
+      "ms": 13535,
+      "interval": 34.80000000000291
+    },
+    {
+      "ms": 13590.400000000001,
+      "interval": 55.400000000001455
+    },
+    {
+      "ms": 13625.199999999997,
+      "interval": 34.799999999995634
+    },
+    {
+      "ms": 13659.900000000001,
+      "interval": 34.700000000004366
+    },
+    {
+      "ms": 13715.400000000001,
+      "interval": 55.5
+    },
+    {
+      "ms": 13743.199999999997,
+      "interval": 27.799999999995634
+    },
+    {
+      "ms": 13771,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 13826.5,
+      "interval": 55.5
+    },
+    {
+      "ms": 13861.199999999997,
+      "interval": 34.69999999999709
+    },
+    {
+      "ms": 13889,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 13930.800000000003,
+      "interval": 41.80000000000291
+    },
+    {
+      "ms": 13958.400000000001,
+      "interval": 27.599999999998545
+    },
+    {
+      "ms": 13986.300000000003,
+      "interval": 27.900000000001455
+    },
+    {
+      "ms": 14014,
+      "interval": 27.69999999999709
+    },
+    {
+      "ms": 14048.800000000003,
+      "interval": 34.80000000000291
+    },
+    {
+      "ms": 14083.400000000001,
+      "interval": 34.599999999998545
+    },
+    {
+      "ms": 14111.300000000003,
+      "interval": 27.900000000001455
+    },
+    {
+      "ms": 14146,
+      "interval": 34.69999999999709
+    },
+    {
+      "ms": 14201.599999999999,
+      "interval": 55.599999999998545
+    },
+    {
+      "ms": 14229.300000000003,
+      "interval": 27.700000000004366
+    },
+    {
+      "ms": 14257.099999999999,
+      "interval": 27.799999999995634
+    },
+    {
+      "ms": 14319.599999999999,
+      "interval": 62.5
+    },
+    {
+      "ms": 14354.400000000001,
+      "interval": 34.80000000000291
+    },
+    {
+      "ms": 14382,
+      "interval": 27.599999999998545
+    },
+    {
+      "ms": 14430.699999999997,
+      "interval": 48.69999999999709
+    },
+    {
+      "ms": 14458.599999999999,
+      "interval": 27.900000000001455
+    },
+    {
+      "ms": 14486.199999999997,
+      "interval": 27.599999999998545
+    },
+    {
+      "ms": 14541.800000000003,
+      "interval": 55.60000000000582
+    },
+    {
+      "ms": 14569.699999999997,
+      "interval": 27.89999999999418
+    },
+    {
+      "ms": 14590.400000000001,
+      "interval": 20.700000000004366
+    },
+    {
+      "ms": 14646,
+      "interval": 55.599999999998545
+    },
+    {
+      "ms": 14673.800000000003,
+      "interval": 27.80000000000291
+    },
+    {
+      "ms": 14701.400000000001,
+      "interval": 27.599999999998545
+    },
+    {
+      "ms": 14750.099999999999,
+      "interval": 48.69999999999709
+    },
+    {
+      "ms": 14778,
+      "interval": 27.900000000001455
+    },
+    {
+      "ms": 14805.900000000001,
+      "interval": 27.900000000001455
+    },
+    {
+      "ms": 14861.199999999997,
+      "interval": 55.299999999995634
+    },
+    {
+      "ms": 14896.099999999999,
+      "interval": 34.900000000001455
+    },
+    {
+      "ms": 14930.800000000003,
+      "interval": 34.700000000004366
+    },
+    {
+      "ms": 14965.400000000001,
+      "interval": 34.599999999998545
+    },
+    {
+      "ms": 14993.199999999997,
+      "interval": 27.799999999995634
+    },
+    {
+      "ms": 15020.900000000001,
+      "interval": 27.700000000004366
+    }
+  ],
+  "ready": 32338.5,
+  "done": true,
+  "summary": {
+    "readyMs": 32338.5,
+    "windows": [
+      {
+        "start": 0,
+        "frames": 121,
+        "mean": 41.78016528925621,
+        "p95": 90.30000000000291,
+        "max": 298.59999999999854,
+        "over100ms": 4
+      },
+      {
+        "start": 5000,
+        "frames": 143,
+        "mean": 35.06153846153848,
+        "p95": 55.60000000000582,
+        "max": 62.69999999999709,
+        "over100ms": 0
+      },
+      {
+        "start": 10000,
+        "frames": 152,
+        "mean": 32.894078947368385,
+        "p95": 55.599999999998545,
+        "max": 62.599999999998545,
+        "over100ms": 0
+      }
+    ],
+    "latePipelines": 4,
+    "errors": []
+  }
+}
