@@ -80,9 +80,16 @@
 .battle-map-option:hover { border-color:var(--accent); }
 .battle-map-picker:disabled { opacity:.6; }
 .battle-map-picker:disabled .battle-map-option { cursor:wait; }
-.battle-map-detail { display:flex; justify-content:space-between; align-items:center; gap:24px; margin-top:12px; }
-.battle-map-detail p { margin:0; max-width:60ch; color:var(--muted); line-height:1.5; }
-.battle-map-detail label { display:flex; gap:12px; align-items:center; flex-shrink:0; font-size:13px; }
-.battle-map-detail select { color:#edf1ec; border:1px solid var(--line); border-radius:3px; background:#0e2530; min-height:36px; padding:6px 10px; font:inherit; }
-.battle-map-detail select:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
-@media (max-width:650px) { .battle-map-options { grid-template-columns:repeat(2,minmax(0,1fr)); } .battle-map-detail { flex-direction:column; align-items:stretch; gap:12px; } .battle-map-detail label { justify-content:space-between; } }
+.battle-map-detail { margin:12px 0 0; max-width:75ch; color:var(--muted); line-height:1.5; }
+.battle-conditions { border:0; padding:0; margin:0 0 28px; min-width:0; }
+.battle-conditions legend { font:500 23px/1.2 'Barlow Condensed',sans-serif; margin-bottom:12px; }
+.battle-condition-options { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; }
+.battle-condition-options>div { min-width:0; }
+.battle-condition-options label { display:block; margin-bottom:7px; font-size:13px; }
+.battle-condition-options select { width:100%; min-width:0; min-height:44px; padding:8px 10px; color:#edf1ec; border:1px solid var(--line); border-radius:3px; background:#0e2530; font:inherit; cursor:pointer; }
+.battle-condition-options select:hover:not(:disabled) { border-color:var(--accent); }
+.battle-condition-options select:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.battle-condition-options p { margin:7px 0 0; color:var(--muted); font-size:13px; line-height:1.5; }
+.battle-conditions:disabled { opacity:.6; }
+.battle-conditions:disabled select { cursor:wait; }
+@media (max-width:650px) { .battle-map-options { grid-template-columns:repeat(2,minmax(0,1fr)); } .battle-condition-options { grid-template-columns:1fr; gap:16px; } }
