@@ -82,7 +82,9 @@ export function effectVolumeMaterial(map: THREE.Data3DTexture, sun: THREE.Node<'
     end.lessThanEqual(start).discard();
     const stride = end.sub(start).max(0).div(steps).toVar();
     const seed = vec3(state.y, state.y.mul(.73), state.y.mul(.37)).toVar();
-    const progress = turbulent ? attribute<'float'>('effectProgress', 'float') : float(0);
+    const progress = turbulent ? attribute<'vec2'>('effectProgress', 'vec2').x : float(0);
+    const dissipation = turbulent ? attribute<'vec2'>('effectProgress', 'vec2').y : float(0);
+    const remaining = float(1).sub(dissipation).toVar();
     const breakup = smoothstep(.35, .98, progress).toVar();
     // All motion comes from particle age: pausing freezes both the cloud's
     // transport and its interior, independent of camera or wall-clock time.
@@ -100,7 +102,7 @@ export function effectVolumeMaterial(map: THREE.Data3DTexture, sun: THREE.Node<'
       // translations made the cloud appear to boil in place.
       ? seed.mul(1.3).add(drift.mul(1.85)).toVar()
       : offset.mul(1.3);
-    const dilution = (turbulent ? exp(state.x.mul(-.055)) : float(1)).toVar();
+    const dilution = (turbulent ? exp(state.x.mul(-.055)).mul(remaining) : float(1)).toVar();
     const densityAt = (point: THREE.Node<'vec3'>, detailed = true) => {
       // Unequal shears bend different parts of the cloud in different directions.
       // Warp the envelope as well as the detail, so the silhouette rolls too.
@@ -111,14 +113,16 @@ export function effectVolumeMaterial(map: THREE.Data3DTexture, sun: THREE.Node<'
       ).mul(rolling)).toVar() : point;
       const base = volume.sample(warped.mul(.58).add(offset)).level(float(0)).toVar();
       const erosion = detailed ? volume.sample(warped.mul(1.85).add(fineOffset)).level(float(0)).g
-        .mul(turbulent ? float(.22).add(breakup.mul(.12)) : .22) : float(.07);
-      const shape = float(.71).sub(warped.length()).add(base.r.mul(.6)).sub(erosion);
+        .mul(turbulent ? float(.22).add(breakup.mul(.12)).add(dissipation.mul(.1)) : .22) : float(.07);
+      // As gas mixes with air, erode the thin edges as well as optical density.
+      // Fading only the final alpha leaves overlapping, solid-looking spheres.
+      const shape = float(.71).sub(warped.length()).add(base.r.mul(.6)).sub(erosion).sub(dissipation.mul(.22));
       const body = smoothstep(0, .27, shape).mul(float(1).sub(smoothstep(.8, 1, point.length())))
         .mul(smoothstep(-.3, .8, sphere.y.add(point.y.mul(radius))));
       if (!turbulent) return body;
       // Air reaches the thinner folds late in the plume's life. Keep the dense
       // body connected while the edges soften, instead of rapidly punching holes.
-      const threshold = breakup.mul(.22);
+      const threshold = breakup.mul(.22).add(dissipation.mul(.18));
       const holes = smoothstep(threshold.sub(.12), threshold.add(.26), base.g.mul(.6).add(base.b.mul(.4)));
       return body.mul(mix(float(1), holes, smoothstep(.1, .85, breakup).mul(.55)));
     };
@@ -134,7 +138,7 @@ export function effectVolumeMaterial(map: THREE.Data3DTexture, sun: THREE.Node<'
       If(density.greaterThan(0), () => {
         const lightDepth = densityAt(point.add(sun.mul(.24))).mul(.65)
           .add(densityAt(point.add(sun.mul(.58)), false).mul(.85));
-        const sunlight = exp(lightDepth.mul(-2.1)).toVar();
+        const sunlight = exp(lightDepth.mul(-2.1).mul(remaining)).toVar();
         // Sky fill remains in shaded folds. The exposed edges scatter more sunlight.
         const lighting = vec3(.3, .35, .4).add(vec3(1.25, 1.19, 1.08).mul(sunlight));
         const heat = state.z.mul(smoothstep(.08, .75, density)).toVar();
