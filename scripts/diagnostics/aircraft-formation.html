@@ -1,0 +1,42 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Squadron formation review</title>
+<style>body{margin:0;background:#132d38;color:#edf1ec;font:14px sans-serif}#scene{width:100vw;height:100vh}canvas{display:block}output{position:fixed;left:12px;top:12px;background:#132d38;padding:8px}</style>
+<div id="scene"></div><output>Loading formation review…</output><script type="module">
+import { Game } from '/src/game/Game.ts';
+import { shipPreset } from '/src/ships/presets.ts';
+import { stepAircraft, squadronFlights } from '/src/simulation/aircraft.ts';
+import { formationPosition, formationLeader } from '/src/simulation/aircraftFormation.ts';
+import { length, sub } from '/src/simulation/geometry.ts';
+window.addEventListener('unhandledrejection', event => window.reviewError = String(event.reason));
+const status = document.querySelector('output'); let ready;
+const loaded = new Promise(resolve => ready = resolve);
+const game = new Game(document.querySelector('#scene'), {quality:'medium',sea:'Fair',resolution:1}, {
+  ready, progress:s=>status.textContent=s, telemetry:()=>{}, pause:()=>{}, hud:()=>{}, error:s=>window.reviewError=s,
+}, shipPreset('enterprise-cv6'));
+game.start(); await loaded;
+game.setInPort(true);
+await game.prepareBattle({playerShipId:'enterprise-cv6',friendlyBots:[],enemies:[{shipId:'bismarck',aiLevel:'static'}],spawnDistance:5000,sea:'Fair'});
+game.setInPort(false); game.setPaused(true); game.scheduleFrame=()=>{}; cancelAnimationFrame(game.raf); await game.frameTask;
+game.rig.update=()=>{};
+const sim = game.simulation; sim.target.controller='idle';
+let tick=0, id=0; const releases=[];
+const ctx={seed:sim.seed,actors:sim.actors,planes:sim.aircraft,shells:sim.shells,torpedoes:sim.torpedoes,releases:[],nextId:()=>++id,
+  emit:e=>{if(e.kind==='bomb-release'||e.kind==='aircraft-release')releases.push({time:tick/60,id:e.aircraft.id});}};
+const squadron=new URLSearchParams(location.search).get('squadron')??'vb-6';
+const flight=squadronFlights(sim.player).find(f=>f.squadronId===squadron);
+const attack=new URLSearchParams(location.search).has('attack');
+sim.commandSquadron(flight.id,attack?{kind:'attack',targetId:sim.target.motion.id}:{kind:'patrol',point:[2000,420,-3000]});
+async function advance(seconds=0){
+  for(let i=0;i<seconds*60;i++){stepAircraft(ctx,1/60,tick/60);tick++;}
+  const planes=sim.aircraft.filter(p=>p.flightId===flight.id), leader=formationLeader(flight,planes)??planes[0];
+  const p=leader.position;
+  game.camera.position.set(p[0]+200,p[1]+170,p[2]+230);game.camera.lookAt(p[0],p[1],p[2]+30);game.camera.updateMatrixWorld();
+  game.fleetViews.forEach(v=>v.snap());
+  for(let i=0;i<2;i++){game.renderer._nodes.nodeFrame.update();await game.frame(performance.now());}
+  game.pipeline.render();
+  const report={time:tick/60,planes:planes.map(p=>({id:p.id,phase:p.phase,stage:p.pilot.attackStage,position:p.position,
+    error:length(sub(p.position,formationPosition(flight,p,leader,tick/60,sim.seed)))})),releases:[...releases],backend:game.diagnostics().backend};
+  status.textContent=`${flight.name} · ${attack?'Strike':'Patrol'} · ${Math.round(tick/60)} s`;
+  return report;
+}
+window.formationReview={game,advance};await advance(90);window.reviewReady=true;
+</script></html>
