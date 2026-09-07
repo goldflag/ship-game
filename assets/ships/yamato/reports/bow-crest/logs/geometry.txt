@@ -1,0 +1,9 @@
+00:00.570  blend            | Read blend: "/Users/bill/orca/workspaces/ship-game/handfish/.build/bismarck-paint-before/source.blend"
+00:02.238  blend            | Read blend: "/Users/bill/orca/workspaces/ship-game/handfish/assets/ships/bismarck/generated/source.blend"
+bismarck 22842aace5e10d3bd2d5b384a83252eb6a2751b5ecca56f922e30859f18ba288 unchanged existing geometry 18525 added 0
+00:06.119  blend            | Read blend: "/Users/bill/orca/workspaces/ship-game/handfish/.build/yamato-crest-before/source.blend"
+00:08.894  blend            | Read blend: "/Users/bill/orca/workspaces/ship-game/handfish/assets/ships/yamato/generated/source.blend"
+yamato b32c7aeedcf0fbacc2314d51a1030deee640e551686bcab15ea71ad16ac76c24 unchanged existing geometry 10183 added 51
+Blender 5.2.0 LTS (hash fbe6228777e7 built 2026-07-14 01:31:22)
+
+Blender quit

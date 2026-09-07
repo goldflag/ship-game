@@ -1,7 +1,7 @@
 {
   "configuration": "Yamato, intended 7 April 1945 exterior fit",
   "waterline": "10.4 m trial draft datum, not a claim about the exact displacement at sinking",
-  "retrieved": "2026-09-05",
+  "retrieved": "2026-09-07",
   "sources": [
     {
       "id": "kure-museum-data",
@@ -213,6 +213,51 @@
         "Our 560 mm full barbette cylinder and 410 mm transverse closures are conservative gameplay approximations, not a full schedule."
       ],
       "accessed": "2026-09-05"
+    },
+    {
+      "id": "kure-crest-survey-correction",
+      "title": "Kure City municipal newsletter, April 2026, printed p.5, Yamato Museum model renewal",
+      "url": "https://www.city.kure.lg.jp/uploaded/attachment/108945.pdf",
+      "authority": "Kure City / Yamato Museum",
+      "supports": [
+        "Yamato bow chrysanthemum diameter 1 metre, corrected from 1.5 metres using the 2016 underwater survey"
+      ],
+      "status": "Official PDF text read through web reader on 2026-09-07; direct PDF and screenshot retrieval return 404. No fabricated local PDF.",
+      "limitations": [
+        "Diameter evidence only; not an original mounting drawing."
+      ]
+    },
+    {
+      "id": "museum-bow-crest-photo",
+      "title": "Narita family original photograph of the Kure museum Yamato bow, IMG_8713.JPG",
+      "url": "http://www.naritafamily.com/Scalemodel/reference/yamato/IMG_8713.JPG",
+      "localFile": "museum-bow-crest.jpg",
+      "sha256": "1c3753b526c02acfa7582ffee9404c397ed1a2f3bfba7e44b688b0068aa7695a",
+      "authority": "Original visitor photograph of museum reconstruction",
+      "supports": [
+        "Forward-facing gold chrysanthemum on a raised curved bow bulwark",
+        "rounded raised petals and central boss"
+      ],
+      "limitations": [
+        "Undated older museum model; do not derive diameter from the superseded crest size",
+        "Mounting position and bulwark contour are qualitative photographic evidence."
+      ],
+      "redistribute": false
+    },
+    {
+      "id": "mikasa-original-crest-relief",
+      "title": "Memorial Ship Mikasa: original bow crest",
+      "url": "https://www.kinenkan-mikasa.or.jp/en/tourmap/central_exhibition_data/bow_crest.html",
+      "localFile": "mikasa-crest-detail.jpg",
+      "sha256": "6c65bbb78073fac2e97e05f8199c5840409d3b33d296ac85852aa87209762841",
+      "authority": "Memorial Ship Mikasa museum",
+      "supports": [
+        "Original naval crest relief: sixteen radiating raised petals, recessed tips, central boss, gold finish"
+      ],
+      "limitations": [
+        "Different ship; qualitative construction comparison only, not Yamato-specific dimensions or mounting geometry."
+      ],
+      "redistribute": false
     }
   ]
 }

@@ -1,0 +1,113 @@
+{
+  "shipId": "yamato",
+  "contentHash": "75aa0a83fe9a59e29767e908437e16614c455b1026d4d7cca7586cd6384a808f",
+  "beforeHash": "ccaa53fcd25da2a4ecee0e65191703644e6dc73a92a083b21d4f4290ec683e54",
+  "existingObjects": 10183,
+  "changedExistingGeometryOrTransforms": [],
+  "addedObjects": [
+    "Bow bulwark rolled lip",
+    "Bow bulwark rolled lip.001",
+    "Bow bulwark rolled lip.002",
+    "Bow bulwark rolled lip.003",
+    "Bow bulwark rolled lip.004",
+    "Bow bulwark rolled lip.005",
+    "Bow bulwark rolled lip.006",
+    "Bow bulwark rolled lip.007",
+    "Bow bulwark rolled lip.008",
+    "Bow bulwark rolled lip.009",
+    "Bow bulwark rolled lip.010",
+    "Bow bulwark rolled lip.011",
+    "Bow bulwark rolled lip.012",
+    "Bow bulwark rolled lip.013",
+    "Bow bulwark rolled lip.014",
+    "Bow bulwark rolled lip.015",
+    "Chrysanthemum central boss",
+    "Chrysanthemum front petal 00",
+    "Chrysanthemum front petal 01",
+    "Chrysanthemum front petal 02",
+    "Chrysanthemum front petal 03",
+    "Chrysanthemum front petal 04",
+    "Chrysanthemum front petal 05",
+    "Chrysanthemum front petal 06",
+    "Chrysanthemum front petal 07",
+    "Chrysanthemum front petal 08",
+    "Chrysanthemum front petal 09",
+    "Chrysanthemum front petal 10",
+    "Chrysanthemum front petal 11",
+    "Chrysanthemum front petal 12",
+    "Chrysanthemum front petal 13",
+    "Chrysanthemum front petal 14",
+    "Chrysanthemum front petal 15",
+    "Chrysanthemum rear petal 00",
+    "Chrysanthemum rear petal 01",
+    "Chrysanthemum rear petal 02",
+    "Chrysanthemum rear petal 03",
+    "Chrysanthemum rear petal 04",
+    "Chrysanthemum rear petal 05",
+    "Chrysanthemum rear petal 06",
+    "Chrysanthemum rear petal 07",
+    "Chrysanthemum rear petal 08",
+    "Chrysanthemum rear petal 09",
+    "Chrysanthemum rear petal 10",
+    "Chrysanthemum rear petal 11",
+    "Chrysanthemum rear petal 12",
+    "Chrysanthemum rear petal 13",
+    "Chrysanthemum rear petal 14",
+    "Chrysanthemum rear petal 15",
+    "Chrysanthemum seated backing",
+    "Crest bow bulwark"
+  ],
+  "method": "All original vertex coordinates, polygon topology, transforms, parents, assembly IDs and node IDs compared by object name; materials/UVs intentionally excluded.",
+  "frontPetals": 16,
+  "rearPetals": 16,
+  "diameterM": [
+    1.0,
+    1.0
+  ],
+  "closedPetalVolumesM3": [
+    0.004244051536548166,
+    0.004244052987273608,
+    0.0042440485661401905,
+    0.004244054413136217,
+    0.004244047419923971,
+    0.004244047935195616,
+    0.004244049163680527,
+    0.004244049582387013,
+    0.004244051404824534,
+    0.004244049698074778,
+    0.004244048566141467,
+    0.004244048508771706,
+    0.004244047419923833,
+    0.004244053461503264,
+    0.004244049163670091,
+    0.004244052927267233
+  ],
+  "backingSupportContacts": [
+    {
+      "y": 0,
+      "zOffset": 0,
+      "supportX": 131.5
+    },
+    {
+      "y": -0.35,
+      "zOffset": 0,
+      "supportX": 131.45486450195312
+    },
+    {
+      "y": 0.35,
+      "zOffset": 0,
+      "supportX": 131.45486450195312
+    },
+    {
+      "y": 0,
+      "zOffset": -0.35,
+      "supportX": 131.5
+    },
+    {
+      "y": 0,
+      "zOffset": 0.35,
+      "supportX": 131.5
+    }
+  ],
+  "supportNote": "Solid bulwark bottom intersects the existing forecastle deck; all petals overlap the seated backing at their roots."
+}

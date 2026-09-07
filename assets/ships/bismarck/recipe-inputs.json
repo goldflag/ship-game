@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "files": [
+    "assets/ships/bismarck/paint.py",
+    "assets/ships/bismarck/paint-scheme.json"
+  ]
+}

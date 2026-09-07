@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "configuration": "Bismarck, 24 May 1941; exterior at standard reference draft, not operational loading",
-  "accessDate": "2026-09-05",
+  "configuration": "Bismarck May 1941 equipment reconstruction with requested March–May 1941 Baltic paint; standard reference draft",
+  "accessDate": "2026-09-07",
   "sources": [
     {
       "id": "kb-dimensions",
@@ -40,7 +40,7 @@
     {
       "id": "kb-plan-24may",
       "url": "https://www.kbismarck.com/24-may-drawing.html",
-      "document": "Manuel P. Gonz\u00e1lez L\u00f3pez, Bismarck line drawings 24 May 1941, bsdraw24m.png",
+      "document": "Manuel P. González López, Bismarck line drawings 24 May 1941, bsdraw24m.png",
       "dateConfiguration": "24 May 1941 reconstruction",
       "units": "metres on lower scale bar",
       "scale": "raster; uniform scale registered from complete hull endpoints",
@@ -72,7 +72,7 @@
       "url": "https://www.rmg.co.uk/collections/objects/rmgc-object-533632",
       "document": "National Maritime Museum NPO3614",
       "dateConfiguration": "7 October 1941, Bismarck (1939)",
-      "units": "1:48; drawing size 454 \u00d7 3456 mm",
+      "units": "1:48; drawing size 454 × 3456 mm",
       "scale": "catalogued 1:48",
       "datum": "body plan and fore/aft sheer lines",
       "confidence": "high catalogue provenance; geometry unreviewed",
@@ -141,7 +141,7 @@
       "supports": [
         "six two-boiler rooms; three turbine rooms; three shafts; twin rudders"
       ],
-      "limits": "Room frame boundaries and box dimensions are estimated from arrangement proportions; explicit \u00b13 m longitudinal uncertainty."
+      "limits": "Room frame boundaries and box dimensions are estimated from arrangement proportions; explicit ±3 m longitudinal uncertainty."
     },
     {
       "id": "kb-armament",
@@ -161,7 +161,7 @@
     {
       "id": "admiralty-interrogation",
       "url": "https://www.uboatarchive.net/Int/BismarckINT.htm",
-      "document": "C.B. 4051 (24), interrogation of Bismarck survivors, VII (2\u20133), pp. 27\u201330; Plate 1 listed",
+      "document": "C.B. 4051 (24), interrogation of Bismarck survivors, VII (2–3), pp. 27–30; Plate 1 listed",
       "dateConfiguration": "May 1941 survivor account",
       "units": "mixed cm/metres",
       "scale": "narrative; Plate 1 unavailable in current transcription",
@@ -202,6 +202,27 @@
         "complete hull shell and major deckhouse/funnel hit surfaces"
       ],
       "limits": "20 mm hull and 8 mm superstructure plating are not a verified historical schedule. Small fittings, AA and masts remain visual details."
+    },
+    {
+      "id": "kb-baltic-user-reference",
+      "url": "https://www.kbismarck.com/drawings.html",
+      "document": "Manuel P. González López, Bismarck March–May 1941; complete credited profile and plan supplied by the user, drawing 3 on the author's paint-scheme page",
+      "dateConfiguration": "March–May 1941 Baltic trials",
+      "units": "metres from whole-sheet scale",
+      "scale": "approximately 8.04 pixels per metre; manually interpreted paint boundaries",
+      "datum": "Blender midpoint; standard waterline inferred from 9.33 m above keel",
+      "confidence": "medium appearance evidence; not measured original paint specification",
+      "status": "user-supplied original retained with credit; author page search excerpt corroborates scheme/date",
+      "file": "paint/baltic-march-may-1941-user-reference.png",
+      "sha256": "7bcd92a7c238392d2da9ee0b767b3b2eab0d2a99dfb0780be9ba6c21903fd34c",
+      "supports": [
+        "three black/white angled hull bands with black bands extending across upperworks",
+        "dark gray bow and stern with false white waves",
+        "dark main and secondary turret roofs",
+        "red bow/stern deck recognition fields, white discs and upright black swastikas"
+      ],
+      "limits": "Single side profile; opposite side repeats this interpretation pending separate evidence. Approximate boundaries and color values. Existing May 1941 geometry retained. Reference image is not a runtime texture.",
+      "redistribute": false
     }
   ]
 }

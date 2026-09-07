@@ -6,6 +6,8 @@ Original reconstruction targeting the 7 April 1945 exterior, authored through th
 
 The model uses 263 m overall length, 38.9 m extreme beam, 256 m waterline length, 36.9 m waterline beam and a 10.4 m trial draft. Midship depth is 18.915 m. The equipment date does not assert an exact sinking/departure displacement. Three triple 46 cm, two triple 15.5 cm and twelve twin 127 mm AA mounts have independent yaw, elevation, recoil and muzzle joints. The original recipe also includes visual 25 mm AA, bridge, funnel, masts, radar, aircraft handling gear, boats, shafts, four 5 m screws and tandem centreline rudders.
 
+The bow now carries an original raised gold chrysanthemum, with sixteen front petals, sixteen recessed tips and a central boss. Its 1 m diameter follows Kure's published 2016-survey correction. A curved bow bulwark and seated backing physically support it. Petal relief, mounting depth and local bulwark contours remain photographic interpretations; see the [bow ornament review](reports/bow-crest/README.md).
+
 ```sh
 bun run ship:compile yamato
 bun run ship:build yamato

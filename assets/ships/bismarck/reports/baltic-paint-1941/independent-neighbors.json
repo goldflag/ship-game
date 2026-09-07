@@ -1,0 +1,236 @@
+{
+  "shipId": "bismarck",
+  "contentHash": "22842aace5e10d3bd2d5b384a83252eb6a2751b5ecca56f922e30859f18ba288",
+  "backend": "webgpu",
+  "maxMuzzleErrorM": 0.0021670949179607595,
+  "poses": [
+    {
+      "mountId": "anton",
+      "train": -2.5307274153917776,
+      "elevation": -0.08726646259971647,
+      "recoil": 0
+    },
+    {
+      "mountId": "bruno",
+      "train": -1.2653637076958888,
+      "elevation": 0.2181661564992912,
+      "recoil": 0.5
+    },
+    {
+      "mountId": "caesar",
+      "train": 0,
+      "elevation": 0.5235987755982988,
+      "recoil": 1
+    },
+    {
+      "mountId": "dora",
+      "train": 1.2653637076958888,
+      "elevation": -0.08726646259971647,
+      "recoil": 0
+    },
+    {
+      "mountId": "starboard-secondary-1",
+      "train": 2.443460952792061,
+      "elevation": 0.30543261909900765,
+      "recoil": 0.5
+    },
+    {
+      "mountId": "starboard-secondary-2",
+      "train": -2.443460952792061,
+      "elevation": 0.6981317007977318,
+      "recoil": 1
+    },
+    {
+      "mountId": "starboard-secondary-3",
+      "train": -1.2217304763960306,
+      "elevation": -0.08726646259971647,
+      "recoil": 0
+    },
+    {
+      "mountId": "port-secondary-1",
+      "train": 0,
+      "elevation": 0.30543261909900765,
+      "recoil": 0.5
+    },
+    {
+      "mountId": "port-secondary-2",
+      "train": 1.2217304763960306,
+      "elevation": 0.6981317007977318,
+      "recoil": 1
+    },
+    {
+      "mountId": "port-secondary-3",
+      "train": 2.443460952792061,
+      "elevation": -0.08726646259971647,
+      "recoil": 0
+    },
+    {
+      "mountId": "starboard-aa-105-1",
+      "train": -3.141592653589793,
+      "elevation": 0.6108652381980153,
+      "recoil": 0.5
+    },
+    {
+      "mountId": "starboard-aa-105-2",
+      "train": -1.5707963267948966,
+      "elevation": 1.3962634015954636,
+      "recoil": 1
+    },
+    {
+      "mountId": "starboard-aa-105-3",
+      "train": 0,
+      "elevation": -0.17453292519943295,
+      "recoil": 0
+    },
+    {
+      "mountId": "starboard-aa-105-4",
+      "train": 1.5707963267948966,
+      "elevation": 0.6108652381980153,
+      "recoil": 0.5
+    },
+    {
+      "mountId": "starboard-aa-37-1",
+      "train": 3.141592653589793,
+      "elevation": 1.3962634015954636,
+      "recoil": 1
+    },
+    {
+      "mountId": "starboard-aa-37-2",
+      "train": -3.141592653589793,
+      "elevation": -0.17453292519943295,
+      "recoil": 0
+    },
+    {
+      "mountId": "starboard-aa-37-3",
+      "train": -1.5707963267948966,
+      "elevation": 0.6108652381980153,
+      "recoil": 0.5
+    },
+    {
+      "mountId": "starboard-aa-37-4",
+      "train": 0,
+      "elevation": 1.3962634015954636,
+      "recoil": 1
+    },
+    {
+      "mountId": "starboard-aa-20-1",
+      "train": 1.5707963267948966,
+      "elevation": -0.17453292519943295,
+      "recoil": 0
+    },
+    {
+      "mountId": "starboard-aa-20-2",
+      "train": 3.141592653589793,
+      "elevation": 0.6108652381980153,
+      "recoil": 0.5
+    },
+    {
+      "mountId": "starboard-aa-20-3",
+      "train": -3.141592653589793,
+      "elevation": 1.3962634015954636,
+      "recoil": 1
+    },
+    {
+      "mountId": "starboard-aa-20-4",
+      "train": -1.5707963267948966,
+      "elevation": -0.17453292519943295,
+      "recoil": 0
+    },
+    {
+      "mountId": "starboard-aa-20-5",
+      "train": 0,
+      "elevation": 0.6108652381980153,
+      "recoil": 0.5
+    },
+    {
+      "mountId": "starboard-aa-20-6",
+      "train": 1.5707963267948966,
+      "elevation": 1.3962634015954636,
+      "recoil": 1
+    },
+    {
+      "mountId": "port-aa-105-1",
+      "train": 3.141592653589793,
+      "elevation": -0.17453292519943295,
+      "recoil": 0
+    },
+    {
+      "mountId": "port-aa-105-2",
+      "train": -3.141592653589793,
+      "elevation": 0.6108652381980153,
+      "recoil": 0.5
+    },
+    {
+      "mountId": "port-aa-105-3",
+      "train": -1.5707963267948966,
+      "elevation": 1.3962634015954636,
+      "recoil": 1
+    },
+    {
+      "mountId": "port-aa-105-4",
+      "train": 0,
+      "elevation": -0.17453292519943295,
+      "recoil": 0
+    },
+    {
+      "mountId": "port-aa-37-1",
+      "train": 1.5707963267948966,
+      "elevation": 0.6108652381980153,
+      "recoil": 0.5
+    },
+    {
+      "mountId": "port-aa-37-2",
+      "train": 3.141592653589793,
+      "elevation": 1.3962634015954636,
+      "recoil": 1
+    },
+    {
+      "mountId": "port-aa-37-3",
+      "train": -3.141592653589793,
+      "elevation": -0.17453292519943295,
+      "recoil": 0
+    },
+    {
+      "mountId": "port-aa-37-4",
+      "train": -1.5707963267948966,
+      "elevation": 0.6108652381980153,
+      "recoil": 0.5
+    },
+    {
+      "mountId": "port-aa-20-1",
+      "train": 0,
+      "elevation": 1.3962634015954636,
+      "recoil": 1
+    },
+    {
+      "mountId": "port-aa-20-2",
+      "train": 1.5707963267948966,
+      "elevation": -0.17453292519943295,
+      "recoil": 0
+    },
+    {
+      "mountId": "port-aa-20-3",
+      "train": 3.141592653589793,
+      "elevation": 0.6108652381980153,
+      "recoil": 0.5
+    },
+    {
+      "mountId": "port-aa-20-4",
+      "train": -3.141592653589793,
+      "elevation": 1.3962634015954636,
+      "recoil": 1
+    },
+    {
+      "mountId": "port-aa-20-5",
+      "train": -1.5707963267948966,
+      "elevation": -0.17453292519943295,
+      "recoil": 0
+    },
+    {
+      "mountId": "port-aa-20-6",
+      "train": 0,
+      "elevation": 0.6108652381980153,
+      "recoil": 0.5
+    }
+  ]
+}

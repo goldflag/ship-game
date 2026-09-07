@@ -1,0 +1,16 @@
+{
+  "shipId": "yamato",
+  "contentHash": "b32c7aeedcf0fbacc2314d51a1030deee640e551686bcab15ea71ad16ac76c24",
+  "backend": "webgpu",
+  "targetBlender": [
+    0,
+    0,
+    12
+  ],
+  "offsetBlender": [
+    180,
+    -170,
+    140
+  ],
+  "maxMuzzleErrorM": 0.0027435334140913635
+}

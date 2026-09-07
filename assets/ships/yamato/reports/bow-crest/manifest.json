@@ -1,0 +1,231 @@
+{
+  "version": 1,
+  "reviewDate": "2026-09-07",
+  "shipId": "yamato",
+  "contentHash": "b32c7aeedcf0fbacc2314d51a1030deee640e551686bcab15ea71ad16ac76c24",
+  "tools": {
+    "authoring": "local Blender 5.2; no Blender MCP tools exposed",
+    "runtimeReview": "Orca CLI against local Vite development port; WebGPU"
+  },
+  "scope": "bow-crest, bow-crest-support and forepeak rail termination",
+  "buildCommands": [
+    {
+      "command": "bun run ship:compile yamato",
+      "result": "passed"
+    },
+    {
+      "command": "bun run ship:build yamato",
+      "result": "passed",
+      "log": "logs/build.txt"
+    },
+    {
+      "command": "bun run ship:review yamato",
+      "result": "passed",
+      "log": "logs/fixed-review.txt"
+    },
+    {
+      "command": "bun assets/ships/yamato/check-dimensions.ts",
+      "result": "passed; six dimensions",
+      "log": "logs/dimensions.txt"
+    }
+  ],
+  "tests": [
+    {
+      "command": "bun test src/ships/blueprint.test.ts src/ships/presets.test.ts src/simulation/combat.test.ts src/simulation/yamato.test.ts src/game/ShipView.test.ts src/game/ShipMaterialPalette.test.ts src/game/ShipRenderAssemblies.test.ts",
+      "passed": 47,
+      "failed": 0,
+      "assertions": 6001,
+      "modelHashes": {
+        "bismarck": "22842aace5e10d3bd2d5b384a83252eb6a2751b5ecca56f922e30859f18ba288",
+        "yamato": "75aa0a83fe9a59e29767e908437e16614c455b1026d4d7cca7586cd6384a808f"
+      },
+      "log": "logs/simulation-and-render-tests.txt"
+    },
+    {
+      "command": "bun test src/game/ShipView.test.ts src/simulation/yamato.test.ts",
+      "passed": 17,
+      "failed": 0,
+      "assertions": 371,
+      "modelHashes": {
+        "bismarck": "22842aace5e10d3bd2d5b384a83252eb6a2751b5ecca56f922e30859f18ba288",
+        "yamato": "b32c7aeedcf0fbacc2314d51a1030deee640e551686bcab15ea71ad16ac76c24"
+      },
+      "log": "logs/final-exported-model-tests.txt"
+    },
+    {
+      "command": "bun run build",
+      "result": "passed",
+      "modelHashes": {
+        "bismarck": "22842aace5e10d3bd2d5b384a83252eb6a2751b5ecca56f922e30859f18ba288",
+        "yamato": "b32c7aeedcf0fbacc2314d51a1030deee640e551686bcab15ea71ad16ac76c24"
+      },
+      "includes": [
+        "ship:check all",
+        "aircraft:check all",
+        "tsc --noEmit",
+        "vite build"
+      ],
+      "log": "logs/production-build.txt"
+    }
+  ],
+  "runtimeEvidence": {
+    "articulation": "articulation.json",
+    "independentNeighborPoses": "independent-neighbors.json",
+    "inspection": "inspection.json"
+  },
+  "historicalAccuracy": "Unresolved source and reconstruction limits remain in the source/discrepancy registers; see README for the four affected-model checks.",
+  "files": {
+    "assets/ships/yamato/generated/review/bow.png": {
+      "sha256": "4421b40c07befddabdd2ada2ea73b97b0f88feb161e81e1297656e25ee9b333e",
+      "bytes": 734088
+    },
+    "assets/ships/yamato/generated/review/cameras.json": {
+      "sha256": "16469da7c720e0e357dab894c0bfe17c1ca684938419eb811c52d841e3fd07db",
+      "bytes": 1151
+    },
+    "assets/ships/yamato/generated/review/plan.png": {
+      "sha256": "ddd7aec953f3f981af6b6320610453d5c188455c1eff028576c3b9b417985d3d",
+      "bytes": 914680
+    },
+    "assets/ships/yamato/generated/review/profile.png": {
+      "sha256": "a531615cd13e54096f3125d04300b0698fa70d6f949786b317ba8696d8cc8b09",
+      "bytes": 888521
+    },
+    "assets/ships/yamato/generated/review/quarter.png": {
+      "sha256": "97336dd982e2f98bd587b2171cb5be8e122574bd84cdc111e0a33a444fa07f9c",
+      "bytes": 1355474
+    },
+    "assets/ships/yamato/generated/review/stern.png": {
+      "sha256": "9431befc14754d03904975773cf2cabaa53d8003b8f96ff2dd60d4a36da508d1",
+      "bytes": 740743
+    },
+    "assets/ships/yamato/generated/source.blend": {
+      "sha256": "763969befd2351533ff6099d9080632297d4814d48afb53849be9740125cb758",
+      "bytes": 4615048
+    },
+    "assets/ships/yamato/reports/bow-crest/README.md": {
+      "sha256": "9d300c4eef9221c887a472674a307afe4c3969f89445efb41308e4d371bc9fe6",
+      "bytes": 5509
+    },
+    "assets/ships/yamato/reports/bow-crest/articulation.json": {
+      "sha256": "a840f4d3bcb12ea6c78f7240d02a997f5077fe18f06ef5c95d146ee135a0c9e7",
+      "bytes": 2337
+    },
+    "assets/ships/yamato/reports/bow-crest/cameras.json": {
+      "sha256": "ac3acba15d7a849a49a62a271ee978152a9283987d0355c2334a437e5be9a3bd",
+      "bytes": 683
+    },
+    "assets/ships/yamato/reports/bow-crest/crest-front.png": {
+      "sha256": "6f32bee71a193ca07db73b0269684ef6a2ba77613e6019a2cf4369b65b4d6b87",
+      "bytes": 1191011
+    },
+    "assets/ships/yamato/reports/bow-crest/crest-quarter.png": {
+      "sha256": "03115651e6e468e91b75f77eaea4986c80ca8f9bcde87928839bf44dd935a08f",
+      "bytes": 1205967
+    },
+    "assets/ships/yamato/reports/bow-crest/crest-side.png": {
+      "sha256": "02e2451223f2cffff962ee4caaf2ebd9a2a26cc3c79cec17c51e5cd3323bc853",
+      "bytes": 1167907
+    },
+    "assets/ships/yamato/reports/bow-crest/first-pass/cameras.json": {
+      "sha256": "f4d99df708174e840b3a7da054c736fed5da16cafc120c166e41af554f731d5d",
+      "bytes": 683
+    },
+    "assets/ships/yamato/reports/bow-crest/first-pass/crest-front.png": {
+      "sha256": "0b3731933ab898ff6d21670a76637ead35adaa7ddf8d67133ff040f8d365c059",
+      "bytes": 1193613
+    },
+    "assets/ships/yamato/reports/bow-crest/first-pass/crest-quarter.png": {
+      "sha256": "866b6b67f0e46de573d459ed377a9625408fc2378f7dfbc0a129d672078741a7",
+      "bytes": 1212412
+    },
+    "assets/ships/yamato/reports/bow-crest/first-pass/crest-side.png": {
+      "sha256": "b2ea9eeab4089b8f1ead9547f228529a69513fad67367f0fcf23a8391de828fd",
+      "bytes": 1178373
+    },
+    "assets/ships/yamato/reports/bow-crest/first-pass/geometry.json": {
+      "sha256": "d399c29afda04c7d338e26cc54df14227dfe2e844f70496afd927f725f79b4ff",
+      "bytes": 3332
+    },
+    "assets/ships/yamato/reports/bow-crest/geometry.json": {
+      "sha256": "69d272230b5db78dd9a7179f7bcb553df53c59ea9c11bc64613b047e93bb97a8",
+      "bytes": 7682
+    },
+    "assets/ships/yamato/reports/bow-crest/in-game-crest-front.json": {
+      "sha256": "6c2ac108cf7fa0e74fe04214cf7921350b310f47d7a5566eadd377c17a7dc7e0",
+      "bytes": 278
+    },
+    "assets/ships/yamato/reports/bow-crest/in-game-crest-front.png": {
+      "sha256": "cb8f911d8af50b321efd402f93136e0e34965cc6223de23d45b55ae27b875a5a",
+      "bytes": 1321310
+    },
+    "assets/ships/yamato/reports/bow-crest/in-game-crest-quarter.json": {
+      "sha256": "620d68d2f823050b177c8277258316be09727eddf9dbbc1b49985a95a9eab00e",
+      "bytes": 273
+    },
+    "assets/ships/yamato/reports/bow-crest/in-game-crest-quarter.png": {
+      "sha256": "26bde9b7ad8fce899adb4fb32387d07dd4085742230b814ea9e491b21741ea20",
+      "bytes": 2687146
+    },
+    "assets/ships/yamato/reports/bow-crest/in-game-independent.json": {
+      "sha256": "0deb2d38639f33b3b210432bad415333a8ad316b7c4a3a554273237039bf441a",
+      "bytes": 277
+    },
+    "assets/ships/yamato/reports/bow-crest/in-game-independent.png": {
+      "sha256": "e5fdf08183dbfd6dbb811c641076d31c0937b122663fbdd3cac86433735a151b",
+      "bytes": 3124722
+    },
+    "assets/ships/yamato/reports/bow-crest/independent-neighbors.json": {
+      "sha256": "466e7bfdf1db65fbc027d0b273a43cea7d420bcb596149c6d428b4960ae8d711",
+      "bytes": 2444
+    },
+    "assets/ships/yamato/reports/bow-crest/inspection.json": {
+      "sha256": "45f7bffde121577622298f248329bdc907db814ed61c7a2091029c5a75c73f67",
+      "bytes": 673
+    },
+    "assets/ships/yamato/reports/bow-crest/logs/build.txt": {
+      "sha256": "82932317963260b75a5be69710c7b9831f6e67c326b6a202a2a483b5288e7ef3",
+      "bytes": 4458
+    },
+    "assets/ships/yamato/reports/bow-crest/logs/closeups.txt": {
+      "sha256": "0bf45e613454845099eae154d28f0f6d1c024cbf7c42defc35115d1626be44db",
+      "bytes": 10315
+    },
+    "assets/ships/yamato/reports/bow-crest/logs/dimensions.txt": {
+      "sha256": "56b5b9d1aee3294f507c7ea1221a48c591142a7ac7b5fbe971c3e3798833edd6",
+      "bytes": 1857
+    },
+    "assets/ships/yamato/reports/bow-crest/logs/final-exported-model-tests.txt": {
+      "sha256": "34a5f7f1276aab874b62ce2047d8526e7431b4a4acd6a275a44f81e8531d7b50",
+      "bytes": 1947
+    },
+    "assets/ships/yamato/reports/bow-crest/logs/fixed-review.txt": {
+      "sha256": "f16f291980f32d1db9cfb17310a791dff4a7e816c0e49baf8ab1b1dfdce3d6b6",
+      "bytes": 252
+    },
+    "assets/ships/yamato/reports/bow-crest/logs/geometry.txt": {
+      "sha256": "a6f501869b1f8bbe1a8f8cdebb0454a9923c23fee8a6c8a5f9d29d80448644f1",
+      "bytes": 843
+    },
+    "assets/ships/yamato/reports/bow-crest/logs/production-build.txt": {
+      "sha256": "a12744a275ab2c355907b091985d983a39e6ed010e5474526e3ed1912da8c251",
+      "bytes": 4258
+    },
+    "assets/ships/yamato/reports/bow-crest/logs/simulation-and-render-tests.txt": {
+      "sha256": "a4d4ae5ba3925a7defa1f88446ee63e6c51aa3592078d59a0bacb1ef38bc4177",
+      "bytes": 5027
+    },
+    "assets/ships/yamato/reports/bow-crest/render-closeups.py": {
+      "sha256": "212f98965c3193842ef3fe62aa39faf864fd9293af82f3c20d4e31820835e87a",
+      "bytes": 2251
+    },
+    "public/models/yamato.glb": {
+      "sha256": "79a21b113fd8b0f2fe587d5c4e99fa7534d658950a1cd613b326e9db650f2ef3",
+      "bytes": 12104764
+    },
+    "public/models/yamato.json": {
+      "sha256": "f6ea7304eb99dac6c2f8164470234f193f764883cbef176e5054cd0d643d3c99",
+      "bytes": 2748290
+    }
+  }
+}
