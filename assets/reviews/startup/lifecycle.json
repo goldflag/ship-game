@@ -1,0 +1,28 @@
+{
+  "retry": true,
+  "shipSwitch": true,
+  "battle": true,
+  "returnToPort": true,
+  "requests": [
+    "http://localhost:5300/naval/models/bismarck.glb.gz",
+    "http://localhost:5300/naval/models/bismarck.glb.gz",
+    "http://localhost:5300/naval/models/yamato.glb.gz",
+    "http://localhost:5300/naval/models/yamato.glb.gz",
+    "http://localhost:5300/naval/models/bismarck.glb.gz"
+  ],
+  "errors": [
+    "http://localhost:5300/naval/audio/naval/ui-click.wav: net::ERR_ABORTED",
+    "http://localhost:5300/naval/audio/naval/ui-confirm.wav: net::ERR_ABORTED",
+    "http://localhost:5300/naval/audio/naval/ui-back.wav: net::ERR_ABORTED",
+    "http://localhost:5300/naval/audio/naval/telegraph.wav: net::ERR_ABORTED",
+    "http://localhost:5300/naval/audio/naval/ship-horn.wav: net::ERR_ABORTED",
+    "http://localhost:5300/naval/audio/naval/main-gun-a.wav: net::ERR_ABORTED",
+    "http://localhost:5300/naval/audio/naval/main-gun-b.wav: net::ERR_ABORTED",
+    "http://localhost:5300/naval/audio/naval/secondary-gun.wav: net::ERR_ABORTED",
+    "http://localhost:5300/naval/audio/naval/armor-hit.wav: net::ERR_ABORTED",
+    "http://localhost:5300/naval/audio/naval/ricochet.wav: net::ERR_ABORTED",
+    "http://localhost:5300/naval/audio/naval/splash.wav: net::ERR_ABORTED",
+    "http://localhost:5300/naval/audio/naval/magazine-explosion.wav: net::ERR_ABORTED",
+    "http://localhost:5300/naval/audio/naval/reload.wav: net::ERR_ABORTED"
+  ]
+}

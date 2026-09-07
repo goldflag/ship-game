@@ -1,0 +1,8 @@
+/* Available before the game bundle runs; shared by the HTML and React loaders. */
+.startup-screen { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; overflow: auto; padding: 28px; box-sizing: border-box; background: #142d38; color: #edf1ec; font-family: 'Barlow', sans-serif; }
+.startup-content { width: min(420px, 100%); margin: auto; }
+.startup-content h1 { margin: 0 0 24px; font-size: clamp(26px, 5vw, 36px); font-weight: 500; line-height: 1.15; }
+.startup-status { margin: 0 0 12px; color: #e0c58d; font-size: 16px; line-height: 1.5; }
+.startup-note { margin: 20px 0 0; color: #bfced2; font-size: 14px; line-height: 1.6; }
+.startup-content .loading-progress { height: 4px; }
+@media (prefers-reduced-motion: reduce) { .startup-content .loading-progress span { transition: none; } }

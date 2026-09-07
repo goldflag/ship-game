@@ -52,8 +52,6 @@ kbd { font-family: inherit; font-weight: 400; font-size: 10px; border: 1px solid
 .restore-hud { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); padding: 10px 16px; border: 0; background: transparent; text-shadow: 0 2px 4px #07131bea; font-size: 12px; }
 .restore-hud kbd { margin-left: 8px; }
 .loading-screen { position: fixed; inset: 0; background: #142d38; display: flex; flex-direction: column; padding: 42px 48px; }
-.loading-screen-minimal { align-items: center; justify-content: center; }
-.loading-screen-minimal .loading-progress { width: min(360px, 100%); height: 4px; }
 .loading-brand { display: flex; align-items: center; gap: 15px; font-size: 11px; letter-spacing: .22em; color: var(--accent); }
 .loading-content { width: min(480px, 100%); margin: auto; text-align: center; }
 .loading-content > h1 { font: 500 clamp(64px, 9vw, 104px)/1 'Barlow Condensed', sans-serif; letter-spacing: .065em; margin: 0; }

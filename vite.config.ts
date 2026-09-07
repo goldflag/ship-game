@@ -2,6 +2,8 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { vendorTextures } from './scripts/build/vendor-textures';
+import { shipTransfers } from './scripts/build/ship-transfers';
 
 // Sky Pro resolves cloud volumes dynamically beside the final JS bundle.
 // Vite cannot discover that dynamic URL, so preserve its data/ directory explicitly.
@@ -19,7 +21,7 @@ export default defineConfig({
   // Serve from a sub-path with e.g. BASE_PATH=/naval/ bun run build; runtime asset URLs go through src/assetUrl.ts.
   base: process.env.BASE_PATH ?? '/',
   define: { __SHIP_REVIEW_IDS__: JSON.stringify(shipReviewIds) },
-  plugins: [react(), {
+  plugins: [react(), vendorTextures(), shipTransfers(`${root}public/models`), {
     name: 'ship-review-pages',
     // Vite copies all of public/ verbatim; drop the served review copy when it is excluded from this build.
     closeBundle() { if (!publishReviewPages) rmSync(`${root}dist/ship-reference`, { recursive: true, force: true }); },
@@ -43,7 +45,7 @@ export default defineConfig({
       },
       output: { manualChunks: { 'three-engine': ['three/webgpu', 'three/tsl'], 'react': ['react', 'react-dom/client'] } },
     },
-    // The supplied Water Pro bundle embeds its foam and spray textures.
+    // Compiled ship definitions remain bundled for synchronous simulation access.
     chunkSizeWarningLimit: 7000,
   },
 });
