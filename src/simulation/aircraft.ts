@@ -1,5 +1,6 @@
 import type { AircraftRole, ShipDefinition, TorpedoPart, Vec3 } from '../ships/blueprint';
 import type { FleetActor, Team } from './battle';
+import { crewSkill, DEFAULT_AI_LEVEL, isPassiveAi } from './aiLevels';
 import type { CombatEvent } from './combat';
 import type { Shell } from './damage';
 import { add, clamp, dot, length, localToWorld, normalize, scale, sub, wrapAngle, worldToLocal } from './geometry';
@@ -224,7 +225,7 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
     // never put the entire inventory on the deck or consume additional aircraft.
     const waiting = state.planes.find(p => p.phase === 'queued' && p.deckSlot === undefined);
     if (waiting && !approachingDeck && state.transferCooldown <= 0 && airServiceAvailable(actor) && spotAircraft(actor, waiting)) state.transferCooldown = 4;
-    if (actor.controller === 'bot' && time >= 5) {
+    if (actor.controller === 'bot' && !isPassiveAi(actor.bot?.aiLevel) && time >= 5 * crewSkill(actor.bot?.aiLevel ?? DEFAULT_AI_LEVEL).reactionScale) {
       const validTarget = (a: FleetActor) => a.team !== actor.team && !a.damage.sunk && !a.damage.stability.combatLost && a.motion.y > -8;
       const target = ctx.actors.find(a => a.motion.id === actor.targetId && validTarget(a)) ?? ctx.actors.find(validTarget);
       for (const squadron of wing.squadrons) if (!state.planes.some(p => p.squadronId === squadron.id && !['ready', 'rearming', 'lost'].includes(p.phase))) launchSquadron(actor, squadron.id, target);
@@ -278,7 +279,7 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
       const carrier = localToWorld(add(wing.recoveryPosition, [0, deckClearance(p), 0]), actor.motion);
       // Approximate AA envelope from surviving, supplied light gun mounts. No render/GPU input.
       for (const enemy of ctx.actors) {
-        if (enemy.team === p.team || enemy.damage.sunk || enemy.damage.stability.combatLost || enemy.motion.y < -1) continue;
+        if (enemy.team === p.team || enemy.damage.sunk || enemy.damage.stability.combatLost || enemy.motion.y < -1 || isPassiveAi(enemy.bot?.aiLevel)) continue;
         const distance = length(sub(p.position, [enemy.motion.x, enemy.motion.y, enemy.motion.z]));
         if (distance > 1100) continue;
         const guns = enemy.definition.mounts.filter((m, index) => m.weapon.caliberM <= .04 && enemy.mounts[index].hp > 0 && enemy.mounts[index].ammo > 0 && (!m.magazineId || equipmentCondition(enemy, enemy.definition, enemy.definition.modules.find(v => v.id === m.magazineId)!).availability > 0)).length;

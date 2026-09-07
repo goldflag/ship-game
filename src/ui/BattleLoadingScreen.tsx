@@ -1,7 +1,7 @@
 import { oceanMap, DEFAULT_MAP } from '../maps/catalog';
 import { TIME_OF_DAY_PRESETS, WEATHER_PRESETS } from '../maps/conditions';
 import { shipPreset } from '../ships/presets';
-import type { BattleSetup } from '../simulation/battle';
+import { botSelection, type BattleSetup } from '../simulation/battle';
 import { Icon } from './Icons';
 import './BattleLoadingScreen.css';
 
@@ -17,7 +17,7 @@ export function BattleLoadingScreen({ setup, state, onLeft }: Props) {
   const time = TIME_OF_DAY_PRESETS.find(preset => preset.id === setup.timeOfDay);
   const weather = WEATHER_PRESETS.find(preset => preset.id === setup.weather);
   const player = shipPreset(setup.playerShipId);
-  const friendly = [setup.playerShipId, ...setup.friendlyBots];
+  const friendly = [setup.playerShipId, ...setup.friendlyBots.map(entry => botSelection(entry).shipId)];
   const percent = Math.round(Math.min(state.progress, 1) * 100);
   const roster = (ids: string[], team: 'Friendly' | 'Enemy') => <ol className="battle-loading-roster" aria-label={`${team} fleet`}>
     {ids.map((id, index) => <li key={`${team}-${index}`} className={team === 'Friendly' && index === 0 ? 'battle-loading-player' : undefined}>
@@ -40,7 +40,7 @@ export function BattleLoadingScreen({ setup, state, onLeft }: Props) {
       <div className="battle-loading-fleets">
         <div><h2>Friendly fleet <span>{friendly.length}</span></h2>{roster(friendly, 'Friendly')}</div>
         <div className="battle-loading-versus" aria-hidden="true">VS</div>
-        <div><h2>Enemy fleet <span>{setup.enemies.length}</span></h2>{roster(setup.enemies, 'Enemy')}</div>
+        <div><h2>Enemy fleet <span>{setup.enemies.length}</span></h2>{roster(setup.enemies.map(entry => botSelection(entry).shipId), 'Enemy')}</div>
       </div>
       <div className="battle-loading-status">
         <span role="status">{state.label}</span><span>{percent}%</span>
