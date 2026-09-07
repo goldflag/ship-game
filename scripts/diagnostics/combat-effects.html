@@ -76,7 +76,7 @@ function advance(seconds) {
   for (let i = 0; i < frames; i++) {
     game.simulation.step(stop, { aim, battery, fire:elapsed === 0 });
     game.effects.update(game.simulation, 1 / 60, game.camera);
-    game.shipWake.update(game.simulation.ship, 1 / 60, game.simulation.events);
+    game.shipWake.update(game.fleetViews, 1 / 60, game.simulation.events, game.camera);
     elapsed += 1 / 60;
   }
   game.playerView.snap(); game.targetView.snap();
