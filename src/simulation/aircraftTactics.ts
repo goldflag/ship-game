@@ -21,6 +21,12 @@ export function fighterTarget(p: Aircraft, planes: Aircraft[], carrier: Vec3, dt
   const current = planes.find(other => other.id === pilot.hostileId && (!targetFlightId || other.flightId === targetFlightId) && other.team !== p.team && inFlight(other));
   if (pilot.think > 0 && current && length(sub(current.position, p.position)) < 6500 && length(sub(current.position, carrier)) < 7500) return current;
   pilot.think = .65;
+  // Count each friendly fighter's current assignment once. Recounting the
+  // entire wing for every possible hostile made reassessment quadratic.
+  const engagements = new Map<string, number>();
+  for (const ally of planes) if (ally !== p && ally.team === p.team && ally.pilot.hostileId && inFlight(ally)) {
+    engagements.set(ally.pilot.hostileId, (engagements.get(ally.pilot.hostileId) ?? 0) + 1);
+  }
   let best: Aircraft | undefined, bestScore = Infinity;
   for (const other of planes) {
     if (other.team === p.team || !inFlight(other) || (targetFlightId && other.flightId !== targetFlightId)) continue;
@@ -28,7 +34,7 @@ export function fighterTarget(p: Aircraft, planes: Aircraft[], carrier: Vec3, dt
     if (distance > 6500 || homeDistance > 7500) continue;
     const inbound = dot(other.velocity, sub(carrier, other.position)) > 0;
     const threat = other.payload && inbound && homeDistance < 4500 ? .5 : 1;
-    const engaged = planes.filter(ally => ally !== p && ally.team === p.team && inFlight(ally) && ally.pilot.hostileId === other.id).length;
+    const engaged = engagements.get(other.id) ?? 0;
     const score = (distance + homeDistance * .15) * threat * (other === current ? .7 : 1) * (1 + engaged * .35);
     if (score < bestScore) { best = other; bestScore = score; }
   }
@@ -99,6 +105,6 @@ export function strikeIngress(p: Aircraft, target: FleetActor, targetPoint: Vec3
     } else p.pilot.attackHeading = Math.atan2(targetPoint[0] - p.position[0], p.position[2] - targetPoint[2]);
     p.pilot.attackStage = 'ingress';
   }
-  const heading = p.pilot.attackHeading, standOff = p.role === 'torpedo-bomber' ? 2600 : 1250;
+  const heading = p.pilot.attackHeading, standOff = p.role === 'torpedo-bomber' ? 2600 : 3000;
   return [targetPoint[0] - Math.sin(heading) * standOff, p.role === 'torpedo-bomber' ? 90 : 850, targetPoint[2] + Math.cos(heading) * standOff];
 }

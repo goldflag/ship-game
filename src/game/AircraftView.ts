@@ -1,3 +1,4 @@
+import { ExpandableInstances } from './ExpandableInstances';
 import { assetUrl } from '../assetUrl';
 import * as THREE from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -14,12 +15,11 @@ import { ShipMaterialPalette } from './ShipMaterialPalette';
 import { batchShipModel } from './ShipBatching';
 
 // Authored deck capacity is bounded at 24; hangar aircraft have no scene instance.
-const CAPACITY = 60 * 24 + 144;
 // Three may bind the full matrix array as uniforms even when few instances draw.
 // Keep each allocation below WebGPU's 64 KiB uniform binding limit.
 const BATCH_CAPACITY = 768;
 type Joint = { object: THREE.Object3D; id: string; rotation: THREE.Euler };
-type Model = { root: THREE.Group; joints: Joint[]; meshes: { source: THREE.Mesh; batches: THREE.InstancedMesh[] }[]; count: number; wingspan: number };
+type Model = { root: THREE.Group; joints: Joint[]; meshes: { source: THREE.Mesh; batches: THREE.InstancedMesh[] }[]; count: number; wingspan: number; radius: number };
 /** Shared authored geometry/materials, instanced per rigid component at each LOD. */
 export class AircraftView {
   readonly root = new THREE.Group();
@@ -34,14 +34,20 @@ export class AircraftView {
   private payloadGeometry = aircraftOrdnanceGeometry('torpedo');
   private bombGeometry = aircraftOrdnanceGeometry('bomb');
   private payloadMaterial = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .65, metalness: .25 });
-  private bombs = new THREE.InstancedMesh(this.bombGeometry, this.payloadMaterial, 768);
+  private bombs = new ExpandableInstances(this.bombGeometry, this.payloadMaterial, 768);
   private direction = new THREE.Vector3();
   private releaseRotation = new THREE.Quaternion();
   private nose = new THREE.Vector3(0, 0, -1);
-  private payloads = new THREE.InstancedMesh(this.payloadGeometry, this.payloadMaterial, 768);
+  private payloads = new ExpandableInstances(this.payloadGeometry, this.payloadMaterial, 768);
   private payloadCount = 0;
   private bombCount = 0;
   private loadPromise?: Promise<void>;
+  private readonly frustum = new THREE.Frustum();
+  private readonly sphere = new THREE.Sphere();
+  private readonly viewPosition = new THREE.Vector3();
+  private height = 1080;
+  private culled = 0;
+  private silhouettes = 0;
   constructor() {
     this.payloads.name = 'Aircraft torpedo payloads'; this.bombs.name = 'Aircraft bombs';
     this.root.add(this.gunfire.root, this.payloads, this.contacts.mesh, this.bombs);
@@ -49,7 +55,7 @@ export class AircraftView {
       mesh.instanceMatrix.array.fill(0); mesh.visible = false; mesh.frustumCulled = false; mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     }
   }
-  resize(height: number) { this.contacts.resize(height); }
+  resize(height: number) { this.height = Math.max(1, height); this.contacts.resize(height); }
   load(): Promise<void> {
     return this.loadPromise ??= this.loadModels();
   }
@@ -61,20 +67,26 @@ export class AircraftView {
       // The shared authoring-node boundaries preserve propellers, controls,
       // landing gear and sockets while rigid paint surfaces share a draw.
       palette.apply(root); batchShipModel(root);
-      const model: Model = { root, joints: [], meshes: [], count: 0, wingspan: new THREE.Box3().setFromObject(root).getSize(new THREE.Vector3()).x };
+      const bounds = new THREE.Box3().setFromObject(root);
+      const model: Model = { root, joints: [], meshes: [], count: 0, wingspan: bounds.max.x - bounds.min.x,
+        radius: Math.hypot(...(['x', 'y', 'z'] as const).map(axis => Math.max(Math.abs(bounds.min[axis]), Math.abs(bounds.max[axis])))) + 2 };
       root.traverse(object => {
         const nodeId = object.userData.nodeId as string | undefined;
         if (nodeId) model.joints.push({ object, id: nodeId, rotation: object.rotation.clone() });
         if (!(object as THREE.Mesh).isMesh) return;
         const source = object as THREE.Mesh;
-        const batches = Array.from({ length: Math.ceil(CAPACITY / BATCH_CAPACITY) }, (_, i) => {
-          const batch = new THREE.InstancedMesh(source.geometry, source.material, Math.min(BATCH_CAPACITY, CAPACITY - i * BATCH_CAPACITY));
+        const batches = Array.from({ length: 1 }, (_, i) => {
+          const batch = new THREE.InstancedMesh(source.geometry, source.material, BATCH_CAPACITY);
           batch.name = `Aircraft model ${id}/${lod}`;
           batch.count = 0; batch.visible = false; batch.frustumCulled = false; batch.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
           this.root.add(batch); return batch;
         });
         model.meshes.push({ source, batches });
       });
+      // Most authored nodes are fixed. Only mechanism owners need their local
+      // matrices recomposed for each aircraft pose.
+      const moving = new Set(model.joints.map(j => j.object));
+      root.traverse(object => { if (!moving.has(object)) { object.updateMatrix(); object.matrixAutoUpdate = false; } });
       this.models.set(`${id}/${lod}`, model);
     })));
     const failure = results.find(r => r.status === 'rejected');
@@ -84,15 +96,18 @@ export class AircraftView {
     this.root.visible = visible;
     if (!visible) return;
     for (const model of this.models.values()) model.count = 0;
+    this.culled = 0; this.silhouettes = 0;
+    this.frustum.setFromProjectionMatrix(this.matrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse), camera.coordinateSystem, camera.reversedDepth);
+    const actors = new Map(sim.actors.map(a => [a.motion.id, a]));
     this.contacts.begin();
     let payloadCount = 0, bombCount = 0;
     const alpha = sim.interpolationAlpha;
     for (const plane of sim.aircraft) {
       const crashing = plane.phase === 'lost' && plane.wreck && !plane.wreck.impacted;
       if ((plane.phase === 'lost' && !crashing) || (inPort && (crashing || plane.ownerId !== sim.player.motion.id))) continue;
-      const actor = sim.actors.find(a => a.motion.id === plane.ownerId)!;
       const deck = onFlightDeck(plane);
       if (!deck && !crashing && !['takeoff', 'outbound', 'attack', 'returning', 'landing'].includes(plane.phase)) continue;
+      const actor = actors.get(plane.ownerId)!;
       if (deck) {
         const local = ['ready', 'queued', 'rearming'].includes(plane.phase) ? aircraftDeckSpot(actor, plane) : plane.deckPosition!;
         this.position.fromArray(local);
@@ -111,10 +126,27 @@ export class AircraftView {
         const attitude = aircraftAttitude(plane, alpha);
         this.quaternion.setFromEuler(new THREE.Euler(attitude.pitch, -attitude.heading, attitude.bank, 'YXZ'));
       }
-      const distance = this.position.distanceTo(camera.position), lod = distance < 120 ? 0 : distance < 400 ? 1 : 2;
+      const dimensions = this.models.get(`${plane.modelId}/0`);
+      if (!dimensions) continue;
+      this.sphere.set(this.position, dimensions.radius);
+      // Aircraft do not cast fleet shadows; water captures share this camera.
+      // Keep the nearby radius conservative through wing fold and control travel.
+      if (!inPort && !this.frustum.intersectsSphere(this.sphere)) { this.culled++; continue; }
+      const depth = -this.viewPosition.copy(this.position).applyMatrix4(camera.matrixWorldInverse).z;
+      const span = dimensions.wingspan * camera.projectionMatrix.elements[5] * this.height / (2 * Math.max(.001, depth));
+      if (!deck && !inPort && !crashing) this.contacts.add(this.position, dimensions.wingspan, camera, aircraftAttitude(plane, alpha).bank);
+      // Keep the lowest-detail airframe at every distance. The contact supplements
+      // thin/subpixel geometry instead of replacing it at a hard zoom threshold.
+      if (!deck && !inPort && !crashing && span < 9) this.silhouettes++;
+      const lod = span > 90 ? 0 : span > 28 ? 1 : 2;
       const model = this.models.get(`${plane.modelId}/${lod}`);
-      if (!model || model.count >= CAPACITY) continue;
-      if (!deck && !inPort && !crashing) this.contacts.add(this.position, model.wingspan, camera, aircraftAttitude(plane, alpha).bank);
+      if (!model) continue;
+      for (const { source, batches } of model.meshes) if (model.count >= batches.length * BATCH_CAPACITY) {
+        const batch = new THREE.InstancedMesh(source.geometry, source.material, BATCH_CAPACITY);
+        batch.name = batches[0].name;
+        batch.frustumCulled = false; batch.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+        this.root.add(batch); batches.push(batch);
+      }
       this.transform.compose(this.position, this.quaternion, this.unit);
       const controls = aircraftControls(plane, alpha), gear = 1 - controls.gear;
       for (const { object, id, rotation } of model.joints) {
@@ -137,18 +169,19 @@ export class AircraftView {
         const socket = model.joints.find(j => j.id === 'socket.payload')?.object;
         this.matrix.copy(this.transform);
         if (socket) this.matrix.multiply(socket.matrixWorld);
-        if (plane.role === 'dive-bomber') { if (bombCount < 768) this.bombs.setMatrixAt(bombCount++, this.matrix); }
+        if (plane.role === 'dive-bomber') { this.bombs.setMatrixAt(bombCount++, this.matrix); }
         else this.payloads.setMatrixAt(payloadCount++, this.matrix);
       }
       model.count++;
     }
     for (const model of this.models.values()) for (const { batches } of model.meshes) batches.forEach((batch, i) => {
       batch.count = Math.max(0, Math.min(BATCH_CAPACITY, model.count - i * BATCH_CAPACITY));
-      batch.visible = batch.count > 0; batch.instanceMatrix.needsUpdate = true;
+      batch.visible = batch.count > 0;
+      if (batch.visible) batch.instanceMatrix.needsUpdate = true;
     });
     this.contacts.finish();
     for (const bomb of sim.shells) {
-      if (!bomb.bomb || bomb.lodged || bombCount >= 768) continue;
+      if (!bomb.bomb || bomb.lodged) continue;
       // Sample the same one-tick presentation delay as the aircraft, bounded by release.
       const lag = Math.min(bomb.age, (1 - alpha) * FIXED_DT), age = bomb.age - lag;
       this.position.fromArray(bomb.position).addScaledVector(this.direction.fromArray(bomb.velocity), -lag);
@@ -162,18 +195,17 @@ export class AircraftView {
       this.bombs.setMatrixAt(bombCount++, this.matrix.compose(this.position, this.releaseRotation, this.unit));
     }
     for (const release of sim.airReleases) {
-      if (payloadCount >= 768) break;
       this.position.fromArray(release.position);
       this.quaternion.setFromUnitVectors(this.nose, this.direction.fromArray(release.velocity).normalize());
       this.payloads.setMatrixAt(payloadCount++, this.matrix.compose(this.position, this.quaternion, this.unit));
     }
     this.payloadCount = payloadCount; this.payloads.visible = payloadCount > 0;
-    this.payloads.instanceMatrix.array.fill(0, payloadCount * 16); this.payloads.instanceMatrix.needsUpdate = true;
+    this.payloads.publish(payloadCount);
     this.bombCount = bombCount; this.bombs.visible = bombCount > 0;
-    this.bombs.instanceMatrix.array.fill(0, bombCount * 16); this.bombs.instanceMatrix.needsUpdate = true;
+    this.bombs.publish(bombCount);
     this.gunfire.update(sim, camera);
   }
-  diagnostics() { return { models: this.models.size, instances: [...this.models.values()].reduce((n, m) => n + m.count, 0), batches: [...this.models.values()].reduce((n, m) => n + Math.ceil(m.count / BATCH_CAPACITY) * m.meshes.length, 0), contacts: this.contacts.mesh.count, payloads: this.payloadCount + this.bombCount, bombs: this.bombCount, tracers: this.gunfire.diagnostics() }; }
+  diagnostics() { return { models: this.models.size, instances: [...this.models.values()].reduce((n, m) => n + m.count, 0), batches: [...this.models.values()].reduce((n, m) => n + Math.ceil(m.count / BATCH_CAPACITY) * m.meshes.length, 0), culled: this.culled, silhouettes: this.silhouettes, contacts: this.contacts.count, payloads: this.payloadCount + this.bombCount, bombs: this.bombCount, tracers: this.gunfire.diagnostics() }; }
   private clearModels() {
     for (const model of this.models.values()) { for (const { batches } of model.meshes) for (const batch of batches) { batch.removeFromParent(); batch.dispose(); } disposeObjects(model.root); }
     this.models.clear();

@@ -31,7 +31,6 @@ export async function floodingReplay() {
   game.simulation.shellHistory.find((h: any) => h.shellId === shell.id).outcome = 'passed-through';
   for (let i = 0; i < 36000; i++) updateFlooding(actor, def, 1 / 60);
   game.fleetViews.forEach((view: any) => view.snap());
-  game.gunneryOpen = true;
   if (!game.inspecting) game.inspectTarget();
   game.paused = true; // Freeze this fixture, without opening the pause dialog.
   game.rig.update(game.targetView.motion, game.targetView.motion.y, 0, true);

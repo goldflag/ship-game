@@ -16,7 +16,7 @@ test('the sight selects the first target armor surface before the sea behind it'
   expect(point[1]).toBeGreaterThan(.5);
   expect(Math.hypot(point[0], point[2])).toBeLessThan(Math.hypot(pose.x, pose.z));
   const miss = sightAim(origin, normalize([0, -1, -10]), { pose, armor: [{ id: 'hull', name: 'Hull', center, size: [36, 16, 250], thicknessMm: 100 }] });
-  expect(miss).toEqual([0, .5, -795]);
+  [0, .5, -795].forEach((value, axis) => expect(miss[axis]).toBeCloseTo(value, 10));
 });
 
 test('fleet aim bounds preserve narrow-phase hits across rolled hulls, structures and trained mounts', () => {

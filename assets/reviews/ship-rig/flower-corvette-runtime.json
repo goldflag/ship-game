@@ -1,0 +1,44 @@
+{
+  "ship": "flower-corvette",
+  "contentHash": "af9c3a64e22fbf4b70335992a4f7dd51375d72792358d4ca34a45a9e7eb747c2",
+  "before": {
+    "flags": [
+      {
+        "design": "white-ensign",
+        "position": [
+          0,
+          7,
+          28.242
+        ],
+        "visible": true,
+        "tip": [
+          1.1995664834976196,
+          -0.40215474367141724,
+          0.7873020172119141
+        ]
+      }
+    ],
+    "radars": []
+  },
+  "after": {
+    "flags": [
+      {
+        "design": "white-ensign",
+        "position": [
+          0,
+          7,
+          28.242
+        ],
+        "visible": true,
+        "tip": [
+          1.0756726264953613,
+          -0.4635311961174011,
+          0.8923901319503784
+        ]
+      }
+    ],
+    "radars": []
+  },
+  "pauseHeld": true,
+  "maxWeaponErrorM": 2.5511848343630287e-06
+}

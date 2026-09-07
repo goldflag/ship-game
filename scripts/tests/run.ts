@@ -40,7 +40,10 @@ export async function runTestFiles(files: string[], concurrency: number): Promis
   try {
     await Promise.all(Array.from({ length: Math.min(concurrency, files.length) }, async () => {
       for (let file = pending.shift(); file; file = pending.shift()) {
-        const child = Bun.spawn([process.execPath, 'test', file], { cwd, stdout: 'pipe', stderr: 'pipe' });
+        // Long fleet simulations can exceed Bun's 5 s default when eight files
+        // share the CPU. Retain a finite deadline without treating contention
+        // as a behavioral failure.
+        const child = Bun.spawn([process.execPath, 'test', '--timeout', '30000', file], { cwd, stdout: 'pipe', stderr: 'pipe' });
         children.add(child);
         // Drain both pipes while running; retain each file's output together.
         const [stdout, stderr, code] = await Promise.all([

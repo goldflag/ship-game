@@ -60,9 +60,9 @@ export class CombatAudioEvents {
         if (this.impacts.has(key)) continue;
         this.impacts.add(key);
         if (this.impacts.size > 512) this.impacts.delete(this.impacts.values().next().value!);
-        id = event.detonation ? 'magazine-explosion' : event.kind === 'splash' ? 'splash' : event.kind === 'ricochet' ? 'ricochet' : 'armor-hit';
+        id = event.waterBurstY !== undefined ? 'splash' : event.detonation ? 'magazine-explosion' : event.kind === 'splash' ? 'splash' : event.kind === 'ricochet' ? 'ricochet' : 'armor-hit';
       }
-      cues.push({ id, position: event.position, gain: event.kind === 'burst' ? .35 : id === 'magazine-explosion' ? .9 : event.kind === 'shot' ? .7 : .8,
+      cues.push({ id, position: event.waterBurstY === undefined ? event.position : [event.position[0], event.waterBurstY, event.position[2]], gain: event.kind === 'burst' ? .35 : id === 'magazine-explosion' ? .9 : event.kind === 'shot' ? .7 : .8,
         rate: (event.kind === 'burst' ? 1.17 : .97) + (event.sequence % 7) * .01 });
     }
     return cues;

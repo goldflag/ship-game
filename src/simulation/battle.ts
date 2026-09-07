@@ -25,7 +25,7 @@ export interface BattleSetup {
   formation?: SpawnFormation; spawns?: SpawnPositions;
   mapId?: OceanMapId; timeOfDay?: TimeOfDayId; weather?: WeatherId;
 }
-export interface BattleFleet { friendlyBots: BattleBot[]; enemies: BattleBot[]; spawnDistance?: number; seed?: number; mapId?: OceanMapId; spawns?: SpawnPositions; }
+export interface BattleFleet { friendlyBots: BattleBot[]; enemies: BattleBot[]; spawnDistance?: number; seed?: number; mapId?: OceanMapId; weather?: WeatherId; spawns?: SpawnPositions; }
 export interface FleetActor extends Combatant {
   definition: ShipDefinition;
   team: Team;
@@ -57,7 +57,7 @@ export function resolveBattleFleet(setup: BattleSetup, definitionFor: (id: strin
     const { shipId, aiLevel } = botSelection(selection);
     return { definition: definitionFor(shipId), aiLevel };
   };
-  return { friendlyBots: setup.friendlyBots.map(resolve), enemies: setup.enemies.map(resolve), spawnDistance: setup.spawnDistance, mapId: setup.mapId, spawns: setupSpawns(setup) };
+  return { friendlyBots: setup.friendlyBots.map(resolve), enemies: setup.enemies.map(resolve), spawnDistance: setup.spawnDistance, mapId: setup.mapId, weather: setup.weather ?? 'map', spawns: setupSpawns(setup) };
 }
 
 export function validateSpawnDistance(distance: number): void {

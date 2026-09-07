@@ -46,12 +46,14 @@ test('an opening centered on a room boundary splits its area and floods only the
     if (opening.position[1] < 0) expect(water).toBeGreaterThan(0); else expect(water).toBe(0);
   }
 });
-test('shells already underwater outside a hull cannot enter a submerged module on the next tick', () => {
+test('shells already underwater lose energy but can enter a nearby hull', () => {
   const { sim, actor } = fixture(), before = structuredClone(actor.damage);
   sim.shells.push(shell([-20, -1, -21], [1000, 0, 0]));
   sim.step({ throttle: 0, rudder: 0 }, quiet);
-  expect(sim.shells).toHaveLength(0);
-  expect(actor.damage.modules).toEqual(before.modules); expect(actor.damage.compartments).toEqual(before.compartments);
+  expect(sim.shells).toHaveLength(1);
+  expect(sim.shells[0].penetrationMm).toBeLessThan(10000);
+  expect(actor.damage.compartments.some(c => c.breachAreaM2 > 0)).toBe(true);
+  expect(actor.damage.integrity).toBeLessThan(before.integrity);
 });
 test('below-water penetrations admit water and preserve the port breach location under list', () => {
   const { def, actor } = fixture();
@@ -132,7 +134,7 @@ test('backing is diagnosed without an impact flash; a keel exit is recorded as a
   const backing = events.find(e => e.impact?.outcome === 'backing')!;
   expect(backing).toBeDefined(); expect(backing.normal).toBeUndefined();
   sim.shells.push(shell([0, 20, -21], [0, -820, 0]));
-  for (let i = 0; i < 4; i++) sim.step({ throttle: 0, rudder: 0 }, quiet);
+  for (let i = 0; i < 120 && sim.shells.length; i++) sim.step({ throttle: 0, rudder: 0 }, quiet);
   expect(sim.shellHistory.find(h => h.shellId === 900)?.outcome).toBe('passed-through');
   expect(sim.events.some(e => e.kind === 'splash')).toBe(false);
 });

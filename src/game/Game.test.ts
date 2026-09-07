@@ -64,17 +64,18 @@ test('shell commands affect only the active gun battery and reject unavailable r
   const game = Object.assign(Object.create(Game.prototype), { definition, simulation, currentAim: [2000, 10, 0],
     battery: 'main', ammunition: { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' },
     inPort: false, paused: false, airOperationsOpen: false }) as Game;
-  game.selectAmmunition('he'); expect(game.ammunition.main).toBe('he'); expect(game.ammunition.secondary).toBe('ap');
-  game.battery = 'secondary'; game.selectAmmunition('he'); expect(game.ammunition.secondary).toBe('he');
-  game.selectAmmunition('ap'); expect(game.ammunition.main).toBe('he');
+  const main = game.weaponGroupId!;
+  game.selectAmmunition('he'); expect(game.ammunition[main]).toBe('he'); expect(game.selectedAmmunition).toBe('he');
+  game.battery = 'secondary'; const secondary = game.weaponGroupId!; game.selectAmmunition('he'); expect(game.ammunition[secondary]).toBe('he');
+  game.selectAmmunition('ap'); expect(game.ammunition[main]).toBe('he');
   for (const state of simulation.player.mounts) { state.ammo -= state.heAmmo; state.heAmmo = 0; }
-  game.selectAmmunition('he'); expect(game.ammunition.secondary).toBe('ap');
+  game.selectAmmunition('he'); expect(game.ammunition[secondary]).toBe('ap');
   game.battery = 'torpedo'; game.selectAmmunition('he'); expect(game.ammunition.torpedo).toBe('ap');
   game.battery = 'main';
-  Object.assign(game, { paused: true }); game.selectAmmunition('ap'); expect(game.ammunition.main).toBe('he');
-  Object.assign(game, { paused: false, inPort: true }); game.selectAmmunition('ap'); expect(game.ammunition.main).toBe('he');
-  Object.assign(game, { inPort: false, airOperationsOpen: true }); game.selectAmmunition('ap'); expect(game.ammunition.main).toBe('he');
-  game.airOperationsOpen = false; simulation.player.damage.sunk = true; game.selectAmmunition('ap'); expect(game.ammunition.main).toBe('he');
+  Object.assign(game, { paused: true }); game.selectAmmunition('ap'); expect(game.ammunition[main]).toBe('he');
+  Object.assign(game, { paused: false, inPort: true }); game.selectAmmunition('ap'); expect(game.ammunition[main]).toBe('he');
+  Object.assign(game, { inPort: false, airOperationsOpen: true }); game.selectAmmunition('ap'); expect(game.ammunition[main]).toBe('he');
+  game.airOperationsOpen = false; simulation.player.damage.sunk = true; game.selectAmmunition('ap'); expect(game.ammunition[main]).toBe('he');
 });
 
 test('switching ships retains the port until loading completes, then frames the new hull with the same orbit', async () => {
@@ -193,7 +194,9 @@ test('battle preparation reports each loading stage in order for the loading scr
     expect(stages.map(([label]) => label)).toContain('Spotting the air wing');
     expect(stages.map(([label]) => label)).toContain('Mustering the fleets');
     expect(stages.at(-1)?.[0]).toBe('Forming the battle lines');
-    expect(stages.filter(([label]) => label.startsWith('Loading '))).toHaveLength(4);
+    // Parallel model preparation can finish after every download has arrived;
+    // each completion then says "aboard" instead of naming the next download.
+    expect(stages.filter(([label]) => label.startsWith('Loading ') || label.endsWith(' aboard'))).toHaveLength(5);
     // A disposed session never renders again, so a pending frame wait must not hang the loading screen.
     Object.assign(game, { disposed: true });
     await game.nextFrame();
@@ -230,4 +233,98 @@ test('failed aircraft loads leave the current port intact and allow another laun
     aircraftLoader.mockResolvedValue();
     await game.prepareBattle(setup); expect(game.definition.id).toBe('enterprise-cv6');
   } finally { aircraftLoader.mockRestore(); loader.mockRestore(); rig.dispose(); }
+});
+
+test('spectating follows only surviving teammates, cycles duplicates, and resets after loss or port', () => {
+  const definition = shipPreset('bismarck');
+  const simulation = new CombatSimulation(definition, { friendlyBots: [definition, shipPreset('type-viic'), definition], enemies: [definition] });
+  const camera = new PerspectiveCamera(52, 1.6, .5, 60000);
+  const rig = new CameraRig(camera, new EventTarget() as HTMLCanvasElement);
+  const fleetViews = simulation.actors.map(actor => ({ actor, definition: actor.definition, motion: actor.motion }));
+  const game = Object.assign(Object.create(Game.prototype), {
+    definition, simulation, rig, fleetViews, playerView: fleetViews[0], targetView: fleetViews.at(-1),
+    inPort: false, shellFollow: new ShellFollow(), input: { clear() {} }, battlefieldCamera: { cancelTransition() {} },
+  }) as Game;
+  const update = () => (game as unknown as { updateSpectator(): void }).updateSpectator();
+  try {
+    game.spectateTeammate('friendly-1'); expect(game.spectatedShipId).toBeUndefined();
+    simulation.player.damage.sunk = true;
+    update(); expect(game.spectatedShipId).toBe('friendly-1');
+    game.spectateTeammate('enemy-1'); expect(game.spectatedShipId).toBe('friendly-1');
+    game.spectateTeammate('player'); expect(game.spectatedShipId).toBe('friendly-1');
+    game.cycleSpectator(-1); expect(game.spectatedShipId).toBe('friendly-3');
+    game.cycleSpectator(1); expect(game.spectatedShipId).toBe('friendly-1');
+    game.cycleSpectator(1); expect(game.spectatedShipId).toBe('friendly-2');
+    const friend = simulation.actors[2];
+    const projected = new Vector3(friend.motion.x, friend.motion.y, friend.motion.z).project(camera);
+    expect(Math.abs(projected.x)).toBeLessThan(1); expect(Math.abs(projected.y)).toBeLessThan(1);
+    expect(simulation.player.controller).toBe('player'); expect(friend.controller).toBe('bot');
+    friend.damage.sunk = true;
+    update(); expect(game.spectatedShipId).toBe('friendly-1');
+    simulation.actors[1].damage.stability.combatLost = true;
+    update(); expect(game.spectatedShipId).toBe('friendly-3');
+    simulation.actors[3].damage.sunk = true;
+    update(); expect(game.spectatedShipId).toBeUndefined();
+    game.cycleSpectator(1); expect(game.spectatedShipId).toBeUndefined();
+    simulation.reset(); update(); expect(game.spectatedShipId).toBeUndefined();
+    simulation.player.damage.sunk = true; update(); expect(game.spectatedShipId).toBe('friendly-1');
+    Object.assign(game, { inPort: true }); update(); expect(game.spectatedShipId).toBeUndefined();
+  } finally { rig.dispose(); }
+});
+
+test('direct slots select a single type, never cycle, and retain selection when guns are lost', () => {
+  const definition = shipPreset('bismarck'), simulation = new CombatSimulation(definition);
+  const game = Object.assign(Object.create(Game.prototype), { definition, simulation, battery: 'main',
+    ammunition: {}, inPort: false, paused: false, airOperationsOpen: false }) as Game;
+  const groups = game.weaponGroups;
+  for (const [index, group] of groups.entries()) {
+    game.selectWeaponSlot(index); expect(game.weaponGroupId).toBe(group.id);
+    game.selectWeaponSlot(index); expect(game.weaponGroupId).toBe(group.id);
+  }
+  game.selectWeaponSlot(1); game.selectAmmunition('he');
+  game.selectWeaponSlot(2); expect(game.selectedAmmunition).toBe('ap');
+  game.selectWeaponSlot(1); expect(game.selectedAmmunition).toBe('he');
+  for (const state of simulation.player.mounts) { state.hp = 0; state.ammo = 0; }
+  game.selectWeaponSlot(1); expect(game.weaponGroupId).toBe(groups[1].id);
+  game.selectWeaponSlot(9); expect(game.weaponGroupId).toBe(groups[1].id);
+  game.selectWeaponGroup('missing'); expect(game.weaponGroupId).toBe(groups[1].id);
+  game.definition = shipPreset('fletcher');
+  game.selectWeaponSlot(3); expect(game.battery).toBe('torpedo');
+  game.selectWeaponSlot(4); expect(game.battery).toBe('depth-charge');
+});
+
+test('single shell presses queue, rapid pairs force that choice, and slow presses cancel it', () => {
+  const definition = shipPreset('bismarck'), simulation = new CombatSimulation(definition);
+  const game = Object.assign(Object.create(Game.prototype), { definition, simulation, battery: 'main',
+    ammunition: { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' },
+    inPort: false, paused: false, airOperationsOpen: false }) as Game;
+  const main = game.weaponGroupId!;
+  game.cycleAmmunition(1000);
+  expect(game.ammunition[main]).toBe('he'); expect(simulation.player.mounts[0].loaded).toBe('ap');
+  game.cycleAmmunition(1200);
+  expect(game.ammunition[main]).toBe('he'); expect(simulation.player.mounts[0].loaded).toBe('he');
+  expect(simulation.player.mounts[0].reload).toBe(definition.mounts[0].weapon.reloadSeconds);
+  game.cycleAmmunition(2000); game.cycleAmmunition(2400);
+  expect(game.ammunition[main]).toBe('he');
+  game.cycleAmmunition(3000); game.battery = 'secondary'; game.cycleAmmunition(3100);
+  expect(simulation.telemetry('main', [2000, 10, 0], main).ammunition).toBe('ap');
+  expect(game.selectedAmmunition).toBe('he');
+  expect(simulation.player.mounts.filter((_, i) => definition.mounts[i].battery === 'secondary').every(m => m.loaded === 'ap')).toBe(true);
+});
+
+test('rapid shell presses in different secondary groups never force a neighboring group to reload', () => {
+  const definition = shipPreset('bismarck'), simulation = new CombatSimulation(definition);
+  const game = Object.assign(Object.create(Game.prototype), { definition, simulation, battery: 'main',
+    ammunition: {}, inPort: false, paused: false, airOperationsOpen: false }) as Game;
+  const groups = game.weaponGroups;
+  game.selectWeaponSlot(1); game.cycleAmmunition(1000);
+  game.selectWeaponSlot(2); game.cycleAmmunition(1100);
+  expect(simulation.player.mounts.every(m => m.loaded === 'ap')).toBe(true);
+  game.selectWeaponSlot(1); game.cycleAmmunition(1200); game.cycleAmmunition(1300);
+  expect(simulation.player.mounts.every(m => m.loaded === 'ap')).toBe(true);
+  game.cycleAmmunition(2000); game.cycleAmmunition(2100);
+  definition.mounts.forEach((m, i) => {
+    expect(simulation.player.mounts[i].loaded).toBe(groups[1].mountIds.includes(m.id) ? 'he' : 'ap');
+  });
+  expect(game.selectedAmmunition).toBe('he');
 });

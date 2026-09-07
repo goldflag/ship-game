@@ -6,13 +6,13 @@ Run `bun run dev` and open the game, then choose **Set sail**. The controls are 
 
 ## Current implementation
 
-`src/ui/FleetHud.tsx` and `FleetHud.css` contain the sailing instruments. The lower-left group combines ship condition, compass, gun marks, speed, vertical engine telegraph and rudder. The centered armament strip shows live mount readiness, ammunition for both AP batteries, binoculars, gunnery and firing controls. G opens target damage and detailed mount status. The upper-left mission text and the toolbar above the minimap have been removed.
+`src/ui/FleetHud.tsx` and `FleetHud.css` contain the sailing instruments. The lower-left group combines ship condition, compass, gun marks, speed, vertical engine telegraph and rudder. The centered armament strip shows live mount readiness, separate caliber-labeled weapon groups with live ammunition and direct numbered shortcuts, binoculars and firing controls. Carriers stack the same gun controls above their squadron controls outside the air map. The Gunnery overlay and its G shortcut have been removed; damage remains visible through hit feedback, hull indicators and the damage log. The upper-left mission text and the toolbar above the minimap have been removed.
 
 The sailing sight stays at the exact viewport center. Mouse movement turns the view while the cursor is captured; Shift or right mouse opens binoculars and the wheel selects 2×–12× magnification. Only binoculars show the numbered aiming scale. The CPU simulation receives the center sight's target-surface or sea-plane aim point.
 
 The minimap uses a 40% opaque background and sits flush with the bottom and right viewport edges. −/+ keys or its internal buttons select five sizes, nominally 240–400 px with 320 px initially selected. Each size scales proportionally on smaller screens so every step changes the visible size. The kilometer button changes chart range independently; NORTH UP is a static orientation label.
 
-Desktop instruments are 240 px wide at lower left and 340 px wide at bottom center, with smaller dials, weapon illustrations and tighter spacing. Narrow portrait screens move armament below the top compass to keep the center sight clear. Short landscape screens compact the weapon row and retain gun-status access in the helm and gunnery details.
+Desktop instruments are 240 px wide at lower left and 340 px wide at bottom center, with smaller dials, weapon illustrations and tighter spacing. Narrow portrait screens move armament below the top compass to keep the center sight clear. Short landscape screens compact the weapon row and retain gun-status access in the helm and weapon readiness indicators.
 
 ## Current review captures
 

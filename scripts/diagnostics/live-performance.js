@@ -1,6 +1,18 @@
 // Isolated diagnostic entry: runs the real App, HUD, audio and Game animation loop.
 import { Game } from '/src/game/Game.ts';
 import { mixedSimulation, reviewHelm, reviewIntent } from './mixed-fleet.ts';
+import { CombatSimulation } from '/src/simulation/combat.ts';
+import { shipPreset, shipPresets } from '/src/ships/presets.ts';
+import { measureFleetFrames } from './measure-fleet-frames.js';
+const params = new URLSearchParams(location.search);
+const team = Number(params.get('team') ?? 30);
+const quality = params.get('quality') ?? 'medium';
+const createSimulation = () => {
+  if (!params.has('carriers')) return mixedSimulation(team, params.get('roster') === 'current' ? Object.keys(shipPresets) : undefined);
+  if (!Number.isInteger(team) || team < 1 || team > 30) throw new Error('Choose 1–30 carriers per team');
+  const definition = shipPreset('enterprise-cv6');
+  return new CombatSimulation(definition, { friendlyBots: Array(team - 1).fill(definition), enemies: Array(team).fill(definition), spawnDistance: 5000, seed: 0x6e617661 });
+};
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const until = async predicate => { while (!predicate()) await delay(50); };
 const start = Game.prototype.start;
@@ -8,14 +20,14 @@ const beginBattle = Game.prototype.setInPort;
 let loaded = false, sailing = false;
 Game.prototype.start = function () {
   window.review = { game: this, ready: false };
-  this.settings = { quality: 'medium', sea: 'Fair', resolution: 1 };
+  this.settings = { quality, resolution: 1 };
   this.rig.capturePointer = () => {};
   const ready = this.callbacks.ready;
   this.callbacks.ready = () => { ready(); loaded = true; };
   return start.call(this);
 };
 Game.prototype.prepareBattle = async function () {
-  const sim = mixedSimulation(30);
+  const sim = createSimulation();
   await this.replaceFleet(sim, sim.definition);
   this.battleSea = 'Fair';
 };
@@ -28,7 +40,7 @@ const style = document.createElement('style');
 style.textContent = '.game-shell,.ocean-viewport{width:1280px!important;height:720px!important;right:auto!important;bottom:auto!important}#performance-status{position:fixed;left:16px;bottom:12px;z-index:99999;padding:8px;background:#09202de6;color:#d9eff2;font:13px monospace;pointer-events:none}';
 document.head.append(style);
 const status = document.createElement('output'); status.id = 'performance-status'; document.body.append(status);
-status.textContent = 'Loading 60-ship benchmark…';
+status.textContent = `Loading ${team * 2}-ship benchmark…`;
 await until(() => loaded);
 const button = text => [...document.querySelectorAll('button')].find(b => b.textContent.toLowerCase().includes(text));
 await until(() => button('custom battle')); button('custom battle').click();
@@ -36,6 +48,9 @@ await until(() => button('start battle')); button('start battle').click();
 await until(() => sailing);
 const g = window.review.game, schedule = g.scheduleFrame;
 g.scheduleFrame = () => {}; cancelAnimationFrame(g.raf); await g.frameTask; cancelAnimationFrame(g.raf);
+// Loading can allow a few ordinary frames through. Reset after stopping that
+// loop so every replay begins at the same tick and seeded state.
+g.simulation.reset();
 g.input.sample = () => reviewHelm;
 g.input.setOrder(3); g.manualAim = true;
 for (let i = g.simulation.tick; i < 3600; i++) {
@@ -56,7 +71,8 @@ const setCamera = mode => {
 setCamera('battle');
 g.paused = true; g.audio?.setScene(false, true); g.lastTime = performance.now(); await g.frame(performance.now());
 window.review.ready = true; document.title = 'Fleet performance review — LIVE';
-status.textContent = 'Ready · 60 ships · 1920×1080 · keep this tab visible';
+window.review.measureFrames = options => measureFleetFrames(g, options);
+status.textContent = `Ready · ${team * 2} ships · keep this tab visible`;
 window.review.run = async ({ seconds = 30, warmup = 5, camera = 'battle', profile = false } = {}) => {
   if (window.review.running) throw new Error('A live sample is already running');
   window.review.running = true;
@@ -130,7 +146,7 @@ const runButton = document.createElement('button');
 runButton.textContent = 'Run 60 FPS check';
 runButton.style.cssText = 'position:fixed;right:16px;top:16px;z-index:99999;padding:10px 14px;background:#0d2a38;color:#d9eff2;border:1px solid #72929e;cursor:pointer';
 document.body.append(runButton);
-let automatic = true;
+let automatic = !params.has('manual');
 const launch = async () => {
   if (window.review.running) return;
   automatic = false; runButton.hidden = true;
@@ -138,7 +154,11 @@ const launch = async () => {
   catch (error) { status.textContent = String(error); window.review.error = String(error); }
   finally { runButton.hidden = false; }
 };
-runButton.addEventListener('click', () => location.reload());
+runButton.addEventListener('click', () => {
+  const url = new URL(location.href);
+  url.searchParams.delete('manual');
+  location.assign(url.href);
+});
 let lastVisibleFrame, consecutive = 0;
 const awaitVisible = time => {
   if (!automatic) return;

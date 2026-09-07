@@ -60849,9 +60849,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay calibration; the existing independently authored Yamato twin 127 mm fitting supplies the dimensions. Rates, damage, supply and arcs are not a historical fire-control model."
+          "dragPerSecond": 0.06072,
+          "dispersionRad": 0.0012,
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 416.902583,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 5000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -60905,9 +60907,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay calibration; the existing independently authored Yamato twin 127 mm fitting supplies the dimensions. Rates, damage, supply and arcs are not a historical fire-control model."
+          "dragPerSecond": 0.06072,
+          "dispersionRad": 0.0012,
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 416.902583,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 5000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -60961,9 +60965,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay calibration; the existing independently authored Yamato twin 127 mm fitting supplies the dimensions. Rates, damage, supply and arcs are not a historical fire-control model."
+          "dragPerSecond": 0.06072,
+          "dispersionRad": 0.0012,
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 416.902583,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 5000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -61017,9 +61023,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay calibration; the existing independently authored Yamato twin 127 mm fitting supplies the dimensions. Rates, damage, supply and arcs are not a historical fire-control model."
+          "dragPerSecond": 0.06072,
+          "dispersionRad": 0.0012,
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 416.902583,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 5000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -61073,9 +61081,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay calibration; the existing independently authored Yamato twin 127 mm fitting supplies the dimensions. Rates, damage, supply and arcs are not a historical fire-control model."
+          "dragPerSecond": 0.06072,
+          "dispersionRad": 0.0012,
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 416.902583,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 5000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -61129,9 +61139,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay calibration; the existing independently authored Yamato twin 127 mm fitting supplies the dimensions. Rates, damage, supply and arcs are not a historical fire-control model."
+          "dragPerSecond": 0.06072,
+          "dispersionRad": 0.0012,
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 416.902583,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 5000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -61185,9 +61197,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay calibration; the existing independently authored Yamato twin 127 mm fitting supplies the dimensions. Rates, damage, supply and arcs are not a historical fire-control model."
+          "dragPerSecond": 0.06072,
+          "dispersionRad": 0.0012,
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 416.902583,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 5000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -61241,9 +61255,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay calibration; the existing independently authored Yamato twin 127 mm fitting supplies the dimensions. Rates, damage, supply and arcs are not a historical fire-control model."
+          "dragPerSecond": 0.06072,
+          "dispersionRad": 0.0012,
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 416.902583,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 5000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -61297,9 +61313,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay calibration; the existing independently authored Yamato twin 127 mm fitting supplies the dimensions. Rates, damage, supply and arcs are not a historical fire-control model."
+          "dragPerSecond": 0.06072,
+          "dispersionRad": 0.0012,
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 416.902583,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 5000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -61353,9 +61371,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay calibration; the existing independently authored Yamato twin 127 mm fitting supplies the dimensions. Rates, damage, supply and arcs are not a historical fire-control model."
+          "dragPerSecond": 0.06072,
+          "dispersionRad": 0.0012,
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 416.902583,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 5000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -61409,9 +61429,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay calibration; the existing independently authored Yamato twin 127 mm fitting supplies the dimensions. Rates, damage, supply and arcs are not a historical fire-control model."
+          "dragPerSecond": 0.06072,
+          "dispersionRad": 0.0012,
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 416.902583,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 5000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -61465,9 +61487,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay calibration; the existing independently authored Yamato twin 127 mm fitting supplies the dimensions. Rates, damage, supply and arcs are not a historical fire-control model."
+          "dragPerSecond": 0.06072,
+          "dispersionRad": 0.0012,
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 416.902583,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 5000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     }
@@ -150547,6 +150571,45 @@
     ],
     "basis": "Original game calibration: eight longitudinal sections, independent sides and three height bands, with separate gunhouse budgets. Generator/director proxy positions and fire loads are estimated; no historical structural tolerance, electrical routing, ventilation or crew-performance claim."
   },
+  "rig": {
+    "version": 1,
+    "ensigns": [
+      {
+        "id": "national-ensign",
+        "design": "ijn",
+        "position": [
+          0,
+          13.1625,
+          130
+        ],
+        "width": 5,
+        "staffHeight": 0
+      }
+    ],
+    "radars": [
+      {
+        "id": "radar-21",
+        "nodeId": "radar-21.yaw",
+        "rpm": 3,
+        "sweepDeg": 60,
+        "phaseDeg": 0
+      },
+      {
+        "id": "radar-22-port",
+        "nodeId": "radar-22-port.yaw",
+        "rpm": 5,
+        "sweepDeg": 70,
+        "phaseDeg": 47
+      },
+      {
+        "id": "radar-22-starboard",
+        "nodeId": "radar-22-starboard.yaw",
+        "rpm": 5,
+        "sweepDeg": 70,
+        "phaseDeg": 94
+      }
+    ]
+  },
   "compilerVersion": 1,
-  "contentHash": "b32c7aeedcf0fbacc2314d51a1030deee640e551686bcab15ea71ad16ac76c24"
+  "contentHash": "18e762f1354f7f5b2036b7fc94b4c149c6762b704b1df30a524de85f796bf7b5"
 }

@@ -29,7 +29,7 @@ async function recipeInputs() {
   return [inputRegister, ...register.files as string[]];
 }
 async function readRecipes() {
-  return Promise.all(['src/ships/blueprint.ts', ...pythonRecipes, `assets/ships/${shipId}/build.py`, ...await recipeInputs()].map(p => readFile(join(root, p), 'utf8')));
+  return Promise.all(['src/ships/blueprint.ts', 'src/ships/rig.ts', ...pythonRecipes, `assets/ships/${shipId}/build.py`, ...await recipeInputs()].map(p => readFile(join(root, p), 'utf8')));
 }
 const recipe = await readRecipes();
 const contentHash = createHash('sha256').update(JSON.stringify([definition, ...recipe])).digest('hex');
@@ -169,6 +169,14 @@ function inspectGlb(bytes: Buffer, def: ShipDefinition) {
     near(actual.distanceTo(new Vector3(...l.position)), 0, `${l.id} release socket`);
     return { id: l.id, measuredRelease: actual.toArray() };
   });
+  for (const flag of def.rig?.ensigns ?? []) {
+    const at = new Vector3().setFromMatrixPosition(worlds.get(getIndex(`${flag.id}.hoist`))!);
+    near(at.distanceTo(new Vector3(...flag.position)), 0, `${flag.id} hoist`);
+  }
+  for (const radar of def.rig?.radars ?? []) {
+    const index = getIndex(radar.nodeId);
+    if (!gltf.nodes[index].children?.length) throw new Error(`${radar.id}: radar joint has no moving assembly`);
+  }
   const triangles = gltf.meshes.reduce((total, m) => total + m.primitives.reduce((n, p) => n + gltf.accessors[p.indices ?? p.attributes.POSITION].count / 3, 0), 0);
   if (triangles > 500000 || bytes.length > 30 * 1024 * 1024) throw new Error('Ship exceeds initial 500k triangle / 30 MiB export guardrails');
   return { contentHash, hullBounds: bounds.map(b => b.toArray()), mounts, torpedoTubes, depthChargeLaunchers, meshes: gltf.meshes.length, primitives: gltf.meshes.reduce((n, m) => n + m.primitives.length, 0), triangles, bytes: bytes.length, result: 'passed', historicalAccuracy: 'not certified; see reference register and discrepancy report' };

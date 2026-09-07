@@ -12,6 +12,7 @@ ROOT=Path(__file__).resolve().parents[3]
 sys.path.insert(0,str(ROOT/'scripts/ships'))
 from blender_components import create_gun_mount
 from blender_supports import SupportSurface
+from blender_rig import radar_pivot
 OUT=Path(os.environ['SHIP_OUTPUT']);DEF=json.loads(Path(os.environ['SHIP_DEFINITION']).read_text());H=DEF['hull']
 bpy.context.preferences.filepaths.save_version=0
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
@@ -352,6 +353,7 @@ def director(name,x,z,span,base):
  # Center of optical axis is z; each pedestal physically spans the supporting roof.
  cyl(name+' support column',(x,0,(base+z-.75)/2),1.55,max(.12,z-.75-base),materials['naval'],detailcol,32)
  cyl(name+' mounting ring',(x,0,z-.67),2.0,.20,materials['edge'],detailcol,40)
+ before=set(bpy.context.scene.objects)
  pts=rounded_rect(x,0,3.3,3.7,1.2,5);extrude(name+' armored hood',pts,z-.56,1.28,materials['naval'],detailcol)
  extrude(name+' sloped crown',rounded_rect(x,0,3.1,3.5,1.15,5),z+.72,.2,materials['roof'],detailcol)
  rod(name+' optical tube',(x,-span/2,z),(x,span/2,z),.29,materials['naval'],detailcol,vertices=24)
@@ -366,6 +368,7 @@ def director(name,x,z,span,base):
  for dz in [-.78,-.39,0,.39,.78]:rod(name+' radar horizontal',(radarx+.12,-2.1,radarz+dz),(radarx+.12,2.1,radarz+dz),.02,materials['light'],detailcol,vertices=5)
  for yy in [-1.2,1.2]:rod(name+' radar support',(x,yy,z+.65),(radarx,yy,radarz-.5),.055,materials['edge'],detailcol,vertices=6)
  rod(name+' aerial',(x-.5,0,z+.9),(x-.5,0,z+3.25),.024,materials['edge'],detailcol,vertices=6)
+ radar_pivot({'Fore main director':'fumo-fore.yaw','Conning director':'fumo-conning.yaw','Aft main director':'fumo-aft.yaw'}[name],(x,0,z-.67),set(bpy.context.scene.objects)-before)
 director('Fore main director',13.4,32.0,10.5,structures['foretop-roof']['baseY']+structures['foretop-roof']['height'])
 director('Conning director',27.6,20.6,7.0,18.63)
 director('Aft main director',-37.8,17.5,10.5,16.2)
@@ -744,5 +747,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parent))
 from paint import apply_paint
 apply_paint(scene,materials,Path(__file__).with_name('paint-scheme.json'))
 OUT.mkdir(parents=True,exist_ok=True)
+from blender_rig import create_flagstaffs
+create_flagstaffs(DEF)
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'source.blend'))
 print('INDEPENDENT BISMARCK SOURCE 1941-04',len(scene.objects),'objects',flush=True)

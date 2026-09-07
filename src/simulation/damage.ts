@@ -2,7 +2,7 @@ import { hullContacts } from './hullContact';
 import { structuralHits, EXTERIOR_PLATING_REPLACEMENT_M } from './structure';
 import { createStability, updateSinking, updateStability, waterLevel, type StabilityState } from './stability';
 import { createControl, heatModule, type ControlState } from './damageControl';
-import { damageShellHull, HULL_DAMAGE, penetrationHullDamage } from './durability';
+import { damageShellHull, HULL_DAMAGE, HULL_HP_SCALE, penetrationHullDamage } from './durability';
 import { createRegions, localDamageEvidence, type LocalDamageEvidence, type RegionState } from './localDamage';
 import { supportPerformance } from './machinery';
 import { addBreach } from './breaches';
@@ -40,7 +40,7 @@ export interface DamageState {
   regions: RegionState[];
   control: ControlState; stability: StabilityState;
   /** Gameplay hull durability. Equipment HP and physical flooding are separate. */
-  integrity: number; maxIntegrity: number; modules: { id: string; hp: number; detonated: boolean; ignition: number }[];
+  integrity: number; maxIntegrity: number; hullDamageRemainder: number; modules: { id: string; hp: number; detonated: boolean; ignition: number }[];
   compartments: CompartmentState[]; connections: ConnectionState[]; sunk: boolean; defeatCause?: DefeatCause;
 }
 export interface Combatant { torpedoLaunchers?: import('./torpedoes').TorpedoLauncherState[]; depthChargeLaunchers?: { id: string; ammo: number }[]; airWing?: import('./aircraft').AirWingState; motion: ShipState; mounts: MountState[]; damage: DamageState; torpedoTubes?: { id: string; ammo: number }[]; submarine?: import('./submarine').SubmarineState; }
@@ -57,12 +57,16 @@ export interface Shell {
   bomb?: { heading: number; pitch: number; bank: number };
   penetrationMm: number; damage: number; caliberM: number; visited: string[];
   dragPerSecond?: number;
+  /** Water drag captured on entry; retained through ticks and serialization. */
+  waterDragPerSecond?: number;
   ap?: APProjectile;
   he?: HEProjectile; ammunition?: Ammunition;
   type?: ShellType;
   remainingModuleDamage?: number;
   /** Per-victim hull damage already paid by this projectile. */
   hullDamage?: Record<string, number>;
+  /** Precise authored-scale consumption for the shared projectile ceiling. */
+  hullDamageConsumed?: Record<string, number>;
   hullRegionDamage?: Record<string, number>;
   equipmentDamage?: Record<string, number>;
   wreckageShips?: string[];
@@ -78,14 +82,16 @@ export interface BallisticEffectData {
   normal?: Vec3;
   detonation?: boolean;
   blastRadiusM?: number;
+  /** Exterior underwater burst: render a water column at this CPU sea height. */
+  waterBurstY?: number;
 }
 export interface DamageEvent extends BallisticEffectData { kind: 'penetration' | 'contact' | 'ricochet' | 'stopped' | 'module' | 'sunk' | 'burst'; position: Vec3; message: string; shipId: string; impact?: ImpactRecord; defeatCause?: DefeatCause; }
 /** Displacement-based gameplay durability, shared by every blueprint. */
 export function maxHullIntegrity(def: ShipDefinition): number {
-  return Math.round((300 + 1450 * Math.sqrt(def.hull.massKg / 70_000_000)) / 10) * 10;
+  return Math.round((300 + 1450 * Math.sqrt(def.hull.massKg / 70_000_000)) / 10) * 10 * HULL_HP_SCALE;
 }
 export function createDamage(def: ShipDefinition): DamageState {
-  return { regions: createRegions(def, maxHullIntegrity(def)), stability: createStability(), control: createControl(def), integrity: maxHullIntegrity(def), maxIntegrity: maxHullIntegrity(def), modules: def.modules.map(m => ({ id: m.id, hp: m.hp, detonated: false, ignition: 0 })), compartments: def.compartments.map(c => ({ id: c.id, waterM3: 0, breachAreaM2: 0, breaches: [] })), connections: def.connections.map(c => ({ id: connectionId(c), state: c.state ?? 'open', damageAreaM2: c.state === 'damaged' ? c.areaM2 : 0, fromIndex: def.compartments.findIndex(r => r.id === c.fromId), toIndex: def.compartments.findIndex(r => r.id === c.toId) })), sunk: false };
+  return { hullDamageRemainder: 0, regions: createRegions(def, maxHullIntegrity(def)), stability: createStability(), control: createControl(def), integrity: maxHullIntegrity(def), maxIntegrity: maxHullIntegrity(def), modules: def.modules.map(m => ({ id: m.id, hp: m.hp, detonated: false, ignition: 0 })), compartments: def.compartments.map(c => ({ id: c.id, waterM3: 0, breachAreaM2: 0, breaches: [] })), connections: def.connections.map(c => ({ id: connectionId(c), state: c.state ?? 'open', damageAreaM2: c.state === 'damaged' ? c.areaM2 : 0, fromIndex: def.compartments.findIndex(r => r.id === c.fromId), toIndex: def.compartments.findIndex(r => r.id === c.toId) })), sunk: false };
 }
 export { systemHealth } from './machinery';
 
@@ -343,7 +349,19 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
       const resistance = response.resistanceMm;
       Object.assign(evidence, { thicknessMm: a.thicknessMm, material: a.plate?.material ?? 'steel', obliquityDeg: Math.acos(clamp(cosine, 0, 1)) * 180 / Math.PI, resistanceMm: resistance });
       if (a.plate?.material === 'teak') { evidence.outcome = 'backing'; report('penetration', `Passed ${a.name}`); return false; }
-      if (response.ricochet) return stop('ricochet', `Ricochet · ${a.name}`);
+      if (response.ricochet) {
+        const normal = normalize(rotate(hit.normal, actor.motion));
+        const along = shell.velocity.reduce((n, v, i) => n + v * normal[i], 0);
+        const before = length(shell.velocity);
+        // Inelastic reflection: retain tangential motion, lose normal energy.
+        // The shell remains live; an already armed fuze keeps its deadline.
+        shell.velocity = scale(sub(shell.velocity, scale(normal, 1.5 * along)), .78);
+        shell.penetrationMm *= (length(shell.velocity) / before) ** 1.4;
+        shell.position = add(position, scale(normal, Math.sign(-along) * .002));
+        evidence.outcome = 'ricochet'; evidence.terminal = false;
+        report('ricochet', `Deflected by ${a.name}`);
+        return false;
+      }
       arm(resistance);
       if (shell.penetrationMm <= resistance) return stop('stopped', `Stopped by ${a.name}`);
       pay(resistance);
@@ -416,25 +434,31 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
  * these contacts individually and accounts for elapsed time between them. */
 export function hitShip(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor: Combatant, def: ShipDefinition, emit: (e: DamageEvent) => void): boolean {
   const direction = normalize(sub(worldToLocal(toWorld, actor.motion), worldToLocal(fromWorld, actor.motion)));
-  for (const hit of shipContacts(shell, fromWorld, toWorld, actor, def)) if (resolveShipContact(shell, hit, actor, def, emit, direction)) return true;
+  for (const hit of shipContacts(shell, fromWorld, toWorld, actor, def)) {
+    let deflected = false;
+    if (resolveShipContact(shell, hit, actor, def, event => { deflected ||= event.kind === 'ricochet'; emit(event); }, direction)) return true;
+    // A contact-only chord cannot describe the new reflected flight direction.
+    if (deflected) return false;
+  }
   return false;
 }
 
-export function updateFlooding(actor: Combatant, def: ShipDefinition, dt: number): void {
+export function updateFlooding(actor: Combatant, def: ShipDefinition, dt: number, sea?: { heave: number; roll: number; pitch: number }, surfaceAt?: (x: number, z: number) => number): void {
   if (dt <= 0) return;
   const damage = actor.damage;
   if (!damage.sunk && damage.integrity <= 0) {
     damage.sunk = true;
     damage.defeatCause = 'hull-failure';
   }
-  updateStability(actor, def, dt);
+  updateStability(actor, def, dt, sea);
   const electricalPower = def.compartments.some(c => c.pumpM3PerSecond > 0) ? supportPerformance(actor, def).power : 0;
   damage.compartments.forEach((state, i) => {
     const c = def.compartments[i];
     const inflow = state.breaches.reduce((sum, breach) => {
       const world = localToWorld(breach.position, actor.motion);
-      const radius = breach.radiusM, bottom = world[1] - radius, top = world[1] + radius;
-      const internalY = waterLevel(actor, def, i);
+      const surface = surfaceAt?.(world[0], world[2]) ?? 0;
+      const radius = breach.radiusM, bottom = world[1] - surface - radius, top = world[1] - surface + radius;
+      const internalY = waterLevel(actor, def, i) - surface;
       // Integrate the uniform aperture strip between pressure discontinuities.
       // Water can enter or leave through the same opening as the ship heels.
       const cuts = [bottom, top, ...[0, internalY].filter(y => y > bottom && y < top)].sort((a,b)=>a-b);

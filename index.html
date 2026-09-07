@@ -6,9 +6,19 @@
     <meta name="theme-color" content="#122b35" />
     <meta name="description" content="Choose your fleets and take the helm in a singleplayer naval custom battle." />
     <title>Fleet Command — Custom Battle</title>
+    <link rel="stylesheet" href="/src/ui/startup.css" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <section class="startup-screen" aria-labelledby="startup-title">
+        <div class="startup-content">
+          <h1 id="startup-title">Opening the harbor</h1>
+          <p class="startup-status" role="status">Loading game files…</p>
+          <p class="startup-note">The first visit can take a little longer while ship models, ocean effects and lighting are prepared.</p>
+          <noscript><p>Enable JavaScript, then reload to play Fleet Command.</p></noscript>
+        </div>
+      </section>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

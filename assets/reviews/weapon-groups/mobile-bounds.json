@@ -1,0 +1,99 @@
+{
+  "size": [
+    390,
+    844
+  ],
+  "slots": [
+    {
+      "bounds": {
+        "bottom": 156,
+        "height": 43.5,
+        "left": 87.744140625,
+        "right": 147.931640625,
+        "top": 112.5,
+        "width": 60.1875,
+        "x": 87.744140625,
+        "y": 112.5
+      },
+      "label": "Select 38 cm twin mount \u00b7 576 shells \u00b7 1"
+    },
+    {
+      "bounds": {
+        "bottom": 156,
+        "height": 43.5,
+        "left": 150.931640625,
+        "right": 211.119140625,
+        "top": 112.5,
+        "width": 60.1875,
+        "x": 150.931640625,
+        "y": 112.5
+      },
+      "label": "Select 15 cm twin mount \u00b7 1080 shells \u00b7 2"
+    },
+    {
+      "bounds": {
+        "bottom": 156,
+        "height": 43.5,
+        "left": 214.119140625,
+        "right": 274.306640625,
+        "top": 112.5,
+        "width": 60.1875,
+        "x": 214.119140625,
+        "y": 112.5
+      },
+      "label": "Select 10.5 cm twin AA \u00b7 6400 shells \u00b7 3"
+    },
+    {
+      "bounds": {
+        "bottom": 156,
+        "height": 43.5,
+        "left": 277.306640625,
+        "right": 337.494140625,
+        "top": 112.5,
+        "width": 60.1875,
+        "x": 277.306640625,
+        "y": 112.5
+      },
+      "label": "Select 3.7 cm twin AA \u00b7 19200 shells \u00b7 4"
+    },
+    {
+      "bounds": {
+        "bottom": 217.5,
+        "height": 43.5,
+        "left": 87.744140625,
+        "right": 147.931640625,
+        "top": 174,
+        "width": 60.1875,
+        "x": 87.744140625,
+        "y": 174
+      },
+      "label": "Select 2 cm single AA \u00b7 13200 shells \u00b7 5"
+    },
+    {
+      "bounds": {
+        "bottom": 217.5,
+        "height": 43.5,
+        "left": 150.931640625,
+        "right": 211.119140625,
+        "top": 174,
+        "width": 60.1875,
+        "x": 150.931640625,
+        "y": 174
+      },
+      "label": "Toggle binocular aiming \u00b7 Shift"
+    },
+    {
+      "bounds": {
+        "bottom": 217.5,
+        "height": 43.5,
+        "left": 214.119140625,
+        "right": 274.306640625,
+        "top": 174,
+        "width": 60.1875,
+        "x": 214.119140625,
+        "y": 174
+      },
+      "label": "Fire aligned guns \u00b7 Left mouse or Q"
+    }
+  ]
+}

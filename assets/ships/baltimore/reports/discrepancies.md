@@ -88,3 +88,12 @@ Stable assembly, joint and socket IDs are retained. Original recipes own these c
 ## Local damage and fire calibration — 2026-09-06
 
 Local regions, generator and director proxies, combustible loads and smoke outlets are independently authored gameplay estimates from the existing layout. They are not historically measured structural subdivisions, generator schedules or ventilation plans. Electrical supply is aggregated with manual gun fallback; directors share a targeting penalty. Breach overlap uses bounded aperture sampling. See `assets/ships/author-local-damage.ts`.
+
+
+## Plausible ballistics integration — 2026-09-07
+
+The newly registered AA fitting uses the same mass/bore-based linear air-resistance estimate as the fleet's repaired profiles (`assets/parts/author-plausible-ballistics.ts`). This replaces the provisional 0.015/s placeholder. Geometry, attachment, articulation and historical provenance remain the accepted source model; this calibration does not certify a historical firing table.
+
+## Ensign and radar animation
+
+The version-1 blueprint rig selects a period national ensign and a retained or original flagstaff hoist. Flag dimensions and stern/bridge placement are gameplay approximations; harbor/underway flag etiquette and halyard handling are not modeled. See `assets/parts/ensigns-sources.md` for design references. Radar rates and director sector sweeps are visual calibration, not verified operating procedures or combat tracking. Existing aerial shapes retain their prior evidence limitations. Cloth uses gravity, apparent wind and constrained fabric; it does not simulate cloth tearing, rigging collisions or fluid dynamics.

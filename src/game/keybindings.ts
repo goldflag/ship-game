@@ -1,22 +1,23 @@
 export const KEYBINDING_STORAGE_KEY = 'sea-trials-keybindings-v1';
 
+export const WEAPON_GROUP_ACTIONS = ['weaponGroup1', 'weaponGroup2', 'weaponGroup3', 'weaponGroup4', 'weaponGroup5', 'weaponGroup6', 'weaponGroup7', 'weaponGroup8', 'weaponGroup9', 'weaponGroup10'] as const;
+
 export const INPUT_ACTIONS = [
   { id: 'throttleUp', label: 'Raise engine order', group: 'Helm' },
   { id: 'throttleDown', label: 'Lower engine order', group: 'Helm' },
   { id: 'port', label: 'Steer port', group: 'Helm' },
   { id: 'starboard', label: 'Steer starboard', group: 'Helm' },
   { id: 'stop', label: 'Stop engine', group: 'Helm' },
+  { id: 'surface', label: 'Submarine: order surface', group: 'Helm' },
+  { id: 'dive50', label: 'Submarine: order 50 m depth', group: 'Helm' },
   { id: 'dive', label: 'Dive 2 m deeper', group: 'Helm' },
   { id: 'rise', label: 'Rise 2 m', group: 'Helm' },
   { id: 'emergencyBlow', label: 'Emergency blow ballast', group: 'Helm' },
   { id: 'fire', label: 'Fire selected battery', group: 'Gunnery' },
-  { id: 'mainBattery', label: 'Select main battery', group: 'Gunnery' },
-  { id: 'secondaryBattery', label: 'Select secondary battery', group: 'Gunnery' },
-  { id: 'torpedoes', label: 'Select torpedoes', group: 'Gunnery' },
-  { id: 'depthCharges', label: 'Select depth charges', group: 'Gunnery' },
-  { id: 'gunnery', label: 'Open / close gunnery', group: 'Gunnery' },
+  ...WEAPON_GROUP_ACTIONS.map((id, index) => ({ id, label: `Select weapon group ${index + 1}`, group: 'Gunnery' as const })),
   { id: 'shellType', label: 'Switch AP / HE shells', group: 'Gunnery' },
   { id: 'shellFollow', label: 'Toggle shell follow camera', group: 'Gunnery' },
+  { id: 'periscope', label: 'Raise / lower periscope view', group: 'View' },
   { id: 'camera', label: 'Cycle camera', group: 'View' },
   { id: 'recenter', label: 'Recenter camera', group: 'View' },
   { id: 'hud', label: 'Show / hide instruments', group: 'View' },
@@ -35,12 +36,15 @@ export function defaultKeybindings(): Keybindings {
     port: ['KeyA', 'ArrowLeft'], starboard: ['KeyD', 'ArrowRight'],
     stop: ['Space', null], fire: ['KeyQ', null], camera: ['KeyC', null],
     recenter: ['KeyR', null], hud: ['KeyH', null], fullscreen: ['KeyF', null],
-    mainBattery: ['Digit1', null], secondaryBattery: ['Digit2', null], gunnery: ['KeyG', null],
-    shellFollow: ['KeyT', null], shellType: ['KeyE', null], torpedoes: ['Digit3', null],
-    depthCharges: ['Digit4', null],
+    weaponGroup1: ['Digit1', null], weaponGroup2: ['Digit2', null],
+    shellFollow: ['KeyT', null], shellType: ['KeyE', null], weaponGroup3: ['Digit3', null],
+    weaponGroup4: ['Digit4', null],
+    weaponGroup5: ['Digit5', null], weaponGroup6: ['Digit6', null], weaponGroup7: ['Digit7', null],
+    weaponGroup8: ['Digit8', null], weaponGroup9: ['Digit9', null], weaponGroup10: ['Digit0', null],
     dive: ['KeyZ', null], rise: ['KeyX', null], emergencyBlow: ['KeyB', null],
+    surface: ['KeyU', null], dive50: ['KeyJ', null],
     chartLarger: ['Equal', 'NumpadAdd'], chartSmaller: ['Minus', 'NumpadSubtract'],
-    airOperations: ['KeyM', null],
+    airOperations: ['KeyM', null], periscope: ['KeyP', null],
   };
 }
 
@@ -76,11 +80,16 @@ export function bindingError(bindings: Keybindings, action: InputAction, slot: 0
 export function keybindingsOf(value: unknown): Keybindings {
   const defaults = defaultKeybindings();
   if (!value || typeof value !== 'object' || Array.isArray(value)) return defaults;
+  // Old category shortcuts become the first four direct slots. Preserve custom keys.
+  const saved = { ...value } as Record<string, unknown>;
+  for (const [index, old] of ['mainBattery', 'secondaryBattery', 'torpedoes', 'depthCharges'].entries()) {
+    saved[WEAPON_GROUP_ACTIONS[index]] ??= saved[old];
+  }
   const result = defaultKeybindings();
   const used = new Set<string>();
   const missing: InputAction[] = [];
   for (const { id } of INPUT_ACTIONS) {
-    const pair = (value as Record<string, unknown>)[id];
+    const pair = saved[id];
     if (pair === undefined) { missing.push(id); continue; }
     if (!Array.isArray(pair) || pair.length !== 2 || !pair.some(Boolean)) return defaults;
     for (const code of pair) {
@@ -91,7 +100,7 @@ export function keybindingsOf(value: unknown): Keybindings {
     result[id] = [pair[0], pair[1]];
   }
   // Add new actions to older saves without discarding existing custom controls.
-  const additions = ['shellFollow', 'shellType', 'torpedoes', 'depthCharges', 'dive', 'rise', 'emergencyBlow', 'airOperations'];
+  const additions: readonly string[] = [...WEAPON_GROUP_ACTIONS, 'shellFollow', 'shellType', 'torpedoes', 'depthCharges', 'dive', 'rise', 'emergencyBlow', 'airOperations', 'periscope', 'surface', 'dive50'];
   for (const id of [...missing.filter(id => !additions.includes(id)), ...missing.filter(id => additions.includes(id))]) {
     const preferred = defaults[id].filter((code): code is string => code !== null && !used.has(code));
     if (!additions.includes(id) && preferred.length !== defaults[id].filter(Boolean).length) return defaults;

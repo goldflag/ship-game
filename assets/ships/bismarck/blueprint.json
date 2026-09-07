@@ -98012,5 +98012,44 @@
       }
     ],
     "basis": "Original game calibration: eight longitudinal sections, independent sides and three height bands, with separate gunhouse budgets. Generator/director proxy positions and fire loads are estimated; no historical structural tolerance, electrical routing, ventilation or crew-performance claim."
+  },
+  "rig": {
+    "version": 1,
+    "ensigns": [
+      {
+        "id": "national-ensign",
+        "design": "kriegsmarine",
+        "position": [
+          0,
+          15.3,
+          123.29
+        ],
+        "width": 5,
+        "staffHeight": 0
+      }
+    ],
+    "radars": [
+      {
+        "id": "fumo-fore",
+        "nodeId": "fumo-fore.yaw",
+        "rpm": 2,
+        "sweepDeg": 65,
+        "phaseDeg": 0
+      },
+      {
+        "id": "fumo-conning",
+        "nodeId": "fumo-conning.yaw",
+        "rpm": 2,
+        "sweepDeg": 65,
+        "phaseDeg": 47
+      },
+      {
+        "id": "fumo-aft",
+        "nodeId": "fumo-aft.yaw",
+        "rpm": 2,
+        "sweepDeg": 65,
+        "phaseDeg": 94
+      }
+    ]
   }
 }

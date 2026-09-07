@@ -1,3 +1,4 @@
+import { HULL_HP_SCALE } from './durability';
 import { expect, test } from 'bun:test';
 import blueprint from '../../assets/ships/bismarck/blueprint.json';
 import yamato from '../../assets/ships/yamato/blueprint.json';
@@ -51,8 +52,8 @@ test('a delay can expire inside the ship after contact and damage local equipmen
   expect(events.some(e => e.kind === 'burst' && e.impact?.targetId === 'fixture-engine')).toBe(true);
   expect(actor.damage.modules[0].hp).toBeLessThan(25); // burst adds to contact's 75 damage
   // Entry, equipment and delayed burst share one hull-damage ceiling.
-  expect(actor.damage.maxIntegrity - actor.damage.integrity).toBe(85);
-  expect(events.reduce((n, e) => n + (e.impact?.hullDamage ?? 0), 0)).toBe(85);
+  expect(actor.damage.maxIntegrity - actor.damage.integrity).toBe(85 * HULL_HP_SCALE);
+  expect(events.reduce((n, e) => n + (e.impact?.hullDamage ?? 0), 0)).toBe(85 * HULL_HP_SCALE);
   expect(events.at(-1)!.impact?.terminal).toBe(true);
 });
 test('an armed stop remains attached to the moving hull until its fuze expires', () => {

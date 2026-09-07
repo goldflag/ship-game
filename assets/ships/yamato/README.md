@@ -1,5 +1,7 @@
 # Yamato
 
+The latest combined build and exact-hash review are recorded in [the integration review](reports/paint-crest-integration/README.md). Earlier review captures retain their original hashes.
+
 Original reconstruction targeting the 7 April 1945 exterior, authored through the shared versioned ship pipeline. Historical accuracy is still under review; see the [discrepancy register](reports/discrepancies.md) and [source register](references/sources.json).
 
 [Fidelity 01](reports/fidelity-01/README.md) records the revised stem/bulb, bridge, gunhouses and equipment, complete structural hit coverage, protection/internals, matched before/after views and current WebGPU checks. The port's Reference review opens the portable historical/measurement pack.

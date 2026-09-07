@@ -13575,6 +13575,23 @@
     ],
     "basis": "Original game calibration: eight longitudinal sections, independent sides and three height bands, with separate gunhouse budgets. Generator/director proxy positions and fire loads are estimated; no historical structural tolerance, electrical routing, ventilation or crew-performance claim."
   },
+  "rig": {
+    "version": 1,
+    "ensigns": [
+      {
+        "id": "national-ensign",
+        "design": "white-ensign",
+        "position": [
+          0,
+          7,
+          28.242
+        ],
+        "width": 1.5,
+        "staffHeight": 2.8
+      }
+    ],
+    "radars": []
+  },
   "compilerVersion": 1,
-  "contentHash": "a3fc9262e7fa87985cf65a350cffd18d758c771c948315c1eb05d9386e34b6e3"
+  "contentHash": "af9c3a64e22fbf4b70335992a4f7dd51375d72792358d4ca34a45a9e7eb747c2"
 }

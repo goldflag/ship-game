@@ -1,3 +1,4 @@
+import { HULL_HP_SCALE } from './durability';
 import { expect, test } from 'bun:test';
 import blueprint from '../../assets/ships/bismarck/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
@@ -5,7 +6,7 @@ import { compileShip, type Ammunition, type Vec3 } from '../ships/blueprint';
 import { CombatSimulation } from './combat';
 import { advanceProjectile } from './projectile';
 import { type DamageEvent, type Shell } from './damage';
-import { availableAmmunition, createMountState, selectAmmunition, updateMount } from './weapons';
+import { availableAmmunition, createMountState, queueAmmunition, selectAmmunition, updateMount } from './weapons';
 
 test('AP and HE stocks are finite, share capacity, and switching never creates rounds or skips loading', () => {
   const def = compileShip(blueprint, catalog), m = def.mounts[0], state = createMountState(m), initial = state.ammo;
@@ -28,8 +29,13 @@ test('HUD ammunition counts follow the loaded type and each battery retains its 
   const main = sim.telemetry('main', aim), secondary = sim.telemetry('secondary', aim);
   expect(main.ammunition).toBe('he'); expect(secondary.ammunition).toBe('ap');
   expect(main.ammunitionStock).toEqual(initial.ammunitionStock);
-  expect(main.batteries[0].ammo).toBe(main.ammunitionStock.he);
-  expect(main.mounts.every(m => m.loaded === 'he' && m.reload > 0 && m.ammo === 96)).toBe(true);
+  expect(main.batteries[0].ammo).toBe(main.ammunitionStock.ap);
+  expect(main.mounts.every(m => m.loaded === 'ap' && m.reload === 0)).toBe(true);
+  // Finish a load while another battery is selected: the order remains in effect.
+  for (const state of sim.player.mounts) state.reload = .001;
+  sim.step(helm, { aim, fire: false, battery: 'secondary', ammunition: 'ap' });
+  const loaded = sim.telemetry('main', aim);
+  expect(loaded.mounts.every(m => m.loaded === 'he' && m.reload === 0 && m.ammo === 96)).toBe(true);
   expect(main.ready).toBe(0);
   for (const state of sim.player.mounts) if (state.loaded === 'he') { state.ammo -= state.heAmmo; state.heAmmo = 0; }
   sim.step(helm, { aim, fire: false, battery: 'main', ammunition: 'he' });
@@ -53,6 +59,7 @@ test('the real fire loop waits for HE loading, consumes only HE, records type, a
   def.mounts = [{ ...def.mounts[0], position: [0, 10, 0], bearingDeg: 90 }]; def.obstructions = [];
   const sim = new CombatSimulation(def), state = sim.player.mounts[0], before = structuredClone(state);
   const intent = { aim: [2000, 10, 0] as Vec3, fire: true, battery: 'main' as const, ammunition: 'he' as const };
+  selectAmmunition(def.mounts[0], state, 'he');
   for (let i = 0; i < 1190; i++) sim.step({ throttle: 0, rudder: 0 }, intent);
   expect(sim.events.some(e => e.kind === 'shot')).toBe(false);
   for (let i = 0; i < 20; i++) sim.step({ throttle: 0, rudder: 0 }, intent);
@@ -81,7 +88,7 @@ test('HE bursts at its first physical contact and cannot transmit damage through
     expect(shell.position[0]).toBe(thickness ? 0 : 1.5);
     const hullDamage = sim.target.damage.maxIntegrity - sim.target.damage.integrity;
     if (thickness === 320) expect(hullDamage).toBe(0);
-    else { expect(hullDamage).toBeGreaterThan(0); expect(hullDamage).toBeLessThanOrEqual(shell.he!.damage * .5); }
+    else { expect(hullDamage).toBeGreaterThan(0); expect(hullDamage).toBeLessThanOrEqual(Math.ceil(shell.he!.damage * .5 * HULL_HP_SCALE)); }
     return 100 - sim.target.damage.modules[0].hp;
   });
   expect(damages[0]).toBe(100); expect(damages[1]).toBeGreaterThan(0); expect(damages[1]).toBeLessThan(damages[0]); expect(damages[2]).toBe(0);
@@ -142,4 +149,35 @@ test('a contact burst pays legacy gunhouse armor even when its ray starts exactl
     return 100 - sim.target.mounts[0].hp;
   });
   expect(damage[0]).toBeGreaterThan(0); expect(damage[0]).toBeLessThan(50); expect(damage[1]).toBe(0);
+});
+
+test('queued ammunition preserves loaded rounds and reload progress, and can be cancelled or forced', () => {
+  const def = compileShip(blueprint, catalog), mount = def.mounts[0], state = createMountState(mount);
+  const pose = new CombatSimulation(def).ship, stock = state.ammo;
+  queueAmmunition(mount, state, 'he');
+  updateMount(mount, state, def, pose, undefined, 1);
+  expect(state.loaded).toBe('ap'); expect(state.reload).toBe(0);
+  queueAmmunition(mount, state, 'ap'); expect(state.queued).toBeUndefined();
+  state.reload = 5;
+  queueAmmunition(mount, state, 'he');
+  updateMount(mount, state, def, pose, undefined, 2);
+  expect(state.reload).toBe(3); expect(state.loaded).toBe('ap');
+  updateMount(mount, state, def, pose, undefined, 3);
+  expect(state.loaded).toBe('he'); expect(state.reload).toBe(0);
+  queueAmmunition(mount, state, 'ap'); selectAmmunition(mount, state, 'ap');
+  expect(state.queued).toBeUndefined(); expect(state.reload).toBe(mount.weapon.reloadSeconds);
+  expect(state.ammo).toBe(stock);
+});
+
+test('queued HE fires the already loaded AP salvo first and HE after the normal reload', () => {
+  const def = compileShip(blueprint, catalog);
+  def.mounts = [{ ...def.mounts[0], position: [0, 10, 0], bearingDeg: 90 }]; def.obstructions = [];
+  const sim = new CombatSimulation(def), state = sim.player.mounts[0], before = structuredClone(state);
+  const intent = { aim: [2000, 10, 0] as Vec3, fire: true, battery: 'main' as const, ammunition: 'he' as const };
+  for (let i = 0; i < 200 && state.ammo === before.ammo; i++) sim.step({ throttle: 0, rudder: 0 }, intent);
+  expect(state.ammo).toBe(before.ammo - 2); expect(state.heAmmo).toBe(before.heAmmo);
+  expect(sim.shellHistory.every(h => h.ammunition === 'ap')).toBe(true);
+  for (let i = 0; i < 1210 && state.ammo === before.ammo - 2; i++) sim.step({ throttle: 0, rudder: 0 }, intent);
+  expect(state.ammo).toBe(before.ammo - 4); expect(state.heAmmo).toBe(before.heAmmo - 2);
+  expect(sim.shellHistory.filter(h => h.ammunition === 'he')).toHaveLength(2);
 });

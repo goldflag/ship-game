@@ -13,6 +13,7 @@ from mathutils import Vector, Matrix
 ROOT=Path(__file__).resolve().parents[3]
 sys.path.insert(0,str(ROOT/'scripts/ships'))
 from blender_components import create_gun_mount
+from blender_rig import radar_pivot
 OUT=Path(os.environ['SHIP_OUTPUT'])
 D=json.loads(Path(os.environ['SHIP_DEFINITION']).read_text())
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
@@ -505,6 +506,7 @@ for side in [-1,1]:
  for dz in [-.25,0,.25]:rod('284 aerial wire',(24.43,yy-1.89,DECK+20.2+dz),(24.43,yy+1.89,DECK+20.2+dz),.013,'edge',vertices=5)
  rod('284 supporting arm',(22.8,side*1.3,DECK+18.5),(24.4,side*2,DECK+20.2),.067,'naval',vertices=8)
 node=pivot('radar-284.yaw',(22.3,0,DECK+19.2));attach_world(set(scene.objects)-before-{node},node)
+attach_world([node],bpy.data.objects['dct-forward.yaw'])
 for name,x,top,spread in [('foremast',9.4,36.8,3.3),('mainmast',-42.7,33.1,2.6)]:
  ASSEMBLY=name;base=DECK+3.05;platformZ=top-7.5
  rod(name+' lower pole',(x,0,base),(x-.70,0,platformZ),.30,'naval',r2=.20,vertices=16)
@@ -524,9 +526,11 @@ for name,x,top,spread in [('foremast',9.4,36.8,3.3),('mainmast',-42.7,33.1,2.6)]
    rod('Yard lift',(x-.8,side*span,zz),(x-.9,0,zz+2.0),.018,'edge',vertices=5)
    for k in range(1,6):rod('Signal halyard',(x-.8,side*k*span/6,zz),(x-1.4,side*2.5,DECK+7.2),.008,'edge',vertices=4)
  # Early paired Type 279 aerials at the masthead, matched to the period photo.
+ before=set(scene.objects)
  for dz in [0,.85]:
   rod('Type 279 crossbar',(x-.9,-1.7,top+dz),(x-.9,1.7,top+dz),.045,'edge',vertices=6)
   for yy in [-1.5,-.75,0,.75,1.5]:rod('Type 279 dipole',(x-1.28,yy,top+dz),(x-.52,yy,top+dz),.025,'naval',vertices=6)
+ radar_pivot('radar-279-'+name+'.yaw',(x-.9,0,top),set(scene.objects)-before)
  for side in [-1,1]:rod('Mast standing rigging',(x-.8,side*.7,platformZ+.5),(x-7,side*7,DECK+6.3),.013,'edge',vertices=5)
 ASSEMBLY='wireless-aerials'
 for y in [-.36,.36]:rod('Between-mast wireless aerial',(8.5,y,35),(-43.6,y,31.5),.010,'edge',vertices=5)
@@ -765,15 +769,6 @@ for side in [-1,1]:
   for h in [0,.32,.64]:rod('Ship side access rung',(x-.28,yy,zz+h),(x+.28,yy,zz+h),.025,'naval',vertices=6)
 ASSEMBLY='ensign'
 rod('Ensign staff',(-111,0,DECK),(-111,0,DECK+5.2),.07,'naval',vertices=10)
-# Original geometric white ensign, visually static in this version.
-box('White ensign',(-109.3,0,DECK+4.1),(3.3,.015,1.7),'white')
-box('Ensign horizontal cross',(-109.3,-.012,DECK+4.1),(3.3,.02,.24),'red')
-box('Ensign vertical cross',(-109.3,-.014,DECK+4.1),(.24,.025,1.7),'red')
-box('Ensign canton',(-110.12,-.028,DECK+4.53),(1.5,.02,.72),'blue')
-for sign in [-1,1]:
- ob=box('Canton saltire',(-110.12,-.042,DECK+4.53),(1.63,.022,.08),'white');ob.rotation_euler.y=sign*.447
-box('Canton cross',(-110.12,-.045,DECK+4.53),(1.5,.02,.14),'white')
-box('Canton upright',(-110.12,-.046,DECK+4.53),(.14,.02,.72),'white')
 
 COL=collections['Underwater fittings']
 for i,(y,x) in enumerate([(-8,-83),(-3.8,-92),(3.8,-92),(8,-83)],1):
@@ -807,5 +802,7 @@ for group in ['armor','modules','compartments','obstructions']:
   ob=box(group+'.'+v['id'],(-z,-x,y),(sz,sx,sy),'dark');ob['exportRole']='simulation';ob.display_type='WIRE';ob.hide_render=True
 scene['definitionHash']=D['contentHash'];scene['historicalConfiguration']=D['configuration']
 scene['accuracyStatus']='Game reconstruction; see discrepancy register for evidence and limits.'
+from blender_rig import create_flagstaffs
+create_flagstaffs(D)
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'source.blend'))
 print('King George V original source:',len(scene.objects),'objects')

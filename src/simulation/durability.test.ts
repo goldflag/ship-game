@@ -1,3 +1,4 @@
+import { damageHull, HULL_HP_SCALE } from './durability';
 import { expect, test } from 'bun:test';
 import { shipPreset } from '../ships/presets';
 import { CombatSimulation } from './combat';
@@ -77,5 +78,38 @@ test('armor rejection, thin through-shots and substantial penetrations have dist
   expect(damage[0]).toBe(0);
   expect(damage[1]).toBeGreaterThan(0);
   expect(damage[2]).toBeGreaterThan(damage[1] * 3);
-  expect(damage[2]).toBeLessThan(70);
+  expect(damage[2]).toBeLessThan(70 * HULL_HP_SCALE);
+});
+
+test('fractional hull damage accumulates into whole HP independently of tick size and resets cleanly', () => {
+  const a = battle(), b = battle();
+  const region = a.target.definition.localDamage!.regions.find(r => r.kind === 'hull')!;
+  const before = a.target.damage.integrity;
+  const total = damageHull(a.target, 180, region.id);
+  let splitTotal = 0;
+  for (let i = 0; i < 600; i++) {
+    const dealt = damageHull(b.target, .3, region.id);
+    expect(Number.isInteger(dealt)).toBe(true);
+    expect(Number.isInteger(b.target.damage.integrity)).toBe(true);
+    splitTotal += dealt;
+  }
+  expect(splitTotal).toBe(total);
+  expect(before - b.target.damage.integrity).toBe(total);
+  expect(b.target.damage.hullDamageRemainder).toBeCloseTo(a.target.damage.hullDamageRemainder, 7);
+  b.reset();
+  expect(b.target.damage.hullDamageRemainder).toBe(0);
+  expect(b.target.damage.integrity).toBe(50_750);
+});
+
+test('tiny hits are retained, zero damage cannot spend them, and overkill is capped', () => {
+  const { target } = battle();
+  expect(damageHull(target, .01)).toBe(0);
+  expect(damageHull(target, 0)).toBe(0);
+  expect(damageHull(target, -.1)).toBe(0);
+  expect(damageHull(target, .01)).toBe(0);
+  expect(damageHull(target, .01)).toBe(1);
+  expect(target.damage.hullDamageRemainder).toBeCloseTo(.05, 9);
+  const remaining = target.damage.integrity;
+  expect(damageHull(target, 1e6)).toBe(remaining);
+  expect(target.damage.integrity).toBe(0);
 });

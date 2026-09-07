@@ -1,5 +1,5 @@
 import { ENGINE_ORDERS, type HelmCommand } from '../simulation/ship';
-import { INPUT_ACTIONS, loadKeybindings, type InputAction, type Keybindings } from './keybindings';
+import { INPUT_ACTIONS, WEAPON_GROUP_ACTIONS, loadKeybindings, type InputAction, type Keybindings } from './keybindings';
 
 export interface InputActions {
   pause(): void;
@@ -8,14 +8,15 @@ export interface InputActions {
   hud(): void;
   fullscreen(): void;
   optics(): void;
-  battery(battery: import('../ships/blueprint').Battery): void;
+  weaponGroup(index: number): void;
   cursor(released: boolean): void;
   chartSize(direction: number): void;
-  gunnery(): void;
   shellFollow(): void;
   shellType?(): void;
   depth?(direction: number): void;
+  depthPreset?(depthM: number): void;
   emergencyBlow?(): void;
+  periscope?(): void;
   airOperations?(): void;
 }
 
@@ -80,17 +81,17 @@ export class InputController {
       if (action === 'recenter') this.actions.recenter();
       if (shift) this.shiftTap = true;
       if (control) this.actions.cursor(true);
-      if (action === 'mainBattery') this.actions.battery('main');
-      if (action === 'secondaryBattery') this.actions.battery('secondary');
-      if (action === 'torpedoes') this.actions.battery('torpedo');
-      if (action === 'depthCharges') this.actions.battery('depth-charge');
+      const weaponIndex = WEAPON_GROUP_ACTIONS.findIndex(id => id === action);
+      if (weaponIndex >= 0) this.actions.weaponGroup(weaponIndex);
       if (action === 'chartLarger') this.actions.chartSize(1);
       if (action === 'chartSmaller') this.actions.chartSize(-1);
-      if (action === 'gunnery') this.actions.gunnery();
       if (action === 'shellFollow') this.actions.shellFollow();
       if (action === 'shellType') this.actions.shellType?.();
       if (action === 'dive') this.actions.depth?.(1);
+      if (action === 'surface') this.actions.depthPreset?.(0);
+      if (action === 'dive50') this.actions.depthPreset?.(50);
       if (action === 'rise') this.actions.depth?.(-1);
+      if (action === 'periscope') this.actions.periscope?.();
       if (action === 'emergencyBlow') this.actions.emergencyBlow?.();
       if (action === 'airOperations') this.actions.airOperations?.();
     }

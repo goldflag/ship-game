@@ -76,3 +76,10 @@ test('aircraft sea impacts play a splash once, while aircraft state changes do n
   expect(cursor.consume(events, 10).map(cue => cue.id)).toEqual(['splash']);
   expect(cursor.consume(events, 10)).toHaveLength(0);
 });
+
+
+test('exterior underwater shell bursts use a surface splash cue', () => {
+  const cue = new CombatAudioEvents().consume([event(1, 'burst', { detonation: true, position: [10, -8, 20], waterBurstY: .3 })], 10);
+  expect(cue[0].id).toBe('splash');
+  expect(cue[0].position).toEqual([10, .3, 20]);
+});

@@ -5,6 +5,8 @@ function stats(values) {
   return {
     median: sorted[Math.floor(sorted.length * .5)],
     p95: sorted[Math.floor(sorted.length * .95)],
+    p99: sorted[Math.floor(sorted.length * .99)],
+    max: sorted.at(-1),
     mean: sorted.reduce((sum, value) => sum + value, 0) / sorted.length,
   };
 }
@@ -29,7 +31,7 @@ export async function measureFleetFrames(game, { warmup = 30, frames = 120, batt
   }
   game.camera.updateMatrixWorld();
   game.paused = false;
-  const samples = [], draws = [], triangles = [];
+  const samples = [], draws = [], triangles = [], slowFrames = [];
   const phases = { simulation: [], render: [], water: [] };
   const originals = [], autoReset = renderer.info.autoReset;
   renderer.info.autoReset = false;
@@ -55,7 +57,9 @@ export async function measureFleetFrames(game, { warmup = 30, frames = 120, batt
       if (renderer.backend.device) await renderer.backend.device.queue.onSubmittedWorkDone();
       else renderer.backend.gl.finish();
       if (i >= warmup) {
-        samples.push(performance.now() - start);
+        const ms = performance.now() - start;
+        samples.push(ms);
+        slowFrames.push({ frame: i - warmup, tick: simulation.tick, ms });
         draws.push(renderer.info.render.drawCalls);
         triangles.push(renderer.info.render.triangles);
       }
@@ -69,6 +73,8 @@ export async function measureFleetFrames(game, { warmup = 30, frames = 120, batt
       view, camera: game.camera.position.toArray(), stateHash, completedGpuWork: true, samples: frames,
       drawCalls: stats(draws), triangles: stats(triangles), ships: simulation.actors.length, tick: simulation.tick,
       framebuffer: [renderer.domElement.width, renderer.domElement.height], frameWorkMs: stats(samples),
+      over33Ms: samples.filter(ms => ms > 1000 / 30).length, over50Ms: samples.filter(ms => ms > 50).length,
+      slowFrames: slowFrames.sort((a, b) => b.ms - a.ms).slice(0, 20),
       phases: Object.fromEntries(Object.entries(phases).map(([key, values]) => [key, stats(values.slice(warmup))])),
       shells: simulation.shells.length, draws: game.fleetDraws?.diagnostics(),
     };

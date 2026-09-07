@@ -63,19 +63,65 @@ describe('player keybindings', () => {
 
 test('older custom controls survive new diving actions even when Z, X and B are taken', () => {
   const { dive: _d, rise: _r, emergencyBlow: _b, ...saved } = defaultKeybindings();
-  saved.camera = ['KeyZ', null]; saved.fire = ['KeyX', null]; saved.gunnery = ['KeyB', null];
+  saved.camera = ['KeyZ', null]; saved.fire = ['KeyX', null]; saved.recenter = ['KeyB', null];
   const loaded = keybindingsOf(saved);
-  expect(loaded.camera).toEqual(saved.camera); expect(loaded.fire).toEqual(saved.fire); expect(loaded.gunnery).toEqual(saved.gunnery);
+  expect(loaded.camera).toEqual(saved.camera); expect(loaded.fire).toEqual(saved.fire); expect(loaded.recenter).toEqual(saved.recenter);
   expect(loaded.dive).not.toContain('KeyZ'); expect(loaded.rise).not.toContain('KeyX'); expect(loaded.emergencyBlow).not.toContain('KeyB');
   expect(keybindingsOf(loaded)).toEqual(loaded);
 });
 
 test('older saves gain depth charges without taking an existing custom 4 binding', () => {
   const saved: Partial<ReturnType<typeof defaultKeybindings>> = defaultKeybindings();
-  delete saved.depthCharges; saved.fire = ['Digit4', null];
+  delete saved.weaponGroup4; saved.fire = ['Digit4', null];
   const result = keybindingsOf(saved);
   expect(result.fire).toEqual(['Digit4', null]);
-  expect(result.depthCharges[0]).not.toBe('Digit4');
-  expect(result.depthCharges[0]).not.toBeNull();
+  expect(result.weaponGroup4[0]).not.toBe('Digit4');
+  expect(result.weaponGroup4[0]).not.toBeNull();
   expect(keybindingsOf(result)).toEqual(result);
+});
+
+test('older saves gain periscope without taking a custom P binding', () => {
+  const { periscope: _newAction, ...saved } = defaultKeybindings();
+  saved.camera = ['KeyP', null];
+  const loaded = keybindingsOf(saved);
+  expect(loaded.camera).toEqual(saved.camera);
+  expect(loaded.periscope[0]).toBeTruthy();
+  expect(loaded.periscope).not.toContain('KeyP');
+  expect(keybindingsOf(loaded)).toEqual(loaded);
+});
+
+test('older saves gain surface and deep-dive shortcuts without taking custom U or J keys', () => {
+  const { surface: _surface, dive50: _dive50, ...saved } = defaultKeybindings();
+  saved.camera = ['KeyU', null]; saved.fire = ['KeyJ', null];
+  const loaded = keybindingsOf(saved);
+  expect(loaded.camera).toEqual(saved.camera);
+  expect(loaded.fire).toEqual(saved.fire);
+  for (const action of ['surface', 'dive50'] as const) {
+    expect(loaded[action][0]).toBeTruthy();
+    expect(loaded[action]).not.toContain('KeyU');
+    expect(loaded[action]).not.toContain('KeyJ');
+  }
+  expect(keybindingsOf(loaded)).toEqual(loaded);
+});
+
+test('retired gunnery bindings are discarded while other saved controls survive', () => {
+  const saved = { ...defaultKeybindings(), gunnery: ['KeyG', null] };
+  saved.fire = ['KeyL', null];
+  const loaded = keybindingsOf(saved);
+  expect(loaded.fire).toEqual(['KeyL', null]);
+  expect(loaded).not.toHaveProperty('gunnery');
+  expect(bindingError(loaded, 'fire', 0, 'KeyG')).toBeNull();
+});
+
+test('legacy category bindings migrate to direct slots without losing other keys or colliding with new slots', () => {
+  const saved: Record<string, unknown> = { ...defaultKeybindings() };
+  for (let i = 1; i <= 10; i++) delete saved[`weaponGroup${i}`];
+  Object.assign(saved, { mainBattery: ['KeyL', null], secondaryBattery: ['Digit2', null], torpedoes: ['Digit3', null], depthCharges: ['Digit4', null], fire: ['Digit5', null] });
+  const loaded = keybindingsOf(saved);
+  expect(loaded.weaponGroup1).toEqual(['KeyL', null]);
+  expect(loaded.weaponGroup3).toEqual(['Digit3', null]);
+  expect(loaded.fire).toEqual(['Digit5', null]);
+  expect(loaded.weaponGroup5).not.toContain('Digit5');
+  expect(new Set(Object.values(loaded).flat().filter(Boolean)).size).toBe(Object.values(loaded).flat().filter(Boolean).length);
+  expect(keybindingsOf(loaded)).toEqual(loaded);
 });

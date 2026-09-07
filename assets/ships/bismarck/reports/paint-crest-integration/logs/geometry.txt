@@ -1,0 +1,9 @@
+00:00.686  blend            | Read blend: "/Users/bill/orca/workspaces/ship-game/handfish/.build/pr-integration-bismarck-master/source.blend"
+00:03.303  blend            | Read blend: "/Users/bill/orca/workspaces/ship-game/handfish/assets/ships/bismarck/generated/source.blend"
+bismarck 25429e7ad048aada681f0dc250d25f0a07bd93d7cc93f34c1e94692f2150052b original objects audited 18529 changed rail objects 0 added 0
+00:05.752  blend            | Read blend: "/Users/bill/orca/workspaces/ship-game/handfish/.build/pr-integration-yamato-master/source.blend"
+00:07.063  blend            | Read blend: "/Users/bill/orca/workspaces/ship-game/handfish/assets/ships/yamato/generated/source.blend"
+yamato 18e762f1354f7f5b2036b7fc94b4c149c6762b704b1df30a524de85f796bf7b5 original objects audited 10187 changed rail objects 90 added 51
+Blender 5.2.0 LTS (hash fbe6228777e7 built 2026-07-14 01:31:22)
+
+Blender quit

@@ -7,7 +7,6 @@ import { ShipContext } from '../ui/ShipContext';
 import { defaultKeybindings } from './keybindings';
 import type { Telemetry } from './types';
 import { updateCapability } from '../simulation/stability';
-import { GunneryPanel } from '../ui/GunneryPanel';
 
 test('the compact shell cycle exposes the current load, next choice, stocks and remapped shortcut', () => {
   const definition = shipPreset('bismarck'), sim = new CombatSimulation(definition);
@@ -18,15 +17,15 @@ test('the compact shell cycle exposes the current load, next choice, stocks and 
   const bindings = defaultKeybindings(); bindings.shellType = ['KeyV', null];
   const render = () => renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={data} game={null} visible bindings={bindings}/></ShipContext.Provider>);
   const html = render();
-  expect(html).toContain('aria-label="HE selected · 384 rounds. Switch to AP · 576 rounds · V"');
+  expect(html).toContain('aria-label="HE selected · 384 rounds. Queue AP · 576 rounds · V"');
   expect(html).toContain('aria-disabled="false"');
   expect(html).toContain('Armor piercing <b>AP · 576</b>');
   expect(html).toContain('High explosive <b>HE · 384</b>');
-  expect(html).toContain('Full reload on change. Guns without HE keep AP.');
-  expect(html).toContain('Select main HE battery · 384 shells');
+  expect(html).toContain('Single press queues next load. Double-press V to switch now with a full reload. Guns without HE keep AP.');
+  expect(html).toContain('Select 38 cm twin mount · 576 shells');
   expect(html).toContain('<kbd>V</kbd>');
   combat.ammunitionStock.he = 0;
-  expect(render()).toContain('aria-label="HE selected · 0 rounds. Switch to AP · 576 rounds · V"');
+  expect(render()).toContain('aria-label="HE selected · 0 rounds. Queue AP · 576 rounds · V"');
   expect(render()).toContain('aria-disabled="false" data-empty="true"');
   expect(render()).toContain('Out of HE');
   combat.ammunitionStock.ap = 0;
@@ -67,13 +66,8 @@ test('Fletcher exposes live depth charge supply and broadside torpedo help, whil
     const html = renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={data} game={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
     if (id === 'fletcher') {
       expect(html).not.toContain('class="fleet-shell-cycle"');
-      expect(html).toContain('Select depth charges · 28 charges · 4');
+      expect(html).toContain('Select Mk 6 depth charge · 28 charges · 5');
       expect(html).toContain('Burst at 10 m'); expect(html).toContain('Drop depth charge');
-      const gunnery = renderToStaticMarkup(<GunneryPanel data={data} game={null} expanded onExpand={() => {}} bindings={defaultKeybindings()}/>);
-      expect(gunnery).toContain('Ready to release');
-      expect(gunnery).toContain('Own damage control');
-      expect(gunnery).not.toContain('aria-label="Shell selection"');
-      expect(gunnery).not.toContain('Aim at <select');
       data.combat = sim.telemetry('torpedo', [1500, 0, 0]);
       const torpedoHtml = renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={data} game={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
       expect(torpedoHtml).not.toContain('class="fleet-shell-cycle"');
@@ -90,7 +84,8 @@ test('VIIC depth instruments show real orders, ballast and recovery instructions
     if (id === 'type-viic') {
       expect(html).toContain('aria-label="Depth and ballast"'); expect(html).toContain('Ordered 50 m');
       expect(html).toContain('Ballast 85%'); expect(html).toContain('Torpedoes: rise to 12 m or less');
-      expect(html).toContain('Emergency blow'); expect(html).not.toContain('Periscope');
+      expect(html).toContain('Emergency blow'); expect(html).toContain('Periscope view');
+      expect(html).toContain('Surface · U'); expect(html).toContain('Dive 50 m · J');
       expect(html).toContain('Dive 2 m'); expect(html).toContain('Rise 2 m');
     } else expect(html).not.toContain('aria-label="Depth and ballast"');
   }
@@ -109,23 +104,17 @@ test('main battery loss leaves an armed ship in its fleet without an extra statu
   expect(html).toContain('Friendly <strong>2</strong>');
 });
 
-test('Gunnery separates penetrating hull damage from surviving equipment', () => {
+test('battle HUD omits the removed gunnery panel and keeps weapon controls', () => {
   const definition = shipPreset('bismarck'), sim = new CombatSimulation(definition);
-  sim.target.controller = 'idle';
-  Object.assign(sim.target.motion, { x: 0, z: 0, heading: 0 });
-  sim.player.motion.x = -5000;
-  const weapon = definition.mounts[0].weapon;
-  sim.shells.push({ id: 900, ownerId: 'player', position: [-20, .5, -21], velocity: [730, -35, 0],
-    age: 0, penetrationMm: 550, damage: weapon.damage, caliberM: weapon.caliberM, ap: weapon.ap, visited: [] });
-  for (let i = 0; i < 30; i++) sim.step({ throttle: 0, rudder: 0 }, { aim: [0, .5, 0], fire: false, battery: 'main' });
-  const data: Telemetry = { ship: sim.ship, order: 0, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat: sim.telemetry('main', [0, .5, 0]) };
-  expect(data.combat!.targetIntegrity).toBeLessThan(1);
-  expect(data.combat!.targetEquipmentIntegrity).toBe(1);
-  const html = renderToStaticMarkup(<GunneryPanel data={data} game={null} expanded onExpand={() => {}} bindings={defaultKeybindings()}/>);
-  expect(html).toContain('<dt>Hull</dt><dd>97%</dd>');
-  expect(html).toContain('<dt>Equipment</dt><dd>100%</dd>');
-  expect(html).toContain('45.5 hull damage');
-  expect(html).toContain('without restoring hull HP');
+  const data: Telemetry = { ship: sim.ship, order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat: sim.telemetry('main', [0, 0, -5000]) };
+  for (const inspecting of [false, true]) {
+    const html = renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={{ ...data, inspecting }} game={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
+    expect(html).not.toContain('GUNNERY');
+    expect(html).not.toContain('class="gunnery"');
+    expect(html).toContain('aria-label="Weapons"');
+    expect(html).toContain('class="fleet-shell-cycle"');
+    expect(html).toContain('fleet-fire-slot');
+  }
 });
 
 test('battle reports distinguish weapons, incoming hits, duplicate ships, damaged ships and permanent losses', () => {
@@ -155,4 +144,25 @@ test('battle reports distinguish weapons, incoming hits, duplicate ships, damage
   combat.damageLog = [];
   const empty = renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={data} game={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
   expect(empty).not.toContain('class="fleet-damage-log"');
+});
+
+test('weapon slots show separate types, custom shortcuts, and one selected group including on carriers', () => {
+  for (const id of ['bismarck', 'enterprise-cv6']) {
+    const definition = shipPreset(id), sim = new CombatSimulation(definition);
+    const groups = sim.telemetry('main', [1800, 0, 0]).weaponGroups;
+    const selected = groups[2];
+    const combat = sim.telemetry(selected.battery, [1800, 0, 0], selected.id);
+    const data: Telemetry = { ship: sim.ship, order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat };
+    const bindings = defaultKeybindings(); bindings.weaponGroup3 = ['KeyL', null];
+    const html = renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={data} game={null} visible bindings={bindings}/></ShipContext.Provider>);
+    expect(html).toContain('aria-label="Weapons"');
+    for (const group of groups) expect(html).toContain(`Select ${group.name} ·`);
+    expect(html).toContain('<kbd>L</kbd>');
+    expect(html.match(/class="fleet-weapon-slot"[^>]*aria-pressed="true"/g)).toHaveLength(1);
+    expect(html).toContain(`${selected.name}</span>`);
+    if (id === 'enterprise-cv6') {
+      expect(html).toContain('aria-label="Squadron commands"');
+      expect(html).toContain('Command map');
+    }
+  }
 });

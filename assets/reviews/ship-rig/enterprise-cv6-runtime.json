@@ -1,0 +1,56 @@
+{
+  "ship": "enterprise-cv6",
+  "contentHash": "8dae05042d16a0524dfe7617d83d8ae090cb141d881c5206bbe3645343c2df6c",
+  "before": {
+    "flags": [
+      {
+        "design": "us-48",
+        "position": [
+          11.049,
+          42.63773,
+          8.5344
+        ],
+        "visible": true,
+        "tip": [
+          3.8113698959350586,
+          -1.0096415281295776,
+          2.754948377609253
+        ]
+      }
+    ],
+    "radars": [
+      {
+        "nodeId": "radar-cxam.yaw",
+        "angle": 1.5707963267948974,
+        "rpm": 5
+      }
+    ]
+  },
+  "after": {
+    "flags": [
+      {
+        "design": "us-48",
+        "position": [
+          11.049,
+          42.63773,
+          8.5344
+        ],
+        "visible": true,
+        "tip": [
+          3.4586517810821533,
+          -1.181244134902954,
+          3.0928475856781006
+        ]
+      }
+    ],
+    "radars": [
+      {
+        "nodeId": "radar-cxam.yaw",
+        "angle": 2.2514747350726854,
+        "rpm": 5
+      }
+    ]
+  },
+  "pauseHeld": true,
+  "maxWeaponErrorM": 3.263095168349711e-05
+}
