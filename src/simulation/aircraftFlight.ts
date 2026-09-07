@@ -21,6 +21,7 @@ const envelopes: Record<AircraftRole, { bank: number; rollRate: number; climb: n
  * All poses and mechanisms advance on the CPU fixed tick, including while offscreen. */
 export function flyAircraft(p: Aircraft, point: Vec3, requestedSpeed: number, dt: number, options: { dive?: boolean; landing?: boolean; bankLimit?: number; altitudeLookahead?: number } = {}) {
   if (dt <= 0) return;
+  p.navigationTarget = [...point];
   const envelope = envelopes[p.role];
   const speed = Math.max(envelope.minSpeed, length(p.velocity));
   const dx = point[0] - p.position[0], dz = point[2] - p.position[2];
