@@ -41,8 +41,9 @@ Use `git show :1:assets/parts/guns.json` (base), `:2:` and `:3:` to review them.
 During a rebase, "ours" is the updated destination and "theirs" is the replayed
 commit—not necessarily the branch you originally authored.
 
-Generated GLBs, Blender scenes, thumbnails and comparison ZIPs are retained build
-outputs, not independently editable merge sources. Keep a coherent candidate set,
+Generated GLBs, Blender scenes and thumbnails are retained build outputs;
+comparison ZIPs are ignored local downloads rebuilt with `ship:compare`.
+These outputs are not independently editable merge sources. Keep a coherent candidate set,
 then validate it against the resolved authoring inputs. Do not use an automatic
 "ours" driver for them: that would hide stale or mismatched assets.
 

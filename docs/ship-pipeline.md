@@ -62,6 +62,13 @@ src/simulation/                    Renderer-free weapons, movement and damage
 
 Our generated/source and runtime files are deliberately retained with their recipes. `.build/`, Blender backups and caches are ignored. The Bismarck baseline is preserved in this repository, so the build no longer relies on `/Users/bill/models`. Large future fleets may need a separate versioned binary store; the high-resolution reference packs are larger than runtime models and include standalone review copies.
 
+Review ZIP downloads are local, ignored build outputs: they duplicate the retained
+comparison files and authoring inputs. Run `bun run ship:compare <ship-id>` to
+generate the download before using a review page's ZIP link or publishing that
+page with its download. Clean checkouts retain the review pages and evidence but
+omit ZIPs. `ship:check` permits absent ZIPs and verifies the recorded hash of every
+ZIP that is present; all other comparison artifacts remain required.
+
 ## Author a ship with an assistant and Blender MCP
 
 1. Read `AGENTS.md`, this document, the component library, and the ship's source register. Inspect existing work before changing it. State the chosen configuration and which measurements are known, interpreted, or unknown.
