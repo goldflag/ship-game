@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { Game } from '../game/Game';
 import type { CombatTelemetry } from '../simulation/combat';
 
@@ -27,13 +27,13 @@ function TeamStatus({ team, combat, game, expanded, onToggle }: { team: Contact[
   </div>;
 }
 
-export function BattleStatus({ combat, game }: { combat: CombatTelemetry; game: Game | null }) {
+export function BattleStatus({ combat, game, children }: { combat: CombatTelemetry; game: Game | null; children?: ReactNode }) {
   const [expandedTeam, setExpandedTeam] = useState<Contact['team'] | null>(null);
   return <section className="fleet-battle" aria-label="Battle status">
     {combat.result !== 'active' && <h2>{combat.result === 'victory' ? 'Victory' : combat.result === 'defeat' ? 'Defeat' : 'Draw'}</h2>}
     <div className="fleet-teams" aria-label="Team status">{(['friendly', 'enemy'] as const).map(team => <TeamStatus key={team} team={team} combat={combat} game={game} expanded={expandedTeam === team} onToggle={() => setExpandedTeam(expandedTeam === team ? null : team)}/>)}</div>
-    {expandedTeam === null && <div className="fleet-target"><select aria-label="Enemy target" title="Hold Ctrl to select a target" value={combat.targetId} onChange={event => game?.selectTarget(event.target.value)}>{combat.contacts.filter(contact => contact.team === 'enemy').map(contact => <option key={contact.id} value={contact.id}>{contactLabel(contact)} · {Math.round(contact.integrity * 100)}%</option>)}</select><span>{(combat.targetRange / 1000).toFixed(1)} km</span></div>}
     {combat.result !== 'active' && <small>Esc to return to port</small>}
     {combat.result === 'active' && combat.playerSunk && <small>Your ship is sinking · Allies still fighting</small>}
+    {children}
   </section>;
 }

@@ -9,6 +9,7 @@ import type { ShellView } from './ShellFollow';
 export function aircraftFollowView(plane: Aircraft, actor: FleetActor, hull: Pose, alpha: number): ShellView | undefined {
   if (plane.phase === 'lost') return;
   const deck = onFlightDeck(plane);
+  if (!deck && !['takeoff', 'outbound', 'attack', 'returning', 'landing'].includes(plane.phase)) return;
   const position = deck
     ? localToWorld(['ready', 'queued', 'rearming'].includes(plane.phase) ? aircraftDeckSpot(actor, plane) : plane.deckPosition!, hull)
     : add(plane.previousPosition, scale(sub(plane.position, plane.previousPosition), alpha));

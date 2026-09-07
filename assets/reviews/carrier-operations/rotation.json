@@ -1,0 +1,343 @@
+{
+  "events": [
+    {
+      "t": 4,
+      "kind": "aircraft-launch",
+      "id": "player/vf-6/1"
+    },
+    {
+      "t": 12,
+      "kind": "aircraft-launch",
+      "id": "player/vf-6/2"
+    },
+    {
+      "t": 19,
+      "kind": "aircraft-launch",
+      "id": "player/vf-6/3"
+    },
+    {
+      "t": 24,
+      "kind": "aircraft-launch",
+      "id": "player/vf-6/4"
+    },
+    {
+      "t": 33,
+      "kind": "aircraft-launch",
+      "id": "player/vf-6/5"
+    },
+    {
+      "t": 41,
+      "kind": "aircraft-launch",
+      "id": "player/vf-6/6"
+    },
+    {
+      "t": 48,
+      "kind": "aircraft-launch",
+      "id": "player/vf-6/7"
+    },
+    {
+      "t": 53,
+      "kind": "aircraft-launch",
+      "id": "player/vf-6/8"
+    },
+    {
+      "t": 62,
+      "kind": "aircraft-launch",
+      "id": "player/vf-6/9"
+    },
+    {
+      "t": 70,
+      "kind": "aircraft-launch",
+      "id": "player/vf-6/10"
+    },
+    {
+      "t": 76,
+      "kind": "aircraft-launch",
+      "id": "player/vf-6/11"
+    },
+    {
+      "t": 82,
+      "kind": "aircraft-launch",
+      "id": "player/vf-6/12"
+    },
+    {
+      "t": 90,
+      "kind": "aircraft-launch",
+      "id": "player/vb-6/1"
+    },
+    {
+      "t": 98,
+      "kind": "aircraft-launch",
+      "id": "player/vb-6/2"
+    },
+    {
+      "t": 104,
+      "kind": "aircraft-launch",
+      "id": "player/vb-6/3"
+    },
+    {
+      "t": 109,
+      "kind": "aircraft-launch",
+      "id": "player/vb-6/4"
+    },
+    {
+      "t": 118,
+      "kind": "aircraft-launch",
+      "id": "player/vb-6/5"
+    },
+    {
+      "t": 126,
+      "kind": "aircraft-launch",
+      "id": "player/vb-6/6"
+    },
+    {
+      "t": 134,
+      "kind": "aircraft-launch",
+      "id": "player/vt-6/1"
+    },
+    {
+      "t": 141,
+      "kind": "aircraft-launch",
+      "id": "player/vt-6/2"
+    },
+    {
+      "t": 147,
+      "kind": "aircraft-launch",
+      "id": "player/vt-6/3"
+    },
+    {
+      "t": 152,
+      "kind": "aircraft-launch",
+      "id": "player/vt-6/4"
+    },
+    {
+      "t": 159,
+      "kind": "aircraft-launch",
+      "id": "player/vt-6/5"
+    },
+    {
+      "t": 164,
+      "kind": "aircraft-launch",
+      "id": "player/vt-6/6"
+    },
+    {
+      "t": 296,
+      "kind": "aircraft-recovered",
+      "id": "player/vf-6/12"
+    },
+    {
+      "t": 305,
+      "kind": "aircraft-recovered",
+      "id": "player/vf-6/2"
+    },
+    {
+      "t": 311,
+      "kind": "aircraft-recovered",
+      "id": "player/vf-6/4"
+    },
+    {
+      "t": 319,
+      "kind": "aircraft-recovered",
+      "id": "player/vf-6/1"
+    },
+    {
+      "t": 324,
+      "kind": "aircraft-recovered",
+      "id": "player/vf-6/6"
+    },
+    {
+      "t": 346,
+      "kind": "aircraft-recovered",
+      "id": "player/vt-6/6"
+    },
+    {
+      "t": 354,
+      "kind": "aircraft-recovered",
+      "id": "player/vb-6/3"
+    },
+    {
+      "t": 360,
+      "kind": "aircraft-recovered",
+      "id": "player/vb-6/4"
+    },
+    {
+      "t": 371,
+      "kind": "aircraft-recovered",
+      "id": "player/vt-6/2"
+    },
+    {
+      "t": 377,
+      "kind": "aircraft-recovered",
+      "id": "player/vb-6/6"
+    },
+    {
+      "t": 419,
+      "kind": "aircraft-recovered",
+      "id": "player/vf-6/3"
+    },
+    {
+      "t": 426,
+      "kind": "aircraft-recovered",
+      "id": "player/vf-6/7"
+    },
+    {
+      "t": 432,
+      "kind": "aircraft-recovered",
+      "id": "player/vf-6/9"
+    },
+    {
+      "t": 440,
+      "kind": "aircraft-recovered",
+      "id": "player/vf-6/10"
+    },
+    {
+      "t": 485,
+      "kind": "aircraft-recovered",
+      "id": "player/vb-6/2"
+    },
+    {
+      "t": 493,
+      "kind": "aircraft-recovered",
+      "id": "player/vt-6/4"
+    },
+    {
+      "t": 500,
+      "kind": "aircraft-recovered",
+      "id": "player/vb-6/1"
+    },
+    {
+      "t": 513,
+      "kind": "aircraft-recovered",
+      "id": "player/vt-6/1"
+    },
+    {
+      "t": 540,
+      "kind": "aircraft-recovered",
+      "id": "player/vf-6/11"
+    },
+    {
+      "t": 563,
+      "kind": "aircraft-recovered",
+      "id": "player/vf-6/8"
+    },
+    {
+      "t": 621,
+      "kind": "aircraft-recovered",
+      "id": "player/vt-6/5"
+    },
+    {
+      "t": 629,
+      "kind": "aircraft-recovered",
+      "id": "player/vb-6/5"
+    },
+    {
+      "t": 635,
+      "kind": "aircraft-recovered",
+      "id": "player/vt-6/3"
+    },
+    {
+      "t": 663,
+      "kind": "aircraft-recovered",
+      "id": "player/vf-6/5"
+    }
+  ],
+  "maxDeck": 12,
+  "final": [
+    {
+      "id": "player/vf-6/1",
+      "phase": "ready"
+    },
+    {
+      "id": "player/vf-6/2",
+      "phase": "ready"
+    },
+    {
+      "id": "player/vf-6/3",
+      "phase": "ready"
+    },
+    {
+      "id": "player/vf-6/4",
+      "phase": "ready"
+    },
+    {
+      "id": "player/vf-6/5",
+      "phase": "ready"
+    },
+    {
+      "id": "player/vf-6/6",
+      "phase": "ready"
+    },
+    {
+      "id": "player/vf-6/7",
+      "phase": "ready"
+    },
+    {
+      "id": "player/vf-6/8",
+      "phase": "ready"
+    },
+    {
+      "id": "player/vf-6/9",
+      "phase": "ready"
+    },
+    {
+      "id": "player/vf-6/10",
+      "phase": "ready"
+    },
+    {
+      "id": "player/vf-6/11",
+      "phase": "ready"
+    },
+    {
+      "id": "player/vf-6/12",
+      "phase": "ready"
+    },
+    {
+      "id": "player/vb-6/1",
+      "phase": "ready"
+    },
+    {
+      "id": "player/vb-6/2",
+      "phase": "ready"
+    },
+    {
+      "id": "player/vb-6/3",
+      "phase": "ready"
+    },
+    {
+      "id": "player/vb-6/4",
+      "phase": "ready"
+    },
+    {
+      "id": "player/vb-6/5",
+      "phase": "ready"
+    },
+    {
+      "id": "player/vb-6/6",
+      "phase": "ready"
+    },
+    {
+      "id": "player/vt-6/1",
+      "phase": "ready"
+    },
+    {
+      "id": "player/vt-6/2",
+      "phase": "ready"
+    },
+    {
+      "id": "player/vt-6/3",
+      "phase": "ready"
+    },
+    {
+      "id": "player/vt-6/4",
+      "phase": "ready"
+    },
+    {
+      "id": "player/vt-6/5",
+      "phase": "ready"
+    },
+    {
+      "id": "player/vt-6/6",
+      "phase": "ready"
+    }
+  ]
+}
