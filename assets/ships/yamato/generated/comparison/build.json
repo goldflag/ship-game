@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "inputHash": "0d7c3169ead7fdee874dd83e2f880718972bf9a43df0d119296db68a9276ef34",
+  "inputHash": "e936056c09dd5bb5d757b1c0bae9ff73c76c030e8c883897985c8d74139d7f12",
   "files": {
     "authored/bow-profile.png": "ce13d47d63ce52f12c9fb4fed439d2926ba8324416e8d7e0648abc8d0021f80c",
     "authored/bow.png": "32c24fffcb93e9d58a16b82edf9a8c7a88f942a8a19363990f32c7997adfe437",
@@ -47,7 +47,7 @@
     "historical/starboard.png": "c31c4a05420747862ea9b956064cae8c6f45d17efc7ba76e3a24f19f2d5a635e",
     "historical/top.png": "46427010d7afd254c830d3dad4dc05140ca031c55aedab40841189532a234e40",
     "historical/yamato-1945-alexpl.png": "304cb91a9f9223c3b5f53ed9b718366e4981d39dfa6a156e8ed980d4633eba98",
-    "index.html": "4bad6c8b82c82a98b31265a849d6c3e8a9a26dc3b3c6ae052f72c3ac7f411f68",
+    "index.html": "7b36041e87b5275ec8f6840bb22b3a3db3a8b447be72231803cf21c3ba0ac9c1",
     "inputs/blender_components.py": "dae5b638dd2fad7e05edd857ef43f797a7aa3ba416d26480654e66a84bca7e8c",
     "inputs/blender_fidelity.py": "c2f80c8f1387db8c424c825966eddbca4ec8eba41baa75cafee9800aecb9b63b",
     "inputs/blender_open_guns.py": "dd292b8c330ed55db06104b2e3d5397ea6dcc4c506e97514460b8a93cf250c72",
@@ -95,8 +95,6 @@
     "sheets/stern-equipment.png": "187b789f7d5460e090c6da0921dd1d9038a0ff2d418cff392a64d5e9733a8843",
     "sheets/stern.png": "5b95d1fbe728ea84ac701eabb686867591819e661af00994c87a63dd0713f54d",
     "sheets/top.png": "c3187c25783b246a3a5774dde0badbabab52bb46518ac50f37690db03cf50a3b",
-    "sources.json": "c6094f428730d7fe08d19049fd38108160d95808ebeb814030016ad385179a3a",
-    "yamato-review.zip": "9c926e82a0460ec28ca032f14377ec7a3e7e4dcf2465a92afbc8f471fcde36aa",
-    "yamato.glb": "fa3ef6be8e253d14641d00cbc1e4a4d52ae81a7880609907cfd782a295486540"
+    "sources.json": "c6094f428730d7fe08d19049fd38108160d95808ebeb814030016ad385179a3a"
   }
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "inputHash": "4216982c8984b33be1125526001f9ef64035bb86a24c867bf367ff551502b699",
+  "inputHash": "052fd0b1081a3fdab05f4640e62fec8631d03ac879910e468714fc9d07920768",
   "files": {
     "authored/bow-profile.png": "0fe5ef5bc89dbd0b9e72e974f99aebc6b6ca70b500c95bf3fea8e505161bdba0",
     "authored/bow.png": "ad07b833da39b51308d46cd7d80892a0bf1b56af570e0c30bde9e465674addd4",
@@ -48,7 +48,7 @@
     "historical/top.png": "4199ce33bcc3adbbdadcc484b2c76ab1d7895a9f7b5e1621b3b0149217210e28",
     "historical/u570-docking-plan.jpg": "48981d5a1dd38124491cb1676c131408980b54c537db1b71df0f8902cdebc28f",
     "historical/u570-general-plan-1941.jpg": "7cce9cddb4d39f79300427f5b5bf9e16992a927f7a8bf12a5d5b2358a76fdc31",
-    "index.html": "5ab6d537c34db9e9d67dd8c314bf4eca3cd511747a7996e3be5b5196083f4e9f",
+    "index.html": "5037f2d9f93a6e9a4c84306bfee93f0629057d62730487892c128c1a57039bf4",
     "inputs/blender_components.py": "dae5b638dd2fad7e05edd857ef43f797a7aa3ba416d26480654e66a84bca7e8c",
     "inputs/blender_fidelity.py": "c2f80c8f1387db8c424c825966eddbca4ec8eba41baa75cafee9800aecb9b63b",
     "inputs/blender_open_guns.py": "dd292b8c330ed55db06104b2e3d5397ea6dcc4c506e97514460b8a93cf250c72",
@@ -102,8 +102,6 @@
     "sheets/stern-equipment.png": "35745747ab232b46866ac888e25c9670bf9b42367344dc8fbc89b6e1e818d6c0",
     "sheets/stern.png": "65a447de754e08ab397c967b4914be658283e72ef5680079323545c3165c9f5e",
     "sheets/top.png": "a35406bdc8bc75108d33a58d2d768fd23c81a635f845ace5e7dcee61c2da5897",
-    "sources.json": "1aac23694b5f62fbf2fbfa692988458d6caa29123904d590bf8661a80f0c5b58",
-    "type-viic-review.zip": "2137e84cffa7a42f7367b158dc681398038094ef241199e0bbf2c6acd1976ae7",
-    "type-viic.glb": "a0dd84b853a84cd699fa040f8a7940d595eeb5cfcd82b026d44ee179f0e65351"
+    "sources.json": "1aac23694b5f62fbf2fbfa692988458d6caa29123904d590bf8661a80f0c5b58"
   }
 }

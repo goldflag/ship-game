@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "inputHash": "13aa44a570aa8ddc01383426eafcfa135f57c51e01d870146a5e3d8a652a79dc",
+  "inputHash": "07c688b252a93a774c759330f85d97e3f3d20c06d5bdb2e13b1df8107e40ce4e",
   "files": {
     "authored/bow-profile.png": "0d5e25056574654b22dec0b6947fbc70e6924ad36fb1058adde9599af5e8006d",
     "authored/bow.png": "6dca35f55a23d71c82349c0fdc948bd66250692248d8d3652f93cea6004d66d7",
@@ -30,8 +30,6 @@
     "before/top.png": "f279462d0aaabcd8227f56964efe16fc37c3b7ff44ccbe59fc5218bf95564cb4",
     "blueprint.json": "0da8eb7baa655dec6d7611064e7fb6e2498eb182a01461b1e98488b6ee720622",
     "discrepancies.md": "2ded3ae662863ba8a9060e16319be05200e60ae6ef864b87fde3ecc6b840d0be",
-    "enterprise-cv6-review.zip": "093387a09d280ca6a47ee94c4556bd73ba2077e40dedc7b245299a1bfd21f581",
-    "enterprise-cv6.glb": "7c49ee03d530131c7a20c7639a8d16ba1bec35586254ad34fb750ad3346b2f10",
     "export.json": "7e3a8b1cf7f7e798695a6bd4c702ebc6c8f63b54977c7e2d5ce66d6d6c66c669",
     "fonts/Barlow-OFL.txt": "10b0e6bb43166a50fbe7cde2895bd7f703738a5da843acb5c97c95dc9ea26817",
     "fonts/BarlowCondensed-OFL.txt": "10b0e6bb43166a50fbe7cde2895bd7f703738a5da843acb5c97c95dc9ea26817",
@@ -46,7 +44,7 @@
     "historical/020694.jpg": "1c41cb246352aa7d77c86360a363d16bcb89e91559a18847951021b5f684bddc",
     "historical/credits.txt": "830b9c8f7c75a6aeb84518e6ef08f6fd282127ed372dd9f54e747170b7e236c7",
     "historical/registration.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
-    "index.html": "74439448a8d79ee7d8cd2f801ae5a9b145fb6ce9abb557887f1f0c004c689e03",
+    "index.html": "c9cb5ea8faae3f47b765038b61721702c0dc24a9959836221b786a0341165112",
     "inputs/blender_components.py": "dae5b638dd2fad7e05edd857ef43f797a7aa3ba416d26480654e66a84bca7e8c",
     "inputs/blender_fidelity.py": "c2f80c8f1387db8c424c825966eddbca4ec8eba41baa75cafee9800aecb9b63b",
     "inputs/blender_open_guns.py": "dd292b8c330ed55db06104b2e3d5397ea6dcc4c506e97514460b8a93cf250c72",

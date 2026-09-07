@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "inputHash": "42fe7cba3a68e436d4bb7efbf70f7e956acd5a3caea2f9313c8d7bb3b0fb8a7d",
+  "inputHash": "d979cc50064586d7afb0a4bed7155da498297091836c7d2ab7a3f5e1c016db6b",
   "files": {
     "authored/bow-profile.png": "51d26446fb5ed7e2d19ea3a1badf5cc8b447bf8eece2fb117258970c5f0dd734",
     "authored/bow.png": "ee233f5b5b1d7c4373ab057fe0e6be1b5cb915ca4af4f99b36e150f045743b11",
@@ -15,8 +15,6 @@
     "authored/stern-equipment.png": "f5b737bdea8068180bc640094ff4076b3de9a2e94877ef28d59cb7da854f005f",
     "authored/stern.png": "6fdbe5d857060720ec51e85642d58fb06b000a3f5771eec0202c3415560b1c5c",
     "authored/top.png": "58749727d7c4584ec3a6b02be3c3e9e59a6e270fece1190d5efd90fdf43d3691",
-    "baltimore-review.zip": "e37198802ec13819710ef65cd2527d843e13991eadd7530a188a46a6776602f9",
-    "baltimore.glb": "640bb21e0692e522e3efa9a5f33471078bd1bc31baede430ee0b34ee74fd6763",
     "before/bow-profile.png": "ee7636d343060c7350be4bf7265d74ebce810a334ef47224118a14660c40111d",
     "before/bow.png": "5942f0d10a7182208744e5d6dded31962d88d2075545c00c68feeaff814fea08",
     "before/bridge-profile.png": "366f8e9e9b71f748b7c6f558443309eab6c71928e75b33ffc981cd45666e02c0",
@@ -49,7 +47,7 @@
     "historical/registration.json": "b19c108a0d421bdc4774e5bbeed9a5050ec468d7be5670fecefbee0e04bd1b17",
     "historical/starboard.png": "a77d253336cb6ab928b69994523d4e521f0b395b798673402803bb26b16811b9",
     "historical/top.png": "bc7a0077ee2c15fc085c8ec21d85391dc0c6bd5db94a739b557b86e01cb749c8",
-    "index.html": "70ad6d8e73b3dd83e16bae747f7a1557516cae5de49d0f70d7bc2a7e8302200d",
+    "index.html": "9a09017007452f2b3cb63fbe31709334865fdf21295406442cb88023a3e31be6",
     "inputs/blender_components.py": "dae5b638dd2fad7e05edd857ef43f797a7aa3ba416d26480654e66a84bca7e8c",
     "inputs/blender_fidelity.py": "c2f80c8f1387db8c424c825966eddbca4ec8eba41baa75cafee9800aecb9b63b",
     "inputs/blender_open_guns.py": "dd292b8c330ed55db06104b2e3d5397ea6dcc4c506e97514460b8a93cf250c72",

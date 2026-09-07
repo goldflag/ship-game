@@ -1,8 +1,7 @@
 {
   "schemaVersion": 1,
-  "inputHash": "82f8360e978cd97d5a0b802755bdf2b26654307d6d2a5023693a46e91749d2c8",
+  "inputHash": "f133516d64b92af4c1101f115d92de171c28dbaa1d7acfbf71f899c954702501",
   "files": {
-    "authored-contact-sheet.png": "58e9876bc8716545934891972fe58caed51865af4c2c239e6abb5625f32fdd4e",
     "authored/aft-superstructure.png": "8b4cb5e1a68bb67eb7a42ec9451ceb8c51c5536b84618f433af80ac6c74f3408",
     "authored/anton.png": "636b0c298084a573bca0fec4dd0733d6474203744972d82927729c49f18ac2e9",
     "authored/battery-isolated.png": "41e4febd59e90dd4d339389128d836a407fcdb787eb22e57e2f967838051e892",
@@ -29,8 +28,7 @@
     "authored/stern.png": "03ddbd8d7e0bece0febfc6a313dccc0b08539472baa4e65b1a76ddb9aab2fe6b",
     "authored/top.png": "b1373fe73fa847e9085e70bc94a9a18fa9d16ba533a670e3f981533189ab5419",
     "authored/underside.png": "91e75a35508df6af4e256f7dc70bfd0b76fca4fa6fb8ebfc886addea7d2bddd6",
-    "bismarck-review.zip": "a847d821530a972195ab44925f7066a2c6e9bb02d12d4730412951747b091675",
-    "bismarck.glb": "bf878f17fb52e76b3eac9ec2bef1bc860ae6d5016ae00b957af0e6ed3eff21c1",
+    "authored-contact-sheet.png": "58e9876bc8716545934891972fe58caed51865af4c2c239e6abb5625f32fdd4e",
     "blueprint.json": "fef5f72e0992b8855a69cf6f86deac8d4910d49c94bf471406dc1939d1aabf4f",
     "fonts/Barlow-OFL.txt": "10b0e6bb43166a50fbe7cde2895bd7f703738a5da843acb5c97c95dc9ea26817",
     "fonts/BarlowCondensed-OFL.txt": "10b0e6bb43166a50fbe7cde2895bd7f703738a5da843acb5c97c95dc9ea26817",
@@ -56,7 +54,7 @@
     "historical/starboard.png": "90f8577ce99214e7081f497f6359bc3105ed89f1a6329d2fc82b267a3cbe9424",
     "historical/top-crop.png": "cb5b069743c6d0cc216898232c347a9510c58b7267a0c65dabe3c96ea67f477a",
     "historical/top.png": "c122f9e6591e5f88ac4e20a8ddaca5b3312981e675ca603029b5d17e787cadcd",
-    "index.html": "1849d04c7f70e8fc8801a2ae9a91107f2565714af37fea858f768c217deddcfc",
+    "index.html": "16dbe1f48e6dda4746f4f15783af62c626660a199b275925230c0e2e9ef90012",
     "measurements.json": "576e0a46b51a532731e080fc247727b6cde113d6f656f2cce14708e19ef48f80",
     "modeling-spec.json": "f384451cd886378411bc9a9220162b8fb7899aa0869141470ae287c3b5376e68",
     "overlays/aft-superstructure.png": "c8fd693d157e78e41ad399798844d790befbe48e80f3b46ac8d4050d9c83f07f",
