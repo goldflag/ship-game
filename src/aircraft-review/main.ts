@@ -1,3 +1,4 @@
+import { assetUrl } from '../assetUrl';
 import {
   ACESFilmicToneMapping,
   Box3,
@@ -349,7 +350,7 @@ async function selectAircraft(id: string, lod = currentLOD): Promise<void> {
   showMessage(`Loading ${entry.name}`, 'Opening the original aircraft model…');
   needsRender = true;
   try {
-    const gltf = await loader.loadAsync(currentModelUrl);
+    const gltf = await loader.loadAsync(assetUrl(currentModelUrl));
     if (disposed || requestId !== thisRequest) {
       disposeModel(gltf.scene);
       return;
@@ -406,7 +407,7 @@ async function loadCatalog(): Promise<void> {
   error = null;
   showMessage('Opening the aircraft collection', 'Loading the model catalog…');
   try {
-    const response = await fetch('/models/aircraft/catalog.json', { signal: fetches.signal });
+    const response = await fetch(assetUrl('models/aircraft/catalog.json'), { signal: fetches.signal });
     if (!response.ok) throw new Error(`Catalog request failed (${response.status}).`);
     catalog = parseCatalog(await response.json());
     if (!catalog.length) throw new Error('No aircraft are registered in the collection yet.');

@@ -8,7 +8,7 @@ The repair and review pass is complete for those ten presets. Historical
 reconstruction limits remain documented below and in each discrepancy register.
 
 The initial source was commit `b020bbf`, with a clean worktree. After the repository
-history rewrite, `2cec98ab9ad2c5c443e9700e6cf1e129d6bd7911` contains the same
+history rewrite, `37abc50684cd4e850a862e029e380df1d9a6297f` contains the same
 original model bytes for all ten ships and is the verifier baseline. No Blender MCP tools
 were exposed. Inspection and builds use local Blender 5.2.0 LTS. Bismarck's
 preserved baseline is untouched. Original geometry and the existing versioned
@@ -137,8 +137,10 @@ tyre compression remain approximated by the existing deck datum.
 Validation retained in this pass:
 
 - All 78 current open-gun component cases pass at elevation/recoil extremes.
-- Latest master integration: `bun run test` passes 708 tests across 98 files
-  in 17.6 seconds; `bun run build` passes. See `reports/merge-832ddb1c.md`.
+- Latest master integration: `bun run test` passes 709 tests across 99 files
+  in 16.2 seconds; `bun run build` passes. See `reports/merge-c7b213a2.md`.
+- Previous localized-damage integration: 708 tests passed across 98 files; see
+  `reports/merge-832ddb1c.md`.
 - Previous carrier integration: 691 tests passed across 97 files; see
   `reports/merge-fe0df0be.md`.
 - Original repair suite, `bun test --timeout 20000`: 583 tests pass across 82 files.
@@ -236,3 +238,13 @@ integration checks.
 Master `832ddb1c` also includes the updated battle setup dialog and full-suite test
 runner. These changes do not alter model authoring inputs. Final validation is
 recorded in `reports/merge-832ddb1c.md` and its associated logs.
+
+Master `c7b213a2` changes comparison hashing for Git LFS, ignores rendered comparison
+output and supports a configurable deployment base path. The six conflicting
+comparison records were regenerated with the merged pipeline using local Blender;
+ship models, blueprints and authoring recipes are unchanged. Existing attachment
+views and runtime records still match the published models. The verifier now uses
+the corresponding baseline commit after the history rewrite; all ten original
+GLBs and eight preserved Bismarck baseline files were checked for identical content
+across that migration. See `reports/baseline-lfs-migration.json` and
+`reports/merge-c7b213a2.md`.

@@ -1,0 +1,5 @@
+$ bun scripts/reference/pipeline.ts compare type-viic
+measure passed
+authored-capture passed
+comparison-sheets passed
+Local review page: /ship-reference/type-viic/index.html

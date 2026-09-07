@@ -8,6 +8,28 @@ bun run git:setup # Once per clone: safer catalog merges and remembered resoluti
 bun run dev
 ```
 
+### Cloning without the asset archive
+
+The repository holds about 2 GB of ship references, validation reports and renders that only the Blender asset pipeline needs. For code work, clone sparsely and skip the archive; the game runs from `public/` alone:
+
+```sh
+git clone --filter=blob:none --sparse git@github.com:goldflag/ship-game.git
+cd ship-game
+git sparse-checkout set --no-cone '/*' '!/assets'
+```
+
+Reference scans, reports and review captures are stored in Git LFS (see `.gitattributes`). Pipeline checks accept LFS pointers, so `GIT_LFS_SKIP_SMUDGE=1 git clone …` gives a full checkout without downloading them; run `git lfs pull` later if you need the originals. Rendered comparison output under `assets/ships/<id>/generated/comparison/` is not version controlled; `bun run ship:compare <id>` rebuilds it with local Blender.
+
+### Deploying under a sub-path
+
+Set `BASE_PATH` to the mount point when building. Every asset URL resolves through `src/assetUrl.ts` against Vite's base, so the same build works at the site root or under a prefix:
+
+```sh
+BASE_PATH=/naval/ bun run build   # serve dist/ at https://example.com/naval/
+```
+
+`bun run build` runs every `ship:check` and `aircraft:check` first; they need neither Blender nor the LFS archive.
+
 Open http://localhost:5173. Current Chrome or Edge with hardware acceleration is recommended. WebGPU is selected by Three.js when available; its WebGL2 backend is the compatibility fallback. Initial startup compiles the ocean and cloud shaders, which can take a moment.
 
 **Custom battle** opens a wide command desk with conditions and spawn distance on the left, fleet selection in the center, and the deployment chart on the right. The separate **Battle waters** tab keeps map selection off the initial setup page; switching pages preserves fleet choices and custom deployment. **Custom battle → Battle waters** selects North Atlantic, Pacific Islands, Arctic Passage, or Volcanic Coast in the Indian Ocean. Each map has distinct water color, waves, sun, cloud cover and haze. **Battle conditions** lets you choose Dawn, Morning, Noon, Dusk, or Night and Clear, Partly cloudy, Overcast, Fog, or Storm clouds; **Map default** preserves the map’s original lighting or weather. Time stays fixed throughout the battle. Weather also sets wave strength: Clear and Fog bring gentle seas, Partly cloudy brings moderate seas, Overcast brings rolling seas, and Storm clouds brings heavy seas. Choices are retained for the current page session. Weather changes visual waves, clouds, light and haze; bot targeting and ballistics are unchanged. Storm clouds do not add rain or lightning. Coastal maps have original procedural islands shown on the navigation chart. Land blocks ships and low projectiles; bots turn away from shores. Large fleets widen the clear deployment lane automatically. Returning to port restores the harbor's sheltered water and daylight. See the [map guide with in-game screenshots](assets/maps/review/index.html).

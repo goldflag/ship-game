@@ -1,3 +1,4 @@
+import { assetUrl } from '../assetUrl';
 import * as THREE from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
@@ -30,13 +31,13 @@ export async function loadHarborMaterials(): Promise<{ materials: HarborMaterial
   const textures: Record<string, THREE.Texture> = {};
   await Promise.all(['ground', 'meadow', 'rock', 'brick', 'concrete', 'slate', 'apron', 'cobbles', 'asphalt'].flatMap(name => ['color', 'normal', 'roughness'].map(async channel => {
     const key = `${name}-${channel}`;
-    const map = await loader.loadAsync(`/harbor/${key}.jpg`);
+    const map = await loader.loadAsync(assetUrl(`harbor/${key}.jpg`));
     map.wrapS = map.wrapT = THREE.RepeatWrapping;
     map.anisotropy = 8;
     if (channel === 'color') map.colorSpace = THREE.SRGBColorSpace;
     textures[key] = map;
   })));
-  const facadeMap = await loader.loadAsync('/harbor/period-facades.jpg');
+  const facadeMap = await loader.loadAsync(assetUrl('harbor/period-facades.jpg'));
   facadeMap.colorSpace = THREE.SRGBColorSpace;
   facadeMap.anisotropy = 8;
   textures.facades = facadeMap;

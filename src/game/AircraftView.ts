@@ -1,3 +1,4 @@
+import { assetUrl } from '../assetUrl';
 import * as THREE from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { CombatSimulation } from '../simulation/combat';
@@ -55,7 +56,7 @@ export class AircraftView {
   private async loadModels() {
     const palette = new ShipMaterialPalette();
     const results = await Promise.allSettled(['f4f-4-wildcat', 'sbd-3-dauntless', 'tbd-1-devastator'].flatMap(id => [0, 1, 2].map(async lod => {
-      const url = lod ? `/models/aircraft/LOD${lod}/${id}-lod${lod}.glb` : `/models/aircraft/${id}.glb`;
+      const url = assetUrl(lod ? `models/aircraft/LOD${lod}/${id}-lod${lod}.glb` : `models/aircraft/${id}.glb`);
       const root = (await new GLTFLoader().loadAsync(url)).scene;
       // The shared authoring-node boundaries preserve propellers, controls,
       // landing gear and sockets while rigid paint surfaces share a draw.

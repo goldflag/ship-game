@@ -12,7 +12,7 @@ import subprocess
 audit = Path(__file__).resolve().parent
 repo = audit.parents[2]
 # Same original model bytes as b020bbf, under the repository's rewritten history.
-baseline_revision = '2cec98ab9ad2c5c443e9700e6cf1e129d6bd7911'
+baseline_revision = '37abc50684cd4e850a862e029e380df1d9a6297f'
 ships = ['bismarck', 'yamato', 'baltimore', 'enterprise-cv6', 'type-viic',
          'liberty-cargo', 'liberty-collier', 'victory-cargo', 'flower-corvette', 'fletcher']
 

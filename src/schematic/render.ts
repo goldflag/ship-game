@@ -1,3 +1,4 @@
+import { assetUrl } from '../assetUrl';
 import * as THREE from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { shipModel } from '../game/shipModel';
@@ -138,7 +139,7 @@ export async function createShipSchematicRenderer(signal: AbortSignal, definitio
     if (!response.ok) throw new Error('The ship model could not be loaded.');
     const bytes = await response.arrayBuffer();
     signal.throwIfAborted();
-    const { scene: model } = await new GLTFLoader().parseAsync(bytes, '/models/');
+    const { scene: model } = await new GLTFLoader().parseAsync(bytes, assetUrl('models/'));
     const meshes: THREE.Mesh[] = [];
     model.traverse(object => {
       if (!(object instanceof THREE.Mesh)) return;
