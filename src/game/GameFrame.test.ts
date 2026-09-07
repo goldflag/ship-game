@@ -6,6 +6,7 @@ import { ENGINE_ORDERS, FIXED_DT } from '../simulation/ship';
 import { wrapAngle } from '../simulation/geometry';
 import { shipPreset } from '../ships/presets';
 import { CameraRig } from './CameraRig';
+import { BattlefieldCamera } from './BattlefieldCamera';
 import { ShellFollow } from './ShellFollow';
 import { Game } from './Game';
 import { FrameScene } from './FrameScene';
@@ -44,7 +45,7 @@ async function frameHarness() {
   const helm = { throttle: 1, rudder: 0 };
   const game = Object.assign(Object.create(Game.prototype), {
     definition: simulation.definition, simulation, playerView, targetView, fleetViews: [playerView, targetView], camera, rig, ship: new Group(), shellFollow: new ShellFollow(),
-    renderer: { domElement: { setAttribute() {} } }, manualAim: false, battlefieldCamera: { exit() {} },
+    renderer: { domElement: { setAttribute() {} } }, manualAim: false, battlefieldCamera: new BattlefieldCamera(camera), cameraFrameListeners: new Set(),
     shipLabels: { update() {} }, hitLabels: { update() {} }, torpedoPreview: { update() {} },
     playerDamageFeedback: new HullDamageFeedback(simulation.player.damage.integrity),
     gunAim: { update(points: GunAimPoint[], _camera: PerspectiveCamera, visible: boolean) { gunAimFrames.push({ points, visible }); } },
