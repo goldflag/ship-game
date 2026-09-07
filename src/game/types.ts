@@ -23,6 +23,7 @@ export interface Telemetry {
   gunneryOpen?: boolean;
   shellFollow?: ShellFollow['phase'];
   followedAircraftId?: string;
+  spectatedShipId?: string;
   airOperationsOpen?: boolean;
   selectedFlightId?: string;
   airMap?: import('../ui/airChart').ChartView;

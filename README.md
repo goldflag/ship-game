@@ -239,3 +239,5 @@ The ongoing 60 FPS work, live measurements and verification limits are recorded 
 Default battle visibility now fades across 45–55 km depending on the map, keeping hull contrast at 20 km starts; selected weather presets retain their own visibility settings. Clear / Moderate / Storm wave amplitude multipliers are 0.12 / 0.24 / 0.48, with peak wavelengths 12 / 20 / 36 m; sheltered port waves retain their existing amplitude and wavelength. These are visual gameplay settings, not measured historical sea states.
 
 For parallel ship work and conflict resolution, follow the [integration workflow](docs/integration-workflow.md). Fleet validation uses `bun run ship:check all`.
+
+After your ship sinks in a custom battle, the camera automatically follows a surviving teammate. Use **Previous**, **Next**, or the **Spectating teammate** selector in the battle HUD to switch ships. Click the sea to look around, scroll to zoom, and hold Ctrl to use the controls. If the watched teammate is lost, the camera selects another survivor. Teammates remain under bot control; returning to port clears spectating.
