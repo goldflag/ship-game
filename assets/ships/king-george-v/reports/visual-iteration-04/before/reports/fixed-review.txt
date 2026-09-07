@@ -1,0 +1,3 @@
+$ bun scripts/ships/pipeline.ts review king-george-v
+review.py completed; log in /Users/bill/orca/workspaces/ship-game/ningyo/.build/ships/king-george-v
+Orthographic review views: /Users/bill/orca/workspaces/ship-game/ningyo/assets/ships/king-george-v/generated/review

@@ -1,6 +1,7 @@
 import { airborne, commandSquadron, createAirWing, launchSquadron, orderFlight, recallAircraft, stepAircraft, type AirRelease, type AirOrder } from './aircraft';
 import { airWingTelemetry, type AirWingTelemetry } from './airTelemetry';
 import { updateAntiAircraft } from './antiAircraft';
+import { DEFAULT_AI_LEVEL, type ShipAiLevel } from './aiLevels';
 import { DEFAULT_MAP, mapIslands, type Island, type OceanMapId } from '../maps/catalog';
 import { avoidLand, firstLandHit, resolveLandContact } from './land';
 import { updateCapability, type VesselStatus } from './stability';
@@ -14,7 +15,7 @@ import { createShipState, FIXED_DT, stepShip, type HelmCommand } from './ship';
 import { add, clamp, length, localToWorld, scale, sub } from './geometry';
 import { availableAmmunition, createMountState, GRAVITY, muzzleWorld, selectAmmunition, shotDirection, solveBallistic, updateMount } from './weapons';
 import { dispersedDirection, dispersedSpeed, travelFactor, velocityPenetration } from './ballistics';
-import { BATTLE_SPAWN_DISTANCE, deployment, MAX_TEAM_SHIPS, validateSpawnDistance, type BattleFleet, type BattleResult, type FleetActor, type Team } from './battle';
+import { BATTLE_SPAWN_DISTANCE, deployment, validateSpawns, type SpawnPositions, MAX_TEAM_SHIPS, validateSpawnDistance, type BattleFleet, type BattleResult, type FleetActor, type Team } from './battle';
 import { botShouldDropDepthCharge, createDepthChargeLauncherState, damageDepthCharge, launchDepthCharge, stepDepthCharge, updateDepthChargeLauncher, type DepthCharge } from './depthCharges';
 import { botAim, botAmmunition, botDidFire, botGunRange, botHelm, botReadyToFire, botTarget, botTorpedoAim, clearFiringLane, createBotState, shipVelocity, updateBot } from './bots';
 import { clearTorpedoLane, createTubeState, damageTorpedoHit, firstTorpedoHit, torpedoIntercept, trainTorpedoLaunchers, tubeLocalPosition, tubeSolution, type Torpedo } from './torpedoes';
@@ -23,12 +24,14 @@ import { resolveShipCollisions } from './collisions';
 import { createDamage, systemHealth, updateFlooding, type BallisticEffectData, type DamageEvent, type Shell, type ImpactRecord, type DefeatCause } from './damage';
 
 export interface CombatIntent { aim: Vec3; fire: boolean; battery: Battery; ammunition?: Ammunition; controlPriority?: ControlPriority; controlFocus?: string; }
-export interface CombatEvent extends BallisticEffectData { sequence: number; tick: number; kind: DamageEvent['kind'] | 'shot' | 'splash' | 'torpedo-launch' | 'torpedo-hit' | 'torpedo-dud' | 'torpedo-expired' | 'aircraft-launch' | 'aircraft-recovered' | 'aircraft-lost' | 'aircraft-fire' | 'aircraft-release' | 'bomb-release' | 'depth-charge-launch' | 'depth-charge-splash' | 'depth-charge-blast' | 'depth-charge-hit'; aircraft?: { id: string; target?: Vec3; tracerSpeed?: number }; depthCharge?: { id: number; radiusM: number }; torpedo?: { id: number; velocity: Vec3; diameterM: number }; position: Vec3; message: string; shipId: string; impact?: ImpactRecord; defeatCause?: DefeatCause; }
+export interface CombatEvent extends BallisticEffectData { sequence: number; tick: number; kind: DamageEvent['kind'] | 'shot' | 'splash' | 'torpedo-launch' | 'torpedo-hit' | 'torpedo-dud' | 'torpedo-expired' | 'aircraft-launch' | 'aircraft-recovered' | 'aircraft-lost' | 'aircraft-crash' | 'aircraft-fire' | 'aircraft-release' | 'bomb-release' | 'depth-charge-launch' | 'depth-charge-splash' | 'depth-charge-blast' | 'depth-charge-hit'; aircraft?: { id: string; target?: Vec3; tracerSpeed?: number; direction?: Vec3; velocity?: Vec3; attitude?: { heading: number; pitch: number; bank: number } }; depthCharge?: { id: number; radiusM: number }; torpedo?: { id: number; velocity: Vec3; diameterM: number }; position: Vec3; message: string; shipId: string; hullDamage?: number; impact?: ImpactRecord; defeatCause?: DefeatCause; }
 export interface ShellHistory { shellId: number; ownerId: string; tick: number; ammunition: Ammunition; impacts: ImpactRecord[]; outcome: 'flying' | 'splash' | 'passed-through' | 'expired' | 'stopped' | 'ricochet' | 'internal' | 'burst'; }
 export interface CombatTelemetry {
   airWing?: AirWingTelemetry;
   airContacts?: { id: string; team: Team; x: number; z: number; heading: number; role: string; ownerId: string; flightId?: string; phase: string }[];
   battery: Battery; range: number; ready: number; total: number; targetIntegrity: number; targetWater: number;
+  /** Mean flight time to the sight for the selected battery's reachable guns, excluding reload/training. */
+  flightTimeSeconds?: number;
   ammunition: Ammunition; ammunitionStock: { ap: number; he: number }; heSupported: boolean;
   targetStatus: VesselStatus; playerStatus: VesselStatus; targetList: number; targetTrim: number; targetDraftChange: number;
   playerList: number; playerTrim: number; playerDraftChange: number;
@@ -88,6 +91,7 @@ export class CombatSimulation {
   private playerFrags = 0;
   private damageLog = new DamageLog();
   /** Last hostile hull/breach damage earns the frag, including a later flooding loss. */
+  private initialSpawns?: SpawnPositions;
   private lastDamager = new Map<string, string>();
   private creditedLosses = new Set<string>();
   /** Without a fleet, create an idle gunnery fixture for port and isolated asset tests. */
@@ -100,12 +104,20 @@ export class CombatSimulation {
     if (!Number.isInteger(this.seed) || this.seed < 0 || this.seed > 0xffffffff) throw new Error('Battle seed must be an unsigned 32-bit integer.');
     validateSpawnDistance(this.spawnDistance);
     if (fleet && (!fleet.enemies.length || fleet.enemies.length > MAX_TEAM_SHIPS || fleet.friendlyBots.length >= MAX_TEAM_SHIPS)) throw new Error(`Choose one to ${MAX_TEAM_SHIPS} ships per team.`);
+    if (fleet?.spawns) {
+      validateSpawns(fleet.spawns, fleet.friendlyBots.length + 1, fleet.enemies.length, this.islands);
+      this.initialSpawns = structuredClone(fleet.spawns);
+    }
     this.player = this.createActor('player', definition, 'friendly', 'player');
     this.actors = [this.player];
     if (fleet) {
-      fleet.friendlyBots.forEach((def, i) => this.actors.push(this.createActor(`friendly-${i + 1}`, def, 'friendly', 'bot')));
-      fleet.enemies.forEach((def, i) => this.actors.push(this.createActor(`enemy-${i + 1}`, def, 'enemy', 'bot')));
-      for (const team of ['friendly', 'enemy'] as const) this.actors.filter(actor => actor.team === team).forEach((actor, i) => Object.assign(actor.motion, deployment(i, team, this.spawnDistance)));
+      for (const [team, entries] of [['friendly', fleet.friendlyBots], ['enemy', fleet.enemies]] as const) {
+        entries.forEach((entry, i) => {
+          const { definition: def, aiLevel } = 'definition' in entry ? entry : { definition: entry, aiLevel: DEFAULT_AI_LEVEL };
+          this.actors.push(this.createActor(`${team}-${i + 1}`, def, team, 'bot', aiLevel));
+        });
+      }
+      for (const team of ['friendly', 'enemy'] as const) this.actors.filter(actor => actor.team === team).forEach((actor, i) => Object.assign(actor.motion, this.initialSpawns?.[team][i] ?? deployment(i, team, this.spawnDistance)));
       this.target = this.actors.find(actor => actor.team === 'enemy')!;
     } else {
       this.target = this.createTarget();
@@ -118,21 +130,21 @@ export class CombatSimulation {
   /** Reset every hull while preserving actor identities used by renderer bindings. */
   reset(): void {
     for (const team of ['friendly', 'enemy'] as const) this.actors.filter(actor => actor.team === team).forEach((actor, i) => {
-      Object.assign(actor, this.createActor(actor.motion.id, actor.definition, actor.team, actor.controller));
+      Object.assign(actor, this.createActor(actor.motion.id, actor.definition, actor.team, actor.controller, actor.bot?.aiLevel));
       delete actor.targetId;
-      if (this.isBattle) Object.assign(actor.motion, deployment(i, team, this.spawnDistance));
+      if (this.isBattle) Object.assign(actor.motion, this.initialSpawns?.[team][i] ?? deployment(i, team, this.spawnDistance));
     });
     this.target = this.actors.find(actor => actor.team === 'enemy')!;
     if (!this.isBattle) Object.assign(this.target, this.createTarget());
     this.clearCombat(); this.tick = 0; this.accumulator = 0; this.result = 'active';
   }
-  private createActor(id: string, definition: ShipDefinition, team: Team, controller: FleetActor['controller']): FleetActor {
+  private createActor(id: string, definition: ShipDefinition, team: Team, controller: FleetActor['controller'], aiLevel: ShipAiLevel = DEFAULT_AI_LEVEL): FleetActor {
     return { definition, team, controller, airWing: createAirWing(definition, id, team), motion: createShipState(id), mounts: definition.mounts.map(createMountState), damage: createDamage(definition),
       torpedoTubes: (definition.torpedoTubes ?? []).map(createTubeState), tubeLaunchCooldown: 0,
       torpedoLaunchers: (definition.torpedoLaunchers ?? []).map(l => ({ id: l.id, train: 0 })),
       depthChargeLaunchers: (definition.depthChargeLaunchers ?? []).map(createDepthChargeLauncherState), depthChargeCooldown: 0,
       ...(definition.submarine ? { submarine: createSubmarineState() } : {}),
-      ...(controller === 'bot' ? { bot: createBotState(id, definition, this.seed) } : {}) };
+      ...(controller === 'bot' ? { bot: createBotState(id, definition, this.seed, aiLevel) } : {}) };
   }
   private createTarget() {
     const target = this.createActor('target', this.definition, 'enemy', 'idle');
@@ -250,7 +262,8 @@ export class CombatSimulation {
         updateBot(actor, target, this.tick * FIXED_DT);
         actor.targetId = target?.motion.id;
         targets.set(actor, target);
-        commands.set(actor, avoidLand(actor, botHelm(actor, target, this.actors), this.islands));
+        const command = botHelm(actor, target, this.actors);
+        commands.set(actor, actor.bot!.aiLevel === 'static' ? command : avoidLand(actor, command, this.islands));
       } else commands.set(actor, actor === this.player ? helm : { throttle: this.targetUnderway ? .25 : 0, rudder: 0 });
     }
     for (const actor of this.actors) {
@@ -391,7 +404,7 @@ export class CombatSimulation {
           this.recordDamage(owner, actor, torpedo.id, `${w.name}${torpedo.tubeId === 'aircraft.payload' ? ' · Air torpedo' : ' · Torpedo'}`, Math.max(0, hp - actor.damage.integrity));
           this.lastDamager.set(actor.motion.id, owner.motion.id);
         }
-        this.emit({ kind: armed ? 'torpedo-hit' : 'torpedo-dud', position: localToWorld(point, actor.motion), shipId: actor.motion.id, message, torpedo: evidence });
+        this.emit({ kind: armed ? 'torpedo-hit' : 'torpedo-dud', position: localToWorld(point, actor.motion), shipId: actor.motion.id, message, hullDamage: Math.max(0, hp - actor.damage.integrity), torpedo: evidence });
       }
       torpedo.position = to; torpedo.distance += travel;
       if (!hit && torpedo.distance >= w.rangeM - 1e-6) this.emit({ kind: 'torpedo-expired', position: [...to], shipId: torpedo.ownerId, message: 'Torpedo reached maximum range', torpedo: evidence });
@@ -416,7 +429,7 @@ export class CombatSimulation {
           this.recordDamage(owner, actor, charge.id, `${charge.weapon.name} · Depth charge`, Math.max(0, hp - actor.damage.integrity));
           this.lastDamager.set(actor.motion.id, owner.motion.id);
         }
-        this.emit({ kind: 'depth-charge-hit', position: [...charge.position], shipId: actor.motion.id, message, depthCharge: evidence });
+        this.emit({ kind: 'depth-charge-hit', position: [...charge.position], shipId: actor.motion.id, message, hullDamage: Math.max(0, hp - actor.damage.integrity), depthCharge: evidence });
       }
       this.depthCharges.splice(i, 1);
     }
@@ -430,13 +443,19 @@ export class CombatSimulation {
       return { id: tube.id, name: tube.name, status: s.status, reload: Math.max(s.reload, this.player.tubeLaunchCooldown ?? 0), ammo: s.ammo };
     }) : this.definition.mounts.filter(m => m.battery === battery).map(m => {
       const s = this.player.mounts.find(s => s.id === m.id)!;
-      return { id: m.id, name: m.name, status: s.status, reload: s.reload, ammo: s.ammo, loaded: s.loaded };
+      return { id: m.id, name: m.name, status: s.status, reload: s.reload, ammo: availableAmmunition(s), loaded: s.loaded };
     });
     const significant = [...this.events].reverse().find(e => ['module', 'sunk', 'stopped', 'ricochet', 'penetration', 'contact', 'burst', 'torpedo-launch', 'torpedo-hit', 'torpedo-dud', 'torpedo-expired', 'depth-charge-launch', 'depth-charge-blast', 'depth-charge-hit'].includes(e.kind));
+    const flightTimes = this.definition.mounts.flatMap((m, i) => {
+      const state = this.player.mounts[i];
+      const time = state.aimCache?.time;
+      return m.battery === battery && ['ready', 'reloading', 'turning'].includes(state.status) && time !== undefined && Number.isFinite(time) && time > 0 ? [time] : [];
+    });
     return {
       airWing: (() => { const wing = airWingTelemetry(this.player, this.actors); if (wing) wing.available &&= this.result === 'active'; return wing; })(),
       airContacts: this.aircraft.filter(airborne).map(p => ({ id: p.id, team: p.team, x: p.position[0], z: p.position[2], heading: p.heading, role: p.role, ownerId: p.ownerId, flightId: p.flightId, phase: p.phase })),
       battery, range: Math.hypot(aim[0] - this.ship.x, aim[2] - this.ship.z), ready: mounts.filter(m => m.status === 'ready').length, total: mounts.length,
+      flightTimeSeconds: flightTimes.length ? flightTimes.reduce((sum, time) => sum + time, 0) / flightTimes.length : undefined,
       ammunition: this.ammunitionSelection[battery], heSupported: this.definition.mounts.some(m => m.battery === battery && m.weapon.he !== undefined),
       ammunitionStock: (battery === 'torpedo' || battery === 'depth-charge' ? [] : mounts).reduce((stock, m) => { const s = this.player.mounts.find(s => s.id === m.id)!; stock.ap += availableAmmunition(s, 'ap'); stock.he += availableAmmunition(s, 'he'); return stock; }, { ap: 0, he: 0 }),
       targetMounts: this.target.definition.mounts.map((m, i) => ({ id: m.id, name: m.name, condition: this.target.mounts[i].hp / 100 })),
@@ -471,7 +490,7 @@ export class CombatSimulation {
       batteries: (['main', 'secondary', ...(this.definition.torpedoTubes?.length ? ['torpedo'] : []), ...(this.definition.depthChargeLaunchers?.length ? ['depth-charge'] : [])] as Battery[]).map(battery => {
         const states = battery === 'depth-charge' ? this.player.depthChargeLaunchers! : battery === 'torpedo' ? this.player.torpedoTubes! : this.definition.mounts.filter(m => m.battery === battery).map(m => this.player.mounts.find(s => s.id === m.id)!);
         const reloading = states.filter(m => m.reload > 0);
-        return { battery, ammunition: this.ammunitionSelection[battery], ammo: states.reduce((n, m) => n + m.ammo, 0), ready: states.filter(m => m.status === 'ready').length, total: states.length,
+        return { battery, ammunition: this.ammunitionSelection[battery], ammo: states.reduce((n, m) => n + ('loaded' in m ? availableAmmunition(m) : m.ammo), 0), ready: states.filter(m => m.status === 'ready').length, total: states.length,
           reload: reloading.length ? Math.min(...reloading.map(m => m.reload)) : 0 };
       }),
       message: significant ? `${this.actors.find(actor => actor.motion.id === significant.shipId)?.definition.name ?? 'Ship'} · ${significant.message}` : battery === 'depth-charge' ? 'Drop during a close pass. Charges sink before exploding; keep moving clear of the blast.' : battery === 'torpedo' ? `${this.definition.torpedoLaunchers?.length ? 'Bring a broadside toward the sight.' : 'Turn bow or stern toward the sight.'} Torpedoes keep their launch course; lead moving targets.` : 'Only aligned, loaded guns fire. Turn the ship to bring guns marked Out of arc onto the target.',

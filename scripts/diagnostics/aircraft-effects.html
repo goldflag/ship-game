@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Aircraft combat effects review</title>
+<style>body{margin:0;background:#14252a;color:#e8ece9;font:14px sans-serif}#scene{width:1200px;height:800px}canvas{display:block}nav{position:absolute;top:16px;left:20px;display:flex;gap:8px}button{background:#21373b;color:inherit;border:1px solid #79958d;padding:8px 16px;cursor:pointer}</style>
+<div id="scene"></div><nav><button onclick="aircraftEffectsReview.sample('bomb',.8)">Bomb release</button><button onclick="aircraftEffectsReview.sample('guns',.24)">Fighter burst</button><button onclick="aircraftEffectsReview.sample('crash',3)">Falling aircraft</button><button onclick="aircraftEffectsReview.sample('crash',5.9)">Sea impact</button></nav>
+<script type="module">
+import { Game } from '/src/game/Game.ts';
+import { shipPreset } from '/src/ships/presets.ts';
+import { stepAircraft } from '/src/simulation/aircraft.ts';
+import { advanceProjectile } from '/src/simulation/projectile.ts';
+let ready; const loaded = new Promise(resolve => ready = resolve);
+const game = new Game(document.querySelector('#scene'), {quality:'medium',resolution:1}, {
+  progress: message => window.reviewProgress = message, ready, telemetry:()=>{},pause:()=>{},hud:()=>{},error:message=>window.reviewError=message,
+}, shipPreset('enterprise-cv6'));
+game.start(); await loaded; game.setInPort(false); game.setPaused(true); game.rig.update=()=>{};
+const sim=game.simulation;
+async function sample(kind,seconds) {
+  sim.reset(); game.effects.reset(); game.shipWake.reset();
+  sim.aircraft.forEach(p=>{p.phase='lost';p.wreck=undefined;p.deckSlot=undefined;});
+  sim.actors.forEach(a=>a.mounts.forEach(m=>m.hp=0));
+  const p=sim.aircraft.find(p=>p.role===(kind==='bomb'?'dive-bomber':'fighter'));
+  Object.assign(p,{phase:'outbound',position:[0,180,-800],previousPosition:[0,180,-800],velocity:[65,-12,-40],heading:1.02,pitch:-.18,bank:.2,payload:false});
+  p.controls.gear=0;
+  let sequence=0;const emit=e=>sim.events.push({...e,sequence:++sequence,tick:sim.tick});
+  const context={actors:sim.actors,planes:sim.aircraft,shells:sim.shells,torpedoes:sim.torpedoes,releases:sim.airReleases,nextId:()=>1000,emit};
+  if(kind==='crash') {p.hp=0;game.camera.position.set(275,155,-555);game.camera.lookAt(145,75,-915);}
+  if(kind==='guns') {
+    Object.assign(p,{position:[0,180,-800],previousPosition:[0,180,-800],velocity:[0,0,-90],heading:0,pitch:0,bank:.05});
+    emit({kind:'aircraft-fire',position:[...p.position],shipId:p.ownerId,message:'Fighter guns',aircraft:{id:p.id,target:[0,180,-1250],direction:[0,0,-1],velocity:[...p.velocity],attitude:{heading:0,pitch:0,bank:.05}}});
+    game.camera.position.set(75,204,-690);game.camera.lookAt(0,180,-945);
+  }
+  if(kind==='bomb') {
+    Object.assign(p,{velocity:[0,-65,-80],heading:0,pitch:-.68,bank:.12});
+    sim.shells.push({id:1000,ownerId:p.ownerId,weaponLabel:'500 lb HE bomb',bomb:{heading:p.heading,pitch:p.pitch,bank:p.bank},position:[0,179,-800],velocity:[...p.velocity],age:0,caliberM:.35,penetrationMm:0,damage:380,visited:[],ammunition:'he',type:'HE'});
+    game.camera.position.set(12,143,-836);game.camera.lookAt(0,126,-860);
+  }
+  game.camera.updateMatrixWorld(true);
+  for(let i=0;i<Math.round(seconds*60);i++) {
+    sim.tick++;
+    if(kind==='crash') stepAircraft(context,1/60,sim.tick/60);
+    else {
+      p.previousPosition=[...p.position];p.position=p.position.map((n,j)=>n+p.velocity[j]/60);
+      if(kind==='bomb') {
+        p.pitch=Math.min(.15,p.pitch+.5/60);p.velocity[1]+=25/60;
+        for(let b=sim.shells.length-1;b>=0;b--) if(advanceProjectile(sim.shells[b],[],1/60,emit)) sim.shells.splice(b,1);
+      }
+    }
+    game.effects.update(sim,1/60,game.camera);game.shipWake.update(game.playerView.motion,1/60,sim.events);
+  }
+  for(let i=0;i<3;i++){await new Promise(requestAnimationFrame);await game.frameTask;}
+  game.pipeline.render();
+  return {kind,seconds,backend:game.diagnostics().backend,aircraft:game.aircraftView.diagnostics(),effects:game.effects.diagnostics(),plane:{position:p.position,phase:p.phase,wreck:p.wreck},events:sim.events.map(e=>({kind:e.kind,tick:e.tick,position:e.position}))};
+}
+window.aircraftEffectsReview={sample,game};window.reviewReady=true;
+await sample('crash',3);
+</script></html>

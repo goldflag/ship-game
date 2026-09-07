@@ -1,0 +1,93 @@
+{
+  "method": "Manual readings from primary historical drawings, preserved at original resolution. No game offsets or attachment transforms enter these parameters. Review tolerance and source uncertainty are separate.",
+  "profile": {
+    "file": "rmg-59265-j9645.jpg",
+    "sternPixel": 55,
+    "bowPixel": 1218,
+    "lengthM": 227.08,
+    "features": [
+      {
+        "name": "A turret",
+        "pixelX": 895,
+        "authoredBowPositiveX": 50,
+        "uncertaintyM": 1.5
+      },
+      {
+        "name": "B turret",
+        "pixelX": 820,
+        "authoredBowPositiveX": 35,
+        "uncertaintyM": 1.5
+      },
+      {
+        "name": "Y turret",
+        "pixelX": 328,
+        "authoredBowPositiveX": -60,
+        "uncertaintyM": 1.5
+      },
+      {
+        "name": "forward funnel",
+        "pixelX": 642,
+        "authoredBowPositiveX": 0.8,
+        "uncertaintyM": 1.5
+      },
+      {
+        "name": "after funnel",
+        "pixelX": 518,
+        "authoredBowPositiveX": -23.4,
+        "uncertaintyM": 1.5
+      },
+      {
+        "name": "bridge",
+        "pixelX": 742,
+        "authoredBowPositiveX": 22.2,
+        "uncertaintyM": 1.5
+      },
+      {
+        "name": "foremast",
+        "pixelX": 686,
+        "authoredBowPositiveX": 9.4,
+        "uncertaintyM": 1.5
+      },
+      {
+        "name": "mainmast",
+        "pixelX": 419,
+        "authoredBowPositiveX": -42.7,
+        "uncertaintyM": 1.5
+      }
+    ],
+    "fullResolutionStudy": {
+      "file": "historical/j9645-original.jpg",
+      "pixels": [
+        4800,
+        1233
+      ],
+      "sternPixelX": 207,
+      "bowPixelX": 4579,
+      "keelPixelY": 1041,
+      "pixelsPerMeter": 19.253126651400386,
+      "grid": "historical/profile-measurement-grid.jpg",
+      "heightDatum": "Keel plus 29 ft standard draft; source load not certified"
+    }
+  },
+  "dimensions": {
+    "loaM": 227.08,
+    "waterlineLengthM": 225.6,
+    "hullBeamM": 31.3944,
+    "standardMeanDraftM": 8.8392,
+    "depthAtSideM": 15.5773
+  },
+  "limits": "Rounded source dimensions are model targets. Computational tolerance is not historical uncertainty. Source guide beam/loading conflicts remain open.",
+  "revision": "1941-original-02",
+  "bodyPlan": {
+    "file": "historical/j9796-original.jpg",
+    "document": "Vickers NPB5265, 1937/38 design drawing",
+    "waterlinesApartM": 1.2954,
+    "ordinatesApartM": 10.668,
+    "designDraftM": 8.5344,
+    "standardDraftM": 8.8392,
+    "originalSamples": "author-blueprint.py: LEVELS / LINES",
+    "sectionCount": 228,
+    "method": "Manual curve readings followed by monotone original fairing. Ordinate 1 provisionally at Blender X=112m; bow/stern LOA and standard WL endpoints separately registered.",
+    "uncertaintyM": 1.5
+  }
+}

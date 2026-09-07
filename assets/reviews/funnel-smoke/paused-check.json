@@ -1,0 +1,40 @@
+{
+  "backend": "webgpu",
+  "paused": true,
+  "shipId": "fletcher",
+  "smoke": {
+    "capacity": 6144,
+    "outlets": [
+      {
+        "id": "forward-funnel",
+        "position": [
+          0,
+          13.850000000000003,
+          -301.5355462222142
+        ],
+        "shipId": "player"
+      },
+      {
+        "id": "aft-funnel",
+        "position": [
+          0,
+          13,
+          -287.1630462222142
+        ],
+        "shipId": "player"
+      },
+      {
+        "id": "funnel-jacket",
+        "position": [
+          16.691802617807873,
+          25.150000000000002,
+          -4820.3828148236125
+        ],
+        "shipId": "enemy-1"
+      }
+    ],
+    "particles": 91
+  },
+  "smokeStable": true,
+  "tickStable": true
+}

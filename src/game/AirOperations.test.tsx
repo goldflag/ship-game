@@ -9,6 +9,8 @@ import { Game } from './Game';
 import { ShellFollow } from './ShellFollow';
 import { BattlefieldCamera } from './BattlefieldCamera';
 import { PerspectiveCamera } from 'three/webgpu';
+import { battleEnvironment } from '../maps/conditions';
+import { oceanMap } from '../maps/catalog';
 import { squadronTargetOrder } from '../ui/airCommands';
 
 test('an armed action refuses an incompatible click without issuing a different mission', () => {
@@ -71,4 +73,20 @@ test('older keybindings keep a custom M binding while adding a reachable map sho
   const migrated = keybindingsOf(saved);
   expect(migrated.camera).toEqual(['KeyM', null]); expect(migrated.airOperations[0]).not.toBe('KeyM');
   expect(migrated.airOperations[0]).toBeTruthy();
+});
+
+
+test('closing the carrier map restores the chosen weather visibility', () => {
+  const simulation = new CombatSimulation(shipPreset('enterprise-cv6'));
+  const rig = { setEnabled() {}, capturePointer() {}, setShellView() {}, update() {} };
+  for (const weather of ['clear', 'storm-clouds', 'fog'] as const) {
+    const map = oceanMap(simulation.mapId), environment = battleEnvironment(map, 'night', weather);
+    const water = { fog: { fadeStart: environment.fog.start, fadeEnd: environment.fog.end } };
+    const game = Object.assign(Object.create(Game.prototype), { simulation, water, rig, shellFollow: new ShellFollow(), input: { clear() {} },
+      battlefieldCamera: new BattlefieldCamera(new PerspectiveCamera()), host: { clientWidth: 1280, clientHeight: 800 },
+      battleWeather: weather, battleTimeOfDay: 'night', inPort: false, paused: false, inspecting: false, playerView: {} }) as Game;
+    game.setAirOperationsOpen(true); expect(water.fog.fadeEnd).toBe(900000);
+    game.setAirOperationsOpen(false);
+    expect(water.fog).toEqual({ fadeStart: environment.fog.start, fadeEnd: environment.fog.end });
+  }
 });

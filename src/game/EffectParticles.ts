@@ -152,8 +152,12 @@ export class EffectParticlePool {
   }
 
   update(dt: number, camera: THREE.Camera, wind: THREE.Vector3, hiddenSourceId?: string): void {
-    this.active.length = 0;
-    this.cameraInverse.copy(camera.quaternion).invert();
+    this.advance(dt, wind);
+    this.publish(camera, hiddenSourceId);
+  }
+
+  /** Age existing particles before new events are emitted. */
+  advance(dt: number, wind: THREE.Vector3): void {
     for (const p of this.particles) {
       if (p.age >= p.life) continue;
       const previousAge = p.age;
@@ -174,6 +178,15 @@ export class EffectParticlePool {
         p.angle += p.spin * step;
         if (p.waterline && p.position.y < .2 && previousAge >= 0) { p.age = p.life; continue; }
       }
+    }
+  }
+
+  /** Build the sorted instance buffers once, after all emissions for this frame. */
+  publish(camera: THREE.Camera, hiddenSourceId?: string): void {
+    this.active.length = 0;
+    this.cameraInverse.copy(camera.quaternion).invert();
+    for (const p of this.particles) {
+      if (p.age < 0 || p.age >= p.life) continue;
       // Hidden smoke still ages and drifts, so leaving optics restores its current state.
       if (hiddenSourceId !== undefined && p.sourceId === hiddenSourceId) continue;
       p.distance = p.position.distanceToSquared(camera.position);

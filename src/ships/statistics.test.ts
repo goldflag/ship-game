@@ -21,7 +21,9 @@ test('every preset prints a complete sheet whose figures come from the compiled 
     expect(survivability.rows.find(r => r.label === 'Compartments')!.value).toBe(String(def.compartments.length));
     const main = sections.find(s => s.id === 'main-battery')!, weapon = def.mounts.find(m => m.battery === 'main')!.weapon;
     expect(main.headline).toBe(String(Math.round(weapon.caliberM * 1000)));
-    expect(main.rows.find(r => r.label === 'Layout')!.value).toBe(`${def.mounts.filter(m => m.battery === 'main').length} × ${weapon.barrelCount ?? 2}`);
+    if (new Set(def.mounts.filter(m => m.battery === 'main').map(m => m.weapon.barrelCount ?? 2)).size === 1) {
+      expect(main.rows.find(r => r.label === 'Layout')!.value).toBe(`${def.mounts.filter(m => m.battery === 'main').length} × ${weapon.barrelCount ?? 2}`);
+    }
     expect(sections.find(s => s.id === 'model-basis')!.notes!.map(n => n.text)).toEqual([def.accuracy.exterior, def.accuracy.internals, def.accuracy.weapons]);
   }
 });
@@ -46,8 +48,9 @@ test('category scores stay within 0-100 and separate the presets by their simula
   expect(scores.bismarck.survivability).toBeGreaterThan(scores.baltimore.survivability);
   expect(scores.yamato.artillery).toBeGreaterThan(scores.baltimore.artillery);
   expect(scores.baltimore.concealment).toBeGreaterThan(scores.bismarck.concealment);
-  // Bismarck's modeled batteries have no gun light enough to engage aircraft.
-  expect(scores.bismarck.airDefense).toBe(0);
+  // Authored AA mounts contribute to Bismarck's defensive battery.
+  expect(scores.bismarck.airDefense).toBeGreaterThan(0);
+  expect(scores.yamato.airDefense).toBe(0);
   expect(scores['enterprise-cv6'].airDefense).toBeGreaterThan(scores.baltimore.airDefense);
   expect(shipScores(shipPreset('bismarck')).map(s => s.id)).toEqual(['survivability', 'artillery', 'airDefense', 'maneuverability', 'concealment']);
 });

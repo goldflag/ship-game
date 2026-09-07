@@ -46,7 +46,7 @@ export function fighterGunAim(p: Aircraft, hostile: Aircraft) {
   const time = times.length ? Math.min(...times) : length(relative) / 720;
   const direction = normalize(add(relative, scale(velocity, time)));
   const forward: Vec3 = [Math.sin(p.heading) * Math.cos(p.pitch), Math.sin(p.pitch), -Math.cos(p.heading) * Math.cos(p.pitch)];
-  return { alignment: dot(forward, direction), direction, distance: length(relative), point: add(hostile.position, scale(hostile.velocity, time)) };
+  return { time, alignment: dot(forward, direction), direction, distance: length(relative), point: add(hostile.position, scale(hostile.velocity, time)) };
 }
 
 export function clearFighterLane(p: Aircraft, aim: Vec3, planes: Aircraft[]) {

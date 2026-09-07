@@ -1,0 +1,75 @@
+{
+  "batteryTrials": [
+    {
+      "ammunition": "ap",
+      "ammunitionSpent": 10,
+      "battery": "main",
+      "impactCount": 212,
+      "impactOutcomes": [
+        "burst"
+      ],
+      "maxMuzzleErrorM": 0.0019429746020048697,
+      "muzzleErrorsAfterFlight": 0.0019429746020030942,
+      "shots": 10,
+      "targetIntegrity": 1279.9920008921574,
+      "targetMarks": 0,
+      "targetMaximumIntegrity": 1380,
+      "targetWaterM3": 0.12057385421582249
+    },
+    {
+      "ammunition": "ap",
+      "ammunitionSpent": 8,
+      "battery": "secondary",
+      "impactCount": 25,
+      "impactOutcomes": [
+        "stopped",
+        "penetration",
+        "burst"
+      ],
+      "maxMuzzleErrorM": 0.0019429746020030942,
+      "muzzleErrorsAfterFlight": 0.0019429746020030942,
+      "shots": 8,
+      "targetIntegrity": 1380,
+      "targetMarks": 5,
+      "targetMaximumIntegrity": 1380,
+      "targetWaterM3": 0
+    },
+    {
+      "ammunition": "he",
+      "ammunitionSpent": 8,
+      "battery": "secondary",
+      "impactCount": 22,
+      "impactOutcomes": [
+        "contact",
+        "burst"
+      ],
+      "maxMuzzleErrorM": 0.0019429746020030942,
+      "muzzleErrorsAfterFlight": 0.0019429746020030942,
+      "shots": 8,
+      "targetIntegrity": 1380,
+      "targetMarks": 4,
+      "targetMaximumIntegrity": 1380,
+      "targetWaterM3": 0
+    }
+  ],
+  "contentHash": "926360095f52f27b5ff4280df1d0dad15fbae99844b5431c3d3260c986173a4c",
+  "damageTrial": {
+    "breachedSpaces": 4,
+    "eventKinds": [
+      "penetration",
+      "module"
+    ],
+    "hpAfter": 150,
+    "hpBefore": 170,
+    "marks": 2,
+    "module": "boiler-1-1",
+    "waterAfterTwoSecondsM3": 2.3197084512128936
+  },
+  "reset": {
+    "allModulesRestored": true,
+    "ammunition": 7400,
+    "breachCount": 0,
+    "marks": 0,
+    "waterM3": 0
+  }
+}

@@ -18,6 +18,27 @@ test('AP and HE stocks are finite, share capacity, and switching never creates r
   expect(state.ammo).toBe(initial); expect(availableAmmunition(state, 'ap') + availableAmmunition(state, 'he')).toBe(initial);
 });
 
+test('HUD ammunition counts follow the loaded type and each battery retains its shell selection', () => {
+  const def = compileShip(blueprint, catalog), sim = new CombatSimulation(def);
+  const aim: Vec3 = [2000, 10, 0], helm = { throttle: 0, rudder: 0 };
+  const initial = sim.telemetry('main', aim);
+  expect(initial.batteries[0].ammo).toBe(initial.ammunitionStock.ap);
+  sim.step(helm, { aim, fire: false, battery: 'main', ammunition: 'he' });
+  sim.step(helm, { aim, fire: false, battery: 'secondary', ammunition: 'ap' });
+  const main = sim.telemetry('main', aim), secondary = sim.telemetry('secondary', aim);
+  expect(main.ammunition).toBe('he'); expect(secondary.ammunition).toBe('ap');
+  expect(main.ammunitionStock).toEqual(initial.ammunitionStock);
+  expect(main.batteries[0].ammo).toBe(main.ammunitionStock.he);
+  expect(main.mounts.every(m => m.loaded === 'he' && m.reload > 0 && m.ammo === 96)).toBe(true);
+  expect(main.ready).toBe(0);
+  for (const state of sim.player.mounts) if (state.loaded === 'he') { state.ammo -= state.heAmmo; state.heAmmo = 0; }
+  sim.step(helm, { aim, fire: false, battery: 'main', ammunition: 'he' });
+  const empty = sim.telemetry('main', aim);
+  expect(empty.batteries[0].ammo).toBe(0); expect(empty.mounts.every(m => m.status === 'empty')).toBe(true);
+  expect(empty.ammunitionStock.ap).toBe(initial.ammunitionStock.ap);
+  sim.reset(); expect(sim.telemetry('main', aim).ammunition).toBe('ap');
+});
+
 test('an AP-only mount remains usable when its battery is ordered to load HE', () => {
   const def = compileShip(blueprint, catalog), m = { ...def.mounts[0], weapon: { ...def.mounts[0].weapon, he: undefined } };
   const state = createMountState(m);

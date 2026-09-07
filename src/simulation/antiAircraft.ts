@@ -1,6 +1,7 @@
 import type { AirContext, Aircraft } from './aircraft';
 import { airborne, onFlightDeck } from './aircraft';
 import type { FleetActor } from './battle';
+import { isPassiveAi } from './aiLevels';
 import { ballisticStep, dispersedDirection } from './ballistics';
 import { add, dot, length, normalize, scale, segmentBox, sub, worldToLocal } from './geometry';
 import { motionVelocity } from './ship';
@@ -31,7 +32,8 @@ function clearLane(actor: FleetActor, from: [number, number, number], to: [numbe
  * miss distance and a bounded hit radius; heavy AA approximates a timed burst. */
 export function updateAntiAircraft(actor: FleetActor, m: MountDefinition, state: MountState, ctx: AirContext, dt: number): boolean {
   const range = antiAircraftRange(m);
-  if (!range || actor.damage.sunk || actor.damage.stability.combatLost || actor.motion.y < -1 || state.hp <= 0 || state.ammo <= 0) return false;
+  if (!range || actor.damage.sunk || actor.damage.stability.combatLost || actor.motion.y < -1 || state.hp <= 0 || state.ammo <= 0
+    || (actor.controller === 'bot' && isPassiveAi(actor.bot?.aiLevel))) return false;
   const origin = muzzleWorld(m, state, 0, actor.motion);
   let target: Aircraft | undefined, closest = range;
   for (const p of ctx.planes) {
