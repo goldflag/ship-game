@@ -134,11 +134,11 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
   const damage = data.playerDamage;
   const mapSize = [240, 280, 320, 360, 400][data.chartSize ?? 2];
   const followingShell = data.shellFollow === 'flight' || data.shellFollow === 'impact';
-  const following = followingShell || !!data.followedAircraftId;
+  const following = followingShell || !!data.followedAircraftId || !!data.combat?.playerSunk;
 
   return <div className={`fleet-hud ${visible ? '' : 'fleet-hud-hidden'} ${data.airOperationsOpen ? 'fleet-air-map' : ''} ${data.binoculars ? 'fleet-in-optics' : ''}`} inert={!visible} style={{ '--map-factor': mapSize / 400 } as CSSProperties}>
     <BearingTape degrees={degrees}/>
-    {data.combat?.battle && <BattleStatus combat={data.combat} game={game}>
+    {data.combat?.battle && <BattleStatus combat={data.combat} game={game} spectatedShipId={data.spectatedShipId}>
       {data.combat.airWing && !data.airOperationsOpen && <FlightControl combat={data.combat} game={game} bindings={bindings}/>}
     </BattleStatus>}
     <div className="fleet-top-actions"><span className="fleet-fps" aria-label={`${data.fps} frames per second`}><strong>{data.fps || '—'}</strong> FPS</span><button className="icon-button" aria-label="Pause and settings" title="Pause · Esc" onClick={() => game?.setPaused(true)}><Icon name="pause" size={17}/></button></div>
