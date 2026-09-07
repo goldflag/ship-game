@@ -28508,9 +28508,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.07903,
+          "dispersionRad": 0.0012,
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 505.17644,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 5000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -28564,9 +28566,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.07903,
+          "dispersionRad": 0.0012,
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 505.17644,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 5000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -28620,9 +28624,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.07903,
+          "dispersionRad": 0.0012,
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 505.17644,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 5000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -28676,9 +28682,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.07903,
+          "dispersionRad": 0.0012,
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 505.17644,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 5000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -28732,9 +28740,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.18244,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 637.688837,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -28788,9 +28798,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.18244,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 637.688837,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -28844,9 +28856,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.18244,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 637.688837,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -28900,9 +28914,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.18244,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 637.688837,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -28956,9 +28972,11 @@
         "barrelCount": 1,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.33474,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 500.400809,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -29012,9 +29030,11 @@
         "barrelCount": 1,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.33474,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 500.400809,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -29068,9 +29088,11 @@
         "barrelCount": 1,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.33474,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 500.400809,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -29124,9 +29146,11 @@
         "barrelCount": 1,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.33474,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 500.400809,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -29180,9 +29204,11 @@
         "barrelCount": 1,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.33474,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 500.400809,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -29236,9 +29262,11 @@
         "barrelCount": 1,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.33474,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 500.400809,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -29292,9 +29320,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.07903,
+          "dispersionRad": 0.0012,
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 505.17644,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 5000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -29348,9 +29378,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.07903,
+          "dispersionRad": 0.0012,
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 505.17644,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 5000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -29404,9 +29436,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.07903,
+          "dispersionRad": 0.0012,
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 505.17644,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 5000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -29460,9 +29494,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.07903,
+          "dispersionRad": 0.0012,
+          "muzzleSpeedSigmaFraction": 0.003,
+          "penetrationReferenceSpeedMps": 505.17644,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 5000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -29516,9 +29552,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.18244,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 637.688837,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -29572,9 +29610,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.18244,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 637.688837,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -29628,9 +29668,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.18244,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 637.688837,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -29684,9 +29726,11 @@
         "barrelCount": 2,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.18244,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 637.688837,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -29740,9 +29784,11 @@
         "barrelCount": 1,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.33474,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 500.400809,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -29796,9 +29842,11 @@
         "barrelCount": 1,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.33474,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 500.400809,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -29852,9 +29900,11 @@
         "barrelCount": 1,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.33474,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 500.400809,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -29908,9 +29958,11 @@
         "barrelCount": 1,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.33474,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 500.400809,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -29964,9 +30016,11 @@
         "barrelCount": 1,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.33474,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 500.400809,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     },
@@ -30020,9 +30074,11 @@
         "barrelCount": 1,
         "mountingStyle": "open-pedestal",
         "ballistics": {
-          "dragPerSecond": 0.015,
-          "dispersionRad": 0.004,
-          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+          "dragPerSecond": 0.33474,
+          "dispersionRad": 0.002,
+          "muzzleSpeedSigmaFraction": 0.005,
+          "penetrationReferenceSpeedMps": 500.400809,
+          "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
         }
       }
     }
@@ -117285,5 +117341,5 @@
     ]
   },
   "compilerVersion": 1,
-  "contentHash": "9477e135c39e1356ad54f9923b0d801a19372a71537263b475b38c42e0fe7a16"
+  "contentHash": "9dfb726c1ee7347679f4b2e5ef6407f28118aa85cc0b6dbdb2e9afe89bb2e127"
 }

@@ -3285,7 +3285,14 @@
       "armorMm": 1,
       "barrelCount": 1,
       "mountingStyle": "open-pedestal",
-      "barrelBaseRadius": 0.07479999999999999
+      "barrelBaseRadius": 0.07479999999999999,
+      "ballistics": {
+        "dragPerSecond": 0.07244,
+        "dispersionRad": 0.0012,
+        "muzzleSpeedSigmaFraction": 0.003,
+        "penetrationReferenceSpeedMps": 627.705801,
+        "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
+      }
     },
     {
       "id": "flak-c30-20-single",
@@ -3318,7 +3325,14 @@
       "armorMm": 1,
       "barrelCount": 1,
       "mountingStyle": "open-quad",
-      "barrelBaseRadius": 0.017
+      "barrelBaseRadius": 0.017,
+      "ballistics": {
+        "dragPerSecond": 0.33474,
+        "dispersionRad": 0.002,
+        "muzzleSpeedSigmaFraction": 0.005,
+        "penetrationReferenceSpeedMps": 500.400809,
+        "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
+      }
     },
     {
       "kind": "gun",
@@ -4811,6 +4825,13 @@
           "basis": "estimated",
           "note": "Original enclosure facets interpreted from OP 1112 p.288 and raster comparisons; Mod 18 plate used for general form. Mod 0 detail, exact dimensions and existing gameplay armor thickness remain approximate."
         }
+      },
+      "ballistics": {
+        "dragPerSecond": 0.06145,
+        "dispersionRad": 0.0012,
+        "muzzleSpeedSigmaFraction": 0.003,
+        "penetrationReferenceSpeedMps": 485.108815,
+        "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 5000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
       }
     },
     {
@@ -4844,7 +4865,14 @@
       "caliberM": 0.04,
       "reloadSeconds": 0.5,
       "muzzleSpeed": 881,
-      "projectileMassKg": 0.9
+      "projectileMassKg": 0.9,
+      "ballistics": {
+        "dragPerSecond": 0.18836,
+        "dispersionRad": 0.002,
+        "muzzleSpeedSigmaFraction": 0.005,
+        "penetrationReferenceSpeedMps": 692.757864,
+        "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
+      }
     },
     {
       "id": "flak-105-bismarck-1941",
@@ -4878,9 +4906,11 @@
       "barrelCount": 2,
       "mountingStyle": "open-pedestal",
       "ballistics": {
-        "dragPerSecond": 0.015,
-        "dispersionRad": 0.004,
-        "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        "dragPerSecond": 0.07903,
+        "dispersionRad": 0.0012,
+        "muzzleSpeedSigmaFraction": 0.003,
+        "penetrationReferenceSpeedMps": 505.17644,
+        "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 5000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
       }
     },
     {
@@ -4915,9 +4945,11 @@
       "barrelCount": 2,
       "mountingStyle": "open-pedestal",
       "ballistics": {
-        "dragPerSecond": 0.015,
-        "dispersionRad": 0.004,
-        "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        "dragPerSecond": 0.18244,
+        "dispersionRad": 0.002,
+        "muzzleSpeedSigmaFraction": 0.005,
+        "penetrationReferenceSpeedMps": 637.688837,
+        "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
       }
     },
     {
@@ -4952,9 +4984,11 @@
       "barrelCount": 1,
       "mountingStyle": "open-pedestal",
       "ballistics": {
-        "dragPerSecond": 0.015,
-        "dispersionRad": 0.004,
-        "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        "dragPerSecond": 0.33474,
+        "dispersionRad": 0.002,
+        "muzzleSpeedSigmaFraction": 0.005,
+        "penetrationReferenceSpeedMps": 500.400809,
+        "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
       }
     },
     {
@@ -7606,9 +7640,11 @@
       "barrelCount": 2,
       "mountingStyle": "open-pedestal",
       "ballistics": {
-        "dragPerSecond": 0.015,
-        "dispersionRad": 0.004,
-        "basis": "Provisional gameplay calibration; the existing independently authored Yamato twin 127 mm fitting supplies the dimensions. Rates, damage, supply and arcs are not a historical fire-control model."
+        "dragPerSecond": 0.06072,
+        "dispersionRad": 0.0012,
+        "muzzleSpeedSigmaFraction": 0.003,
+        "penetrationReferenceSpeedMps": 416.902583,
+        "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 5000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
       }
     },
     {
@@ -7644,9 +7680,11 @@
       "muzzleSpeed": 881,
       "projectileMassKg": 0.9,
       "ballistics": {
-        "dragPerSecond": 0.015,
-        "dispersionRad": 0.004,
-        "basis": "Provisional gameplay calibration, based on the existing original Baltimore Bofors fitting. Four evenly spaced barrel axes approximate the authored spacing; not a historical fire-control model."
+        "dragPerSecond": 0.18836,
+        "dispersionRad": 0.002,
+        "muzzleSpeedSigmaFraction": 0.005,
+        "penetrationReferenceSpeedMps": 692.757864,
+        "basis": "Estimated linear drag from projectile mass, bore area, muzzle speed, air density 1.225 kg/m3 and Cd 0.25; penetration budget referenced at 1000 m. Shared game approximation; no historical firing-table or Mach-curve claim. See assets/parts/author-plausible-ballistics.ts."
       }
     }
   ],

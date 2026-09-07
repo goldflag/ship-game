@@ -1,0 +1,74 @@
+[
+  {
+    "backend": "webgpu",
+    "contentHash": "f1f74516b9c12e8b925e35ba8f2abd6165e5acbe810d84b31f3b65c4684963fd",
+    "muzzle": 0.0027435334140913635,
+    "pose": {
+      "elevationFraction": 0,
+      "recoilFraction": 0,
+      "trainFraction": -1
+    },
+    "ship": "yamato",
+    "torpedoMuzzle": 0
+  },
+  {
+    "backend": "webgpu",
+    "contentHash": "f1f74516b9c12e8b925e35ba8f2abd6165e5acbe810d84b31f3b65c4684963fd",
+    "muzzle": 0.00274611857590037,
+    "pose": {
+      "elevationFraction": 1,
+      "recoilFraction": 1,
+      "trainFraction": 1
+    },
+    "ship": "yamato",
+    "torpedoMuzzle": 0
+  },
+  {
+    "backend": "webgpu",
+    "contentHash": "f1f74516b9c12e8b925e35ba8f2abd6165e5acbe810d84b31f3b65c4684963fd",
+    "muzzle": 0.0027475898183289657,
+    "pose": {
+      "elevationFraction": 0.5,
+      "recoilFraction": 1,
+      "trainFraction": 0.5
+    },
+    "ship": "yamato",
+    "torpedoMuzzle": 0
+  },
+  {
+    "backend": "webgpu",
+    "contentHash": "0a4e6833aab039ae9b4591acf42971a019cd382e1ade3f28d4291e119eac9865",
+    "muzzle": 0.0013164041414398498,
+    "pose": {
+      "elevationFraction": 0,
+      "recoilFraction": 0,
+      "trainFraction": -1
+    },
+    "ship": "baltimore",
+    "torpedoMuzzle": 0
+  },
+  {
+    "backend": "webgpu",
+    "contentHash": "0a4e6833aab039ae9b4591acf42971a019cd382e1ade3f28d4291e119eac9865",
+    "muzzle": 0.0013164041414398498,
+    "pose": {
+      "elevationFraction": 1,
+      "recoilFraction": 1,
+      "trainFraction": 1
+    },
+    "ship": "baltimore",
+    "torpedoMuzzle": 0
+  },
+  {
+    "backend": "webgpu",
+    "contentHash": "0a4e6833aab039ae9b4591acf42971a019cd382e1ade3f28d4291e119eac9865",
+    "muzzle": 0.0013186271240731293,
+    "pose": {
+      "elevationFraction": 0.5,
+      "recoilFraction": 1,
+      "trainFraction": 0.5
+    },
+    "ship": "baltimore",
+    "torpedoMuzzle": 0
+  }
+]

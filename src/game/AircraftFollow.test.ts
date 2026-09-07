@@ -27,7 +27,7 @@ test('follow selects only surviving own aircraft, cancels shell follow, and came
   const shellFollow = new ShellFollow(); shellFollow.setEnabled(true);
   let cycles = 0;
   const game = Object.assign(Object.create(Game.prototype), {
-    simulation: sim, shellFollow, inPort: false, inspecting: false,
+    simulation: sim, shellFollow, inPort: false, inspecting: false, fleetViews: [],
     rig: { setShellView() {}, cycle() { cycles++; }, update() {} },
   }) as Game;
   const selected = () => Reflect.get(game, 'followedAircraftId');

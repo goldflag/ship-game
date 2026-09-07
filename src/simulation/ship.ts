@@ -22,13 +22,17 @@ export interface ShipState {
   pitch: number;
   heading: number;
   speed: number;
-  /** Sideways velocity toward starboard, in m/s (for contact impulses). */
+  /** Sideways velocity toward starboard, in m/s (turning and contact impulses). */
   swaySpeed: number;
   rudder: number;
   yawRate: number;
   distance: number;
   /** World-space vertical velocity, used by diving hulls and weapon inheritance. */
   verticalSpeed?: number;
+  /** Wave displacement, excluded from ballast depth and draft readouts. */
+  waveHeave?: number;
+  driftX?: number;
+  driftZ?: number;
 }
 
 export const BISMARCK = {
@@ -43,12 +47,15 @@ export const BISMARCK = {
 } as const;
 
 export function createShipState(id = 'player'): ShipState {
-  return { id, tick: 0, x: 0, y: 0, z: 0, roll: 0, pitch: 0, heading: 0, speed: 0, swaySpeed: 0, rudder: 0, yawRate: 0, distance: 0, verticalSpeed: 0 };
+  return { id, tick: 0, x: 0, y: 0, z: 0, roll: 0, pitch: 0, heading: 0, speed: 0, swaySpeed: 0, rudder: 0, yawRate: 0, distance: 0, verticalSpeed: 0, waveHeave: 0, driftX: 0, driftZ: 0 };
 }
+
+export const meanHullY = (state: { y: number; waveHeave?: number }): number => state.y - (state.waveHeave ?? 0);
+export const hullDepth = (state: { y: number; waveHeave?: number }): number => Math.max(0, -meanHullY(state));
 
 export function motionVelocity(state: ShipState): import('../ships/blueprint').Vec3 {
   const sin = Math.sin(state.heading), cos = Math.cos(state.heading);
-  return [sin * state.speed + cos * state.swaySpeed, state.verticalSpeed ?? 0, -cos * state.speed + sin * state.swaySpeed];
+  return [sin * state.speed + cos * state.swaySpeed + (state.driftX ?? 0), state.verticalSpeed ?? 0, -cos * state.speed + sin * state.swaySpeed + (state.driftZ ?? 0)];
 }
 
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
@@ -56,21 +63,31 @@ const finite = (n: number) => Number.isFinite(n) ? n : 0;
 const approach = (n: number, target: number, amount: number) => n + clamp(target - n, -amount, amount);
 
 /** One fixed tick. Local input, a bot, or an authoritative server supplies the same command. */
-export function stepShip(state: ShipState, command: HelmCommand, handling: import('../ships/blueprint').Handling = BISMARCK, power = 1, steering = 1): void {
+export function stepShip(state: ShipState, command: HelmCommand, handling: import('../ships/blueprint').Handling = BISMARCK, power = 1, steering = 1, environment?: { resistance: number; drift: [number, number] }): void {
   const throttle = clamp(finite(command.throttle), -1, 1);
   const rudder = clamp(finite(command.rudder), -1, 1) * clamp(finite(steering), 0, 1);
   const availablePower = clamp(finite(power), 0, 1);
-  const targetSpeed = throttle * (throttle < 0 ? handling.reverseSpeed : handling.forwardSpeed) * Math.sqrt(availablePower);
+  // Rudder lift costs forward thrust. The loss builds with actual rudder and
+  // speed, rather than instantly following a helm command.
+  const turnLoss = .22 * state.rudder ** 2 * clamp(Math.abs(state.speed) / handling.forwardSpeed, 0, 1);
+  const targetSpeed = throttle * (throttle < 0 ? handling.reverseSpeed : handling.forwardSpeed) * Math.sqrt(availablePower) * (1 - turnLoss) * (1 - (environment?.resistance ?? 0));
   state.rudder = approach(state.rudder, rudder, handling.rudderRate * FIXED_DT);
-  const braking = targetSpeed === 0 || Math.sign(targetSpeed) !== Math.sign(state.speed);
+  const braking = Math.abs(targetSpeed) < Math.abs(state.speed) || Math.sign(targetSpeed) !== Math.sign(state.speed);
   state.speed = approach(state.speed, targetSpeed, (braking ? handling.braking : handling.acceleration * availablePower) * FIXED_DT);
   // A stationary rudder has no authority; going astern reverses its effect.
   const authority = clamp(state.speed / handling.forwardSpeed, -0.4, 1);
   const targetYaw = state.rudder * handling.maxYawRate * authority;
-  state.yawRate += (targetYaw - state.yawRate) * (1 - Math.exp(-FIXED_DT / 2.4));
+  state.yawRate += (targetYaw - state.yawRate) * (1 - Math.exp(-FIXED_DT / clamp(2.4 * .019 / Math.max(.001, handling.maxYawRate), .8, 6)));
   state.heading = (state.heading + state.yawRate * FIXED_DT + Math.PI * 2) % (Math.PI * 2);
-  // Water resistance settles sideways motion after a collision.
-  state.swaySpeed *= Math.exp(-FIXED_DT / 4);
+  // Turning develops outward sideslip; water resistance also settles contact
+  // impulses. This is a damped maneuvering approximation, not instant strafing.
+  const swayTarget = -state.yawRate * state.speed * 1.5;
+  state.swaySpeed += (swayTarget - state.swaySpeed) * (1 - Math.exp(-FIXED_DT / 4));
+  if (environment) {
+    const blend = 1 - Math.exp(-FIXED_DT / 20);
+    state.driftX = (state.driftX ?? 0) + (environment.drift[0] - (state.driftX ?? 0)) * blend;
+    state.driftZ = (state.driftZ ?? 0) + (environment.drift[1] - (state.driftZ ?? 0)) * blend;
+  }
   const velocity = motionVelocity(state);
   state.x += velocity[0] * FIXED_DT;
   state.z += velocity[2] * FIXED_DT;

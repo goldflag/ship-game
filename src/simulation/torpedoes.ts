@@ -1,3 +1,4 @@
+import { hullDepth } from './ship';
 import { mayReachHull, torpedoHullRadius } from './spatial';
 import type { ShipDefinition, TorpedoPart, Vec3 } from '../ships/blueprint';
 import type { FleetActor } from './battle';
@@ -69,7 +70,7 @@ export function tubeSolution(actor: FleetActor, tube: TubeDefinition, state: Tub
   const relative = wrapAngle(heading - actor.motion.heading);
   const inArc = launcher ? launcher.launchArcsDeg.some(([a, b]) => relative >= radians(a) && relative <= radians(b)) : Math.abs(wrapAngle(relative - train)) <= radians(tube.arcDeg) + 1e-8;
   state.status = actor.damage.sunk || actor.damage.stability.combatLost || !magazine || equipmentCondition(actor, actor.definition, magazine).availability <= 0 ? 'disabled' : state.ammo === 0 ? 'empty' :
-    actor.definition.submarine && -actor.motion.y > actor.definition.submarine.maxTorpedoDepthM ? 'too-deep' :
+    actor.definition.submarine && hullDepth(actor.motion) > actor.definition.submarine.maxTorpedoDepthM ? 'too-deep' :
     !launcher && origin[1] > 0 ? 'above-water' :
     !aim.every(Number.isFinite) || !inArc ? 'out-of-arc' :
     range < tube.weapon.armingDistanceM ? 'too-close' : range > tube.weapon.rangeM ? 'out-of-range' : state.reload > 0 ? 'reloading' :

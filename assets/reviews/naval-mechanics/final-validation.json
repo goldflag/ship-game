@@ -1,0 +1,68 @@
+{
+  "integratedMaster": "d840e0c60f69775293b4b0bb7c4f89d3c41e7164",
+  "bun": "1.3.3",
+  "tests": {
+    "passed": 774,
+    "files": 108,
+    "failed": 0
+  },
+  "productionBuild": "passed",
+  "models": {
+    "bismarck": {
+      "contentHash": "9dfb726c1ee7347679f4b2e5ef6407f28118aa85cc0b6dbdb2e9afe89bb2e127",
+      "fixedViewsInspected": [
+        "profile",
+        "plan",
+        "quarter",
+        "bow",
+        "stern"
+      ],
+      "build": "passed"
+    },
+    "fletcher": {
+      "contentHash": "ccee6ace00f2a6715a504e0bc3899bdbcf88e4f962147ccab797120bbd254013",
+      "fixedViewsInspected": [
+        "profile",
+        "plan",
+        "quarter",
+        "bow",
+        "stern"
+      ],
+      "build": "passed"
+    },
+    "type-viic": {
+      "contentHash": "01b1facde68170e9493eb5d018d3b9b219b7d423ed198245681cb589f3700b0f",
+      "fixedViewsInspected": [
+        "profile",
+        "plan",
+        "quarter",
+        "bow",
+        "stern"
+      ],
+      "build": "passed"
+    },
+    "yamato": {
+      "contentHash": "05171534ccb6204540f9d41aa83eecaf2646e1c6fa9e533df1e5b06573ff138a",
+      "fixedViewsInspected": [
+        "profile",
+        "plan",
+        "quarter",
+        "bow",
+        "stern"
+      ],
+      "build": "passed"
+    },
+    "baltimore": {
+      "contentHash": "7e4ab149112e42c671395a6bb197c95f241af05d6bec8febcf88e8727dd7cd14",
+      "fixedViewsInspected": [
+        "profile",
+        "plan",
+        "quarter",
+        "bow",
+        "stern"
+      ],
+      "build": "passed"
+    }
+  },
+  "liveReplay": "Orca runtime closed the connection or reset page context; see earlier hash-labeled articulation records."
+}

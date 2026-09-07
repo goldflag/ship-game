@@ -1,3 +1,4 @@
+import { meanHullY } from './ship';
 import type { AirContext, Aircraft } from './aircraft';
 import { antiAircraftRange } from '../ships/armament';
 import { airborne, onFlightDeck } from './aircraft';
@@ -28,7 +29,7 @@ function clearLane(actor: FleetActor, from: [number, number, number], to: [numbe
  * miss distance and a bounded hit radius; heavy AA approximates a timed burst. */
 export function updateAntiAircraft(actor: FleetActor, m: MountDefinition, state: MountState, ctx: AirContext, dt: number): boolean {
   const range = antiAircraftRange(m);
-  if (!range || actor.damage.sunk || actor.damage.stability.combatLost || actor.motion.y < -1 || state.hp <= 0 || state.ammo <= 0
+  if (!range || actor.damage.sunk || actor.damage.stability.combatLost || meanHullY(actor.motion) < -1 || state.hp <= 0 || state.ammo <= 0
     || (actor.controller === 'bot' && isPassiveAi(actor.bot?.aiLevel))) return false;
   const origin = muzzleWorld(m, state, 0, actor.motion);
   let target: Aircraft | undefined, closest = range;

@@ -1,3 +1,4 @@
+import { hullDepth } from '../simulation/ship';
 import { assetUrl } from '../assetUrl';
 import { BattlefieldCamera } from './BattlefieldCamera';
 import { airWingTelemetry } from '../simulation/airTelemetry';
@@ -782,7 +783,7 @@ export class Game {
     if (this.shellFollow.view || this.followedAircraftId) { this.stopShellFollow(); return; }
     const ship = this.simulation.ship;
     let aim = this.manualAim ? this.readSightAim() : this.currentAim;
-    if (!this.rig.binoculars && this.definition.submarine && ship.y < -.5) {
+    if (!this.rig.binoculars && this.definition.submarine && hullDepth(ship) > .5) {
       const bearing = this.rig.bearing;
       const ahead = (aim[0] - ship.x) * Math.sin(bearing) - (aim[2] - ship.z) * Math.cos(bearing);
       // During a shallow dive the chase sight can meet the sea over our own

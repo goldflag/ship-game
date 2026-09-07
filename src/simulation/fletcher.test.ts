@@ -136,7 +136,7 @@ test('a depth-charge breach earns a later flooding frag once and reset restores 
   expect(sim.target.damage.sunk).toBe(false);
   expect(sim.target.damage.compartments.some(c => c.breachAreaM2 > 0)).toBe(true);
   sim.target.damage.compartments.forEach((c, i) => c.waterM3 = sim.target.definition.compartments[i].capacityM3);
-  step(sim, 2, 'depth-charge');
+  step(sim, 60, 'depth-charge'); // Hull-derived stability updates its flood load at 2 Hz.
   expect(sim.target.damage.sunk).toBe(true);
   expect(sim.telemetry('depth-charge', [0, 0, 0]).playerFrags).toBe(1);
   step(sim, 1, 'depth-charge', true);
@@ -171,13 +171,12 @@ test.each([12, 70])('depth-charge reach uses the submarine actual depth (%s m)',
   expect(sim.events.filter(e => e.kind === 'depth-charge-hit' && e.shipId === sim.target.motion.id)).toHaveLength(depth === 12 ? 1 : 0);
 });
 
-test('destroyed magazine, empty stations, sunk hull and full projectile pool cannot consume ammunition', () => {
-  for (const reason of ['magazine', 'empty', 'sunk', 'pool']) {
+test('destroyed magazine, empty stations and sunk hull cannot consume ammunition', () => {
+  for (const reason of ['magazine', 'empty', 'sunk']) {
     const sim = new CombatSimulation(definition);
     if (reason === 'magazine') sim.player.damage.modules.find(m => m.id === 'depth-charge-magazine')!.hp = 0;
     if (reason === 'empty') sim.player.depthChargeLaunchers!.forEach(l => l.ammo = 0);
     if (reason === 'sunk') sim.player.damage.sunk = true;
-    if (reason === 'pool') for (let i = 0; i < 128; i++) sim.depthCharges.push(launchDepthCharge(sim.player, definition.depthChargeLaunchers![0], i));
     const before = ammo(sim); step(sim, 1, 'depth-charge', true);
     expect(ammo(sim)).toBe(before);
     expect(sim.events.filter(e => e.kind === 'depth-charge-launch')).toHaveLength(0);
@@ -192,4 +191,12 @@ test('bots recognize a close depth-charge pass and refuse to blast a friendly hu
   expect(botShouldDropDepthCharge(sim.player, sim.target, l, sim.actors)).toBe(true);
   const friend = { ...sim.target, team: 'friendly' as const };
   expect(botShouldDropDepthCharge(sim.player, sim.target, l, [...sim.actors, friend])).toBe(false);
+});
+
+test('a ready depth charge launches with more than the former shared pool limit active', () => {
+  const sim = new CombatSimulation(definition);
+  for (let i = 0; i < 129; i++) sim.depthCharges.push(launchDepthCharge(sim.player, definition.depthChargeLaunchers![0], 1000 + i));
+  const before = ammo(sim); step(sim, 1, 'depth-charge', true);
+  expect(ammo(sim)).toBeLessThan(before);
+  expect(sim.events.some(e => e.kind === 'depth-charge-launch')).toBe(true);
 });
