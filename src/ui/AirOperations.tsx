@@ -4,7 +4,8 @@ import type { Telemetry } from '../game/types';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
 import { AIR_STATUS_LABELS, type AirStatus, type AirWingTelemetry, type FlightSummary } from '../simulation/airTelemetry';
 import type { AirOrder } from '../simulation/aircraft';
-import { chartPoint, chartWorld } from './airChart';
+import type { Vec3 } from '../ships/blueprint';
+import { BATTLEFIELD_TILT, BATTLEFIELD_MAX_TILT, chartPoint, chartWorld } from './airChart';
 import { actionAvailable, SQUADRON_ACTIONS, squadronTargetOrder, type SquadronAction, type SquadronTarget } from './airCommands';
 import { Icon } from './Icons';
 import './AirOperations.css';
@@ -26,8 +27,8 @@ function useMapProjection(ref: RefObject<HTMLElement | SVGSVGElement | null>, ga
         else { element.style.left = `${left}px`; element.style.top = `${top}px`; }
       });
       ref.current?.querySelectorAll<SVGPathElement>('[data-map-path]').forEach(element => {
-        const points = JSON.parse(element.dataset.mapPath!) as number[][];
-        element.setAttribute('d', `M${points.map(([x, y, z]) => game.projectAirMap(x, z, y).join(' ')).join('L')}${element.dataset.closed ? 'Z' : ''}`);
+        const points = JSON.parse(element.dataset.mapPath!) as Vec3[];
+        element.setAttribute('d', game.projectAirMapPath(points, !!element.dataset.closed));
       });
     };
     return game.onCameraFrame(update);
@@ -48,7 +49,7 @@ function SquadronIcon({ role, size = 20 }: { role: FlightSummary['role']; size?:
   return <span className="air-role-icon" data-role={role} title={roleLabel(role)}><Icon name={role === 'fighter' ? 'fighter' : role === 'dive-bomber' ? 'bomb' : 'torpedo'} size={size}/></span>;
 }
 
-export function SquadronLabels({ data, game, onOrder, onTarget }: { data: Telemetry; game: Game | null; onOrder?(id: string, team: string): void; onTarget?(id: string, team: string): boolean }) {
+export function SquadronLabels({ data, game, onOrder, onTarget, onSelect }: { data: Telemetry; game: Game | null; onOrder?(id: string, team: string): void; onTarget?(id: string, team: string): boolean; onSelect?(id: string): void }) {
   const labels = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     if (!game) return;
@@ -67,7 +68,7 @@ export function SquadronLabels({ data, game, onOrder, onTarget }: { data: Teleme
       data-flight-id={f.id} data-owner-id={f.ownerId} style={{ left: f.screen?.x, top: f.screen?.y, display: f.screen ? undefined : 'none' }} title={`${f.name} · ${roleLabel(f.role)} · ${mission(f)} · ${f.hp}% condition`}
       aria-label={`${f.name} · ${roleLabel(f.role)} · ${f.surviving} aircraft · ${f.activity}`}
       tabIndex={data.airOperationsOpen ? 0 : -1}
-      onClick={e => { if (!onTarget?.(f.id, f.team) && f.ownerId === data.ship.id) game?.selectFlight(f.id); e.currentTarget.blur(); }}
+      onClick={e => { if (!onTarget?.(f.id, f.team) && f.ownerId === data.ship.id) { if (onSelect) onSelect(f.id); else game?.selectFlight(f.id); } e.currentTarget.blur(); }}
       onContextMenu={e => { if (data.airOperationsOpen) { e.preventDefault(); onOrder?.(f.id, f.team); } }}>
       <SquadronIcon role={f.role}/><span><strong>{f.name} · {f.surviving}</strong><small>{f.activity}</small></span>
     </button>)}
@@ -75,12 +76,12 @@ export function SquadronLabels({ data, game, onOrder, onTarget }: { data: Teleme
 }
 
 /** Instruments over the actual 3D scene. M changes the camera, never opens a dialog. */
-export function AirOperations({ data, game, bindings }: { data: Telemetry; game: Game | null; bindings: Keybindings }) {
+export function AirOperations({ data, game, bindings, instrumentsVisible = true }: { data: Telemetry; game: Game | null; bindings: Keybindings; instrumentsVisible?: boolean }) {
   const wing = data.combat!.airWing!;
   const mapOpen = !!data.airOperationsOpen;
-  const [pendingSelection, setPendingSelection] = useState<string>();
-  const selected = wing.groups.find(f => f.id === (pendingSelection ?? data.selectedFlightId));
-  useEffect(() => { if (pendingSelection === data.selectedFlightId) setPendingSelection(undefined); }, [pendingSelection, data.selectedFlightId]);
+  const [pendingSelection, setPendingSelection] = useState<{ id: string | undefined }>();
+  const selected = wing.groups.find(f => f.id === (pendingSelection ? pendingSelection.id : data.selectedFlightId));
+  useEffect(() => { if (pendingSelection?.id === data.selectedFlightId) setPendingSelection(undefined); }, [pendingSelection, data.selectedFlightId]);
   const [feedback, setFeedback] = useState('');
   const [details, setDetails] = useState(false);
   const [armedAction, setArmedAction] = useState<SquadronAction>();
@@ -90,14 +91,16 @@ export function AirOperations({ data, game, bindings }: { data: Telemetry; game:
   const map = useRef<SVGSVGElement>(null);
   useMapProjection(map, game, mapOpen);
   const row = useRef<HTMLDivElement>(null);
-  const drag = useRef<{ x: number; y: number; moved: boolean; startX: number; startY: number } | null>(null);
+  const drag = useRef<{ x: number; y: number; moved: boolean; startX: number; startY: number; orbit: boolean } | null>(null);
   const navigation = useRef(new AirMapNavigation());
-  const state = useRef({ data, selected, mapOpen, size }); state.current = { data, selected, mapOpen, size };
+  const rotation = useRef(new AirMapNavigation());
+  const state = useRef({ data, selected, mapOpen, size, instrumentsVisible }); state.current = { data, selected, mapOpen, size, instrumentsVisible };
   const canCommand = data.combat!.result === 'active' && !data.combat!.playerSunk;
   const view = data.airMap ?? { x: data.ship.x, z: data.ship.z, radius: 8000 };
   const point = (x: number, z: number, altitude = 0) => game?.projectAirMap(x, z, altitude) ?? chartPoint(view, size.width, size.height, x, z, altitude);
+  const path = (points: Vec3[], closed = false) => game?.projectAirMapPath(points, closed) ?? `M${points.map(([x, y, z]) => point(x, z, y).join(' ')).join('L')}${closed ? 'Z' : ''}`;
   const waterPoint = (x: number, y: number, width: number, height: number) => game ? game.airMapWater(x, y) : chartWorld(view, width, height, x, y);
-  const currentFlight = () => state.current.data.combat?.airWing?.groups.find(f => f.id === game?.selectedFlightId) ?? state.current.selected;
+  const currentFlight = () => game ? state.current.data.combat?.airWing?.groups.find(f => f.id === game.selectedFlightId) : state.current.selected;
   const issue = (order: AirOrder) => {
     const flight = currentFlight();
     if (!flight) { setFeedback('Select a squadron below first.'); return; }
@@ -110,7 +113,11 @@ export function AirOperations({ data, game, bindings }: { data: Telemetry; game:
       : flight.status === 'servicing' ? 'Squadron servicing · Wait for all survivors to be ready.'
       : 'Order unavailable · Check role, armament, endurance and the 30 km command range.');
   };
-  const select = (f: FlightSummary) => { arm(); setFeedback(''); setDetails(false); setPendingSelection(f.id); game?.selectFlight(f.id); };
+  const select = (f: FlightSummary) => {
+    arm(); setFeedback(''); setDetails(false);
+    const id = currentFlight()?.id === f.id ? undefined : f.id;
+    game?.selectFlight(f.id); setPendingSelection({ id });
+  };
   const perform = (key: string) => {
     const flight = currentFlight();
     if (key === 'V') { if (flight) setDetails(v => !v); return; }
@@ -128,7 +135,7 @@ export function AirOperations({ data, game, bindings }: { data: Telemetry; game:
   };
   const handlers = useRef({ select, perform }); handlers.current = { select, perform };
   useEffect(() => { row.current?.querySelector('[aria-pressed=true]')?.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }, [selected?.id]);
-  useEffect(() => { if (!mapOpen) { arm(); setDetails(false); setFeedback(''); } }, [mapOpen]);
+  useEffect(() => { if (!mapOpen || !instrumentsVisible) { arm(); setDetails(false); setFeedback(''); } }, [mapOpen, instrumentsVisible]);
   useEffect(() => { if (feedback) { const timer = window.setTimeout(() => setFeedback(''), 4500); return () => window.clearTimeout(timer); } }, [feedback]);
   useEffect(() => {
     // Capture map shortcuts before the ship's battery/helm bindings; no stuck rudder on exit.
@@ -137,17 +144,18 @@ export function AirOperations({ data, game, bindings }: { data: Telemetry; game:
       const target = event.target as HTMLElement;
       if (target instanceof HTMLElement && (target.matches('input, textarea, select') || target.isContentEditable)) return;
       const index = /^Digit[1-9]$/.test(event.code) ? Number(event.code.at(-1)) - 1 : event.code === 'Digit0' ? 9 : -1;
-      const pan = navigation.current.key(event.code, true);
+      const pan = navigation.current.key(event.code, !event.shiftKey);
+      rotation.current.key(event.code, event.shiftKey);
       const actionKey = ['L', 'A', 'D', 'I', 'E', 'R', 'X', 'V'].find(k => event.code === `Key${k}`);
       const close = bindings.airOperations.includes(event.code);
-      const handled = index >= 0 || !!pan || !!actionKey || event.code === 'Escape' || close;
+      const handled = index >= 0 || !!pan || !!actionKey || event.code === 'Escape' || close || event.code === 'ShiftLeft' || event.code === 'ShiftRight';
       if (!handled) return;
       event.preventDefault(); event.stopImmediatePropagation();
       if (!pan && !event.repeat) {
         if (close) game?.setAirOperationsOpen(false);
         else if (event.code === 'Escape') { if (armed.current) arm(); else game?.setAirOperationsOpen(false); }
-        else if (index >= 0) { const f = state.current.data.combat?.airWing?.groups[index]; if (f) handlers.current.select(f); }
-        else if (actionKey) handlers.current.perform(actionKey);
+        else if (state.current.instrumentsVisible && index >= 0) { const f = state.current.data.combat?.airWing?.groups[index]; if (f) handlers.current.select(f); }
+        else if (state.current.instrumentsVisible && actionKey) handlers.current.perform(actionKey);
       }
     };
     window.addEventListener('keydown', key, true);
@@ -157,9 +165,10 @@ export function AirOperations({ data, game, bindings }: { data: Telemetry; game:
     const element = map.current;
     if (!mapOpen || !element) return;
     const nav = navigation.current;
-    nav.clear();
-    const clear = () => nav.clear();
-    const keyUp = (event: KeyboardEvent) => { nav.key(event.code, false); };
+    const orbit = rotation.current;
+    const clear = () => { nav.clear(); orbit.clear(); };
+    clear();
+    const keyUp = (event: KeyboardEvent) => { nav.key(event.code, false); orbit.key(event.code, false); if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') orbit.clear(); };
     const pointer = (event: globalThis.PointerEvent) => {
       const target = event.target;
       if (event.pointerType !== 'mouse' || event.buttons || !(target instanceof Element) || target.closest('button, input, textarea, select, dialog')) {
@@ -173,11 +182,13 @@ export function AirOperations({ data, game, bindings }: { data: Telemetry; game:
     const tick = (now: number) => {
       const dt = (now - previous) / 1000; previous = now;
       const focused = document.activeElement;
-      if (document.hidden || document.querySelector('dialog[open]') || (focused instanceof HTMLElement && (focused.matches('input, textarea, select') || focused.isContentEditable))) nav.clear();
+      if (document.hidden || document.querySelector('dialog[open]') || (focused instanceof HTMLElement && (focused.matches('input, textarea, select') || focused.isContentEditable))) clear();
       else if (!drag.current) {
         const rect = element.getBoundingClientRect();
         const [dx, dy] = nav.step(dt, rect.width, rect.height);
         if (dx || dy) game?.panAirMap(dx, dy);
+        const [rx, ry] = orbit.step(dt, rect.width, rect.height);
+        if (rx || ry) game?.orbitAirMap(rx * .35, ry * .35);
       }
       frame = requestAnimationFrame(tick);
     };
@@ -197,7 +208,7 @@ export function AirOperations({ data, game, bindings }: { data: Telemetry; game:
     };
     element.addEventListener('wheel', wheel, { passive: false });
     return () => {
-      cancelAnimationFrame(frame); nav.clear();
+      cancelAnimationFrame(frame); clear();
       window.removeEventListener('keyup', keyUp, true);
       window.removeEventListener('blur', clear);
       window.removeEventListener('pointermove', pointer);
@@ -208,19 +219,23 @@ export function AirOperations({ data, game, bindings }: { data: Telemetry; game:
     };
   }, [mapOpen, game]);
   const pointerDown = (event: PointerEvent<SVGSVGElement>) => {
-    if (event.button !== 0 || (event.target as Element).closest('[data-contact]')) return;
+    if ((event.button !== 0 && event.button !== 1) || (event.target as Element).closest('[data-contact]')) return;
+    event.preventDefault();
     event.currentTarget.focus(); event.currentTarget.setPointerCapture(event.pointerId);
-    drag.current = { x: event.clientX, y: event.clientY, startX: event.clientX, startY: event.clientY, moved: false };
+    drag.current = { x: event.clientX, y: event.clientY, startX: event.clientX, startY: event.clientY, moved: false, orbit: event.button === 1 || event.shiftKey };
   };
   const pointerMove = (event: PointerEvent<SVGSVGElement>) => {
     const start = drag.current;
     if (!start) return;
     start.moved ||= Math.hypot(event.clientX - start.startX, event.clientY - start.startY) > 4;
-    if (start.moved) { const rect = event.currentTarget.getBoundingClientRect(); game?.panAirMap(event.clientX - start.x, event.clientY - start.y, event.clientX - rect.left, event.clientY - rect.top); }
+    if (start.moved) {
+      if (start.orbit) game?.orbitAirMap(event.clientX - start.x, event.clientY - start.y);
+      else { const rect = event.currentTarget.getBoundingClientRect(); game?.panAirMap(event.clientX - start.x, event.clientY - start.y, event.clientX - rect.left, event.clientY - rect.top); }
+    }
     start.x = event.clientX; start.y = event.clientY;
   };
   const release = (event: PointerEvent<SVGSVGElement>) => {
-    if (event.type === 'pointerup' && drag.current && !drag.current.moved && armed.current) {
+    if (event.type === 'pointerup' && drag.current && !drag.current.moved && !drag.current.orbit && armed.current && instrumentsVisible) {
       const rect = event.currentTarget.getBoundingClientRect();
       const water = waterPoint(event.clientX - rect.left, event.clientY - rect.top, rect.width, rect.height);
       if (water) target({ kind: 'water', point: [water[0], 420, water[1]] });
@@ -233,21 +248,21 @@ export function AirOperations({ data, game, bindings }: { data: Telemetry; game:
   const aircraft = selected ? wing.flights.filter(p => selected.aircraftIds.includes(p.id)) : [];
   return <>
     {mapOpen && <section className="air-battlefield" aria-label="Air operations battlefield">
-      <svg ref={map} className="air-battlefield-map" data-action={armedAction?.kind} viewBox={`0 0 ${size.width} ${size.height}`} tabIndex={0} role="group" aria-label="Battlefield. Drag, hold arrow keys, or move the mouse to a screen edge to pan. Scroll to zoom, right-click to order the selected squadron."
+      <svg ref={map} className="air-battlefield-map" data-action={armedAction?.kind} viewBox={`0 0 ${size.width} ${size.height}`} tabIndex={0} role="group" aria-label="Battlefield. Drag, hold arrow keys, or move the mouse to a screen edge to pan. Scroll to zoom. Shift-drag, middle-drag or Shift+arrow keys to change angle. Right-click to order the selected squadron when instruments are visible."
         onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={release} onPointerCancel={release}
         onContextMenu={event => {
-          event.preventDefault(); const rect = event.currentTarget.getBoundingClientRect();
+          event.preventDefault(); if (!instrumentsVisible) return; const rect = event.currentTarget.getBoundingClientRect();
           const water = waterPoint(event.clientX - rect.left, event.clientY - rect.top, rect.width, rect.height);
           if (water) target({ kind: 'water', point: [water[0], 420, water[1]] });
         }}>
         <rect width="100%" height="100%" fill="transparent"/>
-        {selected?.active && <path className="air-route" data-map-path={JSON.stringify([selected.position, [selected.destination[0], 0, selected.destination[2]]])} d={`M${point(selected.position[0], selected.position[2], selected.position[1]).join(' ')}L${point(selected.destination[0], selected.destination[2]).join(' ')}`}/>}
+        {instrumentsVisible && <>
+        {selected?.active && <path className="air-route" data-map-path={JSON.stringify([selected.position, [selected.destination[0], 0, selected.destination[2]]])} d={path([selected.position, [selected.destination[0], 0, selected.destination[2]]])}/>}
         {wing.groups.filter(f => f.active && f.order.kind === 'patrol').map(f => {
           const [x, y] = point(f.destination[0], f.destination[2]);
-          const ringWorld = Array.from({ length: 48 }, (_, i) => { const angle = i * Math.PI / 24; return [f.destination[0] + Math.cos(angle) * 700, 0, f.destination[2] + Math.sin(angle) * 700]; });
-          const ring = ringWorld.map(([x, y, z]) => point(x, z, y));
+          const ringWorld = Array.from({ length: 48 }, (_, i): Vec3 => { const angle = i * Math.PI / 24; return [f.destination[0] + Math.cos(angle) * 700, 0, f.destination[2] + Math.sin(angle) * 700]; });
           return <g key={f.id} className={`air-station ${f.id === selected?.id ? 'air-selected' : ''}`}>
-            <path data-map-path={JSON.stringify(ringWorld)} data-closed="true" d={`M${ring.map(p => p.join(' ')).join('L')}Z`} className="air-loiter-radius"/>
+            <path data-map-path={JSON.stringify(ringWorld)} data-closed="true" d={path(ringWorld, true)} className="air-loiter-radius"/>
             <g data-map-position={JSON.stringify([f.destination[0], 0, f.destination[2]])} transform={`translate(${x} ${y})`}><path d="M-8 0H8M0-8V8"/><circle r="4"/><text x="11" y="15">{f.name}</text></g>
           </g>;
         })}
@@ -257,23 +272,31 @@ export function AirOperations({ data, game, bindings }: { data: Telemetry; game:
           onKeyDown={e => { if (!c.sunk && e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); commandShip(c.id, c.team); } }}
           onContextMenu={e => { if (c.sunk) return; e.preventDefault(); e.stopPropagation(); commandShip(c.id, c.team); }}>
           <title>{c.sunk ? `${c.name}, sunk` : `${c.name} · ${c.team === 'enemy' ? 'Bombers: strike ship' : 'Fighters: defend ship'}`}</title>
-          <g className="air-map-ship-marker"><circle r="24" fill="transparent" stroke="none"/><path d="M0-13 6-3 6 11H-6V-3Z" transform={`rotate(${c.heading * 180 / Math.PI})`}/></g>
+          <g className="air-map-ship-marker"><circle r="24" fill="transparent" stroke="none"/><path d="M0-13 6-3 6 11H-6V-3Z" transform={`rotate(${(c.heading - (view.bearing ?? 0)) * 180 / Math.PI})`}/></g>
           <text x="13" y="0">{c.name}{c.id === data.ship.id ? ' · You' : ''}</text>{!c.sunk && <g className="air-map-ship-health" role="meter" aria-label={`${c.name}, hull condition`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(c.integrity * 100)}>
             <rect className="air-map-ship-health-track" x="13" y="5" width="104" height="5"/>
             <rect className="air-map-ship-health-fill" x="14" y="6" width={102 * Math.max(0, Math.min(1, c.integrity))} height="3"/>
             <text x="65" y="20" textAnchor="middle" dominantBaseline="central">{Math.round(c.integrity * 100)}%</text>
           </g>}
         </g>)}
+        </>}
       </svg>
+      {instrumentsVisible && <>
       <header className="air-map-header"><h2>Air operations</h2>
         <button onClick={e => { game?.setAirOperationsOpen(false); e.currentTarget.blur(); }}>Return to ship <kbd>{bindingLabel(bindings, 'airOperations')}</kbd></button>
       </header>
       <nav className="air-map-tools" aria-label="Battlefield camera"><button onClick={e => { game?.fitAirMap(); e.currentTarget.blur(); }}>Fit battlefield</button><button onClick={e => { game?.centerAirMap(); e.currentTarget.blur(); }}>Center carrier</button>
         <button aria-label="Zoom out battlefield" onClick={e => { game?.zoomAirMap(220); e.currentTarget.blur(); }}>−</button><span>{(view.radius * 2 / 1000).toFixed(1)} km across</span><button aria-label="Zoom in battlefield" onClick={e => { game?.zoomAirMap(-220); e.currentTarget.blur(); }}>+</button>
       </nav>
+      <nav className="air-map-angle" aria-label="Battlefield angle">
+        <label>Tilt <input type="range" min="0" max={Math.round(BATTLEFIELD_MAX_TILT * 180 / Math.PI)} value={Math.round((view.tilt ?? BATTLEFIELD_TILT) * 180 / Math.PI)} aria-label="Battlefield tilt" aria-valuetext={`${Math.round((view.tilt ?? BATTLEFIELD_TILT) * 180 / Math.PI)} degrees from overhead`} onChange={event => game?.setAirMapTilt(Number(event.target.value))}/></label>
+        <button title="Restore north-up and the default tilt" onClick={e => { game?.resetAirMapAngle(); e.currentTarget.blur(); }}>Reset angle</button>
+        <span title="Middle-mouse drag or Shift+arrow keys also changes the angle">Shift-drag to orbit</span>
+      </nav>
+      </>}
     </section>}
-    <SquadronLabels data={data} game={game} onOrder={commandFlight} onTarget={(id, team) => { if (!armed.current) return false; commandFlight(id, team); return true; }}/>
-    {mapOpen && <section className="air-squadron-command air-command-map" aria-label="Squadron commands">
+    {instrumentsVisible && <SquadronLabels data={{ ...data, selectedFlightId: selected?.id }} game={game} onSelect={id => { const f = wing.groups.find(f => f.id === id); if (f) select(f); }} onOrder={commandFlight} onTarget={(id, team) => { if (!armed.current || id === currentFlight()?.id) return false; commandFlight(id, team); return true; }}/>}
+    {mapOpen && instrumentsVisible && <section className="air-squadron-command air-command-map" aria-label="Squadron commands">
       {mapOpen && <>
         <nav className="air-selected-orders" aria-label="Squadron actions">
           {SQUADRON_ACTIONS.filter(a => !selected || actionAvailable(a, selected.role)).map(action => <button key={action.kind} disabled={!canCommand || !selected?.surviving} aria-pressed={armedAction?.kind === action.kind} aria-keyshortcuts={action.key.toLowerCase()} title={`${action.key} · ${action.label}, then click ${action.target}. Esc cancels.`} onClick={e => { perform(action.key); e.currentTarget.blur(); }}>{action.label}<kbd>{action.key}</kbd></button>)}

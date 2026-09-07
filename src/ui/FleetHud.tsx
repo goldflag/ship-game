@@ -132,7 +132,7 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
   const followingShell = data.shellFollow === 'flight' || data.shellFollow === 'impact';
   const following = followingShell || !!data.followedAircraftId || !!data.combat?.playerSunk;
 
-  return <div className={`fleet-hud ${visible ? '' : 'fleet-hud-hidden'} ${data.airOperationsOpen ? 'fleet-air-map' : ''} ${data.binoculars ? 'fleet-in-optics' : ''}`} inert={!visible} style={{ '--map-factor': mapSize / 400 } as CSSProperties}>
+  return <div className={`fleet-hud ${visible ? '' : 'fleet-hud-hidden'} ${data.airOperationsOpen ? 'fleet-air-map' : ''} ${data.binoculars ? 'fleet-in-optics' : ''}`} inert={!visible && !data.airOperationsOpen} style={{ '--map-factor': mapSize / 400 } as CSSProperties}>
     <BearingTape degrees={degrees}/>
     {data.combat?.battle && <BattleStatus combat={data.combat} game={game} spectatedShipId={data.spectatedShipId}>
       {data.combat.airWing && !data.airOperationsOpen && <FlightControl combat={data.combat} game={game} bindings={bindings}/>}
@@ -183,7 +183,7 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
 
     {!data.airOperationsOpen && <ActiveArmament data={data} game={game} visible={visible} bindings={bindings}/>}
     {!data.combat?.airWing && <SquadronLabels data={data} game={game}/>}
-    {data.combat?.airWing && <AirOperations data={data} game={game} bindings={bindings}/>}
+    {data.combat?.airWing && <AirOperations data={data} game={game} bindings={bindings} instrumentsVisible={visible}/>}
     {data.combat?.submarine && <DepthControl combat={data.combat} game={game} bindings={bindings}/>}
     {data.binoculars && data.aimModule !== 'point' && data.aimMarker?.visible && <div className="aim-marker" aria-hidden="true" style={{ left: `${data.aimMarker.x}%`, top: `${data.aimMarker.y}%` }}><span/><small>TRACKED AIM</small></div>}
     <aside className="fleet-map-area" aria-label="Navigation minimap"><NavigationChart bindings={bindings} data={data} onResize={direction => game?.resizeChart(direction)}/></aside>

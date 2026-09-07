@@ -1,6 +1,7 @@
 import { expect, mock, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { AirOperations } from '../ui/AirOperations';
+import { FleetHud } from '../ui/FleetHud';
 import { chartPoint, chartWorld, fitAirChart } from '../ui/airChart';
 import { CombatSimulation } from '../simulation/combat';
 import { shipPreset } from '../ships/presets';
@@ -13,6 +14,48 @@ import { WaterSurfaceGeometry, WaterSystem } from '../../vendor/threejs-water-pr
 import { battleEnvironment } from '../maps/conditions';
 import { oceanMap } from '../maps/catalog';
 import { squadronTargetOrder } from '../ui/airCommands';
+import { squadronFlights } from '../simulation/aircraft';
+
+test('hiding carrier instruments leaves the map navigation surface interactive', () => {
+  const simulation = new CombatSimulation(shipPreset('enterprise-cv6'));
+  const data = { ship: simulation.ship, order: 1, camera: 'Chase' as const, trail: [], fps: 60, backend: 'test', airOperationsOpen: true, combat: simulation.telemetry('main', [0, 0, -5000]) };
+  const html = renderToStaticMarkup(<FleetHud data={data} game={null} visible={false} bindings={defaultKeybindings()}/>);
+  expect(html.match(/<div class="fleet-hud [^>]*>/)![0]).not.toContain('inert');
+  expect(html).toContain('air-battlefield-map');
+  expect(html).not.toContain('air-squadron-box');
+});
+
+test('reselecting a squadron clears it, and another selection remains available immediately', () => {
+  const simulation = new CombatSimulation(shipPreset('enterprise-cv6'));
+  const game = Object.assign(Object.create(Game.prototype), { simulation }) as Game;
+  const [first, second] = squadronFlights(simulation.player);
+  game.selectFlight(first.id);
+  expect(game.selectedFlightId).toBe(first.id);
+  game.selectFlight(first.id);
+  expect(game.selectedFlightId).toBeUndefined();
+  game.selectFlight(second.id);
+  expect(game.selectedFlightId).toBe(second.id);
+  game.selectFlight('missing');
+  expect(game.selectedFlightId).toBe(second.id);
+});
+
+test('selected route points toward a distant target through the zoom level where it passes behind the camera', () => {
+  const simulation = new CombatSimulation(shipPreset('enterprise-cv6'));
+  const combat = simulation.telemetry('main', [0, 0, -5000]);
+  const flight = combat.airWing!.groups[0];
+  flight.active = true; flight.position = [0, 420, 0]; flight.destination = [1000, 0, 12000];
+  const camera = new PerspectiveCamera(52, 1600 / 900, 1, 60000);
+  const battlefield = new BattlefieldCamera(camera);
+  const game = Object.assign(Object.create(Game.prototype), { camera, hudScale: 1, host: { clientWidth: 1600, clientHeight: 900 } }) as Game;
+  for (const radius of [8000, 4000, 2000, 1000, 600]) {
+    battlefield.view.radius = radius; battlefield.update();
+    const html = renderToStaticMarkup(<AirOperations data={{ ship: simulation.ship, order: 1, camera: 'Chase', trail: [], fps: 60, backend: 'test', airOperationsOpen: true, selectedFlightId: flight.id, combat }} game={game} bindings={defaultKeybindings()}/>);
+    const path = html.match(/class="air-route"[^>]* d="([^"]*)"/)![1];
+    const [x1, y1, x2, y2] = path.match(/-?\d+(?:\.\d+)?(?:e[+-]?\d+)?/g)!.map(Number);
+    expect(x2).toBeGreaterThan(x1);
+    expect(y2).toBeGreaterThan(y1);
+  }
+});
 
 test('map overlays and water orders use the displayed camera throughout ascent and panning', () => {
   const camera = new PerspectiveCamera(52, 1.6, .5, 60000);

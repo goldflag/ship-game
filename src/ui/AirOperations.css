@@ -11,6 +11,13 @@
 .air-map-tools { position:absolute; top:64px; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:4px; white-space:nowrap; }
 .air-map-tools button { min-width:28px; min-height:28px; padding:4px 6px; font-size:10px; }
 .air-map-tools span { width:80px; text-align:center; font-size:10px; }
+.air-map-angle { position:absolute; top:98px; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:8px; white-space:nowrap; font-size:10px; pointer-events:auto; }
+.air-map-angle label { display:flex; align-items:center; gap:6px; }
+.air-map-angle input { width:80px; accent-color:var(--fleet-gold); }
+.air-map-angle button { min-height:28px; padding:4px 6px; border:1px solid var(--fleet-line); border-radius:1px; color:inherit; background:transparent; font:inherit; cursor:pointer; }
+.air-map-angle button:hover { color:var(--fleet-gold); border-color:currentColor; }
+.air-map-angle :is(button,input):focus-visible { outline:2px solid var(--fleet-gold); outline-offset:2px; }
+.air-map-angle span { color:var(--fleet-muted); }
 .air-map-ship { cursor:pointer; stroke:currentColor; fill:none; }
 .air-map-ship text,.air-station text { stroke:#07131b; stroke-width:3px; paint-order:stroke; fill:currentColor; font:500 10px 'Barlow',sans-serif; }
 .air-map-ship-health-track { fill:#06111b; stroke:#c9dce04a; stroke-width:1; }
@@ -77,13 +84,15 @@
 @container hud (max-width:800px) {
   .air-map-header { top:78px; }
   .air-map-tools { top:116px; }
+  .air-map-angle { top:150px; }
   .fleet-air-map .fleet-ship { display:none; }
-  .fleet-air-map .fleet-combat-report { top:158px; }
+  .fleet-air-map .fleet-combat-report { top:192px; }
   .air-squadron-command:not(.air-command-map) { left:204px; right:12px; bottom:calc(var(--chart-width) + 20px); }
 }
 @container hud (max-width:600px) {
   .air-map-header { left:12px; top:70px; transform:none; }
   .air-map-tools { top:108px; left:12px; transform:none; }
+  .air-map-angle { top:142px; left:12px; transform:none; }
   .air-squadron-command.air-command-map { max-width:calc(100% - 16px); bottom:6px; }
   .air-selected-orders { justify-content:flex-start; }
   .air-squadron-command:not(.air-command-map) { left:12px; right:12px; top:150px; bottom:auto; }
