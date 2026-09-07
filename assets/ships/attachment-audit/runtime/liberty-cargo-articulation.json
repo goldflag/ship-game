@@ -1,9 +1,9 @@
 {
   "kind": "articulation",
   "shipId": "liberty-cargo",
-  "contentHash": "869d86b41d0c301cc43bd31f75cb6fd7850fc0333723527bb14d5f2891ad6cf5",
+  "contentHash": "75ce2c47cabd18d55e0253c03da13d9107676fcf8b70d2cac65fe569d523df60",
   "backend": "webgpu",
-  "time": "2026-09-07T05:08:26.285Z",
+  "time": "2026-09-07T07:30:35.757Z",
   "mounts": 10,
   "poses": [
     {

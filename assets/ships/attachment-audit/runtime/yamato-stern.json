@@ -1,24 +1,25 @@
 {
-  "camera": [
-    207,
-    20,
-    120
+  "shipId": "yamato",
+  "contentHash": "9f5edeebea5b628b0e481fe000ed716e28ef23fa0fb050b8d88f2ca8c6db1504",
+  "targetBlender": [
+    -105,
+    0,
+    8
   ],
-  "contentHash": "abf31d60194ce8b03a6d8e4b5910f6ebe84e2f49ff46ced64d89e3af44f5d22c",
   "offsetBlender": [
     -15,
     33,
     12
   ],
   "pose": {
-    "elevationFraction": 0,
-    "recoilFraction": 0,
-    "trainFraction": 1
+    "trainFraction": 1,
+    "elevationFraction": 1,
+    "recoilFraction": 1
   },
-  "shipId": "yamato",
-  "targetBlender": [
-    -105,
-    0,
-    8
-  ]
+  "camera": [
+    207,
+    20,
+    120
+  ],
+  "browser": "Isolated headless Chrome / Metal; fallback after Orca tab closures"
 }

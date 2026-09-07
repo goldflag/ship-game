@@ -5,9 +5,17 @@ import { torpedoArcLabel } from '../ships/armament';
 import type { Ammunition } from '../ships/blueprint';
 import { Icon } from './Icons';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
+import type { FireReadout } from '../simulation/damageReadout';
 
 const listLabel = (angle: number) => Math.abs(angle) < .05 ? 'Upright' : `${Math.abs(angle).toFixed(1)}° ${angle > 0 ? 'port' : 'starboard'}`;
 const trimLabel = (angle: number) => Math.abs(angle) < .05 ? 'Level' : `${Math.abs(angle).toFixed(1)}° ${angle < 0 ? 'bow down' : 'stern down'}`;
+const structureLabel = (condition: number) => condition < .05 ? 'Destroyed section · minimal damage' : condition < .5 ? `Heavily damaged · ${Math.round(condition * 200)}% hull damage` : `${Math.round(condition * 100)}% structure remaining`;
+function FireList({ fires, game }: { fires: FireReadout[]; game?: Game | null }) {
+  return <div className="module-conditions">{fires.map(f => <div className="fire-condition" key={f.id}>
+    <span>{f.name}<small>{f.threat ? `Threatens ${f.threat}` : f.intensity > 0 ? 'Local equipment at risk' : 'Heat falling'} · {Math.round(f.fuelFraction * 100)}% fuel left</small></span>
+    {game ? <button onClick={() => { game.controlPriority = 'fires'; game.controlFocus = f.id; }} title={`Send fire crews to ${f.name}`}>{f.status} · Focus crews</button> : <strong>{f.status}</strong>}
+  </div>)}</div>;
+}
 
 export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bindings: Keybindings; data: Telemetry; game: Game | null; expanded: boolean; onExpand(expanded: boolean): void }) {
   const c = data.combat;
@@ -34,11 +42,14 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
       </div>)}</div>
       <details className="shell-history">
         <summary>Own damage control · {[...c.control.rooms, ...c.control.mounts].filter(f => f.intensity > 0).length} fires · {c.control.teams.filter(Boolean).length}/{c.control.teams.length} teams</summary>
+        <FireList fires={c.playerFires} game={game}/>
         <dl className="damage-readout" aria-label="Own flooding and balance">
           <div><dt>List</dt><dd>{listLabel(c.playerList)}</dd></div>
           <div><dt>Trim</dt><dd>{trimLabel(c.playerTrim)}</dd></div>
           <div><dt>Flooding</dt><dd>{c.playerWater.toFixed(0)} m³</dd></div>
           <div><dt>{c.submarine ? 'Depth' : 'Draft change'}</dt><dd>{c.playerDraftChange.toFixed(2)} m</dd></div>
+          <div><dt>Electrical supply</dt><dd>{Math.round(c.playerSupport.power * 100)}%</dd></div>
+          <div><dt>Fire control</dt><dd>{Math.round(c.playerSupport.fireControl * 100)}%</dd></div>
         </dl>
         <p className="gunnery-help">Uneven flooding can make the ship list or capsize with hull HP remaining. Contain flooding and focus crews on flooded spaces to help restore balance.</p>
         <label className="aim-select">Priority <select value={c.control.priority} onChange={e => { if (game) game.controlPriority = e.target.value as ControlPriority; }}>
@@ -49,7 +60,7 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
         </select></label>
         <p className="gunnery-help">{c.control.spares.toFixed(0)} repair supplies · Repairs restore equipment up to 60%, without restoring hull HP. Destroyed equipment stays lost. Crews shore small openings and pump accessible rooms.</p>
         <div className="module-conditions">{c.control.teams.map((job, i) => <div key={i}><span>Team {i + 1}</span><strong>{job ? `${job.kind.replaceAll('-', ' ')}${job.setup > 0 ? ` · ${Math.ceil(job.setup)}s setup` : ''}` : 'Available'}</strong></div>)}</div>
-        <div className="module-conditions">{[...c.control.rooms.map((f, i) => ({ f, name: c.controlTargets[i]?.name })), ...c.control.mounts.map((f, i) => ({ f, name: c.controlTargets[c.control.rooms.length + i]?.name }))].filter(({ f }) => f.intensity > 0).map(({ f, name }, i) => <div key={i}><span>{name}</span><strong>Fire · {Math.round(f.intensity * 100)}%</strong></div>)}</div>
+        <p className="gunnery-help">Electrical damage slows gun training and loading and reduces fixed pumping. Portable pumps work independently. Fire-control damage widens shot dispersion.</p>
       </details>
       {c.battery !== 'depth-charge' && <label className="aim-select">Aim at <select value={data.aimModule ?? ''} onChange={e => game?.selectAim(e.target.value)}>
         <option value="point">Center sight · Manual</option>
@@ -63,6 +74,8 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
         <div><dt>Hull</dt><dd>{Math.round(c.targetIntegrity * 100)}%</dd></div>
         <div><dt>Equipment</dt><dd>{Math.round(c.targetEquipmentIntegrity * 100)}%</dd></div>
         <div><dt>Propulsion</dt><dd>{Math.round(c.targetPower * 100)}%</dd></div>
+        <div><dt>Electrical supply</dt><dd>{Math.round(c.targetSupport.power * 100)}%</dd></div>
+        <div><dt>Fire control</dt><dd>{Math.round(c.targetSupport.fireControl * 100)}%</dd></div>
         <div><dt>List</dt><dd>{listLabel(c.targetList)}</dd></div>
         <div><dt>Trim</dt><dd>{trimLabel(c.targetTrim)}</dd></div>
         <div><dt>Draft change</dt><dd>{c.targetDraftChange.toFixed(2)} m</dd></div>
@@ -71,6 +84,11 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
       </dl>
       <p className="damage-message" role="status">{c.message}</p>
       {c.targetDefeatCause && <p className="damage-message">Loss cause: {c.targetDefeatCause.replaceAll('-', ' ')}</p>}
+      {c.targetFireDetails.length > 0 && <details className="shell-history"><summary>Target fires and heat · {c.targetFireDetails.length}</summary><FireList fires={c.targetFireDetails}/></details>}
+      <details className="shell-history"><summary>Damaged sections · {c.targetRegions.length}</summary>
+        {c.targetRegions.length ? <div className="module-conditions">{c.targetRegions.map(r => <div key={r.id}><span>{r.name}</span><strong>{structureLabel(r.condition)}</strong></div>)}</div> : <p>No local structural damage recorded.</p>}
+        <p>Repeated hits remove less hull HP as a section is destroyed. Shells can still reach intact equipment behind it, and new openings can admit water.</p>
+      </details>
       <details className="shell-history">
         <summary>Recent shell impacts · {c.shellHistory.length}</summary>
         {c.shellHistory.length === 0 ? <p>No hits recorded on this target.</p> : c.shellHistory.map(h => <details key={h.shellId}>
@@ -85,6 +103,8 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
             <span>{impact.resistanceMm !== undefined ? `${impact.resistanceMm.toFixed(1)} mm resistance · ` : ''}{impact.penetrationAfterMm.toFixed(1)} mm remaining</span>
             {!!impact.hullDamage && <span>{impact.hullDamage.toFixed(1)} hull damage</span>}
             {!!impact.damage && <span>{impact.damage.toFixed(1)} equipment damage</span>}
+            {impact.localDamage && <span>{impact.localDamage.regionName} · {structureLabel(impact.localDamage.condition)}</span>}
+            {impact.throughWreckage && !!impact.damage && <span>Reached equipment through wreckage</span>}
             {impact.breachAssignments ? impact.breachAssignments.filter(b => b.areaM2 > 0).map((b, index) => <span key={index}>{b.areaM2.toFixed(3)} m² opening · {b.compartmentId}</span>) : !!impact.breachAreaM2 && <span>{impact.breachAreaM2.toFixed(3)} m² opening · {impact.compartmentId ?? 'watertight boundary'}</span>}
           </li>)}</ol>
         </details>)}
@@ -94,11 +114,11 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
         <div className="module-conditions">{c.targetMounts.filter(m => m.condition < 1).map(m => <div key={m.id}><span>{m.name}</span><strong>{m.condition <= 0 ? 'Disabled' : `${Math.round(m.condition * 100)}% condition`}</strong></div>)}</div>
         {c.targetMounts.every(m => m.condition === 1) && <p>No gun damage recorded on this target.</p>}
       </details>
-      {data.inspecting && <div className="module-conditions" aria-label="Internal module condition">{c.modules.map(m => <div key={m.id}><span>{m.name}</span><strong>{m.reason === 'flooded' ? 'Flooded · offline' : m.reason === 'destroyed' ? 'Destroyed' : `${Math.round(m.availability * 100)}% available`}</strong></div>)}<p>Flooded equipment can recover when drained. Destroyed equipment stays offline.</p><p>Amber: armor · Pale outlines: flooded spaces · Blue: floodwater. The full dry layout is available in port.</p></div>}
+      {data.inspecting && <div className="module-conditions" aria-label="Internal module condition">{c.modules.map(m => <div key={m.id}><span>{m.name}</span><strong>{m.reason === 'flooded' ? 'Flooded · offline' : m.reason === 'destroyed' ? 'Destroyed' : `${Math.round(m.availability * 100)}% available`}</strong></div>)}<p>Flooded equipment can recover when drained. Destroyed equipment stays offline.</p><p>Amber outlines: damaged structure · Grey outlines: destroyed structure · Orange spaces: fires · Blue: floodwater. The full dry layout is available in port.</p></div>}
       {c.battery === 'torpedo' && <p className="gunnery-help">Aim within the launch arcs: {game ? torpedoArcLabel(game.definition) : 'see weapon instrument'}. Each press launches one loaded tube; hold to launch in sequence. Torpedoes run straight. Target waterline computes a lead for the selected target.</p>}
       {c.battery === 'depth-charge' && <p className="gunnery-help">Each press releases one charge from a ready stern rack or side thrower; hold for a pattern. Charges sink to {game?.definition.depthChargeLaunchers?.[0].weapon.detonationDepthM ?? 10} m before exploding. Pass close to the target and keep moving. Blasts can damage your own ship and allies.</p>}
       <p className="gunnery-help">Mouse aims the center sight. Hold left mouse or {bindingLabel(bindings, 'fire')} to fire. Shift opens binoculars; scroll adjusts magnification. Selecting a module tracks it until you move the mouse to aim again.</p>
-      <p className="gunnery-help">Penetrating hits reduce hull HP. Aim at turrets or machinery to disable them. Hull failure or flooding can sink a ship.</p>
+      <p className="gunnery-help">Shift fire toward intact areas as sections become destroyed. AP can reach equipment behind wreckage; explosive bursts can ignite spaces with fuel remaining. Hull failure or flooding can sink a ship.</p>
     </div><div className="target-actions">
       <button aria-pressed={!!data.inspecting} onClick={event => { game?.inspectTarget(); if ((event.currentTarget.closest('.hud-viewport')?.clientWidth ?? window.innerWidth) <= 760) onExpand(false); }}>{data.inspecting ? 'Return to ship' : 'Inspect target'}</button>
     </div></>}

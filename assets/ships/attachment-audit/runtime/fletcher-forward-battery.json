@@ -1,24 +1,25 @@
 {
-  "camera": [
-    215,
-    15,
-    -31
+  "shipId": "fletcher",
+  "contentHash": "81bffd6dc093cb8f502b8df44f27a9b77c24fae1ac601139884d78c01757ea83",
+  "targetBlender": [
+    22,
+    0,
+    7
   ],
-  "contentHash": "912d4609ec42a306095a193227662a44a5aea25306383293bbfc791b8e3e9b7b",
   "offsetBlender": [
     9,
     25,
     8
   ],
   "pose": {
+    "trainFraction": 1,
     "elevationFraction": 1,
-    "recoilFraction": 1,
-    "trainFraction": 0
+    "recoilFraction": 1
   },
-  "shipId": "fletcher",
-  "targetBlender": [
-    22,
-    0,
-    7
-  ]
+  "camera": [
+    215,
+    15,
+    -31
+  ],
+  "browser": "Isolated headless Chrome / Metal; fallback after Orca tab closures"
 }

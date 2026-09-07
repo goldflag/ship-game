@@ -1,9 +1,9 @@
 {
   "kind": "articulation",
   "shipId": "flower-corvette",
-  "contentHash": "2eb5764afecb106e2b52d1800a037d0590132dc55922693d2432648bcb139eba",
+  "contentHash": "a3fc9262e7fa87985cf65a350cffd18d758c771c948315c1eb05d9386e34b6e3",
   "backend": "webgpu",
-  "time": "2026-09-07T05:05:04.168Z",
+  "time": "2026-09-07T07:30:54.640Z",
   "mounts": 4,
   "poses": [
     {

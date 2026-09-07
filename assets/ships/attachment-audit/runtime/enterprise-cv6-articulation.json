@@ -1,9 +1,9 @@
 {
   "kind": "articulation",
   "shipId": "enterprise-cv6",
-  "contentHash": "79221cca0c852952ce41c01ac1cbc3b654a4157baf955d63eeeff0415ebf3f95",
+  "contentHash": "7e61635147580da0ec956fa03b295ca2ae8035b117c019e675d93c1c4ad234b4",
   "backend": "webgpu",
-  "time": "2026-09-07T05:52:55.076Z",
+  "time": "2026-09-07T07:30:23.141Z",
   "mounts": 42,
   "poses": [
     {

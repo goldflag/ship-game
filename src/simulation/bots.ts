@@ -1,7 +1,8 @@
 import type { Ammunition, ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { FleetActor } from './battle';
 import { FIXED_DT, motionVelocity, type HelmCommand } from './ship';
-import { add, clamp, length, localToWorld, scale, sub, wrapAngle, type Pose } from './geometry';
+import { add, clamp, length, localToWorld, scale, sub, worldToLocal, wrapAngle, type Pose } from './geometry';
+import { damageRegion, regionCondition } from './localDamage';
 import { availableAmmunition, muzzleCenterWorld, solveBallistic, type MountDefinition, type MountState } from './weapons';
 import { travelFactor } from './ballistics';
 import { torpedoIntercept, type TubeDefinition } from './torpedoes';
@@ -29,6 +30,29 @@ interface GunOrder { fireAt: number; alongHull: number; height: number; acrossEr
 interface TargetTrack {
   id: string; fireAt: number; observedAt: number; observeAt: number;
   pose: Pose; velocity: Vec3; quality: number; focus: number; refocusAt: number;
+  aimPoints?: Vec3[];
+}
+/** Revise aim on an observation, not every tick. Intact machinery behind a
+ * damaged side remains worthwhile; empty, exhausted sections lose priority. */
+export function damageAwareAimPoints(actor: FleetActor, target: FleetActor): Vec3[] | undefined {
+  if (!target.damage.regions.some(r => r.hp < r.maximum * .5)) return;
+  const def = target.definition, side = Math.sign(worldToLocal([actor.motion.x, actor.motion.y, actor.motion.z], target.motion)[0]) || 1;
+  const options: { point: Vec3; score: number }[] = [];
+  for (let i = 0; i < 8; i++) {
+    const z = -def.hull.length / 2 + (i + .5) * def.hull.length / 8;
+    const point: Vec3 = [side * def.hull.beam * .3, .8, z];
+    const r = damageRegion(def, point);
+    const condition = r ? regionCondition(target, r.id) : 1;
+    const internal = def.modules.reduce((score, m, index) => Math.abs(m.center[2] - z) < def.hull.length / 16
+      ? Math.max(score, target.damage.modules[index].hp / m.hp * (m.kind === 'magazine' ? .9 : .6)) : score, 0);
+    options.push({ point, score: condition + internal });
+  }
+  for (const m of def.modules.filter(m => m.kind === 'fire-control')) {
+    const hp = target.damage.modules.find(s => s.id === m.id)!.hp / m.hp;
+    if (hp > 0) options.push({ point: [...m.center], score: .9 * hp });
+  }
+  options.sort((a, b) => b.score - a.score || a.point[2] - b.point[2]);
+  return options.slice(0, 3).map(o => o.point);
 }
 /** Serializable crew memory. Randomness advances only on decisions, never while reading aim. */
 export interface BotState {
@@ -109,6 +133,7 @@ export function updateBot(actor: FleetActor, target: FleetActor | undefined, tim
     track.quality = Math.max(0, track.quality - Math.min(.35, change * .035));
     track.velocity = add(scale(track.velocity, 1 - skill.velocityBlend), scale(velocity, skill.velocityBlend));
     track.pose = observedPose(target);
+    track.aimPoints = damageAwareAimPoints(actor, target);
     track.observedAt = time;
     track.observeAt = time + bot.reactionSeconds;
     if (bot.lastIntegrity - actor.damage.integrity > skill.evadeDamage) {
@@ -216,7 +241,9 @@ export function botAim(actor: FleetActor, target: FleetActor, mount: MountDefini
   const pose = track?.pose ?? target.motion;
   const velocity = track?.velocity ?? shipVelocity(target), inherited = shipVelocity(actor);
   const alongHull = ((track?.focus ?? 1) - 1) * .23 + gun.alongHull;
-  const point = add(localToWorld([0, gun.height + (mount.battery === 'secondary' ? 2 : 0), alongHull * target.definition.hull.length], pose), scale(velocity, (bot?.time ?? 0) - (track?.observedAt ?? bot?.time ?? 0)));
+  const selected = track?.aimPoints?.[(track.focus ?? 0) % track.aimPoints.length];
+  const localAim: Vec3 = selected ? [selected[0], selected[1], selected[2] + gun.alongHull * target.definition.hull.length * .25] : [0, gun.height + (mount.battery === 'secondary' ? 2 : 0), alongHull * target.definition.hull.length];
+  const point = add(localToWorld(localAim, pose), scale(velocity, (bot?.time ?? 0) - (track?.observedAt ?? bot?.time ?? 0)));
   point[1] = Math.max(.5, point[1]);
   const from = muzzleCenterWorld(mount, state, actor.motion);
   const dx = point[0] - from[0], dz = point[2] - from[2];

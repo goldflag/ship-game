@@ -11,6 +11,9 @@ page.on('pageerror',e=>console.error('PAGE',e.message));
 const views={
 'bismarck':[['aa',[0,0,18],[24,36,18]],['bridge',[20,0,23],[12,-33,12]],['aa-deck',[20,12.15,7.4],[6,12,4]]],
 'baltimore':[['battery',[22,0,11],[30,34,17]],['stern',[-65,0,7],[-14,28,13]]],
+'yamato':[['stern',[-105,0,8],[-15,33,12]],['aa',[-15,10,19],[12,36,13]]],
+'type-viic':[['tower',[2,0,3.7],[7,12,4]]],
+'fletcher':[['forward-battery',[22,0,7],[9,25,8]]],
 'enterprise-cv6':[['aircraft',[60,10,17],[0,24,2]],['boats',[-38,11,11],[-10,33,5]],['aa',[45,12,17],[5,24,5]]],
 'king-george-v':[['forward-battery',[50,0,12],[40,50,22]]],
 'liberty-cargo':[['midships',[0,0,9],[22,38,17]]],
@@ -27,8 +30,10 @@ for(const ship of process.argv.slice(2)){
  poses.browser='Isolated headless Chrome / Metal; fallback after Orca tab closures';
  await writeFile(root+'/runtime/'+ship+'-articulation.json',JSON.stringify(poses,null,2)+'\n');
  for(const [name,target,offset]of views[ship]){
+  const fixture=ship==='enterprise-cv6'&&name==='aircraft'?await page.evaluate(()=>window.attachmentReview.spotAircraftForReview()):undefined;
   const detail=await page.evaluate(({target,offset})=>window.attachmentReview.detail(target,offset,{trainFraction:1,elevationFraction:1,recoilFraction:1}),{target,offset});
   const image=detail.image;delete detail.image;detail.browser=poses.browser;
+  if(fixture)detail.fixture=fixture;
   await writeFile(root+'/runtime/'+ship+'-'+name+'.png',Buffer.from(image.split(',')[1],'base64'));
   await writeFile(root+'/runtime/'+ship+'-'+name+'.json',JSON.stringify(detail,null,2)+'\n');
  }

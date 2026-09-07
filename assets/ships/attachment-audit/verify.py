@@ -11,6 +11,8 @@ import subprocess
 
 audit = Path(__file__).resolve().parent
 repo = audit.parents[2]
+# Same original model bytes as b020bbf, under the repository's rewritten history.
+baseline_revision = '2cec98ab9ad2c5c443e9700e6cf1e129d6bd7911'
 ships = ['bismarck', 'yamato', 'baltimore', 'enterprise-cv6', 'type-viic',
          'liberty-cargo', 'liberty-collier', 'victory-cargo', 'flower-corvette', 'fletcher']
 
@@ -43,7 +45,7 @@ for ship in ships:
         assert not contact['islands'], ship+' detached candidate requires review'
     assert len(runtime['poses']) == 12, ship+' incomplete articulation sweep'
     assert max(pose['maxMuzzleErrorM'] for pose in runtime['poses']) <= .025
-    initial = subprocess.check_output(['git', 'show', f'b020bbf:public/models/{ship}.glb'], cwd=repo)
+    initial = subprocess.check_output(['git', 'show', f'{baseline_revision}:public/models/{ship}.glb'], cwd=repo)
     old_ids, current_ids = node_ids(initial), node_ids(model.read_bytes())
     assert old_ids <= current_ids, (ship, old_ids-current_ids)
     images = {}
@@ -62,14 +64,14 @@ for ship in ships:
                     'contactIslands': len(contact['islands']), 'runtimePoses': len(runtime['poses']),
                     'maxMuzzleErrorM': max(pose['maxMuzzleErrorM'] for pose in runtime['poses']),
                     'reviewImages': images})
-assert not subprocess.check_output(['git', 'diff', '--name-only', 'b020bbf', '--', 'assets/ships/bismarck/baseline'], cwd=repo)
+assert not subprocess.check_output(['git', 'diff', '--name-only', baseline_revision, '--', 'assets/ships/bismarck/baseline'], cwd=repo)
 components = read(audit/'reports/open-mounts.json')
 catalog = read(repo/'assets/parts/guns.json')
 open_parts = {part['id'] for part in catalog['parts'] if part.get('mountingStyle', 'enclosed') != 'enclosed'}
 assert {record['part'] for record in components} == open_parts
 assert all(sum(record['part'] == part for record in components) == 6 for part in open_parts)
 assert all(not record['detached'] for record in components)
-report = {'schemaVersion': 1, 'baselineRevision': 'b020bbf', 'ships': records,
+report = {'schemaVersion': 1, 'baselineRevision': baseline_revision, 'originalBaselineRevision': 'b020bbf', 'ships': records,
           'openComponentPoses': len(components), 'historicalAccuracy': 'Not certified; see dated source and discrepancy registers.'}
 (audit/'reports/verification.json').write_text(json.dumps(report, indent=2)+'\n')
 print(f'Verified {len(records)} ships, 50 fixed views, 120 runtime poses, and {len(components)} open-component poses.')

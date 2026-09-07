@@ -1,0 +1,24 @@
+{
+  "camera": [
+    215,
+    15,
+    -31
+  ],
+  "contentHash": "912d4609ec42a306095a193227662a44a5aea25306383293bbfc791b8e3e9b7b",
+  "offsetBlender": [
+    9,
+    25,
+    8
+  ],
+  "pose": {
+    "elevationFraction": 1,
+    "recoilFraction": 1,
+    "trainFraction": 0
+  },
+  "shipId": "fletcher",
+  "targetBlender": [
+    22,
+    0,
+    7
+  ]
+}

@@ -1,82 +1,83 @@
 {
-  "backend": "webgpu",
-  "contentHash": "912d4609ec42a306095a193227662a44a5aea25306383293bbfc791b8e3e9b7b",
   "kind": "articulation",
+  "shipId": "fletcher",
+  "contentHash": "81bffd6dc093cb8f502b8df44f27a9b77c24fae1ac601139884d78c01757ea83",
+  "backend": "webgpu",
+  "time": "2026-09-07T07:31:02.505Z",
   "mounts": 12,
   "poses": [
     {
+      "trainFraction": -1,
       "elevationFraction": 0,
-      "maxMuzzleErrorM": 0.000680987187702726,
       "recoilFraction": 0,
-      "trainFraction": -1
+      "maxMuzzleErrorM": 0.000680987187702726
     },
     {
+      "trainFraction": -1,
       "elevationFraction": 0,
-      "maxMuzzleErrorM": 0.0006809871877026111,
       "recoilFraction": 1,
-      "trainFraction": -1
+      "maxMuzzleErrorM": 0.0006809871877026111
     },
     {
+      "trainFraction": -1,
       "elevationFraction": 1,
-      "maxMuzzleErrorM": 0.0006805875414346342,
       "recoilFraction": 0,
-      "trainFraction": -1
+      "maxMuzzleErrorM": 0.0006805875414346342
     },
     {
+      "trainFraction": -1,
       "elevationFraction": 1,
-      "maxMuzzleErrorM": 0.0006805875414346342,
       "recoilFraction": 1,
-      "trainFraction": -1
+      "maxMuzzleErrorM": 0.0006805875414346342
     },
     {
+      "trainFraction": 0,
       "elevationFraction": 0,
-      "maxMuzzleErrorM": 0.0006805875414346342,
       "recoilFraction": 0,
-      "trainFraction": 0
+      "maxMuzzleErrorM": 0.0006805875414346342
     },
     {
+      "trainFraction": 0,
       "elevationFraction": 0,
-      "maxMuzzleErrorM": 0.0006805875414346342,
       "recoilFraction": 1,
-      "trainFraction": 0
+      "maxMuzzleErrorM": 0.0006805875414346342
     },
     {
+      "trainFraction": 0,
       "elevationFraction": 1,
-      "maxMuzzleErrorM": 0.0006805875414346342,
       "recoilFraction": 0,
-      "trainFraction": 0
+      "maxMuzzleErrorM": 0.0006805875414346342
     },
     {
+      "trainFraction": 0,
       "elevationFraction": 1,
-      "maxMuzzleErrorM": 0.0006805875414346342,
       "recoilFraction": 1,
-      "trainFraction": 0
+      "maxMuzzleErrorM": 0.0006805875414346342
     },
     {
+      "trainFraction": 1,
       "elevationFraction": 0,
-      "maxMuzzleErrorM": 0.0006829957210775144,
       "recoilFraction": 0,
-      "trainFraction": 1
+      "maxMuzzleErrorM": 0.0006829957210775144
     },
     {
+      "trainFraction": 1,
       "elevationFraction": 0,
-      "maxMuzzleErrorM": 0.0006829957210773999,
       "recoilFraction": 1,
-      "trainFraction": 1
+      "maxMuzzleErrorM": 0.0006829957210773999
     },
     {
+      "trainFraction": 1,
       "elevationFraction": 1,
-      "maxMuzzleErrorM": 0.0006805875414346342,
       "recoilFraction": 0,
-      "trainFraction": 1
+      "maxMuzzleErrorM": 0.0006805875414346342
     },
     {
+      "trainFraction": 1,
       "elevationFraction": 1,
-      "maxMuzzleErrorM": 0.0006805875414346342,
       "recoilFraction": 1,
-      "trainFraction": 1
+      "maxMuzzleErrorM": 0.0006805875414346342
     }
   ],
-  "shipId": "fletcher",
-  "time": "2026-09-07T04:24:35.678Z"
+  "browser": "Isolated headless Chrome / Metal; fallback after Orca tab closures"
 }

@@ -1,10 +1,10 @@
-import type { ShipDefinition } from '../ships/blueprint';
+import type { FireProfile, ShipDefinition } from '../ships/blueprint';
 import { addBreach, type Combatant, type DamageEvent } from './damage';
 import { clamp, localToWorld } from './geometry';
 import { hullContains } from './hull';
 
 export type ControlPriority = 'balanced' | 'fires' | 'flooding' | 'repairs';
-export interface FireState { heat: number; fuel: number; intensity: number; }
+export interface FireState { heat: number; fuel: number; intensity: number; initialFuel: number; ignitionHeat: number; heatPerDamage: number; trend: 'growing' | 'contained' | 'cooling' | 'out'; suppressed: boolean; }
 export interface ControlJob { kind: 'fire-room' | 'fire-mount' | 'isolate' | 'patch' | 'pump' | 'repair-module' | 'repair-mount'; index: number; setup: number; }
 export interface ControlState {
   priority: ControlPriority; focus: string; spares: number; rooms: FireState[]; mounts: FireState[];
@@ -42,9 +42,10 @@ function assignTeams(teams: ControlState['teams'], jobs: JobOffer[]): ControlSta
 }
 export function createControl(def: ShipDefinition): ControlState {
   const d = def.damageControl;
-  const fire = (fuel: number): FireState => ({ heat: 0, intensity: 0, fuel });
+  const fire = (fuel: number, profile?: FireProfile): FireState => ({ heat: 0, intensity: 0, fuel: profile?.fuelSeconds ?? fuel,
+    initialFuel: profile?.fuelSeconds ?? fuel, ignitionHeat: profile?.ignitionHeat ?? .6, heatPerDamage: profile?.heatPerDamage ?? .01, trend: 'out', suppressed: false });
   return { priority: 'balanced', focus: '', spares: d?.repairPoints ?? 0,
-    rooms: def.compartments.map(() => fire(d?.roomFuelSeconds ?? 0)), mounts: def.mounts.map(() => fire(d?.mountFuelSeconds ?? 0)),
+    rooms: def.compartments.map(c => fire(d?.roomFuelSeconds ?? 0, c.fire)), mounts: def.mounts.map(m => fire(d?.mountFuelSeconds ?? 0, m.fire)),
     teams: Array.from({ length: d?.teams ?? 0 }, () => null), pumping: def.compartments.map(() => 0) };
 }
 export function directControl(actor: Combatant, priority: ControlPriority, focus = ''): void {
@@ -59,12 +60,17 @@ export function heatModule(actor: Combatant, def: ShipDefinition, index: number,
   if (!def.damageControl) return;
   const m = def.modules[index], room = def.compartments.findIndex(c => c.id === m.compartmentId);
   if (wet(actor, def, room) >= .25) return;
-  actor.damage.control.rooms[room].heat = Math.min(2, actor.damage.control.rooms[room].heat + deliveredDamage / 100);
+  heatRoom(actor, def, room, deliveredDamage);
   if (m.kind === 'magazine') actor.damage.modules[index].ignition += deliveredDamage / 150;
+}
+export function heatRoom(actor: Combatant, def: ShipDefinition, index: number, deliveredDamage: number): void {
+  const fire = actor.damage.control.rooms[index];
+  if (!def.damageControl || !fire || fire.fuel <= 0 || wet(actor, def, index) >= .25) return;
+  fire.heat = Math.min(2, fire.heat + Math.max(0, deliveredDamage) * fire.heatPerDamage);
 }
 export function heatMount(actor: Combatant, index: number, deliveredDamage: number): void {
   const f = actor.damage.control.mounts[index];
-  if (f) f.heat = Math.min(2, f.heat + deliveredDamage / 100);
+  if (f && f.fuel > 0) f.heat = Math.min(2, f.heat + Math.max(0, deliveredDamage) * f.heatPerDamage);
 }
 
 /** Automatic teams and player priorities share the same bounded, timed jobs.
@@ -86,8 +92,10 @@ export function updateDamageControl(actor: Combatant, def: ShipDefinition, dt: n
   });
   c.mounts.forEach((f, i) => { if (f.heat > .15) offer('fire-mount', i, def.mounts[i].id, 60 + f.heat * 10, 'fires'); });
   actor.damage.connections.forEach((s, i) => {
-    if (s.state === 'open' && Math.abs(wet(actor, def, s.fromIndex) - wet(actor, def, s.toIndex)) > .02)
-      offer('isolate', i, def.compartments[s.fromIndex].id, 80, 'flooding');
+    if (s.state !== 'open') return;
+    const fire = c.rooms[s.fromIndex].intensity > 0 || c.rooms[s.toIndex].intensity > 0;
+    if (fire || Math.abs(wet(actor, def, s.fromIndex) - wet(actor, def, s.toIndex)) > .02)
+      offer('isolate', i, def.compartments[s.fromIndex].id, 80, fire ? 'fires' : 'flooding');
   });
   if (c.spares > 0) {
     def.modules.forEach((m, i) => {
@@ -122,7 +130,8 @@ export function updateDamageControl(actor: Combatant, def: ShipDefinition, dt: n
     }
   });
   const burn = (f: FireState, water: number, suppressionSeconds = 0) => {
-    const burning = f.heat >= .6 && f.fuel > 0 && water < .25;
+    const before = f.heat;
+    const burning = f.heat >= f.ignitionHeat && f.fuel > 0 && water < .25;
     const intensity = burning ? Math.min(1, f.heat) : 0;
     // Store average exposure over this tick so damage, spread and magazine
     // heating all respect the final fraction of available fuel.
@@ -130,6 +139,8 @@ export function updateDamageControl(actor: Combatant, def: ShipDefinition, dt: n
     const burningSeconds = intensity > 0 ? f.intensity * dt / intensity : 0;
     f.fuel = Math.max(0, f.fuel - f.intensity * dt);
     f.heat = clamp(f.heat + .022 * burningSeconds - (.01 + water * .3) * dt - d.suppressionPerSecond * suppressionSeconds, 0, 2);
+    f.suppressed = suppressionSeconds > 0;
+    f.trend = f.intensity > 0 ? f.heat > before + 1e-9 && !f.suppressed ? 'growing' : 'contained' : f.heat > .15 ? 'cooling' : 'out';
   };
   c.rooms.forEach((f, i) => burn(f, wet(actor, def, i), suppressRooms.get(i)));
   c.mounts.forEach((f, i) => {
@@ -146,8 +157,8 @@ export function updateDamageControl(actor: Combatant, def: ShipDefinition, dt: n
     if (s.state === 'closed') return;
     const a = c.rooms[s.fromIndex], b = c.rooms[s.toIndex];
     const path = s.state === 'damaged' ? Math.min(1, s.damageAreaM2 / .5) : 1;
-    if (a.intensity > 0) b.heat = Math.min(2, b.heat + a.intensity * path * .02 * dt);
-    if (b.intensity > 0) a.heat = Math.min(2, a.heat + b.intensity * path * .02 * dt);
+    if (a.intensity > 0 && b.fuel > 0) b.heat = Math.min(2, b.heat + a.intensity * path * .02 * dt);
+    if (b.intensity > 0 && a.fuel > 0) a.heat = Math.min(2, a.heat + b.intensity * path * .02 * dt);
   });
   def.modules.forEach((m, i) => {
     const state = actor.damage.modules[i], ri = def.compartments.findIndex(r => r.id === m.compartmentId), f = c.rooms[ri], w = wet(actor, def, ri);

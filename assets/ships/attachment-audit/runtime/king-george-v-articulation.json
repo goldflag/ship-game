@@ -1,9 +1,9 @@
 {
   "kind": "articulation",
   "shipId": "king-george-v",
-  "contentHash": "9e5ddee821d89eedccf90fafca1b04ee8bcf5524773e42cee5e3fc45f3185c76",
+  "contentHash": "112375a281cf571ba52a414fb82d3c341376b1fcd4ecf2063e7640b08594c904",
   "backend": "webgpu",
-  "time": "2026-09-07T05:53:24.799Z",
+  "time": "2026-09-07T07:31:08.772Z",
   "mounts": 11,
   "poses": [
     {

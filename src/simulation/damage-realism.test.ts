@@ -105,7 +105,9 @@ test('flooding has a stable cause and equipment loss alone does not sink a dry h
 });
 test('small-caliber breach clusters have bounded cost and conserve opening area', () => {
   const { def, actor } = fixture(), c = actor.damage.compartments[0];
-  for (let i = 0; i < 1000; i++) addBreach(c, [-17 + i % 2, .5, i % 100 - 50], .0004, i);
+  // Distinct openings conserve area; identical coordinates now intentionally
+  // overlap (covered by localDamage.test.ts).
+  for (let i = 0; i < 1000; i++) addBreach(c, [-17 + i % 2, .5, i * .15 - 75], .0004, i);
   expect(c.breaches.length).toBeLessThanOrEqual(64);
   expect(c.breaches.reduce((n, b) => n + b.areaM2, 0)).toBeCloseTo(.4, 9);
   expect(c.breachAreaM2).toBeCloseTo(.4, 9);

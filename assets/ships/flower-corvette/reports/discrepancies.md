@@ -11,3 +11,17 @@
 - Open — Gun ballistics, ammunition, AP/HE, reload, traverse/elevation and damage are provisional game calibration.
 - Reviewed — Functional guns retain independent yaw, elevation, recoil and muzzle sockets. Hull sections and CPU hit/flood geometry share the versioned blueprint. Screw and rudder retain separate pivot empties.
 - Scope — Cargo handling, sonar, depth-charge attacks and minesweeping are not implemented. Small fittings are visual-only; surface combat uses the shared renderer-free simulation.
+
+## Attachment repair, 2026-09-06 Pacific
+
+Shared gun carriages; boat-platform pillars/knees; Carley racks; wireless spreaders; depth charges seated on their sloping rails; screw roots, deck rails and funnel recess closure.
+
+The retained Port Arthur Cobalt general arrangement dated 19 November 1941 shows the short forecastle, platform/boat arrangement and stern gear. Support dimensions remain interpreted from the scan. The representative 4-inch/2-pounder/Lewis inventory and gray paint remain open rather than being certified by attachment checks.
+
+Stable assembly, joint and socket IDs are retained. Original recipes own these changes; the preserved baselines are untouched. Exact-hash mesh reports, review views and game articulation evidence are collected in [the fleet attachment record](../../attachment-audit/README.md). Physical attachment and successful export checks do not close the historical discrepancies above.
+
+Final close-up review also found the depth-charge tracks intersecting the rising counter deck. The tracks now clear the original hull surface on short supports, with a lower aft discharge end; all ten drums sit on the tracks. Track fabrication and exact height remain reconstructed from the GA.
+
+## Local damage and fire calibration — 2026-09-06
+
+Local regions, generator and director proxies, combustible loads and smoke outlets are independently authored gameplay estimates from the existing layout. They are not historically measured structural subdivisions, generator schedules or ventilation plans. Electrical supply is aggregated with manual gun fallback; directors share a targeting penalty. Breach overlap uses bounded aperture sampling. See `assets/ships/author-local-damage.ts`.

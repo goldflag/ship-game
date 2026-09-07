@@ -1,10 +1,10 @@
 {
-  "integrationBase": "54bf41133eb4312ad4d1551aadb52071c54d5209",
+  "integrationBase": "716c34f787ceaf658a2fe425da73e100f5a2ab45",
   "ship": "king-george-v",
   "scope": "Rebuild new master consumer of shared recipes; fixed-view and runtime integration review, outside the initial ten-ship contact audit.",
-  "contentHash": "9e5ddee821d89eedccf90fafca1b04ee8bcf5524773e42cee5e3fc45f3185c76",
-  "modelSha256": "0fde182214bd5c098c36a51e00fe63284f20856c3de9f4a84f03111c5c2b945c",
-  "sourceSha256": "87f1d574d9e55fff13211ab599ff1f01ab0d557135f07a5dab8494eeb5c2a795",
+  "contentHash": "112375a281cf571ba52a414fb82d3c341376b1fcd4ecf2063e7640b08594c904",
+  "modelSha256": "23fdbe88fc3eb0e61f87977872ee1dc0627a50eead2e4a5096e8adc30122ecfd",
+  "sourceSha256": "03561c9fd9367254a80944092fecaec88387fe7aca096d26a6f0308bb0dcd7a4",
   "retainedNodeIds": [
     "crane-port.yaw",
     "crane-starboard.yaw",
@@ -124,11 +124,13 @@
   "runtimePoses": 12,
   "maxMuzzleErrorM": 0.0017385616011633504,
   "reviewImages": {
-    "assets/ships/king-george-v/generated/review/profile.png": "e6761f084772810795b1bc70a8028d2efe9aa0721fc0195b7da1412579a9cb78",
-    "assets/ships/king-george-v/generated/review/plan.png": "dec0691f50ce3aab32ac43d789a3c05262d1d3476ce0de64a028efe40b97f364",
-    "assets/ships/king-george-v/generated/review/quarter.png": "83c99eefbed6a82ade71226ab7a9ca10be56c2c4af0284451fa8050895229194",
-    "assets/ships/king-george-v/generated/review/bow.png": "132e0e348cd9ef65f9fd00c6ce6806870c9989f8d6c1bbd54c3935a6025d7b74",
-    "assets/ships/king-george-v/generated/review/stern.png": "9d96ec63bcbb28626be9856f14a5f7275b9b33af4d54e593de82d1407f3e4284",
-    "assets/ships/attachment-audit/runtime/king-george-v-forward-battery.png": "dbcf82956853d43d46d7ed26dddb5e1bfee9a76c66caeb6c60db79177708cbce"
-  }
+    "assets/ships/king-george-v/generated/review/bow.png": "50c69c983594a53c6477d33565e3ce26bbce884c196bd08c725f00adf7bc4823",
+    "assets/ships/king-george-v/generated/review/stern.png": "31357ffe10c6ab31bec44ca592e19722e12184e3ee42b4f1aac9323fc787b3da",
+    "assets/ships/king-george-v/generated/review/quarter.png": "080b2c3befbe00b155dcfb0945f558218f272f59e0f95c920aca7649b09c111b",
+    "assets/ships/king-george-v/generated/review/profile.png": "46dee9f54aec9a55705b92bbea0d0703ab50aaa340191126bb157832b2524f49",
+    "assets/ships/king-george-v/generated/review/plan.png": "c159c4a4cda82e15cbeb8aede7e6c33ebf19fca01f9ddb43fdabaf6f3a1e67d6",
+    "assets/ships/attachment-audit/runtime/king-george-v-forward-battery.png": "3fe8c89b154aada1611dd03afa2fa3cc02d4ba662963bb9933e5a4288b2a3b3b"
+  },
+  "contactCandidates": 212,
+  "contactReview": "212 candidates retained for follow-up triage; this additional master preset is outside the original ten-ship physical-contact repair scope. Export dimensions, retained IDs, fixed views and articulation were checked; no zero-candidate claim is made."
 }

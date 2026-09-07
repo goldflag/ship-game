@@ -27,6 +27,13 @@
     log.push(row); return row;
   };
   window.attachmentReview = {
+    spotAircraftForReview() {
+      const wing = game.simulation.player.airWing;
+      if (!game.inPort || !wing) throw new Error('Carrier port required');
+      wing.planes.slice(0, 12).forEach((plane, index) => { plane.deckSlot = index; });
+      game.simulation.step({throttle:0,rudder:0},{aim:[0,0,-5000],fire:false,battery:'main'});
+      return record('parked-aircraft-fixture', {count:12,note:'Explicit deck slots for gear inspection; normal carrier startup keeps the hangar hidden. CPU simulation computes the aircraft poses.'});
+    },
     async poses() {
       if (!game.inPort) throw new Error('Port required');
       const results=[];

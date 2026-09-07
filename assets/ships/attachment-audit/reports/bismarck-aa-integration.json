@@ -1,6 +1,6 @@
 {
-  "integrationBase": "fe0df0be0020d6cea3492f9436a7750f89031e7e",
-  "contentHash": "e1beb2182de74c2c22f5a67f8c78f4e285ef84648c537537c71dddaffd46f249",
+  "integrationBase": "716c34f787ceaf658a2fe425da73e100f5a2ab45",
+  "contentHash": "2166ac8e80f66f7e0acf9cd09d1046d7c8b2d06c5ba8f7f481fbe6d0f279b23f",
   "retainedUpstreamNodeIds": [
     "anton.left.elevation",
     "anton.left.muzzle",
@@ -240,9 +240,10 @@
     "starboard-secondary-3.yaw"
   ],
   "retainedNodeCount": 236,
-  "modelSha256": "d7a73e77ca2e3217925835c52639a8b04dea731f8317114c85a0e0f6365d8ada",
+  "modelSha256": "caab2597dd6e0d92b4e77ea140be9271c0afa51de620d00728fd86cdd39ef7bb",
   "contactIslands": 0,
   "mounts": 38,
   "runtimePoses": 12,
-  "maxMuzzleErrorM": 0.0021666157377656877
+  "maxMuzzleErrorM": 0.0021666157377656877,
+  "sourceSha256": "80514a7820f5aec67e11b56bdbf68cf67cfec6059f975c25b2424ebf59a85e3b"
 }

@@ -1,9 +1,9 @@
 {
   "kind": "articulation",
   "shipId": "bismarck",
-  "contentHash": "e1beb2182de74c2c22f5a67f8c78f4e285ef84648c537537c71dddaffd46f249",
+  "contentHash": "2166ac8e80f66f7e0acf9cd09d1046d7c8b2d06c5ba8f7f481fbe6d0f279b23f",
   "backend": "webgpu",
-  "time": "2026-09-07T07:07:40.857Z",
+  "time": "2026-09-07T07:30:02.624Z",
   "mounts": 38,
   "poses": [
     {

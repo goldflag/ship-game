@@ -1,7 +1,7 @@
 {
   "ship": "yamato",
-  "sourceSha256": "fea0eada78862d41957d07b66757477da0c800c6c0a6d87337c1114099d659db",
-  "contentHash": "abf31d60194ce8b03a6d8e4b5910f6ebe84e2f49ff46ced64d89e3af44f5d22c",
+  "sourceSha256": "64db6c6cd9f94a20773e57b90befe754b37af04ac61d6c56c0551c436cc61e39",
+  "contentHash": "9f5edeebea5b628b0e481fe000ed716e28ef23fa0fb050b8d88f2ca8c6db1504",
   "method": "triangle intersection, closed-solid containment, vertex/surface proximity",
   "toleranceM": 0.025,
   "limits": "Separate objects are graph nodes; a mesh containing disconnected islands needs additional review. Contacts do not establish historical accuracy.",
@@ -9,7 +9,7 @@
   "hullConnectedMeshCount": 8932,
   "candidates": 20164,
   "contacts": 9989,
-  "elapsedSeconds": 64.0485785829951,
+  "elapsedSeconds": 55.329836208955385,
   "islands": [
     {
       "objects": [

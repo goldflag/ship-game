@@ -1,0 +1,14 @@
+{
+  "ship": "flower-corvette",
+  "sourceSha256": "4c29b87f1dc74b61fe38289e38dfa659793f8f5ac3e01cbe1482a55caf65f0c0",
+  "contentHash": "2eb5764afecb106e2b52d1800a037d0590132dc55922693d2432648bcb139eba",
+  "method": "triangle intersection, closed-solid containment, vertex/surface proximity",
+  "toleranceM": 0.025,
+  "limits": "Separate objects are graph nodes; a mesh containing disconnected islands needs additional review. Contacts do not establish historical accuracy.",
+  "meshCount": 1540,
+  "hullConnectedMeshCount": 1540,
+  "candidates": 2595,
+  "contacts": 1539,
+  "elapsedSeconds": 1.0752768750535324,
+  "islands": []
+}

@@ -59,3 +59,15 @@ Two retained combined-drive envelopes represent the cruiser machinery plant with
 The original `assets/ships/author-stability.ts` recipe preserves prior IDs and adds conservative compound flood cells excluding retained rooms. Adaptive cells approximate the remaining hull volume; cells grouped into a named space share a waterplane. Estimated 85% permeability and access partitions do not constitute historical subdivision. A CPU hull-shell query covers missing deck/bottom/end plating with provisional 12 mm steel and defers to nearby explicit exterior protection. The port overlay still displays explicit plates; fallback contacts are inspectable in the impact ledger.
 
 `stability.json` records modeled reference/full displacement, the stated mass mismatch, the uniform buoyancy scale, estimated CG and initial GM target (7% beam). Numerical station integration, sixteen-column water surfaces in box rooms, up to sixteen columns per compound cell, 2 Hz force updates and heuristic angular inertia/damping bound runtime cost. Capsize requires sustained inversion beyond 100 degrees with an outward/neutral arm. These are reproducible game approximations, not recovered loading or stability curves. No trapped air, detailed downflooding openings, free-surface waves, dynamic ocean forces, underwater shock or hull fracture is modeled. Finite local fire fuel, abstract crew rates and magazine flash protection are likewise provisional.
+
+## Attachment repair, 2026-09-06 Pacific
+
+Gunhouse races; Bofors/Oerlikon foundations, carriage and shield supports; Mk 8 antenna brackets and director foundations; after uptake foundation; pipe saddles; propeller blade roots; shell-following scuttles; vents and hatch seams aligned to the actual structures.
+
+The retained October 1943 Navy profiles and bridge sheet identify stations; exact foundation/web fabrication remains interpreted. The four outer/inner screw arrangement retains its qualified class-plan basis. These repairs do not convert nominal deckhouse fittings into surveyed Baltimore dimensions.
+
+Stable assembly, joint and socket IDs are retained. Original recipes own these changes; the preserved baselines are untouched. Exact-hash mesh reports, review views and game articulation evidence are collected in [the fleet attachment record](../../attachment-audit/README.md). Physical attachment and successful export checks do not close the historical discrepancies above.
+
+## Local damage and fire calibration — 2026-09-06
+
+Local regions, generator and director proxies, combustible loads and smoke outlets are independently authored gameplay estimates from the existing layout. They are not historically measured structural subdivisions, generator schedules or ventilation plans. Electrical supply is aggregated with manual gun fallback; directors share a targeting penalty. Breach overlap uses bounded aperture sampling. See `assets/ships/author-local-damage.ts`.

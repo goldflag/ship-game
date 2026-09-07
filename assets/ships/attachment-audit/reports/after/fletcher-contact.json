@@ -1,7 +1,7 @@
 {
   "ship": "fletcher",
-  "sourceSha256": "7cd16a7e8893d49c3f559cd3d67a1ffb232fb1152b8c1ae13804ba553a209b53",
-  "contentHash": "912d4609ec42a306095a193227662a44a5aea25306383293bbfc791b8e3e9b7b",
+  "sourceSha256": "3ebfe8fef0a7dd9169dab20f83099e7e3884f807d8ecd542dcfecf5e2ca4bcc2",
+  "contentHash": "81bffd6dc093cb8f502b8df44f27a9b77c24fae1ac601139884d78c01757ea83",
   "method": "triangle intersection, closed-solid containment, vertex/surface proximity",
   "toleranceM": 0.025,
   "limits": "Separate objects are graph nodes; a mesh containing disconnected islands needs additional review. Contacts do not establish historical accuracy.",
@@ -9,6 +9,6 @@
   "hullConnectedMeshCount": 3525,
   "candidates": 15653,
   "contacts": 3524,
-  "elapsedSeconds": 5.3422206660034135,
+  "elapsedSeconds": 5.139626374992076,
   "islands": []
 }
