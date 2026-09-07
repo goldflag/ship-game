@@ -8,6 +8,53 @@ import { CombatSimulation, type CombatEvent } from '../simulation/combat';
 import { CombatEffects } from './CombatEffects';
 import { EffectParticlePool, effectTexture } from './EffectParticles';
 
+test('heavy AA bursts at the recorded endpoint after flight, survives history eviction, and stays visible in optics', () => {
+  const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new PerspectiveCamera();
+  try {
+    sim['emit']({ kind: 'aircraft-fire', position: [0, 20, 0], shipId: 'player', message: 'Heavy AA',
+      aircraft: { id: 'hostile', target: [100, 300, -1600], tracerSpeed: 800, airburst: { flightTime: 2, caliberM: .105 } } });
+    sim.tick = 2; effects.update(sim, 0, camera);
+    expect(effects.diagnostics().flakSmoke).toBe(0);
+    for (let i = 0; i < 128; i++) sim['emit']({ kind: 'aircraft-recovered', position: [0, 0, 0], shipId: 'target', message: 'Other combat' });
+    sim.tick = 120; effects.update(sim, 0, camera, true);
+    expect(effects.diagnostics().flakSmoke).toBe(0);
+    sim.tick = 121; effects.update(sim, 0, camera, true);
+    expect(effects.diagnostics().flakSmoke).toBe(3);
+    const mesh = effects.root.getObjectByName('Heavy AA burst smoke') as InstancedMesh;
+    const sphere = mesh.geometry.getAttribute('effectSphere');
+    for (let i = 0; i < 3; i++) expect(new Vector3(sphere.getX(i), sphere.getY(i), sphere.getZ(i)).distanceTo(new Vector3(100, 300, -1600))).toBeLessThan(6);
+    const before = [...mesh.instanceMatrix.array], beforeSim = JSON.stringify(sim);
+    effects.update(sim, 0, camera, true);
+    expect([...mesh.instanceMatrix.array]).toEqual(before);
+    expect(effects.diagnostics().flakSmoke).toBe(3);
+    effects.setWind(10, 0);
+    const x = sphere.getX(0);
+    effects.update(sim, .5, camera, true);
+    expect(sphere.getX(0)).toBeGreaterThan(x);
+    expect(JSON.stringify(sim)).toBe(beforeSim);
+    effects.update(sim, 8, camera, true);
+    expect(effects.diagnostics().flakSmoke).toBe(0);
+    effects.reset(); effects.update(sim, 0, camera);
+    expect(effects.diagnostics().flakSmoke).toBe(0);
+  } finally { effects.dispose(); }
+});
+
+test('light AA never schedules flak, and reset cancels a heavy burst in flight', () => {
+  const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new PerspectiveCamera();
+  try {
+    sim['emit']({ kind: 'aircraft-fire', position: [0, 20, 0], shipId: 'player', message: 'Light AA',
+      aircraft: { id: 'hostile', target: [0, 300, -400], tracerSpeed: 800 } });
+    sim.tick = 2; effects.update(sim, 0, camera);
+    sim.tick = 181; effects.update(sim, 3, camera);
+    expect(effects.diagnostics().flakSmoke).toBe(0);
+    sim['emit']({ kind: 'aircraft-fire', position: [0, 20, 0], shipId: 'player', message: 'Heavy AA',
+      aircraft: { id: 'hostile', target: [0, 300, -1600], tracerSpeed: 800, airburst: { flightTime: 2, caliberM: .105 } } });
+    effects.update(sim, 0, camera);
+    sim.reset(); effects.reset(); sim.tick = 600; effects.update(sim, 0, camera);
+    expect(effects.diagnostics().flakSmoke).toBe(0);
+  } finally { effects.dispose(); }
+});
+
 test('burning-turret smoke drifts with wind, responds to changes, and freezes on pause', () => {
   const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
   sim.player.damage.control.mounts[0].intensity = 1;
@@ -151,7 +198,7 @@ test('salvos are bounded, do not replay events, pause cleanly, and reset without
   const active = effects.diagnostics();
   expect(active.smoke + active.spray + active.flashes + active.foam).toBeLessThanOrEqual(active.particleCapacity);
   sim.events.length = 0; effects.reset(); effects.update(sim, 0, camera);
-  expect(effects.diagnostics()).toEqual({ shells: 0, torpedoes: 0, depthCharges: 0, smoke: 0, aircraftSmoke: 0, spray: 0, flashes: 0, foam: 0, particleCapacity: active.particleCapacity });
+  expect(effects.diagnostics()).toEqual({ shells: 0, torpedoes: 0, depthCharges: 0, smoke: 0, aircraftSmoke: 0, flakSmoke: 0, spray: 0, flashes: 0, foam: 0, particleCapacity: active.particleCapacity });
   sim.events.push({ ...event, sequence: 150 }); effects.update(sim, 0, camera);
   expect(effects.diagnostics().flashes).toBeGreaterThan(0);
   for (let i = 0; i < 13 * 60; i++) effects.update(sim, 1 / 60, camera);

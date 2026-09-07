@@ -3,6 +3,7 @@ import { localToWorld } from '../simulation/geometry';
 import * as THREE from 'three/webgpu';
 import { nodeObject, uniform } from 'three/tsl';
 import type { CombatEvent, CombatSimulation } from '../simulation/combat';
+import { FIXED_DT } from '../simulation/ship';
 import { EffectParticlePool, effectTexture } from './EffectParticles';
 import { EffectDepthTextureNode, effectVolumeMaterial, effectVolumeTexture } from './EffectVolume';
 import { WaterPlumes } from './WaterPlumes';
@@ -34,10 +35,13 @@ export class CombatEffects {
   private readonly spray = new EffectParticlePool(1536, this.maps.droplet, false, undefined, true);
   private readonly mist = new EffectParticlePool(192, this.maps.smoke, false, undefined, true);
   private readonly aircraftSmoke = new EffectParticlePool(768, this.maps.smoke);
+  private readonly flakSmoke = new EffectParticlePool(256, this.maps.smoke, false,
+    effectVolumeMaterial(this.volumeMap, this.sun, this.volumeDepth, 10, true, { direct: this.smokeDirect, ambient: this.smokeAmbient }));
+  private readonly airbursts = new Map<number, CombatEvent>();
   private readonly aircraftTrails = new Map<string, { position: THREE.Vector3; age: number }>();
   private readonly fire = new EffectParticlePool(256, this.maps.flash, true);
   private readonly foam = new EffectParticlePool(96, this.maps.foam);
-  private readonly pools = [this.foam, this.smoke, this.aircraftSmoke, this.mist, this.spray, this.fire];
+  private readonly pools = [this.foam, this.smoke, this.aircraftSmoke, this.flakSmoke, this.mist, this.spray, this.fire];
   private readonly projectiles = new ExpandableInstances(new THREE.CapsuleGeometry(.5, 2, 2, 6),
     new THREE.MeshBasicMaterial({ color: '#8c877b' }), 256);
   // Water's depth-based postprocessing otherwise classifies these low-flying
@@ -76,6 +80,7 @@ export class CombatEffects {
     this.projectiles.name = 'Shell bodies'; this.streaks.name = 'Shell streaks'; this.shellGlows.name = 'Shell glows';
     this.streaks.material.forceSinglePass = true; this.shellGlows.material.forceSinglePass = true;
     this.aircraftSmoke.mesh.name = 'Falling aircraft smoke';
+    this.flakSmoke.mesh.name = 'Heavy AA burst smoke';
     this.smoke.mesh.name = 'Propellant and impact volumes';
     this.spray.mesh.name = 'Water droplets and mist';
     this.mist.mesh.name = 'Wind-carried water mist';
@@ -119,6 +124,7 @@ export class CombatEffects {
       this.sequence = event.sequence;
       this.emit(event);
     }
+    this.updateAirbursts(sim);
     if (dt > 0 && sim.tick >= this.fireTick + 15) {
       this.fireTick = sim.tick;
       let count = 0;
@@ -162,6 +168,34 @@ export class CombatEffects {
       this.dummy.updateMatrix(); this.depthChargeBodies.setMatrixAt(i, this.dummy.matrix);
     });
     this.depthChargeBodies.publish(this.depthChargeCount);
+  }
+
+  private updateAirbursts(sim: CombatSimulation): void {
+    const now = (sim.tick - 1 + sim.interpolationAlpha) * FIXED_DT;
+    for (const [id, event] of this.airbursts) {
+      const data = event.aircraft!, burst = data.airburst!;
+      const age = now - event.tick * FIXED_DT - burst.flightTime;
+      if (age < 0) continue;
+      this.airbursts.delete(id);
+      // A late frame shows the puff at its current age, without replaying an old burst.
+      if (age >= 6.5) continue;
+      const random = randomFor(event.sequence * 7919);
+      const scale = THREE.MathUtils.clamp(Math.sqrt(burst.caliberM / .105), .8, 1.3);
+      this.position.fromArray(data.target!);
+      for (let i = 0; i < 3; i++) {
+        // Keep flak separate from muzzle smoke: distant bursts remain visible in optics.
+        const puff = this.flakSmoke.emit(this.position);
+        if (i > 0) puff.position.add(new THREE.Vector3((random() - .5) * 5, (random() - .5) * 5, (random() - .5) * 5).multiplyScalar(scale));
+        puff.size = (7 + random() * 3) * scale;
+        puff.growth = 18 * scale; puff.growthDecay = 3; puff.diffusion = 1.1 * scale;
+        puff.life = 5.5 + random(); puff.age = age; puff.opacity = .95; puff.fadeIn = .035;
+        puff.density = 5.5; puff.cooling = .1; puff.dissipationTime = 2.8;
+        puff.velocity.set((random() - .5) * .8, .4 + random() * .5, (random() - .5) * .8);
+        puff.wind = 1; puff.seed = random() * 100;
+        puff.color.set('#69645a').multiplyScalar(.85 + random() * .3);
+        puff.position.addScaledVector(puff.velocity, age).addScaledVector(this.wind, age);
+      }
+    }
   }
 
   private updateAircraftSmoke(sim: CombatSimulation): void {
@@ -281,6 +315,10 @@ export class CombatEffects {
   }
 
   private emit(event: CombatEvent): void {
+    if (event.kind === 'aircraft-fire') {
+      if (event.aircraft?.airburst && event.aircraft.target) this.airbursts.set(event.sequence, event);
+      return;
+    }
     const random = randomFor(event.sequence * 7919 + (event.shell?.id ?? 0));
     const scale = THREE.MathUtils.clamp((event.shell?.caliberM ?? .38) / .38, .25, 1.7);
     this.position.fromArray(event.position);
@@ -482,12 +520,12 @@ export class CombatEffects {
   }
 
   reset(): void {
-    this.pools.forEach(pool => pool.reset()); this.spouts.reset(); this.aircraftTrails.clear(); this.shellCount = 0; this.torpedoCount = 0; this.depthChargeCount = 0; this.fireTick = -1;
+    this.pools.forEach(pool => pool.reset()); this.spouts.reset(); this.aircraftTrails.clear(); this.airbursts.clear(); this.shellCount = 0; this.torpedoCount = 0; this.depthChargeCount = 0; this.fireTick = -1;
     for (const mesh of [this.projectiles, this.streaks, this.shellGlows, this.torpedoBodies, this.torpedoWakes, this.depthChargeBodies]) { mesh.publish(0); }
     this.lights.forEach(item => { item.age = 1; item.light.intensity = 0; }); this.sequence = 0;
   }
   diagnostics() {
-    return { shells: this.shellCount, torpedoes: this.torpedoCount, depthCharges: this.depthChargeCount, smoke: this.smoke.count + this.aircraftSmoke.count, aircraftSmoke: this.aircraftSmoke.count, spray: this.spray.count + this.spouts.count + this.mist.count,
+    return { shells: this.shellCount, torpedoes: this.torpedoCount, depthCharges: this.depthChargeCount, smoke: this.smoke.count + this.aircraftSmoke.count + this.flakSmoke.count, aircraftSmoke: this.aircraftSmoke.count, flakSmoke: this.flakSmoke.count, spray: this.spray.count + this.spouts.count + this.mist.count,
       flashes: this.fire.count, foam: this.foam.count,
       particleCapacity: this.spouts.capacity + this.pools.reduce((sum, pool) => sum + pool.capacity, 0) };
   }
