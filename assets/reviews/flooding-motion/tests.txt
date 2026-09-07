@@ -1,0 +1,477 @@
+bun test v1.3.3 (274e01c7)
+
+src/simulation/damageLog.test.ts:
+(pass) salvos combine damage but count a shell only once across plates and equipment [0.24ms]
+(pass) weapon, target, incoming fire and later salvos stay separate and the latest hit moves first [0.05ms]
+(pass) zero damage is omitted, history is bounded, and a new battle clears it [0.43ms]
+
+src/simulation/airOperations.test.ts:
+(pass) 48 aircraft have a bounded ready deck, hangar reserve and conserved whole-wing counts [8.10ms]
+(pass) six-plane flights retain separate orders and four active slots include queued flights [4.05ms]
+(pass) a full 24-plane rotation recovers, rearms and launches again without endurance losses [3030.75ms]
+
+src/simulation/protection.test.ts:
+(pass) plate crossings work in both directions, reject parallel paths and preserve the edge [1.10ms]
+(pass) Bismarck broadside crosses distinct belt, backing, support and turtleback before machinery [1.85ms]
+(pass) plunging shell meets spaced upper, battery and armored decks in order [0.39ms]
+(pass) one physical plate consumes its thickness once across adjacent ticks [19.86ms]
+(pass) turret plates follow the rear pivot and share collision/inspection local coordinates [0.30ms]
+(pass) secondary slopes leave air above the nose and retain distinct front and roof protection while trained [5.58ms]
+(pass) a shell at a coplanar plate seam crosses one layer, preserving spatially separated backing [14.87ms]
+(pass) nonplanar, concave, degenerate and unattached armor cannot enter the simulation [29.16ms]
+
+src/simulation/baltimore.test.ts:
+(pass) Baltimore trains three triple turrets, fires nine distinct shells, and holds during reload [566.75ms]
+(pass) Baltimore secondary broadside uses the four clear twin mounts and preserves main ammunition [470.27ms]
+
+src/simulation/convoy.test.ts:
+(pass) merchant designs differ in hull, machinery, superstructure and cargo gear, not deck loads [0.29ms]
+(pass) Flower follows registered Cobalt 1941 GA landmarks and early-war equipment [0.32ms]
+(pass) liberty-cargo: hull-contained flood cells, machinery, positive reserve and restoring stability [19.89ms]
+(pass) liberty-cargo: main trains, fires from clear sockets, reloads and resets [194.84ms]
+(pass) liberty-cargo: secondary trains, fires from clear sockets, reloads and resets [156.82ms]
+(pass) liberty-cargo: machinery damage, positional flooding and loss of flotation use shared simulation [3.46ms]
+(pass) liberty-cargo: underway motion and steering remain finite [0.98ms]
+(pass) liberty-cargo: thin shell registers hits on all six sides and feeds local flood spaces [14.29ms]
+(pass) liberty-collier: hull-contained flood cells, machinery, positive reserve and restoring stability [9.71ms]
+(pass) liberty-collier: main trains, fires from clear sockets, reloads and resets [168.29ms]
+(pass) liberty-collier: secondary trains, fires from clear sockets, reloads and resets [162.41ms]
+(pass) liberty-collier: machinery damage, positional flooding and loss of flotation use shared simulation [2.45ms]
+(pass) liberty-collier: underway motion and steering remain finite [0.36ms]
+(pass) liberty-collier: thin shell registers hits on all six sides and feeds local flood spaces [10.37ms]
+(pass) victory-cargo: hull-contained flood cells, machinery, positive reserve and restoring stability [11.37ms]
+(pass) victory-cargo: main trains, fires from clear sockets, reloads and resets [208.20ms]
+(pass) victory-cargo: secondary trains, fires from clear sockets, reloads and resets [189.84ms]
+(pass) victory-cargo: machinery damage, positional flooding and loss of flotation use shared simulation [2.23ms]
+(pass) victory-cargo: underway motion and steering remain finite [0.22ms]
+(pass) victory-cargo: thin shell registers hits on all six sides and feeds local flood spaces [13.93ms]
+(pass) flower-corvette: hull-contained flood cells, machinery, positive reserve and restoring stability [5.23ms]
+(pass) flower-corvette: main trains, fires from clear sockets, reloads and resets [79.53ms]
+(pass) flower-corvette: secondary trains, fires from clear sockets, reloads and resets [72.71ms]
+(pass) flower-corvette: machinery damage, positional flooding and loss of flotation use shared simulation [2.09ms]
+(pass) flower-corvette: underway motion and steering remain finite [0.36ms]
+(pass) flower-corvette: thin shell registers hits on all six sides and feeds local flood spaces [9.22ms]
+(pass) convoy ships deploy on both teams with independent damage and bots that fire [2042.76ms]
+
+src/simulation/collisions.test.ts:
+(pass) ramming a stationary broadside cannot sail through its hull [1279.04ms]
+(pass) equal head-on impacts cancel closing speed without bounce or arbitrary spin [6.60ms]
+(pass) a heavier hull moves less and contact conserves linear momentum [10.29ms]
+(pass) glancing sides preserve travel along the hull and outward motion is never pulled back [5.45ms]
+(pass) an off-center ram turns the struck hull and dissipates kinetic energy [6.08ms]
+(pass) turning a stern into another ship creates contact even without forward motion [6.43ms]
+(pass) reverse propulsion cannot back through a broadside hull [123.35ms]
+(pass) bismarck can pass close alongside and its tapered ends don't collide like a box [1.63ms]
+(pass) yamato can pass close alongside and its tapered ends don't collide like a box [1.30ms]
+(pass) baltimore can pass close alongside and its tapered ends don't collide like a box [0.45ms]
+(pass) enterprise-cv6 can pass close alongside and its tapered ends don't collide like a box [0.63ms]
+(pass) allies, enemies and idle hulls collide; only wrecks below the other keel clear contact [15.43ms]
+(pass) ten-ship pile-ups and coincident spawns separate without invalid state [16.36ms]
+(pass) collision movement is deterministic across display rates and reset clears contact motion [381.15ms]
+(pass) collision drift moves the ship, settles in water and is included in gun velocity [6.10ms]
+
+src/simulation/ammunition.test.ts:
+(pass) AP and HE stocks are finite, share capacity, and switching never creates rounds or skips loading [14.41ms]
+(pass) an AP-only mount remains usable when its battery is ordered to load HE [14.69ms]
+(pass) the real fire loop waits for HE loading, consumes only HE, records type, and resets both stocks [175.42ms]
+(pass) HE bursts at its first physical contact and cannot transmit damage through heavy armor [69.93ms]
+(pass) HE gives useful local damage where a thin target does not arm AP [43.50ms]
+(pass) HE profiles reject invalid mass and stock allocations; old parts stay AP-only [12.43ms]
+(pass) a contact HE burst can open thin exterior plating but cannot breach a heavy belt [43.20ms]
+(pass) a contact burst on a thin watertight boundary can perforate it at zero ray distance [21.72ms]
+(pass) a contact burst pays legacy gunhouse armor even when its ray starts exactly on the box face [42.88ms]
+
+src/simulation/ship.test.ts:
+(pass) ship simulation > stays still without propulsion, even with the rudder over [0.14ms]
+(pass) ship simulation > accelerates north and respects maximum speed [5.77ms]
+(pass) ship simulation > starboard turns east; port turns west [0.68ms]
+(pass) ship simulation > stop coasts down; astern reverses after braking [1.95ms]
+(pass) ship simulation > 30, 60, and 144 fps produce the same fixed-tick state [1.59ms]
+(pass) ship simulation > clamps invalid commands and tab-resume deltas [0.01ms]
+
+src/simulation/damageControl.test.ts:
+(pass) teams extinguish fires; finite fuel bounds unattended burning and damage persists [347.55ms]
+(pass) water prevents magazine ignition; HP exhaustion alone never detonates; dry delivered heat can [35.09ms]
+(pass) protected feed paths prevent automatic remote magazine explosions from one gunhouse fire [237.63ms]
+(pass) finite spares and repair ceiling never revive destroyed machinery or replenish ammunition [994.28ms]
+(pass) flooding teams close intact open boundaries but preserve damaged boundaries and conserve transferred water [28.77ms]
+(pass) shoring consumes spares, oversized openings remain, and portable pumping takes setup time [72.41ms]
+(pass) closed boundaries contain fire and opened paths can spread it [121.07ms]
+(pass) damage control resets and uses identical fixed ticks at different display rates [477.49ms]
+(pass) a freed team does not take another team’s job and reset its setup progress [17.34ms]
+(pass) repair and portable pumping use only the time left after setup completes [15.62ms]
+(pass) fire damage cannot consume more fuel than remains in the last burning tick [14.83ms]
+(pass) a new fire preempts lower-priority repairs while another team keeps pumping setup [15.94ms]
+
+src/simulation/weapon-capability.test.ts:
+(pass) player and bot continue firing secondary guns after losing their main batteries [713.67ms]
+(pass) one remaining main turret keeps an immobile ship in battle, including during reload [8.76ms]
+(pass) main magazine failures leave secondaries fighting; only loss of all remaining guns is final [7.40ms]
+(pass) HE stock preserves gun capability; incomplete main salvos leave secondaries available [8.30ms]
+(pass) secondary-only custom ships fight until their last gun is destroyed [5.51ms]
+
+src/simulation/battle.test.ts:
+(pass) legacy Yamato survives an accurately aimed salvo at 1000 m with bounded local damage [180.48ms]
+(pass) current Yamato survives a damaging opening salvo at 1000 m [268.05ms]
+(pass) legacy Yamato survives an accurately aimed salvo at 5000 m with bounded local damage [156.76ms]
+(pass) current Yamato survives a damaging opening salvo at 5000 m [194.30ms]
+(pass) custom deployments use independent mixed ships, unique IDs and lines 5 km apart [30.08ms]
+(pass) custom distances deploy and reset every ship facing the opposing formation [171.07ms]
+(pass) fleet validation rejects empty enemies, unavailable presets and overfull teams [0.65ms]
+(pass) spawn distance accepts its limits and rejects invalid values at setup and simulation boundaries
+(pass) every bot maneuvers, fires both applicable batteries, reloads and damages opposing equipment [7425.06ms]
+(pass) bots ignore allies, change targets after sinking and hold fire through friendly hulls [1.45ms]
+(pass) disabled propulsion and guns stop a bot moving and firing; sunk bots cease fire [1366.60ms]
+(pass) target selection uses each enemy definition and rejects friendly IDs [1.41ms]
+(pass) battle results count all ships and resetting restores every actor without breaking bindings [9.84ms]
+(pass) bot combat produces identical outcomes at 30, 60 and 144 display fps [2625.98ms]
+
+src/simulation/structure.test.ts:
+(pass) fixed-tick shell flight registers unarmored bow contact [34.50ms]
+(pass) unarmored bow registers a swept hit and damage under the actual ship pose [21.39ms]
+(pass) fixed-tick shell flight registers unarmored stern contact [27.03ms]
+(pass) unarmored stern registers a swept hit and damage under the actual ship pose [20.58ms]
+(pass) fixed-tick shell flight registers unarmored bridge contact [25.82ms]
+(pass) unarmored bridge registers a swept hit and damage under the actual ship pose [20.83ms]
+(pass) aiming and inspection include the same unarmored bow surface as combat [21.32ms]
+(pass) thin underwater hull hits breach the forebody, while air above the sheer remains a miss [22.14ms]
+(pass) a shell crossing the waterline inside the hull continues through the interior [22.24ms]
+(pass) main gunhouse armor covers the rear overhang but leaves air outside its narrower sides [12.39ms]
+(pass) invalid or open component facets cannot become armor or enter the Blender recipe [1.32ms]
+(pass) the exterior belt replaces ordinary hull plating at the faired midship surface [22.22ms]
+(pass) mixed fleets use each hull definition for structural hits and waterline crossing [25.53ms]
+(pass) fleet sight aiming finds the nearer structural bow regardless of contact order [22.07ms]
+
+src/simulation/enterprise.test.ts:
+(pass) Enterprise uses the March 1942 count and preserves distinct single and quadruple muzzle axes [0.22ms]
+(pass) Enterprise main fires only aligned mounts and preserves ammunition on the opposite side [1163.51ms]
+(pass) Enterprise secondary fires only aligned mounts and preserves ammunition on the opposite side [1149.59ms]
+(pass) invalid loft sections and structures cannot enter an Enterprise definition [32.21ms]
+
+src/simulation/stability.test.ts:
+(pass) station integration matches analytic rectangular displacement, centroid and metacenter [1.05ms]
+(pass) free water stays horizontal and shifts toward the low side; full spaces lose free surface [0.19ms]
+(pass) bismarck: dry equilibrium and hull-derived flooding loss with durability remaining [27.87ms]
+(pass) yamato: dry equilibrium and hull-derived flooding loss with durability remaining [36.72ms]
+(pass) baltimore: dry equilibrium and hull-derived flooding loss with durability remaining [24.74ms]
+(pass) enterprise-cv6: dry equilibrium and hull-derived flooding loss with durability remaining [22.87ms]
+(pass) bismarck: shell and flooding coverage include both sides, deck, bottom, bow and stern [1017.08ms]
+(pass) yamato: shell and flooding coverage include both sides, deck, bottom, bow and stern [4101.19ms]
+(pass) baltimore: shell and flooding coverage include both sides, deck, bottom, bow and stern [1158.22ms]
+(pass) enterprise-cv6: shell and flooding coverage include both sides, deck, bottom, bow and stern [860.30ms]
+(pass) asymmetric water produces mirrored list; symmetric loading sinks deeper without list [2779.30ms]
+(pass) portal levels use a common horizontal waterplane under heel and conserve water [84.53ms]
+(pass) finite-angle capsize is separate from negative initial GM and from sinking by weight [103.50ms]
+(pass) afloat ships retain useful guns after propulsion loss; permanent gun/ammunition loss decides a battle [15.93ms]
+(pass) compound flood spaces validate finite non-overlapping capacity [5.56ms]
+
+src/simulation/aircraftFlight.test.ts:
+(pass) bank rolls in before a coordinated turn, with finite pitch and speed response [1.04ms]
+(pass) a steep descent begins pulling out before the sea and gear/brakes deploy gradually [1.61ms]
+(pass) attitude and mechanisms interpolate across wrap and remain read-only during pause [0.82ms]
+(pass) fighters require a forward gun solution and hold fire through an ally [0.92ms]
+(pass) fighters prioritize inbound loaded bombers, retain targets, and discard losses [3.04ms]
+(pass) aircraft flight and pilot memory replay identically with no renderer [1134.22ms]
+(pass) recovery follows a moving, rotated carrier and makes one continuous touchdown [252.76ms]
+
+src/simulation/land.test.ts:
+(pass) all maps keep maximum-size formations clear at both spawn-distance limits [402.37ms]
+(pass) coast contact keeps a hull offshore and permits reversing away [1.91ms]
+(pass) swept land contact stops low projectiles, allows overflight, and leaves open ocean clear [0.55ms]
+(pass) battle map selection rejects unknown maps and sea conditions while old setups remain valid
+(pass) the live projectile path ends at land with a coast impact event [0.57ms]
+
+src/simulation/fleet-structure.test.ts:
+(pass) yamato: posed swept bow hit, AP exit, sight and inspection agree [31.62ms]
+(pass) yamato: posed swept stern hit, AP exit, sight and inspection agree [10.77ms]
+(pass) yamato: posed swept bridge hit, AP exit, sight and inspection agree [10.23ms]
+(pass) yamato: waterline crossing, hull breach, flooding and empty air [3.96ms]
+(pass) baltimore: posed swept bow hit, AP exit, sight and inspection agree [15.31ms]
+(pass) baltimore: posed swept stern hit, AP exit, sight and inspection agree [4.77ms]
+(pass) baltimore: posed swept bridge hit, AP exit, sight and inspection agree [4.11ms]
+(pass) baltimore: waterline crossing, hull breach, flooding and empty air [2.18ms]
+(pass) enterprise-cv6: posed swept bow hit, AP exit, sight and inspection agree [8.16ms]
+(pass) enterprise-cv6: posed swept stern hit, AP exit, sight and inspection agree [4.40ms]
+(pass) enterprise-cv6: posed swept bridge hit, AP exit, sight and inspection agree [2.79ms]
+(pass) enterprise-cv6: waterline crossing, hull breach, flooding and empty air [3.29ms]
+(pass) Baltimore transom is a hit surface across its full breadth [0.36ms]
+(pass) Yamato recurved stem has air above its bulb, not a centerline sheet [0.37ms]
+(pass) Enterprise hangar openings remain air between actual portal frames [0.06ms]
+(pass) Yamato shell rooms are above the lower propellant stores with stable magazine bindings [0.09ms]
+(pass) Enterprise closed elevators replace deck holes without a second flight-deck skin [0.70ms]
+(pass) all fleet presets retain their distinct definitions and structural impact evidence [9.45ms]
+
+src/simulation/disabled-guns.test.ts:
+(pass) a destroyed gun marks its turret disabled in the damage tick [2.31ms]
+(pass) a destroyed magazine marks its turret disabled in the damage tick [1.53ms]
+(pass) a turret disabled by gun holds train and elevation despite new aim and helm commands [58.68ms]
+(pass) a turret disabled by magazine holds train and elevation despite new aim and helm commands [57.22ms]
+(pass) a turret disabled by flooding holds train and elevation despite new aim and helm commands [99.66ms]
+
+src/simulation/torpedoes.test.ts:
+(pass) VIIC compiles five fixed tubes, fourteen rounds and independent original gun parts [3.40ms]
+(pass) rejects malformed tube connections, IDs, ammunition, launch geometry and weapon performance [22.32ms]
+(pass) click fires one bow tube; holding fires the remaining three at spaced intervals [7.87ms]
+(pass) stern tube fires astern and the four bow tubes preserve their rounds
+(pass) unavailable shots are consumed, with explicit arc, range, arming and disabled states [1.64ms]
+(pass) reload completes independently of the sight, empty tubes stay empty and reset restores everything [4.78ms]
+(pass) torpedoes stay underwater at fixed speed, keep their launch course and expire at their range [10.40ms]
+(pass) swept torpedoes hit the nearest physical hull on either team and pass below deep wrecks [27.78ms]
+(pass) torpedoes strike each existing hull below its armor belt (%s) [16.20ms]
+(pass) torpedoes strike each existing hull below its armor belt (%s) [26.77ms]
+(pass) torpedoes strike each existing hull below its armor belt (%s) [14.28ms]
+(pass) torpedoes strike each existing hull below its armor belt (%s) [14.12ms]
+(pass) contact before arming is a dud; armed hits apply flooding and score only actual enemy damage [3.13ms]
+(pass) launched bow salvo can sink an opponent, earning one frag, then battle reset clears it [115.22ms]
+(pass) friendly torpedo damage and wreck hits do not add player score [1.63ms]
+(pass) torpedo openings retain their position and magazine damage does not invent a detonation [0.53ms]
+(pass) loaded tubes preserve fighting strength after gun loss and recover after magazine flooding [0.29ms]
+(pass) torpedoes cannot score against an already disarmed afloat opponent [1.04ms]
+(pass) bot lead intercepts a crossing target; friendly ships block the predicted torpedo lane [0.24ms]
+(pass) bot VIICs wait for target acquisition before using their tubes [55.69ms]
+(pass) bot torpedo lead uses delayed observations after a target changes course [10.16ms]
+(pass) VIIC deck and platform guns remain articulated and fire through the shared gun system [78.68ms]
+(pass) invalid intent shapes cannot launch torpedoes or poison the simulation [0.37ms]
+(pass) torpedo simulation is deterministic across display rates and remains renderer-free [41.35ms]
+
+src/simulation/sinking.test.ts:
+(pass) surviving underwater hits produce a visible live list with normal damage control running [1019.52ms]
+(pass) uneven flooding lists a fighting ship with full hull HP; draining lets it recover [1481.07ms]
+(pass) hull failure continues mirrored roll from the flooded side instead of freezing upright [392.01ms]
+(pass) a lost hull continues trimming toward flooded bow or stern [201.56ms]
+(pass) a capsized hull continues responding to water after loss [1200.08ms]
+(pass) capsizing after hull failure retains the original cause of loss [693.60ms]
+(pass) sinking gathers speed and eventually clears the whole hull, including an end-on wreck [507.12ms]
+(pass) wreck flooding and motion survive serialization, and lost pumps cannot drain water [198.01ms]
+
+src/simulation/fletcher.test.ts:
+(pass) Fletcher registers five single main guns, two quintuple torpedo mounts and 28 depth charges [3.61ms]
+(pass) rejects dangling launcher links, conflicting sockets, invalid release data and charge parts [8.63ms]
+(pass) trainable tubes preserve ammunition while turning or aiming through the superstructure sectors [64.46ms]
+(pass) both broadsides launch all ten rounds from the rotated sockets (%s) [135.42ms]
+(pass) both broadsides launch all ten rounds from the rotated sockets (%s) [119.49ms]
+(pass) depth charge click releases one; held fire spaces a pattern and respects reload/ammo [20.88ms]
+(pass) side throwers arc outward; charges splash then sink and burst at the authored depth [0.18ms]
+(pass) nearby blasts damage surfaced submarines, open breaches, credit score and spare distant hulls [1.45ms]
+(pass) blast falloff uses three-dimensional hull distance; allies and own ship can be damaged without score [0.83ms]
+(pass) a depth-charge breach earns a later flooding frag once and reset restores every weapon, pose and score [1.14ms]
+(pass) surviving depth charges keep a disarmed destroyer in battle until their stock is exhausted [0.45ms]
+(pass) depth-charge reach uses the submarine actual depth (%s m) [0.40ms]
+(pass) depth-charge reach uses the submarine actual depth (%s m) [0.19ms]
+(pass) destroyed magazine, empty stations, sunk hull and full projectile pool cannot consume ammunition [1.10ms]
+(pass) bots recognize a close depth-charge pass and refuse to blast a friendly hull [0.08ms]
+
+src/simulation/combat.test.ts:
+(pass) a click does not spend ammunition on guns unable to fire at 1800,0,0 [444.16ms]
+(pass) a click does not spend ammunition on guns unable to fire at 0,0,1800 [413.55ms]
+(pass) a click does not spend ammunition on guns unable to fire at 1800,4000,0 [468.98ms]
+(pass) a click does not spend ammunition on guns unable to fire at 40000,0,0 [408.81ms]
+(pass) Bismarck bow-on fire uses forward turrets and keeps unreachable rear turrets loaded [1365.40ms]
+(pass) held fire admits turrets as they align and release cancels later firing [489.69ms]
+(pass) Bismarck rear barrels through the superstructure are blocked independently of target reachability [12.35ms]
+(pass) firing during traverse still respects obstructions, empty guns and disabled guns [12.87ms]
+(pass) pose conversions preserve arbitrary points under heading, list and trim [0.04ms]
+(pass) swept collision catches a thin plate between ticks and rejects a parallel miss
+(pass) ballistic aim reaches its target under the flight integrator gravity [0.12ms]
+(pass) armor resolves before internal damage, and a surface/module is only charged once per shell [20.35ms]
+(pass) a shell spends one internal damage budget across modules and tick boundaries [21.94ms]
+(pass) flood connections conserve water with pumps/leaks disabled and list follows the flooded side [78.57ms]
+(pass) aimed salvos obey reloads and ammunition while damaging the target [1148.17ms]
+(pass) same commands at 30, 60 and 144 fps yield identical combat state [1747.00ms]
+(pass) reset replaces the trial target state without invalidating renderer bindings [11.83ms]
+(pass) shot and splash events retain matching caliber and independent velocity snapshots [504.93ms]
+(pass) impact normals are in world coordinates and internal damage has no surface normal [20.57ms]
+(pass) destroyed propulsion prevents target acceleration [160.02ms]
+(pass) surface evidence preserves ammunition and mount-local contact before later turret movement [133.98ms]
+(pass) an internal armed burst ignites the magazine once and disable the connected battery mount [602.82ms]
+(pass) exhausted reserve buoyancy causes sinking and target reset restores dry compartments [33.69ms]
+
+src/simulation/score.test.ts:
+(pass) score counts actual enemy hull damage, caps overkill and awards a loss once [4.51ms]
+(pass) main battery destruction earns damage but no frag while a secondary gun survives [0.52ms]
+(pass) stopped rounds, allied hits and bot kills do not increase the player score [0.47ms]
+(pass) the final hostile damaging hit earns the frag, including delayed flooding [5.01ms]
+(pass) another shell in the lethal tick cannot take the frag from an already disarmed ship [0.51ms]
+
+src/simulation/submarine.test.ts:
+(pass) ballast takes time to flood, holds scope/deep depth, and surfaces without damage or false sinking [1281.76ms]
+(pass) emergency blow empties tanks faster, reverses a dive, and resets with the battle [148.02ms]
+(pass) submerged propulsion uses electric motors and its lower speed, independently of diesel damage [176.61ms]
+(pass) flooded electric machinery stops submerged propulsion and recovers only while undamaged [0.32ms]
+(pass) an optional hull stability profile does not force a commanded dive back to the waterline [525.94ms]
+(pass) submerged guns preserve ammunition; shallow torpedoes hit a surface hull while deep launches are blocked [3913.27ms]
+(pass) diving hulls pass below surface hulls and shallow torpedoes, with depth-aware flooding [14.50ms]
+(pass) commands reject nonfinite input, clamp depth, and do not enable diving on a surface ship [33.59ms]
+(pass) diving is deterministic across display rates and bots dive while attacking [134.79ms]
+(pass) blueprint rejects unsafe or disconnected diving equipment [22.46ms]
+(pass) excess pressure creates persistent flooding; exposed tube mouths cannot launch into air [1.91ms]
+
+src/simulation/floodwater.test.ts:
+(pass) water inspection is read-only, including the first water admitted to a dry room [0.47ms]
+(pass) pressure follows the current volume across changes in a compound room cross-section [0.11ms]
+(pass) empty compound spaces use their actual lowest cell, not an unoccupied bounding-box corner [0.07ms]
+(pass) portal transfer conserves water without overshooting the equal pressure level [0.25ms]
+(pass) warming inspection caches between ticks cannot change a flooding replay [20.11ms]
+(pass) fill curves remain monotone and bounded under heel, trim and restored caches [0.66ms]
+(pass) a fill curve handles a vertical gap between cells without inventing water volume
+
+src/simulation/ballistics.test.ts:
+(pass) shared drag solution reaches elevated and lowered targets and composes across ticks [3.72ms]
+(pass) aiming a moving mount includes drag on inherited velocity [20.85ms]
+(pass) dispersion is bounded, unbiased and reproducible for horizontal and near-vertical fire [17.74ms]
+(pass) battle reset repeats its seed and different seeds alter launches without changing shot count [29.31ms]
+(pass) versioned gun calibration validates limits and preserves omitted-field compatibility [27.90ms]
+(pass) authored penetration reference affects launch budget without changing the trajectory [43.34ms]
+(pass) seeded muzzle-speed variation makes a range-dominated pattern around the nominal aim [5.81ms]
+(pass) cached per-gun lead follows a moving target and reacquires a jumped aim point [57.16ms]
+
+src/simulation/aircraft.test.ts:
+(pass) mixed flights recover before endurance expires on an undamaged carrier [1004.64ms]
+(pass) versioned air wing validation and unsupported model rejection [18.21ms]
+(pass) launch queues three, spaces takeoffs, uses moving carrier datum, recall and reset [64.26ms]
+(pass) dive bombers release ballistic HE bombs with carrier ownership and recover [580.08ms]
+(pass) torpedo bombers create falling payloads then armed-distance water runners [163.89ms]
+(pass) opposing fighters engage aircraft and shoot them down without friendly damage [227.56ms]
+(pass) service loss blocks launches, submerged targets are rejected, aircraft preserve fighting capability [0.82ms]
+(pass) recall cancels queued launches; port fixture cannot deploy [1.24ms]
+(pass) fixed-tick combat integrates bot air operations and resets airborne payloads [2237.45ms]
+(pass) aircraft weapons resolve actual ship hits and score hostile damage through combat [14192.20ms]
+(pass) bot strike orders fall back from a lost or submerged target to a valid hostile ship [9.77ms]
+(pass) fighters alone cannot keep a carrier in a ship battle after all strike aircraft and guns are lost [0.70ms]
+(pass) deck aircraft occupy distinct stable spots and taxi continuously before takeoff [28.97ms]
+(pass) recovery reaches the deck, rolls to a stop, parks and rearms without disappearing [103.92ms]
+(pass) a recalled group waits its turn and all survivors recover on a stationary carrier [445.22ms]
+(pass) a taxi aircraft clears the launch lane when the airborne limit fills [91.99ms]
+(pass) a fighter group gets airborne within 37 seconds without overlapping occupied deck runs [45.14ms]
+
+src/simulation/damage-realism.test.ts:
+(pass) sea crossing inside an unarmored hull volume continues; open sea splashes [56.73ms]
+(pass) fully above-water penetrations stay dry until their actual opening is submerged [32.81ms]
+(pass) an opening centered on a room boundary splits its area and floods only the submerged half [27.17ms]
+(pass) shells already underwater outside a hull cannot enter a submerged module on the next tick [18.15ms]
+(pass) below-water penetrations admit water and preserve the port breach location under list [28.23ms]
+(pass) list uses each opening location; a high opening does not borrow a low opening depth [37.79ms]
+(pass) hull query excludes points outside the keel, deck, ends and tapered bow [12.37ms]
+(pass) ordered hit evidence records resistance, damage, breach assignment and terminal outcome [19.36ms]
+(pass) flooding has a stable cause and equipment loss alone does not sink a dry hull [21.05ms]
+(pass) small-caliber breach clusters have bounded cost and conserve opening area [16.85ms]
+(pass) rapid fire from another owner cannot evict an in-flight player hit history [24.28ms]
+(pass) backing is diagnosed without an impact flash; a keel exit is recorded as a pass-through [30.68ms]
+
+src/simulation/durability.test.ts:
+(pass) Bismarck tanks eight landed 15-inch rounds but loses to four to six solid broadsides [206.80ms]
+(pass) armor rejection, thin through-shots and substantial penetrations have distinct damage [16.27ms]
+
+src/simulation/ap-projectile.test.ts:
+(pass) thin-plating through-shots slow down without arming AP [11.74ms]
+(pass) armor speed loss changes the remaining travel in the same tick [11.04ms]
+(pass) a delay can expire inside the ship after contact and damage local equipment [11.67ms]
+(pass) an armed stop remains attached to the moving hull until its fuze expires [10.75ms]
+(pass) a long delay can carry an armed shell outside the hull before it bursts [12.23ms]
+(pass) turret entry and exit both resist a shell, while equipment is damaged only once [22.05ms]
+(pass) intervening armor blocks blast and fragments; thin steel permits reduced fragment damage [33.90ms]
+(pass) a stopped shell bursts against armor without transmitting damage through that armor [12.35ms]
+(pass) a stopped AP burst damages equipment on the incoming side of its stopping plate [12.43ms]
+(pass) another ship can shield nearby equipment from a burst [25.75ms]
+(pass) AP catalog profiles are validated and legacy inert parts remain supported [11.69ms]
+(pass) burst candidate filtering preserves complete ray contacts across all presets and articulated poses [208.38ms]
+
+src/simulation/gunfire-realism.test.ts:
+(pass) large AP can tear a thin plate at a shallow angle; thick armor deflects and low budgets still stop [56.59ms]
+(pass) the same shell penetrates nearby protection but is stopped after losing speed at long range [59.05ms]
+(pass) material resistance changes a marginal result while thin-sheet resistance remains bounded [84.58ms]
+(pass) plate broad phase retains exact hull face and edge intersections [11.82ms]
+
+src/simulation/bots.test.ts:
+(pass) bots give the player time to get underway before their opening shots [3445.37ms]
+(pass) gun crews choose different aim points and revise them during an engagement [673.86ms]
+(pass) a sudden course change takes time to enter a bot firing solution [53.83ms]
+(pass) switching targets requires a fresh solution and never spends ammunition during acquisition [587.36ms]
+(pass) an early target loss cannot shorten the opening acquisition window [157.92ms]
+(pass) battle seeds vary courses and opening shots while resets reproduce crew decisions [3195.64ms]
+(pass) taking damage prompts a sustained evasive helm order after a crew reaction [205.83ms]
+
+src/simulation/yamato.test.ts:
+(pass) Yamato has nine main guns with documented 3.50 metre adjacent bore spacing [0.54ms]
+(pass) a trained Yamato broadside fires nine distinct shells and debits three rounds per turret [1280.68ms]
+(pass) unsupported or fractional barrel counts cannot enter a compiled ship [3.52ms]
+(pass) both Yamato secondary triples clear the hull on a broadside and reload together [1239.76ms]
+
+src/simulation/spatial.test.ts:
+(pass) fleet shell rejection retains swept hits through rotated, listing and sinking hulls [3.19ms]
+
+src/simulation/health.test.ts:
+(pass) preset hull health scales with authored displacement [9.65ms]
+(pass) destroyer-sized custom hulls retain useful HP with diminishing gains from extra mass [7.36ms]
+(pass) mixed fleet telemetry and resets use each hull maximum [4.26ms]
+
+src/simulation/machinery.test.ts:
+(pass) Bismarck turbine and shaft losses remove only their linked drive capacity [13.52ms]
+(pass) losing every turbine or boiler removes propulsion regardless of healthy auxiliaries [28.94ms]
+(pass) immersion disables machinery; pumping recovers availability without repairing destroyed HP [17.33ms]
+(pass) closed watertight boundaries stop flow; open/damaged boundaries conserve water [83.79ms]
+(pass) dependency links, shares and immersion limits are validated at compilation [23.62ms]
+(pass) a penetrating underwater path opens boundaries and flooding disables otherwise intact boilers [4594.49ms]
+(pass) authored outer spaces fit the hull and never overlap retained room envelopes [98.66ms]
+(pass) Yamato wing spaces connect damaged exterior openings to retained turbine rooms [10929.91ms]
+(pass) bow and stern penetrations create local openings on every supported preset [220.31ms]
+(pass) stock Baltimore guns with drag and dispersion can flood the stern at 5 km [1638.57ms]
+
+src/game/FleetHud.test.tsx:
+React expects the `children` prop of <title> tags to be a string, number, bigint, or object with a novel `toString` method but found an Array with length 3 instead. Browsers treat all child Nodes of <title> tags as Text content and React expects to be able to convert `children` of <title> tags to a single string value which is why Arrays of length greater than 1 are not supported. When using JSX it can be common to combine text nodes and value nodes. For example: <title>hello {nameOfUser}</title>. While not immediately apparent, `children` in this case is an Array with length 2. If your `children` prop is using this form try rewriting it using a template string: <title>{`hello ${nameOfUser}`}</title>.
+React expects the `children` prop of <title> tags to be a string, number, bigint, or object with a novel `toString` method but found an Array with length 3 instead. Browsers treat all child Nodes of <title> tags as Text content and React expects to be able to convert `children` of <title> tags to a single string value which is why Arrays of length greater than 1 are not supported. When using JSX it can be common to combine text nodes and value nodes. For example: <title>hello {nameOfUser}</title>. While not immediately apparent, `children` in this case is an Array with length 2. If your `children` prop is using this form try rewriting it using a template string: <title>{`hello ${nameOfUser}`}</title>.
+(pass) the helm displays current/max HP and proportional hit feedback for large and small hulls [17.13ms]
+React expects the `children` prop of <title> tags to be a string, number, bigint, or object with a novel `toString` method but found an Array with length 3 instead. Browsers treat all child Nodes of <title> tags as Text content and React expects to be able to convert `children` of <title> tags to a single string value which is why Arrays of length greater than 1 are not supported. When using JSX it can be common to combine text nodes and value nodes. For example: <title>hello {nameOfUser}</title>. While not immediately apparent, `children` in this case is an Array with length 2. If your `children` prop is using this form try rewriting it using a template string: <title>{`hello ${nameOfUser}`}</title>.
+React expects the `children` prop of <title> tags to be a string, number, bigint, or object with a novel `toString` method but found an Array with length 3 instead. Browsers treat all child Nodes of <title> tags as Text content and React expects to be able to convert `children` of <title> tags to a single string value which is why Arrays of length greater than 1 are not supported. When using JSX it can be common to combine text nodes and value nodes. For example: <title>hello {nameOfUser}</title>. While not immediately apparent, `children` in this case is an Array with length 2. If your `children` prop is using this form try rewriting it using a template string: <title>{`hello ${nameOfUser}`}</title>.
+React expects the `children` prop of <title> tags to be a string, number, bigint, or object with a novel `toString` method but found an Array with length 3 instead. Browsers treat all child Nodes of <title> tags as Text content and React expects to be able to convert `children` of <title> tags to a single string value which is why Arrays of length greater than 1 are not supported. When using JSX it can be common to combine text nodes and value nodes. For example: <title>hello {nameOfUser}</title>. While not immediately apparent, `children` in this case is an Array with length 2. If your `children` prop is using this form try rewriting it using a template string: <title>{`hello ${nameOfUser}`}</title>.
+(pass) Fletcher exposes live depth charge supply and broadside torpedo help, while gun-only ships keep their controls [12.35ms]
+React expects the `children` prop of <title> tags to be a string, number, bigint, or object with a novel `toString` method but found an Array with length 3 instead. Browsers treat all child Nodes of <title> tags as Text content and React expects to be able to convert `children` of <title> tags to a single string value which is why Arrays of length greater than 1 are not supported. When using JSX it can be common to combine text nodes and value nodes. For example: <title>hello {nameOfUser}</title>. While not immediately apparent, `children` in this case is an Array with length 2. If your `children` prop is using this form try rewriting it using a template string: <title>{`hello ${nameOfUser}`}</title>.
+React expects the `children` prop of <title> tags to be a string, number, bigint, or object with a novel `toString` method but found an Array with length 3 instead. Browsers treat all child Nodes of <title> tags as Text content and React expects to be able to convert `children` of <title> tags to a single string value which is why Arrays of length greater than 1 are not supported. When using JSX it can be common to combine text nodes and value nodes. For example: <title>hello {nameOfUser}</title>. While not immediately apparent, `children` in this case is an Array with length 2. If your `children` prop is using this form try rewriting it using a template string: <title>{`hello ${nameOfUser}`}</title>.
+(pass) VIIC depth instruments show real orders, ballast and recovery instructions only when fitted [5.95ms]
+React expects the `children` prop of <title> tags to be a string, number, bigint, or object with a novel `toString` method but found an Array with length 3 instead. Browsers treat all child Nodes of <title> tags as Text content and React expects to be able to convert `children` of <title> tags to a single string value which is why Arrays of length greater than 1 are not supported. When using JSX it can be common to combine text nodes and value nodes. For example: <title>hello {nameOfUser}</title>. While not immediately apparent, `children` in this case is an Array with length 2. If your `children` prop is using this form try rewriting it using a template string: <title>{`hello ${nameOfUser}`}</title>.
+React expects the `children` prop of <title> tags to be a string, number, bigint, or object with a novel `toString` method but found an Array with length 3 instead. Browsers treat all child Nodes of <title> tags as Text content and React expects to be able to convert `children` of <title> tags to a single string value which is why Arrays of length greater than 1 are not supported. When using JSX it can be common to combine text nodes and value nodes. For example: <title>hello {nameOfUser}</title>. While not immediately apparent, `children` in this case is an Array with length 2. If your `children` prop is using this form try rewriting it using a template string: <title>{`hello ${nameOfUser}`}</title>.
+(pass) main battery loss leaves an armed ship in its fleet without an extra status label [4.93ms]
+(pass) Gunnery separates penetrating hull damage from surviving equipment [36.18ms]
+React expects the `children` prop of <title> tags to be a string, number, bigint, or object with a novel `toString` method but found an Array with length 3 instead. Browsers treat all child Nodes of <title> tags as Text content and React expects to be able to convert `children` of <title> tags to a single string value which is why Arrays of length greater than 1 are not supported. When using JSX it can be common to combine text nodes and value nodes. For example: <title>hello {nameOfUser}</title>. While not immediately apparent, `children` in this case is an Array with length 2. If your `children` prop is using this form try rewriting it using a template string: <title>{`hello ${nameOfUser}`}</title>.
+React expects the `children` prop of <title> tags to be a string, number, bigint, or object with a novel `toString` method but found an Array with length 3 instead. Browsers treat all child Nodes of <title> tags as Text content and React expects to be able to convert `children` of <title> tags to a single string value which is why Arrays of length greater than 1 are not supported. When using JSX it can be common to combine text nodes and value nodes. For example: <title>hello {nameOfUser}</title>. While not immediately apparent, `children` in this case is an Array with length 2. If your `children` prop is using this form try rewriting it using a template string: <title>{`hello ${nameOfUser}`}</title>.
+React expects the `children` prop of <title> tags to be a string, number, bigint, or object with a novel `toString` method but found an Array with length 3 instead. Browsers treat all child Nodes of <title> tags as Text content and React expects to be able to convert `children` of <title> tags to a single string value which is why Arrays of length greater than 1 are not supported. When using JSX it can be common to combine text nodes and value nodes. For example: <title>hello {nameOfUser}</title>. While not immediately apparent, `children` in this case is an Array with length 2. If your `children` prop is using this form try rewriting it using a template string: <title>{`hello ${nameOfUser}`}</title>.
+React expects the `children` prop of <title> tags to be a string, number, bigint, or object with a novel `toString` method but found an Array with length 3 instead. Browsers treat all child Nodes of <title> tags as Text content and React expects to be able to convert `children` of <title> tags to a single string value which is why Arrays of length greater than 1 are not supported. When using JSX it can be common to combine text nodes and value nodes. For example: <title>hello {nameOfUser}</title>. While not immediately apparent, `children` in this case is an Array with length 2. If your `children` prop is using this form try rewriting it using a template string: <title>{`hello ${nameOfUser}`}</title>.
+React expects the `children` prop of <title> tags to be a string, number, bigint, or object with a novel `toString` method but found an Array with length 3 instead. Browsers treat all child Nodes of <title> tags as Text content and React expects to be able to convert `children` of <title> tags to a single string value which is why Arrays of length greater than 1 are not supported. When using JSX it can be common to combine text nodes and value nodes. For example: <title>hello {nameOfUser}</title>. While not immediately apparent, `children` in this case is an Array with length 2. If your `children` prop is using this form try rewriting it using a template string: <title>{`hello ${nameOfUser}`}</title>.
+React expects the `children` prop of <title> tags to be a string, number, bigint, or object with a novel `toString` method but found an Array with length 3 instead. Browsers treat all child Nodes of <title> tags as Text content and React expects to be able to convert `children` of <title> tags to a single string value which is why Arrays of length greater than 1 are not supported. When using JSX it can be common to combine text nodes and value nodes. For example: <title>hello {nameOfUser}</title>. While not immediately apparent, `children` in this case is an Array with length 2. If your `children` prop is using this form try rewriting it using a template string: <title>{`hello ${nameOfUser}`}</title>.
+(pass) battle reports distinguish weapons, incoming hits, duplicate ships, damaged ships and permanent losses [6.86ms]
+
+src/game/GameFrame.test.ts:
+(pass) map and port transitions restore their own absorption after underwater attenuation [59.46ms]
+(pass) turning through north takes the short heading path without changing authoritative combat state [206.00ms]
+(pass) firing enters shell view without feeding its camera into aim, freezes on pause and restores optics [562.79ms]
+(pass) target inspection follows the interpolated underway target and resets without a streak [53.81ms]
+(pass) pause holds the interpolated pose and resume continues without a tick-sized jump [13.73ms]
+(pass) manual aiming and binoculars keep the camera attached to the displayed ship at full speed [184.87ms]
+(pass) repositioning for port and launch clears the old ship poses [15.01ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.03333333333333333 [113.97ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.01694915254237288 [68.58ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.016666666666666666 [71.98ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.008333333333333333 [45.43ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.006944444444444444 [38.64ms]
+(pass) full-speed frame movement stays uniform at frame intervals 0.006944444444444444,0.02127659574468085,0.013888888888888888,0.043 [82.08ms]
+(pass) all fleet impact marks share one cosmetic work budget, renewed for each frame [11.89ms]
+
+src/game/ShipView.test.ts:
+(pass) a turret disabled during a tick stops its rendered traverse and elevation immediately [55.13ms]
+(pass) liberty-cargo: exported guns follow full train/elevation/recoil and preserve appendage pivots [23.57ms]
+(pass) liberty-collier: exported guns follow full train/elevation/recoil and preserve appendage pivots [16.70ms]
+(pass) victory-cargo: exported guns follow full train/elevation/recoil and preserve appendage pivots [15.81ms]
+(pass) flower-corvette: exported guns follow full train/elevation/recoil and preserve appendage pivots [14.91ms]
+(pass) Baltimore exported hierarchy binds all 21 muzzles through train, pitch and recoil [53.38ms]
+(pass) actual exported joints follow authoritative muzzle positions through rear traverse and recoil [45.47ms]
+(pass) Enterprise single and quadruple exported guns align at their traverse and elevation limits [45.02ms]
+(pass) Yamato center and outer barrels remain aligned through fore and aft traverse, elevation and recoil [89.20ms]
+(pass) fleet exteriors defer inspection geometry until a ship is inspected [323.75ms]
+(pass) fleet meshes reuse materials within each ship while inspection stays independent [299.41ms]
+(pass) VIIC dive planes, rudders and screws use the retained pivot hierarchy underwater [71.43ms]
+(pass) Fletcher gun and torpedo joints follow interpolated CPU poses on both broadsides and after reset [34.68ms]
+
+ 378 pass
+ 0 fail
+ 180610 expect() calls
+Ran 378 tests across 39 files. [113.67s]
