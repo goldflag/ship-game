@@ -161,6 +161,8 @@ Tests cover mixed-fleet deployment and loading, bot fire/reloads/damage/retarget
 
 The [implementation validation record](docs/ship-validation.md) lists the tested build, browser observations and remaining accuracy/visual checks.
 
+The [mixed-fleet performance review](assets/reviews/mixed-fleet-performance/README.md) records a deterministic 30-versus-30 battle using all ten ship types, matched frame measurements, and close-view/inspection checks. Run `bun scripts/diagnostics/mixed-fleet-performance.ts 30 7200` for the CPU replay, or open `/scripts/diagnostics/fleet-performance.html?team=30&mixed` in development and run `await review.measureFrames()` in the browser console. Reload before repeating the frame replay. Runtime surface batching and camera-based detail reduction retain the original GLB geometry and articulated joints for inspection and damage marks.
+
 Three.js renderer reference: https://threejs.org/manual/en/webgpurenderer
 
 Gunnery now supports finite AP and HE stocks. Changing shell type takes a full reload. HE contact bursts affect locally exposed equipment through the same armor queries; its fill, fragment budget and stock split are provisional game calibration.
@@ -182,3 +184,5 @@ Launch orders spot aircraft from the hangar, taxi onto the flight lane and perfo
 Bombs use ballistic flight, armor, protected blasts and shared damage/scoring. Torpedoes fall into the water, run straight, arm after 180 m and use hull contact and flooding. Surviving light ship guns provide an approximate AA envelope. These flight speeds, payloads, damage, AA and reduced air-group counts are gameplay tuning, not a historical reconstruction or a flight simulator. See [air operations](docs/air-operations.md).
 
 AA coverage in this first implementation comes only from registered guns of 40 mm or smaller: Enterprise and Type VIIC have eligible mounts. Bismarck, Yamato and Baltimore currently have no simulated AA envelope; they need friendly carrier fighters for air protection. Adding their historical AA batteries remains future authoring work.
+
+The ongoing 60 FPS work, live measurements and verification limits are recorded in [the 60 FPS performance review](assets/reviews/fps60-performance/README.md).

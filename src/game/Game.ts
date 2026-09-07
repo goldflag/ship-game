@@ -7,6 +7,13 @@ import type { ControlPriority } from '../simulation/damageControl';
 import * as THREE from 'three/webgpu';
 import { float, mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
 import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
+import { VisualWaveSampler } from './VisualWaveSampler';
+import { UnderwaterPassVisibility } from './UnderwaterPassVisibility';
+import { FrameScene } from './FrameScene';
+import { FleetShipDraws } from './FleetShipDraws';
+import { batchShipModel } from './ShipBatching';
+import { prepareShipDetail } from './ShipDetail';
+import { ShipMaterialPalette } from './ShipMaterialPalette';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { WaterSystem, getPresetParams } from '../../vendor/threejs-water-pro/build/index.js';
 import { SkySystem, PRESETS as SKY_PRESETS } from '../../vendor/threejs-sky-pro/build/index.js';
@@ -48,7 +55,8 @@ export class Game {
   simulation: CombatSimulation;
   readonly input: InputController;
   private renderer: THREE.WebGPURenderer;
-  private scene = new THREE.Scene();
+  private scene = new FrameScene();
+  private underwaterPassVisibility?: UnderwaterPassVisibility;
   private ambientLight = new THREE.HemisphereLight('#dcebf2', '#65757e', .65);
   private camera = new THREE.PerspectiveCamera(52, 1, 0.5, 60000);
   private rig: CameraRig;
@@ -59,6 +67,8 @@ export class Game {
   private playerView?: ShipView;
   private targetView?: ShipView;
   private fleetViews: ShipView[] = [];
+  private fleetDraws?: FleetShipDraws;
+  private visualWaveSampler?: VisualWaveSampler;
   private fleetModels: THREE.Group[] = [];
   private shipLabels: ShipLabels;
   private playerDamageFeedback: HullDamageFeedback;
@@ -178,12 +188,17 @@ export class Game {
     this.rig.update(this.simulation.ship, 0, 0, true);
     this.callbacks.progress(`Launching ${this.definition.name}`, 0.2);
     const gltf = await new GLTFLoader().loadAsync(this.definition.modelUrl);
+    new ShipMaterialPalette().apply(gltf.scene);
+    batchShipModel(gltf.scene);
+    await prepareShipDetail(gltf.scene);
     this.loadedModel = gltf.scene;
     this.assertActive();
     if (gltf.scene.userData.definitionHash !== this.definition.contentHash) throw new Error('The ship model and definition have different versions. Rebuild the ship assets and reload.');
     this.playerView = new ShipView(gltf.scene.clone(true), this.definition, this.simulation.player, this.renderer.reversedDepthBuffer);
     this.targetView = new ShipView(gltf.scene.clone(true), this.definition, this.simulation.target, this.renderer.reversedDepthBuffer);
     this.fleetViews = [this.playerView, this.targetView];
+    this.fleetDraws = new FleetShipDraws(this.fleetViews);
+    this.scene.add(this.fleetDraws.root);
     this.fleetModels = [gltf.scene];
     this.shipLabels.setFleet(this.fleetViews, this.simulation.actors);
     this.ship.position.copy(this.playerView.root.position);
@@ -198,6 +213,8 @@ export class Game {
     // Large seeds (e.g. 1941) collapse adjacent inputs, creating repeated arcs.
     // Keep the library's small, deterministic seed until its hash input is fixed.
     this.water = await WaterSystem.create(this.renderer, this.scene, this.camera, this.settings.quality, { seed: 1 });
+    this.visualWaveSampler = new VisualWaveSampler(this.water.buoyancy.getSampler());
+    this.water.buoyancy.setSampler(this.visualWaveSampler);
     this.assertActive();
     const params = getPresetParams('blackFlag');
     params.oceanFloor.enabled = false;
@@ -215,6 +232,7 @@ export class Game {
     params.postProcessing.underwaterParticles.enabled = false;
     params.spray.enabled = false;
     this.water.loadPreset(params);
+    this.underwaterPassVisibility = new UnderwaterPassVisibility(this.water, this.renderer);
     this.surfaceWaterAbsorption.copy(this.water.color.absorptionColor);
     this.updateSeaState();
 
@@ -329,14 +347,19 @@ export class Game {
     this.inspectionHover?.clear();
     const definitions = [...new Map(simulation.actors.map(actor => [actor.definition.id, actor.definition])).values()];
     const models = new Map<string, THREE.Group>();
+    const palette = new ShipMaterialPalette();
     const views: ShipView[] = [];
     const clones: THREE.Group[] = [];
+    let draws: FleetShipDraws | undefined;
     try {
       const loads = await Promise.allSettled(definitions.map(async def => {
         const model = (await new GLTFLoader().loadAsync(def.modelUrl)).scene;
         models.set(def.id, model);
         const hash = 'contentHash' in def ? def.contentHash : undefined;
         if (!hash || model.userData.definitionHash !== hash) throw new Error('The ship model and definition have different versions. Rebuild the ship assets and reload.');
+        palette.apply(model);
+        batchShipModel(model);
+        await prepareShipDetail(model);
       }));
       const failure = loads.find(result => result.status === 'rejected');
       if (failure?.status === 'rejected') throw failure.reason;
@@ -350,7 +373,9 @@ export class Game {
         view.root.visible = actor === simulation.player;
         views.push(view);
       }
+      draws = new FleetShipDraws(views);
       const previous = [...this.fleetModels, ...this.fleetViews.map(view => view.root)];
+      this.fleetDraws?.dispose();
       this.fleetViews.forEach(view => { view.impactMarks.dispose(); view.root.removeFromParent(); });
       this.scene.add(...views.map(view => view.root), this.aircraftView.root);
       this.definition = definition; this.simulation = simulation;
@@ -358,6 +383,8 @@ export class Game {
       this.audio?.reset(simulation);
       this.fleetModels = [...models.values()]; this.loadedModel = models.get(definition.id);
       this.fleetViews = views; this.playerView = views[0];
+      this.fleetDraws = draws;
+      this.scene.add(this.fleetDraws.root);
       this.targetView = views.find(view => view.actor === simulation.target);
       this.shipLabels.setFleet(views, simulation.actors);
       this.articulationOriginal = undefined;
@@ -372,6 +399,7 @@ export class Game {
       this.renderer.domElement.setAttribute('aria-label', `${definition.name} ocean scene. Drag to orbit; scroll to zoom.`);
       disposeObjects(...previous);
     } catch (error) {
+      draws?.dispose();
       views.forEach(view => view.impactMarks.dispose());
       disposeObjects(...models.values(), ...clones, ...views.map(view => view.root));
       throw error;
@@ -438,7 +466,7 @@ export class Game {
       this.gunAim.update(showGunAim ? gunAimPoints(this.simulation.player, this.definition, this.battery, aim) : [], this.camera, showGunAim);
       this.hitDirections.update(this.simulation, this.camera, !this.inPort);
       this.inspectionHover?.update(this.inPort && !this.paused && !this.switchingShip ? this.playerView?.inspection : undefined);
-      this.fleetViews.forEach(view => view.root.updateMatrixWorld(true));
+      this.fleetViews.forEach(view => view.updateRenderMatrices());
       this.aircraftView.update(this.simulation, this.camera, !this.inspecting && (!this.inPort || this.playerView?.inspection.mode === 'exterior'), this.inPort, new Map(this.fleetViews.map(view => [view.actor.motion.id, view.root])));
       this.effects.update(this.simulation, dt, this.camera, this.rig.binoculars && !this.shellFollow.view);
       this.audio?.update(this.simulation, this.input.order, this.battery,
@@ -457,9 +485,16 @@ export class Game {
       // Fixed-step mode with zero delta renders without stepping the wake's
       // leapfrog/foam integrators. Host-clock update(0) would still step them.
       this.water!.deterministic = this.paused;
-      await this.water!.update(dt);
-      if (this.disposed) return;
-      this.renderFrame();
+      // Water captures ship depth/color too, so publish batch poses before its passes.
+      this.fleetDraws?.update(this.camera, this.renderer.domElement.height);
+      this.underwaterPassVisibility?.update(this.camera);
+      this.scene.beginFrame();
+      try {
+        await this.water!.update(dt);
+        this.underwaterPassVisibility?.capture();
+        if (this.disposed) return;
+        this.renderFrame();
+      } finally { this.scene.endFrame(); }
       const combatTime = this.simulation.tick * FIXED_DT;
       this.shipLabels.update(this.camera, combatTime);
       const playerDamage = this.playerDamageFeedback.update(this.simulation.player.damage.integrity, combatTime);
@@ -787,6 +822,7 @@ export class Game {
 
   async dispose(): Promise<void> {
     this.disposed = true;
+    this.underwaterPassVisibility?.dispose();
     this.audio?.dispose();
     cancelAnimationFrame(this.raf);
     this.abort.abort(); this.observer.disconnect(); this.input.dispose(); this.rig.dispose();
@@ -796,6 +832,7 @@ export class Game {
     this.hitDirections.dispose();
     await this.initialization;
     await this.frameTask;
+    this.fleetDraws?.dispose();
     this.fleetViews.forEach(view => view.impactMarks.dispose());
     this.pipeline?.dispose();
     this.finalFrame?.renderTarget?.dispose();
@@ -805,6 +842,7 @@ export class Game {
     await this.aircraftView.dispose();
     if (this.landscape) disposeBattleLandscape(this.landscape);
     this.effects.dispose();
+    await this.visualWaveSampler?.drain();
     this.water?.dispose();
     this.sky?.dispose();
     const geometries = new Set<THREE.BufferGeometry>();

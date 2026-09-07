@@ -1,0 +1,12 @@
+{
+  "binocularsHidePlayer": true,
+  "error": null,
+  "inspection": {
+    "layers": 1,
+    "mode": "all"
+  },
+  "maxMuzzleErrorM": 0.0027450283813379283,
+  "maxTorpedoMuzzleErrorM": 2.6020255958909775e-06,
+  "playerRestored": true,
+  "tick": 3750
+}

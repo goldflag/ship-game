@@ -1,0 +1,24 @@
+{
+  "aircraft": {
+    "batches": 45,
+    "contacts": 5,
+    "instances": 102,
+    "models": 9,
+    "payloads": 18
+  },
+  "draws": {
+    "batches": 5,
+    "instances": 1886,
+    "reduced": 893,
+    "subpixel": 154
+  },
+  "maxMuzzleErrorM": 0.002745029232939498,
+  "maxTorpedoErrorM": 2.602025597984758e-06,
+  "ships": 60,
+  "tick": 3750,
+  "water": {
+    "maximumHeight": 15.275313635544155,
+    "pending": false,
+    "underwater": false
+  }
+}

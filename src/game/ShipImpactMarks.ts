@@ -90,6 +90,7 @@ export class ShipImpactMarks {
   get count() { return this.marks.length; }
   get pendingCount() { return this.pending.length; }
   get drawCalls() { return this.batches.size; }
+  get renderMeshes(): Iterable<THREE.Mesh> { return this.batches.values(); }
 
   update(events: readonly CombatEvent[], shipId: string, budget?: ImpactMarkBudget): void {
     // Capture before spending the frame budget: old events may leave the shared

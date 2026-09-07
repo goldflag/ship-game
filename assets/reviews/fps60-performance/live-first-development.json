@@ -1,0 +1,65 @@
+{
+  "frames": 1238,
+  "elapsedMs": 30004.200000000004,
+  "fps": 41.260890142046776,
+  "intervalMs": {
+    "mean": 24.23602584814217,
+    "p50": 25,
+    "p95": 33.30000000000291,
+    "p99": 33.89999999999418,
+    "max": 66.90000000000146
+  },
+  "workMs": {
+    "mean": 22.419951534906765,
+    "p50": 21.80000001192093,
+    "p95": 28,
+    "p99": 30.400000035762787,
+    "max": 66.90000003576279
+  },
+  "over20Ms": 989,
+  "simulationSeconds": 30,
+  "startTick": 4201,
+  "endTick": 6001,
+  "ships": 60,
+  "maxAircraft": 48,
+  "maxShells": 198,
+  "events": {
+    "splash": 365,
+    "shot": 915,
+    "contact": 420,
+    "burst": 966,
+    "penetration": 371,
+    "ricochet": 22,
+    "module": 23,
+    "stopped": 44,
+    "aircraft-launch": 18,
+    "aircraft-fire": 52,
+    "aircraft-lost": 4,
+    "torpedo-launch": 5
+  },
+  "focusFrames": 0,
+  "hiddenFrames": 0,
+  "framebuffer": [
+    1920,
+    1080
+  ],
+  "camera": "battle",
+  "hud": true,
+  "audio": {
+    "state": "running",
+    "loaded": 13,
+    "total": 13,
+    "failed": [],
+    "voices": 20,
+    "played": 294,
+    "inPort": false,
+    "paused": false,
+    "settings": {
+      "muted": false,
+      "master": 0.65,
+      "effects": 0.8,
+      "interface": 0.65
+    }
+  },
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.7871.47 Safari/537.36"
+}

@@ -1,3 +1,4 @@
+import { mayReachHull, torpedoHullRadius } from './spatial';
 import type { ShipDefinition, TorpedoPart, Vec3 } from '../ships/blueprint';
 import type { FleetActor } from './battle';
 import { add, clamp, localToWorld, radians, rotate, scale, segmentBox, sub, worldToLocal, wrapAngle } from './geometry';
@@ -126,7 +127,7 @@ function torpedoHull(def: ShipDefinition): ShipDefinition {
 /** Complete swept segment; first physical hull wins even if an ally or sinking wreck. */
 export function firstTorpedoHit(torpedo: Torpedo, from: Vec3, to: Vec3, actors: readonly FleetActor[]) {
   const hits = actors.flatMap(actor => {
-    if (actor.motion.id === torpedo.ownerId) return [];
+    if (actor.motion.id === torpedo.ownerId || !mayReachHull(from, to, actor.motion, torpedoHullRadius(actor.definition))) return [];
     const a = worldToLocal(from, actor.motion), b = worldToLocal(to, actor.motion), h = actor.definition.hull;
     if (!segmentBox(a, b, { center: [0, h.depth / 2 - h.draft, 0], size: [h.beam, h.depth, h.length] })) return [];
     const hit = structuralHits(a, b, torpedoHull(actor.definition))[0];

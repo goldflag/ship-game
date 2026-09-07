@@ -1,9 +1,23 @@
 import type { Ammunition, ShipDefinition, Vec3 } from '../ships/blueprint';
-import { barrelIds, barrelOffset } from '../ships/blueprint';
-import { add, clamp, length, localToWorld, normalize, radians, rotate, segmentBox, sub, wrapAngle, worldToLocal, type Pose } from './geometry';
+import { barrelOffset } from '../ships/blueprint';
+import { add, clamp, length, localToWorld, normalize, radians, rotate, sub, wrapAngle, worldToLocal, type Pose } from './geometry';
 import { GRAVITY, solveDragArc, travelFactor } from './ballistics';
+import { segmentIntersectsBox } from './obstruction';
 export { GRAVITY } from './ballistics';
 export type MountDefinition = ShipDefinition['mounts'][number];
+// Compiled definitions are immutable during a battle, like the hull/armor caches.
+// Every barrel used to rebuild every other gunhouse box on every fixed tick.
+const gunhouseBoxes = new WeakMap<ShipDefinition, { id: string; center: Vec3; size: Vec3 }[]>();
+function obstructionGunhouses(definition: ShipDefinition) {
+  let boxes = gunhouseBoxes.get(definition);
+  if (!boxes) {
+    boxes = definition.mounts.map(m => ({ id: m.id,
+      center: add(m.position, [0, m.weapon.gunhouseSize[2] / 2, 0]),
+      size: [m.weapon.gunhouseSize[1], m.weapon.gunhouseSize[2], m.weapon.gunhouseSize[0]] as Vec3 }));
+    gunhouseBoxes.set(definition, boxes);
+  }
+  return boxes;
+}
 export interface MountState {
   id: string; train: number; elevation: number; reload: number; ammo: number; hp: number; recoil: number;
   /** Total rounds include the HE subset; rounds are consumed when fired. */
@@ -33,10 +47,20 @@ export function muzzleLocal(m: MountDefinition, state: Pick<MountState, 'train' 
 export const muzzleWorld = (m: MountDefinition, state: MountState, barrel: number, pose: Pose) => localToWorld(muzzleLocal(m, state, barrel), pose);
 /** The aiming reference is the battery mount's barrel center, including odd/single layouts. */
 export function muzzleCenterLocal(m: MountDefinition, state: Pick<MountState, 'train' | 'elevation'>): Vec3 {
-  const count = m.weapon.barrelCount ?? 2;
-  let center: Vec3 = [0, 0, 0];
-  for (let barrel = 0; barrel < count; barrel++) center = add(center, muzzleLocal(m, state, barrel).map(n => n / count) as Vec3);
-  return center;
+  const w = m.weapon, count = w.barrelCount ?? 2, bearing = radians(m.bearingDeg) + state.train;
+  const forward = w.trunnionForward + (w.muzzleForward - w.trunnionForward) * Math.cos(state.elevation);
+  const cosine = Math.cos(bearing), sine = Math.sin(bearing);
+  const vertical = w.pivotHeight + (w.muzzleForward - w.trunnionForward) * Math.sin(state.elevation);
+  let x = 0, y = 0, z = 0;
+  // Preserve the barrel-by-barrel division/addition order exactly; share only
+  // invariant trigonometry and avoid intermediate vectors.
+  for (let barrel = 0; barrel < count; barrel++) {
+    const lateral = barrelOffset(w, barrel);
+    x += (m.position[0] + (cosine * lateral + sine * forward)) / count;
+    y += (m.position[1] + vertical) / count;
+    z += (m.position[2] + (sine * lateral - cosine * forward)) / count;
+  }
+  return [x, y, z];
 }
 export const muzzleCenterWorld = (m: MountDefinition, state: MountState, pose: Pose) => localToWorld(muzzleCenterLocal(m, state), pose);
 export function shotDirection(m: MountDefinition, state: MountState, pose: Pose): Vec3 {
@@ -72,7 +96,9 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
   for (let i = 0; aim && i < (cache ? 1 : 3); i++) {
     const midpoint = localToWorld(muzzleCenterLocal(m, { train: desiredTrain, elevation: desiredElevation }), pose);
     const drag = m.weapon.ballistics?.dragPerSecond ?? 0;
-    const relativeAim = sub(aim, inheritedVelocity.map(n => n * travelFactor(flightTime, drag)) as Vec3);
+    const inheritedTravel = travelFactor(flightTime, drag);
+    const relativeAim: Vec3 = [aim[0] - inheritedVelocity[0] * inheritedTravel,
+      aim[1] - inheritedVelocity[1] * inheritedTravel, aim[2] - inheritedVelocity[2] * inheritedTravel];
     const solution = solveBallistic(midpoint, relativeAim, m.weapon.muzzleSpeed, drag);
     if (!solution) { reachable = false; desiredTrain = state.train; desiredElevation = state.elevation; break; }
     flightTime = solution.time;
@@ -87,13 +113,18 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
   state.train += clamp(train - state.train, -radians(w.traverseRateDeg) * dt, radians(w.traverseRateDeg) * dt);
   state.elevation += clamp(elevation - state.elevation, -radians(w.elevationRateDeg) * dt, radians(w.elevationRateDeg) * dt);
   // Readiness depends on the actual barrel path, even while tracking an unreachable reticle.
-  const obstructed = barrelIds(w).some((_, barrel) => {
+  const breech = add(m.position, [0, w.pivotHeight, 0]);
+  let obstructed = false;
+  for (let barrel = 0; barrel < (w.barrelCount ?? 2) && !obstructed; barrel++) {
     const muzzle = muzzleLocal(m, state, barrel);
-    const direction = normalize(sub(muzzle, add(m.position, [0, w.pivotHeight, 0])));
-    const beyond = add(muzzle, direction.map(n => n * definition.hull.length) as Vec3);
-    const breech = add(m.position, [0, w.pivotHeight, 0]);
-    return definition.obstructions.some(box => segmentBox(breech, beyond, box)) || definition.mounts.some(other => other.id !== m.id && segmentBox(breech, beyond, { center: add(other.position, [0, other.weapon.gunhouseSize[2] / 2, 0]), size: [other.weapon.gunhouseSize[1], other.weapon.gunhouseSize[2], other.weapon.gunhouseSize[0]] }));
-  });
+    const direction = normalize(sub(muzzle, breech));
+    const beyond: Vec3 = [muzzle[0] + direction[0] * definition.hull.length,
+      muzzle[1] + direction[1] * definition.hull.length, muzzle[2] + direction[2] * definition.hull.length];
+    for (const box of definition.obstructions) if (segmentIntersectsBox(breech, beyond, box)) { obstructed = true; break; }
+    if (!obstructed) for (const box of obstructionGunhouses(definition)) {
+      if (box.id !== m.id && segmentIntersectsBox(breech, beyond, box)) { obstructed = true; break; }
+    }
+  }
   if (obstructed) { state.status = 'blocked'; return false; }
   if (!reachable) { state.status = 'out-of-range'; return false; }
   if (Math.abs(desiredTrain) > limit + 1e-6 || desiredElevation < radians(w.elevationMinDeg) - 1e-6 || desiredElevation > radians(w.elevationMaxDeg) + 1e-6) { state.status = 'out-of-arc'; return false; }

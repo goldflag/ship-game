@@ -1,0 +1,24 @@
+[
+  {
+    "batched": false,
+    "ships": 20,
+    "meshes": 4764,
+    "nodes": 7833,
+    "triangles": 3647312,
+    "matrixMs": {
+      "median": 1.4221659999998337,
+      "p95": 1.8602919999998448
+    }
+  },
+  {
+    "batched": true,
+    "ships": 20,
+    "meshes": 2544,
+    "nodes": 5613,
+    "triangles": 3647312,
+    "matrixMs": {
+      "median": 0.8339160000000447,
+      "p95": 1.303458999999748
+    }
+  }
+]
