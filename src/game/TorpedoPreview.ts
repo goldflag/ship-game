@@ -1,3 +1,4 @@
+import { selectedWeapon } from '../ships/weaponGroups';
 import { BufferGeometry, Float32BufferAttribute, Group, LineBasicNodeMaterial, LineSegments, Mesh, MeshBasicNodeMaterial, DoubleSide, type Node } from 'three/webgpu';
 import { float, int, mix, positionLocal, vec3 } from 'three/tsl';
 import type { WaterSystem } from '../../vendor/threejs-water-pro/build/index.js';
@@ -7,13 +8,14 @@ import type { Vec3 } from '../ships/blueprint';
 import { localToWorld, radians, wrapAngle } from '../simulation/geometry';
 import { tubeLocalPosition, tubeSolution } from '../simulation/torpedoes';
 
-export function torpedoPreviewSectors(actor: FleetActor, aim: Vec3, pose: ShipState = actor.motion) {
+export function torpedoPreviewSectors(actor: FleetActor, aim: Vec3, pose: ShipState = actor.motion, weaponGroupId?: string) {
   const seen = new Set<string>();
-  return (actor.definition.torpedoTubes ?? []).flatMap(tube => {
+  const tubes = (actor.definition.torpedoTubes ?? []).filter(t => selectedWeapon('torpedo', t.weapon, 'torpedo', weaponGroupId));
+  return tubes.flatMap(tube => {
     const key = tube.launcherId ?? String(tube.bearingDeg);
     if (seen.has(key)) return [];
     seen.add(key);
-    const members = actor.definition.torpedoTubes!.filter(t => (t.launcherId ?? String(t.bearingDeg)) === key);
+    const members = tubes.filter(t => (t.launcherId ?? String(t.bearingDeg)) === key);
     const candidates = members.map(t => {
       const state = { ...actor.torpedoTubes!.find(s => s.id === t.id)! };
       const solution = tubeSolution(actor, t, state, aim, 0);
@@ -83,10 +85,10 @@ export class TorpedoPreview {
     const height = displacement.y.add(float(.35));
     for (const material of [this.sectorMaterial, this.courseMaterial, this.lineMaterial, this.armingMaterial]) material.positionNode = vec3(positionLocal.x, height, positionLocal.z);
   }
-  update(actor: FleetActor, pose: ShipState, aim: Vec3, visible: boolean): void {
+  update(actor: FleetActor, pose: ShipState, aim: Vec3, visible: boolean, weaponGroupId?: string): void {
     this.root.visible = visible;
     if (!visible) return;
-    const sectors = torpedoPreviewSectors(actor, aim, pose);
+    const sectors = torpedoPreviewSectors(actor, aim, pose, weaponGroupId);
     while (this.entries.length < sectors.length) {
       const sector = new Mesh(sectorGeometry(), this.sectorMaterial), course = new Mesh(sectorGeometry(), this.courseMaterial);
       const lineGeometry = () => new BufferGeometry().setAttribute('position', new Float32BufferAttribute((ANGLES + RINGS * 3) * 6, 3));

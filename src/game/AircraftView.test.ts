@@ -11,9 +11,9 @@ import { aircraftContactAppearance } from './AircraftContacts';
 test('follow-camera zoom keeps a readable contact before thin aircraft fade into the sea', () => {
   // A 12 m aircraft at 600 m spans ~22 pixels at 1080p, but its edge-on
   // wings/fuselage cover very few of those pixels. Supplement it before 14 px.
-  expect(aircraftContactAppearance(22, 600).opacity).toBeGreaterThan(.5);
-  expect(aircraftContactAppearance(70, 180).opacity).toBe(0);
-  expect(aircraftContactAppearance(3, 21000).opacity).toBe(0);
+  expect(aircraftContactAppearance(22).opacity).toBeGreaterThan(.5);
+  expect(aircraftContactAppearance(70).opacity).toBe(0);
+  expect(aircraftContactAppearance(3).opacity).toBeGreaterThan(.5);
 });
 
 test('hangar starts hidden; explicitly spotted aircraft follow the carrier pose and respect port visibility', async () => {
@@ -61,15 +61,16 @@ test('distant flying aircraft retain a silhouette across LODs, while deck, lost 
     plane.position = plane.previousPosition = [0, 300, 0];
     const camera = new PerspectiveCamera(52, 1, .5, 60000);
     const contacts = () => view.root.getObjectByName('Distant aircraft silhouettes') as InstancedMesh | undefined;
-    for (const distance of [100, 121, 401, 1500, 3000, 6000]) {
+    for (const distance of [100, 121, 401, 1500, 3000, 6000, 21000, 35000]) {
       camera.position.set(0, 300, distance); camera.lookAt(0, 300, 0); camera.updateMatrixWorld(true);
       view.update(sim, camera, true);
-      expect(view.diagnostics().instances + view.diagnostics().silhouettes).toBe(1);
+      expect(view.diagnostics().instances).toBe(1);
       expect(view.diagnostics().contacts).toBe(distance >= 401 ? 1 : 0);
-      if (distance >= 1500) expect(view.diagnostics().instances).toBe(0);
+      if (distance >= 1500) expect(view.root.children.filter(c => c instanceof InstancedMesh && c.name.endsWith('/2')).reduce((n, c) => n + (c as InstancedMesh).count, 0)).toBe(1);
       if (distance >= 1500) expect(contacts()?.count).toBe(1);
       else if (distance === 100) expect(contacts()?.visible).toBe(false);
     }
+    camera.position.set(0, 300, 6000); camera.updateMatrixWorld(true);
     camera.zoom = 24; camera.updateProjectionMatrix(); view.update(sim, camera, true);
     expect(contacts()?.visible).toBe(false); // Binoculars resolve the actual model again.
     expect(view.diagnostics().instances).toBe(1);
@@ -107,10 +108,10 @@ test('large carrier fleets retain every visible aircraft without oversized GPU u
     const distant = new PerspectiveCamera(52, 1, .5, 60000);
     distant.position.set(0, 300, 6000); distant.lookAt(0, 0, 0); distant.updateMatrixWorld(true);
     view.update(sim, distant, true);
-    expect(view.diagnostics().instances).toBe(0);
-    expect(view.diagnostics().silhouettes).toBe(population);
+    expect(view.diagnostics().instances).toBe(population);
+    expect(view.root.children.filter(c => c instanceof InstancedMesh && c.name.endsWith('/2')).reduce((n, c) => n + (c as InstancedMesh).count, 0)).toBe(population);
     expect(view.diagnostics().contacts).toBe(population);
-    expect(modelBatches.every(batch => !batch.visible)).toBe(true);
+    expect(modelBatches.every(batch => !batch.visible)).toBe(true); // Near LOD batches give way to LOD2.
   } finally { await view.dispose(); loader.mockRestore(); }
 });
 
