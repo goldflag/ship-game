@@ -16,6 +16,7 @@ const PORT_ELEVATION = .2;
 const FOLLOW_DISTANCE = Math.hypot(45, 12, 12);
 const FOLLOW_AZIMUTH = Math.atan2(12, 45);
 const FOLLOW_ELEVATION = Math.atan2(12, Math.hypot(45, 12));
+const POINTER_LOCK_RETRY_MS = 1000;
 
 export class CameraRig {
   mode: CameraMode = 'Chase';
@@ -46,7 +47,7 @@ export class CameraRig {
   private followedShipId?: string;
   private abort = new AbortController();
   private mouseFire = false;
-  private requestingLock = false;
+  private lockRequest?: { startedAt: number };
   private intentionalUnlock = false;
   private shellView?: ShellView;
   private returnBinoculars = false;
@@ -99,15 +100,15 @@ export class CameraRig {
     canvas.addEventListener('pointercancel', release, options);
     canvas.addEventListener('lostpointercapture', release, options);
     document.addEventListener('pointerlockchange', () => {
+      this.lockRequest = undefined;
       if (this.pointerLocked) {
-        this.requestingLock = false;
         if (!this.enabled || this.inPort || this.inspecting || this.intentionalUnlock) this.releasePointer();
       } else {
         release();
         if (!this.intentionalUnlock && this.enabled && !this.inPort && !this.inspecting) this.actions.pause();
       }
     }, options);
-    document.addEventListener('pointerlockerror', () => { this.requestingLock = false; }, options);
+    document.addEventListener('pointerlockerror', () => { this.lockRequest = undefined; }, options);
     window.addEventListener('blur', release, options);
     canvas.addEventListener('wheel', e => {
       if (!this.enabled) return;
@@ -144,18 +145,24 @@ export class CameraRig {
   }
 
   capturePointer(): void {
-    if (!this.enabled || this.inPort || this.inspecting || this.pointerLocked || this.requestingLock || !this.canvas.requestPointerLock || !window.matchMedia('(pointer: fine)').matches) return;
+    if (!this.enabled || this.inPort || this.inspecting || this.pointerLocked || !this.canvas.requestPointerLock || !window.matchMedia('(pointer: fine)').matches) return;
+    // Suppress duplicate requests, but let a fresh gesture recover if the browser
+    // never reports completion. No timer automatically recaptures the cursor.
+    const now = performance.now();
+    if (this.lockRequest && now - this.lockRequest.startedAt < POINTER_LOCK_RETRY_MS) return;
+    const pending = this.lockRequest = { startedAt: now };
+    const finish = () => { if (this.lockRequest === pending) this.lockRequest = undefined; };
     this.intentionalUnlock = false;
-    this.requestingLock = true;
-    this.canvas.focus({ preventScroll: true });
     try {
+      this.canvas.focus({ preventScroll: true });
       // Older implementations return void; current browsers return a promise.
       const request = this.canvas.requestPointerLock() as Promise<void> | undefined;
-      request?.catch(() => { this.requestingLock = false; });
-    } catch { this.requestingLock = false; }
+      request?.then(finish, finish);
+    } catch { finish(); }
   }
   releasePointer(): void {
     this.intentionalUnlock = true;
+    this.lockRequest = undefined;
     this.mouseFire = false;
     if (this.pointerLocked) document.exitPointerLock();
   }

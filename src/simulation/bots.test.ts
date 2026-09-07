@@ -6,6 +6,23 @@ import { botAim, botHelm } from './bots';
 const stop = { throttle: 0, rudder: 0 };
 const intent = { aim: [0, .5, -5000] as [number, number, number], fire: false, battery: 'main' as const };
 
+test('submarine attack depth survives turns and the engagement boundary, then surfaces without usable torpedoes', () => {
+  const sim = new CombatSimulation(shipPreset('bismarck'), { friendlyBots: [], enemies: [shipPreset('type-viic')] });
+  const actor = sim.target;
+  actor.motion.x = 0; actor.motion.z = -7900;
+  actor.motion.heading = Math.PI / 2;
+  expect(botHelm(actor, sim.player, sim.actors).depthM).toBe(7);
+  actor.submarine!.targetDepthM = 7;
+  actor.motion.z = -8500;
+  actor.torpedoTubes!.forEach(t => { t.reload = 30; });
+  expect(botHelm(actor, sim.player, sim.actors).depthM).toBe(7);
+  actor.motion.z = -9100;
+  expect(botHelm(actor, sim.player, sim.actors).depthM).toBe(0);
+  actor.motion.z = -5000;
+  actor.torpedoTubes!.forEach(t => { t.ammo = 0; });
+  expect(botHelm(actor, sim.player, sim.actors).depthM).toBe(0);
+});
+
 test('bots give the player time to get underway before their opening shots', () => {
   for (const spawnDistance of [1000, 5000]) {
     const sim = new CombatSimulation(shipPreset('yamato'), {

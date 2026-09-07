@@ -82,7 +82,10 @@ export class CombatEffects {
     this.lights.forEach(({ light }) => this.root.add(light));
   }
 
-  setWind(speed: number): void { this.wind.set(speed * .28, 0, speed * .11); }
+  setWind(speed: number, direction: number): void {
+    // Match the ocean/funnel convention: radians from +X toward +Z.
+    this.wind.set(Math.cos(direction), 0, Math.sin(direction)).multiplyScalar(speed * .35);
+  }
   setSun(direction: THREE.Vector3): void { this.sun.value.copy(direction); }
 
   update(sim: CombatSimulation, dt: number, camera: THREE.Camera, hidePlayerSmoke = false): void {
@@ -109,7 +112,8 @@ export class CombatEffects {
         const flame = this.fire.emit(this.position); flame.size = 2 * intensity; flame.growth = 2; flame.life = .6;
         flame.velocity.set(0, 2, 0); flame.opacity = .6; flame.color.copy(WARM);
         const smoke = this.smoke.emit(this.position); smoke.size = 3; smoke.growth = 2; smoke.life = 5;
-        smoke.velocity.set(0, 3, 0); smoke.opacity = .35 * intensity; smoke.color.copy(SMOKE).multiplyScalar(.4);
+        smoke.velocity.set(0, 3, 0); smoke.wind = 1;
+        smoke.opacity = .35 * intensity; smoke.color.copy(SMOKE).multiplyScalar(.4);
       }
     }
     if (dt > 0) this.updateAircraftSmoke(sim);
