@@ -110,6 +110,11 @@ export class Game {
   chartSize = 2;
   gunneryOpen = false;
   airOperationsOpen = false;
+  private cameraFrameListeners = new Set<() => void>();
+  onCameraFrame(listener: () => void): () => void {
+    this.cameraFrameListeners.add(listener);
+    return () => { this.cameraFrameListeners.delete(listener); };
+  }
   selectedFlightId?: string;
   private water?: WaterSystem;
   private landscape?: THREE.Group;
@@ -490,9 +495,9 @@ export class Game {
       // Apply mouse aim before sampling the sight; follow the new rendered pose
       // after stepping, with camera damping applied only once per frame.
       this.rig.update(focus, focus.y, 0);
-      const aim = this.manualAim ? this.airOperationsOpen || this.inspecting || this.shellFollow.view || this.followedAircraftId ? this.currentAim : this.readSightAim() : this.simulation.aimAt(this.aimModule, this.battery);
+      const aim = this.manualAim ? this.airOperationsOpen || this.battlefieldCamera.transitioning || this.inspecting || this.shellFollow.view || this.followedAircraftId ? this.currentAim : this.readSightAim() : this.simulation.aimAt(this.aimModule, this.battery);
       this.currentAim = aim;
-      if (!this.inPort) this.simulation.advance(dt, this.input.sample(), { aim, fire: !this.airOperationsOpen && (this.input.firing || this.rig.firing), battery: this.battery, ammunition: this.ammunition[this.battery], controlPriority: this.controlPriority, controlFocus: this.controlFocus }, () => {
+      if (!this.inPort) this.simulation.advance(dt, this.input.sample(), { aim, fire: !this.airOperationsOpen && !this.battlefieldCamera.transitioning && (this.input.firing || this.rig.firing), battery: this.battery, ammunition: this.ammunition[this.battery], controlPriority: this.controlPriority, controlFocus: this.controlFocus }, () => {
         this.fleetViews.forEach(view => view.capturePreviousPose());
       });
       const alpha = this.inPort ? 1 : this.simulation.interpolationAlpha;
@@ -515,7 +520,9 @@ export class Game {
       this.rig.setShellView(planeView ?? this.shellFollow.view);
       if (this.airOperationsOpen) this.battlefieldCamera.update();
       else this.rig.update(focus, focus.y, realDt);
-      const showGunAim = !this.airOperationsOpen && !this.inPort && !this.inspecting && !this.shellFollow.view && !this.followedAircraftId && !this.simulation.player.damage.sunk;
+      this.battlefieldCamera.applyTransition(realDt);
+      this.cameraFrameListeners.forEach(listener => listener());
+      const showGunAim = !this.airOperationsOpen && !this.battlefieldCamera.transitioning && !this.inPort && !this.inspecting && !this.shellFollow.view && !this.followedAircraftId && !this.simulation.player.damage.sunk;
       this.gunAim.update(showGunAim ? gunAimPoints(this.simulation.player, this.definition, this.battery, aim) : [], this.camera, showGunAim);
       this.hitDirections.update(this.simulation, this.camera, !this.inPort);
       this.torpedoPreview.update(this.simulation.player, this.playerView!.motion, aim, showGunAim && this.battery === 'torpedo' && this.host?.dataset.shipLabels !== 'false');
@@ -528,7 +535,7 @@ export class Game {
         this.rig.binoculars && !this.shellFollow.view ? this.simulation.player.motion.id : undefined);
       this.audio?.update(this.simulation, this.input.order, this.battery,
         this.camera.position.toArray(), new THREE.Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0).toArray());
-      this.playerView!.root.visible = this.airOperationsOpen || !this.rig.binoculars;
+      this.playerView!.root.visible = this.airOperationsOpen || this.battlefieldCamera.transitioning || !this.rig.binoculars;
       this.harbor?.update(dt, this.camera);
       this.shipWake!.update(this.inPort ? [this.playerView!] : this.fleetViews, dt, this.simulation.events);
       this.sky!.update(dt);
@@ -641,6 +648,16 @@ export class Game {
   orderFlight(id: string, order: AirOrder): boolean { return !this.inPort && !this.paused && this.simulation.orderFlight(id, order); }
   commandSquadron(id: string, order: AirOrder): boolean { return !this.inPort && !this.paused && this.simulation.commandSquadron(id, order); }
   panAirMap(dx: number, dy: number, x?: number, y?: number): void { this.battlefieldCamera.pan(dx, dy, this.host.clientWidth, this.host.clientHeight, x, y); }
+  projectAirMap(x: number, z: number, altitude = 0): [number, number] {
+    const p = new THREE.Vector3(x, altitude, z).project(this.camera);
+    return [(p.x + 1) * this.host.clientWidth / 2, (1 - p.y) * this.host.clientHeight / 2];
+  }
+  airMapWater(x: number, y: number): [number, number] | undefined {
+    const ray = new THREE.Raycaster();
+    ray.setFromCamera(new THREE.Vector2(x / this.host.clientWidth * 2 - 1, 1 - y / this.host.clientHeight * 2), this.camera);
+    const p = ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), new THREE.Vector3());
+    return p ? [p.x, p.z] : undefined;
+  }
   zoomAirMap(delta: number, x = this.host.clientWidth / 2, y = this.host.clientHeight / 2): void {
     this.battlefieldCamera.zoom(delta, x, y, this.host.clientWidth, this.host.clientHeight);
   }
@@ -649,6 +666,7 @@ export class Game {
   setAirOperationsOpen(open: boolean): void {
     if (this.inPort || !this.simulation.player.airWing || this.paused) return;
     if (open === this.airOperationsOpen) return;
+    this.battlefieldCamera.beginTransition(typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
     this.airOperationsOpen = open;
     this.input.clear();
     if (open) {
@@ -664,6 +682,7 @@ export class Game {
       this.rig.update(this.playerView?.motion ?? this.simulation.ship, this.simulation.ship.y, 0, true);
       this.rig.setEnabled(true); this.rig.capturePointer();
     }
+    this.battlefieldCamera.applyTransition(0);
   }
   followAircraft(id: string): void {
     if (this.inPort || this.inspecting || !this.simulation.player.airWing?.planes.some(p => p.id === id && p.phase !== 'lost' && (airborne(p) || onFlightDeck(p)))) return;
@@ -728,6 +747,7 @@ export class Game {
     this.camera.near = inPort ? 3 : .5;
     this.camera.updateProjectionMatrix();
     this.rig.setHullLength(this.definition.hull.length);
+    this.battlefieldCamera.cancelTransition();
     this.battlefieldCamera.exit();
     this.rig.setInPort(inPort);
     if (!inPort) this.refreshLandscape();
@@ -766,7 +786,7 @@ export class Game {
     }
     this.renderer.domElement.setAttribute('aria-label', `${this.definition.name} ocean scene. ${inPort ? 'Drag to orbit; scroll to zoom.' : 'Click to capture mouse. Mouse to aim; left mouse to fire; Shift for binoculars; Control for cursor; Escape to pause.'}`);
   }
-  fire(): void { if (!this.paused && !this.inPort && !this.airOperationsOpen && this.playerView) this.simulation.requestFire(); }
+  fire(): void { if (!this.paused && !this.inPort && !this.airOperationsOpen && !this.battlefieldCamera.transitioning && this.playerView) this.simulation.requestFire(); }
   toggleShellFollow(): void {
     if (this.paused || this.inPort || this.inspecting || this.airOperationsOpen) return;
     if (this.shellFollow.enabled) { this.stopShellFollow(); return; }
