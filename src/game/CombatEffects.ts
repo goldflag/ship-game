@@ -32,14 +32,14 @@ export class CombatEffects {
   private readonly foam = new EffectParticlePool(96, this.maps.foam);
   private readonly pools = [this.foam, this.smoke, this.aircraftSmoke, this.spouts, this.spray, this.fire];
   private readonly projectiles = new THREE.InstancedMesh(new THREE.CapsuleGeometry(.5, 2, 2, 6),
-    new THREE.MeshBasicMaterial({ color: '#b9ad91' }), 256);
+    new THREE.MeshBasicMaterial({ color: '#8c877b' }), 256);
   // Water's depth-based postprocessing otherwise classifies these low-flying
   // lights as sea pixels and erases them. Reject the transparent quad margins.
   private readonly shellGlows = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1),
-    new THREE.MeshBasicMaterial({ map: this.maps.flash, color: new THREE.Color('#fff1cc').multiplyScalar(4),
+    new THREE.MeshBasicMaterial({ map: this.maps.flash, color: new THREE.Color('#f3dfba').multiplyScalar(1.8), opacity: .7,
       transparent: true, blending: THREE.AdditiveBlending, alphaTest: .02, depthWrite: true, side: THREE.DoubleSide }), 256);
   private readonly streaks = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1),
-    new THREE.MeshBasicMaterial({ map: this.maps.tracer, color: new THREE.Color('#ffc16b').multiplyScalar(3), transparent: true, opacity: .9,
+    new THREE.MeshBasicMaterial({ map: this.maps.tracer, color: new THREE.Color('#e8bd85').multiplyScalar(1.6), transparent: true, opacity: .55,
       blending: THREE.AdditiveBlending, alphaTest: .02, depthWrite: true, side: THREE.DoubleSide }), 256);
   private readonly torpedoBodies = new THREE.InstancedMesh(new THREE.CapsuleGeometry(.5, 1, 3, 8),
     new THREE.MeshBasicMaterial({ color: '#82948f' }), 128);
@@ -208,12 +208,12 @@ export class CombatEffects {
       this.dummy.quaternion.setFromUnitVectors(UP, this.direction);
       this.dummy.scale.setScalar(shell.caliberM);
       this.dummy.updateMatrix(); this.projectiles.setMatrixAt(i, this.dummy.matrix);
-      // Preserve physical shell size, with a luminous tip that remains legible at
-      // battle distances. Projection scale follows binocular zoom as well as range.
+      // Preserve physical shell size, with a restrained tip for tracking at range.
+      // Projection scale follows binocular zoom without enlarging the glow.
       this.normal.copy(this.position).applyMatrix4(camera.matrixWorldInverse);
       const depth = camera.projectionMatrix.elements[11] === -1 ? Math.max(.1, -this.normal.z) : 1;
       const viewHeight = 2 * depth / camera.projectionMatrix.elements[5];
-      const glowSize = shell.lodged ? 0 : Math.max(shell.caliberM * 3, Math.min(64, viewHeight * .005));
+      const glowSize = shell.lodged ? 0 : Math.max(shell.caliberM * 2, Math.min(32, viewHeight * .0025));
       this.dummy.quaternion.copy(this.cameraRotation);
       this.dummy.scale.set(glowSize, glowSize, 1);
       this.dummy.updateMatrix(); this.shellGlows.setMatrixAt(i, this.dummy.matrix);
@@ -221,8 +221,8 @@ export class CombatEffects {
       // A short exposure of the CPU velocity forms a warm, tapered ribbon.
       // Its tip ends at the shell and its tail cannot extend behind a fresh muzzle.
       const speed = Math.hypot(...shell.velocity);
-      const exposure = .16 * THREE.MathUtils.clamp((shell.caliberM / .38) ** .35, .4, 1.2);
-      const length = shell.lodged ? 0 : Math.min(150, speed * Math.min(exposure, shell.age));
+      const exposure = .075 * THREE.MathUtils.clamp((shell.caliberM / .38) ** .35, .4, 1.2);
+      const length = shell.lodged ? 0 : Math.min(72, speed * Math.min(exposure, shell.age));
       this.dummy.position.addScaledVector(this.direction, -length / 2);
       this.normal.subVectors(this.cameraPosition, this.dummy.position).normalize();
       this.across.crossVectors(this.direction, this.normal);
@@ -236,7 +236,7 @@ export class CombatEffects {
       this.normal.crossVectors(this.across, this.direction).normalize();
       this.tracerBasis.makeBasis(this.across, this.direction, this.normal);
       this.dummy.quaternion.setFromRotationMatrix(this.tracerBasis);
-      this.dummy.scale.set(Math.max(shell.caliberM * 1.6, Math.min(24, viewHeight * .0026)), length, 1);
+      this.dummy.scale.set(Math.max(shell.caliberM * 1.15, Math.min(12, viewHeight * .0013)), length, 1);
       this.dummy.updateMatrix(); this.streaks.setMatrixAt(i, this.dummy.matrix);
     }
     for (const mesh of [this.projectiles, this.streaks, this.shellGlows]) {
