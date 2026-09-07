@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "inputHash": "64e7a4a749a53196bdca432dcb058d121cc49fbc578bdf84bb881183a63acad3",
+  "inputHash": "958a29cdb1f22d9168c3196d6a11c5b5b991d39f06703499bb1ab6fa0d9df578",
   "files": {
     "authored/bow-profile.png": "e99016734b8dc51044a3aac0b8da33ab4c2d2b1dae7f5bf7dae2ecb829dfb627",
     "authored/bow.png": "451ceeca2a328940f0ef5b829f06295fc6ed73efb6595dc75defec75085a5bde",
     "authored/bridge-profile.png": "64779e316d01bd8091535417adf6c9613c55b937d515675ca66795b2d3c1c583",
     "authored/bridge.png": "90bd76fabacfd9c6ed5e9c445ed5ebba9cdf6cbbc7d5968cf3949e2a32e2a245",
     "authored/forward-battery.png": "aa209c40a68539828039ee557bf67688b3516aa212a0ea8052d74845fd205692",
-    "authored/manifest.json": "85a3c6f7da081814afb72eb42ee3d6190872d22ab5ac328f811db95283532103",
+    "authored/manifest.json": "7403817df0f98941045f9a33dbe416c0bfe1fc0809a7e1e88446c0394483b81e",
     "authored/port.png": "e0cfaa1e110f8b77f0fa2962edc279311e319155140d3ade2f3691d2579e0e28",
     "authored/quarter-bow.png": "c1493d342c3361948fe9179e8f6fa841f156790a8812ea66a6572655c24c179e",
     "authored/quarter-stern.png": "835dcdac9678d80e8042cf54675c3855c6698f898dc70fc601227e8162597211",
@@ -28,9 +28,9 @@
     "before/stern-equipment.png": "74c4cdb7a13241a60814776709f0ca3c38f88121fcfd63f070997907d49cc03b",
     "before/stern.png": "99db3b40e5ce9bcfc352f67cb7787ee30fe2d82bb72a006f948fcc6b79b23029",
     "before/top.png": "fabd65402e404397df72655c2294c7ab4ac7cdacbd81f29bcfd0ed56b9e16fca",
-    "blueprint.json": "ebbc837051355008938c96ce2ee1c4bdd7dba83c00a98f8f96e899fb93ae3b6a",
-    "discrepancies.md": "965e8fcf7c03ae5509f4c8a4c00387e2131df91fe14e1906a41529544ccfef6b",
-    "export.json": "0eb591df699d05a3a2dea7b1ae6f7f3a3455ca3350da165fc23f332b1b562e3b",
+    "blueprint.json": "d71167bd6ae333b52c49f4102163e6a7d1621680b37840f6cc0d9b8558d9e2a9",
+    "discrepancies.md": "152fd30d3095a53040a15a0054f13bff8d38e53e989f81e48af395730da33b8e",
+    "export.json": "faf9263e3ec8ffedb07c36d0c1ffa7fedcfc4778a4a08fb7b962cc76ce0473c8",
     "fonts/Barlow-OFL.txt": "10b0e6bb43166a50fbe7cde2895bd7f703738a5da843acb5c97c95dc9ea26817",
     "fonts/BarlowCondensed-OFL.txt": "10b0e6bb43166a50fbe7cde2895bd7f703738a5da843acb5c97c95dc9ea26817",
     "fonts/barlow-0.ttf": "a35caa4687f434d66453c1fe423d7074cfa9fd7ab80c19b0780f3862887d2fc9",
@@ -47,7 +47,7 @@
     "historical/starboard.png": "c31c4a05420747862ea9b956064cae8c6f45d17efc7ba76e3a24f19f2d5a635e",
     "historical/top.png": "46427010d7afd254c830d3dad4dc05140ca031c55aedab40841189532a234e40",
     "historical/yamato-1945-alexpl.png": "304cb91a9f9223c3b5f53ed9b718366e4981d39dfa6a156e8ed980d4633eba98",
-    "index.html": "7b36041e87b5275ec8f6840bb22b3a3db3a8b447be72231803cf21c3ba0ac9c1",
+    "index.html": "e4c082acef3a2ea96e637e6fab8b67433e1a08a4b9902e8839e75bbbb5a477b0",
     "inputs/blender_components.py": "dae5b638dd2fad7e05edd857ef43f797a7aa3ba416d26480654e66a84bca7e8c",
     "inputs/blender_fidelity.py": "c2f80c8f1387db8c424c825966eddbca4ec8eba41baa75cafee9800aecb9b63b",
     "inputs/blender_open_guns.py": "dd292b8c330ed55db06104b2e3d5397ea6dcc4c506e97514460b8a93cf250c72",
@@ -58,7 +58,7 @@
     "inputs/guns.json": "f28cbc4191ab5ddb178b4489f55f2903462d9567b3ace82b258ae6f0ac79d05a",
     "inputs/review.py": "dfcdf71b37da65ce059f700dbb7c1a3130eafc06b2524172eabbb0b95f1fe3ec",
     "inputs/starter.py": "ca196ff8c9a7b4b7c25570155ca5f9238d3253e7db697734eff1fac42571fae2",
-    "measurements.json": "4c8f87f28461347fa441555760ae750d11bb8d46ec140ca386e248c8b22dfe32",
+    "measurements.json": "433c26d58b7335af6237385ef45b19519ca7ab925744446d610dd2d83d71f476",
     "modeling-spec.json": "3be52d8928cd76265a5c8d78a0a9ae6e1f8d89a3ace17e95c8645b695e22789f",
     "overlays/bow-profile.png": "68bf0a2e1f96c55bf2f21b5a6aeb2ad2fd386e52ce85445c20a2235c4fe48c31",
     "overlays/bow.png": "bb61a4286ce1875f39ac39399bce52d1c8d16f5aa190957b5394ee0d88ddcfd1",
@@ -95,7 +95,6 @@
     "sheets/stern-equipment.png": "187b789f7d5460e090c6da0921dd1d9038a0ff2d418cff392a64d5e9733a8843",
     "sheets/stern.png": "5b95d1fbe728ea84ac701eabb686867591819e661af00994c87a63dd0713f54d",
     "sheets/top.png": "c3187c25783b246a3a5774dde0badbabab52bb46518ac50f37690db03cf50a3b",
-    "sources.json": "c6094f428730d7fe08d19049fd38108160d95808ebeb814030016ad385179a3a",
-    "yamato-review.zip": "ce172d55d7ccd5ca822ef9c250b375a3c99e6d5ea68cfd51a23c21e5ea2ffa31"
+    "sources.json": "c6094f428730d7fe08d19049fd38108160d95808ebeb814030016ad385179a3a"
   }
 }

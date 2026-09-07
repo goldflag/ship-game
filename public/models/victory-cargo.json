@@ -9310,6 +9310,11 @@
       "bearingDeg": 180,
       "magazineId": "aft-magazine",
       "rangefinder": false,
+      "fire": {
+        "fuelSeconds": 90,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
       "weapon": {
         "kind": "gun",
         "barrelSpacing": 0.3,
@@ -9378,6 +9383,11 @@
       "bearingDeg": 0,
       "magazineId": "forward-magazine",
       "rangefinder": false,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
       "weapon": {
         "kind": "gun",
         "barrelCount": 1,
@@ -9446,6 +9456,11 @@
       "bearingDeg": 90,
       "magazineId": "forward-magazine",
       "rangefinder": false,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
       "weapon": {
         "kind": "gun",
         "barrelSpacing": 0.3,
@@ -9507,6 +9522,11 @@
       "bearingDeg": 90,
       "magazineId": "forward-magazine",
       "rangefinder": false,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
       "weapon": {
         "kind": "gun",
         "barrelSpacing": 0.3,
@@ -9568,6 +9588,11 @@
       "bearingDeg": 90,
       "magazineId": "forward-magazine",
       "rangefinder": false,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
       "weapon": {
         "kind": "gun",
         "barrelSpacing": 0.3,
@@ -9629,6 +9654,11 @@
       "bearingDeg": 90,
       "magazineId": "aft-magazine",
       "rangefinder": false,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
       "weapon": {
         "kind": "gun",
         "barrelSpacing": 0.3,
@@ -9690,6 +9720,11 @@
       "bearingDeg": -90,
       "magazineId": "forward-magazine",
       "rangefinder": false,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
       "weapon": {
         "kind": "gun",
         "barrelSpacing": 0.3,
@@ -9751,6 +9786,11 @@
       "bearingDeg": -90,
       "magazineId": "forward-magazine",
       "rangefinder": false,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
       "weapon": {
         "kind": "gun",
         "barrelSpacing": 0.3,
@@ -9812,6 +9852,11 @@
       "bearingDeg": -90,
       "magazineId": "forward-magazine",
       "rangefinder": false,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
       "weapon": {
         "kind": "gun",
         "barrelSpacing": 0.3,
@@ -9873,6 +9918,11 @@
       "bearingDeg": -90,
       "magazineId": "aft-magazine",
       "rangefinder": false,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
       "weapon": {
         "kind": "gun",
         "barrelSpacing": 0.3,
@@ -10053,6 +10103,60 @@
       ],
       "hp": 80,
       "immersionToleranceM": 0.65
+    },
+    {
+      "id": "support-generator-1",
+      "name": "Generator 1",
+      "kind": "generator",
+      "hp": 60,
+      "compartmentId": "boiler-room",
+      "center": [
+        -1.877731164,
+        0.5681999999999999,
+        -4.7178468
+      ],
+      "size": [
+        1.2,
+        0.22000000000000003,
+        1.2
+      ],
+      "immersionToleranceM": 0.066
+    },
+    {
+      "id": "support-generator-2",
+      "name": "Generator 2",
+      "kind": "generator",
+      "hp": 60,
+      "compartmentId": "steering-room",
+      "center": [
+        -1.111602119,
+        3.8682000000000003,
+        59.944406400000005
+      ],
+      "size": [
+        1.111602114,
+        0.22000000000000003,
+        0.7631811000000001
+      ],
+      "immersionToleranceM": 0.066
+    },
+    {
+      "id": "support-director",
+      "name": "Fire-control station",
+      "kind": "fire-control",
+      "hp": 65,
+      "compartmentId": "boiler-room",
+      "center": [
+        -4.69432791,
+        2.2182,
+        -6.5911095
+      ],
+      "size": [
+        1.8,
+        0.275,
+        1.56105225
+      ],
+      "immersionToleranceM": 0.05500000000000001
     }
   ],
   "compartments": [
@@ -10576,7 +10680,17 @@
         }
       ],
       "capacityM3": 202.93289728,
-      "pumpM3PerSecond": 0.006
+      "pumpM3PerSecond": 0.006,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          -62.0951895
+        ]
+      }
     },
     {
       "id": "forward-magazine-room",
@@ -11218,7 +11332,17 @@
         }
       ],
       "capacityM3": 440.7586549,
-      "pumpM3PerSecond": 0.025
+      "pumpM3PerSecond": 0.025,
+      "fire": {
+        "fuelSeconds": 150,
+        "ignitionHeat": 0.65,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          -54.4633785
+        ]
+      }
     },
     {
       "id": "hold-1",
@@ -11812,7 +11936,17 @@
         }
       ],
       "capacityM3": 1122.36922353,
-      "pumpM3PerSecond": 0.006
+      "pumpM3PerSecond": 0.006,
+      "fire": {
+        "fuelSeconds": 300,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          -44.403264
+        ]
+      }
     },
     {
       "id": "hold-2",
@@ -12310,7 +12444,17 @@
         }
       ],
       "capacityM3": 1908.76731982,
-      "pumpM3PerSecond": 0.006
+      "pumpM3PerSecond": 0.006,
+      "fire": {
+        "fuelSeconds": 300,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          -28.7927415
+        ]
+      }
     },
     {
       "id": "hold-3",
@@ -12808,7 +12952,17 @@
         }
       ],
       "capacityM3": 1439.37326259,
-      "pumpM3PerSecond": 0.006
+      "pumpM3PerSecond": 0.006,
+      "fire": {
+        "fuelSeconds": 300,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          -14.9167215
+        ]
+      }
     },
     {
       "id": "boiler-room",
@@ -13306,7 +13460,17 @@
         }
       ],
       "capacityM3": 2173.32505764,
-      "pumpM3PerSecond": 0.025
+      "pumpM3PerSecond": 0.025,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          -3.469005
+        ]
+      }
     },
     {
       "id": "engine-room",
@@ -13804,7 +13968,17 @@
         }
       ],
       "capacityM3": 1931.84449568,
-      "pumpM3PerSecond": 0.025
+      "pumpM3PerSecond": 0.025,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          8.325612
+        ]
+      }
     },
     {
       "id": "hold-4",
@@ -14302,7 +14476,17 @@
         }
       ],
       "capacityM3": 2776.6828914,
-      "pumpM3PerSecond": 0.006
+      "pumpM3PerSecond": 0.006,
+      "fire": {
+        "fuelSeconds": 300,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          24.283035
+        ]
+      }
     },
     {
       "id": "hold-5",
@@ -14848,7 +15032,17 @@
         }
       ],
       "capacityM3": 1572.84847831,
-      "pumpM3PerSecond": 0.006
+      "pumpM3PerSecond": 0.006,
+      "fire": {
+        "fuelSeconds": 300,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          41.9749605
+        ]
+      }
     },
     {
       "id": "aft-magazine-room",
@@ -15418,7 +15612,17 @@
         }
       ],
       "capacityM3": 719.67094853,
-      "pumpM3PerSecond": 0.025
+      "pumpM3PerSecond": 0.025,
+      "fire": {
+        "fuelSeconds": 150,
+        "ignitionHeat": 0.65,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          53.0757765
+        ]
+      }
     },
     {
       "id": "steering-room",
@@ -15724,7 +15928,17 @@
         }
       ],
       "capacityM3": 257.9356243,
-      "pumpM3PerSecond": 0.025
+      "pumpM3PerSecond": 0.025,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          60.7075875
+        ]
+      }
     },
     {
       "id": "afterpeak",
@@ -15910,7 +16124,17 @@
         }
       ],
       "capacityM3": 44.99607434,
-      "pumpM3PerSecond": 0.006
+      "pumpM3PerSecond": 0.006,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          8.700000000000001,
+          66.2579955
+        ]
+      }
     }
   ],
   "connections": [
@@ -17039,6 +17263,950 @@
     "shellThicknessMm": 14,
     "basis": "Uniform displacement calibration at the declared draft. Estimated initial GM 1.2 m; longitudinal CG aligned to upright buoyancy center. Not an historical stability curve."
   },
+  "localDamage": {
+    "version": 1,
+    "regions": [
+      {
+        "id": "underwater-port-1",
+        "name": "Underwater hull · port · bow",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          -5.7244,
+          -4.8434,
+          -60.7075875
+        ],
+        "size": [
+          11.4488,
+          9.6868,
+          17.347025
+        ]
+      },
+      {
+        "id": "underwater-port-2",
+        "name": "Underwater hull · port · forward",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          -5.7244,
+          -4.8434,
+          -43.362562499999996
+        ],
+        "size": [
+          11.4488,
+          9.6868,
+          17.347025
+        ]
+      },
+      {
+        "id": "underwater-port-3",
+        "name": "Underwater hull · port · forward amidships",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          -5.7244,
+          -4.8434,
+          -26.017537500000003
+        ],
+        "size": [
+          11.4488,
+          9.6868,
+          17.347025
+        ]
+      },
+      {
+        "id": "underwater-port-4",
+        "name": "Underwater hull · port · amidships forward",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          -5.7244,
+          -4.8434,
+          -8.672512499999996
+        ],
+        "size": [
+          11.4488,
+          9.6868,
+          17.347025
+        ]
+      },
+      {
+        "id": "underwater-port-5",
+        "name": "Underwater hull · port · amidships aft",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          -5.7244,
+          -4.8434,
+          8.672512499999996
+        ],
+        "size": [
+          11.4488,
+          9.6868,
+          17.347025
+        ]
+      },
+      {
+        "id": "underwater-port-6",
+        "name": "Underwater hull · port · aft amidships",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          -5.7244,
+          -4.8434,
+          26.017537500000003
+        ],
+        "size": [
+          11.4488,
+          9.6868,
+          17.347025
+        ]
+      },
+      {
+        "id": "underwater-port-7",
+        "name": "Underwater hull · port · aft",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          -5.7244,
+          -4.8434,
+          43.362562499999996
+        ],
+        "size": [
+          11.4488,
+          9.6868,
+          17.347025
+        ]
+      },
+      {
+        "id": "underwater-port-8",
+        "name": "Underwater hull · port · stern",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          -5.7244,
+          -4.8434,
+          60.70758749999999
+        ],
+        "size": [
+          11.4488,
+          9.6868,
+          17.347025
+        ]
+      },
+      {
+        "id": "underwater-starboard-1",
+        "name": "Underwater hull · starboard · bow",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          5.7244,
+          -4.8434,
+          -60.7075875
+        ],
+        "size": [
+          11.4488,
+          9.6868,
+          17.347025
+        ]
+      },
+      {
+        "id": "underwater-starboard-2",
+        "name": "Underwater hull · starboard · forward",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          5.7244,
+          -4.8434,
+          -43.362562499999996
+        ],
+        "size": [
+          11.4488,
+          9.6868,
+          17.347025
+        ]
+      },
+      {
+        "id": "underwater-starboard-3",
+        "name": "Underwater hull · starboard · forward amidships",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          5.7244,
+          -4.8434,
+          -26.017537500000003
+        ],
+        "size": [
+          11.4488,
+          9.6868,
+          17.347025
+        ]
+      },
+      {
+        "id": "underwater-starboard-4",
+        "name": "Underwater hull · starboard · amidships forward",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          5.7244,
+          -4.8434,
+          -8.672512499999996
+        ],
+        "size": [
+          11.4488,
+          9.6868,
+          17.347025
+        ]
+      },
+      {
+        "id": "underwater-starboard-5",
+        "name": "Underwater hull · starboard · amidships aft",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          5.7244,
+          -4.8434,
+          8.672512499999996
+        ],
+        "size": [
+          11.4488,
+          9.6868,
+          17.347025
+        ]
+      },
+      {
+        "id": "underwater-starboard-6",
+        "name": "Underwater hull · starboard · aft amidships",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          5.7244,
+          -4.8434,
+          26.017537500000003
+        ],
+        "size": [
+          11.4488,
+          9.6868,
+          17.347025
+        ]
+      },
+      {
+        "id": "underwater-starboard-7",
+        "name": "Underwater hull · starboard · aft",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          5.7244,
+          -4.8434,
+          43.362562499999996
+        ],
+        "size": [
+          11.4488,
+          9.6868,
+          17.347025
+        ]
+      },
+      {
+        "id": "underwater-starboard-8",
+        "name": "Underwater hull · starboard · stern",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          5.7244,
+          -4.8434,
+          60.70758749999999
+        ],
+        "size": [
+          11.4488,
+          9.6868,
+          17.347025
+        ]
+      },
+      {
+        "id": "upper-hull-port-1",
+        "name": "Upper hull · port · bow",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          -5.7244,
+          4.45,
+          -60.7075875
+        ],
+        "size": [
+          11.4488,
+          8.9,
+          17.347025
+        ]
+      },
+      {
+        "id": "upper-hull-port-2",
+        "name": "Upper hull · port · forward",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          -5.7244,
+          4.45,
+          -43.362562499999996
+        ],
+        "size": [
+          11.4488,
+          8.9,
+          17.347025
+        ]
+      },
+      {
+        "id": "upper-hull-port-3",
+        "name": "Upper hull · port · forward amidships",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          -5.7244,
+          4.45,
+          -26.017537500000003
+        ],
+        "size": [
+          11.4488,
+          8.9,
+          17.347025
+        ]
+      },
+      {
+        "id": "upper-hull-port-4",
+        "name": "Upper hull · port · amidships forward",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          -5.7244,
+          4.45,
+          -8.672512499999996
+        ],
+        "size": [
+          11.4488,
+          8.9,
+          17.347025
+        ]
+      },
+      {
+        "id": "upper-hull-port-5",
+        "name": "Upper hull · port · amidships aft",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          -5.7244,
+          4.45,
+          8.672512499999996
+        ],
+        "size": [
+          11.4488,
+          8.9,
+          17.347025
+        ]
+      },
+      {
+        "id": "upper-hull-port-6",
+        "name": "Upper hull · port · aft amidships",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          -5.7244,
+          4.45,
+          26.017537500000003
+        ],
+        "size": [
+          11.4488,
+          8.9,
+          17.347025
+        ]
+      },
+      {
+        "id": "upper-hull-port-7",
+        "name": "Upper hull · port · aft",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          -5.7244,
+          4.45,
+          43.362562499999996
+        ],
+        "size": [
+          11.4488,
+          8.9,
+          17.347025
+        ]
+      },
+      {
+        "id": "upper-hull-port-8",
+        "name": "Upper hull · port · stern",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          -5.7244,
+          4.45,
+          60.70758749999999
+        ],
+        "size": [
+          11.4488,
+          8.9,
+          17.347025
+        ]
+      },
+      {
+        "id": "upper-hull-starboard-1",
+        "name": "Upper hull · starboard · bow",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          5.7244,
+          4.45,
+          -60.7075875
+        ],
+        "size": [
+          11.4488,
+          8.9,
+          17.347025
+        ]
+      },
+      {
+        "id": "upper-hull-starboard-2",
+        "name": "Upper hull · starboard · forward",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          5.7244,
+          4.45,
+          -43.362562499999996
+        ],
+        "size": [
+          11.4488,
+          8.9,
+          17.347025
+        ]
+      },
+      {
+        "id": "upper-hull-starboard-3",
+        "name": "Upper hull · starboard · forward amidships",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          5.7244,
+          4.45,
+          -26.017537500000003
+        ],
+        "size": [
+          11.4488,
+          8.9,
+          17.347025
+        ]
+      },
+      {
+        "id": "upper-hull-starboard-4",
+        "name": "Upper hull · starboard · amidships forward",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          5.7244,
+          4.45,
+          -8.672512499999996
+        ],
+        "size": [
+          11.4488,
+          8.9,
+          17.347025
+        ]
+      },
+      {
+        "id": "upper-hull-starboard-5",
+        "name": "Upper hull · starboard · amidships aft",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          5.7244,
+          4.45,
+          8.672512499999996
+        ],
+        "size": [
+          11.4488,
+          8.9,
+          17.347025
+        ]
+      },
+      {
+        "id": "upper-hull-starboard-6",
+        "name": "Upper hull · starboard · aft amidships",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          5.7244,
+          4.45,
+          26.017537500000003
+        ],
+        "size": [
+          11.4488,
+          8.9,
+          17.347025
+        ]
+      },
+      {
+        "id": "upper-hull-starboard-7",
+        "name": "Upper hull · starboard · aft",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          5.7244,
+          4.45,
+          43.362562499999996
+        ],
+        "size": [
+          11.4488,
+          8.9,
+          17.347025
+        ]
+      },
+      {
+        "id": "upper-hull-starboard-8",
+        "name": "Upper hull · starboard · stern",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          5.7244,
+          4.45,
+          60.70758749999999
+        ],
+        "size": [
+          11.4488,
+          8.9,
+          17.347025
+        ]
+      },
+      {
+        "id": "upperworks-port-1",
+        "name": "Upperworks · port · bow",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          -5.7244,
+          14.649999999999999,
+          -60.7075875
+        ],
+        "size": [
+          11.4488,
+          11.499999999999998,
+          17.347025
+        ]
+      },
+      {
+        "id": "upperworks-port-2",
+        "name": "Upperworks · port · forward",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          -5.7244,
+          14.649999999999999,
+          -43.362562499999996
+        ],
+        "size": [
+          11.4488,
+          11.499999999999998,
+          17.347025
+        ]
+      },
+      {
+        "id": "upperworks-port-3",
+        "name": "Upperworks · port · forward amidships",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          -5.7244,
+          14.649999999999999,
+          -26.017537500000003
+        ],
+        "size": [
+          11.4488,
+          11.499999999999998,
+          17.347025
+        ]
+      },
+      {
+        "id": "upperworks-port-4",
+        "name": "Upperworks · port · amidships forward",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          -5.7244,
+          14.649999999999999,
+          -8.672512499999996
+        ],
+        "size": [
+          11.4488,
+          11.499999999999998,
+          17.347025
+        ]
+      },
+      {
+        "id": "upperworks-port-5",
+        "name": "Upperworks · port · amidships aft",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          -5.7244,
+          14.649999999999999,
+          8.672512499999996
+        ],
+        "size": [
+          11.4488,
+          11.499999999999998,
+          17.347025
+        ]
+      },
+      {
+        "id": "upperworks-port-6",
+        "name": "Upperworks · port · aft amidships",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          -5.7244,
+          14.649999999999999,
+          26.017537500000003
+        ],
+        "size": [
+          11.4488,
+          11.499999999999998,
+          17.347025
+        ]
+      },
+      {
+        "id": "upperworks-port-7",
+        "name": "Upperworks · port · aft",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          -5.7244,
+          14.649999999999999,
+          43.362562499999996
+        ],
+        "size": [
+          11.4488,
+          11.499999999999998,
+          17.347025
+        ]
+      },
+      {
+        "id": "upperworks-port-8",
+        "name": "Upperworks · port · stern",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          -5.7244,
+          14.649999999999999,
+          60.70758749999999
+        ],
+        "size": [
+          11.4488,
+          11.499999999999998,
+          17.347025
+        ]
+      },
+      {
+        "id": "upperworks-starboard-1",
+        "name": "Upperworks · starboard · bow",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          5.7244,
+          14.649999999999999,
+          -60.7075875
+        ],
+        "size": [
+          11.4488,
+          11.499999999999998,
+          17.347025
+        ]
+      },
+      {
+        "id": "upperworks-starboard-2",
+        "name": "Upperworks · starboard · forward",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          5.7244,
+          14.649999999999999,
+          -43.362562499999996
+        ],
+        "size": [
+          11.4488,
+          11.499999999999998,
+          17.347025
+        ]
+      },
+      {
+        "id": "upperworks-starboard-3",
+        "name": "Upperworks · starboard · forward amidships",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          5.7244,
+          14.649999999999999,
+          -26.017537500000003
+        ],
+        "size": [
+          11.4488,
+          11.499999999999998,
+          17.347025
+        ]
+      },
+      {
+        "id": "upperworks-starboard-4",
+        "name": "Upperworks · starboard · amidships forward",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          5.7244,
+          14.649999999999999,
+          -8.672512499999996
+        ],
+        "size": [
+          11.4488,
+          11.499999999999998,
+          17.347025
+        ]
+      },
+      {
+        "id": "upperworks-starboard-5",
+        "name": "Upperworks · starboard · amidships aft",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          5.7244,
+          14.649999999999999,
+          8.672512499999996
+        ],
+        "size": [
+          11.4488,
+          11.499999999999998,
+          17.347025
+        ]
+      },
+      {
+        "id": "upperworks-starboard-6",
+        "name": "Upperworks · starboard · aft amidships",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          5.7244,
+          14.649999999999999,
+          26.017537500000003
+        ],
+        "size": [
+          11.4488,
+          11.499999999999998,
+          17.347025
+        ]
+      },
+      {
+        "id": "upperworks-starboard-7",
+        "name": "Upperworks · starboard · aft",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          5.7244,
+          14.649999999999999,
+          43.362562499999996
+        ],
+        "size": [
+          11.4488,
+          11.499999999999998,
+          17.347025
+        ]
+      },
+      {
+        "id": "upperworks-starboard-8",
+        "name": "Upperworks · starboard · stern",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          5.7244,
+          14.649999999999999,
+          60.70758749999999
+        ],
+        "size": [
+          11.4488,
+          11.499999999999998,
+          17.347025
+        ]
+      },
+      {
+        "id": "mount-aft-5in",
+        "name": "Stern 5-inch",
+        "kind": "mount",
+        "mountId": "aft-5in",
+        "center": [
+          0,
+          7.70118901,
+          65
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.025
+      },
+      {
+        "id": "mount-fore-3in",
+        "name": "Bow 3-inch",
+        "kind": "mount",
+        "mountId": "fore-3in",
+        "center": [
+          0,
+          9.11916667,
+          -63.6909318
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-bow-aa-starboard",
+        "name": "Bow starboard Oerlikon",
+        "kind": "mount",
+        "mountId": "bow-aa-starboard",
+        "center": [
+          4.6,
+          8.39090909,
+          -56.3366412
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-bridge-aa-starboard-1",
+        "name": "Bridge starboard 1",
+        "kind": "mount",
+        "mountId": "bridge-aa-starboard-1",
+        "center": [
+          5.9,
+          13.35329603,
+          -5.35
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-bridge-aa-starboard-2",
+        "name": "Bridge starboard 2",
+        "kind": "mount",
+        "mountId": "bridge-aa-starboard-2",
+        "center": [
+          5.9,
+          10.77329603,
+          10.4
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-aft-aa-starboard",
+        "name": "Aft starboard Oerlikon",
+        "kind": "mount",
+        "mountId": "aft-aa-starboard",
+        "center": [
+          5.4,
+          7.06849819,
+          53.5
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-bow-aa-port",
+        "name": "Bow port Oerlikon",
+        "kind": "mount",
+        "mountId": "bow-aa-port",
+        "center": [
+          -4.6,
+          8.39090909,
+          -56.3366412
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-bridge-aa-port-1",
+        "name": "Bridge port 1",
+        "kind": "mount",
+        "mountId": "bridge-aa-port-1",
+        "center": [
+          -5.9,
+          13.35329603,
+          -5.35
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-bridge-aa-port-2",
+        "name": "Bridge port 2",
+        "kind": "mount",
+        "mountId": "bridge-aa-port-2",
+        "center": [
+          -5.9,
+          10.77329603,
+          10.4
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-aft-aa-port",
+        "name": "Aft port Oerlikon",
+        "kind": "mount",
+        "mountId": "aft-aa-port",
+        "center": [
+          -5.4,
+          7.06849819,
+          53.5
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      }
+    ],
+    "basis": "Original game calibration: eight longitudinal sections, independent sides and three height bands, with separate gunhouse budgets. Generator/director proxy positions and fire loads are estimated; no historical structural tolerance, electrical routing, ventilation or crew-performance claim."
+  },
   "compilerVersion": 1,
-  "contentHash": "2e375cfe80ab267399d082c11e1ea76ff00af25cfceffc12e2e540032baac6e4"
+  "contentHash": "8ca1159f172ad500242a3576df35bed56164b37f49ad2b0ad90026259c08597c"
 }

@@ -1,5 +1,5 @@
 {
-  "contentHash": "756da55c3cf4485799981e8feb71c4843ba9e7a48a3e5ba9d77e7c141208d30a",
+  "contentHash": "2d3d8cd5f09c37e279e55e778226c233f1a19eca034918dc3a4d3f56fc086371",
   "recipeHash": "256a1dc45e1c85022e44fb81b4bfe8f52c7059b64d36d447ac8cb2b66820355b",
   "imageHash": "00c0d7da7c4bfc7e34cb9cd7a2f409eb3491bed7e62cbc029ee2803198d818b0",
   "input": "validated runtime GLB",
@@ -12,7 +12,7 @@
   ],
   "rotationEuler": [
     1.1691492795944214,
-    -1.6533455493572546e-7,
+    -1.6533455493572546e-07,
     -1.9074711799621582
   ],
   "scale": 152.12525939941406,

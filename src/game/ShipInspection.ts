@@ -9,6 +9,7 @@ import type { Combatant } from '../simulation/damage';
 import { equipmentCondition } from '../simulation/machinery';
 import { radians } from '../simulation/geometry';
 import { EXTERIOR_PLATING_REPLACEMENT_M } from '../simulation/structure';
+import { regionCondition } from '../simulation/localDamage';
 
 /** Shared port and combat X-ray geometry. No simulation state is changed by inspection. */
 export class ShipInspection {
@@ -19,6 +20,7 @@ export class ShipInspection {
   hoveredId?: string;
   private hoverColor = new THREE.Color('#ffffff');
   private armorShading = uniform(0);
+  private regionOutlines: { id: string; mesh: THREE.LineSegments<THREE.EdgesGeometry, THREE.LineBasicMaterial> }[] = [];
   private volumes: { entry: InspectionEntry; color: string; group: THREE.Group; fill: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial | THREE.MeshBasicNodeMaterial>; outline: THREE.LineSegments<THREE.EdgesGeometry, THREE.LineBasicMaterial>; water?: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicNodeMaterial>; waterline?: { value: number } }[] = [];
   constructor(private definition: ShipDefinition) {
     this.entries = inspectionEntries(definition);
@@ -28,6 +30,12 @@ export class ShipInspection {
   private buildVolumes(): void {
     if (this.volumes.length) return;
     const definition = this.definition;
+    this.regionOutlines = (definition.localDamage?.regions ?? []).filter(r => !r.mountId).map(r => {
+      const box = new THREE.BoxGeometry(...r.size), edges = new THREE.EdgesGeometry(box); box.dispose();
+      const mesh = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: '#dfbd83', transparent: true, opacity: .4, depthTest: false, depthWrite: false }));
+      mesh.position.fromArray(r.center); mesh.visible = false; mesh.renderOrder = 99; this.root.add(mesh);
+      return { id: r.id, mesh };
+    });
     // A neutral upper-left inspection light follows the camera, independent of
     // harbor exposure. Face normals keep plate edges crisp, including back faces.
     const shade = normalFlat.dot(vec3(-.55, .8, .7).normalize()).max(0).mul(.68).add(.32);
@@ -59,6 +67,7 @@ export class ShipInspection {
     this.mode = mode;
     this.selectedId = this.entries.some(e => e.id === selectedId && this.inMode(e, mode)) ? selectedId : undefined;
     this.root.visible = mode !== 'exterior';
+    this.regionOutlines.forEach(r => r.mesh.visible = false);
     this.setHovered(undefined);
     const opaqueArmor = mode === 'armor';
     this.armorShading.value = opaqueArmor ? 1 : 0;
@@ -124,6 +133,12 @@ export class ShipInspection {
   }
   update(actor: Combatant): void {
     if (!this.root.visible) return;
+    for (const { id, mesh } of this.regionOutlines) {
+      const condition = regionCondition(actor, id);
+      mesh.visible = this.mode === 'all' && !this.selectedId && condition < .95;
+      mesh.material.color.set(condition < .05 ? '#aebabe' : '#dfbd83');
+      mesh.material.opacity = condition < .05 ? .55 : .3;
+    }
     this.volumes.forEach(volume => {
       const { entry, group, fill, water, waterline } = volume;
       group.visible = this.inMode(entry) && (!this.selectedId || entry.id === this.selectedId);

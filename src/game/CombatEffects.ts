@@ -103,7 +103,19 @@ export class CombatEffects {
     if (dt > 0 && sim.tick >= this.fireTick + 15) {
       this.fireTick = sim.tick;
       let count = 0;
-      for (const actor of sim.actors) for (let i = 0; i < actor.mounts.length && count < 32; i++) {
+      for (const actor of sim.actors) {
+        if (actor.damage.sunk) continue;
+        for (let i = 0; i < actor.damage.control.rooms.length && count < 32; i++) {
+          const intensity = actor.damage.control.rooms[i].intensity;
+          const room = actor.definition.compartments[i], vent = room.fire?.ventPosition;
+          if (intensity <= 0 || !vent) continue;
+          this.position.fromArray(localToWorld(vent, actor.motion));
+          if (this.position.y <= 0) continue;
+          count++;
+          const smoke = this.smoke.emit(this.position, actor.motion.id); smoke.size = 2 + intensity * 2; smoke.growth = 2; smoke.life = 6;
+          smoke.velocity.set(0, 2 + intensity, 0); smoke.wind = 1; smoke.opacity = .35 * intensity; smoke.color.copy(SMOKE).multiplyScalar(.4);
+        }
+        for (let i = 0; i < actor.mounts.length && count < 32; i++) {
         const intensity = actor.damage.control.mounts[i].intensity;
         if (intensity <= 0 || actor.damage.sunk) continue;
         count++;
@@ -111,9 +123,10 @@ export class CombatEffects {
         this.position.fromArray(localToWorld([m.position[0], m.position[1] + m.weapon.gunhouseSize[2], m.position[2]], actor.motion));
         const flame = this.fire.emit(this.position); flame.size = 2 * intensity; flame.growth = 2; flame.life = .6;
         flame.velocity.set(0, 2, 0); flame.opacity = .6; flame.color.copy(WARM);
-        const smoke = this.smoke.emit(this.position); smoke.size = 3; smoke.growth = 2; smoke.life = 5;
+        const smoke = this.smoke.emit(this.position, actor.motion.id); smoke.size = 3; smoke.growth = 2; smoke.life = 5;
         smoke.velocity.set(0, 3, 0); smoke.wind = 1;
         smoke.opacity = .35 * intensity; smoke.color.copy(SMOKE).multiplyScalar(.4);
+        }
       }
     }
     if (dt > 0) this.updateAircraftSmoke(sim);
