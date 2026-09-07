@@ -22,15 +22,15 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
         {c.batteries.filter(b => b.total > 0).map(({ battery }) => <button key={battery} aria-pressed={c.battery === battery} onClick={() => { if (game) game.battery = battery; }}>{battery === 'depth-charge' ? 'Depth charges' : battery === 'torpedo' ? 'Torpedo tubes' : `${Number(((game?.definition.mounts.find(m => m.battery === battery)?.weapon.caliberM ?? 0) * 100).toFixed(1))} cm ${battery}`}</button>)}
       </div>
       {c.battery !== 'torpedo' && c.battery !== 'depth-charge' && <><div className="battery-selector" role="group" aria-label="Shell selection">
-        {(['ap', 'he'] as Ammunition[]).map(type => <button key={type} aria-pressed={c.ammunition === type} disabled={type === 'he' && !c.heSupported} onClick={() => { if (game) game.ammunition[game.battery] = type; }}>
+        {(['ap', 'he'] as Ammunition[]).map(type => <button key={type} aria-pressed={c.ammunition === type} disabled={c.playerSunk || c.ammunitionStock[type] === 0 || (type === 'he' && !c.heSupported)} onClick={event => { game?.selectAmmunition(type); event.currentTarget.blur(); }}>
           {type.toUpperCase()} · {c.ammunitionStock[type]} rounds
         </button>)}
       </div>
-      <p className="gunnery-help">AP penetrates armor before its delayed burst. HE bursts on contact against light protection. Changing type takes a full reload.</p></>}
+      <p className="gunnery-help">AP penetrates armor before its delayed burst. HE bursts on contact against light protection. {bindingLabel(bindings, 'shellType')} switches type for this battery and takes a full reload. Guns without HE keep AP.</p></>}
       <div className="mount-readiness" aria-label="Weapon readiness">{c.mounts.map(m => <div key={m.id}>
         <span>{m.name.replace('Starboard Secondary ', 'Stbd ').replace('Port Secondary ', 'Port ')}</span>
         <span className={m.status === 'ready' ? 'gun-ready' : ''}>{m.loaded && `${m.loaded.toUpperCase()} · `}{m.status === 'ready' ? c.battery === 'depth-charge' ? 'Ready to release' : 'On aim · Loaded' : m.status === 'reloading' ? `Reload ${Math.ceil(m.reload)}s` : m.status === 'turning' && m.reload > 0 ? `Turning · Reload ${Math.ceil(m.reload)}s` : m.status.replaceAll('-', ' ')}</span>
-        <small title="Ammunition remaining">{m.ammo}</small>
+        <small title={`${m.loaded ? `${m.loaded.toUpperCase()} rounds` : 'Ammunition'} remaining`}>{m.ammo}</small>
       </div>)}</div>
       <details className="shell-history">
         <summary>Own damage control · {[...c.control.rooms, ...c.control.mounts].filter(f => f.intensity > 0).length} fires · {c.control.teams.filter(Boolean).length}/{c.control.teams.length} teams</summary>

@@ -18,7 +18,7 @@ describe('keyboard gameplay controls', () => {
     Object.defineProperty(globalThis, 'window', { configurable: true, value: events });
     Object.defineProperty(globalThis, 'document', { configurable: true, value: { querySelector: () => modal ? {} : null } });
     Object.defineProperty(globalThis, 'HTMLElement', { configurable: true, value: class {} });
-    actions = { pause: mock(), camera: mock(), recenter: mock(), hud: mock(), fullscreen: mock(), optics: mock(), battery: mock(), cursor: mock(), chartSize: mock(), gunnery: mock(), shellFollow: mock(), depth: mock(), emergencyBlow: mock(), airOperations: mock() };
+    actions = { pause: mock(), camera: mock(), recenter: mock(), hud: mock(), fullscreen: mock(), optics: mock(), battery: mock(), cursor: mock(), chartSize: mock(), gunnery: mock(), shellFollow: mock(), shellType: mock(), depth: mock(), emergencyBlow: mock(), airOperations: mock() };
     input = new InputController(actions, defaultKeybindings());
   });
   afterEach(() => {
@@ -89,6 +89,16 @@ describe('keyboard gameplay controls', () => {
     expect(actions.shellFollow).toHaveBeenCalledTimes(2);
     input.setEnabled(false); key('keydown', 'KeyV');
     expect(actions.shellFollow).toHaveBeenCalledTimes(2);
+  });
+
+  test('shell selection switches once per press, can be rebound, and respects pause and dialogs', () => {
+    key('keydown', 'KeyE'); key('keydown', 'KeyE', { repeat: true }); key('keyup', 'KeyE');
+    expect(actions.shellType).toHaveBeenCalledTimes(1);
+    const bindings = defaultKeybindings(); bindings.shellType = ['KeyV', null]; input.setBindings(bindings);
+    key('keydown', 'KeyE'); expect(actions.shellType).toHaveBeenCalledTimes(1);
+    key('keydown', 'KeyV'); expect(actions.shellType).toHaveBeenCalledTimes(2);
+    input.setEnabled(false); key('keydown', 'KeyV'); expect(actions.shellType).toHaveBeenCalledTimes(2);
+    input.setEnabled(true); modal = true; key('keydown', 'KeyV'); expect(actions.shellType).toHaveBeenCalledTimes(2);
   });
 
   test('Shift taps toggle optics, Shift-plus resizes chart, and Ctrl holds the cursor', () => {

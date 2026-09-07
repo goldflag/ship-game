@@ -19,6 +19,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { WaterSystem, getPresetParams } from '../../vendor/threejs-water-pro/build/index.js';
 import { SkySystem, PRESETS as SKY_PRESETS } from '../../vendor/threejs-sky-pro/build/index.js';
 import { CombatSimulation } from '../simulation/combat';
+import { availableAmmunition } from '../simulation/weapons';
 import { ShipView } from './ShipView';
 import { ArmorOverlay } from './ArmorOverlay';
 import { InspectionHover, type InspectionHoverInfo } from './InspectionHover';
@@ -170,6 +171,7 @@ export class Game {
       cursor: released => { if (released) this.rig.releasePointer(); else if (!this.airOperationsOpen && !document.querySelector('dialog[open]')) this.rig.capturePointer(); },
       chartSize: direction => this.resizeChart(direction), gunnery: () => this.setGunneryOpen(!this.gunneryOpen),
       shellFollow: () => this.toggleShellFollow(),
+      shellType: () => this.selectAmmunition(this.ammunition[this.battery] === 'ap' ? 'he' : 'ap'),
       airOperations: () => this.setAirOperationsOpen(!this.airOperationsOpen),
       depth: direction => this.setDepth((this.simulation.player.submarine?.targetDepthM ?? 0) + direction * 10),
       emergencyBlow: () => this.setDepth(0, true),
@@ -642,6 +644,14 @@ export class Game {
     this.gunneryOpen = false;
   }
   returnToShip(): void { this.stopShellFollow(); }
+  selectAmmunition(type: Ammunition): void {
+    if (this.inPort || this.paused || this.airOperationsOpen || this.simulation.player.damage.sunk ||
+      (this.battery !== 'main' && this.battery !== 'secondary')) return;
+    const available = this.definition.mounts.some((mount, i) => mount.battery === this.battery &&
+      (type === 'ap' || mount.weapon.he) && availableAmmunition(this.simulation.player.mounts[i], type) >= (mount.weapon.barrelCount ?? 2));
+    if (!available) return;
+    this.ammunition[this.battery] = type;
+  }
   recallAircraft(flightId?: string): void { if (!this.inPort && !this.paused) this.simulation.recallAircraft(flightId); }
   setDepth(depthM: number, emergency = false): void {
     if (this.inPort || this.paused || this.simulation.player.damage.sunk) return;
@@ -691,6 +701,7 @@ export class Game {
     this.input.setOrder(1); this.input.setRudder(0);
     if (inPort) {
       this.simulation.reset();
+      this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
       this.audio?.reset(this.simulation);
       this.targetView = this.fleetViews.find(view => view.actor === this.simulation.target);
       this.effects.reset();
@@ -819,7 +830,7 @@ export class Game {
   previewAdvance(seconds: number): void {
     if (!import.meta.env.DEV || this.inPort || this.paused || !Number.isFinite(seconds) || seconds <= 0 || seconds > 120) return;
     for (let i = 0; i < Math.floor(seconds / FIXED_DT); i++) {
-      this.simulation.step(this.input.sample(), { aim: this.currentAim, fire: false, battery: this.battery });
+      this.simulation.step(this.input.sample(), { aim: this.currentAim, fire: false, battery: this.battery, ammunition: this.ammunition[this.battery] });
     }
     this.fleetViews.forEach(view => view.snap());
   }
