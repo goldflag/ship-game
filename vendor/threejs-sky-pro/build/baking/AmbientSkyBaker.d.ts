@@ -2,14 +2,20 @@ import * as THREE from 'three';
 import { Atmosphere } from '../state/Atmosphere';
 import { Sun } from '../state/Sun';
 import { CloudLighting } from '../state/Clouds';
+import { TimeOfDay } from '../state/TimeOfDay';
 /**
  * CPU bake of the cloud-shader ambient fill terms (single-scatter sky integral, isotropic
  * phases). Call `update` once per frame; read the uniforms into a TSL graph.
  */
 export declare class AmbientSkyBaker {
-    /** Zenith diffuse-fill radiance, linear RGB. Pre-multiplied by sunIntensity. */
+    /** Optional lunar diffuse fill, shared with the visible sky and reflections. */
+    constructor(timeOfDay?: TimeOfDay | null);
+    private _timeOfDay;
+    private readonly _moonRadiance;
+    private readonly _lastMoonRadiance;
+    /** Zenith diffuse-fill radiance, linear RGB, including lunar ambient when supplied. */
     readonly zenithRadiance: import("three/webgpu").UniformNode<"vec3", THREE.Vector3>;
-    /** Toward-sun horizon diffuse-fill radiance, linear RGB. Pre-multiplied by sunIntensity. */
+    /** Horizon diffuse-fill radiance, linear RGB, including lunar ambient when supplied. */
     readonly horizonRadiance: import("three/webgpu").UniformNode<"vec3", THREE.Vector3>;
     /**
      * Ground-bounce upwelling fill on the cloud base, linear RGB. Pre-multiplied by

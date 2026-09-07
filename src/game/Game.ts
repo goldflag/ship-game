@@ -55,6 +55,8 @@ import { ShipWake } from './ShipWake';
 import { ShipFunnelSmoke } from './ShipFunnelSmoke';
 import type { GameCallbacks, GameSettings } from './types';
 
+const DAYLIGHT_COLOR = new THREE.Color(1, 1, 1);
+
 export const BUOYS = [
   { x: -160, z: -800, color: '#b84734' }, { x: 160, z: -800, color: '#42a789' },
   { x: 220, z: -1800, color: '#b84734' }, { x: 540, z: -1800, color: '#42a789' },
@@ -71,6 +73,8 @@ export class Game {
   private scene = new FrameScene();
   private underwaterPassVisibility?: UnderwaterPassVisibility;
   private ambientLight = new THREE.HemisphereLight('#dcebf2', '#65757e', .65);
+  private celestialColor = new THREE.Color();
+  private readonly sunriseColor = new THREE.Color('#ffd1a0');
   private camera = new THREE.PerspectiveCamera(52, 1, 0.5, 60000);
   private rig: CameraRig;
   private battlefieldCamera = new BattlefieldCamera(this.camera);
@@ -332,6 +336,8 @@ export class Game {
     this.sky.clouds.lighting.groundBounceAlbedo.value.setRGB(0.09, 0.105, 0.12);
     this.sky.clouds.wind.speed = 12;
     this.sky.timeOfDay.moonPhase.value = .5;
+    this.sky.timeOfDay.moonAmbient.value = .07;
+    this.sky.timeOfDay.moonColor.value.set('#b4c9f0');
     this.updatePortLighting();
     const skyProvider = this.sky.createSkyProvider({ envMap: { width: 384, cloudMarchSteps: 16, skipFrames: 8 } });
     const daylightFog = skyProvider.createFogSampler(), moon = this.sky.timeOfDay;
@@ -339,7 +345,7 @@ export class Game {
     // Pro's far-distance blend so the night backdrop is not fogged to black.
     skyProvider.createFogSampler = () => Fn(([direction]: [THREE.Node]) => daylightFog(direction).add(
       moon.moonColor.mul(moon.moonIntensity).mul(moon.moonAmbient).mul(moon.moonPhaseIllumination)
-        .mul(max(0, moon.moonDirection.y)).mul(moon.skyDarkness)));
+        .mul(max(0, moon.moonDirection.y))));
     this.water.setSky(skyProvider);
     const sunlight = this.water.lighting.sunLight;
     const shadowSize = this.settings.quality === 'medium' ? 1024 : this.settings.quality === 'ultra' ? 4096 : 2048;
@@ -351,17 +357,7 @@ export class Game {
     // Medium's 1024px resolution; finer maps need proportionally less offset.
     sunlight.shadow.normalBias = 0.75 * (sunlight.shadow.camera.right - sunlight.shadow.camera.left) / shadowSize;
     this.scene.add(sunlight.target);
-    this.water.lighting.addSunSyncListener(() => {
-      sunlight.target.position.copy(this.ship.position);
-      if (this.inPort) sunlight.target.position.x -= 160;
-      const lightDirection = this.sky!.timeOfDay.skyDarkness.value > .5 ? this.sky!.timeOfDay.moonDirection.value : this.sky!.sun.direction.value;
-      if (this.sky!.timeOfDay.skyDarkness.value > .5) {
-        sunlight.intensity = .35 * this.sky!.timeOfDay.moonIntensity.value * this.sky!.timeOfDay.moonPhaseIllumination.value;
-        sunlight.color.copy(this.sky!.timeOfDay.moonColor.value);
-      }
-      sunlight.position.copy(lightDirection).multiplyScalar(this.inPort ? 800 : 500).add(sunlight.target.position);
-      sunlight.target.updateMatrixWorld();
-    });
+    this.water.lighting.addSunSyncListener(() => this.updateSceneLighting());
 
     // Combat hulls use the shared simulation pose. GPU wave sampling remains visual
     // ocean detail and buoy motion; it cannot move ship hitboxes or muzzle positions.
@@ -620,7 +616,7 @@ export class Game {
       this.harbor?.update(dt, this.camera);
       this.shipWake!.update(this.inPort ? [this.playerView!] : this.fleetViews, dt, this.simulation.events, this.camera);
       this.sky!.update(dt);
-      this.updateEffectsLighting();
+      this.updateSceneLighting();
       // Black Flag's absorption loses >99% of green/blue light over 50 m,
       // hiding even our own submarine. Ease to a 20× longer visibility range
       // over the first 2 m of camera submersion; keep distant water hazy and
@@ -1108,7 +1104,7 @@ export class Game {
   private updateSeaState(): void {
     if (!this.water) return;
     const map = oceanMap(this.simulation.mapId ?? DEFAULT_MAP);
-    const { waves } = battleEnvironment(map, this.battleTimeOfDay, this.battleWeather, this.battleConditions);
+    const { waves, waterLightScale } = battleEnvironment(map, this.battleTimeOfDay, this.battleWeather, this.battleConditions);
     // Retain the smaller wave scale across all oceans; port stays sheltered.
     this.water.waves.amplitude.value = this.inPort ? .12 : waves.amplitude;
     this.water.waves.windSpeed.value = this.inPort ? 4 : waves.windSpeed;
@@ -1118,22 +1114,49 @@ export class Game {
     this.water.waves.dirty = true;
     const colors = this.inPort ? oceanMap(DEFAULT_MAP).water : map.water;
     this.water.color.update({ waterColor: colors.waterColor, transmissionColor: colors.transmissionColor, absorptionColor: colors.absorptionColor });
+    // The custom water pigment and foam bypass scene lighting. Derive their
+    // radiance from the original swatches so night seas do not glow blue/white.
+    const waterFill = this.inPort ? 1 : waterLightScale;
+    this.water.color.waterColor.multiplyScalar(waterFill);
+    this.water.color.transmissionColor.multiplyScalar(waterFill);
+    this.water.foam.surface.color.setScalar(waterFill);
+    this.water.foam.waves.color.setScalar(waterFill);
+    this.water.foam.shoreline.color.set('#edf9fd').multiplyScalar(waterFill);
     this.surfaceWaterAbsorption.copy(this.water.color.absorptionColor);
     this.water.foam.waves.opacity = this.inPort ? .45 : map.water.foam;
     this.effects.setWind(this.water.waves.windSpeed.value, this.water.waves.windDirection.value);
     this.funnelSmoke.setWind(this.water.waves.windSpeed.value, this.water.waves.windDirection.value);
   }
-  private updateEffectsLighting(): void {
+  private updateSceneLighting(): void {
     if (!this.sky) return;
-    // Water skips fixed simulation steps while paused. Read the live sky after
-    // its zero-delta update, so a conditions change still reaches frozen smoke.
-    const { sun, timeOfDay: moon } = this.sky, night = moon.skyDarkness.value > .5;
-    this.effects.setSun(night ? moon.moonDirection.value : sun.direction.value,
-      this.inPort ? 1 : Math.min(1, night ? .18 + this.ambientLight.intensity * .5
-        : this.ambientLight.intensity * .45 + sun.peakIntensity * .09));
-    this.effects.setIllumination(night ? moon.moonColor.value : sun.color.value,
-      night ? .35 * moon.moonIntensity.value * moon.moonPhaseIllumination.value : sun.intensity.value,
-      this.ambientLight.intensity);
+    const { sun, timeOfDay: moon } = this.sky;
+    const highSun = THREE.MathUtils.smoothstep(sun.elevationDeg, 0, 18);
+    const solar = sun.intensity.value * (.12 + .88 * highSun)
+      * THREE.MathUtils.smoothstep(sun.elevationDeg, 0, 2);
+    const lunar = .65 * moon.moonIntensity.value * moon.moonPhaseIllumination.value
+      * THREE.MathUtils.smoothstep(moon.moonDirection.value.y, 0, Math.sin(Math.PI / 30));
+    const night = lunar > solar, intensity = night ? lunar : solar;
+    const direction = night ? moon.moonDirection.value : sun.direction.value;
+    if (night) this.celestialColor.copy(moon.moonColor.value);
+    else this.celestialColor.copy(this.sunriseColor).lerp(DAYLIGHT_COLOR, highSun).multiply(sun.color.value);
+    // Water's simulation step overwrites its sun from the provider. Synchronize
+    // both its shader uniforms and scene light after that step AND while paused.
+    const lighting = this.water?.lighting;
+    if (lighting) {
+      lighting.sun.direction.value.copy(direction);
+      lighting.sun.intensity.value = intensity;
+      lighting.sun.color.copy(this.celestialColor);
+      const light = lighting.sunLight;
+      light.intensity = intensity;
+      light.color.copy(this.celestialColor);
+      light.target.position.copy(this.ship.position);
+      if (this.inPort) light.target.position.x -= 160;
+      light.position.copy(direction).multiplyScalar(this.inPort ? 800 : 500).add(light.target.position);
+      light.target.updateMatrixWorld();
+    }
+    this.effects.setSun(direction, this.inPort ? 1 : Math.min(1, night
+      ? .18 + this.ambientLight.intensity * .5 : this.ambientLight.intensity * .45 + intensity * .09));
+    this.effects.setIllumination(this.celestialColor, intensity, this.ambientLight.intensity);
   }
   private updatePortLighting(): void {
     if(!this.sky)return;

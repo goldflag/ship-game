@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { Color, HemisphereLight } from 'three/webgpu';
+import { Color, DirectionalLight, Group, HemisphereLight, Vector3 } from 'three/webgpu';
 import { Atmosphere, Clouds, Sun, SunDriver, TimeOfDay } from '../../vendor/threejs-sky-pro/build/index.js';
 import { OCEAN_MAPS, oceanMap } from '../maps/catalog';
 import { battleEnvironment, TIME_OF_DAY_PRESETS, WEATHER_PRESETS } from '../maps/conditions';
@@ -36,7 +36,11 @@ test('weather drives live waves across maps, overrides obsolete settings, and re
   const water = {
     waves: { amplitude: { value: 0 }, windSpeed: { value: 0 }, peakWavelength: { value: 0 },
       choppiness: { value: 0 }, windDirection: { value: 0 }, dirty: false },
-    color: { absorptionColor: new Color(), update() {} }, foam: { waves: { opacity: 0 } },
+    color: { absorptionColor: new Color(), waterColor: new Color(), transmissionColor: new Color(),
+      update(colors: { waterColor: string; transmissionColor: string; absorptionColor: string }) {
+        this.waterColor.set(colors.waterColor); this.transmissionColor.set(colors.transmissionColor); this.absorptionColor.set(colors.absorptionColor);
+      } },
+    foam: { waves: { opacity: 0, color: new Color() }, surface: { color: new Color() }, shoreline: { color: new Color() } },
   };
   const game = Object.assign(Object.create(Game.prototype), {
     simulation: { mapId: 'north-atlantic' }, inPort: false, water, surfaceWaterAbsorption: new Color(),
@@ -64,7 +68,19 @@ test('weather drives live waves across maps, overrides obsolete settings, and re
     game.battleWeather = 'fog'; game.updateSeaState();
     expect(water.waves.amplitude.value).toBe(battleEnvironment(map, 'map', 'clear').waves.amplitude);
   }
+  game.battleConditions = { timeHours: 0 }; game.updateSeaState();
+  const nightWater = water.color.waterColor.clone(), nightFoam = water.foam.waves.color.clone();
+  game.updateSeaState();
+  expect(water.color.waterColor).toEqual(nightWater);
+  expect(water.foam.waves.color).toEqual(nightFoam);
+  game.battleConditions = { timeHours: 12 }; game.updateSeaState();
+  const dayPalette = oceanMap(game.simulation.mapId).water;
+  expect(water.color.waterColor).toEqual(new Color(dayPalette.waterColor));
+  expect(water.color.absorptionColor).toEqual(new Color(dayPalette.absorptionColor));
+  expect(water.foam.waves.color).toEqual(new Color(1, 1, 1));
+  game.battleConditions = { timeHours: 0 }; game.updateSeaState();
   game.inPort = true; game.updateSeaState();
+  expect(water.color.waterColor).toEqual(new Color(oceanMap('north-atlantic').water.waterColor));
   expect(water.waves.amplitude.value).toBe(.12);
   expect(water.waves.windSpeed.value).toBe(4);
   expect(water.waves.peakWavelength.value).toBe(14);
@@ -77,6 +93,7 @@ test('night, fog and storm lighting reach the live uniforms; the sky stays fixed
   const driver = new SunDriver({ sun: sky.sun, timeOfDay: sky.timeOfDay });
   const game = Object.assign(Object.create(Game.prototype), {
     simulation: { mapId: 'pacific-islands' }, inPort: false, sky,
+    celestialColor: new Color(), sunriseColor: new Color('#ffd1a0'),
     ambientLight: new HemisphereLight(), effects: {
       setSun() {}, direct: 0, ambient: 0,
       setIllumination(_color: Color, intensity: number, ambient: number) { this.direct = intensity; this.ambient = ambient; },
@@ -87,7 +104,7 @@ test('night, fog and storm lighting reach the live uniforms; the sky stays fixed
     game.updatePortLighting();
     driver.update(0);
     // No water step occurs on a paused frame; the sky must still reach smoke.
-    game.updateEffectsLighting();
+    game.updateSceneLighting();
     const expected = battleEnvironment(oceanMap('pacific-islands'), time.id, weather.id);
     expect(sky.sun.elevationDeg).toBeCloseTo(expected.sky.elevation, 8);
     expect((sky.sun.azimuthDeg + 360) % 360).toBeCloseTo(expected.sky.azimuth, 8);
@@ -101,11 +118,12 @@ test('night, fog and storm lighting reach the live uniforms; the sky stays fixed
     if (time.id === 'night') {
       expect(sky.sun.intensity.value).toBe(0);
       expect(sky.timeOfDay.moonDirection.value.y).toBeGreaterThan(0);
-      expect(game.ambientLight.intensity).toBeLessThan(.25);
+      expect(game.ambientLight.intensity).toBeLessThan(.5);
       expect(game.water.fog.color).toBe('#182839');
-      expect(game.effects.direct).toBeLessThan(.5);
+      expect(game.effects.direct).toBeLessThan(1);
       expect(game.effects.direct).toBeGreaterThan(0);
-    } else expect(game.effects.direct).toBeCloseTo(sky.sun.intensity.value);
+    } else if (sky.sun.elevationDeg >= 18) expect(game.effects.direct).toBeCloseTo(sky.sun.intensity.value);
+    else expect(game.effects.direct).toBeLessThan(sky.sun.intensity.value);
   }
   game.inPort = true;
   game.updatePortLighting(); driver.update(0);
@@ -140,5 +158,46 @@ test('continuous battle conditions keep clouds independent of CPU and visual win
   const setup = { playerShipId: 'bismarck', friendlyBots: [], enemies: ['bismarck'], spawnDistance: 5000 };
   for (const key of ['timeHours', 'cloudCover', 'windSpeed']) {
     for (const value of [NaN, Infinity, -1, 101]) expect(() => validateBattleSetup({ ...setup, [key]: value }, ['bismarck'])).toThrow();
+  }
+});
+
+test('numeric night time uses night fog and dawn cloud fill is not dimmed twice', () => {
+  for (const map of OCEAN_MAPS) {
+    const night = battleEnvironment(map, 'map', 'map', { timeHours: 0 });
+    expect(night.fog.color).toBe(battleEnvironment(map, 'night').fog.color);
+    const dawn = battleEnvironment(map, 'map', 'map', { timeHours: 6 });
+    expect(dawn.fog.color).not.toBe(map.fog.color);
+    expect(dawn.cloudAmbient).toBe(battleEnvironment(map).cloudAmbient);
+  }
+});
+
+test('paused scene, water and smoke share moonlight and restore the current sun', () => {
+  const sky = { sun: new Sun(), timeOfDay: new TimeOfDay(), atmosphere: new Atmosphere(), clouds: new Clouds() };
+  const driver = new SunDriver({ sun: sky.sun, timeOfDay: sky.timeOfDay });
+  const waterSun = { direction: { value: new Vector3() }, intensity: { value: 5.8 }, color: new Color() };
+  const game = Object.assign(Object.create(Game.prototype), {
+    simulation: { mapId: 'north-atlantic' }, inPort: false, sky, ship: new Group(),
+    celestialColor: new Color(), sunriseColor: new Color('#ffd1a0'),
+    ambientLight: new HemisphereLight(), effects: {
+      setSun() {}, direct: 0,
+      setIllumination(_color: Color, intensity: number) { this.direct = intensity; },
+    }, water: { fog: {}, lighting: { sun: waterSun, sunLight: new DirectionalLight() } },
+  });
+  for (const hour of [0, 5.5, 6, 7, 12, 24]) {
+    game.battleConditions = { timeHours: hour };
+    game.updatePortLighting(); driver.update(0);
+    game.updateSceneLighting(); // Deliberately no water simulation step.
+    expect(waterSun.intensity.value).toBeCloseTo(game.effects.direct);
+    expect(game.water.lighting.sunLight.intensity).toBeCloseTo(game.effects.direct);
+    expect(waterSun.direction.value.y).toBeGreaterThanOrEqual(0);
+    if (hour === 0 || hour === 24) {
+      expect(waterSun.intensity.value).toBeGreaterThan(.3);
+      expect(waterSun.direction.value.distanceTo(sky.timeOfDay.moonDirection.value)).toBeLessThan(1e-8);
+    }
+    if (hour === 6) {
+      expect(game.effects.direct).toBeLessThan(1);
+      expect(waterSun.color.r).toBeGreaterThan(waterSun.color.b);
+    }
+    if (hour === 12) expect(waterSun.intensity.value).toBeCloseTo(sky.sun.intensity.value);
   }
 });

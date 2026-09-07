@@ -1,0 +1,42 @@
+{
+  "night-wide-before": {
+    "blackSkyFraction": 0.009208333333333334,
+    "meanSkyDisplayRGB": [
+      8.76,
+      9.75,
+      12.66
+    ]
+  },
+  "night-wide-after": {
+    "blackSkyFraction": 0.0,
+    "meanSkyDisplayRGB": [
+      34.05,
+      42.06,
+      57.1
+    ]
+  },
+  "dawn-before": {
+    "blackSkyFraction": 0.0,
+    "meanSkyDisplayRGB": [
+      29.23,
+      50.53,
+      80.3
+    ]
+  },
+  "dawn-after": {
+    "blackSkyFraction": 0.0,
+    "meanSkyDisplayRGB": [
+      29.94,
+      51.35,
+      81.14
+    ]
+  },
+  "night-overcast-after": {
+    "blackSkyFraction": 0.0,
+    "meanSkyDisplayRGB": [
+      28.35,
+      35.49,
+      49.34
+    ]
+  }
+}
