@@ -1,13 +1,22 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 // Sky Pro resolves cloud volumes dynamically beside the final JS bundle.
 // Vite cannot discover that dynamic URL, so preserve its data/ directory explicitly.
 const skyData = fileURLToPath(new URL('./vendor/threejs-sky-pro/build/data/', import.meta.url));
+const root = fileURLToPath(new URL('./', import.meta.url));
+// Review pages exist only where comparison output was retained locally and published by ship:check or ship:compare.
+const reviewRoot = `${root}public/ship-reference`;
+const shipReviewIds = existsSync(reviewRoot)
+  ? readdirSync(reviewRoot).filter(id => existsSync(`${root}assets/ships/${id}/modeling-spec.json`) && existsSync(`${reviewRoot}/${id}/index.html`)).sort()
+  : [];
 
 export default defineConfig({
+  // Serve from a sub-path with e.g. BASE_PATH=/naval/ bun run build; runtime asset URLs go through src/assetUrl.ts.
+  base: process.env.BASE_PATH ?? '/',
+  define: { __SHIP_REVIEW_IDS__: JSON.stringify(shipReviewIds) },
   plugins: [react(), {
     name: 'sky-pro-cloud-data',
     generateBundle() {

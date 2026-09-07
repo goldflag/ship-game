@@ -19,4 +19,13 @@ for ob in bpy.context.scene.objects:
 planpath=source/'references/capture-plan.json';plan=json.loads(planpath.read_text())
 out=source/'generated/comparison/authored'
 captures=render_views(plan,out,[o for o in bpy.context.scene.objects if o.type=='MESH'],{'id':ship,'contentHash':definition['contentHash'],'modelSha256':hashlib.sha256(model.read_bytes()).hexdigest()})
+def strip_png_metadata(path):
+ """Blender stamps Date/RenderTime text chunks into every PNG; drop text and time chunks so identical pixels give identical bytes."""
+ data=path.read_bytes();kept=bytearray(data[:8]);i=8
+ while i<len(data):
+  n=int.from_bytes(data[i:i+4],'big');kind=data[i+4:i+8]
+  if kind not in (b'tEXt',b'zTXt',b'iTXt',b'tIME'):kept+=data[i:i+12+n]
+  i+=12+n
+ path.write_bytes(bytes(kept))
+for c in captures:strip_png_metadata(out/c['image']);c['imageSha256']=hashlib.sha256((out/c['image']).read_bytes()).hexdigest()
 (out/'manifest.json').write_text(json.dumps({'schemaVersion':1,'contentHash':definition['contentHash'],'modelSha256':hashlib.sha256(model.read_bytes()).hexdigest(),'capturePlanSha256':hashlib.sha256(planpath.read_bytes()).hexdigest(),'captures':captures},indent=2)+'\n')

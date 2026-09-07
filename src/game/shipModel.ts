@@ -1,3 +1,4 @@
+import { assetUrl } from '../assetUrl';
 import type { ShipDefinition } from '../ships/blueprint';
 
 const identities: Record<string, { type: string; nation: string }> = {
@@ -23,7 +24,7 @@ export function shipModel(selectedShip: ShipDefinition) {
   // The port, custom battle and schematic all use the selected compiled asset.
   return {
     id: selectedShip.id,
-    url: selectedShip.modelUrl,
+    url: assetUrl(selectedShip.modelUrl),
     name: selectedShip.name,
     type: identity.type,
     nation: identity.nation,

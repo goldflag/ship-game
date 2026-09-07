@@ -1,3 +1,4 @@
+import { assetUrl } from '../assetUrl';
 // Fleet harbor. Progression, research, commander and refits are illustrative local state.
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { InspectionTooltip } from "./InspectionTooltip";
@@ -8,7 +9,7 @@ import type { Game } from "../game/Game";
 import { shipModel, shipIdentity } from "../game/shipModel";
 import { useShip } from "./ShipContext";
 import type { ShipDefinition } from "../ships/blueprint";
-import { shipPresets, shipReviewUrls } from "../ships/presets";
+import { shipPresets, shipReviewUrl } from "../ships/presets";
 import type { InspectionMode } from "../ships/inspection";
 import { ModelViewControls, PortInspection } from "./PortInspection";
 import { HULL_REFIT_SURVIVABILITY_BONUS, ShipScores, ShipStatistics } from "./ShipStatistics";
@@ -183,7 +184,7 @@ function ShipThumbnail({ shipId }: { shipId: string }) {
   ) : (
     <img
       className="garage-ship-thumbnail"
-      src={`/models/${shipId}-thumbnail.png`}
+      src={assetUrl(`models/${shipId}-thumbnail.png`)}
       width={600}
       height={180}
       alt=""
@@ -594,10 +595,10 @@ function PortLayout({ state }: { state: GarageState }) {
           <Icon name="schematic" size={16} />
           Create schematic
         </button>
-        {shipReviewUrls[selectedShip.id] && (
+        {shipReviewUrl(selectedShip.id) && (
           <a
             className="garage-schematic-button"
-            href={shipReviewUrls[selectedShip.id]}
+            href={shipReviewUrl(selectedShip.id)}
             target="_blank"
             rel="noreferrer"
           >

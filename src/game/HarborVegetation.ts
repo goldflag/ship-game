@@ -1,3 +1,4 @@
+import { assetUrl } from '../assetUrl';
 import * as THREE from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { attribute, cameraPosition, color, mix, positionGeometry, texture, vec3, vec4 } from 'three/tsl';
@@ -34,13 +35,13 @@ export async function createHarborVegetation(quality: string, lots: {x:number;z:
   const root = new THREE.Group(); root.name = 'Coastal woodland and natural rock';
   const loader = new THREE.TextureLoader(), modelLoader = new GLTFLoader();
   const loadShape = async (name: string): Promise<{height:number;cardHeight:number;cardWidth:number}> => {
-    const response = await fetch(`/harbor/${name}.json`);
+    const response = await fetch(assetUrl(`harbor/${name}.json`));
     if (!response.ok) throw new Error(`Unable to load ${name} billboard dimensions`);
     return response.json();
   };
   const [firMap, leafMap, tree, rock, fir, firShape, leafShape] = await Promise.all([
-    loader.loadAsync('/harbor/fir-impostor.png'), loader.loadAsync('/harbor/broadleaf-impostor.png'),
-    modelLoader.loadAsync('/harbor/broadleaf.glb'), modelLoader.loadAsync('/harbor/coastal-rock.glb'), modelLoader.loadAsync('/harbor/fir.glb'),
+    loader.loadAsync(assetUrl('harbor/fir-impostor.png')), loader.loadAsync(assetUrl('harbor/broadleaf-impostor.png')),
+    modelLoader.loadAsync(assetUrl('harbor/broadleaf.glb')), modelLoader.loadAsync(assetUrl('harbor/coastal-rock.glb')), modelLoader.loadAsync(assetUrl('harbor/fir.glb')),
     loadShape('fir'), loadShape('broadleaf'),
   ]);
   const rng = random(7341);

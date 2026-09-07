@@ -7,6 +7,10 @@ if(!['reference','compare','check','independence'].includes(action)||!/^[a-z][a-
 const source=join(root,'assets/ships',ship),stage=join(root,'.build/reference-work',ship),output=join(source,'generated/comparison'),reference=join(source,'references/gamemodels3d'),published=join(root,'public/ship-reference',ship);
 const blender=process.env.BLENDER_BIN??(existsSync('/Applications/Blender.app/Contents/MacOS/Blender')?'/Applications/Blender.app/Contents/MacOS/Blender':'blender');
 const sha=(b:Uint8Array|string)=>createHash('sha256').update(b).digest('hex');
+// Git LFS pointers stand in for their content (the pointer oid is the content sha256), so input hashes verify
+// identically whether or not LFS content was fetched, e.g. on a deployment host without the reference scans.
+const lfsPointer=/^version https:\/\/git-lfs\.github\.com\/spec\/v1\n(?:[^\n]*\n)*?oid sha256:([0-9a-f]{64})\n/;
+async function digest(path:string){const bytes=await readFile(path);if(bytes.length<512&&bytes.subarray(0,8).toString()==='version '){const m=lfsPointer.exec(bytes.toString('utf8'));if(m)return m[1];}return sha(bytes);}
 async function run(argv:string[],name:string){
  const child=Bun.spawn(argv,{cwd:root,env:{...process.env,REFERENCE_SHIP:ship},stdout:'pipe',stderr:'pipe'});
  const [out,err,code]=await Promise.all([new Response(child.stdout).text(),new Response(child.stderr).text(),child.exited]);
@@ -21,7 +25,7 @@ async function inputHash(){
  const spec=JSON.parse(await readFile(join(source,'modeling-spec.json'),'utf8'));
  if(spec.comparisonMode==='historical-before-after'){
   const paths=[join(root,'public/models',ship+'.glb'),join(root,'public/models',ship+'.json'),join(source,'generated/source.blend'),join(source,'modeling-spec.json'),join(source,'blueprint.json'),join(source,'build.py'),join(source,'reports/discrepancies.md'),...(await files(join(source,'references'))),...(await files(join(source,'reports/fidelity-01'))),...(await files(join(root,'assets/ships/fleet-fidelity'))),...(await files(join(root,'assets/reference-ui'))),...(await files(join(root,'scripts/reference'))),...(await files(join(root,'scripts/ships'))),join(root,'assets/parts/guns.json'),join(root,'src/simulation/protection.ts'),join(root,'src/simulation/geometry.ts'),join(root,'src/simulation/structure.ts')].filter(p=>!p.includes('__pycache__')&&!p.endsWith('.pyc')).sort();
-  const h=createHash('sha256');for(const path of paths){h.update(path.slice(root.length));h.update(await readFile(path));}return h.digest('hex');
+  const h=createHash('sha256');for(const path of paths){h.update(path.slice(root.length));h.update(await digest(path));}return h.digest('hex');
  }
  const ref=JSON.parse(await readFile(join(reference,'manifest.json'),'utf8'));
  const captureHash=sha(Buffer.concat(await Promise.all(['capture.py','render_views.py'].map(f=>readFile(join(root,'scripts/reference',f))))));
@@ -29,7 +33,7 @@ async function inputHash(){
  const paths=[join(root,'public/models',ship+'.glb'),join(root,'public/models',ship+'.json'),join(source,'generated/source.blend'),join(source,'modeling-spec.json'),join(source,'blueprint.json'),join(source,'references/sources.json'),join(source,'references/capture-plan.json'),join(reference,'manifest.json'),...ref.captures.map((c:any)=>{
    if(!/^[a-z0-9-]+\.png$/.test(c.image))throw new Error('Invalid reference image path');return join(reference,c.image);
  }),...(await files(join(root,'assets/reference-ui'))),...(await files(join(source,'references/historical'))),...(await files(join(root,'scripts/reference'))).filter(p=>!p.includes('__pycache__')&&!p.endsWith('.pyc')),join(root,'src/simulation/protection.ts'),join(root,'src/simulation/geometry.ts'),join(root,'src/simulation/structure.ts')].sort();
- const h=createHash('sha256');for(const path of paths){h.update(path.slice(root.length));h.update(await readFile(path));}return h.digest('hex');
+ const h=createHash('sha256');for(const path of paths){h.update(path.slice(root.length));h.update(await digest(path));}return h.digest('hex');
 }
 // public/ship-reference is not version controlled: it is a served copy of the retained comparison output.
 async function publish(){
@@ -38,14 +42,20 @@ async function publish(){
 }
 if(action==='check'){
  const record=JSON.parse(await readFile(join(output,'build.json'),'utf8'));
- if(record.inputHash!==await inputHash())throw new Error('Comparison artifacts are stale. Run ship:compare '+ship);
- let current=true;
- for(const [path,hash]of Object.entries(record.files)){
-  if(sha(await readFile(join(output,path)))!==hash)throw new Error('Stale or corrupt comparison artifact: '+path);
-  if(current&&(!existsSync(join(published,path))||sha(await readFile(join(published,path)))!==hash))current=false;
+ if(record.inputHash!==await inputHash())throw new Error('Comparison record is stale. Run ship:compare '+ship);
+ // Only build.json is version controlled; the rendered output is rebuildable and optional (absent on deployment hosts).
+ const entries=Object.entries(record.files) as [string,string][],present=entries.filter(([path])=>existsSync(join(output,path)));
+ if(present.length===0){console.log('Comparison record is current; rendered output not retained locally (run ship:compare '+ship+' to rebuild the review page)');}
+ else{
+  if(present.length!==entries.length)throw new Error('Incomplete comparison output. Run ship:compare '+ship);
+  let current=true;
+  for(const [path,hash]of entries){
+   if(sha(await readFile(join(output,path)))!==hash)throw new Error('Stale or corrupt comparison artifact: '+path);
+   if(current&&(!existsSync(join(published,path))||sha(await readFile(join(published,path)))!==hash))current=false;
+  }
+  if(!current)await publish();
+  console.log('Matched comparisons, probes and source pack are current'+(current?'':'; review page republished'));
  }
- if(!current)await publish();
- console.log('Matched comparisons, probes and source pack are current'+(current?'':'; review page republished'));
 }else{
  await mkdir(stage,{recursive:true});const lock=stage+'.lock';await mkdir(lock).catch(()=>{throw new Error('Reference pipeline already running: '+lock);});
  try{

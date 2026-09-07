@@ -15,6 +15,12 @@ __pycache__/
 # Served copy of assets/ships/<id>/generated/comparison, rebuilt by ship:check / ship:compare.
 public/ship-reference/
 
+# Rebuildable comparison output (ship:compare, aircraft compare). Only the build record is tracked;
+# ship:check verifies it and, when the output is present, every rendered file.
+assets/ships/*/generated/comparison/*
+!assets/ships/*/generated/comparison/build.json
+assets/aircraft/*/generated/comparison/
+
 # Rebuildable download bundles duplicate retained review files. Keep them local.
 /assets/ships/*/generated/comparison/*-review.zip
 /public/ship-reference/*/*-review.zip
