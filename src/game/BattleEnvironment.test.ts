@@ -77,12 +77,17 @@ test('night, fog and storm lighting reach the live uniforms; the sky stays fixed
   const driver = new SunDriver({ sun: sky.sun, timeOfDay: sky.timeOfDay });
   const game = Object.assign(Object.create(Game.prototype), {
     simulation: { mapId: 'pacific-islands' }, inPort: false, sky,
-    ambientLight: new HemisphereLight(), effects: { setSun() {} }, water: { fog: {} },
+    ambientLight: new HemisphereLight(), effects: {
+      setSun() {}, direct: 0, ambient: 0,
+      setIllumination(_color: Color, intensity: number, ambient: number) { this.direct = intensity; this.ambient = ambient; },
+    }, water: { fog: {} },
   });
   for (const time of TIME_OF_DAY_PRESETS) for (const weather of WEATHER_PRESETS) {
     game.battleTimeOfDay = time.id; game.battleWeather = weather.id;
     game.updatePortLighting();
     driver.update(0);
+    // No water step occurs on a paused frame; the sky must still reach smoke.
+    game.updateEffectsLighting();
     const expected = battleEnvironment(oceanMap('pacific-islands'), time.id, weather.id);
     expect(sky.sun.elevationDeg).toBeCloseTo(expected.sky.elevation, 8);
     expect((sky.sun.azimuthDeg + 360) % 360).toBeCloseTo(expected.sky.azimuth, 8);
@@ -92,12 +97,15 @@ test('night, fog and storm lighting reach the live uniforms; the sky stays fixed
     expect(sky.clouds.shape.coverage.value).toBe(expected.sky.coverage);
     expect(game.water.fog.fadeEnd).toBe(expected.fog.end);
     expect(game.ambientLight.intensity).toBe(expected.sky.ambient);
+    expect(game.effects.ambient).toBe(expected.sky.ambient);
     if (time.id === 'night') {
       expect(sky.sun.intensity.value).toBe(0);
       expect(sky.timeOfDay.moonDirection.value.y).toBeGreaterThan(0);
       expect(game.ambientLight.intensity).toBeLessThan(.25);
       expect(game.water.fog.color).toBe('#182839');
-    }
+      expect(game.effects.direct).toBeLessThan(.5);
+      expect(game.effects.direct).toBeGreaterThan(0);
+    } else expect(game.effects.direct).toBeCloseTo(sky.sun.intensity.value);
   }
   game.inPort = true;
   game.updatePortLighting(); driver.update(0);

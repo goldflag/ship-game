@@ -1,0 +1,94 @@
+{
+  "capture": {
+    "fps": 30,
+    "frames": 144,
+    "freshRenderFrame": true,
+    "mode": "fixed simulation timestamps",
+    "offscreenBuoyReadbacks": false,
+    "renderSeconds": 3.95,
+    "seconds": 4.8
+  },
+  "backend": "webgpu",
+  "contentHash": "25429e7ad048aada681f0dc250d25f0a07bd93d7cc93f34c1e94692f2150052b",
+  "camera": {
+    "aim": [
+      850,
+      0.5,
+      0
+    ],
+    "binoculars": false,
+    "fov": 52,
+    "magnification": 1,
+    "manualAim": true,
+    "matrixWorldInverse": [
+      -0.6887494619146931,
+      -0.20192992315091873,
+      0.6963106238227914,
+      0,
+      -2.7755575615628914e-17,
+      0.960429196986557,
+      0.2785242495291166,
+      0,
+      -0.7249994335944138,
+      0.19183342699337272,
+      -0.6614950926316517,
+      0,
+      -8.881243061531558,
+      2.3499594806688195,
+      -216.3437108217413,
+      1
+    ],
+    "mode": "Chase",
+    "pointerLocked": false,
+    "position": [
+      145,
+      58,
+      -150
+    ],
+    "projectionMatrix": [
+      1.153295910888354,
+      0,
+      0,
+      0,
+      0,
+      2.050303841579296,
+      0,
+      0,
+      0,
+      0,
+      8.333402778356486e-06,
+      -1,
+      0,
+      0,
+      0.5000041667013891,
+      0
+    ],
+    "shellFollow": "off"
+  },
+  "effects": {
+    "aircraftSmoke": 0,
+    "depthCharges": 0,
+    "flashes": 0,
+    "foam": 0,
+    "particleCapacity": 3040,
+    "shells": 0,
+    "smoke": 0,
+    "spray": 885,
+    "torpedoes": 0
+  },
+  "environment": {
+    "ambient": 0.65,
+    "cloudAmbient": 1.1,
+    "cloudCoverage": 0.4,
+    "cloudWind": 12,
+    "fogEnd": 48000,
+    "sunAzimuth": -125.00000000000003,
+    "sunElevation": 48,
+    "sunIntensity": 6.6
+  },
+  "battleSeed": 1851881057,
+  "shipId": "bismarck",
+  "tick": 2388,
+  "timeOfDay": "map",
+  "weather": "map"
+}

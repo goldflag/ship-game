@@ -1,0 +1,26 @@
+{
+  "duration": 4.801,
+  "error": null,
+  "frames": [
+    {
+      "time": 0.6
+    },
+    {
+      "time": 0.85
+    },
+    {
+      "time": 1.5
+    },
+    {
+      "time": 2.5
+    },
+    {
+      "time": 3.3
+    },
+    {
+      "time": 4.6
+    }
+  ],
+  "height": 1080,
+  "width": 1920
+}
