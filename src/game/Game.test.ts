@@ -193,7 +193,9 @@ test('battle preparation reports each loading stage in order for the loading scr
     expect(stages.map(([label]) => label)).toContain('Spotting the air wing');
     expect(stages.map(([label]) => label)).toContain('Mustering the fleets');
     expect(stages.at(-1)?.[0]).toBe('Forming the battle lines');
-    expect(stages.filter(([label]) => label.startsWith('Loading '))).toHaveLength(4);
+    // Parallel model preparation can finish after every download has arrived;
+    // each completion then says "aboard" instead of naming the next download.
+    expect(stages.filter(([label]) => label.startsWith('Loading ') || label.endsWith(' aboard'))).toHaveLength(5);
     // A disposed session never renders again, so a pending frame wait must not hang the loading screen.
     Object.assign(game, { disposed: true });
     await game.nextFrame();
