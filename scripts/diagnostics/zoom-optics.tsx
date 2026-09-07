@@ -30,10 +30,11 @@ sim.actors.forEach(actor => { if (actor.controller === 'bot') actor.controller =
 for (let tick = 0; tick < 600; tick++) sim.step({ throttle: 0, rudder: 0 }, { aim: [0, .5, -5000], fire: false, battery: 'main' });
 game.fleetViews.forEach(view => view.snap());
 window.reviewGame = game;
-window.reviewView = async ({ width = innerWidth, height = innerHeight, scope = true, hidden = false } = {}) => {
+window.reviewView = async ({ width = innerWidth, height = innerHeight, scope = true, hidden = false, hudScale = 1 } = {}) => {
   host.style.cssText = `position:absolute;width:${width}px;height:${height}px`;
   hud.style.cssText = `position:absolute;inset:0;width:${width}px;height:${height}px`;
   game.resize();
+  game.setHudScale(hudScale);
   game.rig.binoculars = scope; game.rig.scopeMagnification = 8; game.rig.opticsTransition = undefined;
   game.currentAim = [0, .5, -5000];
   game.rig.update(game.playerView.motion, 0, 0, true);
@@ -42,7 +43,7 @@ window.reviewView = async ({ width = innerWidth, height = innerHeight, scope = t
   for (let i = 0; i < 8; i++) await game.frame(performance.now());
   const data = { ship: { ...sim.ship }, order: 1, camera: game.rig.mode, binoculars: scope, magnification: game.rig.magnification,
     pointerLocked: true, fps: 60, backend: game.water.backend, trail: [], combat: sim.telemetry('main', game.currentAim) };
-  root.render(<ShipContext.Provider value={definition}><BinocularOverlay data={data}/><FleetHud data={data} game={game} visible={!hidden} bindings={defaultKeybindings()}/></ShipContext.Provider>);
-  return { width, height, scope, hidden, flightTimeSeconds: data.combat.flightTimeSeconds, error: window.reviewError };
+  root.render(<ShipContext.Provider value={definition}><main className="game-shell" style={{ '--hud-scale': hudScale } as React.CSSProperties}><BinocularOverlay data={data}/><div className="hud-viewport"><FleetHud data={data} game={game} visible={!hidden} bindings={defaultKeybindings()}/></div></main></ShipContext.Provider>);
+  return { width, height, scope, hidden, hudScale, flightTimeSeconds: data.combat.flightTimeSeconds, error: window.reviewError };
 };
 await window.reviewView(); window.reviewReady = true;

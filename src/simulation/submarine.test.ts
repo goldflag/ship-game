@@ -174,6 +174,22 @@ test('diving is deterministic across display rates and bots dive while attacking
   expect(a.target.motion.y).toBeLessThan(-5);
 });
 
+test('combat submarine bots dive on approach and stay submerged through tube reloads', () => {
+  for (const aiLevel of ['easy', 'normal', 'hard'] as const) {
+    const sim = new CombatSimulation(compileShip(battleship, catalog), {
+      friendlyBots: [], enemies: [{ definition, aiLevel }], spawnDistance: 6000, seed: 12,
+    });
+    run(sim, 30, { throttle: 0, rudder: 0 });
+    expect(sim.target.submarine!.targetDepthM).toBe(7);
+    expect(sim.target.motion.y).toBeLessThan(-5);
+    // An entire reload must not reverse an otherwise healthy attack dive.
+    sim.target.torpedoTubes!.forEach(tube => { tube.reload = 120; });
+    run(sim, 45, { throttle: 0, rudder: 0 });
+    expect(sim.target.submarine!.targetDepthM).toBe(7);
+    expect(sim.target.motion.y).toBeLessThan(-6);
+  }
+});
+
 test('blueprint rejects unsafe or disconnected diving equipment', () => {
   for (const change of [
     (b: any) => b.submarine.maxDepthM = NaN,
