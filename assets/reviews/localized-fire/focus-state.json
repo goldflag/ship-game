@@ -1,0 +1,74 @@
+{
+  "focus": "anton",
+  "priority": "fires",
+  "report": {
+    "effects": {
+      "aircraftSmoke": 0,
+      "depthCharges": 0,
+      "flakSmoke": 0,
+      "flashes": 12,
+      "foam": 0,
+      "particleCapacity": 4288,
+      "shells": 0,
+      "smoke": 90,
+      "spray": 0,
+      "torpedoes": 0
+    },
+    "hash": "fcc33f028b242f738e3beeddf0ab62e84567abdc99417e514ec6824dcb928e09",
+    "player": [
+      {
+        "crew": "Suppressing fire",
+        "fuelFraction": 0.9222222222222266,
+        "id": "anton",
+        "intensity": 1,
+        "location": "Forward \u00b7 Centreline",
+        "name": "Anton",
+        "setupSeconds": 0,
+        "status": "Being fought",
+        "threat": "Anton \u00b7 Anton propellant magazines"
+      },
+      {
+        "crew": "Suppressing fire",
+        "fuelFraction": 0.9708333333333101,
+        "id": "boiler-aft-port",
+        "intensity": 1,
+        "location": "Amidships \u00b7 Port",
+        "name": "Aft port boiler room \u00b7 two Wagner boilers",
+        "setupSeconds": 0,
+        "status": "Being fought",
+        "threat": "Aft port boiler room \u00b7 two Wagner boilers"
+      },
+      {
+        "crew": "Suppressing fire",
+        "fuelFraction": 0.9222222222222266,
+        "id": "dora",
+        "intensity": 1,
+        "location": "Aft \u00b7 Centreline",
+        "name": "Dora",
+        "setupSeconds": 0,
+        "status": "Being fought",
+        "threat": "Dora \u00b7 Dora propellant magazines"
+      }
+    ],
+    "pose": {
+      "distance": 7.831911209876559,
+      "driftX": 0,
+      "driftZ": 0,
+      "heading": 0,
+      "id": "player",
+      "pitch": 0,
+      "roll": 0,
+      "rudder": 0,
+      "speed": 2.2312177777777844,
+      "swaySpeed": 0,
+      "tick": 420,
+      "verticalSpeed": 0,
+      "waveHeave": 0,
+      "x": 0,
+      "y": 0,
+      "yawRate": 0,
+      "z": -7.831911209876559
+    },
+    "tick": 420
+  }
+}

@@ -174,6 +174,7 @@ test('spectator HUD uses the observed definition inside the player ship context'
   sim.player.damage.sunk = true;
   const friend = sim.actors[1];
   friend.damage.integrity = friend.damage.maxIntegrity / 2;
+  friend.damage.control.mounts[0].intensity = 1;
   const data: Telemetry = { ship: friend.motion, shipDefinition: watched, spectatedShipId: friend.motion.id,
     order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat: sim.telemetry('main', [0, 0, 0], undefined, friend) };
   const html = renderToStaticMarkup(<ShipContext.Provider value={player}><FleetHud data={data} game={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
@@ -183,4 +184,7 @@ test('spectator HUD uses the observed definition inside the player ship context'
   expect(html).toContain('Spectating teammate');
   expect(html).not.toContain('380 mm');
   expect(html).toContain('disabled="" aria-label="Engine full"');
+  expect(html).toContain('1 fire · Observed ship');
+  expect(html).toContain(watched.mounts[0].name);
+  expect(html).not.toContain('fire aboard');
 });

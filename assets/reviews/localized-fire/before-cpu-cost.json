@@ -1,0 +1,24 @@
+{
+  "fixture": "60 Bismarcks, every existing fire at intensity 1. Synthetic adapter saturation, not normal combat or a GPU timing.",
+  "bun": "1.3.3",
+  "actors": 60,
+  "burningLocations": 13740,
+  "samples": 600,
+  "milliseconds": {
+    "median": 0.07262499999998795,
+    "p90": 0.10466700000000628,
+    "p99": 0.1594169999999906
+  },
+  "effects": {
+    "shells": 0,
+    "torpedoes": 0,
+    "depthCharges": 0,
+    "smoke": 192,
+    "aircraftSmoke": 0,
+    "flakSmoke": 0,
+    "spray": 0,
+    "flashes": 0,
+    "foam": 0,
+    "particleCapacity": 3680
+  }
+}

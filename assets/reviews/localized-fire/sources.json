@@ -1,0 +1,22 @@
+{
+  "baselineCommit": "d0967a7de11702b39e758801e1ab8ff2e6a09ffe",
+  "integratedBase": "cfdb2010a78e777365ac5959a8f448374b10d007",
+  "definitionHash": "fcc33f028b242f738e3beeddf0ab62e84567abdc99417e514ec6824dcb928e09",
+  "sha256": {
+    "src/game/LocalizedFireEffects.ts": "3cc8256556888c38cbd963f0ee2def993cfcb3917c4cac950a4a376454bdfb65",
+    "src/game/CombatEffects.ts": "b5d7712f928555da4e9ea776e364a79ac3d3d8883446f57c3d05c4a23663f1f5",
+    "src/game/EffectParticles.ts": "bdba7dc6ed813ddc34c94a9771c18846ce62d18a660c9a055e81eebdd94614af",
+    "src/game/Game.ts": "844849f2f4626940c716853d0e874eb80005eef0e6a1abef1f4e540289fd2388",
+    "src/simulation/damageControl.ts": "230932b5e5bbc0ced7356fafaa7d926478e36024d1f7db9df3eeddadb03d7f98",
+    "src/simulation/damageReadout.ts": "2bab6818914ad92b537e0490ce7a68b2904a800aea74ad0fb9b4598e137132d6",
+    "src/ui/FleetHud.tsx": "1ef3a2c812b76a55bcf974867f2237a7949fa64c1a4a3c6f55a35d4603e27cb0",
+    "src/ui/FireControl.tsx": "41753b7f3001ac07fab5cc5d73b7fdea6f3afca689d918543af7130aa65d498b",
+    "src/ui/FireControl.css": "f688de3197ef5358ed2b1adef2555d797d98c28a09dd3f85357be62513fb2ea7",
+    "scripts/diagnostics/localized-fire.tsx": "4938aa250df61f9ee57281f83adacdd8afac924433c7c942074557e34f02b4ac"
+  },
+  "baselineSha256": {
+    "src/game/CombatEffects.ts": "f5448be620fe502c6b780b551f51255e4b7823db0ddb056ceff9e291c34a36e8",
+    "src/ui/FleetHud.tsx": "f2b0f3dc5396fc84dd5fb3e8abd869c8bcdb69d770202df9e3d6d9d064b42cd8"
+  },
+  "captureNotes": "Matched normal/optics pairs preceded integration; final local-fire renderer sources are unchanged. Spectator controls and explicit diagnostic pause were added after those captures. Fleet, heel, cooling and extinction canvases were reviewed after integration."
+}

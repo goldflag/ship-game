@@ -59,11 +59,11 @@ test('burning-turret smoke drifts with wind, responds to changes, and freezes on
   const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
   sim.player.damage.control.mounts[0].intensity = 1;
   sim.tick = 15;
-  effects.update(sim, .1, camera);
+  effects.update(sim, .4, camera);
   expect(effects.diagnostics().smoke).toBe(1);
-  const mesh = effects.root.getObjectByName('Propellant and impact volumes') as InstancedMesh;
-  const sphere = mesh.geometry.getAttribute('effectSphere');
-  const position = () => new Vector3(sphere.getX(0), sphere.getY(0), sphere.getZ(0));
+  const mesh = effects.root.getObjectByName('Local fire smoke') as InstancedMesh;
+  const matrix = new Matrix4();
+  const position = () => { mesh.getMatrixAt(0, matrix); return new Vector3().setFromMatrixPosition(matrix); };
   const beforeSimulation = JSON.stringify(sim);
   for (const [speed, direction] of [[10, 0], [10, Math.PI / 2], [20, Math.PI], [10, -Math.PI / 2], [0, 1]]) {
     const before = position();
@@ -72,8 +72,8 @@ test('burning-turret smoke drifts with wind, responds to changes, and freezes on
     expect(position().distanceTo(before)).toBe(0);
     effects.update(sim, .1, camera);
     const drift = position().sub(before);
-    expect(drift.x).toBeCloseTo(Math.cos(direction) * speed * .35 * .1, 4);
-    expect(drift.z).toBeCloseTo(Math.sin(direction) * speed * .35 * .1, 4);
+    expect(drift.x).toBeCloseTo(Math.cos(direction) * speed * .35 * .8 * .1, 4);
+    expect(drift.z).toBeCloseTo(Math.sin(direction) * speed * .35 * .8 * .1, 4);
     expect(drift.y).toBeGreaterThan(0);
   }
   expect(JSON.stringify(sim)).toBe(beforeSimulation);

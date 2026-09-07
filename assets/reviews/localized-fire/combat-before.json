@@ -1,0 +1,90 @@
+[
+  {
+    "ammunition": "ap",
+    "seed": 1941,
+    "seconds": 180,
+    "spawnDistance": 3000,
+    "definitions": [
+      {
+        "id": "bismarck",
+        "hash": "fcc33f028b242f738e3beeddf0ab62e84567abdc99417e514ec6824dcb928e09"
+      },
+      {
+        "id": "baltimore",
+        "hash": "134afefdde249817379a6f05653c56c67a09a3937d787450f9d336272821f81a"
+      }
+    ],
+    "eventCounts": {
+      "shot": 3463,
+      "penetration": 192,
+      "burst": 328,
+      "ricochet": 521,
+      "splash": 2309,
+      "stopped": 963,
+      "module": 100,
+      "contact": 109
+    },
+    "maxSimultaneous": 1,
+    "burns": [
+      {
+        "location": "USS Baltimore: Port upper reserve space 2 \u00b7 estimated",
+        "first": 3.6333333333333333,
+        "seconds": 40.183333333332335,
+        "peak": 1,
+        "fuelUsed": 38.77389654768834
+      },
+      {
+        "location": "Bismarck: Steering gear room",
+        "first": 167.36666666666667,
+        "seconds": 12.63333333333354,
+        "peak": 0.7005260528770574,
+        "fuelUsed": 7.8936358013469174
+      }
+    ],
+    "result": "active"
+  },
+  {
+    "ammunition": "he",
+    "seed": 1941,
+    "seconds": 180,
+    "spawnDistance": 3000,
+    "definitions": [
+      {
+        "id": "bismarck",
+        "hash": "fcc33f028b242f738e3beeddf0ab62e84567abdc99417e514ec6824dcb928e09"
+      },
+      {
+        "id": "baltimore",
+        "hash": "134afefdde249817379a6f05653c56c67a09a3937d787450f9d336272821f81a"
+      }
+    ],
+    "eventCounts": {
+      "shot": 3271,
+      "penetration": 112,
+      "burst": 402,
+      "ricochet": 579,
+      "splash": 2070,
+      "stopped": 998,
+      "module": 84,
+      "contact": 158
+    },
+    "maxSimultaneous": 2,
+    "burns": [
+      {
+        "location": "USS Baltimore: Port upper reserve space 2 \u00b7 estimated",
+        "first": 3.6333333333333333,
+        "seconds": 88.59999999999626,
+        "peak": 1,
+        "fuelUsed": 80
+      },
+      {
+        "location": "USS Baltimore: 40 mm Bofors 3",
+        "first": 43.11666666666667,
+        "seconds": 23.09999999999997,
+        "peak": 0.7716664337338093,
+        "fuelUsed": 14.941644619251289
+      }
+    ],
+    "result": "active"
+  }
+]

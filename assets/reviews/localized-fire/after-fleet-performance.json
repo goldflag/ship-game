@@ -1,0 +1,44 @@
+{
+  "actors": 60,
+  "canvas": [
+    1783,
+    1374
+  ],
+  "effects": {
+    "aircraftSmoke": 0,
+    "depthCharges": 0,
+    "flakSmoke": 0,
+    "flashes": 96,
+    "foam": 0,
+    "particleCapacity": 4288,
+    "shells": 0,
+    "smoke": 465,
+    "spray": 0,
+    "torpedoes": 0
+  },
+  "results": {
+    "clear": {
+      "drawCalls": 6536,
+      "gpuMs": {
+        "median": 100.53222400000001,
+        "p90": 101.05651200000001
+      },
+      "submitMs": {
+        "median": 6.599999964237213,
+        "p90": 7.799999952316284
+      }
+    },
+    "fires": {
+      "drawCalls": 6538,
+      "gpuMs": {
+        "median": 90.30860800000002,
+        "p90": 101.44972800000001
+      },
+      "submitMs": {
+        "median": 6.5,
+        "p90": 11.5
+      }
+    }
+  },
+  "timestampQueries": true
+}

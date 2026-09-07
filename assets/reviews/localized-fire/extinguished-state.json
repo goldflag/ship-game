@@ -1,0 +1,36 @@
+{
+  "tick": 2220,
+  "effects": {
+    "shells": 0,
+    "torpedoes": 0,
+    "depthCharges": 0,
+    "smoke": 0,
+    "aircraftSmoke": 0,
+    "flakSmoke": 0,
+    "spray": 0,
+    "flashes": 0,
+    "foam": 0,
+    "particleCapacity": 4288
+  },
+  "player": [],
+  "pose": {
+    "id": "player",
+    "tick": 2220,
+    "x": 0,
+    "y": 0,
+    "z": -190.90386174128398,
+    "roll": 0,
+    "pitch": 0,
+    "heading": 0,
+    "speed": 7.646746385109505,
+    "swaySpeed": 0,
+    "rudder": 0,
+    "yawRate": 0,
+    "distance": 190.90386174128398,
+    "verticalSpeed": 0,
+    "waveHeave": 0,
+    "driftX": 0,
+    "driftZ": 0
+  },
+  "hash": "fcc33f028b242f738e3beeddf0ab62e84567abdc99417e514ec6824dcb928e09"
+}

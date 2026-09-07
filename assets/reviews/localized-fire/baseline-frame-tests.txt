@@ -1,0 +1,293 @@
+bun test v1.3.3 (274e01c7)
+
+src/game/GameFrame.baseline.test.ts:
+1099 |   }
+1100 |   private updateEffectsLighting(): void {
+1101 |     if (!this.sky) return;
+1102 |     // Water skips fixed simulation steps while paused. Read the live sky after
+1103 |     // its zero-delta update, so a conditions change still reaches frozen smoke.
+1104 |     const { sun, timeOfDay: moon } = this.sky, night = moon.skyDarkness.value > .5;
+                                                              ^
+TypeError: undefined is not an object (evaluating 'moon.skyDarkness')
+      at updateEffectsLighting (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:1104:56)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:621:12)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:553:23)
+      at <anonymous> (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:80:43)
+(fail) render warmup draws without advancing combat or starting a second animation loop [126.49ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:69:70)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:676:42)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:553:23)
+      at <anonymous> (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:108:18)
+(fail) map and port transitions restore their own absorption after underwater attenuation [12.62ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:69:70)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:676:42)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:553:23)
+      at <anonymous> (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:120:16)
+(fail) underwater distortion eases down with camera depth and restores without accumulating [9.26ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:69:70)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:676:42)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:553:23)
+      at <anonymous> (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:137:16)
+(fail) turning through north takes the short heading path without changing authoritative combat state [12.67ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:69:70)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:676:42)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:553:23)
+      at <anonymous> (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:157:44)
+(fail) firing enters shell view without feeding its camera into aim, freezes on pause and restores optics [23.51ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:69:70)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:676:42)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:553:23)
+      at <anonymous> (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:191:14)
+(fail) death exits binoculars without a surviving teammate and prevents scope reentry [13.76ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:69:70)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:676:42)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:553:23)
+      at <anonymous> (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:206:14)
+(fail) shell-follow cannot restore binoculars after player death [9.54ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:69:70)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:676:42)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:553:23)
+      at <anonymous> (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:223:16)
+(fail) target inspection follows the interpolated underway target and resets without a streak [10.33ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:69:70)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:676:42)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:553:23)
+      at <anonymous> (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:236:54)
+(fail) pause holds the interpolated pose and resume continues without a tick-sized jump [8.31ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:69:70)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:676:42)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:553:23)
+      at <anonymous> (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:257:58)
+(fail) manual aiming and binoculars keep the camera attached to the displayed ship at full speed [12.42ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:69:70)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:676:42)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:553:23)
+      at <anonymous> (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:280:56)
+(fail) gun circles follow the displayed barrels between simulation ticks in rolling seas [19.81ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:69:70)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:676:42)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:553:23)
+      at <anonymous> (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:311:57)
+(fail) a stationary binocular sight has no abrupt vertical gun-circle jumps as the ship bobs at 60 fps [20.52ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:69:70)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:676:42)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:553:23)
+      at <anonymous> (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:311:57)
+(fail) a stationary binocular sight has no abrupt vertical gun-circle jumps as the ship bobs at 144 fps [15.92ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:69:70)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:676:42)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:553:23)
+      at <anonymous> (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:328:14)
+(fail) repositioning for port and launch clears the old ship poses [19.74ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:69:70)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:676:42)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:553:23)
+      at <anonymous> (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:349:18)
+(fail) full-speed frame movement stays uniform at frame intervals 0.03333333333333333 [15.43ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:69:70)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:676:42)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:553:23)
+      at <anonymous> (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:349:18)
+(fail) full-speed frame movement stays uniform at frame intervals 0.01694915254237288 [12.18ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:69:70)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:676:42)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:553:23)
+      at <anonymous> (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:349:18)
+(fail) full-speed frame movement stays uniform at frame intervals 0.016666666666666666 [13.50ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:69:70)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:676:42)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:553:23)
+      at <anonymous> (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:349:18)
+(fail) full-speed frame movement stays uniform at frame intervals 0.008333333333333333 [9.01ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:69:70)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:676:42)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:553:23)
+      at <anonymous> (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:349:18)
+(fail) full-speed frame movement stays uniform at frame intervals 0.006944444444444444 [12.19ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:69:70)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:676:42)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:553:23)
+      at <anonymous> (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:349:18)
+(fail) full-speed frame movement stays uniform at frame intervals 0.006944444444444444,0.02127659574468085,0.013888888888888888,0.043 [8.27ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:69:70)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:676:42)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:553:23)
+      at <anonymous> (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:364:14)
+(fail) all fleet impact marks share one cosmetic work budget, renewed for each frame [12.03ms]
+64 |     surfaceWaterAbsorption: new Color(.296, .105, .095), surfaceWaterDistortion: .02,
+65 |     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
+66 |       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
+67 |     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+68 |     pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+69 |     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
+                                                                          ^
+error: undefined is not an object (evaluating 'moon.skyDarkness')
+      at error (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:69:70)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:676:42)
+      at frame (/Users/bill/orca/workspaces/ship-game/cownose/src/game/Game.baseline.ts:553:23)
+      at <anonymous> (/Users/bill/orca/workspaces/ship-game/cownose/src/game/GameFrame.baseline.test.ts:378:14)
+(fail) the frame feeds every fleet wake the rendered pose, and only the player in port [28.80ms]
+
+ 0 pass
+ 22 fail
+Ran 22 tests across 1 file. [548.00ms]

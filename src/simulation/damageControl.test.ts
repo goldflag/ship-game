@@ -132,3 +132,16 @@ test('a new fire preempts lower-priority repairs while another team keeps pumpin
   expect(a.damage.control.teams[0]).toEqual({ kind: 'fire-mount', index: 1, setup: def.damageControl!.setupSeconds - .5 });
   expect(a.damage.control.teams[1]).toEqual({ kind: 'pump', index: 0, setup: .5 });
 });
+
+test('changing crew priority or focusing an incumbent does not restart unaffected firefighting setup', () => {
+  const { a, def } = fixture(2);
+  heatMount(a, 0, 100); heatMount(a, 3, 100);
+  updateDamageControl(a, def, 4, () => {});
+  const before = a.damage.control.teams.map(job => ({ ...job! }));
+  directControl(a, 'fires', def.mounts[0].id);
+  updateDamageControl(a, def, 1, () => {});
+  for (const old of before) {
+    const current = a.damage.control.teams.find(job => job?.kind === old.kind && job.index === old.index)!;
+    expect(current.setup).toBeCloseTo(old.setup - 1);
+  }
+});
