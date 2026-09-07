@@ -12,3 +12,12 @@
 .ship-label-loss { position:absolute; top:0; height:100%; background:#e8c56c; }
 .ship-label-damage { position:absolute; left:calc(100% + 8px); top:12px; color:#e8c56c; white-space:nowrap; font:600 23px/1 'Barlow Condensed',sans-serif; }
 .ship-label-sinking .ship-label-name { color:#c1d0d4; }
+
+.hit-label-layer { position:absolute; inset:0; overflow:hidden; pointer-events:none; font-variant-numeric:tabular-nums; }
+.ocean-viewport[data-ship-labels=false] .hit-label-layer { visibility:hidden; }
+.hit-label-layer[hidden],.hit-label[hidden] { display:none; }
+.hit-label { position:absolute; top:0; left:0; width:170px; text-align:center; color:#f0f5f3; text-shadow:0 1px 2px #07131b,0 2px 4px #07131b; }
+.hit-label strong { display:block; color:#e8c56c; font:600 25px/1.1 'Barlow Condensed',sans-serif; }
+.hit-label[data-damage=false] strong { color:#c1d0d4; }
+.hit-label span { display:block; font:500 15px/1.2 'Barlow Condensed',sans-serif; }
+.hit-label small { display:block; margin-top:3px; font:500 11px/1.2 'Barlow',sans-serif; }
