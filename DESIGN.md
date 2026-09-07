@@ -57,13 +57,13 @@ components:
   port-model-view-selected:
     textColor: "{colors.port-accent}"
   fleet-weapon-slot:
-    backgroundColor: "#10222d80"
+    backgroundColor: "transparent"
     textColor: "#d4e2df"
     rounded: "{rounded.slot}"
     padding: "9px 2px 3px"
     height: "64px"
   fleet-weapon-slot-selected:
-    backgroundColor: "#204a486b"
+    backgroundColor: "transparent"
 ---
 
 # Design System: Bismarck Sea Trials
@@ -93,11 +93,11 @@ Brass identifies port actions and selected model views. The inherited gunnery pa
 
 ### Secondary
 
-Mint identifies heading, hull integrity, rudder position, ready mounts and selected battery or binocular controls in Fleet action, and readiness in port. The active engine order uses an ivory fill with dark lettering and a pointing marker. Inspection swatches match their 3D volumes: armor uses a fixed thickness scale from green (0 mm) through yellow (200 mm) to red (400 mm and above), with gray teak backing; machinery is green, magazines salmon, steering lavender and compartments pale blue. A labeled thickness legend accompanies the armor list. Port armor is fully opaque, selection retains its thickness color, and hover lightens and outlines only the plate under the pointer. Blue fill represents floodwater.
+Mint identifies heading, hull integrity, rudder position, ready mounts and selected battery or binocular controls in Fleet action, and readiness in port. The active engine order uses mint lettering and a pointing marker on a transparent surface. Inspection swatches match their 3D volumes: armor uses a fixed thickness scale from green (0 mm) through yellow (200 mm) to red (400 mm and above), with gray teak backing; machinery is green, magazines salmon, steering lavender and compartments pale blue. A labeled thickness legend accompanies the armor list. Port armor is fully opaque, selection retains its thickness color, and hover lightens and outlines only the plate under the pointer. Blue fill represents floodwater.
 
 ### Neutral
 
-Ivory carries primary text; muted blue-gray carries supporting readings. Fleet action uses its own text, muted and line tokens over maritime surfaces. Translucent lines separate controls from the scene while the minimap preserves the sea beneath it.
+Ivory carries primary text; muted blue-gray carries supporting readings. Fleet action uses its own text, muted and line tokens directly over the game, without panel or control fills. Translucent lines separate controls from the scene while the minimap preserves the sea beneath it.
 
 **The Command Accent Rule.** Use brass for port commands and selected model views, and mint for Fleet action readiness and navigation. Pair color with written labels or numeric readings.
 
@@ -109,9 +109,9 @@ Barlow supplies controls and explanatory text; Barlow Condensed supplies ship id
 
 Fleet action keeps ship status and handling at lower left (240 px wide), armament at bottom center (340 px wide), a view-bearing tape at top center, and a fixed sight at the exact viewport center. The compact helm uses a 156 px bearing dial; armament uses 64 px weapon slots and 30 px readiness rings. The standard instrument insets use the Fleet edge and bottom spacing tokens. The upper-left scene stays clear of mission text. The quiet FPS counter sits beside pause/settings at upper right; the Damage / Frags reading sits below these controls. Gunnery details open beneath the score at 108 px from the top (100 px at widths up to 600 px, or 88 px in short landscape) and scroll within the available height.
 
-The translucent square minimap sits flush with the bottom and right viewport edges. Its five nominal desktop sizes are 240, 280, 320, 360 and 400 px, with 320 px selected initially. Available space sets the largest size to the minimum of 400 px, 31 vw and 68 vh; every size applies its own proportional factor (60%, 70%, 80%, 90% or 100%) to that limit. This keeps all five steps distinct when the viewport constrains the map. The map has no camera toolbar above it.
+The transparent square minimap sits flush with the bottom and right viewport edges. Its five nominal desktop sizes are 240, 280, 320, 360 and 400 px, with 320 px selected initially. Available space sets the largest size to the minimum of 400 px, 31 vw and 68 vh; every size applies its own proportional factor (60%, 70%, 80%, 90% or 100%) to that limit. This keeps all five steps distinct when the viewport constrains the map. The map has no camera toolbar above it.
 
-At widths up to 1150 px, Fleet action narrows the handling and armament groups to 208 and 296 px and reduces side insets to 18 px. Between 601 and 900 px, they narrow to 180 and 260 px with 12 px side and 14 px bottom insets. At 600 px and below, the armament group is at most 310 px wide and moves below the top compass (100 px from the top), leaving the central sight clear; the handling group remains at lower left with a 100 px bearing dial, and map sizes step from 30 to 50 vw. Short landscape viewports (620 px high or less, wider than 600 px) hide the mount-reload row and battery heading, reduce weapon slots to 48 px high with 38 px ammunition illustrations, retain weapon keycaps and bottom clearance, and move gunnery details upward; gun marks remain in the helm compass and full mount status remains available through G.
+At widths up to 1150 px, Fleet action narrows the handling and armament groups to 208 and 296 px and reduces side insets to 18 px. Between 601 and 900 px, they narrow to 180 and 260 px with 12 px side and 14 px bottom insets. At 600 px and below, the armament group is at most 310 px wide and moves below the top compass (150 px from the top), leaving room for the compact damage log and keeping the central sight clear; the handling group remains at lower left with a 100 px bearing dial, and map sizes step from 30 to 50 vw. Short landscape viewports (620 px high or less, wider than 600 px) hide the mount-reload row and battery heading, reduce weapon slots to 48 px high with 38 px ammunition illustrations, retain weapon keycaps and bottom clearance, and move gunnery details upward; gun marks remain in the helm compass and full mount status remains available through G.
 
 Ships fitted with depth charges expand the armament group to 440 px for four weapon choices plus binoculars, gunnery and the firing action. Between 601 and 900 px, this expanded group fills the space between the helm and chart: its left edge is 204 px from the viewport, with 12 px clearance from the chart. Four weapon buttons occupy the first row; binoculars, gunnery and a two-column firing action occupy the second, with a 26 px row gap preserving keycaps. This arrangement also applies in short landscape, where the release help remains visible. At 600 px and below, the expanded group retains the upper position and uses the viewport width minus 24 px, capped at 380 px, with 4 px gaps between its seven controls. Keep readiness and weapon help adjacent to the controls while preserving the central sight.
 
@@ -125,7 +125,7 @@ Armor and Internals reuse the right detail surface, hiding the commander/orders,
 
 ## Elevation & Depth
 
-Translucent maritime surfaces, fine borders and edge shading provide separation from the live scene. Soft text shadows maintain contrast over water; diffuse shadows lift the pause dialog and primary port action. Inspection fades the actual exterior model. Port armor uses opaque plates with their own depth buffer, so near plates hide deeper layers while remaining visible through the hull and sea. A neutral upper-left light follows the inspection camera, with ambient fill keeping shaded faces readable. Shading preserves thickness hues and crisp plate edges without harbor exposure or glare. Internals and combat inspection retain translucent volumes so submerged spaces remain inspectable.
+During sailing, text shadows and fine instrument outlines separate readouts from the scene. Panels, buttons, keycaps, aiming labels and the chart have transparent backgrounds, including hover and selected states; screen-edge shading is removed. Port and pause dialogs retain their own surfaces. Soft text shadows maintain contrast over water; diffuse shadows lift the pause dialog and primary port action. Inspection fades the actual exterior model. Port armor uses opaque plates with their own depth buffer, so near plates hide deeper layers while remaining visible through the hull and sea. A neutral upper-left light follows the inspection camera, with ambient fill keeping shaded faces readable. Shading preserves thickness hues and crisp plate edges without harbor exposure or glare. Internals and combat inspection retain translucent volumes so submerged spaces remain inspectable.
 
 ## Shapes
 
@@ -149,7 +149,7 @@ Mouse movement aims through the centered sailing sight while the cursor is captu
 
 ### Ship condition and helm
 
-The lower-left group combines the ship silhouette and name, live current / maximum HP and its proportional bar, a circular compass with ship heading, camera bearing and selected-battery gun marks, speed in knots, a vertical engine telegraph and the rudder indicator. HP represents gameplay hull durability; exhausting it starts sinking. Gunnery shows equipment condition separately, and flooding and stability can also sink a ship with HP remaining. The selected engine order has an ivory pointer and fill; W/S step the order, Space stops, and A/D steer. Flooding appears with its measured volume when present. Coarse pointers expose hold-to-steer controls.
+The lower-left group combines the ship silhouette and name, live current / maximum HP and its proportional bar, a circular compass with ship heading, camera bearing and selected-battery gun marks, speed in knots, a vertical engine telegraph and the rudder indicator. HP represents gameplay hull durability; exhausting it starts sinking. Gunnery shows equipment condition separately, and flooding and stability can also sink a ship with HP remaining. The selected engine order has mint lettering and a pointer on a transparent surface; W/S step the order, Space stops, and A/D steer. Flooding appears with its measured volume when present. Coarse pointers expose hold-to-steer controls.
 
 ### Navigation minimap
 
@@ -183,7 +183,7 @@ G opens gunnery and releases the cursor for aim selection, trial-target conditio
 
 ### Depth and ballast
 
-Submarines add a compact translucent maritime instrument with fine borders and restrained corners. Barlow Condensed leads with actual depth in meters; compact Barlow text carries the ordered depth, movement state, ballast percentage, propulsion mode and vertical speed. Tabular numerals stabilize the changing readings. Mint identifies the depth fill, movement state and selected preset; a gold marker shows the ordered depth.
+Submarines add a compact transparent instrument. Barlow Condensed leads with actual depth in meters; compact Barlow text carries the ordered depth, movement state, ballast percentage, propulsion mode and vertical speed. Tabular numerals stabilize the changing readings. Mint identifies the depth meter, movement state and selected preset; a gold marker shows the ordered depth.
 
 Surface, Periscope and Dive 50 m form the preset row, followed by paired Rise 10 m / Dive 10 m adjustments. Emergency blow occupies its own full-width row with gold lettering. Selected commands expose their pressed state, unavailable adjustments disable at the order limits, and sinking disables depth commands. Keyboard hints follow the configured bindings. Depth-limit and weapon-depth warnings state the corrective action beside the controls.
 
@@ -193,9 +193,9 @@ Surface, Periscope and Dive 50 m form the preset row, followed by paired Rise 10
 
 Incoming shell hits add a salmon arc and outward tip around the sight, pointing toward the source relative to the active camera. Bearings stay attached to the incoming direction as the camera turns, including binocular and shell-follow views. Armor stops and ricochets count even without equipment damage. Nearby directions combine; at most six cues remain visible. Each holds for 1.2 seconds and fades over one second of simulation time, so pause freezes it. Keep the sight center clear, use a dark stroke for contrast over sky and sea, and follow H and port visibility.
 
-Damage gold marks actual hull damage beside overhead ship labels and in the vacated section of their bars. Hits within 0.35 seconds combine into one salvo number; the segment holds for one second after the latest hit and fades over 0.6 seconds. Simulation time freezes these cues during pause. The player's lower-left hull instrument uses the same gold segment and a numeric damage notice above it, accompanied by a translucent red perimeter cue with a clear center. Feedback uses opacity only, without camera shake or movement.
+Damage gold marks actual hull damage beside overhead ship labels and in the vacated section of their bars. Hits within 0.35 seconds combine into one salvo number; the segment holds for one second after the latest hit and fades over 0.6 seconds. Simulation time freezes these cues during pause. The player's lower-left hull instrument uses the same gold segment and a numeric damage notice above it, with no screen-covering tint. Feedback uses opacity only, without camera shake or movement.
 
-The compact Damage / Frags reading sits below the upper-right pause control. Damage counts actual hostile hull HP removed on the displacement-based scale; frags count permanent combat losses or sinkings credited to the last hostile damage or breach, including delayed flooding. Both reset with the battle. The bottom armament ends with its weapon keycaps: the Follow shells row and Ctrl/Shift/Esc hint strip are removed. T remains the configurable shell-follow shortcut. Binocular mode hides smoke emitted at the player's ship, including already active smoke, while it continues aging; other ships' smoke remains visible.
+The compact Damage / Frags reading sits below the upper-right pause control. Its damage log is three single-line entries high (two on compact screens), with a fixed scrollable footprint and no heading, frame, surface fill or empty-state message. Each entry shows weapon, other ship and signed damage; hover text retains time and hit details. Two compact Friendly / Enemy rows occupy the upper-left edge. Opening a team shows a short inline roster, without a target dropdown, floating panel or extra health bars. Damage counts actual hostile hull HP removed on the displacement-based scale; frags count permanent combat losses or sinkings credited to the last hostile damage or breach, including delayed flooding. Both reset with the battle. The bottom armament ends with its weapon keycaps: the Follow shells row and Ctrl/Shift/Esc hint strip are removed. T remains the configurable shell-follow shortcut. Binocular mode hides smoke emitted at the player's ship, including already active smoke, while it continues aging; other ships' smoke remains visible.
 
 ## Do's and Don'ts
 

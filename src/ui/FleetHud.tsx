@@ -11,6 +11,8 @@ import { Icon } from './Icons';
 import { NavigationChart } from './NavigationChart';
 import { GunneryPanel } from './GunneryPanel';
 import { DepthControl } from './DepthControl';
+import { BattleStatus } from './BattleStatus';
+import { BattleDamageLog } from './BattleDamageLog';
 import { useShip } from './ShipContext';
 import './FleetHud.css';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
@@ -135,20 +137,12 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
   const following = followingShell || !!data.followedAircraftId;
 
   return <div className={`fleet-hud ${visible ? '' : 'fleet-hud-hidden'} ${data.binoculars ? 'fleet-in-optics' : ''}`} inert={!visible} style={{ '--map-factor': mapSize / 400 } as CSSProperties}>
-    <div className="fleet-edge-shade" aria-hidden="true"/>
-    {damage && damage.amount > 0 && <div className="fleet-hit-vignette" aria-hidden="true" style={{ opacity: damage.opacity }}/>}
     <BearingTape degrees={degrees}/>
-    {data.combat?.battle && <section className="fleet-battle" aria-label="Battle status">
-      <h2>{data.combat.result === 'active' ? 'Custom battle' : data.combat.result === 'victory' ? 'Victory' : data.combat.result === 'defeat' ? 'Defeat' : 'Draw'}</h2>
-      <p><span>Friendly <strong>{data.combat.contacts.filter(c => c.team === 'friendly' && !c.sunk && !c.combatLost).length}</strong></span><span>Enemy <strong>{data.combat.contacts.filter(c => c.team === 'enemy' && !c.sunk && !c.combatLost).length}</strong></span></p>
-      {data.combat.result !== 'active' ? <small>Battle ended · Esc to return to port</small> : data.combat.playerSunk ? <small>Your ship is sinking. Friendly bots are still fighting.</small> : null}
+    {data.combat?.battle && <BattleStatus combat={data.combat} game={game}>
       {data.combat.airWing && !data.airOperationsOpen && <FlightControl combat={data.combat} game={game} bindings={bindings}/>}
-    </section>}
+    </BattleStatus>}
     <div className="fleet-top-actions"><span className="fleet-fps" aria-label={`${data.fps} frames per second`}><strong>{data.fps || '—'}</strong> FPS</span><button className="icon-button" aria-label="Pause and settings" title="Pause · Esc" onClick={() => game?.setPaused(true)}><Icon name="pause" size={17}/></button></div>
-    {data.combat?.battle && <dl className="fleet-score" aria-label="Your battle score">
-      <div><dt>Damage</dt><dd>{Math.round(data.combat.playerDamageDealt).toLocaleString()}</dd></div>
-      <div><dt>Frags</dt><dd>{data.combat.playerFrags}</dd></div>
-    </dl>}
+    {data.combat?.battle && <BattleDamageLog combat={data.combat} obscured={!!data.gunneryOpen || !!data.inspecting}/>}
 
     {followingShell && <div className="fleet-shell-status" role="status"><strong>{data.shellFollow === 'impact' ? 'Shell impact' : 'Following shell'}</strong><span>{data.shellFollow === 'impact' ? 'Returning to ship…' : `${bindingLabel(bindings, 'shellFollow')} to return to ship`}</span></div>}
     {data.followedAircraftId && <div className="fleet-shell-status fleet-aircraft-status"><strong>Following {data.followedAircraftId.split('/').slice(1).join(' / ')}</strong><button onClick={e => { game?.returnToShip(); e.currentTarget.blur(); }}>Return to ship</button><span>{bindingLabel(bindings, 'camera')} or {bindingLabel(bindings, 'recenter')} to return · Hold Ctrl to use controls</span></div>}

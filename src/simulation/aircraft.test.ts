@@ -107,6 +107,10 @@ test('aircraft weapons resolve actual ship hits and score hostile damage through
   expect(bombHit).toBe(true); expect(torpedoHit).toBe(true);
   expect(sim.target.damage.compartments.some(c => c.breachAreaM2 > 0)).toBe(true);
   expect(sim.telemetry('main', [0,0,-5000]).playerDamageDealt).toBeGreaterThan(0);
+  const log = sim.telemetry('main', [0, 0, -5000]).damageLog;
+  expect(log.some(entry => entry.weapon === '500 lb HE bomb')).toBe(true);
+  expect(log.some(entry => entry.weapon.includes('Air torpedo'))).toBe(true);
+  expect(log.reduce((sum, entry) => sum + entry.damage, 0)).toBeCloseTo(sim.telemetry('main', [0, 0, -5000]).playerDamageDealt, 6);
 }, 30000);
 
 test('bot strike orders fall back from a lost or submerged target to a valid hostile ship', () => {

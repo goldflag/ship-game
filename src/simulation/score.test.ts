@@ -39,6 +39,9 @@ test('score counts actual enemy hull damage, caps overkill and awards a loss onc
   expect(score(sim)).toEqual([17, 0]);
   hit(sim, sim.target, sim.player, 10000);
   expect(score(sim)).toEqual([maxHp, 1]);
+  const log = sim.telemetry('secondary', intent.aim).damageLog;
+  expect(log.reduce((sum, entry) => sum + entry.damage, 0)).toBeCloseTo(maxHp, 6);
+  expect(log.every(entry => entry.sourceId === 'player' && entry.targetId === 'enemy-1' && entry.weapon === '380 mm AP')).toBe(true);
   for (let i = 0; i < 30; i++) sim.step(helm, intent);
   hit(sim, sim.target, sim.player);
   expect(score(sim)).toEqual([maxHp, 1]);
@@ -46,6 +49,7 @@ test('score counts actual enemy hull damage, caps overkill and awards a loss onc
   expect(score(sim)).toEqual([maxHp, 1]);
   sim.reset();
   expect(score(sim)).toEqual([0, 0]);
+  expect(sim.telemetry('main', intent.aim).damageLog).toEqual([]);
 });
 
 test('main battery destruction earns damage but no frag while a secondary gun survives', () => {
@@ -71,6 +75,7 @@ test('stopped rounds, allied hits and bot kills do not increase the player score
   hit(sim, sim.player, sim.target);
   hit(sim, sim.target, sim.actors[1], 10000);
   expect(score(sim)).toEqual([0, 0]);
+  expect(sim.telemetry('main', intent.aim).damageLog).toMatchObject([{ sourceId: 'enemy-1', targetId: 'player', damage: 17, hits: 1 }]);
 });
 
 test('the final hostile damaging hit earns the frag, including delayed flooding', () => {
