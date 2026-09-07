@@ -39,9 +39,6 @@ export async function damageReview() {
     click('Custom battle'); await new Promise(r => setTimeout(r, 100)); click('Start battle');
     await until(() => !game.inPort);
   }
-  // The gunnery instrument mounts only once opened from the fleet HUD.
-  game.setGunneryOpen?.(true); game.gunneryOpen = true;
-  await until(() => !!document.querySelector('.gunnery-toggle'));
   cancelAnimationFrame(game.raf); await game.frameTask; cancelAnimationFrame(game.raf);
   game.scheduleFrame = () => {};
   for (const actor of game.simulation.actors) actor.controller = 'idle';
@@ -61,23 +58,15 @@ export async function damageReview() {
     for (let i = 0; i < 60; i++) updateDamageControl(a, a.definition, 1 / 60, sim.emit);
   }
   game.fleetViews.forEach((v: any) => v.snap());
-  game.paused = true; game.setGunneryOpen?.(true); game.gunneryOpen = true;
+  game.paused = true;
   game.camera.position.set(actor.motion.x - 230, 100, actor.motion.z + 155);
   game.camera.lookAt(actor.motion.x, 8, actor.motion.z); game.camera.updateMatrixWorld();
   game.rig.update = () => {};
   for (let i = 0; i < 8; i++) { sim.tick += 15; game.effects.update(sim, .25, game.camera); }
   game.hudTime = -Infinity; await game.frame(performance.now()); cancelAnimationFrame(game.raf);
   await new Promise(r => setTimeout(r, 150));
-  const toggle = document.querySelector<HTMLButtonElement>('.gunnery-toggle');
-  if (toggle?.getAttribute('aria-expanded') === 'false') toggle.click();
-  await new Promise(r => setTimeout(r, 100));
-  for (const detail of document.querySelectorAll<HTMLDetailsElement>('.gunnery details')) {
-    if (/Own damage control|Target fires|Damaged sections/.test(detail.querySelector('summary')?.textContent ?? '')) detail.open = true;
-  }
-  const focus = [...document.querySelectorAll<HTMLButtonElement>('.fire-condition button')][0];
-  focus?.click();
-  const result = { losses, controls: { focusWorks: !!focus && game.controlPriority === 'fires' && !!game.controlFocus,
-    text: document.querySelector('.gunnery')?.textContent, viewport: [innerWidth, innerHeight], overflow: document.documentElement.scrollWidth > innerWidth },
+  const result = { losses, controls: {
+    text: document.querySelector('.fleet-hud')?.textContent, viewport: [innerWidth, innerHeight], overflow: document.documentElement.scrollWidth > innerWidth },
     combat: sim.telemetry('main', [0, 0, -1000]), effects: game.effects.diagnostics(),
     maxMuzzleErrorM: game.diagnostics().maxMuzzleErrorM };
   await game.renderFrame();

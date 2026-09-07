@@ -22,7 +22,6 @@ export async function landedBroadsides(count = 1) {
     for (let tick = 0; tick < 30; tick++) sim.step({ throttle: 0, rudder: 0 }, { aim: [0, .5, 0], fire: false, battery: 'main' });
   }
   game.fleetViews.forEach((view: any) => view.snap());
-  game.gunneryOpen = true;
   if (!game.inspecting) game.inspectTarget();
   game.paused = true;
   game.rig.update(game.targetView.motion, game.targetView.motion.y, 0, true);
