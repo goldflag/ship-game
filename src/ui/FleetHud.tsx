@@ -1,8 +1,8 @@
 import { AirOperations, SquadronLabels } from './AirOperations';
 import { FlightControl } from './FlightControl';
 import { type CSSProperties } from 'react';
-import type { Ammunition, Battery } from '../ships/blueprint';
-import { ammunitionName, batteryName, torpedoArcLabel } from '../ships/armament';
+import type { Ammunition } from '../ships/blueprint';
+import { ammunitionName, torpedoArcLabel } from '../ships/armament';
 import type { Game } from '../game/Game';
 import type { Telemetry } from '../game/types';
 import { maxHullIntegrity } from '../simulation/damage';
@@ -15,14 +15,14 @@ import { BattleStatus } from './BattleStatus';
 import { BattleDamageLog } from './BattleDamageLog';
 import { useShip } from './ShipContext';
 import './FleetHud.css';
-import { bindingLabel, type Keybindings } from '../game/keybindings';
+import { bindingLabel, WEAPON_GROUP_ACTIONS, type Keybindings } from '../game/keybindings';
 
 interface FleetHudProps { data: Telemetry; game: Game | null; visible: boolean; bindings: Keybindings; }
 
 function ShipBearing({ data }: { data: Telemetry }) {
   const selectedShip = useShip();
   const degrees = data.ship.heading * 180 / Math.PI;
-  const mounts = data.combat?.battery === 'depth-charge' ? selectedShip.depthChargeLaunchers ?? [] : data.combat?.battery === 'torpedo' ? selectedShip.torpedoTubes ?? [] : selectedShip.mounts.filter(m => m.battery === (data.combat?.battery ?? 'main'));
+  const mounts = data.combat?.battery === 'depth-charge' ? selectedShip.depthChargeLaunchers ?? [] : data.combat?.battery === 'torpedo' ? selectedShip.torpedoTubes ?? [] : selectedShip.mounts.filter(m => data.combat?.mounts.some(state => state.id === m.id));
   return <div className="fleet-bearing" aria-label={`Ship heading ${Math.round(degrees) % 360} degrees`}>
     <svg viewBox="0 0 200 200" fill="none" aria-hidden="true">
       <circle cx="100" cy="100" r="92" stroke="currentColor" strokeOpacity=".65"/>
@@ -37,7 +37,7 @@ function ShipBearing({ data }: { data: Telemetry }) {
       <g transform={`rotate(${degrees} 100 100)`}>
         <path d="M100 37c-8 12-14 24-14 39v66l6 16h16l6-16V76c0-15-6-27-14-39Z" stroke="currentColor" fill="currentColor" fillOpacity=".12"/>
         <path d="M95 81h10v39H95ZM91 127h18v8H91ZM94 72h12v7H94Z" stroke="currentColor" strokeOpacity=".45"/>
-        {mounts.map((mount, i) => {
+        {mounts.filter(m => data.combat?.mounts.some(state => state.id === m.id)).map((mount, i) => {
           const status = data.combat?.mounts.find(m => m.id === mount.id)?.status;
           const x = 100 + mount.position[0] / selectedShip.hull.beam * 25;
           const y = 100 + mount.position[2] / selectedShip.hull.length * 114;
@@ -87,9 +87,12 @@ function ActiveArmament({ data, game, bindings }: FleetHudProps) {
   const combat = data.combat;
   if (!combat) return null;
   const torpedoes = combat.battery === 'torpedo', depthCharges = combat.battery === 'depth-charge';
-  const caliber = (battery: Battery) => Math.round((battery === 'torpedo' ? selectedShip.torpedoTubes?.[0].weapon.diameterM ?? 0 : selectedShip.mounts.find(m => m.battery === battery)?.weapon.caliberM ?? 0) * 1000);
-  const shortcut = (battery: Battery) => battery === 'depth-charge' ? 'depthCharges' : battery === 'torpedo' ? 'torpedoes' : battery === 'main' ? 'mainBattery' : 'secondaryBattery';
-  return <section className={`fleet-armament ${selectedShip.depthChargeLaunchers?.length ? 'fleet-armament-expanded' : ''} ${!torpedoes && !depthCharges ? 'fleet-armament-guns' : ''}`} aria-label="Weapons">
+  const groups = combat.weaponGroups;
+  const selected = groups.find(g => g.id === combat.weaponGroupId) ?? groups.find(g => g.battery === combat.battery);
+  const shortcut = (index: number) => WEAPON_GROUP_ACTIONS[index] ? bindingLabel(bindings, WEAPON_GROUP_ACTIONS[index]) : '';
+  const selectedTube = selectedShip.torpedoTubes?.find(t => selected?.mountIds.includes(t.id));
+  const selectedCharge = selectedShip.depthChargeLaunchers?.find(l => selected?.mountIds.includes(l.id));
+  return <section className={`fleet-armament ${groups.length > 2 ? 'fleet-armament-expanded' : ''} ${!torpedoes && !depthCharges ? 'fleet-armament-guns' : ''}`} aria-label="Weapons">
     <div className="fleet-turrets" aria-label="Battery mount readiness">{combat.mounts.map((mount, i) => {
       const reloadSeconds = (depthCharges ? selectedShip.depthChargeLaunchers?.find(m => m.id === mount.id)?.weapon.reloadSeconds : torpedoes ? selectedShip.torpedoTubes?.find(m => m.id === mount.id)?.weapon.reloadSeconds : selectedShip.mounts.find(m => m.id === mount.id)?.weapon.reloadSeconds) ?? 1;
       const ready = mount.status === 'ready';
@@ -102,17 +105,17 @@ function ActiveArmament({ data, game, bindings }: FleetHudProps) {
         <b>{unavailable ? <Icon name="close" size={14}/> : countdown ? Math.ceil(mount.reload) : ready ? <Icon name="turret" size={18}/> : '—'}</b><small>{i + 1}</small>
       </div>;
     })}</div>
-    <div className="fleet-battery-heading"><span>{!depthCharges && `${caliber(combat.battery)} mm · `}{batteryName(combat.battery)}</span><strong>{combat.ready}/{combat.total} can fire</strong></div>
-    {torpedoes && <p className="fleet-torpedo-help">{torpedoArcLabel(selectedShip)} · {((selectedShip.torpedoTubes?.[0].weapon.rangeM ?? 0) / 1000).toFixed(1)} km · Arms at {selectedShip.torpedoTubes?.[0].weapon.armingDistanceM} m · Line shows straight course</p>}
-    {depthCharges && <p className="fleet-torpedo-help">Stern racks / side throwers · Burst at {selectedShip.depthChargeLaunchers?.[0].weapon.detonationDepthM} m<br/>Drop on a close pass; keep moving clear of the blast.</p>}
+    <div className="fleet-battery-heading"><span>{selected?.name ?? 'No weapons fitted'}</span><strong>{combat.ready}/{combat.total} can fire</strong></div>
+    {torpedoes && <p className="fleet-torpedo-help">{torpedoArcLabel(selectedShip)} · {((selectedTube?.weapon.rangeM ?? 0) / 1000).toFixed(1)} km · Arms at {selectedTube?.weapon.armingDistanceM} m · Line shows straight course</p>}
+    {depthCharges && <p className="fleet-torpedo-help">Stern racks / side throwers · Burst at {selectedCharge?.weapon.detonationDepthM} m<br/>Drop on a close pass; keep moving clear of the blast.</p>}
     <div className="fleet-weapon-controls">
       {!torpedoes && !depthCharges && combat.total > 0 && <ShellCycle combat={combat} game={game} bindings={bindings}/>}
       <div className="fleet-weapon-row">
-        {combat.batteries.filter(battery => battery.total > 0).map(battery => <button key={battery.battery} className="fleet-weapon-slot" aria-label={`Select ${battery.battery === 'depth-charge' ? 'depth charges' : battery.battery === 'torpedo' ? 'torpedoes' : `${battery.battery} ${battery.ammunition.toUpperCase()} battery`} · ${battery.ammo} ${ammunitionName(battery.battery)} · ${bindingLabel(bindings, shortcut(battery.battery))}`} aria-pressed={combat.battery === battery.battery} disabled={!battery.total} onClick={event => { if (game) game.battery = battery.battery; event.currentTarget.blur(); }}>
-          <span className="fleet-slot-label">{battery.battery === 'depth-charge' ? 'DEPTH' : battery.battery === 'torpedo' ? 'TORPEDO' : `${battery.battery === 'main' ? 'MAIN' : 'SEC.'} ${battery.ammunition.toUpperCase()}`}</span><AmmoGlyph secondary={battery.battery === 'secondary'} torpedo={battery.battery === 'torpedo'} depthCharge={battery.battery === 'depth-charge'} ammunition={battery.ammunition}/>
-          <strong className="fleet-ammo-count">{battery.ammo}</strong>
-          {battery.reload > 0 && Number.isFinite(battery.reload) && battery.ready === 0 && <span className="fleet-slot-cooldown">{Math.ceil(battery.reload)}<small>s</small></span>}
-          <kbd>{bindingLabel(bindings, shortcut(battery.battery))}</kbd>
+        {groups.map((group, index) => <button key={group.id} className="fleet-weapon-slot" title={`${group.name} · ${group.ready}/${group.total} ready · ${group.ammunition.toUpperCase()}`} aria-label={`Select ${group.name} · ${group.ammo} ${ammunitionName(group.battery)}${shortcut(index) ? ` · ${shortcut(index)}` : ''}`} aria-pressed={selected?.id === group.id} onClick={event => { game?.selectWeaponGroup(group.id); event.currentTarget.blur(); }}>
+          <span className="fleet-slot-label">{group.battery === 'depth-charge' ? 'DEPTH' : group.battery === 'torpedo' ? 'TORPEDO' : `${Number(group.caliberMm.toFixed(2))} mm`}</span><AmmoGlyph secondary={group.battery === 'secondary'} torpedo={group.battery === 'torpedo'} depthCharge={group.battery === 'depth-charge'} ammunition={group.ammunition}/>
+          <strong className="fleet-ammo-count">{group.ammo}</strong>
+          {group.reload > 0 && Number.isFinite(group.reload) && group.ready === 0 && <span className="fleet-slot-cooldown">{Math.ceil(group.reload)}<small>s</small></span>}
+          <kbd>{shortcut(index)}</kbd>
         </button>)}
         <button className="fleet-weapon-slot fleet-utility-slot" aria-label="Toggle binocular aiming · Shift" aria-pressed={!!data.binoculars} onClick={event => { game?.toggleBinoculars(); event.currentTarget.blur(); }}><span className="fleet-slot-label">BINOCULARS</span><BinocularGlyph/><strong className="fleet-slot-value">{data.binoculars ? `${(data.magnification ?? 1).toFixed(1)}×` : ''}</strong><kbd>SHIFT</kbd></button>
         <button className="fleet-weapon-slot fleet-fire-slot" aria-label={`${depthCharges ? 'Drop depth charge' : torpedoes ? 'Launch torpedo' : 'Fire aligned guns'} · Left mouse or ${bindingLabel(bindings, 'fire')}`} disabled={!combat.ready || combat.playerSunk} onClick={event => { game?.fire(); event.currentTarget.blur(); }}><span className="fleet-slot-label">{depthCharges ? 'DROP' : 'FIRE'}</span><Icon name="turret" size={39}/><kbd>{bindingLabel(bindings, 'fire')} / LMB</kbd></button>
@@ -183,9 +186,9 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
       {(data.combat?.playerWater ?? 0) > .1 && <p className="fleet-flood-warning">Flooding · {data.combat!.playerWater.toFixed(1)} m³</p>}
     </section>
 
-    {!data.combat?.airWing && <ActiveArmament data={data} game={game} visible={visible} bindings={bindings}/>}
+    {!data.combat?.airWing && !data.airOperationsOpen && <ActiveArmament data={data} game={game} visible={visible} bindings={bindings}/>}
     {!data.combat?.airWing && <SquadronLabels data={data} game={game}/>}
-    {data.combat?.airWing && <AirOperations data={data} game={game} bindings={bindings}/>}
+    {data.combat?.airWing && <AirOperations data={data} game={game} bindings={bindings} armament={<ActiveArmament data={data} game={game} visible={visible} bindings={bindings}/>}/>}
     {data.combat?.submarine && <DepthControl combat={data.combat} game={game} bindings={bindings}/>}
     {data.binoculars && data.aimModule !== 'point' && data.aimMarker?.visible && <div className="aim-marker" aria-hidden="true" style={{ left: `${data.aimMarker.x}%`, top: `${data.aimMarker.y}%` }}><span/><small>TRACKED AIM</small></div>}
     <aside className="fleet-map-area" aria-label="Navigation minimap"><NavigationChart bindings={bindings} data={data} onResize={direction => game?.resizeChart(direction)}/></aside>

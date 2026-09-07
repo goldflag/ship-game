@@ -69,7 +69,7 @@ In port, upward dragging stops at the lowest orbit and keeps the camera aimed at
 | Shift / right mouse               | Toggle binocular aiming                                                      |
 | Scroll                            | Adjust camera distance, or continuous 2×–32× binocular magnification         |
 | Hold Ctrl                         | Release cursor to use HUD controls; release Ctrl to return to aiming         |
-| 1 / 2 / 3 / 4                     | Select main / secondary battery / torpedoes / depth charges (when fitted)    |
+| 1–9 / 0                           | Select the corresponding fitted weapon group directly; see HUD shortcuts   |
 | E                                 | Queue AP / HE for next load; double-press to switch now with a full reload  |
 | − / +                             | Decrease / increase minimap size (numpad keys also work)                     |
 | T                                 | Toggle automatic shell-follow camera; press again to return early            |
@@ -79,6 +79,8 @@ In port, upward dragging stops at the lowest orbit and keeps the camera aimed at
 | H                                 | Hide / show instruments                                                      |
 | F                                 | Fullscreen                                                                   |
 | Hold left mouse / Q / Fire button | Fire the selected battery as guns become ready                               |
+
+Each fitted weapon group has its own direct shortcut, ordered main guns first, then secondaries from largest caliber down, followed by torpedoes and depth charges. Matching guns share a group across mount layouts; different firing characteristics, ammunition or aiming envelopes stay separate. Pressing a group's key always selects that group, with no cycling. Slots stay fixed through damage and ammunition loss. Each group retains its own AP/HE choice, and its mount readiness, stocks, flight time and aim markers reflect only its weapons. Unselected AA guns retain automatic air defense; selecting an AA group gives you manual control. Bismarck uses 1–5 for 380, 150, 105, 37 and 20 mm guns; Fletcher uses 1–3 for guns, 4 for torpedoes and 5 for depth charges. Number keys are rebindable weapon slots, so their weapon types can differ between ships. The first ten groups have default shortcuts (1–9, then 0); any additional groups remain directly clickable in the HUD. Older saved category bindings migrate to slots 1–4 while other custom controls are preserved.
 
 **Esc → Settings** opens graphics, sound, and **Keybindings** in a separate dialog. Select a primary or alternate binding and press a key; changes apply immediately and are saved in this browser. Esc cancels capture, Delete clears a binding, and Reset restores the defaults. Esc, Tab and Enter remain reserved for menus; Shift binoculars and Ctrl cursor release remain fixed controls. The HUD and control hints follow your bindings. Graphics changes reload the scene in port. **Close game** closes the tab when permitted by the browser.
 

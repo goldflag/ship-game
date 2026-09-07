@@ -72,11 +72,11 @@ test('older custom controls survive new diving actions even when Z, X and B are 
 
 test('older saves gain depth charges without taking an existing custom 4 binding', () => {
   const saved: Partial<ReturnType<typeof defaultKeybindings>> = defaultKeybindings();
-  delete saved.depthCharges; saved.fire = ['Digit4', null];
+  delete saved.weaponGroup4; saved.fire = ['Digit4', null];
   const result = keybindingsOf(saved);
   expect(result.fire).toEqual(['Digit4', null]);
-  expect(result.depthCharges[0]).not.toBe('Digit4');
-  expect(result.depthCharges[0]).not.toBeNull();
+  expect(result.weaponGroup4[0]).not.toBe('Digit4');
+  expect(result.weaponGroup4[0]).not.toBeNull();
   expect(keybindingsOf(result)).toEqual(result);
 });
 
@@ -111,4 +111,17 @@ test('retired gunnery bindings are discarded while other saved controls survive'
   expect(loaded.fire).toEqual(['KeyL', null]);
   expect(loaded).not.toHaveProperty('gunnery');
   expect(bindingError(loaded, 'fire', 0, 'KeyG')).toBeNull();
+});
+
+test('legacy category bindings migrate to direct slots without losing other keys or colliding with new slots', () => {
+  const saved: Record<string, unknown> = { ...defaultKeybindings() };
+  for (let i = 1; i <= 10; i++) delete saved[`weaponGroup${i}`];
+  Object.assign(saved, { mainBattery: ['KeyL', null], secondaryBattery: ['Digit2', null], torpedoes: ['Digit3', null], depthCharges: ['Digit4', null], fire: ['Digit5', null] });
+  const loaded = keybindingsOf(saved);
+  expect(loaded.weaponGroup1).toEqual(['KeyL', null]);
+  expect(loaded.weaponGroup3).toEqual(['Digit3', null]);
+  expect(loaded.fire).toEqual(['Digit5', null]);
+  expect(loaded.weaponGroup5).not.toContain('Digit5');
+  expect(new Set(Object.values(loaded).flat().filter(Boolean)).size).toBe(Object.values(loaded).flat().filter(Boolean).length);
+  expect(keybindingsOf(loaded)).toEqual(loaded);
 });

@@ -75,7 +75,7 @@
 .fleet-shell-status { position:absolute; top:88px; left:50%; transform:translateX(-50%); display:grid; gap:3px; text-align:center; }
 .fleet-shell-status strong { color:var(--fleet-active); font:500 20px 'Barlow Condensed',sans-serif; }
 .fleet-shell-status span { color:#f0f5f3; font-size:11px; }
-.fleet-turrets { display:flex; gap:7px; justify-content:center; margin-bottom:11px; color:var(--fleet-muted); }
+.fleet-turrets { display:flex; flex-wrap:wrap; gap:12px 7px; justify-content:center; margin-bottom:11px; color:var(--fleet-muted); }
 .fleet-mount { position:relative; width:30px; height:34px; flex-shrink:1; min-width:20px; }
 .fleet-mount>svg { width:100%; height:30px; fill:none; stroke:#d5e5e542; stroke-width:1.4; }
 .fleet-mount .fleet-reload-progress { stroke:currentColor; stroke-width:2; }
@@ -288,16 +288,18 @@
 .fleet-torpedo-help { margin:0 2px 8px; color:var(--fleet-muted); font-size:10px; text-align:center; }
 
 .fleet-armament-expanded { width:440px; }
+.fleet-armament-expanded .fleet-weapon-row { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); column-gap:7px; row-gap:26px; }
+.fleet-armament-expanded .fleet-utility-slot { margin-left:0; }
 @container hud (max-width:900px) and (min-width:601px) {
   .fleet-armament-expanded { left:204px; right:calc(var(--chart-width) + 12px); width:auto; transform:none; }
   .fleet-armament-expanded .fleet-weapon-row { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); row-gap:26px; }
   .fleet-armament-expanded .fleet-utility-slot { margin-left:0; }
-  .fleet-armament-expanded .fleet-fire-slot { grid-column:2 / -1; }
+
   .fleet-armament-expanded .fleet-turrets { gap:4px; }
 }
 @container hud (max-width:600px) {
   .fleet-armament-expanded { width:calc(100cqw - 24px); max-width:380px; }
-  .fleet-armament-expanded .fleet-weapon-row { gap:4px; }
+  .fleet-armament-expanded .fleet-weapon-row { grid-template-columns:repeat(4,minmax(0,1fr)); column-gap:4px; row-gap:24px; }
   .fleet-armament-expanded .fleet-utility-slot { margin-left:0; }
 }
 
@@ -316,3 +318,6 @@
 .fleet-spectator-controls { display:flex; gap:6px; min-width:0; }
 .fleet-spectator-controls select { min-width:0; flex:1; }
 .fleet-spectator-controls button { flex-shrink:0; }
+
+/* Carrier guns and squadron controls share one flowing stack. */
+.air-squadron-command .fleet-armament { position:relative; inset:auto; transform:none; width:100%; max-width:440px; margin:0 auto 12px; }

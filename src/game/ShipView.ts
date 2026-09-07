@@ -192,8 +192,8 @@ export class ShipView {
     this.updateInspection();
   }
   /** Match the displayed barrels; readiness remains from the authoritative tick. */
-  gunAimPoints(battery: Battery, aim: Vec3) {
-    return gunAimPoints({ ...this.actor, motion: this.motion, mounts: this.renderedMounts }, this.definition, battery, aim);
+  gunAimPoints(battery: Battery, aim: Vec3, weaponGroupId?: string) {
+    return gunAimPoints({ ...this.actor, motion: this.motion, mounts: this.renderedMounts }, this.definition, battery, aim, weaponGroupId);
   }
   private updateInspection(): void {
     this.inspection.update({ ...this.actor, motion: this.motion, mounts: this.renderedMounts });
