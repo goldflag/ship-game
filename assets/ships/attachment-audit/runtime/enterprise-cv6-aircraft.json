@@ -1,0 +1,20 @@
+{
+  "camera": [
+    206,
+    19,
+    -60
+  ],
+  "contentHash": "79221cca0c852952ce41c01ac1cbc3b654a4157baf955d63eeeff0415ebf3f95",
+  "offsetBlender": [
+    0,
+    24,
+    2
+  ],
+  "pose": null,
+  "shipId": "enterprise-cv6",
+  "targetBlender": [
+    60,
+    10,
+    17
+  ]
+}

@@ -39,7 +39,10 @@ def create_gun_mount(mount, collection, helpers, materials, deck_height):
     base_height=spec.get('gunhouseBaseHeight',.25)
     barbette_top=zbase+base_height-.25
     cyl(name+' • armored barbette',(x,y,(deckz(x)+barbette_top)/2),r,max(.02,barbette_top-deckz(x)),hullgray,col,64)
-    cyl(name+' • roller race',(x,y,zbase+.13),spec.get('rollerRadius',r+.10),.26,edge,col,64)
+    # The bearing sits between the fixed barbette and the gunhouse floor. The
+    # yaw datum can lie above or below that floor (notably Yamato/Baltimore).
+    # Placing every race at yaw+0.13 left a gap on those mounts and Mk 30s.
+    cyl(name+' • roller race',(x,y,barbette_top+.125),spec.get('rollerRadius',r+.10),.27,edge,col,64)
     fixed_parts=set(bpy.context.scene.objects)-before
     yaw=empty('yaw',(x,y,zbase),(0,0,bearing))
     L,W,H=spec['gunhouseSize']

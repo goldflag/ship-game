@@ -1,0 +1,1976 @@
+{
+  "ship": "baltimore",
+  "source": "assets/ships/baltimore/generated/source.blend",
+  "toleranceM": 0.025,
+  "method": "object AABB candidate graph; overlaps do not prove attachment",
+  "meshCount": 9480,
+  "hullConnectedMeshCount": 9355,
+  "islands": [
+    {
+      "objects": [
+        {
+          "name": "forward-main-director Mk 8 antenna vertical",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.37299919128418,
+            -1.3983826637268066,
+            20.975000381469727
+          ],
+          "high": [
+            21.427000045776367,
+            -1.3516173362731934,
+            22.024999618530273
+          ]
+        },
+        {
+          "name": "forward-main-director Mk 8 antenna vertical.001",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.37299919128418,
+            -1.1692160367965698,
+            20.975000381469727
+          ],
+          "high": [
+            21.427000045776367,
+            -1.1224507093429565,
+            22.024999618530273
+          ]
+        },
+        {
+          "name": "forward-main-director Mk 8 antenna vertical.002",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.37299919128418,
+            -0.9400493502616882,
+            20.975000381469727
+          ],
+          "high": [
+            21.427000045776367,
+            -0.893284022808075,
+            22.024999618530273
+          ]
+        },
+        {
+          "name": "forward-main-director Mk 8 antenna vertical.003",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.37299919128418,
+            -0.7108826637268066,
+            20.975000381469727
+          ],
+          "high": [
+            21.427000045776367,
+            -0.6641173362731934,
+            22.024999618530273
+          ]
+        },
+        {
+          "name": "forward-main-director Mk 8 antenna vertical.004",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.37299919128418,
+            -0.4817160367965698,
+            20.975000381469727
+          ],
+          "high": [
+            21.427000045776367,
+            -0.43495064973831177,
+            22.024999618530273
+          ]
+        },
+        {
+          "name": "forward-main-director Mk 8 antenna vertical.005",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.37299919128418,
+            -0.25254935026168823,
+            20.975000381469727
+          ],
+          "high": [
+            21.427000045776367,
+            -0.20578397810459137,
+            22.024999618530273
+          ]
+        },
+        {
+          "name": "forward-main-director Mk 8 antenna vertical.006",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.37299919128418,
+            -0.02338268980383873,
+            20.975000381469727
+          ],
+          "high": [
+            21.427000045776367,
+            0.02338268980383873,
+            22.024999618530273
+          ]
+        },
+        {
+          "name": "forward-main-director Mk 8 antenna vertical.007",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.37299919128418,
+            0.20578397810459137,
+            20.975000381469727
+          ],
+          "high": [
+            21.427000045776367,
+            0.25254935026168823,
+            22.024999618530273
+          ]
+        },
+        {
+          "name": "forward-main-director Mk 8 antenna vertical.008",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.37299919128418,
+            0.43495064973831177,
+            20.975000381469727
+          ],
+          "high": [
+            21.427000045776367,
+            0.4817160367965698,
+            22.024999618530273
+          ]
+        },
+        {
+          "name": "forward-main-director Mk 8 antenna vertical.009",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.37299919128418,
+            0.6641173362731934,
+            20.975000381469727
+          ],
+          "high": [
+            21.427000045776367,
+            0.7108826637268066,
+            22.024999618530273
+          ]
+        },
+        {
+          "name": "forward-main-director Mk 8 antenna vertical.010",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.37299919128418,
+            0.893284022808075,
+            20.975000381469727
+          ],
+          "high": [
+            21.427000045776367,
+            0.9400493502616882,
+            22.024999618530273
+          ]
+        },
+        {
+          "name": "forward-main-director Mk 8 antenna vertical.011",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.37299919128418,
+            1.1224507093429565,
+            20.975000381469727
+          ],
+          "high": [
+            21.427000045776367,
+            1.1692160367965698,
+            22.024999618530273
+          ]
+        },
+        {
+          "name": "forward-main-director Mk 8 antenna vertical.012",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.37299919128418,
+            1.3516173362731934,
+            20.975000381469727
+          ],
+          "high": [
+            21.427000045776367,
+            1.3983826637268066,
+            22.024999618530273
+          ]
+        },
+        {
+          "name": "forward-main-director Mk 8 antenna horizontal",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.37299919128418,
+            -1.375,
+            20.951618194580078
+          ],
+          "high": [
+            21.427000045776367,
+            1.375,
+            20.998382568359375
+          ]
+        },
+        {
+          "name": "forward-main-director Mk 8 antenna horizontal.001",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.37299919128418,
+            -1.375,
+            21.082868576049805
+          ],
+          "high": [
+            21.427000045776367,
+            1.375,
+            21.1296329498291
+          ]
+        },
+        {
+          "name": "forward-main-director Mk 8 antenna horizontal.002",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.37299919128418,
+            -1.375,
+            21.2141170501709
+          ],
+          "high": [
+            21.427000045776367,
+            1.375,
+            21.260881423950195
+          ]
+        },
+        {
+          "name": "forward-main-director Mk 8 antenna horizontal.003",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.37299919128418,
+            -1.375,
+            21.345367431640625
+          ],
+          "high": [
+            21.427000045776367,
+            1.375,
+            21.392131805419922
+          ]
+        },
+        {
+          "name": "forward-main-director Mk 8 antenna horizontal.004",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.37299919128418,
+            -1.375,
+            21.47661781311035
+          ],
+          "high": [
+            21.427000045776367,
+            1.375,
+            21.52338218688965
+          ]
+        },
+        {
+          "name": "forward-main-director Mk 8 antenna horizontal.005",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.37299919128418,
+            -1.375,
+            21.607868194580078
+          ],
+          "high": [
+            21.427000045776367,
+            1.375,
+            21.654632568359375
+          ]
+        },
+        {
+          "name": "forward-main-director Mk 8 antenna horizontal.006",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.37299919128418,
+            -1.375,
+            21.739118576049805
+          ],
+          "high": [
+            21.427000045776367,
+            1.375,
+            21.7858829498291
+          ]
+        },
+        {
+          "name": "forward-main-director Mk 8 antenna horizontal.007",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.37299919128418,
+            -1.375,
+            21.8703670501709
+          ],
+          "high": [
+            21.427000045776367,
+            1.375,
+            21.917131423950195
+          ]
+        },
+        {
+          "name": "forward-main-director Mk 8 antenna horizontal.008",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.37299919128418,
+            -1.375,
+            22.001617431640625
+          ],
+          "high": [
+            21.427000045776367,
+            1.375,
+            22.048381805419922
+          ]
+        },
+        {
+          "name": "forward-main-director Mk 8 antenna brace",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.354000091552734,
+            -1.3892101049423218,
+            20.93778419494629
+          ],
+          "high": [
+            21.445999145507812,
+            1.3892101049423218,
+            22.06221580505371
+          ]
+        },
+        {
+          "name": "forward-main-director Mk 8 antenna brace.001",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.354000091552734,
+            -1.3892097473144531,
+            20.93778419494629
+          ],
+          "high": [
+            21.445999145507812,
+            1.3892097473144531,
+            22.06221580505371
+          ]
+        }
+      ],
+      "minimumBoxGap": 1.5723706206349888,
+      "closestObject": "forward-main-director Mk 8 antenna brace",
+      "closestHullConnectedObject": "Forward air-defense station top rail.007"
+    },
+    {
+      "objects": [
+        {
+          "name": "after-main-director Mk 8 antenna vertical",
+          "assembly": "after-main-director",
+          "node": null,
+          "low": [
+            -36.027000427246094,
+            -1.3983826637268066,
+            14.065000534057617
+          ],
+          "high": [
+            -35.972999572753906,
+            -1.3516173362731934,
+            15.114999771118164
+          ]
+        },
+        {
+          "name": "after-main-director Mk 8 antenna vertical.001",
+          "assembly": "after-main-director",
+          "node": null,
+          "low": [
+            -36.027000427246094,
+            -1.1692160367965698,
+            14.065000534057617
+          ],
+          "high": [
+            -35.972999572753906,
+            -1.1224507093429565,
+            15.114999771118164
+          ]
+        },
+        {
+          "name": "after-main-director Mk 8 antenna vertical.002",
+          "assembly": "after-main-director",
+          "node": null,
+          "low": [
+            -36.027000427246094,
+            -0.9400493502616882,
+            14.065000534057617
+          ],
+          "high": [
+            -35.972999572753906,
+            -0.893284022808075,
+            15.114999771118164
+          ]
+        },
+        {
+          "name": "after-main-director Mk 8 antenna vertical.003",
+          "assembly": "after-main-director",
+          "node": null,
+          "low": [
+            -36.027000427246094,
+            -0.7108826637268066,
+            14.065000534057617
+          ],
+          "high": [
+            -35.972999572753906,
+            -0.6641173362731934,
+            15.114999771118164
+          ]
+        },
+        {
+          "name": "after-main-director Mk 8 antenna vertical.004",
+          "assembly": "after-main-director",
+          "node": null,
+          "low": [
+            -36.027000427246094,
+            -0.4817160367965698,
+            14.065000534057617
+          ],
+          "high": [
+            -35.972999572753906,
+            -0.43495064973831177,
+            15.114999771118164
+          ]
+        },
+        {
+          "name": "after-main-director Mk 8 antenna vertical.005",
+          "assembly": "after-main-director",
+          "node": null,
+          "low": [
+            -36.027000427246094,
+            -0.25254935026168823,
+            14.065000534057617
+          ],
+          "high": [
+            -35.972999572753906,
+            -0.20578397810459137,
+            15.114999771118164
+          ]
+        },
+        {
+          "name": "after-main-director Mk 8 antenna vertical.006",
+          "assembly": "after-main-director",
+          "node": null,
+          "low": [
+            -36.027000427246094,
+            -0.02338268980383873,
+            14.065000534057617
+          ],
+          "high": [
+            -35.972999572753906,
+            0.02338268980383873,
+            15.114999771118164
+          ]
+        },
+        {
+          "name": "after-main-director Mk 8 antenna vertical.007",
+          "assembly": "after-main-director",
+          "node": null,
+          "low": [
+            -36.027000427246094,
+            0.20578397810459137,
+            14.065000534057617
+          ],
+          "high": [
+            -35.972999572753906,
+            0.25254935026168823,
+            15.114999771118164
+          ]
+        },
+        {
+          "name": "after-main-director Mk 8 antenna vertical.008",
+          "assembly": "after-main-director",
+          "node": null,
+          "low": [
+            -36.027000427246094,
+            0.43495064973831177,
+            14.065000534057617
+          ],
+          "high": [
+            -35.972999572753906,
+            0.4817160367965698,
+            15.114999771118164
+          ]
+        },
+        {
+          "name": "after-main-director Mk 8 antenna vertical.009",
+          "assembly": "after-main-director",
+          "node": null,
+          "low": [
+            -36.027000427246094,
+            0.6641173362731934,
+            14.065000534057617
+          ],
+          "high": [
+            -35.972999572753906,
+            0.7108826637268066,
+            15.114999771118164
+          ]
+        },
+        {
+          "name": "after-main-director Mk 8 antenna vertical.010",
+          "assembly": "after-main-director",
+          "node": null,
+          "low": [
+            -36.027000427246094,
+            0.893284022808075,
+            14.065000534057617
+          ],
+          "high": [
+            -35.972999572753906,
+            0.9400493502616882,
+            15.114999771118164
+          ]
+        },
+        {
+          "name": "after-main-director Mk 8 antenna vertical.011",
+          "assembly": "after-main-director",
+          "node": null,
+          "low": [
+            -36.027000427246094,
+            1.1224507093429565,
+            14.065000534057617
+          ],
+          "high": [
+            -35.972999572753906,
+            1.1692160367965698,
+            15.114999771118164
+          ]
+        },
+        {
+          "name": "after-main-director Mk 8 antenna vertical.012",
+          "assembly": "after-main-director",
+          "node": null,
+          "low": [
+            -36.027000427246094,
+            1.3516173362731934,
+            14.065000534057617
+          ],
+          "high": [
+            -35.972999572753906,
+            1.3983826637268066,
+            15.114999771118164
+          ]
+        },
+        {
+          "name": "after-main-director Mk 8 antenna horizontal",
+          "assembly": "after-main-director",
+          "node": null,
+          "low": [
+            -36.027000427246094,
+            -1.375,
+            14.041616439819336
+          ],
+          "high": [
+            -35.972999572753906,
+            1.375,
+            14.088382720947266
+          ]
+        },
+        {
+          "name": "after-main-director Mk 8 antenna horizontal.001",
+          "assembly": "after-main-director",
+          "node": null,
+          "low": [
+            -36.027000427246094,
+            -1.375,
+            14.172866821289062
+          ],
+          "high": [
+            -35.972999572753906,
+            1.375,
+            14.219633102416992
+          ]
+        },
+        {
+          "name": "after-main-director Mk 8 antenna horizontal.002",
+          "assembly": "after-main-director",
+          "node": null,
+          "low": [
+            -36.027000427246094,
+            -1.375,
+            14.304117202758789
+          ],
+          "high": [
+            -35.972999572753906,
+            1.375,
+            14.350883483886719
+          ]
+        },
+        {
+          "name": "after-main-director Mk 8 antenna horizontal.003",
+          "assembly": "after-main-director",
+          "node": null,
+          "low": [
+            -36.027000427246094,
+            -1.375,
+            14.4353666305542
+          ],
+          "high": [
+            -35.972999572753906,
+            1.375,
+            14.482132911682129
+          ]
+        },
+        {
+          "name": "after-main-director Mk 8 antenna horizontal.004",
+          "assembly": "after-main-director",
+          "node": null,
+          "low": [
+            -36.027000427246094,
+            -1.375,
+            14.566617012023926
+          ],
+          "high": [
+            -35.972999572753906,
+            1.375,
+            14.613383293151855
+          ]
+        },
+        {
+          "name": "after-main-director Mk 8 antenna horizontal.005",
+          "assembly": "after-main-director",
+          "node": null,
+          "low": [
+            -36.027000427246094,
+            -1.375,
+            14.697866439819336
+          ],
+          "high": [
+            -35.972999572753906,
+            1.375,
+            14.744632720947266
+          ]
+        },
+        {
+          "name": "after-main-director Mk 8 antenna horizontal.006",
+          "assembly": "after-main-director",
+          "node": null,
+          "low": [
+            -36.027000427246094,
+            -1.375,
+            14.829116821289062
+          ],
+          "high": [
+            -35.972999572753906,
+            1.375,
+            14.875883102416992
+          ]
+        },
+        {
+          "name": "after-main-director Mk 8 antenna horizontal.007",
+          "assembly": "after-main-director",
+          "node": null,
+          "low": [
+            -36.027000427246094,
+            -1.375,
+            14.960367202758789
+          ],
+          "high": [
+            -35.972999572753906,
+            1.375,
+            15.007133483886719
+          ]
+        },
+        {
+          "name": "after-main-director Mk 8 antenna horizontal.008",
+          "assembly": "after-main-director",
+          "node": null,
+          "low": [
+            -36.027000427246094,
+            -1.375,
+            15.0916166305542
+          ],
+          "high": [
+            -35.972999572753906,
+            1.375,
+            15.138382911682129
+          ]
+        },
+        {
+          "name": "after-main-director Mk 8 antenna brace",
+          "assembly": "after-main-director",
+          "node": null,
+          "low": [
+            -36.04600143432617,
+            -1.3892099857330322,
+            14.027783393859863
+          ],
+          "high": [
+            -35.95399856567383,
+            1.3892099857330322,
+            15.152216911315918
+          ]
+        },
+        {
+          "name": "after-main-director Mk 8 antenna brace.001",
+          "assembly": "after-main-director",
+          "node": null,
+          "low": [
+            -36.04600143432617,
+            -1.3892098665237427,
+            14.027783393859863
+          ],
+          "high": [
+            -35.95399856567383,
+            1.3892098665237427,
+            15.152216911315918
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.3877830505371094,
+      "closestObject": "after-main-director Mk 8 antenna brace",
+      "closestHullConnectedObject": "after-main-director Mk 34 shield"
+    },
+    {
+      "objects": [
+        {
+          "name": "Turret 2 \u00b7 8-inch roof handhold.001",
+          "assembly": "main-2",
+          "node": null,
+          "low": [
+            44.32601547241211,
+            -2.2090001106262207,
+            12.69849967956543
+          ],
+          "high": [
+            44.95976638793945,
+            -2.1589999198913574,
+            12.741800308227539
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.06834983825683594,
+      "closestObject": "Turret 2 \u00b7 8-inch roof handhold.001",
+      "closestHullConnectedObject": "Turret 2 \u00b7 8-inch \u2022 sloped gunhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "Turret 2 \u00b7 8-inch roof handhold.003",
+          "assembly": "main-2",
+          "node": null,
+          "low": [
+            44.32601547241211,
+            2.1589999198913574,
+            12.69849967956543
+          ],
+          "high": [
+            44.95976638793945,
+            2.2090001106262207,
+            12.741800308227539
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.06834983825683594,
+      "closestObject": "Turret 2 \u00b7 8-inch roof handhold.003",
+      "closestHullConnectedObject": "Turret 2 \u00b7 8-inch \u2022 sloped gunhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "Mount 51 \u00b7 5-inch roof handhold.001",
+          "assembly": "secondary-51",
+          "node": null,
+          "low": [
+            30.26947593688965,
+            -1.3550000190734863,
+            11.168349266052246
+          ],
+          "high": [
+            30.655412673950195,
+            -1.3050000667572021,
+            11.211649894714355
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.06834888458251953,
+      "closestObject": "Mount 51 \u00b7 5-inch roof handhold.001",
+      "closestHullConnectedObject": "Mount 51 \u00b7 5-inch \u2022 sloped gunhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "Mount 51 \u00b7 5-inch roof handhold.003",
+          "assembly": "secondary-51",
+          "node": null,
+          "low": [
+            30.26947593688965,
+            1.3050000667572021,
+            11.168349266052246
+          ],
+          "high": [
+            30.655412673950195,
+            1.3550000190734863,
+            11.211649894714355
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.06834888458251953,
+      "closestObject": "Mount 51 \u00b7 5-inch roof handhold.003",
+      "closestHullConnectedObject": "Mount 51 \u00b7 5-inch \u2022 sloped gunhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "Mount 56 \u00b7 5-inch roof handhold.001",
+          "assembly": "secondary-56",
+          "node": null,
+          "low": [
+            -42.63542175292969,
+            1.3050000667572021,
+            11.168349266052246
+          ],
+          "high": [
+            -42.249481201171875,
+            1.3550000190734863,
+            11.211649894714355
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.06834888458251953,
+      "closestObject": "Mount 56 \u00b7 5-inch roof handhold.001",
+      "closestHullConnectedObject": "Mount 56 \u00b7 5-inch \u2022 sloped gunhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "Mount 56 \u00b7 5-inch roof handhold.003",
+          "assembly": "secondary-56",
+          "node": null,
+          "low": [
+            -42.63542175292969,
+            -1.3550000190734863,
+            11.168349266052246
+          ],
+          "high": [
+            -42.249481201171875,
+            -1.3050000667572021,
+            11.211649894714355
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.06834888458251953,
+      "closestObject": "Mount 56 \u00b7 5-inch roof handhold.003",
+      "closestHullConnectedObject": "Mount 56 \u00b7 5-inch \u2022 sloped gunhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "Aft director tower ladder stringer",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.525001525878906,
+            -1.680310845375061,
+            11.0
+          ],
+          "high": [
+            -28.455001831054688,
+            -1.6196891069412231,
+            20.0
+          ]
+        },
+        {
+          "name": "Aft director tower ladder stringer.001",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -27.94499969482422,
+            -1.680310845375061,
+            11.0
+          ],
+          "high": [
+            -27.875,
+            -1.6196891069412231,
+            20.0
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749999523162842,
+            10.978349685668945
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.625,
+            11.021650314331055
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.001",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749999523162842,
+            11.288694381713867
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.625,
+            11.331995010375977
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.002",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749999523162842,
+            11.599039077758789
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.625,
+            11.642339706420898
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.003",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749998331069946,
+            11.909383773803711
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.6249998807907104,
+            11.95268440246582
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.004",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749999523162842,
+            12.21972942352295
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.625,
+            12.263030052185059
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.005",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749999523162842,
+            12.530074119567871
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.625,
+            12.57337474822998
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.006",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749999523162842,
+            12.840418815612793
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.625,
+            12.883719444274902
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.007",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749999523162842,
+            13.150763511657715
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.625,
+            13.194064140319824
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.008",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749999523162842,
+            13.461109161376953
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.625,
+            13.504409790039062
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.009",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749998331069946,
+            13.771452903747559
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.6249998807907104,
+            13.814753532409668
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.010",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749998331069946,
+            14.081798553466797
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.6249998807907104,
+            14.125099182128906
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.011",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749999523162842,
+            14.392143249511719
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.625,
+            14.435443878173828
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.012",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749999523162842,
+            14.70248794555664
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.625,
+            14.74578857421875
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.013",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749999523162842,
+            15.012832641601562
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.625,
+            15.056133270263672
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.014",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749999523162842,
+            15.323177337646484
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.625,
+            15.366477966308594
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.015",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749999523162842,
+            15.633522033691406
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.625,
+            15.676822662353516
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.016",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749999523162842,
+            15.943866729736328
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.625,
+            15.987167358398438
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.017",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749999523162842,
+            16.25421142578125
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.625,
+            16.29751205444336
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.018",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749999523162842,
+            16.564556121826172
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.625,
+            16.60785675048828
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.019",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749998331069946,
+            16.874900817871094
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.6249998807907104,
+            16.918201446533203
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.020",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749998331069946,
+            17.18524742126465
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.6249998807907104,
+            17.228548049926758
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.021",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749999523162842,
+            17.495590209960938
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.625,
+            17.538890838623047
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.022",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749999523162842,
+            17.805936813354492
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.625,
+            17.8492374420166
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.023",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749999523162842,
+            18.116281509399414
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.625,
+            18.159582138061523
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.024",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749999523162842,
+            18.426626205444336
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.625,
+            18.469926834106445
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.025",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749999523162842,
+            18.736970901489258
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.625,
+            18.780271530151367
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.026",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749998331069946,
+            19.04731559753418
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.6249998807907104,
+            19.09061622619629
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.027",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749999523162842,
+            19.3576602935791
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.625,
+            19.40096092224121
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.028",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749999523162842,
+            19.668004989624023
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.625,
+            19.711305618286133
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.029",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            -1.6749999523162842,
+            19.978349685668945
+          ],
+          "high": [
+            -27.90999984741211,
+            -1.625,
+            20.021650314331055
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.04494953155517578,
+      "closestObject": "Aft director tower ladder rung",
+      "closestHullConnectedObject": "After director platform"
+    },
+    {
+      "objects": [
+        {
+          "name": "Aft director tower ladder stringer.002",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.525001525878906,
+            1.6196891069412231,
+            11.0
+          ],
+          "high": [
+            -28.455001831054688,
+            1.680310845375061,
+            20.0
+          ]
+        },
+        {
+          "name": "Aft director tower ladder stringer.003",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -27.94499969482422,
+            1.6196891069412231,
+            11.0
+          ],
+          "high": [
+            -27.875,
+            1.680310845375061,
+            20.0
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.030",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.625,
+            10.978349685668945
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749999523162842,
+            11.021650314331055
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.031",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.625,
+            11.288694381713867
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749999523162842,
+            11.331995010375977
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.032",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.625,
+            11.599039077758789
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749999523162842,
+            11.642339706420898
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.033",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.6249998807907104,
+            11.909383773803711
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749998331069946,
+            11.95268440246582
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.034",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.625,
+            12.21972942352295
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749999523162842,
+            12.263030052185059
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.035",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.625,
+            12.530074119567871
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749999523162842,
+            12.57337474822998
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.036",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.625,
+            12.840418815612793
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749999523162842,
+            12.883719444274902
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.037",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.625,
+            13.150763511657715
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749999523162842,
+            13.194064140319824
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.038",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.625,
+            13.461109161376953
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749999523162842,
+            13.504409790039062
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.039",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.6249998807907104,
+            13.771452903747559
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749998331069946,
+            13.814753532409668
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.040",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.6249998807907104,
+            14.081798553466797
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749998331069946,
+            14.125099182128906
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.041",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.625,
+            14.392143249511719
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749999523162842,
+            14.435443878173828
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.042",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.625,
+            14.70248794555664
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749999523162842,
+            14.74578857421875
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.043",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.625,
+            15.012832641601562
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749999523162842,
+            15.056133270263672
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.044",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.625,
+            15.323177337646484
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749999523162842,
+            15.366477966308594
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.045",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.625,
+            15.633522033691406
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749999523162842,
+            15.676822662353516
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.046",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.625,
+            15.943866729736328
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749999523162842,
+            15.987167358398438
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.047",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.625,
+            16.25421142578125
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749999523162842,
+            16.29751205444336
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.048",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.625,
+            16.564556121826172
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749999523162842,
+            16.60785675048828
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.049",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.6249998807907104,
+            16.874900817871094
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749998331069946,
+            16.918201446533203
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.050",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.6249998807907104,
+            17.18524742126465
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749998331069946,
+            17.228548049926758
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.051",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.625,
+            17.495590209960938
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749999523162842,
+            17.538890838623047
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.052",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.625,
+            17.805936813354492
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749999523162842,
+            17.8492374420166
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.053",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.625,
+            18.116281509399414
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749999523162842,
+            18.159582138061523
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.054",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.625,
+            18.426626205444336
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749999523162842,
+            18.469926834106445
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.055",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.625,
+            18.736970901489258
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749999523162842,
+            18.780271530151367
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.056",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.6249998807907104,
+            19.04731559753418
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749998331069946,
+            19.09061622619629
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.057",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.625,
+            19.3576602935791
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749999523162842,
+            19.40096092224121
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.058",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.625,
+            19.668004989624023
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749999523162842,
+            19.711305618286133
+          ]
+        },
+        {
+          "name": "Aft director tower ladder rung.059",
+          "assembly": "superstructure-service-fittings",
+          "node": null,
+          "low": [
+            -28.490001678466797,
+            1.625,
+            19.978349685668945
+          ],
+          "high": [
+            -27.90999984741211,
+            1.6749999523162842,
+            20.021650314331055
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.04494953155517578,
+      "closestObject": "Aft director tower ladder rung.030",
+      "closestHullConnectedObject": "After director platform"
+    },
+    {
+      "objects": [
+        {
+          "name": "forward-main-director base",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            20.079999923706055,
+            -1.3200000524520874,
+            17.850000381469727
+          ],
+          "high": [
+            22.719999313354492,
+            1.3200000524520874,
+            18.55000114440918
+          ]
+        },
+        {
+          "name": "forward-main-director Mk 34 shield",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            19.950000762939453,
+            -1.2799999713897705,
+            18.549999237060547
+          ],
+          "high": [
+            22.850000381469727,
+            1.2799999713897705,
+            20.549999237060547
+          ]
+        },
+        {
+          "name": "forward-main-director rangefinder",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.170000076293945,
+            -2.799999952316284,
+            19.420000076293945
+          ],
+          "high": [
+            21.6299991607666,
+            2.799999952316284,
+            19.8799991607666
+          ]
+        },
+        {
+          "name": "forward-main-director rangefinder hood",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.049999237060547,
+            -3.0199999809265137,
+            19.299999237060547
+          ],
+          "high": [
+            21.75,
+            -2.5799999237060547,
+            20.0
+          ]
+        },
+        {
+          "name": "forward-main-director rangefinder hood.001",
+          "assembly": "forward-main-director",
+          "node": null,
+          "low": [
+            21.049999237060547,
+            2.5799999237060547,
+            19.299999237060547
+          ],
+          "high": [
+            21.75,
+            3.0199999809265137,
+            20.0
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.034229278564453125,
+      "closestObject": "forward-main-director Mk 34 shield",
+      "closestHullConnectedObject": "Forward air-defense station plate 7"
+    },
+    {
+      "objects": [
+        {
+          "name": "Turret 3 \u00b7 8-inch roof handhold.001",
+          "assembly": "main-3",
+          "node": null,
+          "low": [
+            -56.1411018371582,
+            2.1589999198913574,
+            9.993399620056152
+          ],
+          "high": [
+            -55.50735092163086,
+            2.2090001106262207,
+            10.036700248718262
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.03339958190917969,
+      "closestObject": "Turret 3 \u00b7 8-inch roof handhold.001",
+      "closestHullConnectedObject": "Blueprint lofted hull"
+    },
+    {
+      "objects": [
+        {
+          "name": "Turret 3 \u00b7 8-inch roof handhold.003",
+          "assembly": "main-3",
+          "node": null,
+          "low": [
+            -56.1411018371582,
+            -2.2090001106262207,
+            9.993399620056152
+          ],
+          "high": [
+            -55.50735092163086,
+            -2.1589999198913574,
+            10.036700248718262
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.03339958190917969,
+      "closestObject": "Turret 3 \u00b7 8-inch roof handhold.003",
+      "closestHullConnectedObject": "Blueprint lofted hull"
+    }
+  ]
+}

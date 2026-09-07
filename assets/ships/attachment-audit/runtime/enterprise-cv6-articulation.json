@@ -1,0 +1,82 @@
+{
+  "backend": "webgpu",
+  "contentHash": "79221cca0c852952ce41c01ac1cbc3b654a4157baf955d63eeeff0415ebf3f95",
+  "kind": "articulation",
+  "mounts": 42,
+  "poses": [
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 3.248075260614092e-05,
+      "recoilFraction": 0,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 3.248075260614092e-05,
+      "recoilFraction": 1,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 3.273904868116042e-05,
+      "recoilFraction": 0,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 3.273904867634886e-05,
+      "recoilFraction": 1,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 3.021119333964585e-05,
+      "recoilFraction": 0,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 3.021119333964585e-05,
+      "recoilFraction": 1,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 3.021119333964585e-05,
+      "recoilFraction": 0,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 3.021119333964585e-05,
+      "recoilFraction": 1,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 3.021119333964585e-05,
+      "recoilFraction": 0,
+      "trainFraction": 1
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleErrorM": 3.021119333964585e-05,
+      "recoilFraction": 1,
+      "trainFraction": 1
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 3.021119333964585e-05,
+      "recoilFraction": 0,
+      "trainFraction": 1
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleErrorM": 3.021119333964585e-05,
+      "recoilFraction": 1,
+      "trainFraction": 1
+    }
+  ],
+  "shipId": "enterprise-cv6",
+  "time": "2026-09-07T04:30:13.827Z"
+}

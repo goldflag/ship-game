@@ -135,7 +135,7 @@ def rails(name,points,height=.94,closed=False,spacing=1.8):
 
 def ladder(name,a,b,w=.55):
     a,b=Vector(a),Vector(b);n=max(2,math.ceil((b-a).length/.29))
-    for side in [-1,1]:rod(name+'.rail',a+Vector((0,side*w/2,0)),b+Vector((0,side*w/2,.65)),.026,materials['edge'],vertices=8)
+    for side in [-1,1]:rod(name+'.rail',a+Vector((0,side*w/2,0)),b+Vector((0,side*w/2,0))+(b-a).normalized()*.65,.026,materials['edge'],vertices=8)
     for i in range(n+1):
         p=a.lerp(b,i/n);rod(name+'.rung',p+Vector((0,-w/2,0)),p+Vector((0,w/2,0)),.023,materials['naval'],vertices=8)
 
@@ -158,6 +158,7 @@ def portlight(name,center,normal,r=.18):
     tube_path(name+'.eyebrow',[p+v*.075+tangent*(r*1.08*math.cos(i*math.pi/10))+up*(r*1.08*math.sin(i*math.pi/10)) for i in range(11)],.018,materials['naval'],sides=6)
 
 def door(name,x,y,z,side=1,w=.66,h=1.55):
+    box(name+'.frame',(x,y-side*.035,z+h/2),(w,.12,h),materials['edge'],bev=.025)
     outline=[(x-w/2,z+.12),(x-w/2+.12,z),(x+w/2-.12,z),(x+w/2,z+.12),(x+w/2,z+h-.12),(x+w/2-.12,z+h),(x-w/2+.12,z+h),(x-w/2,z+h-.12)]
     o=mesh(name+'.gasket',[(a,y,b) for a,b in outline],[tuple(range(8))],materials['dark'])
     mesh(name+'.leaf',[(x+(a-x)*.92,y+side*.028,z+h/2+(b-z-h/2)*.97) for a,b in outline],[tuple(range(8))],materials['naval'])
@@ -165,6 +166,7 @@ def door(name,x,y,z,side=1,w=.66,h=1.55):
         rod(name+'.hinge',(x-w/2+.06,y+side*.075,z+dz-.1),(x-w/2+.06,y+side*.075,z+dz+.1),.028,materials['edge'])
         box(name+'.dog',(x+w*.33,y+side*.065,z+dz),(.14,.06,.035),materials['edge'],bev=.005)
     rod(name+'.handle',(x+w*.28,y+side*.12,z+.72),(x+w*.28,y+side*.12,z+.9),.021,materials['edge'])
+    for dz in [.72,.90]:rod(name+'.handle-foot',(x+w*.28,y+side*.025,z+dz),(x+w*.28,y+side*.12,z+dz),.020,materials['edge'])
 
 def locker(name,loc,dim=(.62,.5,.72)):
     x,y,z=loc;box(name+'.box',loc,dim,materials['naval'])
@@ -245,11 +247,12 @@ for s in definition['structures']:
                 x=xmin+1.45+i*3.2;yy=side*(w+.028);base=max(s['baseY']+.12,deckz(x)+.12)
                 if i%3!=2:door(s['id']+'.door',x,yy,base,side)
                 else:
-                    box(s['id']+'.vent',(x,yy+side*.055,base+1.25),(.65,.1,.65),materials['edge'],bev=.025)
+                    box(s['id']+'.vent',(x,yy+side*.015,base+1.25),(.65,.14,.65),materials['edge'],bev=.025)
                     for j in range(6):box(s['id']+'.louver',(x,yy+side*.115,base+1.0+j*.09),(.56,.065,.035),materials['naval'],bev=.004)
                 if i%2==0:
                     portlight(s['id']+'.porthole',(x+.95,yy,base+1.45),(0,side,0),.15)
                     rod(s['id']+'.fire-main',(x-.55,yy+side*.06,base+.20),(x+1.9,yy+side*.06,base+.20),.025,materials['edge'])
+                    for dx in [-.4,1.7]:rod(s['id']+'.fire-main-clip',(x+dx,yy-side*.03,base+.20),(x+dx,yy+side*.06,base+.20),.026,materials['naval'])
             tube_path(s['id']+'.cable-run',[(xmin+.8,side*(w+.03),z-.32),(xmax-.8,side*(w+.03),z-.32)],.023,materials['edge'])
 
 # The rounded bridge front remains continuous through both full-height tiers.
@@ -295,9 +298,9 @@ for side in [-1,1]:
     bulwark('bridge.observation-shield',[(22.0+1.10*math.cos(i*math.pi/24),side*(2.60+.58*math.sin(i*math.pi/24))) for i in range(25)],pilot_top+.18,.74,closed=False)
     cyl('bridge.pelorus',(22.0,side*2.60,pilot_top+.57),.13,.74,materials['edge'])
     box('bridge.pelorus-head',(22.0,side*2.60,pilot_top+.97),(.28,.25,.16),materials['naval'])
-    rod('bridge.voice-pipe',(18.7,side*2.25,pilot_top+.22),(18.7,side*2.25,pilot_top+.87),.045,materials['edge'])
+    rod('bridge.voice-pipe',(18.7,side*2.25,pilot_top+.16),(18.7,side*2.25,pilot_top+.87),.045,materials['edge'])
     x,y,z=16.80,side*4.55,pilot_base+.87
-    cyl('bridge.signal-pedestal',(x,y,z),.14,.66,materials['naval'])
+    cyl('bridge.signal-pedestal',(x,y,(pilot_base+z+.33)/2),.14,z+.33-pilot_base,materials['naval'])
     rod('bridge.signal-yoke',(x,y-.30,z+.3),(x,y+.30,z+.3),.035,materials['edge'])
     rod('bridge.signal-light',(x-.18,y,z+.56),(x+.22,y,z+.56),.24,materials['naval'],vertices=24)
     rod('bridge.signal-lens',(x+.221,y,z+.56),(x+.235,y,z+.56),.205,materials['glass'],vertices=24)
@@ -343,7 +346,7 @@ for s in definition['structures']:
     for t,sc in [(.13,1.015),(.79,.95),(1,.835)]:tube_path(name+'.rolled-band',ring(t,sc),.065 if t!=.13 else .05,materials['edge'],closed=True)
     for y in [-.85,0,.85]:
         xx=cx-.15*height;zz=base+height-.12
-        rod(name+'.cap-grille',(xx-rx*.61,y,zz-.65),(xx+rx*.61,y,zz+.65),.042,materials['edge'])
+        rod(name+'.cap-grille',(xx-rx*.77,y,zz-.85),(xx+rx*.77,y,zz+.85),.042,materials['edge'])
     # Steam pipes follow the casing's rake, with separate elbows and supports.
     for side in [-1,1]:
         for offset in [-.50,.43]:
@@ -383,16 +386,19 @@ for i in range(10):
 rod('radar.sc-support',(15.1,0,24.05),(15.04,0,25.30),.048,materials['edge'])
 rod('radar.sg-boom',(15.22,0,22.6),(16.15,0,22.6),.05,materials['edge'])
 box('radar.sg-head',(16.15,0,23.0),(.22,.65,.18),materials['naval'])
+rod('radar.sg-pedestal',(16.15,0,22.6),(16.15,0,23.0),.05,materials['edge'])
 rod('mast.aft',(-22.1,0,5.7),(-22.65,0,16.20),.095,materials['edge'],r2=.028)
 rod('mast.aft-yard',(-22.55,-1.75,13.9),(-22.55,1.75,13.9),.037,materials['edge'])
 for side in [-1,1]:
+    rod('rigging.fore-aerial-outrigger',(15.08,0,23.4),(15.08,side*.45,23.4),.03,materials['edge'])
+    rod('rigging.aft-aerial-outrigger',(-22.6,0,15.9),(-22.6,side*.5,15.9),.028,materials['edge'])
     rod('rigging.wireless',(15.08,side*.45,23.4),(-22.6,side*.5,15.9),.010,materials['dark'],vertices=6)
     rod('rigging.aft-downlead',(-22.6,side*.5,15.9),(-34,side*2.2,5.80),.011,materials['dark'],vertices=6)
 
 # Original articulated quintuple torpedo banks, above the machinery deckhouse.
 for launcher in definition['torpedoLaunchers']:
     a,b,c=launcher['position'];x,y,z=-c,-a,b;name=launcher['id']
-    cyl(name+'.fixed-race',(x,y,z+.13),1.43,.26,materials['edge'],vertices=64)
+    cyl(name+'.fixed-race',(x,y,z+.08),1.43,.36,materials['edge'],vertices=64)
     for i in range(24):
         t=i*math.tau/24;cyl(name+'.race-bolt',(x+1.29*math.cos(t),y+1.29*math.sin(t),z+.28),.035,.055,materials['wear'],vertices=6)
     pivot=empty(name+'.yaw',(x,y,z))
@@ -481,12 +487,15 @@ for side in [-1,1]:
     boat=mesh('boats.whaleboat-shell',vs,fs,materials['canvas'],smooth=True)
     mod=boat.modifiers.new('Hull skin','SOLIDIFY');mod.thickness=.05
     for sign in [-1,1]:tube_path('boats.gunwale',[(cx+x,cy+sign*w*B/2,z+.6) for x,w,k in stations],.055,materials['wood'])
-    for dx in [-2.1,-.9,.5,1.8]:box('boats.thwart',(cx+dx,cy,z+.38),(.28,1.4,.09),materials['wood'],bev=.025)
+    for dx in [-2.1,-.9,.5,1.8]:box('boats.thwart',(cx+dx,cy,z+.38),(.28,1.63,.09),materials['wood'],bev=.025)
     box('boats.floor',(cx,cy,z+.00),(3.8,.8,.05),materials['wood'],bev=.02)
     for dx in [-2.3,2.3]:
         y=side*3.62;x=cx+dx
         tube_path('boats.davit',[(x,y,deckz(x)+.05),(x,y,7.92),(x,side*3.75,8.32),(x,side*4.67,8.37)],.075,materials['naval'],sides=12)
-        rod('boats.fall',(x,side*4.67,8.37),(x,cy,z+.32),.015,materials['rope'],vertices=6)
+        rod('boats.fall',(x,side*4.67,8.37),(x,cy,z+.75),.015,materials['rope'],vertices=6)
+        # Sling ends terminate at the actual hull gunwales, not in the open boat.
+        beam=interp([(a,w) for a,w,k in stations],dx)*B/2
+        for sign in [-1,1]:rod('boats.lifting-bridle',(x,cy,z+.75),(x,cy+sign*beam,z+.6),.020,materials['rope'],vertices=6)
         cyl('boats.davit-base',(x,y,deckz(x)+.15),.23,.30,materials['edge'],vertices=20)
     for dx in [-2,2]:rod('boats.lashing',(cx+dx,cy-.8,z+.6),(cx+dx,cy+.8,z+.6),.023,materials['rope'])
 # Carley floats: rounded capsule tubes, internal gratings, straps, individual supports.
@@ -506,7 +515,7 @@ for side in [-1,1]:
     # Torpedo-deck access and deckhouse rails.
     stairs('deckhouse.stairs',(-15.9,side*3.7,2.95),(-13.4,side*3.7,5.27),.6)
     stairs('after.stairs',(-37.0,side*2.8,2.85),(-34.2,side*2.8,5.72),.60)
-    rails('after.roof-rail',[(x,side*3.12,5.76) for x in [-33.8,-29,-23,-18.0]],.86)
+    rails('after.roof-rail',[(x,side*3.12,5.72) for x in [-33.8,-29,-23,-18.0]],.86)
     # Waist bulwark below the boat and exposed deck pipework.
     bulwark('deck.boat-bulwark',[(7.3,side*5.50),(17.0,side*5.23)],3.35,1.05,closed=False)
     tube_path('deck.service-pipe',[(-16,side*3.55,3.11),(13,side*3.55,3.16)],.040,materials['edge'])
@@ -515,7 +524,7 @@ for side in [-1,1]:
 for side in [-1,1]:
     for x in [-17,-10,-2,5,11]:
         y=side*2.65;z=5.68
-        cyl('ventilation.gooseneck',(x,y,z+.38),.17,.70,materials['naval'],vertices=16)
+        cyl('ventilation.gooseneck',(x,y,z+.35),.17,.74,materials['naval'],vertices=16)
         tube_path('ventilation.hood',[(x,y,z+.65),(x-.20,y,z+.90),(x-.48,y,z+.88)],.18,materials['naval'],sides=12)
         rod('ventilation.opening',(x-.48,y,z+.88),(x-.50,y,z+.88),.145,materials['dark'],vertices=16)
     for x in [-49,-43,-36,33,43,51]:
@@ -547,7 +556,7 @@ for side in [-1,1]:
     for x in [-24.2,14.0]:
         for dx in [-.20,.20]:
             y=side*3.55;z=deckz(x)
-            cyl('damage-control.cylinder',(x+dx,y,z+.62),.125,1.04,materials['naval'],vertices=16)
+            cyl('damage-control.cylinder',(x+dx,y,z+.57),.125,1.14,materials['naval'],vertices=16)
             cyl('damage-control.bottle-shoulder',(x+dx,y,z+1.18),.125,.17,materials['naval'],vertices=16,r2=.045)
             cyl('damage-control.valve',(x+dx,y,z+1.30),.045,.11,materials['bronze'],vertices=12)
         for dz in [.28,.90]:box('damage-control.bottle-band',(x,side*3.68,z+dz),(.66,.05,.07),materials['edge'],bev=.006)
@@ -704,9 +713,10 @@ for mount in definition['mounts']:
         local(rod(name+'.rear-door-handle',(-2.91,side*.35,1.55),(-2.91,side*.35,1.76),.022,materials['edge']),yaw,name)
         local(tube_path(name+'.roof-grab',[(-2.59,side*.91,3.15),(-2.59,side*.91,3.30),(-2.22,side*.91,3.30),(-2.22,side*.91,3.20)],.024,materials['edge']),yaw,name)
         local(box(name+'.front-step',(1.38,side*.83,.42),(.31,.62,.23),materials['naval'],bev=.016),yaw,name)
-        local(tube_path(name+'.step-handle',[(1.52,side*.61,.57),(1.52,side*.61,.67),(1.52,side*1.04,.67),(1.52,side*1.04,.57)],.020,materials['edge']),yaw,name)
+        local(tube_path(name+'.step-handle',[(1.52,side*.61,.45),(1.52,side*.61,.67),(1.52,side*1.04,.67),(1.52,side*1.04,.45)],.020,materials['edge']),yaw,name)
     for z in [.70,1.06,1.42,1.78,2.14,2.50,2.86]:
         local(rod(name+'.rear-ladder',(-2.93,-.23,z),(-2.93,.23,z),.021,materials['edge']),yaw,name)
+        for side in [-1,1]:local(rod(name+'.ladder-foot',(-2.93,side*.23,z),(-2.80,side*.23,z),.020,materials['edge']),yaw,name)
     # Low aft equipment blister and visible train-ring fasteners.
     local(box(name+'.rear-equipment',(-2.95,0,.92),(.32,.95,.86),materials['naval'],bev=.05),yaw,name)
     for i in range(24):

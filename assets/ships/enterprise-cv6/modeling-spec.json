@@ -196,290 +196,290 @@
     {
       "id": "oerlikon-port-1-axis",
       "runtime": [
-        -14.2,
-        16.9419,
+        -13.1,
+        16.9069,
         116
       ],
       "toleranceM": 0.025,
       "basis": "estimated",
       "sourceId": "cv6-contract-1934",
-      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+      "note": "Attachment repair: origin on authored gallery deck; aft four mounts centered on the narrower stern galleries. Estimated placement, not a newly documented historical datum."
     },
     {
       "id": "oerlikon-port-2-axis",
       "runtime": [
-        -14.2,
-        16.9419,
+        -13.1,
+        16.9069,
         112
       ],
       "toleranceM": 0.025,
       "basis": "estimated",
       "sourceId": "cv6-contract-1934",
-      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+      "note": "Attachment repair: origin on authored gallery deck; aft four mounts centered on the narrower stern galleries. Estimated placement, not a newly documented historical datum."
     },
     {
       "id": "oerlikon-port-3-axis",
       "runtime": [
         -14.2,
-        16.9419,
+        16.9069,
         66
       ],
       "toleranceM": 0.025,
       "basis": "estimated",
       "sourceId": "cv6-contract-1934",
-      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+      "note": "Attachment repair: origin on authored gallery deck; aft four mounts centered on the narrower stern galleries. Estimated placement, not a newly documented historical datum."
     },
     {
       "id": "oerlikon-port-4-axis",
       "runtime": [
         -14.2,
-        16.9419,
+        16.9069,
         61
       ],
       "toleranceM": 0.025,
       "basis": "estimated",
       "sourceId": "cv6-contract-1934",
-      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+      "note": "Attachment repair: origin on authored gallery deck; aft four mounts centered on the narrower stern galleries. Estimated placement, not a newly documented historical datum."
     },
     {
       "id": "oerlikon-port-5-axis",
       "runtime": [
         -14.2,
-        16.9419,
+        16.9069,
         56
       ],
       "toleranceM": 0.025,
       "basis": "estimated",
       "sourceId": "cv6-contract-1934",
-      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+      "note": "Attachment repair: origin on authored gallery deck; aft four mounts centered on the narrower stern galleries. Estimated placement, not a newly documented historical datum."
     },
     {
       "id": "oerlikon-port-6-axis",
       "runtime": [
         -14.2,
-        16.9419,
+        16.9069,
         51
       ],
       "toleranceM": 0.025,
       "basis": "estimated",
       "sourceId": "cv6-contract-1934",
-      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+      "note": "Attachment repair: origin on authored gallery deck; aft four mounts centered on the narrower stern galleries. Estimated placement, not a newly documented historical datum."
     },
     {
       "id": "oerlikon-port-7-axis",
       "runtime": [
         -14.2,
-        16.9419,
+        16.9069,
         46
       ],
       "toleranceM": 0.025,
       "basis": "estimated",
       "sourceId": "cv6-contract-1934",
-      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+      "note": "Attachment repair: origin on authored gallery deck; aft four mounts centered on the narrower stern galleries. Estimated placement, not a newly documented historical datum."
     },
     {
       "id": "oerlikon-port-8-axis",
       "runtime": [
         -14.2,
-        16.9419,
+        16.9069,
         41
       ],
       "toleranceM": 0.025,
       "basis": "estimated",
       "sourceId": "cv6-contract-1934",
-      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+      "note": "Attachment repair: origin on authored gallery deck; aft four mounts centered on the narrower stern galleries. Estimated placement, not a newly documented historical datum."
     },
     {
       "id": "oerlikon-port-9-axis",
       "runtime": [
         -14.2,
-        16.9419,
+        16.9069,
         -48
       ],
       "toleranceM": 0.025,
       "basis": "estimated",
       "sourceId": "cv6-contract-1934",
-      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+      "note": "Attachment repair: origin on authored gallery deck; aft four mounts centered on the narrower stern galleries. Estimated placement, not a newly documented historical datum."
     },
     {
       "id": "oerlikon-port-10-axis",
       "runtime": [
         -14.2,
-        16.9419,
+        16.9069,
         -53
       ],
       "toleranceM": 0.025,
       "basis": "estimated",
       "sourceId": "cv6-contract-1934",
-      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+      "note": "Attachment repair: origin on authored gallery deck; aft four mounts centered on the narrower stern galleries. Estimated placement, not a newly documented historical datum."
     },
     {
       "id": "oerlikon-port-11-axis",
       "runtime": [
         -14.2,
-        16.9419,
+        16.9069,
         -58
       ],
       "toleranceM": 0.025,
       "basis": "estimated",
       "sourceId": "cv6-contract-1934",
-      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+      "note": "Attachment repair: origin on authored gallery deck; aft four mounts centered on the narrower stern galleries. Estimated placement, not a newly documented historical datum."
     },
     {
       "id": "oerlikon-port-12-axis",
       "runtime": [
         -14.2,
-        16.9419,
+        16.9069,
         -63
       ],
       "toleranceM": 0.025,
       "basis": "estimated",
       "sourceId": "cv6-contract-1934",
-      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+      "note": "Attachment repair: origin on authored gallery deck; aft four mounts centered on the narrower stern galleries. Estimated placement, not a newly documented historical datum."
     },
     {
       "id": "oerlikon-starboard-1-axis",
       "runtime": [
-        14.2,
-        16.9419,
+        13.1,
+        16.9069,
         116
       ],
       "toleranceM": 0.025,
       "basis": "estimated",
       "sourceId": "cv6-contract-1934",
-      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+      "note": "Attachment repair: origin on authored gallery deck; aft four mounts centered on the narrower stern galleries. Estimated placement, not a newly documented historical datum."
     },
     {
       "id": "oerlikon-starboard-2-axis",
       "runtime": [
-        14.2,
-        16.9419,
+        13.1,
+        16.9069,
         112
       ],
       "toleranceM": 0.025,
       "basis": "estimated",
       "sourceId": "cv6-contract-1934",
-      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+      "note": "Attachment repair: origin on authored gallery deck; aft four mounts centered on the narrower stern galleries. Estimated placement, not a newly documented historical datum."
     },
     {
       "id": "oerlikon-starboard-3-axis",
       "runtime": [
         14.2,
-        16.9419,
+        16.9069,
         66
       ],
       "toleranceM": 0.025,
       "basis": "estimated",
       "sourceId": "cv6-contract-1934",
-      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+      "note": "Attachment repair: origin on authored gallery deck; aft four mounts centered on the narrower stern galleries. Estimated placement, not a newly documented historical datum."
     },
     {
       "id": "oerlikon-starboard-4-axis",
       "runtime": [
         14.2,
-        16.9419,
+        16.9069,
         61
       ],
       "toleranceM": 0.025,
       "basis": "estimated",
       "sourceId": "cv6-contract-1934",
-      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+      "note": "Attachment repair: origin on authored gallery deck; aft four mounts centered on the narrower stern galleries. Estimated placement, not a newly documented historical datum."
     },
     {
       "id": "oerlikon-starboard-5-axis",
       "runtime": [
         14.2,
-        16.9419,
+        16.9069,
         56
       ],
       "toleranceM": 0.025,
       "basis": "estimated",
       "sourceId": "cv6-contract-1934",
-      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+      "note": "Attachment repair: origin on authored gallery deck; aft four mounts centered on the narrower stern galleries. Estimated placement, not a newly documented historical datum."
     },
     {
       "id": "oerlikon-starboard-6-axis",
       "runtime": [
         14.2,
-        16.9419,
+        16.9069,
         51
       ],
       "toleranceM": 0.025,
       "basis": "estimated",
       "sourceId": "cv6-contract-1934",
-      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+      "note": "Attachment repair: origin on authored gallery deck; aft four mounts centered on the narrower stern galleries. Estimated placement, not a newly documented historical datum."
     },
     {
       "id": "oerlikon-starboard-7-axis",
       "runtime": [
         14.2,
-        16.9419,
+        16.9069,
         46
       ],
       "toleranceM": 0.025,
       "basis": "estimated",
       "sourceId": "cv6-contract-1934",
-      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+      "note": "Attachment repair: origin on authored gallery deck; aft four mounts centered on the narrower stern galleries. Estimated placement, not a newly documented historical datum."
     },
     {
       "id": "oerlikon-starboard-8-axis",
       "runtime": [
         14.2,
-        16.9419,
+        16.9069,
         41
       ],
       "toleranceM": 0.025,
       "basis": "estimated",
       "sourceId": "cv6-contract-1934",
-      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+      "note": "Attachment repair: origin on authored gallery deck; aft four mounts centered on the narrower stern galleries. Estimated placement, not a newly documented historical datum."
     },
     {
       "id": "oerlikon-starboard-9-axis",
       "runtime": [
         14.2,
-        16.9419,
+        16.9069,
         -48
       ],
       "toleranceM": 0.025,
       "basis": "estimated",
       "sourceId": "cv6-contract-1934",
-      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+      "note": "Attachment repair: origin on authored gallery deck; aft four mounts centered on the narrower stern galleries. Estimated placement, not a newly documented historical datum."
     },
     {
       "id": "oerlikon-starboard-10-axis",
       "runtime": [
         14.2,
-        16.9419,
+        16.9069,
         -53
       ],
       "toleranceM": 0.025,
       "basis": "estimated",
       "sourceId": "cv6-contract-1934",
-      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+      "note": "Attachment repair: origin on authored gallery deck; aft four mounts centered on the narrower stern galleries. Estimated placement, not a newly documented historical datum."
     },
     {
       "id": "oerlikon-starboard-11-axis",
       "runtime": [
         14.2,
-        16.9419,
+        16.9069,
         -58
       ],
       "toleranceM": 0.025,
       "basis": "estimated",
       "sourceId": "cv6-contract-1934",
-      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+      "note": "Attachment repair: origin on authored gallery deck; aft four mounts centered on the narrower stern galleries. Estimated placement, not a newly documented historical datum."
     },
     {
       "id": "oerlikon-starboard-12-axis",
       "runtime": [
         14.2,
-        16.9419,
+        16.9069,
         -63
       ],
       "toleranceM": 0.025,
       "basis": "estimated",
       "sourceId": "cv6-contract-1934",
-      "note": "Retained mounting datums; tolerance tests export alignment, not historical position uncertainty."
+      "note": "Attachment repair: origin on authored gallery deck; aft four mounts centered on the narrower stern galleries. Estimated placement, not a newly documented historical datum."
     },
     {
       "id": "oerlikon-island-1-axis",

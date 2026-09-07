@@ -1,0 +1,24 @@
+{
+  "camera": [
+    204,
+    22,
+    -50
+  ],
+  "contentHash": "79221cca0c852952ce41c01ac1cbc3b654a4157baf955d63eeeff0415ebf3f95",
+  "offsetBlender": [
+    5,
+    24,
+    5
+  ],
+  "pose": {
+    "elevationFraction": 1,
+    "recoilFraction": 1,
+    "trainFraction": 0
+  },
+  "shipId": "enterprise-cv6",
+  "targetBlender": [
+    45,
+    12,
+    17
+  ]
+}

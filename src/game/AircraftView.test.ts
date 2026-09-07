@@ -5,6 +5,7 @@ import { AircraftView } from './AircraftView';
 import { CombatSimulation } from '../simulation/combat';
 import { shipPreset } from '../ships/presets';
 import { aircraftDeckSpot } from '../simulation/aircraft';
+import { aircraftGroundPose } from '../simulation/aircraftGroundPose';
 
 test('port renders only the player deck, follows its displayed pose, and retains parked battle aircraft', async () => {
   const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async () => {
@@ -23,7 +24,8 @@ test('port renders only the player deck, follows its displayed pose, and retains
     const firstBatch = view.root.children.find(c => c instanceof InstancedMesh && c !== view.root.children[1] && c.count > 0) as InstancedMesh;
     const matrix = new Matrix4(); firstBatch.getMatrixAt(0, matrix);
     const spot = aircraftDeckSpot(sim.player, sim.player.airWing!.planes[0]);
-    const expected = carrier.matrixWorld.clone().multiply(new Matrix4().makeTranslation(...spot));
+    const expected = carrier.matrixWorld.clone().multiply(new Matrix4().makeTranslation(...spot))
+      .multiply(new Matrix4().makeRotationX(aircraftGroundPose(sim.player.airWing!.planes[0].modelId).pitch));
     matrix.elements.forEach((value, i) => expect(value).toBeCloseTo(expected.elements[i], 3));
     sim.player.airWing!.planes[0].phase = 'lost';
     view.update(sim, camera, true, true, roots); expect(view.diagnostics().instances).toBe(11);

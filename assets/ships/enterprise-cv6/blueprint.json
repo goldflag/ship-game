@@ -10652,8 +10652,8 @@
       "partId": "oerlikon-20mm-single",
       "battery": "secondary",
       "position": [
-        -14.2,
-        15.8219,
+        -13.1,
+        15.7869,
         116
       ],
       "bearingDeg": -90,
@@ -10665,8 +10665,8 @@
       "partId": "oerlikon-20mm-single",
       "battery": "secondary",
       "position": [
-        -14.2,
-        15.8219,
+        -13.1,
+        15.7869,
         112
       ],
       "bearingDeg": -90,
@@ -10679,7 +10679,7 @@
       "battery": "secondary",
       "position": [
         -14.2,
-        15.8219,
+        15.7869,
         66
       ],
       "bearingDeg": -90,
@@ -10692,7 +10692,7 @@
       "battery": "secondary",
       "position": [
         -14.2,
-        15.8219,
+        15.7869,
         61
       ],
       "bearingDeg": -90,
@@ -10705,7 +10705,7 @@
       "battery": "secondary",
       "position": [
         -14.2,
-        15.8219,
+        15.7869,
         56
       ],
       "bearingDeg": -90,
@@ -10718,7 +10718,7 @@
       "battery": "secondary",
       "position": [
         -14.2,
-        15.8219,
+        15.7869,
         51
       ],
       "bearingDeg": -90,
@@ -10731,7 +10731,7 @@
       "battery": "secondary",
       "position": [
         -14.2,
-        15.8219,
+        15.7869,
         46
       ],
       "bearingDeg": -90,
@@ -10744,7 +10744,7 @@
       "battery": "secondary",
       "position": [
         -14.2,
-        15.8219,
+        15.7869,
         41
       ],
       "bearingDeg": -90,
@@ -10757,7 +10757,7 @@
       "battery": "secondary",
       "position": [
         -14.2,
-        15.8219,
+        15.7869,
         -48
       ],
       "bearingDeg": -90,
@@ -10770,7 +10770,7 @@
       "battery": "secondary",
       "position": [
         -14.2,
-        15.8219,
+        15.7869,
         -53
       ],
       "bearingDeg": -90,
@@ -10783,7 +10783,7 @@
       "battery": "secondary",
       "position": [
         -14.2,
-        15.8219,
+        15.7869,
         -58
       ],
       "bearingDeg": -90,
@@ -10796,7 +10796,7 @@
       "battery": "secondary",
       "position": [
         -14.2,
-        15.8219,
+        15.7869,
         -63
       ],
       "bearingDeg": -90,
@@ -10808,8 +10808,8 @@
       "partId": "oerlikon-20mm-single",
       "battery": "secondary",
       "position": [
-        14.2,
-        15.8219,
+        13.1,
+        15.7869,
         116
       ],
       "bearingDeg": 90,
@@ -10821,8 +10821,8 @@
       "partId": "oerlikon-20mm-single",
       "battery": "secondary",
       "position": [
-        14.2,
-        15.8219,
+        13.1,
+        15.7869,
         112
       ],
       "bearingDeg": 90,
@@ -10835,7 +10835,7 @@
       "battery": "secondary",
       "position": [
         14.2,
-        15.8219,
+        15.7869,
         66
       ],
       "bearingDeg": 90,
@@ -10848,7 +10848,7 @@
       "battery": "secondary",
       "position": [
         14.2,
-        15.8219,
+        15.7869,
         61
       ],
       "bearingDeg": 90,
@@ -10861,7 +10861,7 @@
       "battery": "secondary",
       "position": [
         14.2,
-        15.8219,
+        15.7869,
         56
       ],
       "bearingDeg": 90,
@@ -10874,7 +10874,7 @@
       "battery": "secondary",
       "position": [
         14.2,
-        15.8219,
+        15.7869,
         51
       ],
       "bearingDeg": 90,
@@ -10887,7 +10887,7 @@
       "battery": "secondary",
       "position": [
         14.2,
-        15.8219,
+        15.7869,
         46
       ],
       "bearingDeg": 90,
@@ -10900,7 +10900,7 @@
       "battery": "secondary",
       "position": [
         14.2,
-        15.8219,
+        15.7869,
         41
       ],
       "bearingDeg": 90,
@@ -10913,7 +10913,7 @@
       "battery": "secondary",
       "position": [
         14.2,
-        15.8219,
+        15.7869,
         -48
       ],
       "bearingDeg": 90,
@@ -10926,7 +10926,7 @@
       "battery": "secondary",
       "position": [
         14.2,
-        15.8219,
+        15.7869,
         -53
       ],
       "bearingDeg": 90,
@@ -10939,7 +10939,7 @@
       "battery": "secondary",
       "position": [
         14.2,
-        15.8219,
+        15.7869,
         -58
       ],
       "bearingDeg": 90,
@@ -10952,7 +10952,7 @@
       "battery": "secondary",
       "position": [
         14.2,
-        15.8219,
+        15.7869,
         -63
       ],
       "bearingDeg": 90,

@@ -1,0 +1,6437 @@
+{
+  "ship": "bismarck",
+  "source": "assets/ships/bismarck/generated/source.blend",
+  "toleranceM": 0.025,
+  "method": "object AABB candidate graph; overlaps do not prove attachment",
+  "meshCount": 16804,
+  "hullConnectedMeshCount": 16404,
+  "islands": [
+    {
+      "objects": [
+        {
+          "name": "Bridge sighting arm",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            32.849998474121094,
+            -6.134999752044678,
+            16.63968849182129
+          ],
+          "high": [
+            33.45000457763672,
+            -6.065000057220459,
+            16.7003116607666
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.21968841552734375,
+      "closestObject": "Bridge sighting arm",
+      "closestHullConnectedObject": "Gallery wind deflector.002"
+    },
+    {
+      "objects": [
+        {
+          "name": "Bridge sighting arm.002",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            32.849998474121094,
+            6.065000057220459,
+            16.63968849182129
+          ],
+          "high": [
+            33.45000457763672,
+            6.134999752044678,
+            16.7003116607666
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.21968841552734375,
+      "closestObject": "Bridge sighting arm.002",
+      "closestHullConnectedObject": "Gallery wind deflector.007"
+    },
+    {
+      "objects": [
+        {
+          "name": "Single 2 cm crew seat.001",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            42.2484130859375,
+            -4.972227096557617,
+            10.0649995803833
+          ],
+          "high": [
+            42.890159606933594,
+            -4.33048152923584,
+            10.175000190734863
+          ]
+        },
+        {
+          "name": "Single 2 cm seat support.001",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            42.504981994628906,
+            -4.717212677001953,
+            9.59999942779541
+          ],
+          "high": [
+            42.63359069824219,
+            -4.585495948791504,
+            10.079998970031738
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.16351842880249023,
+      "closestObject": "Single 2 cm crew seat.001",
+      "closestHullConnectedObject": "Single 2 cm trunnion.001"
+    },
+    {
+      "objects": [
+        {
+          "name": "Single 2 cm crew seat.011",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -46.351585388183594,
+            -6.2722272872924805,
+            10.0649995803833
+          ],
+          "high": [
+            -45.7098388671875,
+            -5.630481719970703,
+            10.175000190734863
+          ]
+        },
+        {
+          "name": "Single 2 cm seat support.011",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -46.09501647949219,
+            -6.017212867736816,
+            9.59999942779541
+          ],
+          "high": [
+            -45.966407775878906,
+            -5.885496139526367,
+            10.079998970031738
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.16351842880249023,
+      "closestObject": "Single 2 cm crew seat.011",
+      "closestHullConnectedObject": "Single 2 cm trunnion.011"
+    },
+    {
+      "objects": [
+        {
+          "name": "Single 2 cm crew seat.012",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            42.2484130859375,
+            4.33048152923584,
+            10.0649995803833
+          ],
+          "high": [
+            42.890159606933594,
+            4.972227096557617,
+            10.175000190734863
+          ]
+        },
+        {
+          "name": "Single 2 cm seat support.012",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            42.504981994628906,
+            4.585495948791504,
+            9.59999942779541
+          ],
+          "high": [
+            42.63359069824219,
+            4.717212677001953,
+            10.079998970031738
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.16351842880249023,
+      "closestObject": "Single 2 cm crew seat.012",
+      "closestHullConnectedObject": "Single 2 cm trunnion.012"
+    },
+    {
+      "objects": [
+        {
+          "name": "Single 2 cm crew seat.022",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -46.351585388183594,
+            5.630481719970703,
+            10.0649995803833
+          ],
+          "high": [
+            -45.7098388671875,
+            6.2722272872924805,
+            10.175000190734863
+          ]
+        },
+        {
+          "name": "Single 2 cm seat support.022",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -46.09501647949219,
+            5.885496139526367,
+            9.59999942779541
+          ],
+          "high": [
+            -45.966407775878906,
+            6.017212867736816,
+            10.079998970031738
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.16351842880249023,
+      "closestObject": "Single 2 cm crew seat.022",
+      "closestHullConnectedObject": "Single 2 cm trunnion.022"
+    },
+    {
+      "objects": [
+        {
+          "name": "After derrick post",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -43.130001068115234,
+            -0.1300000101327896,
+            12.5
+          ],
+          "high": [
+            -42.869998931884766,
+            0.1300000101327896,
+            26.799999237060547
+          ]
+        },
+        {
+          "name": "After derrick boom",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -48.06333541870117,
+            -0.09000052511692047,
+            15.942422866821289
+          ],
+          "high": [
+            -42.93666458129883,
+            0.09000052511692047,
+            21.55757713317871
+          ]
+        },
+        {
+          "name": "After derrick cable",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -48.01210403442383,
+            -0.01800040900707245,
+            21.487895965576172
+          ],
+          "high": [
+            -42.98789596557617,
+            0.014562714844942093,
+            26.512104034423828
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.14999961853027344,
+      "closestObject": "After derrick post",
+      "closestHullConnectedObject": "aft-control-deck deck lip"
+    },
+    {
+      "objects": [
+        {
+          "name": "Fore main director support column",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            11.84999942779541,
+            -1.5499999523162842,
+            29.209999084472656
+          ],
+          "high": [
+            14.949999809265137,
+            1.5499999523162842,
+            31.25
+          ]
+        },
+        {
+          "name": "Fore main director mounting ring",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            11.399999618530273,
+            -2.0,
+            31.229999542236328
+          ],
+          "high": [
+            15.399999618530273,
+            2.0,
+            31.43000030517578
+          ]
+        },
+        {
+          "name": "Fore main director armored hood",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            11.75,
+            -1.850000023841858,
+            31.440000534057617
+          ],
+          "high": [
+            15.050000190734863,
+            1.850000023841858,
+            32.720001220703125
+          ]
+        },
+        {
+          "name": "Fore main director sloped crown",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            11.850000381469727,
+            -1.75,
+            32.720001220703125
+          ],
+          "high": [
+            14.949999809265137,
+            1.75,
+            32.91999816894531
+          ]
+        },
+        {
+          "name": "Fore main director optical tube",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            13.10999870300293,
+            -5.25,
+            31.709999084472656
+          ],
+          "high": [
+            13.690000534057617,
+            5.25,
+            32.290000915527344
+          ]
+        },
+        {
+          "name": "Fore main director optical end hood",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            12.850000381469727,
+            -5.355000019073486,
+            31.549999237060547
+          ],
+          "high": [
+            13.949999809265137,
+            -4.505000114440918,
+            32.5
+          ]
+        },
+        {
+          "name": "Fore main director optic",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            13.94999885559082,
+            -5.099999904632568,
+            31.829999923706055
+          ],
+          "high": [
+            13.989999771118164,
+            -4.759999752044678,
+            32.16999816894531
+          ]
+        },
+        {
+          "name": "Fore main director optical end hood.001",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            12.850000381469727,
+            4.505000114440918,
+            31.549999237060547
+          ],
+          "high": [
+            13.949999809265137,
+            5.355000019073486,
+            32.5
+          ]
+        },
+        {
+          "name": "Fore main director optic.001",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            13.94999885559082,
+            4.759999752044678,
+            31.829999923706055
+          ],
+          "high": [
+            13.989999771118164,
+            5.099999904632568,
+            32.16999816894531
+          ]
+        },
+        {
+          "name": "Fore main director radar back frame",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            13.975000381469727,
+            -2.0999999046325684,
+            33.05000305175781
+          ],
+          "high": [
+            14.125,
+            2.0999999046325684,
+            34.75
+          ]
+        },
+        {
+          "name": "Fore main director radar recessed face",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            14.119000434875488,
+            -1.9900000095367432,
+            33.1400032043457
+          ],
+          "high": [
+            14.144999504089355,
+            1.9900000095367432,
+            34.65999984741211
+          ]
+        },
+        {
+          "name": "Fore main director radar vertical",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            14.137999534606934,
+            -2.0661678314208984,
+            33.099998474121094
+          ],
+          "high": [
+            14.168752670288086,
+            -2.03383207321167,
+            34.70000457763672
+          ]
+        },
+        {
+          "name": "Fore main director radar vertical.001",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            14.137999534606934,
+            -1.656167984008789,
+            33.099998474121094
+          ],
+          "high": [
+            14.168752670288086,
+            -1.6238319873809814,
+            34.70000457763672
+          ]
+        },
+        {
+          "name": "Fore main director radar vertical.002",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            14.137999534606934,
+            -1.2461680173873901,
+            33.099998474121094
+          ],
+          "high": [
+            14.168752670288086,
+            -1.2138320207595825,
+            34.70000457763672
+          ]
+        },
+        {
+          "name": "Fore main director radar vertical.003",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            14.137999534606934,
+            -0.8361679315567017,
+            33.099998474121094
+          ],
+          "high": [
+            14.168752670288086,
+            -0.8038320541381836,
+            34.70000457763672
+          ]
+        },
+        {
+          "name": "Fore main director radar vertical.004",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            14.137999534606934,
+            -0.42616796493530273,
+            33.099998474121094
+          ],
+          "high": [
+            14.168752670288086,
+            -0.3938320279121399,
+            34.70000457763672
+          ]
+        },
+        {
+          "name": "Fore main director radar vertical.005",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            14.137999534606934,
+            -0.016167962923645973,
+            33.099998474121094
+          ],
+          "high": [
+            14.168752670288086,
+            0.016167962923645973,
+            34.70000457763672
+          ]
+        },
+        {
+          "name": "Fore main director radar vertical.006",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            14.137999534606934,
+            0.3938320279121399,
+            33.099998474121094
+          ],
+          "high": [
+            14.168752670288086,
+            0.42616796493530273,
+            34.70000457763672
+          ]
+        },
+        {
+          "name": "Fore main director radar vertical.007",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            14.137999534606934,
+            0.8038320541381836,
+            33.099998474121094
+          ],
+          "high": [
+            14.168752670288086,
+            0.8361679315567017,
+            34.70000457763672
+          ]
+        },
+        {
+          "name": "Fore main director radar vertical.008",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            14.137999534606934,
+            1.2138320207595825,
+            33.099998474121094
+          ],
+          "high": [
+            14.168752670288086,
+            1.2461680173873901,
+            34.70000457763672
+          ]
+        },
+        {
+          "name": "Fore main director radar vertical.009",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            14.137999534606934,
+            1.6238319873809814,
+            33.099998474121094
+          ],
+          "high": [
+            14.168752670288086,
+            1.656167984008789,
+            34.70000457763672
+          ]
+        },
+        {
+          "name": "Fore main director radar vertical.010",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            14.137999534606934,
+            2.03383207321167,
+            33.099998474121094
+          ],
+          "high": [
+            14.168752670288086,
+            2.0661678314208984,
+            34.70000457763672
+          ]
+        },
+        {
+          "name": "Fore main director radar horizontal",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            14.149999618530273,
+            -2.0999999046325684,
+            33.10097885131836
+          ],
+          "high": [
+            14.18618106842041,
+            2.0999999046325684,
+            33.13901901245117
+          ]
+        },
+        {
+          "name": "Fore main director radar horizontal.001",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            14.149999618530273,
+            -2.0999999046325684,
+            33.4909782409668
+          ],
+          "high": [
+            14.18618106842041,
+            2.0999999046325684,
+            33.52901840209961
+          ]
+        },
+        {
+          "name": "Fore main director radar horizontal.002",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            14.149999618530273,
+            -2.0999999046325684,
+            33.8809814453125
+          ],
+          "high": [
+            14.18618106842041,
+            2.0999999046325684,
+            33.91902160644531
+          ]
+        },
+        {
+          "name": "Fore main director radar horizontal.003",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            14.149999618530273,
+            -2.0999999046325684,
+            34.27098083496094
+          ],
+          "high": [
+            14.18618106842041,
+            2.0999999046325684,
+            34.30902099609375
+          ]
+        },
+        {
+          "name": "Fore main director radar horizontal.004",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            14.149999618530273,
+            -2.0999999046325684,
+            34.660980224609375
+          ],
+          "high": [
+            14.18618106842041,
+            2.0999999046325684,
+            34.69902038574219
+          ]
+        },
+        {
+          "name": "Fore main director radar support",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            13.364005088806152,
+            -1.255000114440918,
+            32.618804931640625
+          ],
+          "high": [
+            14.0859956741333,
+            -1.1449999809265137,
+            33.43119812011719
+          ]
+        },
+        {
+          "name": "Fore main director radar support.001",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            13.364005088806152,
+            1.1449999809265137,
+            32.618804931640625
+          ],
+          "high": [
+            14.0859956741333,
+            1.255000114440918,
+            33.43119812011719
+          ]
+        },
+        {
+          "name": "Fore main director aerial",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            12.875999450683594,
+            -0.020784612745046616,
+            32.900001525878906
+          ],
+          "high": [
+            12.923999786376953,
+            0.020784612745046616,
+            35.25
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.09999847412109375,
+      "closestObject": "Fore main director support column",
+      "closestHullConnectedObject": "Upper fire-control platform"
+    },
+    {
+      "objects": [
+        {
+          "name": "Single 2 cm crew seat",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            41.35365295410156,
+            -5.6120781898498535,
+            10.0649995803833
+          ],
+          "high": [
+            41.995399475097656,
+            -4.970332622528076,
+            10.175000190734863
+          ]
+        },
+        {
+          "name": "Single 2 cm seat support",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            41.61022186279297,
+            -5.3570637702941895,
+            9.59999942779541
+          ],
+          "high": [
+            41.73883056640625,
+            -5.22534704208374,
+            10.079998970031738
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.05990938956473946,
+      "closestObject": "Single 2 cm crew seat",
+      "closestHullConnectedObject": "Single 2 cm trunnion"
+    },
+    {
+      "objects": [
+        {
+          "name": "Single 2 cm crew seat.010",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -47.24634552001953,
+            -6.912078380584717,
+            10.0649995803833
+          ],
+          "high": [
+            -46.60459899902344,
+            -6.2703328132629395,
+            10.175000190734863
+          ]
+        },
+        {
+          "name": "Single 2 cm seat support.010",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -46.989776611328125,
+            -6.657063961029053,
+            9.59999942779541
+          ],
+          "high": [
+            -46.861167907714844,
+            -6.5253472328186035,
+            10.079998970031738
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.05990938956473946,
+      "closestObject": "Single 2 cm crew seat.010",
+      "closestHullConnectedObject": "Single 2 cm trunnion.010"
+    },
+    {
+      "objects": [
+        {
+          "name": "Single 2 cm crew seat.013",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            41.35365295410156,
+            4.970332622528076,
+            10.0649995803833
+          ],
+          "high": [
+            41.995399475097656,
+            5.6120781898498535,
+            10.175000190734863
+          ]
+        },
+        {
+          "name": "Single 2 cm seat support.013",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            41.61022186279297,
+            5.22534704208374,
+            9.59999942779541
+          ],
+          "high": [
+            41.73883056640625,
+            5.3570637702941895,
+            10.079998970031738
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.05990938956473946,
+      "closestObject": "Single 2 cm crew seat.013",
+      "closestHullConnectedObject": "Single 2 cm trunnion.013"
+    },
+    {
+      "objects": [
+        {
+          "name": "Single 2 cm crew seat.023",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -47.24634552001953,
+            6.2703328132629395,
+            10.0649995803833
+          ],
+          "high": [
+            -46.60459899902344,
+            6.912078380584717,
+            10.175000190734863
+          ]
+        },
+        {
+          "name": "Single 2 cm seat support.023",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -46.989776611328125,
+            6.5253472328186035,
+            9.59999942779541
+          ],
+          "high": [
+            -46.861167907714844,
+            6.657063961029053,
+            10.079998970031738
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.05990938956473946,
+      "closestObject": "Single 2 cm crew seat.023",
+      "closestHullConnectedObject": "Single 2 cm trunnion.023"
+    },
+    {
+      "objects": [
+        {
+          "name": "Single 2 cm crew seat.006",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            10.153655052185059,
+            -5.31207799911499,
+            21.584999084472656
+          ],
+          "high": [
+            10.79539966583252,
+            -4.670332431793213,
+            21.69499969482422
+          ]
+        },
+        {
+          "name": "Single 2 cm seat support.006",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            10.410221099853516,
+            -5.057063579559326,
+            21.1200008392334
+          ],
+          "high": [
+            10.538833618164062,
+            -4.925346851348877,
+            21.600000381469727
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.059908214196570005,
+      "closestObject": "Single 2 cm crew seat.006",
+      "closestHullConnectedObject": "Single 2 cm trunnion.006"
+    },
+    {
+      "objects": [
+        {
+          "name": "Single 2 cm crew seat.019",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            10.153655052185059,
+            4.670332431793213,
+            21.584999084472656
+          ],
+          "high": [
+            10.79539966583252,
+            5.31207799911499,
+            21.69499969482422
+          ]
+        },
+        {
+          "name": "Single 2 cm seat support.019",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            10.410221099853516,
+            4.925346851348877,
+            21.1200008392334
+          ],
+          "high": [
+            10.538833618164062,
+            5.057063579559326,
+            21.600000381469727
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.059908214196570005,
+      "closestObject": "Single 2 cm crew seat.019",
+      "closestHullConnectedObject": "Single 2 cm trunnion.019"
+    },
+    {
+      "objects": [
+        {
+          "name": "Single 2 cm crew seat.002",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            27.953655242919922,
+            -7.31207799911499,
+            13.324999809265137
+          ],
+          "high": [
+            28.595401763916016,
+            -6.670332431793213,
+            13.4350004196167
+          ]
+        },
+        {
+          "name": "Single 2 cm seat support.002",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.210222244262695,
+            -7.057063579559326,
+            12.859999656677246
+          ],
+          "high": [
+            28.338834762573242,
+            -6.925346851348877,
+            13.339999198913574
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.05990703886606705,
+      "closestObject": "Single 2 cm crew seat.002",
+      "closestHullConnectedObject": "Single 2 cm trunnion.002"
+    },
+    {
+      "objects": [
+        {
+          "name": "Single 2 cm crew seat.015",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            27.953655242919922,
+            6.670332431793213,
+            13.324999809265137
+          ],
+          "high": [
+            28.595401763916016,
+            7.31207799911499,
+            13.4350004196167
+          ]
+        },
+        {
+          "name": "Single 2 cm seat support.015",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.210222244262695,
+            6.925346851348877,
+            12.859999656677246
+          ],
+          "high": [
+            28.338834762573242,
+            7.057063579559326,
+            13.339999198913574
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.05990703886606705,
+      "closestObject": "Single 2 cm crew seat.015",
+      "closestHullConnectedObject": "Single 2 cm trunnion.015"
+    },
+    {
+      "objects": [
+        {
+          "name": "Bridge pelorus stand",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            32.959999084472656,
+            -6.239999771118164,
+            15.565000534057617
+          ],
+          "high": [
+            33.23999786376953,
+            -5.960000038146973,
+            16.51500129699707
+          ]
+        },
+        {
+          "name": "Bridge pelorus dial",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            32.78999710083008,
+            -6.409999847412109,
+            16.48000144958496
+          ],
+          "high": [
+            33.40999984741211,
+            -5.789999961853027,
+            16.600000381469727
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.05500030517578125,
+      "closestObject": "Bridge pelorus stand",
+      "closestHullConnectedObject": "Navigation bridge wings"
+    },
+    {
+      "objects": [
+        {
+          "name": "Bridge pelorus stand.002",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            32.959999084472656,
+            5.960000038146973,
+            15.565000534057617
+          ],
+          "high": [
+            33.23999786376953,
+            6.239999771118164,
+            16.51500129699707
+          ]
+        },
+        {
+          "name": "Bridge pelorus dial.002",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            32.78999710083008,
+            5.789999961853027,
+            16.48000144958496
+          ],
+          "high": [
+            33.40999984741211,
+            6.409999847412109,
+            16.600000381469727
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.05500030517578125,
+      "closestObject": "Bridge pelorus stand.002",
+      "closestHullConnectedObject": "Navigation bridge wings"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse roof access",
+          "assembly": "anton",
+          "node": null,
+          "low": [
+            65.87100219726562,
+            -2.2940001487731934,
+            10.449999809265137
+          ],
+          "high": [
+            66.87100219726562,
+            -1.534000039100647,
+            10.570000648498535
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.05000019073486328,
+      "closestObject": "Gunhouse roof access",
+      "closestHullConnectedObject": "Anton \u2022 sloped gunhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse roof access.001",
+          "assembly": "anton",
+          "node": null,
+          "low": [
+            65.87100219726562,
+            1.534000039100647,
+            10.449999809265137
+          ],
+          "high": [
+            66.87100219726562,
+            2.2940001487731934,
+            10.570000648498535
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.05000019073486328,
+      "closestObject": "Gunhouse roof access.001",
+      "closestHullConnectedObject": "Anton \u2022 sloped gunhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse roof access.002",
+          "assembly": "bruno",
+          "node": null,
+          "low": [
+            47.670997619628906,
+            -2.2940001487731934,
+            14.25
+          ],
+          "high": [
+            48.670997619628906,
+            -1.534000039100647,
+            14.370000839233398
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.05000019073486328,
+      "closestObject": "Gunhouse roof access.002",
+      "closestHullConnectedObject": "Bruno \u2022 sloped gunhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse roof access.003",
+          "assembly": "bruno",
+          "node": null,
+          "low": [
+            47.670997619628906,
+            1.534000039100647,
+            14.25
+          ],
+          "high": [
+            48.670997619628906,
+            2.2940001487731934,
+            14.370000839233398
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.05000019073486328,
+      "closestObject": "Gunhouse roof access.003",
+      "closestHullConnectedObject": "Bruno \u2022 sloped gunhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse roof access.004",
+          "assembly": "caesar",
+          "node": null,
+          "low": [
+            -54.97100067138672,
+            1.5339996814727783,
+            14.25
+          ],
+          "high": [
+            -53.97100067138672,
+            2.293999671936035,
+            14.370000839233398
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.05000019073486328,
+      "closestObject": "Gunhouse roof access.004",
+      "closestHullConnectedObject": "C\u00e4sar \u2022 sloped gunhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse roof access.005",
+          "assembly": "caesar",
+          "node": null,
+          "low": [
+            -54.97100067138672,
+            -2.2940003871917725,
+            14.25
+          ],
+          "high": [
+            -53.97100067138672,
+            -1.5340003967285156,
+            14.370000839233398
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.05000019073486328,
+      "closestObject": "Gunhouse roof access.005",
+      "closestHullConnectedObject": "C\u00e4sar \u2022 sloped gunhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "bridge-lower scuttle dark glazing.005",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.440000534057617,
+            -6.472000598907471,
+            13.994010925292969
+          ],
+          "high": [
+            26.760000228881836,
+            -6.450000286102295,
+            14.305988311767578
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.070",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.39867401123047,
+            -6.494607925415039,
+            14.067032814025879
+          ],
+          "high": [
+            26.459152221679688,
+            -6.453000068664551,
+            14.154868125915527
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.071",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.420724868774414,
+            -6.494607925415039,
+            13.995631217956543
+          ],
+          "high": [
+            26.504873275756836,
+            -6.453000545501709,
+            14.085537910461426
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.072",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.478281021118164,
+            -6.494607925415039,
+            13.954805374145508
+          ],
+          "high": [
+            26.56943702697754,
+            -6.453000068664551,
+            14.02897834777832
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.073",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.559946060180664,
+            -6.494607925415039,
+            13.952638626098633
+          ],
+          "high": [
+            26.64005470275879,
+            -6.453000545501709,
+            13.996387481689453
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.074",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.630563735961914,
+            -6.494607925415039,
+            13.954805374145508
+          ],
+          "high": [
+            26.72171974182129,
+            -6.453000068664551,
+            14.02897834777832
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.075",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.695127487182617,
+            -6.494607925415039,
+            13.995631217956543
+          ],
+          "high": [
+            26.77927589416504,
+            -6.453000068664551,
+            14.085537910461426
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.076",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.740848541259766,
+            -6.494607925415039,
+            14.067032814025879
+          ],
+          "high": [
+            26.801326751708984,
+            -6.453000068664551,
+            14.154868125915527
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.077",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.740848541259766,
+            -6.499000549316406,
+            14.14513111114502
+          ],
+          "high": [
+            26.801326751708984,
+            -6.457392692565918,
+            14.232966423034668
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.078",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.695127487182617,
+            -6.499000549316406,
+            14.214461326599121
+          ],
+          "high": [
+            26.77927589416504,
+            -6.457392692565918,
+            14.304368019104004
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.079",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.630563735961914,
+            -6.499000549316406,
+            14.271020889282227
+          ],
+          "high": [
+            26.72171974182129,
+            -6.457392692565918,
+            14.345193862915039
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.080",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.559946060180664,
+            -6.499000072479248,
+            14.303611755371094
+          ],
+          "high": [
+            26.64005470275879,
+            -6.457392692565918,
+            14.347360610961914
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.081",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.478281021118164,
+            -6.499000549316406,
+            14.271020889282227
+          ],
+          "high": [
+            26.56943702697754,
+            -6.457392692565918,
+            14.345193862915039
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.082",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.420724868774414,
+            -6.499000072479248,
+            14.214461326599121
+          ],
+          "high": [
+            26.504873275756836,
+            -6.457392692565918,
+            14.304368019104004
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.083",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.39867401123047,
+            -6.499000549316406,
+            14.14513111114502
+          ],
+          "high": [
+            26.459152221679688,
+            -6.457392692565918,
+            14.232966423034668
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle eyebrow.030",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.419719696044922,
+            -6.510000705718994,
+            14.21553897857666
+          ],
+          "high": [
+            26.50070571899414,
+            -6.450000286102295,
+            14.29898738861084
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle eyebrow.031",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.46651840209961,
+            -6.510000705718994,
+            14.261018753051758
+          ],
+          "high": [
+            26.549354553222656,
+            -6.450000286102295,
+            14.339448928833008
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle eyebrow.032",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.53104591369629,
+            -6.510000705718994,
+            14.29175090789795
+          ],
+          "high": [
+            26.604734420776367,
+            -6.450000286102295,
+            14.354744911193848
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle eyebrow.033",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.595266342163086,
+            -6.510000705718994,
+            14.29175090789795
+          ],
+          "high": [
+            26.668954849243164,
+            -6.450000286102295,
+            14.354744911193848
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle eyebrow.034",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.650646209716797,
+            -6.510000705718994,
+            14.261018753051758
+          ],
+          "high": [
+            26.733482360839844,
+            -6.450000286102295,
+            14.339448928833008
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle eyebrow.035",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.699295043945312,
+            -6.510000705718994,
+            14.21553897857666
+          ],
+          "high": [
+            26.78028106689453,
+            -6.450000286102295,
+            14.29898738861084
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.05000019073486328,
+      "closestObject": "bridge-lower scuttle dark glazing.005",
+      "closestHullConnectedObject": "Lower bridge deckhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "bridge-lower scuttle dark glazing.006",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.639999389648438,
+            -6.472000598907471,
+            13.994010925292969
+          ],
+          "high": [
+            28.959999084472656,
+            -6.450000286102295,
+            14.305988311767578
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.084",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.59867286682129,
+            -6.494607925415039,
+            14.067032814025879
+          ],
+          "high": [
+            28.659151077270508,
+            -6.453000068664551,
+            14.154868125915527
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.085",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.620723724365234,
+            -6.494607925415039,
+            13.995631217956543
+          ],
+          "high": [
+            28.704872131347656,
+            -6.453000545501709,
+            14.085537910461426
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.086",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.678279876708984,
+            -6.494607925415039,
+            13.954805374145508
+          ],
+          "high": [
+            28.76943588256836,
+            -6.453000068664551,
+            14.02897834777832
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.087",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.759944915771484,
+            -6.494607925415039,
+            13.952638626098633
+          ],
+          "high": [
+            28.84005355834961,
+            -6.453000545501709,
+            13.996387481689453
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.088",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.830562591552734,
+            -6.494607925415039,
+            13.954805374145508
+          ],
+          "high": [
+            28.92171859741211,
+            -6.453000068664551,
+            14.02897834777832
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.089",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.895126342773438,
+            -6.494607925415039,
+            13.995631217956543
+          ],
+          "high": [
+            28.97927474975586,
+            -6.453000068664551,
+            14.085537910461426
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.090",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.940847396850586,
+            -6.494607925415039,
+            14.067032814025879
+          ],
+          "high": [
+            29.001325607299805,
+            -6.453000068664551,
+            14.154868125915527
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.091",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.940847396850586,
+            -6.499000549316406,
+            14.14513111114502
+          ],
+          "high": [
+            29.001325607299805,
+            -6.457392692565918,
+            14.232966423034668
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.092",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.895126342773438,
+            -6.499000549316406,
+            14.214461326599121
+          ],
+          "high": [
+            28.97927474975586,
+            -6.457392692565918,
+            14.304368019104004
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.093",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.830562591552734,
+            -6.499000549316406,
+            14.271020889282227
+          ],
+          "high": [
+            28.92171859741211,
+            -6.457392692565918,
+            14.345193862915039
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.094",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.759944915771484,
+            -6.499000072479248,
+            14.303611755371094
+          ],
+          "high": [
+            28.84005355834961,
+            -6.457392692565918,
+            14.347360610961914
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.095",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.678279876708984,
+            -6.499000549316406,
+            14.271020889282227
+          ],
+          "high": [
+            28.76943588256836,
+            -6.457392692565918,
+            14.345193862915039
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.096",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.620723724365234,
+            -6.499000072479248,
+            14.214461326599121
+          ],
+          "high": [
+            28.704872131347656,
+            -6.457392692565918,
+            14.304368019104004
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.097",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.59867286682129,
+            -6.499000549316406,
+            14.14513111114502
+          ],
+          "high": [
+            28.659151077270508,
+            -6.457392692565918,
+            14.232966423034668
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle eyebrow.036",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.619718551635742,
+            -6.510000705718994,
+            14.21553897857666
+          ],
+          "high": [
+            28.70070457458496,
+            -6.450000286102295,
+            14.29898738861084
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle eyebrow.037",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.66651725769043,
+            -6.510000705718994,
+            14.261018753051758
+          ],
+          "high": [
+            28.749353408813477,
+            -6.450000286102295,
+            14.339448928833008
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle eyebrow.038",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.73104476928711,
+            -6.510000705718994,
+            14.29175090789795
+          ],
+          "high": [
+            28.804733276367188,
+            -6.450000286102295,
+            14.354744911193848
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle eyebrow.039",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.795265197753906,
+            -6.510000705718994,
+            14.29175090789795
+          ],
+          "high": [
+            28.868953704833984,
+            -6.450000286102295,
+            14.354744911193848
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle eyebrow.040",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.850645065307617,
+            -6.510000705718994,
+            14.261018753051758
+          ],
+          "high": [
+            28.933481216430664,
+            -6.450000286102295,
+            14.339448928833008
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle eyebrow.041",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.899293899536133,
+            -6.510000705718994,
+            14.21553897857666
+          ],
+          "high": [
+            28.98027992248535,
+            -6.450000286102295,
+            14.29898738861084
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.05000019073486328,
+      "closestObject": "bridge-lower scuttle dark glazing.006",
+      "closestHullConnectedObject": "Lower bridge deckhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "bridge-lower scuttle dark glazing.013",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.440000534057617,
+            6.450000286102295,
+            13.994010925292969
+          ],
+          "high": [
+            26.760000228881836,
+            6.472000598907471,
+            14.305988311767578
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.182",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.740848541259766,
+            6.453000068664551,
+            14.067032814025879
+          ],
+          "high": [
+            26.801326751708984,
+            6.494607925415039,
+            14.154868125915527
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.183",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.695127487182617,
+            6.453000545501709,
+            13.995631217956543
+          ],
+          "high": [
+            26.77927589416504,
+            6.494607925415039,
+            14.085537910461426
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.184",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.630563735961914,
+            6.453000068664551,
+            13.954805374145508
+          ],
+          "high": [
+            26.72171974182129,
+            6.494607925415039,
+            14.02897834777832
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.185",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.559946060180664,
+            6.453000545501709,
+            13.952638626098633
+          ],
+          "high": [
+            26.64005470275879,
+            6.494607925415039,
+            13.996387481689453
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.186",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.478281021118164,
+            6.453000068664551,
+            13.954805374145508
+          ],
+          "high": [
+            26.56943702697754,
+            6.494607925415039,
+            14.02897834777832
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.187",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.420724868774414,
+            6.453000068664551,
+            13.995631217956543
+          ],
+          "high": [
+            26.504873275756836,
+            6.494607925415039,
+            14.085537910461426
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.188",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.39867401123047,
+            6.453000068664551,
+            14.067032814025879
+          ],
+          "high": [
+            26.459152221679688,
+            6.494607925415039,
+            14.154868125915527
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.189",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.39867401123047,
+            6.457392692565918,
+            14.14513111114502
+          ],
+          "high": [
+            26.459152221679688,
+            6.499000549316406,
+            14.232966423034668
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.190",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.420724868774414,
+            6.457392692565918,
+            14.214461326599121
+          ],
+          "high": [
+            26.504873275756836,
+            6.499000549316406,
+            14.304368019104004
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.191",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.478281021118164,
+            6.457392692565918,
+            14.271020889282227
+          ],
+          "high": [
+            26.56943702697754,
+            6.499000549316406,
+            14.345193862915039
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.192",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.559946060180664,
+            6.457392692565918,
+            14.303611755371094
+          ],
+          "high": [
+            26.64005470275879,
+            6.499000072479248,
+            14.347360610961914
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.193",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.630563735961914,
+            6.457392692565918,
+            14.271020889282227
+          ],
+          "high": [
+            26.72171974182129,
+            6.499000549316406,
+            14.345193862915039
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.194",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.695127487182617,
+            6.457392692565918,
+            14.214461326599121
+          ],
+          "high": [
+            26.77927589416504,
+            6.499000072479248,
+            14.304368019104004
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.195",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.740848541259766,
+            6.457392692565918,
+            14.14513111114502
+          ],
+          "high": [
+            26.801326751708984,
+            6.499000549316406,
+            14.232966423034668
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle eyebrow.078",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.699295043945312,
+            6.450000286102295,
+            14.21553897857666
+          ],
+          "high": [
+            26.78028106689453,
+            6.510000705718994,
+            14.29898738861084
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle eyebrow.079",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.650646209716797,
+            6.450000286102295,
+            14.261018753051758
+          ],
+          "high": [
+            26.733482360839844,
+            6.510000705718994,
+            14.339448928833008
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle eyebrow.080",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.595266342163086,
+            6.450000286102295,
+            14.29175090789795
+          ],
+          "high": [
+            26.668954849243164,
+            6.510000705718994,
+            14.354744911193848
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle eyebrow.081",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.53104591369629,
+            6.450000286102295,
+            14.29175090789795
+          ],
+          "high": [
+            26.604734420776367,
+            6.510000705718994,
+            14.354744911193848
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle eyebrow.082",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.46651840209961,
+            6.450000286102295,
+            14.261018753051758
+          ],
+          "high": [
+            26.549354553222656,
+            6.510000705718994,
+            14.339448928833008
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle eyebrow.083",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.419719696044922,
+            6.450000286102295,
+            14.21553897857666
+          ],
+          "high": [
+            26.50070571899414,
+            6.510000705718994,
+            14.29898738861084
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.05000019073486328,
+      "closestObject": "bridge-lower scuttle dark glazing.013",
+      "closestHullConnectedObject": "Lower bridge deckhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "bridge-lower scuttle dark glazing.014",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.639999389648438,
+            6.450000286102295,
+            13.994010925292969
+          ],
+          "high": [
+            28.959999084472656,
+            6.472000598907471,
+            14.305988311767578
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.196",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.940847396850586,
+            6.453000068664551,
+            14.067032814025879
+          ],
+          "high": [
+            29.001325607299805,
+            6.494607925415039,
+            14.154868125915527
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.197",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.895126342773438,
+            6.453000545501709,
+            13.995631217956543
+          ],
+          "high": [
+            28.97927474975586,
+            6.494607925415039,
+            14.085537910461426
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.198",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.830562591552734,
+            6.453000068664551,
+            13.954805374145508
+          ],
+          "high": [
+            28.92171859741211,
+            6.494607925415039,
+            14.02897834777832
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.199",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.759944915771484,
+            6.453000545501709,
+            13.952638626098633
+          ],
+          "high": [
+            28.84005355834961,
+            6.494607925415039,
+            13.996387481689453
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.200",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.678279876708984,
+            6.453000068664551,
+            13.954805374145508
+          ],
+          "high": [
+            28.76943588256836,
+            6.494607925415039,
+            14.02897834777832
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.201",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.620723724365234,
+            6.453000068664551,
+            13.995631217956543
+          ],
+          "high": [
+            28.704872131347656,
+            6.494607925415039,
+            14.085537910461426
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.202",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.59867286682129,
+            6.453000068664551,
+            14.067032814025879
+          ],
+          "high": [
+            28.659151077270508,
+            6.494607925415039,
+            14.154868125915527
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.203",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.59867286682129,
+            6.457392692565918,
+            14.14513111114502
+          ],
+          "high": [
+            28.659151077270508,
+            6.499000549316406,
+            14.232966423034668
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.204",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.620723724365234,
+            6.457392692565918,
+            14.214461326599121
+          ],
+          "high": [
+            28.704872131347656,
+            6.499000549316406,
+            14.304368019104004
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.205",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.678279876708984,
+            6.457392692565918,
+            14.271020889282227
+          ],
+          "high": [
+            28.76943588256836,
+            6.499000549316406,
+            14.345193862915039
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.206",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.759944915771484,
+            6.457392692565918,
+            14.303611755371094
+          ],
+          "high": [
+            28.84005355834961,
+            6.499000072479248,
+            14.347360610961914
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.207",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.830562591552734,
+            6.457392692565918,
+            14.271020889282227
+          ],
+          "high": [
+            28.92171859741211,
+            6.499000549316406,
+            14.345193862915039
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.208",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.895126342773438,
+            6.457392692565918,
+            14.214461326599121
+          ],
+          "high": [
+            28.97927474975586,
+            6.499000072479248,
+            14.304368019104004
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle rim.209",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.940847396850586,
+            6.457392692565918,
+            14.14513111114502
+          ],
+          "high": [
+            29.001325607299805,
+            6.499000549316406,
+            14.232966423034668
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle eyebrow.084",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.899293899536133,
+            6.450000286102295,
+            14.21553897857666
+          ],
+          "high": [
+            28.98027992248535,
+            6.510000705718994,
+            14.29898738861084
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle eyebrow.085",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.850645065307617,
+            6.450000286102295,
+            14.261018753051758
+          ],
+          "high": [
+            28.933481216430664,
+            6.510000705718994,
+            14.339448928833008
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle eyebrow.086",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.795265197753906,
+            6.450000286102295,
+            14.29175090789795
+          ],
+          "high": [
+            28.868953704833984,
+            6.510000705718994,
+            14.354744911193848
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle eyebrow.087",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.73104476928711,
+            6.450000286102295,
+            14.29175090789795
+          ],
+          "high": [
+            28.804733276367188,
+            6.510000705718994,
+            14.354744911193848
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle eyebrow.088",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.66651725769043,
+            6.450000286102295,
+            14.261018753051758
+          ],
+          "high": [
+            28.749353408813477,
+            6.510000705718994,
+            14.339448928833008
+          ]
+        },
+        {
+          "name": "bridge-lower scuttle eyebrow.089",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.619718551635742,
+            6.450000286102295,
+            14.21553897857666
+          ],
+          "high": [
+            28.70070457458496,
+            6.510000705718994,
+            14.29898738861084
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.05000019073486328,
+      "closestObject": "bridge-lower scuttle dark glazing.014",
+      "closestHullConnectedObject": "Lower bridge deckhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "main-hangar scuttle dark glazing",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.559999465942383,
+            -7.172000408172607,
+            9.574010848999023
+          ],
+          "high": [
+            -28.239999771118164,
+            -7.150000095367432,
+            9.885988235473633
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.60132598876953,
+            -7.194607734680176,
+            9.647032737731934
+          ],
+          "high": [
+            -28.540847778320312,
+            -7.1529998779296875,
+            9.734868049621582
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.001",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.579275131225586,
+            -7.194607734680176,
+            9.575631141662598
+          ],
+          "high": [
+            -28.495126724243164,
+            -7.153000354766846,
+            9.66553783416748
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.002",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.521718978881836,
+            -7.194607734680176,
+            9.534805297851562
+          ],
+          "high": [
+            -28.43056297302246,
+            -7.1529998779296875,
+            9.608978271484375
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.003",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.440053939819336,
+            -7.194607734680176,
+            9.532638549804688
+          ],
+          "high": [
+            -28.35994529724121,
+            -7.153000354766846,
+            9.576387405395508
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.004",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.369436264038086,
+            -7.194607734680176,
+            9.534805297851562
+          ],
+          "high": [
+            -28.27828025817871,
+            -7.1529998779296875,
+            9.608978271484375
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.005",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.304872512817383,
+            -7.194607734680176,
+            9.575631141662598
+          ],
+          "high": [
+            -28.22072410583496,
+            -7.1529998779296875,
+            9.66553783416748
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.006",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.259151458740234,
+            -7.194607734680176,
+            9.647032737731934
+          ],
+          "high": [
+            -28.198673248291016,
+            -7.1529998779296875,
+            9.734868049621582
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.007",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.259151458740234,
+            -7.199000358581543,
+            9.725131034851074
+          ],
+          "high": [
+            -28.198673248291016,
+            -7.157392501831055,
+            9.812966346740723
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.008",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.304872512817383,
+            -7.199000358581543,
+            9.794461250305176
+          ],
+          "high": [
+            -28.22072410583496,
+            -7.157392501831055,
+            9.884367942810059
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.009",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.369436264038086,
+            -7.199000358581543,
+            9.851020812988281
+          ],
+          "high": [
+            -28.27828025817871,
+            -7.157392501831055,
+            9.925193786621094
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.010",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.440053939819336,
+            -7.198999881744385,
+            9.883611679077148
+          ],
+          "high": [
+            -28.35994529724121,
+            -7.157392501831055,
+            9.927360534667969
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.011",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.521718978881836,
+            -7.199000358581543,
+            9.851020812988281
+          ],
+          "high": [
+            -28.43056297302246,
+            -7.157392501831055,
+            9.925193786621094
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.012",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.579275131225586,
+            -7.198999881744385,
+            9.794461250305176
+          ],
+          "high": [
+            -28.495126724243164,
+            -7.157392501831055,
+            9.884367942810059
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.013",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.60132598876953,
+            -7.199000358581543,
+            9.725131034851074
+          ],
+          "high": [
+            -28.540847778320312,
+            -7.157392501831055,
+            9.812966346740723
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.580280303955078,
+            -7.210000514984131,
+            9.795538902282715
+          ],
+          "high": [
+            -28.49929428100586,
+            -7.150000095367432,
+            9.878987312316895
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.001",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.53348159790039,
+            -7.210000514984131,
+            9.841018676757812
+          ],
+          "high": [
+            -28.450645446777344,
+            -7.150000095367432,
+            9.919448852539062
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.002",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.46895408630371,
+            -7.210000514984131,
+            9.871750831604004
+          ],
+          "high": [
+            -28.395265579223633,
+            -7.150000095367432,
+            9.934744834899902
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.003",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.404733657836914,
+            -7.210000514984131,
+            9.871750831604004
+          ],
+          "high": [
+            -28.331045150756836,
+            -7.150000095367432,
+            9.934744834899902
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.004",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.349353790283203,
+            -7.210000514984131,
+            9.841018676757812
+          ],
+          "high": [
+            -28.266517639160156,
+            -7.150000095367432,
+            9.919448852539062
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.005",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.300704956054688,
+            -7.210000514984131,
+            9.795538902282715
+          ],
+          "high": [
+            -28.21971893310547,
+            -7.150000095367432,
+            9.878987312316895
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.05000019073486328,
+      "closestObject": "main-hangar scuttle dark glazing",
+      "closestHullConnectedObject": "Double aircraft hangar"
+    },
+    {
+      "objects": [
+        {
+          "name": "main-hangar scuttle dark glazing.001",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.360000610351562,
+            -7.172000408172607,
+            9.574010848999023
+          ],
+          "high": [
+            -26.040000915527344,
+            -7.150000095367432,
+            9.885988235473633
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.014",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.40132713317871,
+            -7.194607734680176,
+            9.647032737731934
+          ],
+          "high": [
+            -26.340848922729492,
+            -7.1529998779296875,
+            9.734868049621582
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.015",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.379276275634766,
+            -7.194607734680176,
+            9.575631141662598
+          ],
+          "high": [
+            -26.295127868652344,
+            -7.153000354766846,
+            9.66553783416748
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.016",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.321720123291016,
+            -7.194607734680176,
+            9.534805297851562
+          ],
+          "high": [
+            -26.23056411743164,
+            -7.1529998779296875,
+            9.608978271484375
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.017",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.240055084228516,
+            -7.194607734680176,
+            9.532638549804688
+          ],
+          "high": [
+            -26.15994644165039,
+            -7.153000354766846,
+            9.576387405395508
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.018",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.169437408447266,
+            -7.194607734680176,
+            9.534805297851562
+          ],
+          "high": [
+            -26.07828140258789,
+            -7.1529998779296875,
+            9.608978271484375
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.019",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.104873657226562,
+            -7.194607734680176,
+            9.575631141662598
+          ],
+          "high": [
+            -26.02072525024414,
+            -7.1529998779296875,
+            9.66553783416748
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.020",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.059152603149414,
+            -7.194607734680176,
+            9.647032737731934
+          ],
+          "high": [
+            -25.998674392700195,
+            -7.1529998779296875,
+            9.734868049621582
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.021",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.059152603149414,
+            -7.199000358581543,
+            9.725131034851074
+          ],
+          "high": [
+            -25.998674392700195,
+            -7.157392501831055,
+            9.812966346740723
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.022",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.104873657226562,
+            -7.199000358581543,
+            9.794461250305176
+          ],
+          "high": [
+            -26.02072525024414,
+            -7.157392501831055,
+            9.884367942810059
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.023",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.169437408447266,
+            -7.199000358581543,
+            9.851020812988281
+          ],
+          "high": [
+            -26.07828140258789,
+            -7.157392501831055,
+            9.925193786621094
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.024",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.240055084228516,
+            -7.198999881744385,
+            9.883611679077148
+          ],
+          "high": [
+            -26.15994644165039,
+            -7.157392501831055,
+            9.927360534667969
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.025",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.321720123291016,
+            -7.199000358581543,
+            9.851020812988281
+          ],
+          "high": [
+            -26.23056411743164,
+            -7.157392501831055,
+            9.925193786621094
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.026",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.379276275634766,
+            -7.198999881744385,
+            9.794461250305176
+          ],
+          "high": [
+            -26.295127868652344,
+            -7.157392501831055,
+            9.884367942810059
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.027",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.40132713317871,
+            -7.199000358581543,
+            9.725131034851074
+          ],
+          "high": [
+            -26.340848922729492,
+            -7.157392501831055,
+            9.812966346740723
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.006",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.380281448364258,
+            -7.210000514984131,
+            9.795538902282715
+          ],
+          "high": [
+            -26.29929542541504,
+            -7.150000095367432,
+            9.878987312316895
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.007",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.33348274230957,
+            -7.210000514984131,
+            9.841018676757812
+          ],
+          "high": [
+            -26.250646591186523,
+            -7.150000095367432,
+            9.919448852539062
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.008",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.26895523071289,
+            -7.210000514984131,
+            9.871750831604004
+          ],
+          "high": [
+            -26.195266723632812,
+            -7.150000095367432,
+            9.934744834899902
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.009",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.204734802246094,
+            -7.210000514984131,
+            9.871750831604004
+          ],
+          "high": [
+            -26.131046295166016,
+            -7.150000095367432,
+            9.934744834899902
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.010",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.149354934692383,
+            -7.210000514984131,
+            9.841018676757812
+          ],
+          "high": [
+            -26.066518783569336,
+            -7.150000095367432,
+            9.919448852539062
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.011",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.100706100463867,
+            -7.210000514984131,
+            9.795538902282715
+          ],
+          "high": [
+            -26.01972007751465,
+            -7.150000095367432,
+            9.878987312316895
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.05000019073486328,
+      "closestObject": "main-hangar scuttle dark glazing.001",
+      "closestHullConnectedObject": "Double aircraft hangar"
+    },
+    {
+      "objects": [
+        {
+          "name": "main-hangar scuttle dark glazing.002",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -24.15999984741211,
+            -7.172000408172607,
+            9.574010848999023
+          ],
+          "high": [
+            -23.84000015258789,
+            -7.150000095367432,
+            9.885988235473633
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.028",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -24.201326370239258,
+            -7.194607734680176,
+            9.647032737731934
+          ],
+          "high": [
+            -24.14084815979004,
+            -7.1529998779296875,
+            9.734868049621582
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.029",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -24.179275512695312,
+            -7.194607734680176,
+            9.575631141662598
+          ],
+          "high": [
+            -24.09512710571289,
+            -7.153000354766846,
+            9.66553783416748
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.030",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -24.121719360351562,
+            -7.194607734680176,
+            9.534805297851562
+          ],
+          "high": [
+            -24.030563354492188,
+            -7.1529998779296875,
+            9.608978271484375
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.031",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -24.040054321289062,
+            -7.194607734680176,
+            9.532638549804688
+          ],
+          "high": [
+            -23.959945678710938,
+            -7.153000354766846,
+            9.576387405395508
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.032",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -23.969436645507812,
+            -7.194607734680176,
+            9.534805297851562
+          ],
+          "high": [
+            -23.878280639648438,
+            -7.1529998779296875,
+            9.608978271484375
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.033",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -23.90487289428711,
+            -7.194607734680176,
+            9.575631141662598
+          ],
+          "high": [
+            -23.820724487304688,
+            -7.1529998779296875,
+            9.66553783416748
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.034",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -23.85915184020996,
+            -7.194607734680176,
+            9.647032737731934
+          ],
+          "high": [
+            -23.798673629760742,
+            -7.1529998779296875,
+            9.734868049621582
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.035",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -23.85915184020996,
+            -7.199000358581543,
+            9.725131034851074
+          ],
+          "high": [
+            -23.798673629760742,
+            -7.157392501831055,
+            9.812966346740723
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.036",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -23.90487289428711,
+            -7.199000358581543,
+            9.794461250305176
+          ],
+          "high": [
+            -23.820724487304688,
+            -7.157392501831055,
+            9.884367942810059
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.037",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -23.969436645507812,
+            -7.199000358581543,
+            9.851020812988281
+          ],
+          "high": [
+            -23.878280639648438,
+            -7.157392501831055,
+            9.925193786621094
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.038",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -24.040054321289062,
+            -7.198999881744385,
+            9.883611679077148
+          ],
+          "high": [
+            -23.959945678710938,
+            -7.157392501831055,
+            9.927360534667969
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.039",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -24.121719360351562,
+            -7.199000358581543,
+            9.851020812988281
+          ],
+          "high": [
+            -24.030563354492188,
+            -7.157392501831055,
+            9.925193786621094
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.040",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -24.179275512695312,
+            -7.198999881744385,
+            9.794461250305176
+          ],
+          "high": [
+            -24.09512710571289,
+            -7.157392501831055,
+            9.884367942810059
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.041",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -24.201326370239258,
+            -7.199000358581543,
+            9.725131034851074
+          ],
+          "high": [
+            -24.14084815979004,
+            -7.157392501831055,
+            9.812966346740723
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.012",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -24.180280685424805,
+            -7.210000514984131,
+            9.795538902282715
+          ],
+          "high": [
+            -24.099294662475586,
+            -7.150000095367432,
+            9.878987312316895
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.013",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -24.133481979370117,
+            -7.210000514984131,
+            9.841018676757812
+          ],
+          "high": [
+            -24.05064582824707,
+            -7.150000095367432,
+            9.919448852539062
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.014",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -24.068954467773438,
+            -7.210000514984131,
+            9.871750831604004
+          ],
+          "high": [
+            -23.99526596069336,
+            -7.150000095367432,
+            9.934744834899902
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.015",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -24.00473403930664,
+            -7.210000514984131,
+            9.871750831604004
+          ],
+          "high": [
+            -23.931045532226562,
+            -7.150000095367432,
+            9.934744834899902
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.016",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -23.94935417175293,
+            -7.210000514984131,
+            9.841018676757812
+          ],
+          "high": [
+            -23.866518020629883,
+            -7.150000095367432,
+            9.919448852539062
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.017",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -23.900705337524414,
+            -7.210000514984131,
+            9.795538902282715
+          ],
+          "high": [
+            -23.819719314575195,
+            -7.150000095367432,
+            9.878987312316895
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.05000019073486328,
+      "closestObject": "main-hangar scuttle dark glazing.002",
+      "closestHullConnectedObject": "Double aircraft hangar"
+    },
+    {
+      "objects": [
+        {
+          "name": "main-hangar scuttle dark glazing.003",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.559999465942383,
+            7.150000095367432,
+            9.574010848999023
+          ],
+          "high": [
+            -28.239999771118164,
+            7.172000408172607,
+            9.885988235473633
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.042",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.259151458740234,
+            7.1529998779296875,
+            9.647032737731934
+          ],
+          "high": [
+            -28.198673248291016,
+            7.194607734680176,
+            9.734868049621582
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.043",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.304872512817383,
+            7.153000354766846,
+            9.575631141662598
+          ],
+          "high": [
+            -28.22072410583496,
+            7.194607734680176,
+            9.66553783416748
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.044",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.369436264038086,
+            7.1529998779296875,
+            9.534805297851562
+          ],
+          "high": [
+            -28.27828025817871,
+            7.194607734680176,
+            9.608978271484375
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.045",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.440053939819336,
+            7.153000354766846,
+            9.532638549804688
+          ],
+          "high": [
+            -28.35994529724121,
+            7.194607734680176,
+            9.576387405395508
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.046",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.521718978881836,
+            7.1529998779296875,
+            9.534805297851562
+          ],
+          "high": [
+            -28.43056297302246,
+            7.194607734680176,
+            9.608978271484375
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.047",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.579275131225586,
+            7.1529998779296875,
+            9.575631141662598
+          ],
+          "high": [
+            -28.495126724243164,
+            7.194607734680176,
+            9.66553783416748
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.048",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.60132598876953,
+            7.1529998779296875,
+            9.647032737731934
+          ],
+          "high": [
+            -28.540847778320312,
+            7.194607734680176,
+            9.734868049621582
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.049",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.60132598876953,
+            7.157392501831055,
+            9.725131034851074
+          ],
+          "high": [
+            -28.540847778320312,
+            7.199000358581543,
+            9.812966346740723
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.050",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.579275131225586,
+            7.157392501831055,
+            9.794461250305176
+          ],
+          "high": [
+            -28.495126724243164,
+            7.199000358581543,
+            9.884367942810059
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.051",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.521718978881836,
+            7.157392501831055,
+            9.851020812988281
+          ],
+          "high": [
+            -28.43056297302246,
+            7.199000358581543,
+            9.925193786621094
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.052",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.440053939819336,
+            7.157392501831055,
+            9.883611679077148
+          ],
+          "high": [
+            -28.35994529724121,
+            7.198999881744385,
+            9.927360534667969
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.053",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.369436264038086,
+            7.157392501831055,
+            9.851020812988281
+          ],
+          "high": [
+            -28.27828025817871,
+            7.199000358581543,
+            9.925193786621094
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.054",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.304872512817383,
+            7.157392501831055,
+            9.794461250305176
+          ],
+          "high": [
+            -28.22072410583496,
+            7.198999881744385,
+            9.884367942810059
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.055",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.259151458740234,
+            7.157392501831055,
+            9.725131034851074
+          ],
+          "high": [
+            -28.198673248291016,
+            7.199000358581543,
+            9.812966346740723
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.018",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.300704956054688,
+            7.150000095367432,
+            9.795538902282715
+          ],
+          "high": [
+            -28.21971893310547,
+            7.210000514984131,
+            9.878987312316895
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.019",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.349353790283203,
+            7.150000095367432,
+            9.841018676757812
+          ],
+          "high": [
+            -28.266517639160156,
+            7.210000514984131,
+            9.919448852539062
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.020",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.404733657836914,
+            7.150000095367432,
+            9.871750831604004
+          ],
+          "high": [
+            -28.331045150756836,
+            7.210000514984131,
+            9.934744834899902
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.021",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.46895408630371,
+            7.150000095367432,
+            9.871750831604004
+          ],
+          "high": [
+            -28.395265579223633,
+            7.210000514984131,
+            9.934744834899902
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.022",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.53348159790039,
+            7.150000095367432,
+            9.841018676757812
+          ],
+          "high": [
+            -28.450645446777344,
+            7.210000514984131,
+            9.919448852539062
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.023",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -28.580280303955078,
+            7.150000095367432,
+            9.795538902282715
+          ],
+          "high": [
+            -28.49929428100586,
+            7.210000514984131,
+            9.878987312316895
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.05000019073486328,
+      "closestObject": "main-hangar scuttle dark glazing.003",
+      "closestHullConnectedObject": "Double aircraft hangar"
+    },
+    {
+      "objects": [
+        {
+          "name": "main-hangar scuttle dark glazing.004",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.360000610351562,
+            7.150000095367432,
+            9.574010848999023
+          ],
+          "high": [
+            -26.040000915527344,
+            7.172000408172607,
+            9.885988235473633
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.056",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.059152603149414,
+            7.1529998779296875,
+            9.647032737731934
+          ],
+          "high": [
+            -25.998674392700195,
+            7.194607734680176,
+            9.734868049621582
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.057",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.104873657226562,
+            7.153000354766846,
+            9.575631141662598
+          ],
+          "high": [
+            -26.02072525024414,
+            7.194607734680176,
+            9.66553783416748
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.058",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.169437408447266,
+            7.1529998779296875,
+            9.534805297851562
+          ],
+          "high": [
+            -26.07828140258789,
+            7.194607734680176,
+            9.608978271484375
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.059",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.240055084228516,
+            7.153000354766846,
+            9.532638549804688
+          ],
+          "high": [
+            -26.15994644165039,
+            7.194607734680176,
+            9.576387405395508
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.060",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.321720123291016,
+            7.1529998779296875,
+            9.534805297851562
+          ],
+          "high": [
+            -26.23056411743164,
+            7.194607734680176,
+            9.608978271484375
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.061",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.379276275634766,
+            7.1529998779296875,
+            9.575631141662598
+          ],
+          "high": [
+            -26.295127868652344,
+            7.194607734680176,
+            9.66553783416748
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.062",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.40132713317871,
+            7.1529998779296875,
+            9.647032737731934
+          ],
+          "high": [
+            -26.340848922729492,
+            7.194607734680176,
+            9.734868049621582
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.063",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.40132713317871,
+            7.157392501831055,
+            9.725131034851074
+          ],
+          "high": [
+            -26.340848922729492,
+            7.199000358581543,
+            9.812966346740723
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.064",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.379276275634766,
+            7.157392501831055,
+            9.794461250305176
+          ],
+          "high": [
+            -26.295127868652344,
+            7.199000358581543,
+            9.884367942810059
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.065",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.321720123291016,
+            7.157392501831055,
+            9.851020812988281
+          ],
+          "high": [
+            -26.23056411743164,
+            7.199000358581543,
+            9.925193786621094
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.066",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.240055084228516,
+            7.157392501831055,
+            9.883611679077148
+          ],
+          "high": [
+            -26.15994644165039,
+            7.198999881744385,
+            9.927360534667969
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.067",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.169437408447266,
+            7.157392501831055,
+            9.851020812988281
+          ],
+          "high": [
+            -26.07828140258789,
+            7.199000358581543,
+            9.925193786621094
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.068",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.104873657226562,
+            7.157392501831055,
+            9.794461250305176
+          ],
+          "high": [
+            -26.02072525024414,
+            7.198999881744385,
+            9.884367942810059
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.069",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.059152603149414,
+            7.157392501831055,
+            9.725131034851074
+          ],
+          "high": [
+            -25.998674392700195,
+            7.199000358581543,
+            9.812966346740723
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.024",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.100706100463867,
+            7.150000095367432,
+            9.795538902282715
+          ],
+          "high": [
+            -26.01972007751465,
+            7.210000514984131,
+            9.878987312316895
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.025",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.149354934692383,
+            7.150000095367432,
+            9.841018676757812
+          ],
+          "high": [
+            -26.066518783569336,
+            7.210000514984131,
+            9.919448852539062
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.026",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.204734802246094,
+            7.150000095367432,
+            9.871750831604004
+          ],
+          "high": [
+            -26.131046295166016,
+            7.210000514984131,
+            9.934744834899902
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.027",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.26895523071289,
+            7.150000095367432,
+            9.871750831604004
+          ],
+          "high": [
+            -26.195266723632812,
+            7.210000514984131,
+            9.934744834899902
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.028",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.33348274230957,
+            7.150000095367432,
+            9.841018676757812
+          ],
+          "high": [
+            -26.250646591186523,
+            7.210000514984131,
+            9.919448852539062
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.029",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -26.380281448364258,
+            7.150000095367432,
+            9.795538902282715
+          ],
+          "high": [
+            -26.29929542541504,
+            7.210000514984131,
+            9.878987312316895
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.05000019073486328,
+      "closestObject": "main-hangar scuttle dark glazing.004",
+      "closestHullConnectedObject": "Double aircraft hangar"
+    },
+    {
+      "objects": [
+        {
+          "name": "main-hangar scuttle dark glazing.005",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -24.15999984741211,
+            7.150000095367432,
+            9.574010848999023
+          ],
+          "high": [
+            -23.84000015258789,
+            7.172000408172607,
+            9.885988235473633
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.070",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -23.85915184020996,
+            7.1529998779296875,
+            9.647032737731934
+          ],
+          "high": [
+            -23.798673629760742,
+            7.194607734680176,
+            9.734868049621582
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.071",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -23.90487289428711,
+            7.153000354766846,
+            9.575631141662598
+          ],
+          "high": [
+            -23.820724487304688,
+            7.194607734680176,
+            9.66553783416748
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.072",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -23.969436645507812,
+            7.1529998779296875,
+            9.534805297851562
+          ],
+          "high": [
+            -23.878280639648438,
+            7.194607734680176,
+            9.608978271484375
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.073",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -24.040054321289062,
+            7.153000354766846,
+            9.532638549804688
+          ],
+          "high": [
+            -23.959945678710938,
+            7.194607734680176,
+            9.576387405395508
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.074",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -24.121719360351562,
+            7.1529998779296875,
+            9.534805297851562
+          ],
+          "high": [
+            -24.030563354492188,
+            7.194607734680176,
+            9.608978271484375
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.075",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -24.179275512695312,
+            7.1529998779296875,
+            9.575631141662598
+          ],
+          "high": [
+            -24.09512710571289,
+            7.194607734680176,
+            9.66553783416748
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.076",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -24.201326370239258,
+            7.1529998779296875,
+            9.647032737731934
+          ],
+          "high": [
+            -24.14084815979004,
+            7.194607734680176,
+            9.734868049621582
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.077",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -24.201326370239258,
+            7.157392501831055,
+            9.725131034851074
+          ],
+          "high": [
+            -24.14084815979004,
+            7.199000358581543,
+            9.812966346740723
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.078",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -24.179275512695312,
+            7.157392501831055,
+            9.794461250305176
+          ],
+          "high": [
+            -24.09512710571289,
+            7.199000358581543,
+            9.884367942810059
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.079",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -24.121719360351562,
+            7.157392501831055,
+            9.851020812988281
+          ],
+          "high": [
+            -24.030563354492188,
+            7.199000358581543,
+            9.925193786621094
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.080",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -24.040054321289062,
+            7.157392501831055,
+            9.883611679077148
+          ],
+          "high": [
+            -23.959945678710938,
+            7.198999881744385,
+            9.927360534667969
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.081",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -23.969436645507812,
+            7.157392501831055,
+            9.851020812988281
+          ],
+          "high": [
+            -23.878280639648438,
+            7.199000358581543,
+            9.925193786621094
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.082",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -23.90487289428711,
+            7.157392501831055,
+            9.794461250305176
+          ],
+          "high": [
+            -23.820724487304688,
+            7.198999881744385,
+            9.884367942810059
+          ]
+        },
+        {
+          "name": "main-hangar scuttle rim.083",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -23.85915184020996,
+            7.157392501831055,
+            9.725131034851074
+          ],
+          "high": [
+            -23.798673629760742,
+            7.199000358581543,
+            9.812966346740723
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.030",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -23.900705337524414,
+            7.150000095367432,
+            9.795538902282715
+          ],
+          "high": [
+            -23.819719314575195,
+            7.210000514984131,
+            9.878987312316895
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.031",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -23.94935417175293,
+            7.150000095367432,
+            9.841018676757812
+          ],
+          "high": [
+            -23.866518020629883,
+            7.210000514984131,
+            9.919448852539062
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.032",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -24.00473403930664,
+            7.150000095367432,
+            9.871750831604004
+          ],
+          "high": [
+            -23.931045532226562,
+            7.210000514984131,
+            9.934744834899902
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.033",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -24.068954467773438,
+            7.150000095367432,
+            9.871750831604004
+          ],
+          "high": [
+            -23.99526596069336,
+            7.210000514984131,
+            9.934744834899902
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.034",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -24.133481979370117,
+            7.150000095367432,
+            9.841018676757812
+          ],
+          "high": [
+            -24.05064582824707,
+            7.210000514984131,
+            9.919448852539062
+          ]
+        },
+        {
+          "name": "main-hangar scuttle eyebrow.035",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -24.180280685424805,
+            7.150000095367432,
+            9.795538902282715
+          ],
+          "high": [
+            -24.099294662475586,
+            7.210000514984131,
+            9.878987312316895
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.05000019073486328,
+      "closestObject": "main-hangar scuttle dark glazing.005",
+      "closestHullConnectedObject": "Double aircraft hangar"
+    },
+    {
+      "objects": [
+        {
+          "name": "aft-control-deck scuttle dark glazing",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.36000061035156,
+            -6.521999835968018,
+            10.974011421203613
+          ],
+          "high": [
+            -42.040000915527344,
+            -6.499999523162842,
+            11.285988807678223
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.40132522583008,
+            -6.544607639312744,
+            11.047032356262207
+          ],
+          "high": [
+            -42.34084701538086,
+            -6.502999782562256,
+            11.134867668151855
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.001",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.37928009033203,
+            -6.544607639312744,
+            10.975632667541504
+          ],
+          "high": [
+            -42.295127868652344,
+            -6.503000259399414,
+            11.065539360046387
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.002",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.321720123291016,
+            -6.544607639312744,
+            10.934804916381836
+          ],
+          "high": [
+            -42.23056411743164,
+            -6.502999782562256,
+            11.008977890014648
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.003",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.240055084228516,
+            -6.544607639312744,
+            10.932639122009277
+          ],
+          "high": [
+            -42.15994644165039,
+            -6.503000259399414,
+            10.976387977600098
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.004",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.169437408447266,
+            -6.544607639312744,
+            10.934804916381836
+          ],
+          "high": [
+            -42.07828140258789,
+            -6.502999782562256,
+            11.008977890014648
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.005",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.10487365722656,
+            -6.544607639312744,
+            10.975632667541504
+          ],
+          "high": [
+            -42.020721435546875,
+            -6.502999782562256,
+            11.065539360046387
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.006",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.05915451049805,
+            -6.544607639312744,
+            11.047032356262207
+          ],
+          "high": [
+            -41.99867630004883,
+            -6.502999782562256,
+            11.134867668151855
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.007",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.05915451049805,
+            -6.549000263214111,
+            11.12513256072998
+          ],
+          "high": [
+            -41.99867630004883,
+            -6.507392406463623,
+            11.212967872619629
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.008",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.10487365722656,
+            -6.549000263214111,
+            11.19446086883545
+          ],
+          "high": [
+            -42.020721435546875,
+            -6.507392406463623,
+            11.284367561340332
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.009",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.169437408447266,
+            -6.549000263214111,
+            11.251022338867188
+          ],
+          "high": [
+            -42.07828140258789,
+            -6.507392406463623,
+            11.3251953125
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.010",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.240055084228516,
+            -6.548999786376953,
+            11.283612251281738
+          ],
+          "high": [
+            -42.15994644165039,
+            -6.507392406463623,
+            11.327361106872559
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.011",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.321720123291016,
+            -6.549000263214111,
+            11.251022338867188
+          ],
+          "high": [
+            -42.23056411743164,
+            -6.507392406463623,
+            11.3251953125
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.012",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.37928009033203,
+            -6.548999786376953,
+            11.19446086883545
+          ],
+          "high": [
+            -42.295127868652344,
+            -6.507392406463623,
+            11.284367561340332
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.013",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.40132522583008,
+            -6.549000263214111,
+            11.12513256072998
+          ],
+          "high": [
+            -42.34084701538086,
+            -6.507392406463623,
+            11.212967872619629
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle eyebrow",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.38028335571289,
+            -6.560000419616699,
+            11.195539474487305
+          ],
+          "high": [
+            -42.29929733276367,
+            -6.5,
+            11.278987884521484
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle eyebrow.001",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.3334846496582,
+            -6.560000419616699,
+            11.241020202636719
+          ],
+          "high": [
+            -42.25064468383789,
+            -6.5,
+            11.319450378417969
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle eyebrow.002",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.26895523071289,
+            -6.560000419616699,
+            11.27175235748291
+          ],
+          "high": [
+            -42.19526290893555,
+            -6.5,
+            11.334746360778809
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle eyebrow.003",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.20473861694336,
+            -6.560000419616699,
+            11.27175235748291
+          ],
+          "high": [
+            -42.131046295166016,
+            -6.5,
+            11.334746360778809
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle eyebrow.004",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.149356842041016,
+            -6.560000419616699,
+            11.241020202636719
+          ],
+          "high": [
+            -42.0665168762207,
+            -6.5,
+            11.319450378417969
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle eyebrow.005",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.100704193115234,
+            -6.560000419616699,
+            11.195539474487305
+          ],
+          "high": [
+            -42.019718170166016,
+            -6.5,
+            11.278987884521484
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.04999971389770508,
+      "closestObject": "aft-control-deck scuttle dark glazing",
+      "closestHullConnectedObject": "Aft fire-control deckhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "aft-control-deck scuttle dark glazing.003",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.36000061035156,
+            6.499999523162842,
+            10.974011421203613
+          ],
+          "high": [
+            -42.040000915527344,
+            6.521999835968018,
+            11.285988807678223
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.042",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.05915451049805,
+            6.502999782562256,
+            11.047032356262207
+          ],
+          "high": [
+            -41.99867630004883,
+            6.544607639312744,
+            11.134867668151855
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.043",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.10487365722656,
+            6.503000259399414,
+            10.975632667541504
+          ],
+          "high": [
+            -42.020721435546875,
+            6.544607639312744,
+            11.065539360046387
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.044",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.169437408447266,
+            6.502999782562256,
+            10.934804916381836
+          ],
+          "high": [
+            -42.07828140258789,
+            6.544607639312744,
+            11.008977890014648
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.045",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.240055084228516,
+            6.503000259399414,
+            10.932639122009277
+          ],
+          "high": [
+            -42.15994644165039,
+            6.544607639312744,
+            10.976387977600098
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.046",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.321720123291016,
+            6.502999782562256,
+            10.934804916381836
+          ],
+          "high": [
+            -42.23056411743164,
+            6.544607639312744,
+            11.008977890014648
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.047",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.37928009033203,
+            6.502999782562256,
+            10.975632667541504
+          ],
+          "high": [
+            -42.295127868652344,
+            6.544607639312744,
+            11.065539360046387
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.048",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.40132522583008,
+            6.502999782562256,
+            11.047032356262207
+          ],
+          "high": [
+            -42.34084701538086,
+            6.544607639312744,
+            11.134867668151855
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.049",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.40132522583008,
+            6.507392406463623,
+            11.12513256072998
+          ],
+          "high": [
+            -42.34084701538086,
+            6.549000263214111,
+            11.212967872619629
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.050",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.37928009033203,
+            6.507392406463623,
+            11.19446086883545
+          ],
+          "high": [
+            -42.295127868652344,
+            6.549000263214111,
+            11.284367561340332
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.051",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.321720123291016,
+            6.507392406463623,
+            11.251022338867188
+          ],
+          "high": [
+            -42.23056411743164,
+            6.549000263214111,
+            11.3251953125
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.052",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.240055084228516,
+            6.507392406463623,
+            11.283612251281738
+          ],
+          "high": [
+            -42.15994644165039,
+            6.548999786376953,
+            11.327361106872559
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.053",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.169437408447266,
+            6.507392406463623,
+            11.251022338867188
+          ],
+          "high": [
+            -42.07828140258789,
+            6.549000263214111,
+            11.3251953125
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.054",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.10487365722656,
+            6.507392406463623,
+            11.19446086883545
+          ],
+          "high": [
+            -42.020721435546875,
+            6.548999786376953,
+            11.284367561340332
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle rim.055",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.05915451049805,
+            6.507392406463623,
+            11.12513256072998
+          ],
+          "high": [
+            -41.99867630004883,
+            6.549000263214111,
+            11.212967872619629
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle eyebrow.018",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.100704193115234,
+            6.5,
+            11.195539474487305
+          ],
+          "high": [
+            -42.019718170166016,
+            6.560000419616699,
+            11.278987884521484
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle eyebrow.019",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.149356842041016,
+            6.5,
+            11.241020202636719
+          ],
+          "high": [
+            -42.0665168762207,
+            6.560000419616699,
+            11.319450378417969
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle eyebrow.020",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.20473861694336,
+            6.5,
+            11.27175235748291
+          ],
+          "high": [
+            -42.131046295166016,
+            6.560000419616699,
+            11.334746360778809
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle eyebrow.021",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.26895523071289,
+            6.5,
+            11.27175235748291
+          ],
+          "high": [
+            -42.19526290893555,
+            6.560000419616699,
+            11.334746360778809
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle eyebrow.022",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.3334846496582,
+            6.5,
+            11.241020202636719
+          ],
+          "high": [
+            -42.25064468383789,
+            6.560000419616699,
+            11.319450378417969
+          ]
+        },
+        {
+          "name": "aft-control-deck scuttle eyebrow.023",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            -42.38028335571289,
+            6.5,
+            11.195539474487305
+          ],
+          "high": [
+            -42.29929733276367,
+            6.560000419616699,
+            11.278987884521484
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.04999971389770508,
+      "closestObject": "aft-control-deck scuttle dark glazing.003",
+      "closestHullConnectedObject": "Aft fire-control deckhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse roof access.006",
+          "assembly": "dora",
+          "node": null,
+          "low": [
+            -73.1709976196289,
+            1.5339996814727783,
+            10.049999237060547
+          ],
+          "high": [
+            -72.1709976196289,
+            2.293999671936035,
+            10.170000076293945
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.049999237060546875,
+      "closestObject": "Gunhouse roof access.006",
+      "closestHullConnectedObject": "Dora \u2022 sloped gunhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse roof access.007",
+          "assembly": "dora",
+          "node": null,
+          "low": [
+            -73.1709976196289,
+            -2.2940003871917725,
+            10.049999237060547
+          ],
+          "high": [
+            -72.1709976196289,
+            -1.5340003967285156,
+            10.170000076293945
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.049999237060546875,
+      "closestObject": "Gunhouse roof access.007",
+      "closestHullConnectedObject": "Dora \u2022 sloped gunhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse roof sight.003",
+          "assembly": "bruno",
+          "node": null,
+          "low": [
+            47.96999740600586,
+            -2.830000162124634,
+            14.27500057220459
+          ],
+          "high": [
+            48.32999801635742,
+            -2.4700000286102295,
+            14.625000953674316
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.045500755310058594,
+      "closestObject": "Gunhouse roof sight.003",
+      "closestHullConnectedObject": "Gunhouse roof plate seam.003"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse roof sight.004",
+          "assembly": "bruno",
+          "node": null,
+          "low": [
+            47.96999740600586,
+            -0.18000000715255737,
+            14.27500057220459
+          ],
+          "high": [
+            48.32999801635742,
+            0.18000000715255737,
+            14.625000953674316
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.045500755310058594,
+      "closestObject": "Gunhouse roof sight.004",
+      "closestHullConnectedObject": "Gunhouse roof plate seam.004"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse roof sight.005",
+          "assembly": "bruno",
+          "node": null,
+          "low": [
+            47.96999740600586,
+            2.4700000286102295,
+            14.27500057220459
+          ],
+          "high": [
+            48.32999801635742,
+            2.830000162124634,
+            14.625000953674316
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.045500755310058594,
+      "closestObject": "Gunhouse roof sight.005",
+      "closestHullConnectedObject": "Gunhouse roof plate seam.005"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse roof sight.006",
+          "assembly": "caesar",
+          "node": null,
+          "low": [
+            -54.630001068115234,
+            2.4699997901916504,
+            14.27500057220459
+          ],
+          "high": [
+            -54.27000045776367,
+            2.8299999237060547,
+            14.625000953674316
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.045500755310058594,
+      "closestObject": "Gunhouse roof sight.006",
+      "closestHullConnectedObject": "Gunhouse roof plate seam.006"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse roof sight.007",
+          "assembly": "caesar",
+          "node": null,
+          "low": [
+            -54.630001068115234,
+            -0.18000034987926483,
+            14.27500057220459
+          ],
+          "high": [
+            -54.27000045776367,
+            0.1799996942281723,
+            14.625000953674316
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.045500755310058594,
+      "closestObject": "Gunhouse roof sight.007",
+      "closestHullConnectedObject": "Gunhouse roof plate seam.007"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse roof sight.008",
+          "assembly": "caesar",
+          "node": null,
+          "low": [
+            -54.630001068115234,
+            -2.830000400543213,
+            14.27500057220459
+          ],
+          "high": [
+            -54.27000045776367,
+            -2.4700002670288086,
+            14.625000953674316
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.045500755310058594,
+      "closestObject": "Gunhouse roof sight.008",
+      "closestHullConnectedObject": "Gunhouse roof plate seam.008"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse roof sight",
+          "assembly": "anton",
+          "node": null,
+          "low": [
+            66.17000579833984,
+            -2.830000162124634,
+            10.47499942779541
+          ],
+          "high": [
+            66.5300064086914,
+            -2.4700000286102295,
+            10.824999809265137
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.04549980163574219,
+      "closestObject": "Gunhouse roof sight",
+      "closestHullConnectedObject": "Gunhouse roof plate seam"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse roof sight.001",
+          "assembly": "anton",
+          "node": null,
+          "low": [
+            66.17000579833984,
+            -0.18000000715255737,
+            10.47499942779541
+          ],
+          "high": [
+            66.5300064086914,
+            0.18000000715255737,
+            10.824999809265137
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.04549980163574219,
+      "closestObject": "Gunhouse roof sight.001",
+      "closestHullConnectedObject": "Gunhouse roof plate seam.001"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse roof sight.002",
+          "assembly": "anton",
+          "node": null,
+          "low": [
+            66.17000579833984,
+            2.4700000286102295,
+            10.47499942779541
+          ],
+          "high": [
+            66.5300064086914,
+            2.830000162124634,
+            10.824999809265137
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.04549980163574219,
+      "closestObject": "Gunhouse roof sight.002",
+      "closestHullConnectedObject": "Gunhouse roof plate seam.002"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse roof sight.009",
+          "assembly": "dora",
+          "node": null,
+          "low": [
+            -72.83000183105469,
+            2.4699997901916504,
+            10.074999809265137
+          ],
+          "high": [
+            -72.47000122070312,
+            2.8299999237060547,
+            10.425000190734863
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.04549980163574219,
+      "closestObject": "Gunhouse roof sight.009",
+      "closestHullConnectedObject": "Gunhouse roof plate seam.009"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse roof sight.010",
+          "assembly": "dora",
+          "node": null,
+          "low": [
+            -72.83000183105469,
+            -0.18000034987926483,
+            10.074999809265137
+          ],
+          "high": [
+            -72.47000122070312,
+            0.1799996942281723,
+            10.425000190734863
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.04549980163574219,
+      "closestObject": "Gunhouse roof sight.010",
+      "closestHullConnectedObject": "Gunhouse roof plate seam.010"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse roof sight.011",
+          "assembly": "dora",
+          "node": null,
+          "low": [
+            -72.83000183105469,
+            -2.830000400543213,
+            10.074999809265137
+          ],
+          "high": [
+            -72.47000122070312,
+            -2.4700002670288086,
+            10.425000190734863
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.04549980163574219,
+      "closestObject": "Gunhouse roof sight.011",
+      "closestHullConnectedObject": "Gunhouse roof plate seam.011"
+    },
+    {
+      "objects": [
+        {
+          "name": "Ready ammunition locker",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            29.475000381469727,
+            -9.319999694824219,
+            9.40000057220459
+          ],
+          "high": [
+            30.524999618530273,
+            -8.680000305175781,
+            10.640000343322754
+          ]
+        },
+        {
+          "name": "Ammunition locker lid",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            29.450000762939453,
+            -9.345000267028809,
+            10.640000343322754
+          ],
+          "high": [
+            30.549999237060547,
+            -8.654999732971191,
+            10.720000267028809
+          ]
+        },
+        {
+          "name": "Locker handle",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            29.8799991607666,
+            -9.362000465393066,
+            10.180947303771973
+          ],
+          "high": [
+            30.1200008392334,
+            -9.317999839782715,
+            10.2190523147583
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.030000686645507812,
+      "closestObject": "Ready ammunition locker",
+      "closestHullConnectedObject": "forward-battery-deck deck lip"
+    },
+    {
+      "objects": [
+        {
+          "name": "Ready ammunition locker.005",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            29.475000381469727,
+            8.680000305175781,
+            9.40000057220459
+          ],
+          "high": [
+            30.524999618530273,
+            9.319999694824219,
+            10.640000343322754
+          ]
+        },
+        {
+          "name": "Ammunition locker lid.005",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            29.450000762939453,
+            8.654999732971191,
+            10.640000343322754
+          ],
+          "high": [
+            30.549999237060547,
+            9.345000267028809,
+            10.720000267028809
+          ]
+        },
+        {
+          "name": "Locker handle.005",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            29.8799991607666,
+            9.317999839782715,
+            10.180947303771973
+          ],
+          "high": [
+            30.1200008392334,
+            9.362000465393066,
+            10.2190523147583
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.030000686645507812,
+      "closestObject": "Ready ammunition locker.005",
+      "closestHullConnectedObject": "forward-battery-deck deck lip"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse rear rung.016",
+          "assembly": "bruno",
+          "node": null,
+          "low": [
+            43.2760009765625,
+            -1.9900000095367432,
+            11.332216262817383
+          ],
+          "high": [
+            43.323997497558594,
+            -1.4900000095367432,
+            11.373785018920898
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.0260009765625,
+      "closestObject": "Gunhouse rear rung.016",
+      "closestHullConnectedObject": "Bruno \u2022 sloped gunhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse rear rung.020",
+          "assembly": "bruno",
+          "node": null,
+          "low": [
+            43.2760009765625,
+            -1.9900000095367432,
+            12.452216148376465
+          ],
+          "high": [
+            43.323997497558594,
+            -1.4900000095367432,
+            12.49378490447998
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.0260009765625,
+      "closestObject": "Gunhouse rear rung.020",
+      "closestHullConnectedObject": "Bruno \u2022 sloped gunhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse rear rung.024",
+          "assembly": "bruno",
+          "node": null,
+          "low": [
+            43.2760009765625,
+            1.4900000095367432,
+            11.332216262817383
+          ],
+          "high": [
+            43.323997497558594,
+            1.9900000095367432,
+            11.373785018920898
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.0260009765625,
+      "closestObject": "Gunhouse rear rung.024",
+      "closestHullConnectedObject": "Bruno \u2022 sloped gunhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse rear rung.028",
+          "assembly": "bruno",
+          "node": null,
+          "low": [
+            43.2760009765625,
+            1.4900000095367432,
+            12.452216148376465
+          ],
+          "high": [
+            43.323997497558594,
+            1.9900000095367432,
+            12.49378490447998
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.0260009765625,
+      "closestObject": "Gunhouse rear rung.028",
+      "closestHullConnectedObject": "Bruno \u2022 sloped gunhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse rear rung.032",
+          "assembly": "caesar",
+          "node": null,
+          "low": [
+            -49.624000549316406,
+            1.4899992942810059,
+            11.332216262817383
+          ],
+          "high": [
+            -49.57600402832031,
+            1.9899992942810059,
+            11.373785018920898
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.0260009765625,
+      "closestObject": "Gunhouse rear rung.032",
+      "closestHullConnectedObject": "C\u00e4sar \u2022 sloped gunhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse rear rung.036",
+          "assembly": "caesar",
+          "node": null,
+          "low": [
+            -49.624000549316406,
+            1.4899992942810059,
+            12.452216148376465
+          ],
+          "high": [
+            -49.57600402832031,
+            1.9899992942810059,
+            12.49378490447998
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.0260009765625,
+      "closestObject": "Gunhouse rear rung.036",
+      "closestHullConnectedObject": "C\u00e4sar \u2022 sloped gunhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse rear rung.040",
+          "assembly": "caesar",
+          "node": null,
+          "low": [
+            -49.624000549316406,
+            -1.9900007247924805,
+            11.332216262817383
+          ],
+          "high": [
+            -49.57600402832031,
+            -1.4900007247924805,
+            11.373785018920898
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.0260009765625,
+      "closestObject": "Gunhouse rear rung.040",
+      "closestHullConnectedObject": "C\u00e4sar \u2022 sloped gunhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "Gunhouse rear rung.044",
+          "assembly": "caesar",
+          "node": null,
+          "low": [
+            -49.624000549316406,
+            -1.9900007247924805,
+            12.452216148376465
+          ],
+          "high": [
+            -49.57600402832031,
+            -1.4900007247924805,
+            12.49378490447998
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.0260009765625,
+      "closestObject": "Gunhouse rear rung.044",
+      "closestHullConnectedObject": "C\u00e4sar \u2022 sloped gunhouse"
+    },
+    {
+      "objects": [
+        {
+          "name": "bridge-admiral-platform stanchion",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            23.874000549316406,
+            -2.624727487564087,
+            18.65500259399414
+          ],
+          "high": [
+            23.92103385925293,
+            -2.57527232170105,
+            19.505001068115234
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform stanchion.001",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            24.674001693725586,
+            -3.0247275829315186,
+            18.65500259399414
+          ],
+          "high": [
+            24.72103500366211,
+            -2.9752724170684814,
+            19.505001068115234
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            23.894935607910156,
+            -3.410130500793457,
+            18.964685440063477
+          ],
+          "high": [
+            25.506261825561523,
+            -2.587477922439575,
+            18.991315841674805
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire.001",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            23.894935607910156,
+            -3.410130500793457,
+            19.236684799194336
+          ],
+          "high": [
+            25.506261825561523,
+            -2.587477922439575,
+            19.263315200805664
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire.002",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            23.894935607910156,
+            -3.410130500793457,
+            19.49168586730957
+          ],
+          "high": [
+            25.506261825561523,
+            -2.587477922439575,
+            19.5183162689209
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform stanchion.002",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            25.474000930786133,
+            -3.42472767829895,
+            18.65500259399414
+          ],
+          "high": [
+            25.521034240722656,
+            -3.375272512435913,
+            19.505001068115234
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform stanchion.003",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.799001693725586,
+            -3.42472767829895,
+            18.65500259399414
+          ],
+          "high": [
+            26.84603500366211,
+            -3.375272512435913,
+            19.505001068115234
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform stanchion.004",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.124000549316406,
+            -3.42472767829895,
+            18.65500259399414
+          ],
+          "high": [
+            28.17103385925293,
+            -3.375272512435913,
+            19.505001068115234
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform stanchion.005",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            29.448999404907227,
+            -3.42472767829895,
+            18.65500259399414
+          ],
+          "high": [
+            29.49603271484375,
+            -3.375272512435913,
+            19.505001068115234
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire.003",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            25.5,
+            -3.4113264083862305,
+            18.964685440063477
+          ],
+          "high": [
+            30.799999237060547,
+            -3.385999917984009,
+            18.991315841674805
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire.004",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            25.5,
+            -3.4113264083862305,
+            19.236684799194336
+          ],
+          "high": [
+            30.799999237060547,
+            -3.385999917984009,
+            19.263315200805664
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire.005",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            25.5,
+            -3.4113264083862305,
+            19.49168586730957
+          ],
+          "high": [
+            30.799999237060547,
+            -3.385999917984009,
+            19.5183162689209
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform stanchion.006",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            30.77400016784668,
+            -3.42472767829895,
+            18.65500259399414
+          ],
+          "high": [
+            30.821033477783203,
+            -3.375272512435913,
+            19.505001068115234
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform stanchion.007",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            31.624000549316406,
+            -2.9747276306152344,
+            18.65500259399414
+          ],
+          "high": [
+            31.67103385925293,
+            -2.9252724647521973,
+            19.505001068115234
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire.006",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            30.79344940185547,
+            -3.41001033782959,
+            18.964685440063477
+          ],
+          "high": [
+            32.50529861450195,
+            -2.487626791000366,
+            18.991315841674805
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire.007",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            30.79344940185547,
+            -3.41001033782959,
+            19.236684799194336
+          ],
+          "high": [
+            32.50529861450195,
+            -2.487626791000366,
+            19.263315200805664
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire.008",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            30.79344940185547,
+            -3.41001033782959,
+            19.49168586730957
+          ],
+          "high": [
+            32.50529861450195,
+            -2.487626791000366,
+            19.5183162689209
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform stanchion.008",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            32.4739990234375,
+            -2.5247275829315186,
+            18.65500259399414
+          ],
+          "high": [
+            32.521034240722656,
+            -2.4752724170684814,
+            19.505001068115234
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform stanchion.009",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            32.92399978637695,
+            -1.274727463722229,
+            18.65500259399414
+          ],
+          "high": [
+            32.97103500366211,
+            -1.225272536277771,
+            19.505001068115234
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire.009",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            32.4868278503418,
+            -2.5038363933563232,
+            18.964685440063477
+          ],
+          "high": [
+            33.41065979003906,
+            0.00474208127707243,
+            18.991315841674805
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire.010",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            32.4868278503418,
+            -2.5038363933563232,
+            19.236684799194336
+          ],
+          "high": [
+            33.41065979003906,
+            0.00474208127707243,
+            19.263315200805664
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire.011",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            32.4868278503418,
+            -2.5038363933563232,
+            19.49168586730957
+          ],
+          "high": [
+            33.41065979003906,
+            0.00474208127707243,
+            19.5183162689209
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform stanchion.010",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            33.374000549316406,
+            -0.02472747303545475,
+            18.65500259399414
+          ],
+          "high": [
+            33.42103576660156,
+            0.02472747303545475,
+            19.505001068115234
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform stanchion.011",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            32.92399978637695,
+            1.225272536277771,
+            18.65500259399414
+          ],
+          "high": [
+            32.97103500366211,
+            1.274727463722229,
+            19.505001068115234
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire.012",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            32.4868278503418,
+            -0.00474208127707243,
+            18.964685440063477
+          ],
+          "high": [
+            33.41065979003906,
+            2.5038363933563232,
+            18.991315841674805
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire.013",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            32.4868278503418,
+            -0.00474208127707243,
+            19.236684799194336
+          ],
+          "high": [
+            33.41065979003906,
+            2.5038363933563232,
+            19.263315200805664
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire.014",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            32.4868278503418,
+            -0.00474208127707243,
+            19.49168586730957
+          ],
+          "high": [
+            33.41065979003906,
+            2.5038363933563232,
+            19.5183162689209
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform stanchion.012",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            32.4739990234375,
+            2.4752724170684814,
+            18.65500259399414
+          ],
+          "high": [
+            32.521034240722656,
+            2.5247275829315186,
+            19.505001068115234
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform stanchion.013",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            31.624000549316406,
+            2.9252724647521973,
+            18.65500259399414
+          ],
+          "high": [
+            31.67103385925293,
+            2.9747276306152344,
+            19.505001068115234
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire.015",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            30.79344940185547,
+            2.487626791000366,
+            18.964685440063477
+          ],
+          "high": [
+            32.50529861450195,
+            3.41001033782959,
+            18.991315841674805
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire.016",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            30.79344940185547,
+            2.487626791000366,
+            19.236684799194336
+          ],
+          "high": [
+            32.50529861450195,
+            3.41001033782959,
+            19.263315200805664
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire.017",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            30.79344940185547,
+            2.487626791000366,
+            19.49168586730957
+          ],
+          "high": [
+            32.50529861450195,
+            3.41001033782959,
+            19.5183162689209
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform stanchion.014",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            30.77400016784668,
+            3.375272512435913,
+            18.65500259399414
+          ],
+          "high": [
+            30.821033477783203,
+            3.42472767829895,
+            19.505001068115234
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform stanchion.015",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            29.448999404907227,
+            3.375272512435913,
+            18.65500259399414
+          ],
+          "high": [
+            29.49603271484375,
+            3.42472767829895,
+            19.505001068115234
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform stanchion.016",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            28.124000549316406,
+            3.375272512435913,
+            18.65500259399414
+          ],
+          "high": [
+            28.17103385925293,
+            3.42472767829895,
+            19.505001068115234
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform stanchion.017",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            26.799001693725586,
+            3.375272512435913,
+            18.65500259399414
+          ],
+          "high": [
+            26.84603500366211,
+            3.42472767829895,
+            19.505001068115234
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire.018",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            25.5,
+            3.385999917984009,
+            18.964685440063477
+          ],
+          "high": [
+            30.799999237060547,
+            3.4113264083862305,
+            18.991315841674805
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire.019",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            25.5,
+            3.385999917984009,
+            19.236684799194336
+          ],
+          "high": [
+            30.799999237060547,
+            3.4113264083862305,
+            19.263315200805664
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire.020",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            25.5,
+            3.385999917984009,
+            19.49168586730957
+          ],
+          "high": [
+            30.799999237060547,
+            3.4113264083862305,
+            19.5183162689209
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform stanchion.018",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            25.474000930786133,
+            3.375272512435913,
+            18.65500259399414
+          ],
+          "high": [
+            25.521034240722656,
+            3.42472767829895,
+            19.505001068115234
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform stanchion.019",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            24.674001693725586,
+            2.9752724170684814,
+            18.65500259399414
+          ],
+          "high": [
+            24.72103500366211,
+            3.0247275829315186,
+            19.505001068115234
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire.021",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            23.894935607910156,
+            2.587477922439575,
+            18.964685440063477
+          ],
+          "high": [
+            25.506261825561523,
+            3.410130500793457,
+            18.991315841674805
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire.022",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            23.894935607910156,
+            2.587477922439575,
+            19.236684799194336
+          ],
+          "high": [
+            25.506261825561523,
+            3.410130500793457,
+            19.263315200805664
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire.023",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            23.894935607910156,
+            2.587477922439575,
+            19.49168586730957
+          ],
+          "high": [
+            25.506261825561523,
+            3.410130500793457,
+            19.5183162689209
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform stanchion.020",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            23.874000549316406,
+            2.57527232170105,
+            18.65500259399414
+          ],
+          "high": [
+            23.92103385925293,
+            2.624727487564087,
+            19.505001068115234
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform stanchion.021",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            23.874000549316406,
+            1.2752724885940552,
+            18.65500259399414
+          ],
+          "high": [
+            23.92103385925293,
+            1.3247274160385132,
+            19.505001068115234
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform stanchion.022",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            23.874000549316406,
+            -0.02472747303545475,
+            18.65500259399414
+          ],
+          "high": [
+            23.92103385925293,
+            0.02472747303545475,
+            19.505001068115234
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform stanchion.023",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            23.874000549316406,
+            -1.3247274160385132,
+            18.65500259399414
+          ],
+          "high": [
+            23.92103385925293,
+            -1.2752724885940552,
+            19.505001068115234
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire.024",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            23.888673782348633,
+            -2.5999999046325684,
+            18.964685440063477
+          ],
+          "high": [
+            23.913999557495117,
+            2.5999999046325684,
+            18.991315841674805
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire.025",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            23.888673782348633,
+            -2.5999999046325684,
+            19.236684799194336
+          ],
+          "high": [
+            23.913999557495117,
+            2.5999999046325684,
+            19.263315200805664
+          ]
+        },
+        {
+          "name": "bridge-admiral-platform wire.026",
+          "assembly": "superstructure",
+          "node": null,
+          "low": [
+            23.888673782348633,
+            -2.5999999046325684,
+            19.49168586730957
+          ],
+          "high": [
+            23.913999557495117,
+            2.5999999046325684,
+            19.5183162689209
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.025003433227539062,
+      "closestObject": "bridge-admiral-platform stanchion",
+      "closestHullConnectedObject": "Conning tower crown and director platform"
+    }
+  ]
+}

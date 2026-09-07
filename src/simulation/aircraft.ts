@@ -8,6 +8,7 @@ import { motionVelocity } from './ship';
 import { clearTorpedoLane, torpedoIntercept, type Torpedo } from './torpedoes';
 import { flyAircraft as fly, initialFlightControls, stepFlightMechanisms, TAKEOFF_ROLL_SECONDS, TAKEOFF_CLIMB_SECONDS, type FlightAttitude, type FlightControls } from './aircraftFlight';
 import { clearFighterLane, fighterGunAim, fighterTarget, initialAirPilot, orbitPoint, steerFighter, strikeIngress, type AirPilot } from './aircraftTactics';
+import { aircraftDeckAttitude, aircraftGroundPose } from './aircraftGroundPose';
 
 export type FlightPhase = 'ready' | 'queued' | 'taxi' | 'takeoff' | 'outbound' | 'attack' | 'returning' | 'landing' | 'rollout' | 'parking' | 'rearming' | 'lost';
 export type AirOrder = { kind: 'attack'; targetId: string } | { kind: 'patrol'; point: Vec3 } | { kind: 'defend' } | { kind: 'escort'; flightId: string } | { kind: 'return' };
@@ -16,7 +17,7 @@ export interface Aircraft {
   id: string; ownerId: string; team: Team; squadronId: string; modelId: string; role: AircraftRole;
   phase: FlightPhase; position: Vec3; previousPosition: Vec3; velocity: Vec3;
   heading: number; pitch: number; bank: number; hp: number; ammo: number; payload: boolean;
-  deckPosition?: Vec3; timer: number; flightTime: number; cooldown: number; targetId?: string; kills: number;
+  deckPosition?: Vec3; deckHeading?: number; timer: number; flightTime: number; cooldown: number; targetId?: string; kills: number;
   controls: FlightControls; previousControls?: FlightControls; previousAttitude?: FlightAttitude; pilot: AirPilot;
   deckSlot?: number; flightId?: string; recoveryRequestedAt?: number; lossReason?: string;
   navigationTarget?: Vec3;
@@ -24,7 +25,7 @@ export interface Aircraft {
 export interface AirWingState { planes: Aircraft[]; launchCooldown: number; flights: AirFlight[]; flightSequence: number; transferCooldown: number; }
 export interface AirRelease { id: number; ownerId: string; position: Vec3; velocity: Vec3; }
 export const MAX_AIRBORNE = 144;
-export const deckClearance = (p: Aircraft) => p.role === 'fighter' ? 1.755 : p.role === 'dive-bomber' ? 1.941 : 2.24445;
+export const deckClearance = (p: Aircraft) => aircraftGroundPose(p.modelId).clearance;
 export const flightSize = (actor: FleetActor) => actor.definition.airWing?.flightSize ?? 3;
 export const deckCapacity = (actor: FleetActor) => actor.definition.airWing?.deckCapacity ?? 18;
 export const activeFlight = (flight: AirFlight, planes: Aircraft[]) => planes.some(p => p.flightId === flight.id && !['ready', 'rearming', 'lost'].includes(p.phase));
@@ -47,7 +48,8 @@ const TAKEOFF_ACCELERATION = 2 * 140 / TAKEOFF_ROLL_SECONDS ** 2;
 const LAUNCH_TAXI_SPEED = 35;
 function deckPose(p: Aircraft, actor: FleetActor, local: Vec3) {
   p.deckPosition = [...local]; p.position = localToWorld(local, actor.motion);
-  p.heading = actor.motion.heading; p.pitch = actor.motion.pitch; p.bank = actor.motion.roll;
+  p.deckHeading = 0;
+  Object.assign(p, aircraftDeckAttitude(actor.motion, p.modelId));
   p.velocity = motionVelocity(actor.motion);
 }
 function taxi(p: Aircraft, actor: FleetActor, destination: Vec3, speed: number, dt: number): boolean {
@@ -55,7 +57,10 @@ function taxi(p: Aircraft, actor: FleetActor, destination: Vec3, speed: number, 
   const delta = sub(destination, current), distance = length(delta);
   const local = add(current, scale(delta, Math.min(1, speed * dt / (distance || 1))));
   deckPose(p, actor, local);
-  if (distance > .1) p.heading = wrapAngle(actor.motion.heading + Math.atan2(delta[0], -delta[2]));
+  if (distance > .1) {
+    p.deckHeading = Math.atan2(delta[0], -delta[2]);
+    Object.assign(p, aircraftDeckAttitude(actor.motion, p.modelId, p.deckHeading));
+  }
   return distance <= speed * dt;
 }
 export function createAirWing(def: ShipDefinition, ownerId: string, team: Team): AirWingState | undefined {

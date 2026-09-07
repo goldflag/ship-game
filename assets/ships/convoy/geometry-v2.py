@@ -16,6 +16,7 @@ from mathutils import Vector, Matrix
 
 root = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(root / 'scripts/ships'))
+from blender_supports import SupportSurface
 from blender_components import create_gun_mount
 
 out = Path(os.environ['SHIP_OUTPUT'])
@@ -185,7 +186,7 @@ def railing(name, points, height=.95, solid=False):
 
 
 for side in [-1, 1]:
-    points = [(x, side*(width(x)-.065), deck(x)+.04) for x in [(-length/2+.8)+i*(length-1.6)/90 for i in range(91)]]
+    points = [(x, side*(width(x)-.065), deck(x)+.005) for x in [(-length/2+.8)+i*(length-1.6)/90 for i in range(91)]]
     railing('deck-rails', points, .75 if flower else .95)
     for x in ([22,26,-23,-27] if flower else [60,55,-57,-61]):
         y = side * width(x) * .76
@@ -194,6 +195,7 @@ for side in [-1, 1]:
             cyl('mooring.bollard',(x+offset,y,deck(x)+.3),.12,.45,materials['edge'])
 
 # Steel deckhouses exactly follow the blueprint footprints.
+structure_shells=[]
 for structure in definition.get('structures', []):
     sid, base, height = structure['id'], structure['baseY'], structure['height']
     if sid == 'funnel':
@@ -203,6 +205,7 @@ for structure in definition.get('structures', []):
     vv = [(x,y,base) for x,y in footprint]+[(x,y,base+height) for x,y in footprint]
     ff = [tuple(reversed(range(n))),tuple(range(n,n*2))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
     obj = mesh(sid+'.walls', vv, ff, materials[structure['material']])
+    structure_shells.append(obj)
     obj.data.materials.append(materials['roof' if 'hatch' not in sid else 'hatch' if collier else 'canvas'])
     obj.data.polygons[1].material_index = 1
     x0,x1 = min(p[0] for p in footprint),max(p[0] for p in footprint)
@@ -278,7 +281,7 @@ f=mesh('funnel.jacket',vv,ff,materials['naval' if flower else 'funnel'],smooth=T
 f.data.materials.append(materials['dark'])
 for p in f.data.polygons:
     if p.center.z>sz+sh-1.45:p.material_index=1
-obj=cyl('funnel.recess',(sx,0,sz+sh-.16),ry*.9,.025,materials['dark'],vertices=48);obj.scale.x=rx/ry
+obj=cyl('funnel.recess',(sx,0,sz+sh-.16),ry*1.002,.025,materials['dark'],vertices=48);obj.scale.x=rx/ry
 ladder('funnel.ladder',(sx-rx-.05,0,sz),(sx-rx-.05,0,sz+sh-.12),.42)
 for side in [-1,1]:
     rod('funnel.stay',(sx,side*ry,sz+sh-1),(sx-2.7,side*(ry+1.4),sz+.1),.012,materials['edge'],vertices=6)
@@ -337,18 +340,30 @@ def ring_rail(name,x,y,z,rx,ry,height=.85,solid=False):
     railing(name,points,height,solid)
 
 
+platform_support=SupportSurface([shell,*structure_shells])
 def platform(name,x,y,z,rx,ry,legs=True,shield=False):
     obj=cyl(name+'.deck',(x,y,z-.08),rx,.16,materials['deck'],vertices=48)
     obj.scale.y=ry/rx
     if legs:
         for i in range(8):
             a=i*math.tau/8;px=x+rx*.78*math.cos(a);py=y+ry*.78*math.sin(a)
-            rod(name+'.leg',(px,py,deck(px)),(px,py,z-.15),.065,materials['naval'])
-            rod(name+'.brace',(x,y,max(deck(x),z-1.4)),(px,py,z-.15),.045,materials['edge'])
+            # Outboard columns rake in to the actual deck edge. Straight legs
+            # previously ended in air beside the narrowing bow shell.
+            heel_y=max(-width(px)+.35,min(width(px)-.35,py))
+            floor=platform_support.below(px,heel_y,max(z,deck(px))+.5)
+            if floor<deck(px)-.5:raise ValueError('Platform heel missed the weather deck: '+name)
+            if floor<z-.15:
+                rod(name+'.leg',(px,heel_y,floor-.015),(px,py,z-.15),.065,materials['naval'])
+                rod(name+'.brace',(px,heel_y,floor+.15),(x,y,z-.15),.045,materials['edge'])
     if shield:ring_rail(name+'.splinter-screen',x,y,z,rx,ry,.83,True)
 
 
+winch_support=SupportSurface([shell])
 def winch(name,x,y,z,scale=1):
+    # A mast can stand on a raised deck while adjacent winches sit outboard of
+    # it. Seat each machinery bed on the local weather deck instead of copying
+    # a distant mast's height.
+    z=winch_support.below(x,y,deck(x)+.5)
     box(name+'.bed',(x,y,z+.12*scale),(1.6*scale,1.0*scale,.24*scale),materials['naval'])
     for side in [-1,1]:
         box(name+'.bearing',(x,y+side*.56*scale,z+.45*scale),(.7*scale,.1*scale,.60*scale),materials['naval'])
@@ -367,7 +382,8 @@ def mast(name,x,z,top,paired=False,derricks=True,directions=(-1,1)):
         attach(rod(name+'.aerial-pole',(x,.82,top-5),(x,.82,top),.10,materials['naval'],r2=.055),pivot)
     else:
         attach(rod(name+'.spar',(x,0,z),(x-.35,0,top),.26,materials['naval'],r2=.095),pivot)
-    attach(rod(name+'.yard',(x,-2.8,top-1.2),(x,2.8,top-1.2),.065,materials['edge']),pivot)
+    yard_x=x if paired else x-.35*(top-1.2-z)/(top-z)
+    attach(rod(name+'.yard',(yard_x,-2.8,top-1.2),(yard_x,2.8,top-1.2),.065,materials['edge']),pivot)
     if derricks:
         for direction in directions:
             for side in [-1,1]:
@@ -393,7 +409,7 @@ if not flower:
                 rod('hatch-posts.upright',(x,y,z),(x,y,z+6.5),.15,materials['naval'],r2=.12)
                 rod('hatch-posts.stay',(x,y,z+6.15),(x-5,y,z+.15),.022,materials['edge'])
                 rod('hatch-posts.stay',(x,y,z+6.15),(x+5,y,z+.15),.022,materials['edge'])
-                winch('hatch-winch',x,side*5.6,z,.7)
+                winch('hatch-winch',x,side*min(5.6,width(x)-.65),z,.7)
         for s in definition['structures']:
             if not s['id'].startswith('hatch-'):continue
             x=-sum(p[1] for p in s['footprint'])/4;z=s['baseY']+s['height']
@@ -441,8 +457,19 @@ else:
     for side in [-1,1]:
         # Separate splinter skirt below the raised deck, not a solid gun turret.
         rod('gun-platform-edge',(13.5,side*1.2,5.30),(16.8,side*3.25,5.30),.04,materials['naval'])
+        # Boat platforms overhang the machinery casing; pillars and diagonal
+        # knees join their undersides to the deck (Port Arthur GA interpretation).
+        for x in [-4.2,.4]:
+            floor=winch_support.below(x,side*3.65,3.9)
+            rod('boat-platform.pillar',(x,side*3.65,floor),(x,side*3.65,4.0),.065,materials['naval'])
+            rod('boat-platform.knee',(x,side*2.4,3.5),(x,side*3.65,4.0),.055,materials['naval'])
         lifeboat('escort-dinghies',-1.9,side*3.7,4.02,.787)
         raft('bridge-carley',3.95,side*4.0,3.9,.83)
+        for x in [3.3,4.6]:
+            rod('bridge-carley.rack',(x,side*2.6,3.72),(x,side*4.1,3.72),.05,materials['naval'])
+            rod('bridge-carley.stop',(x,side*4.1,3.70),(x,side*4.1,3.95),.04,materials['naval'])
+            rod('bridge-carley.rack-heel',(x,side*2.6,3.45),(x,side*2.6,3.72),.05,materials['naval'])
+            rod('bridge-carley.rack-knee',(x,side*2.78,3.14),(x,side*4.1,3.72),.05,materials['naval'])
         ladder('bridge-access',(11.8,side*2.45,2.65),(9.85,side*2.45,4.6),.67)
         ladder('compass-access',(4.8,side*2.25,3.50),(6.0,side*2.25,6.85),.62)
         ladder('gun-access',(12.9,side*1.1,4.65),(14.0,side*1.1,5.40),.6)
@@ -476,6 +503,7 @@ else:
         for dx in [-4.0,4.0]:
             for side in [-1,1]:rod(name+'.stay',(x-.13,0,top-3),(x+dx,side*3.8,deck(x+dx)+.1),.011,materials['edge'],vertices=6)
         ladder(name+'.ladder',(x-.19,0,z),(x-.19,0,top-3),.3)
+    for x,z in [(-10,17.2),(11.9,18.5)]:rod('wireless.spreader',(x,-.60,z),(x,.60,z),.035,materials['naval'])
     for y in [-.55,0,.55]:rod('wireless.aerial',(-10.0,y,17.2),(11.9,y,18.5),.009,materials['dark'],vertices=6)
     # Open compass bridge furniture and DF loop (not a later Type 271 lantern).
     cyl('compass.pedestal',(8,0,7.32),.15,.9,materials['edge'])
@@ -491,10 +519,17 @@ else:
     # Steam minesweeping winch, stern davits, Oropesa floats and two DC rails.
     winch('minesweep-winch',-22.9,0,deck(-22.9),1.50)
     for side in [-1,1]:
-        for lane in [-.42,.42]:
-            rod('depth-racks.rail',(-30,side*2.3+lane,4.15),(-25,side*1.6+lane,3.60),.055,materials['edge'])
+        # Clear the actual rising counter deck; the discharge end is lower
+        # than the loading end. Rails at the old constant datums cut the deck.
+        rack_aft=winch_support.below(-30,side*2.3,8)+.15
+        rack_fore=max(rack_aft+.25,winch_support.below(-25,side*1.6,8)+.2)
+        for lane in [-.36,.36]:
+            rod('depth-racks.rail',(-30,side*2.3+lane,rack_aft),(-25,side*1.6+lane,rack_fore),.055,materials['edge'])
+            for t in [0,.5,1]:
+                px=-30+5*t;py=side*(2.3-.7*t)+lane;floor=winch_support.below(px,py,8)
+                rod('depth-racks.foot',(px,py,floor-.015),(px,py,rack_aft+(rack_fore-rack_aft)*t),.055,materials['naval'])
         for i in range(5):
-            x=-29.3+i*.87;y=side*(2.20-i*.12);z=deck(x)+.42
+            x=-29.3+i*.87;t=(x+30)/5;y=side*(2.3-.7*t);z=rack_aft+(rack_fore-rack_aft)*t+.32
             rod('depth-racks.charge',(x,y-.40,z),(x,y+.40,z),.255,materials['naval'],vertices=20)
             for offset in [-.37,.37]:
                 rod('depth-racks.hoop',(x,y+offset-.025,z),(x,y+offset+.025,z),.27,materials['edge'],vertices=20)
@@ -535,7 +570,7 @@ prop = empty('propeller-main.pivot',(px,0,pz))
 attach(rod('propeller-main.hub',(px+.5,0,pz),(px-.5,0,pz),.23 if flower else .4,materials['bronze'],r2=.10),prop)
 for i in range(3 if flower else 4):
     a=i*math.tau/(3 if flower else 4)
-    vv=[(px+dx,math.cos(a+angle)*r,pz+math.sin(a+angle)*r) for r,angle,dx in [(radius*.15,-.2,0),(radius*.8,-.2,.12),(radius,.12,0),(radius*.72,.48,-.18),(radius*.3,.65,-.13)]]
+    vv=[(px+dx,math.cos(a+angle)*r,pz+math.sin(a+angle)*r) for r,angle,dx in [(radius*.065,-.2,0),(radius*.8,-.2,.12),(radius,.12,0),(radius*.72,.48,-.18),(radius*.10,.65,-.06)]]
     obj=mesh('propeller-main.blade',vv,[tuple(range(5))],materials['bronze'])
     mod=obj.modifiers.new('Blade thickness','SOLIDIFY');mod.thickness=.06
     attach(obj,prop)

@@ -65,7 +65,7 @@ shutil.copy2(source/'reports/discrepancies.md',out/'discrepancies.md')
 for report in ('merge-validation.md', 'merge-tests.txt'):
     if (source/'reports'/report).exists():shutil.copy2(source/'reports'/report,out/report)
 runtime=source/'reports/runtime-review'
-if (runtime/'summary.json').exists():
+if (runtime/'summary.json').exists() and json.loads((runtime/'summary.json').read_text())['contentHash']==definition['contentHash']:
     checked=json.loads((runtime/'summary.json').read_text())
     if checked['contentHash']!=definition['contentHash']:raise ValueError('Stale runtime review')
     shutil.rmtree(out/'runtime',ignore_errors=True)
@@ -79,6 +79,17 @@ if (runtime/'summary.json').exists():
     shutil.copy2(source/'reports/component-geometry-check.json',out/'component-geometry-check.json')
     runtime_html='<h2>In-game model and articulation</h2><p>Actual exported model in the production WebGPU scene, inspected with a diagnostic camera. All 18 joint poses passed; ten torpedoes launched and hit, and eight depth charges completed their launch-to-blast cycle. Propeller images temporarily hide sea and hull for inspection of the actual loaded GLB; the rotated view checks independent pivots, not sailing animation. <a href="runtime/summary.json">Runtime validation</a>.</p>'
     runtime_html+=''.join('<figure><a href="runtime/'+name+'.png"><img loading="lazy" src="runtime/'+name+'.png" alt="Fletcher '+name.replace('-',' ')+'"></a><figcaption>'+name.replace('-',' ').capitalize()+'</figcaption></figure>' for name in pictures)
+    body=body.replace('<h2 id="comparison">',runtime_html+'<h2 id="comparison">')
+else:
+    # Earlier combat/component captures stay in the original report directory.
+    # Publish only evidence whose hash matches this newly repaired export.
+    attachment=source.parent/'attachment-audit/runtime'
+    checked=json.loads((attachment/'fletcher-articulation.json').read_text())
+    if checked['contentHash']!=definition['contentHash']:raise ValueError('Stale attachment articulation')
+    shutil.rmtree(out/'runtime',ignore_errors=True);(out/'runtime').mkdir()
+    for filename in ['fletcher-articulation.json','fletcher-forward-battery.json','fletcher-forward-battery.png']:
+        shutil.copy2(attachment/filename,out/'runtime'/filename)
+    runtime_html='<h2>Attachment repair and in-game articulation</h2><p>Gunhouse races, open-gun supports, boat cradles, radar supports and small fittings now meet their supporting structure. The current export passes 12 combinations of train, elevation and recoil. <a href="runtime/fletcher-articulation.json">Current articulation record</a> · <a href="discrepancies.md">Historical limits and remaining approximations</a>.</p><figure><img src="runtime/fletcher-forward-battery.png" alt="Current Fletcher forward battery at maximum elevation and recoil"><figcaption>Current exported model in the game.</figcaption></figure>'
     body=body.replace('<h2 id="comparison">',runtime_html+'<h2 id="comparison">')
 # Component review compares the preserved revision 3 with this exact exported GLB.
 old=source/'baseline/revision-3/generated/comparison/authored'
