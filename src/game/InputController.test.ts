@@ -18,7 +18,7 @@ describe('keyboard gameplay controls', () => {
     Object.defineProperty(globalThis, 'window', { configurable: true, value: events });
     Object.defineProperty(globalThis, 'document', { configurable: true, value: { querySelector: () => modal ? {} : null } });
     Object.defineProperty(globalThis, 'HTMLElement', { configurable: true, value: class {} });
-    actions = { pause: mock(), camera: mock(), recenter: mock(), hud: mock(), fullscreen: mock(), optics: mock(), battery: mock(), cursor: mock(), chartSize: mock(), gunnery: mock(), shellFollow: mock(), depth: mock(), emergencyBlow: mock() };
+    actions = { pause: mock(), camera: mock(), recenter: mock(), hud: mock(), fullscreen: mock(), optics: mock(), battery: mock(), cursor: mock(), chartSize: mock(), gunnery: mock(), shellFollow: mock(), depth: mock(), emergencyBlow: mock(), airOperations: mock() };
     input = new InputController(actions, defaultKeybindings());
   });
   afterEach(() => {
@@ -63,6 +63,13 @@ describe('keyboard gameplay controls', () => {
     input.setEnabled(false); key('keydown', 'KeyV');
     expect(actions.camera).toHaveBeenCalledTimes(1);
     key('keydown', 'Escape'); expect(actions.pause).toHaveBeenCalledTimes(1);
+  });
+  test('air operations opens once per press and respects remapped controls', () => {
+    key('keydown', 'KeyM'); key('keydown', 'KeyM', { repeat: true });
+    expect(actions.airOperations).toHaveBeenCalledTimes(1);
+    const bindings = defaultKeybindings(); bindings.airOperations = ['KeyV', null]; input.setBindings(bindings);
+    key('keydown', 'KeyM'); expect(actions.airOperations).toHaveBeenCalledTimes(1);
+    key('keydown', 'KeyV'); expect(actions.airOperations).toHaveBeenCalledTimes(2);
   });
 
   test('shell follow toggles once per press, supports rebinding and is inactive while paused', () => {

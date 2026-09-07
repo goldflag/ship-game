@@ -1,0 +1,27 @@
+{
+  "bodyScroll": true,
+  "errors": [],
+  "horizontalOverflow": false,
+  "order": {
+    "kind": "patrol",
+    "point": [
+      -3200.0000000000014,
+      420,
+      -3311.151228692094
+    ]
+  },
+  "panel": {
+    "bottom": 744,
+    "height": 688,
+    "left": 8,
+    "right": 382,
+    "top": 56,
+    "width": 374,
+    "x": 8,
+    "y": 56
+  },
+  "viewport": [
+    390,
+    844
+  ]
+}

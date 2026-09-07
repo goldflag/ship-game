@@ -1,3 +1,4 @@
+import { airborne, onFlightDeck, type AirOrder } from '../simulation/aircraft';
 import { aircraftFollowView } from './AircraftFollow';
 import { AircraftView } from './AircraftView';
 import { oceanMap, DEFAULT_MAP, landHeight } from '../maps/catalog';
@@ -82,6 +83,8 @@ export class Game {
   private currentAim: Vec3 = [650, .5, -550];
   chartSize = 2;
   gunneryOpen = false;
+  airOperationsOpen = false;
+  selectedFlightId?: string;
   private water?: WaterSystem;
   private landscape?: THREE.Group;
   private battleSea?: GameSettings['sea'];
@@ -137,13 +140,14 @@ export class Game {
     this.inspectionHover = new InspectionHover(this.renderer.domElement, this.camera);
     this.rig.setHullLength(definition.hull.length);
     this.input = new InputController({
-      pause: () => { if (!this.inPort) this.setPaused(!this.paused); },
+      pause: () => { if (this.airOperationsOpen && !this.paused) this.setAirOperationsOpen(false); else if (!this.inPort) this.setPaused(!this.paused); },
       camera: () => this.cycleCamera(), recenter: () => this.recenter(),
       hud: () => { if (!this.inPort) callbacks.hud(); }, fullscreen: () => this.fullscreen(),
       optics: () => this.toggleBinoculars(), battery: battery => { this.battery = battery; },
-      cursor: released => { if (released) this.rig.releasePointer(); else if (!document.querySelector('dialog[open]')) this.rig.capturePointer(); },
+      cursor: released => { if (released) this.rig.releasePointer(); else if (!this.airOperationsOpen && !document.querySelector('dialog[open]')) this.rig.capturePointer(); },
       chartSize: direction => this.resizeChart(direction), gunnery: () => this.setGunneryOpen(!this.gunneryOpen),
       shellFollow: () => this.toggleShellFollow(),
+      airOperations: () => this.setAirOperationsOpen(!this.airOperationsOpen),
       depth: direction => this.setDepth((this.simulation.player.submarine?.targetDepthM ?? 0) + direction * 10),
       emergencyBlow: () => this.setDepth(0, true),
     });
@@ -360,7 +364,7 @@ export class Game {
       this.controlPriority = 'balanced'; this.controlFocus = '';
       this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
       this.battery = definition.torpedoTubes?.length ? 'torpedo' : 'main'; this.manualAim = true; this.inspecting = false;
-      this.gunneryOpen = false; this.effects.reset();
+      this.gunneryOpen = false; this.airOperationsOpen = false; this.selectedFlightId = undefined; this.effects.reset();
       this.currentAim = simulation.aimAt(undefined, this.battery);
       this.aimModule = simulation.target.definition.modules.find(m => m.kind === 'engine')?.id ?? '';
       this.rig.setBridge(definition.viewpoints?.bridge);
@@ -408,7 +412,7 @@ export class Game {
       this.rig.update(focus, focus.y, 0);
       const aim = this.manualAim ? this.inspecting || this.shellFollow.view || this.followedAircraftId ? this.currentAim : this.readSightAim() : this.simulation.aimAt(this.aimModule, this.battery);
       this.currentAim = aim;
-      if (!this.inPort) this.simulation.advance(dt, this.input.sample(), { aim, fire: this.input.firing || this.rig.firing, battery: this.battery, ammunition: this.ammunition[this.battery], controlPriority: this.controlPriority, controlFocus: this.controlFocus }, () => {
+      if (!this.inPort) this.simulation.advance(dt, this.input.sample(), { aim, fire: !this.airOperationsOpen && (this.input.firing || this.rig.firing), battery: this.battery, ammunition: this.ammunition[this.battery], controlPriority: this.controlPriority, controlFocus: this.controlFocus }, () => {
         this.fleetViews.forEach(view => view.capturePreviousPose());
       });
       const alpha = this.inPort ? 1 : this.simulation.interpolationAlpha;
@@ -469,7 +473,7 @@ export class Game {
         this.hudTime = time;
         this.callbacks.telemetry({ ship: { ...state }, order: this.input.order, camera: this.rig.mode,
           binoculars: this.rig.binoculars, magnification: this.rig.magnification, pointerLocked: this.rig.pointerLocked,
-          viewBearing: this.rig.bearing, chartSize: this.chartSize, gunneryOpen: this.gunneryOpen,
+          viewBearing: this.rig.bearing, chartSize: this.chartSize, gunneryOpen: this.gunneryOpen, airOperationsOpen: this.airOperationsOpen, selectedFlightId: this.selectedFlightId,
           shellFollow: this.shellFollow.phase, followedAircraftId: this.followedAircraftId,
           playerDamage,
           mapId: this.simulation.mapId, islands: this.simulation.islands, fps: Math.round(this.fps), backend: this.water!.backend, trail: [...this.trail],
@@ -513,31 +517,46 @@ export class Game {
     this.paused = paused;
     this.audio?.setScene(this.inPort, paused);
     this.input.setEnabled(!paused && !this.inPort && !!this.water);
-    this.rig.setEnabled(!paused);
+    this.rig.setEnabled(!paused && !this.airOperationsOpen);
     this.callbacks.pause(paused);
   }
-  capturePointer(): void { this.rig.capturePointer(); }
-  launchAircraft(squadronId: string): void { if (!this.inPort && !this.paused) this.simulation.launchAircraft(squadronId); }
+  capturePointer(): void { if (!this.airOperationsOpen) this.rig.capturePointer(); }
+  launchAircraft(squadronId: string): void {
+    if (!this.inPort && !this.paused && this.simulation.launchAircraft(squadronId)) this.selectedFlightId = this.simulation.player.airWing!.flights.at(-1)!.id;
+  }
+  selectFlight(id: string): void { if (this.simulation.player.airWing?.flights.some(f => f.id === id)) this.selectedFlightId = id; }
+  orderFlight(id: string, order: AirOrder): boolean { return !this.inPort && !this.paused && this.simulation.orderFlight(id, order); }
+  setAirOperationsOpen(open: boolean): void {
+    if (this.inPort || !this.simulation.player.airWing || this.paused) return;
+    this.airOperationsOpen = open;
+    this.input.clear();
+    if (open) {
+      if (this.inspecting) this.inspectTarget();
+      this.stopShellFollow(); this.gunneryOpen = false; this.rig.setEnabled(false);
+    } else { this.rig.setEnabled(true); this.rig.capturePointer(); }
+  }
   followAircraft(id: string): void {
-    if (this.inPort || this.inspecting || !this.simulation.player.airWing?.planes.some(p => p.id === id && p.phase !== 'lost')) return;
+    if (this.inPort || this.inspecting || !this.simulation.player.airWing?.planes.some(p => p.id === id && p.phase !== 'lost' && (airborne(p) || onFlightDeck(p)))) return;
     this.stopShellFollow();
+    if (this.airOperationsOpen) this.setAirOperationsOpen(false);
     this.followedAircraftId = id;
     this.gunneryOpen = false;
   }
   returnToShip(): void { this.stopShellFollow(); }
-  recallAircraft(): void { if (!this.inPort && !this.paused) this.simulation.recallAircraft(); }
+  recallAircraft(flightId?: string): void { if (!this.inPort && !this.paused) this.simulation.recallAircraft(flightId); }
   setDepth(depthM: number, emergency = false): void {
     if (this.inPort || this.paused || this.simulation.player.damage.sunk) return;
     orderDepth(this.simulation.player, this.definition, depthM, emergency);
   }
   resizeChart(direction: number): void { this.chartSize = THREE.MathUtils.clamp(this.chartSize + direction, 0, 4); }
   setGunneryOpen(open: boolean): void {
+    if (open && this.airOperationsOpen) this.setAirOperationsOpen(false);
     this.gunneryOpen = open;
     if (open) { this.stopShellFollow(); this.rig.releasePointer(); }
     else if (!this.inspecting) this.rig.capturePointer();
   }
   toggleBinoculars(): void {
-    if (this.paused || this.inPort || this.inspecting) return;
+    if (this.paused || this.inPort || this.inspecting || this.airOperationsOpen) return;
     if (this.shellFollow.view || this.followedAircraftId) { this.stopShellFollow(); return; }
     this.rig.toggleBinoculars(this.manualAim ? this.readSightAim() : this.currentAim, this.simulation.ship);
   }
@@ -566,6 +585,7 @@ export class Game {
     this.inspecting = false; this.targetView?.inspect(false); this.playerView?.inspect(false);
     this.rig.setInspecting(false);
     this.manualAim = true;
+    this.airOperationsOpen = false; this.selectedFlightId = undefined;
     this.gunneryOpen = false;
     this.updateSeaState();
     this.updatePortLighting();
@@ -593,9 +613,9 @@ export class Game {
     }
     this.renderer.domElement.setAttribute('aria-label', `${this.definition.name} ocean scene. ${inPort ? 'Drag to orbit; scroll to zoom.' : 'Click to capture mouse. Mouse to aim; left mouse to fire; Shift for binoculars; Control for cursor; Escape to pause.'}`);
   }
-  fire(): void { if (!this.paused && !this.inPort && this.playerView) this.simulation.requestFire(); }
+  fire(): void { if (!this.paused && !this.inPort && !this.airOperationsOpen && this.playerView) this.simulation.requestFire(); }
   toggleShellFollow(): void {
-    if (this.paused || this.inPort || this.inspecting) return;
+    if (this.paused || this.inPort || this.inspecting || this.airOperationsOpen) return;
     if (this.shellFollow.enabled) { this.stopShellFollow(); return; }
     this.stopShellFollow();
     this.shellFollow.setEnabled(true);

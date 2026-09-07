@@ -155,6 +155,14 @@ The lower-left group combines the ship silhouette and name, live current / maxim
 
 The north-up chart follows the ship and shows its heading, camera view cone, course trail, trial target and marker buoys. NORTH UP is a static orientation label. The kilometer readout cycles the radius through 1, 2, 4 and 8 km, starting at 2 km. Separate −/+ buttons and keyboard shortcuts adjust the five map sizes; endpoint buttons disable at the smallest and largest sizes. Range and physical map size remain independent.
 
+### Air operations
+
+M opens a north-up tactical chart paired with a scrollable ready room, flight roster and selected-flight detail. Use the existing maritime surfaces, Barlow instruments, fine borders and mint readiness; brass marks the selected flight and its route, salmon identifies hostiles and losses. Keep a visible sea perimeter and lower ship instruments. The panel releases mouse aim and prevents firing while the battle keeps running; M, Esc and Back to sea close it.
+
+The sailing HUD uses a transparent air-wing text instrument beneath battle status. Its single header opens the chart and pairs the remaining aircraft count with the map key. Show only nonzero status counts beneath it; flight lists and launch controls belong in the full chart. The sailing target dropdown and its range/selection hint are removed; carrier targeting remains on the chart.
+
+The six mutually exclusive aircraft totals account for the whole wing and filter the individual roster. Show finite inventory, deck/hangar counts and occupied flight slots independently. Link map markers and roster selection; keep the selected flight's assigned target separate from the target for new strikes. Put strike, patrol and escort map instructions beside the chart, with explicit cancel and order feedback. Expose condition, payload/ammunition, endurance, approximate travel time and recovery position in flight details. On narrow windows stack chart and roster in one scrolling body, keeping totals and exit controls reachable.
+
 ### Port inspection
 
 Statistics, Armor and Internals form a labeled three-button group. Statistics shows five 0-100 category scores over collapsible sections, each led by one headline figure; every row explains its figure on hover. Fitted torpedoes lead with the tube count and identify trainable mounts and carried reloads; fitted depth charges lead with the charge stock and expose release stations, detonation depth and blast radius in the same row pattern. Armor lists hull and moving gunhouse protection; Internals lists machinery, magazines, steering and flooding compartments. Lists and overlays derive from the same compiled definition used by combat. Thickness is uniform within each armor volume; module HP and compartment capacity are provisional gameplay values.

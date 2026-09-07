@@ -203,19 +203,17 @@
 }
 @media (prefers-reduced-motion:reduce) { .fleet-hud { transition:none; } }
 
-.fleet-battle { position:absolute; top:24px; left:var(--fleet-edge); width:240px; pointer-events:auto; font-variant-numeric:tabular-nums; }
+.fleet-battle { position:absolute; top:24px; left:var(--fleet-edge); width:240px; pointer-events:none; font-variant-numeric:tabular-nums; }
 .fleet-battle h2 { margin:0; font:500 22px/1.2 'Barlow Condensed',sans-serif; }
 .fleet-battle p { display:flex; gap:24px; margin:8px 0 14px; font-size:12px; }
 .fleet-battle p>span:first-child { color:var(--fleet-active); }
 .fleet-battle p>span:last-child { color:#ffb5a6; }
 .fleet-battle p strong { margin-left:5px; font-size:17px; }
-.fleet-battle label { display:grid; gap:5px; color:var(--fleet-muted); font-size:12px; }
-.fleet-battle select { width:100%; min-width:0; padding:8px; color:#f0f5f3; background:#0e2530; border:1px solid var(--fleet-line); border-radius:3px; }
 .fleet-battle small { display:block; margin-top:7px; font-size:11px; line-height:1.4; color:var(--fleet-muted); }
 .chart-contact.chart-friendly { fill:var(--fleet-active); stroke:#d9eee6; }
 @media (max-width:900px) { .fleet-battle { width:190px; top:14px; } }
 @media (max-width:600px) {
-  .fleet-battle { top:350px; left:12px; width:165px; }
+  .fleet-battle { top:90px; left:12px; width:190px; }
   .fleet-battle h2 { font-size:18px; }
   .fleet-battle p { margin:5px 0 8px; gap:16px; }
 }
