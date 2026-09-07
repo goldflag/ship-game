@@ -1,0 +1,24 @@
+{
+  "shipId": "bismarck",
+  "contentHash": "22842aace5e10d3bd2d5b384a83252eb6a2751b5ecca56f922e30859f18ba288",
+  "backend": "webgpu",
+  "inPort": true,
+  "tick": 0,
+  "playerIntegrity": 1,
+  "playerWater": 0,
+  "maxMuzzleErrorM": 0.0021605566985773038,
+  "renderedShips": [
+    {
+      "id": "player",
+      "visible": true,
+      "impactMarks": 0,
+      "impactDrawCalls": 0
+    },
+    {
+      "id": "enemy-1",
+      "visible": false,
+      "impactMarks": 0,
+      "impactDrawCalls": 0
+    }
+  ]
+}

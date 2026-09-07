@@ -1,5 +1,11 @@
 # Yamato discrepancy register
 
+## Bow chrysanthemum, 2026-09-07
+
+An original gilt chrysanthemum now sits on a physically attached bow bulwark. Diameter is **1.00 m**, following Kure City's April 2026 museum-renewal report, printed p.5, which says the 2016 underwater survey corrected the former 1.5 m estimate. The report text is available through the web reader; direct PDF download currently returns HTTP 404. The retained original visitor photograph of the museum bow supports placement and the raised petals, but predates this diameter correction. Mikasa's preserved original crest is corroborating relief/construction evidence only, not a source for Yamato's dimensions.
+
+Sixteen sculpted front petals, sixteen recessed tips, a central boss and a seated backing replace the absent ornament. The support meets the existing deck and follows its authored sheer; the open guard wires end at the bulwark returns instead of crossing the crest. Crest center height (0.77 m above the foremost deck), relief, backing depth and local bow-bulwark profile are estimates pending a measured mounting drawing. Original hull, guns, joints and simulation inputs remain unchanged. These additions do not close the hull/bridge/turret accuracy gaps below. Exact-hash checks and close-up evidence are retained in `bow-crest/`.
+
 ## Fleet AA gameplay integration
 
 The twelve existing twin 127 mm fittings are now registered as `ha--1-1` through

@@ -1,0 +1,50 @@
+{
+  "contentHash": "18e762f1354f7f5b2036b7fc94b4c149c6762b704b1df30a524de85f796bf7b5",
+  "input": "published GLB",
+  "tool": "local Blender 5.2 / Cycles",
+  "importedAxes": "bow +Y, starboard +X, up +Z",
+  "views": [
+    [
+      "crest-front",
+      [
+        0,
+        150,
+        10.4
+      ],
+      [
+        0,
+        131.5,
+        10.17
+      ],
+      2.8
+    ],
+    [
+      "crest-quarter",
+      [
+        8,
+        145,
+        14
+      ],
+      [
+        0,
+        130.8,
+        10.0
+      ],
+      6
+    ],
+    [
+      "crest-side",
+      [
+        12,
+        134,
+        11.2
+      ],
+      [
+        0,
+        131.4,
+        10.1
+      ],
+      3.4
+    ]
+  ]
+}

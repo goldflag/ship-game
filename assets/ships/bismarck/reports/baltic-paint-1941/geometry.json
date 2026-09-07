@@ -1,0 +1,25 @@
+{
+  "shipId": "bismarck",
+  "contentHash": "22842aace5e10d3bd2d5b384a83252eb6a2751b5ecca56f922e30859f18ba288",
+  "beforeHash": "2166ac8e80f66f7e0acf9cd09d1046d7c8b2d06c5ba8f7f481fbe6d0f279b23f",
+  "existingObjects": 18525,
+  "changedExistingGeometryOrTransforms": [],
+  "addedObjects": [],
+  "method": "All original vertex coordinates, polygon topology, transforms, parents, assembly IDs and node IDs compared by object name; materials/UVs intentionally excluded.",
+  "packedImages": [
+    {
+      "name": "Original Baltic side paint",
+      "size": [
+        2048,
+        2048
+      ]
+    },
+    {
+      "name": "Original teak and Baltic deck recognition",
+      "size": [
+        4096,
+        1024
+      ]
+    }
+  ]
+}

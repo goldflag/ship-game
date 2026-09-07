@@ -2,6 +2,10 @@
 
 Reviewed fit: **24 May 1941**, displayed at **9.33 m standard draft**. Revision `independent-1941-04`. Build tolerances verify implementation of reviewed targets; evidence uncertainties are our assessment, not source-published error bars. No historical accuracy certification is implied.
 
+## 2026-09-07 — requested Baltic paint
+
+The paint now depicts the supplied González López **March–May 1941 Baltic trials** drawing (`kb-baltic-user-reference`), while the existing equipment geometry remains the May 1941 reconstruction described below. These dates are deliberately distinguished: the Baltic stripes and deck recognition markings do not depict the Denmark Strait battle finish. Metric boundaries are manually interpreted at approximately 8.04 pixels/m from the user's complete credited sheet, with an estimated ±0.5 m placement uncertainty. The bow/stern recognition fields are about 12.2 m long with 10.2 m white discs, centered at Blender X=+102 and -110 m. Paint colors are sRGB appearance estimates, not measured historical samples. The supplied single side profile is repeated on the opposite side; exact opposite-side differences remain unresolved. The original teak and symbols are generated from numeric primitives, never cropped or baked from reference art. No geometry, sockets, joint limits, collision surfaces, armor or simulation parameters change. Earlier geometry accuracy gaps below remain unresolved.
+
 | Area | Evidence and current result | Remaining limit / next evidence |
 | --- | --- | --- |
 | Principal dimensions | 250.50 m overall, 241.55 m waterline, 36 m beam, 9.33 m standard draft, 15 m midship depth. Actual exported triangles meet the separate targets. NHHC narrative provides coarse beam corroboration; ambiguous length wording is not averaged into LOA. | Standard and maximum/battle loading differ. Derive displacement/trim from a measured hull and documented condition before claiming battle-day flotation. |

@@ -1,0 +1,160 @@
+02:34:15 | INFO: Data are loaded, start creating Blender stuff
+02:34:15 | INFO: Blender create Mesh node aa-citadel-1-1 base
+02:34:15 | INFO: Blender create Mesh node aa-citadel-1-2 base
+02:34:15 | INFO: Blender create Mesh node aa-citadel-1-3 base
+02:34:15 | INFO: Blender create Mesh node aa-citadel-1-4 base
+02:34:15 | INFO: Blender create Mesh node aa-citadel-1-5 base
+02:34:15 | INFO: Blender create Mesh node aa-citadel-1-6 base
+02:34:15 | INFO: Blender create Mesh node aa-citadel-1-7 base
+02:34:15 | INFO: Blender create Mesh node aa-citadel-1-8 base
+02:34:15 | INFO: Blender create Mesh node aa-citadel-1-9 base
+02:34:15 | INFO: Blender create Mesh node aa-citadel-1-10 base
+02:34:15 | INFO: Blender create Mesh node aa-citadel-1-11 base
+02:34:15 | INFO: Blender create Mesh node aa-citadel-1-12 base
+02:34:15 | INFO: Blender create Mesh node aa-citadel--1-1 base
+02:34:15 | INFO: Blender create Mesh node aa-citadel--1-2 base
+02:34:15 | INFO: Blender create Mesh node aa-citadel--1-3 base
+02:34:15 | INFO: Blender create Mesh node aa-citadel--1-4 base
+02:34:15 | INFO: Blender create Mesh node aa-citadel--1-5 base
+02:34:15 | INFO: Blender create Mesh node aa-citadel--1-6 base
+02:34:15 | INFO: Blender create Mesh node aa-citadel--1-7 base
+02:34:15 | INFO: Blender create Mesh node aa-citadel--1-8 base
+02:34:15 | INFO: Blender create Mesh node aa-citadel--1-9 base
+02:34:15 | INFO: Blender create Mesh node aa-citadel--1-10 base
+02:34:15 | INFO: Blender create Mesh node aa-citadel--1-11 base
+02:34:15 | INFO: Blender create Mesh node aa-citadel--1-12 base
+02:34:15 | INFO: Blender create Mesh node aa-deck-1-1 base
+02:34:15 | INFO: Blender create Mesh node aa-deck-1-2 base
+02:34:15 | INFO: Blender create Mesh node aa-deck-1-3 base
+02:34:15 | INFO: Blender create Mesh node aa-deck-1-4 base
+02:34:15 | INFO: Blender create Mesh node aa-deck-1-5 base
+02:34:15 | INFO: Blender create Mesh node aa-deck-1-6 base
+02:34:15 | INFO: Blender create Mesh node aa-deck-1-7 base
+02:34:15 | INFO: Blender create Mesh node aa-deck--1-1 base
+02:34:15 | INFO: Blender create Mesh node aa-deck--1-2 base
+02:34:15 | INFO: Blender create Mesh node aa-deck--1-3 base
+02:34:15 | INFO: Blender create Mesh node aa-deck--1-4 base
+02:34:15 | INFO: Blender create Mesh node aa-deck--1-5 base
+02:34:15 | INFO: Blender create Mesh node aa-deck--1-6 base
+02:34:15 | INFO: Blender create Mesh node aa-deck--1-7 base
+02:34:15 | INFO: Blender create Mesh node Late AA outer gallery.001
+02:34:15 | INFO: Blender create Mesh node Late AA outer gallery
+02:34:15 | INFO: Blender create Mesh node aa-quarter-1-1 base
+02:34:15 | INFO: Blender create Mesh node aa-quarter-1-2 base
+02:34:15 | INFO: Blender create Mesh node aa-quarter--1-1 base
+02:34:15 | INFO: Blender create Mesh node aa-quarter--1-2 base
+02:34:15 | INFO: Blender create Mesh node aa-stern-1 base
+02:34:15 | INFO: Blender create Mesh node aa-stern--1 base
+02:34:15 | INFO: Blender create Mesh node aa-upper-1-1 base
+02:34:15 | INFO: Blender create Mesh node aa-upper-1-2 base
+02:34:15 | INFO: Blender create Mesh node aa-upper--1-1 base
+02:34:15 | INFO: Blender create Mesh node aa-upper--1-2 base
+02:34:15 | INFO: Blender create Mesh node Quarterdeck AA sponson
+02:34:15 | INFO: Blender create Mesh node 25 mm gallery base
+02:34:15 | INFO: Blender create Mesh node Auxiliary rudder
+02:34:15 | INFO: Blender create Mesh node Blueprint lofted hull
+02:34:15 | INFO: Blender create Mesh node Crest bow bulwark
+02:34:15 | INFO: Blender create Mesh node Chrysanthemum seated backing
+02:34:15 | INFO: Blender create Mesh node Central shelter deck
+02:34:15 | INFO: Blender create Mesh node Bridge Foundation
+02:34:15 | INFO: Blender create Mesh node Bridge Trunk
+02:34:15 | INFO: Blender create Mesh node Deck surface
+02:34:15 | INFO: Blender create Mesh node Curved funnel jacket
+02:34:15 | INFO: Blender create Mesh node Funnel smoke opening
+02:34:15 | INFO: Blender create Mesh node ha-1-1 platform
+02:34:15 | INFO: Blender create Mesh node ha-1-1 breech
+02:34:15 | INFO: Blender create Mesh node ha-1-1 breech.001
+02:34:15 | INFO: Blender create Mesh node ha-1-1 pivot
+02:34:15 | INFO: Blender create Mesh node ha-1-2 platform
+02:34:15 | INFO: Blender create Mesh node ha-1-2 breech
+02:34:15 | INFO: Blender create Mesh node ha-1-2 breech.001
+02:34:15 | INFO: Blender create Mesh node ha-1-2 pivot
+02:34:15 | INFO: Blender create Mesh node ha-1-3 platform
+02:34:15 | INFO: Blender create Mesh node ha-1-3 breech
+02:34:15 | INFO: Blender create Mesh node ha-1-3 breech.001
+02:34:15 | INFO: Blender create Mesh node ha-1-3 pivot
+02:34:15 | INFO: Blender create Mesh node Open HA mount raised foundation.003
+02:34:15 | INFO: Blender create Mesh node ha-1-4 breech
+02:34:15 | INFO: Blender create Mesh node ha-1-4 breech.001
+02:34:15 | INFO: Blender create Mesh node ha-1-4 pivot
+02:34:15 | INFO: Blender create Mesh node Open HA mount raised foundation.004
+02:34:15 | INFO: Blender create Mesh node ha-1-5 breech
+02:34:15 | INFO: Blender create Mesh node ha-1-5 breech.001
+02:34:15 | INFO: Blender create Mesh node ha-1-5 pivot
+02:34:15 | INFO: Blender create Mesh node Open HA mount raised foundation.005
+02:34:15 | INFO: Blender create Mesh node ha-1-6 breech
+02:34:15 | INFO: Blender create Mesh node ha-1-6 breech.001
+02:34:15 | INFO: Blender create Mesh node ha-1-6 pivot
+02:34:15 | INFO: Blender create Mesh node ha--1-1 platform
+02:34:15 | INFO: Blender create Mesh node ha--1-1 breech
+02:34:15 | INFO: Blender create Mesh node ha--1-1 breech.001
+02:34:15 | INFO: Blender create Mesh node ha--1-1 pivot
+02:34:15 | INFO: Blender create Mesh node ha--1-2 platform
+02:34:15 | INFO: Blender create Mesh node ha--1-2 breech
+02:34:15 | INFO: Blender create Mesh node ha--1-2 breech.001
+02:34:15 | INFO: Blender create Mesh node ha--1-2 pivot
+02:34:15 | INFO: Blender create Mesh node ha--1-3 platform
+02:34:15 | INFO: Blender create Mesh node ha--1-3 breech
+02:34:15 | INFO: Blender create Mesh node ha--1-3 breech.001
+02:34:15 | INFO: Blender create Mesh node ha--1-3 pivot
+02:34:15 | INFO: Blender create Mesh node Open HA mount raised foundation
+02:34:15 | INFO: Blender create Mesh node ha--1-4 breech
+02:34:15 | INFO: Blender create Mesh node ha--1-4 breech.001
+02:34:15 | INFO: Blender create Mesh node ha--1-4 pivot
+02:34:15 | INFO: Blender create Mesh node Open HA mount raised foundation.001
+02:34:15 | INFO: Blender create Mesh node ha--1-5 breech
+02:34:15 | INFO: Blender create Mesh node ha--1-5 breech.001
+02:34:15 | INFO: Blender create Mesh node ha--1-5 pivot
+02:34:15 | INFO: Blender create Mesh node Open HA mount raised foundation.002
+02:34:15 | INFO: Blender create Mesh node ha--1-6 breech
+02:34:15 | INFO: Blender create Mesh node ha--1-6 breech.001
+02:34:15 | INFO: Blender create Mesh node ha--1-6 pivot
+02:34:15 | INFO: Blender create Mesh node Hull scuttle
+02:34:15 | INFO: Blender create Mesh node No. 1 • armored barbette
+02:34:15 | INFO: Blender create Mesh node No. 1 • canvas mantlet.001
+02:34:15 | INFO: Blender create Mesh node No. 1 • canvas mantlet
+02:34:15 | INFO: Blender create Mesh node No. 1 • canvas mantlet.002
+02:34:15 | INFO: Blender create Mesh node No. 1 • sloped gunhouse
+02:34:15 | INFO: Blender create Mesh node No. 2 • armored barbette
+02:34:15 | INFO: Blender create Mesh node No. 2 • canvas mantlet.001
+02:34:15 | INFO: Blender create Mesh node No. 2 • canvas mantlet
+02:34:15 | INFO: Blender create Mesh node No. 2 • canvas mantlet.002
+02:34:15 | INFO: Blender create Mesh node No. 2 • sloped gunhouse
+02:34:15 | INFO: Blender create Mesh node Turret roof 25 mm plinth
+02:34:15 | INFO: Blender create Mesh node aa-roof-main-2--1 base
+02:34:15 | INFO: Blender create Mesh node aa-roof-main-2-1 base
+02:34:15 | INFO: Blender create Mesh node No. 3 • armored barbette
+02:34:15 | INFO: Blender create Mesh node No. 3 • canvas mantlet.001
+02:34:15 | INFO: Blender create Mesh node No. 3 • canvas mantlet
+02:34:15 | INFO: Blender create Mesh node No. 3 • canvas mantlet.002
+02:34:15 | INFO: Blender create Mesh node No. 3 • sloped gunhouse
+02:34:15 | INFO: Blender create Mesh node Turret roof 25 mm plinth.001
+02:34:15 | INFO: Blender create Mesh node aa-roof-main-3--1 base
+02:34:15 | INFO: Blender create Mesh node aa-roof-main-3-1 base
+02:34:15 | INFO: Blender create Mesh node Main rudder
+02:34:15 | INFO: Blender create Mesh node Tripod mast leg
+02:34:15 | INFO: Blender create Mesh node Operations Tower
+02:34:15 | INFO: Blender create Mesh node Five metre three-bladed screw.009
+02:34:15 | INFO: Blender create Mesh node Five metre three-bladed screw.006
+02:34:15 | INFO: Blender create Mesh node Five metre three-bladed screw.003
+02:34:15 | INFO: Blender create Mesh node Five metre three-bladed screw
+02:34:15 | INFO: Blender create Mesh node Aft 15.5 cm • armored barbette
+02:34:15 | INFO: Blender create Mesh node Aft 15.5 cm • canvas mantlet.001
+02:34:15 | INFO: Blender create Mesh node Aft 15.5 cm • canvas mantlet
+02:34:15 | INFO: Blender create Mesh node Aft 15.5 cm • canvas mantlet.002
+02:34:15 | INFO: Blender create Mesh node Aft 15.5 cm • sloped gunhouse
+02:34:15 | INFO: Blender create Mesh node Forward 15.5 cm • armored barbette
+02:34:15 | INFO: Blender create Mesh node Forward 15.5 cm • canvas mantlet.001
+02:34:15 | INFO: Blender create Mesh node Forward 15.5 cm • canvas mantlet
+02:34:15 | INFO: Blender create Mesh node Forward 15.5 cm • canvas mantlet.002
+02:34:15 | INFO: Blender create Mesh node Forward 15.5 cm • sloped gunhouse
+02:34:15 | INFO: Blender create Mesh node Propeller shaft
+02:34:15 | INFO: glTF import finished in 0.64s
+/Users/bill/orca/workspaces/ship-game/handfish/assets/ships/yamato/reports/bow-crest/render-closeups.py:22: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world.use_nodes = True
+00:10.883  render           | Saved: '/Users/bill/orca/workspaces/ship-game/handfish/assets/ships/yamato/reports/bow-crest/crest-front.png'
+00:19.128  render           | Saved: '/Users/bill/orca/workspaces/ship-game/handfish/assets/ships/yamato/reports/bow-crest/crest-quarter.png'
+00:26.371  render           | Saved: '/Users/bill/orca/workspaces/ship-game/handfish/assets/ships/yamato/reports/bow-crest/crest-side.png'
+Blender 5.2.0 LTS (hash fbe6228777e7 built 2026-07-14 01:31:22)
+
+Blender quit

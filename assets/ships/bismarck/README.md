@@ -1,6 +1,10 @@
-# Bismarck · 24 May 1941
+# Bismarck · Baltic paint, March–May 1941
+
+The latest combined build and exact-hash review are recorded in [the integration review](reports/paint-crest-integration/README.md). Earlier review captures retain their original hashes.
 
 An independent reconstruction authored from reviewed dimensions, historical drawings/photographs and neutral GameModels3D screenshots. The fit is 24 May 1941; the display uses a separate 9.33 m standard draft, not an asserted battle-day displacement or trim. The earlier original model remains untouched in `baseline/` and is not an input.
+
+The exterior now wears the requested **March–May 1941 Baltic trials paint**: three black/white hull bands continuing as black diagonals over the upperworks, dark gray ends with false white waves, dark turret roofs, and red recognition fields with white discs and black swastikas on the fore and aft decks. This is the earlier paint scheme applied to the retained equipment reconstruction, not the ship's paint at the Denmark Strait engagement. `paint-scheme.json` holds versioned metric paint boundaries and an estimated palette; `paint.py` creates two original packed textures and projects UVs onto existing surfaces. Both are registered build inputs. No reference pixels, decal geometry, or renderer changes are used. See [paint evidence and validation](reports/baltic-paint-1941/README.md).
 
 `blueprint.json` owns the newly authored hull sections, superstructure footprints, 38 mount positions, 509 compiled physical protection plates, 39 internal envelopes and provisional handling. `build.py` creates fresh topology and materials, using the original reusable gun component catalog. No game-model vertices, offsets, UVs, textures or attachment transforms are production inputs. `generated/source.blend` and `public/models/bismarck.glb` are generated outputs.
 

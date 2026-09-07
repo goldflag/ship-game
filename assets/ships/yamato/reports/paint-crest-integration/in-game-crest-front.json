@@ -1,0 +1,20 @@
+{
+  "shipId": "yamato",
+  "contentHash": "18e762f1354f7f5b2036b7fc94b4c149c6762b704b1df30a524de85f796bf7b5",
+  "targetBlender": [
+    131.5,
+    0,
+    10.17
+  ],
+  "offsetBlender": [
+    8,
+    0,
+    0.2
+  ],
+  "pose": null,
+  "camera": [
+    240,
+    10.37,
+    -139.5
+  ]
+}

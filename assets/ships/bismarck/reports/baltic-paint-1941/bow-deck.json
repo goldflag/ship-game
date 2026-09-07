@@ -1,0 +1,20 @@
+{
+  "camera": [
+    270,
+    41,
+    -123
+  ],
+  "contentHash": "22842aace5e10d3bd2d5b384a83252eb6a2751b5ecca56f922e30859f18ba288",
+  "offsetBlender": [
+    22,
+    -30,
+    34
+  ],
+  "pose": null,
+  "shipId": "bismarck",
+  "targetBlender": [
+    101,
+    0,
+    7
+  ]
+}

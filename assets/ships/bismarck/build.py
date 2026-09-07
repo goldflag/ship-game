@@ -3,6 +3,7 @@
 Version 4 interprets the retained historical plan, archival profile and raster
 comparison pack. Blueprint polygons own major placements; this original recipe
 owns construction/detail primitives. No source mesh or extracted transforms enter.
+The separate original paint recipe applies the requested March–May Baltic scheme.
 """
 import bpy, bmesh, json, math, os, sys
 from pathlib import Path
@@ -742,6 +743,9 @@ for c in DEF['compartments']:
 simcol.hide_render=True;simcol.hide_viewport=True
 for name,loc in [('funnel-cap',(-2.4,0,25)),('mainmast-top',(-22.5,0,48.5)),('fore-director',(13.4,0,32)),('conning-director',(27.6,0,20.6)),('aft-director',(-37.8,0,17.5))]:
  ob=bpy.data.objects.new('landmark.'+name,None);scene.collection.objects.link(ob);ob.location=loc;ob['nodeId']='landmark.'+name
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+from paint import apply_paint
+apply_paint(scene,materials,Path(__file__).with_name('paint-scheme.json'))
 OUT.mkdir(parents=True,exist_ok=True)
 from blender_rig import create_flagstaffs
 create_flagstaffs(DEF)

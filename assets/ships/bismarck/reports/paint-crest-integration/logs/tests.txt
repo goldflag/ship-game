@@ -1,0 +1,67 @@
+bun test v1.3.3 (274e01c7)
+
+src/ships/blueprint.test.ts:
+(pass) blueprints round-trip through JSON and compile reusable mounts without mutating the source [61.27ms]
+(pass) rejects invalid IDs, missing parts, unsupported versions, invalid numbers and disconnected modules [82.17ms]
+(pass) changing a mount in the blueprint changes the compiled ship without ship-specific code [18.83ms]
+
+src/ships/presets.test.ts:
+(pass) retained port review pages are served with their evidence [145.74ms]
+
+src/simulation/combat.test.ts:
+(pass) a click does not spend ammunition on guns unable to fire at 1800,0,0 [412.28ms]
+(pass) a click does not spend ammunition on guns unable to fire at 0,0,1800 [366.76ms]
+(pass) a click does not spend ammunition on guns unable to fire at 1800,4000,0 [368.93ms]
+(pass) a click does not spend ammunition on guns unable to fire at 40000,0,0 [406.58ms]
+(pass) Bismarck bow-on fire uses forward turrets and keeps unreachable rear turrets loaded [1078.47ms]
+(pass) held fire admits turrets as they align and release cancels later firing [473.27ms]
+(pass) Bismarck rear barrels through the superstructure are blocked independently of target reachability [21.56ms]
+(pass) firing during traverse still respects obstructions, empty guns and disabled guns [28.80ms]
+(pass) pose conversions preserve arbitrary points under heading, list and trim
+(pass) swept collision catches a thin plate between ticks and rejects a parallel miss
+(pass) ballistic aim reaches its target under the flight integrator gravity [0.87ms]
+(pass) armor resolves before internal damage, and a surface/module is only charged once per shell [51.43ms]
+(pass) a shell spends one internal damage budget across modules and tick boundaries [51.60ms]
+(pass) flood connections conserve water with pumps/leaks disabled and list follows the flooded side [128.86ms]
+(pass) aimed salvos obey reloads and ammunition while damaging the target [1179.13ms]
+(pass) same commands at 30, 60 and 144 fps yield identical combat state [1797.89ms]
+(pass) reset replaces the trial target state without invalidating renderer bindings [21.20ms]
+(pass) shot and splash events retain matching caliber and independent velocity snapshots [450.47ms]
+(pass) impact normals are in world coordinates and internal damage has no surface normal [33.97ms]
+(pass) destroyed propulsion prevents target acceleration [180.68ms]
+(pass) surface evidence preserves ammunition and mount-local contact before later turret movement [240.06ms]
+(pass) an internal armed burst ignites the magazine once and disable the connected battery mount [808.05ms]
+(pass) exhausted reserve buoyancy causes sinking and target reset restores dry compartments [68.22ms]
+
+src/simulation/yamato.test.ts:
+(pass) Yamato has nine main guns with documented 3.50 metre adjacent bore spacing [0.69ms]
+(pass) a trained Yamato broadside fires nine distinct shells and debits three rounds per turret [1266.99ms]
+(pass) unsupported or fractional barrel counts cannot enter a compiled ship [8.00ms]
+(pass) both Yamato secondary triples clear the hull on a broadside and reload together [1091.31ms]
+
+src/game/ShipMaterialPalette.test.ts:
+(pass) different linear paint colors share shading while preserving every vertex and texture [2.14ms]
+(pass) surface parameters remain per vertex; distinct textures and custom materials remain independent [1.20ms]
+
+src/game/ShipRenderAssemblies.test.ts:
+(pass) rigid render assemblies preserve vertices, paint and separate articulated parents in every preset [2841.42ms]
+
+src/game/ShipView.test.ts:
+(pass) a turret disabled during a tick stops its rendered traverse and elevation immediately [103.77ms]
+(pass) liberty-cargo: exported guns follow full train/elevation/recoil and preserve appendage pivots [26.58ms]
+(pass) liberty-collier: exported guns follow full train/elevation/recoil and preserve appendage pivots [20.51ms]
+(pass) victory-cargo: exported guns follow full train/elevation/recoil and preserve appendage pivots [29.15ms]
+(pass) flower-corvette: exported guns follow full train/elevation/recoil and preserve appendage pivots [17.51ms]
+(pass) Baltimore exported hierarchy binds all 69 main, DP and Bofors muzzles through train, pitch and recoil [67.54ms]
+(pass) actual exported joints follow authoritative muzzle positions through rear traverse and recoil [62.23ms]
+(pass) Enterprise single and quadruple exported guns align at their traverse and elevation limits [56.93ms]
+(pass) Yamato center and outer barrels remain aligned through fore and aft traverse, elevation and recoil [111.39ms]
+(pass) fleet exteriors defer inspection geometry until a ship is inspected [371.22ms]
+(pass) fleet meshes reuse materials within each ship while inspection stays independent [355.70ms]
+(pass) VIIC dive planes, rudders and screws use the retained pivot hierarchy underwater [94.50ms]
+(pass) Fletcher gun and torpedo joints follow interpolated CPU poses on both broadsides and after reset [37.51ms]
+
+ 47 pass
+ 0 fail
+ 6037 expect() calls
+Ran 47 tests across 7 files. [15.32s]
