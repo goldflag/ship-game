@@ -1,5 +1,9 @@
 # Naval firing and shell effects
 
+## T shot-follow tracer correction — September 7, 2026
+
+Trails remain visible while following shots with T. The earlier 65 m visibility cutoff hid them at the normal 48 m follow distance; projected endpoint widths now keep trails thin at close range. See the [before/after captures and regression checks](shot-follow/README.md).
+
 ## Long shell trails and projectile detail — September 7, 2026
 
 Shells now use compact white-gold heads, thin pale trails retaining recent CPU flight positions, and an original metal projectile with an ogive, cap seam, copper driving bands and recessed base. Close camera views reveal the model; distant rounds use a simpler silhouette. See the [current source hashes, in-game captures and validation](wows-shells/README.md). Earlier amber-ribbon reviews below are historical evidence.

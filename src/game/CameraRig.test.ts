@@ -5,6 +5,8 @@ import { CameraRig } from './CameraRig';
 import viic from '../../assets/ships/type-viic/blueprint.json';
 import { Game } from './Game';
 import { ShellFollow } from './ShellFollow';
+import { ShellTrails } from './ShellTrails';
+import type { Shell } from '../simulation/damage';
 import { CombatSimulation } from '../simulation/combat';
 import { shipPreset } from '../ships/presets';
 
@@ -320,6 +322,28 @@ test('port zoom stays proportional when switching very small and large hulls', (
       }
     }
   } finally { rig.dispose(); }
+});
+
+test('the default T shot-follow camera keeps the followed round tracer visible through orbit and zoom', () => {
+  const { camera, canvas, rig, drag } = interactiveCamera(), follow = new ShellFollow(), trails = new ShellTrails();
+  const shot: Shell = { id: 1, ownerId: 'player', position: [0, 300, -1000], velocity: [800, 0, 0], age: 0,
+    caliberM: .38, damage: 70, penetrationMm: 400, visited: [] };
+  try {
+    follow.setEnabled(true);
+    for (let frame = 0; frame <= 60; frame++) {
+      shot.age = frame / 60; shot.position[0] = shot.age * 800;
+      follow.update([shot], [], 'player', 1 / 60);
+      rig.setShellView(follow.view); rig.update(createShipState(), 0, 1 / 60, true);
+      trails.update([shot], 1 / 60, camera);
+    }
+    expect(camera.position.distanceTo(new Vector3(...shot.position))).toBeCloseTo(Math.hypot(45, 12, 12), 5);
+    expect(trails.diagnostics().segments).toBeGreaterThan(0);
+    drag(200, 40);
+    canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY: -2000, deltaMode: 0 }));
+    rig.update(createShipState(), 0, 0, true); trails.update([shot], 0, camera);
+    expect(camera.position.distanceTo(new Vector3(...shot.position))).toBeCloseTo(12, 5);
+    expect(trails.diagnostics().segments).toBeGreaterThan(0);
+  } finally { trails.dispose(); rig.dispose(); }
 });
 
 test('shell camera follows flight without frame lag or changed aim, and restores binoculars after orbit and zoom', () => {
