@@ -31,13 +31,21 @@ async function inputHash(){
  }),...(await files(join(root,'assets/reference-ui'))),...(await files(join(source,'references/historical'))),...(await files(join(root,'scripts/reference'))).filter(p=>!p.includes('__pycache__')&&!p.endsWith('.pyc')),join(root,'src/simulation/protection.ts'),join(root,'src/simulation/geometry.ts'),join(root,'src/simulation/structure.ts')].sort();
  const h=createHash('sha256');for(const path of paths){h.update(path.slice(root.length));h.update(await readFile(path));}return h.digest('hex');
 }
+// public/ship-reference is not version controlled: it is a served copy of the retained comparison output.
+async function publish(){
+ await mkdir(resolve(published,'..'),{recursive:true});const temp=published+'.tmp';await rm(temp,{recursive:true,force:true});await cp(output,temp,{recursive:true});
+ await rm(published,{recursive:true,force:true});await rename(temp,published);
+}
 if(action==='check'){
  const record=JSON.parse(await readFile(join(output,'build.json'),'utf8'));
  if(record.inputHash!==await inputHash())throw new Error('Comparison artifacts are stale. Run ship:compare '+ship);
+ let current=true;
  for(const [path,hash]of Object.entries(record.files)){
-  if(sha(await readFile(join(output,path)))!==hash||sha(await readFile(join(published,path)))!==hash)throw new Error('Stale or corrupt comparison artifact: '+path);
+  if(sha(await readFile(join(output,path)))!==hash)throw new Error('Stale or corrupt comparison artifact: '+path);
+  if(current&&(!existsSync(join(published,path))||sha(await readFile(join(published,path)))!==hash))current=false;
  }
- console.log('Matched comparisons, probes, source pack and portable archive are current');
+ if(!current)await publish();
+ console.log('Matched comparisons, probes and source pack are current'+(current?'':'; review page republished'));
 }else{
  await mkdir(stage,{recursive:true});const lock=stage+'.lock';await mkdir(lock).catch(()=>{throw new Error('Reference pipeline already running: '+lock);});
  try{
@@ -69,8 +77,7 @@ if(action==='check'){
    if(hash!==await inputHash())throw new Error('Reference/authoring inputs changed during comparison');
    const outputs:Record<string,string>={};for(const path of await files(output))outputs[path.slice(output.length+1)]=sha(await readFile(path));
    await writeFile(join(output,'build.json'),JSON.stringify({schemaVersion:1,inputHash:hash,files:outputs},null,2)+'\n');
-   await mkdir(resolve(published,'..'),{recursive:true});const temp=published+'.tmp';await rm(temp,{recursive:true,force:true});await cp(output,temp,{recursive:true});
-   await rm(published,{recursive:true,force:true});await rename(temp,published);
+   await publish();
    console.log('Local review page: /ship-reference/'+ship+'/index.html');
   }
  }finally{await rm(lock,{recursive:true,force:true});}

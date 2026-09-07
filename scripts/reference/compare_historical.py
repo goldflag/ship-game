@@ -3,7 +3,7 @@
 Only explicitly redistributable evidence enters public output. Restricted scans
 remain under assets with source links, never silently copied into a download.
 """
-import hashlib, html, json, math, re, shutil, sys, zipfile
+import hashlib, html, json, math, re, shutil, sys
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
@@ -97,7 +97,6 @@ for e in spec['evidence']:
 for name,path in [('measurements.json',source/'reports/measurements.json'),('modeling-spec.json',source/'modeling-spec.json'),('sources.json',refs/'sources.json'),('blueprint.json',source/'blueprint.json'),('discrepancies.md',source/'reports/discrepancies.md'),('export.json',source/'reports/export.json')]:shutil.copyfile(path,out/name)
 for path,name in [(source/'build.py','build.py'),(ROOT/'assets/parts/guns.json','guns.json'),(ROOT/'assets/ships/fleet-fidelity/author.py','fleet-author.py'),(ROOT/'assets/ships/fleet-fidelity/deck_surface.py','deck-surface.py')]:shutil.copyfile(path,out/'inputs'/name)
 for path in (ROOT/'scripts/ships').glob('*.py'):shutil.copyfile(path,out/'inputs'/path.name)
-shutil.copyfile(ROOT/'public/models'/(ship+'.glb'),out/(ship+'.glb'))
 (out/'historical/registration.json').write_text(json.dumps(spec['historicalRegistrations'],indent=2)+'\n')
 (out/'historical/credits.txt').write_text('\n\n'.join(credits)+'\nSee sources.json for original archival credits. Restricted scans excluded.\n')
 esc=html.escape
@@ -124,7 +123,7 @@ if (runtime/'review.json').exists():
 probes='\n'.join(p['id']+': '+' → '.join(f'{h["name"]} ({h["thicknessMm"]} mm)' for h in p['layers']) for p in report['probes'])
 probes+='\n\n'+'\n'.join(p['id']+': '+('MISS' if not p['hits'] else ', '.join(sorted({h['id'] for h in p['hits']}))) for p in report['structuralProbes'])
 body=f'''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{esc(spec['review']['title'])}</title><link rel="stylesheet" href="fonts/fonts.css"><link rel="stylesheet" href="fonts/review.css"><main>
-<nav aria-label="Review navigation"><a href="../../../?ship={ship}">Open ship</a><a href="#dimensions">Dimensions</a><a href="#sections">Protection</a><a href="#evidence">Evidence</a><a href="{ship}-review.zip" download>Download review pack</a><a href="{ship}.glb" download>GLB</a></nav>
+<nav aria-label="Review navigation"><a href="../../../?ship={ship}">Open ship</a><a href="#dimensions">Dimensions</a><a href="#sections">Protection</a><a href="#evidence">Evidence</a><a href="/models/{ship}.glb" download>GLB</a></nav>
 <h1>{esc(spec['review']['title'])}</h1><p>{esc(spec['configuration'])}. {esc(spec['review']['intro'])}</p><p class="note">Build {auth['contentHash'][:12]} · {export['triangles']:,} triangles · {export['meshes']} meshes. Engineering verification is not historical certification.</p>
 <div class="controls"><label>View<select id="view">{options}</select></label><label>Comparison<select id="reference"><option value="before">Pre-pass original</option><option value="historical">Historical drawing</option></select></label><label>Current overlay <output id="opacity-value">50%</output><input id="opacity" type="range" min="0" max="100" value="50"></label></div>
 <figure><div class="overlay"><img id="reference-image" src="before/starboard.png" alt="Selected comparison layer"><img class="ours" id="authored-image" src="authored/starboard.png" alt="Current exported ship"></div><figcaption id="view-note">Identical fixed cameras; no rescaling between authored stages.</figcaption></figure>
@@ -139,9 +138,6 @@ body=f'''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewpo
 <p class="credit">All production geometry and materials independently authored. Historical references are not runtime textures. {' '.join(esc(c) for c in credits)} No GameModels3D geometry or attachment data used. Original authoring inputs included; rebuild with the repository shared pipeline. Generated Blender scenes remain under assets.</p>
 </main><script>const history={json.dumps({k:v['note'] for k,v in history.items()})};const view=document.getElementById('view'),reference=document.getElementById('reference');function update(){{const id=view.value;reference.options[1].disabled=!history[id];if(!history[id])reference.value='before';for(const k of ['authored-image','own-side'])document.getElementById(k).src='authored/'+id+'.png';for(const k of ['reference-image','ref-side'])document.getElementById(k).src=reference.value+'/'+id+'.png';document.getElementById('view-note').textContent=reference.value==='historical'?history[id]:'Identical fixed cameras; no rescaling between authored stages.';document.getElementById('ref-label').textContent=reference.value==='historical'?'Historical evidence; source and fit limitations apply':'Preserved pre-pass original';}}view.addEventListener('change',update);reference.addEventListener('change',update);document.getElementById('opacity').addEventListener('input',e=>{{document.querySelector('.overlay').style.setProperty('--alpha',e.target.value/100);document.getElementById('opacity-value').value=e.target.value+'%';}});document.getElementById('section').addEventListener('change',e=>document.getElementById('section-image').src='sections/'+e.target.value+'.svg');update();</script></html>'''
 (out/'index.html').write_text(body)
-archive=out/(ship+'-review.zip')
-with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as z:
-    for p in sorted(out.rglob('*')):
-        if p.is_file() and p!=archive and p.name!='build.json':z.write(p,p.relative_to(out))
-if archive.stat().st_size>=100*1024*1024:raise ValueError('Review archive exceeds repository host limit')
-print('HISTORICAL REVIEW',ship,len(views),'matched views;',archive.stat().st_size,'bytes; restricted scans excluded')
+# No portable archive: the page links the runtime GLB from public/models and large
+# generated binaries stay out of version control.
+print('HISTORICAL REVIEW',ship,len(views),'matched views; restricted scans excluded')

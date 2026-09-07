@@ -11,3 +11,6 @@ dist/
 *.blend2
 *.tmp
 __pycache__/
+
+# Served copy of assets/ships/<id>/generated/comparison, rebuilt by ship:check / ship:compare.
+public/ship-reference/
