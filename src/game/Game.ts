@@ -14,7 +14,6 @@ import { Fn, float, max, mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
 import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
 import { VisualWaveSampler } from './VisualWaveSampler';
 import { UnderwaterPassVisibility } from './UnderwaterPassVisibility';
-import { HorizonHaze } from './HorizonHaze';
 import { FrameScene } from './FrameScene';
 import { FleetShipDraws } from './FleetShipDraws';
 import { batchShipModel } from './ShipBatching';
@@ -69,7 +68,6 @@ export class Game {
   private renderer: THREE.WebGPURenderer;
   private scene = new FrameScene();
   private underwaterPassVisibility?: UnderwaterPassVisibility;
-  private horizonHaze = new HorizonHaze();
   private ambientLight = new THREE.HemisphereLight('#dcebf2', '#65757e', .65);
   private camera = new THREE.PerspectiveCamera(52, 1, 0.5, 60000);
   private rig: CameraRig;
@@ -304,7 +302,6 @@ export class Game {
     skyProvider.createFogSampler = () => Fn(([direction]: [THREE.Node]) => daylightFog(direction).add(
       moon.moonColor.mul(moon.moonIntensity).mul(moon.moonAmbient).mul(moon.moonPhaseIllumination)
         .mul(max(0, moon.moonDirection.y)).mul(moon.skyDarkness)));
-    this.horizonHaze.apply(this.sky, skyProvider, this.water);
     this.water.setSky(skyProvider);
     const sunlight = this.water.lighting.sunLight;
     const shadowSize = this.settings.quality === 'medium' ? 1024 : this.settings.quality === 'ultra' ? 4096 : 2048;
@@ -975,8 +972,8 @@ export class Game {
       this.water.fog.color = this.inPort ? '#819aa5' : environment.fog.color;
       this.water.fog.fadeStart = this.inPort ? 650 : environment.fog.start;
       this.water.fog.fadeEnd = this.inPort ? 5600 : environment.fog.end;
-      this.water.fog.fadePower = this.inPort ? .85 : 1;
-      this.water.fog.skyBlendDistance = this.inPort ? 2600 : environment.fog.skyBlend * .65;
+      this.water.fog.fadePower = this.inPort ? .85 : 1.4;
+      this.water.fog.skyBlendDistance = this.inPort ? 2600 : environment.fog.skyBlend;
     }
   }
   cycleCamera(): void { if (this.airOperationsOpen) { this.setAirOperationsOpen(false); return; } const aircraft = !!this.followedAircraftId; this.stopShellFollow(); if (!aircraft) this.rig.cycle(); }
@@ -1014,7 +1011,6 @@ export class Game {
     this.funnelSmoke.dispose();
     await this.visualWaveSampler?.drain();
     this.water?.dispose();
-    this.horizonHaze.dispose();
     this.sky?.dispose();
     const geometries = new Set<THREE.BufferGeometry>();
     const materials = new Set<THREE.Material>();
