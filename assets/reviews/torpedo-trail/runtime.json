@@ -1,0 +1,8 @@
+{
+  "airborneTrailHidden": true,
+  "backend": "webgpu",
+  "deepTrailHidden": true,
+  "pausePreservesTrail": true,
+  "portClearsTrail": true,
+  "submergedTrailVisible": true
+}
