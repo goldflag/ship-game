@@ -123,10 +123,15 @@ The models were rebuilt through Blender MCP from individually measured three-vie
 ## Validation
 
 ```sh
-bun test
+bun run test
+bun run test:serial              # Single-process run for shared-state diagnosis
 bun run build
 bun run preview
 ```
+
+`bun run test` runs every test file in a separate Bun process, with at most six workers (bounded by available CPU parallelism). Output stays grouped by file, and any failed file fails the command. Tests, assertions and simulation durations are unchanged. `bun test` still uses Bun's single-process runner. Passing options to `bun run test`, such as `--coverage`, `--watch` or `--test-name-pattern`, delegates to the native single-process runner so those options retain their usual behavior.
+
+See the [test runtime measurements](docs/test-performance.md) for the before/after comparison.
 
 Tests cover mixed-fleet deployment and loading, bot fire/reloads/damage/retargeting, friendly firing lanes, battle results and resets, fleet determinism, blueprint validation, reusable component compilation, movement, ship contacts (ramming, reversing, sliding, mass, turning, pile-ups, sinking and close passes), ballistic solutions, swept hits, armor before modules, conserved flood transfer, reload/ammunition, propulsion damage, magazine detonation, sinking, reset behavior, and identical combat outcomes at different frame rates. A renderer adapter test loads the actual exported joint hierarchy and checks rear-turret rotation, elevation and recoil against authoritative muzzle positions. The build checks that the GLB matches its compiled definition and measures actual exported hull/pivot/muzzle geometry. Browser validation is also needed for rendering and controls.
 
