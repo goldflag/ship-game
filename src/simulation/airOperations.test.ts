@@ -15,13 +15,14 @@ function fixture() {
   return { sim, run, wing, events };
 }
 
-test('48 aircraft have a bounded ready deck, hangar reserve and conserved whole-wing counts', () => {
+test('48 aircraft start hidden in the hangar with eight stable squadron selections', () => {
   const { sim, run, wing } = fixture(); run(1 / 60);
   expect(sim.player.airWing!.planes).toHaveLength(48);
-  expect(sim.player.airWing!.planes.filter(onFlightDeck)).toHaveLength(12);
-  expect(new Set(sim.player.airWing!.planes.filter(onFlightDeck).map(p => p.deckSlot)).size).toBe(12);
-  expect(wing().inHangar).toBe(36); expect(wing().counts.ready).toBe(48);
-  expect(wing().flights.filter(p => p.followable)).toHaveLength(12);
+  expect(sim.player.airWing!.planes.filter(onFlightDeck)).toHaveLength(0);
+  expect(wing().groups).toHaveLength(8);
+  expect(wing().groups.every(f => f.total === 6 && f.status === 'ready')).toBe(true);
+  expect(wing().inHangar).toBe(48); expect(wing().counts.ready).toBe(48);
+  expect(wing().flights.filter(p => p.followable)).toHaveLength(0);
   expect(wing().squadrons.map(s => s.total)).toEqual([18, 18, 12]);
 });
 
@@ -39,7 +40,7 @@ test('six-plane flights retain separate orders and four active slots include que
   expect(sim.player.airWing!.planes.filter(p => p.flightId === strike.id).every(p => p.targetId === otherTarget.motion.id)).toBe(true);
   expect(sim.orderFlight(flights[0].id, { kind: 'escort', flightId: strike.id })).toBe(true);
   expect(sim.orderFlight(flights[0].id, { kind: 'escort', flightId: flights[0].id })).toBe(false);
-  expect(sim.orderFlight(strike.id, { kind: 'patrol', point: [0, 420, 0] })).toBe(false);
+  expect(sim.orderFlight(strike.id, { kind: 'patrol', point: [0, 420, 0] })).toBe(true);
   expect(sim.orderFlight(flights[0].id, { kind: 'patrol', point: [NaN, 420, 0] })).toBe(false);
   expect(sim.orderFlight('enemy/flight-1', { kind: 'return' })).toBe(false);
   sim.recallAircraft(strike.id);

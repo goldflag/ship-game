@@ -13,17 +13,17 @@ function battle(target = 'bismarck') {
   Object.assign(sim.target.motion, { x: 0, z: 0, heading: 0 });
   return sim;
 }
-function broadside(sim: CombatSimulation, volley: number) {
+function broadside(sim: CombatSimulation, volley: number, offset = 0, side = -1) {
   const weapon = sim.definition.mounts[0].weapon;
   for (const [i, z] of [-30, -21, -12, -3, 6, 15, 24, 33].entries()) sim.shells.push({
-    id: 1000 + volley * 8 + i, ownerId: 'player', position: localToWorld([-20, .5, z], sim.target.motion),
-    velocity: rotate([730, -35, 0], sim.target.motion), age: 0, penetrationMm: 550,
+    id: 1000 + volley * 8 + i, ownerId: 'player', position: localToWorld([20 * side, .5, z + offset], sim.target.motion),
+    velocity: rotate([-730 * side, -35, 0], sim.target.motion), age: 0, penetrationMm: 550,
     damage: weapon.damage, caliberM: weapon.caliberM, visited: [], ammunition: 'ap', ap: weapon.ap,
   });
   for (let tick = 0; tick < 30; tick++) sim.step(helm, quiet);
 }
 
-test('Bismarck tanks eight landed 15-inch rounds but loses to four to six solid broadsides', () => {
+test('repeat broadsides taper; changing the struck side and area can still exhaust the hull and score one loss', () => {
   const sim = battle(), maximum = sim.target.damage.maxIntegrity;
   broadside(sim, 0);
   expect(sim.target.damage.integrity).toBeGreaterThan(maximum * .65);
@@ -34,7 +34,13 @@ test('Bismarck tanks eight landed 15-inch rounds but loses to four to six solid 
   expect(sim.target.mounts.every(m => m.hp === 100)).toBe(true);
   let volleys = 1;
   while (!sim.target.damage.sunk && volleys < 6) broadside(sim, volleys++);
-  expect(volleys).toBeGreaterThanOrEqual(4);
+  expect(sim.target.damage.sunk).toBe(false);
+  const beforeRepeat = sim.target.damage.integrity;
+  broadside(sim, volleys++);
+  expect(beforeRepeat - sim.target.damage.integrity).toBeLessThan(maximum * .025);
+  while (!sim.target.damage.sunk && volleys < 36) {
+    broadside(sim, volleys, [-65, 0, 65][volleys % 3], volleys % 2 ? 1 : -1); volleys++;
+  }
   expect(sim.target.damage.sunk).toBe(true);
   expect(sim.target.damage.defeatCause).toBe('hull-failure');
   expect(sim.result).toBe('victory');

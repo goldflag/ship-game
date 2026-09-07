@@ -12,7 +12,7 @@ const detailRecipePath = join(sourceDir, 'detail_bombers.py');
 const catalogPath = join(sourceDir, 'catalog.json');
 const outputDir = join(root, 'public/models/aircraft');
 const [action = 'check', requestedId = 'all'] = process.argv.slice(2);
-if (!['build', 'check', 'review', 'publish', 'hash', 'inputs'].includes(action) || (requestedId !== 'all' && !/^[a-z][a-z0-9-]{0,63}$/.test(requestedId))) throw new Error('Usage: bun scripts/aircraft/pipeline.ts build|check|review|publish|hash|inputs <aircraft-id|all>');
+if (!['build', 'check', 'review', 'publish', 'thumbnail', 'hash', 'inputs'].includes(action) || (requestedId !== 'all' && !/^[a-z][a-z0-9-]{0,63}$/.test(requestedId))) throw new Error('Usage: bun scripts/aircraft/pipeline.ts build|check|review|publish|thumbnail|hash|inputs <aircraft-id|all>');
 const hash = (bytes: Buffer | string) => createHash('sha256').update(bytes).digest('hex');
 const authoringHash = async () => {
   const [catalogBytes, recipeBytes, detailBytes] = await Promise.all([readFile(catalogPath), readFile(recipePath), readFile(detailRecipePath)]);
@@ -149,7 +149,33 @@ async function check(entry: AircraftEntry) {
   if (JSON.stringify(JSON.parse(storedReport)) !== JSON.stringify(report)) throw new Error(`${entry.id}: retained export report is stale. Run aircraft:build ${entry.id}.`);
   const manifest = { schemaVersion: 1, contentHash, modelHash: report.modelHash, ...report.review };
   if (JSON.stringify(JSON.parse(reviewManifest)) !== JSON.stringify(manifest)) throw new Error(`${entry.id}: review manifest is stale. Run aircraft:review ${entry.id}.`);
+  const thumbnailReport = join(generatedDir(entry.id), 'thumbnail/render.json');
+  if (existsSync(thumbnailReport)) {
+    const thumbnail = JSON.parse(await readFile(thumbnailReport, 'utf8'));
+    if (thumbnail.modelHash !== report.modelHash || thumbnail.recipeHash !== hash(await readFile(join(sourceDir, 'thumbnail.py')))
+      || thumbnail.imageHash !== hash(await readFile(join(outputDir, `${entry.id}-thumbnail.png`)))) throw new Error(`${entry.id}: thumbnail is stale. Run aircraft:thumbnail ${entry.id}.`);
+  }
   console.log(`${entry.id}: passed (LOD triangles ${report.lods.map(lod => lod.triangles.toLocaleString()).join(' / ')}, ${(report.bytes / 1024).toFixed(0)} KiB base)`);
+}
+
+async function thumbnail(entry: AircraftEntry) {
+  const recipe = join(sourceDir, 'thumbnail.py'), model = join(generatedDir(entry.id), 'model.glb');
+  const stage = join(stageDir(entry.id), 'thumbnail');
+  const expectedModel = hash(await readFile(model)), expectedRecipe = hash(await readFile(recipe));
+  const executable = process.env.BLENDER_BIN ?? (existsSync('/Applications/Blender.app/Contents/MacOS/Blender') ? '/Applications/Blender.app/Contents/MacOS/Blender' : 'blender');
+  await mkdir(stage, { recursive: true });
+  console.log(`Baking ${entry.id} squadron image with local Blender`);
+  const child = Bun.spawn([executable, '--background', '--factory-startup', '--python-exit-code', '1', '--python', recipe], {
+    cwd: root, env: { ...process.env, AIRCRAFT_ID: entry.id, AIRCRAFT_MODEL: model, AIRCRAFT_OUTPUT: stage }, stdout: 'pipe', stderr: 'pipe',
+  });
+  const [stdout, stderr, code] = await Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text(), child.exited]);
+  await writeFile(join(stage, 'build.log'), stdout + stderr);
+  if (code !== 0) throw new Error(`Thumbnail render failed for ${entry.id}:\n${(stdout + stderr).slice(-4000)}`);
+  const report = JSON.parse(await readFile(join(stage, 'render.json'), 'utf8'));
+  if (report.modelHash !== expectedModel || report.recipeHash !== expectedRecipe || hash(await readFile(model)) !== expectedModel || hash(await readFile(recipe)) !== expectedRecipe) throw new Error('Aircraft or thumbnail recipe changed during rendering. Run aircraft:thumbnail again.');
+  await assertInputsCurrent();
+  await copyAtomic(join(stage, 'thumbnail.png'), join(outputDir, `${entry.id}-thumbnail.png`));
+  await copyAtomic(join(stage, 'render.json'), join(generatedDir(entry.id), 'thumbnail/render.json'));
 }
 
 if (action === 'hash') {
@@ -167,10 +193,16 @@ if (action === 'hash') {
   try {
     await writeFile(join(lock, 'owner.json'), json({ pid: process.pid, action, requestedId, started: new Date().toISOString() }));
     for (const entry of selected) {
+      if (action === 'thumbnail') {
+        await inspectProducts(entry, generatedDir(entry.id));
+        await thumbnail(entry);
+        continue;
+      }
       // publish adopts outputs authored through Blender MCP without rerunning Blender.
       // review rebuilds with the same durable recipe, retaining all six fixed views.
       const directory = action === 'publish' ? generatedDir(entry.id) : await runBlender(entry);
       await publish(entry, directory);
+      if (existsSync(join(generatedDir(entry.id), 'thumbnail/render.json'))) await thumbnail(entry);
     }
     await assertInputsCurrent();
     await writeAtomic(join(outputDir, 'catalog.json'), json(runtimeCatalog));

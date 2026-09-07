@@ -6,7 +6,7 @@ import { compileShip } from './blueprint';
 test('blueprints round-trip through JSON and compile reusable mounts without mutating the source', () => {
   const before = JSON.stringify(blueprint);
   const definition = compileShip(JSON.parse(before), catalog);
-  expect(definition.mounts.length).toBe(10);
+  expect(definition.mounts.length).toBe(38);
   expect(definition.mounts[0].weapon.id).toBe(definition.mounts[1].weapon.id);
   definition.mounts[0].weapon.reloadSeconds = 1;
   expect(definition.mounts[1].weapon.reloadSeconds).toBe(20);

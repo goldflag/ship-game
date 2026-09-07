@@ -1,7 +1,8 @@
 import { expect, test } from 'bun:test';
 import { existsSync } from 'node:fs';
+import { mkdtemp, mkdir, symlink, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
-import { spawnSync } from 'node:child_process';
 import { shipPresets } from './presets';
 
 const root = resolve(import.meta.dir, '../..');
@@ -11,15 +12,15 @@ const retained = reviewable.filter(id => existsSync(resolve(root, 'assets/ships'
 
 test('retained port review pages are served with their evidence', async () => {
   expect(reviewable).toContain('type-viic');
-  // public/ship-reference is an ignored served copy; refresh it from the retained comparison output first.
-  for (const id of retained) {
-    const check = spawnSync('bun', [resolve(root, 'scripts/reference/pipeline.ts'), 'check', id], { encoding: 'utf8' });
-    if (check.status !== 0) throw new Error(`ship:check ${id} failed:\n${check.stdout}${check.stderr}`);
-  }
   const { createServer } = await import('vite');
+  // Serve the retained comparison output from an isolated directory; record hashes and freshness are checked by `bun run build`.
+  const publicDir = await mkdtemp(resolve(tmpdir(), 'ship-review-test-'));
+  await mkdir(resolve(publicDir, 'ship-reference'));
+  for (const id of retained) await symlink(resolve(root, 'assets/ships', id, 'generated/comparison'), resolve(publicDir, 'ship-reference', id));
   const server = await createServer({
     configFile: false,
     root,
+    publicDir,
     logLevel: 'silent',
     server: { port: 0, strictPort: true, hmr: false, watch: null },
     optimizeDeps: { noDiscovery: true, include: [] },
@@ -37,5 +38,6 @@ test('retained port review pages are served with their evidence', async () => {
     }
   } finally {
     await server.close();
+    await rm(publicDir, { recursive: true, force: true });
   }
 });

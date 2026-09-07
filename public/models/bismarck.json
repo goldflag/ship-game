@@ -23211,6 +23211,11 @@
       "bearingDeg": 0,
       "rangefinder": false,
       "magazineId": "anton-magazine",
+      "fire": {
+        "fuelSeconds": 90,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
       "weapon": {
         "id": "sk-c34-380-twin",
         "name": "38 cm twin mount",
@@ -23894,6 +23899,11 @@
       "bearingDeg": 0,
       "rangefinder": true,
       "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 90,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
       "weapon": {
         "id": "sk-c34-380-twin",
         "name": "38 cm twin mount",
@@ -24577,6 +24587,11 @@
       "bearingDeg": 180,
       "rangefinder": true,
       "magazineId": "caesar-magazine",
+      "fire": {
+        "fuelSeconds": 90,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
       "weapon": {
         "id": "sk-c34-380-twin",
         "name": "38 cm twin mount",
@@ -25260,6 +25275,11 @@
       "bearingDeg": 180,
       "rangefinder": true,
       "magazineId": "dora-magazine",
+      "fire": {
+        "fuelSeconds": 90,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
       "weapon": {
         "id": "sk-c34-380-twin",
         "name": "38 cm twin mount",
@@ -25942,6 +25962,11 @@
       ],
       "bearingDeg": 0,
       "rangefinder": false,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
       "weapon": {
         "id": "sk-c28-150-twin",
         "name": "15 cm twin mount",
@@ -26355,6 +26380,11 @@
       ],
       "bearingDeg": 0,
       "rangefinder": true,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
       "weapon": {
         "id": "sk-c28-150-twin",
         "name": "15 cm twin mount",
@@ -26768,6 +26798,11 @@
       ],
       "bearingDeg": 180,
       "rangefinder": false,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
       "weapon": {
         "id": "sk-c28-150-twin",
         "name": "15 cm twin mount",
@@ -27181,6 +27216,11 @@
       ],
       "bearingDeg": 0,
       "rangefinder": false,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
       "weapon": {
         "id": "sk-c28-150-twin",
         "name": "15 cm twin mount",
@@ -27594,6 +27634,11 @@
       ],
       "bearingDeg": 0,
       "rangefinder": true,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
       "weapon": {
         "id": "sk-c28-150-twin",
         "name": "15 cm twin mount",
@@ -28007,6 +28052,11 @@
       ],
       "bearingDeg": 180,
       "rangefinder": false,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
       "weapon": {
         "id": "sk-c28-150-twin",
         "name": "15 cm twin mount",
@@ -28405,6 +28455,1574 @@
           "damage": 44,
           "stockFraction": 0.4,
           "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-105-1",
+      "name": "Starboard 105 mm AA 1",
+      "partId": "flak-105-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        12.15,
+        5.79,
+        -20
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-105-bismarck-1941",
+        "name": "10.5 cm twin AA",
+        "kind": "gun",
+        "massKg": 27000,
+        "barbetteRadius": 1.5,
+        "gunhouseSize": [
+          2.3,
+          2.94,
+          2.44
+        ],
+        "pivotHeight": 1.63,
+        "trunnionForward": 0.12,
+        "muzzleForward": 4.82,
+        "barrelSpacing": 0.8,
+        "caliberM": 0.105,
+        "traverseDeg": 180,
+        "traverseRateDeg": 18,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 18,
+        "reloadSeconds": 4,
+        "muzzleSpeed": 900,
+        "projectileMassKg": 15.1,
+        "penetrationMm": 50,
+        "damage": 12,
+        "recoilM": 0.18,
+        "ammoPerBarrel": 400,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-105-2",
+      "name": "Starboard 105 mm AA 2",
+      "partId": "flak-105-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        11.6,
+        5.79,
+        -0.1
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-105-bismarck-1941",
+        "name": "10.5 cm twin AA",
+        "kind": "gun",
+        "massKg": 27000,
+        "barbetteRadius": 1.5,
+        "gunhouseSize": [
+          2.3,
+          2.94,
+          2.44
+        ],
+        "pivotHeight": 1.63,
+        "trunnionForward": 0.12,
+        "muzzleForward": 4.82,
+        "barrelSpacing": 0.8,
+        "caliberM": 0.105,
+        "traverseDeg": 180,
+        "traverseRateDeg": 18,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 18,
+        "reloadSeconds": 4,
+        "muzzleSpeed": 900,
+        "projectileMassKg": 15.1,
+        "penetrationMm": 50,
+        "damage": 12,
+        "recoilM": 0.18,
+        "ammoPerBarrel": 400,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-105-3",
+      "name": "Starboard 105 mm AA 3",
+      "partId": "flak-105-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        11.6,
+        5.79,
+        16
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-105-bismarck-1941",
+        "name": "10.5 cm twin AA",
+        "kind": "gun",
+        "massKg": 27000,
+        "barbetteRadius": 1.5,
+        "gunhouseSize": [
+          2.3,
+          2.94,
+          2.44
+        ],
+        "pivotHeight": 1.63,
+        "trunnionForward": 0.12,
+        "muzzleForward": 4.82,
+        "barrelSpacing": 0.8,
+        "caliberM": 0.105,
+        "traverseDeg": 180,
+        "traverseRateDeg": 18,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 18,
+        "reloadSeconds": 4,
+        "muzzleSpeed": 900,
+        "projectileMassKg": 15.1,
+        "penetrationMm": 50,
+        "damage": 12,
+        "recoilM": 0.18,
+        "ammoPerBarrel": 400,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-105-4",
+      "name": "Starboard 105 mm AA 4",
+      "partId": "flak-105-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        10.35,
+        5.79,
+        32
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-105-bismarck-1941",
+        "name": "10.5 cm twin AA",
+        "kind": "gun",
+        "massKg": 27000,
+        "barbetteRadius": 1.5,
+        "gunhouseSize": [
+          2.3,
+          2.94,
+          2.44
+        ],
+        "pivotHeight": 1.63,
+        "trunnionForward": 0.12,
+        "muzzleForward": 4.82,
+        "barrelSpacing": 0.8,
+        "caliberM": 0.105,
+        "traverseDeg": 180,
+        "traverseRateDeg": 18,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 18,
+        "reloadSeconds": 4,
+        "muzzleSpeed": 900,
+        "projectileMassKg": 15.1,
+        "penetrationMm": 50,
+        "damage": 12,
+        "recoilM": 0.18,
+        "ammoPerBarrel": 400,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-37-1",
+      "name": "Starboard 37 mm AA 1",
+      "partId": "flak-37-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        7.8,
+        9.4,
+        -39
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-37-bismarck-1941",
+        "name": "3.7 cm twin AA",
+        "kind": "gun",
+        "massKg": 3000,
+        "barbetteRadius": 0.76,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 2.34,
+        "barrelSpacing": 0.55,
+        "caliberM": 0.037,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 1.5,
+        "muzzleSpeed": 820,
+        "projectileMassKg": 0.74,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1200,
+        "armorMm": 1,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-37-2",
+      "name": "Starboard 37 mm AA 2",
+      "partId": "flak-37-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        8.1,
+        12.65,
+        -16.5
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-37-bismarck-1941",
+        "name": "3.7 cm twin AA",
+        "kind": "gun",
+        "massKg": 3000,
+        "barbetteRadius": 0.76,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 2.34,
+        "barrelSpacing": 0.55,
+        "caliberM": 0.037,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 1.5,
+        "muzzleSpeed": 820,
+        "projectileMassKg": 0.74,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1200,
+        "armorMm": 1,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-37-3",
+      "name": "Starboard 37 mm AA 3",
+      "partId": "flak-37-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        7.4,
+        9.4,
+        37.6
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-37-bismarck-1941",
+        "name": "3.7 cm twin AA",
+        "kind": "gun",
+        "massKg": 3000,
+        "barbetteRadius": 0.76,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 2.34,
+        "barrelSpacing": 0.55,
+        "caliberM": 0.037,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 1.5,
+        "muzzleSpeed": 820,
+        "projectileMassKg": 0.74,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1200,
+        "armorMm": 1,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-37-4",
+      "name": "Starboard 37 mm AA 4",
+      "partId": "flak-37-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        6.7,
+        9.4,
+        49
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-37-bismarck-1941",
+        "name": "3.7 cm twin AA",
+        "kind": "gun",
+        "massKg": 3000,
+        "barbetteRadius": 0.76,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 2.34,
+        "barrelSpacing": 0.55,
+        "caliberM": 0.037,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 1.5,
+        "muzzleSpeed": 820,
+        "projectileMassKg": 0.74,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1200,
+        "armorMm": 1,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-20-1",
+      "name": "Starboard 20 mm AA 1",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        5.5,
+        9.4,
+        -42.5
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-20-bismarck-1941",
+        "name": "2 cm single AA",
+        "kind": "gun",
+        "massKg": 450,
+        "barbetteRadius": 0.42,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.57,
+        "barrelSpacing": 0.1,
+        "caliberM": 0.02,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 0.8,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.12,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1100,
+        "armorMm": 1,
+        "barrelCount": 1,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-20-2",
+      "name": "Starboard 20 mm AA 2",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        7.2,
+        12.66,
+        -29.1
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-20-bismarck-1941",
+        "name": "2 cm single AA",
+        "kind": "gun",
+        "massKg": 450,
+        "barbetteRadius": 0.42,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.57,
+        "barrelSpacing": 0.1,
+        "caliberM": 0.02,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 0.8,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.12,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1100,
+        "armorMm": 1,
+        "barrelCount": 1,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-20-3",
+      "name": "Starboard 20 mm AA 3",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        6.3,
+        15.6,
+        -25.4
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-20-bismarck-1941",
+        "name": "2 cm single AA",
+        "kind": "gun",
+        "massKg": 450,
+        "barbetteRadius": 0.42,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.57,
+        "barrelSpacing": 0.1,
+        "caliberM": 0.02,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 0.8,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.12,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1100,
+        "armorMm": 1,
+        "barrelCount": 1,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-20-4",
+      "name": "Starboard 20 mm AA 4",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        5.2,
+        20.92,
+        -11.3
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-20-bismarck-1941",
+        "name": "2 cm single AA",
+        "kind": "gun",
+        "massKg": 450,
+        "barbetteRadius": 0.42,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.57,
+        "barrelSpacing": 0.1,
+        "caliberM": 0.02,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 0.8,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.12,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1100,
+        "armorMm": 1,
+        "barrelCount": 1,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-20-5",
+      "name": "Starboard 20 mm AA 5",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        5,
+        12.65,
+        35
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-20-bismarck-1941",
+        "name": "2 cm single AA",
+        "kind": "gun",
+        "massKg": 450,
+        "barbetteRadius": 0.42,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.57,
+        "barrelSpacing": 0.1,
+        "caliberM": 0.02,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 0.8,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.12,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1100,
+        "armorMm": 1,
+        "barrelCount": 1,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "starboard-aa-20-6",
+      "name": "Starboard 20 mm AA 6",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        6.8,
+        9.4,
+        46.1
+      ],
+      "bearingDeg": 90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-20-bismarck-1941",
+        "name": "2 cm single AA",
+        "kind": "gun",
+        "massKg": 450,
+        "barbetteRadius": 0.42,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.57,
+        "barrelSpacing": 0.1,
+        "caliberM": 0.02,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 0.8,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.12,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1100,
+        "armorMm": 1,
+        "barrelCount": 1,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-105-1",
+      "name": "Port 105 mm AA 1",
+      "partId": "flak-105-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -12.15,
+        5.79,
+        -20
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-105-bismarck-1941",
+        "name": "10.5 cm twin AA",
+        "kind": "gun",
+        "massKg": 27000,
+        "barbetteRadius": 1.5,
+        "gunhouseSize": [
+          2.3,
+          2.94,
+          2.44
+        ],
+        "pivotHeight": 1.63,
+        "trunnionForward": 0.12,
+        "muzzleForward": 4.82,
+        "barrelSpacing": 0.8,
+        "caliberM": 0.105,
+        "traverseDeg": 180,
+        "traverseRateDeg": 18,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 18,
+        "reloadSeconds": 4,
+        "muzzleSpeed": 900,
+        "projectileMassKg": 15.1,
+        "penetrationMm": 50,
+        "damage": 12,
+        "recoilM": 0.18,
+        "ammoPerBarrel": 400,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-105-2",
+      "name": "Port 105 mm AA 2",
+      "partId": "flak-105-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -11.6,
+        5.79,
+        -0.1
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-105-bismarck-1941",
+        "name": "10.5 cm twin AA",
+        "kind": "gun",
+        "massKg": 27000,
+        "barbetteRadius": 1.5,
+        "gunhouseSize": [
+          2.3,
+          2.94,
+          2.44
+        ],
+        "pivotHeight": 1.63,
+        "trunnionForward": 0.12,
+        "muzzleForward": 4.82,
+        "barrelSpacing": 0.8,
+        "caliberM": 0.105,
+        "traverseDeg": 180,
+        "traverseRateDeg": 18,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 18,
+        "reloadSeconds": 4,
+        "muzzleSpeed": 900,
+        "projectileMassKg": 15.1,
+        "penetrationMm": 50,
+        "damage": 12,
+        "recoilM": 0.18,
+        "ammoPerBarrel": 400,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-105-3",
+      "name": "Port 105 mm AA 3",
+      "partId": "flak-105-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -11.6,
+        5.79,
+        16
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-105-bismarck-1941",
+        "name": "10.5 cm twin AA",
+        "kind": "gun",
+        "massKg": 27000,
+        "barbetteRadius": 1.5,
+        "gunhouseSize": [
+          2.3,
+          2.94,
+          2.44
+        ],
+        "pivotHeight": 1.63,
+        "trunnionForward": 0.12,
+        "muzzleForward": 4.82,
+        "barrelSpacing": 0.8,
+        "caliberM": 0.105,
+        "traverseDeg": 180,
+        "traverseRateDeg": 18,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 18,
+        "reloadSeconds": 4,
+        "muzzleSpeed": 900,
+        "projectileMassKg": 15.1,
+        "penetrationMm": 50,
+        "damage": 12,
+        "recoilM": 0.18,
+        "ammoPerBarrel": 400,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-105-4",
+      "name": "Port 105 mm AA 4",
+      "partId": "flak-105-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -10.35,
+        5.79,
+        32
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-105-bismarck-1941",
+        "name": "10.5 cm twin AA",
+        "kind": "gun",
+        "massKg": 27000,
+        "barbetteRadius": 1.5,
+        "gunhouseSize": [
+          2.3,
+          2.94,
+          2.44
+        ],
+        "pivotHeight": 1.63,
+        "trunnionForward": 0.12,
+        "muzzleForward": 4.82,
+        "barrelSpacing": 0.8,
+        "caliberM": 0.105,
+        "traverseDeg": 180,
+        "traverseRateDeg": 18,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 18,
+        "reloadSeconds": 4,
+        "muzzleSpeed": 900,
+        "projectileMassKg": 15.1,
+        "penetrationMm": 50,
+        "damage": 12,
+        "recoilM": 0.18,
+        "ammoPerBarrel": 400,
+        "armorMm": 5,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-37-1",
+      "name": "Port 37 mm AA 1",
+      "partId": "flak-37-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -7.8,
+        9.4,
+        -39
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-37-bismarck-1941",
+        "name": "3.7 cm twin AA",
+        "kind": "gun",
+        "massKg": 3000,
+        "barbetteRadius": 0.76,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 2.34,
+        "barrelSpacing": 0.55,
+        "caliberM": 0.037,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 1.5,
+        "muzzleSpeed": 820,
+        "projectileMassKg": 0.74,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1200,
+        "armorMm": 1,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-37-2",
+      "name": "Port 37 mm AA 2",
+      "partId": "flak-37-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -8.1,
+        12.65,
+        -16.5
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-37-bismarck-1941",
+        "name": "3.7 cm twin AA",
+        "kind": "gun",
+        "massKg": 3000,
+        "barbetteRadius": 0.76,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 2.34,
+        "barrelSpacing": 0.55,
+        "caliberM": 0.037,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 1.5,
+        "muzzleSpeed": 820,
+        "projectileMassKg": 0.74,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1200,
+        "armorMm": 1,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-37-3",
+      "name": "Port 37 mm AA 3",
+      "partId": "flak-37-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -7.4,
+        9.4,
+        37.6
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-37-bismarck-1941",
+        "name": "3.7 cm twin AA",
+        "kind": "gun",
+        "massKg": 3000,
+        "barbetteRadius": 0.76,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 2.34,
+        "barrelSpacing": 0.55,
+        "caliberM": 0.037,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 1.5,
+        "muzzleSpeed": 820,
+        "projectileMassKg": 0.74,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1200,
+        "armorMm": 1,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-37-4",
+      "name": "Port 37 mm AA 4",
+      "partId": "flak-37-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -6.7,
+        9.4,
+        49
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-37-bismarck-1941",
+        "name": "3.7 cm twin AA",
+        "kind": "gun",
+        "massKg": 3000,
+        "barbetteRadius": 0.76,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 2.34,
+        "barrelSpacing": 0.55,
+        "caliberM": 0.037,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 1.5,
+        "muzzleSpeed": 820,
+        "projectileMassKg": 0.74,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1200,
+        "armorMm": 1,
+        "barrelCount": 2,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-20-1",
+      "name": "Port 20 mm AA 1",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -5.5,
+        9.4,
+        -42.5
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-20-bismarck-1941",
+        "name": "2 cm single AA",
+        "kind": "gun",
+        "massKg": 450,
+        "barbetteRadius": 0.42,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.57,
+        "barrelSpacing": 0.1,
+        "caliberM": 0.02,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 0.8,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.12,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1100,
+        "armorMm": 1,
+        "barrelCount": 1,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-20-2",
+      "name": "Port 20 mm AA 2",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -7.2,
+        12.66,
+        -29.1
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-20-bismarck-1941",
+        "name": "2 cm single AA",
+        "kind": "gun",
+        "massKg": 450,
+        "barbetteRadius": 0.42,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.57,
+        "barrelSpacing": 0.1,
+        "caliberM": 0.02,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 0.8,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.12,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1100,
+        "armorMm": 1,
+        "barrelCount": 1,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-20-3",
+      "name": "Port 20 mm AA 3",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -6.3,
+        15.6,
+        -25.4
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-20-bismarck-1941",
+        "name": "2 cm single AA",
+        "kind": "gun",
+        "massKg": 450,
+        "barbetteRadius": 0.42,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.57,
+        "barrelSpacing": 0.1,
+        "caliberM": 0.02,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 0.8,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.12,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1100,
+        "armorMm": 1,
+        "barrelCount": 1,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-20-4",
+      "name": "Port 20 mm AA 4",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -5.2,
+        20.92,
+        -11.3
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "bruno-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-20-bismarck-1941",
+        "name": "2 cm single AA",
+        "kind": "gun",
+        "massKg": 450,
+        "barbetteRadius": 0.42,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.57,
+        "barrelSpacing": 0.1,
+        "caliberM": 0.02,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 0.8,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.12,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1100,
+        "armorMm": 1,
+        "barrelCount": 1,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-20-5",
+      "name": "Port 20 mm AA 5",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -5,
+        12.65,
+        35
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-20-bismarck-1941",
+        "name": "2 cm single AA",
+        "kind": "gun",
+        "massKg": 450,
+        "barbetteRadius": 0.42,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.57,
+        "barrelSpacing": 0.1,
+        "caliberM": 0.02,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 0.8,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.12,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1100,
+        "armorMm": 1,
+        "barrelCount": 1,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
+        }
+      }
+    },
+    {
+      "id": "port-aa-20-6",
+      "name": "Port 20 mm AA 6",
+      "partId": "flak-20-bismarck-1941",
+      "battery": "secondary",
+      "position": [
+        -6.8,
+        9.4,
+        46.1
+      ],
+      "bearingDeg": -90,
+      "rangefinder": false,
+      "magazineId": "caesar-magazine",
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "id": "flak-20-bismarck-1941",
+        "name": "2 cm single AA",
+        "kind": "gun",
+        "massKg": 450,
+        "barbetteRadius": 0.42,
+        "gunhouseSize": [
+          1.5,
+          1.4,
+          1.8
+        ],
+        "pivotHeight": 1.3,
+        "trunnionForward": 0.12,
+        "muzzleForward": 1.57,
+        "barrelSpacing": 0.1,
+        "caliberM": 0.02,
+        "traverseDeg": 180,
+        "traverseRateDeg": 45,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 80,
+        "elevationRateDeg": 35,
+        "reloadSeconds": 0.8,
+        "muzzleSpeed": 835,
+        "projectileMassKg": 0.12,
+        "penetrationMm": 20,
+        "damage": 5,
+        "recoilM": 0.06,
+        "ammoPerBarrel": 1100,
+        "armorMm": 1,
+        "barrelCount": 1,
+        "mountingStyle": "open-pedestal",
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay ballistics; existing independently authored 1941 AA geometry. Not a historical fire-control calibration."
         }
       }
     }
@@ -50730,6 +52348,60 @@
       "hp": 140,
       "compartmentId": "shaft-starboard",
       "role": "shaft"
+    },
+    {
+      "id": "support-generator-1",
+      "name": "Generator 1",
+      "kind": "generator",
+      "hp": 60,
+      "compartmentId": "boiler-aft-port",
+      "center": [
+        -5.9,
+        -5.025,
+        4.3
+      ],
+      "size": [
+        1.2,
+        1.2,
+        1.2
+      ],
+      "immersionToleranceM": 0.36
+    },
+    {
+      "id": "support-generator-2",
+      "name": "Generator 2",
+      "kind": "generator",
+      "hp": 60,
+      "compartmentId": "shaft-starboard",
+      "center": [
+        5.24,
+        -7.225,
+        72.9
+      ],
+      "size": [
+        0.16000000000000003,
+        0.13999999999999999,
+        1.2
+      ],
+      "immersionToleranceM": 0.041999999999999996
+    },
+    {
+      "id": "support-director",
+      "name": "Fire-control station",
+      "kind": "fire-control",
+      "hp": 65,
+      "compartmentId": "reserve-cell-1-0-2",
+      "center": [
+        -8.25,
+        5.548125,
+        -36.53125
+      ],
+      "size": [
+        1.8,
+        0.129375,
+        1.8
+      ],
+      "immersionToleranceM": 0.025875
     }
   ],
   "compartments": [
@@ -50747,7 +52419,17 @@
         16
       ],
       "capacityM3": 508.03,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          -8,
+          9.600000000000001,
+          -0.5
+        ]
+      }
     },
     {
       "id": "boiler-aft-center",
@@ -50763,7 +52445,17 @@
         16
       ],
       "capacityM3": 508.03,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          -0.5
+        ]
+      }
     },
     {
       "id": "boiler-aft-starboard",
@@ -50779,7 +52471,17 @@
         16
       ],
       "capacityM3": 508.03,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          8,
+          9.600000000000001,
+          -0.5
+        ]
+      }
     },
     {
       "id": "boiler-forward-port",
@@ -50795,7 +52497,17 @@
         16
       ],
       "capacityM3": 508.03,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          -8,
+          9.600000000000001,
+          -25.5
+        ]
+      }
     },
     {
       "id": "boiler-forward-center",
@@ -50811,7 +52523,17 @@
         16
       ],
       "capacityM3": 508.03,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          -25.5
+        ]
+      }
     },
     {
       "id": "boiler-forward-starboard",
@@ -50827,7 +52549,17 @@
         16
       ],
       "capacityM3": 508.03,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          8,
+          9.600000000000001,
+          -25.5
+        ]
+      }
     },
     {
       "id": "turbine-port",
@@ -50843,7 +52575,17 @@
         17
       ],
       "capacityM3": 771.12,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          -6,
+          9.600000000000001,
+          20
+        ]
+      }
     },
     {
       "id": "turbine-starboard",
@@ -50859,7 +52601,17 @@
         17
       ],
       "capacityM3": 771.12,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          6,
+          9.600000000000001,
+          20
+        ]
+      }
     },
     {
       "id": "turbine-center",
@@ -50875,7 +52627,17 @@
         18
       ],
       "capacityM3": 898.13,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          42
+        ]
+      }
     },
     {
       "id": "anton-propellant",
@@ -50891,7 +52653,17 @@
         13
       ],
       "capacityM3": 269.57,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 150,
+        "ignitionHeat": 0.65,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          -70.05
+        ]
+      }
     },
     {
       "id": "anton-shell-room",
@@ -50907,7 +52679,17 @@
         13
       ],
       "capacityM3": 280.8,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          -70.05
+        ]
+      }
     },
     {
       "id": "anton-handling",
@@ -50923,7 +52705,17 @@
         9
       ],
       "capacityM3": 176.26,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          -70.05
+        ]
+      }
     },
     {
       "id": "bruno-propellant",
@@ -50939,7 +52731,17 @@
         13
       ],
       "capacityM3": 269.57,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 150,
+        "ignitionHeat": 0.65,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          -51.85
+        ]
+      }
     },
     {
       "id": "bruno-shell-room",
@@ -50955,7 +52757,17 @@
         13
       ],
       "capacityM3": 280.8,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          -51.85
+        ]
+      }
     },
     {
       "id": "bruno-handling",
@@ -50971,7 +52783,17 @@
         9
       ],
       "capacityM3": 176.26,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          -51.85
+        ]
+      }
     },
     {
       "id": "caesar-propellant",
@@ -50987,7 +52809,17 @@
         13
       ],
       "capacityM3": 269.57,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 150,
+        "ignitionHeat": 0.65,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          58.15
+        ]
+      }
     },
     {
       "id": "caesar-shell-room",
@@ -51003,7 +52835,17 @@
         13
       ],
       "capacityM3": 280.8,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          58.15
+        ]
+      }
     },
     {
       "id": "caesar-handling",
@@ -51019,7 +52861,17 @@
         9
       ],
       "capacityM3": 176.26,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          58.15
+        ]
+      }
     },
     {
       "id": "dora-propellant",
@@ -51035,7 +52887,17 @@
         13
       ],
       "capacityM3": 269.57,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 150,
+        "ignitionHeat": 0.65,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          76.35
+        ]
+      }
     },
     {
       "id": "dora-shell-room",
@@ -51051,7 +52913,17 @@
         13
       ],
       "capacityM3": 280.8,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          76.35
+        ]
+      }
     },
     {
       "id": "dora-handling",
@@ -51067,7 +52939,17 @@
         9
       ],
       "capacityM3": 176.26,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          76.35
+        ]
+      }
     },
     {
       "id": "steering-room",
@@ -51083,7 +52965,17 @@
         8
       ],
       "capacityM3": 137.09,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 80,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          108
+        ]
+      }
     },
     {
       "id": "shaft-port",
@@ -51099,7 +52991,17 @@
         48
       ],
       "capacityM3": 19.35,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          -5,
+          9.600000000000001,
+          58.5
+        ]
+      }
     },
     {
       "id": "shaft-center",
@@ -51115,7 +53017,17 @@
         48
       ],
       "capacityM3": 19.35,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          58.5
+        ]
+      }
     },
     {
       "id": "shaft-starboard",
@@ -51131,7 +53043,17 @@
         48
       ],
       "capacityM3": 19.35,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 240,
+        "ignitionHeat": 0.55,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          5,
+          9.600000000000001,
+          58.5
+        ]
+      }
     },
     {
       "id": "fuel-port-90",
@@ -51147,7 +53069,17 @@
         19
       ],
       "capacityM3": 71.82,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -13.5,
+          9.600000000000001,
+          32.5
+        ]
+      }
     },
     {
       "id": "void-port-90",
@@ -51163,7 +53095,17 @@
         19
       ],
       "capacityM3": 71.82,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -15,
+          9.600000000000001,
+          32.5
+        ]
+      }
     },
     {
       "id": "fuel-starboard-90",
@@ -51179,7 +53121,17 @@
         19
       ],
       "capacityM3": 71.82,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          13.5,
+          9.600000000000001,
+          32.5
+        ]
+      }
     },
     {
       "id": "void-starboard-90",
@@ -51195,7 +53147,17 @@
         19
       ],
       "capacityM3": 71.82,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          15,
+          9.600000000000001,
+          32.5
+        ]
+      }
     },
     {
       "id": "fuel-port-120",
@@ -51211,7 +53173,17 @@
         19
       ],
       "capacityM3": 71.82,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -13.5,
+          9.600000000000001,
+          2.5
+        ]
+      }
     },
     {
       "id": "void-port-120",
@@ -51227,7 +53199,17 @@
         19
       ],
       "capacityM3": 71.82,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -15,
+          9.600000000000001,
+          2.5
+        ]
+      }
     },
     {
       "id": "fuel-starboard-120",
@@ -51243,7 +53225,17 @@
         19
       ],
       "capacityM3": 71.82,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          13.5,
+          9.600000000000001,
+          2.5
+        ]
+      }
     },
     {
       "id": "void-starboard-120",
@@ -51259,7 +53251,17 @@
         19
       ],
       "capacityM3": 71.82,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          15,
+          9.600000000000001,
+          2.5
+        ]
+      }
     },
     {
       "id": "fuel-port-150",
@@ -51275,7 +53277,17 @@
         19
       ],
       "capacityM3": 71.82,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -13.5,
+          9.600000000000001,
+          -27.5
+        ]
+      }
     },
     {
       "id": "void-port-150",
@@ -51291,7 +53303,17 @@
         19
       ],
       "capacityM3": 71.82,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -15,
+          9.600000000000001,
+          -27.5
+        ]
+      }
     },
     {
       "id": "fuel-starboard-150",
@@ -51307,7 +53329,17 @@
         19
       ],
       "capacityM3": 71.82,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          13.5,
+          9.600000000000001,
+          -27.5
+        ]
+      }
     },
     {
       "id": "void-starboard-150",
@@ -51323,7 +53355,17 @@
         19
       ],
       "capacityM3": 71.82,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          15,
+          9.600000000000001,
+          -27.5
+        ]
+      }
     },
     {
       "id": "auxiliary-xii",
@@ -51339,7 +53381,17 @@
         6
       ],
       "capacityM3": 571.54,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          -14
+        ]
+      }
     },
     {
       "id": "forward-void",
@@ -51355,7 +53407,17 @@
         16
       ],
       "capacityM3": 552.96,
-      "pumpM3PerSecond": 0.03
+      "pumpM3PerSecond": 0.03,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          -98.5
+        ]
+      }
     },
     {
       "id": "flood-strip-port-1-0",
@@ -51371,7 +53433,17 @@
         19.6
       ],
       "capacityM3": 49.86982910199736,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -4.261993119716644,
+          9.600000000000001,
+          -91.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-1-0",
@@ -51387,7 +53459,17 @@
         19.6
       ],
       "capacityM3": 49.86982910199736,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          4.261993119716644,
+          9.600000000000001,
+          -91.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-1-1",
@@ -51403,7 +53485,17 @@
         19.6
       ],
       "capacityM3": 51.81049195848083,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -4.308768162727356,
+          9.600000000000001,
+          -91.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-1-1",
@@ -51419,7 +53511,17 @@
         19.6
       ],
       "capacityM3": 51.81049195848083,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          4.308768162727356,
+          9.600000000000001,
+          -91.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-1-2",
@@ -51435,7 +53537,17 @@
         19.6
       ],
       "capacityM3": 52.12720315118407,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -4.31640172958374,
+          9.600000000000001,
+          -91.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-1-2",
@@ -51451,7 +53563,17 @@
         19.6
       ],
       "capacityM3": 52.12720315118407,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          4.31640172958374,
+          9.600000000000001,
+          -91.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-1-3",
@@ -51467,7 +53589,17 @@
         19.6
       ],
       "capacityM3": 52.41190937585448,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -4.323263893127441,
+          9.600000000000001,
+          -91.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-1-3",
@@ -51483,7 +53615,17 @@
         19.6
       ],
       "capacityM3": 52.41190937585448,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          4.323263893127441,
+          9.600000000000001,
+          -91.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-1-4",
@@ -51499,7 +53641,17 @@
         19.6
       ],
       "capacityM3": 53.0085638842163,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -4.337644824981689,
+          9.600000000000001,
+          -91.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-1-4",
@@ -51515,7 +53667,17 @@
         19.6
       ],
       "capacityM3": 53.0085638842163,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          4.337644824981689,
+          9.600000000000001,
+          -91.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-1-5",
@@ -51531,7 +53693,17 @@
         19.6
       ],
       "capacityM3": 57.81683181459044,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -4.453536639213562,
+          9.600000000000001,
+          -91.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-1-5",
@@ -51547,7 +53719,17 @@
         19.6
       ],
       "capacityM3": 57.81683181459044,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          4.453536639213562,
+          9.600000000000001,
+          -91.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-2-0",
@@ -51563,7 +53745,17 @@
         19.6
       ],
       "capacityM3": 76.9211343589554,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -7.914000222682953,
+          9.600000000000001,
+          -71.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-2-0",
@@ -51579,7 +53771,17 @@
         19.6
       ],
       "capacityM3": 76.9211343589554,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          7.914000222682953,
+          9.600000000000001,
+          -71.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-2-1",
@@ -51595,7 +53797,17 @@
         19.6
       ],
       "capacityM3": 79.77563030477144,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -7.982801029682159,
+          9.600000000000001,
+          -71.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-2-1",
@@ -51611,7 +53823,17 @@
         19.6
       ],
       "capacityM3": 79.77563030477144,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          7.982801029682159,
+          9.600000000000001,
+          -71.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-2-2",
@@ -51627,7 +53849,17 @@
         19.6
       ],
       "capacityM3": 80.3597320996628,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -7.996879408359527,
+          9.600000000000001,
+          -71.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-2-2",
@@ -51643,7 +53875,17 @@
         19.6
       ],
       "capacityM3": 80.3597320996628,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          7.996879408359527,
+          9.600000000000001,
+          -71.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-2-3",
@@ -51659,7 +53901,17 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -8.958791337013245,
+          9.600000000000001,
+          -71.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-2-3",
@@ -51675,7 +53927,17 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          8.958791337013245,
+          9.600000000000001,
+          -71.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-2-4",
@@ -51691,7 +53953,17 @@
         19.6
       ],
       "capacityM3": 118.22510851213073,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -7.159533867835998,
+          9.600000000000001,
+          -71.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-2-4",
@@ -51707,7 +53979,17 @@
         19.6
       ],
       "capacityM3": 118.22510851213073,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          7.159533867835998,
+          9.600000000000001,
+          -71.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-2-5",
@@ -51723,7 +54005,17 @@
         19.6
       ],
       "capacityM3": 125.13352998113251,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -7.326044867038727,
+          9.600000000000001,
+          -71.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-2-5",
@@ -51739,7 +54031,17 @@
         19.6
       ],
       "capacityM3": 125.13352998113251,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          7.326044867038727,
+          9.600000000000001,
+          -71.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-3-0",
@@ -51755,7 +54057,17 @@
         19.6
       ],
       "capacityM3": 153.72544588597867,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -9.765184710025787,
+          9.600000000000001,
+          -51.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-3-0",
@@ -51771,7 +54083,17 @@
         19.6
       ],
       "capacityM3": 153.72544588597867,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          9.765184710025787,
+          9.600000000000001,
+          -51.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-3-1",
@@ -51787,7 +54109,17 @@
         19.6
       ],
       "capacityM3": 157.19075152768707,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -9.848707625865936,
+          9.600000000000001,
+          -51.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-3-1",
@@ -51803,7 +54135,17 @@
         19.6
       ],
       "capacityM3": 157.19075152768707,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          9.848707625865936,
+          9.600000000000001,
+          -51.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-3-2",
@@ -51819,7 +54161,17 @@
         19.6
       ],
       "capacityM3": 158.09383468686678,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -9.870474288463592,
+          9.600000000000001,
+          -51.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-3-2",
@@ -51835,7 +54187,17 @@
         19.6
       ],
       "capacityM3": 158.09383468686678,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          9.870474288463592,
+          9.600000000000001,
+          -51.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-3-3",
@@ -51851,7 +54213,17 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -12.717144451141358,
+          9.600000000000001,
+          -51.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-3-3",
@@ -51867,7 +54239,17 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          12.717144451141358,
+          9.600000000000001,
+          -51.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-3-4",
@@ -51883,7 +54265,17 @@
         19.6
       ],
       "capacityM3": 196.4243069386826,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -9.044338772296905,
+          9.600000000000001,
+          -51.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-3-4",
@@ -51899,7 +54291,17 @@
         19.6
       ],
       "capacityM3": 196.4243069386826,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          9.044338772296905,
+          9.600000000000001,
+          -51.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-3-5",
@@ -51915,7 +54317,17 @@
         19.6
       ],
       "capacityM3": 200.5722220168076,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -9.144314358234405,
+          9.600000000000001,
+          -51.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-3-5",
@@ -51931,7 +54343,17 @@
         19.6
       ],
       "capacityM3": 200.5722220168076,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          9.144314358234405,
+          9.600000000000001,
+          -51.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-4-1",
@@ -51947,7 +54369,17 @@
         19.6
       ],
       "capacityM3": 4.562570573478706,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -15.794969866275789,
+          9.600000000000001,
+          -31.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-4-1",
@@ -51963,7 +54395,17 @@
         19.6
       ],
       "capacityM3": 4.562570573478706,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          15.794969866275789,
+          9.600000000000001,
+          -31.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-4-2",
@@ -51979,7 +54421,17 @@
         19.6
       ],
       "capacityM3": 5.678493447052009,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -15.821866521835329,
+          9.600000000000001,
+          -31.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-4-2",
@@ -51995,7 +54447,17 @@
         19.6
       ],
       "capacityM3": 5.678493447052009,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          15.821866521835329,
+          9.600000000000001,
+          -31.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-4-3",
@@ -52011,7 +54473,17 @@
         19.6
       ],
       "capacityM3": 92.14364627503967,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -13.780902514457704,
+          9.600000000000001,
+          -31.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-4-3",
@@ -52027,7 +54499,17 @@
         19.6
       ],
       "capacityM3": 92.14364627503967,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          13.780902514457704,
+          9.600000000000001,
+          -31.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-4-4",
@@ -52043,7 +54525,17 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -15.068314156532288,
+          9.600000000000001,
+          -31.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-4-4",
@@ -52059,7 +54551,17 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          15.068314156532288,
+          9.600000000000001,
+          -31.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-4-5",
@@ -52075,7 +54577,17 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -15.23817738056183,
+          9.600000000000001,
+          -31.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-4-5",
@@ -52091,7 +54603,17 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          15.23817738056183,
+          9.600000000000001,
+          -31.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-5-0",
@@ -52107,7 +54629,17 @@
         19.6
       ],
       "capacityM3": 33.735232474914554,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -16.498107204437257,
+          9.600000000000001,
+          -11.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-5-0",
@@ -52123,7 +54655,17 @@
         19.6
       ],
       "capacityM3": 33.735232474914554,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          16.498107204437257,
+          9.600000000000001,
+          -11.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-5-1",
@@ -52139,7 +54681,17 @@
         19.6
       ],
       "capacityM3": 39.11524979596711,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -16.627779672145845,
+          9.600000000000001,
+          -11.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-5-1",
@@ -52155,7 +54707,17 @@
         19.6
       ],
       "capacityM3": 39.11524979596711,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          16.627779672145845,
+          9.600000000000001,
+          -11.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-5-2",
@@ -52171,7 +54733,17 @@
         19.6
       ],
       "capacityM3": 40.88431438851929,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -16.670418748855592,
+          9.600000000000001,
+          -11.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-5-2",
@@ -52187,7 +54759,17 @@
         19.6
       ],
       "capacityM3": 40.88431438851929,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          16.670418748855592,
+          9.600000000000001,
+          -11.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-5-3",
@@ -52203,7 +54785,17 @@
         19.6
       ],
       "capacityM3": 127.56413197080234,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -14.634628722667696,
+          9.600000000000001,
+          -11.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-5-3",
@@ -52219,7 +54811,17 @@
         19.6
       ],
       "capacityM3": 127.56413197080234,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          14.634628722667696,
+          9.600000000000001,
+          -11.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-5-4",
@@ -52235,7 +54837,17 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -16.702889881134034,
+          9.600000000000001,
+          -11.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-5-4",
@@ -52251,7 +54863,17 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          16.702889881134034,
+          9.600000000000001,
+          -11.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-5-5",
@@ -52267,7 +54889,17 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -16.64901824951172,
+          9.600000000000001,
+          -11.25
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-5-5",
@@ -52283,7 +54915,17 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          16.64901824951172,
+          9.600000000000001,
+          -11.25
+        ]
+      }
     },
     {
       "id": "flood-strip-port-6-0",
@@ -52299,7 +54941,17 @@
         19.6
       ],
       "capacityM3": 37.47598560227967,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -16.58826912403107,
+          9.600000000000001,
+          8.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-6-0",
@@ -52315,7 +54967,17 @@
         19.6
       ],
       "capacityM3": 37.47598560227967,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          16.58826912403107,
+          9.600000000000001,
+          8.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-6-1",
@@ -52331,7 +54993,17 @@
         19.6
       ],
       "capacityM3": 42.9039881187973,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -16.719098160266878,
+          9.600000000000001,
+          8.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-6-1",
@@ -52347,7 +55019,17 @@
         19.6
       ],
       "capacityM3": 42.9039881187973,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          16.719098160266878,
+          9.600000000000001,
+          8.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-6-2",
@@ -52363,7 +55045,17 @@
         19.6
       ],
       "capacityM3": 44.69141439328766,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -16.762179801464082,
+          9.600000000000001,
+          8.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-6-2",
@@ -52379,7 +55071,17 @@
         19.6
       ],
       "capacityM3": 44.69141439328766,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          16.762179801464082,
+          9.600000000000001,
+          8.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-6-3",
@@ -52395,7 +55097,17 @@
         19.6
       ],
       "capacityM3": 131.3828721690903,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -14.726670334339143,
+          9.600000000000001,
+          8.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-6-3",
@@ -52411,7 +55123,17 @@
         19.6
       ],
       "capacityM3": 131.3828721690903,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          14.726670334339143,
+          9.600000000000001,
+          8.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-6-4",
@@ -52427,7 +55149,17 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -16.88920255661011,
+          9.600000000000001,
+          8.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-6-4",
@@ -52443,7 +55175,17 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          16.88920255661011,
+          9.600000000000001,
+          8.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-6-5",
@@ -52459,7 +55201,17 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -16.838663301467896,
+          9.600000000000001,
+          8.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-6-5",
@@ -52475,7 +55227,17 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          16.838663301467896,
+          9.600000000000001,
+          8.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-7-0",
@@ -52491,7 +55253,17 @@
         19.6
       ],
       "capacityM3": 16.652258066917426,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -16.086362907886507,
+          9.600000000000001,
+          28.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-7-0",
@@ -52507,7 +55279,17 @@
         19.6
       ],
       "capacityM3": 16.652258066917426,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          16.086362907886507,
+          9.600000000000001,
+          28.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-7-1",
@@ -52523,7 +55305,17 @@
         19.6
       ],
       "capacityM3": 20.83360253446198,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -16.18714422941208,
+          9.600000000000001,
+          28.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-7-1",
@@ -52539,7 +55331,17 @@
         19.6
       ],
       "capacityM3": 20.83360253446198,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          16.18714422941208,
+          9.600000000000001,
+          28.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-7-2",
@@ -52555,7 +55357,17 @@
         19.6
       ],
       "capacityM3": 21.99559653726197,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -16.215151319503786,
+          9.600000000000001,
+          28.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-7-2",
@@ -52571,7 +55383,17 @@
         19.6
       ],
       "capacityM3": 21.99559653726197,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          16.215151319503786,
+          9.600000000000001,
+          28.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-7-3",
@@ -52587,7 +55409,17 @@
         19.6
       ],
       "capacityM3": 118.87584652001955,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -13.925218353271486,
+          9.600000000000001,
+          28.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-7-3",
@@ -52603,7 +55435,17 @@
         19.6
       ],
       "capacityM3": 118.87584652001955,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          13.925218353271486,
+          9.600000000000001,
+          28.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-7-4",
@@ -52619,7 +55461,17 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -15.861163339614869,
+          9.600000000000001,
+          28.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-7-4",
@@ -52635,7 +55487,17 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          15.861163339614869,
+          9.600000000000001,
+          28.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-7-5",
@@ -52651,7 +55513,17 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -16.050732216835023,
+          9.600000000000001,
+          28.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-7-5",
@@ -52667,7 +55539,17 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          16.050732216835023,
+          9.600000000000001,
+          28.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-8-3",
@@ -52683,7 +55565,17 @@
         19.6
       ],
       "capacityM3": 208.67456579507447,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -10.589602003097534,
+          9.600000000000001,
+          48.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-8-3",
@@ -52699,7 +55591,17 @@
         19.6
       ],
       "capacityM3": 208.67456579507447,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          10.589602003097534,
+          9.600000000000001,
+          48.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-8-4",
@@ -52715,7 +55617,17 @@
         19.6
       ],
       "capacityM3": 235.93866872621157,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -9.996738085746765,
+          9.600000000000001,
+          48.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-8-4",
@@ -52731,7 +55643,17 @@
         19.6
       ],
       "capacityM3": 235.93866872621157,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          9.996738085746765,
+          9.600000000000001,
+          48.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-8-5",
@@ -52747,7 +55669,17 @@
         19.6
       ],
       "capacityM3": 239.28372204366306,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -10.077362606525421,
+          9.600000000000001,
+          48.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-8-5",
@@ -52763,7 +55695,17 @@
         19.6
       ],
       "capacityM3": 239.28372204366306,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          10.077362606525421,
+          9.600000000000001,
+          48.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-9-0",
@@ -52779,7 +55721,17 @@
         19.6
       ],
       "capacityM3": 148.51504599286653,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -9.639600465297699,
+          9.600000000000001,
+          68.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-9-0",
@@ -52795,7 +55747,17 @@
         19.6
       ],
       "capacityM3": 148.51504599286653,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          9.639600465297699,
+          9.600000000000001,
+          68.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-9-1",
@@ -52811,7 +55773,17 @@
         19.6
       ],
       "capacityM3": 153.79878133081056,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -9.766952285766601,
+          9.600000000000001,
+          68.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-9-1",
@@ -52827,7 +55799,17 @@
         19.6
       ],
       "capacityM3": 153.79878133081056,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          9.766952285766601,
+          9.600000000000001,
+          68.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-9-2",
@@ -52843,7 +55825,17 @@
         19.6
       ],
       "capacityM3": 154.8674757327805,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -9.79271061182022,
+          9.600000000000001,
+          68.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-9-2",
@@ -52859,7 +55851,17 @@
         19.6
       ],
       "capacityM3": 154.8674757327805,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          9.79271061182022,
+          9.600000000000001,
+          68.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-9-3",
@@ -52875,7 +55877,17 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -12.562658867836,
+          9.600000000000001,
+          68.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-9-3",
@@ -52891,7 +55903,17 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          12.562658867836,
+          9.600000000000001,
+          68.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-9-4",
@@ -52907,7 +55929,17 @@
         19.6
       ],
       "capacityM3": 193.10945580594637,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -8.964442203044891,
+          9.600000000000001,
+          68.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-9-4",
@@ -52923,7 +55955,17 @@
         19.6
       ],
       "capacityM3": 193.10945580594637,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          8.964442203044891,
+          9.600000000000001,
+          68.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-9-5",
@@ -52939,7 +55981,17 @@
         19.6
       ],
       "capacityM3": 196.0836476614151,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -9.036127994060516,
+          9.600000000000001,
+          68.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-9-5",
@@ -52955,7 +56007,17 @@
         19.6
       ],
       "capacityM3": 196.0836476614151,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          9.036127994060516,
+          9.600000000000001,
+          68.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-10-1",
@@ -52971,7 +56033,17 @@
         19.6
       ],
       "capacityM3": 25.428790873924264,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -6.6729002690315244,
+          9.600000000000001,
+          88.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-10-1",
@@ -52987,7 +56059,17 @@
         19.6
       ],
       "capacityM3": 25.428790873924264,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          6.6729002690315244,
+          9.600000000000001,
+          88.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-10-2",
@@ -53003,7 +56085,17 @@
         19.6
       ],
       "capacityM3": 72.0659495491562,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -7.796977589130401,
+          9.600000000000001,
+          88.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-10-2",
@@ -53019,7 +56111,17 @@
         19.6
       ],
       "capacityM3": 72.0659495491562,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          7.796977589130401,
+          9.600000000000001,
+          88.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-10-3",
@@ -53035,7 +56137,17 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -8.608874640464784,
+          9.600000000000001,
+          88.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-10-3",
@@ -53051,7 +56163,17 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          8.608874640464784,
+          9.600000000000001,
+          88.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-10-4",
@@ -53067,7 +56189,17 @@
         19.6
       ],
       "capacityM3": 111.23195622720338,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -6.990980634689331,
+          9.600000000000001,
+          88.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-10-4",
@@ -53083,7 +56215,17 @@
         19.6
       ],
       "capacityM3": 111.23195622720338,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          6.990980634689331,
+          9.600000000000001,
+          88.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-10-5",
@@ -53099,7 +56241,17 @@
         19.6
       ],
       "capacityM3": 117.78678734353639,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -7.148969182968139,
+          9.600000000000001,
+          88.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-10-5",
@@ -53115,7 +56267,17 @@
         19.6
       ],
       "capacityM3": 117.78678734353639,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          7.148969182968139,
+          9.600000000000001,
+          88.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-11-5",
@@ -53131,7 +56293,17 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -3.1953625297546386,
+          9.600000000000001,
+          108.75
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-11-5",
@@ -53147,7 +56319,17 @@
         19.6
       ],
       "capacityM3": 41.489279999999994,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          3.1953625297546386,
+          9.600000000000001,
+          108.75
+        ]
+      }
     },
     {
       "id": "flood-strip-port-12-4",
@@ -53163,7 +56345,17 @@
         2.45
       ],
       "capacityM3": 4.642141781509208,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -0.9451019215583801,
+          9.600000000000001,
+          120
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-12-4",
@@ -53179,7 +56371,17 @@
         2.45
       ],
       "capacityM3": 4.642141781509208,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0.9451019215583801,
+          9.600000000000001,
+          120
+        ]
+      }
     },
     {
       "id": "flood-strip-port-12-5",
@@ -53195,7 +56397,17 @@
         2.45
       ],
       "capacityM3": 5.186159999999999,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -2.0331570720672607,
+          9.600000000000001,
+          120
+        ]
+      }
     },
     {
       "id": "flood-strip-starboard-12-5",
@@ -53211,7 +56423,17 @@
         2.45
       ],
       "capacityM3": 5.186159999999999,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          2.0331570720672607,
+          9.600000000000001,
+          120
+        ]
+      }
     },
     {
       "id": "flood-end-bow-0",
@@ -53227,7 +56449,17 @@
         9.98
       ],
       "capacityM3": 8.450265600000002,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          -111.75
+        ]
+      }
     },
     {
       "id": "flood-end-bow-1",
@@ -53243,7 +56475,17 @@
         9.98
       ],
       "capacityM3": 8.450265600000002,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          -112.75
+        ]
+      }
     },
     {
       "id": "flood-end-bow-2",
@@ -53259,7 +56501,17 @@
         9.98
       ],
       "capacityM3": 8.450265600000002,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          -112.75
+        ]
+      }
     },
     {
       "id": "flood-end-bow-3",
@@ -53275,7 +56527,17 @@
         9.98
       ],
       "capacityM3": 8.450265600000002,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          -112.75
+        ]
+      }
     },
     {
       "id": "flood-end-bow-4",
@@ -53291,7 +56553,17 @@
         9.98
       ],
       "capacityM3": 8.450265600000002,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          -112.75
+        ]
+      }
     },
     {
       "id": "flood-end-bow-5",
@@ -53307,7 +56579,17 @@
         9.98
       ],
       "capacityM3": 8.450265600000002,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          -113.75
+        ]
+      }
     },
     {
       "id": "flood-end-stern-0",
@@ -53323,7 +56605,17 @@
         3.98
       ],
       "capacityM3": 3.3699456,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          92.75
+        ]
+      }
     },
     {
       "id": "flood-end-stern-1",
@@ -53339,7 +56631,17 @@
         9.98
       ],
       "capacityM3": 8.450265600000002,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          95.75
+        ]
+      }
     },
     {
       "id": "flood-end-stern-2",
@@ -53355,7 +56657,17 @@
         9.98
       ],
       "capacityM3": 8.450265600000002,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          98.75
+        ]
+      }
     },
     {
       "id": "flood-end-stern-3",
@@ -53371,7 +56683,17 @@
         6.98
       ],
       "capacityM3": 5.9101056000000005,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          116.25
+        ]
+      }
     },
     {
       "id": "flood-end-stern-4",
@@ -53387,7 +56709,17 @@
         5.98
       ],
       "capacityM3": 5.063385600000001,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          115.75
+        ]
+      }
     },
     {
       "id": "flood-end-stern-5",
@@ -53403,7 +56735,17 @@
         9.98
       ],
       "capacityM3": 8.450265600000002,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          0,
+          9.600000000000001,
+          117.75
+        ]
+      }
     },
     {
       "id": "reserve-cell-0-0-0",
@@ -55533,7 +58875,17 @@
         }
       ],
       "capacityM3": 1309.5897478932181,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -9,
+          9.600000000000001,
+          -93.9375
+        ]
+      }
     },
     {
       "id": "reserve-cell-0-0-1",
@@ -57615,7 +60967,17 @@
         }
       ],
       "capacityM3": 1057.3192137379917,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -9,
+          9.600000000000001,
+          -93.9375
+        ]
+      }
     },
     {
       "id": "reserve-cell-0-0-2",
@@ -58533,7 +61895,17 @@
         }
       ],
       "capacityM3": 1354.612880126953,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -9,
+          9.600000000000001,
+          -93.9375
+        ]
+      }
     },
     {
       "id": "reserve-cell-0-1-0",
@@ -60663,7 +64035,17 @@
         }
       ],
       "capacityM3": 1309.589747893218,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          9,
+          9.600000000000001,
+          -93.9375
+        ]
+      }
     },
     {
       "id": "reserve-cell-0-1-1",
@@ -62745,7 +66127,17 @@
         }
       ],
       "capacityM3": 1057.3192137379917,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          9,
+          9.600000000000001,
+          -93.9375
+        ]
+      }
     },
     {
       "id": "reserve-cell-0-1-2",
@@ -63663,7 +67055,17 @@
         }
       ],
       "capacityM3": 1354.612880126953,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          9,
+          9.600000000000001,
+          -93.9375
+        ]
+      }
     },
     {
       "id": "reserve-cell-1-0-0",
@@ -65661,7 +69063,17 @@
         }
       ],
       "capacityM3": 3127.746701569816,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -9,
+          9.600000000000001,
+          -31.3125
+        ]
+      }
     },
     {
       "id": "reserve-cell-1-0-1",
@@ -68463,7 +71875,17 @@
         }
       ],
       "capacityM3": 3090.537103897227,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -9,
+          9.600000000000001,
+          -31.3125
+        ]
+      }
     },
     {
       "id": "reserve-cell-1-0-2",
@@ -68793,7 +72215,17 @@
         }
       ],
       "capacityM3": 1999.3888718261712,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 80,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0.014,
+        "ventPosition": [
+          -9,
+          9.600000000000001,
+          -31.3125
+        ]
+      }
     },
     {
       "id": "reserve-cell-1-1-0",
@@ -70791,7 +74223,17 @@
         }
       ],
       "capacityM3": 3127.7467015698167,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          9,
+          9.600000000000001,
+          -31.3125
+        ]
+      }
     },
     {
       "id": "reserve-cell-1-1-1",
@@ -73593,7 +77035,17 @@
         }
       ],
       "capacityM3": 3090.537103897228,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          9,
+          9.600000000000001,
+          -31.3125
+        ]
+      }
     },
     {
       "id": "reserve-cell-1-1-2",
@@ -73923,7 +77375,17 @@
         }
       ],
       "capacityM3": 1999.3888718261712,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          9,
+          9.600000000000001,
+          -31.3125
+        ]
+      }
     },
     {
       "id": "reserve-cell-2-0-0",
@@ -75525,7 +78987,17 @@
         }
       ],
       "capacityM3": 3461.8359597064905,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -9,
+          9.600000000000001,
+          31.3125
+        ]
+      }
     },
     {
       "id": "reserve-cell-2-0-1",
@@ -77631,7 +81103,17 @@
         }
       ],
       "capacityM3": 2977.641720094715,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -9,
+          9.600000000000001,
+          31.3125
+        ]
+      }
     },
     {
       "id": "reserve-cell-2-0-2",
@@ -77757,7 +81239,17 @@
         }
       ],
       "capacityM3": 1824.3063225585931,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -9,
+          9.600000000000001,
+          31.3125
+        ]
+      }
     },
     {
       "id": "reserve-cell-2-1-0",
@@ -79359,7 +82851,17 @@
         }
       ],
       "capacityM3": 3461.8359597064905,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          9,
+          9.600000000000001,
+          31.3125
+        ]
+      }
     },
     {
       "id": "reserve-cell-2-1-1",
@@ -81465,7 +84967,17 @@
         }
       ],
       "capacityM3": 2977.6417200947158,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          9,
+          9.600000000000001,
+          31.3125
+        ]
+      }
     },
     {
       "id": "reserve-cell-2-1-2",
@@ -81591,7 +85103,17 @@
         }
       ],
       "capacityM3": 1824.3063225585931,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          9,
+          9.600000000000001,
+          31.3125
+        ]
+      }
     },
     {
       "id": "reserve-cell-3-0-0",
@@ -83721,7 +87243,17 @@
         }
       ],
       "capacityM3": 1191.0117574805654,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -9,
+          9.600000000000001,
+          93.9375
+        ]
+      }
     },
     {
       "id": "reserve-cell-3-0-1",
@@ -87219,7 +90751,17 @@
         }
       ],
       "capacityM3": 1751.1081429124442,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -9,
+          9.600000000000001,
+          93.9375
+        ]
+      }
     },
     {
       "id": "reserve-cell-3-0-2",
@@ -87921,7 +91463,17 @@
         }
       ],
       "capacityM3": 1334.7131034667966,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          -9,
+          9.600000000000001,
+          93.9375
+        ]
+      }
     },
     {
       "id": "reserve-cell-3-1-0",
@@ -90051,7 +93603,17 @@
         }
       ],
       "capacityM3": 1191.0117574805652,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          9,
+          9.600000000000001,
+          93.9375
+        ]
+      }
     },
     {
       "id": "reserve-cell-3-1-1",
@@ -93549,7 +97111,17 @@
         }
       ],
       "capacityM3": 1751.1081429124442,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          9,
+          9.600000000000001,
+          93.9375
+        ]
+      }
     },
     {
       "id": "reserve-cell-3-1-2",
@@ -94251,7 +97823,17 @@
         }
       ],
       "capacityM3": 1334.7131034667964,
-      "pumpM3PerSecond": 0.001
+      "pumpM3PerSecond": 0.001,
+      "fire": {
+        "fuelSeconds": 0,
+        "ignitionHeat": 0.45,
+        "heatPerDamage": 0,
+        "ventPosition": [
+          9,
+          9.600000000000001,
+          93.9375
+        ]
+      }
     }
   ],
   "connections": [
@@ -104579,7 +108161,7 @@
   "accuracy": {
     "exterior": "Independent 1941-04: revised secondary gunhouses, separated navigation/conning bridge and scalloped tower galleries. Principal dimensions documented; local shapes and fittings remain image estimates.",
     "internals": "Plate thicknesses and machinery sequence evidence-based; room boundaries and hull-conforming plate envelopes approximate. Standard-draft datum, not battle displacement.",
-    "weapons": "Independent gunhouse polygons; historical bore and turret frames. Simplified geometry and AP budget, no fuze, spall or material penetration model."
+    "weapons": "Independent gunhouse polygons; historical bore and turret frames. Simplified geometry and AP budget, no fuze, spall or material penetration model. AA: eight twin 105 mm, eight twin 37 mm and twelve single 20 mm mounts use original visual placements and provisional CPU fire control. Two upper quad 20 mm fittings remain decorative."
   },
   "structures": [
     {
@@ -112243,6 +115825,1426 @@
     "shellThicknessMm": 12,
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
   },
+  "localDamage": {
+    "version": 1,
+    "regions": [
+      {
+        "id": "underwater-port-1",
+        "name": "Underwater hull · port · bow",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          -10,
+          -5.165,
+          -109.59375
+        ],
+        "size": [
+          20,
+          10.33,
+          31.3145
+        ]
+      },
+      {
+        "id": "underwater-port-2",
+        "name": "Underwater hull · port · forward",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          -10,
+          -5.165,
+          -78.28125
+        ],
+        "size": [
+          20,
+          10.33,
+          31.3145
+        ]
+      },
+      {
+        "id": "underwater-port-3",
+        "name": "Underwater hull · port · forward amidships",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          -10,
+          -5.165,
+          -46.96875
+        ],
+        "size": [
+          20,
+          10.33,
+          31.3145
+        ]
+      },
+      {
+        "id": "underwater-port-4",
+        "name": "Underwater hull · port · amidships forward",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          -10,
+          -5.165,
+          -15.65625
+        ],
+        "size": [
+          20,
+          10.33,
+          31.3145
+        ]
+      },
+      {
+        "id": "underwater-port-5",
+        "name": "Underwater hull · port · amidships aft",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          -10,
+          -5.165,
+          15.65625
+        ],
+        "size": [
+          20,
+          10.33,
+          31.3145
+        ]
+      },
+      {
+        "id": "underwater-port-6",
+        "name": "Underwater hull · port · aft amidships",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          -10,
+          -5.165,
+          46.96875
+        ],
+        "size": [
+          20,
+          10.33,
+          31.3145
+        ]
+      },
+      {
+        "id": "underwater-port-7",
+        "name": "Underwater hull · port · aft",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          -10,
+          -5.165,
+          78.28125
+        ],
+        "size": [
+          20,
+          10.33,
+          31.3145
+        ]
+      },
+      {
+        "id": "underwater-port-8",
+        "name": "Underwater hull · port · stern",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          -10,
+          -5.165,
+          109.59375
+        ],
+        "size": [
+          20,
+          10.33,
+          31.3145
+        ]
+      },
+      {
+        "id": "underwater-starboard-1",
+        "name": "Underwater hull · starboard · bow",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          10,
+          -5.165,
+          -109.59375
+        ],
+        "size": [
+          20,
+          10.33,
+          31.3145
+        ]
+      },
+      {
+        "id": "underwater-starboard-2",
+        "name": "Underwater hull · starboard · forward",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          10,
+          -5.165,
+          -78.28125
+        ],
+        "size": [
+          20,
+          10.33,
+          31.3145
+        ]
+      },
+      {
+        "id": "underwater-starboard-3",
+        "name": "Underwater hull · starboard · forward amidships",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          10,
+          -5.165,
+          -46.96875
+        ],
+        "size": [
+          20,
+          10.33,
+          31.3145
+        ]
+      },
+      {
+        "id": "underwater-starboard-4",
+        "name": "Underwater hull · starboard · amidships forward",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          10,
+          -5.165,
+          -15.65625
+        ],
+        "size": [
+          20,
+          10.33,
+          31.3145
+        ]
+      },
+      {
+        "id": "underwater-starboard-5",
+        "name": "Underwater hull · starboard · amidships aft",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          10,
+          -5.165,
+          15.65625
+        ],
+        "size": [
+          20,
+          10.33,
+          31.3145
+        ]
+      },
+      {
+        "id": "underwater-starboard-6",
+        "name": "Underwater hull · starboard · aft amidships",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          10,
+          -5.165,
+          46.96875
+        ],
+        "size": [
+          20,
+          10.33,
+          31.3145
+        ]
+      },
+      {
+        "id": "underwater-starboard-7",
+        "name": "Underwater hull · starboard · aft",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          10,
+          -5.165,
+          78.28125
+        ],
+        "size": [
+          20,
+          10.33,
+          31.3145
+        ]
+      },
+      {
+        "id": "underwater-starboard-8",
+        "name": "Underwater hull · starboard · stern",
+        "kind": "hull",
+        "durabilityFraction": 0.12,
+        "center": [
+          10,
+          -5.165,
+          109.59375
+        ],
+        "size": [
+          20,
+          10.33,
+          31.3145
+        ]
+      },
+      {
+        "id": "upper-hull-port-1",
+        "name": "Upper hull · port · bow",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          -10,
+          4.9,
+          -109.59375
+        ],
+        "size": [
+          20,
+          9.8,
+          31.3145
+        ]
+      },
+      {
+        "id": "upper-hull-port-2",
+        "name": "Upper hull · port · forward",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          -10,
+          4.9,
+          -78.28125
+        ],
+        "size": [
+          20,
+          9.8,
+          31.3145
+        ]
+      },
+      {
+        "id": "upper-hull-port-3",
+        "name": "Upper hull · port · forward amidships",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          -10,
+          4.9,
+          -46.96875
+        ],
+        "size": [
+          20,
+          9.8,
+          31.3145
+        ]
+      },
+      {
+        "id": "upper-hull-port-4",
+        "name": "Upper hull · port · amidships forward",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          -10,
+          4.9,
+          -15.65625
+        ],
+        "size": [
+          20,
+          9.8,
+          31.3145
+        ]
+      },
+      {
+        "id": "upper-hull-port-5",
+        "name": "Upper hull · port · amidships aft",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          -10,
+          4.9,
+          15.65625
+        ],
+        "size": [
+          20,
+          9.8,
+          31.3145
+        ]
+      },
+      {
+        "id": "upper-hull-port-6",
+        "name": "Upper hull · port · aft amidships",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          -10,
+          4.9,
+          46.96875
+        ],
+        "size": [
+          20,
+          9.8,
+          31.3145
+        ]
+      },
+      {
+        "id": "upper-hull-port-7",
+        "name": "Upper hull · port · aft",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          -10,
+          4.9,
+          78.28125
+        ],
+        "size": [
+          20,
+          9.8,
+          31.3145
+        ]
+      },
+      {
+        "id": "upper-hull-port-8",
+        "name": "Upper hull · port · stern",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          -10,
+          4.9,
+          109.59375
+        ],
+        "size": [
+          20,
+          9.8,
+          31.3145
+        ]
+      },
+      {
+        "id": "upper-hull-starboard-1",
+        "name": "Upper hull · starboard · bow",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          10,
+          4.9,
+          -109.59375
+        ],
+        "size": [
+          20,
+          9.8,
+          31.3145
+        ]
+      },
+      {
+        "id": "upper-hull-starboard-2",
+        "name": "Upper hull · starboard · forward",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          10,
+          4.9,
+          -78.28125
+        ],
+        "size": [
+          20,
+          9.8,
+          31.3145
+        ]
+      },
+      {
+        "id": "upper-hull-starboard-3",
+        "name": "Upper hull · starboard · forward amidships",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          10,
+          4.9,
+          -46.96875
+        ],
+        "size": [
+          20,
+          9.8,
+          31.3145
+        ]
+      },
+      {
+        "id": "upper-hull-starboard-4",
+        "name": "Upper hull · starboard · amidships forward",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          10,
+          4.9,
+          -15.65625
+        ],
+        "size": [
+          20,
+          9.8,
+          31.3145
+        ]
+      },
+      {
+        "id": "upper-hull-starboard-5",
+        "name": "Upper hull · starboard · amidships aft",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          10,
+          4.9,
+          15.65625
+        ],
+        "size": [
+          20,
+          9.8,
+          31.3145
+        ]
+      },
+      {
+        "id": "upper-hull-starboard-6",
+        "name": "Upper hull · starboard · aft amidships",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          10,
+          4.9,
+          46.96875
+        ],
+        "size": [
+          20,
+          9.8,
+          31.3145
+        ]
+      },
+      {
+        "id": "upper-hull-starboard-7",
+        "name": "Upper hull · starboard · aft",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          10,
+          4.9,
+          78.28125
+        ],
+        "size": [
+          20,
+          9.8,
+          31.3145
+        ]
+      },
+      {
+        "id": "upper-hull-starboard-8",
+        "name": "Upper hull · starboard · stern",
+        "kind": "hull",
+        "durabilityFraction": 0.1,
+        "center": [
+          10,
+          4.9,
+          109.59375
+        ],
+        "size": [
+          20,
+          9.8,
+          31.3145
+        ]
+      },
+      {
+        "id": "upperworks-port-1",
+        "name": "Upperworks · port · bow",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          -10,
+          19.955,
+          -109.59375
+        ],
+        "size": [
+          20,
+          20.31,
+          31.3145
+        ]
+      },
+      {
+        "id": "upperworks-port-2",
+        "name": "Upperworks · port · forward",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          -10,
+          19.955,
+          -78.28125
+        ],
+        "size": [
+          20,
+          20.31,
+          31.3145
+        ]
+      },
+      {
+        "id": "upperworks-port-3",
+        "name": "Upperworks · port · forward amidships",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          -10,
+          19.955,
+          -46.96875
+        ],
+        "size": [
+          20,
+          20.31,
+          31.3145
+        ]
+      },
+      {
+        "id": "upperworks-port-4",
+        "name": "Upperworks · port · amidships forward",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          -10,
+          19.955,
+          -15.65625
+        ],
+        "size": [
+          20,
+          20.31,
+          31.3145
+        ]
+      },
+      {
+        "id": "upperworks-port-5",
+        "name": "Upperworks · port · amidships aft",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          -10,
+          19.955,
+          15.65625
+        ],
+        "size": [
+          20,
+          20.31,
+          31.3145
+        ]
+      },
+      {
+        "id": "upperworks-port-6",
+        "name": "Upperworks · port · aft amidships",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          -10,
+          19.955,
+          46.96875
+        ],
+        "size": [
+          20,
+          20.31,
+          31.3145
+        ]
+      },
+      {
+        "id": "upperworks-port-7",
+        "name": "Upperworks · port · aft",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          -10,
+          19.955,
+          78.28125
+        ],
+        "size": [
+          20,
+          20.31,
+          31.3145
+        ]
+      },
+      {
+        "id": "upperworks-port-8",
+        "name": "Upperworks · port · stern",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          -10,
+          19.955,
+          109.59375
+        ],
+        "size": [
+          20,
+          20.31,
+          31.3145
+        ]
+      },
+      {
+        "id": "upperworks-starboard-1",
+        "name": "Upperworks · starboard · bow",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          10,
+          19.955,
+          -109.59375
+        ],
+        "size": [
+          20,
+          20.31,
+          31.3145
+        ]
+      },
+      {
+        "id": "upperworks-starboard-2",
+        "name": "Upperworks · starboard · forward",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          10,
+          19.955,
+          -78.28125
+        ],
+        "size": [
+          20,
+          20.31,
+          31.3145
+        ]
+      },
+      {
+        "id": "upperworks-starboard-3",
+        "name": "Upperworks · starboard · forward amidships",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          10,
+          19.955,
+          -46.96875
+        ],
+        "size": [
+          20,
+          20.31,
+          31.3145
+        ]
+      },
+      {
+        "id": "upperworks-starboard-4",
+        "name": "Upperworks · starboard · amidships forward",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          10,
+          19.955,
+          -15.65625
+        ],
+        "size": [
+          20,
+          20.31,
+          31.3145
+        ]
+      },
+      {
+        "id": "upperworks-starboard-5",
+        "name": "Upperworks · starboard · amidships aft",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          10,
+          19.955,
+          15.65625
+        ],
+        "size": [
+          20,
+          20.31,
+          31.3145
+        ]
+      },
+      {
+        "id": "upperworks-starboard-6",
+        "name": "Upperworks · starboard · aft amidships",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          10,
+          19.955,
+          46.96875
+        ],
+        "size": [
+          20,
+          20.31,
+          31.3145
+        ]
+      },
+      {
+        "id": "upperworks-starboard-7",
+        "name": "Upperworks · starboard · aft",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          10,
+          19.955,
+          78.28125
+        ],
+        "size": [
+          20,
+          20.31,
+          31.3145
+        ]
+      },
+      {
+        "id": "upperworks-starboard-8",
+        "name": "Upperworks · starboard · stern",
+        "kind": "superstructure",
+        "durabilityFraction": 0.025,
+        "center": [
+          10,
+          19.955,
+          109.59375
+        ],
+        "size": [
+          20,
+          20.31,
+          31.3145
+        ]
+      },
+      {
+        "id": "mount-anton",
+        "name": "Anton",
+        "kind": "mount",
+        "mountId": "anton",
+        "center": [
+          0,
+          6.75,
+          -70.05
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.025
+      },
+      {
+        "id": "mount-bruno",
+        "name": "Bruno",
+        "kind": "mount",
+        "mountId": "bruno",
+        "center": [
+          0,
+          10.55,
+          -51.85
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.025
+      },
+      {
+        "id": "mount-caesar",
+        "name": "Cäsar",
+        "kind": "mount",
+        "mountId": "caesar",
+        "center": [
+          0,
+          10.55,
+          58.15
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.025
+      },
+      {
+        "id": "mount-dora",
+        "name": "Dora",
+        "kind": "mount",
+        "mountId": "dora",
+        "center": [
+          0,
+          6.35,
+          76.35
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.025
+      },
+      {
+        "id": "mount-starboard-secondary-1",
+        "name": "Starboard Secondary 1",
+        "kind": "mount",
+        "mountId": "starboard-secondary-1",
+        "center": [
+          9.65,
+          6.15,
+          -27.2
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-secondary-2",
+        "name": "Starboard Secondary 2",
+        "kind": "mount",
+        "mountId": "starboard-secondary-2",
+        "center": [
+          14.05,
+          6,
+          -8
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-secondary-3",
+        "name": "Starboard Secondary 3",
+        "kind": "mount",
+        "mountId": "starboard-secondary-3",
+        "center": [
+          13.9,
+          6,
+          24
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-secondary-1",
+        "name": "Port Secondary 1",
+        "kind": "mount",
+        "mountId": "port-secondary-1",
+        "center": [
+          -9.65,
+          6.15,
+          -27.2
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-secondary-2",
+        "name": "Port Secondary 2",
+        "kind": "mount",
+        "mountId": "port-secondary-2",
+        "center": [
+          -14.05,
+          6,
+          -8
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-secondary-3",
+        "name": "Port Secondary 3",
+        "kind": "mount",
+        "mountId": "port-secondary-3",
+        "center": [
+          -13.9,
+          6,
+          24
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-105-1",
+        "name": "Starboard 105 mm AA 1",
+        "kind": "mount",
+        "mountId": "starboard-aa-105-1",
+        "center": [
+          12.15,
+          5.79,
+          -20
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-105-2",
+        "name": "Starboard 105 mm AA 2",
+        "kind": "mount",
+        "mountId": "starboard-aa-105-2",
+        "center": [
+          11.6,
+          5.79,
+          -0.1
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-105-3",
+        "name": "Starboard 105 mm AA 3",
+        "kind": "mount",
+        "mountId": "starboard-aa-105-3",
+        "center": [
+          11.6,
+          5.79,
+          16
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-105-4",
+        "name": "Starboard 105 mm AA 4",
+        "kind": "mount",
+        "mountId": "starboard-aa-105-4",
+        "center": [
+          10.35,
+          5.79,
+          32
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-37-1",
+        "name": "Starboard 37 mm AA 1",
+        "kind": "mount",
+        "mountId": "starboard-aa-37-1",
+        "center": [
+          7.8,
+          9.4,
+          -39
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-37-2",
+        "name": "Starboard 37 mm AA 2",
+        "kind": "mount",
+        "mountId": "starboard-aa-37-2",
+        "center": [
+          8.1,
+          12.65,
+          -16.5
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-37-3",
+        "name": "Starboard 37 mm AA 3",
+        "kind": "mount",
+        "mountId": "starboard-aa-37-3",
+        "center": [
+          7.4,
+          9.4,
+          37.6
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-37-4",
+        "name": "Starboard 37 mm AA 4",
+        "kind": "mount",
+        "mountId": "starboard-aa-37-4",
+        "center": [
+          6.7,
+          9.4,
+          49
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-20-1",
+        "name": "Starboard 20 mm AA 1",
+        "kind": "mount",
+        "mountId": "starboard-aa-20-1",
+        "center": [
+          5.5,
+          9.4,
+          -42.5
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-20-2",
+        "name": "Starboard 20 mm AA 2",
+        "kind": "mount",
+        "mountId": "starboard-aa-20-2",
+        "center": [
+          7.2,
+          12.66,
+          -29.1
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-20-3",
+        "name": "Starboard 20 mm AA 3",
+        "kind": "mount",
+        "mountId": "starboard-aa-20-3",
+        "center": [
+          6.3,
+          15.6,
+          -25.4
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-20-4",
+        "name": "Starboard 20 mm AA 4",
+        "kind": "mount",
+        "mountId": "starboard-aa-20-4",
+        "center": [
+          5.2,
+          20.92,
+          -11.3
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-20-5",
+        "name": "Starboard 20 mm AA 5",
+        "kind": "mount",
+        "mountId": "starboard-aa-20-5",
+        "center": [
+          5,
+          12.65,
+          35
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-starboard-aa-20-6",
+        "name": "Starboard 20 mm AA 6",
+        "kind": "mount",
+        "mountId": "starboard-aa-20-6",
+        "center": [
+          6.8,
+          9.4,
+          46.1
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-105-1",
+        "name": "Port 105 mm AA 1",
+        "kind": "mount",
+        "mountId": "port-aa-105-1",
+        "center": [
+          -12.15,
+          5.79,
+          -20
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-105-2",
+        "name": "Port 105 mm AA 2",
+        "kind": "mount",
+        "mountId": "port-aa-105-2",
+        "center": [
+          -11.6,
+          5.79,
+          -0.1
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-105-3",
+        "name": "Port 105 mm AA 3",
+        "kind": "mount",
+        "mountId": "port-aa-105-3",
+        "center": [
+          -11.6,
+          5.79,
+          16
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-105-4",
+        "name": "Port 105 mm AA 4",
+        "kind": "mount",
+        "mountId": "port-aa-105-4",
+        "center": [
+          -10.35,
+          5.79,
+          32
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-37-1",
+        "name": "Port 37 mm AA 1",
+        "kind": "mount",
+        "mountId": "port-aa-37-1",
+        "center": [
+          -7.8,
+          9.4,
+          -39
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-37-2",
+        "name": "Port 37 mm AA 2",
+        "kind": "mount",
+        "mountId": "port-aa-37-2",
+        "center": [
+          -8.1,
+          12.65,
+          -16.5
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-37-3",
+        "name": "Port 37 mm AA 3",
+        "kind": "mount",
+        "mountId": "port-aa-37-3",
+        "center": [
+          -7.4,
+          9.4,
+          37.6
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-37-4",
+        "name": "Port 37 mm AA 4",
+        "kind": "mount",
+        "mountId": "port-aa-37-4",
+        "center": [
+          -6.7,
+          9.4,
+          49
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-20-1",
+        "name": "Port 20 mm AA 1",
+        "kind": "mount",
+        "mountId": "port-aa-20-1",
+        "center": [
+          -5.5,
+          9.4,
+          -42.5
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-20-2",
+        "name": "Port 20 mm AA 2",
+        "kind": "mount",
+        "mountId": "port-aa-20-2",
+        "center": [
+          -7.2,
+          12.66,
+          -29.1
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-20-3",
+        "name": "Port 20 mm AA 3",
+        "kind": "mount",
+        "mountId": "port-aa-20-3",
+        "center": [
+          -6.3,
+          15.6,
+          -25.4
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-20-4",
+        "name": "Port 20 mm AA 4",
+        "kind": "mount",
+        "mountId": "port-aa-20-4",
+        "center": [
+          -5.2,
+          20.92,
+          -11.3
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-20-5",
+        "name": "Port 20 mm AA 5",
+        "kind": "mount",
+        "mountId": "port-aa-20-5",
+        "center": [
+          -5,
+          12.65,
+          35
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      },
+      {
+        "id": "mount-port-aa-20-6",
+        "name": "Port 20 mm AA 6",
+        "kind": "mount",
+        "mountId": "port-aa-20-6",
+        "center": [
+          -6.8,
+          9.4,
+          46.1
+        ],
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "durabilityFraction": 0.008
+      }
+    ],
+    "basis": "Original game calibration: eight longitudinal sections, independent sides and three height bands, with separate gunhouse budgets. Generator/director proxy positions and fire loads are estimated; no historical structural tolerance, electrical routing, ventilation or crew-performance claim."
+  },
   "compilerVersion": 1,
-  "contentHash": "07ecd92f4d83b52f4165259653e7ac3276973cf34630ed8bfd32e349e9dfec83"
+  "contentHash": "9e7df16886d6a66393dd2155e98afb67533c3863f7061598a68fdbe3436d97d8"
 }

@@ -1,10 +1,11 @@
-import { heatModule, heatMount } from './damageControl';
+import { heatModule, heatMount, heatRoom } from './damageControl';
 import type { ShipDefinition, Vec3, Volume } from '../ships/blueprint';
 import { contactArmor, nearbyContacts, shipContacts, type Combatant, type DamageEvent, type Shell } from './damage';
 import { clamp, dot, length, localToWorld, normalize, segmentOverlapsBox, sub, worldToLocal } from './geometry';
 import { plateResponse } from './protection';
 import { damageShellHull, HULL_DAMAGE } from './durability';
 import { hullContains } from './hull';
+import { localDamageEvidence } from './localDamage';
 
 /** Calibrated, bounded target rays. Closed steel blocks pressure; fragments pay
  * each intervening layer. No unoccluded sphere damage or stochastic ray swarm.
@@ -29,13 +30,19 @@ export function burstShell(shell: Shell, actors: (Combatant & { definition: Ship
     const def = actor.definition, origin = worldToLocal(shell.position, actor.motion);
     if (Math.abs(origin[0]) > def.hull.beam / 2 + radius + 15 || Math.abs(origin[2]) > def.hull.length / 2 + radius + 20) continue;
     const candidates = shields.find(s => s.actor === actor)!.candidates;
-    const targets: { kind: 'module' | 'mount' | 'boundary'; index: number; id: string; name: string; point: Vec3; distance: number }[] = [];
-    const target = (kind: 'module' | 'mount' | 'boundary', index: number, id: string, name: string, point: Vec3) => {
+    const targets: { kind: 'module' | 'mount' | 'boundary' | 'room'; index: number; id: string; name: string; point: Vec3; distance: number }[] = [];
+    const target = (kind: 'module' | 'mount' | 'boundary' | 'room', index: number, id: string, name: string, point: Vec3) => {
       const distance = length(sub(point, origin));
       if (distance < radius) targets.push({ kind, index, id, name, point, distance });
     };
     const nearest = (v: Pick<Volume, 'center' | 'size'>): Vec3 => origin.map((n, i) => clamp(n, v.center[i] - v.size[i] / 2, v.center[i] + v.size[i] / 2)) as Vec3;
     candidates.modules.forEach(index => { const m = def.modules[index]; target('module', index, m.id, m.name, nearest(m)); });
+    // Room fuel can ignite even after its equipment is destroyed. The same
+    // protected ray is paid; heat never teleports through intact armor.
+    def.compartments.forEach((room, index) => {
+      if (actor.damage.control.rooms[index].fuel > 0 && !def.modules.some(m => m.compartmentId === room.id))
+        target('room', index, room.id, room.name, nearest(room));
+    });
     def.mounts.forEach((m, index) => {
       // Center ray includes the complete gunhouse protection, including rotated plates.
       target('mount', index, m.id, m.name, [m.position[0], m.position[1] + m.weapon.gunhouseSize[2] / 2, m.position[2]]);
@@ -79,7 +86,10 @@ export function burstShell(shell: Shell, actors: (Combatant & { definition: Ship
       const exposure = blockedPressure ? .35 * budget / charge.fragmentPenetrationMm : 1;
       const amount = (shell.he ? shell.he.damage : shell.damage * .75) * (1 - distance / radius) * exposure;
       let damage = 0, connectionIds: string[] | undefined;
-      if (target.kind === 'module') {
+      if (target.kind === 'room') {
+        heatRoom(actor, def, target.index, amount);
+        continue;
+      } else if (target.kind === 'module') {
         const state = actor.damage.modules[target.index]; damage = Math.min(state.hp, amount); state.hp -= damage;
         heatModule(actor, def, target.index, amount);
       } else if (target.kind === 'mount') {
@@ -92,20 +102,22 @@ export function burstShell(shell: Shell, actors: (Combatant & { definition: Ship
       }
       if (!damage && !connectionIds) continue;
       burstShip ||= actor.motion.id;
+      const localDamage = localDamageEvidence(actor, def, target.point, target.kind === 'mount' ? target.id : undefined);
       const hullDamage = damage > 0 ? damageShellHull(shell, actor, shell.he
         ? Math.min(shell.he.damage, damage) * HULL_DAMAGE.heEquipment
-        : shell.damage * HULL_DAMAGE.equipment * Math.min(1, damage / (shell.damage * .75))) : 0;
+        : shell.damage * HULL_DAMAGE.equipment * Math.min(1, damage / (shell.damage * .75)), localDamage) : 0;
       emit({ ...base, kind: 'burst', shipId: actor.motion.id, message: `${name} burst · ${target.name}`,
         impact: { shellId: shell.id, shipId: actor.motion.id, targetId: target.id, targetName: target.name, kind: target.kind,
           position: target.point, penetrationBeforeMm: charge.fragmentPenetrationMm, penetrationAfterMm: Math.max(0, budget),
-          outcome: 'damaged', damage, hullDamage, connectionIds, fuze: 'armed', fuzeRemainingSeconds: 0 } });
+          outcome: 'damaged', damage, hullDamage, localDamage, throughWreckage: shell.wreckageShips?.includes(actor.motion.id), connectionIds, fuze: 'armed', fuzeRemainingSeconds: 0 } });
     }
   }
   const actor = actors.find(a => a.motion.id === burstShip);
   // Only a shell that actually penetrated the victim can upgrade an internal
   // burst. Reconstructed exterior armor may sit slightly inside the hull mesh.
-  const hullDamage = actor && shell.ap && (shell.hullDamage?.[actor.motion.id] ?? 0) > 0 && hullContains(actor.definition.hull, worldToLocal(shell.position, actor.motion))
-    ? damageShellHull(shell, actor, shell.damage * HULL_DAMAGE.penetration) : 0;
+  const penetrated = actor && ((shell.hullDamage?.[actor.motion.id] ?? 0) > 0 || Object.entries(shell.hullRegionDamage ?? {}).some(([key, amount]) => key.startsWith(`${actor.motion.id}:`) && amount > 0));
+  const hullDamage = actor && shell.ap && penetrated && hullContains(actor.definition.hull, worldToLocal(shell.position, actor.motion))
+    ? damageShellHull(shell, actor, shell.damage * HULL_DAMAGE.penetration, localDamageEvidence(actor, actor.definition, worldToLocal(shell.position, actor.motion))) : 0;
   emit({ ...base, kind: 'burst', shipId: burstShip, message: `${name} shell burst`, detonation: true, blastRadiusM: radius,
     impact: { shellId: shell.id, shipId: burstShip, targetId: `${name.toLowerCase()}-burst`, targetName: actor ? `${name} shell burst` : 'Burst outside ship', kind: 'burst',
       position: actor ? worldToLocal(shell.position, actor.motion) : [...shell.position], penetrationBeforeMm: shell.penetrationMm,

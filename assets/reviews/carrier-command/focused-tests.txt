@@ -1,0 +1,16 @@
+bun test v1.2.18 (0d4089ea)
+
+src/game/AirOperations.test.tsx:
+(pass) air chart fits distant aircraft in wide and narrow windows and maps clicks back to world coordinates [0.12ms]
+(pass) the operations roster exposes the full inventory and retains a flight target when the ship target changes [13.66ms]
+(pass) the map releases aim, blocks firing and restores aiming on close without losing flight selection [1.05ms]
+(pass) older keybindings keep a custom M binding while adding a reachable map shortcut [0.48ms]
+
+src/game/BattlefieldCamera.test.ts:
+(pass) overhead camera and water commands share the same coordinates at 1440×900 [0.25ms]
+(pass) overhead camera and water commands share the same coordinates at 390×844 [0.09ms]
+
+ 6 pass
+ 0 fail
+ 60 expect() calls
+Ran 6 tests across 2 files. [178.00ms]

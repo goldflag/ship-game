@@ -3,13 +3,17 @@ import { structuralHits, EXTERIOR_PLATING_REPLACEMENT_M } from './structure';
 import { createStability, updateSinking, updateStability, waterLevel, type StabilityState } from './stability';
 import { createControl, heatModule, type ControlState } from './damageControl';
 import { damageShellHull, HULL_DAMAGE, penetrationHullDamage } from './durability';
+import { createRegions, localDamageEvidence, type LocalDamageEvidence, type RegionState } from './localDamage';
+import { supportPerformance } from './machinery';
+import { addBreach } from './breaches';
+export { addBreach } from './breaches';
 import type { Ammunition, APProjectile, Armor, FloodConnection, HEProjectile, ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { ShipState } from './ship';
 import { plateHit, plateResponse, samePlateSeam } from './protection';
 import type { MountState } from './weapons';
 import { add, clamp, contains, length, localToWorld, normalize, radians, rotate, scale, segmentBox, sub, worldToLocal } from './geometry';
 
-export interface Breach { position: Vec3; areaM2: number; radiusM: number; shellId: number; }
+export interface Breach { position: Vec3; areaM2: number; radiusM: number; shellId: number; normal?: Vec3; footprintAreaM2?: number; initialAreaM2?: number; }
 export interface CompartmentState { id: string; waterM3: number; breachAreaM2: number; breaches: Breach[]; }
 export interface ConnectionState { id: string; state: 'open' | 'closed' | 'damaged'; damageAreaM2: number; fromIndex: number; toIndex: number; }
 export const connectionId = (c: FloodConnection) => c.id ?? `${c.fromId}:${c.toId}`;
@@ -27,10 +31,13 @@ export interface ImpactRecord {
   damage?: number; compartmentId?: string; breachAreaM2?: number; terminal?: boolean;
   /** Actual gameplay HP lost, distinct from the local equipment damage above. */
   hullDamage?: number;
+  localDamage?: LocalDamageEvidence;
+  throughWreckage?: boolean;
   connectionIds?: string[];
   breachAssignments?: { compartmentId: string; areaM2: number; position: Vec3 }[];
 }
 export interface DamageState {
+  regions: RegionState[];
   control: ControlState; stability: StabilityState;
   /** Gameplay hull durability. Equipment HP and physical flooding are separate. */
   integrity: number; maxIntegrity: number; modules: { id: string; hp: number; detonated: boolean; ignition: number }[];
@@ -56,6 +63,9 @@ export interface Shell {
   remainingModuleDamage?: number;
   /** Per-victim hull damage already paid by this projectile. */
   hullDamage?: Record<string, number>;
+  hullRegionDamage?: Record<string, number>;
+  equipmentDamage?: Record<string, number>;
+  wreckageShips?: string[];
   detonateAtAge?: number;
   lastHitShipId?: string;
   /** Position is ship-local, or mount-local when attached to an articulated gunhouse. */
@@ -75,27 +85,7 @@ export function maxHullIntegrity(def: ShipDefinition): number {
   return Math.round((300 + 1450 * Math.sqrt(def.hull.massKg / 70_000_000)) / 10) * 10;
 }
 export function createDamage(def: ShipDefinition): DamageState {
-  return { stability: createStability(), control: createControl(def), integrity: maxHullIntegrity(def), maxIntegrity: maxHullIntegrity(def), modules: def.modules.map(m => ({ id: m.id, hp: m.hp, detonated: false, ignition: 0 })), compartments: def.compartments.map(c => ({ id: c.id, waterM3: 0, breachAreaM2: 0, breaches: [] })), connections: def.connections.map(c => ({ id: connectionId(c), state: c.state ?? 'open', damageAreaM2: c.state === 'damaged' ? c.areaM2 : 0, fromIndex: def.compartments.findIndex(r => r.id === c.fromId), toIndex: def.compartments.findIndex(r => r.id === c.toId) })), sunk: false };
-}
-export function addBreach(state: CompartmentState, position: Vec3, areaM2: number, shellId: number, apertureRadiusM = Math.sqrt(areaM2 / Math.PI)): number {
-  const added = Math.max(0, Math.min(areaM2, 4 - state.breachAreaM2));
-  if (added > 0) {
-    const radiusM = apertureRadiusM;
-    // Keep separate openings exact until a space accumulates 64. Dense repeated
-    // hits merge locally; saturated spaces use the closest cluster, with height
-    // weighted strongly to preserve waterline behavior. This bounds fleet cost.
-    const closest = state.breaches.map(b => ({ b, distance: Math.hypot(b.position[0] - position[0], 4 * (b.position[1] - position[1]), b.position[2] - position[2]) })).sort((a, b) => a.distance - b.distance)[0];
-    if (closest && (closest.distance < .1 || state.breaches.length >= 64)) {
-      const b = closest.b, total = b.areaM2 + added;
-      b.position = b.position.map((n, i) => (n * b.areaM2 + position[i] * added) / total) as Vec3;
-      b.areaM2 = total;
-      // Separate small holes are not one giant hole: do not enlarge their
-      // vertical extent from the accumulated area.
-      b.radiusM = Math.max(b.radiusM, radiusM);
-    } else state.breaches.push({ position: [...position], areaM2: added, radiusM, shellId });
-  }
-  state.breachAreaM2 += added;
-  return added;
+  return { regions: createRegions(def, maxHullIntegrity(def)), stability: createStability(), control: createControl(def), integrity: maxHullIntegrity(def), maxIntegrity: maxHullIntegrity(def), modules: def.modules.map(m => ({ id: m.id, hp: m.hp, detonated: false, ignition: 0 })), compartments: def.compartments.map(c => ({ id: c.id, waterM3: 0, breachAreaM2: 0, breaches: [] })), connections: def.connections.map(c => ({ id: connectionId(c), state: c.state ?? 'open', damageAreaM2: c.state === 'damaged' ? c.areaM2 : 0, fromIndex: def.compartments.findIndex(r => r.id === c.fromId), toIndex: def.compartments.findIndex(r => r.id === c.toId) })), sunk: false };
 }
 export { systemHealth } from './machinery';
 
@@ -107,7 +97,7 @@ function exteriorBreaches(actor: Combatant, def: ShipDefinition, point: Vec3, no
     const room = def.compartments.map((c, i) => ({ i, distance: Math.min(...(c.cells ?? [c]).map(cell => Math.hypot(...point.map((n, axis) => Math.max(0, Math.abs(n - cell.center[axis]) - cell.size[axis] / 2))))) })).sort((a, b) => a.distance - b.distance)[0];
     if (!room) return [];
     const c = actor.damage.compartments[room.i];
-    return [{ compartmentId: c.id, areaM2: addBreach(c, point, area, shell.id), position: [...point] }];
+    return [{ compartmentId: c.id, areaM2: addBreach(c, point, area, shell.id, radius, normal), position: [...point] }];
   }
   const regions = def.floodRegions.filter(r => (!r.face || (r.face === 'bow' || r.face === 'stern'
     ? (r.face === 'bow' ? point[2] < 0 : point[2] >= 0)
@@ -119,12 +109,12 @@ function exteriorBreaches(actor: Combatant, def: ShipDefinition, point: Vec3, no
     const region = regions.find(r => contains(r, position));
     if (!region) {
       const nearest = def.compartments.map((c, index) => ({ index, distance: Math.min(...(c.cells ?? [c]).map(cell => Math.hypot(...position.map((n, axis) => Math.max(0, Math.abs(n - cell.center[axis]) - cell.size[axis] / 2))))) })).sort((a,b) => a.distance-b.distance)[0];
-      if (nearest) { const c = actor.damage.compartments[nearest.index]; result.push({ compartmentId: c.id, areaM2: addBreach(c, position, area * (cuts[i] - cuts[i-1]) / (2 * radius), shell.id, (cuts[i]-cuts[i-1])/2), position }); }
+      if (nearest) { const c = actor.damage.compartments[nearest.index]; result.push({ compartmentId: c.id, areaM2: addBreach(c, position, area * (cuts[i] - cuts[i-1]) / (2 * radius), shell.id, (cuts[i]-cuts[i-1])/2, normal), position }); }
       continue;
     }
     const c = actor.damage.compartments.find(c => c.id === region.compartmentId);
     if (!c) continue;
-    result.push({ compartmentId: c.id, areaM2: addBreach(c, position, area * (cuts[i] - cuts[i - 1]) / (2 * radius), shell.id, (cuts[i] - cuts[i - 1]) / 2), position });
+    result.push({ compartmentId: c.id, areaM2: addBreach(c, position, area * (cuts[i] - cuts[i - 1]) / (2 * radius), shell.id, (cuts[i] - cuts[i - 1]) / 2, normal), position });
   }
   return result;
 }
@@ -260,6 +250,10 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
     const boundary = def.connections[hit.index];
     const target = hit.kind === 'armor' ? contactArmor(def,hit) : hit.kind === 'module' ? def.modules[hit.index] : hit.kind === 'mount' ? def.mounts[hit.index] : { id: connectionId(boundary), name: `Watertight boundary ${connectionId(boundary)}` };
     const evidence: ImpactRecord = { shellId: shell.id, shipId: actor.motion.id, targetId: target.id, targetName: target.name, kind: hit.kind, position: [...hit.point], impactSpeedMps: length(shell.velocity), penetrationBeforeMm: shell.penetrationMm, penetrationAfterMm: shell.penetrationMm, outcome: 'damaged' };
+    const mountId = hit.kind === 'mount' ? def.mounts[hit.index].id : hit.kind === 'armor' ? contactArmor(def, hit).plate?.mountId : undefined;
+    evidence.localDamage = localDamageEvidence(actor, def, hit.point, mountId);
+    evidence.throughWreckage = shell.wreckageShips?.includes(actor.motion.id) || undefined;
+    if (evidence.localDamage && evidence.localDamage.condition < .1 && !shell.wreckageShips?.includes(actor.motion.id)) (shell.wreckageShips ??= []).push(actor.motion.id);
     // A successful AP equipment strike must be consequential even when its
     // delayed burst occurs elsewhere. Share this budget across the whole path;
     // turret exit plates and downstream modules cannot multiply direct damage.
@@ -290,7 +284,11 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
       shell.velocity = shell.penetrationMm > 0 && before > 0 ? scale(shell.velocity, (shell.penetrationMm / before) ** (1 / 1.4)) : [0, 0, 0];
     };
     const report = (kind: DamageEvent['kind'], message: string, detonation = false) => {
-      if ((evidence.damage ?? 0) > 0) evidence.hullDamage = (evidence.hullDamage ?? 0) + damageShellHull(shell, actor, shell.damage * HULL_DAMAGE.equipment);
+      if ((evidence.damage ?? 0) > 0) {
+        const equipment = shell.equipmentDamage ??= {};
+        equipment[actor.motion.id] = (equipment[actor.motion.id] ?? 0) + evidence.damage!;
+        evidence.hullDamage = (evidence.hullDamage ?? 0) + damageShellHull(shell, actor, shell.damage * HULL_DAMAGE.equipment * Math.min(1, equipment[actor.motion.id] / kineticDamage), evidence.localDamage);
+      }
       emit({
       kind, position, message, shipId: actor.motion.id,
       impact: { ...evidence, penetrationAfterMm: shell.penetrationMm, exitSpeedMps: length(shell.velocity),
@@ -328,7 +326,7 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
         const resistance = plateResponse(a.thicknessMm, material, 1, .01).resistanceMm;
         Object.assign(evidence, { thicknessMm: a.thicknessMm, material, resistanceMm: resistance });
         if (shell.he.fragmentPenetrationMm > resistance && resistance > 0)
-          evidence.hullDamage = damageShellHull(shell, actor, shell.he.damage * HULL_DAMAGE.hePenetration);
+          evidence.hullDamage = damageShellHull(shell, actor, shell.he.damage * HULL_DAMAGE.hePenetration, evidence.localDamage);
         if (shell.he.fragmentPenetrationMm > resistance && (a.plate?.exterior || a.exterior || (a.exterior === undefined && !a.plate && hit.key.endsWith(':entry')))) {
           evidence.breachAssignments = exteriorBreaches(actor, def, hit.point, hit.normal, shell);
           evidence.compartmentId = evidence.breachAssignments[0]?.compartmentId;
@@ -350,7 +348,7 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
       if (shell.penetrationMm <= resistance) return stop('stopped', `Stopped by ${a.name}`);
       pay(resistance);
       evidence.outcome = 'penetrated';
-      evidence.hullDamage = damageShellHull(shell, actor, penetrationHullDamage(shell, resistance));
+      evidence.hullDamage = damageShellHull(shell, actor, penetrationHullDamage(shell, resistance), evidence.localDamage);
       def.connections.forEach((connection, i) => {
         if (connection.armorId !== a.id || (connection.bounds && !contains(connection.bounds, hit.point))) return;
         const state = actor.damage.connections[i];
@@ -430,6 +428,7 @@ export function updateFlooding(actor: Combatant, def: ShipDefinition, dt: number
     damage.defeatCause = 'hull-failure';
   }
   updateStability(actor, def, dt);
+  const electricalPower = def.compartments.some(c => c.pumpM3PerSecond > 0) ? supportPerformance(actor, def).power : 0;
   damage.compartments.forEach((state, i) => {
     const c = def.compartments[i];
     const inflow = state.breaches.reduce((sum, breach) => {
@@ -450,7 +449,7 @@ export function updateFlooding(actor: Combatant, def: ShipDefinition, dt: number
       }
       return sum + .6 * breach.areaM2 / (2*radius) * Math.sqrt(2*9.81) * flow;
     }, 0);
-    const pumping = damage.sunk ? 0 : c.pumpM3PerSecond + (damage.control.pumping[i] ?? 0);
+    const pumping = damage.sunk ? 0 : c.pumpM3PerSecond * electricalPower + (damage.control.pumping[i] ?? 0);
     state.waterM3 = clamp(state.waterM3 + (inflow - pumping) * dt, 0, c.capacityM3);
   });
   // Sequential, stable connection order; each transfer conserves water and respects capacity.

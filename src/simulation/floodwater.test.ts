@@ -17,7 +17,7 @@ const steppedRoom: Compartment = {
   ],
 };
 function fixture() {
-  const def = { ...base, compartments: [structuredClone(steppedRoom)], connections: [] };
+  const def = { ...base, modules: [], mounts: [], compartments: [structuredClone(steppedRoom)], connections: [] };
   const actor: Combatant = { motion: createShipState(), mounts: [], damage: createDamage(def) };
   return { def, actor };
 }

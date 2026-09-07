@@ -5,8 +5,17 @@ import { AircraftView } from './AircraftView';
 import { CombatSimulation } from '../simulation/combat';
 import { shipPreset } from '../ships/presets';
 import { aircraftDeckSpot } from '../simulation/aircraft';
+import { aircraftContactAppearance } from './AircraftContacts';
 
-test('port renders only the player deck, follows its displayed pose, and retains parked battle aircraft', async () => {
+test('follow-camera zoom keeps a readable contact before thin aircraft fade into the sea', () => {
+  // A 12 m aircraft at 600 m spans ~22 pixels at 1080p, but its edge-on
+  // wings/fuselage cover very few of those pixels. Supplement it before 14 px.
+  expect(aircraftContactAppearance(22, 600).opacity).toBeGreaterThan(.5);
+  expect(aircraftContactAppearance(70, 180).opacity).toBe(0);
+  expect(aircraftContactAppearance(3, 21000).opacity).toBe(0);
+});
+
+test('hangar starts hidden; explicitly spotted aircraft follow the carrier pose and respect port visibility', async () => {
   const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async () => {
     const scene = new Group(); scene.add(new Mesh(new BoxGeometry(), new MeshBasicMaterial()));
     return { scene } as Awaited<ReturnType<GLTFLoader['loadAsync']>>;
@@ -18,6 +27,9 @@ test('port renders only the player deck, follows its displayed pose, and retains
     const sim = new CombatSimulation(def, { friendlyBots: [], enemies: [def] });
     const carrier = new Group(); carrier.position.set(123, 5, 456); carrier.rotation.set(.04, .6, .08); carrier.updateMatrixWorld(true);
     const roots = new Map([['player', carrier]]), camera = new PerspectiveCamera();
+    view.update(sim, camera, true, true, roots);
+    expect(view.diagnostics().instances).toBe(0);
+    sim.actors.forEach(actor => actor.airWing!.planes.slice(0, 12).forEach((p, i) => { p.deckSlot = i; }));
     view.update(sim, camera, true, true, roots);
     expect(view.diagnostics().instances).toBe(12);
     const firstBatch = view.root.children.find(c => c instanceof InstancedMesh && c.name.startsWith('Aircraft model ') && c.count > 0) as InstancedMesh;
@@ -123,7 +135,7 @@ test('fold joints retain full-size geometry and independent per-plane poses acro
     const sim = new CombatSimulation(shipPreset('enterprise-cv6'));
     const planes = sim.player.airWing!.planes;
     for (const plane of sim.aircraft) plane.phase = 'lost';
-    for (const plane of planes.slice(0, 2)) plane.phase = 'ready';
+    planes.slice(0, 2).forEach((plane, i) => { plane.phase = 'ready'; plane.deckSlot = i; });
     planes[0].wingFold = .5; planes[1].wingFold = 1;
     const carrier = new Group(); carrier.updateMatrixWorld(true);
     const roots = new Map([['player', carrier]]), camera = new PerspectiveCamera();

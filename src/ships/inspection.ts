@@ -2,12 +2,12 @@ import type { Armor, AuthoredSurface, ShipDefinition, Vec3 } from './blueprint';
 import { structuralSurfaces } from '../simulation/structure';
 
 export type InspectionMode = 'exterior' | 'armor' | 'internals';
-export type InspectionKind = 'armor' | 'engine' | 'magazine' | 'steering' | 'compartment';
+export type InspectionKind = 'armor' | 'engine' | 'magazine' | 'steering' | 'generator' | 'fire-control' | 'compartment';
 export const INSPECTION_COLORS: Record<Exclude<InspectionKind, 'armor'>, string> = {
-  engine: '#90bca5', magazine: '#dca48e', steering: '#b4b2db', compartment: '#9ecad1',
+  engine: '#90bca5', magazine: '#dca48e', steering: '#b4b2db', generator: '#dfbd83', 'fire-control': '#9ecad1', compartment: '#9ecad1',
 };
 export const INSPECTION_KIND_LABELS: Record<Exclude<InspectionKind, 'armor'>, string> = {
-  engine: 'Machinery', magazine: 'Magazine', steering: 'Steering gear', compartment: 'Compartment',
+  engine: 'Machinery', magazine: 'Magazine', steering: 'Steering gear', generator: 'Electrical supply', 'fire-control': 'Fire control', compartment: 'Compartment',
 };
 /** A fixed scale keeps equal thicknesses the same color across every ship. */
 export const ARMOR_COLOR_STOPS = [

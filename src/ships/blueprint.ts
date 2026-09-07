@@ -77,6 +77,7 @@ export interface Mount {
   id: string; name: string; partId: string; battery: 'main' | 'secondary'; position: Vec3;
   bearingDeg: number; rangefinder: boolean;
   magazineId?: string;
+  fire?: FireProfile;
 }
 export interface Handling {
   forwardSpeed: number; reverseSpeed: number; acceleration: number;
@@ -107,15 +108,26 @@ export interface AuthoredStructure {
   surface?: AuthoredSurface;
 }
 export interface Module extends Volume {
-  name: string; kind: 'engine' | 'steering' | 'magazine'; hp: number; compartmentId: string;
+  name: string; kind: 'engine' | 'steering' | 'magazine' | 'generator' | 'fire-control'; hp: number; compartmentId: string;
   /** Water above the equipment's lower face disables it. Omit for sealed equipment. */
   immersionToleranceM?: number;
   role?: 'boiler' | 'turbine' | 'shaft' | 'combined-drive';
 }
 export interface Compartment extends Volume {
   name: string; capacityM3: number; pumpM3PerSecond: number;
+  fire?: FireProfile;
   /** Optional disjoint conservative cells, in ship coordinates, for compound voids. */
   cells?: { center: Vec3; size: Vec3 }[];
+}
+/** Finite combustible load and heat response; values are game calibration. */
+export interface FireProfile {
+  fuelSeconds: number; ignitionHeat: number; heatPerDamage: number;
+  /** Visible smoke outlet in ship coordinates; does not affect combat geometry. */
+  ventPosition?: Vec3;
+}
+export interface DamageRegion extends Volume {
+  name: string; kind: 'hull' | 'superstructure' | 'mount';
+  durabilityFraction: number; mountId?: string;
 }
 export interface FloodConnection {
   id?: string; fromId: string; toId: string; areaM2: number;
@@ -154,6 +166,7 @@ export interface ShipBlueprint {
   schemaVersion: 1; id: string; name: string; configuration: string;
   coordinates: 'meters-y-up-bow-negative-z'; modelUrl: string;
   damageControl?: DamageControlProfile;
+  localDamage?: { version: 1; regions: DamageRegion[]; basis: string };
   stability?: { version: 1; dryCenterOfGravity: Vec3; buoyancyScale: number; shellThicknessMm: number; basis: string };
   hull: Hull; handling: Handling; mounts: Mount[]; armor: Armor[];
   torpedoTubes?: TorpedoTube[];
@@ -390,7 +403,17 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     numeric(m.bearingDeg, `${m.id}.bearingDeg`, -360, 360);
   });
   const compartments = volumes(b.compartments, 'compartments');
+  const validateFire = (value: unknown, path: string) => {
+    if (value === undefined) return;
+    const f = record(value, path);
+    numeric(f.fuelSeconds, `${path}.fuelSeconds`, 0, 3600);
+    numeric(f.ignitionHeat, `${path}.ignitionHeat`, .1, 2);
+    numeric(f.heatPerDamage, `${path}.heatPerDamage`, 0, .1);
+    if (f.ventPosition !== undefined) vector(f.ventPosition, `${path}.ventPosition`);
+  };
+  mounts.forEach(m => validateFire(m.fire, `${m.id}.fire`));
   compartments.forEach(c => {
+    validateFire(c.fire, `${c.id}.fire`);
     text(c.name, `${c.id}.name`);
     numeric(c.capacityM3, `${c.id}.capacityM3`, .001, (c.size as number[]).reduce((a, v) => a * v, 1));
     numeric(c.pumpM3PerSecond, `${c.id}.pumpM3PerSecond`, 0, 100);
@@ -413,7 +436,7 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
   });
   const modules = volumes(b.modules, 'modules');
   modules.forEach(m => {
-    text(m.name, `${m.id}.name`); literal(m.kind, ['engine', 'steering', 'magazine'], `${m.id}.kind`);
+    text(m.name, `${m.id}.name`); literal(m.kind, ['engine', 'steering', 'magazine', 'generator', 'fire-control'], `${m.id}.kind`);
     numeric(m.hp, `${m.id}.hp`, .001);
     if (m.role !== undefined) {
       literal(m.role, ['boiler', 'turbine', 'shaft', 'combined-drive'], `${m.id}.role`);
@@ -424,6 +447,19 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     const c = compartments.find(c => c.id === m.compartmentId)!;
     if ((m.center as number[]).some((n, i) => Math.abs(n - (c.center as number[])[i]) + (m.size as number[])[i] / 2 > (c.size as number[])[i] / 2 + 1e-6)) fail(String(m.id), 'module must fit its assigned compartment');
   });
+  if (b.localDamage !== undefined) {
+    const local = record(b.localDamage, 'localDamage');
+    literal(local.version, [1], 'localDamage.version'); text(local.basis, 'localDamage.basis');
+    const regions = volumes(local.regions, 'localDamage.regions');
+    if (!regions.length) fail('localDamage.regions', 'at least one damage region required');
+    regions.forEach(r => {
+      text(r.name, `${r.id}.name`); literal(r.kind, ['hull', 'superstructure', 'mount'], `${r.id}.kind`);
+      numeric(r.durabilityFraction, `${r.id}.durabilityFraction`, .001, 2);
+      if (r.mountId !== undefined && !mounts.some(m => m.id === r.mountId)) fail(String(r.id), 'unknown mount');
+      if ((r.kind === 'mount') !== (r.mountId !== undefined)) fail(String(r.id), 'mount regions require a mount ID');
+      if ((r.center as number[]).some((v, i) => Math.abs(v) > (i === 0 ? (h.beam as number) * 2 : i === 1 ? 200 : (h.length as number)))) fail(String(r.id), 'damage region outside ship envelope');
+    });
+  }
   if (b.propulsion !== undefined) {
     const propulsion = record(b.propulsion, 'propulsion');
     text(propulsion.basis, 'propulsion.basis');

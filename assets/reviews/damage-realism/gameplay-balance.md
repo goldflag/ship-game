@@ -50,3 +50,7 @@ Regression coverage includes broadside survivability and eventual sinking, armor
 Merged master `3e58102` into the balance branch, preserving its convoy presets, carrier deck operations, shell visibility and smoke fixes. The combined tree passes **494 tests across 61 files** with `bun run test --timeout 60000`, and `bun run build` passes all registered ship/aircraft checks, TypeScript and Vite. The existing large-chunk warning remains. The controlled broadside, armor, scoring and separate hull/equipment regressions pass in this combined tree.
 
 Master advanced to `68a384a` during publication with HMS King George V. That update is also integrated; its HP listing is retained alongside the new hull-damage rules. The 82 affected ship, stability, armor, durability, scoring and HUD tests pass, and the complete production build passes again with the expanded fleet.
+
+## Superseding local damage calibration — 2026-09-06
+
+The measurements above describe the earlier uniform hull-HP model. Local saturation now reduces repeated hits on the same area, and equipment bonuses scale with actual damage. Torpedo shock uses nearby regional budgets. The old four-broadside/seeded duel durations are not current balance claims. See [local damage evidence](../local-damage/README.md).

@@ -79,8 +79,9 @@ export function solveBallistic(from: Vec3, target: Vec3, speed: number, dragPerS
   return { direction: [delta[0] / range * Math.cos(angle), Math.sin(angle), delta[2] / range * Math.cos(angle)], time: range / (speed * Math.cos(angle)) };
 }
 /** Return true when the barrel has reached a valid firing solution (used by bots). */
-export function updateMount(m: MountDefinition, state: MountState, definition: ShipDefinition, pose: Pose, aim: Vec3 | undefined, dt: number, inheritedVelocity: Vec3 = [0, 0, 0]): boolean {
-  state.reload = Math.max(0, state.reload - dt);
+export function updateMount(m: MountDefinition, state: MountState, definition: ShipDefinition, pose: Pose, aim: Vec3 | undefined, dt: number, inheritedVelocity: Vec3 = [0, 0, 0], power = 1): boolean {
+  const workRate = .25 + .75 * clamp(power, 0, 1);
+  state.reload = Math.max(0, state.reload - dt * workRate);
   state.recoil = Math.max(0, state.recoil - dt / 1.4);
   if (state.hp <= 0) { state.status = 'disabled'; return false; }
   if (availableAmmunition(state) < (m.weapon.barrelCount ?? 2)) { state.status = 'empty'; return false; }
@@ -110,8 +111,8 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
   const w = m.weapon, limit = radians(w.traverseDeg);
   const train = clamp(desiredTrain, -limit, limit), elevation = clamp(desiredElevation, radians(w.elevationMinDeg), radians(w.elevationMaxDeg));
   // Traverse through the permitted interval; never shortcut across the forbidden stern sector.
-  state.train += clamp(train - state.train, -radians(w.traverseRateDeg) * dt, radians(w.traverseRateDeg) * dt);
-  state.elevation += clamp(elevation - state.elevation, -radians(w.elevationRateDeg) * dt, radians(w.elevationRateDeg) * dt);
+  state.train += clamp(train - state.train, -radians(w.traverseRateDeg) * dt * workRate, radians(w.traverseRateDeg) * dt * workRate);
+  state.elevation += clamp(elevation - state.elevation, -radians(w.elevationRateDeg) * dt * workRate, radians(w.elevationRateDeg) * dt * workRate);
   // Readiness depends on the actual barrel path, even while tracking an unreachable reticle.
   const breech = add(m.position, [0, w.pivotHeight, 0]);
   let obstructed = false;

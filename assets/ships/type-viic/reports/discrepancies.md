@@ -28,3 +28,7 @@ The export checks establish dimensions, sockets and hierarchy, not historical ac
 - The general arrangement has slight local scale/skew differences: profile registration has one uniform 68.4645 px/m scale, not separate height/beam fits. Intermediate outlines have approximately 0.15–0.3 m interpretation uncertainty. A registered overlay exposes disagreement; it does not certify a shape match.
 - Scope extension differs by drawing/photo. The raised attack eye uses the notebook maximum 14.612 m above keel, with the 4.7625 m reference draft subtracted. The operating 7 m depth order remains gameplay tuning.
 - The C/30 fixed pedestal was raised in iteration 2 after comparing its barrel axis with the captured profile. Shared gun receivers, sights, seats and ammunition feed remain simplified. Torpedo shutters are unanimated dark apertures, not a detailed door mechanism.
+
+## Local damage and fire calibration — 2026-09-06
+
+Local regions, generator and director proxies, combustible loads and smoke outlets are independently authored gameplay estimates from the existing layout. They are not historically measured structural subdivisions, generator schedules or ventilation plans. Electrical supply is aggregated with manual gun fallback; directors share a targeting penalty. Breach overlap uses bounded aperture sampling. See `assets/ships/author-local-damage.ts`.

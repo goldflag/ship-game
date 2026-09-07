@@ -1,6 +1,9 @@
 import type { CSSProperties } from 'react';
-export function Icon({ name, size = 20, style }: { name: 'settings' | 'power' | 'anchor' | 'pause' | 'play' | 'camera' | 'expand' | 'close' | 'arrow' | 'compass' | 'he' | 'shell' | 'repair' | 'ship' | 'turret' | 'target' | 'plus' | 'minus' | 'schematic' | 'download' | 'copy' | 'chevron'; size?: number; style?: CSSProperties }) {
+export function Icon({ name, size = 20, style }: { name: 'settings' | 'power' | 'anchor' | 'pause' | 'play' | 'camera' | 'expand' | 'close' | 'arrow' | 'compass' | 'he' | 'shell' | 'repair' | 'ship' | 'turret' | 'target' | 'plus' | 'minus' | 'schematic' | 'download' | 'copy' | 'chevron' | 'fighter' | 'bomb' | 'torpedo'; size?: number; style?: CSSProperties }) {
   const paths = {
+    fighter: <><path d="M12 2v18M3 11l9-4 9 4v2l-9-2-9 2ZM7 21l5-3 5 3M9 4h6"/></>,
+    bomb: <><path d="M9 8h6v8a3 3 0 0 1-6 0ZM9 8 7 3l5 2 5-2-2 5M9 11h6M12 2v3"/></>,
+    torpedo: <><path d="M6 9h11a3 3 0 0 1 0 6H6ZM6 9 3 6v12l3-3M9 9v6M1 9v6"/></>,
     schematic: <><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 15h18M15 3v18M6 11l2-4h3l2 4ZM6 18h6M18 6v6"/></>,
     download: <><path d="M12 3v12m-5-5 5 5 5-5M4 15v6h16v-6"/></>,
     copy: <><rect x="8" y="8" width="12" height="13" rx="1"/><path d="M16 8V3H3v13h5"/></>,
