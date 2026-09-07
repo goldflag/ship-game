@@ -6,7 +6,8 @@ type Motion = Pick<ShipState, 'x' | 'z' | 'heading' | 'speed'>;
 type WakeSample = Motion & { born: number; strength: number };
 type ImpactSample = { x: number; z: number; born: number; scale: number };
 
-const EXTENT = 1536;
+export const WAKE_EXTENT = 1536;
+const EXTENT = WAKE_EXTENT;
 const LIFETIME = 55;
 const SAMPLE_DISTANCE = 3;
 const UPDATE_INTERVAL = 1 / 20;
@@ -32,7 +33,7 @@ export class WakeFoam {
   private elapsed = 0;
   private dirty = false;
 
-  constructor(private readonly resolution: number) {
+  constructor(private readonly resolution: number, private readonly hull: { length: number; beam: number; forwardSpeed: number } = { length: 250, beam: 36, forwardSpeed: BISMARCK.forwardSpeed }) {
     this.pixels = new Uint8Array(resolution * resolution);
     this.texture = new DataTexture(this.pixels, resolution, resolution, RedFormat);
     this.texture.minFilter = this.texture.magFilter = LinearFilter;
@@ -40,6 +41,8 @@ export class WakeFoam {
     this.texture.needsUpdate = true;
     this.field = texture(this.texture);
   }
+
+  get center(): Readonly<Vector2> { return this.origin.value; }
 
   sample(worldX: Node<'float'>, worldZ: Node<'float'>): Node<'float'> {
     const world = vec2(worldX, worldZ);
@@ -82,7 +85,7 @@ export class WakeFoam {
           z: previous.z + (state.z - previous.z) * fraction,
           heading: previous.heading + headingDelta * fraction,
           speed,
-          strength: smooth(Math.abs(speed) / BISMARCK.forwardSpeed) ** 0.65,
+          strength: smooth(Math.abs(speed) / this.hull.forwardSpeed) ** 0.65,
           born: this.time.value - dt * (1 - fraction),
         });
         this.dirty = true;
@@ -133,24 +136,24 @@ export class WakeFoam {
       const age = this.time.value - sample.born;
       const forwardX = Math.sin(sample.heading), forwardZ = -Math.cos(sample.heading);
       const rightX = -forwardZ, rightZ = forwardX;
-      const aft = sample.speed >= 0 ? 117 : -117;
+      const aft = (sample.speed >= 0 ? 1 : -1) * this.hull.length * .468;
       const sternX = sample.x - forwardX * aft, sternZ = sample.z - forwardZ * aft;
       const fade = Math.exp(-age / 23) * (1 - smooth((age - 38) / 17));
       const eddy = Math.sin(sample.born * 1.7 + age * 0.23) * Math.min(age * 0.22, 3.5);
-      const spread = 7 + Math.sqrt(age) * 2.5 + age * 0.24;
+      const spread = this.hull.beam * .194 + Math.sqrt(age) * 2.5 + age * 0.24;
       const length = 5 + Math.sqrt(age) * 1.25;
       // The three propeller streams merge into one widening, aerated trail.
       // Overlapping footprints use max coverage, so emission frequency never
       // builds an opaque stripe. Older foam loses density as its area grows.
       for (const shaft of [-1, 0, 1]) {
-        const offset = shaft * (5.5 + Math.min(age * 0.16, 4)) + eddy;
+        const offset = shaft * (this.hull.beam * .153 + Math.min(age * 0.16, 4)) + eddy;
         this.stamp(sternX + rightX * offset, sternZ + rightZ * offset,
           rightX, rightZ, spread, length,
           sample.strength * fade * (shaft === 0 ? 1 : 0.84));
       }
       // Bow shoulders spread away from the historical course; only their
       // youngest crests carry white water. The native solver carries the swell.
-      const shoulder = 7 + age * Math.abs(sample.speed) * 0.32;
+      const shoulder = this.hull.beam * .194 + age * Math.abs(sample.speed) * 0.32;
       const bowX = sample.x + forwardX * aft, bowZ = sample.z + forwardZ * aft;
       const crest = sample.strength * Math.exp(-age / 9) * 0.8;
       for (const side of [-1, 1]) {
