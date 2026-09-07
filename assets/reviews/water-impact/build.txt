@@ -1,0 +1,99 @@
+$ bun run ship:check all && bun run aircraft:check all && tsc --noEmit && vite build
+$ bun scripts/ships/pipeline.ts check all
+bismarck: check passed
+yamato: check passed
+king-george-v: check passed
+baltimore: check passed
+enterprise-cv6: check passed
+type-viic: check passed
+liberty-cargo: check passed
+liberty-collier: check passed
+victory-cargo: check passed
+flower-corvette: check passed
+fletcher: check passed
+$ bun scripts/aircraft/pipeline.ts check all
+a6m2-zero: passed (LOD triangles 30,999 / 13,936 / 6,148, 1046 KiB base)
+d3a1-val: passed (LOD triangles 32,094 / 14,430 / 6,395, 1073 KiB base)
+b5n2-kate: passed (LOD triangles 31,458 / 14,143 / 6,243, 1135 KiB base)
+a6m5-zero: passed (LOD triangles 31,486 / 14,156 / 6,249, 1133 KiB base)
+d4y2-judy: passed (LOD triangles 28,252 / 12,700 / 5,616, 1058 KiB base)
+b6n2-jill: passed (LOD triangles 31,210 / 14,031 / 6,194, 1133 KiB base)
+f4f-4-wildcat: passed (LOD triangles 30,791 / 13,839 / 6,107, 1011 KiB base)
+sbd-3-dauntless: passed (LOD triangles 38,199 / 17,172 / 7,790, 1545 KiB base)
+tbd-1-devastator: passed (LOD triangles 33,567 / 15,087 / 6,660, 1078 KiB base)
+f6f-5-hellcat: passed (LOD triangles 31,955 / 14,366 / 6,341, 1285 KiB base)
+sb2c-4-helldiver: passed (LOD triangles 38,429 / 17,275 / 7,799, 1809 KiB base)
+tbf-1c-avenger: passed (LOD triangles 33,383 / 15,008 / 6,634, 1180 KiB base)
+f4u-1d-corsair: passed (LOD triangles 30,411 / 13,670 / 6,034, 1248 KiB base)
+vite v6.4.3 building for production...
+transforming...
+✓ 234 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/scripts/diagnostics/live-performance.html                    0.64 kB │ gzip:     0.34 kB
+dist/index.html                                                   1.60 kB │ gzip:     0.69 kB
+dist/aircraft-review.html                                         4.89 kB │ gzip:     1.54 kB
+dist/assets/data/baseShape16.bin                                 14.21 kB
+dist/assets/barlow-condensed-latin-500-normal-HIEiP5Ov.woff      18.60 kB
+dist/assets/barlow-condensed-latin-600-normal-BFJEwTuo.woff      18.89 kB
+dist/assets/barlow-latin-500-normal-C1h8hMer.woff                19.52 kB
+dist/assets/barlow-latin-400-normal-fsAxiSwU.woff                19.58 kB
+dist/assets/barlow-latin-600-normal-CNwfPWQD.woff                19.88 kB
+dist/assets/barlow-condensed-latin-500-normal-BgYH2mbd.woff2     21.42 kB
+dist/assets/barlow-latin-500-normal-BPAOfeC8.woff2               22.01 kB
+dist/assets/barlow-latin-400-normal-qiz4-Cze.woff2               22.20 kB
+dist/assets/barlow-condensed-latin-600-normal-DepVgxBB.woff2     22.31 kB
+dist/assets/barlow-latin-600-normal-DILqtrty.woff2               22.77 kB
+dist/assets/ocean-texture-GbBrxIhW.jpg                           45.53 kB
+dist/assets/ocean-texture-Bi1OB7HD.jpg                           49.11 kB
+dist/assets/ocean-texture-BFbRG_jt.jpg                           50.73 kB
+dist/assets/ocean-texture-CMY05lBJ.jpg                           53.35 kB
+dist/assets/ocean-texture-C5qEe6_j.jpg                           60.11 kB
+dist/assets/ocean-texture-DE5OZyma.jpg                           63.62 kB
+dist/assets/ocean-texture-DcV2zmza.jpg                           69.03 kB
+dist/assets/ocean-texture-BVvnJ19B.jpg                           77.64 kB
+dist/assets/ocean-texture-ChJ1a3sd.jpg                           85.34 kB
+dist/assets/ocean-texture-CNRHWlg9.jpg                           88.71 kB
+dist/assets/ocean-texture-Bx-DMuZi.jpg                           96.27 kB
+dist/assets/data/baseShape32.bin                                113.24 kB
+dist/assets/ocean-texture-DBEZ7YGj.jpg                          146.32 kB
+dist/assets/ocean-texture-NxgIw4e7.png                          150.13 kB
+dist/assets/ocean-texture-R3DfSYQU.jpg                          260.58 kB
+dist/assets/ocean-texture-CyaGqCrv.jpg                          435.61 kB
+dist/assets/ocean-texture-XPoWFsfC.jpg                          458.49 kB
+dist/assets/ocean-texture-DlqjBnHn.jpg                          461.00 kB
+dist/models/liberty-troopship.glb.gz                            477.41 kB
+dist/assets/ocean-texture-CM4n0Z7n.jpg                          486.06 kB
+dist/models/liberty-deck-cargo.glb.gz                           499.07 kB
+dist/assets/ocean-texture-B6vBNkcW.jpg                          587.81 kB
+dist/models/flower-corvette.glb.gz                              679.63 kB
+dist/assets/ocean-texture-BlzvPLuU.jpg                          751.03 kB
+dist/models/liberty-collier.glb.gz                              758.69 kB
+dist/assets/data/baseShape64.bin                                908.29 kB
+dist/models/type-viic.glb.gz                                    927.90 kB
+dist/models/liberty-cargo.glb.gz                                959.07 kB
+dist/models/victory-cargo.glb.gz                              1,045.03 kB
+dist/models/enterprise-cv6.glb.gz                             1,907.05 kB
+dist/models/king-george-v.glb.gz                              2,237.27 kB
+dist/models/baltimore.glb.gz                                  2,291.95 kB
+dist/models/yamato.glb.gz                                     2,579.74 kB
+dist/models/fletcher.glb.gz                                   4,270.23 kB
+dist/models/bismarck.glb.gz                                   4,471.87 kB
+dist/assets/game-DzL6Ee19.css                                     0.65 kB │ gzip:     0.38 kB
+dist/assets/aircraftReview-B-FvKVDH.css                           7.16 kB │ gzip:     2.17 kB
+dist/assets/main-BvqkU6Bx.css                                    97.11 kB │ gzip:    18.44 kB
+dist/assets/modulepreload-polyfill-B5Qt9EMX.js                    0.71 kB │ gzip:     0.40 kB
+dist/assets/render-D18JJBMH.js                                    7.50 kB │ gzip:     3.60 kB
+dist/assets/fleetPerformance-D_LVOytq.js                         10.57 kB │ gzip:     4.66 kB
+dist/assets/aircraftReview-BeeWF3YJ.js                           32.52 kB │ gzip:     9.42 kB
+dist/assets/main-B_wStnH8.js                                    142.48 kB │ gzip:    45.40 kB
+dist/assets/react-BYzzQ_KH.js                                   193.01 kB │ gzip:    60.33 kB
+dist/assets/GLTFLoader-BpN3jxZ_.js                              398.44 kB │ gzip:   100.31 kB
+dist/assets/three-engine-DQpp36R4.js                            952.13 kB │ gzip:   264.14 kB
+dist/assets/preload-helper-CCdPN8RF.js                        7,534.30 kB │ gzip: 1,215.10 kB
+
+(!) Some chunks are larger than 7000 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 3.35s

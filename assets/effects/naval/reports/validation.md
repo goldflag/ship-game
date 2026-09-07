@@ -1,5 +1,9 @@
 # Naval firing and shell effects
 
+## Water sheet splash revision — September 7, 2026
+
+Water impacts now use ballistic water sheets, an outward crown, finer falling droplets and separate wind-carried mist. This replaces the spherical aerated-water volumes described below. See the [current captures, animation and validation](../../../reviews/water-impact/README.md). Previous images and recipes remain historical evidence.
+
 ## Shell subtlety follow-up — September 6, 2026
 
 The airborne shell presentation now uses smaller, dimmer tips and thinner, shorter amber ribbons: 0.075 seconds of main-caliber travel, capped at 72 m. See the [matched before/after comparison and current verification](../../../reviews/shell-subtlety/README.md). The original brighter presentation below is retained as the baseline record.

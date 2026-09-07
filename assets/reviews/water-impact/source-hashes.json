@@ -1,0 +1,6 @@
+{
+  "src/game/WaterPlumes.ts": "14c876270929d51c619e6851526af794181b8e056bf97be86437e71639f8c492",
+  "src/game/CombatEffects.ts": "538fc68fce8d45320a3230283ebf97b4146aa49d65f1cba2abce337431f0b9be",
+  "src/game/EffectParticles.ts": "25b03aa7d876980726e0938a9b568278cecbd3d495173db9c9160bdc0a94960e",
+  "scripts/diagnostics/combat-effects.html": "12a6ad35983a61d59759afb00ca460e48c96962edca23f7848af98a4c7c19bfc"
+}

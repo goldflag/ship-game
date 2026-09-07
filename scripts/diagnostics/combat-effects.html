@@ -76,7 +76,7 @@ function advance(seconds) {
   for (let i = 0; i < frames; i++) {
     game.simulation.step(stop, { aim, battery, fire:elapsed === 0 });
     game.effects.update(game.simulation, 1 / 60, game.camera);
-    game.shipWake.update(game.simulation.ship, 1 / 60, game.simulation.events);
+    game.shipWake.update(game.fleetViews, 1 / 60, game.simulation.events, game.camera);
     elapsed += 1 / 60;
   }
   game.playerView.snap(); game.targetView.snap();
@@ -133,6 +133,9 @@ window.review = {
       try {
         for (let i = 0; i < frameCount; i++) {
           if (i === 15) game.fire();
+          // Explicit rendering outside RAF needs a new node frame too;
+          // otherwise the postprocessing scene pass reuses its cached image.
+          game.renderer._nodes.nodeFrame.update();
           await game.frame(started + (i + 1) * 1000 / fps);
           if (window.reviewError) throw new Error(window.reviewError);
           const frame = new VideoFrame(canvas, {timestamp:Math.round(i * 1000000 / fps),duration:Math.round(1000000 / fps)});

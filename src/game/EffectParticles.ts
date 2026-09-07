@@ -15,7 +15,7 @@ function noise(x: number, y: number): number {
 }
 
 /** Original, deterministic density textures. No downloads or canvas/readback needed. */
-export function effectTexture(kind: 'smoke' | 'flash' | 'foam' | 'tracer' | 'wake'): THREE.DataTexture {
+export function effectTexture(kind: 'smoke' | 'flash' | 'foam' | 'tracer' | 'wake' | 'water' | 'droplet'): THREE.DataTexture {
   const size = 128, pixels = new Uint8Array(size * size * 4);
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
     const u = (x + .5) / size * 2 - 1, v = (y + .5) / size * 2 - 1;
@@ -24,7 +24,18 @@ export function effectTexture(kind: 'smoke' | 'flash' | 'foam' | 'tracer' | 'wak
     const detail = noise(u * 12 + 71, v * 12 + 53) * .65 + noise(u * 29 + 9, v * 29 + 17) * .35;
     const density = smooth((1 - radius + (coarse - .5) * .5) * 2.8) * (.5 + detail * .5);
     let alpha: number, light: number;
-    if (kind === 'tracer') {
+    if (kind === 'water') {
+      // Stretched turbulent filaments, with a ragged wet edge. A water sheet
+      // must read lengthwise, rather than as another round smoke lobe.
+      const strands = noise(u * 13 + 21, v * 6 + 7);
+      const fine = noise(u * 39 + 5, v * 23 + 17);
+      const edge = 1 - Math.abs(u) + (noise(u * 4 + 9, v * 8 + 3) - .5) * .38;
+      alpha = smooth(edge * 5) * (.3 + strands * .5 + fine * .2);
+      light = .52 + strands * .32 + fine * .16;
+    } else if (kind === 'droplet') {
+      alpha = smooth((1 - radius) * 3.5) * (.6 + detail * .4);
+      light = clamp(.68 + v * .16 + coarse * .2);
+    } else if (kind === 'tracer') {
       // +Y is the shell tip. The hot center narrows and fades toward the tail.
       const along = (v + 1) / 2, width = .12 + along * .7;
       alpha = Math.exp(-((u / width) ** 2) * 4) * smooth(along * 1.3) * smooth((1 - along) * 18);
@@ -85,6 +96,7 @@ export interface EffectParticle {
   fadeIn: number;
   align: 'billboard' | 'velocity' | 'water';
   waterline: boolean;
+  surfaceY: number;
   distance: number;
 }
 
@@ -136,7 +148,7 @@ export class EffectParticlePool {
     this.particles = Array.from({ length: capacity }, () => ({ position: new THREE.Vector3(), velocity: new THREE.Vector3(),
       color: new THREE.Color(), age: 0, life: 0, size: 1, growth: 0, growthDecay: 0, diffusion: 0,
       heat: 0, cooling: 1, density: 4, seed: 0, opacity: 1, drag: 0, gravity: 0,
-      wind: 0, angle: 0, spin: 0, stretch: 1, fadeIn: 0, align: 'billboard', waterline: false, distance: 0 }));
+      wind: 0, angle: 0, spin: 0, stretch: 1, fadeIn: 0, align: 'billboard', waterline: false, surfaceY: 0, distance: 0 }));
   }
 
   emit(position: THREE.Vector3, sourceId?: string): EffectParticle {
@@ -146,7 +158,7 @@ export class EffectParticlePool {
     p.growthDecay = 0; p.diffusion = 0; p.heat = 0; p.cooling = 1; p.density = 4;
     p.seed = (this.cursor * .61803398875 % 1) * 100;
     p.drag = 0; p.gravity = 0; p.wind = 0; p.angle = 0; p.spin = 0;
-    p.stretch = 1; p.fadeIn = 0; p.align = 'billboard'; p.waterline = false;
+    p.stretch = 1; p.fadeIn = 0; p.align = 'billboard'; p.waterline = false; p.surfaceY = 0;
     p.sourceId = sourceId;
     return p;
   }
@@ -176,7 +188,7 @@ export class EffectParticlePool {
         p.velocity.x *= decay; p.velocity.z *= decay;
         p.velocity.y = p.drag > .0001 ? (p.velocity.y + terminal) * decay - terminal : p.velocity.y - p.gravity * step;
         p.angle += p.spin * step;
-        if (p.waterline && p.position.y < .2 && previousAge >= 0) { p.age = p.life; continue; }
+        if (p.waterline && p.position.y < p.surfaceY + .2 && previousAge >= 0) { p.age = p.life; continue; }
       }
     }
   }
