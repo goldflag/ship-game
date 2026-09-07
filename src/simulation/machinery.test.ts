@@ -11,6 +11,18 @@ import yamato from '../../assets/ships/yamato/blueprint.json';
 import baltimore from '../../assets/ships/baltimore/blueprint.json';
 import enterprise from '../../assets/ships/enterprise-cv6/blueprint.json';
 
+test('machinery layout caches read current damage after reordered state and a battle reset', () => {
+  const def = compileShip(blueprint, catalog), sim = new CombatSimulation(def);
+  const module = def.modules.find(m => m.id === 'engine-port')!;
+  expect(equipmentCondition(sim.player, def, module).availability).toBe(1);
+  sim.player.damage.modules.reverse();
+  sim.player.damage.modules.find(m => m.id === module.id)!.hp = 0;
+  expect(equipmentCondition(sim.player, def, module).reason).toBe('destroyed');
+  sim.reset();
+  expect(equipmentCondition(sim.player, def, module).availability).toBe(1);
+  expect(systemHealth(sim.player, def, 'engine')).toBeCloseTo(1, 9);
+});
+
 test('Bismarck turbine and shaft losses remove only their linked drive capacity', () => {
   const def = compileShip(blueprint, catalog), sim = new CombatSimulation(def), actor = sim.player;
   expect(systemHealth(actor, def, 'engine')).toBeCloseTo(1, 9);

@@ -8,6 +8,7 @@ import { shipPreset } from '../ships/presets';
 import { CameraRig } from './CameraRig';
 import { ShellFollow } from './ShellFollow';
 import { Game } from './Game';
+import { FrameScene } from './FrameScene';
 import { ShipView } from './ShipView';
 import { HullDamageFeedback } from './HullDamageFeedback';
 import type { GunAimPoint } from './gunAim';
@@ -55,7 +56,7 @@ async function frameHarness() {
       setOrder: (order: number) => { helm.throttle = ENGINE_ORDERS[order]; },
       setRudder: (rudder: number) => { helm.rudder = rudder; } },
     aircraftView: { update() {} },
-    effects: { update() {}, reset() {} }, sky: { update() {} },
+    effects: { update() {}, reset() {} }, sky: { update() {} }, scene: new FrameScene(),
     surfaceWaterAbsorption: new Color(.296, .105, .095),
     water: { color: { absorptionColor: new Color(.296, .105, .095) }, async update() {} },
     shipWake: { update: (ship: { z: number }) => wakePositions.push(ship.z), reset() {} },
