@@ -8,11 +8,14 @@ export class HitLabels {
   private root = document.createElement('div');
   private feedback = new HitFeedback();
   private labels = new Map<number, HTMLDivElement>();
-  constructor(private host: HTMLElement) {
+  private width = 1;
+  private height = 1;
+  constructor(host: HTMLElement) {
     this.root.className = 'hit-label-layer';
     this.root.setAttribute('aria-label', 'Enemy impact damage');
     host.appendChild(this.root);
   }
+  resize(width: number, height: number): void { this.width = width; this.height = height; }
   update(sim: CombatSimulation, views: readonly ShipView[], camera: Camera, visible: boolean): void {
     const cues = this.feedback.update(sim);
     this.root.hidden = !visible;
@@ -32,7 +35,7 @@ export class HitLabels {
       label.dataset.damage = String(cue.damage > 0);
       const view = views.find(v => v.actor.motion.id === cue.shipId);
       const anchor = view && new Vector3(...cue.position).applyMatrix4(view.root.matrixWorld);
-      const point = anchor && view?.root.visible ? projectShipLabel(anchor, camera, this.host.clientWidth, this.host.clientHeight) : null;
+      const point = anchor && view?.root.visible ? projectShipLabel(anchor, camera, this.width, this.height) : null;
       label.hidden = !point;
       if (point) {
         point.y -= 28;
