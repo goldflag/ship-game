@@ -1,0 +1,184 @@
+{
+  "harness": "scripts/diagnostics/aircraft-distance.html",
+  "renderer": "Three WebGPU renderer in Orca embedded browser",
+  "size": [
+    1000,
+    700
+  ],
+  "model": "f4f-4-wildcat",
+  "before": [
+    {
+      "distance": 100,
+      "changed": 377,
+      "contrast": 36841
+    },
+    {
+      "distance": 119,
+      "changed": 279,
+      "contrast": 25886
+    },
+    {
+      "distance": 121,
+      "changed": 272,
+      "contrast": 25794
+    },
+    {
+      "distance": 200,
+      "changed": 115,
+      "contrast": 9641
+    },
+    {
+      "distance": 399,
+      "changed": 37,
+      "contrast": 2782
+    },
+    {
+      "distance": 401,
+      "changed": 37,
+      "contrast": 2626
+    },
+    {
+      "distance": 600,
+      "changed": 20,
+      "contrast": 1311
+    },
+    {
+      "distance": 800,
+      "changed": 14,
+      "contrast": 915
+    },
+    {
+      "distance": 1200,
+      "changed": 11,
+      "contrast": 1456
+    }
+  ],
+  "after": [
+    {
+      "distance": 200,
+      "model": "f4f-4-wildcat",
+      "changed": 115,
+      "contrast": 9676,
+      "instances": {
+        "models": 9,
+        "instances": 1,
+        "batches": 27,
+        "contacts": 1,
+        "payloads": 0
+      }
+    },
+    {
+      "distance": 400,
+      "model": "f4f-4-wildcat",
+      "changed": 42,
+      "contrast": 3880,
+      "instances": {
+        "models": 9,
+        "instances": 1,
+        "batches": 27,
+        "contacts": 1,
+        "payloads": 0
+      }
+    },
+    {
+      "distance": 600,
+      "model": "f4f-4-wildcat",
+      "changed": 26,
+      "contrast": 2983,
+      "instances": {
+        "models": 9,
+        "instances": 1,
+        "batches": 27,
+        "contacts": 1,
+        "payloads": 0
+      }
+    },
+    {
+      "distance": 800,
+      "model": "f4f-4-wildcat",
+      "changed": 22,
+      "contrast": 3100,
+      "instances": {
+        "models": 9,
+        "instances": 1,
+        "batches": 27,
+        "contacts": 1,
+        "payloads": 0
+      }
+    },
+    {
+      "distance": 1200,
+      "model": "f4f-4-wildcat",
+      "changed": 21,
+      "contrast": 3207,
+      "instances": {
+        "models": 9,
+        "instances": 1,
+        "batches": 27,
+        "contacts": 1,
+        "payloads": 0
+      }
+    }
+  ],
+  "angles": {
+    "rows": [
+      {
+        "heading": 0,
+        "distance": 400,
+        "model": "f4f-4-wildcat",
+        "changed": 44,
+        "contrast": 3745,
+        "instances": {
+          "models": 9,
+          "instances": 1,
+          "batches": 27,
+          "contacts": 1,
+          "payloads": 0
+        }
+      },
+      {
+        "heading": 0,
+        "distance": 800,
+        "model": "f4f-4-wildcat",
+        "changed": 26,
+        "contrast": 3285,
+        "instances": {
+          "models": 9,
+          "instances": 1,
+          "batches": 27,
+          "contacts": 1,
+          "payloads": 0
+        }
+      },
+      {
+        "heading": 1.5707963267948966,
+        "distance": 400,
+        "model": "f4f-4-wildcat",
+        "changed": 64,
+        "contrast": 4581,
+        "instances": {
+          "models": 9,
+          "instances": 1,
+          "batches": 27,
+          "contacts": 1,
+          "payloads": 0
+        }
+      },
+      {
+        "heading": 1.5707963267948966,
+        "distance": 800,
+        "model": "f4f-4-wildcat",
+        "changed": 25,
+        "contrast": 2797,
+        "instances": {
+          "models": 9,
+          "instances": 1,
+          "batches": 27,
+          "contacts": 1,
+          "payloads": 0
+        }
+      }
+    ]
+  },
+  "method": "Subtract hidden-aircraft raster from rendered frame; count pixels with summed RGB difference > 15. Contrast sums absolute RGB differences."
+}

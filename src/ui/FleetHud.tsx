@@ -1,4 +1,4 @@
-import { AirOperations } from './AirOperations';
+import { AirOperations, SquadronLabels } from './AirOperations';
 import { FlightControl } from './FlightControl';
 import { type CSSProperties, type PointerEvent } from 'react';
 import type { Battery } from '../ships/blueprint';
@@ -136,7 +136,7 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
   const followingShell = data.shellFollow === 'flight' || data.shellFollow === 'impact';
   const following = followingShell || !!data.followedAircraftId;
 
-  return <div className={`fleet-hud ${visible ? '' : 'fleet-hud-hidden'} ${data.binoculars ? 'fleet-in-optics' : ''}`} inert={!visible} style={{ '--map-factor': mapSize / 400 } as CSSProperties}>
+  return <div className={`fleet-hud ${visible ? '' : 'fleet-hud-hidden'} ${data.airOperationsOpen ? 'fleet-air-map' : ''} ${data.binoculars ? 'fleet-in-optics' : ''}`} inert={!visible} style={{ '--map-factor': mapSize / 400 } as CSSProperties}>
     <BearingTape degrees={degrees}/>
     {data.combat?.battle && <BattleStatus combat={data.combat} game={game}>
       {data.combat.airWing && !data.airOperationsOpen && <FlightControl combat={data.combat} game={game} bindings={bindings}/>}
@@ -144,8 +144,8 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
     <div className="fleet-top-actions"><span className="fleet-fps" aria-label={`${data.fps} frames per second`}><strong>{data.fps || '—'}</strong> FPS</span><button className="icon-button" aria-label="Pause and settings" title="Pause · Esc" onClick={() => game?.setPaused(true)}><Icon name="pause" size={17}/></button></div>
     {data.combat?.battle && <BattleDamageLog combat={data.combat} obscured={!!data.gunneryOpen || !!data.inspecting}/>}
 
-    {followingShell && <div className="fleet-shell-status" role="status"><strong>{data.shellFollow === 'impact' ? 'Shell impact' : 'Following shell'}</strong><span>{data.shellFollow === 'impact' ? 'Returning to ship…' : `${bindingLabel(bindings, 'shellFollow')} to return to ship`}</span></div>}
-    {data.followedAircraftId && <div className="fleet-shell-status fleet-aircraft-status"><strong>Following {data.followedAircraftId.split('/').slice(1).join(' / ')}</strong><button onClick={e => { game?.returnToShip(); e.currentTarget.blur(); }}>Return to ship</button><span>{bindingLabel(bindings, 'camera')} or {bindingLabel(bindings, 'recenter')} to return · Hold Ctrl to use controls</span></div>}
+    {followingShell && <div className="fleet-shell-status" role="status" title="Move mouse to orbit; drag when the cursor is released. Scroll to zoom."><strong>{data.shellFollow === 'impact' ? 'Shell impact' : 'Following shell'}</strong><span>{data.shellFollow === 'impact' ? 'Returning to ship…' : `${bindingLabel(bindings, 'shellFollow')} to return to ship`}</span></div>}
+    {data.followedAircraftId && <div className="fleet-shell-status fleet-aircraft-status" title="Move mouse to orbit; drag when the cursor is released. Scroll to zoom."><strong>Following {data.followedAircraftId.split('/').slice(1).join(' / ')}</strong><button onClick={e => { game?.returnToShip(); e.currentTarget.blur(); }}>Return to ship</button><span>{bindingLabel(bindings, 'camera')} or {bindingLabel(bindings, 'recenter')} to return · Hold Ctrl to use controls</span></div>}
     {!data.inspecting && !following && !data.airOperationsOpen && <div className={`fleet-sight ${data.binoculars ? 'fleet-sight-optics' : 'fleet-sight-chase'}`} aria-hidden="true">
       {data.binoculars ? <><svg viewBox="0 0 540 80" fill="none"><path d="M10 40h238m44 0h238M270 15v14m0 22v14" stroke="currentColor"/>
         {Array.from({ length: 21 }, (_, i) => i === 10 ? null : <g key={i}><path d={`M${20 + i * 25} 40v${i % 2 === 0 ? 9 : 5}`} stroke="currentColor"/>{i % 2 === 0 && <text x={20 + i * 25} y="65" fill="currentColor" textAnchor="middle" fontSize="10">{Math.abs(i - 10)}</text>}</g>)}
@@ -170,8 +170,9 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
       <div className="fleet-touch-helm"><button aria-label="Hold to steer port" onPointerDown={event => steer(event, -1)} onPointerUp={releaseRudder} onPointerCancel={releaseRudder} onLostPointerCapture={releaseRudder}>PORT</button><button aria-label="Hold to steer starboard" onPointerDown={event => steer(event, 1)} onPointerUp={releaseRudder} onPointerCancel={releaseRudder} onLostPointerCapture={releaseRudder}>STARBOARD</button></div>
     </section>
 
-    <ActiveArmament data={data} game={game} visible={visible} bindings={bindings}/>
-    {data.combat?.airWing && data.airOperationsOpen && <AirOperations data={data} game={game} bindings={bindings}/>}
+    {!data.combat?.airWing && <ActiveArmament data={data} game={game} visible={visible} bindings={bindings}/>}
+    {!data.combat?.airWing && <SquadronLabels data={data} game={game}/>}
+    {data.combat?.airWing && <AirOperations data={data} game={game} bindings={bindings}/>}
     {data.combat?.submarine && <DepthControl combat={data.combat} game={game} bindings={bindings}/>}
     {(data.gunneryOpen || data.inspecting) && <GunneryPanel bindings={bindings} data={data} game={game} expanded={!!data.gunneryOpen} onExpand={value => game?.setGunneryOpen(value)}/>}
     {data.binoculars && data.aimModule !== 'point' && data.aimMarker?.visible && <div className="aim-marker" aria-hidden="true" style={{ left: `${data.aimMarker.x}%`, top: `${data.aimMarker.y}%` }}><span/><small>TRACKED AIM</small></div>}

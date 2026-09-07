@@ -1,80 +1,89 @@
-.air-operations { position:absolute; z-index:20; inset:70px max(24px, 4vw) 190px; display:flex; flex-direction:column; min-height:330px; color:var(--fleet-text); background:#10252ef5; border:1px solid var(--fleet-line); border-radius:3px; pointer-events:auto; font:13px 'Barlow',sans-serif; font-variant-numeric:tabular-nums; }
-.air-operations button { min-height:36px; padding:7px 11px; color:var(--fleet-text); background:#233e4a; border:1px solid var(--fleet-line); border-radius:2px; font:500 12px 'Barlow',sans-serif; cursor:pointer; }
-.air-operations button:hover:not(:disabled) { background:#315365; }
-.air-operations button:disabled { opacity:.45; cursor:default; }
-.air-operations button[aria-pressed="true"] { border-color:var(--fleet-active); color:var(--fleet-active); background:#204a48; }
-.air-operations :is(button,summary,svg,[role="button"]):focus-visible { outline:2px solid var(--fleet-gold, #e8c56c); outline-offset:3px; }
-.air-operations-header { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 18px; border-bottom:1px solid var(--fleet-line); }
-.air-operations-header > div { display:flex; align-items:baseline; gap:18px; }
-.air-operations h2 { margin:0; font:500 28px 'Barlow Condensed',sans-serif; }
-.air-operations-header span { color:var(--fleet-muted); }
-.air-operations kbd { margin-left:12px; font:inherit; color:var(--fleet-active); }
-.air-counts { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); border-bottom:1px solid var(--fleet-line); }
-.air-counts .air-count { display:flex; align-items:baseline; justify-content:center; gap:9px; margin:0; min-height:49px; padding:8px; border:0; border-right:1px solid var(--fleet-line); border-radius:0; background:transparent; }
-.air-counts .air-count:last-child { border-right:0; }
-.air-count strong { font:500 24px 'Barlow Condensed',sans-serif; }
-.air-count span { color:var(--fleet-muted); font-size:12px; }
-.air-count-ready strong { color:var(--fleet-active); }
-.air-count-lost strong { color:#ffb5a6; }
-.air-operations-body { display:grid; grid-template-columns:minmax(0,1fr) 330px; flex:1; min-height:0; }
-.air-chart-area { display:flex; flex-direction:column; min-width:0; min-height:0; background:#0e222c; }
-.air-chart-toolbar { display:flex; align-items:center; gap:8px; padding:10px 12px; border-bottom:1px solid var(--fleet-line); }
-.air-chart-zoom { margin-left:auto; display:flex; align-items:center; gap:8px; white-space:nowrap; font-size:12px; }
-.air-chart-zoom button { width:36px; font-size:18px; padding:2px; }
-.air-chart { display:block; width:100%; height:100%; flex:1; min-height:0; touch-action:none; cursor:grab; user-select:none; }
-.air-chart:active { cursor:grabbing; }
-.air-chart-patrol,.air-chart-attack,.air-chart-escort { cursor:crosshair; }
-.air-chart-contact { cursor:pointer; stroke-width:1.5; }
-.air-friendly { fill:var(--fleet-active); stroke:#142c35; }
-.air-hostile { fill:#ffb5a6; stroke:#142c35; }
-.air-chart-contact text { stroke:#0e222c; stroke-width:4px; paint-order:stroke; font:12px 'Barlow',sans-serif; }
-.air-chart-contact .air-flight-label { font-weight:600; font-size:13px; }
-.air-chart-contact .air-flight-state { fill:var(--fleet-muted); font-size:11px; }
-.air-flight-symbol { fill:none; stroke:var(--fleet-active); stroke-width:2; }
-.air-selected .air-flight-symbol,.air-selected text { fill:var(--fleet-gold, #e8c56c); }
-.air-selected .air-flight-symbol { stroke:var(--fleet-gold, #e8c56c); fill:none; }
-.air-selected-ring { fill:#e8c56c12; stroke:var(--fleet-gold, #e8c56c); }
-.air-other { fill:none; stroke:var(--fleet-active); stroke-width:1.5; }
-.air-other.air-hostile { stroke:#ffb5a6; }
-.air-individual { fill:none; stroke:#adddce; stroke-width:1; opacity:.7; }
-.air-route { fill:none; stroke:var(--fleet-gold, #e8c56c); stroke-width:1.5; stroke-dasharray:7 5; }
-.air-patrol-area { fill:#86e4c50a; stroke:var(--fleet-active); stroke-width:1; stroke-dasharray:5 5; }
-.air-north { fill:var(--fleet-muted); font:500 14px 'Barlow Condensed',sans-serif; }
-.air-chart-hint { display:flex; align-items:center; justify-content:space-between; min-height:42px; padding:8px 12px; gap:12px; border-top:1px solid var(--fleet-line); font-size:12px; color:var(--fleet-muted); }
-.air-chart-hint button { flex-shrink:0; }
-.air-roster { min-height:0; overflow:auto; border-left:1px solid var(--fleet-line); scrollbar-color:#668994 #132d38; }
-.air-roster section { padding:14px; }
-.air-roster section + section { border-top:1px solid var(--fleet-line); }
-.air-roster-heading { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:6px 10px; margin-bottom:10px; }
-.air-roster h3 { margin:0; font:500 20px 'Barlow Condensed',sans-serif; }
-.air-roster-heading > span { color:var(--fleet-muted); font-size:11px; }
-.air-launch-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 0; }
-.air-launch-row strong,.air-launch-row span { display:block; }
-.air-launch-row span { color:var(--fleet-muted); margin-top:3px; font-size:12px; }
-.air-warning { color:#ffb5a6; font-size:12px; line-height:1.5; margin:8px 0 0; }
-.air-muted { color:var(--fleet-muted); font-size:12px; line-height:1.5; margin:8px 0 0; }
-.air-empty { color:var(--fleet-muted); line-height:1.6; margin:0; }
-.air-roster .air-flight-row { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px; width:100%; margin:5px 0; padding:10px; text-align:left; background:transparent; }
-.air-flight-row > span:first-child { display:flex; flex-direction:column; gap:4px; }
-.air-flight-row > span:first-child > span { color:var(--fleet-muted); font-size:11px; }
-.air-flight-row small { width:100%; color:var(--fleet-muted); line-height:1.4; }
-.air-state { font-size:11px; color:var(--fleet-active); }
-.air-state-returning,.air-state-servicing,.air-state-launching { color:#e8c56c; }
-.air-state-lost { color:#ffb5a6; }
-.air-flight-detail dl { margin:0 0 12px; }
-.air-flight-detail dl > div { display:flex; justify-content:space-between; gap:12px; padding:5px 0; }
-.air-flight-detail dt { color:var(--fleet-muted); }
-.air-flight-detail dd { margin:0; }
-.air-orders { display:flex; flex-wrap:wrap; gap:6px; margin:12px 0; }
-.air-flight-detail summary { padding:8px 0; color:var(--fleet-muted); cursor:pointer; }
-.air-plane-list { list-style:none; padding:0; margin:0; }
-.air-plane-list li { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 0; border-top:1px solid var(--fleet-line); }
-.air-plane-list strong,.air-plane-list span { display:block; font-size:12px; }
-.air-plane-list span { margin-top:4px; color:var(--fleet-muted); }
-.air-operations-footer { display:flex; justify-content:space-between; align-items:center; gap:14px; padding:10px 14px; border-top:1px solid var(--fleet-line); }
-.air-operations-footer > span { font-size:12px; color:var(--fleet-muted); line-height:1.4; }
-.air-operations-footer button { flex-shrink:0; }
-@media (min-width:1600px) { .air-operations { inset-inline:max(40px, calc((100vw - 1480px)/2)); } }
-@media (max-width:1000px) { .air-operations { inset:64px 16px 180px; } .air-operations-body { grid-template-columns:minmax(0,1fr) 290px; } .air-chart-toolbar { flex-wrap:wrap; } .air-chart-zoom { width:100%; margin:0; } .air-operations-header > div { display:block; } .air-operations-header span { display:block; margin-top:4px; font-size:12px; } .air-counts .air-count { flex-direction:column; align-items:center; gap:2px; } }
-@media (max-width:680px) { .air-operations { inset:56px 8px 100px; min-height:0; } .air-operations-header { padding:10px; } .air-operations h2 { font-size:24px; } .air-close kbd { display:none; } .air-counts .air-count { padding:6px 2px; min-height:45px; } .air-count strong { font-size:21px; } .air-count span { font-size:10px; } .air-operations-body { display:flex; flex-direction:column; overflow:auto; } .air-chart-area { min-height:310px; flex-shrink:0; height:38vh; } .air-chart-toolbar { padding:7px; } .air-chart-zoom { width:auto; margin-left:auto; } .air-chart-zoom span { display:none; } .air-chart-hint { font-size:11px; } .air-roster { flex-shrink:0; overflow:visible; border-left:0; border-top:1px solid var(--fleet-line); } .air-operations-footer { padding:7px; } .air-operations-footer > span { font-size:11px; } }
-@media (max-height:650px) and (min-width:681px) { .air-operations { inset:48px 16px 85px; min-height:0; } .air-operations-header { padding:8px 14px; } .air-counts .air-count { min-height:38px; padding:4px; } }
+/* Compact carrier instruments leave the aircraft and sea in view. */
+.air-battlefield { position:absolute; inset:0; pointer-events:none; }
+.air-battlefield-map { position:absolute; inset:0; width:100%; height:100%; pointer-events:auto; touch-action:none; cursor:grab; }
+.air-battlefield-map:active { cursor:grabbing; }
+.air-battlefield-map[data-action] { cursor:crosshair; }
+.air-map-header { position:absolute; top:24px; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:14px; }
+.air-map-header h2 { margin:0; font:500 18px/1.1 'Barlow Condensed',sans-serif; }
+.air-map-header button,.air-map-tools button,.air-squadron-command button { color:inherit; font:inherit; background:transparent; border:1px solid var(--fleet-line); border-radius:1px; cursor:pointer; text-shadow:inherit; }
+.air-map-header button { padding:6px 8px; white-space:nowrap; font-size:10px; }
+.air-map-header kbd { margin-left:6px; }
+.air-map-tools { position:absolute; top:64px; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:4px; white-space:nowrap; }
+.air-map-tools button { min-width:28px; min-height:28px; padding:4px 6px; font-size:10px; }
+.air-map-tools span { width:80px; text-align:center; font-size:10px; }
+.air-map-ship { cursor:pointer; stroke:currentColor; fill:none; }
+.air-map-ship text,.air-station text { stroke:#07131b; stroke-width:3px; paint-order:stroke; fill:currentColor; font:500 10px 'Barlow',sans-serif; }
+.air-friendly { color:var(--fleet-active); }
+.air-hostile { color:#ffb5a6; }
+.air-selected { color:var(--fleet-gold); }
+.air-map-ship:focus-visible { outline:2px solid var(--fleet-gold); }
+.air-route { fill:none; stroke:var(--fleet-gold); stroke-width:1; stroke-dasharray:5 5; pointer-events:none; }
+.air-station { color:var(--fleet-active); stroke:currentColor; fill:none; pointer-events:none; }
+.air-station.air-selected { color:var(--fleet-gold); }
+.air-loiter-radius { stroke-dasharray:4 7; stroke-opacity:.6; }
+.air-squadron-labels { position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+.air-squadron-labels .air-squadron-tag { position:absolute; display:flex; align-items:center; gap:4px; transform:translate(-50%,-110%); padding:3px 5px; border:0; border-radius:1px; background:transparent; color:var(--fleet-active); font:500 10px 'Barlow',sans-serif; text-shadow:0 2px 3px #07131b; text-align:left; white-space:nowrap; pointer-events:none; }
+.air-squadron-labels.air-labels-map .air-squadron-tag { pointer-events:auto; cursor:pointer; }
+.air-squadron-tag.air-hostile { color:#ffb5a6; }
+.air-squadron-tag.air-selected { color:var(--fleet-gold); outline:1px solid currentColor; }
+.air-squadron-tag svg { width:20px; height:18px; filter:drop-shadow(0 2px 2px #07131b); }
+.air-squadron-tag small { display:block; margin-top:1px; font-size:10px; color:#eef5f2; }
+.air-squadron-command { position:absolute; left:280px; right:calc(var(--chart-width) + 20px); bottom:16px; pointer-events:none; min-width:0; }
+.air-squadron-command.air-command-map { left:50%; right:auto; width:max-content; max-width:calc(100% - 32px); transform:translateX(-50%); bottom:12px; }
+.air-selected-orders { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:4px; margin-bottom:5px; }
+.air-selected-orders button,.air-open-map { padding:5px 7px; min-height:28px; white-space:nowrap; font-size:10px !important; }
+.air-selected-orders kbd,.air-open-map kbd { margin-left:7px; font-size:9px; color:var(--fleet-muted); }
+.air-selected-orders [aria-pressed=true] { color:var(--fleet-gold); border-color:currentColor; }
+.air-squadron-command .air-open-map { margin-bottom:5px; }
+.air-squadron-command button:disabled { opacity:.42; cursor:default; }
+.air-squadron-command button:hover:not(:disabled),.air-map-tools button:hover,.air-map-header button:hover { color:var(--fleet-gold); border-color:currentColor; }
+.air-squadron-command button:focus-visible,.air-map-tools button:focus-visible,.air-map-header button:focus-visible { outline:2px solid var(--fleet-gold); outline-offset:2px; }
+.air-order-feedback { position:absolute; bottom:calc(100% + 6px); left:0; right:0; margin:0; color:var(--fleet-gold); text-align:center; font-size:11px; }
+.air-squadron-row { display:flex; align-items:stretch; gap:5px; overflow-x:auto; scrollbar-width:thin; padding:3px 3px 5px; pointer-events:auto; }
+.air-squadron-row .air-squadron-box { position:relative; flex:0 0 90px; width:90px; padding:5px 6px; text-align:left; border:1px solid var(--fleet-line); }
+.air-squadron-box[aria-pressed=true] { color:var(--fleet-gold); border-color:var(--fleet-gold); }
+.air-box-heading { display:flex; justify-content:space-between; align-items:center; gap:4px; }
+.air-box-heading strong { font:500 13px 'Barlow Condensed',sans-serif; white-space:nowrap; }
+.air-box-heading kbd { font-size:9px; white-space:nowrap; }
+.air-box-aircraft { display:block; width:76px; height:34px; object-fit:contain; margin:1px 0; filter:drop-shadow(0 2px 2px #07131b); }
+.air-box-count { position:absolute; right:6px; top:36px; font:500 13px 'Barlow Condensed',sans-serif; text-shadow:0 2px 3px #07131b; }
+.air-box-count small { font-size:10px; color:var(--fleet-muted); }
+.air-box-status { display:flex; align-items:center; gap:4px; font-size:10px; min-height:14px; white-space:nowrap; }
+.air-role-icon { display:inline-flex; flex-shrink:0; }
+.air-box-status>span:last-child { min-width:0; overflow:hidden; text-overflow:ellipsis; }
+.air-box-strength { display:flex; gap:2px; margin-top:4px; }
+.air-box-strength i { flex:1; height:2px; background:#a8bcb94a; }
+.air-box-strength .alive { background:currentColor; }
+.air-box-lost { color:#ffb5a6 !important; }
+.air-box-lost .air-box-aircraft { opacity:.35; }
+.air-box-launching .air-box-status,.air-box-servicing .air-box-status { color:var(--fleet-gold); }
+.air-aircraft-detail { position:absolute; bottom:calc(100% + 14px); right:0; width:280px; max-height:40vh; overflow:auto; padding:10px; background:#102c37; border:1px solid var(--fleet-line); pointer-events:auto; text-shadow:none; font-size:11px; }
+.air-aircraft-detail>strong { display:block; margin-bottom:6px; font-weight:500; }
+.air-aircraft-detail p { margin:0 0 6px; font-size:10px; color:var(--fleet-muted); }
+.air-aircraft-detail>div { display:flex; justify-content:space-between; gap:10px; align-items:center; padding:4px 0; }
+.air-aircraft-detail button { padding:5px 8px; }
+.fleet-air-map .fleet-compass,.fleet-air-map .fleet-map-area,.fleet-air-map .fleet-navigation,.fleet-air-map .fleet-steering,.fleet-air-map .fleet-touch-helm,.fleet-air-map .fleet-ship-silhouette { display:none; }
+.fleet-air-map .fleet-ship { bottom:auto; top:150px; width:190px; }
+.fleet-air-map .fleet-ship-name h1 { font-size:15px; }
+.fleet-air-map .fleet-top-actions,.fleet-air-map .fleet-battle,.fleet-air-map .fleet-combat-report { z-index:2; }
+@media (max-width:1150px) {
+  .air-squadron-command:not(.air-command-map) { left:238px; right:calc(var(--chart-width) + 12px); }
+}
+@media (max-width:800px) {
+  .air-map-header { top:78px; }
+  .air-map-tools { top:116px; }
+  .fleet-air-map .fleet-ship { display:none; }
+  .fleet-air-map .fleet-combat-report { top:158px; }
+  .air-squadron-command:not(.air-command-map) { left:204px; right:12px; bottom:calc(var(--chart-width) + 20px); }
+}
+@media (max-width:600px) {
+  .air-map-header { left:12px; top:70px; transform:none; }
+  .air-map-tools { top:108px; left:12px; transform:none; }
+  .air-squadron-command.air-command-map { max-width:calc(100% - 16px); bottom:6px; }
+  .air-selected-orders { justify-content:flex-start; }
+  .air-squadron-command:not(.air-command-map) { left:12px; right:12px; top:150px; bottom:auto; }
+  .air-aircraft-detail { max-width:calc(100vw - 24px); max-height:33vh; }
+}
+@media (pointer:coarse) {
+  .air-selected-orders button,.air-map-header button,.air-map-tools button { min-height:36px; }
+}

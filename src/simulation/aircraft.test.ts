@@ -40,8 +40,8 @@ test('launch queues three, spaces takeoffs, uses moving carrier datum, recall an
   sim.ship.x = 300;
   expect(sim.launchAircraft('vf-6')).toBe(3);
   run(1);
-  expect(sim.player.airWing!.planes.filter(p => p.phase === 'taxi')).toHaveLength(1);
-  expect(sim.aircraft.filter(airborne)).toHaveLength(0);
+  expect(sim.player.airWing!.planes.filter(p => p.phase === 'takeoff')).toHaveLength(1);
+  expect(sim.aircraft.filter(airborne)).toHaveLength(1);
   run(60);
   expect(sim.aircraft.filter(airborne)).toHaveLength(3);
   sim.recallAircraft();
@@ -67,7 +67,7 @@ test('torpedo bombers create falling payloads then armed-distance water runners'
 });
 test('opposing fighters engage aircraft and shoot them down without friendly damage', () => {
   const { sim, run, events } = fixture();
-  sim.target.controller = 'bot'; sim.launchAircraft('vf-6'); run(130);
+  sim.target.controller = 'bot'; sim.launchAircraft('vf-6'); run(240);
   expect(events.some(e => e.kind === 'aircraft-fire')).toBe(true);
   expect(events.some(e => e.kind === 'aircraft-lost')).toBe(true);
   expect(sim.aircraft.some(p => p.kills > 0)).toBe(true);
@@ -135,22 +135,21 @@ test('fighters alone cannot keep a carrier in a ship battle after all strike air
 });
 
 
-test('deck aircraft occupy distinct stable spots and taxi continuously before takeoff', () => {
-  const { sim, run } = fixture();
-  run(1 / 60);
+test('hangar aircraft spawn at the launch datum only after an order and recall clears the deck', () => {
+  const { sim, run } = fixture(); run(1 / 60);
   const planes = sim.player.airWing!.planes;
-  expect(new Set(planes.map(p => p.position.join(','))).size).toBe(18);
-  const first = planes[0]; const parked = [...first.position];
-  sim.launchAircraft('vf-6'); run(1 / 60);
-  expect(first.phase).toBe('taxi');
-  expect(Math.hypot(...first.position.map((v, i) => v - parked[i]))).toBeLessThan(.6);
-  expect(onFlightDeck(first)).toBe(true);
-  sim.recallAircraft(); run(25);
-  expect(first.phase).toBe('rearming');
-  expect(first.deckPosition).toEqual(aircraftDeckSpot(sim.player, first));
+  expect(planes.every(p => !onFlightDeck(p) && p.deckSlot === undefined)).toBe(true);
+  const first = planes[0];
+  sim.launchAircraft('vf-6');
+  expect(first.phase).toBe('queued'); expect(onFlightDeck(first)).toBe(false);
+  run(1 / 60);
+  expect(first.phase).toBe('takeoff'); expect(onFlightDeck(first)).toBe(true);
+  expect(first.deckPosition?.[2]).toBe(definition.airWing!.launchPosition[2]);
+  sim.recallAircraft(); run(70);
+  expect(first.phase).toBe('ready'); expect(onFlightDeck(first)).toBe(false);
 });
 
-test('recovery reaches the deck, rolls to a stop, parks and rearms without disappearing', () => {
+test('recovery reaches the deck, rolls to a stop and returns to the hangar for service', () => {
   const { sim, run, events } = fixture();
   const p = sim.player.airWing!.planes[0];
   p.phase = 'landing'; p.position = [0, 20, 120]; p.previousPosition = [...p.position];
@@ -158,7 +157,7 @@ test('recovery reaches the deck, rolls to a stop, parks and rearms without disap
   for (let i = 0; i < 90 * 60; i++) {
     const previous = [...p.position]; run(1 / 60);
     largestStep = Math.max(largestStep, Math.hypot(...p.position.map((v, j) => v - previous[j])));
-    touched ||= String(p.phase) === 'rollout'; parked ||= String(p.phase) === 'parking';
+    touched ||= String(p.phase) === 'rollout'; parked ||= String(p.phase) === 'rearming';
   }
   expect(touched).toBe(true); expect(parked).toBe(true);
   expect(largestStep).toBeLessThan(1);
@@ -172,27 +171,21 @@ test('a recalled group waits its turn and all survivors recover on a stationary 
   expect(sim.player.airWing!.planes.filter(p => p.squadronId === 'vf-6').every(p => p.phase === 'ready')).toBe(true);
 });
 
-test('a taxi aircraft clears the launch lane when the airborne limit fills', () => {
+test('the shared airborne limit keeps an entire launch in the hangar until capacity is available', () => {
   const { sim, context, run } = fixture();
-  sim.launchAircraft('vf-6'); run(1);
   const plane = sim.player.airWing!.planes[0];
   for (let i = 0; i < 144; i++) context.planes.push({ ...structuredClone(plane), id: `capacity/${i}`, phase: 'outbound' });
-  run(35);
-  expect(plane.phase).toBe('rearming');
-  expect(plane.deckPosition).toEqual(aircraftDeckSpot(sim.player, plane));
+  sim.launchAircraft('vf-6'); run(12);
+  expect(sim.player.airWing!.planes.filter(p => p.phase === 'queued')).toHaveLength(3);
+  expect(sim.player.airWing!.planes.some(onFlightDeck)).toBe(false);
+  context.planes.splice(-144); run(10.2);
+  expect(sim.player.airWing!.planes.filter(p => p.phase === 'outbound')).toHaveLength(3);
 });
 
-test('a fighter group gets airborne within 37 seconds without overlapping occupied deck runs', () => {
-  const { sim, run } = fixture(); run(1 / 60);
-  sim.launchAircraft('vf-6');
-  const departures = new Map<string, number>();
-  for (let tick = 0; tick < 40 * 60; tick++) {
-    run(1 / 60);
-    const planes = sim.player.airWing!.planes;
-    expect(planes.filter(p => p.phase === 'taxi' || (p.phase === 'takeoff' && onFlightDeck(p))).length).toBeLessThanOrEqual(1);
-    for (const p of planes) if (airborne(p) && !onFlightDeck(p) && !departures.has(p.id)) departures.set(p.id, (tick + 1) / 60);
-  }
-  expect(departures.size).toBe(3);
-  expect(Math.min(...departures.values())).toBeLessThan(12.5);
-  expect(Math.max(...departures.values())).toBeLessThan(37);
+test('a full legacy three-plane squadron clears the deck and completes launch in ten seconds', () => {
+  const { sim, run } = fixture();
+  sim.launchAircraft('vf-6'); run(10.2);
+  const planes = sim.player.airWing!.planes.filter(p => p.flightId);
+  expect(planes).toHaveLength(3);
+  expect(planes.every(p => p.phase === 'outbound' && !onFlightDeck(p))).toBe(true);
 });

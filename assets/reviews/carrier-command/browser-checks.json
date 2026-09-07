@@ -1,0 +1,377 @@
+{
+  "launch-fighters": {
+    "camera": [
+      -0.0978634108765022,
+      11403.60761460005,
+      -2488.4405729769587
+    ],
+    "launched": [
+      {
+        "id": "player/vf-6/1",
+        "phase": "queued"
+      },
+      {
+        "id": "player/vf-6/2",
+        "phase": "queued"
+      },
+      {
+        "id": "player/vf-6/3",
+        "phase": "queued"
+      },
+      {
+        "id": "player/vf-6/4",
+        "phase": "queued"
+      },
+      {
+        "id": "player/vf-6/5",
+        "phase": "queued"
+      },
+      {
+        "id": "player/vf-6/6",
+        "phase": "queued"
+      }
+    ],
+    "selected": "Fighter 1 \u00b7 Fighters0/4 active \u00b7 48/48 aircraft",
+    "states": [
+      "outbound",
+      "outbound",
+      "outbound",
+      "outbound",
+      "outbound",
+      "outbound"
+    ],
+    "stations": 1,
+    "tags": 1
+  },
+  "launch-bombers": [
+    {
+      "payload": true,
+      "phase": "outbound"
+    },
+    {
+      "payload": true,
+      "phase": "outbound"
+    },
+    {
+      "payload": true,
+      "phase": "outbound"
+    },
+    {
+      "payload": true,
+      "phase": "outbound"
+    },
+    {
+      "payload": true,
+      "phase": "outbound"
+    },
+    {
+      "payload": true,
+      "phase": "outbound"
+    },
+    {
+      "payload": true,
+      "phase": "ready"
+    },
+    {
+      "payload": true,
+      "phase": "ready"
+    },
+    {
+      "payload": true,
+      "phase": "ready"
+    },
+    {
+      "payload": true,
+      "phase": "ready"
+    },
+    {
+      "payload": true,
+      "phase": "ready"
+    },
+    {
+      "payload": true,
+      "phase": "ready"
+    },
+    {
+      "payload": true,
+      "phase": "ready"
+    },
+    {
+      "payload": true,
+      "phase": "ready"
+    },
+    {
+      "payload": true,
+      "phase": "ready"
+    },
+    {
+      "payload": true,
+      "phase": "ready"
+    },
+    {
+      "payload": true,
+      "phase": "ready"
+    },
+    {
+      "payload": true,
+      "phase": "ready"
+    }
+  ],
+  "stations-and-groups": {
+    "heading": "Dive 1 \u00b7 Dive bombers2/4 active \u00b7 48/48 aircraft",
+    "overflow": false,
+    "stations": [
+      {
+        "label": "Fighter 1 \u00b7 STATION",
+        "position": "translate(272.69129287598946 422)"
+      },
+      {
+        "label": "Dive 1 \u00b7 STATION",
+        "position": "translate(292 422)"
+      }
+    ],
+    "tags": [
+      "Fighter 1 \u00b7 6Engaging",
+      "Dive 1 \u00b7 6En route",
+      "Fighter 1 \u00b7 6Engaging",
+      "Dive 1 \u00b7 6En route",
+      "Torpedo 1 \u00b7 6En route"
+    ]
+  },
+  "retask-strike": {
+    "selected": "Dive 1, Dive bombers, 6 of 6 aircraft, En route, map hotkey 4",
+    "order": "En route \u00b7 Strike Bismarck \u00b7 95% condition \u00b7 6 armedReturn squadronAircraftRecall all",
+    "feedback": "Dive 1 \u00b7 Order received"
+  },
+  "exit-map": {
+    "map": false,
+    "stationCount": 0,
+    "tagCount": 4,
+    "camera": {
+      "mode": "Chase",
+      "binoculars": false,
+      "magnification": 1,
+      "fov": 52.00000000000001,
+      "shellFollow": "off",
+      "pointerLocked": false,
+      "position": [
+        -0.8389416471074763,
+        169.21855806230147,
+        524.2860955892285
+      ],
+      "aim": [
+        11.393375932530546,
+        0.5,
+        -7120.147871835811
+      ],
+      "manualAim": true,
+      "projectionMatrix": [
+        2.6361049391733804,
+        0,
+        0,
+        0,
+        0,
+        2.050303841579296,
+        0,
+        0,
+        0,
+        0,
+        8.333402778356486e-06,
+        -1,
+        0,
+        0,
+        0.5000041667013891,
+        0
+      ],
+      "matrixWorldInverse": [
+        0.9999987197464202,
+        3.530807766907992e-05,
+        -0.001599768377064707,
+        0,
+        6.776263578034403e-21,
+        0.9997565300837521,
+        0.022065370037589616,
+        0,
+        0.001600157967391011,
+        -0.022065341788320633,
+        0.9997552501418755,
+        0,
+        2.220446049250313e-16,
+        -157.60877691868515,
+        -527.8929888549056,
+        1
+      ]
+    }
+  },
+  "layout-700": {
+    "size": [
+      700,
+      900
+    ],
+    "map": true,
+    "rects": {
+      ".air-map-header": {
+        "rect": {
+          "x": 236.84765625,
+          "y": 82,
+          "width": 226.3046875,
+          "height": 41.1953125,
+          "top": 82,
+          "right": 463.15234375,
+          "bottom": 123.1953125,
+          "left": 236.84765625
+        },
+        "hit": null,
+        "z": "auto"
+      },
+      ".air-map-tools": {
+        "rect": {
+          "x": 181.1171875,
+          "y": 142,
+          "width": 337.765625,
+          "height": 34,
+          "top": 142,
+          "right": 518.8828125,
+          "bottom": 176,
+          "left": 181.1171875
+        },
+        "hit": "air-map-tools",
+        "z": "auto"
+      },
+      ".fleet-battle": {
+        "rect": {
+          "x": 12,
+          "y": 14,
+          "width": 232,
+          "height": 45,
+          "top": 14,
+          "right": 244,
+          "bottom": 59,
+          "left": 12
+        },
+        "hit": "fleet-battle",
+        "z": "2"
+      },
+      ".fleet-combat-report": {
+        "rect": {
+          "x": 428,
+          "y": 190,
+          "width": 260,
+          "height": 88,
+          "top": 190,
+          "right": 688,
+          "bottom": 278,
+          "left": 428
+        },
+        "hit": "fleet-combat-report",
+        "z": "2"
+      },
+      ".fleet-damage-log": {
+        "rect": {
+          "x": 428,
+          "y": 224,
+          "width": 260,
+          "height": 54,
+          "top": 224,
+          "right": 688,
+          "bottom": 278,
+          "left": 428
+        },
+        "hit": "fleet-damage-log",
+        "z": "auto"
+      }
+    }
+  },
+  "layout-390": {
+    "size": [
+      390,
+      844
+    ],
+    "pageWidth": 390,
+    "map": true,
+    "rects": {
+      ".air-map-header": {
+        "x": 12,
+        "y": 76,
+        "width": 226.3046875,
+        "height": 41.1953125,
+        "top": 76,
+        "right": 238.3046875,
+        "bottom": 117.1953125,
+        "left": 12
+      },
+      ".air-map-tools": {
+        "x": 12,
+        "y": 144,
+        "width": 337.765625,
+        "height": 34,
+        "top": 144,
+        "right": 349.765625,
+        "bottom": 178,
+        "left": 12
+      },
+      ".fleet-battle": {
+        "x": 12,
+        "y": 300,
+        "width": 171,
+        "height": 45,
+        "top": 300,
+        "right": 183,
+        "bottom": 345,
+        "left": 12
+      },
+      ".fleet-combat-report": {
+        "x": 158,
+        "y": 190,
+        "width": 220,
+        "height": 63,
+        "top": 190,
+        "right": 378,
+        "bottom": 253,
+        "left": 158
+      },
+      ".air-squadron-command": {
+        "x": 10,
+        "y": 596.1015625,
+        "width": 370,
+        "height": 239.8984375,
+        "top": 596.1015625,
+        "right": 380,
+        "bottom": 836,
+        "left": 10
+      },
+      ".air-squadron-row": {
+        "x": 10,
+        "y": 726.5,
+        "width": 370,
+        "height": 109.5,
+        "top": 726.5,
+        "right": 380,
+        "bottom": 836,
+        "left": 10
+      }
+    },
+    "buttons": [
+      {
+        "text": "Return to ship M",
+        "hit": true
+      },
+      {
+        "text": "Fit battlefield",
+        "hit": true
+      },
+      {
+        "text": "Center carrier",
+        "hit": true
+      },
+      {
+        "text": "\u2212",
+        "hit": true
+      },
+      {
+        "text": "+",
+        "hit": true
+      }
+    ]
+  }
+}
