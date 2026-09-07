@@ -48,11 +48,14 @@ test('category scores stay within 0-100 and separate the presets by their simula
   expect(scores.bismarck.survivability).toBeGreaterThan(scores.baltimore.survivability);
   expect(scores.yamato.artillery).toBeGreaterThan(scores.baltimore.artillery);
   expect(scores.baltimore.concealment).toBeGreaterThan(scores.bismarck.concealment);
-  // Authored AA mounts contribute to Bismarck's defensive battery.
-  expect(scores.bismarck.airDefense).toBeGreaterThan(0);
-  expect(scores.yamato.airDefense).toBe(0);
-  expect(scores['enterprise-cv6'].airDefense).toBeGreaterThan(scores.baltimore.airDefense);
+  for (const ship of Object.values(scores)) expect(ship.airDefense).toBeGreaterThan(0);
   expect(shipScores(shipPreset('bismarck')).map(s => s.id)).toEqual(['survivability', 'artillery', 'airDefense', 'maneuverability', 'concealment']);
+});
+
+test('air defense excludes small guns that cannot elevate to engage aircraft', () => {
+  const def = structuredClone(shipPreset('king-george-v'));
+  def.mounts.forEach(mount => { mount.weapon.elevationMaxDeg = 45; });
+  expect(shipScores(def).find(score => score.id === 'airDefense')!.score).toBe(0);
 });
 
 test('maximum range follows the low-arc solver: elevation limited, then capped at 30 km', () => {

@@ -292,7 +292,13 @@ export class CombatEffects {
       p.color.copy(WATER);
     } else if (event.kind === 'shot') this.muzzle(scale, random, event.shipId);
     else if (event.kind === 'splash') this.splash(scale, random);
-    else if (event.kind === 'burst' && event.detonation) this.shellBurst(event.blastRadiusM ?? 2, random);
+    else if (event.kind === 'burst' && event.detonation && event.waterBurstY !== undefined) {
+      const attenuation = Math.exp(Math.min(0, event.position[1] - event.waterBurstY) / 12);
+      this.position.y = event.waterBurstY;
+      this.splash(Math.min(2, (event.blastRadiusM ?? 2) / 3) * attenuation, random, event.waterBurstY);
+    } else if (event.kind === 'contact' && event.hullDamage !== undefined) {
+      this.position.y = Math.max(0, event.position[1]); this.splash(.45, random);
+    } else if (event.kind === 'burst' && event.detonation) this.shellBurst(event.blastRadiusM ?? 2, random);
     else if (event.detonation) this.detonation(scale, random, event.shipId);
     else if (event.normal) this.impact(event, scale, random);
     // Internal damage and sinking are state changes, not external fireballs.
@@ -344,9 +350,9 @@ export class CombatEffects {
     }
   }
 
-  private splash(scale: number, random: () => number): void {
+  private splash(scale: number, random: () => number, surfaceY = 0): void {
     const size = Math.pow(scale, .65);
-    this.position.y = .35;
+    this.position.y = surfaceY + .35;
     // A continuous column of aerated water separates into rounded, expanding lobes.
     // No water element rotates with velocity, so nothing flips at its ballistic apex.
     for (let i = 0; i < 8; i++) {
@@ -372,7 +378,7 @@ export class CombatEffects {
     // Fine mist spreads over the surface while the heavy water falls back.
     for (let i = 0; i < 14; i++) {
       const p = this.spray.emit(this.position), angle = random() * Math.PI * 2;
-      p.position.y = 1 + random() * 2;
+      p.position.y = surfaceY + 1 + random() * 2;
       p.velocity.set(Math.cos(angle) * 4 * size, 1 + random(), Math.sin(angle) * 4 * size);
       p.size = (3 + random() * 3) * size; p.growth = 2.5 * size;
       p.age = -.25 - random() * 1.3; p.life = 4.5; p.drag = .6; p.wind = .45;

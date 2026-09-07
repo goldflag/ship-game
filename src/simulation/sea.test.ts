@@ -1,5 +1,8 @@
+import { updateStability } from './stability';
+import { meanHullY } from './ship';
+import { submarinePropulsion } from './submarine';
 import { expect, test } from 'bun:test';
-import { shipPreset } from '../ships/presets';
+import { shipPreset, shipPresets } from '../ships/presets';
 import { CombatSimulation } from './combat';
 import { createSeaState, seaHeight, seaResponse } from './sea';
 import { resolveBattleFleet } from './battle';
@@ -62,4 +65,35 @@ test('steady turning heel points outward in both directions', () => {
   expect(seaResponse(sim.player, calm, 0).roll).toBeGreaterThan(0); // Port down, starboard up.
   sim.ship.yawRate = -.01;
   expect(seaResponse(sim.player, calm, 0).roll).toBeLessThan(0);
+});
+
+
+test('each intact hull settles after a small disturbance with the sea solver enabled', () => {
+  for (const id of Object.keys(shipPresets)) {
+    const def = shipPreset(id);
+    const actor = new CombatSimulation(def).player;
+    actor.motion.pitch = .005; actor.motion.roll = .01;
+    for (let i = 0; i < 3600; i++) updateStability(actor, def, 1 / 60, { heave: 0, roll: 0, pitch: 0 });
+    expect(Math.abs(meanHullY(actor.motion)), def.id).toBeLessThan(.05);
+    expect(Math.abs(actor.motion.pitch), def.id).toBeLessThan(.005);
+    expect(Math.abs(actor.motion.roll), def.id).toBeLessThan(.005);
+  }
+});
+
+test('storm troughs do not dive a surfaced submarine or switch its engines and weapons', () => {
+  const sub = shipPreset('type-viic');
+  const sim = new CombatSimulation(sub, { friendlyBots: [], enemies: [{ definition: def, aiLevel: 'static' }], weather: 'storm-clouds', seed: 7 });
+  let troughs = 0;
+  for (let i = 0; i < 3600; i++) {
+    sim.step(helm, intent);
+    if (sim.ship.y >= -.5) continue;
+    troughs++;
+    expect(submarinePropulsion(sim.player, sub)!.handling).toBe(sub.handling);
+    expect(sim.player.mounts.some(m => m.status === 'submerged')).toBe(false);
+    const info = sim.telemetry('main', intent.aim);
+    expect(info.submarine!.propulsion).toBe('Diesel');
+    expect(info.submarine!.depthM).toBeCloseTo(0, 8);
+    expect(info.playerDraftChange).toBeCloseTo(0, 8);
+  }
+  expect(troughs).toBeGreaterThan(100);
 });

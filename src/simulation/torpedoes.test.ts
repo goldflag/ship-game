@@ -1,3 +1,4 @@
+import { HULL_HP_SCALE } from './durability';
 import { expect, test } from 'bun:test';
 import blueprint from '../../assets/ships/type-viic/blueprint.json';
 import bismarck from '../../assets/ships/bismarck/blueprint.json';
@@ -167,8 +168,8 @@ test('torpedo openings retain their position and magazine damage does not invent
   expect(room.breaches).toEqual([expect.objectContaining({ position: point, areaM2: 1.6, shellId: 1 })]);
   expect(sim.target.damage.modules.find(m => m.id === 'forward-torpedoes')).toMatchObject({ hp: 0, detonated: false });
   const hullLoss = before - sim.target.damage.integrity;
-  expect(hullLoss).toBeGreaterThan(projectile().weapon.damage * .9);
-  expect(hullLoss).toBeLessThanOrEqual(projectile().weapon.damage);
+  expect(hullLoss).toBeGreaterThan(projectile().weapon.damage * .9 * HULL_HP_SCALE);
+  expect(hullLoss).toBeLessThanOrEqual(projectile().weapon.damage * HULL_HP_SCALE);
   updateCapability(sim.target, definition);
   expect(sim.target.damage.integrity).toBe(before - hullLoss);
   for (let i = 0; i < 10; i++) damageTorpedoHit(projectile(), sim.target, point);

@@ -1,3 +1,4 @@
+import { hullDepth } from './ship';
 import type { Ammunition, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { barrelOffset } from '../ships/blueprint';
 import { add, clamp, length, localToWorld, normalize, radians, rotate, sub, wrapAngle, worldToLocal, type Pose } from './geometry';
@@ -79,13 +80,13 @@ export function solveBallistic(from: Vec3, target: Vec3, speed: number, dragPerS
   return { direction: [delta[0] / range * Math.cos(angle), Math.sin(angle), delta[2] / range * Math.cos(angle)], time: range / (speed * Math.cos(angle)) };
 }
 /** Return true when the barrel has reached a valid firing solution (used by bots). */
-export function updateMount(m: MountDefinition, state: MountState, definition: ShipDefinition, pose: Pose, aim: Vec3 | undefined, dt: number, inheritedVelocity: Vec3 = [0, 0, 0], power = 1): boolean {
+export function updateMount(m: MountDefinition, state: MountState, definition: ShipDefinition, pose: Pose & { waveHeave?: number }, aim: Vec3 | undefined, dt: number, inheritedVelocity: Vec3 = [0, 0, 0], power = 1): boolean {
   const workRate = .25 + .75 * clamp(power, 0, 1);
   state.reload = Math.max(0, state.reload - dt * workRate);
   state.recoil = Math.max(0, state.recoil - dt / 1.4);
   if (state.hp <= 0) { state.status = 'disabled'; return false; }
   if (availableAmmunition(state) < (m.weapon.barrelCount ?? 2)) { state.status = 'empty'; return false; }
-  if ((definition.submarine && pose.y < -.5) || muzzleWorld(m, state, 0, pose)[1] <= 0) { state.status = 'submerged'; return false; }
+  if ((definition.submarine && hullDepth(pose) > .5) || muzzleWorld(m, state, 0, pose)[1] <= (pose.waveHeave ?? 0)) { state.status = 'submerged'; return false; }
   // Warm-start from the previous desired muzzle and flight time. Reacquisition
   // still converges in three iterations; continuous tracking needs only one.
   // Heading and inherited velocity are recomputed each tick, even for a cached

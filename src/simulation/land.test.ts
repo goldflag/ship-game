@@ -22,7 +22,7 @@ test('coast contact keeps a hull offshore and permits reversing away', () => {
   Object.assign(sim.ship, { x: x - 25, z, heading: -Math.PI / 2, speed: 12 });
   resolveLandContact(sim.player, sim.islands);
   expect(islandRadius(island, sim.ship.x, sim.ship.z)).toBeGreaterThan(1);
-  expect(sim.ship.speed).toBe(0);
+  expect(sim.ship.speed).toBeCloseTo(0, 2);
   sim.ship.speed = -4;
   resolveLandContact(sim.player, sim.islands);
   expect(sim.ship.speed).toBe(-4);
@@ -89,4 +89,15 @@ test('grounding damages the hull once and clearance depends on draft', () => {
     positions.push(sim.ship.x);
   }
   expect(positions[1]).toBeGreaterThan(positions[0]);
+});
+
+
+test('a glancing grounding preserves motion along the shore', () => {
+  const sim = new CombatSimulation(bismarck), island = mapIslands('pacific-islands', 5000, 1)[0];
+  const [x, z] = coastOutline(island)[0];
+  Object.assign(sim.ship, { x: x - 10, z, heading: -Math.PI / 4, speed: 12 });
+  resolveLandContact(sim.player, [island]);
+  expect(Math.hypot(sim.ship.speed, sim.ship.swaySpeed)).toBeGreaterThan(4);
+  expect(Math.hypot(sim.ship.speed, sim.ship.swaySpeed)).toBeLessThan(12);
+  expect(sim.player.damage.integrity).toBeLessThan(sim.player.damage.maxIntegrity);
 });

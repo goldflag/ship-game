@@ -17,6 +17,8 @@ sys.path.insert(0,str(ROOT/'scripts/ships'))
 from blender_components import create_gun_mount
 from blender_supports import SupportSurface
 from blender_fidelity import authored_hull, authored_structure, Fittings, loft_breadth
+sys.path.insert(0,str(ROOT/'assets/parts'))
+from aa_articulation import articulate_aa
 OUT=Path(os.environ['SHIP_OUTPUT'])
 D=json.loads(Path(os.environ['SHIP_DEFINITION']).read_text())
 bpy.ops.object.select_all(action='SELECT')
@@ -96,6 +98,7 @@ S={s['id']:s for s in D['structures']}
 # Articulated main and secondary mounts are generated through the shared catalog.
 COL=collections['Main and secondary batteries']
 for mount in D['mounts']:
+ if mount['partId']=='us-40mm-bofors-baltimore-quad':continue
  ASSEMBLY=mount['id']
  create_gun_mount(mount,COL,dict(mesh=mesh,cyl=cyl,rod=rod,box=box),materials,deckz)
  Fittings(dict(mesh=mesh,cyl=cyl,rod=rod,box=box),materials,COL).gun_details(mount)
@@ -266,8 +269,8 @@ def aircraft(id,x,y,z):
  rod('OS2U propeller',(x+4.7,y,z-1.1),(x+4.7,y,z+1.1),.065,'dark')
 aircraft('kingfisher-port',-81,4.7,10.2)
 aircraft('kingfisher-starboard',-81,-4.7,10.2)
-# AA is visual equipment, as in the baseline ship; it does not silently turn the
-# 5-inch battery into a mixed-caliber simulation battery.
+# Quad Bofors retain their original fittings with independent combat joints.
+# The smaller single 20 mm guns remain visual equipment.
 COL=collections['Light AA']
 aa_support=SupportSurface([hull,*collections['Superstructure'].objects])
 def tub(name,x,y,z,r,height=.95,start=0,end=math.tau):
@@ -276,28 +279,30 @@ def tub(name,x,y,z,r,height=.95,start=0,end=math.tau):
  for strip in range(3):
   for j in range(n):ff.append((strip*step+j,strip*step+j+1,(strip+1)*step+j+1,(strip+1)*step+j))
  return mesh(name,vv,ff,'naval')
-def bofors(id,x,y,z,bearing):
+def bofors(mount):
  global ASSEMBLY
- ASSEMBLY=id
- # Start above the tub floor: several stations slightly overlap the sheer.
- # A ray starting inside the hull would find its bottom instead of its deck.
+ ASSEMBLY=mount['id'];w=mount['weapon'];px,pz,py=mount['position'];x,y,z=-py,-px,pz
+ # Keep the repaired stationary foundation outside the aiming hierarchy.
  floor=aa_support.below(x,y,z+.5)
- if z-.20-floor>.015:cyl(id+' fixed foundation',(x,y,(floor+z-.20)/2),1.9,z-.20-floor+.02,'naval',vertices=32)
+ if z-.20-floor>.015:cyl(ASSEMBLY+' fixed foundation',(x,y,(floor+z-.20)/2),1.9,z-.20-floor+.02,'naval',vertices=32)
  cyl('40 mm gun tub deck',(x,y,z-.10),2.2,.20,'roof',vertices=40)
  tub('40 mm splinter shield',x,y,z,2.18,1.04)
- cyl('Bofors pedestal',(x,y,z+.36),.50,.72,'edge',vertices=20)
- angle=math.radians(bearing)
- def pt(a,b,c):return (x+a*math.cos(angle)-b*math.sin(angle),y+a*math.sin(angle)+b*math.cos(angle),z+c)
- base=box('Bofors carriage',pt(0,0,.9),(1.1,1.95,.8),'naval');base.rotation_euler.z=angle
- for lateral in [-.67,-.25,.25,.67]:
-  rod('40 mm barrel',pt(.15,lateral,1.33),pt(2.05,lateral,1.56),.057,'edge',r2=.038,vertices=10)
-  breech=box('40 mm breech',pt(-.5,lateral,1.23),(.9,.23,.35),'edge');breech.rotation_euler.z=angle
-  box('40 mm clip guide',pt(-.43,lateral,1.57),(.32,.20,.38),'naval')
+ frame=[cyl('Bofors pedestal',(0,0,.36),.50,.72,'edge',vertices=20),
+        box('Bofors carriage',(0,0,.9),(1.1,1.95,.8),'naval')]
  for lateral in [-1.0,1.0]:
-  rod('Bofors seat bracket',pt(0,lateral*.45,.42),pt(-.78,lateral,.76),.06,'naval',vertices=8)
-  seat=box('Bofors seat',pt(-.78,lateral,.8),(.37,.34,.08),'canvas');seat.rotation_euler.z=angle
-for i,(x,y,z,b) in enumerate([(76,0,None,0),(45,7.5,6.1,70),(45,-7.5,6.1,-70),(26,8.1,8.0,70),(26,-8.1,8.0,-70),(-28,8.0,7.9,100),(-28,-8.0,7.9,-100),(-50,7.1,5.8,100),(-50,-7.1,5.8,-100),(-68,7.1,6.0,160),(-68,-7.1,6.0,-160),(-97,0,None,180)]):
- bofors(f'bofors-{i+1:02}',x,y,deckz(x)+.1 if z is None else z,b)
+  frame.append(rod('Bofors seat bracket',(0,lateral*.45,.42),(-.78,lateral,.76),.06,'naval',vertices=8))
+  frame.append(box('Bofors seat',(-.78,lateral,.8),(.37,.34,.08),'canvas'))
+ barrels=[];elevation=math.radians(1);direction=Vector((math.cos(elevation),0,math.sin(elevation)))
+ for i in range(w['barrelCount']):
+  lateral=((w['barrelCount']-1)/2-i)*w['barrelSpacing']
+  start=Vector((w['trunnionForward'],lateral,w['pivotHeight']));tip=start+direction*(w['muzzleForward']-w['trunnionForward'])
+  barrel=rod('40 mm barrel',start,tip,.057,'edge',r2=.038,vertices=10)
+  breech=box('40 mm breech',start-direction*.65+Vector((0,0,-.1)),(.9,.23,.35),'edge');breech.rotation_euler.y=-elevation
+  clip=box('40 mm clip guide',start-direction*.58+Vector((0,0,.24)),(.32,.20,.38),'naval');clip.rotation_euler.y=-elevation
+  barrels.append([barrel,breech,clip])
+ articulate_aa(mount,COL,frame,barrels)
+for mount in D['mounts']:
+ if mount['partId']=='us-40mm-bofors-baltimore-quad':bofors(mount)
 for i,(x,side) in enumerate([(x,side) for x in [94,89,65,60,37,33,8,-6,-40,-58,-89,-93] for side in [-1,1]]):
  ASSEMBLY=f'oerlikon-{i+1:02}';y=side*max(1.2,width(x)-.7);z=aa_support.below(x,y,deckz(x)+.5)
  cyl('Oerlikon stand',(x,y,z+.56),.14,1.12,'naval',vertices=14)

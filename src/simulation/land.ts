@@ -29,7 +29,14 @@ export function resolveLandContact(actor: FleetActor, islands: readonly Island[]
       const damage = damageHullContact(actor, position, .5 * hull.massKg * inward ** 2);
       if (damage > 0) emit?.({ actor, position, damage, kind: 'grounding' });
     }
-    if (inward > 0) { ship.speed = 0; ship.swaySpeed = 0; }
+    if (inward > 0) {
+      // A glancing scrape removes inward motion while retaining travel along shore.
+      const vx = velocity[0] + nx * inward - (ship.driftX ?? 0), vz = velocity[2] + nz * inward - (ship.driftZ ?? 0);
+      ship.speed = Math.sin(ship.heading) * vx - Math.cos(ship.heading) * vz;
+      ship.swaySpeed = Math.cos(ship.heading) * vx + Math.sin(ship.heading) * vz;
+      if (Math.abs(ship.speed) < 1e-9) ship.speed = 0;
+      if (Math.abs(ship.swaySpeed) < 1e-9) ship.swaySpeed = 0;
+    }
     // Move to the closest safe position along the outward direction. The
     // search includes keel depth, so shallow-draft ships approach more closely.
     const clear = (offset: number) => points.every(p => bottom(p[0] + nx * offset, p[2] + nz * offset) < p[1] - .02);

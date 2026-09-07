@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { shipPresets } from '../ships/presets';
+import { shipPresets, shipPreset } from '../ships/presets';
 import { compileShip } from '../ships/blueprint';
 import catalog from '../../assets/parts/guns.json';
 import { maximumRangeM } from '../ships/statistics';
@@ -54,4 +54,16 @@ test('256 existing shells do not suppress a loaded gun salvo', () => {
   sim.step({ throttle: 0, rudder: 0 }, { aim, battery: 'main', fire: true });
   expect(sim.shells.length).toBeGreaterThan(256);
   expect(sim.events.some(e => e.kind === 'shot')).toBe(true);
+});
+
+
+test('a battleship bow ramming a destroyer broadside damages both ships at the contact', () => {
+  const sim = new CombatSimulation(shipPreset('bismarck'), { friendlyBots: [], enemies: [{ definition: shipPreset('fletcher'), aiLevel: 'static' }] });
+  Object.assign(sim.ship, { x: 0, z: 0, heading: 0, speed: 12 });
+  Object.assign(sim.target.motion, { x: 0, z: -128, heading: Math.PI / 2, speed: 0 });
+  resolveShipCollisions(sim.actors);
+  for (const actor of sim.actors) {
+    expect(actor.damage.integrity).toBeLessThan(actor.damage.maxIntegrity);
+    expect(actor.damage.compartments.some(c => c.breachAreaM2 > 0)).toBe(true);
+  }
 });

@@ -1,0 +1,70 @@
+{
+  "ammoSpent": 496,
+  "backend": "webgpu",
+  "contentHash": "452488b162f2e85738c8c2dd4493eefd2d46e2215f827feca1fe41c0e1f93112",
+  "eligibleMounts": 18,
+  "firingMounts": [
+    "40 mm Bofors 5",
+    "40 mm Bofors 3",
+    "40 mm Bofors 7",
+    "40 mm Bofors 9",
+    "Mount 53 \u00b7 5-inch",
+    "Mount 55 \u00b7 5-inch",
+    "40 mm Bofors 11",
+    "Mount 51 \u00b7 5-inch",
+    "40 mm Bofors 1",
+    "Mount 56 \u00b7 5-inch",
+    "40 mm Bofors 12",
+    "40 mm Bofors 10"
+  ],
+  "maxMuzzleError": 0.0013163963664928624,
+  "poses": [
+    {
+      "elevationFraction": 0,
+      "maxMuzzleError": 0.0013119658610784054,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 0.5,
+      "maxMuzzleError": 0.0013123941498140797,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleError": 0.0013137509699182395,
+      "trainFraction": -1
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleError": 0.0013163734674286553,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 0.5,
+      "maxMuzzleError": 0.0013165969004439702,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleError": 0.0013170777310658006,
+      "trainFraction": 0
+    },
+    {
+      "elevationFraction": 0,
+      "maxMuzzleError": 0.0013153034789788532,
+      "trainFraction": 1
+    },
+    {
+      "elevationFraction": 0.5,
+      "maxMuzzleError": 0.0013155765692912322,
+      "trainFraction": 1
+    },
+    {
+      "elevationFraction": 1,
+      "maxMuzzleError": 0.001316269810895387,
+      "trainFraction": 1
+    }
+  ],
+  "shipId": "baltimore",
+  "shots": 496
+}

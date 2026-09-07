@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "inputHash": "c86c36aa16a45e6b96af41a6a7172c2718deda73230c010116183162594c377e",
+  "inputHash": "729b7597100460a854e3b0db2ecf02a3f47754eba49b82561cb00a1c029c37a8",
   "files": {
     "authored/bow-profile.png": "b55b9e979382e9eca4437eb884f76be3cb8fc8fbede19f716fd34a3265e374b3",
     "authored/bow.png": "8bc8660ad3089ca5ab962d8bec38b665385153e3d8c6718dfe5a152054312b86",
@@ -53,7 +53,7 @@
     "inputs/deck-surface.py": "bd3ea8a00d081616013fc23a7dc259ee4eb51e59626730215640d926e7f77478",
     "inputs/export.py": "3eaa7163d8b43091c4b146c79c73b882b691e7f4b2f39823650bd0a36d0107b8",
     "inputs/fleet-author.py": "0166020299ec85e117a383f0cab8ba59f310219ae7953b82c038f201778db29c",
-    "inputs/guns.json": "7db78052bcc7fb86d12c750c448465e0f2409320344b26cf10d233d4dfe3339f",
+    "inputs/guns.json": "f57323014a1b9895450f0db9724fc48ffc90cc0e6431172a26ff11652024683d",
     "inputs/review.py": "dfcdf71b37da65ce059f700dbb7c1a3130eafc06b2524172eabbb0b95f1fe3ec",
     "inputs/starter.py": "ca196ff8c9a7b4b7c25570155ca5f9238d3253e7db697734eff1fac42571fae2",
     "measurements.json": "d904d451ff159f9f15a8bd4c0bc99aa9a02c80bdbb1f325b4e34b6fd752f14e7",

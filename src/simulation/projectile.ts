@@ -25,7 +25,9 @@ export function advanceProjectile(shell: Shell, actors: FleetActor[], dt: number
       }
     }
     if (shell.detonateAtAge !== undefined && shell.age >= shell.detonateAtAge - 1e-10) {
-      burstShell(shell, actors, emit); return 'burst';
+      const surface = surfaceAt(shell.position[0], shell.position[2]);
+      const waterBurst = shell.position[1] <= surface && !insideHull(shell.position);
+      burstShell(shell, actors, event => emit(waterBurst ? { ...event, waterBurstY: surface } : event)); return 'burst';
     }
     if (remaining <= 1e-10) return;
     if (shell.age >= 180) return 'expired';

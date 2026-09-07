@@ -6,6 +6,33 @@ export class BattlefieldCamera {
   view: ChartView = { x: 0, z: 0, radius: 8000 };
   private saved?: { fov: number; far: number; up: [number, number, number] };
   constructor(private camera: PerspectiveCamera) {}
+  private transition?: { position: PerspectiveCamera['position']; quaternion: PerspectiveCamera['quaternion']; fov: number; far: number; targetFar?: number; elapsed: number };
+  get transitioning() { return !!this.transition; }
+  beginTransition(reducedMotion = false) {
+    this.transition = reducedMotion ? undefined : { position: this.camera.position.clone(), quaternion: this.camera.quaternion.clone(), fov: this.camera.fov, far: this.camera.far, elapsed: 0 };
+  }
+  cancelTransition() {
+    if (this.transition?.targetFar !== undefined) {
+      this.camera.far = this.transition.targetFar;
+      this.camera.updateProjectionMatrix();
+    }
+    this.transition = undefined;
+  }
+  /** Blend toward the live destination, so the ship keeps moving during descent. */
+  applyTransition(dt: number) {
+    const start = this.transition;
+    if (!start) return;
+    start.elapsed += Math.max(0, dt);
+    const t = Math.min(1, start.elapsed / 1.4);
+    const eased = t * t * t * (t * (t * 6 - 15) + 10);
+    start.targetFar ??= this.camera.far;
+    this.camera.far = t === 1 ? start.targetFar : Math.max(start.far, start.targetFar);
+    this.camera.position.lerpVectors(start.position, this.camera.position, eased);
+    this.camera.quaternion.slerpQuaternions(start.quaternion, this.camera.quaternion, eased);
+    this.camera.fov = start.fov + (this.camera.fov - start.fov) * eased;
+    this.camera.updateProjectionMatrix(); this.camera.updateMatrixWorld();
+    if (t === 1) this.transition = undefined;
+  }
   enter(points: { x: number; z: number }[], width: number, height: number) {
     this.saved ??= { fov: this.camera.fov, far: this.camera.far, up: this.camera.up.toArray() };
     this.fit(points, width, height); this.update();

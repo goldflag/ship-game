@@ -1,0 +1,54 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Fleet AA review</title>
+<style>body{margin:0;background:#132d38;color:#edf1ec;font:14px sans-serif}#scene{width:1280px;height:720px}canvas{display:block}output{position:fixed;left:12px;top:12px;background:#132d38;padding:8px}</style>
+<div id="scene"></div><output>Loading AA review…</output><script type="module">
+import { Game } from '/src/game/Game.ts';
+import { shipPreset } from '/src/ships/presets.ts';
+import { antiAircraftRange } from '/src/ships/armament.ts';
+window.addEventListener('unhandledrejection',event=>window.reviewError=String(event.reason));
+const definition=shipPreset(new URLSearchParams(location.search).get('ship'));
+const status=document.querySelector('output');let ready;
+const loaded=new Promise(resolve=>ready=resolve);
+const game=new Game(document.querySelector('#scene'),{quality:'medium',sea:'Fair',resolution:1},{
+  ready,progress:s=>status.textContent=s,telemetry:()=>{},pause:()=>{},hud:()=>{},error:s=>window.reviewError=s,
+},definition);
+window.reviewGame=game;game.start();await loaded;
+game.setInPort(true);game.setPaused(true);game.scheduleFrame=()=>{};cancelAnimationFrame(game.raf);await game.frameTask;
+game.rig.update=()=>{};
+async function still(){for(let i=0;i<2;i++){game.renderer._nodes.nodeFrame.update();await game.frame(performance.now());}game.pipeline.render();return game.renderer.domElement.toDataURL('image/png');}
+const poses=[];
+for(const trainFraction of [-1,0,1])for(const elevationFraction of [0,.5,1]){
+  game.previewArticulation({trainFraction,elevationFraction,recoilFraction:.75});
+  await still();
+  poses.push({trainFraction,elevationFraction,maxMuzzleError:Math.max(...game.playerView.muzzleErrors())});
+}
+// Neighboring mounts must also be checked in different poses after integration.
+for(let offset=0;offset<3;offset++){
+  game.simulation.player.mounts.forEach((state,i)=>{
+    const gun=definition.mounts[i].weapon,phase=(i+offset)%3;
+    state.train=(phase-1)*gun.traverseDeg*Math.PI/180;
+    state.elevation=(gun.elevationMinDeg+(gun.elevationMaxDeg-gun.elevationMinDeg)*phase/2)*Math.PI/180;
+    state.recoil=phase/2;
+  });
+  game.playerView.update();await still();
+  poses.push({independentNeighbors:offset,maxMuzzleError:Math.max(...game.playerView.muzzleErrors())});
+}
+game.previewArticulation(null);
+await game.prepareBattle({playerShipId:definition.id,friendlyBots:[],enemies:['enterprise-cv6'],spawnDistance:1000,sea:'Fair'});
+game.setInPort(false);game.setPaused(true);game.simulation.target.controller='idle';
+const planes=game.simulation.target.airWing.planes.slice(0,6),fired=new Set();
+let shots=0;const ammo=game.simulation.player.mounts.reduce((n,m)=>n+m.ammo,0);
+for(let tick=0;tick<600;tick++){
+  planes.forEach((p,i)=>Object.assign(p,{phase:'outbound',hp:100,position:[550+i*18,180+i*12,-60+i*25],velocity:[0,0,0],heading:0,bank:0,pitch:0}));
+  game.simulation.step({throttle:0,rudder:0},{aim:[0,0,-1000],battery:'main',fire:false});
+  for(const event of game.simulation.events)if(event.tick===game.simulation.tick-1&&event.kind==='aircraft-fire'&&event.shipId==='player'){
+    shots++;fired.add(event.message.replace(' · AA fire',''));
+  }
+}
+game.fleetViews.forEach(v=>v.snap());
+game.camera.position.set(110,80,130);game.camera.lookAt(0,12,10);game.camera.updateMatrixWorld();
+window.fleetAaReview={game,still,report:()=>({shipId:definition.id,contentHash:definition.contentHash,poses,shots,
+  eligibleMounts:definition.mounts.filter(antiAircraftRange).length,firingMounts:[...fired],
+  ammoSpent:ammo-game.simulation.player.mounts.reduce((n,m)=>n+m.ammo,0),
+  maxMuzzleError:Math.max(...game.playerView.muzzleErrors()),backend:game.diagnostics().backend})};
+await still();status.textContent=definition.name+' · AA review ready';window.reviewReady=true;
+</script></html>

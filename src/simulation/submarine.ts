@@ -2,7 +2,7 @@ import type { Handling, ShipDefinition } from '../ships/blueprint';
 import type { Combatant } from './damage';
 import { addBreach } from './damage';
 import { systemHealth } from './machinery';
-import type { HelmCommand } from './ship';
+import { hullDepth, type HelmCommand } from './ship';
 import { clamp } from './geometry';
 
 export const DEPTH_STEP_M = 2;
@@ -30,7 +30,7 @@ export function orderDepth(actor: Combatant, definition: ShipDefinition, depthM:
 export function submarinePropulsion(actor: Combatant, def: ShipDefinition): { handling: Handling; power: number } | undefined {
   const equipment = def.submarine;
   if (!equipment) return undefined;
-  const submerged = actor.motion.y < -.5;
+  const submerged = hullDepth(actor.motion) > .5;
   return { handling: submerged ? equipment.submergedHandling : def.handling, power: systemHealth(actor, def, 'engine') };
 }
 
@@ -42,7 +42,7 @@ export function stepSubmarine(actor: Combatant, def: ShipDefinition, command: He
   const s = actor.submarine, equipment = def.submarine;
   if (!s || !equipment || actor.damage.sunk) return;
   if (command.depthM !== undefined) orderDepth(actor, def, command.depthM, command.emergencyBlow);
-  const motion = actor.motion, depth = Math.max(0, -(motion.y - (s.waveHeave ?? 0)));
+  const motion = actor.motion, depth = hullDepth(motion);
   const water = actor.damage.compartments.reduce((sum, c) => sum + c.waterM3, 0);
   const capacity = equipment.ballastCapacityM3;
   const immersion = clamp(depth / Math.max(.5, def.hull.depth - def.hull.draft), 0, 1);
@@ -62,6 +62,7 @@ export function stepSubmarine(actor: Combatant, def: ShipDefinition, command: He
   const previousHeave = s.waveHeave ?? 0;
   s.waveHeave = previousHeave + (seaHeave - previousHeave) * (1 - Math.exp(-dt / 1.5));
   s.waveSpeed = dt > 0 ? (s.waveHeave - previousHeave) / dt : 0;
+  motion.waveHeave = s.waveHeave;
   motion.y = -nextDepth + s.waveHeave;
   motion.verticalSpeed = (nextDepth === 0 ? 0 : -nextSpeed) + s.waveSpeed;
   const pitch = -clamp(nextSpeed / Math.max(3, Math.abs(motion.speed)) * .24, -.14, .14);

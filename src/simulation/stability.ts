@@ -1,3 +1,4 @@
+import { meanHullY } from './ship';
 import { equipmentCondition, systemHealth } from './machinery';
 import type { ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { Combatant } from './damage';
@@ -8,6 +9,8 @@ import { availableAmmunition, type MountDefinition, type MountState } from './we
 
 export type VesselStatus = 'operational' | 'immobile' | 'disarmed' | 'disabled' | 'sinking' | 'capsized';
 export interface StabilityState {
+  sampleRoll?: number; samplePitch?: number; rollSlope?: number; pitchSlope?: number;
+  targetHeave?: number;
   elapsed: number; targetY: number; rollRate: number; pitchRate: number; capsizeSeconds: number; water: WaterBody[];
   rollArm: number; pitchArm: number; displacementM3: number; reserveM3: number; status: VesselStatus; combatLost: boolean;
 }
@@ -39,20 +42,31 @@ export function updateStability(actor: Combatant, def: ShipDefinition, dt: numbe
     // solving for an afloat equilibrium would pull a sinking wreck back up.
     const f = actor.submarine || actor.damage.sunk ? { ...hydrostatics(def.hull, actor.motion.y, actor.motion.roll, actor.motion.pitch), y: actor.motion.y } : flotation(def.hull, volume, actor.motion.roll, actor.motion.pitch);
     const arms = rightingArms(f.center, center, actor.motion.roll, actor.motion.pitch);
+    // The expensive flotation solve runs at 2 Hz. Holding its torque constant
+    // between samples injects energy into short hulls. Linearize the restoring
+    // arm locally so the 60 Hz integrator sees the changing attitude instead.
+    const epsilon = .0001, p = actor.motion;
+    state.sampleRoll = p.roll; state.samplePitch = p.pitch;
+    state.rollSlope = (rightingArms(hydrostatics(def.hull, f.y, p.roll + epsilon, p.pitch).center, center, p.roll + epsilon, p.pitch).roll - arms.roll) / epsilon;
+    state.pitchSlope = (rightingArms(hydrostatics(def.hull, f.y, p.roll, p.pitch + epsilon).center, center, p.roll, p.pitch + epsilon).pitch - arms.pitch) / epsilon;
     const wave = actor.damage.sunk ? undefined : sea;
     state.rollArm = arms.roll + (wave?.roll ?? 0) * def.hull.beam * .07;
     state.pitchArm = arms.pitch + (wave?.pitch ?? 0) * def.hull.length * .4;
-    state.targetY = f.y + (wave?.heave ?? 0);
+    state.targetY = f.y;
+    state.targetHeave = wave?.heave ?? 0;
   }
+  if (actor.damage.sunk) actor.motion.waveHeave = 0;
   const step = dt;
   // Ballast owns intentional submarine depth; stability still owns damage loads.
   if (!actor.submarine && !actor.damage.sunk) {
-    const change = clamp(state.targetY - actor.motion.y, -step, step);
-    actor.motion.y += change;
-    actor.motion.verticalSpeed = change / step;
+    const previousY = actor.motion.y, previousHeave = actor.motion.waveHeave ?? 0;
+    const meanY = meanHullY(actor.motion);
+    actor.motion.waveHeave = previousHeave + clamp((state.targetHeave ?? 0) - previousHeave, -step, step);
+    actor.motion.y = meanY + clamp(state.targetY - meanY, -step, step) + actor.motion.waveHeave;
+    actor.motion.verticalSpeed = (actor.motion.y - previousY) / step;
   }
-  state.rollRate = (state.rollRate + 9.81 * state.rollArm / (def.hull.beam * .4) ** 2 * step) * Math.exp(-step / 4);
-  state.pitchRate = (state.pitchRate + 9.81 * state.pitchArm / (def.hull.length * .28) ** 2 * step) * Math.exp(-step / 3);
+  state.rollRate = (state.rollRate + 9.81 * (state.rollArm + (state.rollSlope ?? 0) * (actor.motion.roll - (state.sampleRoll ?? actor.motion.roll))) / (def.hull.beam * .4) ** 2 * step) * Math.exp(-step / 4);
+  state.pitchRate = (state.pitchRate + 9.81 * (state.pitchArm + (state.pitchSlope ?? 0) * (actor.motion.pitch - (state.samplePitch ?? actor.motion.pitch))) / (def.hull.length * .28) ** 2 * step) * Math.exp(-step / 3);
   actor.motion.roll = clamp(actor.motion.roll + state.rollRate * step, -Math.PI, Math.PI);
   actor.motion.pitch = clamp(actor.motion.pitch + state.pitchRate * step, -Math.PI / 2, Math.PI / 2);
   if (Math.abs(actor.motion.roll) === Math.PI && state.rollRate * actor.motion.roll > 0) state.rollRate = 0;

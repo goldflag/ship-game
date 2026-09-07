@@ -2,14 +2,22 @@ import type { Combatant, Shell } from './damage';
 import type { ShipDefinition, Vec3 } from '../ships/blueprint';
 import { consumeStructure, type LocalDamageEvidence } from './localDamage';
 
-/** Shared gameplay calibration, independent of a preset's geometry or identity.
- * A 70-point 38 cm AP penetration costs 45.5 hull HP: about 32 clean hits on
- * Bismarck's 1,450 HP. Local weapons, machinery and flooding remain separate. */
+/** Converts authored equipment-scale damage to gameplay hull HP. Shared by
+ * historical presets and custom blueprints; preserves relative endurance. */
+export const HULL_HP_SCALE = 35;
+
+/** AP penetration costs 65% of authored damage before scaling and saturation. */
 export const HULL_DAMAGE = { penetration: .65, overpenetration: .15, equipment: .85, hePenetration: .35, heEquipment: .5 } as const;
 
+/** Accepts authored damage units; returns whole gameplay HP lost. Fractional
+ * consumption carries forward so splitting a hit never erases small damage. */
 export function damageHull(actor: Combatant, amount: number, regionId?: string): number {
   if (actor.damage.sunk || actor.damage.stability.combatLost) return 0;
-  const dealt = Math.min(actor.damage.integrity, consumeStructure(actor, Math.max(0, amount), regionId));
+  const consumed = consumeStructure(actor, Math.max(0, amount) * HULL_HP_SCALE, regionId);
+  const pending = consumed + actor.damage.hullDamageRemainder;
+  const whole = Math.floor(pending + 1e-9);
+  actor.damage.hullDamageRemainder = Math.max(0, pending - whole);
+  const dealt = Math.min(actor.damage.integrity, whole);
   actor.damage.integrity -= dealt;
   return dealt;
 }
@@ -30,15 +38,18 @@ export function damageBlastHull(actor: Combatant, def: ShipDefinition, point: Ve
  * delayed burst share this ceiling, including across simulation ticks. */
 export function damageShellHull(shell: Shell, actor: Combatant, total: number, local?: LocalDamageEvidence): number {
   const ledger = shell.hullDamage ??= {};
-  const previous = ledger[actor.motion.id] ?? 0;
+  const consumed = shell.hullDamageConsumed ??= {};
+  const previous = consumed[actor.motion.id] ?? 0;
   // A saturated entry must not spend the intact interior's damage opportunity.
   // Remember nominal contact ceilings separately from HP actually removed.
   const zones = shell.hullRegionDamage ??= {};
   const key = `${actor.motion.id}:${local?.regionId ?? 'legacy'}`;
   const nominal = zones[key] ?? 0;
   zones[key] = Math.max(nominal, total);
+  const remainder = actor.damage.hullDamageRemainder;
   const dealt = damageHull(actor, Math.max(0, Math.min(total - nominal, total - previous)), local?.regionId);
-  ledger[actor.motion.id] = previous + dealt;
+  consumed[actor.motion.id] = previous + (dealt + actor.damage.hullDamageRemainder - remainder) / HULL_HP_SCALE;
+  ledger[actor.motion.id] = (ledger[actor.motion.id] ?? 0) + dealt;
   return dealt;
 }
 

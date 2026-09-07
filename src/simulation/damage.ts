@@ -2,7 +2,7 @@ import { hullContacts } from './hullContact';
 import { structuralHits, EXTERIOR_PLATING_REPLACEMENT_M } from './structure';
 import { createStability, updateSinking, updateStability, waterLevel, type StabilityState } from './stability';
 import { createControl, heatModule, type ControlState } from './damageControl';
-import { damageShellHull, HULL_DAMAGE, penetrationHullDamage } from './durability';
+import { damageShellHull, HULL_DAMAGE, HULL_HP_SCALE, penetrationHullDamage } from './durability';
 import { createRegions, localDamageEvidence, type LocalDamageEvidence, type RegionState } from './localDamage';
 import { supportPerformance } from './machinery';
 import { addBreach } from './breaches';
@@ -40,7 +40,7 @@ export interface DamageState {
   regions: RegionState[];
   control: ControlState; stability: StabilityState;
   /** Gameplay hull durability. Equipment HP and physical flooding are separate. */
-  integrity: number; maxIntegrity: number; modules: { id: string; hp: number; detonated: boolean; ignition: number }[];
+  integrity: number; maxIntegrity: number; hullDamageRemainder: number; modules: { id: string; hp: number; detonated: boolean; ignition: number }[];
   compartments: CompartmentState[]; connections: ConnectionState[]; sunk: boolean; defeatCause?: DefeatCause;
 }
 export interface Combatant { torpedoLaunchers?: import('./torpedoes').TorpedoLauncherState[]; depthChargeLaunchers?: { id: string; ammo: number }[]; airWing?: import('./aircraft').AirWingState; motion: ShipState; mounts: MountState[]; damage: DamageState; torpedoTubes?: { id: string; ammo: number }[]; submarine?: import('./submarine').SubmarineState; }
@@ -65,6 +65,8 @@ export interface Shell {
   remainingModuleDamage?: number;
   /** Per-victim hull damage already paid by this projectile. */
   hullDamage?: Record<string, number>;
+  /** Precise authored-scale consumption for the shared projectile ceiling. */
+  hullDamageConsumed?: Record<string, number>;
   hullRegionDamage?: Record<string, number>;
   equipmentDamage?: Record<string, number>;
   wreckageShips?: string[];
@@ -80,14 +82,16 @@ export interface BallisticEffectData {
   normal?: Vec3;
   detonation?: boolean;
   blastRadiusM?: number;
+  /** Exterior underwater burst: render a water column at this CPU sea height. */
+  waterBurstY?: number;
 }
 export interface DamageEvent extends BallisticEffectData { kind: 'penetration' | 'contact' | 'ricochet' | 'stopped' | 'module' | 'sunk' | 'burst'; position: Vec3; message: string; shipId: string; impact?: ImpactRecord; defeatCause?: DefeatCause; }
 /** Displacement-based gameplay durability, shared by every blueprint. */
 export function maxHullIntegrity(def: ShipDefinition): number {
-  return Math.round((300 + 1450 * Math.sqrt(def.hull.massKg / 70_000_000)) / 10) * 10;
+  return Math.round((300 + 1450 * Math.sqrt(def.hull.massKg / 70_000_000)) / 10) * 10 * HULL_HP_SCALE;
 }
 export function createDamage(def: ShipDefinition): DamageState {
-  return { regions: createRegions(def, maxHullIntegrity(def)), stability: createStability(), control: createControl(def), integrity: maxHullIntegrity(def), maxIntegrity: maxHullIntegrity(def), modules: def.modules.map(m => ({ id: m.id, hp: m.hp, detonated: false, ignition: 0 })), compartments: def.compartments.map(c => ({ id: c.id, waterM3: 0, breachAreaM2: 0, breaches: [] })), connections: def.connections.map(c => ({ id: connectionId(c), state: c.state ?? 'open', damageAreaM2: c.state === 'damaged' ? c.areaM2 : 0, fromIndex: def.compartments.findIndex(r => r.id === c.fromId), toIndex: def.compartments.findIndex(r => r.id === c.toId) })), sunk: false };
+  return { hullDamageRemainder: 0, regions: createRegions(def, maxHullIntegrity(def)), stability: createStability(), control: createControl(def), integrity: maxHullIntegrity(def), maxIntegrity: maxHullIntegrity(def), modules: def.modules.map(m => ({ id: m.id, hp: m.hp, detonated: false, ignition: 0 })), compartments: def.compartments.map(c => ({ id: c.id, waterM3: 0, breachAreaM2: 0, breaches: [] })), connections: def.connections.map(c => ({ id: connectionId(c), state: c.state ?? 'open', damageAreaM2: c.state === 'damaged' ? c.areaM2 : 0, fromIndex: def.compartments.findIndex(r => r.id === c.fromId), toIndex: def.compartments.findIndex(r => r.id === c.toId) })), sunk: false };
 }
 export { systemHealth } from './machinery';
 

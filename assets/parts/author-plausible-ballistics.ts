@@ -7,7 +7,7 @@ import { length, scale } from '../../src/simulation/geometry';
 const path = new URL('./guns.json', import.meta.url);
 const catalog = JSON.parse(readFileSync(path, 'utf8'));
 for (const gun of catalog.parts) {
-  if (gun.ballistics && !gun.id.match(/^flak-(105|37|20)-bismarck/)) continue;
+  if (gun.ballistics && !gun.id.match(/^flak-(105|37|20)-bismarck/) && !['type89-127-yamato-twin', 'us-40mm-bofors-baltimore-quad'].includes(gun.id)) continue;
   const area = Math.PI * (gun.caliberM / 2) ** 2;
   const drag = Number((.5 * 1.225 * .25 * area * gun.muzzleSpeed / gun.projectileMassKg).toFixed(5));
   const range = gun.caliberM >= .1 ? 5000 : 1000;

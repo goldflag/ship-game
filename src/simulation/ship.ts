@@ -29,6 +29,8 @@ export interface ShipState {
   distance: number;
   /** World-space vertical velocity, used by diving hulls and weapon inheritance. */
   verticalSpeed?: number;
+  /** Wave displacement, excluded from ballast depth and draft readouts. */
+  waveHeave?: number;
   driftX?: number;
   driftZ?: number;
 }
@@ -45,8 +47,11 @@ export const BISMARCK = {
 } as const;
 
 export function createShipState(id = 'player'): ShipState {
-  return { id, tick: 0, x: 0, y: 0, z: 0, roll: 0, pitch: 0, heading: 0, speed: 0, swaySpeed: 0, rudder: 0, yawRate: 0, distance: 0, verticalSpeed: 0, driftX: 0, driftZ: 0 };
+  return { id, tick: 0, x: 0, y: 0, z: 0, roll: 0, pitch: 0, heading: 0, speed: 0, swaySpeed: 0, rudder: 0, yawRate: 0, distance: 0, verticalSpeed: 0, waveHeave: 0, driftX: 0, driftZ: 0 };
 }
+
+export const meanHullY = (state: { y: number; waveHeave?: number }): number => state.y - (state.waveHeave ?? 0);
+export const hullDepth = (state: { y: number; waveHeave?: number }): number => Math.max(0, -meanHullY(state));
 
 export function motionVelocity(state: ShipState): import('../ships/blueprint').Vec3 {
   const sin = Math.sin(state.heading), cos = Math.cos(state.heading);

@@ -1,4 +1,6 @@
+import { meanHullY } from './ship';
 import type { AirContext, Aircraft } from './aircraft';
+import { antiAircraftRange } from '../ships/armament';
 import { airborne, onFlightDeck } from './aircraft';
 import type { FleetActor } from './battle';
 import { isPassiveAi } from './aiLevels';
@@ -7,12 +9,7 @@ import { add, dot, length, normalize, scale, segmentBox, sub, worldToLocal } fro
 import { motionVelocity } from './ship';
 import { availableAmmunition, muzzleWorld, selectAmmunition, shotDirection, updateMount, type MountDefinition, type MountState } from './weapons';
 
-/** Registered high-angle guns supply AA; the same mount state drives damage,
- * ammunition, obstruction checks and renderer articulation. No ship-ID rules. */
-export function antiAircraftRange(m: MountDefinition): number {
-  if (m.weapon.elevationMaxDeg < 70 || m.weapon.caliberM > .13) return 0;
-  return m.weapon.caliberM > .08 ? 3200 : m.weapon.caliberM > .025 ? 1800 : 1200;
-}
+export { antiAircraftRange } from '../ships/armament';
 
 function clearLane(actor: FleetActor, from: [number, number, number], to: [number, number, number], ctx: AirContext) {
   const delta = sub(to, from), distance = length(delta), direction = normalize(delta);
@@ -32,7 +29,7 @@ function clearLane(actor: FleetActor, from: [number, number, number], to: [numbe
  * miss distance and a bounded hit radius; heavy AA approximates a timed burst. */
 export function updateAntiAircraft(actor: FleetActor, m: MountDefinition, state: MountState, ctx: AirContext, dt: number): boolean {
   const range = antiAircraftRange(m);
-  if (!range || actor.damage.sunk || actor.damage.stability.combatLost || actor.motion.y < -1 || state.hp <= 0 || state.ammo <= 0
+  if (!range || actor.damage.sunk || actor.damage.stability.combatLost || meanHullY(actor.motion) < -1 || state.hp <= 0 || state.ammo <= 0
     || (actor.controller === 'bot' && isPassiveAi(actor.bot?.aiLevel))) return false;
   const origin = muzzleWorld(m, state, 0, actor.motion);
   let target: Aircraft | undefined, closest = range;

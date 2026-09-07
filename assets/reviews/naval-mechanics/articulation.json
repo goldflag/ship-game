@@ -6,42 +6,48 @@
       "muzzle": 0.002160556698349966,
       "ship": "bismarck",
       "torpedoMuzzle": 0,
-      "trainFraction": -0.5
+      "trainFraction": -0.5,
+      "contentHash": "40986fa71bf561510e31e870876a90e83a0068780bec9d11882632c705a7985e"
     },
     {
       "backend": "webgpu",
       "muzzle": 0.002166800275821119,
       "ship": "bismarck",
       "torpedoMuzzle": 0,
-      "trainFraction": 0.5
+      "trainFraction": 0.5,
+      "contentHash": "40986fa71bf561510e31e870876a90e83a0068780bec9d11882632c705a7985e"
     },
     {
       "backend": "webgpu",
       "muzzle": 0.0006805875414346342,
       "ship": "fletcher",
       "torpedoMuzzle": 3.443807619204276e-07,
-      "trainFraction": -0.5
+      "trainFraction": -0.5,
+      "contentHash": "4b09bc943a2050d5170b1990813b5199ea821e3f5b5e32cb6942d22c6cb9564a"
     },
     {
       "backend": "webgpu",
       "muzzle": 0.0006825186182978253,
       "ship": "fletcher",
       "torpedoMuzzle": 4.823381721459094e-07,
-      "trainFraction": 0.5
+      "trainFraction": 0.5,
+      "contentHash": "4b09bc943a2050d5170b1990813b5199ea821e3f5b5e32cb6942d22c6cb9564a"
     },
     {
       "backend": "webgpu",
       "muzzle": 1.377622130174119e-06,
       "ship": "type-viic",
       "torpedoMuzzle": 2.6020255303479814e-06,
-      "trainFraction": -0.5
+      "trainFraction": -0.5,
+      "contentHash": "b5895a3173818f214c649840ef0e18d90abee538929b142b72c7dfef1b1a85f1"
     },
     {
       "backend": "webgpu",
       "muzzle": 1.377622130174119e-06,
       "ship": "type-viic",
       "torpedoMuzzle": 2.6020255303479814e-06,
-      "trainFraction": 0.5
+      "trainFraction": 0.5,
+      "contentHash": "b5895a3173818f214c649840ef0e18d90abee538929b142b72c7dfef1b1a85f1"
     }
   ]
 }

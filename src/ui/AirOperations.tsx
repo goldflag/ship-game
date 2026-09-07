@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type PointerEvent } from 'react';
+import { useEffect, useRef, useState, type PointerEvent, type RefObject } from 'react';
 import type { Game } from '../game/Game';
 import type { Telemetry } from '../game/types';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
@@ -8,9 +8,31 @@ import { chartPoint, chartWorld } from './airChart';
 import { actionAvailable, SQUADRON_ACTIONS, squadronTargetOrder, type SquadronAction, type SquadronTarget } from './airCommands';
 import { Icon } from './Icons';
 import './AirOperations.css';
+import { AirMapNavigation } from './airMapNavigation';
 
 export const duration = (seconds: number) => `${Math.floor(Math.max(0, Math.ceil(seconds)) / 60)}:${String(Math.max(0, Math.ceil(seconds)) % 60).padStart(2, '0')}`;
 const roleLabel = (role: string) => role === 'fighter' ? 'Fighters' : role === 'dive-bomber' ? 'Dive bombers' : 'Torpedo bombers';
+
+// Camera motion is rendered every frame; combat telemetry intentionally stays at 10 Hz.
+// Move the overlay directly so camera motion never waits for a React telemetry render.
+function useMapProjection(ref: RefObject<HTMLElement | SVGSVGElement | null>, game: Game | null, active: boolean) {
+  useEffect(() => {
+    if (!active || !game) return;
+    const update = () => {
+      ref.current?.querySelectorAll<HTMLElement | SVGElement>('[data-map-position]').forEach(element => {
+        const [x, y, z] = JSON.parse(element.dataset.mapPosition!) as number[];
+        const [left, top] = game.projectAirMap(x, z, y);
+        if (element instanceof SVGElement) element.setAttribute('transform', `translate(${left} ${top})`);
+        else { element.style.left = `${left}px`; element.style.top = `${top}px`; }
+      });
+      ref.current?.querySelectorAll<SVGPathElement>('[data-map-path]').forEach(element => {
+        const points = JSON.parse(element.dataset.mapPath!) as number[][];
+        element.setAttribute('d', `M${points.map(([x, y, z]) => game.projectAirMap(x, z, y).join(' ')).join('L')}${element.dataset.closed ? 'Z' : ''}`);
+      });
+    };
+    return game.onCameraFrame(update);
+  }, [ref, game, active]);
+}
 export const mission = (f: FlightSummary) => f.order.kind === 'attack' ? `Strike ${f.targetName ?? 'ship'}`
   : f.order.kind === 'intercept' ? `Intercept ${f.targetName ?? 'squadron'}` : f.order.kind === 'escort' ? `Escort ${f.targetName ?? 'squadron'}`
   : f.order.kind === 'patrol' ? 'Loiter at station' : f.order.kind === 'return' ? 'Return to carrier' : `Defend ${f.targetName ?? 'carrier'}`;
@@ -27,9 +49,11 @@ function SquadronIcon({ role, size = 20 }: { role: FlightSummary['role']; size?:
 }
 
 export function SquadronLabels({ data, game, onOrder, onTarget }: { data: Telemetry; game: Game | null; onOrder?(id: string, team: string): void; onTarget?(id: string, team: string): boolean }) {
-  return <div className={`air-squadron-labels ${data.airOperationsOpen ? 'air-labels-map' : ''}`} aria-label="Squadron names and status">
+  const labels = useRef<HTMLDivElement>(null);
+  useMapProjection(labels, game, !!data.airOperationsOpen);
+  return <div ref={labels} className={`air-squadron-labels ${data.airOperationsOpen ? 'air-labels-map' : ''}`} aria-label="Squadron names and status">
     {data.squadronMarkers?.filter(f => f.screen).map(f => <button key={f.id} className={`air-squadron-tag ${f.team === 'enemy' ? 'air-hostile' : 'air-friendly'} ${data.selectedFlightId === f.id ? 'air-selected' : ''}`}
-      style={{ left: f.screen!.x, top: f.screen!.y }} title={`${f.name} · ${roleLabel(f.role)} · ${mission(f)} · ${f.hp}% condition`}
+      data-map-position={JSON.stringify(f.position)} style={{ left: f.screen!.x, top: f.screen!.y }} title={`${f.name} · ${roleLabel(f.role)} · ${mission(f)} · ${f.hp}% condition`}
       aria-label={`${f.name} · ${roleLabel(f.role)} · ${f.surviving} aircraft · ${f.activity}`}
       tabIndex={data.airOperationsOpen ? 0 : -1}
       onClick={e => { if (!onTarget?.(f.id, f.team) && f.ownerId === data.ship.id) game?.selectFlight(f.id); e.currentTarget.blur(); }}
@@ -53,12 +77,15 @@ export function AirOperations({ data, game, bindings }: { data: Telemetry; game:
   const arm = (action?: SquadronAction) => { armed.current = action; setArmedAction(action); };
   const [size, setSize] = useState({ width: typeof window === 'undefined' ? 1280 : window.innerWidth, height: typeof window === 'undefined' ? 720 : window.innerHeight });
   const map = useRef<SVGSVGElement>(null);
+  useMapProjection(map, game, mapOpen);
   const row = useRef<HTMLDivElement>(null);
   const drag = useRef<{ x: number; y: number; moved: boolean; startX: number; startY: number } | null>(null);
+  const navigation = useRef(new AirMapNavigation());
   const state = useRef({ data, selected, mapOpen, size }); state.current = { data, selected, mapOpen, size };
   const canCommand = data.combat!.result === 'active' && !data.combat!.playerSunk;
   const view = data.airMap ?? { x: data.ship.x, z: data.ship.z, radius: 8000 };
-  const point = (x: number, z: number, altitude = 0) => chartPoint(view, size.width, size.height, x, z, altitude);
+  const point = (x: number, z: number, altitude = 0) => game?.projectAirMap(x, z, altitude) ?? chartPoint(view, size.width, size.height, x, z, altitude);
+  const waterPoint = (x: number, y: number, width: number, height: number) => game ? game.airMapWater(x, y) : chartWorld(view, width, height, x, y);
   const currentFlight = () => state.current.data.combat?.airWing?.groups.find(f => f.id === game?.selectedFlightId) ?? state.current.selected;
   const issue = (order: AirOrder) => {
     const flight = currentFlight();
@@ -99,14 +126,13 @@ export function AirOperations({ data, game, bindings }: { data: Telemetry; game:
       const target = event.target as HTMLElement;
       if (target instanceof HTMLElement && (target.matches('input, textarea, select') || target.isContentEditable)) return;
       const index = /^Digit[1-9]$/.test(event.code) ? Number(event.code.at(-1)) - 1 : event.code === 'Digit0' ? 9 : -1;
-      const pan = { ArrowLeft: [90, 0], ArrowRight: [-90, 0], ArrowUp: [0, 90], ArrowDown: [0, -90] }[event.code];
+      const pan = navigation.current.key(event.code, true);
       const actionKey = ['L', 'A', 'D', 'I', 'E', 'R', 'X', 'V'].find(k => event.code === `Key${k}`);
       const close = bindings.airOperations.includes(event.code);
       const handled = index >= 0 || !!pan || !!actionKey || event.code === 'Escape' || close;
       if (!handled) return;
       event.preventDefault(); event.stopImmediatePropagation();
-      if (pan) game?.panAirMap(pan[0], pan[1]);
-      else if (!event.repeat) {
+      if (!pan && !event.repeat) {
         if (close) game?.setAirOperationsOpen(false);
         else if (event.code === 'Escape') { if (armed.current) arm(); else game?.setAirOperationsOpen(false); }
         else if (index >= 0) { const f = state.current.data.combat?.airWing?.groups[index]; if (f) handlers.current.select(f); }
@@ -119,6 +145,37 @@ export function AirOperations({ data, game, bindings }: { data: Telemetry; game:
   useEffect(() => {
     const element = map.current;
     if (!mapOpen || !element) return;
+    const nav = navigation.current;
+    nav.clear();
+    const clear = () => nav.clear();
+    const keyUp = (event: KeyboardEvent) => { nav.key(event.code, false); };
+    const pointer = (event: globalThis.PointerEvent) => {
+      const target = event.target;
+      if (event.pointerType !== 'mouse' || event.buttons || !(target instanceof Element) || target.closest('button, input, textarea, select, dialog')) {
+        nav.pointer = undefined; return;
+      }
+      const rect = element.getBoundingClientRect();
+      nav.pointer = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+    };
+    const leave = (event: globalThis.PointerEvent) => { if (!event.relatedTarget) nav.pointer = undefined; };
+    let previous = performance.now(), frame: number;
+    const tick = (now: number) => {
+      const dt = (now - previous) / 1000; previous = now;
+      const focused = document.activeElement;
+      if (document.hidden || document.querySelector('dialog[open]') || (focused instanceof HTMLElement && (focused.matches('input, textarea, select') || focused.isContentEditable))) nav.clear();
+      else if (!drag.current) {
+        const [dx, dy] = nav.step(dt, state.current.size.width, state.current.size.height);
+        if (dx || dy) game?.panAirMap(dx, dy);
+      }
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    window.addEventListener('keyup', keyUp, true);
+    window.addEventListener('blur', clear);
+    window.addEventListener('pointermove', pointer);
+    window.addEventListener('pointerdown', clear);
+    window.addEventListener('pointerout', leave);
+    document.addEventListener('visibilitychange', clear);
     const resize = new ResizeObserver(entries => { const { width, height } = entries[0].contentRect; setSize({ width, height }); });
     resize.observe(element);
     const wheel = (event: WheelEvent) => {
@@ -127,7 +184,16 @@ export function AirOperations({ data, game, bindings }: { data: Telemetry; game:
       game?.zoomAirMap(event.deltaY, event.clientX - rect.left, event.clientY - rect.top);
     };
     element.addEventListener('wheel', wheel, { passive: false });
-    return () => { resize.disconnect(); element.removeEventListener('wheel', wheel); drag.current = null; };
+    return () => {
+      cancelAnimationFrame(frame); nav.clear();
+      window.removeEventListener('keyup', keyUp, true);
+      window.removeEventListener('blur', clear);
+      window.removeEventListener('pointermove', pointer);
+      window.removeEventListener('pointerdown', clear);
+      window.removeEventListener('pointerout', leave);
+      document.removeEventListener('visibilitychange', clear);
+      resize.disconnect(); element.removeEventListener('wheel', wheel); drag.current = null;
+    };
   }, [mapOpen, game]);
   const pointerDown = (event: PointerEvent<SVGSVGElement>) => {
     if (event.button !== 0 || (event.target as Element).closest('[data-contact]')) return;
@@ -144,8 +210,8 @@ export function AirOperations({ data, game, bindings }: { data: Telemetry; game:
   const release = (event: PointerEvent<SVGSVGElement>) => {
     if (event.type === 'pointerup' && drag.current && !drag.current.moved && armed.current) {
       const rect = event.currentTarget.getBoundingClientRect();
-      const [x, z] = chartWorld(view, rect.width, rect.height, event.clientX - rect.left, event.clientY - rect.top);
-      target({ kind: 'water', point: [x, 420, z] });
+      const water = waterPoint(event.clientX - rect.left, event.clientY - rect.top, rect.width, rect.height);
+      if (water) target({ kind: 'water', point: [water[0], 420, water[1]] });
     }
     drag.current = null;
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
@@ -155,24 +221,25 @@ export function AirOperations({ data, game, bindings }: { data: Telemetry; game:
   const aircraft = selected ? wing.flights.filter(p => selected.aircraftIds.includes(p.id)) : [];
   return <>
     {mapOpen && <section className="air-battlefield" aria-label="Air operations battlefield">
-      <svg ref={map} className="air-battlefield-map" data-action={armedAction?.kind} viewBox={`0 0 ${size.width} ${size.height}`} tabIndex={0} role="group" aria-label="Battlefield. Drag to pan, scroll to zoom, right-click to order the selected squadron."
+      <svg ref={map} className="air-battlefield-map" data-action={armedAction?.kind} viewBox={`0 0 ${size.width} ${size.height}`} tabIndex={0} role="group" aria-label="Battlefield. Drag, hold arrow keys, or move the mouse to a screen edge to pan. Scroll to zoom, right-click to order the selected squadron."
         onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={release} onPointerCancel={release}
         onContextMenu={event => {
           event.preventDefault(); const rect = event.currentTarget.getBoundingClientRect();
-          const [x, z] = chartWorld(view, rect.width, rect.height, event.clientX - rect.left, event.clientY - rect.top);
-          target({ kind: 'water', point: [x, 420, z] });
+          const water = waterPoint(event.clientX - rect.left, event.clientY - rect.top, rect.width, rect.height);
+          if (water) target({ kind: 'water', point: [water[0], 420, water[1]] });
         }}>
         <rect width="100%" height="100%" fill="transparent"/>
-        {selected?.active && <path className="air-route" d={`M${point(selected.position[0], selected.position[2], selected.position[1]).join(' ')}L${point(selected.destination[0], selected.destination[2]).join(' ')}`}/>}
+        {selected?.active && <path className="air-route" data-map-path={JSON.stringify([selected.position, [selected.destination[0], 0, selected.destination[2]]])} d={`M${point(selected.position[0], selected.position[2], selected.position[1]).join(' ')}L${point(selected.destination[0], selected.destination[2]).join(' ')}`}/>}
         {wing.groups.filter(f => f.active && f.order.kind === 'patrol').map(f => {
           const [x, y] = point(f.destination[0], f.destination[2]);
-          const ring = Array.from({ length: 48 }, (_, i) => { const angle = i * Math.PI / 24; return point(f.destination[0] + Math.cos(angle) * 700, f.destination[2] + Math.sin(angle) * 700); });
+          const ringWorld = Array.from({ length: 48 }, (_, i) => { const angle = i * Math.PI / 24; return [f.destination[0] + Math.cos(angle) * 700, 0, f.destination[2] + Math.sin(angle) * 700]; });
+          const ring = ringWorld.map(([x, y, z]) => point(x, z, y));
           return <g key={f.id} className={`air-station ${f.id === selected?.id ? 'air-selected' : ''}`}>
-            <path d={`M${ring.map(p => p.join(' ')).join('L')}Z`} className="air-loiter-radius"/>
-            <g transform={`translate(${x} ${y})`}><path d="M-8 0H8M0-8V8"/><circle r="4"/><text x="11" y="15">{f.name}</text></g>
+            <path data-map-path={JSON.stringify(ringWorld)} data-closed="true" d={`M${ring.map(p => p.join(' ')).join('L')}Z`} className="air-loiter-radius"/>
+            <g data-map-position={JSON.stringify([f.destination[0], 0, f.destination[2]])} transform={`translate(${x} ${y})`}><path d="M-8 0H8M0-8V8"/><circle r="4"/><text x="11" y="15">{f.name}</text></g>
           </g>;
         })}
-        {data.combat!.contacts.filter(c => !c.sunk).map(c => <g key={c.id} data-contact="ship" className={`air-map-ship ${c.team === 'enemy' ? 'air-hostile' : 'air-friendly'}`} transform={`translate(${point(c.x, c.z).join(' ')})`}
+        {data.combat!.contacts.filter(c => !c.sunk).map(c => <g key={c.id} data-contact="ship" data-map-position={JSON.stringify([c.x, 0, c.z])} className={`air-map-ship ${c.team === 'enemy' ? 'air-hostile' : 'air-friendly'}`} transform={`translate(${point(c.x, c.z).join(' ')})`}
           role="button" tabIndex={0} aria-label={`${c.name} · ${c.team}. ${c.team === 'enemy' ? 'Right-click to strike' : 'Right-click to defend'}`}
           onClick={() => { if (armed.current) commandShip(c.id, c.team); else if (c.team === 'enemy') game?.selectTarget(c.id); }}
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); commandShip(c.id, c.team); } }}

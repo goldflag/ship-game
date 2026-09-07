@@ -1,5 +1,22 @@
 # Yamato discrepancy register
 
+## Fleet AA gameplay integration
+
+The twelve existing twin 127 mm fittings are now registered as `ha--1-1` through
+`ha--1-6` and `ha-1-1` through `ha-1-6`, preserving their original assembly IDs.
+The blueprint owns their positions and bearings; the original open/hooded geometry
+has separate yaw, elevation, recoil and muzzle joints. Platforms remain fixed.
+The model now exports 17 mounts and 39 muzzle chains. The 52 triple and six single
+25 mm fittings retain their visual role, including those attached to turret roofs.
+
+The 5-second reload, 16°/s training/elevation, ±100° local train, 85° elevation,
+300 rounds per barrel, AA range/spread/damage and connection to the aft secondary
+magazine are gameplay approximations. Barrel axes now share the exporter's neutral
+1° pose; shield apertures and high-elevation clearances remain simplified.
+These changes do not resolve Y-08's final-fit evidence gaps. Fixed review views
+and current WebGPU articulation/firing evidence are recorded in
+`assets/reviews/fleet-aa/README.md`; earlier reports retain their original hashes.
+
 ## Damage-model integration, 2026-09-05 Pacific
 
 The fidelity geometry and 27 named room envelopes are retained while integrating master's damage model. Residual spaces and finite-angle buoyancy regions were regenerated around this hull and these rooms, not copied from the earlier geometry: 195 total spaces, 440 closed connections and 174 buoyancy regions. Room boundaries, permeability, capacities, reference loading and mass distribution remain estimated gameplay inputs, not an as-built damage-control or stability plan.
@@ -95,3 +112,8 @@ Stable assembly, joint and socket IDs are retained. Original recipes own these c
 ## Local damage and fire calibration — 2026-09-06
 
 Local regions, generator and director proxies, combustible loads and smoke outlets are independently authored gameplay estimates from the existing layout. They are not historically measured structural subdivisions, generator schedules or ventilation plans. Electrical supply is aggregated with manual gun fallback; directors share a targeting penalty. Breach overlap uses bounded aperture sampling. See `assets/ships/author-local-damage.ts`.
+
+
+## Plausible ballistics integration — 2026-09-07
+
+The newly registered AA fitting uses the same mass/bore-based linear air-resistance estimate as the fleet's repaired profiles (`assets/parts/author-plausible-ballistics.ts`). This replaces the provisional 0.015/s placeholder. Geometry, attachment, articulation and historical provenance remain the accepted source model; this calibration does not certify a historical firing table.

@@ -1,3 +1,4 @@
+import { hullDepth } from './ship';
 import { oceanMap, type OceanMapId } from '../maps/catalog';
 import { battleEnvironment, type WeatherId } from '../maps/conditions';
 import type { FleetActor } from './battle';
@@ -23,7 +24,7 @@ export function seaHeight(sea: SeaState, x: number, z: number, time: number): nu
 }
 export function seaResponse(actor: FleetActor, sea: SeaState, time: number) {
   const h = actor.definition.hull, p = actor.motion;
-  const depth = actor.submarine ? Math.max(0, -p.y) : 0;
+  const depth = actor.submarine ? hullDepth(p) : 0;
   const attenuation = Math.exp(-depth / 8);
   const at = (x: number, z: number) => {
     const point = localToWorld([x, 0, z], { ...p, y: 0, roll: 0, pitch: 0 });
@@ -39,7 +40,7 @@ export function seaResponse(actor: FleetActor, sea: SeaState, time: number) {
 /** Added wave-making resistance depends on relative heading and hull size.
  * Wind produces gradual leeway, with sheltered/submerged hulls responding less. */
 export function seaHandling(actor: FleetActor, sea: SeaState) {
-  const p = actor.motion, submerged = actor.submarine && p.y < -.5;
+  const p = actor.motion, submerged = actor.submarine && hullDepth(p) > .5;
   const encounter = (1 - Math.sin(p.heading - sea.direction)) / 2;
   return { resistance: submerged ? 0 : clamp(sea.amplitudeM / Math.sqrt(actor.definition.hull.length) * (.7 + 2.3 * encounter), 0, .35),
     drift: [Math.cos(sea.direction), Math.sin(sea.direction)].map(n => submerged ? 0 : n * sea.windMps * .015) as [number, number] };

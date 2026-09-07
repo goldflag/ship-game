@@ -3,6 +3,31 @@ import { PerspectiveCamera, Plane, Raycaster, Vector2, Vector3 } from 'three/web
 import { BattlefieldCamera } from './BattlefieldCamera';
 import { chartPoint, chartWorld } from '../ui/airChart';
 
+test('camera ascends continuously, reverses from the displayed pose, and respects reduced motion', () => {
+  const camera = new PerspectiveCamera(52, 1.6, .5, 60000);
+  camera.position.set(0, 50, 300); camera.lookAt(0, 0, 0);
+  const ship = camera.clone(), map = new BattlefieldCamera(camera);
+  map.beginTransition(); map.enter([{ x: 0, z: 0 }], 1280, 800);
+  const destination = camera.clone(); map.applyTransition(0);
+  expect(camera.position.toArray()).toEqual(ship.position.toArray());
+  map.update(); map.applyTransition(.7);
+  expect(camera.position.y).toBeGreaterThan(ship.position.y);
+  expect(camera.position.y).toBeLessThan(destination.position.y);
+  const mid = camera.clone();
+  map.beginTransition(); map.exit();
+  camera.position.copy(ship.position); camera.quaternion.copy(ship.quaternion); map.applyTransition(0);
+  expect(camera.position.toArray()).toEqual(mid.position.toArray());
+  camera.position.copy(ship.position); camera.quaternion.copy(ship.quaternion); camera.fov = ship.fov;
+  map.applyTransition(1.4);
+  expect(camera.position.distanceTo(ship.position)).toBeLessThan(1e-8);
+  expect(camera.quaternion.angleTo(ship.quaternion)).toBeLessThan(1e-7);
+  expect(camera.fov).toBe(ship.fov); expect(camera.far).toBe(ship.far);
+  expect(map.transitioning).toBe(false);
+  map.beginTransition(true); map.enter([{ x: 0, z: 0 }], 1280, 800); map.applyTransition(0);
+  expect(map.transitioning).toBe(false);
+  expect(camera.position.toArray()).toEqual(destination.position.toArray());
+});
+
 for (const [width, height] of [[1440, 900], [700, 550], [390, 844]]) test(`tilted battlefield projects targets and water commands consistently at ${width}×${height}`, () => {
   const camera = new PerspectiveCamera(17, width / height, .5, 60000);
   const map = new BattlefieldCamera(camera);

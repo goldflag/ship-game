@@ -12,7 +12,7 @@ import { equipmentCondition, supportPerformance, type EquipmentCondition } from 
 import { equipmentIntegrity } from './durability';
 import { fireReadout, regionReadout, type FireReadout } from './damageReadout';
 import { DamageLog, type DamageLogEntry } from './damageLog';
-import { createShipState, FIXED_DT, stepShip, type HelmCommand } from './ship';
+import { createShipState, FIXED_DT, stepShip, hullDepth, meanHullY, type HelmCommand } from './ship';
 import { add, clamp, length, localToWorld, scale, sub } from './geometry';
 import { availableAmmunition, createMountState, GRAVITY, muzzleWorld, selectAmmunition, shotDirection, solveBallistic, updateMount } from './weapons';
 import { dispersedDirection, dispersedSpeed, travelFactor, velocityPenetration } from './ballistics';
@@ -205,7 +205,7 @@ export class CombatSimulation {
       if (other === this.player) this.playerDamageDealt += damage;
       this.recordDamage(other, actor, ++this.shellSequence, weapon, damage);
     }
-    this.emit({ kind: 'contact', shipId: actor.motion.id, position, hullDamage: damage, message: `${weapon} · ${damage.toFixed(1)} hull damage` });
+    this.emit({ kind: 'contact', shipId: actor.motion.id, position, hullDamage: damage, message: `${weapon} · ${damage} hull damage` });
   };
   private emit = (event: Omit<CombatEvent, 'sequence' | 'tick'>): void => {
     if (event.shell) {
@@ -364,7 +364,7 @@ export class CombatSimulation {
       const outcome = advanceProjectile(shell, this.actors, FIXED_DT, this.emit, this.islands, (x, z) => seaHeight(this.sea, x, z, this.tick * FIXED_DT));
       if (outcome) {
         const history = this.history(shell.id);
-        if (history.outcome === 'flying') history.outcome = outcome;
+        if (history.outcome === 'flying') history.outcome = (outcome === 'splash' || outcome === 'passed-through') && history.impacts.at(-1)?.outcome === 'ricochet' ? 'ricochet' : outcome;
         this.shells.splice(i, 1);
       }
     }
@@ -375,10 +375,10 @@ export class CombatSimulation {
       if (actor === this.player && intent.controlPriority) directControl(actor, intent.controlPriority, intent.controlFocus ?? '');
       updateDamageControl(actor, actor.definition, FIXED_DT, event => this.emit(event));
       const wasSunk = actor.damage.sunk;
-      updateFlooding(actor, actor.definition, FIXED_DT,
-        this.sea.amplitudeM || Math.abs(actor.motion.yawRate * actor.motion.speed) > 1e-6 ? seaResponse(actor, this.sea, this.tick * FIXED_DT) : undefined,
+      const wave = this.sea.amplitudeM || Math.abs(actor.motion.yawRate * actor.motion.speed) > 1e-6 ? seaResponse(actor, this.sea, this.tick * FIXED_DT) : undefined;
+      updateFlooding(actor, actor.definition, FIXED_DT, wave,
         this.sea.amplitudeM ? (x, z) => seaHeight(this.sea, x, z, this.tick * FIXED_DT) : undefined);
-      stepSubmarine(actor, actor.definition, commands.get(actor)!, FIXED_DT, this.sea.amplitudeM ? seaResponse(actor, this.sea, this.tick * FIXED_DT).heave : 0);
+      stepSubmarine(actor, actor.definition, commands.get(actor)!, FIXED_DT, wave?.heave ?? 0);
       updateCapability(actor, actor.definition);
       if ((actor.damage.sunk || actor.damage.stability.combatLost) && !this.creditedLosses.has(actor.motion.id)) {
         this.creditedLosses.add(actor.motion.id);
@@ -480,13 +480,13 @@ export class CombatSimulation {
       ammunitionStock: (battery === 'torpedo' || battery === 'depth-charge' ? [] : mounts).reduce((stock, m) => { const s = this.player.mounts.find(s => s.id === m.id)!; stock.ap += availableAmmunition(s, 'ap'); stock.he += availableAmmunition(s, 'he'); return stock; }, { ap: 0, he: 0 }),
       targetMounts: this.target.definition.mounts.map((m, i) => ({ id: m.id, name: m.name, condition: this.target.mounts[i].hp / 100 })),
       targetId: this.target.motion.id, targetName: this.target.definition.name,
-      ...(this.target.submarine ? { targetDepthM: Math.max(0, -this.target.motion.y) } : {}),
+      ...(this.target.submarine ? { targetDepthM: hullDepth(this.target.motion) } : {}),
       targetRange: Math.hypot(this.target.motion.x - this.ship.x, this.target.motion.z - this.ship.z),
       battle: this.isBattle, result: this.result, playerSunk: this.player.damage.sunk,
       contacts: this.actors.map(actor => ({ id: actor.motion.id, shipId: actor.definition.id, name: actor.definition.name, team: actor.team, controller: actor.controller,
         targetId: actor.targetId, x: actor.motion.x, z: actor.motion.z, heading: actor.motion.heading, integrity: actor.damage.integrity / actor.damage.maxIntegrity, sunk: actor.damage.sunk, status: actor.damage.stability.status, combatLost: actor.damage.stability.combatLost })),
-      targetStatus: this.target.damage.stability.status, playerStatus: this.player.damage.stability.status, targetList: this.target.motion.roll * 180 / Math.PI, targetTrim: this.target.motion.pitch * 180 / Math.PI, targetDraftChange: -this.target.motion.y,
-      playerList: this.ship.roll * 180 / Math.PI, playerTrim: this.ship.pitch * 180 / Math.PI, playerDraftChange: -this.ship.y,
+      targetStatus: this.target.damage.stability.status, playerStatus: this.player.damage.stability.status, targetList: this.target.motion.roll * 180 / Math.PI, targetTrim: this.target.motion.pitch * 180 / Math.PI, targetDraftChange: -meanHullY(this.target.motion),
+      playerList: this.ship.roll * 180 / Math.PI, playerTrim: this.ship.pitch * 180 / Math.PI, playerDraftChange: -meanHullY(this.ship),
       control: structuredClone(this.player.damage.control), targetFires: [...this.target.damage.control.rooms, ...this.target.damage.control.mounts].filter(f => f.intensity > 0).length,
       playerSupport: supportPerformance(this.player, this.player.definition), targetSupport: supportPerformance(this.target, this.target.definition),
       playerFires: fireReadout(this.player, this.player.definition), targetFireDetails: fireReadout(this.target, this.target.definition), targetRegions: regionReadout(this.target, this.target.definition),
@@ -500,10 +500,10 @@ export class CombatSimulation {
       damageLog: this.damageLog.snapshot(),
       playerWater: this.player.damage.compartments.reduce((n, c) => n + c.waterM3, 0),
       ...(this.player.submarine && this.definition.submarine ? { submarine: {
-        depthM: Math.max(0, -this.ship.y), targetDepthM: this.player.submarine.targetDepthM,
+        depthM: hullDepth(this.ship), targetDepthM: this.player.submarine.targetDepthM,
         verticalSpeed: this.ship.verticalSpeed ?? 0, ballastM3: this.player.submarine.ballastM3,
         ballastFraction: this.player.submarine.ballastM3 / this.definition.submarine.ballastCapacityM3,
-        emergencyBlow: this.player.submarine.emergencyBlow, propulsion: this.ship.y < -.5 ? 'Electric' as const : 'Diesel' as const,
+        emergencyBlow: this.player.submarine.emergencyBlow, propulsion: hullDepth(this.ship) > .5 ? 'Electric' as const : 'Diesel' as const,
         maxDepthM: this.definition.submarine.maxDepthM, periscopeDepthM: this.definition.submarine.periscopeDepthM, maxTorpedoDepthM: this.definition.submarine.maxTorpedoDepthM,
       } } : {}),
       targetDefeatCause: this.target.damage.defeatCause,

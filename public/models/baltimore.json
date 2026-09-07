@@ -22846,6 +22846,678 @@
           "basis": "Provisional HE game calibration, not historical shell/stock data. Contact burst; fill 8% of nominal projectile mass, fragment budget caliber/6 in mm, burst damage twice the AP catalog value. 40% HE stock rounded down per barrel. Shares the gun nominal launch mass/speed/drag envelope as an approximation. See assets/parts/author-he.ts."
         }
       }
+    },
+    {
+      "id": "bofors-01",
+      "name": "40 mm Bofors 1",
+      "partId": "us-40mm-bofors-baltimore-quad",
+      "battery": "secondary",
+      "position": [
+        0,
+        7.252237,
+        -76
+      ],
+      "bearingDeg": 0,
+      "rangefinder": false,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "kind": "gun",
+        "barrelSpacing": 0.45,
+        "traverseDeg": 180,
+        "traverseRateDeg": 24,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 24,
+        "armorMm": 6,
+        "ammoPerBarrel": 1200,
+        "penetrationMm": 18,
+        "damage": 2.5,
+        "recoilM": 0.15,
+        "id": "us-40mm-bofors-baltimore-quad",
+        "name": "40 mm Bofors quadruple mount",
+        "massKg": 11000,
+        "barrelCount": 4,
+        "mountingStyle": "open-pedestal",
+        "barbetteRadius": 2.2,
+        "gunhouseSize": [
+          2.4,
+          2.7,
+          1.8
+        ],
+        "pivotHeight": 1.33,
+        "trunnionForward": 0.15,
+        "muzzleForward": 2.064,
+        "barrelBaseRadius": 0.07,
+        "caliberM": 0.04,
+        "reloadSeconds": 0.5,
+        "muzzleSpeed": 881,
+        "projectileMassKg": 0.9,
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay calibration, based on the existing original Baltimore Bofors fitting. Four evenly spaced barrel axes approximate the authored spacing; not a historical fire-control model."
+        }
+      }
+    },
+    {
+      "id": "bofors-02",
+      "name": "40 mm Bofors 2",
+      "partId": "us-40mm-bofors-baltimore-quad",
+      "battery": "secondary",
+      "position": [
+        -7.5,
+        6.1,
+        -45
+      ],
+      "bearingDeg": 290,
+      "rangefinder": false,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "kind": "gun",
+        "barrelSpacing": 0.45,
+        "traverseDeg": 180,
+        "traverseRateDeg": 24,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 24,
+        "armorMm": 6,
+        "ammoPerBarrel": 1200,
+        "penetrationMm": 18,
+        "damage": 2.5,
+        "recoilM": 0.15,
+        "id": "us-40mm-bofors-baltimore-quad",
+        "name": "40 mm Bofors quadruple mount",
+        "massKg": 11000,
+        "barrelCount": 4,
+        "mountingStyle": "open-pedestal",
+        "barbetteRadius": 2.2,
+        "gunhouseSize": [
+          2.4,
+          2.7,
+          1.8
+        ],
+        "pivotHeight": 1.33,
+        "trunnionForward": 0.15,
+        "muzzleForward": 2.064,
+        "barrelBaseRadius": 0.07,
+        "caliberM": 0.04,
+        "reloadSeconds": 0.5,
+        "muzzleSpeed": 881,
+        "projectileMassKg": 0.9,
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay calibration, based on the existing original Baltimore Bofors fitting. Four evenly spaced barrel axes approximate the authored spacing; not a historical fire-control model."
+        }
+      }
+    },
+    {
+      "id": "bofors-03",
+      "name": "40 mm Bofors 3",
+      "partId": "us-40mm-bofors-baltimore-quad",
+      "battery": "secondary",
+      "position": [
+        7.5,
+        6.1,
+        -45
+      ],
+      "bearingDeg": 70,
+      "rangefinder": false,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "kind": "gun",
+        "barrelSpacing": 0.45,
+        "traverseDeg": 180,
+        "traverseRateDeg": 24,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 24,
+        "armorMm": 6,
+        "ammoPerBarrel": 1200,
+        "penetrationMm": 18,
+        "damage": 2.5,
+        "recoilM": 0.15,
+        "id": "us-40mm-bofors-baltimore-quad",
+        "name": "40 mm Bofors quadruple mount",
+        "massKg": 11000,
+        "barrelCount": 4,
+        "mountingStyle": "open-pedestal",
+        "barbetteRadius": 2.2,
+        "gunhouseSize": [
+          2.4,
+          2.7,
+          1.8
+        ],
+        "pivotHeight": 1.33,
+        "trunnionForward": 0.15,
+        "muzzleForward": 2.064,
+        "barrelBaseRadius": 0.07,
+        "caliberM": 0.04,
+        "reloadSeconds": 0.5,
+        "muzzleSpeed": 881,
+        "projectileMassKg": 0.9,
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay calibration, based on the existing original Baltimore Bofors fitting. Four evenly spaced barrel axes approximate the authored spacing; not a historical fire-control model."
+        }
+      }
+    },
+    {
+      "id": "bofors-04",
+      "name": "40 mm Bofors 4",
+      "partId": "us-40mm-bofors-baltimore-quad",
+      "battery": "secondary",
+      "position": [
+        -8.1,
+        8,
+        -26
+      ],
+      "bearingDeg": 290,
+      "rangefinder": false,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "kind": "gun",
+        "barrelSpacing": 0.45,
+        "traverseDeg": 180,
+        "traverseRateDeg": 24,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 24,
+        "armorMm": 6,
+        "ammoPerBarrel": 1200,
+        "penetrationMm": 18,
+        "damage": 2.5,
+        "recoilM": 0.15,
+        "id": "us-40mm-bofors-baltimore-quad",
+        "name": "40 mm Bofors quadruple mount",
+        "massKg": 11000,
+        "barrelCount": 4,
+        "mountingStyle": "open-pedestal",
+        "barbetteRadius": 2.2,
+        "gunhouseSize": [
+          2.4,
+          2.7,
+          1.8
+        ],
+        "pivotHeight": 1.33,
+        "trunnionForward": 0.15,
+        "muzzleForward": 2.064,
+        "barrelBaseRadius": 0.07,
+        "caliberM": 0.04,
+        "reloadSeconds": 0.5,
+        "muzzleSpeed": 881,
+        "projectileMassKg": 0.9,
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay calibration, based on the existing original Baltimore Bofors fitting. Four evenly spaced barrel axes approximate the authored spacing; not a historical fire-control model."
+        }
+      }
+    },
+    {
+      "id": "bofors-05",
+      "name": "40 mm Bofors 5",
+      "partId": "us-40mm-bofors-baltimore-quad",
+      "battery": "secondary",
+      "position": [
+        8.1,
+        8,
+        -26
+      ],
+      "bearingDeg": 70,
+      "rangefinder": false,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "kind": "gun",
+        "barrelSpacing": 0.45,
+        "traverseDeg": 180,
+        "traverseRateDeg": 24,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 24,
+        "armorMm": 6,
+        "ammoPerBarrel": 1200,
+        "penetrationMm": 18,
+        "damage": 2.5,
+        "recoilM": 0.15,
+        "id": "us-40mm-bofors-baltimore-quad",
+        "name": "40 mm Bofors quadruple mount",
+        "massKg": 11000,
+        "barrelCount": 4,
+        "mountingStyle": "open-pedestal",
+        "barbetteRadius": 2.2,
+        "gunhouseSize": [
+          2.4,
+          2.7,
+          1.8
+        ],
+        "pivotHeight": 1.33,
+        "trunnionForward": 0.15,
+        "muzzleForward": 2.064,
+        "barrelBaseRadius": 0.07,
+        "caliberM": 0.04,
+        "reloadSeconds": 0.5,
+        "muzzleSpeed": 881,
+        "projectileMassKg": 0.9,
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay calibration, based on the existing original Baltimore Bofors fitting. Four evenly spaced barrel axes approximate the authored spacing; not a historical fire-control model."
+        }
+      }
+    },
+    {
+      "id": "bofors-06",
+      "name": "40 mm Bofors 6",
+      "partId": "us-40mm-bofors-baltimore-quad",
+      "battery": "secondary",
+      "position": [
+        -8,
+        7.9,
+        28
+      ],
+      "bearingDeg": 260,
+      "rangefinder": false,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "kind": "gun",
+        "barrelSpacing": 0.45,
+        "traverseDeg": 180,
+        "traverseRateDeg": 24,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 24,
+        "armorMm": 6,
+        "ammoPerBarrel": 1200,
+        "penetrationMm": 18,
+        "damage": 2.5,
+        "recoilM": 0.15,
+        "id": "us-40mm-bofors-baltimore-quad",
+        "name": "40 mm Bofors quadruple mount",
+        "massKg": 11000,
+        "barrelCount": 4,
+        "mountingStyle": "open-pedestal",
+        "barbetteRadius": 2.2,
+        "gunhouseSize": [
+          2.4,
+          2.7,
+          1.8
+        ],
+        "pivotHeight": 1.33,
+        "trunnionForward": 0.15,
+        "muzzleForward": 2.064,
+        "barrelBaseRadius": 0.07,
+        "caliberM": 0.04,
+        "reloadSeconds": 0.5,
+        "muzzleSpeed": 881,
+        "projectileMassKg": 0.9,
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay calibration, based on the existing original Baltimore Bofors fitting. Four evenly spaced barrel axes approximate the authored spacing; not a historical fire-control model."
+        }
+      }
+    },
+    {
+      "id": "bofors-07",
+      "name": "40 mm Bofors 7",
+      "partId": "us-40mm-bofors-baltimore-quad",
+      "battery": "secondary",
+      "position": [
+        8,
+        7.9,
+        28
+      ],
+      "bearingDeg": 100,
+      "rangefinder": false,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "kind": "gun",
+        "barrelSpacing": 0.45,
+        "traverseDeg": 180,
+        "traverseRateDeg": 24,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 24,
+        "armorMm": 6,
+        "ammoPerBarrel": 1200,
+        "penetrationMm": 18,
+        "damage": 2.5,
+        "recoilM": 0.15,
+        "id": "us-40mm-bofors-baltimore-quad",
+        "name": "40 mm Bofors quadruple mount",
+        "massKg": 11000,
+        "barrelCount": 4,
+        "mountingStyle": "open-pedestal",
+        "barbetteRadius": 2.2,
+        "gunhouseSize": [
+          2.4,
+          2.7,
+          1.8
+        ],
+        "pivotHeight": 1.33,
+        "trunnionForward": 0.15,
+        "muzzleForward": 2.064,
+        "barrelBaseRadius": 0.07,
+        "caliberM": 0.04,
+        "reloadSeconds": 0.5,
+        "muzzleSpeed": 881,
+        "projectileMassKg": 0.9,
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay calibration, based on the existing original Baltimore Bofors fitting. Four evenly spaced barrel axes approximate the authored spacing; not a historical fire-control model."
+        }
+      }
+    },
+    {
+      "id": "bofors-08",
+      "name": "40 mm Bofors 8",
+      "partId": "us-40mm-bofors-baltimore-quad",
+      "battery": "secondary",
+      "position": [
+        -7.1,
+        5.8,
+        50
+      ],
+      "bearingDeg": 260,
+      "rangefinder": false,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "kind": "gun",
+        "barrelSpacing": 0.45,
+        "traverseDeg": 180,
+        "traverseRateDeg": 24,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 24,
+        "armorMm": 6,
+        "ammoPerBarrel": 1200,
+        "penetrationMm": 18,
+        "damage": 2.5,
+        "recoilM": 0.15,
+        "id": "us-40mm-bofors-baltimore-quad",
+        "name": "40 mm Bofors quadruple mount",
+        "massKg": 11000,
+        "barrelCount": 4,
+        "mountingStyle": "open-pedestal",
+        "barbetteRadius": 2.2,
+        "gunhouseSize": [
+          2.4,
+          2.7,
+          1.8
+        ],
+        "pivotHeight": 1.33,
+        "trunnionForward": 0.15,
+        "muzzleForward": 2.064,
+        "barrelBaseRadius": 0.07,
+        "caliberM": 0.04,
+        "reloadSeconds": 0.5,
+        "muzzleSpeed": 881,
+        "projectileMassKg": 0.9,
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay calibration, based on the existing original Baltimore Bofors fitting. Four evenly spaced barrel axes approximate the authored spacing; not a historical fire-control model."
+        }
+      }
+    },
+    {
+      "id": "bofors-09",
+      "name": "40 mm Bofors 9",
+      "partId": "us-40mm-bofors-baltimore-quad",
+      "battery": "secondary",
+      "position": [
+        7.1,
+        5.8,
+        50
+      ],
+      "bearingDeg": 100,
+      "rangefinder": false,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "kind": "gun",
+        "barrelSpacing": 0.45,
+        "traverseDeg": 180,
+        "traverseRateDeg": 24,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 24,
+        "armorMm": 6,
+        "ammoPerBarrel": 1200,
+        "penetrationMm": 18,
+        "damage": 2.5,
+        "recoilM": 0.15,
+        "id": "us-40mm-bofors-baltimore-quad",
+        "name": "40 mm Bofors quadruple mount",
+        "massKg": 11000,
+        "barrelCount": 4,
+        "mountingStyle": "open-pedestal",
+        "barbetteRadius": 2.2,
+        "gunhouseSize": [
+          2.4,
+          2.7,
+          1.8
+        ],
+        "pivotHeight": 1.33,
+        "trunnionForward": 0.15,
+        "muzzleForward": 2.064,
+        "barrelBaseRadius": 0.07,
+        "caliberM": 0.04,
+        "reloadSeconds": 0.5,
+        "muzzleSpeed": 881,
+        "projectileMassKg": 0.9,
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay calibration, based on the existing original Baltimore Bofors fitting. Four evenly spaced barrel axes approximate the authored spacing; not a historical fire-control model."
+        }
+      }
+    },
+    {
+      "id": "bofors-10",
+      "name": "40 mm Bofors 10",
+      "partId": "us-40mm-bofors-baltimore-quad",
+      "battery": "secondary",
+      "position": [
+        -7.1,
+        6,
+        68
+      ],
+      "bearingDeg": 200,
+      "rangefinder": false,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "kind": "gun",
+        "barrelSpacing": 0.45,
+        "traverseDeg": 180,
+        "traverseRateDeg": 24,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 24,
+        "armorMm": 6,
+        "ammoPerBarrel": 1200,
+        "penetrationMm": 18,
+        "damage": 2.5,
+        "recoilM": 0.15,
+        "id": "us-40mm-bofors-baltimore-quad",
+        "name": "40 mm Bofors quadruple mount",
+        "massKg": 11000,
+        "barrelCount": 4,
+        "mountingStyle": "open-pedestal",
+        "barbetteRadius": 2.2,
+        "gunhouseSize": [
+          2.4,
+          2.7,
+          1.8
+        ],
+        "pivotHeight": 1.33,
+        "trunnionForward": 0.15,
+        "muzzleForward": 2.064,
+        "barrelBaseRadius": 0.07,
+        "caliberM": 0.04,
+        "reloadSeconds": 0.5,
+        "muzzleSpeed": 881,
+        "projectileMassKg": 0.9,
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay calibration, based on the existing original Baltimore Bofors fitting. Four evenly spaced barrel axes approximate the authored spacing; not a historical fire-control model."
+        }
+      }
+    },
+    {
+      "id": "bofors-11",
+      "name": "40 mm Bofors 11",
+      "partId": "us-40mm-bofors-baltimore-quad",
+      "battery": "secondary",
+      "position": [
+        7.1,
+        6,
+        68
+      ],
+      "bearingDeg": 160,
+      "rangefinder": false,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "kind": "gun",
+        "barrelSpacing": 0.45,
+        "traverseDeg": 180,
+        "traverseRateDeg": 24,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 24,
+        "armorMm": 6,
+        "ammoPerBarrel": 1200,
+        "penetrationMm": 18,
+        "damage": 2.5,
+        "recoilM": 0.15,
+        "id": "us-40mm-bofors-baltimore-quad",
+        "name": "40 mm Bofors quadruple mount",
+        "massKg": 11000,
+        "barrelCount": 4,
+        "mountingStyle": "open-pedestal",
+        "barbetteRadius": 2.2,
+        "gunhouseSize": [
+          2.4,
+          2.7,
+          1.8
+        ],
+        "pivotHeight": 1.33,
+        "trunnionForward": 0.15,
+        "muzzleForward": 2.064,
+        "barrelBaseRadius": 0.07,
+        "caliberM": 0.04,
+        "reloadSeconds": 0.5,
+        "muzzleSpeed": 881,
+        "projectileMassKg": 0.9,
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay calibration, based on the existing original Baltimore Bofors fitting. Four evenly spaced barrel axes approximate the authored spacing; not a historical fire-control model."
+        }
+      }
+    },
+    {
+      "id": "bofors-12",
+      "name": "40 mm Bofors 12",
+      "partId": "us-40mm-bofors-baltimore-quad",
+      "battery": "secondary",
+      "position": [
+        0,
+        6.888325,
+        97
+      ],
+      "bearingDeg": 180,
+      "rangefinder": false,
+      "fire": {
+        "fuelSeconds": 45,
+        "ignitionHeat": 0.5,
+        "heatPerDamage": 0.014
+      },
+      "weapon": {
+        "kind": "gun",
+        "barrelSpacing": 0.45,
+        "traverseDeg": 180,
+        "traverseRateDeg": 24,
+        "elevationMinDeg": -10,
+        "elevationMaxDeg": 85,
+        "elevationRateDeg": 24,
+        "armorMm": 6,
+        "ammoPerBarrel": 1200,
+        "penetrationMm": 18,
+        "damage": 2.5,
+        "recoilM": 0.15,
+        "id": "us-40mm-bofors-baltimore-quad",
+        "name": "40 mm Bofors quadruple mount",
+        "massKg": 11000,
+        "barrelCount": 4,
+        "mountingStyle": "open-pedestal",
+        "barbetteRadius": 2.2,
+        "gunhouseSize": [
+          2.4,
+          2.7,
+          1.8
+        ],
+        "pivotHeight": 1.33,
+        "trunnionForward": 0.15,
+        "muzzleForward": 2.064,
+        "barrelBaseRadius": 0.07,
+        "caliberM": 0.04,
+        "reloadSeconds": 0.5,
+        "muzzleSpeed": 881,
+        "projectileMassKg": 0.9,
+        "ballistics": {
+          "dragPerSecond": 0.015,
+          "dispersionRad": 0.004,
+          "basis": "Provisional gameplay calibration, based on the existing original Baltimore Bofors fitting. Four evenly spaced barrel axes approximate the authored spacing; not a historical fire-control model."
+        }
+      }
     }
   ],
   "structures": [
@@ -110654,7 +111326,7 @@
   "accuracy": {
     "exterior": "LOA, beam, waterline length and limiting keel draft are documented in NAVSHIPS 250-010. Top envelope and longitudinal stations are measured from the Navy camouflage drawing. Underwater sections and smaller fittings remain interpreted. See reports/discrepancies.md.",
     "internals": "Physical protection surfaces and contained provisional room envelopes. Thickness families, boundaries, capacities, flooding and ballistics remain estimates; see fidelity-01 evidence.",
-    "weapons": "Original catalog-based 8-inch triple / 5-inch twin components; primary turret section OP1112 p517. Secondary shield details and AA fittings remain under review."
+    "weapons": "Original catalog-based 8-inch triple / 5-inch twin components; primary turret section OP1112 p517. Secondary shield details and AA fittings remain under review. The twelve quad 40 mm Bofors mounts now use shared aiming, finite ammunition and damage alongside the six twin 5-inch DP mounts. AA rates and arcs are gameplay approximations; the single 20 mm fittings remain visual."
   },
   "viewpoints": {
     "bridge": [
@@ -113754,5 +114426,5 @@
     "basis": "Original game calibration: eight longitudinal sections, independent sides and three height bands, with separate gunhouse budgets. Generator/director proxy positions and fire loads are estimated; no historical structural tolerance, electrical routing, ventilation or crew-performance claim."
   },
   "compilerVersion": 1,
-  "contentHash": "32e3e48313128baaba630d594b815d1b54ecdc8e7b8c165ec3a91293615992f6"
+  "contentHash": "d51b9a257be75c99ac6cfd835255d4c4de2f78fa51421b8c6a1ffae635c0dffc"
 }

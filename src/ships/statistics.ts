@@ -1,5 +1,6 @@
 import type { GunPart, ShipDefinition } from './blueprint';
-import { torpedoArcLabel } from './armament';
+import { ANTI_AIRCRAFT_MAX_CALIBER_M, antiAircraftRange, torpedoArcLabel } from './armament';
+import { HULL_HP_SCALE } from '../simulation/durability';
 import { maxHullIntegrity } from '../simulation/damage';
 import { KNOTS_PER_MPS } from '../simulation/ship';
 import { GRAVITY } from '../simulation/weapons';
@@ -18,10 +19,9 @@ export interface StatScore { id: StatScoreId; label: string; score: number; help
 const MAX_BALLISTIC_RANGE_M = 30000;
 /** The 0-100 category scores compare every ship against these fixed references, not against each other. */
 export const SCORE_REFERENCES = {
-  hullIntegrity: 1750, armorMm: 410, mainDamagePerMinute: 2000, penetrationMm: 650,
+  hullIntegrity: 1750 * HULL_HP_SCALE, armorMm: 410, mainDamagePerMinute: 2000, penetrationMm: 650,
   dualPurposeDamagePerMinute: 6000, speedKn: 40, yawRateRadPerSecond: 0.05, largestPlanRootM: 130, smallestPlanRootM: 50,
-  /** Dual-purpose and light batteries at or below this bore engage aircraft. */
-  dualPurposeCaliberM: 0.14,
+  dualPurposeCaliberM: ANTI_AIRCRAFT_MAX_CALIBER_M,
 } as const;
 
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
@@ -54,7 +54,7 @@ const knots = (metersPerSecond: number) => metersPerSecond * KNOTS_PER_MPS;
 const format = (n: number, digits = 0) => n.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
 const thickest = (def: ShipDefinition) => def.armor.reduce((best, a) => a.thicknessMm > best.thicknessMm ? a : best, def.armor[0]);
 const mainMounts = (def: ShipDefinition) => def.mounts.filter(m => m.battery === 'main');
-const dualPurposeMounts = (def: ShipDefinition) => def.mounts.filter(m => m.weapon.caliberM <= SCORE_REFERENCES.dualPurposeCaliberM);
+const dualPurposeMounts = (def: ShipDefinition) => def.mounts.filter(m => antiAircraftRange(m) > 0);
 
 /** Gameplay calibration only: each score reads the same simulation inputs the sheet prints. */
 export function shipScores(def: ShipDefinition): StatScore[] {
@@ -66,7 +66,7 @@ export function shipScores(def: ShipDefinition): StatScore[] {
   return [
     { id: 'survivability', label: 'Survivability', score: score(70 * maxHullIntegrity(def) / r.hullIntegrity + 30 * armorMm / r.armorMm), help: `Approximation from displacement and thickest plate against ${r.armorMm} mm. Flooding and stability determine whether the ship sinks.` },
     { id: 'artillery', label: 'Artillery', score: score(70 * damagePerMinute(main) / r.mainDamagePerMinute + 30 * penetration / r.penetrationMm), help: `Main battery damage per minute against ${format(r.mainDamagePerMinute)} and penetration against ${r.penetrationMm} mm.` },
-    { id: 'airDefense', label: 'Air defense', score: score(100 * damagePerMinute(dualPurposeMounts(def)) / r.dualPurposeDamagePerMinute), help: `Damage per minute from guns of ${Math.round(r.dualPurposeCaliberM * 1000)} mm or less against ${format(r.dualPurposeDamagePerMinute)}. Ships without such guns score zero.` },
+    { id: 'airDefense', label: 'Air defense', score: score(100 * damagePerMinute(dualPurposeMounts(def)) / r.dualPurposeDamagePerMinute), help: `Damage per minute from registered guns of ${Math.round(r.dualPurposeCaliberM * 1000)} mm or less with at least 70° elevation, against ${format(r.dualPurposeDamagePerMinute)}. Ships without AA-capable guns score zero.` },
     { id: 'maneuverability', label: 'Maneuverability', score: score(40 * knots(def.handling.forwardSpeed) / r.speedKn + 60 * def.handling.maxYawRate / r.yawRateRadPerSecond), help: `Top speed against ${r.speedKn} kn and turning rate against ${(r.yawRateRadPerSecond * 180 / Math.PI).toFixed(1)}°/s.` },
     { id: 'concealment', label: 'Concealment', score: score(100 * (r.largestPlanRootM - planRoot) / (r.largestPlanRootM - r.smallestPlanRootM)), help: 'Smaller waterline plan (length × beam) scores higher. Detection is not yet simulated.' },
   ];
