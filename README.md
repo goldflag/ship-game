@@ -167,6 +167,8 @@ Gunnery now supports finite AP and HE stocks. Changing shell type takes a full r
 
 In Gunnery, **Own damage control** lets you prioritize fires, flooding or repairs and focus crews on a space or gun mount. Crews take time to set up, shore small accessible holes, close intact open boundaries and use portable pumps. Repairs consume finite supplies, stop at 60% condition and cannot revive destroyed equipment. Target damage shows active fires, list, trim, draft change and loss cause.
 
+Uneven flooding can list a ship while it still has hull HP; bow or stern flooding changes its trim. **Own damage control** now shows your list direction, trim, floodwater and draft change, and target damage names the low side/end too. Draining a survivable load can restore balance. When hull failure, flooding or capsize causes loss, pumps stop and the ship keeps responding to its water load as its descent gathers speed. A wreck can roll over or settle by an end; balanced flooding can still sink it level. See the [flooding and sinking review](assets/reviews/flooding-motion/README.md).
+
 ## Enterprise flight operations
 
 Choose **USS Enterprise** in Custom battle and press **M** for **Air operations**. Enterprise carries **48 aircraft: 18 Wildcats, 18 Dauntlesses and 12 Devastators**. Launch six at a time, with up to four active flights. Twelve deck positions are separate from the hangar inventory; losses last until the next battle. Add an enemy Enterprise to fight opposing air groups; bot carriers launch automatically.
