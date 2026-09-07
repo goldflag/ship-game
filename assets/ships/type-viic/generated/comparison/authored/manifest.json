@@ -24,7 +24,7 @@
       "projection": "ORTHO",
       "visibility": "all",
       "image": "starboard.png",
-      "imageSha256": "e956fe4dff6664d51e5298135c41df9326c0afc3b18bb95bd30319c8af1b4539",
+      "imageSha256": "bfce31157ac61ff1602f6b978990a51b995158ccd1acd6d0f1adb03de60afcb1",
       "cameraMatrixWorld": [
         [
           1.0,
@@ -82,7 +82,7 @@
       "projection": "ORTHO",
       "visibility": "all",
       "image": "port.png",
-      "imageSha256": "899e5a9781257521a0ca7b27d15e69fc092d39a1bd9e21c0febbaeecaebfeb1b",
+      "imageSha256": "15b58b48c241cf0db0f01684723d1f82026db18d18a87560a6e486a18e7e19fd",
       "cameraMatrixWorld": [
         [
           -1.0,
@@ -145,7 +145,7 @@
         0
       ],
       "image": "top.png",
-      "imageSha256": "43390046018341f1572784a70b3b3144c2fa5879ab3a5f448f87d995347b6e64",
+      "imageSha256": "cb0923b3d35bb5a69605913ed6d0ed9c5afc1e8fbefd2e5af87cc9e15cb478b7",
       "cameraMatrixWorld": [
         [
           1.0,
@@ -203,7 +203,7 @@
       "projection": "ORTHO",
       "visibility": "all",
       "image": "bow.png",
-      "imageSha256": "ad07b833da39b51308d46cd7d80892a0bf1b56af570e0c30bde9e465674addd4",
+      "imageSha256": "0b4a644bb874005f5ea2ef40318dfe09a08ce479b4eca07ce9f653783bf20806",
       "cameraMatrixWorld": [
         [
           -4.371138828673793e-08,
@@ -261,7 +261,7 @@
       "projection": "ORTHO",
       "visibility": "all",
       "image": "stern.png",
-      "imageSha256": "af98c984ad30d2bcd578d085c5ff77788a50bea1cc0e7c71a6ebebc68bab8005",
+      "imageSha256": "fe20c0cdce529c0b51095611be2c2d9acd06a6becff17e274cbedd18c07ac872",
       "cameraMatrixWorld": [
         [
           -4.371138828673793e-08,
@@ -319,7 +319,7 @@
       "projection": "ORTHO",
       "visibility": "all",
       "image": "quarter-bow.png",
-      "imageSha256": "ba2092e2179b3b81c1a2314a27cf4e76cfc46352d01c7e39240a5da7a2d461ce",
+      "imageSha256": "b49b1ae82e036957d3817714efb76266a9aaab31d7a1cd939e81dd63702fe252",
       "cameraMatrixWorld": [
         [
           0.8235076069831848,
@@ -377,7 +377,7 @@
       "projection": "ORTHO",
       "visibility": "all",
       "image": "quarter-stern.png",
-      "imageSha256": "9b6cf48d73419feb0c2268f91f3a5bfade70b71fc0893512051ea5ce62ac2574",
+      "imageSha256": "f33b3fb3b6ac7cea5eea89d31394ef4bf9d08997df0751a97ae32f6ad4b9af94",
       "cameraMatrixWorld": [
         [
           -0.7525768280029297,
@@ -435,7 +435,7 @@
       "projection": "ORTHO",
       "visibility": "all",
       "image": "bridge.png",
-      "imageSha256": "8287f7417bdc972376b2aeeb6d651c75bf5c26ae1641672649e284cc36765031",
+      "imageSha256": "0f240bfd0ebf893623387e5e92ca6566e95bc1e8a950efc0009faf8fa06f85d1",
       "cameraMatrixWorld": [
         [
           0.8426963090896606,
@@ -493,7 +493,7 @@
       "projection": "ORTHO",
       "visibility": "all",
       "image": "bridge-profile.png",
-      "imageSha256": "0fcf8ef14b6f68e3d56e1b8ab22c6b83e3ec5eb03e8d6ef91acf688e149d4613",
+      "imageSha256": "11e731844d5eb90f0b450791ac1c240eaa088b2ea915da4b12b68a89e35fb6f7",
       "cameraMatrixWorld": [
         [
           1.0,
@@ -551,7 +551,7 @@
       "projection": "ORTHO",
       "visibility": "all",
       "image": "forward-battery.png",
-      "imageSha256": "64b9eaf5dda86563d3237883359e5f8e6be73575fbd936eff7d425dd70226280",
+      "imageSha256": "28fe79adf57f8b8d4f1cb159f854cd960fa02bc776b1992326bf212af9d78217",
       "cameraMatrixWorld": [
         [
           0.8944271802902222,
@@ -609,7 +609,7 @@
       "projection": "ORTHO",
       "visibility": "all",
       "image": "bow-profile.png",
-      "imageSha256": "0fe5ef5bc89dbd0b9e72e974f99aebc6b6ca70b500c95bf3fea8e505161bdba0",
+      "imageSha256": "87289d531bc32c98f7b830a1bbc6b72f38c2c569e4fbf6dcd80f398ddec49317",
       "cameraMatrixWorld": [
         [
           1.0,
@@ -667,7 +667,7 @@
       "projection": "ORTHO",
       "visibility": "all",
       "image": "stern-equipment.png",
-      "imageSha256": "4066aa3b09e9870e7860177aef15193eb14d3f23a2d3c690cdf150f40f46cb3c",
+      "imageSha256": "d5e286499083a365de784c83c1490449491d752f361632f0e33d08c49763165a",
       "cameraMatrixWorld": [
         [
           0.882352888584137,

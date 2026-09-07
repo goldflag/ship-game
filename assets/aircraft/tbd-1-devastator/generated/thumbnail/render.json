@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "aircraftId": "tbd-1-devastator",
+  "method": "local-blender",
+  "blenderVersion": "5.2.0 LTS",
+  "modelHash": "468479d01d3253e7321282a0a217a2186b82ac1351433892cab9a47a48e0fef0",
+  "recipeHash": "4dac62f77e03bd34d839afece76b69a852415f46fd2d524f1968006c869223bb",
+  "imageHash": "ba8d86e7adeceb9617c5caf2c319e712a4389464a7ae34e7493839a512fc5306",
+  "importedAxes": "nose +Y, starboard +X, up +Z",
+  "projection": "orthographic",
+  "location": [
+    -17.085229873657227,
+    28.240678787231445,
+    19.701759338378906
+  ],
+  "rotationEuler": [
+    1.0413261651992798,
+    3.492159095230818e-08,
+    -2.573068141937256
+  ],
+  "scale": 17.774717330932617,
+  "resolution": [
+    320,
+    144
+  ]
+}

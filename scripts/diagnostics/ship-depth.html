@@ -20,7 +20,7 @@ if(params.has('webgl') && navigator.gpu) navigator.gpu.requestAdapter=async()=>n
 const status = document.querySelector('#status');
 let ready;
 const loaded = new Promise(resolve => ready = resolve);
-const game = new Game(document.querySelector('#scene'), {quality:'medium',sea:'Fair',resolution:1}, {
+const game = new Game(document.querySelector('#scene'), {quality:'medium',resolution:1}, {
   progress:label=>status.textContent=label,ready,telemetry:()=>{},pause:()=>{},hud:()=>{},
   error:message=>{status.textContent=message;window.reviewError=message;},
 });

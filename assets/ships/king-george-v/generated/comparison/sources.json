@@ -1,0 +1,318 @@
+{
+  "configuration": "Early 1941 HMS King George V; before December refit",
+  "policy": "Historical drawings and photographs inform manual original authoring. GameModels3D geometry is restricted to an isolated raster renderer. Production uses the versioned blueprint/catalog and original Python; no game offsets, attachment transforms, UVs, textures or geometry are authoring inputs.",
+  "sources": [
+    {
+      "id": "rmg-b9",
+      "url": "https://www.rmg.co.uk/collections/research-guides/research-guide-b9-royal-navy-hms-king-george-v",
+      "type": "museum research guide",
+      "supports": "Principal dimensions, 1940 standard mean draft/displacement, machinery, gun outfit and performance, early AA fit.",
+      "limitations": "Contains apparent secondary-armament count typo (6 vs eight twins), 80 degree secondary elevation conflicts with Mk I mount data, and a 112 ft extreme envelope inconsistent with commonly cited hull beam. These are not blindly copied.",
+      "accessed": "2026-09-06",
+      "document": "museum research guide",
+      "status": "retained source; interpretation and uncertainty recorded",
+      "limits": "Contains apparent secondary-armament count typo (6 vs eight twins), 80 degree secondary elevation conflicts with Mk I mount data, and a 112 ft extreme envelope inconsistent with commonly cited hull beam. These are not blindly copied."
+    },
+    {
+      "id": "rmg-slr1553",
+      "url": "https://www.rmg.co.uk/collections/objects/rmgc-object-67512",
+      "type": "builder model museum record",
+      "supports": "745 ft length, 103 ft beam, main-battery layout; circa 1940-41 builder model.",
+      "limitations": "Qualitative museum record; not a hull offset table.",
+      "accessed": "2026-09-06",
+      "document": "builder model museum record",
+      "status": "retained source; interpretation and uncertainty recorded",
+      "limits": "Qualitative museum record; not a hull offset table."
+    },
+    {
+      "id": "rmg-npb5306",
+      "url": "https://www.rmg.co.uk/collections/objects/rmgc-object-59263",
+      "type": "Vickers as-fitted drawing, stamped 12 July 1941",
+      "files": [
+        "rmg-forward-sections.jpg"
+      ],
+      "supports": "Forward section shapes and bridge relationships.",
+      "limitations": "1280 px public scan. Fairing is original interpretation, not recovered numeric offsets.",
+      "accessed": "2026-09-06",
+      "fileSha256": {
+        "rmg-forward-sections.jpg": "f34537c333b9cb0087d88864c1c938efe014641f970a850a2227e107b998a59f"
+      },
+      "document": "Vickers as-fitted drawing, stamped 12 July 1941",
+      "status": "retained source; interpretation and uncertainty recorded",
+      "limits": "1280 px public scan. Fairing is original interpretation, not recovered numeric offsets."
+    },
+    {
+      "id": "rmg-npb5307",
+      "url": "https://www.rmg.co.uk/collections/objects/rmgc-object-59264",
+      "type": "Vickers as-fitted drawing, stamped 12 July 1941",
+      "files": [
+        "rmg-59264-j9798.jpg"
+      ],
+      "supports": "Aft section shapes, shafts and rudders.",
+      "limitations": "Public low-resolution scan; appendage geometry and stations approximate.",
+      "accessed": "2026-09-06",
+      "fileSha256": {
+        "rmg-59264-j9798.jpg": "b468fa185e6c02934ff632bbabbccad113cbef86fd8d549a2d1a73c2f024344f"
+      },
+      "document": "Vickers as-fitted drawing, stamped 12 July 1941",
+      "status": "retained source; interpretation and uncertainty recorded",
+      "limits": "Public low-resolution scan; appendage geometry and stations approximate."
+    },
+    {
+      "id": "rmg-npb5308",
+      "url": "https://www.rmg.co.uk/collections/objects/rmgc-object-59265",
+      "type": "Vickers as-fitted profile, stamped 12 July 1941",
+      "files": [
+        "rmg-59265-j9085.jpg",
+        "rmg-59265-j9645.jpg"
+      ],
+      "supports": "Turret/funnel/tower/mast stations and relative heights.",
+      "limitations": "Two online captures of the same sheet, not independent evidence; nominal linear pixel scale registered to LOA, not individual printed frames.",
+      "accessed": "2026-09-06",
+      "fileSha256": {
+        "rmg-59265-j9085.jpg": "ed2e333ce0eed9d137eddde60c79342728ae0473e7b3744b9d89146f84cacc38",
+        "rmg-59265-j9645.jpg": "4ca7fb01af6f9d0ba0a923dcbee6695f34597d1b3c110e0ebcb73d5b5a81a3e7"
+      },
+      "document": "Vickers as-fitted profile, stamped 12 July 1941",
+      "status": "retained source; interpretation and uncertainty recorded",
+      "limits": "Two online captures of the same sheet, not independent evidence; nominal linear pixel scale registered to LOA, not individual printed frames."
+    },
+    {
+      "id": "rmg-npb5309",
+      "url": "https://www.rmg.co.uk/collections/objects/rmgc-object-59266",
+      "type": "Vickers as-fitted upper deck, stamped 12 July 1941",
+      "files": [
+        "rmg-59266-j9646.jpg"
+      ],
+      "supports": "Plan silhouette, A/B/Y and secondary mounting stations, aircraft handling arrangement.",
+      "limitations": "Approximate locations have about 1-2 m scan/interpretation uncertainty.",
+      "accessed": "2026-09-06",
+      "fileSha256": {
+        "rmg-59266-j9646.jpg": "6140c082a627f20e6ba7bbb75d23d8e541809d7d3b1de6bc0e5e12530058f528"
+      },
+      "document": "Vickers as-fitted upper deck, stamped 12 July 1941",
+      "status": "retained source; interpretation and uncertainty recorded",
+      "limits": "Approximate locations have about 1-2 m scan/interpretation uncertainty."
+    },
+    {
+      "id": "rmg-npb5315",
+      "url": "https://www.rmg.co.uk/collections/objects/rmgc-object-59272",
+      "type": "Vickers shelter and boat decks, stamped 12 July 1941",
+      "files": [
+        "rmg-59272-j9647.jpg"
+      ],
+      "supports": "Separate forward/after shelter decks, hangars, boat deck, long cranes and raised secondary platforms.",
+      "limitations": "Small fittings and hidden walls simplified.",
+      "accessed": "2026-09-06",
+      "fileSha256": {
+        "rmg-59272-j9647.jpg": "083672ec915033b7fbac8ac0dfb336285f56473301edee9e50eb16c0dfa2c81f"
+      },
+      "document": "Vickers shelter and boat decks, stamped 12 July 1941",
+      "status": "retained source; interpretation and uncertainty recorded",
+      "limits": "Small fittings and hidden walls simplified."
+    },
+    {
+      "id": "rmg-npb5316",
+      "url": "https://www.rmg.co.uk/collections/objects/rmgc-object-59273",
+      "type": "Vickers bridge decks, stamped 12 July 1941",
+      "files": [
+        "rmg-59273-j9648.jpg"
+      ],
+      "supports": "Tier ordering, bridge breadth, HACS and director distribution.",
+      "limitations": "Chamfered original footprints simplify the printed outlines.",
+      "accessed": "2026-09-06",
+      "fileSha256": {
+        "rmg-59273-j9648.jpg": "b442ce00931d22f041ea2ac1fb57dd46d85d9eb6a7cae616e2fb11289a6335ee"
+      },
+      "document": "Vickers bridge decks, stamped 12 July 1941",
+      "status": "retained source; interpretation and uncertainty recorded",
+      "limits": "Chamfered original footprints simplify the printed outlines."
+    },
+    {
+      "id": "iwm-a3655",
+      "url": "https://www.navweaps.com/Weapons/WNBR_14-45_mk7.php",
+      "type": "IWM Admiralty photograph A3655, March 1941, reproduced by NavWeaps",
+      "files": [
+        "iwm-a3655-forward-turrets.jpg",
+        "iwm-kgv-bow.jpg"
+      ],
+      "supports": "Gunhouse face, visible six forward bores, B turret UP launcher, bridge front.",
+      "limitations": "Photographs are qualitative; bow photograph on same page is a separate view. Rights remain with credited archival source; reference only.",
+      "accessed": "2026-09-06",
+      "fileSha256": {
+        "iwm-a3655-forward-turrets.jpg": "25637fda463802e8f8c96259871482894580ea989f29ac793c3c97843df36d9e",
+        "iwm-kgv-bow.jpg": "a88e3cf07a397bcf003ec78d280ef48705ead139cc2d6779c5caefc9b247eafe"
+      },
+      "document": "IWM Admiralty photograph A3655, March 1941, reproduced by NavWeaps",
+      "status": "retained source; interpretation and uncertainty recorded",
+      "limits": "Photographs are qualitative; bow photograph on same page is a separate view. Rights remain with credited archival source; reference only."
+    },
+    {
+      "id": "rn-mkiii-plan",
+      "url": "https://www.navweaps.com/Weapons/WNBR_14-45_mk7.php",
+      "type": "Royal Navy Mk III mounting plan of gunhouse, plate 2, reproduced by NavWeaps",
+      "files": [
+        "rn-quadruple-turret-drawing.jpg"
+      ],
+      "supports": "Wide quadruple enclosure, transverse rangefinder toward rear, four evenly spaced gun axes.",
+      "limitations": "Reproduced manual plate lacks complete volume/publication provenance on image; original closed facets use approximate dimensions. The twin is an interpreted related component.",
+      "accessed": "2026-09-06",
+      "fileSha256": {
+        "rn-quadruple-turret-drawing.jpg": "7c90deb127098fb636c30b9bf42cd0d81d1dfdad9e9ea83103c78a36deddf755"
+      },
+      "document": "Royal Navy Mk III mounting plan of gunhouse, plate 2, reproduced by NavWeaps",
+      "status": "retained source; interpretation and uncertainty recorded",
+      "limits": "Reproduced manual plate lacks complete volume/publication provenance on image; original closed facets use approximate dimensions. The twin is an interpreted related component."
+    },
+    {
+      "id": "navweaps-mki",
+      "url": "https://www.navweaps.com/Weapons/WNBR_525-50_mk1.php",
+      "type": "secondary technical compilation",
+      "supports": "Mk I elevation -5/+70, 10 degrees/second rates, approximately +/-80 traverse, 0.61 m recoil.",
+      "limitations": "Not treated as an original Mk I general arrangement. Muzzle velocity selected from RMG B9; SAP maps to shared AP solver.",
+      "accessed": "2026-09-06",
+      "document": "secondary technical compilation",
+      "status": "retained source; interpretation and uncertainty recorded",
+      "limits": "Not treated as an original Mk I general arrangement. Muzzle velocity selected from RMG B9; SAP maps to shared AP solver."
+    },
+    {
+      "id": "kgv-protection",
+      "url": "https://en.wikipedia.org/wiki/King_George_V-class_battleship_(1939)#Armour",
+      "type": "secondary summary citing Raven/Roberts, Garzke/Dulin and Burt",
+      "supports": "Nominal differentiated magazine/machinery belt and deck schedule, turret facets and 25 mm secondary splinter armor.",
+      "limitations": "No primary armor plan acquired. Geometry, depth registration, lower taper strata, protective deck shapes and uniform barbette thickness are explicit game approximations. Compound backing layers omitted.",
+      "accessed": "2026-09-06",
+      "document": "secondary summary citing Raven/Roberts, Garzke/Dulin and Burt",
+      "status": "retained source; interpretation and uncertainty recorded",
+      "limits": "No primary armor plan acquired. Geometry, depth registration, lower taper strata, protective deck shapes and uniform barbette thickness are explicit game approximations. Compound backing layers omitted."
+    },
+    {
+      "id": "cafo-501",
+      "url": "https://www.hmshood.org.uk/reference/official/cafo/1941cafo501.htm",
+      "type": "transcription of 1941 Confidential Admiralty Fleet Order 501",
+      "supports": "Royal Navy main/secondary nomenclature conventions.",
+      "limitations": "Arrangement derived separately from plans.",
+      "accessed": "2026-09-06",
+      "document": "transcription of 1941 Confidential Admiralty Fleet Order 501",
+      "status": "retained source; interpretation and uncertainty recorded",
+      "limits": "Arrangement derived separately from plans."
+    },
+    {
+      "id": "rmg-npa4167-excluded",
+      "url": "https://prints.rmg.co.uk/products/inboard-profile-upper-shelter-and-decks-plan-for-king-george-v-1939-j9650",
+      "type": "1944 plan museum listing",
+      "supports": "Configuration boundary only.",
+      "limitations": "1944 aircraft-deck removal and expanded AA deliberately excluded from the 1941 exterior.",
+      "accessed": "2026-09-06",
+      "document": "1944 plan museum listing",
+      "status": "retained source; interpretation and uncertainty recorded",
+      "limits": "1944 aircraft-deck removal and expanded AA deliberately excluded from the 1941 exterior."
+    },
+    {
+      "id": "gm-pbsb107",
+      "url": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb107",
+      "document": "GameModels3D / World of Warships King George V pbsb107; neutral matched raster views",
+      "status": "comparison reference; actual game version and access date recorded by ship:reference",
+      "limits": "Game fit and load datum are not historical ground truth. Reference geometry is confined to isolated raster rendering; original production geometry and materials are authored independently.",
+      "supports": [
+        "Cross-check hull, superstructure silhouette and fitting shapes against historical plans at fixed cameras"
+      ]
+    },
+    {
+      "id": "rmg-npb5265",
+      "url": "https://prints.rmg.co.uk/products/body-plan-for-hms-king-george-v-1939-j9796",
+      "document": "Vickers 1937 body plan NPB5265, with 1938 alterations; 4800 \u00d7 2659 museum scan J9796",
+      "status": "Primary design drawing acquired; manually read for original section reconstruction",
+      "limits": "Predates the 1941 as-fitted drawings. Half-section samples and fairing are interpreted, not recovered numerical offsets. Printed 28 ft design waterline differs from this model\u2019s 29 ft standard-load datum. Ordinate origin remains approximately registered; 35 ft spacing is printed."
+    },
+    {
+      "id": "rmg-j9645-original",
+      "url": "https://prints.rmg.co.uk/products/profile-plan-for-king-george-v-j9645",
+      "document": "Vickers NPB5308 as-fitted profile, 12 July 1941; 4800 \u00d7 1233 original public museum scan",
+      "status": "Primary drawing registered at one uniform LOA scale and keel datum",
+      "limits": "Scanning, drawn lines and load differences retain about 1 m silhouette/height uncertainty. No independent vertical or component fitting."
+    },
+    {
+      "id": "rmg-n31777",
+      "url": "https://prints.rmg.co.uk/products/hms-king-george-v-br-1939-under-way-bound-out-at-scapa-flow-2-april-1941-n31777",
+      "document": "KGV leaving Scapa Flow, 2 April 1941, museum photograph N31777",
+      "status": "Dated exterior appearance evidence",
+      "limits": "Monochrome distant view; weathering and paint tones cannot be recovered colorimetrically."
+    },
+    {
+      "id": "rn-mounting-section",
+      "url": "https://www.navweaps.com/Weapons/WNBR_14-45_mk7_flash1_pic.jpg",
+      "document": "Royal Navy plate 62: Mark II/III flashproofing arrangement (reproduced via Buxton / NavWeaps)",
+      "files": [
+        "historical/rn-mounting-section.jpg"
+      ],
+      "fileSha256": {
+        "historical/rn-mounting-section.jpg": "5c503b0c1b0327949db7a7b40f754792bd69818d9d764e729d8a838fe0a41321"
+      },
+      "accessed": "2026-09-06",
+      "status": "Primary drawing / photograph reproduction retained for revision 3",
+      "supports": "Vertical face, different twin/quad roof profiles, forward sill and apron. Schematic section; local dimensions are interpreted.",
+      "limits": "Vertical face, different twin/quad roof profiles, forward sill and apron. Schematic section; local dimensions are interpreted."
+    },
+    {
+      "id": "rn-mounting-section-key",
+      "url": "https://www.navweaps.com/Weapons/WNBR_14-45_mk7_flash2_pic.jpg",
+      "document": "ADM 234/271 description for plate 62 (reproduced via Buxton / NavWeaps)",
+      "files": [
+        "historical/rn-mounting-section-key.jpg"
+      ],
+      "fileSha256": {
+        "historical/rn-mounting-section-key.jpg": "c7b067856d4c6b6cec3d733ba18a20869bad0d118a28afd19ba7496bb7f41695"
+      },
+      "accessed": "2026-09-06",
+      "status": "Primary drawing / photograph reproduction retained for revision 3",
+      "supports": "Context and labels for the primary mounting section, not an offset table.",
+      "limits": "Context and labels for the primary mounting section, not an offset table."
+    },
+    {
+      "id": "iwm-a3905",
+      "url": "https://www.navweaps.com/Weapons/WNBR_14-45_mk7_POW_pic.jpg",
+      "document": "IWM A3905: Prince of Wales forward turrets, probably trials in 1941",
+      "files": [
+        "historical/iwm-a3905-pow-turrets.jpg"
+      ],
+      "fileSha256": {
+        "historical/iwm-a3905-pow-turrets.jpg": "2787962663b2254a23fa0f945b0a2eeeddbdc4ca54b651ca2789c0dda0d9fc04"
+      },
+      "accessed": "2026-09-06",
+      "status": "Primary drawing / photograph reproduction retained for revision 3",
+      "supports": "Roof plate crown and seams, broad flared rangefinder covers, sparse roof fittings. Sister ship evidence; exact KGV fit is not implied.",
+      "limits": "Roof plate crown and seams, broad flared rangefinder covers, sparse roof fittings. Sister ship evidence; exact KGV fit is not implied."
+    },
+    {
+      "id": "twm-mkiii-1940",
+      "url": "https://www.navweaps.com/Weapons/WNBR_14-45_mk7_pic.jpg",
+      "document": "Tyne & Wear Archives DS.VA/9/PH/5/2: Mk III under construction, April 1940",
+      "files": [
+        "historical/twm-mkiii-construction-1940.jpg"
+      ],
+      "fileSha256": {
+        "historical/twm-mkiii-construction-1940.jpg": "d7160608dae41f60c67a14127415cf3494153c6dd9505a1d3d1086e012f48496"
+      },
+      "accessed": "2026-09-06",
+      "status": "Primary drawing / photograph reproduction retained for revision 3",
+      "supports": "Upright gunface and rounded-bottom elevation openings. Roof incomplete during gun installation.",
+      "limits": "Upright gunface and rounded-bottom elevation openings. Roof incomplete during gun installation."
+    },
+    {
+      "id": "iwm-doy-turret-construction",
+      "url": "https://www.navweaps.com/Weapons/WNBR_14-45_mk7_turret_pic.jpg",
+      "document": "IWM: Duke of York turret under construction, reproduced on NavWeaps",
+      "files": [
+        "historical/iwm-doy-turret-rear-construction.jpg"
+      ],
+      "fileSha256": {
+        "historical/iwm-doy-turret-rear-construction.jpg": "074f574b30484371f81d8de7841323beb2a505b122d257e4958b1c26be17ece1"
+      },
+      "accessed": "2026-09-06",
+      "status": "Primary drawing / photograph reproduction retained for revision 3",
+      "supports": "Rounded gunhouse rear wall and armoured face form; unfinished sister-ship mounting, not dated KGV fittings.",
+      "limits": "Rounded gunhouse rear wall and armoured face form; unfinished sister-ship mounting, not dated KGV fittings."
+    }
+  ]
+}

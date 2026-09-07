@@ -1,16 +1,14 @@
 import { Camera, Mesh, Vector3, type Node, type Object3D, type Scene } from 'three/webgpu';
 import { max } from 'three/tsl';
 import { WaterSurfaceMaterial, type WaterSystem } from '../../vendor/threejs-water-pro/build/index.js';
-import { BISMARCK, type ShipState } from '../simulation/ship';
-import { WakeFoam } from './WakeFoam';
+import { FleetWakeFoam, type WakeShip } from './FleetWakeFoam';
 import type { CombatEvent } from '../simulation/combat';
 
 /** Render-side wake configuration; driven by ship motion, independent of the helm. */
 export class ShipWake {
   private readonly anchor = new Camera();
-  private readonly bow: number;
-  private readonly stern: number;
-  private readonly foam: WakeFoam;
+  private readonly generators = new Map<WakeShip['root'], { bow: number; stern: number }>();
+  private readonly foam: FleetWakeFoam;
   private readonly materials = new Set<WaterSurfaceMaterial>();
   private eventSequence = 0;
 
@@ -23,17 +21,11 @@ export class ShipWake {
     wake.worldSize = 1536;
     // Retain the selected quality's grid resolution: expanding world coverage
     // does not increase the number of cells dispatched per wake solve.
-    this.bow = wake.addGenerator(ship, {
-      active: false, depth: 0.32, radius: 10, offset: new Vector3(0, 0, -112), teleportThreshold: 100,
-    });
-    this.stern = wake.addGenerator(ship, {
-      active: false, depth: 0.18, radius: 14, offset: new Vector3(0, 0, 112), teleportThreshold: 100,
-    });
     wake.friction = 0.065;
     wake.foamBreakThreshold = 0.09;
     wake.foamStrength = 1.2;
     wake.foamPersistence = Math.exp(-(1 / 60) / 9);
-    this.foam = new WakeFoam(Math.min(wake.resolution, 512));
+    this.foam = new FleetWakeFoam(Math.min(wake.resolution, 256));
     const native = wake.getSampler();
     const sampler: ReturnType<WaterSystem['wake']['getSampler']> = {
       sample: (x, z) => native.sample(x, z),
@@ -54,25 +46,42 @@ export class ShipWake {
     this.materials.forEach(material => material.setWakeFieldSampler(sampler));
   }
 
-  update(state: Pick<ShipState, 'x' | 'z' | 'heading' | 'speed'> & { y?: number }, dt: number, events: readonly CombatEvent[] = []): void {
-    for (const event of events) {
-      if (event.sequence <= this.eventSequence) continue;
-      this.eventSequence = event.sequence;
-      if (event.kind === 'splash') this.foam.splash(event.position[0], event.position[2], event.shell?.caliberM ?? .38);
+  update(ships: readonly WakeShip[], dt: number, events: readonly CombatEvent[] = []): void {
+    const freshEvents = events.filter(event => event.sequence > this.eventSequence);
+    for (const event of freshEvents) this.eventSequence = Math.max(this.eventSequence, event.sequence);
+    const focus = ships[0]?.motion;
+    if (focus) this.anchor.position.set(focus.x, 1, focus.z);
+    // The pinned vendor solver accepts 16 generators. Give its local swell
+    // field to the nearest eight hulls; the foam atlas covers every ship.
+    const nearby = ships.filter(ship => Math.abs(ship.motion.x - this.anchor.position.x) < 900
+      && Math.abs(ship.motion.z - this.anchor.position.z) < 900)
+      .sort((a, b) => Math.hypot(a.motion.x - this.anchor.position.x, a.motion.z - this.anchor.position.z)
+        - Math.hypot(b.motion.x - this.anchor.position.x, b.motion.z - this.anchor.position.z)).slice(0, 8);
+    const roots = new Set(nearby.map(ship => ship.root));
+    for (const [root, ids] of this.generators) if (!roots.has(root)) {
+      this.wake.removeGenerator(ids.bow); this.wake.removeGenerator(ids.stern); this.generators.delete(root);
     }
-    this.anchor.position.set(state.x, 1, state.z);
-    const surface = Math.max(0, Math.min(1, 1 + (state.y ?? 0) / 3));
-    const speed = Math.abs(state.speed) * surface;
-    const speedRatio = Math.min(speed / BISMARCK.forwardSpeed, 1);
-    const active = speed > 0.1;
-    const displacement = speedRatio * speedRatio;
-    this.wake.updateGenerator(this.bow, { active, depth: 0.32 * displacement });
-    this.wake.updateGenerator(this.stern, { active, depth: 0.18 * displacement });
-    this.wake.foamStrength = 1.2 * speedRatio;
-    // Water Pro's decay is per solve. Express it in seconds so foam lifetime
-    // and its coupled injection rate remain consistent across frame rates.
+    let strength = 0;
+    for (const ship of nearby) {
+      let ids = this.generators.get(ship.root);
+      if (!ids) {
+        const { length, beam } = ship.definition.hull;
+        ids = {
+          bow: this.wake.addGenerator(ship.root, { active: false, depth: .32, radius: beam * .28, offset: new Vector3(0, 0, -length * .448), teleportThreshold: 100 }),
+          stern: this.wake.addGenerator(ship.root, { active: false, depth: .18, radius: beam * .39, offset: new Vector3(0, 0, length * .448), teleportThreshold: 100 }),
+        };
+        this.generators.set(ship.root, ids);
+      }
+      const surface = Math.max(0, Math.min(1, 1 + ship.motion.y / 3));
+      const speed = Math.abs(ship.motion.speed) * surface;
+      const ratio = Math.min(speed / ship.definition.handling.forwardSpeed, 1);
+      this.wake.updateGenerator(ids.bow, { active: speed > .1, depth: .32 * ratio * ratio });
+      this.wake.updateGenerator(ids.stern, { active: speed > .1, depth: .18 * ratio * ratio });
+      strength = Math.max(strength, ratio);
+    }
+    this.wake.foamStrength = 1.2 * strength;
     if (dt > 0) this.wake.foamPersistence = Math.exp(-dt / 9);
-    this.foam.update({ ...state, speed: state.speed * surface }, dt);
+    this.foam.update(ships, dt, freshEvents);
   }
 
   resetImpacts(): void { this.foam.resetImpacts(); this.eventSequence = 0; }
@@ -85,15 +94,17 @@ export class ShipWake {
     const enabled = this.wake.enabled;
     this.wake.enabled = false;
     this.wake.enabled = enabled;
-    for (const id of [this.bow, this.stern]) {
+    for (const ids of this.generators.values()) for (const id of [ids.bow, ids.stern]) {
       const generator = this.wake.getGenerators().get(id);
       if (generator) generator.isFirstFrame = true;
     }
   }
 
   dispose(): void {
-    this.wake.removeGenerator(this.bow);
-    this.wake.removeGenerator(this.stern);
+    for (const ids of this.generators.values()) {
+      this.wake.removeGenerator(ids.bow); this.wake.removeGenerator(ids.stern);
+    }
+    this.generators.clear();
     this.materials.forEach(material => material.setWakeFieldSampler(this.wake.getSampler()));
     this.foam.dispose();
   }

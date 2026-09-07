@@ -21,7 +21,7 @@ export const SCORE_REFERENCES = {
   hullIntegrity: 1750, armorMm: 410, mainDamagePerMinute: 2000, penetrationMm: 650,
   dualPurposeDamagePerMinute: 6000, speedKn: 40, yawRateRadPerSecond: 0.05, largestPlanRootM: 130, smallestPlanRootM: 50,
   /** Dual-purpose and light batteries at or below this bore engage aircraft. */
-  dualPurposeCaliberM: 0.13,
+  dualPurposeCaliberM: 0.14,
 } as const;
 
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
@@ -73,12 +73,14 @@ export function shipScores(def: ShipDefinition): StatScore[] {
 }
 
 function batteryRows(mounts: ShipDefinition['mounts'], withName: boolean): StatRow[] {
-  const weapon = mounts[0].weapon, count = mounts.length;
-  const layout = `${count} × ${barrels(weapon)}`;
+  const weapon = mounts[0].weapon;
+  const groups = new Map<number, number>();
+  for (const mount of mounts) groups.set(barrels(mount.weapon), (groups.get(barrels(mount.weapon)) ?? 0) + 1);
+  const layout = [...groups].map(([barrels, count]) => `${count} × ${barrels}`).join(' + ');
   return [
     ...(withName ? [{ label: weapon.name, value: layout, help: 'Mounts × barrels per mount.', text: true }] : [{ label: 'Layout', value: layout, help: 'Mounts × barrels per mount.' }]),
     { label: 'Reload', value: format(weapon.reloadSeconds, weapon.reloadSeconds < 10 ? 1 : 0), unit: 's', help: 'Seconds between salvos from one mount.' },
-    { label: 'Salvo damage', value: format(salvoDamage(weapon) * count), help: 'Nominal AP damage budget for the full battery. Actual damage depends on the penetration path and fuze burst.' },
+    { label: 'Salvo damage', value: format(mounts.reduce((sum, m) => sum + salvoDamage(m.weapon), 0)), help: 'Nominal AP damage budget for the full battery. Actual damage depends on the penetration path and fuze burst.' },
     { label: 'Damage per minute', value: format(damagePerMinute(mounts)), help: 'Full-battery salvo damage times salvos per minute.' },
     { label: 'Penetration', value: format(weapon.penetrationMm), unit: 'mm', help: 'AP budget at the reference speed. Velocity, impact angle and plate material determine penetration; sufficient resistance arms the fuze.' },
     { label: 'Muzzle velocity', value: format(weapon.muzzleSpeed), unit: 'm/s', help: 'Nominal launch speed before dispersion. Shells slow under drag and fall under gravity.' },
@@ -132,7 +134,7 @@ export function shipStatistics(def: ShipDefinition): StatSection[] {
   };
   const mainBattery: StatSection | undefined = main.length ? {
     id: 'main-battery', title: 'Main battery', headline: format(Math.round(main[0].weapon.caliberM * 1000)), headlineUnit: 'mm', headlineHelp: `${main[0].weapon.name}. Caliber sets the shell and the gunhouse envelope.`,
-    rows: [{ label: 'Gun', value: main[0].weapon.name, help: 'Weapon fitted to every main battery mount.', text: true }, ...batteryRows(main, false)],
+    rows: [{ label: 'Gun', value: [...new Set(main.map(m => m.weapon.name))].join(' / '), help: 'Weapons fitted to the main battery mounts.', text: true }, ...batteryRows(main, false)],
   } : undefined;
   const secondaryGroups = [...new Map(secondary.map(m => [m.partId, secondary.filter(s => s.partId === m.partId)])).values()];
   const secondaryBattery: StatSection | undefined = secondary.length ? {

@@ -51,12 +51,31 @@ async function port() {
     currentAim: [650, .5, -550], manualAim: true, shellFollow: new ShellFollow(),
     aircraftView: { root: new Group(), async load() {}, diagnostics() { return {}; } },
     effects: { reset() {}, diagnostics() { return {}; } },
+    funnelSmoke: { diagnostics() { return {}; } },
     shipLabels: { setFleet() {} },
     ship: new Group(), inPort: true, disposed: false, switchingShip: false,
     renderer: { domElement: { setAttribute() {} } },
   }) as Game;
   return { game, scene, harbor, camera, rig, playerView };
 }
+
+test('shell commands affect only the active gun battery and reject unavailable rounds or inactive play', () => {
+  const definition = shipPreset('bismarck'), simulation = new CombatSimulation(definition);
+  const game = Object.assign(Object.create(Game.prototype), { definition, simulation, currentAim: [2000, 10, 0],
+    battery: 'main', ammunition: { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' },
+    inPort: false, paused: false, airOperationsOpen: false }) as Game;
+  game.selectAmmunition('he'); expect(game.ammunition.main).toBe('he'); expect(game.ammunition.secondary).toBe('ap');
+  game.battery = 'secondary'; game.selectAmmunition('he'); expect(game.ammunition.secondary).toBe('he');
+  game.selectAmmunition('ap'); expect(game.ammunition.main).toBe('he');
+  for (const state of simulation.player.mounts) { state.ammo -= state.heAmmo; state.heAmmo = 0; }
+  game.selectAmmunition('he'); expect(game.ammunition.secondary).toBe('ap');
+  game.battery = 'torpedo'; game.selectAmmunition('he'); expect(game.ammunition.torpedo).toBe('ap');
+  game.battery = 'main';
+  Object.assign(game, { paused: true }); game.selectAmmunition('ap'); expect(game.ammunition.main).toBe('he');
+  Object.assign(game, { paused: false, inPort: true }); game.selectAmmunition('ap'); expect(game.ammunition.main).toBe('he');
+  Object.assign(game, { inPort: false, airOperationsOpen: true }); game.selectAmmunition('ap'); expect(game.ammunition.main).toBe('he');
+  game.airOperationsOpen = false; simulation.player.damage.sunk = true; game.selectAmmunition('ap'); expect(game.ammunition.main).toBe('he');
+});
 
 test('switching ships retains the port until loading completes, then frames the new hull with the same orbit', async () => {
   const { game, scene, harbor, camera, rig, playerView } = await port();
@@ -108,7 +127,7 @@ test('failed ship loads preserve the old ship and allow retry', async () => {
     for (const id of ['yamato', 'baltimore', 'enterprise-cv6', 'type-viic', 'bismarck']) {
       await game.switchShip(shipPreset(id));
       expect(game.definition.id).toBe(id);
-      expect(scene.children).toHaveLength(4);
+      expect(scene.children).toHaveLength(5); // Harbor, aircraft, two hull roots, fleet draw adapter.
       expect(game.simulation.definition.id).toBe(id);
       expect(game.diagnostics().maxMuzzleErrorM).toBeLessThan(.025);
     }
@@ -135,26 +154,49 @@ test('battle loading binds each mixed fleet hull and selected target to its own 
   const { game, scene, harbor, rig } = await port();
   const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => model(String(url).split('/').pop()!.replace('.glb', '')));
   try {
-    await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck', 'bismarck'], enemies: ['yamato', 'enterprise-cv6'], spawnDistance: 7500, mapId: 'pacific-islands', sea: 'Fair' });
+    await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck', { shipId: 'bismarck', aiLevel: 'hard' }],
+      enemies: [{ shipId: 'yamato', aiLevel: 'static' }, { shipId: 'enterprise-cv6', aiLevel: 'moving' }],
+      spawnDistance: 7500, mapId: 'pacific-islands', timeOfDay: 'night', weather: 'fog' });
     expect(loader).toHaveBeenCalledTimes(4);
     expect(scene.children).toContain(harbor);
-    expect(scene.children).toHaveLength(7);
+    expect(scene.children).toHaveLength(8); // Harbor, aircraft, five hull roots, fleet draw adapter.
     expect(game.simulation.actors).toHaveLength(5);
     expect(game.diagnostics().mapId).toBe('pacific-islands');
-    expect(game.diagnostics().sea).toBe('Fair');
+    expect(game.diagnostics().timeOfDay).toBe('night');
+    expect(game.diagnostics().weather).toBe('fog');
     expect(game.simulation.islands).toHaveLength(3);
     expect(game.simulation.target.motion.z - game.simulation.ship.z).toBe(-7500);
     expect(game.simulation.ship.heading).toBe(0);
     expect(game.simulation.target.motion.heading).toBe(Math.PI);
     const diagnostics = game.diagnostics();
+    expect(diagnostics.fleet.map(actor => actor.aiLevel)).toEqual([undefined, 'normal', 'hard', 'static', 'moving']);
     expect(diagnostics.maxMuzzleErrorM).toBeLessThan(.025);
     expect(diagnostics.renderedShips.filter(ship => ship.visible).map(ship => ship.id)).toEqual(['player']);
     game.selectTarget('enemy-2');
     expect(game.diagnostics().combat.targetName).toBe(shipPreset('enterprise-cv6').name);
     // Returning to an ordinary port ship drops all old battle actors and bindings.
     await game.switchShip(shipPreset('bismarck'));
-    expect(scene.children).toHaveLength(4);
+    expect(scene.children).toHaveLength(5); // Harbor, aircraft, two hull roots, fleet draw adapter.
     expect(game.simulation.isBattle).toBe(false);
+  } finally { loader.mockRestore(); rig.dispose(); }
+});
+
+test('battle preparation reports each loading stage in order for the loading screen', async () => {
+  const { game, rig } = await port();
+  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => model(String(url).split('/').pop()!.replace('.glb', '')));
+  const stages: [string, number][] = [];
+  try {
+    await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck'], enemies: ['yamato', 'enterprise-cv6'], spawnDistance: 7500, mapId: 'pacific-islands' }, (label, fraction) => stages.push([label, fraction]));
+    expect(stages[0][0]).toBe('Charting Pacific Islands');
+    expect(stages.map(([, fraction]) => fraction)).toEqual([...stages.map(([, fraction]) => fraction)].sort((a, b) => a - b));
+    expect(stages.every(([, fraction]) => fraction >= 0 && fraction < 1)).toBe(true);
+    expect(stages.map(([label]) => label)).toContain('Spotting the air wing');
+    expect(stages.map(([label]) => label)).toContain('Mustering the fleets');
+    expect(stages.at(-1)?.[0]).toBe('Forming the battle lines');
+    expect(stages.filter(([label]) => label.startsWith('Loading '))).toHaveLength(4);
+    // A disposed session never renders again, so a pending frame wait must not hang the loading screen.
+    Object.assign(game, { disposed: true });
+    await game.nextFrame();
   } finally { loader.mockRestore(); rig.dispose(); }
 });
 

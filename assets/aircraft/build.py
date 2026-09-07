@@ -195,16 +195,21 @@ glass=M['glass'];glass.use_backface_culling=False;gp=glass.node_tree.nodes.get('
 glass.surface_render_method='BLENDED';glass.use_transparency_overlap=False
 # Standard alpha blend exports portably, with an actual interior behind it.
 
+def author_position(o):
+    p=Vector((0,0,0))
+    while o:p+=o.location;o=o.parent
+    return p
+
 def empty(n,pos=(0,0,0),parent=None,**props):
     o=bpy.data.objects.new(n,None);collection.objects.link(o);o.location=pos;o['nodeId']=n;o.empty_display_size=.15
-    if parent:o.parent=parent;o.location=Vector(pos)-parent.location
+    if parent:o.parent=parent;o.location=Vector(pos)-author_position(parent)
     for k,v in props.items():o[k]=v
     return o
 root=empty('aircraft.root',visualOnly=True,aircraftId=ID,assemblyId='airframe',restPose='gear extended; engine shaft level')
 
 def mesh(name,verts,faces,mat='skin',parent=None,uvs=None,smooth=True):
     data=bpy.data.meshes.new(name);data.from_pydata(verts,[],faces);data.update();o=bpy.data.objects.new(name,data);collection.objects.link(o)
-    par=parent or root;o.parent=par;o.location=-par.location;o['assemblyId']=par.get('nodeId','airframe');data.materials.append(M[mat])
+    par=parent or root;o.parent=par;o.location=-author_position(par);o['assemblyId']=par.get('nodeId','airframe');data.materials.append(M[mat])
     for p in data.polygons:p.use_smooth=smooth
     uv=data.uv_layers.new(name='UVMap')
     for loop in data.loops:uv.data[loop.index].uv=uvs[loop.vertex_index] if uvs else (.08,.975)
@@ -290,13 +295,22 @@ def surface_piece(name,rows,half,t0,t1,q0,q1,sign,parent,upperRect,lowerRect,umi
         if p.index>=ns*nc*2:p.use_smooth=False
     return result
 
+foldSpec=S.get('extras',{}).get('wingFold');foldOwners={}
 for sign,n in [(1,'port'),(-1,'starboard')]:
     aStart=S.get('extras',{}).get('aileronStart',.52);p,h,u=surf_point(S['wing'],HALF,aStart,.74,sign)
-    aj=empty('control.aileron.'+n,p,root,axis='spanwise',limitDegrees=18)
-    surface_piece('inner wing '+n,S['wing'],HALF,0,aStart,0,1,sign,root,WT,WB,wingMin,wingMax)
-    surface_piece('outer wing '+n,S['wing'],HALF,aStart,1,0,.74,sign,root,WT,WB,wingMin,wingMax)
+    owner=root
+    foldT=foldSpec['spanFraction'] if foldSpec else aStart
+    if foldSpec:
+        pivot=(X(foldSpec['pivotU']),sign*HALF*foldT,interp(S['wing'],foldT,3))
+        axis=Vector((-sign,1,sign) if foldSpec['kind']=='sto-wing' else (sign,0,0)).normalized()
+        owner=empty('wing.fold.'+n,pivot,root,foldKind=foldSpec['kind'],foldAxis=[-axis.y,axis.z,-axis.x],foldAngleDegrees=foldSpec['angleDegrees'])
+        foldOwners[sign]=owner
+    aj=empty('control.aileron.'+n,p,owner,axis='spanwise',limitDegrees=18)
+    surface_piece('inner wing '+n,S['wing'],HALF,0,foldT,0,1,sign,root,WT,WB,wingMin,wingMax)
+    if foldT<aStart:surface_piece('folding inner panel '+n,S['wing'],HALF,foldT,aStart,0,1,sign,owner,WT,WB,wingMin,wingMax)
+    surface_piece('outer wing '+n,S['wing'],HALF,aStart,1,0,.74,sign,owner,WT,WB,wingMin,wingMax)
     surface_piece('aileron '+n,S['wing'],HALF,aStart,.985,.743,1,sign,aj,WT,WB,wingMin,wingMax)
-    surface_piece('tip '+n,S['wing'],HALF,.985,1,.74,1,sign,root,WT,WB,wingMin,wingMax)
+    surface_piece('tip '+n,S['wing'],HALF,.985,1,.74,1,sign,owner,WT,WB,wingMin,wingMax)
     # Shallow fairing blends the real wing root into the measured fuselage.
     fairRows=[]
     for t in [0,.08,.13,.18]:
@@ -562,7 +576,7 @@ if SPEC['role'] in ['Fighter','Fighter-bomber'] or G.get('turret'):
         count=3 if ID.startswith(('f4f','f6f','f4u')) else 1
         for j in range(count):
             t=S.get('extras',{}).get('gunSpanFractions',[.27+k*.032 for k in range(count)])[j];p,h,u=surf_point(S['wing'],HALF,t,0,sign)
-            cylinder('wing muzzle',p,(p[0]+.085,p[1],p[2]),.018,'engine',n=10)
+            cylinder('wing muzzle',p,(p[0]+.085,p[1],p[2]),.018,'engine',parent=foldOwners.get(sign) if foldSpec and t>=foldSpec['spanFraction'] else root,n=10)
 # Aircraft-specific bomber equipment shares the same durable geometry helpers.
 exec(compile(DETAIL.read_text(),str(DETAIL),'exec'),globals())
 
@@ -610,6 +624,8 @@ if os.environ.get('AIRCRAFT_REVIEW','1')=='1':
             prop.rotation_euler.x=.7;rj.rotation_euler.z=.30
             for o in collection.objects:
                 nid=o.get('nodeId','')
+                if nid.startswith('wing.fold.'):
+                    a=o['foldAxis'];axis=Vector((-a[2],-a[0],a[1]));o.rotation_euler=Matrix.Rotation(math.radians(o['foldAngleDegrees']),4,axis).to_euler()
                 if nid.startswith('control.elevator'):o.rotation_euler.y=.28
                 if nid.startswith('control.aileron'):o.rotation_euler.y=.23 if nid.endswith('port') else -.23
                 if nid.startswith('gear.') and not o.get('fixed'):o.rotation_euler.x=.95 if nid.endswith('port') else -.95

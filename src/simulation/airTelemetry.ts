@@ -1,6 +1,6 @@
 import type { AircraftRole, Vec3 } from '../ships/blueprint';
 import type { FleetActor } from './battle';
-import { squadronFlights, activeFlight, airServiceAvailable, airborne, deckCapacity, flightSize, onFlightDeck, recoveryQueue, type Aircraft, type AirOrder } from './aircraft';
+import { AIRCRAFT_ENDURANCE_SECONDS, squadronFlights, activeFlight, airServiceAvailable, airborne, deckCapacity, flightSize, onFlightDeck, recoveryQueue, type Aircraft, type AirOrder } from './aircraft';
 import { length, sub } from './geometry';
 
 export type AirStatus = 'ready' | 'launching' | 'on-mission' | 'returning' | 'servicing' | 'lost';
@@ -44,7 +44,7 @@ export function airWingTelemetry(actor: FleetActor, actors: FleetActor[]) {
       total: planes.length, surviving: surviving.length, airborne: flying.length,
       hp: surviving.length ? Math.round(surviving.reduce((n, p) => n + p.hp, 0) / surviving.length) : 0,
       armed: surviving.filter(p => p.role === 'fighter' ? p.ammo > 0 : p.payload).length,
-      enduranceSeconds: Math.max(0, Math.floor(Math.min(650, ...flying.map(p => 650 - p.flightTime)))),
+      enduranceSeconds: Math.max(0, Math.floor(Math.min(AIRCRAFT_ENDURANCE_SECONDS, ...flying.map(p => AIRCRAFT_ENDURANCE_SECONDS - p.flightTime)))),
       rearmSeconds: Math.ceil(Math.max(0, ...surviving.filter(p => p.phase === 'rearming').map(p => p.timer))),
       position, destination: [destination[0], 0, destination[2]],
       activity: status !== 'on-mission' ? AIR_STATUS_LABELS[status]
@@ -74,7 +74,7 @@ export function airWingTelemetry(actor: FleetActor, actors: FleetActor[]) {
     flights: state.planes.map(p => ({ id: p.id, flightId: p.flightId, modelId: p.modelId, role: p.role, phase: p.phase, status: airStatus(p),
       hp: p.hp, payload: p.payload, ammo: p.ammo, location: p.phase === 'lost' ? 'Lost' : onFlightDeck(p) ? 'Deck' : airborne(p) ? 'Airborne' : 'Hangar',
       followable: p.phase !== 'lost' && (onFlightDeck(p) || airborne(p)), lossReason: p.lossReason,
-      enduranceSeconds: Math.max(0, Math.floor(650 - p.flightTime)),
+      enduranceSeconds: Math.max(0, Math.floor(AIRCRAFT_ENDURANCE_SECONDS - p.flightTime)),
     })),
   };
 }

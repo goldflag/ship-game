@@ -144,7 +144,7 @@ export function AirOperations({ data, game, bindings }: { data: Telemetry; game:
   const release = (event: PointerEvent<SVGSVGElement>) => {
     if (event.type === 'pointerup' && drag.current && !drag.current.moved && armed.current) {
       const rect = event.currentTarget.getBoundingClientRect();
-      const [x, z] = chartWorld(view, size.width, size.height, event.clientX - rect.left, event.clientY - rect.top);
+      const [x, z] = chartWorld(view, rect.width, rect.height, event.clientX - rect.left, event.clientY - rect.top);
       target({ kind: 'water', point: [x, 420, z] });
     }
     drag.current = null;
@@ -159,7 +159,7 @@ export function AirOperations({ data, game, bindings }: { data: Telemetry; game:
         onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={release} onPointerCancel={release}
         onContextMenu={event => {
           event.preventDefault(); const rect = event.currentTarget.getBoundingClientRect();
-          const [x, z] = chartWorld(view, size.width, size.height, event.clientX - rect.left, event.clientY - rect.top);
+          const [x, z] = chartWorld(view, rect.width, rect.height, event.clientX - rect.left, event.clientY - rect.top);
           target({ kind: 'water', point: [x, 420, z] });
         }}>
         <rect width="100%" height="100%" fill="transparent"/>

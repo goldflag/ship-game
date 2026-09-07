@@ -57,7 +57,7 @@
 .air-box-lost { color:#ffb5a6 !important; }
 .air-box-lost .air-box-aircraft { opacity:.35; }
 .air-box-launching .air-box-status,.air-box-servicing .air-box-status { color:var(--fleet-gold); }
-.air-aircraft-detail { position:absolute; bottom:calc(100% + 14px); right:0; width:280px; max-height:40vh; overflow:auto; padding:10px; background:#102c37; border:1px solid var(--fleet-line); pointer-events:auto; text-shadow:none; font-size:11px; }
+.air-aircraft-detail { position:absolute; bottom:calc(100% + 14px); right:0; width:280px; max-height:40cqh; overflow:auto; padding:10px; background:#102c37; border:1px solid var(--fleet-line); pointer-events:auto; text-shadow:none; font-size:11px; }
 .air-aircraft-detail>strong { display:block; margin-bottom:6px; font-weight:500; }
 .air-aircraft-detail p { margin:0 0 6px; font-size:10px; color:var(--fleet-muted); }
 .air-aircraft-detail>div { display:flex; justify-content:space-between; gap:10px; align-items:center; padding:4px 0; }
@@ -66,23 +66,23 @@
 .fleet-air-map .fleet-ship { bottom:auto; top:150px; width:190px; }
 .fleet-air-map .fleet-ship-name h1 { font-size:15px; }
 .fleet-air-map .fleet-top-actions,.fleet-air-map .fleet-battle,.fleet-air-map .fleet-combat-report { z-index:2; }
-@media (max-width:1150px) {
+@container hud (max-width:1150px) {
   .air-squadron-command:not(.air-command-map) { left:238px; right:calc(var(--chart-width) + 12px); }
 }
-@media (max-width:800px) {
+@container hud (max-width:800px) {
   .air-map-header { top:78px; }
   .air-map-tools { top:116px; }
   .fleet-air-map .fleet-ship { display:none; }
   .fleet-air-map .fleet-combat-report { top:158px; }
   .air-squadron-command:not(.air-command-map) { left:204px; right:12px; bottom:calc(var(--chart-width) + 20px); }
 }
-@media (max-width:600px) {
+@container hud (max-width:600px) {
   .air-map-header { left:12px; top:70px; transform:none; }
   .air-map-tools { top:108px; left:12px; transform:none; }
   .air-squadron-command.air-command-map { max-width:calc(100% - 16px); bottom:6px; }
   .air-selected-orders { justify-content:flex-start; }
   .air-squadron-command:not(.air-command-map) { left:12px; right:12px; top:150px; bottom:auto; }
-  .air-aircraft-detail { max-width:calc(100vw - 24px); max-height:33vh; }
+  .air-aircraft-detail { max-width:calc(100cqw - 24px); max-height:33cqh; }
 }
 @media (pointer:coarse) {
   .air-selected-orders button,.air-map-header button,.air-map-tools button { min-height:36px; }
