@@ -99550,5 +99550,63 @@
       }
     ],
     "basis": "Original game calibration: eight longitudinal sections, independent sides and three height bands, with separate gunhouse budgets. Generator/director proxy positions and fire loads are estimated; no historical structural tolerance, electrical routing, ventilation or crew-performance claim."
+  },
+  "rig": {
+    "version": 1,
+    "ensigns": [
+      {
+        "id": "national-ensign",
+        "design": "us-48",
+        "position": [
+          0,
+          10.358,
+          99.629
+        ],
+        "width": 4.11,
+        "staffHeight": 3.49
+      }
+    ],
+    "radars": [
+      {
+        "id": "radar-sk",
+        "nodeId": "radar-sk.yaw",
+        "rpm": 6,
+        "phaseDeg": 0
+      },
+      {
+        "id": "radar-sg",
+        "nodeId": "radar-sg.yaw",
+        "rpm": 15,
+        "phaseDeg": 47
+      },
+      {
+        "id": "forward-main-director",
+        "nodeId": "forward-main-director.yaw",
+        "rpm": 2,
+        "sweepDeg": 55,
+        "phaseDeg": 94
+      },
+      {
+        "id": "after-main-director",
+        "nodeId": "after-main-director.yaw",
+        "rpm": 2,
+        "sweepDeg": 55,
+        "phaseDeg": 141
+      },
+      {
+        "id": "forward-dp-director",
+        "nodeId": "forward-dp-director.yaw",
+        "rpm": 2,
+        "sweepDeg": 55,
+        "phaseDeg": 188
+      },
+      {
+        "id": "after-dp-director",
+        "nodeId": "after-dp-director.yaw",
+        "rpm": 2,
+        "sweepDeg": 55,
+        "phaseDeg": 235
+      }
+    ]
   }
 }

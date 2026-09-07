@@ -163,8 +163,8 @@ test('fleet exteriors defer inspection geometry until a ship is inspected', asyn
 test('fleet meshes reuse materials within each ship while inspection stays independent', async () => {
   const { Group, Mesh, BoxGeometry, MeshStandardMaterial } = await import('three/webgpu');
   const definition = compileShip(blueprint, catalog);
-  // A mount-free fixture isolates material ownership from the separately tested joints.
-  const fixture = { ...definition, mounts: [] };
+  // A joint-free fixture isolates material ownership from the separately tested articulation.
+  const fixture = { ...definition, mounts: [], rig: undefined };
   const sim = new CombatSimulation(fixture);
   const model = new Group(), source = new MeshStandardMaterial({ opacity: .9 });
   model.add(new Mesh(new BoxGeometry(), source), new Mesh(new BoxGeometry(), source));

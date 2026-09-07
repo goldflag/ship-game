@@ -10,6 +10,7 @@ import { ShipImpactMarks } from './ShipImpactMarks';
 import { tubeLocalPosition } from '../simulation/torpedoes';
 import { PreparedPoseGroup } from './FrameScene';
 import { ShipPoseMatrices } from './ShipPoseMatrices';
+import { ShipRigView } from './ShipRigView';
 
 /** Renderer adapter. Simulation geometry and transforms come from the same definition. */
 export class ShipView {
@@ -17,6 +18,7 @@ export class ShipView {
   readonly inspection: ShipInspection;
   readonly motion: Combatant['motion'];
   readonly impactMarks: ShipImpactMarks;
+  readonly rig: ShipRigView;
   /** Original template materials identify surfaces that can share a fleet draw. */
   readonly renderMeshes: { mesh: THREE.Mesh; material: THREE.Material }[] = [];
   private damageSource: Combatant['damage'];
@@ -74,14 +76,15 @@ export class ShipView {
     if (definition.submarine) for (const kind of ['bowPlanes', 'sternPlanes', 'rudders', 'propellers'] as const) {
       this.appendages.push(...definition.submarine.appendages[kind].map((id, index) => ({ node: node(id), base: node(id).quaternion.clone(), kind, index })));
     }
+    this.rig = new ShipRigView(definition, nodes, actor.motion.id);
     // Only these bound joints change local transforms during play. Retain every
     // assembly/socket node, but compose its fixed local matrix once at loading.
     const moving = new Set<THREE.Object3D>([
       ...this.bindings.flatMap(b => [b.yaw, ...b.elevation, ...b.recoil]),
-      ...this.launcherBindings, ...this.appendages.map(a => a.node),
+      ...this.launcherBindings, ...this.appendages.map(a => a.node), ...this.rig.radars.map(r => r.node),
     ]);
     model.traverse(o => { if (!moving.has(o) && !o.animations.length) { o.updateMatrix(); o.matrixAutoUpdate = false; } });
-    this.root.add(model, this.internals);
+    this.root.add(model, this.internals, this.rig.root);
     this.poseMatrices = new ShipPoseMatrices(this.root, model, moving);
     this.impactMarks = new ShipImpactMarks(this.root, model, new Map(definition.mounts.map((m, i) => [m.id, this.bindings[i].yaw])), reversedDepthBuffer);
     this.update();
@@ -90,6 +93,7 @@ export class ShipView {
   setInspection(mode: InspectionMode | 'all', selectedId?: string): void {
     this.inspection.setMode(mode, selectedId);
     const enabled = mode !== 'exterior';
+    this.rig.root.visible = !enabled;
     this.impactMarks.setVisible(!enabled);
     if (this.inspecting !== enabled) {
       this.inspecting = enabled;
@@ -103,6 +107,7 @@ export class ShipView {
   /** Prepare the matrices consumed by this frame's surface and aircraft draws. */
   updateRenderMatrices(): void {
     this.poseMatrices.update();
+    this.rig.root.updateMatrixWorld(true);
     if (this.internals.visible) this.internals.updateMatrixWorld(true);
     for (const mark of this.impactMarks.renderMeshes) mark.updateMatrixWorld(true);
   }
@@ -133,10 +138,10 @@ export class ShipView {
     this.previousLaunchers = (this.actor.torpedoLaunchers ?? []).map(l => l.train);
   }
   /** Teleports and port transitions must not interpolate across the old voyage. */
-  snap(): void { this.capturePreviousPose(); this.update(); }
+  snap(): void { this.capturePreviousPose(); this.rig.reset(); this.update(); }
   update(alpha = 1): void {
     if (this.damageSource !== this.actor.damage) {
-      this.impactMarks.clear(); this.damageSource = this.actor.damage;
+      this.impactMarks.clear(); this.rig.reset(); this.damageSource = this.actor.damage;
     }
     if (this.motionSource !== this.actor.motion) this.capturePreviousPose();
     const t = THREE.MathUtils.clamp(alpha, 0, 1);
