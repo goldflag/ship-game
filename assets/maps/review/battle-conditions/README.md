@@ -1,5 +1,7 @@
 # Battle conditions review
 
+This records the original three-control picker. The [weather/sea consolidation review](../weather-seas/README.md) documents the current two-control setup and weather-driven waves.
+
 Reviewed September 6, 2026 through Orca’s embedded Chromium browser using the actual WebGPU game at `http://localhost:5279`. Original conditions are authored in `assets/maps/battle-conditions.v1.json`; no ship models changed.
 
 - [Desktop setup](setup-desktop.png): three aligned native selectors, descriptions, existing naval styling. Controls measure 44 px high.

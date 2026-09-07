@@ -13,7 +13,7 @@
   const noop = () => {};
   const quality = new URLSearchParams(location.search).get('quality') ?? 'high';
   let error;
-  const game = new Game(document.querySelector('#scene'), {quality,sea:'Atlantic',resolution:1}, {
+  const game = new Game(document.querySelector('#scene'), {quality,resolution:1}, {
     progress:noop, ready:noop, telemetry:noop, pause:noop, hud:noop, error:m=>{error=m;},
   });
   window.wakeGame=game;

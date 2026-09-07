@@ -18,7 +18,7 @@ const host = document.createElement('div'); host.className = 'ocean-viewport'; d
 const hud = document.createElement('div'); document.body.appendChild(hud);
 const root = createRoot(hud), noop = () => {};
 const definition = shipPreset('type-viic');
-const game: any = new Game(host, {quality:'high',sea:'Atlantic',resolution:1}, { progress:noop,ready:noop,pause:noop,hud:noop,telemetry:noop,error:message=>{window.reviewError=message;} }, definition);
+const game: any = new Game(host, {quality:'high',resolution:1}, { progress:noop,ready:noop,pause:noop,hud:noop,telemetry:noop,error:message=>{window.reviewError=message;} }, definition);
 game.scheduleFrame=noop; game.setInPort(true); game.start();
 await game.initialization;
 await game.prepareBattle({playerShipId:'type-viic',friendlyBots:[],enemies:['bismarck'],spawnDistance:5000});

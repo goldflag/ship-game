@@ -75,7 +75,7 @@ test('map and port transitions restore their own absorption after underwater att
     waves: Object.fromEntries(['amplitude', 'windSpeed', 'peakWavelength', 'choppiness', 'windDirection'].map(key => [key, { value: 0 }])),
     foam: { waves: { opacity: 0 } }, async update() {},
   };
-  Object.assign(game, { water, settings: { sea: 'Moderate' } });
+  Object.assign(game, { water });
   const effects = (game as unknown as { effects: object }).effects;
   Object.assign(effects, { setWind() {} });
   const applySea = (Game.prototype as unknown as { updateSeaState(): void }).updateSeaState;
