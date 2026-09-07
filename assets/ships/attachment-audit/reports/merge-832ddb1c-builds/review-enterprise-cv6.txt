@@ -1,0 +1,3 @@
+$ bun scripts/ships/pipeline.ts review "enterprise-cv6"
+review.py completed; log in /Users/bill/orca/workspaces/ship-game/sunstar/.build/ships/enterprise-cv6
+Orthographic review views: /Users/bill/orca/workspaces/ship-game/sunstar/assets/ships/enterprise-cv6/generated/review

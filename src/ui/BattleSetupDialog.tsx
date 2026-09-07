@@ -23,6 +23,7 @@ interface Props {
 
 /** Fleet harbor extension: a ship catalog feeds two rosters with one click per hull; the player slot stays protected. */
 export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, error }: Props) {
+  const [page, setPage] = useState<'setup' | 'waters'>('setup');
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => { dialog.current?.showModal(); }, []);
   const [filter, setFilter] = useState('');
@@ -63,7 +64,7 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, error }:
     <button className="icon-button" aria-label={`Remove ${shipName(id)}, ${team === 'enemies' ? 'enemy' : 'friendly'} bot ${index + 1}`} onClick={() => onChange({ ...setup, [team]: setup[team].filter((_, i) => i !== index), spawns: setup.spawns ? { ...setup.spawns, [team === 'friendlyBots' ? 'friendly' : 'enemy']: setup.spawns[team === 'friendlyBots' ? 'friendly' : 'enemy'].filter((_, i) => i !== index + (team === 'friendlyBots' ? 1 : 0)) } : undefined })}><Icon name="close" size={16}/></button>
     <div className="battle-roster-ai">
       <label htmlFor={controlId}>AI level<span className="battle-sr-only"> for {shipName(id)}, {team === 'enemies' ? 'enemy' : 'friendly'} bot {index + 1}</span></label>
-      <select id={controlId} value={aiLevel} aria-describedby={`${controlId}-description`} onChange={event => onChange({ ...setup,
+      <select id={controlId} title={description} value={aiLevel} aria-describedby={`${controlId}-description`} onChange={event => onChange({ ...setup,
         [team]: setup[team].map((selection, i) => i === index ? { shipId: id, aiLevel: event.target.value as ShipAiLevel } : selection),
       })}>
         {SHIP_AI_LEVELS.map(level => <option key={level.id} value={level.id}>{level.name}</option>)}
@@ -72,10 +73,7 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, error }:
     </div>
   </li>;
   });
-  return <dialog ref={dialog} className="battle-setup" aria-labelledby="battle-setup-title" aria-describedby="battle-setup-description" onCancel={event => { event.preventDefault(); onClose(); }}>
-    <div className="battle-setup-heading"><h2 id="battle-setup-title">Custom battle</h2><button className="icon-button" aria-label="Close battle setup" onClick={onClose}><Icon name="close"/></button></div>
-    <p id="battle-setup-description">Pick ships from the catalog to build both fleets. You command one ship; bots command the rest.</p>
-    <fieldset className="battle-map-picker">
+  const waters = (<fieldset className="battle-map-picker">
       <legend>Battle waters</legend>
       <div className="battle-map-options">
         {OCEAN_MAPS.map(option => <label key={option.id} className="battle-map-option">
@@ -85,8 +83,8 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, error }:
         </label>)}
       </div>
       <p className="battle-map-detail" id="battle-map-description">{map.description}</p>
-    </fieldset>
-    <fieldset className="battle-conditions">
+    </fieldset>);
+  const conditions = (<fieldset className="battle-conditions">
       <legend>Battle conditions</legend>
       <div className="battle-condition-options">
         <div><label htmlFor="battle-time">Time of day</label>
@@ -100,8 +98,8 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, error }:
           </select><p id="battle-weather-description">{weather.description}</p>
         </div>
       </div>
-    </fieldset>
-    <fieldset className="battle-builder">
+    </fieldset>);
+  const fleet = (<fieldset className="battle-builder">
       <legend className="battle-sr-only">Fleet selection</legend>
       <section className="battle-catalog" aria-labelledby="catalog-title">
         <header><h3 id="catalog-title">Ships</h3><span role="status">{filteredShips.length} / {ships.length} hulls</span></header>
@@ -143,8 +141,8 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, error }:
           {enemyFull && <p className="battle-empty">Enemy team is full.</p>}
         </section>
       </div>
-    </fieldset>
-    <div className="battle-deployment">
+    </fieldset>);
+  const distance = (<div className="battle-deployment">
       <label htmlFor="battle-spawn-distance">Spawn distance</label>
       <output htmlFor="battle-spawn-distance">{setup.spawnDistance / 1000} km</output>
       <input id="battle-spawn-distance" type="range" min={MIN_BATTLE_SPAWN_DISTANCE} max={MAX_BATTLE_SPAWN_DISTANCE} step={500} value={setup.spawnDistance}
@@ -152,8 +150,21 @@ export function BattleSetupDialog({ setup, onChange, onLaunch, onClose, error }:
         onChange={event => onChange({ ...setup, spawnDistance: Number(event.target.value), spawns: undefined })}/>
       <div className="battle-distance-limits" aria-hidden="true"><span>{MIN_BATTLE_SPAWN_DISTANCE / 1000} km</span><span>{MAX_BATTLE_SPAWN_DISTANCE / 1000} km</span></div>
       <p id="battle-spawn-description">Distance between the leading ships in each preset. Changing this resets custom positions.</p>
+    </div>);
+  const chart = (<SpawnPlanner setup={setup} onChange={onChange}/>);
+  return <dialog ref={dialog} className="battle-setup battle-wide" aria-labelledby="battle-setup-title" aria-describedby="battle-setup-description" onCancel={event => { event.preventDefault(); onClose(); }}>
+    <div className="battle-setup-heading"><h2 id="battle-setup-title">Custom battle</h2><button className="icon-button" aria-label="Close battle setup" onClick={onClose}><Icon name="close"/></button></div>
+    <p id="battle-setup-description">Pick ships from the catalog to build both fleets. You command one ship; bots command the rest.</p>
+    <nav className="battle-pages" aria-label="Battle setup pages">
+      <button type="button" aria-pressed={page === 'setup'} aria-controls="battle-setup-page" onClick={() => setPage('setup')}>Battle setup</button>
+      <button type="button" aria-pressed={page === 'waters'} aria-controls="battle-waters-page" onClick={() => setPage('waters')}>Battle waters · {map.name}</button>
+    </nav>
+    <div id="battle-setup-page" className="battle-desk" hidden={page !== 'setup'}>
+      <aside>{conditions}{distance}</aside>
+      <div>{fleet}</div>
+      <aside>{chart}</aside>
     </div>
-    <SpawnPlanner setup={setup} onChange={onChange}/>
+    <div id="battle-waters-page" className="battle-waters-page" hidden={page !== 'waters'}>{waters}</div>
     {placementError && <p className="battle-error" role="alert">{placementError} Move ships or reset positions.</p>}
     <div className="battle-briefing"><Icon name="compass" size={21}/><p><strong>{map.name}</strong><span>{time.id === 'map' ? 'Map daylight' : time.name} · {weather.id === 'map' ? 'Map weather' : weather.name}</span><span>Defeat the opposing fleet to win.</span></p></div>
     {error && <p className="battle-error" role="alert">{error} Your fleet is kept here; try launching again.</p>}

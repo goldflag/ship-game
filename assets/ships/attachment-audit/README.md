@@ -7,7 +7,9 @@ underwater appendages. Reconcile changed fittings with each preset's dated fit.
 The repair and review pass is complete for those ten presets. Historical
 reconstruction limits remain documented below and in each discrepancy register.
 
-The initial source was commit `b020bbf`, with a clean worktree. No Blender MCP tools
+The initial source was commit `b020bbf`, with a clean worktree. After the repository
+history rewrite, `2cec98ab9ad2c5c443e9700e6cf1e129d6bd7911` contains the same
+original model bytes for all ten ships and is the verifier baseline. No Blender MCP tools
 were exposed. Inspection and builds use local Blender 5.2.0 LTS. Bismarck's
 preserved baseline is untouched. Original geometry and the existing versioned
 blueprints remain the authoring sources; generated models are rebuild outputs.
@@ -135,8 +137,10 @@ tyre compression remain approximated by the existing deck datum.
 Validation retained in this pass:
 
 - All 78 current open-gun component cases pass at elevation/recoil extremes.
-- Latest master integration: `bun test --timeout 30000` passes 691 tests across
-  97 files; `bun run build` passes. See `reports/merge-fe0df0be.md`.
+- Latest master integration: `bun run test` passes 708 tests across 98 files
+  in 17.6 seconds; `bun run build` passes. See `reports/merge-832ddb1c.md`.
+- Previous carrier integration: 691 tests passed across 97 files; see
+  `reports/merge-fe0df0be.md`.
 - Original repair suite, `bun test --timeout 20000`: 583 tests pass across 82 files.
 - After the final support changes, convoy and Game/ShipBatching tests: 44 pass.
 - `bun run build`: passes every registered ship check, aircraft checks,
@@ -208,3 +212,27 @@ Earlier Bismarck evidence is preserved under
 `reports/prior-bismarck-5b0621b5851d/`; current evidence matches the new model hash.
 See `reports/bismarck-aa-integration.json` for the upstream ID and articulation
 checks. The open-component verifier now follows the actual catalog inventory.
+
+Master `716c34f7` adds localized damage regions, support systems and fire profiles
+to all ship definitions. Those authored definitions are preserved alongside the
+attachment repairs. All eleven presets were rebuilt from the merged compiler
+and blueprints, with fresh fixed views, contact scans and in-game articulation.
+The preceding evidence is archived under `reports/prior-damage-integration-504e58a7/`.
+The current verification and integration JSON files refer to the rebuilt models.
+
+Enterprise now starts with its hangar aircraft hidden. The review helper assigns
+12 explicit deck slots and advances the real CPU simulation for a parked-aircraft
+inspection fixture; it does not change production startup. All three Enterprise
+detail records identify this fixture. Folded wings and the resting gear pose were
+inspected together.
+
+King George V remains an integration review outside the original ten-ship repair
+scope. Its additional contact scan records 212 candidates for follow-up triage;
+these have not all been classified as defects or accepted clearances. No claim
+of complete physical connectivity is made for that preset. Its dimensions, all
+114 upstream node IDs, five fixed views and twelve runtime poses still pass the
+integration checks.
+
+Master `832ddb1c` also includes the updated battle setup dialog and full-suite test
+runner. These changes do not alter model authoring inputs. Final validation is
+recorded in `reports/merge-832ddb1c.md` and its associated logs.

@@ -1,0 +1,85 @@
+$ bun scripts/ships/pipeline.ts build yamato
+Building yamato (9f5edeebea5b)
+build.py completed; log in /Users/bill/orca/workspaces/ship-game/sunstar/.build/ships/yamato
+export.py completed; log in /Users/bill/orca/workspaces/ship-game/sunstar/.build/ships/yamato
+thumbnail.py completed; log in /Users/bill/orca/workspaces/ship-game/sunstar/.build/ships/yamato
+Baked port thumbnail: /Users/bill/orca/workspaces/ship-game/sunstar/public/models/yamato-thumbnail.png
+measure passed
+authored-capture passed
+comparison-sheets passed
+Local review page: /ship-reference/yamato/index.html
+{
+  "contentHash": "9f5edeebea5b628b0e481fe000ed716e28ef23fa0fb050b8d88f2ca8c6db1504",
+  "hullBounds": [
+    [
+      -19.450002670288086,
+      -10.399999618530273,
+      -131.5
+    ],
+    [
+      19.450000762939453,
+      9.399999618530273,
+      131.5
+    ]
+  ],
+  "mounts": [
+    {
+      "id": "main-1",
+      "measuredPivot": [
+        0.000003835293227893999,
+        3.5999999046325684,
+        -50.79999923706055
+      ],
+      "barrels": 3,
+      "articulationChecks": 9
+    },
+    {
+      "id": "main-2",
+      "measuredPivot": [
+        0.0000021139412638149224,
+        6.800000190734863,
+        -28
+      ],
+      "barrels": 3,
+      "articulationChecks": 9
+    },
+    {
+      "id": "main-3",
+      "measuredPivot": [
+        -0.000004884714144282043,
+        4.699999809265137,
+        64.69999694824219
+      ],
+      "barrels": 3,
+      "articulationChecks": 9
+    },
+    {
+      "id": "secondary-forward",
+      "measuredPivot": [
+        0,
+        13,
+        -10
+      ],
+      "barrels": 3,
+      "articulationChecks": 9
+    },
+    {
+      "id": "secondary-aft",
+      "measuredPivot": [
+        -0.000003533301651259535,
+        11.600000381469727,
+        46.79999923706055
+      ],
+      "barrels": 3,
+      "articulationChecks": 9
+    }
+  ],
+  "torpedoTubes": [],
+  "depthChargeLaunchers": [],
+  "meshes": 112,
+  "primitives": 348,
+  "triangles": 277562,
+  "bytes": 12015412,
+  "result": "passed",
+  "historicalAccuracy": "not certified; see reference register and discrepancy report"
+}

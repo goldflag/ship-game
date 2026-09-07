@@ -1,0 +1,3 @@
+$ bun scripts/ships/pipeline.ts review liberty-cargo
+review.py completed; log in /Users/bill/orca/workspaces/ship-game/sunstar/.build/ships/liberty-cargo
+Orthographic review views: /Users/bill/orca/workspaces/ship-game/sunstar/assets/ships/liberty-cargo/generated/review

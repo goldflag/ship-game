@@ -29,8 +29,9 @@ for(const ship of process.argv.slice(2)){
  const poses=await page.evaluate(()=>window.attachmentReview.poses());
  poses.browser='Isolated headless Chrome / Metal; fallback after Orca tab closures';
  await writeFile(root+'/runtime/'+ship+'-articulation.json',JSON.stringify(poses,null,2)+'\n');
+ let fixture;
  for(const [name,target,offset]of views[ship]){
-  const fixture=ship==='enterprise-cv6'&&name==='aircraft'?await page.evaluate(()=>window.attachmentReview.spotAircraftForReview()):undefined;
+  if(ship==='enterprise-cv6'&&name==='aircraft')fixture=await page.evaluate(()=>window.attachmentReview.spotAircraftForReview());
   const detail=await page.evaluate(({target,offset})=>window.attachmentReview.detail(target,offset,{trainFraction:1,elevationFraction:1,recoilFraction:1}),{target,offset});
   const image=detail.image;delete detail.image;detail.browser=poses.browser;
   if(fixture)detail.fixture=fixture;

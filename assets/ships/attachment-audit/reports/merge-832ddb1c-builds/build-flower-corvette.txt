@@ -1,0 +1,71 @@
+$ bun scripts/ships/pipeline.ts build flower-corvette
+Building flower-corvette (a3fc9262e7fa)
+build.py completed; log in /Users/bill/orca/workspaces/ship-game/sunstar/.build/ships/flower-corvette
+export.py completed; log in /Users/bill/orca/workspaces/ship-game/sunstar/.build/ships/flower-corvette
+thumbnail.py completed; log in /Users/bill/orca/workspaces/ship-game/sunstar/.build/ships/flower-corvette
+Baked port thumbnail: /Users/bill/orca/workspaces/ship-game/sunstar/public/models/flower-corvette-thumbnail.png
+{
+  "contentHash": "a3fc9262e7fa87985cf65a350cffd18d758c771c948315c1eb05d9386e34b6e3",
+  "hullBounds": [
+    [
+      -5.029200553894043,
+      -3.505199909210205,
+      -31.242000579833984
+    ],
+    [
+      5.029200077056885,
+      4.880000114440918,
+      31.242000579833984
+    ]
+  ],
+  "mounts": [
+    {
+      "id": "fore-4in",
+      "measuredPivot": [
+        0,
+        5.400000095367432,
+        -16.799999237060547
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "aft-pompom",
+      "measuredPivot": [
+        0,
+        5.039999961853027,
+        16.799999237060547
+      ],
+      "barrels": 1,
+      "articulationChecks": 3
+    },
+    {
+      "id": "bridge-starboard",
+      "measuredPivot": [
+        3.1000006198883057,
+        6.849999904632568,
+        -7.900000095367432
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    },
+    {
+      "id": "bridge-port",
+      "measuredPivot": [
+        -3.099999189376831,
+        6.849999904632568,
+        -7.900000095367432
+      ],
+      "barrels": 2,
+      "articulationChecks": 6
+    }
+  ],
+  "torpedoTubes": [],
+  "depthChargeLaunchers": [],
+  "meshes": 69,
+  "primitives": 146,
+  "triangles": 63360,
+  "bytes": 2704696,
+  "result": "passed",
+  "historicalAccuracy": "not certified; see reference register and discrepancy report"
+}

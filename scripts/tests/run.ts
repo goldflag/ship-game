@@ -1,12 +1,33 @@
 import { availableParallelism } from 'node:os';
 import { resolve } from 'node:path';
 
-const roots = ['src/simulation', 'src/ships', 'src/game', 'src/schematic', 'scripts/aircraft', 'scripts/git'];
+const roots = ['src', 'scripts'];
 const cwd = resolve(import.meta.dir, '../..');
+// Scheduling hints from full-suite measurements, not a test roster. Discovery
+// below still runs every file, including new tests without an estimate.
+const seconds: Record<string, number> = {
+  'src/simulation/machinery.test.ts': 13,
+  'src/game/ShipDetail.test.ts': 10,
+  'src/simulation/stability.test.ts': 9,
+  'src/simulation/aircraft.test.ts': 9,
+  'src/simulation/aiLevels.test.ts': 9,
+  'src/simulation/combat.test.ts': 9,
+  'src/simulation/bots.test.ts': 9,
+  'src/simulation/battle.test.ts': 9,
+  'src/simulation/airOperations.test.ts': 6,
+  'src/simulation/submarine.test.ts': 6,
+  'src/game/CombatEffects.test.ts': 6,
+  'src/simulation/sinking.test.ts': 5,
+  'src/ships/inspection.test.ts': 5,
+  'src/simulation/aircraftAccuracy.test.ts': 5,
+  'src/simulation/damageControl.test.ts': 4,
+};
 
 /** Isolate files while limiting simultaneous CPU and model-loading work. */
 export async function runTestFiles(files: string[], concurrency: number): Promise<number> {
-  const pending = [...files];
+  if (!Number.isInteger(concurrency) || concurrency < 1) throw new Error('Concurrency must be a positive integer');
+  const pending = [...files].sort((a, b) =>
+    (seconds[b.replace(/^\.\//, '')] ?? 1) - (seconds[a.replace(/^\.\//, '')] ?? 1) || a.localeCompare(b));
   const children = new Set<ReturnType<typeof Bun.spawn>>();
   let failures = 0;
   const interrupt = () => {
@@ -49,7 +70,7 @@ if (import.meta.main) {
     });
     process.exit(await child.exited);
   }
-  const concurrency = Math.min(6, availableParallelism());
+  const concurrency = Math.min(8, availableParallelism());
   const glob = new Bun.Glob('**/*.{test,spec}.{js,jsx,ts,tsx,mjs,mts,cjs,cts}');
   const files = roots.flatMap(root => [...glob.scanSync({ cwd: resolve(cwd, root) })].map(file => `./${root}/${file}`)).sort();
   if (!files.length) throw new Error('No test files found');

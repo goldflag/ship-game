@@ -1,0 +1,5 @@
+Bow stem position: 8.357 → 0.2891 m RMS on 5 probes
+Forward lower profile: 2.0119 → 0.3976 m RMS on 5 probes
+Foredeck half-breadth: 0.4881 → 0.0905 m RMS on 3 probes
+Upper bridge solid width: 3.8153 → 0.5958 m RMS on 5 probes
+Fletcher review: /Users/bill/orca/workspaces/ship-game/sunstar/public/ship-reference/fletcher/index.html

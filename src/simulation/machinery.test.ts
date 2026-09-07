@@ -123,7 +123,7 @@ test('Yamato wing spaces connect damaged exterior openings to retained turbine r
   expect(actor.damage.compartments.find(c => c.id === 'engine-starboard-space')!.waterM3).toBeGreaterThan(0);
   expect(actor.damage.compartments.find(c => c.id === 'engine-port-aft-space')!.waterM3).toBe(0);
   expect(actor.damage.compartments.find(c => c.id === 'engine-starboard-aft-space')!.waterM3).toBe(0);
-});
+}, 15000); // Ten simulated minutes, matching the Bismarck network test above.
 test('bow and stern penetrations create local openings on every supported preset', () => {
   for (const preset of [blueprint, yamato, baltimore, enterprise]) for (const sign of [-1, 1]) {
     const def = compileShip(preset, catalog), actor = new CombatSimulation(def).player;
