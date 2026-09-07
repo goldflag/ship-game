@@ -57,7 +57,8 @@ try {
       adapter: info && { vendor: info.vendor, architecture: info.architecture, device: info.device, description: info.description } };
   });
   await writeFile(new URL(`${label}.json`, output), JSON.stringify({ ...result, gpu: gpu.gpu, errors, failedResources,
-    url, sourceRevision: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
+    url, buildRevision: process.env.BUILD_REVISION,
+    runnerRevision: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
     capturedAt: new Date().toISOString() }, null, 2));
   await page.screenshot({ path: new URL(`${label}.png`, output).pathname.replace(/^\/(\w:)/, '$1') });
   console.log(JSON.stringify({ ...result.result, errors }));

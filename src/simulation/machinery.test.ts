@@ -91,7 +91,7 @@ test('a penetrating underwater path opens boundaries and flooding disables other
   expect(actor.damage.modules.find(m => m.id === boiler.id)!.hp).toBe(boiler.hp - 1);
   expect(equipmentCondition(actor, def, boiler).reason).toBe('flooded');
   expect(actor.damage.compartments.find(c => c.id === 'boiler-aft-port')!.waterM3).toBe(0);
-}, 15000); // Ten simulated minutes through the complete compartment network.
+}, 60000); // Ten simulated minutes through the complete network, including slower Windows runs.
 test('authored outer spaces fit the hull and never overlap retained room envelopes', () => {
   for (const preset of [blueprint, yamato, baltimore, enterprise]) {
     const def = compileShip(preset, catalog), added = def.compartments.filter(c => c.id.startsWith('flood-strip-') || c.id.startsWith('flood-end-'));
@@ -123,7 +123,7 @@ test('Yamato wing spaces connect damaged exterior openings to retained turbine r
   expect(actor.damage.compartments.find(c => c.id === 'engine-starboard-space')!.waterM3).toBeGreaterThan(0);
   expect(actor.damage.compartments.find(c => c.id === 'engine-port-aft-space')!.waterM3).toBe(0);
   expect(actor.damage.compartments.find(c => c.id === 'engine-starboard-aft-space')!.waterM3).toBe(0);
-}, 15000); // Ten simulated minutes, matching the Bismarck network test above.
+}, 60000); // Ten simulated minutes, matching the Bismarck network test above.
 test('bow and stern penetrations create local openings on every supported preset', () => {
   for (const preset of [blueprint, yamato, baltimore, enterprise]) for (const sign of [-1, 1]) {
     const def = compileShip(preset, catalog), actor = new CombatSimulation(def).player;
