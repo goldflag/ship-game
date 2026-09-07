@@ -27,13 +27,28 @@ function TeamStatus({ team, combat, game, expanded, onToggle }: { team: Contact[
   </div>;
 }
 
-export function BattleStatus({ combat, game, children }: { combat: CombatTelemetry; game: Game | null; children?: ReactNode }) {
+export function BattleStatus({ combat, game, children, spectatedShipId }: { combat: CombatTelemetry; game: Game | null; children?: ReactNode; spectatedShipId?: string }) {
   const [expandedTeam, setExpandedTeam] = useState<Contact['team'] | null>(null);
+  const teammates = combat.contacts.filter(contact => contact.team === combat.contacts.find(c => c.controller === 'player')?.team && contact.controller !== 'player' && !lost(contact));
   return <section className="fleet-battle" aria-label="Battle status">
     {combat.result !== 'active' && <h2>{combat.result === 'victory' ? 'Victory' : combat.result === 'defeat' ? 'Defeat' : 'Draw'}</h2>}
     <div className="fleet-teams" aria-label="Team status">{(['friendly', 'enemy'] as const).map(team => <TeamStatus key={team} team={team} combat={combat} game={game} expanded={expandedTeam === team} onToggle={() => setExpandedTeam(expandedTeam === team ? null : team)}/>)}</div>
     {combat.result !== 'active' && <small>Esc to return to port</small>}
     {combat.result === 'active' && combat.playerSunk && <small>Your ship is sinking · Allies still fighting</small>}
+    {combat.playerSunk && <div className="fleet-spectator" aria-label="Teammate spectating">
+      {teammates.length ? <>
+        <label htmlFor="spectated-ship">Spectating teammate</label>
+        <div className="fleet-spectator-controls">
+          <button disabled={teammates.length < 2} onClick={() => game?.cycleSpectator(-1)} aria-label="Spectate previous teammate">Previous</button>
+          <select id="spectated-ship" value={spectatedShipId ?? ''} onChange={event => game?.spectateTeammate(event.target.value)}>
+            {!spectatedShipId && <option value="" disabled>Choose teammate</option>}
+            {teammates.map(contact => <option key={contact.id} value={contact.id}>{contactLabel(contact)}</option>)}
+          </select>
+          <button disabled={teammates.length < 2} onClick={() => game?.cycleSpectator(1)} aria-label="Spectate next teammate">Next</button>
+        </div>
+        <small>Click sea to look around · Scroll to zoom · Hold Ctrl for cursor</small>
+      </> : <small role="status">No teammates remaining to spectate</small>}
+    </div>}
     {children}
   </section>;
 }

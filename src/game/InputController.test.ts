@@ -18,7 +18,7 @@ describe('keyboard gameplay controls', () => {
     Object.defineProperty(globalThis, 'window', { configurable: true, value: events });
     Object.defineProperty(globalThis, 'document', { configurable: true, value: { querySelector: () => modal ? {} : null } });
     Object.defineProperty(globalThis, 'HTMLElement', { configurable: true, value: class {} });
-    actions = { pause: mock(), camera: mock(), recenter: mock(), hud: mock(), fullscreen: mock(), optics: mock(), battery: mock(), cursor: mock(), chartSize: mock(), gunnery: mock(), shellFollow: mock(), shellType: mock(), depth: mock(), emergencyBlow: mock(), airOperations: mock() };
+    actions = { pause: mock(), camera: mock(), recenter: mock(), hud: mock(), fullscreen: mock(), optics: mock(), battery: mock(), cursor: mock(), chartSize: mock(), shellFollow: mock(), shellType: mock(), depth: mock(), depthPreset: mock(), emergencyBlow: mock(), periscope: mock(), airOperations: mock() };
     input = new InputController(actions, defaultKeybindings());
   });
   afterEach(() => {
@@ -27,6 +27,29 @@ describe('keyboard gameplay controls', () => {
       if (descriptor) Object.defineProperty(globalThis, name, descriptor);
       else Reflect.deleteProperty(globalThis, name);
     }
+  });
+
+  test('periscope shortcut respects rebinding, repeat, pause and dialogs', () => {
+    key('keydown', 'KeyP');
+    key('keydown', 'KeyP', { repeat: true });
+    expect(actions.periscope).toHaveBeenCalledTimes(1);
+    const bindings = defaultKeybindings(); bindings.periscope = ['KeyV', null];
+    input.setBindings(bindings);
+    key('keydown', 'KeyP');
+    key('keydown', 'KeyV');
+    expect(actions.periscope).toHaveBeenCalledTimes(2);
+    input.setEnabled(false); key('keydown', 'KeyV');
+    input.setEnabled(true); modal = true; key('keydown', 'KeyV');
+    expect(actions.periscope).toHaveBeenCalledTimes(2);
+  });
+
+  test('G is available for rebinding and has no default overlay action', () => {
+    expect(key('keydown', 'KeyG').defaultPrevented).toBe(false);
+    expect(actions.cursor).not.toHaveBeenCalled();
+    const bindings = defaultKeybindings(); bindings.fire = ['KeyG', null];
+    input.setBindings(bindings);
+    key('keydown', 'KeyG'); expect(input.firing).toBe(true);
+    key('keyup', 'KeyG'); expect(input.firing).toBe(false);
   });
 
   test('custom engine keys replace defaults and only notch once per press', () => {
@@ -41,7 +64,7 @@ describe('keyboard gameplay controls', () => {
   });
 
   test('custom steering latches one notch per tap while firing clears on release or pause', () => {
-    const bindings = defaultKeybindings(); bindings.port = ['KeyJ', null]; bindings.fire = [null, 'KeyL'];
+    const bindings = defaultKeybindings(); bindings.dive50 = ['KeyK', null]; bindings.port = ['KeyJ', null]; bindings.fire = [null, 'KeyL'];
     input.setBindings(bindings);
     key('keydown', 'KeyA'); key('keydown', 'KeyQ');
     expect(input.sample().rudder).toBe(0); expect(input.firing).toBe(false);
@@ -117,6 +140,25 @@ describe('keyboard gameplay controls', () => {
     expect(actions.optics).toHaveBeenCalledTimes(1);
   });
 
+  test('depth preset hotkeys support rebinding and ignore repeat, pause and dialogs', () => {
+    key('keydown', 'KeyU');
+    expect(actions.depthPreset).toHaveBeenLastCalledWith(0);
+    key('keydown', 'KeyJ');
+    expect(actions.depthPreset).toHaveBeenLastCalledWith(50);
+    key('keydown', 'KeyJ', { repeat: true });
+    expect(actions.depthPreset).toHaveBeenCalledTimes(2);
+    const bindings = defaultKeybindings();
+    bindings.surface = ['KeyI', null]; bindings.dive50 = ['KeyK', null];
+    input.setBindings(bindings);
+    key('keydown', 'KeyU'); key('keydown', 'KeyJ');
+    expect(actions.depthPreset).toHaveBeenCalledTimes(2);
+    key('keydown', 'KeyI'); expect(actions.depthPreset).toHaveBeenLastCalledWith(0);
+    key('keydown', 'KeyK'); expect(actions.depthPreset).toHaveBeenLastCalledWith(50);
+    input.setEnabled(false); key('keydown', 'KeyI'); key('keydown', 'KeyK');
+    input.setEnabled(true); modal = true; key('keydown', 'KeyI'); key('keydown', 'KeyK');
+    expect(actions.depthPreset).toHaveBeenCalledTimes(4);
+  });
+
   test('depth orders notch once, emergency blow is reachable, and pause blocks both', () => {
     key('keydown', 'KeyZ'); key('keydown', 'KeyZ', { repeat: true }); key('keyup', 'KeyZ');
     expect(actions.depth).toHaveBeenCalledTimes(1); expect(actions.depth).toHaveBeenLastCalledWith(1);
@@ -126,18 +168,18 @@ describe('keyboard gameplay controls', () => {
     expect(actions.depth).toHaveBeenCalledTimes(2); expect(actions.emergencyBlow).toHaveBeenCalledTimes(1);
   });
 
-  test('battery, chart and gunnery bindings replace the new HUD defaults', () => {
+  test('battery and chart bindings replace the new HUD defaults', () => {
     const bindings = defaultKeybindings();
     bindings.mainBattery = ['KeyM', null]; bindings.secondaryBattery = ['KeyN', null];
-    bindings.chartLarger = ['KeyP', null]; bindings.chartSmaller = ['KeyO', null]; bindings.gunnery = ['KeyV', null];
+    bindings.periscope = ['KeyI', null]; bindings.airOperations = ['KeyK', null];
+    bindings.chartLarger = ['KeyP', null]; bindings.chartSmaller = ['KeyO', null];
     input.setBindings(bindings);
     for (const code of ['Digit1', 'Digit2', 'Equal', 'NumpadAdd', 'Minus', 'NumpadSubtract', 'KeyG']) key('keydown', code);
-    expect(actions.battery).not.toHaveBeenCalled(); expect(actions.chartSize).not.toHaveBeenCalled(); expect(actions.gunnery).not.toHaveBeenCalled();
+    expect(actions.battery).not.toHaveBeenCalled(); expect(actions.chartSize).not.toHaveBeenCalled();
     key('keydown', 'KeyM'); expect(actions.battery).toHaveBeenLastCalledWith('main');
     key('keydown', 'KeyN'); expect(actions.battery).toHaveBeenLastCalledWith('secondary');
     key('keydown', 'KeyP'); expect(actions.chartSize).toHaveBeenLastCalledWith(1);
     key('keydown', 'KeyO'); expect(actions.chartSize).toHaveBeenLastCalledWith(-1);
-    key('keydown', 'KeyV'); expect(actions.gunnery).toHaveBeenCalledTimes(1);
   });
 
   test('dialogs and browser shortcuts do not trigger or consume gameplay input', () => {

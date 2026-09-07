@@ -1,0 +1,77 @@
+{
+  "ship": "king-george-v",
+  "before": {
+    "flags": [
+      {
+        "design": "white-ensign",
+        "position": [
+          0,
+          11.8381,
+          111
+        ],
+        "visible": true,
+        "tip": [
+          4.0037922859191895,
+          -0.48928964138031006,
+          2.1223840713500977
+        ]
+      }
+    ],
+    "radars": [
+      {
+        "nodeId": "radar-279-foremast.yaw",
+        "angle": 1.2566370614359177,
+        "rpm": 4
+      },
+      {
+        "nodeId": "radar-279-mainmast.yaw",
+        "angle": 1.2566370614359177,
+        "rpm": 4
+      },
+      {
+        "nodeId": "dct-forward.yaw",
+        "angle": 0.5129393973584603,
+        "rpm": 2,
+        "sweepDeg": 50
+      }
+    ]
+  },
+  "after": {
+    "flags": [
+      {
+        "design": "white-ensign",
+        "position": [
+          0,
+          11.8381,
+          111
+        ],
+        "visible": true,
+        "tip": [
+          3.6582932472229004,
+          -1.013773798942566,
+          2.3766098022460938
+        ]
+      }
+    ],
+    "radars": [
+      {
+        "nodeId": "radar-279-foremast.yaw",
+        "angle": 1.8011797880581484,
+        "rpm": 4
+      },
+      {
+        "nodeId": "radar-279-mainmast.yaw",
+        "angle": 1.8011797880581484,
+        "rpm": 4
+      },
+      {
+        "nodeId": "dct-forward.yaw",
+        "angle": 0.683901557833679,
+        "rpm": 2,
+        "sweepDeg": 50
+      }
+    ]
+  },
+  "pauseHeld": true,
+  "maxWeaponErrorM": 0.0017379514971361963
+}

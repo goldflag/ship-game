@@ -1,0 +1,114 @@
+{
+  "ship": "baltimore",
+  "contentHash": "827c7ecc7a0b2eccd0fe471843eb29058e5221768ece313754d4ba6b73497d9f",
+  "before": {
+    "flags": [
+      {
+        "design": "us-48",
+        "position": [
+          0,
+          10.358,
+          99.629
+        ],
+        "visible": true,
+        "tip": [
+          3.865692377090454,
+          -0.39643043279647827,
+          1.3295321464538574
+        ]
+      }
+    ],
+    "radars": [
+      {
+        "nodeId": "radar-sk.yaw",
+        "angle": 1.8849555921538765,
+        "rpm": 6
+      },
+      {
+        "nodeId": "radar-sg.yaw",
+        "angle": 5.532693728822027,
+        "rpm": 15
+      },
+      {
+        "nodeId": "forward-main-director.yaw",
+        "angle": 0.7353498761967923,
+        "rpm": 2,
+        "sweepDeg": 55
+      },
+      {
+        "nodeId": "after-main-director.yaw",
+        "angle": 0.05023891144904821,
+        "rpm": 2,
+        "sweepDeg": 55
+      },
+      {
+        "nodeId": "forward-dp-director.yaw",
+        "angle": -0.666824165757641,
+        "rpm": 2,
+        "sweepDeg": 55
+      },
+      {
+        "nodeId": "after-dp-director.yaw",
+        "angle": -0.9597848864425573,
+        "rpm": 2,
+        "sweepDeg": 55
+      }
+    ]
+  },
+  "after": {
+    "flags": [
+      {
+        "design": "us-48",
+        "position": [
+          0,
+          10.358,
+          99.629
+        ],
+        "visible": true,
+        "tip": [
+          3.8760454654693604,
+          -0.5824623703956604,
+          1.2243661880493164
+        ]
+      }
+    ],
+    "radars": [
+      {
+        "nodeId": "radar-sk.yaw",
+        "angle": 2.701769682087223,
+        "rpm": 6
+      },
+      {
+        "nodeId": "radar-sg.yaw",
+        "angle": 1.2915436464758052,
+        "rpm": 15
+      },
+      {
+        "nodeId": "forward-main-director.yaw",
+        "angle": 0.5423293906190186,
+        "rpm": 2,
+        "sweepDeg": 55
+      },
+      {
+        "nodeId": "after-main-director.yaw",
+        "angle": -0.2094024791838349,
+        "rpm": 2,
+        "sweepDeg": 55
+      },
+      {
+        "nodeId": "forward-dp-director.yaw",
+        "angle": -0.827953685411813,
+        "rpm": 2,
+        "sweepDeg": 55
+      },
+      {
+        "nodeId": "after-dp-director.yaw",
+        "angle": -0.9199236321332813,
+        "rpm": 2,
+        "sweepDeg": 55
+      }
+    ]
+  },
+  "pauseHeld": true,
+  "maxWeaponErrorM": 0.0013168090882187296
+}

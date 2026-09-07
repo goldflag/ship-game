@@ -231,3 +231,40 @@ test('failed aircraft loads leave the current port intact and allow another laun
     await game.prepareBattle(setup); expect(game.definition.id).toBe('enterprise-cv6');
   } finally { aircraftLoader.mockRestore(); loader.mockRestore(); rig.dispose(); }
 });
+
+test('spectating follows only surviving teammates, cycles duplicates, and resets after loss or port', () => {
+  const definition = shipPreset('bismarck');
+  const simulation = new CombatSimulation(definition, { friendlyBots: [definition, shipPreset('type-viic'), definition], enemies: [definition] });
+  const camera = new PerspectiveCamera(52, 1.6, .5, 60000);
+  const rig = new CameraRig(camera, new EventTarget() as HTMLCanvasElement);
+  const fleetViews = simulation.actors.map(actor => ({ actor, definition: actor.definition, motion: actor.motion }));
+  const game = Object.assign(Object.create(Game.prototype), {
+    definition, simulation, rig, fleetViews, playerView: fleetViews[0], targetView: fleetViews.at(-1),
+    inPort: false, shellFollow: new ShellFollow(), input: { clear() {} }, battlefieldCamera: { cancelTransition() {} },
+  }) as Game;
+  const update = () => (game as unknown as { updateSpectator(): void }).updateSpectator();
+  try {
+    game.spectateTeammate('friendly-1'); expect(game.spectatedShipId).toBeUndefined();
+    simulation.player.damage.sunk = true;
+    update(); expect(game.spectatedShipId).toBe('friendly-1');
+    game.spectateTeammate('enemy-1'); expect(game.spectatedShipId).toBe('friendly-1');
+    game.spectateTeammate('player'); expect(game.spectatedShipId).toBe('friendly-1');
+    game.cycleSpectator(-1); expect(game.spectatedShipId).toBe('friendly-3');
+    game.cycleSpectator(1); expect(game.spectatedShipId).toBe('friendly-1');
+    game.cycleSpectator(1); expect(game.spectatedShipId).toBe('friendly-2');
+    const friend = simulation.actors[2];
+    const projected = new Vector3(friend.motion.x, friend.motion.y, friend.motion.z).project(camera);
+    expect(Math.abs(projected.x)).toBeLessThan(1); expect(Math.abs(projected.y)).toBeLessThan(1);
+    expect(simulation.player.controller).toBe('player'); expect(friend.controller).toBe('bot');
+    friend.damage.sunk = true;
+    update(); expect(game.spectatedShipId).toBe('friendly-1');
+    simulation.actors[1].damage.stability.combatLost = true;
+    update(); expect(game.spectatedShipId).toBe('friendly-3');
+    simulation.actors[3].damage.sunk = true;
+    update(); expect(game.spectatedShipId).toBeUndefined();
+    game.cycleSpectator(1); expect(game.spectatedShipId).toBeUndefined();
+    simulation.reset(); update(); expect(game.spectatedShipId).toBeUndefined();
+    simulation.player.damage.sunk = true; update(); expect(game.spectatedShipId).toBe('friendly-1');
+    Object.assign(game, { inPort: true }); update(); expect(game.spectatedShipId).toBeUndefined();
+  } finally { rig.dispose(); }
+});

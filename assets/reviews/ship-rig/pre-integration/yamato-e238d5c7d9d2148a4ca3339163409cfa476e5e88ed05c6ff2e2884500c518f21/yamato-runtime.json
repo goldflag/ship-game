@@ -1,0 +1,81 @@
+{
+  "ship": "yamato",
+  "before": {
+    "flags": [
+      {
+        "design": "ijn",
+        "position": [
+          0,
+          13.1625,
+          130
+        ],
+        "visible": true,
+        "tip": [
+          3.8193657398223877,
+          -0.9269309043884277,
+          2.9083940982818604
+        ]
+      }
+    ],
+    "radars": [
+      {
+        "nodeId": "radar-21.yaw",
+        "angle": 0.8472006153858767,
+        "rpm": 3,
+        "sweepDeg": 60
+      },
+      {
+        "nodeId": "radar-22-port.yaw",
+        "angle": 0.8332181813404672,
+        "rpm": 5,
+        "sweepDeg": 70
+      },
+      {
+        "nodeId": "radar-22-starboard.yaw",
+        "angle": -0.08522360989911847,
+        "rpm": 5,
+        "sweepDeg": 70
+      }
+    ]
+  },
+  "after": {
+    "flags": [
+      {
+        "design": "ijn",
+        "position": [
+          0,
+          13.1625,
+          130
+        ],
+        "visible": true,
+        "tip": [
+          3.6475625038146973,
+          -0.871902346611023,
+          3.188469409942627
+        ]
+      }
+    ],
+    "radars": [
+      {
+        "nodeId": "radar-21.yaw",
+        "angle": 1.0219776432739693,
+        "rpm": 3,
+        "sweepDeg": 60
+      },
+      {
+        "nodeId": "radar-22-port.yaw",
+        "angle": 0.08522360989911713,
+        "rpm": 5,
+        "sweepDeg": 70
+      },
+      {
+        "nodeId": "radar-22-starboard.yaw",
+        "angle": -0.8332181813404682,
+        "rpm": 5,
+        "sweepDeg": 70
+      }
+    ]
+  },
+  "pauseHeld": true,
+  "maxWeaponErrorM": 0.0027464697123877825
+}
