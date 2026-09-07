@@ -314,3 +314,9 @@
 
 @media (pointer:coarse) { .fleet-steering { width:min(100%,220px); } .fleet-rudder-orders button { min-height:44px; } }
 @media (prefers-reduced-motion:reduce) { .fleet-hud { transition:none; } }
+
+.fleet-spectator { margin-top:8px; display:grid; gap:4px; max-width:100%; }
+.fleet-spectator > label { color:var(--fleet-active); font-size:12px; }
+.fleet-spectator-controls { display:flex; gap:6px; min-width:0; }
+.fleet-spectator-controls select { min-width:0; flex:1; }
+.fleet-spectator-controls button { flex-shrink:0; }

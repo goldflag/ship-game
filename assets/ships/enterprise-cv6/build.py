@@ -10,6 +10,7 @@ from mathutils import Vector
 sys.path.insert(0,str(Path(__file__).resolve().parents[3]/'scripts/ships'))
 from blender_components import create_gun_mount
 from blender_supports import SupportSurface
+from blender_rig import radar_pivot
 from blender_fidelity import authored_hull, authored_structure, Fittings
 OUT=Path(os.environ['SHIP_OUTPUT'])
 D=json.loads(Path(os.environ['SHIP_DEFINITION']).read_text())
@@ -512,5 +513,7 @@ for kind in ['armor','modules','compartments','obstructions']:
  for v in D[kind]:
   a,b,c=v['center'];sx,sy,sz=v['size'];o=box(kind+':'+v['id'],(-c,-a,b),(sz,sx,sy),M['line'],COL['Simulation']);o['exportRole']='simulation';o.hide_render=True;o.display_type='WIRE';o.hide_set(True)
 scene['definitionHash']=D['contentHash'];scene['configuration']=D['configuration'];scene['historicalAccuracy']='In progress; see discrepancy register'
+from blender_rig import create_flagstaffs
+create_flagstaffs(D)
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'source.blend'))
 print('ENTERPRISE SOURCE',len(scene.objects),'objects',flush=True)

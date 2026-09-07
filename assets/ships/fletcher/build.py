@@ -11,6 +11,7 @@ from mathutils import Vector, Matrix
 from array import array
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / 'scripts/ships'))
 from blender_components import create_gun_mount
+from blender_rig import radar_pivot
 
 out = Path(os.environ['SHIP_OUTPUT'])
 definition = json.loads(Path(os.environ['SHIP_DEFINITION']).read_text())
@@ -330,6 +331,7 @@ for i in range(15):
 for side in [-1,1]:rod('director.radar-brace',(19.65,0,14.25),(20.18,side*1.65,15.88),.029,materials['edge'])
 
 for part in set(col.objects)-director_before:part.location.z+=1.38
+radar_pivot('director-mk37.yaw',(20.15,0,13.29),set(col.objects)-director_before)
 
 # Raked elliptical funnels with rolled, sloping open caps. Heights derive from the blueprint.
 for s in definition['structures']:
@@ -380,12 +382,14 @@ ladder('mast.rungs',(16.14,0,8.7),(15.10,0,24.6),.38)
 platform=outline_rect(15.30,17.0,-1.0,1.0,.25)
 prism('mast.working-platform',platform,13.20,13.30,materials['roof'])
 rails('mast.working-rail',[(x,y,13.3) for x,y in platform],.78,True,1.4)
+radar_before=set(col.objects)
 for z in [24.55,24.90,25.25]:rod('radar.sc-horizontal',(15.04,-1.6,z),(15.04,1.6,z),.023,materials['edge'],vertices=6)
 for i in range(10):
     y=-1.6+i*3.2/9;rod('radar.sc-vertical',(15.04,y,24.55),(15.04,y,25.25),.022,materials['edge'],vertices=6)
 rod('radar.sc-support',(15.1,0,24.05),(15.04,0,25.30),.048,materials['edge'])
+radar_pivot('radar-sc.yaw',(15.04,0,24.55),set(col.objects)-radar_before)
 rod('radar.sg-boom',(15.22,0,22.6),(16.15,0,22.6),.05,materials['edge'])
-box('radar.sg-head',(16.15,0,23.0),(.22,.65,.18),materials['naval'])
+radar_pivot('radar-sg.yaw',(16.15,0,23.0),[box('radar.sg-head',(16.15,0,23.0),(.22,.65,.18),materials['naval'])])
 rod('radar.sg-pedestal',(16.15,0,22.6),(16.15,0,23.0),.05,materials['edge'])
 rod('mast.aft',(-22.1,0,5.7),(-22.65,0,16.20),.095,materials['edge'],r2=.028)
 rod('mast.aft-yard',(-22.55,-1.75,13.9),(-22.55,1.75,13.9),.037,materials['edge'])
@@ -783,5 +787,7 @@ for o in col.objects:
         bm=bmesh.new();bm.from_mesh(o.data);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(o.data);bm.free()
 scene['definitionHash']=definition['contentHash'];scene['authoringRevision']=3
 scene['referenceBoundary']='Original blueprint / catalog / recipe only; reference rasters used for human review.'
+from blender_rig import create_flagstaffs
+create_flagstaffs(definition)
 bpy.ops.wm.save_as_mainfile(filepath=str(out/'source.blend'))
 print('FLETCHER REVISION 3',len(col.objects),'original objects',flush=True)

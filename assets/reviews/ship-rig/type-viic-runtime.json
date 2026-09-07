@@ -1,0 +1,44 @@
+{
+  "ship": "type-viic",
+  "contentHash": "64f32852aa3e5527b8f80b9daa34c0eba8474d135bfa231bafea8fff79c88c92",
+  "before": {
+    "flags": [
+      {
+        "design": "kriegsmarine",
+        "position": [
+          0,
+          6.3,
+          3.8
+        ],
+        "visible": true,
+        "tip": [
+          1.3674366474151611,
+          -0.540127694606781,
+          0.5361747741699219
+        ]
+      }
+    ],
+    "radars": []
+  },
+  "after": {
+    "flags": [
+      {
+        "design": "kriegsmarine",
+        "position": [
+          0,
+          6.3,
+          3.8
+        ],
+        "visible": true,
+        "tip": [
+          1.5565807819366455,
+          -0.2926520109176636,
+          0.47209328413009644
+        ]
+      }
+    ],
+    "radars": []
+  },
+  "pauseHeld": true,
+  "maxWeaponErrorM": 2.6020255303479814e-06
+}
