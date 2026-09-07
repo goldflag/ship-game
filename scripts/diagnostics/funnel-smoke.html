@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Funnel smoke · runtime review</title>
+<style>html,body{margin:0;background:#132d38;color:#edf1ec;font:16px sans-serif}#scene{width:1280px;height:720px}canvas{display:block}#status{position:fixed;left:24px;bottom:24px}</style>
+<div id="scene"></div><output id="status">Preparing the review renderer…</output>
+<script type="module">
+import { Game } from '/src/game/Game.ts';
+import { motionVelocity } from '/src/simulation/ship.ts';
+
+// Actual ship, sky, water and render pipeline; fixed poses and clocks are local
+// to this development page. No benchmark switches ship in the production UI.
+const status = document.querySelector('#status');
+let ready;
+const loaded = new Promise(resolve => ready = resolve);
+const game = new Game(document.querySelector('#scene'), {quality:'medium',resolution:1}, {
+  progress: label => status.textContent = label, ready, telemetry:()=>{}, pause:()=>{}, hud:()=>{},
+  error: message => { status.textContent = message; window.reviewError = message; },
+});
+game.start(); await loaded;
+game.setInPort(false); game.setPaused(true); game.scheduleFrame = () => {};
+cancelAnimationFrame(game.raf); await game.frameTask; cancelAnimationFrame(game.raf);
+game.rig.update = () => {};
+const current = game.funnelSmoke;
+let baseline, selected = 'after', elapsed = 0, fixture = 'underway';
+const effects = () => baseline ? [baseline, current] : [current];
+
+function prepare(scene = 'underway') {
+  fixture = scene; elapsed = 0;
+  game.simulation.reset(); game.effects.reset(); game.shipWake.reset();
+  game.battleTimeOfDay = scene === 'night' ? 'night' : scene === 'dusk' ? 'dusk' : 'noon';
+  game.battleWeather = scene === 'overcast' ? 'overcast' : 'clear';
+  game.battleConditions = {windSpeed:scene === 'idle' ? 1 : 12};
+  game.updateSeaState(); game.updatePortLighting();
+  for (const effect of effects()) {
+    effect.reset(); effect.setWind(game.water.waves.windSpeed.value, game.water.waves.windDirection.value);
+  }
+  const moving = scene !== 'idle';
+  Object.assign(game.simulation.player.motion, {x:0,z:0,heading:0,speed:moving ? 12 : 0});
+  // Keep the second ship well away from the hero plume.
+  Object.assign(game.simulation.target.motion, {x:1800,z:1200,speed:0});
+  game.playerView.snap(); game.targetView.snap();
+  game.camera.fov = scene === 'binocular' ? 4.33 : 52;
+  placeCamera();
+  game.camera.updateProjectionMatrix(); game.camera.updateMatrixWorld();
+  status.hidden = true;
+}
+function placeCamera() {
+  const z = game.simulation.player.motion.z;
+  game.camera.position.set(...(fixture === 'close' ? [78,46,z+60] : fixture === 'binocular' ? [5000,28,z] : [200,95,z+155]));
+  game.camera.lookAt(0,fixture === 'close' ? 40 : 32,z+20);
+  game.camera.updateMatrixWorld();
+}
+function advance(seconds) {
+  for (let frame = 0; frame < Math.round(seconds * 60); frame++) {
+    const ship = game.simulation.player.motion, velocity = motionVelocity(ship);
+    ship.x += velocity[0] / 60; ship.z += velocity[2] / 60;
+    // Production emits from ShipView's interpolated render pose. Keep that pose
+    // current during fixed warmup ticks as well as rendered video frames.
+    for (const view of game.fleetViews) Object.assign(view.motion,view.actor.motion);
+    placeCamera();
+    for (const effect of effects()) effect.update(game.fleetViews, 1 / 60, game.camera);
+    elapsed += 1 / 60;
+  }
+  game.playerView.snap(); game.targetView.snap();
+}
+function variant(value) {
+  selected = value;
+  game.funnelSmoke = selected === 'before' ? baseline : current;
+  if (!game.funnelSmoke) throw new Error('Load the retained baseline first.');
+  for (const effect of effects()) effect.root.visible = effect === game.funnelSmoke;
+}
+async function render() {
+  placeCamera(); variant(selected);
+  game.renderer._nodes.nodeFrame.update(); await game.frame(performance.now());
+  if (window.reviewError) throw new Error(window.reviewError);
+}
+window.review = {
+  game, current, prepare, advance, render,
+  async baseline(Baseline) {
+    baseline?.root.removeFromParent(); baseline?.dispose(); baseline = new Baseline();
+    baseline.setSun ??= () => {}; baseline.setIllumination ??= () => {};
+    game.scene.add(baseline.root);
+  },
+  variant,
+  async still(scene = 'underway', time = 12) { prepare(scene); advance(time); await render(); return {scene,elapsed,selected,smoke:game.funnelSmoke.diagnostics()}; },
+  async capture() { await render(); return game.renderer.domElement.toDataURL('image/png'); },
+  async record(scene = 'close', duration = 6) {
+    await this.still(scene,12);
+    const canvas = game.renderer.domElement, fps = 30, chunks = [], started = performance.now();
+    window.reviewVideo = null; window.reviewCaptureProgress = 0; window.reviewRecordingResult = null;
+    const encoder = new VideoEncoder({
+      output(chunk) { const bytes = new Uint8Array(chunk.byteLength); chunk.copyTo(bytes); chunks.push({bytes,timestamp:chunk.timestamp}); },
+      error(error) { window.reviewError = error.message; },
+    });
+    encoder.configure({codec:'vp09.00.10.08',width:canvas.width,height:canvas.height,bitrate:6000000,framerate:fps,latencyMode:'quality'});
+    const capture = async () => {
+      try {
+        for (let i = 0; i < duration * fps; i++) {
+          advance(1 / fps); await render();
+          const frame = new VideoFrame(canvas,{timestamp:Math.round(i * 1000000 / fps),duration:Math.round(1000000 / fps)});
+          encoder.encode(frame,{keyFrame:i % fps === 0}); frame.close();
+          if (encoder.encodeQueueSize > 4) await encoder.flush();
+          window.reviewCaptureProgress = (i + 1) / (duration * fps);
+          await new Promise(resolve => {
+            const channel = new MessageChannel();
+            channel.port1.onmessage = () => { channel.port1.close(); channel.port2.close(); resolve(); };
+            channel.port2.postMessage(null);
+          });
+        }
+        await encoder.flush();
+        const header = new ArrayBuffer(32), view = new DataView(header);
+        new Uint8Array(header).set([68,75,73,70,0,0,32,0,86,80,57,48]);
+        view.setUint16(12,canvas.width,true); view.setUint16(14,canvas.height,true);
+        view.setUint32(16,1000000,true); view.setUint32(20,1,true); view.setUint32(24,chunks.length,true);
+        const parts = [header];
+        for (const chunk of chunks) {
+          const packet = new ArrayBuffer(12), packetView = new DataView(packet);
+          packetView.setUint32(0,chunk.bytes.length,true); packetView.setBigUint64(4,BigInt(chunk.timestamp),true);
+          parts.push(packet,chunk.bytes);
+        }
+        window.reviewRecordingResult = {scene,selected,elapsed,frames:chunks.length,seconds:duration,fps,
+          canvas:[canvas.width,canvas.height],renderSeconds:(performance.now()-started)/1000,
+          mode:'fixed ship motion and effect clock; frozen ocean/sky',freshRenderFrame:true,smoke:game.funnelSmoke.diagnostics()};
+        const reader = new FileReader(); reader.onload = () => window.reviewVideo = reader.result;
+        reader.readAsDataURL(new Blob(parts,{type:'video/x-ivf'}));
+      } catch(error) { window.reviewError = error.message; }
+      finally { encoder.close(); }
+    };
+    capture(); return {recording:true,scene,duration,fps};
+  },
+};
+await window.review.still(); window.reviewReady = true;
+</script>
+</html>

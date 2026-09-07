@@ -1,9 +1,10 @@
-import { Camera, Group, Vector3 } from 'three/webgpu';
+import { Camera, Color, Group, Vector3 } from 'three/webgpu';
 import type { ShipDefinition, Vec3 } from '../ships/blueprint';
 import { systemHealth } from '../simulation/machinery';
 import { localToWorld } from '../simulation/geometry';
 import { motionVelocity } from '../simulation/ship';
-import { EffectParticlePool, effectTexture } from './EffectParticles';
+import { EffectParticlePool } from './EffectParticles';
+import { FunnelSmokeMaterial } from './FunnelSmokeMaterial';
 import type { ShipView } from './ShipView';
 
 export interface FunnelOutlet { id: string; position: Vec3; width: number; length: number; }
@@ -48,8 +49,8 @@ interface Emitter { outlet: FunnelOutlet; previous: Vector3; credit: number; ini
 /** One bounded fleet batch. Puffs stay in world space after leaving the moving rim. */
 export class ShipFunnelSmoke {
   readonly root = new Group();
-  private readonly map = effectTexture('smoke');
-  private readonly pool = new EffectParticlePool(6144, this.map);
+  private readonly appearance = new FunnelSmokeMaterial();
+  private readonly pool = new EffectParticlePool(6144, this.appearance.map, false, { spriteMaterial: this.appearance.material });
   private readonly emitters = new Map<SmokeShip, { damage: SmokeShip['actor']['damage']; funnels: Emitter[] }>();
   private readonly wind = new Vector3(1.5, 0, 1);
   private readonly position = new Vector3();
@@ -65,6 +66,9 @@ export class ShipFunnelSmoke {
   setWind(speed: number, direction: number): void {
     this.wind.set(Math.cos(direction), 0, Math.sin(direction)).multiplyScalar(speed * .35);
   }
+
+  setSun(direction: Vector3): void { this.appearance.setSun(direction); }
+  setIllumination(color: Color, intensity: number, ambient: number): void { this.appearance.setIllumination(color, intensity, ambient); }
 
   update(ships: readonly SmokeShip[], dt: number, camera: Camera, hiddenSourceId?: string): void {
     // Replacement damage state is the simulation's reset boundary. Discard the
@@ -107,14 +111,15 @@ export class ShipFunnelSmoke {
             p.life = 9 + load * 3;
             p.velocity.set(velocity[0] * .35 + (this.random() - .5) * .7, 2.8 + load * 1.5 + this.random(), velocity[2] * .35 + (this.random() - .5) * .7);
             p.drag = .22; p.gravity = -.35; p.wind = 1;
-            p.opacity = .28 + load * .2;
-            p.color.set('#858781').multiplyScalar(.9 - load * .3 + this.random() * .12);
+            p.opacity = .28 + load * .2; p.fadeIn = .12;
+            p.color.set('#818789').multiplyScalar(.9 - load * .3 + this.random() * .12);
             p.angle = this.random() * Math.PI * 2; p.spin = (this.random() - .5) * .25;
           }
         } else if (power <= .01 || this.origin.y <= .3) emitter.credit = 0;
         emitter.previous.copy(this.origin);
       }
     }
+    this.appearance.updateCamera(camera);
     this.pool.publish(camera, hiddenSourceId);
   }
 
@@ -122,5 +127,5 @@ export class ShipFunnelSmoke {
   diagnostics() { return { particles: this.pool.count, capacity: this.pool.capacity,
     outlets: [...this.emitters].flatMap(([ship, state]) => state.funnels.map(e => ({ shipId: ship.motion.id, id: e.outlet.id, position: localToWorld(e.outlet.position, ship.motion) }))) }; }
   reset(): void { this.pool.reset(); this.emitters.clear(); this.seed = 1; }
-  dispose(): void { this.pool.dispose(); this.map.dispose(); this.emitters.clear(); }
+  dispose(): void { this.pool.dispose(); this.appearance.map.dispose(); this.emitters.clear(); }
 }

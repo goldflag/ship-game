@@ -76,7 +76,7 @@ export async function checkCombatVolumeRendering(forceWebGL = false, reversedDep
   const camera = new THREE.PerspectiveCamera(52, 1, .5, 1000);
   const map = effectTexture('smoke'), volume = effectVolumeTexture();
   const material = effectVolumeMaterial(volume, uniform(new THREE.Vector3(-.55, .74, -.39).normalize()), viewportDepthTexture().r, turbulent ? 12 : 10, turbulent);
-  const pool = new EffectParticlePool(8, map, false, material);
+  const pool = new EffectParticlePool(8, map, false, { volumeMaterial: material });
   const blocker = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshBasicMaterial({ color: 0 }));
   blocker.position.set(0, 10, 20);
   // Like Water Pro, the surface is transparent, writes depth and has an

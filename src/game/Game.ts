@@ -1097,6 +1097,10 @@ export class Game {
     this.effects.setIllumination(night ? moon.moonColor.value : sun.color.value,
       night ? .35 * moon.moonIntensity.value * moon.moonPhaseIllumination.value : sun.intensity.value,
       this.ambientLight.intensity);
+    this.funnelSmoke.setSun(night ? moon.moonDirection.value : sun.direction.value);
+    this.funnelSmoke.setIllumination(night ? moon.moonColor.value : sun.color.value,
+      night ? .35 * moon.moonIntensity.value * moon.moonPhaseIllumination.value : sun.intensity.value,
+      this.ambientLight.intensity);
   }
   private updatePortLighting(): void {
     if(!this.sky)return;

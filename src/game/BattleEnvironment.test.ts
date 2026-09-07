@@ -80,6 +80,9 @@ test('night, fog and storm lighting reach the live uniforms; the sky stays fixed
     ambientLight: new HemisphereLight(), effects: {
       setSun() {}, direct: 0, ambient: 0,
       setIllumination(_color: Color, intensity: number, ambient: number) { this.direct = intensity; this.ambient = ambient; },
+    }, funnelSmoke: {
+      setSun() {}, direct: 0, ambient: 0,
+      setIllumination(_color: Color, intensity: number, ambient: number) { this.direct = intensity; this.ambient = ambient; },
     }, water: { fog: {} },
   });
   for (const time of TIME_OF_DAY_PRESETS) for (const weather of WEATHER_PRESETS) {
@@ -98,6 +101,8 @@ test('night, fog and storm lighting reach the live uniforms; the sky stays fixed
     expect(game.water.fog.fadeEnd).toBe(expected.fog.end);
     expect(game.ambientLight.intensity).toBe(expected.sky.ambient);
     expect(game.effects.ambient).toBe(expected.sky.ambient);
+    expect(game.funnelSmoke.ambient).toBe(game.effects.ambient);
+    expect(game.funnelSmoke.direct).toBe(game.effects.direct);
     if (time.id === 'night') {
       expect(sky.sun.intensity.value).toBe(0);
       expect(sky.timeOfDay.moonDirection.value.y).toBeGreaterThan(0);
