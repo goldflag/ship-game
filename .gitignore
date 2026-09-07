@@ -12,6 +12,9 @@ dist/
 *.tmp
 __pycache__/
 
+# Served copy of assets/ships/<id>/generated/comparison, rebuilt by ship:check / ship:compare.
+public/ship-reference/
+
 # Rebuildable download bundles duplicate retained review files. Keep them local.
 /assets/ships/*/generated/comparison/*-review.zip
 /public/ship-reference/*/*-review.zip
