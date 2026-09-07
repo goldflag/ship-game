@@ -1,0 +1,80 @@
+.air-operations { position:absolute; z-index:20; inset:70px max(24px, 4vw) 190px; display:flex; flex-direction:column; min-height:330px; color:var(--fleet-text); background:#10252ef5; border:1px solid var(--fleet-line); border-radius:3px; pointer-events:auto; font:13px 'Barlow',sans-serif; font-variant-numeric:tabular-nums; }
+.air-operations button { min-height:36px; padding:7px 11px; color:var(--fleet-text); background:#233e4a; border:1px solid var(--fleet-line); border-radius:2px; font:500 12px 'Barlow',sans-serif; cursor:pointer; }
+.air-operations button:hover:not(:disabled) { background:#315365; }
+.air-operations button:disabled { opacity:.45; cursor:default; }
+.air-operations button[aria-pressed="true"] { border-color:var(--fleet-active); color:var(--fleet-active); background:#204a48; }
+.air-operations :is(button,summary,svg,[role="button"]):focus-visible { outline:2px solid var(--fleet-gold, #e8c56c); outline-offset:3px; }
+.air-operations-header { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 18px; border-bottom:1px solid var(--fleet-line); }
+.air-operations-header > div { display:flex; align-items:baseline; gap:18px; }
+.air-operations h2 { margin:0; font:500 28px 'Barlow Condensed',sans-serif; }
+.air-operations-header span { color:var(--fleet-muted); }
+.air-operations kbd { margin-left:12px; font:inherit; color:var(--fleet-active); }
+.air-counts { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); border-bottom:1px solid var(--fleet-line); }
+.air-counts .air-count { display:flex; align-items:baseline; justify-content:center; gap:9px; margin:0; min-height:49px; padding:8px; border:0; border-right:1px solid var(--fleet-line); border-radius:0; background:transparent; }
+.air-counts .air-count:last-child { border-right:0; }
+.air-count strong { font:500 24px 'Barlow Condensed',sans-serif; }
+.air-count span { color:var(--fleet-muted); font-size:12px; }
+.air-count-ready strong { color:var(--fleet-active); }
+.air-count-lost strong { color:#ffb5a6; }
+.air-operations-body { display:grid; grid-template-columns:minmax(0,1fr) 330px; flex:1; min-height:0; }
+.air-chart-area { display:flex; flex-direction:column; min-width:0; min-height:0; background:#0e222c; }
+.air-chart-toolbar { display:flex; align-items:center; gap:8px; padding:10px 12px; border-bottom:1px solid var(--fleet-line); }
+.air-chart-zoom { margin-left:auto; display:flex; align-items:center; gap:8px; white-space:nowrap; font-size:12px; }
+.air-chart-zoom button { width:36px; font-size:18px; padding:2px; }
+.air-chart { display:block; width:100%; height:100%; flex:1; min-height:0; touch-action:none; cursor:grab; user-select:none; }
+.air-chart:active { cursor:grabbing; }
+.air-chart-patrol,.air-chart-attack,.air-chart-escort { cursor:crosshair; }
+.air-chart-contact { cursor:pointer; stroke-width:1.5; }
+.air-friendly { fill:var(--fleet-active); stroke:#142c35; }
+.air-hostile { fill:#ffb5a6; stroke:#142c35; }
+.air-chart-contact text { stroke:#0e222c; stroke-width:4px; paint-order:stroke; font:12px 'Barlow',sans-serif; }
+.air-chart-contact .air-flight-label { font-weight:600; font-size:13px; }
+.air-chart-contact .air-flight-state { fill:var(--fleet-muted); font-size:11px; }
+.air-flight-symbol { fill:none; stroke:var(--fleet-active); stroke-width:2; }
+.air-selected .air-flight-symbol,.air-selected text { fill:var(--fleet-gold, #e8c56c); }
+.air-selected .air-flight-symbol { stroke:var(--fleet-gold, #e8c56c); fill:none; }
+.air-selected-ring { fill:#e8c56c12; stroke:var(--fleet-gold, #e8c56c); }
+.air-other { fill:none; stroke:var(--fleet-active); stroke-width:1.5; }
+.air-other.air-hostile { stroke:#ffb5a6; }
+.air-individual { fill:none; stroke:#adddce; stroke-width:1; opacity:.7; }
+.air-route { fill:none; stroke:var(--fleet-gold, #e8c56c); stroke-width:1.5; stroke-dasharray:7 5; }
+.air-patrol-area { fill:#86e4c50a; stroke:var(--fleet-active); stroke-width:1; stroke-dasharray:5 5; }
+.air-north { fill:var(--fleet-muted); font:500 14px 'Barlow Condensed',sans-serif; }
+.air-chart-hint { display:flex; align-items:center; justify-content:space-between; min-height:42px; padding:8px 12px; gap:12px; border-top:1px solid var(--fleet-line); font-size:12px; color:var(--fleet-muted); }
+.air-chart-hint button { flex-shrink:0; }
+.air-roster { min-height:0; overflow:auto; border-left:1px solid var(--fleet-line); scrollbar-color:#668994 #132d38; }
+.air-roster section { padding:14px; }
+.air-roster section + section { border-top:1px solid var(--fleet-line); }
+.air-roster-heading { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:6px 10px; margin-bottom:10px; }
+.air-roster h3 { margin:0; font:500 20px 'Barlow Condensed',sans-serif; }
+.air-roster-heading > span { color:var(--fleet-muted); font-size:11px; }
+.air-launch-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 0; }
+.air-launch-row strong,.air-launch-row span { display:block; }
+.air-launch-row span { color:var(--fleet-muted); margin-top:3px; font-size:12px; }
+.air-warning { color:#ffb5a6; font-size:12px; line-height:1.5; margin:8px 0 0; }
+.air-muted { color:var(--fleet-muted); font-size:12px; line-height:1.5; margin:8px 0 0; }
+.air-empty { color:var(--fleet-muted); line-height:1.6; margin:0; }
+.air-roster .air-flight-row { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px; width:100%; margin:5px 0; padding:10px; text-align:left; background:transparent; }
+.air-flight-row > span:first-child { display:flex; flex-direction:column; gap:4px; }
+.air-flight-row > span:first-child > span { color:var(--fleet-muted); font-size:11px; }
+.air-flight-row small { width:100%; color:var(--fleet-muted); line-height:1.4; }
+.air-state { font-size:11px; color:var(--fleet-active); }
+.air-state-returning,.air-state-servicing,.air-state-launching { color:#e8c56c; }
+.air-state-lost { color:#ffb5a6; }
+.air-flight-detail dl { margin:0 0 12px; }
+.air-flight-detail dl > div { display:flex; justify-content:space-between; gap:12px; padding:5px 0; }
+.air-flight-detail dt { color:var(--fleet-muted); }
+.air-flight-detail dd { margin:0; }
+.air-orders { display:flex; flex-wrap:wrap; gap:6px; margin:12px 0; }
+.air-flight-detail summary { padding:8px 0; color:var(--fleet-muted); cursor:pointer; }
+.air-plane-list { list-style:none; padding:0; margin:0; }
+.air-plane-list li { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 0; border-top:1px solid var(--fleet-line); }
+.air-plane-list strong,.air-plane-list span { display:block; font-size:12px; }
+.air-plane-list span { margin-top:4px; color:var(--fleet-muted); }
+.air-operations-footer { display:flex; justify-content:space-between; align-items:center; gap:14px; padding:10px 14px; border-top:1px solid var(--fleet-line); }
+.air-operations-footer > span { font-size:12px; color:var(--fleet-muted); line-height:1.4; }
+.air-operations-footer button { flex-shrink:0; }
+@media (min-width:1600px) { .air-operations { inset-inline:max(40px, calc((100vw - 1480px)/2)); } }
+@media (max-width:1000px) { .air-operations { inset:64px 16px 180px; } .air-operations-body { grid-template-columns:minmax(0,1fr) 290px; } .air-chart-toolbar { flex-wrap:wrap; } .air-chart-zoom { width:100%; margin:0; } .air-operations-header > div { display:block; } .air-operations-header span { display:block; margin-top:4px; font-size:12px; } .air-counts .air-count { flex-direction:column; align-items:center; gap:2px; } }
+@media (max-width:680px) { .air-operations { inset:56px 8px 100px; min-height:0; } .air-operations-header { padding:10px; } .air-operations h2 { font-size:24px; } .air-close kbd { display:none; } .air-counts .air-count { padding:6px 2px; min-height:45px; } .air-count strong { font-size:21px; } .air-count span { font-size:10px; } .air-operations-body { display:flex; flex-direction:column; overflow:auto; } .air-chart-area { min-height:310px; flex-shrink:0; height:38vh; } .air-chart-toolbar { padding:7px; } .air-chart-zoom { width:auto; margin-left:auto; } .air-chart-zoom span { display:none; } .air-chart-hint { font-size:11px; } .air-roster { flex-shrink:0; overflow:visible; border-left:0; border-top:1px solid var(--fleet-line); } .air-operations-footer { padding:7px; } .air-operations-footer > span { font-size:11px; } }
+@media (max-height:650px) and (min-width:681px) { .air-operations { inset:48px 16px 85px; min-height:0; } .air-operations-header { padding:8px 14px; } .air-counts .air-count { min-height:38px; padding:4px; } }

@@ -222,9 +222,6 @@
 .fleet-roster button:hover,.fleet-roster button[aria-pressed=true] { color:var(--fleet-gold); text-decoration:underline; text-underline-offset:3px; }
 .fleet-roster-condition { color:var(--fleet-muted); font-size:10px; text-transform:capitalize; }
 .fleet-roster-lost { color:#ffb5a6; }
-.fleet-target { display:flex; align-items:center; gap:10px; margin-top:7px; color:var(--fleet-muted); font-size:11px; }
-.fleet-target select { flex:1; min-width:0; padding:2px 0; border:0; background:transparent; color:inherit; text-shadow:inherit; }
-.fleet-target>span { white-space:nowrap; }
 .chart-contact.chart-friendly { fill:var(--fleet-active); stroke:#d9eee6; }
 
 .fleet-health-loss { position:absolute; top:0; height:100%; background:var(--fleet-gold); }
@@ -258,7 +255,6 @@
   .fleet-team-state { font-size:9px; }
   .fleet-roster ul { max-height:44px; }
   .fleet-roster-condition { max-width:44px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .fleet-target { gap:4px; margin-top:5px; font-size:10px; }
   .fleet-combat-report { top:63px; width:220px; }
   .fleet-score { gap:18px; }
   .fleet-score dd { font-size:21px; }
@@ -266,7 +262,6 @@
   .fleet-log-target { max-width:57px; }
   .fleet-armament { top:150px; }
   .fleet-hit-notice { flex-wrap:wrap; gap:4px 8px; white-space:normal; }
-  .fleet-hud .fleet-flight { top:300px; }
 }
 @media (max-height:620px) and (min-width:601px) {
   .fleet-combat-report { top:51px; }

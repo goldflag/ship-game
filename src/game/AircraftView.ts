@@ -6,10 +6,13 @@ import { aircraftAttitude, aircraftControls } from '../simulation/aircraftFlight
 import { disposeObjects } from './disposeObjects';
 import { AircraftContacts } from './AircraftContacts';
 
-// Per model: 60 carriers × 6 deck aircraft plus the bounded airborne group.
-const CAPACITY = 504;
+// Authored deck capacity is bounded at 24; hangar aircraft have no scene instance.
+const CAPACITY = 60 * 24 + 144;
+// Three may bind the full matrix array as uniforms even when few instances draw.
+// Keep each allocation below WebGPU's 64 KiB uniform binding limit.
+const BATCH_CAPACITY = 768;
 type Joint = { object: THREE.Object3D; id: string; rotation: THREE.Euler };
-type Model = { root: THREE.Group; joints: Joint[]; meshes: { source: THREE.Mesh; batch: THREE.InstancedMesh }[]; count: number; wingspan: number };
+type Model = { root: THREE.Group; joints: Joint[]; meshes: { source: THREE.Mesh; batches: THREE.InstancedMesh[] }[]; count: number; wingspan: number };
 /** Shared authored geometry/materials, instanced per rigid component at each LOD. */
 export class AircraftView {
   readonly root = new THREE.Group();
@@ -40,9 +43,12 @@ export class AircraftView {
         if (id) model.joints.push({ object, id, rotation: object.rotation.clone() });
         if (!(object as THREE.Mesh).isMesh) return;
         const source = object as THREE.Mesh;
-        const batch = new THREE.InstancedMesh(source.geometry, source.material, CAPACITY);
-        batch.count = 0; batch.visible = false; batch.frustumCulled = false; batch.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-        this.root.add(batch); model.meshes.push({ source, batch });
+        const batches = Array.from({ length: Math.ceil(CAPACITY / BATCH_CAPACITY) }, (_, i) => {
+          const batch = new THREE.InstancedMesh(source.geometry, source.material, Math.min(BATCH_CAPACITY, CAPACITY - i * BATCH_CAPACITY));
+          batch.count = 0; batch.visible = false; batch.frustumCulled = false; batch.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+          this.root.add(batch); return batch;
+        });
+        model.meshes.push({ source, batches });
       });
       this.models.set(`${id}/${lod}`, model);
     })));
@@ -60,6 +66,7 @@ export class AircraftView {
       if (plane.phase === 'lost' || (inPort && plane.ownerId !== sim.player.motion.id)) continue;
       const actor = sim.actors.find(a => a.motion.id === plane.ownerId)!;
       const deck = onFlightDeck(plane);
+      if (!deck && !['takeoff', 'outbound', 'attack', 'returning', 'landing'].includes(plane.phase)) continue;
       if (deck) {
         const local = ['ready', 'queued', 'rearming'].includes(plane.phase) ? aircraftDeckSpot(actor, plane) : plane.deckPosition!;
         this.position.fromArray(local);
@@ -97,7 +104,7 @@ export class AircraftView {
         if (id.startsWith('diveBrake.')) object.rotateX(controls.brakes * .55 * Number(object.userData.rotationMultiplier ?? 1));
       }
       model.root.updateMatrixWorld(true);
-      for (const { source, batch } of model.meshes) batch.setMatrixAt(model.count, this.matrix.multiplyMatrices(this.transform, source.matrixWorld));
+      for (const { source, batches } of model.meshes) batches[Math.floor(model.count / BATCH_CAPACITY)].setMatrixAt(model.count % BATCH_CAPACITY, this.matrix.multiplyMatrices(this.transform, source.matrixWorld));
       if (plane.payload && !['ready', 'queued', 'rearming', 'parking', 'rollout'].includes(plane.phase) && payloadCount < 768) {
         const socket = model.joints.find(j => j.id === 'socket.payload')?.object;
         this.matrix.copy(this.transform);
@@ -106,7 +113,10 @@ export class AircraftView {
       }
       model.count++;
     }
-    for (const model of this.models.values()) for (const { batch } of model.meshes) { batch.count = model.count; batch.visible = model.count > 0; batch.instanceMatrix.needsUpdate = true; }
+    for (const model of this.models.values()) for (const { batches } of model.meshes) batches.forEach((batch, i) => {
+      batch.count = Math.max(0, Math.min(BATCH_CAPACITY, model.count - i * BATCH_CAPACITY));
+      batch.visible = batch.count > 0; batch.instanceMatrix.needsUpdate = true;
+    });
     this.contacts.finish();
     for (const bomb of sim.shells.filter(shell => shell.caliberM === .35 && shell.ammunition === 'he')) {
       if (payloadCount >= 768) break;
@@ -132,9 +142,9 @@ export class AircraftView {
     const positions = this.traces.geometry.getAttribute('position') as THREE.BufferAttribute;
     (positions.array as Float32Array).set(lines.slice(0, positions.array.length)); positions.needsUpdate = true; this.traces.geometry.setDrawRange(0, Math.min(lines.length, positions.array.length) / 3);
   }
-  diagnostics() { return { models: this.models.size, instances: [...this.models.values()].reduce((n, m) => n + m.count, 0), batches: [...this.models.values()].reduce((n, m) => n + (m.count ? m.meshes.length : 0), 0), contacts: this.contacts.mesh.count, payloads: this.payloads.count }; }
+  diagnostics() { return { models: this.models.size, instances: [...this.models.values()].reduce((n, m) => n + m.count, 0), batches: [...this.models.values()].reduce((n, m) => n + Math.ceil(m.count / BATCH_CAPACITY) * m.meshes.length, 0), contacts: this.contacts.mesh.count, payloads: this.payloads.count }; }
   private clearModels() {
-    for (const model of this.models.values()) { for (const { batch } of model.meshes) { batch.removeFromParent(); batch.dispose(); } disposeObjects(model.root); }
+    for (const model of this.models.values()) { for (const { batches } of model.meshes) for (const batch of batches) { batch.removeFromParent(); batch.dispose(); } disposeObjects(model.root); }
     this.models.clear();
   }
   async dispose() {

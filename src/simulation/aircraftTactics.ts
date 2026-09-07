@@ -8,7 +8,7 @@ export interface AirPilot {
   think: number; hostileId?: string; aimTime: number;
   breakTime: number; breakCooldown: number; breakPoint?: Vec3;
   attackHeading?: number; attackStage?: 'ingress' | 'run' | 'egress';
-  attempts: number; recoveryStage?: 'marshal' | 'final';
+  attempts: number; recoveryStage?: 'marshal' | 'downwind' | 'base' | 'final'; recoverySide?: number;
 }
 export const initialAirPilot = (): AirPilot => ({ think: 0, aimTime: 0, breakTime: 0, breakCooldown: 0, attempts: 0 });
 const inFlight = (p: Aircraft) => ['outbound', 'attack', 'returning', 'landing', 'takeoff'].includes(p.phase) && p.hp > 0;

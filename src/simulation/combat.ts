@@ -1,4 +1,5 @@
-import { airServiceAvailable, airborne, createAirWing, launchSquadron, recallAircraft, stepAircraft, type AirRelease } from './aircraft';
+import { airborne, createAirWing, launchSquadron, orderFlight, recallAircraft, stepAircraft, type AirRelease, type AirOrder } from './aircraft';
+import { airWingTelemetry, type AirWingTelemetry } from './airTelemetry';
 import { DEFAULT_MAP, mapIslands, type Island, type OceanMapId } from '../maps/catalog';
 import { avoidLand, firstLandHit, resolveLandContact } from './land';
 import { updateCapability, type VesselStatus } from './stability';
@@ -24,8 +25,8 @@ export interface CombatIntent { aim: Vec3; fire: boolean; battery: Battery; ammu
 export interface CombatEvent extends BallisticEffectData { sequence: number; tick: number; kind: DamageEvent['kind'] | 'shot' | 'splash' | 'torpedo-launch' | 'torpedo-hit' | 'torpedo-dud' | 'torpedo-expired' | 'aircraft-launch' | 'aircraft-recovered' | 'aircraft-lost' | 'aircraft-fire' | 'aircraft-release' | 'bomb-release' | 'depth-charge-launch' | 'depth-charge-splash' | 'depth-charge-blast' | 'depth-charge-hit'; aircraft?: { id: string; target?: Vec3 }; depthCharge?: { id: number; radiusM: number }; torpedo?: { id: number; velocity: Vec3; diameterM: number }; position: Vec3; message: string; shipId: string; impact?: ImpactRecord; defeatCause?: DefeatCause; }
 export interface ShellHistory { shellId: number; ownerId: string; tick: number; ammunition: Ammunition; impacts: ImpactRecord[]; outcome: 'flying' | 'splash' | 'passed-through' | 'expired' | 'stopped' | 'ricochet' | 'internal' | 'burst'; }
 export interface CombatTelemetry {
-  airWing?: { available: boolean; squadrons: { id: string; name: string; role: string; ready: number; queued: number; airborne: number; rearming: number; lost: number; rearmSeconds: number; kills: number }[]; flights: { id: string; modelId: string; phase: string; hp: number; payload: boolean; ammo: number }[] };
-  airContacts?: { id: string; team: Team; x: number; z: number }[];
+  airWing?: AirWingTelemetry;
+  airContacts?: { id: string; team: Team; x: number; z: number; heading: number; role: string; ownerId: string; flightId?: string; phase: string }[];
   battery: Battery; range: number; ready: number; total: number; targetIntegrity: number; targetWater: number;
   ammunition: Ammunition; ammunitionStock: { ap: number; he: number }; heSupported: boolean;
   targetStatus: VesselStatus; playerStatus: VesselStatus; targetList: number; targetTrim: number; targetDraftChange: number;
@@ -67,7 +68,8 @@ export class CombatSimulation {
   readonly airReleases: AirRelease[] = [];
   get aircraft() { return this.actors.flatMap(a => a.airWing?.planes ?? []); }
   launchAircraft(squadronId: string) { return this.isBattle && this.result === 'active' ? launchSquadron(this.player, squadronId, this.target) : 0; }
-  recallAircraft() { recallAircraft(this.player); }
+  recallAircraft(flightId?: string) { if (this.isBattle && this.result === 'active') recallAircraft(this.player, flightId); }
+  orderFlight(flightId: string, order: AirOrder) { return this.isBattle && this.result === 'active' && orderFlight(this.player, flightId, order, this.actors); }
   readonly events: CombatEvent[] = [];
   /** In-flight histories plus the last 16 completed shells per owner. */
   readonly shellHistory: ShellHistory[] = [];
@@ -426,11 +428,8 @@ export class CombatSimulation {
     });
     const significant = [...this.events].reverse().find(e => ['module', 'sunk', 'stopped', 'ricochet', 'penetration', 'contact', 'burst', 'torpedo-launch', 'torpedo-hit', 'torpedo-dud', 'torpedo-expired', 'depth-charge-launch', 'depth-charge-blast', 'depth-charge-hit'].includes(e.kind));
     return {
-      ...(this.player.airWing ? { airWing: { available: airServiceAvailable(this.player) && this.result === 'active', squadrons: this.definition.airWing!.squadrons.map(s => {
-        const planes = this.player.airWing!.planes.filter(p => p.squadronId === s.id);
-        return { id: s.id, name: s.name, role: s.role, ready: planes.filter(p => p.phase === 'ready').length, queued: planes.filter(p => p.phase === 'queued' || p.phase === 'taxi').length, airborne: planes.filter(airborne).length, rearming: planes.filter(p => ['rollout', 'parking', 'rearming'].includes(p.phase)).length, lost: planes.filter(p => p.phase === 'lost').length, rearmSeconds: Math.ceil(Math.max(0, ...planes.filter(p => p.phase === 'rearming').map(p => p.timer))), kills: planes.reduce((n,p) => n+p.kills,0) };
-      }), flights: this.player.airWing.planes.filter(p => p.phase !== 'lost').map(p => ({ id: p.id, modelId: p.modelId, phase: p.phase, hp: p.hp, payload: p.payload, ammo: p.ammo })) } } : {}),
-      airContacts: this.aircraft.filter(airborne).map(p => ({ id: p.id, team: p.team, x: p.position[0], z: p.position[2] })),
+      airWing: (() => { const wing = airWingTelemetry(this.player, this.actors); if (wing) wing.available &&= this.result === 'active'; return wing; })(),
+      airContacts: this.aircraft.filter(airborne).map(p => ({ id: p.id, team: p.team, x: p.position[0], z: p.position[2], heading: p.heading, role: p.role, ownerId: p.ownerId, flightId: p.flightId, phase: p.phase })),
       battery, range: Math.hypot(aim[0] - this.ship.x, aim[2] - this.ship.z), ready: mounts.filter(m => m.status === 'ready').length, total: mounts.length,
       ammunition: this.ammunitionSelection[battery], heSupported: this.definition.mounts.some(m => m.battery === battery && m.weapon.he !== undefined),
       ammunitionStock: (battery === 'torpedo' || battery === 'depth-charge' ? [] : mounts).reduce((stock, m) => { const s = this.player.mounts.find(s => s.id === m.id)!; stock.ap += availableAmmunition(s, 'ap'); stock.he += availableAmmunition(s, 'he'); return stock; }, { ap: 0, he: 0 }),
