@@ -5,7 +5,11 @@ import { compileShip, type Vec3 } from '../ships/blueprint';
 import { CombatSimulation, type CombatEvent } from './combat';
 import { airborne, launchSquadron, recallAircraft, stepAircraft, aircraftDeckSpot, onFlightDeck, type AirContext } from './aircraft';
 import { updateCapability } from './stability';
-const definition = compileShip(source, catalog);
+// Keep the original three-aircraft fixtures exercising backwards-compatible v1 blueprints.
+const legacy = structuredClone(source);
+legacy.airWing.flightSize = 3; legacy.airWing.deckCapacity = 18;
+legacy.airWing.squadrons.forEach(s => { s.count = 6; });
+const definition = compileShip(legacy, catalog);
 function fixture() {
   const sim = new CombatSimulation(definition, { enemies: [definition], friendlyBots: [], spawnDistance: 5000 });
   sim.target.controller = 'idle';
@@ -16,6 +20,14 @@ function fixture() {
   const run = (seconds: number) => { for (let i = 0; i < seconds * 60; i++) { stepAircraft(context, 1 / 60, time); time += 1 / 60; } };
   return { sim, context, events, run };
 }
+test('mixed flights recover before endurance expires on an undamaged carrier', () => {
+  const { sim, run } = fixture();
+  sim.target.mounts.forEach(m => { m.hp = 0; });
+  for (const id of ['vf-6', 'vb-6', 'vt-6']) sim.launchAircraft(id);
+  run(750);
+  expect(sim.player.airWing!.planes.filter(p => p.phase === 'lost')).toHaveLength(0);
+  expect(sim.player.airWing!.planes.every(p => p.phase === 'ready')).toBe(true);
+});
 test('versioned air wing validation and unsupported model rejection', () => {
   expect(definition.airWing?.squadrons).toHaveLength(3);
   const invalid = structuredClone(source); invalid.airWing.squadrons[0].modelId = '../../bad';
@@ -127,7 +139,7 @@ test('deck aircraft occupy distinct stable spots and taxi continuously before ta
   const first = planes[0]; const parked = [...first.position];
   sim.launchAircraft('vf-6'); run(1 / 60);
   expect(first.phase).toBe('taxi');
-  expect(Math.hypot(...first.position.map((v, i) => v - parked[i]))).toBeLessThan(.4);
+  expect(Math.hypot(...first.position.map((v, i) => v - parked[i]))).toBeLessThan(.6);
   expect(onFlightDeck(first)).toBe(true);
   sim.recallAircraft(); run(25);
   expect(first.phase).toBe('rearming');

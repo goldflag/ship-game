@@ -1,28 +1,16 @@
-.fleet-flight { position:absolute; top:180px; left:var(--fleet-edge); width:252px; max-height:calc(100vh - 440px); overflow:auto; padding:12px; pointer-events:auto; color:#f0f5f3; background:#10252eeb; border:1px solid var(--fleet-line); border-radius:3px; font-variant-numeric:tabular-nums; }
-.fleet-flight header,.fleet-flight footer { display:flex; align-items:center; justify-content:space-between; gap:8px; }
-.fleet-flight h2 { margin:0; font:500 21px 'Barlow Condensed',sans-serif; }
-.fleet-flight header span { color:var(--fleet-active); font-size:12px; }
-.fleet-flight-target { margin:6px 0 12px; color:var(--fleet-muted); font-size:11px; }
-.fleet-flight-squadron { display:grid; grid-template-columns:1fr auto; gap:5px 10px; padding:8px 0; border-top:1px solid var(--fleet-line); }
-.fleet-flight-squadron strong,.fleet-flight-squadron span { display:block; font-size:13px; }
-.fleet-flight-squadron span { margin-top:2px; font-size:11px; color:var(--fleet-muted); }
-.fleet-flight-squadron p { grid-column:1/-1; margin:0; font-size:11px; line-height:1.4; }
-.fleet-flight button { min-height:34px; padding:6px 9px; border:1px solid var(--fleet-line); border-radius:2px; background:#233e4a; color:#edf5f2; font:500 12px 'Barlow',sans-serif; }
-.fleet-flight button:hover:not(:disabled) { background:#315365; }
-.fleet-flight button:disabled { opacity:.45; cursor:default; }
-.fleet-flight button:focus-visible,.fleet-flight summary:focus-visible { outline:2px solid var(--fleet-gold); outline-offset:2px; }
-.fleet-flight footer { margin-top:8px; font-size:11px; color:var(--fleet-muted); }
-.fleet-flight-warning { font-size:12px; color:#ffb5a6; }
-.fleet-flight details { margin-top:10px; font-size:11px; }
-.fleet-flight summary { cursor:pointer; padding:5px 0; }
-.fleet-flight ul { padding:0; list-style:none; }
-.fleet-flight li { display:flex; flex-wrap:wrap; justify-content:space-between; gap:3px 8px; padding:5px 0; border-top:1px solid var(--fleet-line); }
-@media (max-width:1100px) { .fleet-flight { width:218px; max-height:calc(100vh - 390px); } }
-@media (max-width:600px) { .fleet-flight { top:260px; left:auto; right:10px; width:min(180px, calc(50vw - 22px)); max-height:max(110px, calc(100vh - 535px)); padding:9px; } .fleet-flight footer span { display:none; } }
-@media (max-height:620px) and (min-width:601px) { .fleet-flight { top:100px; max-height:calc(100vh - 335px); width:218px; } }
+.fleet-flight { margin-top:16px; color:var(--fleet-text); font-variant-numeric:tabular-nums; }
+.fleet-flight h2 { margin:0; }
+.fleet-flight .fleet-flight-open { display:flex; align-items:center; gap:10px; width:100%; min-height:36px; padding:0; border:0; background:transparent; color:var(--fleet-text); font:500 20px 'Barlow Condensed',sans-serif; text-align:left; text-shadow:inherit; cursor:pointer; }
+.fleet-flight-open:hover > span:first-child { color:var(--fleet-active); text-decoration:underline; text-underline-offset:4px; }
+.fleet-flight .fleet-wing-total { margin-left:auto; color:var(--fleet-active); font:500 13px 'Barlow',sans-serif; white-space:nowrap; }
+.fleet-flight-open kbd { border:1px solid var(--fleet-line); color:var(--fleet-muted); text-align:center; }
+.fleet-wing-counts { display:flex; flex-wrap:wrap; gap:5px 14px; margin:3px 0 0; }
+.fleet-wing-counts > div { display:flex; flex-direction:row-reverse; gap:4px; font-size:11px; line-height:1.5; }
+.fleet-wing-counts dt { color:var(--fleet-muted); }
+.fleet-wing-counts dd { margin:0; }
+.fleet-flight .fleet-flight-warning { display:block; margin:6px 0 0; font-size:11px; line-height:1.4; color:#ffb5a6; }
+@media (max-width:600px) { .fleet-flight { margin-top:12px; } .fleet-flight .fleet-flight-open { min-height:40px; font-size:19px; } }
 
-.fleet-flight li > span { flex-basis:100%; }
-.fleet-flight button[aria-pressed="true"] { border-color:var(--fleet-active); color:var(--fleet-active); }
 .fleet-aircraft-status { pointer-events:auto; }
 .fleet-aircraft-status button { padding:7px 12px; border:1px solid var(--fleet-line); border-radius:2px; background:#233e4a; color:#edf5f2; cursor:pointer; }
 .fleet-aircraft-status button:focus-visible { outline:2px solid var(--fleet-gold); outline-offset:2px; }
