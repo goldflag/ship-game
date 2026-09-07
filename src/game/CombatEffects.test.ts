@@ -2,10 +2,63 @@ import { expect, test } from 'bun:test';
 import { Camera, InstancedMesh, Matrix4, PerspectiveCamera, Vector3 } from 'three/webgpu';
 import blueprint from '../../assets/ships/bismarck/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
+import submarine from '../../assets/ships/type-viic/blueprint.json';
 import { compileShip } from '../ships/blueprint';
 import { CombatSimulation, type CombatEvent } from '../simulation/combat';
 import { CombatEffects } from './CombatEffects';
 import { EffectParticlePool, effectTexture } from './EffectParticles';
+
+test('torpedo trails end at the round and extend aft at every heading and visible depth', () => {
+  const sim = new CombatSimulation(compileShip(submarine, catalog)), effects = new CombatEffects(), camera = new Camera();
+  const weapon = sim.definition.torpedoTubes![0].weapon;
+  const wake = effects.root.getObjectByName('Torpedo surface wakes') as InstancedMesh;
+  const matrix = new Matrix4();
+  for (const depth of [2, 4, 5.5]) for (const distance of [1, 30, 400]) for (let degrees = 0; degrees < 360; degrees += 15) {
+    const heading = degrees * Math.PI / 180, direction = new Vector3(Math.sin(heading), 0, -Math.cos(heading));
+    const position = new Vector3(130, -depth, -240);
+    sim.torpedoes.splice(0, sim.torpedoes.length, { id: 1, ownerId: 'player', tubeId: 'bow-tube-1',
+      position: position.toArray(), velocity: [direction.x * weapon.speed, depth === 4 ? 2 : 0, direction.z * weapon.speed], distance, age: 4, weapon });
+    const before = JSON.stringify(sim.torpedoes);
+    effects.update(sim, 0, camera);
+    wake.getMatrixAt(0, matrix);
+    const tip = new Vector3(0, .5, 0).applyMatrix4(matrix), tail = new Vector3(0, -.5, 0).applyMatrix4(matrix);
+    position.y = tip.y;
+    expect(tip.distanceTo(position)).toBeLessThan(.0001);
+    const aft = tail.sub(tip);
+    expect(aft.clone().normalize().dot(direction)).toBeCloseTo(-1, 5);
+    expect(aft.length()).toBeLessThanOrEqual(Math.min(60, distance) + .0001);
+    expect(JSON.stringify(sim.torpedoes)).toBe(before);
+  }
+  // Deck-launched rounds cannot draw a surface trail while still airborne;
+  // deeply submerged rounds should not reveal themselves through the sea.
+  for (const [height, distance] of [[3, 60], [-7, 60], [-2, 0]]) {
+    sim.torpedoes[0].position[1] = height; sim.torpedoes[0].distance = distance;
+    effects.update(sim, 0, camera); wake.getMatrixAt(0, matrix);
+    expect(new Vector3().setFromMatrixScale(matrix).length()).toBe(0);
+  }
+  sim.torpedoes[0].distance = 60; effects.update(sim, 0, camera);
+  effects.reset();
+  expect(Array.from(wake.instanceMatrix.array).every(value => value === 0)).toBe(true);
+  effects.update(sim, 0, camera);
+  sim.torpedoes.length = 0; effects.update(sim, 0, camera);
+  expect(Array.from(wake.instanceMatrix.array).every(value => value === 0)).toBe(true);
+  effects.dispose();
+});
+
+test('torpedo foam has an aerated center instead of a hollow splash ring', () => {
+  const effects = new CombatEffects();
+  const wake = effects.root.getObjectByName('Torpedo surface wakes') as InstancedMesh;
+  const map = (wake.material as import('three/webgpu').MeshBasicMaterial).map!;
+  const { data, width, height } = map.image as { data: Uint8Array; width: number; height: number };
+  let center = 0, shoulders = 0;
+  for (let y = Math.floor(height * .3); y < height * .85; y++) {
+    center += data[(y * width + Math.floor(width * .5)) * 4 + 3];
+    shoulders += data[(y * width + Math.floor(width * .2)) * 4 + 3];
+  }
+  expect(center).toBeGreaterThan(shoulders * 3);
+  expect(center / (height * .55)).toBeGreaterThan(50);
+  effects.dispose();
+});
 
 test('optics hide existing and new own-ship smoke while other smoke remains and ages normally', () => {
   const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
