@@ -1,5 +1,6 @@
 import { mountSupport, directorDispersion } from './machinery';
 import { meanHullY } from './ship';
+import { AIR_GUNNERY, gunnerySeed, initialFireDiscipline, panicAim, stepFireDiscipline } from './airGunnery';
 import type { AirContext, Aircraft } from './aircraft';
 import { antiAircraftRange } from '../ships/armament';
 import { airborne, onFlightDeck } from './aircraft';
@@ -58,7 +59,10 @@ export function updateAntiAircraft(actor: FleetActor, m: MountDefinition, state:
   const range = antiAircraftRange(m);
   if (!range || actor.damage.sunk || actor.damage.stability.combatLost || meanHullY(actor.motion) < -1 || state.hp <= 0 || state.ammo <= 0
     || (actor.controller === 'bot' && isPassiveAi(actor.bot?.aiLevel))) return false;
-  if (candidates?.length === 0) return false;
+  if (candidates?.length === 0) {
+    if (state.aaDiscipline) stepFireDiscipline(state.aaDiscipline, dt, 0, 0, false);
+    return false;
+  }
   const origin = muzzleWorld(m, state, 0, actor.motion);
   let target: Aircraft | undefined, closest = range;
   for (const p of candidates ?? ctx.planes) {
@@ -73,28 +77,44 @@ export function updateAntiAircraft(actor: FleetActor, m: MountDefinition, state:
     const distance = Math.hypot(dx, dy, dz);
     if (distance < closest) { target = p; closest = distance; }
   }
-  if (!target) return false;
+  if (!target) {
+    if (state.aaDiscipline) stepFireDiscipline(state.aaDiscipline, dt, 0, 0, false);
+    return false;
+  }
+  const discipline = state.aaDiscipline ??= initialFireDiscipline();
+  const inbound = dot(target.velocity, sub(origin, target.position)) > 0;
+  const pressure = (1 - state.hp / 100) + (inbound ? Math.max(0, 1 - closest / 1500) : 0);
+  stepFireDiscipline(discipline, dt, pressure, gunnerySeed(`${actor.motion.id}:${m.id}`, ctx.seed ?? 0));
   const barrels = m.weapon.barrelCount ?? 2;
   if (availableAmmunition(state) < barrels) selectAmmunition(m, state, state.loaded === 'ap' ? 'he' : 'ap');
   const velocity = motionVelocity(actor.motion);
   const flightTime = closest / m.weapon.muzzleSpeed;
   const aim = add(target.position, scale(target.velocity, flightTime));
+  const crewAim = discipline.panic ? panicAim(origin, target.position, discipline) : aim;
   const support = mountSupport(actor, actor.definition, m.id, power);
-  const aligned = updateMount(m, state, actor.definition, actor.motion, aim, dt, velocity, support.power);
+  const aligned = updateMount(m, state, actor.definition, actor.motion, crewAim, dt, velocity, support.power);
   if (!aligned || state.status !== 'ready') return true;
   const muzzle = muzzleWorld(m, state, 0, actor.motion);
-  if (!clearLane(actor, muzzle, aim, ctx)) { state.status = 'blocked'; return true; }
-  state.ammo -= barrels; if (state.loaded === 'he') state.heAmmo -= barrels;
-  state.reload = Math.max(.35, m.weapon.reloadSeconds); state.recoil = 1; state.status = 'reloading';
+  if (!clearLane(actor, muzzle, crewAim, ctx)) { state.status = 'blocked'; return true; }
   const heavy = m.weapon.caliberM > .08;
+  // Use the trajectory solved for the lead point. The distance to the plane's
+  // current position gives a different time and can make inbound targets unhittable.
+  const burstTime = state.aimCache?.time ?? flightTime;
+  const shots = [];
   for (let barrel = 0; barrel < barrels; barrel++) {
     const position = muzzleWorld(m, state, barrel, actor.motion);
-    const direction = dispersedDirection(shotDirection(m, state, actor.motion), .006 + closest / 200000 + directorDispersion(support.fireControl), ctx.seed ?? 0, ctx.nextId());
-    const endpoint = ballisticStep(position, add(scale(direction, m.weapon.muzzleSpeed), velocity), flightTime).position;
-    if (length(sub(endpoint, aim)) < (heavy ? 14 : 6)) target.hp -= heavy ? 2.5 : m.weapon.caliberM > .025 ? 1.2 : .8;
+    const direction = dispersedDirection(shotDirection(m, state, actor.motion), AIR_GUNNERY.aaSpread(closest) + directorDispersion(support.fireControl), ctx.seed ?? 0, ctx.nextId());
+    const endpoint = ballisticStep(position, add(scale(direction, m.weapon.muzzleSpeed), velocity), burstTime, m.weapon.ballistics?.dragPerSecond ?? 0).position;
+    if (!clearLane(actor, position, endpoint, ctx)) { state.status = 'blocked'; return true; }
+    shots.push({ position, direction, endpoint });
+  }
+  state.ammo -= barrels; if (state.loaded === 'he') state.heAmmo -= barrels;
+  state.reload = Math.max(.35, m.weapon.reloadSeconds); state.recoil = 1; state.status = 'reloading';
+  for (const { position, direction, endpoint } of shots) {
+    if (length(sub(endpoint, aim)) < (heavy ? 14 : 6)) target.hp -= AIR_GUNNERY.aaDamage(m.weapon.caliberM);
     ctx.emit({ kind: 'aircraft-fire', shipId: actor.motion.id, position, message: `${m.name} · AA fire`,
-      aircraft: { id: target.id, target: endpoint, tracerSpeed: m.weapon.muzzleSpeed, direction, velocity: [...velocity],
-        ...(heavy ? { airburst: { flightTime, caliberM: m.weapon.caliberM } } : {}) } });
+      aircraft: { id: target.id, target: endpoint, tracerSpeed: m.weapon.muzzleSpeed, direction, velocity: [...velocity], panic: discipline.panic, dragPerSecond: m.weapon.ballistics?.dragPerSecond ?? 0,
+        ...(heavy ? { airburst: { flightTime: burstTime, caliberM: m.weapon.caliberM } } : {}) } });
   }
   return true;
 }
