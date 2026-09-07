@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import type { ShipDefinition } from '../ships/blueprint';
-import { ARMOR_COLOR_STOPS, INSPECTION_KIND_LABELS, entriesForMode, inspectionColor, inspectionEntries, type InspectionMode } from '../ships/inspection';
+import { INSPECTION_EFFECTS, ARMOR_COLOR_STOPS, INSPECTION_KIND_LABELS, entriesForMode, inspectionColor, inspectionEntries, type InspectionMode } from '../ships/inspection';
 
 const armorScaleMax = ARMOR_COLOR_STOPS[ARMOR_COLOR_STOPS.length - 1].thicknessMm;
 const armorGradient = `linear-gradient(to right, ${ARMOR_COLOR_STOPS.map(stop => `${stop.color} ${stop.thicknessMm / armorScaleMax * 100}%`).join(', ')})`;
 
 export function ModelViewControls({ mode, onChange, ready }: { mode: InspectionMode; onChange(mode: InspectionMode): void; ready: boolean }) {
   return <div className="port-model-views" role="group" aria-label="Ship model view">
-    {(['exterior', 'armor', 'internals'] as const).map(value => <button key={value} disabled={!ready} aria-pressed={mode === value} onClick={() => onChange(value)}>{value === 'exterior' ? 'Statistics' : value === 'armor' ? 'Armor' : 'Internals'}</button>)}
+    {(['exterior', 'armor', 'internals', 'compartments'] as const).map(value => <button key={value} disabled={!ready} aria-pressed={mode === value} onClick={() => onChange(value)}>{value === 'exterior' ? 'Statistics' : value === 'armor' ? 'Armor' : value === 'internals' ? 'Internals' : 'Flooding'}</button>)}
   </div>;
 }
 
@@ -25,26 +25,26 @@ export function PortInspection({ definition, mode, selectedId, onSelect }: { def
     <i aria-hidden="true" style={{ background: inspectionColor(entry) }}/><span>{label}<small>{entry.surface ? 'Structural steel · estimated' : entry.kind === 'armor' ? entry.plate ? `${entry.plate.material} plate · ${entry.provenance?.basis ?? 'approximate'}` : entry.mountIndex === undefined ? 'Hull armor' : 'Gunhouse armor' : INSPECTION_KIND_LABELS[entry.kind]}</small></span>
     <strong>{entry.thicknessMm !== undefined ? `${entry.thicknessMm} mm` : entry.capacityM3 !== undefined ? `${Math.round(entry.capacityM3).toLocaleString()} m³` : `${entry.hp} HP`}</strong>
   </button>;
-  return <section className="port-inspector" aria-label={mode === 'armor' ? 'Ship armor model' : 'Ship internal modules'}>
+  return <section className="port-inspector" aria-label={mode === 'armor' ? 'Ship armor model' : mode === 'internals' ? 'Ship equipment' : 'Flooding compartments'}>
     <div className="port-inspection-scroll">
-    <div className="port-inspector-heading"><h2>{mode === 'armor' ? 'Armor model' : 'Internal layout'}</h2><span>{entries.length} {mode === 'armor' ? 'surfaces' : 'spaces'}</span></div>
-    <p className="port-inspector-intro">{mode === 'armor' ? 'Hover a plate for details. Select a row to isolate it.' : 'Provisional layout. Hover a module or compartment for details. Select a row to isolate it.'}</p>
+    <div className="port-inspector-heading"><h2>{mode === 'armor' ? 'Armor model' : mode === 'internals' ? 'Damageable equipment' : 'Flooding compartments'}</h2><span>{entries.length} {mode === 'armor' ? 'surfaces' : mode === 'internals' ? 'modules' : 'spaces'}</span></div>
+    <p className="port-inspector-intro">{mode === 'armor' ? 'Hover a plate for details. Select a row to isolate it.' : mode === 'internals' ? 'Guns and ship systems. Hover for damage effects; select a row to isolate. Flooding spaces have their own view.' : 'Provisional watertight layout. Select a space to isolate its flooding volume.'}</p>
     {mode === 'armor' && <div className="port-armor-legend">
       <div className="port-armor-legend-labels"><span>Green · thinner</span><span>Red · thicker</span></div>
       <div className="port-armor-legend-ramp" aria-hidden="true" style={{ background: armorGradient }}/>
       <div className="port-armor-legend-labels">{ARMOR_COLOR_STOPS.map(stop => <span key={stop.thicknessMm}>{stop.thicknessMm}{stop.thicknessMm === armorScaleMax ? '+' : ''} mm</span>)}</div>
       {entries.some(entry => entry.plate?.material === 'teak') && <small>Teak backing is gray.</small>}
     </div>}
-    <label className="port-volume-search">Find armor or space<input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Belt, boiler, Anton…" /></label>
-    <div className="port-volume-list" aria-label={mode === 'armor' ? 'Armor volumes' : 'Modules and compartments'}>
+    <label className="port-volume-search">Find {mode === 'armor' ? 'armor' : mode === 'internals' ? 'equipment' : 'a compartment'}<input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Belt, boiler, Anton…" /></label>
+    <div className="port-volume-list" aria-label={mode === 'armor' ? 'Armor volumes' : mode === 'internals' ? 'Equipment modules' : 'Flooding spaces'}>
       {[...groups].map(([key, group]) => group.length === 1 ? row(group[0]) : <details className="port-volume-group" key={key} open={group.some(e => e.id === selectedId) || undefined}>
         <summary>{group[0].name}<small>{group.length} joined surfaces · Expand to isolate a plate</small></summary>
         {group.map((entry, i) => row(entry, `Surface ${i + 1}`))}
       </details>)}
     </div>
     {filtered.length === 0 && <p role="status" className="port-inspection-note">No matching entries. Try a shorter name or clear the search.</p>}
-    <p className="port-inspection-note">{mode === 'armor' ? 'Hull and deckhouse plating also registers hits. Opaque surfaces hide inner layers; isolate a row to inspect them.' : 'Outlines show compartments; blue fill shows floodwater.'}</p>
+    <p className="port-inspection-note">{mode === 'armor' ? 'Hull and deckhouse plating also registers hits. Opaque surfaces hide inner layers; isolate a row to inspect them.' : mode === 'internals' ? 'Colored volumes show the equipment hitboxes used in combat. Decorative fittings are not damageable equipment.' : 'Outlines show compartments; blue fill shows floodwater.'}</p>
     </div>
-    {selected && <div className="port-volume-detail" role="status"><div><strong>{selected.name}</strong><span>{selected.size.map(n => n.toFixed(1)).join(' × ')} m</span>{selected.provenance && <small>{selected.provenance.note}</small>}</div><button onClick={() => onSelect(undefined)}>Clear selection</button></div>}
+    {selected && <div className="port-volume-detail" role="status"><div><strong>{selected.name}</strong><span>{selected.size.map(n => n.toFixed(1)).join(' × ')} m</span>{selected.kind !== 'armor' && <small>{INSPECTION_EFFECTS[selected.kind]}</small>}{selected.provenance && <small>{selected.provenance.note}</small>}</div><button onClick={() => onSelect(undefined)}>Clear selection</button></div>}
   </section>;
 }

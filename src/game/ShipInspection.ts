@@ -4,7 +4,7 @@ import { waterLevel as compartmentWaterLevel } from '../simulation/stability';
 import * as THREE from 'three/webgpu';
 import { materialColor, mix, normalFlat, uniform, vec3 } from 'three/tsl';
 import type { ShipDefinition } from '../ships/blueprint';
-import { inspectionColor, inspectionEntries, type InspectionMode, type InspectionEntry } from '../ships/inspection';
+import { entryInMode, inspectionColor, inspectionEntries, type InspectionMode, type InspectionEntry } from '../ships/inspection';
 import type { Combatant } from '../simulation/damage';
 import { equipmentCondition } from '../simulation/machinery';
 import { radians } from '../simulation/geometry';
@@ -87,31 +87,27 @@ export class ShipInspection {
     });
   }
   private inMode(entry: InspectionEntry, mode = this.mode): boolean {
-    return mode === 'all' || (mode === 'armor' ? entry.kind === 'armor' : mode === 'internals' && entry.kind !== 'armor');
+    return mode === 'all' || entryInMode(entry, mode);
   }
   /** Pick the nearest visible plate (with physical thickness and current turret pose) in the
-   * armor view, or the nearest module, else compartment, in the internals view. */
+   * armor view, equipment in Internals, or spaces in Flooding. */
   pick(raycaster: THREE.Raycaster): InspectionEntry | undefined {
-    if ((this.mode !== 'armor' && this.mode !== 'internals') || !this.root.visible) return;
+    if ((this.mode !== 'armor' && this.mode !== 'internals' && this.mode !== 'compartments') || !this.root.visible) return;
     this.root.updateWorldMatrix(true, true);
     const candidates = this.volumes.filter(v => v.group.visible && this.inMode(v.entry));
     const hits = raycaster.intersectObjects(candidates.map(v => v.fill), false);
     const entryOf = (object?: THREE.Object3D) => candidates.find(v => v.fill === object)?.entry;
     // Compound residual spaces wrap the detailed room layout. Let the specific
-    // rooms and equipment remain hoverable through that context; the residual
+    // rooms remain hoverable through that context; the residual
     // cells are still pickable alone, in empty areas, or after row isolation.
-    const nearest = this.mode === 'internals' && !this.selectedId
+    const nearest = this.mode === 'compartments' && !this.selectedId
       ? hits.find(hit => !entryOf(hit.object)?.cells) ?? hits[0] : hits[0];
     if (this.mode === 'armor' || !nearest) return entryOf(nearest?.object);
-    // A compartment encloses its modules, so its near face is always the first hit. Prefer a
-    // module struck before the ray leaves that compartment; deeper spaces stay behind it.
-    const exit = hits.find(hit => hit.object === nearest.object && hit.distance > nearest.distance)?.distance ?? Infinity;
-    const module = hits.find(hit => hit.distance >= nearest.distance && hit.distance <= exit && entryOf(hit.object)?.moduleIndex !== undefined);
-    return entryOf((module ?? nearest).object);
+    return entryOf(nearest.object);
   }
   setHovered(id?: string): void {
     if (id === this.hoveredId) return;
-    const hoverable = this.mode === 'armor' || this.mode === 'internals';
+    const hoverable = this.mode === 'armor' || this.mode === 'internals' || this.mode === 'compartments';
     this.hoveredId = hoverable && (!this.selectedId || this.selectedId === id) && this.entries.some(e => e.id === id && this.inMode(e)) ? id : undefined;
     this.volumes.forEach(volume => this.paint(volume));
   }
@@ -148,11 +144,15 @@ export class ShipInspection {
         if (condition < 1) { fill.material.color.set(condition <= 0 ? '#d36b4f' : '#dfbd83'); if (entry.id === this.hoveredId) fill.material.color.lerp(this.hoverColor, .3); }
         if (equipmentCondition(actor, this.definition, this.definition.modules[entry.moduleIndex]).reason === 'flooded') fill.material.color.set('#519fc0');
       }
+      if (entry.kind === 'weapon' && entry.mountIndex !== undefined) {
+        const hp = actor.mounts[entry.mountIndex].hp;
+        if (hp < entry.hp!) fill.material.color.set(hp <= 0 ? '#d36b4f' : '#dfbd83');
+      }
       if (entry.mountIndex !== undefined) group.rotation.y = -(radians(entry.bearingDeg!) + actor.mounts[entry.mountIndex].train);
       if (water && entry.compartmentIndex !== undefined) {
         const fraction = actor.damage.compartments[entry.compartmentIndex].waterM3 / entry.capacityM3!;
         // Combat emphasizes consequences; the complete dry layout stays
-        // available in the port's Internals view and through selection.
+        // available in the port's Flooding view and through selection.
         const fire = actor.damage.control.rooms[entry.compartmentIndex].intensity;
         if (fire > 0) { fill.material.color.set('#e69b57'); fill.material.opacity = .12; }
         if (this.mode === 'all' && entry.id !== this.selectedId && fraction <= .0001 && fire <= 0) group.visible = false;
