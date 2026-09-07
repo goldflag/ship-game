@@ -2,7 +2,8 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { compileShip, type ShipBlueprint } from '../../src/ships/blueprint';
 const catalog = JSON.parse(await readFile(new URL('../parts/guns.json', import.meta.url), 'utf8'));
-for (const id of ['bismarck', 'yamato', 'baltimore', 'enterprise-cv6']) {
+for (const id of process.argv.slice(2).length ? process.argv.slice(2) : ['bismarck', 'yamato', 'baltimore', 'enterprise-cv6']) {
+  if (!/^[a-z][a-z0-9-]{0,63}$/.test(id)) throw new Error('Expected a ship ID');
   const path = new URL(`./${id}/blueprint.json`, import.meta.url);
   const b = JSON.parse(await readFile(path, 'utf8')) as ShipBlueprint;
   b.damageControl = { version: 1, teams: 3, setupSeconds: 6, repairPoints: 180,

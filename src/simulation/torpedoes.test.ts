@@ -271,3 +271,12 @@ test('torpedo simulation is deterministic across display rates and remains rende
   for (let i = 0; i < 1440; i++) b.advance(1 / 144, helm, intent(ahead, true));
   expect(a.torpedoes).toEqual(b.torpedoes); expect(a.player.torpedoTubes).toEqual(b.player.torpedoTubes);
 });
+
+
+test('128 existing torpedoes do not suppress a loaded tube launch', () => {
+  const sim = new CombatSimulation(definition);
+  for (let i = 0; i < 128; i++) sim.torpedoes.push({ ...projectile(), id: 1000 + i, position: [10000 + i, -2, 0] });
+  sim.requestFire(); step(sim, 1);
+  expect(sim.torpedoes).toHaveLength(129);
+  expect(rounds(sim)).toBe(13);
+});

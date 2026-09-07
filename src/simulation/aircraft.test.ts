@@ -171,14 +171,12 @@ test('a recalled group waits its turn and all survivors recover on a stationary 
   expect(sim.player.airWing!.planes.filter(p => p.squadronId === 'vf-6').every(p => p.phase === 'ready')).toBe(true);
 });
 
-test('the shared airborne limit keeps an entire launch in the hangar until capacity is available', () => {
+test('other carriers airborne inventory cannot prevent a ready squadron from launching', () => {
   const { sim, context, run } = fixture();
   const plane = sim.player.airWing!.planes[0];
   for (let i = 0; i < 144; i++) context.planes.push({ ...structuredClone(plane), id: `capacity/${i}`, phase: 'outbound' });
   sim.launchAircraft('vf-6'); run(12);
-  expect(sim.player.airWing!.planes.filter(p => p.phase === 'queued')).toHaveLength(3);
-  expect(sim.player.airWing!.planes.some(onFlightDeck)).toBe(false);
-  context.planes.splice(-144); run(10.2);
+  expect(sim.player.airWing!.planes.filter(p => p.phase === 'queued')).toHaveLength(0);
   expect(sim.player.airWing!.planes.filter(p => p.phase === 'outbound')).toHaveLength(3);
 });
 

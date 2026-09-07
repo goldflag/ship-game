@@ -1,3 +1,4 @@
+import { hullDepth } from './ship';
 import { waterLevel } from './stability';
 import { localToWorld } from './geometry';
 import type { Module, ShipDefinition } from '../ships/blueprint';
@@ -44,7 +45,7 @@ export function systemHealth(actor: Combatant, def: ShipDefinition, kind: 'engin
   const compiled = layout(def);
   const available = (id: string) => equipmentCondition(actor, def, compiled.modules.get(id)!.module).availability;
   if (kind === 'engine' && def.submarine) {
-    const ids = actor.motion.y < -.5 ? def.submarine.submergedEngineIds : def.submarine.surfaceEngineIds;
+    const ids = hullDepth(actor.motion) > .5 ? def.submarine.submergedEngineIds : def.submarine.surfaceEngineIds;
     return ids.reduce((power, id) => power + available(id), 0) / ids.length;
   }
   if (kind === 'engine' && def.propulsion) return def.propulsion.groups.reduce((power, group) => {

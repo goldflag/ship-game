@@ -1,0 +1,16 @@
+import { expect, test } from 'bun:test';
+import * as THREE from 'three/webgpu';
+import { ExpandableInstances } from './ExpandableInstances';
+test('live objects grow across GPU pages and clearing removes all stale instances', () => {
+  const mesh = new ExpandableInstances(new THREE.BoxGeometry(), new THREE.MeshBasicMaterial(), 256);
+  const matrix = new THREE.Matrix4();
+  for (let i = 0; i < 1800; i++) mesh.setMatrixAt(i, matrix.makeTranslation(i, 1, 2));
+  mesh.publish(1800);
+  expect(mesh.children.length).toBe(7);
+  for (const page of [mesh, ...mesh.children as THREE.InstancedMesh[]]) expect(page.instanceMatrix.array.byteLength).toBeLessThanOrEqual(65536);
+  const last = mesh.children.at(-1) as THREE.InstancedMesh;
+  last.getMatrixAt(7, matrix); expect(matrix.elements[12]).toBe(1799);
+  mesh.publish(0);
+  for (const page of [mesh, ...mesh.children as THREE.InstancedMesh[]]) expect([...page.instanceMatrix.array].every(n => n === 0)).toBe(true);
+  mesh.dispose(); mesh.geometry.dispose(); mesh.material.dispose();
+});

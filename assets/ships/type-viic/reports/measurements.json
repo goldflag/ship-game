@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "contentHash": "64f32852aa3e5527b8f80b9daa34c0eba8474d135bfa231bafea8fff79c88c92",
-  "modelSha256": "48b92f219e250a887affcdbf7d1abff7401dfd9f5470ff373321ce3069551cb4",
+  "contentHash": "01b1facde68170e9493eb5d018d3b9b219b7d423ed198245681cb589f3700b0f",
+  "modelSha256": "f4872a54e0fd205d7c65ee1b70ab7d71b999ebc1305abd091646e20fb44a26f7",
   "specRevision": "fidelity-01",
   "dimensions": [
     {
@@ -102,6 +102,174 @@
     {
       "id": "motor-room",
       "cells": 30,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-0-0",
+      "cells": 47,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-0-1",
+      "cells": 131,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-0-2",
+      "cells": 88,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-1-0",
+      "cells": 47,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-1-1",
+      "cells": 131,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-0-1-2",
+      "cells": 88,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-0-0",
+      "cells": 25,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-0-1",
+      "cells": 48,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-0-2",
+      "cells": 54,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-1-0",
+      "cells": 25,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-1-1",
+      "cells": 48,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-1-1-2",
+      "cells": 54,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-0-0",
+      "cells": 40,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-0-1",
+      "cells": 63,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-0-2",
+      "cells": 65,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-1-0",
+      "cells": 40,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-1-1",
+      "cells": 63,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-2-1-2",
+      "cells": 65,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-0-0",
+      "cells": 4,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-0-1",
+      "cells": 97,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-0-2",
+      "cells": 47,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-1-0",
+      "cells": 4,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-1-1",
+      "cells": 97,
+      "passed": true,
+      "outsideCorners": 0,
+      "maxExcessM": 0
+    },
+    {
+      "id": "reserve-cell-3-1-2",
+      "cells": 47,
       "passed": true,
       "outsideCorners": 0,
       "maxExcessM": 0

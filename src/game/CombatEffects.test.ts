@@ -327,3 +327,16 @@ test('falling aircraft lay persistent smoke, freeze on pause and splash only on 
     effects.reset(); expect(effects.diagnostics().spray).toBe(0); expect(effects.diagnostics().aircraftSmoke).toBe(0);
   } finally { effects.dispose(); }
 });
+
+
+test('underwater bursts and hull contacts produce water spray without a fireball', () => {
+  for (const event of [{ kind: 'burst', detonation: true, waterBurstY: .2, blastRadiusM: 8 }, { kind: 'contact', hullDamage: 100 }] as const) {
+    const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects();
+    sim.events.push({ ...event, sequence: 1, tick: 0, position: [200, -2, 0], shipId: '', message: 'Fixture' });
+    effects.update(sim, .01, new Camera());
+    effects.update(sim, .3, new Camera());
+    expect(effects.diagnostics().spray).toBeGreaterThan(0);
+    expect(effects.diagnostics().flashes).toBe(0);
+    effects.dispose();
+  }
+});

@@ -10,7 +10,8 @@ test('AA broad phase retains maximum-range targets at every mounted muzzle and h
     const definition = shipPreset(id);
     const sim = new CombatSimulation(definition, { friendlyBots: [], enemies: [shipPreset('enterprise-cv6')] });
     const plane = sim.target.airWing!.planes[0]; plane.phase = 'outbound';
-    Object.assign(sim.player.motion, { x: 12000, z: -23000, heading: 1.7, roll: .4, pitch: -.2 });
+    // A wave trough moves the whole intact hull without submerging its guns.
+    Object.assign(sim.player.motion, { x: 12000, z: -23000, y: -2, waveHeave: -2, heading: 1.7, roll: .4, pitch: -.2 });
     for (const [i, mount] of definition.mounts.entries()) {
       const range = antiAircraftRange(mount); if (!range) continue;
       Object.assign(sim.player.mounts[i], { train: 1.3, elevation: .8 });

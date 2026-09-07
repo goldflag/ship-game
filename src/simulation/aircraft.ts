@@ -31,7 +31,6 @@ export interface AirWingState { planes: Aircraft[]; launchCooldown: number; flig
 export interface AirRelease { id: number; ownerId: string; position: Vec3; velocity: Vec3; }
 export const hasFoldingWings = (modelId: string) => ['f4f-4-wildcat', 'tbd-1-devastator'].includes(modelId);
 const WING_FOLD_SECONDS = 4; // Gameplay timing; manual crew/hydraulic operation is abstracted.
-export const MAX_AIRBORNE = 144;
 export const AIRCRAFT_ENDURANCE_SECONDS = 1050;
 export const deckClearance = (p: Aircraft) => aircraftGroundPose(p.modelId).clearance;
 export const flightSize = (actor: FleetActor) => actor.definition.airWing?.flightSize ?? 3;
@@ -241,7 +240,6 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
     if (p.phase === 'lost') stepWreck(p, ctx, dt);
     else stepFlightMechanisms(p, dt, onFlightDeck(p));
   }
-  let flying = ctx.planes.filter(airborne).length;
   for (const actor of ctx.actors) {
     const state = actor.airWing, wing = actor.definition.airWing;
     if (!state || !wing) continue;
@@ -275,11 +273,11 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
           p.timer -= dt;
           if (p.timer <= 0) { p.phase = 'ready'; p.deckSlot = undefined; p.deckPosition = undefined; p.flightTime = 0; p.ammo = p.role === 'fighter' ? 16 : 0; p.payload = p.role !== 'fighter'; p.hp = 100; }
         }
-        if (p.phase === 'queued' && state.launchCooldown <= 0 && flying < MAX_AIRBORNE && airServiceAvailable(actor)
+        if (p.phase === 'queued' && state.launchCooldown <= 0 && airServiceAvailable(actor)
           && !approachingDeck && !state.planes.some(other => ['taxi', 'rollout', 'parking'].includes(other.phase)) && spotAircraft(actor, p)) {
           // Gameplay launch cadence: overlapping deck runs complete a full squadron in ~10 s.
           // Spawn only on release from the hangar; no idle deck aircraft or taxi delay.
-          p.phase = 'takeoff'; p.timer = 0; p.flightTime = 0; flying++;
+          p.phase = 'takeoff'; p.timer = 0; p.flightTime = 0;
           state.launchCooldown = (10 - TAKEOFF_ROLL_SECONDS - TAKEOFF_CLIMB_SECONDS) / Math.max(1, flightSize(actor) - 1);
           deckPose(p, actor, add(wing.launchPosition, [0, deckClearance(p), 0]));
           p.previousPosition = [...p.position];
@@ -304,9 +302,9 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
           const waypoint: Vec3 = Math.abs(current[0] - destination[0]) > .1 ? [destination[0], destination[1], current[2]] : destination;
           const arrived = taxi(p, actor, waypoint, p.phase === 'taxi' ? LAUNCH_TAXI_SPEED : 12, dt) && length(sub(waypoint, destination)) < .1;
           if (arrived && p.phase === 'parking') { p.phase = 'rearming'; p.timer = wing.rearmSeconds; p.deckSlot = undefined; p.deckPosition = undefined; p.recoveryRequestedAt = undefined; }
-          else if (arrived && (!airServiceAvailable(actor) || flying >= MAX_AIRBORNE)) { p.phase = 'parking'; }
+          else if (arrived && (!airServiceAvailable(actor))) { p.phase = 'parking'; }
           else if (arrived) {
-            flying++; p.phase = 'takeoff'; p.timer = 0; p.flightTime = 0; state.launchCooldown = wing.launchIntervalSeconds;
+            p.phase = 'takeoff'; p.timer = 0; p.flightTime = 0; state.launchCooldown = wing.launchIntervalSeconds;
             deckPose(p, actor, destination);
             ctx.emit({ kind: 'aircraft-launch', position: [...p.position], shipId: p.ownerId, message: `${p.modelId} launched`, aircraft: { id: p.id } });
           }
@@ -384,7 +382,7 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
             && Math.abs(next[0] - wing.recoveryPosition[0]) < 7 && Math.abs(next[1] - deckY) < .35
             && Math.abs(wrapAngle(p.heading - actor.motion.heading)) < .12) {
             if (busy || !spotAircraft(actor, p)) { p.phase = 'returning'; p.pilot.recoveryStage = 'marshal'; continue; }
-            p.phase = 'rollout'; p.timer = 0; flying--;
+            p.phase = 'rollout'; p.timer = 0;
             deckPose(p, actor, [next[0], deckY, next[2]]);
             ctx.emit({ kind: 'aircraft-recovered', position: [...p.position], shipId: p.ownerId, message: `${p.modelId} landed`, aircraft: { id: p.id } });
           } else if (next[2] < wing.recoveryPosition[2] - 30 || (aft < 250 && Math.abs(next[0] - wing.recoveryPosition[0]) > 30)) {
@@ -485,7 +483,7 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
         const landing = add(p.position, scale(p.velocity, releaseFall));
         const impactAim = add(targetPoint, scale(motionVelocity(target.motion), releaseFall));
         const error = Math.hypot(landing[0] - impactAim[0], landing[2] - impactAim[2]);
-        if (error < 22 && p.pitch < -.25 && p.position[1] > targetPoint[1] + 90 && ctx.shells.length < 256) {
+        if (error < 22 && p.pitch < -.25 && p.position[1] > targetPoint[1] + 90) {
           const id = ctx.nextId();
           ctx.shells.push({ id, ownerId: p.ownerId, weaponLabel: '500 lb HE bomb', bomb: { heading: p.heading, pitch: p.pitch, bank: p.bank }, position: add(p.position, [0, -1, 0]), velocity: [...p.velocity], age: 0, penetrationMm: 0, damage: 380, caliberM: .35, visited: [], ammunition: 'he', type: 'HE', he: { explosiveKg: 120, fragmentPenetrationMm: 75, damage: 380, stockFraction: 1, basis: 'Provisional 500 lb gameplay bomb; contact fuze' } });
           p.payload = false; p.phase = 'returning';
@@ -500,7 +498,7 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
         fly(p, [aim[0], 26, aim[2]], 70, dt, { bankLimit: distance > 1600 ? .72 : .35, altitudeLookahead: 450 });
         const aligned = dot(normalize([p.velocity[0], 0, p.velocity[2]]), normalize([aim[0] - p.position[0], 0, aim[2] - p.position[2]])) > .999;
         if (distance < 1050 && distance > 650 && p.position[1] < 38 && p.position[1] > 15 && Math.abs(p.bank) < .12 && Math.abs(p.pitch) < .08 && aligned
-          && ctx.releases.length + ctx.torpedoes.length < 128 && clearTorpedoLane(actor, waterEntry, aim, AIR_TORPEDO.speed, ctx.actors)) {
+          && clearTorpedoLane(actor, waterEntry, aim, AIR_TORPEDO.speed, ctx.actors)) {
           ctx.releases.push({ id: ctx.nextId(), ownerId: p.ownerId, position: [...p.position], velocity: [p.velocity[0], -3, p.velocity[2]] });
           p.payload = false; p.phase = 'returning';
           ctx.emit({ kind: 'aircraft-release', position: [...p.position], shipId: p.ownerId, message: 'Torpedo away', aircraft: { id: p.id } });
