@@ -1,7 +1,7 @@
 import { PerspectiveCamera } from 'three/webgpu';
-import { battlefieldDistance, BATTLEFIELD_FOV, BATTLEFIELD_TILT, chartPoint, chartWorld, fitAirChart, type ChartView } from '../ui/airChart';
+import { battlefieldDistance, BATTLEFIELD_FOV, BATTLEFIELD_TILT, BATTLEFIELD_MAX_TILT, chartPoint, chartWorld, fitAirChart, type ChartView } from '../ui/airChart';
 
-/** North-up battlefield camera, twenty degrees off vertical, over the actual ocean. */
+/** Orbitable battlefield camera; defaults to north-up, twenty degrees off vertical. */
 export class BattlefieldCamera {
   view: ChartView = { x: 0, z: 0, radius: 8000 };
   private saved?: { fov: number; far: number; up: [number, number, number] };
@@ -45,7 +45,7 @@ export class BattlefieldCamera {
     this.camera.updateProjectionMatrix(); this.saved = undefined;
   }
   fit(points: { x: number; z: number }[], width: number, height: number) {
-    this.view = fitAirChart(points.length ? points : [{ x: 0, z: 0 }], width, Math.max(1, height - 240));
+    this.view = { ...this.view, ...fitAirChart(points.length ? points : [{ x: 0, z: 0 }], width, Math.max(1, height - 240)) };
     this.view.radius = Math.min(40000, this.view.radius);
     // Perspective makes the near side larger. Frame actual projected fleet positions.
     const margin = Math.min(40, width * .1);
@@ -65,11 +65,22 @@ export class BattlefieldCamera {
     const after = chartWorld(this.view, width, height, x, y);
     this.view.x += before[0] - after[0]; this.view.z += before[1] - after[1];
   }
+  setTilt(radians: number) {
+    if (Number.isFinite(radians)) this.view.tilt = Math.max(0, Math.min(BATTLEFIELD_MAX_TILT, radians));
+  }
+  orbit(dx: number, dy: number) {
+    if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
+    this.view.bearing = ((this.view.bearing ?? 0) - dx * .005) % (Math.PI * 2);
+    this.setTilt((this.view.tilt ?? BATTLEFIELD_TILT) - dy * .005);
+  }
+  resetAngle() { this.view.tilt = BATTLEFIELD_TILT; this.view.bearing = 0; }
   update() {
     this.camera.fov = BATTLEFIELD_FOV; this.camera.far = 1000000;
     const distance = battlefieldDistance(this.view, this.camera.aspect, 1);
-    this.camera.position.set(this.view.x, distance * Math.cos(BATTLEFIELD_TILT), this.view.z + distance * Math.sin(BATTLEFIELD_TILT));
-    this.camera.up.set(0, 1, 0); this.camera.lookAt(this.view.x, 0, this.view.z);
+    const tilt = this.view.tilt ?? BATTLEFIELD_TILT, bearing = this.view.bearing ?? 0;
+    this.camera.position.set(this.view.x + distance * Math.sin(tilt) * Math.sin(bearing), distance * Math.cos(tilt), this.view.z + distance * Math.sin(tilt) * Math.cos(bearing));
+    // A horizontal up reference also keeps an exactly overhead view well defined.
+    this.camera.up.set(-Math.sin(bearing), 0, -Math.cos(bearing)); this.camera.lookAt(this.view.x, 0, this.view.z);
     this.camera.updateProjectionMatrix(); this.camera.updateMatrixWorld();
   }
 }

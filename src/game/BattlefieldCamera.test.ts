@@ -3,6 +3,52 @@ import { PerspectiveCamera, Plane, Raycaster, Vector2, Vector3 } from 'three/web
 import { BattlefieldCamera } from './BattlefieldCamera';
 import { chartPoint, chartWorld } from '../ui/airChart';
 
+test('angle limits keep the sea below the whole viewport and reset retains map position and zoom', () => {
+  const camera = new PerspectiveCamera(52, 390 / 844, .5, 60000);
+  const map = new BattlefieldCamera(camera);
+  map.view = { x: 50000, z: -50000, radius: 40000 };
+  map.orbit(500, -100000); map.update();
+  expect(map.view.tilt! * 180 / Math.PI).toBeCloseTo(55);
+  for (const x of [-1, 1]) for (const y of [-1, 1]) {
+    const ray = new Raycaster(); ray.setFromCamera(new Vector2(x, y), camera);
+    const sea = ray.ray.intersectPlane(new Plane(new Vector3(0, 1, 0), 0), new Vector3())!;
+    expect(sea).toBeTruthy(); expect(sea.clone().project(camera).z).toBeLessThan(1);
+  }
+  map.orbit(0, 100000); expect(map.view.tilt).toBe(0);
+  map.setTilt(NaN); expect(map.view.tilt).toBe(0);
+  map.resetAngle();
+  expect(map.view).toEqual({ x: 50000, z: -50000, radius: 40000, tilt: Math.PI / 9, bearing: 0 });
+  map.fit([{ x: 0, z: 0 }], 390, 844);
+  expect(map.view.tilt).toBe(Math.PI / 9); expect(map.view.bearing).toBe(0);
+});
+
+test('orbit angles preserve water picking, cursor zoom and screen-space panning', () => {
+  for (const [width, height] of [[1440, 900], [390, 844]]) for (const tilt of [0, 20, 55]) for (const bearing of [0, 90, 225]) {
+    const camera = new PerspectiveCamera(52, width / height, .5, 60000);
+    const map = new BattlefieldCamera(camera);
+    map.view = { x: 300, z: -600, radius: 8000, tilt: tilt * Math.PI / 180, bearing: bearing * Math.PI / 180 };
+    map.update();
+    const direction = camera.getWorldDirection(new Vector3());
+    expect(direction.y).toBeCloseTo(-Math.cos(tilt * Math.PI / 180), 8);
+    expect(direction.x).toBeCloseTo(-Math.sin(tilt * Math.PI / 180) * Math.sin(bearing * Math.PI / 180), 8);
+    for (const [u, v] of [[.02, .02], [.98, .98], [.5, .5]]) {
+      const ray = new Raycaster(); ray.setFromCamera(new Vector2(u * 2 - 1, 1 - v * 2), camera);
+      const water = ray.ray.intersectPlane(new Plane(new Vector3(0, 1, 0), 0), new Vector3())!;
+      const point = chartWorld(map.view, width, height, width * u, height * v);
+      expect(point[0]).toBeCloseTo(water.x, 5); expect(point[1]).toBeCloseTo(water.z, 5);
+    }
+    const point = new Vector3(500, 420, -1000).project(camera);
+    const overlay = chartPoint(map.view, width, height, 500, -1000, 420);
+    expect(overlay[0]).toBeCloseTo((point.x + 1) * width / 2, 6);
+    expect(overlay[1]).toBeCloseTo((1 - point.y) * height / 2, 6);
+    const anchor = chartWorld(map.view, width, height, width * .6, height * .4);
+    map.zoom(-200, width * .6, height * .4, width, height);
+    map.pan(20, 10, width, height, width * .6 + 20, height * .4 + 10);
+    const dragged = chartWorld(map.view, width, height, width * .6 + 20, height * .4 + 10);
+    expect(dragged[0]).toBeCloseTo(anchor[0], 6); expect(dragged[1]).toBeCloseTo(anchor[1], 6);
+  }
+});
+
 test('camera ascends continuously, reverses from the displayed pose, and respects reduced motion', () => {
   const camera = new PerspectiveCamera(52, 1.6, .5, 60000);
   camera.position.set(0, 50, 300); camera.lookAt(0, 0, 0);
