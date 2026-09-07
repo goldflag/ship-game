@@ -6,19 +6,19 @@ const PAGE_SIZE = 144;
 /** Screen coverage for aircraft whose thin triangles no longer cover a pixel.
  * This only supplements the rendered silhouette; simulation size stays unchanged. */
 export function aircraftContactAppearance(spanPixels: number) {
-  // Wingspan overestimates coverage when following a thin, edge-on aircraft.
-  // Bring the contact in while the model is still readable, with a broad overlap.
-  const fadeIn = 1 - THREE.MathUtils.smoothstep(spanPixels, 14, 48);
-  return { pixels: 9, opacity: .9 * fadeIn };
+  // Only assist tiny, edge-on geometry. A constant large, dark icon obscures
+  // the model's paint and makes distant formations look bigger as they recede.
+  const fadeIn = 1 - THREE.MathUtils.smoothstep(spanPixels, 2, 12);
+  return { pixels: Math.min(3, Math.max(0, spanPixels)), opacity: .28 * fadeIn };
 }
 
-function silhouetteTexture() {
+function contactTexture() {
   const size = 32, pixels = new Uint8Array(size * size * 4);
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
     const u = (x + .5) / size * 2 - 1, v = (y + .5) / size * 2 - 1;
-    const body = Math.hypot(u / .22, v / .7);
-    const wing = Math.max(Math.abs(u) / .96, Math.abs(v + Math.abs(u) * .12) / .18);
-    const alpha = 1 - THREE.MathUtils.smoothstep(Math.min(body, wing), .7, 1);
+    // A soft point survives subpixel sampling without inventing a large,
+    // camera-facing aircraft shape over the correctly oriented model.
+    const alpha = 1 - THREE.MathUtils.smoothstep(Math.hypot(u, v), 0, .95);
     const i = (y * size + x) * 4;
     pixels[i] = pixels[i + 1] = pixels[i + 2] = 255; pixels[i + 3] = Math.round(alpha * 255);
   }
@@ -31,7 +31,7 @@ function silhouetteTexture() {
 /** Paged depth-tested, fogged draws for the airborne group. */
 export class AircraftContacts {
   private geometry = new THREE.PlaneGeometry(1, 1);
-  private texture = silhouetteTexture();
+  private texture = contactTexture();
   private material = new THREE.MeshBasicNodeMaterial({ color: '#23313b', map: this.texture, transparent: true, depthWrite: false });
   private opacity = new THREE.InstancedBufferAttribute(new Float32Array(PAGE_SIZE), 1);
   readonly mesh = new ExpandableInstances(this.geometry, this.material, PAGE_SIZE);
