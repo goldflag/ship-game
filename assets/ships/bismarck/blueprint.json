@@ -33154,22 +33154,197 @@
       "immersionToleranceM": 0.041999999999999996
     },
     {
-      "id": "support-director",
-      "name": "Fire-control station",
+      "id": "equipment-fore-main-director",
+      "name": "fore main director",
       "kind": "fire-control",
-      "hp": 65,
-      "compartmentId": "reserve-cell-1-0-2",
+      "placement": "fixed",
       "center": [
-        -8.25,
-        5.548125,
-        -36.53125
+        0,
+        32.18,
+        -13.4
       ],
       "size": [
-        1.8,
-        0.129375,
-        1.8
+        3.7,
+        1.6,
+        3.3
       ],
-      "immersionToleranceM": 0.025875
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "anton",
+        "bruno",
+        "caesar",
+        "dora",
+        "starboard-secondary-1",
+        "starboard-secondary-2",
+        "starboard-secondary-3",
+        "port-secondary-1",
+        "port-secondary-2",
+        "port-secondary-3"
+      ]
+    },
+    {
+      "id": "equipment-conning-director",
+      "name": "conning director",
+      "kind": "fire-control",
+      "placement": "fixed",
+      "center": [
+        0,
+        20.78,
+        -27.6
+      ],
+      "size": [
+        3.7,
+        1.6,
+        3.3
+      ],
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "anton",
+        "bruno",
+        "caesar",
+        "dora",
+        "starboard-secondary-1",
+        "starboard-secondary-2",
+        "starboard-secondary-3",
+        "port-secondary-1",
+        "port-secondary-2",
+        "port-secondary-3"
+      ]
+    },
+    {
+      "id": "equipment-aft-main-director",
+      "name": "aft main director",
+      "kind": "fire-control",
+      "placement": "fixed",
+      "center": [
+        0,
+        17.68,
+        37.8
+      ],
+      "size": [
+        3.7,
+        1.6,
+        3.3
+      ],
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "anton",
+        "bruno",
+        "caesar",
+        "dora",
+        "starboard-secondary-1",
+        "starboard-secondary-2",
+        "starboard-secondary-3",
+        "port-secondary-1",
+        "port-secondary-2",
+        "port-secondary-3"
+      ]
+    },
+    {
+      "id": "equipment-forward-starboard-aa-director",
+      "name": "forward starboard aa director",
+      "kind": "fire-control",
+      "placement": "fixed",
+      "center": [
+        6.5,
+        18,
+        -15.8
+      ],
+      "size": [
+        3.6,
+        2.9,
+        4.5
+      ],
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "starboard-aa-105-1",
+        "starboard-aa-105-2",
+        "starboard-aa-105-3",
+        "starboard-aa-105-4"
+      ]
+    },
+    {
+      "id": "equipment-funnel-starboard-aa-director",
+      "name": "funnel starboard aa director",
+      "kind": "fire-control",
+      "placement": "fixed",
+      "center": [
+        5.35,
+        21.5,
+        -0.2
+      ],
+      "size": [
+        3.6,
+        2.9,
+        4.5
+      ],
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "starboard-aa-105-1",
+        "starboard-aa-105-2",
+        "starboard-aa-105-3",
+        "starboard-aa-105-4"
+      ]
+    },
+    {
+      "id": "equipment-forward-port-aa-director",
+      "name": "forward port aa director",
+      "kind": "fire-control",
+      "placement": "fixed",
+      "center": [
+        -6.5,
+        18,
+        -15.8
+      ],
+      "size": [
+        3.6,
+        2.9,
+        4.5
+      ],
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "port-aa-105-1",
+        "port-aa-105-2",
+        "port-aa-105-3",
+        "port-aa-105-4"
+      ]
+    },
+    {
+      "id": "equipment-funnel-port-aa-director",
+      "name": "funnel port aa director",
+      "kind": "fire-control",
+      "placement": "fixed",
+      "center": [
+        -5.35,
+        21.5,
+        -0.2
+      ],
+      "size": [
+        3.6,
+        2.9,
+        4.5
+      ],
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "port-aa-105-1",
+        "port-aa-105-2",
+        "port-aa-105-3",
+        "port-aa-105-4"
+      ]
     }
   ],
   "compartments": [

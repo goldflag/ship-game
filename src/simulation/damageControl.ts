@@ -1,3 +1,4 @@
+import { equipmentCondition } from './machinery';
 import type { FireProfile, ShipDefinition } from '../ships/blueprint';
 import { addBreach, type Combatant, type DamageEvent } from './damage';
 import { clamp, localToWorld } from './geometry';
@@ -59,7 +60,7 @@ function wet(actor: Combatant, def: ShipDefinition, index: number): number {
 export function heatModule(actor: Combatant, def: ShipDefinition, index: number, deliveredDamage: number): void {
   if (!def.damageControl) return;
   const m = def.modules[index], room = def.compartments.findIndex(c => c.id === m.compartmentId);
-  if (wet(actor, def, room) >= .25) return;
+  if (room < 0 || wet(actor, def, room) >= .25) return;
   heatRoom(actor, def, room, deliveredDamage);
   if (m.kind === 'magazine') actor.damage.modules[index].ignition += deliveredDamage / 150;
 }
@@ -100,8 +101,8 @@ export function updateDamageControl(actor: Combatant, def: ShipDefinition, dt: n
   if (c.spares > 0) {
     def.modules.forEach((m, i) => {
       const room = def.compartments.findIndex(r => r.id === m.compartmentId), hp = actor.damage.modules[i].hp;
-      if (hp > 0 && hp < m.hp * d.repairCeiling && c.rooms[room].heat < .15 && wet(actor, def, room) < .2)
-        offer('repair-module', i, m.compartmentId, 10, 'repairs');
+      if (hp > 0 && hp < m.hp * d.repairCeiling && equipmentCondition(actor, def, m).reason !== 'flooded' && (room < 0 || c.rooms[room].heat < .15 && wet(actor, def, room) < .2))
+        offer('repair-module', i, m.compartmentId ?? m.id, 10, 'repairs');
     });
     actor.mounts.forEach((m, i) => { if (m.hp > 0 && m.hp < 100 * d.repairCeiling && c.mounts[i].heat < .15) offer('repair-mount', i, def.mounts[i].id, 10, 'repairs'); });
   }
@@ -161,7 +162,8 @@ export function updateDamageControl(actor: Combatant, def: ShipDefinition, dt: n
     if (b.intensity > 0 && a.fuel > 0) a.heat = Math.min(2, a.heat + b.intensity * path * .02 * dt);
   });
   def.modules.forEach((m, i) => {
-    const state = actor.damage.modules[i], ri = def.compartments.findIndex(r => r.id === m.compartmentId), f = c.rooms[ri], w = wet(actor, def, ri);
+    const state = actor.damage.modules[i], ri = def.compartments.findIndex(r => r.id === m.compartmentId), f = c.rooms[ri], w = ri < 0 ? 0 : wet(actor, def, ri);
+    if (ri < 0) return;
     state.hp = Math.max(0, state.hp - f.intensity * .8 * dt);
     if (m.kind !== 'magazine' || state.detonated) return;
     state.ignition = w >= .25 ? 0 : Math.max(0, state.ignition + (f.intensity * .025 - .003) * dt - .05 * (suppressRooms.get(ri) ?? 0));

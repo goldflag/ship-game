@@ -114507,22 +114507,218 @@
       "immersionToleranceM": 0.36
     },
     {
-      "id": "support-director",
-      "name": "Fire-control station",
+      "id": "equipment-main-director",
+      "name": "main director",
       "kind": "fire-control",
-      "hp": 65,
-      "compartmentId": "reserve-cell-1-0-2",
+      "placement": "fixed",
       "center": [
-        -9.31979167,
-        8.025,
-        -10.95833333
+        0,
+        37.35,
+        3.2
       ],
       "size": [
-        1.8,
-        0.275,
-        1.8
+        3.6,
+        2.2,
+        3.6
       ],
-      "immersionToleranceM": 0.05500000000000001
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "main-1",
+        "main-2",
+        "main-3",
+        "secondary-forward",
+        "secondary-aft"
+      ]
+    },
+    {
+      "id": "equipment-aft-director",
+      "name": "aft director",
+      "kind": "fire-control",
+      "placement": "fixed",
+      "center": [
+        0,
+        22.8,
+        38.6
+      ],
+      "size": [
+        4.1,
+        3.9,
+        4.1
+      ],
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "main-1",
+        "main-2",
+        "main-3",
+        "secondary-forward",
+        "secondary-aft"
+      ]
+    },
+    {
+      "id": "equipment-ha-director-starboard-1",
+      "name": "ha director starboard 1",
+      "kind": "fire-control",
+      "placement": "fixed",
+      "center": [
+        5.9,
+        22.75,
+        0
+      ],
+      "size": [
+        2.4,
+        1.5,
+        2.8
+      ],
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "ha--1-1",
+        "ha--1-2",
+        "ha--1-3",
+        "ha--1-4",
+        "ha--1-5",
+        "ha--1-6"
+      ]
+    },
+    {
+      "id": "equipment-ha-director-starboard-2",
+      "name": "ha director starboard 2",
+      "kind": "fire-control",
+      "placement": "fixed",
+      "center": [
+        5.9,
+        26.75,
+        6
+      ],
+      "size": [
+        2.4,
+        1.5,
+        2.8
+      ],
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "ha--1-1",
+        "ha--1-2",
+        "ha--1-3",
+        "ha--1-4",
+        "ha--1-5",
+        "ha--1-6"
+      ]
+    },
+    {
+      "id": "equipment-ha-director-starboard-3",
+      "name": "ha director starboard 3",
+      "kind": "fire-control",
+      "placement": "fixed",
+      "center": [
+        5.9,
+        17.75,
+        35
+      ],
+      "size": [
+        2.4,
+        1.5,
+        2.8
+      ],
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "ha--1-1",
+        "ha--1-2",
+        "ha--1-3",
+        "ha--1-4",
+        "ha--1-5",
+        "ha--1-6"
+      ]
+    },
+    {
+      "id": "equipment-ha-director-port-1",
+      "name": "ha director port 1",
+      "kind": "fire-control",
+      "placement": "fixed",
+      "center": [
+        -5.9,
+        22.75,
+        0
+      ],
+      "size": [
+        2.4,
+        1.5,
+        2.8
+      ],
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "ha-1-1",
+        "ha-1-2",
+        "ha-1-3",
+        "ha-1-4",
+        "ha-1-5",
+        "ha-1-6"
+      ]
+    },
+    {
+      "id": "equipment-ha-director-port-2",
+      "name": "ha director port 2",
+      "kind": "fire-control",
+      "placement": "fixed",
+      "center": [
+        -5.9,
+        26.75,
+        6
+      ],
+      "size": [
+        2.4,
+        1.5,
+        2.8
+      ],
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "ha-1-1",
+        "ha-1-2",
+        "ha-1-3",
+        "ha-1-4",
+        "ha-1-5",
+        "ha-1-6"
+      ]
+    },
+    {
+      "id": "equipment-ha-director-port-3",
+      "name": "ha director port 3",
+      "kind": "fire-control",
+      "placement": "fixed",
+      "center": [
+        -5.9,
+        17.75,
+        35
+      ],
+      "size": [
+        2.4,
+        1.5,
+        2.8
+      ],
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "ha-1-1",
+        "ha-1-2",
+        "ha-1-3",
+        "ha-1-4",
+        "ha-1-5",
+        "ha-1-6"
+      ]
     }
   ],
   "connections": [

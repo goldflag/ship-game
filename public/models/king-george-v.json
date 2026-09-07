@@ -136782,22 +136782,152 @@
       "immersionToleranceM": 0.36
     },
     {
-      "id": "support-director",
-      "name": "Fire-control station",
+      "id": "equipment-dct-forward",
+      "name": "Forward main director",
       "kind": "fire-control",
-      "hp": 65,
-      "compartmentId": "reserve-cell-1-0-2",
+      "placement": "fixed",
       "center": [
-        -6.5405,
-        6.0056666675,
-        -23.65416667
+        0,
+        24.688100000000002,
+        -22.3
       ],
       "size": [
-        1.8,
-        0.4788666675,
-        1.8
+        3.7,
+        3.2,
+        3.6
       ],
-      "immersionToleranceM": 0.0957733335
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "main-a",
+        "main-b",
+        "main-y"
+      ]
+    },
+    {
+      "id": "equipment-dct-after",
+      "name": "Aft main director",
+      "kind": "fire-control",
+      "placement": "fixed",
+      "center": [
+        0,
+        16.4381,
+        45
+      ],
+      "size": [
+        3.7,
+        3.2,
+        3.6
+      ],
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "main-a",
+        "main-b",
+        "main-y"
+      ]
+    },
+    {
+      "id": "equipment-hacs-p-forward",
+      "name": "hacs p forward",
+      "kind": "fire-control",
+      "placement": "fixed",
+      "center": [
+        -2.35,
+        29.5381,
+        -15.1
+      ],
+      "size": [
+        2.2,
+        2.7,
+        2.7
+      ],
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "secondary-p1",
+        "secondary-p2",
+        "secondary-p3",
+        "secondary-p4"
+      ]
+    },
+    {
+      "id": "equipment-hacs-s-forward",
+      "name": "hacs s forward",
+      "kind": "fire-control",
+      "placement": "fixed",
+      "center": [
+        2.35,
+        29.5381,
+        -15.1
+      ],
+      "size": [
+        2.2,
+        2.7,
+        2.7
+      ],
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "secondary-s1",
+        "secondary-s2",
+        "secondary-s3",
+        "secondary-s4"
+      ]
+    },
+    {
+      "id": "equipment-hacs-p-after",
+      "name": "hacs p after",
+      "kind": "fire-control",
+      "placement": "fixed",
+      "center": [
+        -3.2,
+        17.5381,
+        40
+      ],
+      "size": [
+        2.2,
+        2.7,
+        2.7
+      ],
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "secondary-p1",
+        "secondary-p2",
+        "secondary-p3",
+        "secondary-p4"
+      ]
+    },
+    {
+      "id": "equipment-hacs-s-after",
+      "name": "hacs s after",
+      "kind": "fire-control",
+      "placement": "fixed",
+      "center": [
+        3.2,
+        17.5381,
+        40
+      ],
+      "size": [
+        2.2,
+        2.7,
+        2.7
+      ],
+      "hp": 65,
+      "protectionMm": 10,
+      "immersionToleranceM": 0.3,
+      "servesMountIds": [
+        "secondary-s1",
+        "secondary-s2",
+        "secondary-s3",
+        "secondary-s4"
+      ]
     }
   ],
   "connections": [
@@ -147899,5 +148029,5 @@
     ]
   },
   "compilerVersion": 1,
-  "contentHash": "bd00502d92064f855f9bfc71c82fb7f81418f354722d4c2c9f72b162fa416c4b"
+  "contentHash": "0b6b14ff4ad02d328b015bddca3bb7c8fa355393442e0721f56c7ca19b047ebb"
 }

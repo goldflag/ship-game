@@ -12,7 +12,7 @@ export function fireReadout(actor: Combatant, def: ShipDefinition): FireReadout[
     if (f.intensity <= 0 && f.heat <= .15) return [];
     const room = def.compartments[i];
     const nearby = new Set([room.id, ...actor.damage.connections.filter(c => c.state !== 'closed' && (c.fromIndex === i || c.toIndex === i)).map(c => def.compartments[c.fromIndex === i ? c.toIndex : c.fromIndex].id)]);
-    const threatened = def.modules.filter((m, index) => nearby.has(m.compartmentId) && actor.damage.modules[index].hp > 0)
+    const threatened = def.modules.filter((m, index) => m.compartmentId !== undefined && nearby.has(m.compartmentId) && actor.damage.modules[index].hp > 0)
       .sort((a, b) => Number(b.kind === 'magazine') - Number(a.kind === 'magazine'))[0];
     return [entry(room.id, room.name, f, f.intensity > 0 ? threatened?.name : undefined)];
   });

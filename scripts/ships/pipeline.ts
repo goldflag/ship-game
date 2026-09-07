@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { Matrix4, Quaternion, Vector3 } from 'three';
-import { barrelIds, compileShip, type ShipDefinition } from '../../src/ships/blueprint';
+import { barrelOffset, barrelHeightOffset, barrelIds, compileShip, type ShipDefinition } from '../../src/ships/blueprint';
 
 const root = resolve(import.meta.dir, '../..');
 const [action = 'check', shipId = 'bismarck'] = process.argv.slice(2);
@@ -134,9 +134,9 @@ function inspectGlb(bytes: Buffer, def: ShipDefinition) {
         const updated = frames(new Map([[index, new Matrix4().makeRotationY(-bearing)], [pitch, new Matrix4().makeRotationX(angle)]]));
         const actual = new Vector3().setFromMatrixPosition(updated.get(socket)!);
         const length = m.weapon.muzzleForward - m.weapon.trunnionForward;
-        const forward = m.weapon.trunnionForward + length * Math.cos(angle);
-        const lateral = m.weapon.barrelSpacing * (barrel - (sides.length - 1) / 2);
-        const expected = new Vector3(m.position[0] + Math.cos(bearing) * lateral + Math.sin(bearing) * forward, m.position[1] + m.weapon.pivotHeight + length * Math.sin(angle), m.position[2] + Math.sin(bearing) * lateral - Math.cos(bearing) * forward);
+        const forward = m.weapon.trunnionForward + length * Math.cos(angle) - barrelHeightOffset(m.weapon, barrel) * Math.sin(angle);
+        const lateral = barrelOffset(m.weapon, barrel);
+        const expected = new Vector3(m.position[0] + Math.cos(bearing) * lateral + Math.sin(bearing) * forward, m.position[1] + m.weapon.pivotHeight + barrelHeightOffset(m.weapon, barrel) * Math.cos(angle) + length * Math.sin(angle), m.position[2] + Math.sin(bearing) * lateral - Math.cos(bearing) * forward);
         near(actual.distanceTo(expected), 0, `${m.id}.${side} muzzle at ${train}/${elevation}`);
       }
     }

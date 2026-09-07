@@ -1,3 +1,4 @@
+import { equipmentPose } from './equipmentPose';
 import type { Island } from '../maps/catalog';
 import { firstLandHit } from './land';
 import type { Vec3 } from '../ships/blueprint';
@@ -7,7 +8,7 @@ import { burstShell } from './burst';
 import { resolveShipContact, shipContacts, type DamageEvent, type Shell, type ShipContact } from './damage';
 import { add, length, localToWorld, radians, scale, segmentOverlapsBox, sub, worldToLocal } from './geometry';
 import { hullContains } from './hull';
-import { mayReachHull, shellHullRadius } from './spatial';
+import { mayReachHull, shellHullRadius, shellHullBounds } from './spatial';
 
 export type ProjectileEnd = 'burst' | 'stopped' | 'passed-through' | 'splash' | 'expired';
 /** Swept chords remain bounded to a CPU tick. Every contact splits elapsed time,
@@ -20,7 +21,8 @@ export function advanceProjectile(shell: Shell, actors: FleetActor[], dt: number
       const actor = actors.find(a => a.motion.id === shell.lodged!.shipId);
       if (actor) {
         const index = actor.definition.mounts.findIndex(m => m.id === shell.lodged!.mountId), mount = actor.definition.mounts[index];
-        const local = mount ? localToWorld(shell.lodged.position, { x: mount.position[0], y: mount.position[1], z: mount.position[2], heading: radians(mount.bearingDeg) + actor.mounts[index].train, roll: 0, pitch: 0 }) : shell.lodged.position;
+        const module=actor.definition.modules.find(m=>m.id===shell.lodged!.moduleId), pose=module&&equipmentPose(actor,actor.definition,module);
+        const local = pose ? localToWorld(shell.lodged.position,pose) : mount ? localToWorld(shell.lodged.position, { x: mount.position[0], y: mount.position[1], z: mount.position[2], heading: radians(mount.bearingDeg) + actor.mounts[index].train, roll: 0, pitch: 0 }) : shell.lodged.position;
         shell.position = localToWorld(local, actor.motion);
       }
     }
@@ -58,7 +60,7 @@ export function advanceProjectile(shell: Shell, actors: FleetActor[], dt: number
     for (const actor of actors) {
       if (actor.motion.id === shell.ownerId || !mayReachHull(from, end, actor.motion, shellHullRadius(actor.definition))) continue;
       const def = actor.definition;
-      if (!segmentOverlapsBox(worldToLocal(from, actor.motion), worldToLocal(end, actor.motion), { center: [0, 10, 0], size: [def.hull.beam + 30, 60, def.hull.length + 40] })) continue;
+      if (!segmentOverlapsBox(worldToLocal(from, actor.motion), worldToLocal(end, actor.motion), shellHullBounds(def))) continue;
       const hit = shipContacts(shell, from, end, actor, def)[0];
       if (hit && (!nearest || hit.t < nearest.hit.t)) nearest = { actor, hit };
     }

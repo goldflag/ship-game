@@ -8974,7 +8974,13 @@
         0.175,
         1.015365
       ],
-      "immersionToleranceM": 0.034999999999999996
+      "immersionToleranceM": 0.034999999999999996,
+      "servesMountIds": [
+        "fore-4in",
+        "aft-pompom",
+        "bridge-starboard",
+        "bridge-port"
+      ]
     }
   ],
   "compartments": [
@@ -13593,5 +13599,5 @@
     "radars": []
   },
   "compilerVersion": 1,
-  "contentHash": "af9c3a64e22fbf4b70335992a4f7dd51375d72792358d4ca34a45a9e7eb747c2"
+  "contentHash": "7cef17d3a725489e43732b1ef4249bb309dafabf68b3695485bf0ab36aefbef1"
 }

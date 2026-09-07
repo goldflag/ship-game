@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "basis": "Original blueprint/recipe equipment inventory. Placement, HP, coverage and protection are game approximations; historical uncertainties remain in discrepancies.md.",
+  "functional": {
+    "guns": [
+      {
+        "id": "deck-gun",
+        "partId": "sk-c35-88-single"
+      },
+      {
+        "id": "flak-gun",
+        "partId": "flak-c30-20-single"
+      }
+    ],
+    "equipment": [
+      {
+        "id": "forward-torpedoes",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "deck-magazine",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "diesels",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "electric-motors",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "aft-torpedoes",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "steering-gear",
+        "kind": "steering",
+        "placement": "room"
+      },
+      {
+        "id": "support-generator-1",
+        "kind": "generator",
+        "placement": "room"
+      },
+      {
+        "id": "support-generator-2",
+        "kind": "generator",
+        "placement": "room"
+      },
+      {
+        "id": "support-director",
+        "kind": "fire-control",
+        "placement": "room",
+        "servesMountIds": [
+          "deck-gun",
+          "flak-gun"
+        ]
+      },
+      {
+        "id": "equipment-bow-tube-1",
+        "kind": "launcher",
+        "placement": "room"
+      },
+      {
+        "id": "equipment-bow-tube-2",
+        "kind": "launcher",
+        "placement": "room"
+      },
+      {
+        "id": "equipment-bow-tube-3",
+        "kind": "launcher",
+        "placement": "room"
+      },
+      {
+        "id": "equipment-bow-tube-4",
+        "kind": "launcher",
+        "placement": "room"
+      },
+      {
+        "id": "equipment-stern-tube",
+        "kind": "launcher",
+        "placement": "room"
+      }
+    ]
+  },
+  "unresolved": [
+    "Other visual fittings require a dated per-fitting evidence audit before registration.",
+    "Existing support-director location remains an internal proxy until a sourced exposed station is authored."
+  ]
+}

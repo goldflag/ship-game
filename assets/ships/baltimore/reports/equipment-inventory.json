@@ -1,0 +1,179 @@
+{
+  "version": 1,
+  "basis": "Original blueprint/recipe equipment inventory. Placement, HP, coverage and protection are game approximations; historical uncertainties remain in discrepancies.md.",
+  "functional": {
+    "guns": [
+      {
+        "id": "main-1",
+        "partId": "us-8in55-mk12-triple"
+      },
+      {
+        "id": "main-2",
+        "partId": "us-8in55-mk12-triple"
+      },
+      {
+        "id": "main-3",
+        "partId": "us-8in55-mk12-triple"
+      },
+      {
+        "id": "secondary-51",
+        "partId": "us-5in38-mk32-twin"
+      },
+      {
+        "id": "secondary-52",
+        "partId": "us-5in38-mk32-twin"
+      },
+      {
+        "id": "secondary-53",
+        "partId": "us-5in38-mk32-twin"
+      },
+      {
+        "id": "secondary-54",
+        "partId": "us-5in38-mk32-twin"
+      },
+      {
+        "id": "secondary-55",
+        "partId": "us-5in38-mk32-twin"
+      },
+      {
+        "id": "secondary-56",
+        "partId": "us-5in38-mk32-twin"
+      },
+      {
+        "id": "bofors-01",
+        "partId": "us-40mm-bofors-baltimore-quad"
+      },
+      {
+        "id": "bofors-02",
+        "partId": "us-40mm-bofors-baltimore-quad"
+      },
+      {
+        "id": "bofors-03",
+        "partId": "us-40mm-bofors-baltimore-quad"
+      },
+      {
+        "id": "bofors-04",
+        "partId": "us-40mm-bofors-baltimore-quad"
+      },
+      {
+        "id": "bofors-05",
+        "partId": "us-40mm-bofors-baltimore-quad"
+      },
+      {
+        "id": "bofors-06",
+        "partId": "us-40mm-bofors-baltimore-quad"
+      },
+      {
+        "id": "bofors-07",
+        "partId": "us-40mm-bofors-baltimore-quad"
+      },
+      {
+        "id": "bofors-08",
+        "partId": "us-40mm-bofors-baltimore-quad"
+      },
+      {
+        "id": "bofors-09",
+        "partId": "us-40mm-bofors-baltimore-quad"
+      },
+      {
+        "id": "bofors-10",
+        "partId": "us-40mm-bofors-baltimore-quad"
+      },
+      {
+        "id": "bofors-11",
+        "partId": "us-40mm-bofors-baltimore-quad"
+      },
+      {
+        "id": "bofors-12",
+        "partId": "us-40mm-bofors-baltimore-quad"
+      }
+    ],
+    "equipment": [
+      {
+        "id": "magazine-forward",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "engine-forward",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "engine-aft",
+        "kind": "engine",
+        "placement": "room"
+      },
+      {
+        "id": "magazine-aft",
+        "kind": "magazine",
+        "placement": "room"
+      },
+      {
+        "id": "steering",
+        "kind": "steering",
+        "placement": "room"
+      },
+      {
+        "id": "support-generator-1",
+        "kind": "generator",
+        "placement": "room"
+      },
+      {
+        "id": "support-generator-2",
+        "kind": "generator",
+        "placement": "room"
+      },
+      {
+        "id": "equipment-forward-main-director",
+        "kind": "fire-control",
+        "placement": "fixed",
+        "servesMountIds": [
+          "main-1",
+          "main-2",
+          "main-3"
+        ]
+      },
+      {
+        "id": "equipment-after-main-director",
+        "kind": "fire-control",
+        "placement": "fixed",
+        "servesMountIds": [
+          "main-1",
+          "main-2",
+          "main-3"
+        ]
+      },
+      {
+        "id": "equipment-forward-dp-director",
+        "kind": "fire-control",
+        "placement": "fixed",
+        "servesMountIds": [
+          "secondary-51",
+          "secondary-52",
+          "secondary-53",
+          "secondary-54",
+          "secondary-55",
+          "secondary-56"
+        ]
+      },
+      {
+        "id": "equipment-after-dp-director",
+        "kind": "fire-control",
+        "placement": "fixed",
+        "servesMountIds": [
+          "secondary-51",
+          "secondary-52",
+          "secondary-53",
+          "secondary-54",
+          "secondary-55",
+          "secondary-56"
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "Other visual fittings require a dated per-fitting evidence audit before registration.",
+    "Fixed director stations follow existing original recipe housings; exact historical dimensions/coverage remain estimates."
+  ]
+}
