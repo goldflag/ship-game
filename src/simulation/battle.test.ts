@@ -7,6 +7,7 @@ import { localToWorld } from './geometry';
 import { compileShip } from '../ships/blueprint';
 import legacyYamato from '../../assets/ships/yamato/reports/fidelity-01/before/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
+import { antiAircraftRange } from './antiAircraft';
 
 const stop = { throttle: 0, rudder: 0 };
 const intent = { aim: [0, .5, -5000] as [number, number, number], fire: false, battery: 'main' as const };
@@ -162,7 +163,12 @@ test('every bot maneuvers, fires both applicable batteries, reloads and damages 
   }
   const friendly = sim.actors[1];
   for (const battery of ['main', 'secondary']) expect(friendly.definition.mounts.some((mount, i) => mount.battery === battery && friendly.mounts[i].ammo < initial[1][i])).toBe(true);
-  expect(sim.player.mounts.map(mount => mount.ammo)).toEqual(initial[0]);
+  sim.player.mounts.forEach((mount, i) => {
+    // Surface fire stays under player control; high-angle guns now defend
+    // the player automatically when the enemy carrier's aircraft approach.
+    if (!antiAircraftRange(sim.player.definition.mounts[i])) expect(mount.ammo).toBe(initial[0][i]);
+    else expect(mount.ammo).toBeLessThanOrEqual(initial[0][i]);
+  });
   // HE aimed at exposed guns causes local equipment damage without spending
   // a universal hull counter. Both fleets must cause local damage or openings.
   expect(sim.actors.some(actor => actor.team === 'friendly' && (actor.mounts.some(m => m.hp < 100) || actor.damage.compartments.some(c => c.breachAreaM2 > 0) || actor.damage.modules.some((m, i) => m.hp < actor.definition.modules[i].hp)))).toBe(true);

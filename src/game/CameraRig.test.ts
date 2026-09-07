@@ -320,8 +320,8 @@ test('port zoom stays proportional when switching very small and large hulls', (
   } finally { rig.dispose(); }
 });
 
-test('shell camera follows flight without frame lag or changed aim, and restores binoculars', () => {
-  const { camera, rig, drag } = interactiveCamera();
+test('shell camera follows flight without frame lag or changed aim, and restores binoculars after orbit and zoom', () => {
+  const { camera, canvas, rig, drag } = interactiveCamera();
   const ship = createShipState();
   rig.setInPort(false);
   rig.toggleBinoculars([1000, 0, -5000], ship);
@@ -337,7 +337,6 @@ test('shell camera follows flight without frame lag or changed aim, and restores
   for (const dt of [1 / 144, 1 / 30, .047]) {
     view.position[2] -= 800 * dt;
     rig.setShellView(view);
-    drag(300, 300);
     rig.update(ship, 0, dt);
     expect(camera.position.clone().sub(new Vector3(...view.position)).distanceTo(offset)).toBeLessThan(1e-9);
     expect(rig.bearing).toBe(bearing);
@@ -345,6 +344,10 @@ test('shell camera follows flight without frame lag or changed aim, and restores
     expect(Math.abs(projected.x)).toBeLessThan(1);
     expect(Math.abs(projected.y)).toBeLessThan(1);
   }
+  drag(300, 150);
+  canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY: 600 }));
+  rig.update(ship, 0, .016);
+  expect(camera.position.clone().sub(new Vector3(...view.position)).distanceTo(offset)).toBeGreaterThan(10);
   view.position[1] = -40;
   rig.update(ship, 0, .016);
   expect(camera.position.y).toBeGreaterThanOrEqual(12);
@@ -354,6 +357,82 @@ test('shell camera follows flight without frame lag or changed aim, and restores
   expect(camera.fov).toBeCloseTo(fov, 10);
   expect(camera.position.distanceTo(position)).toBeLessThan(1e-9);
   expect(camera.quaternion.angleTo(orientation)).toBeLessThan(1e-7);
+  rig.dispose();
+});
+
+for (const [pointerType, button] of [['mouse', 0], ['mouse', 2], ['touch', 0]] as const) {
+  test(`${pointerType} button ${button} orbits and zooms a followed object without losing the moving target`, () => {
+    const { camera, canvas, rig } = interactiveCamera();
+    const ship = createShipState();
+    const view = { position: [0, 1000, -1000] as [number, number, number], velocity: [0, 0, -1] as [number, number, number] };
+    const bearing = rig.bearing;
+    rig.setShellView(view); rig.update(ship, 0, 0);
+    const initial = camera.position.clone(), distance = initial.distanceTo(new Vector3(...view.position));
+    canvas.dispatchEvent(Object.assign(new Event('pointerdown'), { button, pointerType, pointerId: 1, clientX: 0, clientY: 0 }));
+    canvas.dispatchEvent(Object.assign(new Event('pointermove'), { pointerId: 1, clientX: 180, clientY: -50 }));
+    window.dispatchEvent(new Event('pointerup'));
+    rig.update(ship, 0, .016);
+    expect(camera.position.distanceTo(initial)).toBeGreaterThan(20);
+    expect(camera.position.distanceTo(new Vector3(...view.position))).toBeCloseTo(distance, 8);
+    canvas.dispatchEvent(Object.assign(new Event('wheel', { cancelable: true }), { deltaY: -400 }));
+    rig.update(ship, 0, .016);
+    expect(camera.position.distanceTo(new Vector3(...view.position))).toBeLessThan(distance);
+    const offset = camera.position.clone().sub(new Vector3(...view.position));
+    for (const dt of [1 / 144, 1 / 30, .047]) {
+      view.position[0] += 50 * dt; view.position[2] -= 800 * dt;
+      rig.setShellView(view); rig.update(ship, 0, dt);
+      expect(camera.position.clone().sub(new Vector3(...view.position)).distanceTo(offset)).toBeLessThan(1e-9);
+      const projected = new Vector3(...view.position).project(camera);
+      expect(projected.x).toBeCloseTo(0, 8); expect(projected.y).toBeCloseTo(0, 8);
+    }
+    expect(rig.bearing).toBe(bearing);
+    rig.dispose();
+  });
+}
+
+test('pointer-locked follow controls orbit without firing, changing ship aim or triggering right-click optics', () => {
+  const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
+  const canvas = Object.assign(new EventTarget(), { setPointerCapture() { throw new Error('Locked mouse must not capture a drag'); } });
+  Object.assign(document, { pointerLockElement: canvas });
+  let aim = 0, optics = 0;
+  const rig = new CameraRig(camera, canvas as unknown as HTMLCanvasElement, undefined, { aim() { aim++; }, optics() { optics++; }, pause() {} });
+  const ship = createShipState();
+  const click = (button: number) => canvas.dispatchEvent(Object.assign(new Event('pointerdown'), { button, pointerType: 'mouse' }));
+  click(0); expect(rig.firing).toBe(true);
+  rig.setShellView({ position: [0, 500, -1000], velocity: [0, 0, -1] }); rig.update(ship, 0, 0);
+  expect(rig.firing).toBe(false);
+  const start = camera.position.clone();
+  click(0); click(2);
+  canvas.dispatchEvent(Object.assign(new Event('pointermove'), { movementX: 200, movementY: 80 }));
+  rig.update(ship, 0, .016);
+  expect(camera.position.distanceTo(start)).toBeGreaterThan(20);
+  expect(rig.firing).toBe(false); expect(aim).toBe(0); expect(optics).toBe(0);
+  rig.setShellView(); expect(rig.firing).toBe(false);
+  Object.assign(document, { pointerLockElement: null }); rig.dispose();
+});
+
+test('follow orbit stays bounded through vertical flight, extreme zoom, terrain and disabled input', () => {
+  const { camera, canvas, rig, drag } = interactiveCamera();
+  const ship = createShipState();
+  const view = { position: [0, 1200, -1000] as [number, number, number], velocity: [0, 1, 0] as [number, number, number] };
+  rig.setShellView(view);
+  for (const velocity of [[0, 1, 0], [0, -1, 0], [0, 0, 0]] as [number, number, number][]) {
+    view.velocity = velocity;
+    for (const delta of [-100000, 100000]) {
+      drag(delta, delta); canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY: delta }));
+      rig.update(ship, 0, .016);
+      const radius = camera.position.distanceTo(new Vector3(...view.position));
+      expect(radius).toBeGreaterThanOrEqual(12 - 1e-8); expect(radius).toBeLessThanOrEqual(800 + 1e-8);
+      expect(camera.position.toArray().every(Number.isFinite)).toBe(true);
+      expect(camera.quaternion.toArray().every(Number.isFinite)).toBe(true);
+    }
+  }
+  rig.setEnabled(false);
+  const position = camera.position.clone();
+  drag(400, 100); canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY: -700 }));
+  rig.update(ship, 0, 0); expect(camera.position.distanceTo(position)).toBeLessThan(1e-9);
+  rig.setEnabled(true); rig.setBattleTerrain(() => 80); view.position[1] = 0;
+  rig.update(ship, 0, .016); expect(camera.position.y).toBeGreaterThanOrEqual(92);
   rig.dispose();
 });
 

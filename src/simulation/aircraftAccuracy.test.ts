@@ -1,0 +1,73 @@
+import { expect, test } from 'bun:test';
+import { shipPreset } from '../ships/presets';
+import { CombatSimulation, type CombatEvent } from './combat';
+import { stepAircraft, type AirContext } from './aircraft';
+import { advanceProjectile } from './projectile';
+import { firstTorpedoHit } from './torpedoes';
+import { add, normalize, scale } from './geometry';
+
+function fixture(seed: number) {
+  const def = shipPreset('enterprise-cv6');
+  const sim = new CombatSimulation(def, { friendlyBots: [], enemies: [def], seed });
+  sim.target.controller = 'idle';
+  sim.actors.forEach(a => a.mounts.forEach(m => { m.hp = 0; }));
+  const events: Omit<CombatEvent, 'sequence' | 'tick'>[] = [];
+  let id = 0;
+  const ctx: AirContext = { ...{ seed }, actors: sim.actors, planes: sim.aircraft, shells: sim.shells,
+    torpedoes: sim.torpedoes, releases: sim.airReleases, nextId: () => ++id, emit: e => events.push(e) };
+  return { sim, ctx, events };
+}
+
+test('aligned fighter bursts can hit or miss, with identical seeded replays', () => {
+  const run = (seed: number) => {
+    const { sim, ctx, events } = fixture(seed);
+    const p = sim.aircraft[0], target = sim.target.airWing!.planes[0];
+    Object.assign(p, { phase: 'attack', position: [0, 400, 0], velocity: [0, 0, -100] });
+    Object.assign(target, { phase: 'outbound', position: [0, 400, -350], velocity: [0, 0, -100] });
+    p.pilot.aimTime = .2; p.pilot.hostileId = target.id; p.pilot.think = 1;
+    stepAircraft(ctx, 1 / 60, 0);
+    expect(events.some(e => e.kind === 'aircraft-fire')).toBe(true);
+    expect(p.ammo).toBe(15);
+    return { hp: target.hp, events };
+  };
+  const results = Array.from({ length: 48 }, (_, seed) => run(seed));
+  expect(results.filter(r => r.hp === 100).length).toBeGreaterThan(5);
+  expect(results.filter(r => r.hp < 100).length).toBeGreaterThan(5);
+  expect(run(17)).toEqual(run(17));
+});
+
+for (const squadron of ['vb-6', 'vt-6']) test(`${squadron} releases follow varied seeded attack runs without homing`, () => {
+  const run = (seed: number) => {
+    const { sim, ctx } = fixture(seed);
+    sim.launchAircraft(squadron);
+    for (let tick = 0; tick < 180 * 60; tick++) stepAircraft(ctx, 1 / 60, tick / 60);
+    const rounds = squadron === 'vb-6' ? ctx.shells : ctx.torpedoes;
+    expect(rounds.length).toBeGreaterThan(0);
+    return rounds.map(r => ({ position: r.position, velocity: r.velocity }));
+  };
+  expect(run(11)).not.toEqual(run(29));
+  expect(run(11)).toEqual(run(11));
+});
+
+for (const squadron of ['vb-6', 'vt-6']) test(`${squadron} produces both physical ship hits and misses across attack runs`, () => {
+  let rounds = 0, hits = 0;
+  for (let seed = 0; seed < 4; seed++) {
+    const { sim, ctx } = fixture(seed);
+    sim.launchAircraft(squadron);
+    for (let tick = 0; tick < 180 * 60; tick++) stepAircraft(ctx, 1 / 60, tick / 60);
+    if (squadron === 'vb-6') for (const bomb of ctx.shells) {
+      rounds++; let hit = false;
+      for (let tick = 0; tick < 30 * 60; tick++) {
+        const end = advanceProjectile(bomb, sim.actors, 1 / 60, e => { if ('impact' in e && e.impact) hit = true; });
+        if (end) break;
+      }
+      if (hit) hits++;
+    } else for (const torpedo of ctx.torpedoes) {
+      rounds++;
+      if (firstTorpedoHit(torpedo, torpedo.position, add(torpedo.position, scale(normalize(torpedo.velocity), torpedo.weapon.rangeM)), sim.actors)) hits++;
+    }
+  }
+  expect(rounds).toBeGreaterThanOrEqual(12);
+  expect(hits).toBeGreaterThan(0);
+  expect(hits).toBeLessThan(rounds);
+});

@@ -48,8 +48,9 @@ test('category scores stay within 0-100 and separate the presets by their simula
   expect(scores.bismarck.survivability).toBeGreaterThan(scores.baltimore.survivability);
   expect(scores.yamato.artillery).toBeGreaterThan(scores.baltimore.artillery);
   expect(scores.baltimore.concealment).toBeGreaterThan(scores.bismarck.concealment);
-  // Bismarck's modeled batteries have no gun light enough to engage aircraft.
-  expect(scores.bismarck.airDefense).toBe(0);
+  // Authored AA mounts contribute to Bismarck's defensive battery.
+  expect(scores.bismarck.airDefense).toBeGreaterThan(0);
+  expect(scores.yamato.airDefense).toBe(0);
   expect(scores['enterprise-cv6'].airDefense).toBeGreaterThan(scores.baltimore.airDefense);
   expect(shipScores(shipPreset('bismarck')).map(s => s.id)).toEqual(['survivability', 'artillery', 'airDefense', 'maneuverability', 'concealment']);
 });
