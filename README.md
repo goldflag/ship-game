@@ -30,7 +30,9 @@ Set `BASE_PATH` to the mount point when building. Every asset URL resolves throu
 BASE_PATH=/naval/ bun run build   # serve dist/ at https://example.com/naval/
 ```
 
-`bun run build` runs every `ship:check` and `aircraft:check` first; they need neither Blender nor the LFS archive.
+`bun run build` runs every `ship:check` and `aircraft:check` first; they need neither Blender nor the LFS archive. `SHIP_REVIEW_PAGES=0` leaves the port reference-review pages out of a build; they exist for local authoring review and carry third-party comparison renders.
+
+`bun run deploy:naval` builds for https://game.tomato.gg/naval/ and rsyncs `dist/` to the tanks-na host, where the tank game's Caddy serves it from `/root/tank-game/naval` (see the `@naval` block in Tomato-gg/tank-game's Caddyfile). Override the destination with `NAVAL_DEPLOY_TARGET=user@host:/path/`.
 
 Open http://localhost:5173. Current Chrome or Edge with hardware acceleration is recommended. WebGPU is selected by Three.js when available; its WebGL2 backend is the compatibility fallback. Initial startup compiles the ocean and cloud shaders, which can take a moment.
 
