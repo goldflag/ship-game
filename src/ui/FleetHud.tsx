@@ -143,10 +143,15 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
     {followingShell && <div className="fleet-shell-status" role="status"><strong>{data.shellFollow === 'impact' ? 'Shell impact' : 'Following shell'}</strong><span>{data.shellFollow === 'impact' ? 'Returning to ship…' : `${bindingLabel(bindings, 'shellFollow')} to return to ship`}</span></div>}
     {data.followedAircraftId && <div className="fleet-shell-status fleet-aircraft-status"><strong>Following {data.followedAircraftId.split('/').slice(1).join(' / ')}</strong><button onClick={e => { game?.returnToShip(); e.currentTarget.blur(); }}>Return to ship</button><span>{bindingLabel(bindings, 'camera')} or {bindingLabel(bindings, 'recenter')} to return · Hold Ctrl to use controls</span></div>}
     {!data.inspecting && !following && !data.airOperationsOpen && <div className={`fleet-sight ${data.binoculars ? 'fleet-sight-optics' : 'fleet-sight-chase'}`} aria-hidden="true">
-      {data.binoculars ? <><svg viewBox="0 0 540 80" fill="none"><path d="M10 40h238m44 0h238M270 15v14m0 22v14" stroke="currentColor"/>
-        {Array.from({ length: 21 }, (_, i) => i === 10 ? null : <g key={i}><path d={`M${20 + i * 25} 40v${i % 2 === 0 ? 9 : 5}`} stroke="currentColor"/>{i % 2 === 0 && <text x={20 + i * 25} y="65" fill="currentColor" textAnchor="middle" fontSize="10">{Math.abs(i - 10)}</text>}</g>)}
-        <circle cx="270" cy="40" r="5" stroke="currentColor"/><circle cx="270" cy="40" r="1.5" fill="currentColor"/></svg>
-        <div className="fleet-scope-readout"><strong>{((data.combat?.range ?? 0) / 1000).toFixed(2)} <small>km</small></strong><span>{(data.magnification ?? 1).toFixed(1)}× <small>SCROLL TO ZOOM</small></span></div></> :
+      {data.binoculars ? <><svg viewBox="0 0 540 180" fill="none"><path d="M10 90h238m44 0h238M270 15v64m0 22v64" stroke="currentColor"/>
+        {Array.from({ length: 21 }, (_, i) => i === 10 ? null : <g key={i}><path d={`M${20 + i * 25} 90v${i % 2 === 0 ? 9 : 5}`} stroke="currentColor"/>{i % 2 === 0 && <text x={20 + i * 25} y="115" fill="currentColor" textAnchor="middle" fontSize="10">{Math.abs(i - 10)}</text>}</g>)}
+        {[30, 50, 70, 110, 130, 150].map(y => <path key={y} d={`M${y === 50 || y === 130 ? 263 : 266} ${y}h${y === 50 || y === 130 ? 14 : 8}`} stroke="currentColor"/>)}
+        <circle cx="270" cy="90" r="5" stroke="currentColor"/><circle cx="270" cy="90" r="1.5" fill="currentColor"/></svg>
+        <div className="fleet-scope-readout">
+          <strong>{((data.combat?.range ?? 0) / 1000).toFixed(2)} <small>km</small></strong>
+          {(data.combat?.battery === 'main' || data.combat?.battery === 'secondary') && <span><strong>{data.combat.flightTimeSeconds?.toFixed(1) ?? '—'} <small>s</small></strong><small>FLIGHT TIME</small></span>}
+          <strong>{(data.magnification ?? 1).toFixed(1)}×</strong>
+        </div></> :
         <svg viewBox="0 0 44 44" fill="none"><path d="M3 22h9m20 0h9M22 3v9m0 20v9" stroke="currentColor"/><circle cx="22" cy="22" r="5" stroke="currentColor"/><circle cx="22" cy="22" r="1" fill="currentColor"/></svg>}
     </div>}
     {!data.pointerLocked && !data.inspecting && !data.gunneryOpen && !following && !data.airOperationsOpen && <button className="fleet-capture-hint" onClick={() => game?.capturePointer()}>Click sea to aim <span>Hold Ctrl for cursor</span></button>}
