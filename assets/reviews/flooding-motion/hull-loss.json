@@ -1,0 +1,14 @@
+{
+  "cause": "hull-failure",
+  "cpuRoll": 1.5600898180835272,
+  "hp": 0,
+  "maxMuzzleErrorM": 0.0021605566983157027,
+  "mode": "hull-loss",
+  "renderedRoll": 1.5600898180835272,
+  "rollDeg": 89.38656223751848,
+  "seconds": 30,
+  "sunk": true,
+  "trimDeg": 0.029424970703189147,
+  "waterM3": 1558.874231576707,
+  "y": -9.153750000066289
+}

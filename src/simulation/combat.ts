@@ -1,4 +1,5 @@
-import { airServiceAvailable, airborne, createAirWing, launchSquadron, recallAircraft, stepAircraft, type AirRelease } from './aircraft';
+import { airborne, createAirWing, launchSquadron, orderFlight, recallAircraft, stepAircraft, type AirRelease, type AirOrder } from './aircraft';
+import { airWingTelemetry, type AirWingTelemetry } from './airTelemetry';
 import { DEFAULT_MAP, mapIslands, type Island, type OceanMapId } from '../maps/catalog';
 import { avoidLand, firstLandHit, resolveLandContact } from './land';
 import { updateCapability, type VesselStatus } from './stability';
@@ -7,6 +8,7 @@ import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../ships/bluepri
 import { advanceProjectile } from './projectile';
 import { equipmentCondition, type EquipmentCondition } from './machinery';
 import { equipmentIntegrity } from './durability';
+import { DamageLog, type DamageLogEntry } from './damageLog';
 import { createShipState, FIXED_DT, stepShip, type HelmCommand } from './ship';
 import { add, clamp, length, localToWorld, scale, sub } from './geometry';
 import { availableAmmunition, createMountState, GRAVITY, muzzleWorld, selectAmmunition, shotDirection, solveBallistic, updateMount } from './weapons';
@@ -23,11 +25,12 @@ export interface CombatIntent { aim: Vec3; fire: boolean; battery: Battery; ammu
 export interface CombatEvent extends BallisticEffectData { sequence: number; tick: number; kind: DamageEvent['kind'] | 'shot' | 'splash' | 'torpedo-launch' | 'torpedo-hit' | 'torpedo-dud' | 'torpedo-expired' | 'aircraft-launch' | 'aircraft-recovered' | 'aircraft-lost' | 'aircraft-fire' | 'aircraft-release' | 'bomb-release' | 'depth-charge-launch' | 'depth-charge-splash' | 'depth-charge-blast' | 'depth-charge-hit'; aircraft?: { id: string; target?: Vec3 }; depthCharge?: { id: number; radiusM: number }; torpedo?: { id: number; velocity: Vec3; diameterM: number }; position: Vec3; message: string; shipId: string; impact?: ImpactRecord; defeatCause?: DefeatCause; }
 export interface ShellHistory { shellId: number; ownerId: string; tick: number; ammunition: Ammunition; impacts: ImpactRecord[]; outcome: 'flying' | 'splash' | 'passed-through' | 'expired' | 'stopped' | 'ricochet' | 'internal' | 'burst'; }
 export interface CombatTelemetry {
-  airWing?: { available: boolean; squadrons: { id: string; name: string; role: string; ready: number; queued: number; airborne: number; rearming: number; lost: number; rearmSeconds: number; kills: number }[]; flights: { id: string; modelId: string; phase: string; hp: number; payload: boolean; ammo: number }[] };
-  airContacts?: { id: string; team: Team; x: number; z: number }[];
+  airWing?: AirWingTelemetry;
+  airContacts?: { id: string; team: Team; x: number; z: number; heading: number; role: string; ownerId: string; flightId?: string; phase: string }[];
   battery: Battery; range: number; ready: number; total: number; targetIntegrity: number; targetWater: number;
   ammunition: Ammunition; ammunitionStock: { ap: number; he: number }; heSupported: boolean;
   targetStatus: VesselStatus; playerStatus: VesselStatus; targetList: number; targetTrim: number; targetDraftChange: number;
+  playerList: number; playerTrim: number; playerDraftChange: number;
   control: ControlState; targetFires: number; controlTargets: { id: string; name: string }[];
   targetMounts: { id: string; name: string; condition: number }[];
   targetId: string; targetName: string; targetRange: number;
@@ -46,6 +49,7 @@ export interface CombatTelemetry {
   shellHistory: ShellHistory[];
   playerDamageDealt: number;
   playerFrags: number;
+  damageLog: DamageLogEntry[];
   targetPosition: { x: number; z: number; heading: number };
   batteries: { battery: Battery; ammunition: Ammunition; ammo: number; ready: number; total: number; reload: number }[];
 }
@@ -65,7 +69,8 @@ export class CombatSimulation {
   readonly airReleases: AirRelease[] = [];
   get aircraft() { return this.actors.flatMap(a => a.airWing?.planes ?? []); }
   launchAircraft(squadronId: string) { return this.isBattle && this.result === 'active' ? launchSquadron(this.player, squadronId, this.target) : 0; }
-  recallAircraft() { recallAircraft(this.player); }
+  recallAircraft(flightId?: string) { if (this.isBattle && this.result === 'active') recallAircraft(this.player, flightId); }
+  orderFlight(flightId: string, order: AirOrder) { return this.isBattle && this.result === 'active' && orderFlight(this.player, flightId, order, this.actors); }
   readonly events: CombatEvent[] = [];
   /** In-flight histories plus the last 16 completed shells per owner. */
   readonly shellHistory: ShellHistory[] = [];
@@ -79,6 +84,7 @@ export class CombatSimulation {
   private ammunitionSelection: Record<Battery, Ammunition> = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
   private playerDamageDealt = 0;
   private playerFrags = 0;
+  private damageLog = new DamageLog();
   /** Last hostile hull/breach damage earns the frag, including a later flooding loss. */
   private lastDamager = new Map<string, string>();
   private creditedLosses = new Set<string>();
@@ -139,6 +145,7 @@ export class CombatSimulation {
     this.targetUnderway = false; this.shells.length = 0; this.torpedoes.length = 0; this.depthCharges.length = 0;
     this.events.length = 0; this.shellHistory.length = 0; this.fireQueued = false;
     this.playerDamageDealt = 0; this.playerFrags = 0; this.lastDamager.clear(); this.creditedLosses.clear();
+    this.damageLog.clear();
   }
   resetTarget(): void {
     if (this.isBattle) return;
@@ -181,6 +188,8 @@ export class CombatSimulation {
           const dealt = event.impact.hullDamage ?? 0;
           if (dealt > 0 || (event.impact.breachAreaM2 ?? 0) > 0) this.lastDamager.set(victim.motion.id, owner.motion.id);
           if (owner === this.player) this.playerDamageDealt += dealt;
+          const shell = this.shells.find(s => s.id === event.shell!.id);
+          this.recordDamage(owner, victim, event.shell.id, shell?.weaponLabel ?? `${Math.round(event.shell.caliberM * 1000)} mm ${history.ammunition.toUpperCase()}`, dealt);
         }
         if (victim) updateCapability(victim, victim.definition);
       }
@@ -190,6 +199,10 @@ export class CombatSimulation {
     this.events.push({ ...event, sequence: ++this.eventSequence, tick: this.tick });
     if (this.events.length > 128) this.events.shift();
   };
+  private recordDamage(owner: FleetActor, victim: FleetActor, projectileId: number, weapon: string, damage: number): void {
+    if (owner !== this.player && victim !== this.player) return;
+    this.damageLog.record({ tick: this.tick, sourceId: owner.motion.id, targetId: victim.motion.id, projectileId, weapon, damage });
+  }
   private history(shellId: number, ownerId = this.shells.find(s => s.id === shellId)?.ownerId ?? 'unknown'): ShellHistory {
     let history = this.shellHistory.find(h => h.shellId === shellId);
     if (!history) {
@@ -270,7 +283,7 @@ export class CombatSimulation {
             const direction = dispersedDirection(shotDirection(m, state, actor.motion), m.weapon.ballistics?.dispersionRad ?? 0, this.seed, shot);
             const speed = dispersedSpeed(m.weapon.muzzleSpeed, m.weapon.ballistics?.muzzleSpeedSigmaFraction ?? 0, this.seed, shot);
             const velocity = add(scale(direction, speed), shipVelocity(actor));
-            this.shells.push({ id: ++this.shellSequence, ownerId: actor.motion.id, position, velocity, age: 0, penetrationMm: state.loaded === 'he' ? 0 : velocityPenetration(m.weapon.penetrationMm, m.weapon.ballistics?.penetrationReferenceSpeedMps ?? m.weapon.muzzleSpeed, length(velocity)), damage: m.weapon.damage, caliberM: m.weapon.caliberM, visited: [], ammunition: state.loaded, ap: state.loaded === 'ap' ? m.weapon.ap : undefined, he: state.loaded === 'he' ? m.weapon.he : undefined, dragPerSecond: m.weapon.ballistics?.dragPerSecond ?? 0 });
+            this.shells.push({ id: ++this.shellSequence, ownerId: actor.motion.id, weaponLabel: `${Math.round(m.weapon.caliberM * 1000)} mm ${state.loaded.toUpperCase()} · ${m.battery === 'main' ? 'Main' : 'Secondary'}`, position, velocity, age: 0, penetrationMm: state.loaded === 'he' ? 0 : velocityPenetration(m.weapon.penetrationMm, m.weapon.ballistics?.penetrationReferenceSpeedMps ?? m.weapon.muzzleSpeed, length(velocity)), damage: m.weapon.damage, caliberM: m.weapon.caliberM, visited: [], ammunition: state.loaded, ap: state.loaded === 'ap' ? m.weapon.ap : undefined, he: state.loaded === 'he' ? m.weapon.he : undefined, dragPerSecond: m.weapon.ballistics?.dragPerSecond ?? 0 });
             this.emit({ kind: 'shot', position: [...position], shipId: actor.motion.id, message: `${m.name} fired`,
               shell: { id: this.shellSequence, caliberM: m.weapon.caliberM, velocity: [...velocity], ammunition: state.loaded, type: state.loaded === 'he' ? 'HE' : 'AP' } });
           }
@@ -370,6 +383,7 @@ export class CombatSimulation {
         const owner = this.actors.find(a => a.motion.id === torpedo.ownerId);
         if (armed && !alreadyLost && owner && owner.team !== actor.team) {
           if (owner === this.player) this.playerDamageDealt += Math.max(0, hp - actor.damage.integrity);
+          this.recordDamage(owner, actor, torpedo.id, `${w.name}${torpedo.tubeId === 'aircraft.payload' ? ' · Air torpedo' : ' · Torpedo'}`, Math.max(0, hp - actor.damage.integrity));
           this.lastDamager.set(actor.motion.id, owner.motion.id);
         }
         this.emit({ kind: armed ? 'torpedo-hit' : 'torpedo-dud', position: localToWorld(point, actor.motion), shipId: actor.motion.id, message, torpedo: evidence });
@@ -394,6 +408,7 @@ export class CombatSimulation {
         updateCapability(actor, actor.definition);
         if (!alreadyLost && owner && owner.team !== actor.team) {
           if (owner === this.player) this.playerDamageDealt += Math.max(0, hp - actor.damage.integrity);
+          this.recordDamage(owner, actor, charge.id, `${charge.weapon.name} · Depth charge`, Math.max(0, hp - actor.damage.integrity));
           this.lastDamager.set(actor.motion.id, owner.motion.id);
         }
         this.emit({ kind: 'depth-charge-hit', position: [...charge.position], shipId: actor.motion.id, message, depthCharge: evidence });
@@ -414,11 +429,8 @@ export class CombatSimulation {
     });
     const significant = [...this.events].reverse().find(e => ['module', 'sunk', 'stopped', 'ricochet', 'penetration', 'contact', 'burst', 'torpedo-launch', 'torpedo-hit', 'torpedo-dud', 'torpedo-expired', 'depth-charge-launch', 'depth-charge-blast', 'depth-charge-hit'].includes(e.kind));
     return {
-      ...(this.player.airWing ? { airWing: { available: airServiceAvailable(this.player) && this.result === 'active', squadrons: this.definition.airWing!.squadrons.map(s => {
-        const planes = this.player.airWing!.planes.filter(p => p.squadronId === s.id);
-        return { id: s.id, name: s.name, role: s.role, ready: planes.filter(p => p.phase === 'ready').length, queued: planes.filter(p => p.phase === 'queued' || p.phase === 'taxi').length, airborne: planes.filter(airborne).length, rearming: planes.filter(p => ['rollout', 'parking', 'rearming'].includes(p.phase)).length, lost: planes.filter(p => p.phase === 'lost').length, rearmSeconds: Math.ceil(Math.max(0, ...planes.filter(p => p.phase === 'rearming').map(p => p.timer))), kills: planes.reduce((n,p) => n+p.kills,0) };
-      }), flights: this.player.airWing.planes.filter(p => p.phase !== 'lost').map(p => ({ id: p.id, modelId: p.modelId, phase: p.phase, hp: p.hp, payload: p.payload, ammo: p.ammo })) } } : {}),
-      airContacts: this.aircraft.filter(airborne).map(p => ({ id: p.id, team: p.team, x: p.position[0], z: p.position[2] })),
+      airWing: (() => { const wing = airWingTelemetry(this.player, this.actors); if (wing) wing.available &&= this.result === 'active'; return wing; })(),
+      airContacts: this.aircraft.filter(airborne).map(p => ({ id: p.id, team: p.team, x: p.position[0], z: p.position[2], heading: p.heading, role: p.role, ownerId: p.ownerId, flightId: p.flightId, phase: p.phase })),
       battery, range: Math.hypot(aim[0] - this.ship.x, aim[2] - this.ship.z), ready: mounts.filter(m => m.status === 'ready').length, total: mounts.length,
       ammunition: this.ammunitionSelection[battery], heSupported: this.definition.mounts.some(m => m.battery === battery && m.weapon.he !== undefined),
       ammunitionStock: (battery === 'torpedo' || battery === 'depth-charge' ? [] : mounts).reduce((stock, m) => { const s = this.player.mounts.find(s => s.id === m.id)!; stock.ap += availableAmmunition(s, 'ap'); stock.he += availableAmmunition(s, 'he'); return stock; }, { ap: 0, he: 0 }),
@@ -430,6 +442,7 @@ export class CombatSimulation {
       contacts: this.actors.map(actor => ({ id: actor.motion.id, shipId: actor.definition.id, name: actor.definition.name, team: actor.team, controller: actor.controller,
         targetId: actor.targetId, x: actor.motion.x, z: actor.motion.z, heading: actor.motion.heading, integrity: actor.damage.integrity / actor.damage.maxIntegrity, sunk: actor.damage.sunk, status: actor.damage.stability.status, combatLost: actor.damage.stability.combatLost })),
       targetStatus: this.target.damage.stability.status, playerStatus: this.player.damage.stability.status, targetList: this.target.motion.roll * 180 / Math.PI, targetTrim: this.target.motion.pitch * 180 / Math.PI, targetDraftChange: -this.target.motion.y,
+      playerList: this.ship.roll * 180 / Math.PI, playerTrim: this.ship.pitch * 180 / Math.PI, playerDraftChange: -this.ship.y,
       control: structuredClone(this.player.damage.control), targetFires: [...this.target.damage.control.rooms, ...this.target.damage.control.mounts].filter(f => f.intensity > 0).length,
       controlTargets: [...this.player.definition.compartments.map(c => ({ id: c.id, name: c.name })), ...this.player.definition.mounts.map(m => ({ id: m.id, name: m.name }))],
       targetIntegrity: this.target.damage.integrity / this.target.damage.maxIntegrity, targetWater: this.target.damage.compartments.reduce((n, c) => n + c.waterM3, 0),
@@ -438,6 +451,7 @@ export class CombatSimulation {
       mounts, modules: this.target.definition.modules.map((m, i) => ({ id: m.id, name: m.name, condition: this.target.damage.modules[i].hp / m.hp, ...equipmentCondition(this.target, this.target.definition, m) })),
       playerIntegrity: this.player.damage.integrity / this.player.damage.maxIntegrity,
       playerMaxIntegrity: this.player.damage.maxIntegrity, playerDamageDealt: this.playerDamageDealt, playerFrags: this.playerFrags,
+      damageLog: this.damageLog.snapshot(),
       playerWater: this.player.damage.compartments.reduce((n, c) => n + c.waterM3, 0),
       ...(this.player.submarine && this.definition.submarine ? { submarine: {
         depthM: Math.max(0, -this.ship.y), targetDepthM: this.player.submarine.targetDepthM,

@@ -1,5 +1,5 @@
 // Fleet harbor. Progression, research, commander and refits are illustrative local state.
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { InspectionTooltip } from "./InspectionTooltip";
 import { Icon } from "./Icons";
 import { SchematicDialog } from "./SchematicDialog";
@@ -425,38 +425,106 @@ function SideContent({ state }: { state: GarageState }) {
     </>
   );
 }
+const FLEET_CLASSES = Array.from(
+  new Set(SHIPS.map((ship) => shipIdentity(ship.id).type)),
+).sort();
 function FleetCarousel({ state }: { state: GarageState }) {
   const selectedShip = useShip();
+  const [filter, setFilter] = useState<string>("All");
+  const ships = useMemo(
+    () =>
+      filter === "All"
+        ? SHIPS
+        : SHIPS.filter((ship) => shipIdentity(ship.id).type === filter),
+    [filter],
+  );
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [scrollState, setScrollState] = useState({ atStart: true, atEnd: true });
+  const updateScrollState = () => {
+    const el = trackRef.current;
+    if (!el) return;
+    setScrollState({
+      atStart: el.scrollLeft <= 1,
+      atEnd: el.scrollLeft >= el.scrollWidth - el.clientWidth - 1,
+    });
+  };
+  useEffect(updateScrollState, [ships]);
+  const scrollByPage = (direction: 1 | -1) => {
+    trackRef.current?.scrollBy({
+      left: direction * trackRef.current.clientWidth * 0.8,
+      behavior: "smooth",
+    });
+  };
+  // Ensure the currently sailing ship is still selectable after switching filters.
+  useEffect(() => {
+    if (filter !== "All" && !ships.some((ship) => ship.id === selectedShip.id))
+      setFilter("All");
+  }, [selectedShip.id]);
   return (
     <section className="garage-fleet-carousel" aria-label="Your fleet">
-      <div className="garage-ship-cards">
-        {SHIPS.map((ship) => {
-          const selected = ship.id === selectedShip.id;
-          return (
+      {FLEET_CLASSES.length > 1 && (
+        <div className="garage-fleet-filters" role="group" aria-label="Filter fleet by class">
+          {["All", ...FLEET_CLASSES].map((type) => (
             <button
-              className={selected ? "garage-ship-selected" : ""}
-              key={ship.id}
-              aria-label={`Inspect ${ship.name}`}
-              aria-pressed={selected}
-              disabled={!state.ready}
-              onClick={() => state.selectShip(ship.id)}
+              key={type}
+              aria-pressed={filter === type}
+              onClick={() => setFilter(type)}
             >
-              <div>
-                <span>{shipIdentity(ship.id).type}</span>
-                {selected && <Glyph name="check" size={14} />}
-              </div>
-              <ShipThumbnail shipId={ship.id} />
-              <strong>{ship.name}</strong>
-              <small>
-                {selected
-                  ? state.ready
-                    ? "IN PORT"
-                    : "PREPARING"
-                  : "AVAILABLE"}
-              </small>
+              {type}
             </button>
-          );
-        })}
+          ))}
+        </div>
+      )}
+      <div className="garage-fleet-track">
+        <button
+          className="garage-fleet-nav garage-fleet-nav-prev"
+          aria-label="Scroll fleet left"
+          disabled={scrollState.atStart}
+          onClick={() => scrollByPage(-1)}
+        >
+          <Icon name="arrow" size={16} />
+        </button>
+        <div
+          className="garage-ship-cards"
+          ref={trackRef}
+          onScroll={updateScrollState}
+        >
+          {ships.map((ship) => {
+            const selected = ship.id === selectedShip.id;
+            return (
+              <button
+                className={selected ? "garage-ship-selected" : ""}
+                key={ship.id}
+                aria-label={`Inspect ${ship.name}`}
+                aria-pressed={selected}
+                disabled={!state.ready}
+                onClick={() => state.selectShip(ship.id)}
+              >
+                <div>
+                  <span>{shipIdentity(ship.id).type}</span>
+                  {selected && <Glyph name="check" size={14} />}
+                </div>
+                <ShipThumbnail shipId={ship.id} />
+                <strong>{ship.name}</strong>
+                <small>
+                  {selected
+                    ? state.ready
+                      ? "IN PORT"
+                      : "PREPARING"
+                    : "AVAILABLE"}
+                </small>
+              </button>
+            );
+          })}
+        </div>
+        <button
+          className="garage-fleet-nav garage-fleet-nav-next"
+          aria-label="Scroll fleet right"
+          disabled={scrollState.atEnd}
+          onClick={() => scrollByPage(1)}
+        >
+          <Icon name="arrow" size={16} />
+        </button>
       </div>
     </section>
   );

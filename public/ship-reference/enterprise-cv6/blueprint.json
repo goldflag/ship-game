@@ -92039,22 +92039,25 @@
         "name": "Wildcats",
         "modelId": "f4f-4-wildcat",
         "role": "fighter",
-        "count": 6
+        "count": 18
       },
       {
         "id": "vb-6",
         "name": "Dauntlesses",
         "modelId": "sbd-3-dauntless",
         "role": "dive-bomber",
-        "count": 6
+        "count": 18
       },
       {
         "id": "vt-6",
         "name": "Devastators",
         "modelId": "tbd-1-devastator",
         "role": "torpedo-bomber",
-        "count": 6
+        "count": 12
       }
-    ]
+    ],
+    "flightSize": 6,
+    "deckCapacity": 12,
+    "maxActiveFlights": 4
   }
 }

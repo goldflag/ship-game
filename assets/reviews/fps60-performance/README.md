@@ -2,6 +2,8 @@
 
 The best completed live gameplay sample is **55.3 FPS over 30 seconds**, up from the first valid live sample of **41.3 FPS** (34% faster). The newer production build delivered **67.0 FPS for one five-second interval**, but browser occlusion interrupted the full-minute test. **Sustained 60 FPS remains unverified.**
 
+These measurements were collected during the optimization work ending at commit `3a13ba0`, using the gameplay baseline `d25a435`. The PR subsequently integrates `master` at `6e66518`, including newer carrier and sinking behavior. Performance has not been remeasured after that integration.
+
 ## Workload and measurements
 
 The deterministic battle contains 60 ships, 30 per team, spanning all ten registered ship types. Medium quality, Fair sea, the normal battle camera and a 1920 × 1080 framebuffer remain fixed. Bots fire and launch aircraft normally; the player holds half throttle without firing. The live harness uses the real App, HUD, audio, animation callbacks and elapsed-time simulation stepping. It does not advance Three’s clock manually or fence the GPU between live frames.
@@ -36,6 +38,8 @@ Two production attempts were interrupted by one-second animation callbacks despi
 No blueprint, original GLB, recipe, joint ID or socket was changed. The CPU replay retains the exact original state hash `8425691121548118407`. The expanded browser replay retains `a7fc65a456859bf6b9d277a2a5b2f892ea273ade1324f2cf7eea977f75ad127a` at tick 3,750.
 
 All **553 tests pass** across 75 files (276,689 assertions), using a 20-second timeout for the existing heavy flooding fixtures. `bun run build` passes ship checks, aircraft checks, TypeScript and production compilation. Tests cover every ship preset’s combined surface positions, paint attributes, articulation, visibility fallback, inspection, camera culling and asynchronous spectrum invalidation. Browser muzzle error remains below 2.75 mm; torpedo muzzle error remains below 0.003 mm. [Browser checks](visual-check.json), [exterior view](exterior.png), [damage inspection](inspection.png).
+
+After integrating `master` at `6e66518`, **577 tests pass** across 79 files (279,230 assertions) with `bun test --timeout 30000 src/simulation src/ships src/game src/schematic scripts/aircraft`. The combined branch also passes `bun run build`, including ship and aircraft checks, TypeScript and production compilation. These are integration checks; the performance measurements and browser captures above remain from before the merge.
 
 ## Reproduce
 
