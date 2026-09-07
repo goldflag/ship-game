@@ -22,6 +22,8 @@ A loss of more than 15 equipment condition points between observations prompts a
 
 Ships with functioning torpedo tubes and ammunition bring the nearest bow or stern tube bearing toward the observed intercept. Evasive turns and nearby-hull avoidance take precedence; without torpedo ammunition the controller returns to the gun engagement course.
 
+Combat submarines start diving within 1.6 times the range of their usable torpedoes (8 km for Type VIIC). They hold the authored periscope attack depth, capped by the torpedo-launch depth limit, through reloads and turns. They surface beyond 1.8 times weapon range (9 km for Type VIIC) or when no usable torpedoes remain. The different entry and exit distances prevent repeated dive/surface orders near the boundary. Shore avoidance changes course and speed while preserving depth orders. Static and moving target modes stay surfaced. These distances are gameplay heuristics, with no sonar or visibility model.
+
 ## Reproduction and validation
 
 `BattleFleet.seed` accepts an unsigned 32-bit integer; renderer-free callers default to seed `0x6e617661`. Every bot stores serializable crew memory and its own generator state in `FleetActor.bot`. Aim queries do not advance randomness. Simulation ticks alone advance observation and decision timers, so pausing and display frame rate do not change the outcome. Ballistic lead includes drag and inherited ship velocity; ammunition selection follows the target's authored protection and remaining AP/HE stock.
