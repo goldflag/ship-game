@@ -1,0 +1,54 @@
+{
+  "date": "2026-09-07T21:26:27.358831+00:00",
+  "baselineCommit": "365a6f446c04bfa25c73f4a71e3266f42be7c538",
+  "baselineSourceSha256": {
+    "src/game/ShipFunnelSmoke.ts": "82681c1c9aea60f7a588a44446710c129459a846b2e0d4036ce8a8469b726dbd",
+    "src/game/EffectParticles.ts": "4260900d42ad0408153d4478fc3a839492b8c52f388735e8fec8c9faf6d9c92c"
+  },
+  "runtimeSourceSha256": {
+    "src/game/FunnelSmokeMaterial.ts": "67c771a9ac3bd19791092d104fdca947ce5f92b345621fe9215f85ec6fcee5a8",
+    "src/game/ShipFunnelSmoke.ts": "17532d251ac26c2f64f63008b91b1b2bba4f0b278438a29410d2e400e925f50e",
+    "src/game/EffectParticles.ts": "ea6384da626dd169f33afe722647f810769ae25a159eb0437ce3853e5f10bcf4",
+    "src/game/Game.ts": "77aed8a66ca1d373005670a6f96a59781586a7251a9ac78276a75578191420b5",
+    "src/game/CombatEffects.ts": "1a959602bc707919254fc3a021812f0b8954010dba273e8ea438c268a28250bf"
+  },
+  "reviewSourceSha256": {
+    "scripts/diagnostics/funnel-smoke.html": "3c689608e3b23a1566d970886bf129ebc2079fbfe38ed6a26db809f621e1cf64",
+    "scripts/diagnostics/funnel-performance.ts": "61e5a365b27cff1e4116fe525bce6b3607e62b909e961c9ae4c7885404fa1184",
+    "scripts/tests/funnel-smoke-browser.ts": "61784c8b31435879476897af668d95c0d47950a3847ed65b8722187159461dea"
+  },
+  "modelSha256": {
+    "public/models/bismarck.glb": "b243c58153fc40be570e7214ce15bc6b93c2ad6757e6feceacb915bc34d617ce"
+  },
+  "host": {
+    "gpu": "Apple M5 Pro (20 GPU cores)",
+    "browser": "Orca embedded Chromium / WebGPU",
+    "resolution": [
+      1920,
+      1080
+    ],
+    "quality": "Medium",
+    "antialiasSamples": 4
+  },
+  "validation": {
+    "bunTests": 27,
+    "bunBuild": "passed",
+    "browserFunnelChecks": "render-checks.json",
+    "sharedVolumeChecks": "shared-volume-checks.json"
+  },
+  "captureNotes": "Actual Game models, water, sky and render pipeline. Fixed 12 m/s ship motion, current ShipView emission poses, 60 Hz effect ticks, paused ocean and sky. Video is 180 fresh renderer frames at 30 fps; duration 6 seconds after 12-second warmup.",
+  "captureCommit": "770710bdf62ab3311bbab6150696ff69287a1a92",
+  "integration": {
+    "masterCommit": "d0967a7de11702b39e758801e1ab8ff2e6a09ffe",
+    "unchangedSmokeSources": [
+      "src/game/FunnelSmokeMaterial.ts",
+      "src/game/ShipFunnelSmoke.ts",
+      "src/game/EffectParticles.ts",
+      "src/game/CombatEffects.ts"
+    ],
+    "gameSourceSha256": "3c84e10dc99de4be883267b60ac7412e451bb38d7654408f715b6067a0050f10",
+    "note": "Master adds carrier/spectator controls; the captured smoke sources and Game effect lighting/timing remain unchanged. Capture hashes retain their original identity.",
+    "testsPassed": 68,
+    "build": "passed"
+  }
+}

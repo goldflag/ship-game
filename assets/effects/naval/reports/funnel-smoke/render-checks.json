@@ -1,0 +1,68 @@
+{
+  "backend": "webgpu",
+  "frames": [
+    {
+      "alpha": 0,
+      "draws": 1,
+      "light": 0,
+      "name": "empty first compile",
+      "particles": 0
+    },
+    {
+      "alpha": 1987.90588235291,
+      "draws": 1,
+      "light": 550.596078431377,
+      "name": "day",
+      "particles": 23
+    },
+    {
+      "alpha": 1987.90588235291,
+      "draws": 1,
+      "light": 550.596078431377,
+      "name": "paused",
+      "particles": 23
+    },
+    {
+      "alpha": 1987.90588235291,
+      "draws": 1,
+      "light": 263.0470588235346,
+      "name": "reverse sunlight",
+      "particles": 23
+    },
+    {
+      "alpha": 1987.90588235291,
+      "draws": 1,
+      "light": 16.381699346405174,
+      "name": "night",
+      "particles": 23
+    },
+    {
+      "alpha": 0,
+      "draws": 1,
+      "light": 0,
+      "name": "hidden in own optics",
+      "particles": 0
+    },
+    {
+      "alpha": 1987.90588235291,
+      "draws": 1,
+      "light": 16.381699346405174,
+      "name": "restored from optics",
+      "particles": 23
+    },
+    {
+      "alpha": 0,
+      "draws": 1,
+      "light": 0,
+      "name": "machinery stopped",
+      "particles": 0
+    },
+    {
+      "alpha": 0,
+      "draws": 1,
+      "light": 0,
+      "name": "reset",
+      "particles": 0
+    }
+  ]
+}

@@ -29,14 +29,14 @@ export class CombatEffects {
   private readonly smokeAmbient = uniform(new THREE.Vector3(.3, .35, .4));
   private readonly volumeDepthTexture = new THREE.DepthTexture(1, 1);
   private readonly volumeDepth = nodeObject(new EffectDepthTextureNode(undefined, null, this.volumeDepthTexture)).r;
-  private readonly smoke = new EffectParticlePool(192, this.maps.smoke, false, effectVolumeMaterial(this.volumeMap, this.sun, this.volumeDepth, 16, true,
-    { direct: this.smokeDirect, ambient: this.smokeAmbient }));
+  private readonly smoke = new EffectParticlePool(192, this.maps.smoke, false, { volumeMaterial: effectVolumeMaterial(this.volumeMap, this.sun, this.volumeDepth, 16, true,
+    { direct: this.smokeDirect, ambient: this.smokeAmbient }) });
   private readonly spouts = new WaterPlumes(384, this.maps.water);
-  private readonly spray = new EffectParticlePool(1536, this.maps.droplet, false, undefined, true);
-  private readonly mist = new EffectParticlePool(192, this.maps.smoke, false, undefined, true);
+  private readonly spray = new EffectParticlePool(1536, this.maps.droplet, false, { cullFineWater: true });
+  private readonly mist = new EffectParticlePool(192, this.maps.smoke, false, { cullFineWater: true });
   private readonly aircraftSmoke = new EffectParticlePool(768, this.maps.smoke);
   private readonly flakSmoke = new EffectParticlePool(256, this.maps.smoke, false,
-    effectVolumeMaterial(this.volumeMap, this.sun, this.volumeDepth, 10, true, { direct: this.smokeDirect, ambient: this.smokeAmbient }));
+    { volumeMaterial: effectVolumeMaterial(this.volumeMap, this.sun, this.volumeDepth, 10, true, { direct: this.smokeDirect, ambient: this.smokeAmbient }) });
   private readonly airbursts = new Map<number, CombatEvent>();
   private readonly aircraftTrails = new Map<string, { position: THREE.Vector3; age: number }>();
   private readonly fire = new EffectParticlePool(256, this.maps.flash, true);

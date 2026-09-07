@@ -1,0 +1,322 @@
+[
+  {
+    "file": "before-close.webp",
+    "capture": {
+      "elapsed": 12.000000000000176,
+      "scene": "close",
+      "selected": "before",
+      "smoke": {
+        "capacity": 6144,
+        "outlets": [
+          {
+            "id": "funnel-jacket",
+            "position": [
+              0,
+              25.150000000000002,
+              -141.60000000000036
+            ],
+            "shipId": "player"
+          },
+          {
+            "id": "funnel-jacket",
+            "position": [
+              1800,
+              25.150000000000002,
+              1202.4
+            ],
+            "shipId": "target"
+          }
+        ],
+        "particles": 64
+      }
+    }
+  },
+  {
+    "file": "after-close.webp",
+    "capture": {
+      "elapsed": 12.000000000000176,
+      "scene": "close",
+      "selected": "after",
+      "smoke": {
+        "capacity": 6144,
+        "outlets": [
+          {
+            "id": "funnel-jacket",
+            "position": [
+              0,
+              25.150000000000002,
+              -141.60000000000036
+            ],
+            "shipId": "player"
+          },
+          {
+            "id": "funnel-jacket",
+            "position": [
+              1800,
+              25.150000000000002,
+              1202.4
+            ],
+            "shipId": "target"
+          }
+        ],
+        "particles": 64
+      }
+    }
+  },
+  {
+    "file": "before-idle.webp",
+    "capture": {
+      "elapsed": 12.000000000000176,
+      "scene": "idle",
+      "selected": "before",
+      "smoke": {
+        "capacity": 6144,
+        "outlets": [
+          {
+            "id": "funnel-jacket",
+            "position": [
+              0,
+              25.150000000000002,
+              2.3999999999999995
+            ],
+            "shipId": "player"
+          },
+          {
+            "id": "funnel-jacket",
+            "position": [
+              1800,
+              25.150000000000002,
+              1202.4
+            ],
+            "shipId": "target"
+          }
+        ],
+        "particles": 46
+      }
+    }
+  },
+  {
+    "file": "after-idle.webp",
+    "capture": {
+      "elapsed": 12.000000000000176,
+      "scene": "idle",
+      "selected": "after",
+      "smoke": {
+        "capacity": 6144,
+        "outlets": [
+          {
+            "id": "funnel-jacket",
+            "position": [
+              0,
+              25.150000000000002,
+              2.3999999999999995
+            ],
+            "shipId": "player"
+          },
+          {
+            "id": "funnel-jacket",
+            "position": [
+              1800,
+              25.150000000000002,
+              1202.4
+            ],
+            "shipId": "target"
+          }
+        ],
+        "particles": 46
+      }
+    }
+  },
+  {
+    "file": "before-night.webp",
+    "capture": {
+      "elapsed": 12.000000000000176,
+      "scene": "night",
+      "selected": "before",
+      "smoke": {
+        "capacity": 6144,
+        "outlets": [
+          {
+            "id": "funnel-jacket",
+            "position": [
+              0,
+              25.150000000000002,
+              -141.60000000000036
+            ],
+            "shipId": "player"
+          },
+          {
+            "id": "funnel-jacket",
+            "position": [
+              1800,
+              25.150000000000002,
+              1202.4
+            ],
+            "shipId": "target"
+          }
+        ],
+        "particles": 64
+      }
+    }
+  },
+  {
+    "file": "after-night.webp",
+    "capture": {
+      "elapsed": 12.000000000000176,
+      "scene": "night",
+      "selected": "after",
+      "smoke": {
+        "capacity": 6144,
+        "outlets": [
+          {
+            "id": "funnel-jacket",
+            "position": [
+              0,
+              25.150000000000002,
+              -141.60000000000036
+            ],
+            "shipId": "player"
+          },
+          {
+            "id": "funnel-jacket",
+            "position": [
+              1800,
+              25.150000000000002,
+              1202.4
+            ],
+            "shipId": "target"
+          }
+        ],
+        "particles": 64
+      }
+    }
+  },
+  {
+    "file": "after-underway.webp",
+    "capture": {
+      "elapsed": 12.000000000000176,
+      "scene": "underway",
+      "selected": "after",
+      "smoke": {
+        "capacity": 6144,
+        "outlets": [
+          {
+            "id": "funnel-jacket",
+            "position": [
+              0,
+              25.150000000000002,
+              -141.60000000000036
+            ],
+            "shipId": "player"
+          },
+          {
+            "id": "funnel-jacket",
+            "position": [
+              1800,
+              25.150000000000002,
+              1202.4
+            ],
+            "shipId": "target"
+          }
+        ],
+        "particles": 64
+      }
+    }
+  },
+  {
+    "file": "after-binocular.webp",
+    "capture": {
+      "elapsed": 12.000000000000176,
+      "scene": "binocular",
+      "selected": "after",
+      "smoke": {
+        "capacity": 6144,
+        "outlets": [
+          {
+            "id": "funnel-jacket",
+            "position": [
+              0,
+              25.150000000000002,
+              -141.60000000000036
+            ],
+            "shipId": "player"
+          },
+          {
+            "id": "funnel-jacket",
+            "position": [
+              1800,
+              25.150000000000002,
+              1202.4
+            ],
+            "shipId": "target"
+          }
+        ],
+        "particles": 64
+      }
+    }
+  },
+  {
+    "file": "after-dusk.webp",
+    "capture": {
+      "elapsed": 12.000000000000176,
+      "scene": "dusk",
+      "selected": "after",
+      "smoke": {
+        "capacity": 6144,
+        "outlets": [
+          {
+            "id": "funnel-jacket",
+            "position": [
+              0,
+              25.150000000000002,
+              -141.60000000000036
+            ],
+            "shipId": "player"
+          },
+          {
+            "id": "funnel-jacket",
+            "position": [
+              1800,
+              25.150000000000002,
+              1202.4
+            ],
+            "shipId": "target"
+          }
+        ],
+        "particles": 64
+      }
+    }
+  },
+  {
+    "file": "after-overcast.webp",
+    "capture": {
+      "elapsed": 12.000000000000176,
+      "scene": "overcast",
+      "selected": "after",
+      "smoke": {
+        "capacity": 6144,
+        "outlets": [
+          {
+            "id": "funnel-jacket",
+            "position": [
+              0,
+              25.150000000000002,
+              -141.60000000000036
+            ],
+            "shipId": "player"
+          },
+          {
+            "id": "funnel-jacket",
+            "position": [
+              1800,
+              25.150000000000002,
+              1202.4
+            ],
+            "shipId": "target"
+          }
+        ],
+        "particles": 64
+      }
+    }
+  }
+]

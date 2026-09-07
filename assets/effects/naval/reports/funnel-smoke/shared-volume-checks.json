@@ -1,0 +1,184 @@
+[
+  {
+    "backend": "webgpu",
+    "effect": "smoke",
+    "frames": [
+      {
+        "draws": 1,
+        "height": 133,
+        "view": "outside",
+        "visiblePixels": 15228,
+        "width": 144
+      },
+      {
+        "draws": 2,
+        "height": 133,
+        "view": "in front of horizon",
+        "visiblePixels": 15228,
+        "width": 144
+      },
+      {
+        "draws": 2,
+        "height": 0,
+        "view": "behind opaque surface",
+        "visiblePixels": 0,
+        "width": 0
+      },
+      {
+        "draws": 1,
+        "height": 144,
+        "view": "reverse oblique",
+        "visiblePixels": 15738,
+        "width": 148
+      },
+      {
+        "draws": 1,
+        "height": 256,
+        "view": "inside",
+        "visiblePixels": 65536,
+        "width": 256
+      },
+      {
+        "draws": 1,
+        "height": 64,
+        "view": "elongated side",
+        "visiblePixels": 6625,
+        "width": 140
+      },
+      {
+        "draws": 1,
+        "height": 66,
+        "view": "elongated end-on",
+        "visiblePixels": 3171,
+        "width": 64
+      },
+      {
+        "draws": 1,
+        "height": 106,
+        "view": "elevated oblique",
+        "visiblePixels": 6135,
+        "width": 95
+      },
+      {
+        "draws": 2,
+        "height": 0,
+        "view": "elongated behind opaque surface",
+        "visiblePixels": 0,
+        "width": 0
+      },
+      {
+        "draws": 1,
+        "height": 256,
+        "view": "inside elongated volume",
+        "visiblePixels": 65536,
+        "width": 256
+      },
+      {
+        "draws": 1,
+        "height": 0,
+        "view": "reset",
+        "visiblePixels": 0,
+        "width": 0
+      },
+      {
+        "draws": 1,
+        "height": 133,
+        "view": "reused spherical slot",
+        "visiblePixels": 15228,
+        "width": 144
+      }
+    ],
+    "reversedDepth": false
+  },
+  {
+    "backend": "webgpu",
+    "effect": "smoke",
+    "frames": [
+      {
+        "draws": 1,
+        "height": 133,
+        "view": "outside",
+        "visiblePixels": 15228,
+        "width": 144
+      },
+      {
+        "draws": 2,
+        "height": 133,
+        "view": "in front of horizon",
+        "visiblePixels": 15228,
+        "width": 144
+      },
+      {
+        "draws": 2,
+        "height": 0,
+        "view": "behind opaque surface",
+        "visiblePixels": 0,
+        "width": 0
+      },
+      {
+        "draws": 1,
+        "height": 144,
+        "view": "reverse oblique",
+        "visiblePixels": 15738,
+        "width": 148
+      },
+      {
+        "draws": 1,
+        "height": 256,
+        "view": "inside",
+        "visiblePixels": 65536,
+        "width": 256
+      },
+      {
+        "draws": 1,
+        "height": 64,
+        "view": "elongated side",
+        "visiblePixels": 6625,
+        "width": 140
+      },
+      {
+        "draws": 1,
+        "height": 66,
+        "view": "elongated end-on",
+        "visiblePixels": 3171,
+        "width": 64
+      },
+      {
+        "draws": 1,
+        "height": 106,
+        "view": "elevated oblique",
+        "visiblePixels": 6135,
+        "width": 95
+      },
+      {
+        "draws": 2,
+        "height": 0,
+        "view": "elongated behind opaque surface",
+        "visiblePixels": 0,
+        "width": 0
+      },
+      {
+        "draws": 1,
+        "height": 256,
+        "view": "inside elongated volume",
+        "visiblePixels": 65536,
+        "width": 256
+      },
+      {
+        "draws": 1,
+        "height": 0,
+        "view": "reset",
+        "visiblePixels": 0,
+        "width": 0
+      },
+      {
+        "draws": 1,
+        "height": 133,
+        "view": "reused spherical slot",
+        "visiblePixels": 15228,
+        "width": 144
+      }
+    ],
+    "reversedDepth": true
+  }
+]

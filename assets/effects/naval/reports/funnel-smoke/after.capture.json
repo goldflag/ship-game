@@ -1,0 +1,39 @@
+{
+  "canvas": [
+    1920,
+    1080
+  ],
+  "elapsed": 18.00000000000026,
+  "fps": 30,
+  "frames": 180,
+  "freshRenderFrame": true,
+  "mode": "fixed ship motion and effect clock; frozen ocean/sky",
+  "renderSeconds": 1.6419000000357629,
+  "scene": "close",
+  "seconds": 6,
+  "selected": "after",
+  "smoke": {
+    "capacity": 6144,
+    "outlets": [
+      {
+        "id": "funnel-jacket",
+        "position": [
+          0,
+          25.150000000000002,
+          -213.59999999999627
+        ],
+        "shipId": "player"
+      },
+      {
+        "id": "funnel-jacket",
+        "position": [
+          1800,
+          25.150000000000002,
+          1202.4
+        ],
+        "shipId": "target"
+      }
+    ],
+    "particles": 64
+  }
+}

@@ -107,6 +107,13 @@ export interface EffectParticle {
   distance: number;
 }
 
+interface ParticleOptions {
+  volumeMaterial?: THREE.MeshBasicNodeMaterial;
+  /** Animated billboards use age, seed, normalized lifetime and rotation. */
+  spriteMaterial?: THREE.MeshBasicNodeMaterial;
+  cullFineWater?: boolean;
+}
+
 /** One instance batch per material; fixed storage and back-to-front alpha sorting. */
 export class EffectParticlePool {
   readonly mesh: THREE.InstancedMesh<THREE.PlaneGeometry, THREE.MeshBasicNodeMaterial>;
@@ -117,6 +124,7 @@ export class EffectParticlePool {
   private readonly volume?: THREE.InstancedBufferAttribute;
   private readonly tint?: THREE.InstancedBufferAttribute;
   private readonly progress?: THREE.InstancedBufferAttribute;
+  private readonly sprite?: THREE.InstancedBufferAttribute;
   private readonly dummy = new THREE.Object3D();
   private readonly axis = new THREE.Vector3(0, 0, 1);
   private readonly turn = new THREE.Quaternion();
@@ -125,15 +133,20 @@ export class EffectParticlePool {
   private cursor = 0;
 
   constructor(readonly capacity: number, map: THREE.DataTexture, private additive = false,
-    volumeMaterial?: THREE.MeshBasicNodeMaterial, private cullFineWater = false) {
+    private options: ParticleOptions = {}) {
+    const { volumeMaterial, spriteMaterial } = options;
     const geometry = new THREE.PlaneGeometry(1, 1);
     this.alpha = new THREE.InstancedBufferAttribute(new Float32Array(capacity), 1).setUsage(THREE.DynamicDrawUsage);
     geometry.setAttribute('effectOpacity', this.alpha);
-    const material = volumeMaterial ?? new THREE.MeshBasicNodeMaterial({ map, transparent: true, depthWrite: false,
+    const material = volumeMaterial ?? spriteMaterial ?? new THREE.MeshBasicNodeMaterial({ map, transparent: true, depthWrite: false,
       side: THREE.DoubleSide, blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending });
     material.forceSinglePass = true;
     // The map already contributes its alpha through materialColor.
     material.opacityNode = attribute('effectOpacity', 'float');
+    if (spriteMaterial) {
+      this.sprite = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4).setUsage(THREE.DynamicDrawUsage);
+      geometry.setAttribute('effectSprite', this.sprite);
+    }
     if (volumeMaterial) {
       this.sphere = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4).setUsage(THREE.DynamicDrawUsage);
       this.volume = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4).setUsage(THREE.DynamicDrawUsage);
@@ -212,7 +225,7 @@ export class EffectParticlePool {
       if (p.age < 0 || p.age >= p.life) continue;
       // Hidden smoke still ages and drifts, so leaving optics restores its current state.
       if (hiddenSourceId !== undefined && p.sourceId === hiddenSourceId) continue;
-      if (this.cullFineWater && (camera as THREE.PerspectiveCamera).isPerspectiveCamera) {
+      if (this.options.cullFineWater && (camera as THREE.PerspectiveCamera).isPerspectiveCamera) {
         this.direction.copy(p.position).applyMatrix4(camera.matrixWorldInverse);
         const depth = -this.direction.z, radius = p.size + p.growth * p.age;
         const projection = camera.projectionMatrix.elements;
@@ -268,6 +281,7 @@ export class EffectParticlePool {
       this.mesh.setMatrixAt(index, this.dummy.matrix);
       this.mesh.setColorAt(index, p.color);
       this.alpha.setX(index, p.opacity * fade);
+      this.sprite?.setXYZW(index, p.age, p.seed, t, angle);
       if (this.sphere && this.volume && this.tint) {
         this.sphere.setXYZW(index, p.position.x, p.position.y, p.position.z, size / 2);
         this.volume.setXYZW(index, p.age, p.seed, p.heat * (1 - smooth(p.age / p.cooling)), p.density);
@@ -285,7 +299,7 @@ export class EffectParticlePool {
     this.mesh.instanceMatrix.needsUpdate = true;
     this.mesh.instanceColor!.needsUpdate = true;
     this.alpha.needsUpdate = true;
-    for (const buffer of [this.sphere, this.volume, this.tint, this.progress]) if (buffer) buffer.needsUpdate = true;
+    for (const buffer of [this.sphere, this.volume, this.tint, this.progress, this.sprite]) if (buffer) buffer.needsUpdate = true;
   }
 
   get count(): number { return this.active.length; }
