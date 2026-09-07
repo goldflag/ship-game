@@ -109,7 +109,6 @@ export class Game {
   private manualAim = true;
   private currentAim: Vec3 = [650, .5, -550];
   chartSize = 2;
-  gunneryOpen = false;
   airOperationsOpen = false;
   private cameraFrameListeners = new Set<() => void>();
   onCameraFrame(listener: () => void): () => void {
@@ -122,6 +121,7 @@ export class Game {
   private battleTimeOfDay?: TimeOfDayId;
   private battleWeather?: WeatherId;
   private surfaceWaterAbsorption = new THREE.Color();
+  private surfaceWaterDistortion = 0;
   private sky?: SkySystem;
   private shipWake?: ShipWake;
   private pipeline?: THREE.RenderPipeline;
@@ -180,12 +180,14 @@ export class Game {
       hud: () => { if (!this.inPort) callbacks.hud(); }, fullscreen: () => this.fullscreen(),
       optics: () => this.toggleBinoculars(), battery: battery => { this.battery = battery; },
       cursor: released => { if (released) this.rig.releasePointer(); else if (!this.airOperationsOpen && !document.querySelector('dialog[open]')) this.rig.capturePointer(); },
-      chartSize: direction => this.resizeChart(direction), gunnery: () => this.setGunneryOpen(!this.gunneryOpen),
+      chartSize: direction => this.resizeChart(direction),
       shellFollow: () => this.toggleShellFollow(),
       shellType: () => this.selectAmmunition(this.ammunition[this.battery] === 'ap' ? 'he' : 'ap'),
       airOperations: () => this.setAirOperationsOpen(!this.airOperationsOpen),
       depth: direction => this.setDepth((this.simulation.player.submarine?.targetDepthM ?? 0) + direction * DEPTH_STEP_M),
+      depthPreset: depthM => this.setDepth(depthM),
       emergencyBlow: () => this.setDepth(0, true),
+      periscope: () => this.togglePeriscope(),
     });
     this.input.setEnabled(false);
     this.observer = new ResizeObserver(() => { this.resizePending = true; });
@@ -268,6 +270,7 @@ export class Game {
     this.underwaterPassVisibility = new UnderwaterPassVisibility(this.water, this.renderer);
     this.torpedoPreview.setWater(this.water);
     this.surfaceWaterAbsorption.copy(this.water.color.absorptionColor);
+    this.surfaceWaterDistortion = this.water.underwaterDistortion.intensity;
     this.updateSeaState();
 
     this.callbacks.progress('Lighting the sky', 0.59);
@@ -456,7 +459,7 @@ export class Game {
       this.controlPriority = 'balanced'; this.controlFocus = '';
       this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
       this.battery = definition.torpedoTubes?.length ? 'torpedo' : 'main'; this.manualAim = true; this.inspecting = false;
-      this.gunneryOpen = false; this.airOperationsOpen = false; this.selectedFlightId = undefined; this.effects.reset();
+      this.airOperationsOpen = false; this.selectedFlightId = undefined; this.effects.reset();
       this.currentAim = simulation.aimAt(undefined, this.battery);
       this.aimModule = simulation.target.definition.modules.find(m => m.kind === 'engine')?.id ?? '';
       this.rig.setBridge(definition.viewpoints?.bridge);
@@ -564,6 +567,9 @@ export class Game {
       const submergedView = THREE.MathUtils.smoothstep(-this.camera.position.y, 0, 2);
       this.water!.color.absorptionColor.copy(this.surfaceWaterAbsorption)
         .multiplyScalar(THREE.MathUtils.lerp(1, .05, submergedView));
+      // Keep surface-looking-in refraction; soften the full-screen underwater wobble.
+      this.water!.underwaterDistortion.intensity = this.surfaceWaterDistortion
+        * THREE.MathUtils.lerp(1, .15, submergedView);
       // Fixed-step mode with zero delta renders without stepping the wake's
       // leapfrog/foam integrators. Host-clock update(0) would still step them.
       this.water!.deterministic = this.paused;
@@ -592,7 +598,7 @@ export class Game {
         this.hudTime = time;
         this.callbacks.telemetry({ ship: { ...state }, order: this.input.order, rudderOrder: this.input.rudderOrder, camera: this.rig.mode,
           binoculars: this.rig.binoculars, magnification: this.rig.magnification, pointerLocked: this.rig.pointerLocked,
-          viewBearing: this.rig.bearing, chartSize: this.chartSize, gunneryOpen: this.gunneryOpen, airOperationsOpen: this.airOperationsOpen, selectedFlightId: this.selectedFlightId,
+          viewBearing: this.rig.bearing, chartSize: this.chartSize, airOperationsOpen: this.airOperationsOpen, selectedFlightId: this.selectedFlightId,
           airMap: this.airOperationsOpen ? { ...this.battlefieldCamera.view } : undefined,
           squadronMarkers: this.simulation.actors.flatMap(actor => (airWingTelemetry(actor, this.simulation.actors)?.groups ?? [])
             .filter(f => f.airborne > 0).map(f => {
@@ -689,7 +695,7 @@ export class Game {
     this.input.clear();
     if (open) {
       if (this.inspecting) this.inspectTarget();
-      this.stopShellFollow(); this.gunneryOpen = false; this.rig.setEnabled(false);
+      this.stopShellFollow(); this.rig.setEnabled(false);
       this.battlefieldCamera.enter(this.simulation.actors.map(a => a.motion), this.host.clientWidth, this.host.clientHeight);
       this.selectedFlightId ??= squadronFlights(this.simulation.player)[0]?.id;
       if (this.water) { this.water.fog.fadeStart = 400000; this.water.fog.fadeEnd = 900000; }
@@ -707,7 +713,6 @@ export class Game {
     this.stopShellFollow();
     if (this.airOperationsOpen) this.setAirOperationsOpen(false);
     this.followedAircraftId = id;
-    this.gunneryOpen = false;
   }
   private get cameraShipView(): ShipView {
     return this.fleetViews.find(view => view.actor.motion.id === this.spectatedShipId)
@@ -738,7 +743,6 @@ export class Game {
     if (this.inspecting) this.inspectTarget();
     this.stopShellFollow();
     this.spectatedShipId = id;
-    this.gunneryOpen = false;
     this.input.clear();
     this.rig.setInspecting(false);
     this.rig.mode = 'Chase';
@@ -769,11 +773,9 @@ export class Game {
     orderDepth(this.simulation.player, this.definition, depthM, emergency);
   }
   resizeChart(direction: number): void { if (this.airOperationsOpen) { this.zoomAirMap(-direction * 220); return; } this.chartSize = THREE.MathUtils.clamp(this.chartSize + direction, 0, 4); }
-  setGunneryOpen(open: boolean): void {
-    if (open && this.airOperationsOpen) this.setAirOperationsOpen(false);
-    this.gunneryOpen = open;
-    if (open) { this.stopShellFollow(); this.rig.releasePointer(); }
-    else if (!this.inspecting) this.rig.capturePointer();
+  togglePeriscope(): void {
+    if (!this.definition.submarine || this.simulation.player.damage.sunk) return;
+    this.toggleBinoculars();
   }
   toggleBinoculars(): void {
     if (this.simulation.player.damage.sunk || this.paused || this.inPort || this.inspecting || this.airOperationsOpen) return;
@@ -823,7 +825,6 @@ export class Game {
     this.rig.setInspecting(false);
     this.manualAim = true;
     this.airOperationsOpen = false; this.selectedFlightId = undefined;
-    this.gunneryOpen = false;
     this.updateSeaState();
     this.updatePortLighting();
     this.input.setOrder(1); this.input.setRudder(0);
@@ -857,7 +858,6 @@ export class Game {
     if (this.shellFollow.enabled) { this.stopShellFollow(); return; }
     this.stopShellFollow();
     this.shellFollow.setEnabled(true);
-    this.gunneryOpen = false;
   }
   private stopShellFollow(): void {
     this.followedAircraftId = undefined;

@@ -9,7 +9,6 @@ import { maxHullIntegrity } from '../simulation/damage';
 import { ENGINE_LABELS, KNOTS_PER_MPS } from '../simulation/ship';
 import { Icon } from './Icons';
 import { NavigationChart } from './NavigationChart';
-import { GunneryPanel } from './GunneryPanel';
 import { ShellCycle } from './ShellCycle';
 import { DepthControl } from './DepthControl';
 import { BattleStatus } from './BattleStatus';
@@ -90,7 +89,7 @@ function ActiveArmament({ data, game, bindings }: FleetHudProps) {
   const torpedoes = combat.battery === 'torpedo', depthCharges = combat.battery === 'depth-charge';
   const caliber = (battery: Battery) => Math.round((battery === 'torpedo' ? selectedShip.torpedoTubes?.[0].weapon.diameterM ?? 0 : selectedShip.mounts.find(m => m.battery === battery)?.weapon.caliberM ?? 0) * 1000);
   const shortcut = (battery: Battery) => battery === 'depth-charge' ? 'depthCharges' : battery === 'torpedo' ? 'torpedoes' : battery === 'main' ? 'mainBattery' : 'secondaryBattery';
-  return <section className={`fleet-armament ${selectedShip.depthChargeLaunchers?.length ? 'fleet-armament-expanded' : ''} ${!torpedoes && !depthCharges ? 'fleet-armament-guns' : ''}`} aria-label="Weapons and gunnery">
+  return <section className={`fleet-armament ${selectedShip.depthChargeLaunchers?.length ? 'fleet-armament-expanded' : ''} ${!torpedoes && !depthCharges ? 'fleet-armament-guns' : ''}`} aria-label="Weapons">
     <div className="fleet-turrets" aria-label="Battery mount readiness">{combat.mounts.map((mount, i) => {
       const reloadSeconds = (depthCharges ? selectedShip.depthChargeLaunchers?.find(m => m.id === mount.id)?.weapon.reloadSeconds : torpedoes ? selectedShip.torpedoTubes?.find(m => m.id === mount.id)?.weapon.reloadSeconds : selectedShip.mounts.find(m => m.id === mount.id)?.weapon.reloadSeconds) ?? 1;
       const ready = mount.status === 'ready';
@@ -116,7 +115,6 @@ function ActiveArmament({ data, game, bindings }: FleetHudProps) {
           <kbd>{bindingLabel(bindings, shortcut(battery.battery))}</kbd>
         </button>)}
         <button className="fleet-weapon-slot fleet-utility-slot" aria-label="Toggle binocular aiming · Shift" aria-pressed={!!data.binoculars} onClick={event => { game?.toggleBinoculars(); event.currentTarget.blur(); }}><span className="fleet-slot-label">BINOCULARS</span><BinocularGlyph/><strong className="fleet-slot-value">{data.binoculars ? `${(data.magnification ?? 1).toFixed(1)}×` : ''}</strong><kbd>SHIFT</kbd></button>
-        <button className="fleet-weapon-slot" aria-label={`Gunnery and target damage · ${bindingLabel(bindings, 'gunnery')}`} aria-expanded={!!data.gunneryOpen} onClick={event => { game?.setGunneryOpen(!data.gunneryOpen); event.currentTarget.blur(); }}><span className="fleet-slot-label">GUNNERY</span><Icon name="target" size={39}/><kbd>{bindingLabel(bindings, 'gunnery')}</kbd></button>
         <button className="fleet-weapon-slot fleet-fire-slot" aria-label={`${depthCharges ? 'Drop depth charge' : torpedoes ? 'Launch torpedo' : 'Fire aligned guns'} · Left mouse or ${bindingLabel(bindings, 'fire')}`} disabled={!combat.ready || combat.playerSunk} onClick={event => { game?.fire(); event.currentTarget.blur(); }}><span className="fleet-slot-label">{depthCharges ? 'DROP' : 'FIRE'}</span><Icon name="turret" size={39}/><kbd>{bindingLabel(bindings, 'fire')} / LMB</kbd></button>
       </div>
     </div>
@@ -142,7 +140,7 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
       {data.combat.airWing && !data.airOperationsOpen && <FlightControl combat={data.combat} game={game} bindings={bindings}/>}
     </BattleStatus>}
     <div className="fleet-top-actions"><span className="fleet-fps" aria-label={`${data.fps} frames per second`}><strong>{data.fps || '—'}</strong> FPS</span><button className="icon-button" aria-label="Pause and settings" title="Pause · Esc" onClick={() => game?.setPaused(true)}><Icon name="pause" size={17}/></button></div>
-    {data.combat?.battle && <BattleDamageLog combat={data.combat} obscured={!!data.gunneryOpen || !!data.inspecting}/>}
+    {data.combat?.battle && <BattleDamageLog combat={data.combat} obscured={!!data.inspecting}/>}
 
     {followingShell && <div className="fleet-shell-status" role="status" title="Move mouse to orbit; drag when the cursor is released. Scroll to zoom."><strong>{data.shellFollow === 'impact' ? 'Shell impact' : 'Following shell'}</strong><span>{data.shellFollow === 'impact' ? 'Returning to ship…' : `${bindingLabel(bindings, 'shellFollow')} to return to ship`}</span></div>}
     {data.followedAircraftId && <div className="fleet-shell-status fleet-aircraft-status" title="Move mouse to orbit; drag when the cursor is released. Scroll to zoom."><strong>Following {data.followedAircraftId.split('/').slice(1).join(' / ')}</strong><button onClick={e => { game?.returnToShip(); e.currentTarget.blur(); }}>Return to ship</button><span>{bindingLabel(bindings, 'camera')} or {bindingLabel(bindings, 'recenter')} to return · Hold Ctrl to use controls</span></div>}
@@ -165,7 +163,7 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
         </div></> :
         <svg viewBox="0 0 44 44" fill="none"><path d="M3 22h9m20 0h9M22 3v9m0 20v9" stroke="currentColor"/><circle cx="22" cy="22" r="5" stroke="currentColor"/><circle cx="22" cy="22" r="1" fill="currentColor"/></svg>}
     </div>}
-    {!data.pointerLocked && !data.inspecting && !data.gunneryOpen && !following && !data.airOperationsOpen && <button className="fleet-capture-hint" onClick={() => game?.capturePointer()}>Click sea to aim <span>Hold Ctrl for cursor</span></button>}
+    {!data.pointerLocked && !data.inspecting && !following && !data.airOperationsOpen && <button className="fleet-capture-hint" onClick={() => game?.capturePointer()}>Click sea to aim <span>Hold Ctrl for cursor</span></button>}
 
     <section className="fleet-ship" aria-label="Ship condition and helm">
       {damage && damage.amount > 0 && <p className="fleet-hit-notice" role="status" style={{ opacity: damage.opacity }}><strong>−{Math.max(1, Math.round(damage.amount)).toLocaleString()}</strong><span>Hull damaged</span></p>}
@@ -189,7 +187,6 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
     {!data.combat?.airWing && <SquadronLabels data={data} game={game}/>}
     {data.combat?.airWing && <AirOperations data={data} game={game} bindings={bindings}/>}
     {data.combat?.submarine && <DepthControl combat={data.combat} game={game} bindings={bindings}/>}
-    {(data.gunneryOpen || data.inspecting) && <GunneryPanel bindings={bindings} data={data} game={game} expanded={!!data.gunneryOpen} onExpand={value => game?.setGunneryOpen(value)}/>}
     {data.binoculars && data.aimModule !== 'point' && data.aimMarker?.visible && <div className="aim-marker" aria-hidden="true" style={{ left: `${data.aimMarker.x}%`, top: `${data.aimMarker.y}%` }}><span/><small>TRACKED AIM</small></div>}
     <aside className="fleet-map-area" aria-label="Navigation minimap"><NavigationChart bindings={bindings} data={data} onResize={direction => game?.resizeChart(direction)}/></aside>
   </div>;
