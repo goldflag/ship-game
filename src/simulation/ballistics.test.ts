@@ -30,7 +30,7 @@ test('shared drag solution reaches elevated and lowered targets and composes acr
 });
 
 test('aiming a moving mount includes drag on inherited velocity', () => {
-  const def = compileShip(blueprint, catalog), actor = new CombatSimulation(def).player;
+  const def = compileShip(blueprint, catalog), sim = new CombatSimulation(def), actor = sim.player;
   const mount = def.mounts[0], state = actor.mounts[0], inherited: Vec3 = [12, 0, -5];
   const aim: Vec3 = [4500, 2, -7000];
   for (let i = 0; i < 600; i++) updateMount(mount, state, def, actor.motion, aim, 1 / 60, inherited);
@@ -39,6 +39,17 @@ test('aiming a moving mount includes drag on inherited velocity', () => {
   for (let i = 0; i < 10; i++) time = solveBallistic(from, sub(aim, scale(inherited, travelFactor(time, k))), mount.weapon.muzzleSpeed, k)!.time;
   const end = ballisticStep(from, add(scale(shotDirection(mount, state, actor.motion), mount.weapon.muzzleSpeed), inherited), time, k);
   expect(length(sub(end.position, aim))).toBeLessThan(.1);
+  expect(sim.telemetry('main', aim).flightTimeSeconds).toBeCloseTo(time, 3);
+  state.status = 'reloading';
+  state.reload = 30;
+  expect(sim.telemetry('main', aim).flightTimeSeconds).toBeCloseTo(time, 3);
+  expect(sim.telemetry('secondary', aim).flightTimeSeconds).toBeUndefined();
+  expect(sim.telemetry('torpedo', aim).flightTimeSeconds).toBeUndefined();
+  expect(sim.telemetry('depth-charge', aim).flightTimeSeconds).toBeUndefined();
+  for (const status of ['disabled', 'empty', 'submerged', 'blocked', 'out-of-arc', 'out-of-range'] as const) {
+    state.status = status;
+    expect(sim.telemetry('main', aim).flightTimeSeconds).toBeUndefined();
+  }
 });
 
 test('dispersion is bounded, unbiased and reproducible for horizontal and near-vertical fire', () => {

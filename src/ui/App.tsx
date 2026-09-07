@@ -4,6 +4,7 @@ import { createShipState } from '../simulation/ship';
 import { DEFAULT_SETTINGS, type GameSettings, type Telemetry } from '../game/types';
 import { Icon } from './Icons';
 import { FleetHud } from './FleetHud';
+import { BinocularOverlay } from './BinocularOverlay';
 import { Garage } from './Garage';
 import { selectedShip as initialShip, shipPreset } from '../ships/presets';
 import { ShipContext } from './ShipContext';
@@ -196,7 +197,7 @@ export function App() {
     <div ref={host} className="ocean-viewport" inert={!ready || !!error} data-ship-labels={phase === 'sailing' && hud && ready && !error} />
     {phase === 'garage' && ready && !error && <Garage key={selectedShip.id} switching={switching} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} fps={data.fps} onLaunch={openBattleSetup} onSettings={() => game.current?.setPaused(true)}/>}
     {battleSetupOpen && !battleLoading && <BattleSetupDialog setup={battleSetup} onChange={setBattleSetup} onLaunch={launch} onClose={() => setBattleSetupOpen(false)} error={battleError}/>}
-    {phase === 'sailing' && ready && !error && <FleetHud data={data} game={game.current} visible={hud} bindings={bindings}/>}
+    {phase === 'sailing' && ready && !error && <><BinocularOverlay data={data}/><FleetHud data={data} game={game.current} visible={hud} bindings={bindings}/></>}
     {battleLoading && ready && !error && <BattleLoadingScreen setup={battleSetup} state={battleLoading} onLeft={() => setBattleLoading(null)}/>}
 
     {phase === 'sailing' && ready && !hud && <button className="restore-hud" onClick={() => setHud(true)}>Show instruments <kbd>{bindingLabel(bindings, 'hud')}</kbd></button>}
