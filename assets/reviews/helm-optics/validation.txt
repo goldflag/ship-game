@@ -1,0 +1,27 @@
+Validated September 6, 2026 (PDT)
+
+bun test src/game src/simulation --timeout 30000
+
+ 510 pass
+ 0 fail
+ 227735 expect() calls
+Ran 510 tests across 63 files. [139.83s]
+
+bun run build
+All ten ship checks, aircraft checks, TypeScript and Vite production build passed.
+✓ built in 6.77s
+The existing large-bundle advisory remains.
+
+Live input: KeyA -> keyup = -0.5 rudder; key repeat = -0.5; pause/resume = -0.5.
+Final smaller steering layout: 180 × 53.5 px; desktop buttons 36 × 26 px.
+After the final steering resize: bun test src/game/FleetHud.test.tsx (6 pass),
+and bun run build passed again (5.71s).
+
+PR validation after integrating master b020bbf (weather and performance updates):
+bun test src/game src/simulation --timeout 30000
+ 544 pass
+ 0 fail
+ 278984 expect() calls
+Ran 544 tests across 76 files. [124.73s]
+bun run build: all ship/aircraft checks, TypeScript and Vite passed (6.58s).
+git diff --check passed.
