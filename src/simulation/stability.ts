@@ -1,5 +1,5 @@
 import { meanHullY } from './ship';
-import { equipmentCondition, systemHealth } from './machinery';
+import { equipmentCondition, moduleDefinition, systemHealth } from './machinery';
 import type { ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { Combatant } from './damage';
 import { flotation, hydrostatics, rightingArms } from './hydrostatics';
@@ -118,8 +118,8 @@ export function updateCapability(actor: Combatant, def: ShipDefinition): void {
   const service = def.modules.find(m => m.id === def.airWing?.serviceModuleId);
   const airRecoverable = armedFlight || strikeReserves && (actor.damage.modules.find(m => m.id === service?.id)?.hp ?? 0) > 0;
   const airUsable = armedFlight || strikeReserves && !!service && equipmentCondition(actor, def, service).availability > 0;
-  const usable = airUsable || loadedGuns.some(({ definition: m }) => !m.magazineId || equipmentCondition(actor, def, def.modules.find(mod => mod.id === m.magazineId)!).availability > 0) ||
-    [...loadedTubes, ...loadedCharges].some(t => equipmentCondition(actor, def, def.modules.find(m => m.id === t.magazineId)!).availability > 0);
+  const usable = airUsable || loadedGuns.some(({ definition: m }) => !m.magazineId || equipmentCondition(actor, def, moduleDefinition(def, m.magazineId)!).availability > 0) ||
+    [...loadedTubes, ...loadedCharges].some(t => equipmentCondition(actor, def, moduleDefinition(def, t.magazineId)!).availability > 0);
   const recoverable = airRecoverable || loadedGuns.some(({ definition: m }) => !m.magazineId || actor.damage.modules.find(mod => mod.id === m.magazineId)!.hp > 0) ||
     [...loadedTubes, ...loadedCharges].some(t => (actor.damage.modules.find(m => m.id === t.magazineId)?.hp ?? 0) > 0);
   const mobile = systemHealth(actor, def, 'engine') > .001;
@@ -133,6 +133,6 @@ export function updateCapability(actor: Combatant, def: ShipDefinition): void {
   // Hits resolve after gun training. Publish individual failures immediately so
   // the HUD and renderer do not spend another tick treating them as turning.
   guns.forEach(({ definition: m, state }) => {
-    if (s.combatLost || state.hp <= 0 || m.magazineId && equipmentCondition(actor, def, def.modules.find(mod => mod.id === m.magazineId)!).availability === 0) state.status = 'disabled';
+    if (s.combatLost || state.hp <= 0 || m.magazineId && equipmentCondition(actor, def, moduleDefinition(def, m.magazineId)!).availability === 0) state.status = 'disabled';
   });
 }

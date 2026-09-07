@@ -1,6 +1,6 @@
 import { airborne, commandSquadron, createAirWing, launchSquadron, orderFlight, recallAircraft, stepAircraft, type AirRelease, type AirOrder } from './aircraft';
 import { airWingTelemetry, type AirWingTelemetry } from './airTelemetry';
-import { updateAntiAircraft } from './antiAircraft';
+import { antiAircraftTargets, shipAntiAircraftTargets, updateAntiAircraft } from './antiAircraft';
 import { DEFAULT_AI_LEVEL, type ShipAiLevel } from './aiLevels';
 import { DEFAULT_MAP, mapIslands, type Island, type OceanMapId } from '../maps/catalog';
 import { avoidLand, firstLandHit, resolveLandContact } from './land';
@@ -8,7 +8,7 @@ import { updateCapability, type VesselStatus } from './stability';
 import { directControl, updateDamageControl, type ControlPriority, type ControlState } from './damageControl';
 import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { advanceProjectile } from './projectile';
-import { equipmentCondition, supportPerformance, type EquipmentCondition } from './machinery';
+import { equipmentCondition, moduleDefinition, supportPerformance, type EquipmentCondition } from './machinery';
 import { equipmentIntegrity } from './durability';
 import { fireReadout, regionReadout, type FireReadout } from './damageReadout';
 import { DamageLog, type DamageLogEntry } from './damageLog';
@@ -291,21 +291,25 @@ export class CombatSimulation {
     for (const actor of this.actors) resolveLandContact(actor, this.islands, this.contactImpact);
     const airContext = { seed: this.seed, actors: this.actors, planes: this.aircraft, shells: this.shells, torpedoes: this.torpedoes,
       releases: this.airReleases, nextId: () => ++this.shellSequence, emit: this.emit };
+    const aaTargets = antiAircraftTargets(this.aircraft);
     for (const actor of this.actors) {
       const def = actor.definition, target = targets.get(actor);
       const support = supportPerformance(actor, def);
       const laneClear = target && clearFiringLane(actor, target, this.actors);
+      const targetDistance = target ? Math.hypot(target.motion.x - actor.motion.x, target.motion.z - actor.motion.z) : Infinity;
+      const velocity = shipVelocity(actor);
+      const aircraftTargets = shipAntiAircraftTargets(actor, aaTargets[actor.team === 'friendly' ? 'enemy' : 'friendly']);
       def.mounts.forEach((m, i) => {
         const state = actor.mounts[i];
         if (actor.damage.stability.combatLost) { state.status = 'disabled'; return; }
-        if (m.magazineId && equipmentCondition(actor, def, def.modules.find(module => module.id === m.magazineId)!).availability === 0) { state.status = 'disabled'; return; }
-        if (this.isBattle && this.result === 'active' && updateAntiAircraft(actor, m, state, airContext, FIXED_DT)) return;
+        if (m.magazineId && equipmentCondition(actor, def, moduleDefinition(def, m.magazineId)!).availability === 0) { state.status = 'disabled'; return; }
+        if (this.isBattle && this.result === 'active' && updateAntiAircraft(actor, m, state, airContext, FIXED_DT, aircraftTargets)) return;
         if (actor === this.player && m.battery === intent.battery) selectAmmunition(m, state, intent.ammunition === 'he' ? 'he' : 'ap');
         else if (actor.controller === 'bot' && target) selectAmmunition(m, state, botAmmunition(target, m, state));
         if (actor === this.player && !aimValid) { state.status = 'out-of-arc'; return; }
-        const inRange = target && Math.hypot(target.motion.x - actor.motion.x, target.motion.z - actor.motion.z) <= botGunRange(m);
+        const inRange = target && targetDistance <= botGunRange(m);
         const aim = actor === this.player ? intent.aim : target && inRange && state.hp > 0 && availableAmmunition(state) >= (m.weapon.barrelCount ?? 2) ? botAim(actor, target, m, state) : undefined;
-        const aligned = updateMount(m, state, def, actor.motion, aim, FIXED_DT, shipVelocity(actor), support.power);
+        const aligned = updateMount(m, state, def, actor.motion, aim, FIXED_DT, velocity, support.power);
         const firing = actor === this.player ? aligned && (intent.fire || this.fireQueued) && m.battery === intent.battery : actor.controller === 'bot' && inRange && laneClear && aligned && botReadyToFire(actor, m);
         const barrelCount = m.weapon.barrelCount ?? 2;
         if (!actor.damage.sunk && firing && state.status === 'ready') {

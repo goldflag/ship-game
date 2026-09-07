@@ -1,6 +1,8 @@
 // Isolated diagnostic entry: runs the real App, HUD, audio and Game animation loop.
 import { Game } from '/src/game/Game.ts';
 import { mixedSimulation, reviewHelm, reviewIntent } from './mixed-fleet.ts';
+import { measureFleetFrames } from './measure-fleet-frames.js';
+import { shipPresets } from '/src/ships/presets.ts';
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const until = async predicate => { while (!predicate()) await delay(50); };
 const start = Game.prototype.start;
@@ -15,7 +17,7 @@ Game.prototype.start = function () {
   return start.call(this);
 };
 Game.prototype.prepareBattle = async function () {
-  const sim = mixedSimulation(30);
+  const sim = mixedSimulation(30, new URLSearchParams(location.search).get('roster') === 'current' ? Object.keys(shipPresets) : undefined);
   await this.replaceFleet(sim, sim.definition);
   this.battleSea = 'Fair';
 };
@@ -36,6 +38,9 @@ await until(() => button('start battle')); button('start battle').click();
 await until(() => sailing);
 const g = window.review.game, schedule = g.scheduleFrame;
 g.scheduleFrame = () => {}; cancelAnimationFrame(g.raf); await g.frameTask; cancelAnimationFrame(g.raf);
+// Loading can allow a few ordinary frames through. Reset after stopping that
+// loop so both builds begin the replay at the same tick and seeded state.
+g.simulation.reset();
 g.input.sample = () => reviewHelm;
 g.input.setOrder(3); g.manualAim = true;
 for (let i = g.simulation.tick; i < 3600; i++) {
@@ -56,6 +61,7 @@ const setCamera = mode => {
 setCamera('battle');
 g.paused = true; g.audio?.setScene(false, true); g.lastTime = performance.now(); await g.frame(performance.now());
 window.review.ready = true; document.title = 'Fleet performance review — LIVE';
+window.review.measureFrames = options => measureFleetFrames(g, options);
 status.textContent = 'Ready · 60 ships · 1920×1080 · keep this tab visible';
 window.review.run = async ({ seconds = 30, warmup = 5, camera = 'battle', profile = false } = {}) => {
   if (window.review.running) throw new Error('A live sample is already running');
@@ -130,7 +136,7 @@ const runButton = document.createElement('button');
 runButton.textContent = 'Run 60 FPS check';
 runButton.style.cssText = 'position:fixed;right:16px;top:16px;z-index:99999;padding:10px 14px;background:#0d2a38;color:#d9eff2;border:1px solid #72929e;cursor:pointer';
 document.body.append(runButton);
-let automatic = true;
+let automatic = !new URLSearchParams(location.search).has('manual');
 const launch = async () => {
   if (window.review.running) return;
   automatic = false; runButton.hidden = true;

@@ -1,0 +1,18 @@
+{
+  "baseline": "54b0be10d3eb707c2dee9f3b0042cf879280a94e",
+  "machine": {
+    "cpu": "Apple M5 Pro",
+    "memoryBytes": 51539607552,
+    "os": "macOS 26.6.2",
+    "bun": "1.3.3",
+    "nodeProfiler": "22.19.0"
+  },
+  "runtimeSources": {
+    "src/simulation/antiAircraft.ts": "0f13b3d6c0ae856253d0a5b25f3ebc276fa8e974430cfdce60c769ac21ccf8d8",
+    "src/simulation/ballistics.ts": "1f2fb6a562b0d6a83904df3409cdd48eaa27dee5918e814e4e7bf1be7e2f5003",
+    "src/simulation/combat.ts": "d5db2ffcb5eb0788b279ed3780ea0b2c771984385b57f483c4b09ff1a884e6d0",
+    "src/simulation/hydrostatics.ts": "948141a79c58172a3d1f7d7780c23fe13474370e60ba27cf8d41ebdd67199ef2",
+    "src/simulation/machinery.ts": "f96673cfa5f67252ae6fadea74e1103af44368a037d6d42ba9c9c8d14eb8eb6b",
+    "src/simulation/stability.ts": "f256cf23291f312019454389b63296b35051989768660f0964c38f12b8efb9b8"
+  }
+}

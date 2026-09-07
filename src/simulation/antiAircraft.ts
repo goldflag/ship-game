@@ -2,7 +2,8 @@ import { meanHullY } from './ship';
 import type { AirContext, Aircraft } from './aircraft';
 import { antiAircraftRange } from '../ships/armament';
 import { airborne, onFlightDeck } from './aircraft';
-import type { FleetActor } from './battle';
+import type { FleetActor, Team } from './battle';
+import { barrelOffset, type ShipDefinition } from '../ships/blueprint';
 import { isPassiveAi } from './aiLevels';
 import { ballisticStep, dispersedDirection } from './ballistics';
 import { add, dot, length, normalize, scale, segmentBox, sub, worldToLocal } from './geometry';
@@ -10,6 +11,35 @@ import { motionVelocity } from './ship';
 import { availableAmmunition, muzzleWorld, selectAmmunition, shotDirection, updateMount, type MountDefinition, type MountState } from './weapons';
 
 export { antiAircraftRange } from '../ships/armament';
+
+/** Build once before the fleet trains its guns. Aircraft move/change phase only
+ * after that phase; HP must still be checked per gun because AA applies instantly.
+ * Keep source order so equal-distance targets retain the same tie break. */
+export function antiAircraftTargets(planes: readonly Aircraft[]): Record<Team, Aircraft[]> {
+  const targets: Record<Team, Aircraft[]> = { friendly: [], enemy: [] };
+  for (const plane of planes) if (airborne(plane) && !onFlightDeck(plane)) targets[plane.team].push(plane);
+  return targets;
+}
+
+const reachBounds = new WeakMap<ShipDefinition, number>();
+/** Conservative ship-centered sphere covers every AA muzzle throughout train
+ * and elevation. Cull once per hull, then retain the exact per-gun test. */
+export function shipAntiAircraftTargets(actor: FleetActor, targets: readonly Aircraft[]): Aircraft[] {
+  let reach = reachBounds.get(actor.definition);
+  if (reach === undefined) {
+    reach = 0;
+    for (const m of actor.definition.mounts) {
+      const range = antiAircraftRange(m), w = m.weapon;
+      if (!range) continue;
+      const muzzleRadius = Math.hypot(...m.position) + Math.abs(w.pivotHeight) + Math.abs(w.trunnionForward)
+        + Math.abs(w.muzzleForward - w.trunnionForward) + Math.abs(barrelOffset(w, 0));
+      reach = Math.max(reach, range + muzzleRadius + 1e-5);
+    }
+    reachBounds.set(actor.definition, reach);
+  }
+  if (!reach) return [];
+  return targets.filter(p => Math.hypot(p.position[0] - actor.motion.x, p.position[1] - actor.motion.y, p.position[2] - actor.motion.z) <= reach);
+}
 
 function clearLane(actor: FleetActor, from: [number, number, number], to: [number, number, number], ctx: AirContext) {
   const delta = sub(to, from), distance = length(delta), direction = normalize(delta);
@@ -27,15 +57,19 @@ function clearLane(actor: FleetActor, from: [number, number, number], to: [numbe
 
 /** True reserves this mount for a nearby aircraft this tick. Bursts use seeded
  * miss distance and a bounded hit radius; heavy AA approximates a timed burst. */
-export function updateAntiAircraft(actor: FleetActor, m: MountDefinition, state: MountState, ctx: AirContext, dt: number): boolean {
+export function updateAntiAircraft(actor: FleetActor, m: MountDefinition, state: MountState, ctx: AirContext, dt: number, targets?: readonly Aircraft[]): boolean {
   const range = antiAircraftRange(m);
   if (!range || actor.damage.sunk || actor.damage.stability.combatLost || meanHullY(actor.motion) < -1 || state.hp <= 0 || state.ammo <= 0
     || (actor.controller === 'bot' && isPassiveAi(actor.bot?.aiLevel))) return false;
   const origin = muzzleWorld(m, state, 0, actor.motion);
   let target: Aircraft | undefined, closest = range;
-  for (const p of ctx.planes) {
-    if (p.team === actor.team || p.hp <= 0 || !airborne(p) || onFlightDeck(p)) continue;
-    const distance = length(sub(p.position, origin));
+  for (const p of targets ?? ctx.planes) {
+    if (p.hp <= 0 || !targets && (p.team === actor.team || !airborne(p) || onFlightDeck(p))) continue;
+    const dx = p.position[0] - origin[0], dy = p.position[1] - origin[1], dz = p.position[2] - origin[2];
+    // A component alone can reject a distant target. Survivors use the same
+    // hypot and strict comparison as the exhaustive query, without a vector.
+    if (Math.abs(dx) > closest || Math.abs(dy) > closest || Math.abs(dz) > closest) continue;
+    const distance = Math.hypot(dx, dy, dz);
     if (distance < closest) { target = p; closest = distance; }
   }
   if (!target) return false;

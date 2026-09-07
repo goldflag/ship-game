@@ -3,7 +3,7 @@ import { interpolate } from './hull';
 import { rotate } from './geometry';
 
 type Point = [number, number];
-interface Slice { z: number; dz: number; polygon: Point[]; }
+interface Slice { z: number; dz: number; polygon: Point[]; area: number; }
 const cache = new WeakMap<Hull, Slice[]>();
 /** Same station loft as hullContains; station-only hulls retain their rectangular sections. */
 export function hullSection(hull: Hull, station: number): Point[] {
@@ -26,7 +26,11 @@ function slices(hull: Hull): Slice[] {
   if (!result) {
     // Midpoint integration with station breaks keeps narrow end sections bounded.
     const stations = [...new Set([0, hull.length, ...hull.halfBreadths.map(p => p[0]), ...(hull.sections ?? []).map(s => s.station), ...Array.from({ length: 49 }, (_, i) => hull.length * i / 48)])].sort((a, b) => a - b);
-    result = stations.slice(1).map((end, i) => ({ z: hull.length / 2 - (end + stations[i]) / 2, dz: end - stations[i], polygon: hullSection(hull, (end + stations[i]) / 2) }));
+    result = stations.slice(1).map((end, i) => {
+      const polygon = hullSection(hull, (end + stations[i]) / 2);
+      return { z: hull.length / 2 - (end + stations[i]) / 2, dz: end - stations[i], polygon,
+        area: clippedMoment(polygon, 0, 0, 0).area };
+    });
     cache.set(hull, result);
   }
   return result;
@@ -52,6 +56,33 @@ function clippedMoment(polygon: Point[], nx: number, ny: number, limit: number) 
   return Math.abs(area) < 1e-12 ? { area: 0, x: 0, y: 0 } : { area: Math.abs(area) / 2, x: x / (3 * area), y: y / (3 * area) };
 }
 export interface Hydrostatics { volume: number; center: Vec3; }
+
+// A flotation trial needs volume only. Project each vertex once per solve and
+// retain the original clipped-edge summation order, including its closing edge.
+// Entirely wet/dry sections need no clipping; centers are computed only at the
+// final equilibrium by the full hydrostatics query below.
+function projectedArea(slice: Slice, heights: number[], low: number, high: number, limit: number): number {
+  if (limit >= high) return slice.area;
+  if (limit < low) return 0;
+  let area = 0, count = 0, firstX = 0, firstY = 0, lastX = 0, lastY = 0;
+  const append = (x: number, y: number) => {
+    if (count++ === 0) { firstX = x; firstY = y; }
+    else area += lastX * y - x * lastY;
+    lastX = x; lastY = y;
+  };
+  const polygon = slice.polygon;
+  for (let i = 0; i < polygon.length; i++) {
+    const next = (i + 1) % polygon.length, a = polygon[i], b = polygon[next];
+    const da = heights[i] - limit, db = heights[next] - limit;
+    if (da <= 0) append(a[0], a[1]);
+    if ((da < 0 && db > 0) || (da > 0 && db < 0)) {
+      const t = da / (da - db);
+      append(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t);
+    }
+  }
+  if (count) append(firstX, firstY);
+  return Math.abs(area) < 1e-12 ? 0 : Math.abs(area) / 2;
+}
 export function hydrostatics(hull: Hull, y = 0, roll = 0, pitch = 0): Hydrostatics {
   const nx = Math.sin(roll) * Math.cos(pitch), ny = Math.cos(roll) * Math.cos(pitch), nz = -Math.sin(pitch);
   let volume = 0, x = 0, cy = 0, z = 0;
@@ -65,8 +96,18 @@ export function flotation(hull: Hull, volume: number, roll = 0, pitch = 0): Hydr
   const bound = hull.length + hull.beam + hull.draft + hull.depth;
   const full = hydrostatics(hull, -bound, roll, pitch);
   if (volume >= full.volume) return { ...full, y: -bound, afloat: false };
+  const nx = Math.sin(roll) * Math.cos(pitch), ny = Math.cos(roll) * Math.cos(pitch), nz = -Math.sin(pitch);
+  const sections = slices(hull).map(slice => {
+    const heights = slice.polygon.map(([x, y]) => nx * x + ny * y);
+    return { slice, heights, low: Math.min(...heights), high: Math.max(...heights) };
+  });
+  const volumeAt = (y: number) => {
+    let total = 0;
+    for (const { slice, heights, low, high } of sections) total += projectedArea(slice, heights, low, high, -y - nz * slice.z) * slice.dz;
+    return total;
+  };
   let low = -bound, high = bound;
-  for (let i = 0; i < 27; i++) { const y = (low + high) / 2; if (hydrostatics(hull, y, roll, pitch).volume > volume) low = y; else high = y; }
+  for (let i = 0; i < 27; i++) { const y = (low + high) / 2; if (volumeAt(y) > volume) low = y; else high = y; }
   const y = (low + high) / 2;
   return { ...hydrostatics(hull, y, roll, pitch), y, afloat: true };
 }

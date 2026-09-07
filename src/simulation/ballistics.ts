@@ -54,11 +54,20 @@ export function solveDragArc(from: Vec3, target: Vec3, speed: number, drag: numb
   const tree = arcTree(drag);
   let bracket: ArcBracket | undefined = tree.root;
   for (let i = 0; i < 24; i++) {
-    const current: ArcBracket = bracket ?? arcBracket(a, b, drag);
-    const leftVertical = dy + current.leftDrop, rightVertical = dy + current.rightDrop;
-    const lower = (range2 + leftVertical * leftVertical) / current.leftFactor2 - speed * speed <
-      (range2 + rightVertical * rightVertical) / current.rightFactor2 - speed * speed;
-    if (lower) b = current.right; else a = current.left;
+    let left: number, right: number, leftFactor2: number, rightFactor2: number, leftDrop: number, rightDrop: number;
+    if (bracket) ({ left, right, leftFactor2, rightFactor2, leftDrop, rightDrop } = bracket);
+    else {
+      // Once the bounded cache fills, compute coefficients in scalars. A busy
+      // battle must not allocate a throwaway bracket at every search level.
+      left = (2 * a + b) / 3; right = (a + 2 * b) / 3;
+      const leftFactor = travelFactor(left, drag), rightFactor = travelFactor(right, drag);
+      leftFactor2 = leftFactor * leftFactor; rightFactor2 = rightFactor * rightFactor;
+      leftDrop = gravityDrop(left, drag, leftFactor); rightDrop = gravityDrop(right, drag, rightFactor);
+    }
+    const leftVertical = dy + leftDrop, rightVertical = dy + rightDrop;
+    const lower = (range2 + leftVertical * leftVertical) / leftFactor2 - speed * speed <
+      (range2 + rightVertical * rightVertical) / rightFactor2 - speed * speed;
+    if (lower) b = right; else a = left;
     const next = lower ? 'lower' : 'upper';
     if (bracket && i < 23 && !bracket[next] && tree.count < 2048) {
       bracket[next] = arcBracket(a, b, drag); tree.count++;
