@@ -146,6 +146,8 @@ export type AircraftRole = 'fighter' | 'dive-bomber' | 'torpedo-bomber';
 export interface AirWingDefinition {
   version: 1; launchPosition: Vec3; recoveryPosition: Vec3; serviceModuleId: string;
   launchIntervalSeconds: number; rearmSeconds: number;
+  /** Optional v1 operations limits; older blueprints retain three-plane launches. */
+  flightSize?: number; deckCapacity?: number; maxActiveFlights?: number;
   squadrons: { id: string; name: string; modelId: string; role: AircraftRole; count: number }[];
 }
 export interface ShipBlueprint {
@@ -576,6 +578,12 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     if (!modules.some(m => m.id === wing.serviceModuleId)) fail('airWing.serviceModuleId', 'unknown service module');
     numeric(wing.launchIntervalSeconds, 'airWing.launchIntervalSeconds', 1, 60);
     numeric(wing.rearmSeconds, 'airWing.rearmSeconds', 5, 600);
+    for (const [key, max] of [['flightSize', 6], ['deckCapacity', 24], ['maxActiveFlights', 4]] as const) {
+      if (wing[key] !== undefined) {
+        numeric(wing[key], `airWing.${key}`, 1, max);
+        if (!Number.isInteger(wing[key])) fail(`airWing.${key}`, 'expected an integer');
+      }
+    }
     const squadrons = list(wing.squadrons, 'airWing.squadrons', 3).map(s => record(s, 'squadron'));
     if (!squadrons.length) fail('airWing.squadrons', 'requires aircraft');
     unique(squadrons, 'airWing.squadrons');
@@ -583,9 +591,10 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     for (const squadron of squadrons) {
       id(squadron.id, 'squadron.id'); text(squadron.name, 'squadron.name');
       if (models[String(squadron.modelId)] !== squadron.role || !squadron.role) fail('squadron.modelId', 'unknown aircraft or incompatible role');
-      numeric(squadron.count, 'squadron.count', 1, 6);
+      numeric(squadron.count, 'squadron.count', 1, 36);
       if (!Number.isInteger(squadron.count)) fail('squadron.count', 'expected an integer');
     }
+    if (squadrons.reduce((n, s) => n + Number(s.count), 0) > 96) fail('airWing.squadrons', 'maximum inventory is 96 aircraft');
   }
   if (b.submarine !== undefined) {
     const s = record(b.submarine, 'submarine');

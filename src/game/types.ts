@@ -23,6 +23,8 @@ export interface Telemetry {
   gunneryOpen?: boolean;
   shellFollow?: ShellFollow['phase'];
   followedAircraftId?: string;
+  airOperationsOpen?: boolean;
+  selectedFlightId?: string;
   fps: number;
   backend: string;
   trail: { x: number; z: number }[];

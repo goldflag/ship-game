@@ -1,3 +1,4 @@
+import { AirOperations } from './AirOperations';
 import { FlightControl } from './FlightControl';
 import { type CSSProperties, type PointerEvent } from 'react';
 import type { Battery } from '../ships/blueprint';
@@ -137,20 +138,22 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
 
   return <div className={`fleet-hud ${visible ? '' : 'fleet-hud-hidden'} ${data.binoculars ? 'fleet-in-optics' : ''}`} inert={!visible} style={{ '--map-factor': mapSize / 400 } as CSSProperties}>
     <BearingTape degrees={degrees}/>
-    {data.combat?.battle && <BattleStatus combat={data.combat} game={game}/>}
+    {data.combat?.battle && <BattleStatus combat={data.combat} game={game}>
+      {data.combat.airWing && !data.airOperationsOpen && <FlightControl combat={data.combat} game={game} bindings={bindings}/>}
+    </BattleStatus>}
     <div className="fleet-top-actions"><span className="fleet-fps" aria-label={`${data.fps} frames per second`}><strong>{data.fps || '—'}</strong> FPS</span><button className="icon-button" aria-label="Pause and settings" title="Pause · Esc" onClick={() => game?.setPaused(true)}><Icon name="pause" size={17}/></button></div>
     {data.combat?.battle && <BattleDamageLog combat={data.combat} obscured={!!data.gunneryOpen || !!data.inspecting}/>}
 
     {followingShell && <div className="fleet-shell-status" role="status"><strong>{data.shellFollow === 'impact' ? 'Shell impact' : 'Following shell'}</strong><span>{data.shellFollow === 'impact' ? 'Returning to ship…' : `${bindingLabel(bindings, 'shellFollow')} to return to ship`}</span></div>}
     {data.followedAircraftId && <div className="fleet-shell-status fleet-aircraft-status"><strong>Following {data.followedAircraftId.split('/').slice(1).join(' / ')}</strong><button onClick={e => { game?.returnToShip(); e.currentTarget.blur(); }}>Return to ship</button><span>{bindingLabel(bindings, 'camera')} or {bindingLabel(bindings, 'recenter')} to return · Hold Ctrl to use controls</span></div>}
-    {!data.inspecting && !following && <div className={`fleet-sight ${data.binoculars ? 'fleet-sight-optics' : 'fleet-sight-chase'}`} aria-hidden="true">
+    {!data.inspecting && !following && !data.airOperationsOpen && <div className={`fleet-sight ${data.binoculars ? 'fleet-sight-optics' : 'fleet-sight-chase'}`} aria-hidden="true">
       {data.binoculars ? <><svg viewBox="0 0 540 80" fill="none"><path d="M10 40h238m44 0h238M270 15v14m0 22v14" stroke="currentColor"/>
         {Array.from({ length: 21 }, (_, i) => i === 10 ? null : <g key={i}><path d={`M${20 + i * 25} 40v${i % 2 === 0 ? 9 : 5}`} stroke="currentColor"/>{i % 2 === 0 && <text x={20 + i * 25} y="65" fill="currentColor" textAnchor="middle" fontSize="10">{Math.abs(i - 10)}</text>}</g>)}
         <circle cx="270" cy="40" r="5" stroke="currentColor"/><circle cx="270" cy="40" r="1.5" fill="currentColor"/></svg>
         <div className="fleet-scope-readout"><strong>{((data.combat?.range ?? 0) / 1000).toFixed(2)} <small>km</small></strong><span>{data.magnification}× <small>SCROLL TO ZOOM</small></span></div></> :
         <svg viewBox="0 0 44 44" fill="none"><path d="M3 22h9m20 0h9M22 3v9m0 20v9" stroke="currentColor"/><circle cx="22" cy="22" r="5" stroke="currentColor"/><circle cx="22" cy="22" r="1" fill="currentColor"/></svg>}
     </div>}
-    {!data.pointerLocked && !data.inspecting && !data.gunneryOpen && !following && <button className="fleet-capture-hint" onClick={() => game?.capturePointer()}>Click sea to aim <span>Hold Ctrl for cursor</span></button>}
+    {!data.pointerLocked && !data.inspecting && !data.gunneryOpen && !following && !data.airOperationsOpen && <button className="fleet-capture-hint" onClick={() => game?.capturePointer()}>Click sea to aim <span>Hold Ctrl for cursor</span></button>}
 
     <section className="fleet-ship" aria-label="Ship condition and helm">
       {damage && damage.amount > 0 && <p className="fleet-hit-notice" role="status" style={{ opacity: damage.opacity }}><strong>−{Math.max(1, Math.round(damage.amount)).toLocaleString()}</strong><span>Hull damaged</span></p>}
@@ -168,7 +171,7 @@ export function FleetHud({ data, game, visible, bindings }: FleetHudProps) {
     </section>
 
     <ActiveArmament data={data} game={game} visible={visible} bindings={bindings}/>
-    {data.combat?.airWing && <FlightControl combat={data.combat} game={game} followedAircraftId={data.followedAircraftId}/> }
+    {data.combat?.airWing && data.airOperationsOpen && <AirOperations data={data} game={game} bindings={bindings}/>}
     {data.combat?.submarine && <DepthControl combat={data.combat} game={game} bindings={bindings}/>}
     {(data.gunneryOpen || data.inspecting) && <GunneryPanel bindings={bindings} data={data} game={game} expanded={!!data.gunneryOpen} onExpand={value => game?.setGunneryOpen(value)}/>}
     {data.binoculars && data.aimModule !== 'point' && data.aimMarker?.visible && <div className="aim-marker" aria-hidden="true" style={{ left: `${data.aimMarker.x}%`, top: `${data.aimMarker.y}%` }}><span/><small>TRACKED AIM</small></div>}

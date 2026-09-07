@@ -22,6 +22,7 @@ export const INPUT_ACTIONS = [
   { id: 'fullscreen', label: 'Toggle fullscreen', group: 'View' },
   { id: 'chartLarger', label: 'Increase minimap size', group: 'View' },
   { id: 'chartSmaller', label: 'Decrease minimap size', group: 'View' },
+  { id: 'airOperations', label: 'Open / close air operations map', group: 'View' },
 ] as const;
 
 export type InputAction = typeof INPUT_ACTIONS[number]['id'];
@@ -38,6 +39,7 @@ export function defaultKeybindings(): Keybindings {
     depthCharges: ['Digit4', null],
     dive: ['KeyZ', null], rise: ['KeyX', null], emergencyBlow: ['KeyB', null],
     chartLarger: ['Equal', 'NumpadAdd'], chartSmaller: ['Minus', 'NumpadSubtract'],
+    airOperations: ['KeyM', null],
   };
 }
 
@@ -88,7 +90,7 @@ export function keybindingsOf(value: unknown): Keybindings {
     result[id] = [pair[0], pair[1]];
   }
   // Add new actions to older saves without discarding existing custom controls.
-  const additions = ['shellFollow', 'torpedoes', 'depthCharges', 'dive', 'rise', 'emergencyBlow'];
+  const additions = ['shellFollow', 'torpedoes', 'depthCharges', 'dive', 'rise', 'emergencyBlow', 'airOperations'];
   for (const id of [...missing.filter(id => !additions.includes(id)), ...missing.filter(id => additions.includes(id))]) {
     const preferred = defaults[id].filter((code): code is string => code !== null && !used.has(code));
     if (!additions.includes(id) && preferred.length !== defaults[id].filter(Boolean).length) return defaults;
