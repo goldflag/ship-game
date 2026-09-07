@@ -79,3 +79,27 @@ test('older saves gain depth charges without taking an existing custom 4 binding
   expect(result.depthCharges[0]).not.toBeNull();
   expect(keybindingsOf(result)).toEqual(result);
 });
+
+test('older saves gain periscope without taking a custom P binding', () => {
+  const { periscope: _newAction, ...saved } = defaultKeybindings();
+  saved.camera = ['KeyP', null];
+  const loaded = keybindingsOf(saved);
+  expect(loaded.camera).toEqual(saved.camera);
+  expect(loaded.periscope[0]).toBeTruthy();
+  expect(loaded.periscope).not.toContain('KeyP');
+  expect(keybindingsOf(loaded)).toEqual(loaded);
+});
+
+test('older saves gain surface and deep-dive shortcuts without taking custom U or J keys', () => {
+  const { surface: _surface, dive50: _dive50, ...saved } = defaultKeybindings();
+  saved.camera = ['KeyU', null]; saved.fire = ['KeyJ', null];
+  const loaded = keybindingsOf(saved);
+  expect(loaded.camera).toEqual(saved.camera);
+  expect(loaded.fire).toEqual(saved.fire);
+  for (const action of ['surface', 'dive50'] as const) {
+    expect(loaded[action][0]).toBeTruthy();
+    expect(loaded[action]).not.toContain('KeyU');
+    expect(loaded[action]).not.toContain('KeyJ');
+  }
+  expect(keybindingsOf(loaded)).toEqual(loaded);
+});

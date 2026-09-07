@@ -121,6 +121,7 @@ export class Game {
   private battleTimeOfDay?: TimeOfDayId;
   private battleWeather?: WeatherId;
   private surfaceWaterAbsorption = new THREE.Color();
+  private surfaceWaterDistortion = 0;
   private sky?: SkySystem;
   private shipWake?: ShipWake;
   private pipeline?: THREE.RenderPipeline;
@@ -184,7 +185,9 @@ export class Game {
       shellType: () => this.selectAmmunition(this.ammunition[this.battery] === 'ap' ? 'he' : 'ap'),
       airOperations: () => this.setAirOperationsOpen(!this.airOperationsOpen),
       depth: direction => this.setDepth((this.simulation.player.submarine?.targetDepthM ?? 0) + direction * DEPTH_STEP_M),
+      depthPreset: depthM => this.setDepth(depthM),
       emergencyBlow: () => this.setDepth(0, true),
+      periscope: () => this.togglePeriscope(),
     });
     this.input.setEnabled(false);
     this.observer = new ResizeObserver(() => { this.resizePending = true; });
@@ -260,6 +263,7 @@ export class Game {
     this.underwaterPassVisibility = new UnderwaterPassVisibility(this.water, this.renderer);
     this.torpedoPreview.setWater(this.water);
     this.surfaceWaterAbsorption.copy(this.water.color.absorptionColor);
+    this.surfaceWaterDistortion = this.water.underwaterDistortion.intensity;
     this.updateSeaState();
 
     this.callbacks.progress('Lighting the sky', 0.59);
@@ -546,6 +550,9 @@ export class Game {
       const submergedView = THREE.MathUtils.smoothstep(-this.camera.position.y, 0, 2);
       this.water!.color.absorptionColor.copy(this.surfaceWaterAbsorption)
         .multiplyScalar(THREE.MathUtils.lerp(1, .05, submergedView));
+      // Keep surface-looking-in refraction; soften the full-screen underwater wobble.
+      this.water!.underwaterDistortion.intensity = this.surfaceWaterDistortion
+        * THREE.MathUtils.lerp(1, .15, submergedView);
       // Fixed-step mode with zero delta renders without stepping the wake's
       // leapfrog/foam integrators. Host-clock update(0) would still step them.
       this.water!.deterministic = this.paused;
@@ -711,6 +718,10 @@ export class Game {
     this.gunneryOpen = open;
     if (open) { this.stopShellFollow(); this.rig.releasePointer(); }
     else if (!this.inspecting) this.rig.capturePointer();
+  }
+  togglePeriscope(): void {
+    if (!this.definition.submarine || this.simulation.player.damage.sunk) return;
+    this.toggleBinoculars();
   }
   toggleBinoculars(): void {
     if (this.paused || this.inPort || this.inspecting || this.airOperationsOpen) return;
