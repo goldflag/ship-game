@@ -1,9 +1,10 @@
 # Fleet attachment repair
 
-Scope: inspect and repair floating equipment on every registered ship, including
+Scope: inspect and repair floating equipment on the ten ships registered at the
+start of this pass, including
 AA mounts, their platforms, radar/director equipment, deck fittings, boats and
 underwater appendages. Reconcile changed fittings with each preset's dated fit.
-The repair and review pass is complete for all ten registered presets. Historical
+The repair and review pass is complete for those ten presets. Historical
 reconstruction limits remain documented below and in each discrepancy register.
 
 The initial source was commit `b020bbf`, with a clean worktree. No Blender MCP tools
@@ -93,7 +94,7 @@ were used where available. No competitor geometry or textures enter the builds.
 
 ## Model verification
 
-Every registered ship has been rebuilt from the repaired original recipes and
+Every ship in the initial ten-preset roster has been rebuilt from the repaired original recipes and
 reviewed in profile, plan, bow, stern and quarter views. The final contact reports
 match both the published definition hash and the original Blender file SHA-256.
 
@@ -168,3 +169,27 @@ Run `python3 assets/ships/attachment-audit/verify.py` after capturing every curr
 model. It rejects stale hashes, missing review images, lost pre-existing node
 IDs, incomplete runtime poses and newly detached candidates. The resulting
 `reports/verification.json` records model/source hashes and retained image hashes.
+
+## PR integration with master
+
+Master `54bf4113` adds King George V after the initial audit baseline. It was
+rebuilt as another consumer of the shared gun recipes. All 114 existing exported
+node IDs survive, its dimension checks pass, and its five fixed views and twelve
+in-game articulation poses were inspected. `reports/pr-integration.json` records
+this additional integration evidence; it is separate from the ten-ship contact
+audit above. King George V's existing historical discrepancy register still
+applies.
+
+Enterprise's runtime captures were refreshed with master's folding aircraft
+wings. The new wing-fold rendering test now composes folding with the aircraft's
+resting pitch; gear-contact tests still pass for all three aircraft and all LODs.
+An existing weather-test fixture was updated for master's funnel-smoke object.
+Comparison packages were regenerated against the merged references. Generated
+review ZIPs remain local under master's ignore rules.
+
+After integration, `bun test --timeout 20000` passes all 650 tests across 93 files,
+and `bun run build` passes all eleven ship checks, aircraft checks, TypeScript and
+the production bundle. Logs are retained in `reports/pr-tests.txt` and
+`reports/pr-build.txt`. The initial six-worker run exceeded the default five-second
+limit in a Yamato penetration test; the complete rerun used the explicit timeout
+above and passed without changing the simulation assertion.

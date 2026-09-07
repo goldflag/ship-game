@@ -19,7 +19,9 @@ plan=json.loads(planpath.read_text())
 scheme=json.loads((cache/'scheme.json').read_text())
 if hashlib.sha256((cache/'scheme.json').read_bytes()).hexdigest()!=manifest['schemeSha256']:raise ValueError('Stale reference scene graph')
 files={f['path']:f for f in manifest['files']}
-scenegraph={'nodes':copy.deepcopy(scheme['A_Hull'])}
+configuration=plan.get('configuration',{})
+hull_key=configuration.get('hull','A_Hull')
+scenegraph={'nodes':copy.deepcopy(scheme[hull_key])}
 def child_items(node):
     children=node.get('nodes',{})
     return enumerate(children) if isinstance(children,list) else children.items()
@@ -28,8 +30,12 @@ def find(node,key):
         if name==key:return child
         match=find(child,key)
         if match is not None:return match
-for component,items in scheme.items():
-    if component=='A_Hull' or not isinstance(items,dict):continue
+# Researchable hull variants must be selected, not applied on top of one another:
+# a later B_Hull replacement otherwise discards guns already mounted on A_Hull.
+components=configuration.get('components',list(scheme))
+for component in components:
+    items=scheme[component]
+    if component==hull_key or not isinstance(items,dict):continue
     for name,payload in items.items():
         target=find(scenegraph,name)
         if target is None:continue

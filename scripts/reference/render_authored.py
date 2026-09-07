@@ -12,9 +12,10 @@ bpy.ops.import_scene.gltf(filepath=str(model))
 for ob in list(bpy.context.scene.objects):
  if not ob.parent:ob.matrix_world=Matrix.Rotation(-math.pi/2,4,'Z')@ob.matrix_world
 main={m['id'] for m in definition['mounts'] if m['battery']=='main'}
+structures={s['id'] for s in definition.get('structures',[])}
 for ob in bpy.context.scene.objects:
  assembly=ob.get('assemblyId','')
- ob['referenceRole']='main' if assembly in main else 'hull-superstructure' if assembly.startswith('hull') or assembly.startswith('superstructure') else 'fittings'
+ ob['referenceRole']='main' if assembly in main else 'hull-superstructure' if assembly.startswith('hull') or assembly.startswith('superstructure') or assembly in structures else 'fittings'
 planpath=source/'references/capture-plan.json';plan=json.loads(planpath.read_text())
 out=source/'generated/comparison/authored'
 captures=render_views(plan,out,[o for o in bpy.context.scene.objects if o.type=='MESH'],{'id':ship,'contentHash':definition['contentHash'],'modelSha256':hashlib.sha256(model.read_bytes()).hexdigest()})

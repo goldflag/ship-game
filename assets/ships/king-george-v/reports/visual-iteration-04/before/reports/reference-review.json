@@ -1,0 +1,4 @@
+{
+  "result": "{\"title\":\"HMS King George V \u00b7 early 1941 reference review\",\"controls\":[{\"id\":\"view\",\"value\":\"main-a-quarter\",\"options\":30},{\"id\":\"reference\",\"value\":\"reference\",\"options\":2},{\"id\":\"section\",\"value\":\"frame-30\",\"options\":5}],\"visibleImages\":[{\"src\":\"reference/main-a-quarter.png\",\"width\":1800,\"complete\":true},{\"src\":\"authored/main-a-quarter.png\",\"width\":1800,\"complete\":true}]}",
+  "origin": "http://localhost:61731/ship-reference/king-george-v/index.html"
+}

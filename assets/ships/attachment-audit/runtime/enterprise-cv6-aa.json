@@ -1,24 +1,25 @@
 {
-  "camera": [
-    204,
-    22,
-    -50
-  ],
+  "shipId": "enterprise-cv6",
   "contentHash": "79221cca0c852952ce41c01ac1cbc3b654a4157baf955d63eeeff0415ebf3f95",
+  "targetBlender": [
+    45,
+    12,
+    17
+  ],
   "offsetBlender": [
     5,
     24,
     5
   ],
   "pose": {
+    "trainFraction": 1,
     "elevationFraction": 1,
-    "recoilFraction": 1,
-    "trainFraction": 0
+    "recoilFraction": 1
   },
-  "shipId": "enterprise-cv6",
-  "targetBlender": [
-    45,
-    12,
-    17
-  ]
+  "camera": [
+    204,
+    22,
+    -50
+  ],
+  "browser": "Isolated headless Chrome / Metal; fallback after Orca tab closures"
 }

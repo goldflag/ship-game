@@ -247,3 +247,11 @@ describe('versioned aircraft catalog', () => {
     expect(() => validateAircraftCatalog({ schemaVersion: 1, aircraft: [{ ...aircraft, length: NaN }] })).toThrow('invalid length');
   });
 });
+
+
+test('folding carrier variants require separate wing pivots even if basic controls exist', () => {
+  for (const id of ['f4f-4-wildcat', 'tbd-1-devastator']) {
+    const source = fixture(); source.gltf.scenes[0].extras.aircraftId = id;
+    expect(() => inspectAircraftGlb(source.encode(), { ...aircraft, id }, contentHash)).toThrow('Missing required export node wing.fold.port');
+  }
+});

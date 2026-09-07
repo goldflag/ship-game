@@ -1,0 +1,216 @@
+{
+  "schemaVersion": 1,
+  "method": "Manual pixel picks from unchanged retained raster captures. Absolute spans use capture-plan orthographic scale. Local comparisons permit translation only, without scaling, warping or mesh access.",
+  "sourceImageRoot": "../../references/gamemodels3d",
+  "sourceUrl": "https://gamemodels3d.com/en/games/worldofwarships/vehicles/pbsb107",
+  "uncertaintyPixels": 4,
+  "measurements": [
+    {
+      "feature": "Quad body length",
+      "view": "main-a",
+      "axis": "x",
+      "beforePixels": [
+        523,
+        1167
+      ],
+      "referencePixels": [
+        444,
+        1164
+      ],
+      "pixelsPerMeter": 54.54545454545455,
+      "beforeM": 11.806666666666667,
+      "referenceM": 13.2,
+      "beforeRelativeError": -0.10555555555555551,
+      "afterPixels": [
+        447,
+        1167
+      ],
+      "afterM": 13.2,
+      "afterRelativeError": 0.0
+    },
+    {
+      "feature": "Twin body length",
+      "view": "main-b",
+      "axis": "x",
+      "beforePixels": [
+        594,
+        1134
+      ],
+      "referencePixels": [
+        480,
+        1190
+      ],
+      "pixelsPerMeter": 60,
+      "beforeM": 9.0,
+      "referenceM": 11.833333333333334,
+      "beforeRelativeError": -0.23943661971830987,
+      "afterPixels": [
+        480,
+        1194
+      ],
+      "afterM": 11.9,
+      "afterRelativeError": 0.005633802816901401
+    },
+    {
+      "feature": "Quad roof width",
+      "view": "main-a-top",
+      "axis": "y",
+      "beforePixels": [
+        448,
+        1052
+      ],
+      "referencePixels": [
+        476,
+        1023
+      ],
+      "pixelsPerMeter": 51.724137931034484,
+      "beforeM": 11.677333333333333,
+      "referenceM": 10.575333333333333,
+      "beforeRelativeError": 0.1042047531992687,
+      "afterPixels": [
+        477,
+        1023
+      ],
+      "afterM": 10.556,
+      "afterRelativeError": -0.001828153564899515
+    },
+    {
+      "feature": "Quad roof crown X",
+      "view": "main-a-top",
+      "axis": "x",
+      "beforePixels": [
+        776
+      ],
+      "referencePixels": [
+        605
+      ],
+      "pixelsPerMeter": 51.724137931034484,
+      "referenceMinusBeforeM": -3.306,
+      "afterPixels": [
+        605
+      ],
+      "referenceMinusAfterM": 0.0
+    },
+    {
+      "feature": "Twin exposed barrel",
+      "view": "main-a-top",
+      "axis": "x",
+      "beforePixels": [
+        175,
+        813
+      ],
+      "referencePixels": [
+        224,
+        790
+      ],
+      "pixelsPerMeter": 51.724137931034484,
+      "beforeM": 12.334666666666667,
+      "referenceM": 10.942666666666666,
+      "beforeRelativeError": 0.12720848056537104,
+      "afterPixels": [
+        228,
+        792
+      ],
+      "afterM": 10.904,
+      "afterRelativeError": -0.0035335689045935537
+    },
+    {
+      "feature": "Quad front projected height",
+      "view": "main-a",
+      "axis": "y",
+      "beforePixels": [
+        446,
+        617
+      ],
+      "referencePixels": [
+        531,
+        674
+      ],
+      "pixelsPerMeter": 54.54545454545455,
+      "beforeM": 3.135,
+      "referenceM": 2.6216666666666666,
+      "beforeRelativeError": 0.19580419580419584,
+      "afterPixels": [
+        474,
+        617
+      ],
+      "afterM": 2.6216666666666666,
+      "afterRelativeError": 0.0
+    },
+    {
+      "feature": "Twin front projected height",
+      "view": "main-b",
+      "axis": "y",
+      "beforePixels": [
+        454,
+        645
+      ],
+      "referencePixels": [
+        579,
+        742
+      ],
+      "pixelsPerMeter": 60,
+      "beforeM": 3.183333333333333,
+      "referenceM": 2.716666666666667,
+      "beforeRelativeError": 0.17177914110429437,
+      "afterPixels": [
+        486,
+        645
+      ],
+      "afterM": 2.65,
+      "afterRelativeError": -0.024539877300613577
+    }
+  ],
+  "historicalCrossChecks": [
+    {
+      "source": "rn-mounting-section.jpg",
+      "document": "RN plate 62, Mark II/III flashproofing arrangements",
+      "twinGunhousePixelsX": [
+        11,
+        461
+      ],
+      "quadGunhousePixelsX": [
+        604,
+        1098
+      ],
+      "twinToQuadLengthRatio": 0.9109311740890689,
+      "beforeCatalogRatio": 0.7627118644067796,
+      "revisedCatalogRatio": 0.9015151515151516,
+      "limits": "Ratio only. Diagram is an explanatory section photographed off-axis; no recovered component scale or exact dimensional claim."
+    },
+    {
+      "source": "rn-quadruple-turret-drawing.jpg",
+      "document": "RN plate 2, Mark III gunhouse plan",
+      "gunAxisPixelsY": [
+        351,
+        501,
+        650,
+        800
+      ],
+      "bodyExtentPixelsX": [
+        234,
+        1018
+      ],
+      "estimatedLengthM": 12.77308864142539,
+      "limits": "Approximately 12.8 m from gun-spacing calibration, versus approximately 13.2 m in the game raster. Apparent roof width also differs; game raster roof proportion chosen for this visual revision. Treat 0.5 m or larger uncertainty; photographed plan is not a recovered set of offsets."
+    },
+    {
+      "source": "historical/j9645-original.jpg",
+      "document": "Vickers July 1941 profile NPB5308",
+      "quadBodyExtentPixelsX": [
+        3174,
+        3418
+      ],
+      "quadBodyHeightPixelsY": [
+        651,
+        716
+      ],
+      "pixelsPerMeter": 19.253126651400386,
+      "estimatedLengthM": 12.673266239707228,
+      "estimatedHeightM": 3.3760750228728273,
+      "limits": "Approximately 12.7 m length and 3.4 m crown-to-floor height, versus approximately 13.2 m and 2.9 m in game raster. Scan line choice and load datum uncertain. This revision follows the game comparison locally and records the disagreement, rather than claiming both sources match."
+    }
+  ],
+  "registrationLimits": "The source game deck is around 1.2 m below the authored standard-load deck in these cameras. No global vertical shift was applied to production geometry. Height picks contain the small Y projection from the 2.67 degree downward camera; crown/body ratios, not absolute waterline positions, guide this correction. Apparent body dimensions are comparison evidence, not historical certification.",
+  "contentHash": "9fe82d8913ea18f6983345a0f7819e434bc1ab48c4d03f235f94b33e23579f2f"
+}

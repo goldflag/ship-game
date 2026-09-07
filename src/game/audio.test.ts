@@ -69,3 +69,10 @@ test('every runtime sound has its generated original, prompt, and checked PCM ou
     expect(clip.processed.peakDbfs).toBeLessThanOrEqual(-2.99);
   }
 });
+
+test('aircraft sea impacts play a splash once, while aircraft state changes do not play armor hits', () => {
+  const cursor = new CombatAudioEvents();
+  const events = [event(1, 'aircraft-lost'), event(2, 'aircraft-crash'), event(3, 'bomb-release'), event(4, 'aircraft-recovered')];
+  expect(cursor.consume(events, 10).map(cue => cue.id)).toEqual(['splash']);
+  expect(cursor.consume(events, 10)).toHaveLength(0);
+});

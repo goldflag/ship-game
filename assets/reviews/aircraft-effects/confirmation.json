@@ -1,0 +1,61 @@
+{
+  "pausedEffectsUnchanged": true,
+  "review": {
+    "aircraft": {
+      "batches": 0,
+      "bombs": 0,
+      "contacts": 0,
+      "instances": 0,
+      "models": 9,
+      "payloads": 0,
+      "tracers": 0
+    },
+    "backend": "webgpu",
+    "effects": {
+      "aircraftSmoke": 209,
+      "depthCharges": 0,
+      "flashes": 0,
+      "foam": 0,
+      "particleCapacity": 3040,
+      "shells": 0,
+      "smoke": 209,
+      "spray": 173,
+      "torpedoes": 0
+    },
+    "events": [
+      {
+        "kind": "aircraft-lost",
+        "position": [
+          0,
+          180,
+          -800
+        ],
+        "tick": 1
+      },
+      {
+        "kind": "aircraft-crash",
+        "position": [
+          298.3966659715516,
+          0,
+          -983.6287175209552
+        ],
+        "tick": 319
+      }
+    ],
+    "kind": "crash",
+    "plane": {
+      "phase": "lost",
+      "position": [
+        298.3966659715516,
+        0,
+        -983.6287175209552
+      ],
+      "wreck": {
+        "age": 5.2999999999999865,
+        "impacted": true,
+        "rollRate": 0.8400000000000001
+      }
+    },
+    "seconds": 5.9
+  }
+}

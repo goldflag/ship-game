@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "scope": "Enterprise 1942 folding-wing presentation; retrieved 2026-09-06",
+  "sources": [
+    {
+      "url": "https://www.asme.org/about-asme/engineering-history/landmarks/238-grumman-wildcat-sto-wing-wing-folding",
+      "publisher": "ASME",
+      "supports": "F4F-4 Sto-Wing mechanism developed by Grumman to reduce stowage footprint; compound pivot mechanism.",
+      "limitation": "Does not specify our hinge coordinates or runtime angle."
+    },
+    {
+      "url": "https://www.history.navy.mil/content/history/museums/nnam/explore/collections/aircraft/f/f4f-3a-wildcat.html",
+      "publisher": "National Naval Aviation Museum",
+      "supports": "Wing-fold mechanism introduced for F4F-4; variant distinction from fixed-wing F4F-3."
+    },
+    {
+      "url": "https://secure.boeingimages.com/archive/TBD-1-Devastator-with-Wings-Folded-2F3XC58YFU.html",
+      "publisher": "Boeing Images",
+      "supports": "Archival photograph and caption for TBD folding outer panels; hydraulic operation.",
+      "limitation": "Photo is reference only, not geometry or texture input."
+    },
+    {
+      "url": "https://www.midway.org/visit/our-exhibits/tbd-devastator-exhibit",
+      "publisher": "USS Midway Museum",
+      "supports": "TBD hydraulically folding wings."
+    },
+    {
+      "url": "https://www.usni.org/magazines/naval-history-magazine/2000/february/ship-killers",
+      "publisher": "US Naval Institute",
+      "supports": "SBD wings did not fold."
+    },
+    {
+      "url": "https://www.navsource.net/archives/02/06.htm",
+      "publisher": "NavSource",
+      "supports": "Enterprise flight deck 802 by 86 feet, or 244.4 by 26.2 metres.",
+      "limitation": "Secondary source; max bounds do not describe every station of the tapered deck."
+    }
+  ],
+  "geometry": "Original recipe panels split at existing shape fold-line span datums. Wildcat compound axis, inferred forward-spar longitudinal pivot and 120-degree travel; Devastator longitudinal pivot and 90-degree travel are simplified visual reconstructions. Four-second actuation is gameplay timing. No mechanical linkage, crew or deck collision solver."
+}

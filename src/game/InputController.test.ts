@@ -18,7 +18,7 @@ describe('keyboard gameplay controls', () => {
     Object.defineProperty(globalThis, 'window', { configurable: true, value: events });
     Object.defineProperty(globalThis, 'document', { configurable: true, value: { querySelector: () => modal ? {} : null } });
     Object.defineProperty(globalThis, 'HTMLElement', { configurable: true, value: class {} });
-    actions = { pause: mock(), camera: mock(), recenter: mock(), hud: mock(), fullscreen: mock(), optics: mock(), battery: mock(), cursor: mock(), chartSize: mock(), gunnery: mock(), shellFollow: mock(), depth: mock(), emergencyBlow: mock(), airOperations: mock() };
+    actions = { pause: mock(), camera: mock(), recenter: mock(), hud: mock(), fullscreen: mock(), optics: mock(), battery: mock(), cursor: mock(), chartSize: mock(), gunnery: mock(), shellFollow: mock(), shellType: mock(), depth: mock(), emergencyBlow: mock(), airOperations: mock() };
     input = new InputController(actions, defaultKeybindings());
   });
   afterEach(() => {
@@ -40,18 +40,24 @@ describe('keyboard gameplay controls', () => {
     key('keydown', 'Space'); expect(input.order).toBe(1);
   });
 
-  test('custom steering and firing hold until release and clear on a remap or pause', () => {
+  test('custom steering latches one notch per tap while firing clears on release or pause', () => {
     const bindings = defaultKeybindings(); bindings.port = ['KeyJ', null]; bindings.fire = [null, 'KeyL'];
     input.setBindings(bindings);
     key('keydown', 'KeyA'); key('keydown', 'KeyQ');
     expect(input.sample().rudder).toBe(0); expect(input.firing).toBe(false);
     key('keydown', 'KeyJ'); key('keydown', 'KeyL');
-    expect(input.sample().rudder).toBe(-1); expect(input.firing).toBe(true);
+    expect(input.sample().rudder).toBe(-.5); expect(input.firing).toBe(true);
+    key('keydown', 'KeyJ', { repeat: true }); expect(input.sample().rudder).toBe(-.5);
     key('keyup', 'KeyJ'); key('keyup', 'KeyL');
-    expect(input.sample().rudder).toBe(0); expect(input.firing).toBe(false);
+    expect(input.sample().rudder).toBe(-.5); expect(input.firing).toBe(false);
     key('keydown', 'KeyL'); input.setBindings(defaultKeybindings()); expect(input.firing).toBe(false);
     key('keydown', 'KeyQ'); input.setEnabled(false); expect(input.firing).toBe(false);
     input.setEnabled(true); expect(input.firing).toBe(false);
+    expect(input.sample().rudder).toBe(-.5);
+    key('keydown', 'KeyD'); key('keyup', 'KeyD'); expect(input.sample().rudder).toBe(0);
+    for (let i = 0; i < 5; i++) { key('keydown', 'KeyD'); key('keyup', 'KeyD'); }
+    expect(input.sample().rudder).toBe(1);
+    input.setRudder(0); expect(input.sample().rudder).toBe(0);
   });
 
   test('view shortcuts honor custom bindings and keep Esc available', () => {
@@ -83,6 +89,16 @@ describe('keyboard gameplay controls', () => {
     expect(actions.shellFollow).toHaveBeenCalledTimes(2);
     input.setEnabled(false); key('keydown', 'KeyV');
     expect(actions.shellFollow).toHaveBeenCalledTimes(2);
+  });
+
+  test('shell selection switches once per press, can be rebound, and respects pause and dialogs', () => {
+    key('keydown', 'KeyE'); key('keydown', 'KeyE', { repeat: true }); key('keyup', 'KeyE');
+    expect(actions.shellType).toHaveBeenCalledTimes(1);
+    const bindings = defaultKeybindings(); bindings.shellType = ['KeyV', null]; input.setBindings(bindings);
+    key('keydown', 'KeyE'); expect(actions.shellType).toHaveBeenCalledTimes(1);
+    key('keydown', 'KeyV'); expect(actions.shellType).toHaveBeenCalledTimes(2);
+    input.setEnabled(false); key('keydown', 'KeyV'); expect(actions.shellType).toHaveBeenCalledTimes(2);
+    input.setEnabled(true); modal = true; key('keydown', 'KeyV'); expect(actions.shellType).toHaveBeenCalledTimes(2);
   });
 
   test('Shift taps toggle optics, Shift-plus resizes chart, and Ctrl holds the cursor', () => {

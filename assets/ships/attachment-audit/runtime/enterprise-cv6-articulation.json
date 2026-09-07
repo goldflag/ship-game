@@ -1,82 +1,83 @@
 {
-  "backend": "webgpu",
-  "contentHash": "79221cca0c852952ce41c01ac1cbc3b654a4157baf955d63eeeff0415ebf3f95",
   "kind": "articulation",
+  "shipId": "enterprise-cv6",
+  "contentHash": "79221cca0c852952ce41c01ac1cbc3b654a4157baf955d63eeeff0415ebf3f95",
+  "backend": "webgpu",
+  "time": "2026-09-07T05:52:55.076Z",
   "mounts": 42,
   "poses": [
     {
+      "trainFraction": -1,
       "elevationFraction": 0,
-      "maxMuzzleErrorM": 3.248075260614092e-05,
       "recoilFraction": 0,
-      "trainFraction": -1
+      "maxMuzzleErrorM": 0.00003248075260614092
     },
     {
+      "trainFraction": -1,
       "elevationFraction": 0,
-      "maxMuzzleErrorM": 3.248075260614092e-05,
       "recoilFraction": 1,
-      "trainFraction": -1
+      "maxMuzzleErrorM": 0.00003248075260614092
     },
     {
+      "trainFraction": -1,
       "elevationFraction": 1,
-      "maxMuzzleErrorM": 3.273904868116042e-05,
       "recoilFraction": 0,
-      "trainFraction": -1
+      "maxMuzzleErrorM": 0.00003273904868116042
     },
     {
+      "trainFraction": -1,
       "elevationFraction": 1,
-      "maxMuzzleErrorM": 3.273904867634886e-05,
       "recoilFraction": 1,
-      "trainFraction": -1
+      "maxMuzzleErrorM": 0.00003273904867634886
     },
     {
+      "trainFraction": 0,
       "elevationFraction": 0,
-      "maxMuzzleErrorM": 3.021119333964585e-05,
       "recoilFraction": 0,
-      "trainFraction": 0
+      "maxMuzzleErrorM": 0.00003021119333964585
     },
     {
+      "trainFraction": 0,
       "elevationFraction": 0,
-      "maxMuzzleErrorM": 3.021119333964585e-05,
       "recoilFraction": 1,
-      "trainFraction": 0
+      "maxMuzzleErrorM": 0.00003021119333964585
     },
     {
+      "trainFraction": 0,
       "elevationFraction": 1,
-      "maxMuzzleErrorM": 3.021119333964585e-05,
       "recoilFraction": 0,
-      "trainFraction": 0
+      "maxMuzzleErrorM": 0.00003021119333964585
     },
     {
+      "trainFraction": 0,
       "elevationFraction": 1,
-      "maxMuzzleErrorM": 3.021119333964585e-05,
       "recoilFraction": 1,
-      "trainFraction": 0
+      "maxMuzzleErrorM": 0.00003021119333964585
     },
     {
+      "trainFraction": 1,
       "elevationFraction": 0,
-      "maxMuzzleErrorM": 3.021119333964585e-05,
       "recoilFraction": 0,
-      "trainFraction": 1
+      "maxMuzzleErrorM": 0.00003021119333964585
     },
     {
+      "trainFraction": 1,
       "elevationFraction": 0,
-      "maxMuzzleErrorM": 3.021119333964585e-05,
       "recoilFraction": 1,
-      "trainFraction": 1
+      "maxMuzzleErrorM": 0.00003021119333964585
     },
     {
+      "trainFraction": 1,
       "elevationFraction": 1,
-      "maxMuzzleErrorM": 3.021119333964585e-05,
       "recoilFraction": 0,
-      "trainFraction": 1
+      "maxMuzzleErrorM": 0.00003021119333964585
     },
     {
+      "trainFraction": 1,
       "elevationFraction": 1,
-      "maxMuzzleErrorM": 3.021119333964585e-05,
       "recoilFraction": 1,
-      "trainFraction": 1
+      "maxMuzzleErrorM": 0.00003021119333964585
     }
   ],
-  "shipId": "enterprise-cv6",
-  "time": "2026-09-07T04:30:13.827Z"
+  "browser": "Isolated headless Chrome / Metal; fallback after Orca tab closures"
 }

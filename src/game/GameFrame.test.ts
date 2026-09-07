@@ -45,7 +45,7 @@ async function frameHarness() {
   const game = Object.assign(Object.create(Game.prototype), {
     definition: simulation.definition, simulation, playerView, targetView, fleetViews: [playerView, targetView], camera, rig, ship: new Group(), shellFollow: new ShellFollow(),
     renderer: { domElement: { setAttribute() {} } }, manualAim: false,
-    shipLabels: { update() {} },
+    shipLabels: { update() {} }, hitLabels: { update() {} }, torpedoPreview: { update() {} },
     playerDamageFeedback: new HullDamageFeedback(simulation.player.damage.integrity),
     gunAim: { update(points: GunAimPoint[], _camera: PerspectiveCamera, visible: boolean) { gunAimFrames.push({ points, visible }); } },
     hitDirections: { update() {} },
@@ -56,11 +56,12 @@ async function frameHarness() {
       setOrder: (order: number) => { helm.throttle = ENGINE_ORDERS[order]; },
       setRudder: (rudder: number) => { helm.rudder = rudder; } },
     aircraftView: { update() {} },
+    funnelSmoke: { root: new Group(), update() {}, setWind() {} },
     effects: { update() {}, reset() {} }, sky: { update() {} }, scene: new FrameScene(),
     surfaceWaterAbsorption: new Color(.296, .105, .095),
     water: { color: { absorptionColor: new Color(.296, .105, .095) }, async update() {} },
-    shipWake: { update: (ship: { z: number }) => wakePositions.push(ship.z), reset() {} },
-    pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {},
+    shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
+    pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
   }) as { frame(time: number): Promise<void>; setInPort(inPort: boolean): void; toggleBinoculars(): void; toggleShellFollow(): void; shellFollow: ShellFollow;
     manualAim: boolean; currentAim: number[]; paused: boolean; inspecting: boolean };
@@ -75,7 +76,7 @@ test('map and port transitions restore their own absorption after underwater att
     waves: Object.fromEntries(['amplitude', 'windSpeed', 'peakWavelength', 'choppiness', 'windDirection'].map(key => [key, { value: 0 }])),
     foam: { waves: { opacity: 0 } }, async update() {},
   };
-  Object.assign(game, { water, settings: { sea: 'Moderate' } });
+  Object.assign(game, { water });
   const effects = (game as unknown as { effects: object }).effects;
   Object.assign(effects, { setWind() {} });
   const applySea = (Game.prototype as unknown as { updateSeaState(): void }).updateSeaState;
@@ -121,6 +122,7 @@ test('firing enters shell view without feeding its camera into aim, freezes on p
   game.manualAim = true;
   rig.aimAt([2500, 0, -2500], playerView.motion);
   game.toggleBinoculars();
+  for (let i = 0; i < 180; i++) rig.update(playerView.motion, playerView.motion.y, 1 / 60);
   const fov = camera.fov;
   let time = 0;
   for (let i = 0; i < 600; i++) await game.frame(time += 1000 / 60);
@@ -147,7 +149,7 @@ test('firing enters shell view without feeding its camera into aim, freezes on p
   game.toggleShellFollow();
   expect(game.shellFollow.phase).toBe('off');
   expect(rig.binoculars).toBe(true);
-  expect(camera.fov).toBe(fov);
+  expect(camera.fov).toBeCloseTo(fov, 10);
   expect(camera.position.distanceTo(playerView.root.position)).toBeLessThan(100);
   game.toggleShellFollow();
   game.setInPort(true);
@@ -197,6 +199,7 @@ test('manual aiming and binoculars keep the camera attached to the displayed shi
   let time = 0;
   for (const binoculars of [false, true, false]) {
     if (rig.binoculars !== binoculars) game.toggleBinoculars();
+    for (let frame = 0; frame < 180; frame++) await game.frame(time += 1000 / 144);
     await game.frame(time += 1000 / 144);
     const offset = camera.position.clone().sub(playerView.root.position);
     for (let frame = 0; frame < 30; frame++) {
@@ -251,4 +254,19 @@ test('all fleet impact marks share one cosmetic work budget, renewed for each fr
   expect(available).toEqual([2, 0, 2, 0]);
   expect(budgets[0]).toBe(budgets[1]); expect(budgets[2]).toBe(budgets[3]);
   expect(budgets[0]).not.toBe(budgets[2]);
+});
+
+
+test('the frame feeds every fleet wake the rendered pose, and only the player in port', async () => {
+  const { game, playerView, targetView } = await frameHarness();
+  const frames: { ships: ShipView[]; positions: number[] }[] = [];
+  Object.assign(game, { shipWake: {
+    update(ships: ShipView[]) { frames.push({ ships: [...ships], positions: ships.map(ship => ship.motion.z) }); }, reset() {},
+  } });
+  await game.frame(100);
+  expect(frames.at(-1)!.ships).toEqual([playerView, targetView]);
+  expect(frames.at(-1)!.positions).toEqual([playerView.root.position.z, targetView.root.position.z]);
+  game.setInPort(true);
+  await game.frame(200);
+  expect(frames.at(-1)!.ships).toEqual([playerView]);
 });
