@@ -1,4 +1,5 @@
 import { oceanMap, DEFAULT_MAP } from '../maps/catalog';
+import { TIME_OF_DAY_PRESETS, WEATHER_PRESETS } from '../maps/conditions';
 import { shipPreset } from '../ships/presets';
 import type { BattleSetup } from '../simulation/battle';
 import { Icon } from './Icons';
@@ -9,11 +10,12 @@ interface Props { setup: BattleSetup; state: BattleLoadingState; onLeft(): void;
 
 /** In-game capture of each ocean, sized to fill the viewport without tiling. */
 export const backdropUrl = (mapId: string) => `/maps/${mapId}-backdrop.webp`;
-const SEA_NAMES: Record<NonNullable<BattleSetup['sea']>, string> = { Fair: 'Fair seas', Atlantic: 'Moderate seas', Heavy: 'Heavy seas' };
 
 /** Fleet action extension: the chart of the chosen waters fills the viewport while both fleets come aboard. */
 export function BattleLoadingScreen({ setup, state, onLeft }: Props) {
   const map = oceanMap(setup.mapId ?? DEFAULT_MAP);
+  const time = TIME_OF_DAY_PRESETS.find(preset => preset.id === setup.timeOfDay);
+  const weather = WEATHER_PRESETS.find(preset => preset.id === setup.weather);
   const player = shipPreset(setup.playerShipId);
   const friendly = [setup.playerShipId, ...setup.friendlyBots];
   const percent = Math.round(Math.min(state.progress, 1) * 100);
@@ -32,7 +34,7 @@ export function BattleLoadingScreen({ setup, state, onLeft }: Props) {
       <span className="battle-loading-region">{map.region.toUpperCase()}</span>
     </div>
     <div className="battle-loading-content">
-      <p className="battle-loading-kicker">Custom battle · {SEA_NAMES[setup.sea ?? 'Atlantic']} · {setup.spawnDistance / 1000} km</p>
+      <p className="battle-loading-kicker">Custom battle · {time && time.id !== 'map' ? time.name : 'Map daylight'} · {weather && weather.id !== 'map' ? weather.name : 'Map weather'} · {setup.spawnDistance / 1000} km</p>
       <h1>{map.name.toUpperCase()}</h1>
       <p className="loading-subtitle">{map.description}</p>
       <div className="battle-loading-fleets">
