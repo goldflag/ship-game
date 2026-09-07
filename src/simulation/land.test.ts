@@ -42,11 +42,10 @@ test('swept land contact stops low projectiles, allows overflight, and leaves op
   expect(firstLandHit([island], [from[0], 2000, from[2]], [to[0], 2000, to[2]])).toBeUndefined();
   expect(firstLandHit([], from, to)).toBeUndefined();
 });
-test('battle map selection rejects unknown maps and sea conditions while old setups remain valid', () => {
+test('battle map selection rejects unknown maps while old setups remain valid', () => {
   const setup = { playerShipId: 'bismarck', friendlyBots: [], enemies: ['bismarck'], spawnDistance: 5000 };
   expect(() => validateBattleSetup(setup, ['bismarck'])).not.toThrow();
   expect(() => validateBattleSetup({ ...setup, mapId: 'missing' as never }, ['bismarck'])).toThrow('map');
-  expect(() => validateBattleSetup({ ...setup, sea: 'missing' as never }, ['bismarck'])).toThrow('sea');
 });
 
 test('the live projectile path ends at land with a coast impact event', async () => {

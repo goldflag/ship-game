@@ -5,10 +5,9 @@ import type { CombatTelemetry } from '../simulation/combat';
 import type { ShellFollow } from './ShellFollow';
 import type { HullDamageCue } from './HullDamageFeedback';
 
-export type SeaState = 'Fair' | 'Atlantic' | 'Heavy';
 export type Quality = 'medium' | 'high' | 'ultra';
-export interface GameSettings { quality: Quality; sea: SeaState; resolution: number; }
-export const DEFAULT_SETTINGS: GameSettings = { quality: 'high', sea: 'Atlantic', resolution: 1 };
+export interface GameSettings { quality: Quality; resolution: number; }
+export const DEFAULT_SETTINGS: GameSettings = { quality: 'high', resolution: 1 };
 export interface Telemetry {
   mapId?: OceanMapId;
   islands?: Island[];
