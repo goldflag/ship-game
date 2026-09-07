@@ -2,6 +2,8 @@
 
 Production startup now downloads losslessly compressed ship models and extracts the ocean/sky libraries' embedded image literals into independently cached assets. Original GLBs, model hashes, textures, geometry and rendering settings are unchanged. Development continues to load the authoring GLBs and the supplied vendor bundles directly.
 
+The timing and visual captures below use baseline `3fe185cb` and predate the PR's rebase onto `f3820a54`. They retain evidence for that model hash and water palette. After rebasing, the full build and all 13 targeted tests passed again; see [PR build output](pr-build.txt). Performance has not been remeasured against the newer combat data and water palette.
+
 ## Measurements
 
 Installed Chrome, headless WebGPU, 1280 × 720, default high graphics, Bismarck in port. Each sample uses a fresh browser context. CDP simulates 50 Mbps download, 10 Mbps upload and 40 ms latency against Vite's production preview. The baseline retains the loading information change but uses original asset delivery. The browser observes the appearance of the harbor UI; measurements include file transfer, model processing and graphics preparation.
