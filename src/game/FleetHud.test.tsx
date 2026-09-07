@@ -80,7 +80,8 @@ test('VIIC depth instruments show real orders, ballast and recovery instructions
     if (id === 'type-viic') {
       expect(html).toContain('aria-label="Depth and ballast"'); expect(html).toContain('Ordered 50 m');
       expect(html).toContain('Ballast 85%'); expect(html).toContain('Torpedoes: rise to 12 m or less');
-      expect(html).toContain('Emergency blow'); expect(html).toContain('Periscope');
+      expect(html).toContain('Emergency blow'); expect(html).not.toContain('Periscope');
+      expect(html).toContain('Dive 2 m'); expect(html).toContain('Rise 2 m');
     } else expect(html).not.toContain('aria-label="Depth and ballast"');
   }
 });
