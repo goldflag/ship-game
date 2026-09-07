@@ -14,7 +14,7 @@ import { fireReadout, regionReadout, type FireReadout } from './damageReadout';
 import { DamageLog, type DamageLogEntry } from './damageLog';
 import { createShipState, FIXED_DT, stepShip, hullDepth, meanHullY, type HelmCommand } from './ship';
 import { add, clamp, length, localToWorld, scale, sub } from './geometry';
-import { availableAmmunition, createMountState, GRAVITY, muzzleWorld, selectAmmunition, shotDirection, solveBallistic, updateMount } from './weapons';
+import { availableAmmunition, createMountState, GRAVITY, muzzleWorld, queueAmmunition, selectAmmunition, shotDirection, solveBallistic, updateMount } from './weapons';
 import { dispersedDirection, dispersedSpeed, travelFactor, velocityPenetration } from './ballistics';
 import { BATTLE_SPAWN_DISTANCE, deployment, validateSpawns, type SpawnPositions, MAX_TEAM_SHIPS, validateSpawnDistance, type BattleFleet, type BattleResult, type FleetActor, type Team } from './battle';
 import { botShouldDropDepthCharge, createDepthChargeLauncherState, damageDepthCharge, launchDepthCharge, stepDepthCharge, updateDepthChargeLauncher, type DepthCharge } from './depthCharges';
@@ -48,7 +48,7 @@ export interface CombatTelemetry {
   contacts: { id: string; name: string; shipId: string; team: Team; controller: FleetActor['controller']; targetId?: string; x: number; z: number; heading: number; integrity: number; sunk: boolean; status: VesselStatus; combatLost: boolean }[];
   battle: boolean; result: BattleResult; playerSunk: boolean;
   targetPower: number; targetSteering: number; targetSunk: boolean; targetUnderway: boolean;
-  mounts: { id: string; name: string; status: string; reload: number; ammo: number; loaded?: Ammunition }[];
+  mounts: { id: string; name: string; status: string; reload: number; ammo: number; loaded?: Ammunition; queued?: Ammunition }[];
   modules: ({ id: string; name: string; condition: number } & EquipmentCondition)[]; message: string;
   targetEquipmentIntegrity: number;
   playerIntegrity: number;
@@ -93,6 +93,15 @@ export class CombatSimulation {
   private eventSequence = 0;
   private fireQueued = false;
   private dispersionSequence = 0;
+  orderAmmunition(battery: Battery, type: Ammunition, immediate = false): void {
+    this.ammunitionSelection[battery] = type;
+    this.definition.mounts.forEach((mount, i) => {
+      if (mount.battery !== battery) return;
+      const state = this.player.mounts[i];
+      if (immediate && availableAmmunition(state, type) >= (mount.weapon.barrelCount ?? 2)) selectAmmunition(mount, state, type);
+      else queueAmmunition(mount, state, type);
+    });
+  }
   private ammunitionSelection: Record<Battery, Ammunition> = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
   private playerDamageDealt = 0;
   private playerFrags = 0;
@@ -302,7 +311,7 @@ export class CombatSimulation {
         if (actor.damage.stability.combatLost) { state.status = 'disabled'; return; }
         if (m.magazineId && equipmentCondition(actor, def, m.magazineId).availability === 0) { state.status = 'disabled'; return; }
         if (this.isBattle && this.result === 'active' && updateAntiAircraft(actor, m, state, airContext, FIXED_DT, aaCandidates)) return;
-        if (actor === this.player && m.battery === intent.battery) selectAmmunition(m, state, intent.ammunition === 'he' ? 'he' : 'ap');
+        if (actor === this.player) queueAmmunition(m, state, this.ammunitionSelection[m.battery]);
         else if (actor.controller === 'bot' && target) selectAmmunition(m, state, botAmmunition(target, m, state));
         if (actor === this.player && !aimValid) { state.status = 'out-of-arc'; return; }
         const inRange = target && Math.hypot(target.motion.x - actor.motion.x, target.motion.z - actor.motion.z) <= botGunRange(m);
@@ -465,7 +474,7 @@ export class CombatSimulation {
       return { id: tube.id, name: tube.name, status: s.status, reload: Math.max(s.reload, this.player.tubeLaunchCooldown ?? 0), ammo: s.ammo };
     }) : this.definition.mounts.filter(m => m.battery === battery).map(m => {
       const s = this.player.mounts.find(s => s.id === m.id)!;
-      return { id: m.id, name: m.name, status: s.status, reload: s.reload / gunWorkRate, ammo: availableAmmunition(s), loaded: s.loaded };
+      return { id: m.id, name: m.name, status: s.status, reload: s.reload / gunWorkRate, ammo: availableAmmunition(s), loaded: s.loaded, queued: s.queued };
     });
     const significant = [...this.events].reverse().find(e => ['module', 'sunk', 'stopped', 'ricochet', 'penetration', 'contact', 'burst', 'torpedo-launch', 'torpedo-hit', 'torpedo-dud', 'torpedo-expired', 'depth-charge-launch', 'depth-charge-blast', 'depth-charge-hit'].includes(e.kind));
     const flightTimes = this.definition.mounts.flatMap((m, i) => {
