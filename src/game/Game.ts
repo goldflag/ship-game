@@ -768,7 +768,12 @@ export class Game {
       this.stopShellFollow(); this.rig.setEnabled(false);
       this.battlefieldCamera.enter(this.simulation.actors.map(a => a.motion), this.host.clientWidth, this.host.clientHeight);
       this.selectedFlightId ??= squadronFlights(this.simulation.player)[0]?.id;
-      if (this.water) { this.water.fog.fadeStart = 400000; this.water.fog.fadeEnd = 900000; }
+      if (this.water) {
+        // Water Pro sizes its horizon ring when geometry is built, before the map
+        // increases camera.far. Grow it once and retain it for subsequent map visits.
+        if (this.water.getGeometryConfig().infinityRingExtent < this.camera.far * .95) this.water.rebuildGeometry({});
+        this.water.fog.fadeStart = 400000; this.water.fog.fadeEnd = 900000;
+      }
     } else {
       this.battlefieldCamera.exit();
       const { fog } = battleEnvironment(oceanMap(this.simulation.mapId), this.battleTimeOfDay, this.battleWeather, this.battleConditions);

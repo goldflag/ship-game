@@ -28,7 +28,9 @@ export class BattlefieldCamera {
     start.targetFar ??= this.camera.far;
     this.camera.far = t === 1 ? start.targetFar : Math.max(start.far, start.targetFar);
     this.camera.position.lerpVectors(start.position, this.camera.position, eased);
-    this.camera.quaternion.slerpQuaternions(start.quaternion, this.camera.quaternion, eased);
+    // The live destination is already in camera.quaternion. Using it as slerpQuaternions'
+    // second input would overwrite it when that method copies the start into its output.
+    this.camera.quaternion.slerp(start.quaternion, 1 - eased);
     this.camera.fov = start.fov + (this.camera.fov - start.fov) * eased;
     this.camera.updateProjectionMatrix(); this.camera.updateMatrixWorld();
     if (t === 1) this.transition = undefined;
