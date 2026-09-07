@@ -1,6 +1,7 @@
 import type { Hull } from '../ships/blueprint';
 import type { FleetActor } from './battle';
 import { motionVelocity } from './ship';
+import { damageHullContact, type HullImpact } from './contactDamage';
 
 type Point = { x: number; z: number };
 interface Body {
@@ -48,7 +49,7 @@ function body(actor: FleetActor): Body {
   const sin = Math.sin(motion.heading), cos = Math.cos(motion.heading);
   const mass = hull.massKg + actor.damage.compartments.reduce((sum, c) => sum + c.waterM3 * 1000, 0);
   // A conservative vertical envelope keeps a sinking hull solid until it clears
-  // the other hull's keel. List/trim expand it; sea waves remain visual only.
+  // the other hull's keel. List/trim expand it, including the authoritative CPU sea response.
   const tilt = Math.abs(Math.sin(motion.roll)) * hull.beam / 2 + Math.abs(Math.sin(motion.pitch)) * hull.length / 2;
   return {
     actor,
@@ -123,7 +124,7 @@ function translate(body: Body, normal: Point, distance: number): void {
  * Inelastic impulses remove closing velocity while preserving sliding motion.
  * Iteration propagates contact through a fleet pile-up in stable actor order.
  */
-export function resolveShipCollisions(actors: readonly FleetActor[]): void {
+export function resolveShipCollisions(actors: readonly FleetActor[], emit?: (impact: HullImpact) => void): void {
   const bodies = actors.map(body);
   for (let pass = 0; pass < SOLVER_PASSES; pass++) {
     let touching = false;
@@ -142,6 +143,15 @@ export function resolveShipCollisions(actors: readonly FleetActor[]): void {
         const effectiveMass = a.inverseMass + b.inverseMass
           + cross(ra, hit.normal) ** 2 * a.inverseInertia + cross(rb, hit.normal) ** 2 * b.inverseInertia;
         const magnitude = -closing / effectiveMass;
+        if (closing < -.75) {
+          const energy = .5 * closing ** 2 / effectiveMass;
+          const y = Math.max(a.minY, b.minY, Math.min(0, a.maxY, b.maxY) - 1);
+          const position: [number, number, number] = [hit.point.x, y, hit.point.z];
+          for (const [victim, other] of [[a, b], [b, a]]) {
+            const damage = damageHullContact(victim.actor, position, energy / 2);
+            if (damage > 0) emit?.({ actor: victim.actor, other: other.actor, position, damage, kind: 'collision' });
+          }
+        }
         impulse(a, ra, hit.normal, -magnitude);
         impulse(b, rb, hit.normal, magnitude);
       }

@@ -26,7 +26,6 @@ export function burstShell(shell: Shell, actors: (Combatant & { definition: Ship
     return Math.abs(p[0]) <= a.definition.hull.beam / 2 + radius + 15 && Math.abs(p[2]) <= a.definition.hull.length / 2 + radius + 20;
   }).map(actor => ({ actor, candidates: nearbyContacts(shell.position, radius, actor, actor.definition) }));
   for (const actor of actors) {
-    if (actor.motion.y < -40) continue;
     const def = actor.definition, origin = worldToLocal(shell.position, actor.motion);
     if (Math.abs(origin[0]) > def.hull.beam / 2 + radius + 15 || Math.abs(origin[2]) > def.hull.length / 2 + radius + 20) continue;
     const candidates = shields.find(s => s.actor === actor)!.candidates;

@@ -57,6 +57,8 @@ export interface Shell {
   bomb?: { heading: number; pitch: number; bank: number };
   penetrationMm: number; damage: number; caliberM: number; visited: string[];
   dragPerSecond?: number;
+  /** Water drag captured on entry; retained through ticks and serialization. */
+  waterDragPerSecond?: number;
   ap?: APProjectile;
   he?: HEProjectile; ammunition?: Ammunition;
   type?: ShellType;
@@ -343,7 +345,19 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
       const resistance = response.resistanceMm;
       Object.assign(evidence, { thicknessMm: a.thicknessMm, material: a.plate?.material ?? 'steel', obliquityDeg: Math.acos(clamp(cosine, 0, 1)) * 180 / Math.PI, resistanceMm: resistance });
       if (a.plate?.material === 'teak') { evidence.outcome = 'backing'; report('penetration', `Passed ${a.name}`); return false; }
-      if (response.ricochet) return stop('ricochet', `Ricochet · ${a.name}`);
+      if (response.ricochet) {
+        const normal = normalize(rotate(hit.normal, actor.motion));
+        const along = shell.velocity.reduce((n, v, i) => n + v * normal[i], 0);
+        const before = length(shell.velocity);
+        // Inelastic reflection: retain tangential motion, lose normal energy.
+        // The shell remains live; an already armed fuze keeps its deadline.
+        shell.velocity = scale(sub(shell.velocity, scale(normal, 1.5 * along)), .78);
+        shell.penetrationMm *= (length(shell.velocity) / before) ** 1.4;
+        shell.position = add(position, scale(normal, Math.sign(-along) * .002));
+        evidence.outcome = 'ricochet'; evidence.terminal = false;
+        report('ricochet', `Deflected by ${a.name}`);
+        return false;
+      }
       arm(resistance);
       if (shell.penetrationMm <= resistance) return stop('stopped', `Stopped by ${a.name}`);
       pay(resistance);
@@ -416,25 +430,31 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
  * these contacts individually and accounts for elapsed time between them. */
 export function hitShip(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor: Combatant, def: ShipDefinition, emit: (e: DamageEvent) => void): boolean {
   const direction = normalize(sub(worldToLocal(toWorld, actor.motion), worldToLocal(fromWorld, actor.motion)));
-  for (const hit of shipContacts(shell, fromWorld, toWorld, actor, def)) if (resolveShipContact(shell, hit, actor, def, emit, direction)) return true;
+  for (const hit of shipContacts(shell, fromWorld, toWorld, actor, def)) {
+    let deflected = false;
+    if (resolveShipContact(shell, hit, actor, def, event => { deflected ||= event.kind === 'ricochet'; emit(event); }, direction)) return true;
+    // A contact-only chord cannot describe the new reflected flight direction.
+    if (deflected) return false;
+  }
   return false;
 }
 
-export function updateFlooding(actor: Combatant, def: ShipDefinition, dt: number): void {
+export function updateFlooding(actor: Combatant, def: ShipDefinition, dt: number, sea?: { heave: number; roll: number; pitch: number }, surfaceAt?: (x: number, z: number) => number): void {
   if (dt <= 0) return;
   const damage = actor.damage;
   if (!damage.sunk && damage.integrity <= 0) {
     damage.sunk = true;
     damage.defeatCause = 'hull-failure';
   }
-  updateStability(actor, def, dt);
+  updateStability(actor, def, dt, sea);
   const electricalPower = def.compartments.some(c => c.pumpM3PerSecond > 0) ? supportPerformance(actor, def).power : 0;
   damage.compartments.forEach((state, i) => {
     const c = def.compartments[i];
     const inflow = state.breaches.reduce((sum, breach) => {
       const world = localToWorld(breach.position, actor.motion);
-      const radius = breach.radiusM, bottom = world[1] - radius, top = world[1] + radius;
-      const internalY = waterLevel(actor, def, i);
+      const surface = surfaceAt?.(world[0], world[2]) ?? 0;
+      const radius = breach.radiusM, bottom = world[1] - surface - radius, top = world[1] - surface + radius;
+      const internalY = waterLevel(actor, def, i) - surface;
       // Integrate the uniform aperture strip between pressure discontinuities.
       // Water can enter or leave through the same opening as the ship heels.
       const cuts = [bottom, top, ...[0, internalY].filter(y => y > bottom && y < top)].sort((a,b)=>a-b);

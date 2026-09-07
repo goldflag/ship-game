@@ -1,3 +1,4 @@
+import { ExpandableInstances } from './ExpandableInstances';
 import { localToWorld } from '../simulation/geometry';
 import * as THREE from 'three/webgpu';
 import { nodeObject, uniform } from 'three/tsl';
@@ -31,20 +32,20 @@ export class CombatEffects {
   private readonly fire = new EffectParticlePool(256, this.maps.flash, true);
   private readonly foam = new EffectParticlePool(96, this.maps.foam);
   private readonly pools = [this.foam, this.smoke, this.aircraftSmoke, this.spouts, this.spray, this.fire];
-  private readonly projectiles = new THREE.InstancedMesh(new THREE.CapsuleGeometry(.5, 2, 2, 6),
+  private readonly projectiles = new ExpandableInstances(new THREE.CapsuleGeometry(.5, 2, 2, 6),
     new THREE.MeshBasicMaterial({ color: '#8c877b' }), 256);
   // Water's depth-based postprocessing otherwise classifies these low-flying
   // lights as sea pixels and erases them. Reject the transparent quad margins.
-  private readonly shellGlows = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1),
+  private readonly shellGlows = new ExpandableInstances(new THREE.PlaneGeometry(1, 1),
     new THREE.MeshBasicMaterial({ map: this.maps.flash, color: new THREE.Color('#f3dfba').multiplyScalar(1.8), opacity: .7,
       transparent: true, blending: THREE.AdditiveBlending, alphaTest: .02, depthWrite: true, side: THREE.DoubleSide }), 256);
-  private readonly streaks = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1),
+  private readonly streaks = new ExpandableInstances(new THREE.PlaneGeometry(1, 1),
     new THREE.MeshBasicMaterial({ map: this.maps.tracer, color: new THREE.Color('#e8bd85').multiplyScalar(1.6), transparent: true, opacity: .55,
       blending: THREE.AdditiveBlending, alphaTest: .02, depthWrite: true, side: THREE.DoubleSide }), 256);
-  private readonly torpedoBodies = new THREE.InstancedMesh(new THREE.CapsuleGeometry(.5, 1, 3, 8),
+  private readonly torpedoBodies = new ExpandableInstances(new THREE.CapsuleGeometry(.5, 1, 3, 8),
     new THREE.MeshBasicMaterial({ color: '#82948f' }), 128);
-  private readonly depthChargeBodies = new THREE.InstancedMesh(new THREE.CylinderGeometry(.5, .5, 1, 12), new THREE.MeshBasicMaterial({ color: '#7b8d88' }), 128);
-  private readonly torpedoWakes = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1),
+  private readonly depthChargeBodies = new ExpandableInstances(new THREE.CylinderGeometry(.5, .5, 1, 12), new THREE.MeshBasicMaterial({ color: '#7b8d88' }), 128);
+  private readonly torpedoWakes = new ExpandableInstances(new THREE.PlaneGeometry(1, 1),
     new THREE.MeshBasicMaterial({ map: this.maps.wake, color: '#d7f1e7', transparent: true, opacity: .65, depthWrite: false, side: THREE.DoubleSide }), 128);
   private readonly lights = Array.from({ length: 4 }, () => ({ light: new THREE.PointLight('#ffd29a', 0, 145, 2), age: 1, power: 0, duration: .2 }));
   private readonly wind = new THREE.Vector3(2.4, 0, .9);
@@ -134,15 +135,14 @@ export class CombatEffects {
       hidePlayerSmoke && pool === this.smoke ? sim.player.motion.id : undefined);
     this.updateShells(sim, camera);
     this.updateTorpedoes(sim);
-    this.depthChargeCount = Math.min(sim.depthCharges.length, 128);
-    sim.depthCharges.slice(0, 128).forEach((charge, i) => {
+    this.depthChargeCount = sim.depthCharges.length;
+    sim.depthCharges.forEach((charge, i) => {
       this.dummy.position.fromArray(charge.position);
       this.dummy.rotation.set(Math.PI / 2, 0, charge.submerged ? 0 : charge.age * 2);
       this.dummy.scale.set(charge.weapon.diameterM, charge.weapon.lengthM, charge.weapon.diameterM);
       this.dummy.updateMatrix(); this.depthChargeBodies.setMatrixAt(i, this.dummy.matrix);
     });
-    this.depthChargeBodies.instanceMatrix.array.fill(0, this.depthChargeCount * 16);
-    this.depthChargeBodies.instanceMatrix.needsUpdate = true;
+    this.depthChargeBodies.publish(this.depthChargeCount);
   }
 
   private updateAircraftSmoke(sim: CombatSimulation): void {
@@ -182,7 +182,7 @@ export class CombatEffects {
   }
 
   private updateTorpedoes(sim: CombatSimulation): void {
-    const count = Math.min(sim.torpedoes.length, 128);
+    const count = sim.torpedoes.length;
     this.torpedoCount = count;
     for (let i = 0; i < count; i++) {
       const t = sim.torpedoes[i];
@@ -206,13 +206,13 @@ export class CombatEffects {
       this.dummy.updateMatrix(); this.torpedoWakes.setMatrixAt(i, this.dummy.matrix);
     }
     for (const mesh of [this.torpedoBodies, this.torpedoWakes]) {
-      mesh.instanceMatrix.array.fill(0, count * 16); mesh.instanceMatrix.needsUpdate = true;
+      mesh.publish(count);
     }
   }
 
   private updateShells(sim: CombatSimulation, camera: THREE.Camera): void {
     const shells = sim.shells.filter(shell => !shell.bomb);
-    const count = Math.min(shells.length, 256);
+    const count = shells.length;
     this.shellCount = count;
     camera.getWorldPosition(this.cameraPosition);
     camera.getWorldQuaternion(this.cameraRotation);
@@ -257,7 +257,7 @@ export class CombatEffects {
       this.dummy.updateMatrix(); this.streaks.setMatrixAt(i, this.dummy.matrix);
     }
     for (const mesh of [this.projectiles, this.streaks, this.shellGlows]) {
-      mesh.instanceMatrix.array.fill(0, count * 16); mesh.instanceMatrix.needsUpdate = true;
+      mesh.publish(count);
     }
   }
 
@@ -451,7 +451,7 @@ export class CombatEffects {
 
   reset(): void {
     this.pools.forEach(pool => pool.reset()); this.aircraftTrails.clear(); this.shellCount = 0; this.torpedoCount = 0; this.depthChargeCount = 0; this.fireTick = -1;
-    for (const mesh of [this.projectiles, this.streaks, this.shellGlows, this.torpedoBodies, this.torpedoWakes, this.depthChargeBodies]) { mesh.instanceMatrix.array.fill(0); mesh.instanceMatrix.needsUpdate = true; }
+    for (const mesh of [this.projectiles, this.streaks, this.shellGlows, this.torpedoBodies, this.torpedoWakes, this.depthChargeBodies]) { mesh.publish(0); }
     this.lights.forEach(item => { item.age = 1; item.light.intensity = 0; }); this.sequence = 0;
   }
   diagnostics() {

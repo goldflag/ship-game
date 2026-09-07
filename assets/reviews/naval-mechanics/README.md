@@ -1,0 +1,28 @@
+# Plausible naval mechanics — 2026-09-07
+
+Implements audit items 1 (missing/placeholder drag), 4 (Fletcher/VIIC stability and damage control), 6 (ramming/grounding), and removes item 8's global active-projectile/aircraft launch caps. Adds live armor deflection, underwater shell travel, maneuvering losses and CPU sea-state response. Worktree: `goldflag/plausible-naval-mechanics`, based on `20f206497de7a2b9669085bfd1fdbbb5c3f7e7a9`.
+
+## Implementation
+
+- `assets/parts/author-plausible-ballistics.ts` supplies missing gun profiles and replaces the three placeholder Bismarck AA profiles. It estimates linear drag from air density, bore area, muzzle speed and projectile mass using Cd 0.25. Existing calibrated profiles remain. Equal Fletcher/Enterprise 5-inch weapons consequently share plausible air resistance. Penetration reference velocities are recomputed with the same flight solver.
+- Fletcher and VIIC blueprints now carry the existing versioned damage-control profile and hull-derived finite-angle stability, residual flooding cells and connections. Durable commands: `bun assets/ships/author-damage-control.ts fletcher type-viic` then `bun assets/ships/author-stability.ts fletcher type-viic`. Their stability reports and discrepancy registers retain assumptions.
+- Armor ricochet reflects the world-space velocity, retaining 78% tangential speed and reversing the normal component at 39% magnitude. It reduces penetration with the shared speed rule, offsets the shell outside the surface and continues the remaining tick. Armed fuzes keep their original deadline.
+- Sea crossings split air/water integration at the CPU surface. Water impact retains 75% velocity, then a caliber-dependent effective drag coefficient rapidly attenuates the underwater run. AP can strike nearby underwater plating and open normal positional breaches; steep entry may arm its delay. HE bursts on entry. Low-speed unarmed rounds retire; armed rounds remain until their deadline. An upward deflected round can leave the water again.
+- Planar contact impulses now feed dissipated energy into localized hull HP and positional breaches. Damage starts above 25 kJ; breaches above 250 kJ. Resting contacts do not repeat impact damage. Ground clearance samples keel stations across the beam, extends the authored shore slope into deep water and depends on draft, heading and actual pose.
+- Rudder drag reduces speed in sustained turns. Yaw has a hull-handling-dependent response delay; turning develops damped sideslip. Power loss causes coasting deceleration. Wind adds gradual leeway and waves add heading-dependent resistance.
+- A seeded CPU long-wave envelope shares weather inputs with the renderer. Hull samples drive stability heave, roll and pitch; openings sample their local water level and shell flight samples sea crossings. Submarine wave forcing decays with depth; surface heave is separate from ballast control. GPU samples never drive combat.
+- No global active-count launch gate remains for shells, torpedoes, depth charges or aircraft. Ammunition, authored carrier deck/flight limits, reloads and weapon range/lifetime remain. Projectile and aircraft rendering allocates additional small instance batches, including payloads and distant contact silhouettes. Cosmetic particle pools and recent-event history remain bounded.
+
+## Limits
+
+This is a deterministic game model, not historical certification. Linear air drag lacks Mach-dependent drag curves. Underwater travel omits cavities, tumbling, breakup, hydrodynamic skipping and water-shock propagation; HE still uses the shared protected fragment/burst approximation. Ricochet constants and contact energy-to-damage are tuning estimates. Ground contact uses sampled hull stations and the map's approximate coast, not a continuous mesh/seabed solver. Wave forcing is a long-wave envelope rather than every GPU crest; torpedo depth keeping and aircraft wreck sea impact still use mean sea level. There is no full propeller/engine, sail-area wind or fluid solver. Large active populations cost memory and processing time even though they no longer suppress launches.
+
+## Validation
+
+- Full suite: 727 passing tests across 103 files, zero failures. Includes drag/profile coverage, ramming/resting contact, draft-dependent grounding, underwater hull hits, fuze continuation, deterministic water transitions, storm response/reset, submarine heave and launches beyond each former cap.
+- Final contact-only utility adjustment: 22 targeted shell/damage/deflection regression tests pass. A final outward-turning-heel correction also passes all 9 sea-state and maneuvering tests.
+- `bun run build` passes, including fleet/aircraft checks and TypeScript. Vite retains its bundle-size advisory.
+- Shared pipeline rebuilt Bismarck, Fletcher and Type VIIC. All runtime ships pass `ship:check all`. The checker requested comparison refreshes for Yamato, Baltimore and Enterprise after the catalog change; those were regenerated without rebuilding unrelated ship models.
+- Local Blender, not Blender MCP, generated fixed review views for all three rebuilt ships. Profile, plan, quarter, bow and stern views were inspected; geometry and independent gun assemblies remain intact.
+- Live WebGPU articulation passed on Bismarck, Fletcher and Type VIIC in both train directions with elevated/recoiling barrels. Maximum visual/CPU muzzle discrepancy was 2.17 mm (Bismarck), 0.69 mm (Fletcher) and 0.002 mm (VIIC); torpedo sockets stayed within 0.003 mm. See `articulation.json`.
+- Independent Claude Fable review requested after implementation and validation; report in `claude-fable-review.md` when complete.

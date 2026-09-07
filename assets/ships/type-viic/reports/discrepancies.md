@@ -42,3 +42,9 @@ The open-bridge wood lining is fitted against the actual inner fairing facets; i
 ## Local damage and fire calibration — 2026-09-06
 
 Local regions, generator and director proxies, combustible loads and smoke outlets are independently authored gameplay estimates from the existing layout. They are not historically measured structural subdivisions, generator schedules or ventilation plans. Electrical supply is aggregated with manual gun fallback; directors share a targeting penalty. Breach overlap uses bounded aperture sampling. See `assets/ships/author-local-damage.ts`.
+
+## Plausible mechanics calibration — 2026-09-07
+
+Missing or placeholder gun drag has been replaced by the shared mass/area-based linear approximation, with estimated dispersion and a stated penetration reference speed. These are independently authored game estimates, not historical firing-table reproductions. See `assets/parts/author-plausible-ballistics.ts`.
+
+The existing `author-stability.ts` and `author-damage-control.ts` recipes now supply this preset with hull-derived stability, residual flood spaces and finite crew repair/firefighting capacity. The loading, partitions and crew performance are provisional; original component/socket IDs remain intact. Reproduce with `bun assets/ships/author-stability.ts type-viic` and `bun assets/ships/author-damage-control.ts type-viic`.

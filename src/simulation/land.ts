@@ -1,22 +1,41 @@
-import { islandRadius, islandRim, landHeight, type Island } from '../maps/catalog';
+import { islandRadius, landHeight, type Island } from '../maps/catalog';
 import type { FleetActor } from './battle';
 import type { Vec3 } from '../ships/blueprint';
-import { clamp, wrapAngle } from './geometry';
-import type { HelmCommand } from './ship';
+import { clamp, wrapAngle, localToWorld } from './geometry';
+import { motionVelocity, type HelmCommand } from './ship';
+import { interpolate } from './hull';
+import { damageHullContact, type HullImpact } from './contactDamage';
 
-/** Conservative hull clearance. No grounding damage: contact removes inward motion. */
-export function resolveLandContact(actor: FleetActor, islands: readonly Island[]): void {
-  const ship = actor.motion, clearance = actor.definition.hull.length / 2 + 25;
+/** Sample keel stations against the same sloping seabed used by the map.
+ * Draft and heading matter; the deep ocean remains navigable to submarines. */
+export function resolveLandContact(actor: FleetActor, islands: readonly Island[], emit?: (impact: HullImpact) => void): void {
+  const ship = actor.motion, hull = actor.definition.hull;
   for (const island of islands) {
-    const dx = ship.x - island.x, dz = ship.z - island.z, angle = Math.atan2(dz / island.rz, dx / island.rx);
-    const rim = islandRim(angle, island.seed), rx = island.rx * rim + clearance, rz = island.rz * rim + clearance;
-    const radius = Math.hypot(dx / rx, dz / rz);
-    if (radius >= 1) continue;
-    const nx = radius > 1e-6 ? dx / radius : rx, nz = radius > 1e-6 ? dz / radius : 0;
-    ship.x = island.x + nx * 1.001; ship.z = island.z + nz * 1.001;
-    const forwardX = Math.sin(ship.heading), forwardZ = -Math.cos(ship.heading);
-    if ((forwardX * dx + forwardZ * dz) * ship.speed < 0 || radius < .01) ship.speed = 0;
-    ship.swaySpeed = 0;
+    if (Math.hypot((ship.x - island.x) / (island.rx + hull.length), (ship.z - island.z) / (island.rz + hull.length)) > 1.3) continue;
+    // Extend the authored shore slope into deep water. The visual terrain's
+    // -45 m clipping floor is not a global submarine depth limit.
+    const bottom = (x: number, z: number) => islandRadius(island, x, z) >= 1
+      ? Math.max(-1000, (1 - islandRadius(island, x, z)) * 500) : landHeight([island], x, z);
+    const points = hull.keelHeights.flatMap(([station, keel]) => [-.6, 0, .6].map(side =>
+      localToWorld([side * interpolate(hull.halfBreadths, station), keel, hull.length / 2 - station], ship)));
+    const hits = points.filter(point => bottom(point[0], point[2]) >= point[1]);
+    if (!hits.length) continue;
+    const position = hits[0];
+    const dx = position[0] - island.x, dz = position[2] - island.z, distance = Math.hypot(dx, dz);
+    const nx = distance > 1e-6 ? dx / distance : 1, nz = distance > 1e-6 ? dz / distance : 0;
+    const velocity = motionVelocity(ship);
+    const inward = -(velocity[0] * nx + velocity[2] * nz);
+    if (inward > .75) {
+      const damage = damageHullContact(actor, position, .5 * hull.massKg * inward ** 2);
+      if (damage > 0) emit?.({ actor, position, damage, kind: 'grounding' });
+    }
+    if (inward > 0) { ship.speed = 0; ship.swaySpeed = 0; }
+    // Move to the closest safe position along the outward direction. The
+    // search includes keel depth, so shallow-draft ships approach more closely.
+    const clear = (offset: number) => points.every(p => bottom(p[0] + nx * offset, p[2] + nz * offset) < p[1] - .02);
+    let low = 0, high = Math.max(island.rx, island.rz) * 3 + hull.length;
+    for (let i = 0; i < 24; i++) { const mid = (low + high) / 2; if (clear(mid)) high = mid; else low = mid; }
+    ship.x += nx * high; ship.z += nz * high;
   }
 }
 

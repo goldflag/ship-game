@@ -1,6 +1,7 @@
 import * as THREE from 'three/webgpu';
 import { attribute } from 'three/tsl';
-import { MAX_AIRBORNE } from '../simulation/aircraft';
+import { ExpandableInstances } from './ExpandableInstances';
+const PAGE_SIZE = 144;
 
 /** Screen coverage for aircraft whose thin triangles no longer cover a pixel.
  * This only supplements the rendered silhouette; simulation size stays unchanged. */
@@ -28,18 +29,19 @@ function silhouetteTexture() {
   return texture;
 }
 
-/** One depth-tested, fogged draw for the entire airborne group. */
+/** Paged depth-tested, fogged draws for the airborne group. */
 export class AircraftContacts {
   private geometry = new THREE.PlaneGeometry(1, 1);
   private texture = silhouetteTexture();
   private material = new THREE.MeshBasicNodeMaterial({ color: '#23313b', map: this.texture, transparent: true, depthWrite: false });
-  private opacity = new THREE.InstancedBufferAttribute(new Float32Array(MAX_AIRBORNE), 1);
-  readonly mesh = new THREE.InstancedMesh(this.geometry, this.material, MAX_AIRBORNE);
+  private opacity = new THREE.InstancedBufferAttribute(new Float32Array(PAGE_SIZE), 1);
+  readonly mesh = new ExpandableInstances(this.geometry, this.material, PAGE_SIZE);
   private viewPosition = new THREE.Vector3();
   private scale = new THREE.Vector3();
   private rotation = new THREE.Quaternion();
   private matrix = new THREE.Matrix4();
   private height = 1080;
+  count = 0;
   constructor() {
     this.geometry.setAttribute('aircraftOpacity', this.opacity);
     this.material.opacityNode = attribute('aircraftOpacity', 'float');
@@ -51,7 +53,6 @@ export class AircraftContacts {
   resize(height: number) { this.height = Math.max(1, height); }
   begin() { this.mesh.count = 0; }
   add(position: THREE.Vector3, wingspan: number, camera: THREE.Camera, bank: number) {
-    if (this.mesh.count >= MAX_AIRBORNE) return;
     const depth = -this.viewPosition.copy(position).applyMatrix4(camera.matrixWorldInverse).z;
     if (depth <= 0) return;
     const worldPerPixel = 2 * depth / (camera.projectionMatrix.elements[5] * this.height);
@@ -61,8 +62,8 @@ export class AircraftContacts {
     this.rotation.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), bank));
     this.scale.setScalar(appearance.pixels * worldPerPixel);
     this.mesh.setMatrixAt(this.mesh.count, this.matrix.compose(position, this.rotation, this.scale));
-    this.opacity.setX(this.mesh.count++, appearance.opacity);
+    this.mesh.setScalarAttributeAt('aircraftOpacity', this.mesh.count++, appearance.opacity);
   }
-  finish() { this.mesh.visible = this.mesh.count > 0; this.mesh.instanceMatrix.needsUpdate = true; this.opacity.needsUpdate = true; }
+  finish() { this.count = this.mesh.count; this.mesh.visible = this.mesh.count > 0; this.mesh.publish(this.mesh.count); this.mesh.count = Math.min(this.mesh.count, PAGE_SIZE); }
   dispose() { this.mesh.removeFromParent(); this.mesh.dispose(); this.geometry.dispose(); this.material.dispose(); this.texture.dispose(); }
 }

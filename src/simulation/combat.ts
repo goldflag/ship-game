@@ -22,6 +22,8 @@ import { botAim, botAmmunition, botDidFire, botGunRange, botHelm, botReadyToFire
 import { clearTorpedoLane, createTubeState, damageTorpedoHit, firstTorpedoHit, torpedoIntercept, trainTorpedoLaunchers, tubeLocalPosition, tubeSolution, type Torpedo } from './torpedoes';
 import { createSubmarineState, stepSubmarine, submarinePropulsion } from './submarine';
 import { resolveShipCollisions } from './collisions';
+import type { HullImpact } from './contactDamage';
+import { createSeaState, seaHandling, seaHeight, seaResponse, type SeaState } from './sea';
 import { createDamage, systemHealth, updateFlooding, type BallisticEffectData, type DamageEvent, type Shell, type ImpactRecord, type DefeatCause } from './damage';
 
 export interface CombatIntent { aim: Vec3; fire: boolean; battery: Battery; ammunition?: Ammunition; controlPriority?: ControlPriority; controlFocus?: string; }
@@ -70,6 +72,7 @@ export class CombatSimulation {
   readonly mapId: OceanMapId;
   readonly islands: Island[];
   readonly seed: number;
+  readonly sea: SeaState;
   result: BattleResult = 'active';
   readonly shells: Shell[] = [];
   readonly torpedoes: Torpedo[] = [];
@@ -105,6 +108,7 @@ export class CombatSimulation {
     this.mapId = fleet?.mapId ?? DEFAULT_MAP;
     this.islands = mapIslands(this.mapId, this.spawnDistance, Math.max(1 + (fleet?.friendlyBots.length ?? 0), fleet?.enemies.length ?? 1));
     this.seed = seed;
+    this.sea = createSeaState(this.mapId, fleet?.weather, seed);
     if (!Number.isInteger(this.seed) || this.seed < 0 || this.seed > 0xffffffff) throw new Error('Battle seed must be an unsigned 32-bit integer.');
     validateSpawnDistance(this.spawnDistance);
     if (fleet && (!fleet.enemies.length || fleet.enemies.length > MAX_TEAM_SHIPS || fleet.friendlyBots.length >= MAX_TEAM_SHIPS)) throw new Error(`Choose one to ${MAX_TEAM_SHIPS} ships per team.`);
@@ -194,6 +198,15 @@ export class CombatSimulation {
     return add(aim, scale(shipVelocity(this.target), time));
   }
   requestFire(): void { this.fireQueued = true; }
+  private contactImpact = ({ actor, other, position, damage, kind }: HullImpact): void => {
+    const weapon = kind === 'grounding' ? 'Grounding' : 'Ramming';
+    if (other && other.team !== actor.team && !actor.damage.stability.combatLost) {
+      this.lastDamager.set(actor.motion.id, other.motion.id);
+      if (other === this.player) this.playerDamageDealt += damage;
+      this.recordDamage(other, actor, ++this.shellSequence, weapon, damage);
+    }
+    this.emit({ kind: 'contact', shipId: actor.motion.id, position, hullDamage: damage, message: `${weapon} · ${damage.toFixed(1)} hull damage` });
+  };
   private emit = (event: Omit<CombatEvent, 'sequence' | 'tick'>): void => {
     if (event.shell) {
       const history = this.history(event.shell.id, event.kind === 'shot' ? event.shipId : undefined);
@@ -211,8 +224,7 @@ export class CombatSimulation {
         }
         if (victim) updateCapability(victim, victim.definition);
       }
-      if (event.kind === 'splash') history.outcome = history.impacts.length ? 'passed-through' : 'splash';
-      else if (event.impact?.terminal) history.outcome = event.kind === 'stopped' || event.kind === 'ricochet' || event.kind === 'burst' ? event.kind : 'internal';
+      if (event.impact?.terminal) history.outcome = event.kind === 'stopped' || event.kind === 'ricochet' || event.kind === 'burst' ? event.kind : 'internal';
     }
     this.events.push({ ...event, sequence: ++this.eventSequence, tick: this.tick });
     if (this.events.length > 128) this.events.shift();
@@ -273,10 +285,10 @@ export class CombatSimulation {
     for (const actor of this.actors) {
       const def = actor.definition;
       const propulsion = submarinePropulsion(actor, def);
-      stepShip(actor.motion, commands.get(actor)!, propulsion?.handling ?? def.handling, propulsion?.power ?? systemHealth(actor, def, 'engine'), systemHealth(actor, def, 'steering'));
+      stepShip(actor.motion, commands.get(actor)!, propulsion?.handling ?? def.handling, propulsion?.power ?? systemHealth(actor, def, 'engine'), systemHealth(actor, def, 'steering'), this.sea.windMps ? seaHandling(actor, this.sea) : undefined);
     }
-    resolveShipCollisions(this.actors);
-    for (const actor of this.actors) resolveLandContact(actor, this.islands);
+    resolveShipCollisions(this.actors, this.contactImpact);
+    for (const actor of this.actors) resolveLandContact(actor, this.islands, this.contactImpact);
     const airContext = { seed: this.seed, actors: this.actors, planes: this.aircraft, shells: this.shells, torpedoes: this.torpedoes,
       releases: this.airReleases, nextId: () => ++this.shellSequence, emit: this.emit };
     for (const actor of this.actors) {
@@ -296,7 +308,7 @@ export class CombatSimulation {
         const aligned = updateMount(m, state, def, actor.motion, aim, FIXED_DT, shipVelocity(actor), support.power);
         const firing = actor === this.player ? aligned && (intent.fire || this.fireQueued) && m.battery === intent.battery : actor.controller === 'bot' && inRange && laneClear && aligned && botReadyToFire(actor, m);
         const barrelCount = m.weapon.barrelCount ?? 2;
-        if (!actor.damage.sunk && firing && state.status === 'ready' && this.shells.length <= 256 - barrelCount) {
+        if (!actor.damage.sunk && firing && state.status === 'ready') {
           if (actor.controller === 'bot') botDidFire(actor, m);
           state.reload = m.weapon.reloadSeconds; state.ammo -= barrelCount; state.recoil = 1; state.status = 'reloading';
           if (state.loaded === 'he') state.heAmmo -= barrelCount;
@@ -323,7 +335,7 @@ export class CombatSimulation {
         if (state.status === 'ready' && actor.tubeLaunchCooldown! > 0) state.status = 'reloading';
         if (state.status === 'ready' && actor.controller === 'bot' && aim && !clearTorpedoLane(actor, origin, aim, tube.weapon.speed, this.actors)) state.status = 'blocked';
         const fire = actor === this.player ? aimValid && intent.battery === 'torpedo' && (intent.fire || this.fireQueued) : actor.controller === 'bot' && !!target && botReadyToFire(actor);
-        if (!fire || state.status !== 'ready' || this.torpedoes.length >= 128) return;
+        if (!fire || state.status !== 'ready') return;
         const velocity: Vec3 = [Math.sin(solution.heading) * tube.weapon.speed, 0, -Math.cos(solution.heading) * tube.weapon.speed];
         const torpedo: Torpedo = { id: ++this.shellSequence, ownerId: actor.motion.id, tubeId: tube.id, position: origin, velocity, age: 0, distance: 0, weapon: tube.weapon };
         this.torpedoes.push(torpedo);
@@ -335,7 +347,7 @@ export class CombatSimulation {
       (def.depthChargeLaunchers ?? []).forEach((launcher, i) => {
         const state = actor.depthChargeLaunchers![i];
         updateDepthChargeLauncher(actor, launcher, state, FIXED_DT);
-        if (state.status !== 'ready' || this.depthCharges.length >= 128) return;
+        if (state.status !== 'ready') return;
         const fire = actor === this.player ? intent.battery === 'depth-charge' && (intent.fire || this.fireQueued) : actor.controller === 'bot' && target && botReadyToFire(actor) && botShouldDropDepthCharge(actor, target, launcher, this.actors);
         if (!fire) return;
         const charge = launchDepthCharge(actor, launcher, ++this.shellSequence);
@@ -349,7 +361,7 @@ export class CombatSimulation {
     this.fireQueued = false;
     for (let i = this.shells.length - 1; i >= 0; i--) {
       const shell = this.shells[i];
-      const outcome = advanceProjectile(shell, this.actors, FIXED_DT, this.emit, this.islands);
+      const outcome = advanceProjectile(shell, this.actors, FIXED_DT, this.emit, this.islands, (x, z) => seaHeight(this.sea, x, z, this.tick * FIXED_DT));
       if (outcome) {
         const history = this.history(shell.id);
         if (history.outcome === 'flying') history.outcome = outcome;
@@ -363,8 +375,10 @@ export class CombatSimulation {
       if (actor === this.player && intent.controlPriority) directControl(actor, intent.controlPriority, intent.controlFocus ?? '');
       updateDamageControl(actor, actor.definition, FIXED_DT, event => this.emit(event));
       const wasSunk = actor.damage.sunk;
-      updateFlooding(actor, actor.definition, FIXED_DT);
-      stepSubmarine(actor, actor.definition, commands.get(actor)!, FIXED_DT);
+      updateFlooding(actor, actor.definition, FIXED_DT,
+        this.sea.amplitudeM || Math.abs(actor.motion.yawRate * actor.motion.speed) > 1e-6 ? seaResponse(actor, this.sea, this.tick * FIXED_DT) : undefined,
+        this.sea.amplitudeM ? (x, z) => seaHeight(this.sea, x, z, this.tick * FIXED_DT) : undefined);
+      stepSubmarine(actor, actor.definition, commands.get(actor)!, FIXED_DT, this.sea.amplitudeM ? seaResponse(actor, this.sea, this.tick * FIXED_DT).heave : 0);
       updateCapability(actor, actor.definition);
       if ((actor.damage.sunk || actor.damage.stability.combatLost) && !this.creditedLosses.has(actor.motion.id)) {
         this.creditedLosses.add(actor.motion.id);

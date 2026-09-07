@@ -14,6 +14,8 @@ export interface SubmarineState {
   /** Positive plane order dives; pitch is positive bow-up. */
   planes: number;
   trimPitch: number;
+  waveHeave?: number;
+  waveSpeed?: number;
 }
 export const createSubmarineState = (): SubmarineState => ({ targetDepthM: 0, ballastM3: 0, emergencyBlow: false, planes: 0, trimPitch: 0 });
 
@@ -36,16 +38,16 @@ export function submarinePropulsion(actor: Combatant, def: ShipDefinition): { ha
  * Extra immersed volume restores buoyancy near the surface. Floodwater adds weight;
  * tank filling/blowing takes time and planes lose authority when stopped.
  * Tuned gameplay hydrostatics, not an engineering pressure-hull model. */
-export function stepSubmarine(actor: Combatant, def: ShipDefinition, command: HelmCommand, dt: number): void {
+export function stepSubmarine(actor: Combatant, def: ShipDefinition, command: HelmCommand, dt: number, seaHeave = 0): void {
   const s = actor.submarine, equipment = def.submarine;
   if (!s || !equipment || actor.damage.sunk) return;
   if (command.depthM !== undefined) orderDepth(actor, def, command.depthM, command.emergencyBlow);
-  const motion = actor.motion, depth = Math.max(0, -motion.y);
+  const motion = actor.motion, depth = Math.max(0, -(motion.y - (s.waveHeave ?? 0)));
   const water = actor.damage.compartments.reduce((sum, c) => sum + c.waterM3, 0);
   const capacity = equipment.ballastCapacityM3;
   const immersion = clamp(depth / Math.max(.5, def.hull.depth - def.hull.draft), 0, 1);
   const neutral = equipment.neutralBallastFraction * immersion;
-  const downSpeed = -(motion.verticalSpeed ?? 0);
+  const downSpeed = -((motion.verticalSpeed ?? 0) - (s.waveSpeed ?? 0));
   const desiredSpeed = clamp((s.targetDepthM - depth) * .22, -equipment.maxRiseSpeed, equipment.maxDiveSpeed);
   const speedError = desiredSpeed - downSpeed;
   const targetBallast = s.targetDepthM === 0 ? 0 : clamp(neutral - water / capacity + speedError * .3, 0, 1) * capacity;
@@ -57,8 +59,11 @@ export function stepSubmarine(actor: Combatant, def: ShipDefinition, command: He
   const acceleration = (s.ballastM3 / capacity + water / capacity - neutral) * 1.8 + s.planes * authority * .4 - downSpeed * .25;
   const nextSpeed = clamp(downSpeed + acceleration * dt, -equipment.maxRiseSpeed, equipment.maxDiveSpeed);
   const nextDepth = Math.max(0, depth + nextSpeed * dt);
-  motion.y = -nextDepth;
-  motion.verticalSpeed = nextDepth === 0 ? 0 : -nextSpeed;
+  const previousHeave = s.waveHeave ?? 0;
+  s.waveHeave = previousHeave + (seaHeave - previousHeave) * (1 - Math.exp(-dt / 1.5));
+  s.waveSpeed = dt > 0 ? (s.waveHeave - previousHeave) / dt : 0;
+  motion.y = -nextDepth + s.waveHeave;
+  motion.verticalSpeed = (nextDepth === 0 ? 0 : -nextSpeed) + s.waveSpeed;
   const pitch = -clamp(nextSpeed / Math.max(3, Math.abs(motion.speed)) * .24, -.14, .14);
   const previousTrim = s.trimPitch;
   s.trimPitch += (pitch - s.trimPitch) * (1 - Math.exp(-dt / 2));
