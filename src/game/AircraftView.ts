@@ -8,6 +8,8 @@ import { AircraftContacts } from './AircraftContacts';
 import { AircraftGunfire } from './AircraftGunfire';
 import { aircraftOrdnanceGeometry } from '../../assets/effects/naval/aircraft-ordnance';
 import { FIXED_DT } from '../simulation/ship';
+import { ShipMaterialPalette } from './ShipMaterialPalette';
+import { batchShipModel } from './ShipBatching';
 
 // Authored deck capacity is bounded at 24; hangar aircraft have no scene instance.
 const CAPACITY = 60 * 24 + 144;
@@ -50,9 +52,13 @@ export class AircraftView {
     return this.loadPromise ??= this.loadModels();
   }
   private async loadModels() {
+    const palette = new ShipMaterialPalette();
     const results = await Promise.allSettled(['f4f-4-wildcat', 'sbd-3-dauntless', 'tbd-1-devastator'].flatMap(id => [0, 1, 2].map(async lod => {
       const url = lod ? `/models/aircraft/LOD${lod}/${id}-lod${lod}.glb` : `/models/aircraft/${id}.glb`;
       const root = (await new GLTFLoader().loadAsync(url)).scene;
+      // The shared authoring-node boundaries preserve propellers, controls,
+      // landing gear and sockets while rigid paint surfaces share a draw.
+      palette.apply(root); batchShipModel(root);
       const model: Model = { root, joints: [], meshes: [], count: 0, wingspan: new THREE.Box3().setFromObject(root).getSize(new THREE.Vector3()).x };
       root.traverse(object => {
         const nodeId = object.userData.nodeId as string | undefined;

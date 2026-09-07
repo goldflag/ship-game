@@ -35,3 +35,9 @@ Concise command results are retained in [validation.txt](validation.txt).
 ## Approximation register
 
 These are gameplay/visual refinements, not a historical accuracy claim. Bomb dimensions/finish and wing muzzle placements are original approximations. Fighter hits remain the existing instantaneous burst damage rule; visible tracer travel does not add delayed bullet hit simulation. Wreck aerodynamics use simplified drag/gravity/roll and terminate at the flat gameplay sea, without terrain/ship collision, impact damage, airframe breakup, rescue, or sinking debris. Smoke and spray are bounded visual particles; GPU waves never control combat. Existing aircraft-follow behavior still returns to the ship when the tracked aircraft is lost.
+
+## Integration before PR
+
+Merged master `4ffbffe`, retaining its aircraft paint/rigid-component batching, single particle publication per frame, and hull-damage event evidence. `bun test src/simulation src/game --timeout 30000` passed **550 tests across 77 files** with zero failures. `bun run build` passed after integration. The 30-second test timeout accommodates the longer flooding/AI fixtures.
+
+Repeated all four fixtures in WebGPU: one bomb without artillery glow, six moving tracer samples, the visible smoking descent, and one sea impact with persistent smoke/spray. The browser console contained no warnings/errors. See [merged browser records](merge-browser.json) and the [merged impact capture](merge-impact.png).
