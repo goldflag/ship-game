@@ -1,0 +1,75 @@
+{
+  "date": "2026-09-07",
+  "sceneBase": "096516c6",
+  "sourceHashes": {
+    "src/game/CombatEffects.ts": "764e8ed8cf508ea707882162228304cafce5b47ca218818eb2b0d85301851a28",
+    "src/game/EffectParticles.ts": "c7a61cd46c0bbffdbb1ff0e29e60c43793aab97db4fabc935b86be72689084b5",
+    "src/game/EffectVolume.ts": "42f9ba26576c1c55ea8abae09ed0b73a0f7d3afe26c3efcbec40f60b1abe97d8",
+    "src/game/Game.ts": "4384a54e9f846f1e2646c38d548abdf026d4be215aab681fc2148d8a6e3d7413",
+    "scripts/diagnostics/combat-effects.html": "837f754c5dd5ff9cb3e2de80f96502d1506164a117ced619d0772c66e5be0689",
+    "scripts/diagnostics/smoke-performance.ts": "4e5f5427791e01f0f1ab62d65c60dddac98409e6da181e630026bd95a6e2b10f",
+    "scripts/tests/combat-effects-browser.ts": "cb1a07041e6c4604ec83a860818dc16e42fa700822a0adfbd36fad7c2f117265",
+    "src/game/BattleEnvironment.test.ts": "8a9fb438f32a8efa1b906384c345c1a73707882b70540faede1ecaf9419cebaa"
+  },
+  "baseline": {
+    "commit": "ef2bd4a8b128a4efc3d39c8bd7c2a8fe76c9624d",
+    "sha256": {
+      "src/game/CombatEffects.ts": "d9a97f0a62636711ce45e84115ed88269c8230f297aa183756d3b7436f2e4333",
+      "src/game/EffectParticles.ts": "28752a922414141d81653b1e2ee596714c8f62b8b266a56476defe5492558439",
+      "src/game/EffectVolume.ts": "73d479f7a25156749468919d0d2218dec8d23938034b42486d7e4d8822f5d84b"
+    }
+  },
+  "modelHashes": {
+    "public/models/bismarck.glb": "13d3a11ec260a373f1f127e5dbfed47d84fc73dea01be0562b6163e0d235dc99"
+  },
+  "definitionHash": "25429e7ad048aada681f0dc250d25f0a07bd93d7cc93f34c1e94692f2150052b",
+  "device": {
+    "architecture": "metal-3",
+    "description": "",
+    "device": "",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.7871.47 Safari/537.36",
+    "vendor": "apple"
+  },
+  "validation": {
+    "simulationEffectsLightingTests": {
+      "passed": 50,
+      "failed": 0
+    },
+    "build": "passed: asset checks, TypeScript, Vite; existing large-chunk advisory",
+    "diagnosticTypeCheck": "passed",
+    "webgpuDepthModes": [
+      "standard",
+      "reversed"
+    ],
+    "fadeCalibersM": [
+      0.127,
+      0.38,
+      0.46
+    ],
+    "horizon": {
+      "checkedRows": 38,
+      "effect": "smoke",
+      "height": 1080,
+      "minimumContrast": 0.06943386845058178,
+      "range": 5000,
+      "width": 1920
+    }
+  },
+  "artifactHashes": {
+    "README.md": "d8cbad884ed11e28ce88f46b8ad71257603bd110c711763d30b20aec343e9261",
+    "after-1.webp": "8b624b57b6227376d50a7bdadc09420395bcacb7530b449cdb77270ae1693970",
+    "after-2.5.webp": "f9f44f778207e30d046bebb8caa74f51116d75afe6ad466bf81cfbb5177fdaa4",
+    "after.capture.json": "6c6a127b571e2555896a0942baaeb07e1c9ee965e739ebf1bda0a8747bf4900b",
+    "after.webm": "0337fb12bf32e9e431c10cdb4486f9842e0e5dd4d9b0e2a3cbb9813e93fc07d1",
+    "before-1.webp": "db31cc2a84a73cb0aecbe7d7ad22883ba9457dd62b6da4df198ccf0a68ff147f",
+    "binocular-1.webp": "2f6ca209c0fc6f80361b490fcb526c7c29b55af35e26f6152ba90a2942d92315",
+    "fade.json": "5e61eed556516366a23b009aa5bec6943aa0694030084633ab19ab8905a8afa5",
+    "frames.json": "3603a742568312454b28c8eff661b79a8258dde5c87fd7bf5cd227cb2035ac12",
+    "night-1.webp": "47e2e1fc03c7848b091c79f101b9718b87816c0dd49244778c89882ea72a492d",
+    "night-ignition.webp": "fba816eedcf7f6a4b31639b0c14a39f8446a530e84bc48abb807379c5f6f5959",
+    "overcast-1.webp": "440488a6de7ab2f5e95432fc19da7dd6f83897a2cf2edaec75bc3718a35b9225",
+    "performance.json": "863f00274782a03781ef574bdbb4e597c5e90507175ae3b8dcc0e46bd9fe3b28",
+    "video-check.json": "8af8d1a939af6626577f9913b1104e0e2a47992a1526fae563951e8541a7980a",
+    "volume-checks.json": "ecfb5611e6b14fd047a06af1fcb1235d54ce53fadbeadb40b7cc6794bb2b6b0a"
+  }
+}

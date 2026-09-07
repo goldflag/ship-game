@@ -354,8 +354,6 @@ export class Game {
         sunlight.intensity = .35 * this.sky!.timeOfDay.moonIntensity.value * this.sky!.timeOfDay.moonPhaseIllumination.value;
         sunlight.color.copy(this.sky!.timeOfDay.moonColor.value);
       }
-      this.effects.setSun(lightDirection);
-      this.effects.setIllumination(sunlight.color, sunlight.intensity, this.ambientLight.intensity);
       sunlight.position.copy(lightDirection).multiplyScalar(this.inPort ? 800 : 500).add(sunlight.target.position);
       sunlight.target.updateMatrixWorld();
     });
@@ -615,6 +613,7 @@ export class Game {
       this.harbor?.update(dt, this.camera);
       this.shipWake!.update(this.inPort ? [this.playerView!] : this.fleetViews, dt, this.simulation.events, this.camera);
       this.sky!.update(dt);
+      this.updateEffectsLighting();
       // Black Flag's absorption loses >99% of green/blue light over 50 m,
       // hiding even our own submarine. Ease to a 20× longer visibility range
       // over the first 2 m of camera submersion; keep distant water hazy and
@@ -1080,6 +1079,16 @@ export class Game {
     this.effects.setWind(this.water.waves.windSpeed.value, this.water.waves.windDirection.value);
     this.funnelSmoke.setWind(this.water.waves.windSpeed.value, this.water.waves.windDirection.value);
   }
+  private updateEffectsLighting(): void {
+    if (!this.sky) return;
+    // Water skips fixed simulation steps while paused. Read the live sky after
+    // its zero-delta update, so a conditions change still reaches frozen smoke.
+    const { sun, timeOfDay: moon } = this.sky, night = moon.skyDarkness.value > .5;
+    this.effects.setSun(night ? moon.moonDirection.value : sun.direction.value);
+    this.effects.setIllumination(night ? moon.moonColor.value : sun.color.value,
+      night ? .35 * moon.moonIntensity.value * moon.moonPhaseIllumination.value : sun.intensity.value,
+      this.ambientLight.intensity);
+  }
   private updatePortLighting(): void {
     if(!this.sky)return;
     const map = oceanMap(this.simulation.mapId ?? DEFAULT_MAP);
@@ -1091,7 +1100,6 @@ export class Game {
       latitude: 90 - Math.abs(elevation), azimuth: elevation < 0 ? azimuth : azimuth - 180 });
     this.sky.sun.setFromAngles(elevation, azimuth);
     this.sky.sun.peakIntensity=this.inPort ? 5.8 : sky.intensity;
-    this.effects.setSun(elevation < 0 ? this.sky.sun.direction.value.clone().negate() : this.sky.sun.direction.value);
     this.sky.clouds.shape.altitude.value = this.inPort ? 1700 : sky.altitude;
     this.sky.clouds.shape.thickness.value = this.inPort ? 2400 : sky.thickness;
     this.sky.clouds.shape.coverage.value=this.inPort ? .38 : sky.coverage;
