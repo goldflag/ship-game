@@ -1,0 +1,43 @@
+{
+  "ship": "liberty-cargo",
+  "before": {
+    "flags": [
+      {
+        "design": "us-48",
+        "position": [
+          0,
+          7.843,
+          64.285
+        ],
+        "visible": true,
+        "tip": [
+          2.5342140197753906,
+          -0.3235594630241394,
+          0.8118098378181458
+        ]
+      }
+    ],
+    "radars": []
+  },
+  "after": {
+    "flags": [
+      {
+        "design": "us-48",
+        "position": [
+          0,
+          7.843,
+          64.285
+        ],
+        "visible": true,
+        "tip": [
+          2.3202450275421143,
+          -0.2786824405193329,
+          1.3592904806137085
+        ]
+      }
+    ],
+    "radars": []
+  },
+  "pauseHeld": true,
+  "maxWeaponErrorM": 1.61581393893102e-05
+}

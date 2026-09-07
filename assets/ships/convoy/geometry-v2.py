@@ -617,4 +617,6 @@ for mount in definition['mounts']:
 
 scene['definitionHash']=definition['contentHash']
 scene['originalRecipe']='convoy-geometry-v2'
+from blender_rig import create_flagstaffs
+create_flagstaffs(definition)
 bpy.ops.wm.save_as_mainfile(filepath=str(out/'source.blend'))

@@ -16,6 +16,7 @@ ROOT=Path(__file__).resolve().parents[3]
 sys.path.insert(0,str(ROOT/'scripts/ships'))
 from blender_components import create_gun_mount
 from blender_supports import SupportSurface
+from blender_rig import radar_pivot
 from blender_fidelity import authored_hull, authored_structure, Fittings, loft_breadth
 sys.path.insert(0,str(ROOT/'assets/parts'))
 from aa_articulation import articulate_aa
@@ -200,6 +201,7 @@ for side in (-1,1):
   cyl('Binocular pedestal',(x,side*7,19.7),.14,.8,edge,SUPER,12)
   rod('Binocular optics',(x-.25,side*7,20.2),(x+.3,side*7,20.2),.16,dark,SUPER,vertices=10)
 # Main director and its 15 metre optical base.
+director_before=set(scene.objects)
 cyl('Main director rotating drum',(-3.5,0,35.1),3.1,2.3,naval,SUPER,40)
 rod('15 metre bridge rangefinder',(-3.5,-7.5,35.4),(-3.5,7.5,35.4),.59,naval,SUPER,vertices=20)
 for side in (-1,1):rounded('Main rangefinder end hood',-3.5,side*7.4,34.8,2.1,1.25,1.3,naval,SUPER)
@@ -210,6 +212,7 @@ for angle in (0,110,250):
  o=box('Director optical hood',(-3.2+1.8*math.cos(a),1.8*math.sin(a),37.55),(.65,1.1,.58),naval,SUPER);o.rotation_euler.z=a
  rod('Director optical aperture',(-3.2+2.13*math.cos(a),2.13*math.sin(a),37.55),(-3.2+2.16*math.cos(a),2.16*math.sin(a),37.55),.12,dark,SUPER,vertices=10)
 rod('Director roof sight',(-2.7,0,38.64),(-2.7,0,39.10),.10,edge,SUPER,vertices=12)
+main_director_parts=set(scene.objects)-director_before
 # Aft director stands ahead of the after 15.5 cm turret.
 rounded('Aft director foundation',-39,0,10.8,9,10,4.6,naval,SUPER)
 cyl('Aft director column',(-38.6,0,18.1),2.4,5.5,naval,SUPER,32)
@@ -393,6 +396,7 @@ rod('Signal spar',(-43,-7,36),(-43,7,36),.075,wire,MAST,vertices=8)
 for side in (-1,1):
  for y in (2,4,6,8,10):rod('Signal halyard',(-34.5,side*y,33),(-29,side*5.8,16.4),.015,wire,MAST,vertices=5)
  for a,b in [((-37,0,39.6),(-3.5,0,37.8)),((-3.5,0,37.8),(128,0,12.0)),((-43,side*7,36),(-128,side*2,10.5))]:rod('Aerial wire',a,b,.018,wire,MAST,vertices=5)
+radar_before=set(bpy.context.scene.objects)
 # Two Type 21 arrays sit over the ends of the 15 m rangefinder, as visible
 # in the museum bridge photographs. Their framing remains interpreted.
 for side in (-1,1):
@@ -401,12 +405,15 @@ for side in (-1,1):
   y=side*(3.3+i*.5)
   rod('Type 21 array vertical',(-3.5,y,36.5),(-3.5,y,38.5),.035,edge,MAST,vertices=6)
  for z in (36.5,37.15,37.8,38.5):rod('Type 21 array horizontal',(-3.5,side*3.3,z),(-3.5,side*7.3,z),.035,edge,MAST,vertices=6)
+radar_pivot('radar-21.yaw',(-3.5,0,35.4),(set(bpy.context.scene.objects)-radar_before)|main_director_parts)
 tower_support=SupportSurface(SUPER.objects)
 for side in (-1,1):
  for z in (27.8,28.55):
   foot=tower_support.along((-1,side*5,z),(0,-side,0),8)
   rod('Type 22 radar bracket',foot,(-1,side*5,z),.10,naval,MAST,vertices=10)
+ radar_before=set(bpy.context.scene.objects)
  for z in (27.8,28.55):rod('Type 22 radar horn',(-1,side*5,z),(1.0,side*5,z),.19,naval,MAST,r2=.52,vertices=16)
+ radar_pivot('radar-22-'+('port' if side==1 else 'starboard')+'.yaw',(-1,side*5,27.8),set(bpy.context.scene.objects)-radar_before)
  for z in (30,33):rod('Type 13 mounting arm',(-35-2*(z-14)/25.6,0,z),(-35.5,0,z),.08,edge,MAST,vertices=8)
  rod('Type 13 aerial spine',(-35.5,0,29.8),(-35.5,0,34.2),.07,edge,MAST,vertices=8)
  for z in (30,31,32,33,34):rod('Type 13 aerial dipole',(-35.5,-.85,z),(-35.5,.85,z),.038,edge,MAST,vertices=6)
@@ -554,5 +561,7 @@ for side in [-1,1]:
  fit.ladder('Aircraft deck access',(-75,side*9,5.95),(-70,side*9,8.0),.7)
 scene['definitionHash']=D['contentHash'];scene['configuration']=D['configuration']
 scene['historicalAccuracy']='Unverified reconstruction; see discrepancy register'
+from blender_rig import create_flagstaffs
+create_flagstaffs(D)
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'source.blend'))
 print('Authored Yamato:',len(scene.objects),'objects',flush=True)

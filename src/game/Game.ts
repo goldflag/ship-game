@@ -439,7 +439,7 @@ export class Game {
       draws = new FleetShipDraws(views);
       const previous = [...this.fleetModels, ...this.fleetViews.map(view => view.root)];
       this.fleetDraws?.dispose();
-      this.fleetViews.forEach(view => { view.impactMarks.dispose(); view.root.removeFromParent(); });
+      this.fleetViews.forEach(view => { view.impactMarks.dispose(); view.rig.dispose(); view.root.removeFromParent(); });
       this.scene.add(...views.map(view => view.root), this.aircraftView.root);
       this.definition = definition; this.simulation = simulation;
       this.playerDamageFeedback = new HullDamageFeedback(simulation.player.damage.integrity);
@@ -464,7 +464,7 @@ export class Game {
       disposeObjects(...previous);
     } catch (error) {
       draws?.dispose();
-      views.forEach(view => view.impactMarks.dispose());
+      views.forEach(view => { view.impactMarks.dispose(); view.rig.dispose(); });
       disposeObjects(...models.values(), ...clones, ...views.map(view => view.root));
       throw error;
     }
@@ -534,7 +534,11 @@ export class Game {
       this.hitDirections.update(this.simulation, this.camera, !this.inPort);
       this.torpedoPreview.update(this.simulation.player, this.playerView!.motion, aim, showGunAim && this.battery === 'torpedo' && this.host?.dataset.shipLabels !== 'false');
       this.inspectionHover?.update(this.inPort && !this.paused && !this.switchingShip ? this.playerView?.inspection : undefined);
-      this.fleetViews.forEach(view => view.updateRenderMatrices());
+      this.fleetViews.forEach(view => {
+        view.rig.update(dt, this.water!.waves.windSpeed.value, this.water!.waves.windDirection.value,
+          view.root, view.motion, view.actor.damage.sunk, this.camera);
+        view.updateRenderMatrices();
+      });
       this.aircraftView.update(this.simulation, this.camera, !this.inspecting && (!this.inPort || this.playerView?.inspection.mode === 'exterior'), this.inPort, new Map(this.fleetViews.map(view => [view.actor.motion.id, view.root])));
       this.effects.update(this.simulation, dt, this.camera, this.rig.binoculars && !this.shellFollow.view);
       this.funnelSmoke.root.visible = !this.inspecting && (!this.inPort || this.playerView!.inspection.mode === 'exterior');
@@ -880,6 +884,7 @@ export class Game {
       tick: this.simulation.tick, battleSeed: this.simulation.seed, paused: this.paused, fps: this.fps, inspecting: this.inspecting, inPort: this.inPort,
       effects: this.effects.diagnostics(),
       funnelSmoke: this.funnelSmoke.diagnostics(),
+      shipRigs: this.fleetViews.map(view => ({ shipId: view.actor.motion.id, ...view.rig.diagnostics() })),
       audio: this.audio?.diagnostics(),
       portInspection: this.playerView?.inspection.mode, selectedVolume: this.playerView?.inspection.selectedId, hoveredVolume: this.playerView?.inspection.hoveredId,
       maxMuzzleErrorM: Math.max(0, ...this.fleetViews.flatMap(view => view.muzzleErrors())),
@@ -999,7 +1004,7 @@ export class Game {
     await this.initialization;
     await this.frameTask;
     this.fleetDraws?.dispose();
-    this.fleetViews.forEach(view => view.impactMarks.dispose());
+    this.fleetViews.forEach(view => { view.impactMarks.dispose(); view.rig.dispose(); });
     this.pipeline?.dispose();
     this.finalFrame?.renderTarget?.dispose();
     this.scenePass?.dispose();

@@ -1,0 +1,78 @@
+{
+  "ship": "fletcher",
+  "contentHash": "a679af7c128323add8afa71369c12e96e5c44b39245a0c3b3ececb183ae33e4b",
+  "before": {
+    "flags": [
+      {
+        "design": "us-48",
+        "position": [
+          0,
+          4.26,
+          56.83
+        ],
+        "visible": true,
+        "tip": [
+          1.729052186012268,
+          -0.2951810956001282,
+          1.0764719247817993
+        ]
+      }
+    ],
+    "radars": [
+      {
+        "nodeId": "radar-sc.yaw",
+        "angle": 1.8849555921538765,
+        "rpm": 6
+      },
+      {
+        "nodeId": "radar-sg.yaw",
+        "angle": 5.532693728822027,
+        "rpm": 15
+      },
+      {
+        "nodeId": "director-mk37.yaw",
+        "angle": 0.7353498761967923,
+        "rpm": 2,
+        "sweepDeg": 55
+      }
+    ]
+  },
+  "after": {
+    "flags": [
+      {
+        "design": "us-48",
+        "position": [
+          0,
+          4.26,
+          56.83
+        ],
+        "visible": true,
+        "tip": [
+          1.7090983390808105,
+          -0.20651261508464813,
+          1.1044974327087402
+        ]
+      }
+    ],
+    "radars": [
+      {
+        "nodeId": "radar-sc.yaw",
+        "angle": 2.701769682087223,
+        "rpm": 6
+      },
+      {
+        "nodeId": "radar-sg.yaw",
+        "angle": 1.2915436464758052,
+        "rpm": 15
+      },
+      {
+        "nodeId": "director-mk37.yaw",
+        "angle": 0.5423293906190186,
+        "rpm": 2,
+        "sweepDeg": 55
+      }
+    ]
+  },
+  "pauseHeld": true,
+  "maxWeaponErrorM": 0.0006816694559700051
+}
