@@ -2,6 +2,8 @@
 
 Draft proposal · 2026-09-04
 
+Historical design context: the baseline paths, implementation status and open decisions below describe the original proposal. For current work, follow the [ship pipeline](ship-pipeline.md), [runtime contracts](ship-runtime-contract.md) and [integration workflow](integration-workflow.md).
+
 Use Bismarck to establish one ship format that supports historical presets, combat, and player construction. Build each ship as an assembly with explicit physical and gameplay properties. Generate the visual asset and simulation data from that assembly.
 
 Working assumption pending the owner's preference: accessible simulation with armor, internal systems, ballistics, and flooding, using simplified calculations. The roadmap below is a proposal; combat, networking, and an editor are not implemented by this document.

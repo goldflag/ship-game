@@ -2,6 +2,8 @@
 
 A playable singleplayer foundation using **Bun, TypeScript, React, Three.js WebGPU, Water Pro 3.5.1, and Sky Pro 2.2.0**. Includes an original Bismarck model, a reproducible Blender asset pipeline, articulated main and secondary guns, and custom singleplayer fleet battles.
 
+For agent work, start with [repository instructions](AGENTS.md) and the [task-based documentation map](docs/README.md). Ship authoring follows the [ship pipeline](docs/ship-pipeline.md) and its required [model review checks](docs/ship-model-review.md).
+
 ```sh
 bun install
 bun run git:setup # Once per clone: safer catalog merges and remembered resolutions
@@ -177,7 +179,7 @@ bun run ship:new my-ship
 
 Set `BLENDER_BIN` for a custom Blender executable. Builds retain independent mounts, elevation/recoil joints, muzzle sockets and assembly IDs. The export is already in runtime coordinates: meters, bow -Z, up +Y, waterline Y=0.
 
-Read the [ship pipeline and Blender MCP workflow](docs/ship-pipeline.md), [source asset index](assets/README.md), and [Bismarck discrepancy register](assets/ships/bismarck/reports/discrepancies.md). The [original systems plan](docs/ship-systems-plan.md) describes the longer roadmap. The GameModels3D WoWS EU 15.7.0.0 reference pack is retained under the ship’s references. Passing export checks validates authored targets, not historical accuracy.
+Read the [ship pipeline and Blender MCP workflow](docs/ship-pipeline.md), [source asset index](assets/README.md), and [Bismarck discrepancy register](assets/ships/bismarck/reports/discrepancies.md). Detailed [runtime contracts](docs/ship-runtime-contract.md) and [build/reference behavior](docs/ship-build-reference.md) are separate references. The [original systems plan](docs/ship-systems-plan.md) preserves the historical proposal and roadmap. The GameModels3D WoWS EU 15.7.0.0 reference pack is retained under the ship’s references. Passing export checks validates authored targets, not historical accuracy.
 
 ## Aircraft model collection
 
