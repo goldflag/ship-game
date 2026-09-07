@@ -14,7 +14,7 @@ import { createShipState, FIXED_DT, stepShip, type HelmCommand } from './ship';
 import { add, clamp, length, localToWorld, scale, sub } from './geometry';
 import { availableAmmunition, createMountState, GRAVITY, muzzleWorld, selectAmmunition, shotDirection, solveBallistic, updateMount } from './weapons';
 import { dispersedDirection, dispersedSpeed, travelFactor, velocityPenetration } from './ballistics';
-import { BATTLE_SPAWN_DISTANCE, deployment, MAX_TEAM_SHIPS, validateSpawnDistance, type BattleFleet, type BattleResult, type FleetActor, type Team } from './battle';
+import { BATTLE_SPAWN_DISTANCE, deployment, validateSpawns, type SpawnPositions, MAX_TEAM_SHIPS, validateSpawnDistance, type BattleFleet, type BattleResult, type FleetActor, type Team } from './battle';
 import { botShouldDropDepthCharge, createDepthChargeLauncherState, damageDepthCharge, launchDepthCharge, stepDepthCharge, updateDepthChargeLauncher, type DepthCharge } from './depthCharges';
 import { botAim, botAmmunition, botDidFire, botGunRange, botHelm, botReadyToFire, botTarget, botTorpedoAim, clearFiringLane, createBotState, shipVelocity, updateBot } from './bots';
 import { clearTorpedoLane, createTubeState, damageTorpedoHit, firstTorpedoHit, torpedoIntercept, trainTorpedoLaunchers, tubeLocalPosition, tubeSolution, type Torpedo } from './torpedoes';
@@ -89,6 +89,7 @@ export class CombatSimulation {
   private playerFrags = 0;
   private damageLog = new DamageLog();
   /** Last hostile hull/breach damage earns the frag, including a later flooding loss. */
+  private initialSpawns?: SpawnPositions;
   private lastDamager = new Map<string, string>();
   private creditedLosses = new Set<string>();
   /** Without a fleet, create an idle gunnery fixture for port and isolated asset tests. */
@@ -101,6 +102,10 @@ export class CombatSimulation {
     if (!Number.isInteger(this.seed) || this.seed < 0 || this.seed > 0xffffffff) throw new Error('Battle seed must be an unsigned 32-bit integer.');
     validateSpawnDistance(this.spawnDistance);
     if (fleet && (!fleet.enemies.length || fleet.enemies.length > MAX_TEAM_SHIPS || fleet.friendlyBots.length >= MAX_TEAM_SHIPS)) throw new Error(`Choose one to ${MAX_TEAM_SHIPS} ships per team.`);
+    if (fleet?.spawns) {
+      validateSpawns(fleet.spawns, fleet.friendlyBots.length + 1, fleet.enemies.length, this.islands);
+      this.initialSpawns = structuredClone(fleet.spawns);
+    }
     this.player = this.createActor('player', definition, 'friendly', 'player');
     this.actors = [this.player];
     if (fleet) {
@@ -110,7 +115,7 @@ export class CombatSimulation {
           this.actors.push(this.createActor(`${team}-${i + 1}`, def, team, 'bot', aiLevel));
         });
       }
-      for (const team of ['friendly', 'enemy'] as const) this.actors.filter(actor => actor.team === team).forEach((actor, i) => Object.assign(actor.motion, deployment(i, team, this.spawnDistance)));
+      for (const team of ['friendly', 'enemy'] as const) this.actors.filter(actor => actor.team === team).forEach((actor, i) => Object.assign(actor.motion, this.initialSpawns?.[team][i] ?? deployment(i, team, this.spawnDistance)));
       this.target = this.actors.find(actor => actor.team === 'enemy')!;
     } else {
       this.target = this.createTarget();
@@ -125,7 +130,7 @@ export class CombatSimulation {
     for (const team of ['friendly', 'enemy'] as const) this.actors.filter(actor => actor.team === team).forEach((actor, i) => {
       Object.assign(actor, this.createActor(actor.motion.id, actor.definition, actor.team, actor.controller, actor.bot?.aiLevel));
       delete actor.targetId;
-      if (this.isBattle) Object.assign(actor.motion, deployment(i, team, this.spawnDistance));
+      if (this.isBattle) Object.assign(actor.motion, this.initialSpawns?.[team][i] ?? deployment(i, team, this.spawnDistance));
     });
     this.target = this.actors.find(actor => actor.team === 'enemy')!;
     if (!this.isBattle) Object.assign(this.target, this.createTarget());
