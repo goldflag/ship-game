@@ -40,7 +40,9 @@ test('weather drives live waves across maps, overrides obsolete settings, and re
   };
   const game = Object.assign(Object.create(Game.prototype), {
     simulation: { mapId: 'north-atlantic' }, inPort: false, water, surfaceWaterAbsorption: new Color(),
-    settings: { sea: 'Heavy' }, effects: { setWind(value: number) { this.wind = value; }, wind: 0 },
+    settings: { sea: 'Heavy' },
+    effects: { setWind(speed: number, direction: number) { this.wind = [speed, direction]; }, wind: [] as number[] },
+    funnelSmoke: { setWind(speed: number, direction: number) { this.wind = [speed, direction]; }, wind: [] as number[] },
   });
   for (const map of OCEAN_MAPS) {
     game.simulation.mapId = map.id;
@@ -53,7 +55,9 @@ test('weather drives live waves across maps, overrides obsolete settings, and re
       expect(water.waves.windSpeed.value).toBe(expected.windSpeed);
       expect(water.waves.peakWavelength.value).toBe(expected.peakWavelength);
       expect(water.waves.amplitude.value).toBeGreaterThan(previous);
-      expect(game.effects.wind).toBe(expected.windSpeed);
+      expect(water.waves.windDirection.value).toBe(map.water.windDirection * Math.PI / 180);
+      expect(game.effects.wind).toEqual([expected.windSpeed, water.waves.windDirection.value]);
+      expect(game.funnelSmoke.wind).toEqual(game.effects.wind);
       expect(water.waves.dirty).toBe(true);
       previous = water.waves.amplitude.value;
     }
@@ -64,6 +68,8 @@ test('weather drives live waves across maps, overrides obsolete settings, and re
   expect(water.waves.amplitude.value).toBe(.12);
   expect(water.waves.windSpeed.value).toBe(4);
   expect(water.waves.peakWavelength.value).toBe(14);
+  expect(game.effects.wind).toEqual([4, 35 * Math.PI / 180]);
+  expect(game.funnelSmoke.wind).toEqual(game.effects.wind);
 });
 
 test('night, fog and storm lighting reach the live uniforms; the sky stays fixed and port restores daylight', () => {
