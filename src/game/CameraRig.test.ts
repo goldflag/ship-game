@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, expect, test } from 'bun:test';
+import { afterEach, beforeEach, expect, mock, spyOn, test } from 'bun:test';
 import { PerspectiveCamera, Vector3 } from 'three/webgpu';
 import { createShipState } from '../simulation/ship';
 import { CameraRig } from './CameraRig';
@@ -97,6 +97,143 @@ function interactiveCamera() {
   };
   return { camera, canvas, rig, drag };
 }
+
+function pointerLockCamera() {
+  Object.assign(window, { matchMedia: () => ({ matches: true }) });
+  const canvas = Object.assign(new EventTarget(), {
+    focus() {},
+    requestPointerLock: mock<() => Promise<void> | void>(() => new Promise<void>(() => {})),
+  });
+  const changeLock = (element: EventTarget | null) => {
+    Object.assign(document, { pointerLockElement: element });
+    document.dispatchEvent(new Event('pointerlockchange'));
+  };
+  Object.assign(document, { pointerLockElement: null, exitPointerLock: () => changeLock(null) });
+  const pause = mock();
+  const rig = new CameraRig(new PerspectiveCamera(52, 16 / 9, .5, 60000), canvas as unknown as HTMLCanvasElement,
+    undefined, { pause, aim() {}, optics() {} });
+  const clickSea = () => canvas.dispatchEvent(Object.assign(new Event('pointerdown'), { button: 0, pointerType: 'mouse' }));
+  return { rig, canvas, changeLock, clickSea, pause };
+}
+
+test('an interrupted capture can recover after pausing or leaving and re-entering battle', () => {
+  const { rig, canvas, clickSea, changeLock } = pointerLockCamera();
+  try {
+    rig.capturePointer();
+    rig.setEnabled(false);
+    rig.setEnabled(true);
+    clickSea();
+    expect(canvas.requestPointerLock).toHaveBeenCalledTimes(2);
+    rig.setInPort(true);
+    rig.setInPort(false);
+    clickSea();
+    expect(canvas.requestPointerLock).toHaveBeenCalledTimes(3);
+    changeLock(canvas);
+    expect(rig.pointerLocked).toBe(true);
+  } finally { rig.dispose(); }
+});
+
+test('a completed request without a retained lock allows the next sea click to capture', async () => {
+  const { rig, canvas, clickSea, changeLock } = pointerLockCamera();
+  canvas.requestPointerLock.mockImplementation(() => Promise.resolve());
+  try {
+    clickSea();
+    await Promise.resolve();
+    clickSea();
+    expect(canvas.requestPointerLock).toHaveBeenCalledTimes(2);
+    changeLock(canvas);
+    expect(rig.pointerLocked).toBe(true);
+  } finally { rig.dispose(); }
+});
+
+test('an unanswered capture only suppresses duplicate requests briefly', () => {
+  const clock = spyOn(performance, 'now').mockReturnValue(0);
+  const { rig, canvas, clickSea, changeLock } = pointerLockCamera();
+  try {
+    clickSea();
+    clickSea();
+    expect(canvas.requestPointerLock).toHaveBeenCalledTimes(1);
+    clock.mockReturnValue(2000);
+    clickSea();
+    expect(canvas.requestPointerLock).toHaveBeenCalledTimes(2);
+    changeLock(canvas);
+    expect(rig.pointerLocked).toBe(true);
+  } finally { rig.dispose(); clock.mockRestore(); }
+});
+
+test('an unlock notification clears a capture whose acquired state was already lost', () => {
+  const { rig, canvas, clickSea, changeLock, pause } = pointerLockCamera();
+  try {
+    clickSea();
+    changeLock(null);
+    expect(pause).toHaveBeenCalledTimes(1);
+    clickSea();
+    expect(canvas.requestPointerLock).toHaveBeenCalledTimes(2);
+  } finally { rig.dispose(); }
+});
+
+for (const outcome of ['resolve', 'reject'] as const) {
+  test(`an old request's late ${outcome} does not clear a newer capture`, async () => {
+    const { rig, canvas, clickSea } = pointerLockCamera();
+    let finish!: () => void;
+    canvas.requestPointerLock.mockImplementationOnce(() => new Promise<void>((resolve, reject) => {
+      finish = () => outcome === 'resolve' ? resolve() : reject(new Error('interrupted'));
+    }));
+    try {
+      clickSea();
+      rig.releasePointer();
+      clickSea();
+      expect(canvas.requestPointerLock).toHaveBeenCalledTimes(2);
+      finish();
+      await Promise.resolve();
+      clickSea();
+      expect(canvas.requestPointerLock).toHaveBeenCalledTimes(2);
+    } finally { rig.dispose(); }
+  });
+}
+
+test('late capture is released while paused and intentional release does not pause', () => {
+  const { rig, canvas, clickSea, changeLock, pause } = pointerLockCamera();
+  try {
+    clickSea();
+    rig.setEnabled(false);
+    changeLock(canvas);
+    expect(rig.pointerLocked).toBe(false);
+    expect(pause).not.toHaveBeenCalled();
+    rig.setEnabled(true);
+    clickSea();
+    changeLock(canvas);
+    rig.releasePointer();
+    expect(rig.pointerLocked).toBe(false);
+    expect(pause).not.toHaveBeenCalled();
+    clickSea();
+    changeLock(canvas);
+    changeLock(null);
+    expect(pause).toHaveBeenCalledTimes(1);
+  } finally { rig.dispose(); }
+});
+
+test('legacy capture errors and rejected requests permit retry without firing on the capture click', async () => {
+  const { rig, canvas, clickSea, changeLock } = pointerLockCamera();
+  canvas.requestPointerLock.mockImplementationOnce(() => {});
+  canvas.requestPointerLock.mockImplementationOnce(() => Promise.reject(new Error('denied')));
+  canvas.requestPointerLock.mockImplementationOnce(() => { throw new Error('denied'); });
+  try {
+    clickSea();
+    document.dispatchEvent(new Event('pointerlockerror'));
+    clickSea();
+    await Promise.resolve();
+    clickSea();
+    clickSea();
+    expect(canvas.requestPointerLock).toHaveBeenCalledTimes(4);
+    changeLock(canvas);
+    expect(rig.firing).toBe(false);
+    clickSea();
+    expect(rig.firing).toBe(true);
+    window.dispatchEvent(new Event('pointerup'));
+    expect(rig.firing).toBe(false);
+  } finally { rig.dispose(); }
+});
 
 function sunDirection(elevation: number, azimuth: number) {
   return new Vector3(Math.sin(azimuth) * Math.cos(elevation), Math.sin(elevation), Math.cos(azimuth) * Math.cos(elevation));
