@@ -1,0 +1,1308 @@
+[
+  {
+    "backend": "webgpu",
+    "frames": [
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 0,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 1,
+        "contacts": 0,
+        "count": 1,
+        "lod": 0,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 31941
+      },
+      {
+        "airframes": 6,
+        "contacts": 0,
+        "count": 6,
+        "lod": 0,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 191646
+      },
+      {
+        "airframes": 2,
+        "contacts": 0,
+        "count": 2,
+        "lod": 0,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 63882
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 0,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 9,
+        "contacts": 0,
+        "count": 9,
+        "lod": 0,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 287469
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 1,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 1,
+        "contacts": 1,
+        "count": 1,
+        "lod": 1,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 14297
+      },
+      {
+        "airframes": 6,
+        "contacts": 6,
+        "count": 6,
+        "lod": 1,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 85782
+      },
+      {
+        "airframes": 2,
+        "contacts": 2,
+        "count": 2,
+        "lod": 1,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 28594
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 1,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 9,
+        "contacts": 9,
+        "count": 9,
+        "lod": 1,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 128673
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 2,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 1,
+        "contacts": 1,
+        "count": 1,
+        "lod": 2,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 6298
+      },
+      {
+        "airframes": 6,
+        "contacts": 6,
+        "count": 6,
+        "lod": 2,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 37788
+      },
+      {
+        "airframes": 2,
+        "contacts": 2,
+        "count": 2,
+        "lod": 2,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 12596
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 2,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 9,
+        "contacts": 9,
+        "count": 9,
+        "lod": 2,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 56682
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 0,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 1,
+        "contacts": 0,
+        "count": 1,
+        "lod": 0,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 31941
+      },
+      {
+        "airframes": 6,
+        "contacts": 0,
+        "count": 6,
+        "lod": 0,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 191646
+      },
+      {
+        "airframes": 2,
+        "contacts": 0,
+        "count": 2,
+        "lod": 0,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 63882
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 0,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 9,
+        "contacts": 0,
+        "count": 9,
+        "lod": 0,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 287469
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 0,
+        "model": "sbd-3-dauntless",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 1,
+        "contacts": 0,
+        "count": 1,
+        "lod": 0,
+        "model": "sbd-3-dauntless",
+        "payloads": 1,
+        "triangles": 39457
+      },
+      {
+        "airframes": 6,
+        "contacts": 0,
+        "count": 6,
+        "lod": 0,
+        "model": "sbd-3-dauntless",
+        "payloads": 6,
+        "triangles": 236742
+      },
+      {
+        "airframes": 2,
+        "contacts": 0,
+        "count": 2,
+        "lod": 0,
+        "model": "sbd-3-dauntless",
+        "payloads": 2,
+        "triangles": 78914
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 0,
+        "model": "sbd-3-dauntless",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 9,
+        "contacts": 0,
+        "count": 9,
+        "lod": 0,
+        "model": "sbd-3-dauntless",
+        "payloads": 9,
+        "triangles": 355113
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 1,
+        "model": "sbd-3-dauntless",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 1,
+        "contacts": 0,
+        "count": 1,
+        "lod": 1,
+        "model": "sbd-3-dauntless",
+        "payloads": 1,
+        "triangles": 17744
+      },
+      {
+        "airframes": 6,
+        "contacts": 0,
+        "count": 6,
+        "lod": 1,
+        "model": "sbd-3-dauntless",
+        "payloads": 6,
+        "triangles": 106464
+      },
+      {
+        "airframes": 2,
+        "contacts": 0,
+        "count": 2,
+        "lod": 1,
+        "model": "sbd-3-dauntless",
+        "payloads": 2,
+        "triangles": 35488
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 1,
+        "model": "sbd-3-dauntless",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 9,
+        "contacts": 0,
+        "count": 9,
+        "lod": 1,
+        "model": "sbd-3-dauntless",
+        "payloads": 9,
+        "triangles": 159696
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 2,
+        "model": "sbd-3-dauntless",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 1,
+        "contacts": 1,
+        "count": 1,
+        "lod": 2,
+        "model": "sbd-3-dauntless",
+        "payloads": 1,
+        "triangles": 8018
+      },
+      {
+        "airframes": 6,
+        "contacts": 6,
+        "count": 6,
+        "lod": 2,
+        "model": "sbd-3-dauntless",
+        "payloads": 2,
+        "triangles": 48108
+      },
+      {
+        "airframes": 2,
+        "contacts": 2,
+        "count": 2,
+        "lod": 2,
+        "model": "sbd-3-dauntless",
+        "payloads": 1,
+        "triangles": 16036
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 2,
+        "model": "sbd-3-dauntless",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 9,
+        "contacts": 9,
+        "count": 9,
+        "lod": 2,
+        "model": "sbd-3-dauntless",
+        "payloads": 4,
+        "triangles": 72162
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 0,
+        "model": "sbd-3-dauntless",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 1,
+        "contacts": 0,
+        "count": 1,
+        "lod": 0,
+        "model": "sbd-3-dauntless",
+        "payloads": 1,
+        "triangles": 39457
+      },
+      {
+        "airframes": 6,
+        "contacts": 0,
+        "count": 6,
+        "lod": 0,
+        "model": "sbd-3-dauntless",
+        "payloads": 6,
+        "triangles": 236742
+      },
+      {
+        "airframes": 2,
+        "contacts": 0,
+        "count": 2,
+        "lod": 0,
+        "model": "sbd-3-dauntless",
+        "payloads": 2,
+        "triangles": 78914
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 0,
+        "model": "sbd-3-dauntless",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 9,
+        "contacts": 0,
+        "count": 9,
+        "lod": 0,
+        "model": "sbd-3-dauntless",
+        "payloads": 9,
+        "triangles": 355113
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 0,
+        "model": "tbd-1-devastator",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 1,
+        "contacts": 0,
+        "count": 1,
+        "lod": 0,
+        "model": "tbd-1-devastator",
+        "payloads": 1,
+        "triangles": 34857
+      },
+      {
+        "airframes": 6,
+        "contacts": 0,
+        "count": 6,
+        "lod": 0,
+        "model": "tbd-1-devastator",
+        "payloads": 6,
+        "triangles": 209142
+      },
+      {
+        "airframes": 2,
+        "contacts": 0,
+        "count": 2,
+        "lod": 0,
+        "model": "tbd-1-devastator",
+        "payloads": 2,
+        "triangles": 69714
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 0,
+        "model": "tbd-1-devastator",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 9,
+        "contacts": 0,
+        "count": 9,
+        "lod": 0,
+        "model": "tbd-1-devastator",
+        "payloads": 9,
+        "triangles": 313713
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 1,
+        "model": "tbd-1-devastator",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 1,
+        "contacts": 0,
+        "count": 1,
+        "lod": 1,
+        "model": "tbd-1-devastator",
+        "payloads": 1,
+        "triangles": 15713
+      },
+      {
+        "airframes": 6,
+        "contacts": 0,
+        "count": 6,
+        "lod": 1,
+        "model": "tbd-1-devastator",
+        "payloads": 6,
+        "triangles": 94278
+      },
+      {
+        "airframes": 2,
+        "contacts": 0,
+        "count": 2,
+        "lod": 1,
+        "model": "tbd-1-devastator",
+        "payloads": 2,
+        "triangles": 31426
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 1,
+        "model": "tbd-1-devastator",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 9,
+        "contacts": 0,
+        "count": 9,
+        "lod": 1,
+        "model": "tbd-1-devastator",
+        "payloads": 9,
+        "triangles": 141417
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 2,
+        "model": "tbd-1-devastator",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 1,
+        "contacts": 1,
+        "count": 1,
+        "lod": 2,
+        "model": "tbd-1-devastator",
+        "payloads": 1,
+        "triangles": 6935
+      },
+      {
+        "airframes": 6,
+        "contacts": 6,
+        "count": 6,
+        "lod": 2,
+        "model": "tbd-1-devastator",
+        "payloads": 5,
+        "triangles": 41610
+      },
+      {
+        "airframes": 2,
+        "contacts": 2,
+        "count": 2,
+        "lod": 2,
+        "model": "tbd-1-devastator",
+        "payloads": 2,
+        "triangles": 13870
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 2,
+        "model": "tbd-1-devastator",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 9,
+        "contacts": 9,
+        "count": 9,
+        "lod": 2,
+        "model": "tbd-1-devastator",
+        "payloads": 8,
+        "triangles": 62415
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 0,
+        "model": "tbd-1-devastator",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 1,
+        "contacts": 0,
+        "count": 1,
+        "lod": 0,
+        "model": "tbd-1-devastator",
+        "payloads": 1,
+        "triangles": 34857
+      },
+      {
+        "airframes": 6,
+        "contacts": 0,
+        "count": 6,
+        "lod": 0,
+        "model": "tbd-1-devastator",
+        "payloads": 6,
+        "triangles": 209142
+      },
+      {
+        "airframes": 2,
+        "contacts": 0,
+        "count": 2,
+        "lod": 0,
+        "model": "tbd-1-devastator",
+        "payloads": 2,
+        "triangles": 69714
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 0,
+        "model": "tbd-1-devastator",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 9,
+        "contacts": 0,
+        "count": 9,
+        "lod": 0,
+        "model": "tbd-1-devastator",
+        "payloads": 9,
+        "triangles": 313713
+      }
+    ]
+  },
+  {
+    "backend": "webgl2",
+    "frames": [
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 0,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 1,
+        "contacts": 0,
+        "count": 1,
+        "lod": 0,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 31941
+      },
+      {
+        "airframes": 6,
+        "contacts": 0,
+        "count": 6,
+        "lod": 0,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 191646
+      },
+      {
+        "airframes": 2,
+        "contacts": 0,
+        "count": 2,
+        "lod": 0,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 63882
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 0,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 9,
+        "contacts": 0,
+        "count": 9,
+        "lod": 0,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 287469
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 1,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 1,
+        "contacts": 1,
+        "count": 1,
+        "lod": 1,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 14297
+      },
+      {
+        "airframes": 6,
+        "contacts": 6,
+        "count": 6,
+        "lod": 1,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 85782
+      },
+      {
+        "airframes": 2,
+        "contacts": 2,
+        "count": 2,
+        "lod": 1,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 28594
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 1,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 9,
+        "contacts": 9,
+        "count": 9,
+        "lod": 1,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 128673
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 2,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 1,
+        "contacts": 1,
+        "count": 1,
+        "lod": 2,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 6298
+      },
+      {
+        "airframes": 6,
+        "contacts": 6,
+        "count": 6,
+        "lod": 2,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 37788
+      },
+      {
+        "airframes": 2,
+        "contacts": 2,
+        "count": 2,
+        "lod": 2,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 12596
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 2,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 9,
+        "contacts": 9,
+        "count": 9,
+        "lod": 2,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 56682
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 0,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 1,
+        "contacts": 0,
+        "count": 1,
+        "lod": 0,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 31941
+      },
+      {
+        "airframes": 6,
+        "contacts": 0,
+        "count": 6,
+        "lod": 0,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 191646
+      },
+      {
+        "airframes": 2,
+        "contacts": 0,
+        "count": 2,
+        "lod": 0,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 63882
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 0,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 9,
+        "contacts": 0,
+        "count": 9,
+        "lod": 0,
+        "model": "f4f-4-wildcat",
+        "payloads": 0,
+        "triangles": 287469
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 0,
+        "model": "sbd-3-dauntless",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 1,
+        "contacts": 0,
+        "count": 1,
+        "lod": 0,
+        "model": "sbd-3-dauntless",
+        "payloads": 1,
+        "triangles": 39457
+      },
+      {
+        "airframes": 6,
+        "contacts": 0,
+        "count": 6,
+        "lod": 0,
+        "model": "sbd-3-dauntless",
+        "payloads": 6,
+        "triangles": 236742
+      },
+      {
+        "airframes": 2,
+        "contacts": 0,
+        "count": 2,
+        "lod": 0,
+        "model": "sbd-3-dauntless",
+        "payloads": 2,
+        "triangles": 78914
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 0,
+        "model": "sbd-3-dauntless",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 9,
+        "contacts": 0,
+        "count": 9,
+        "lod": 0,
+        "model": "sbd-3-dauntless",
+        "payloads": 9,
+        "triangles": 355113
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 1,
+        "model": "sbd-3-dauntless",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 1,
+        "contacts": 0,
+        "count": 1,
+        "lod": 1,
+        "model": "sbd-3-dauntless",
+        "payloads": 1,
+        "triangles": 17744
+      },
+      {
+        "airframes": 6,
+        "contacts": 0,
+        "count": 6,
+        "lod": 1,
+        "model": "sbd-3-dauntless",
+        "payloads": 6,
+        "triangles": 106464
+      },
+      {
+        "airframes": 2,
+        "contacts": 0,
+        "count": 2,
+        "lod": 1,
+        "model": "sbd-3-dauntless",
+        "payloads": 2,
+        "triangles": 35488
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 1,
+        "model": "sbd-3-dauntless",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 9,
+        "contacts": 0,
+        "count": 9,
+        "lod": 1,
+        "model": "sbd-3-dauntless",
+        "payloads": 9,
+        "triangles": 159696
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 2,
+        "model": "sbd-3-dauntless",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 1,
+        "contacts": 1,
+        "count": 1,
+        "lod": 2,
+        "model": "sbd-3-dauntless",
+        "payloads": 1,
+        "triangles": 8018
+      },
+      {
+        "airframes": 6,
+        "contacts": 6,
+        "count": 6,
+        "lod": 2,
+        "model": "sbd-3-dauntless",
+        "payloads": 2,
+        "triangles": 48108
+      },
+      {
+        "airframes": 2,
+        "contacts": 2,
+        "count": 2,
+        "lod": 2,
+        "model": "sbd-3-dauntless",
+        "payloads": 1,
+        "triangles": 16036
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 2,
+        "model": "sbd-3-dauntless",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 9,
+        "contacts": 9,
+        "count": 9,
+        "lod": 2,
+        "model": "sbd-3-dauntless",
+        "payloads": 4,
+        "triangles": 72162
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 0,
+        "model": "sbd-3-dauntless",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 1,
+        "contacts": 0,
+        "count": 1,
+        "lod": 0,
+        "model": "sbd-3-dauntless",
+        "payloads": 1,
+        "triangles": 39457
+      },
+      {
+        "airframes": 6,
+        "contacts": 0,
+        "count": 6,
+        "lod": 0,
+        "model": "sbd-3-dauntless",
+        "payloads": 6,
+        "triangles": 236742
+      },
+      {
+        "airframes": 2,
+        "contacts": 0,
+        "count": 2,
+        "lod": 0,
+        "model": "sbd-3-dauntless",
+        "payloads": 2,
+        "triangles": 78914
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 0,
+        "model": "sbd-3-dauntless",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 9,
+        "contacts": 0,
+        "count": 9,
+        "lod": 0,
+        "model": "sbd-3-dauntless",
+        "payloads": 9,
+        "triangles": 355113
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 0,
+        "model": "tbd-1-devastator",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 1,
+        "contacts": 0,
+        "count": 1,
+        "lod": 0,
+        "model": "tbd-1-devastator",
+        "payloads": 1,
+        "triangles": 34857
+      },
+      {
+        "airframes": 6,
+        "contacts": 0,
+        "count": 6,
+        "lod": 0,
+        "model": "tbd-1-devastator",
+        "payloads": 6,
+        "triangles": 209142
+      },
+      {
+        "airframes": 2,
+        "contacts": 0,
+        "count": 2,
+        "lod": 0,
+        "model": "tbd-1-devastator",
+        "payloads": 2,
+        "triangles": 69714
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 0,
+        "model": "tbd-1-devastator",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 9,
+        "contacts": 0,
+        "count": 9,
+        "lod": 0,
+        "model": "tbd-1-devastator",
+        "payloads": 9,
+        "triangles": 313713
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 1,
+        "model": "tbd-1-devastator",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 1,
+        "contacts": 0,
+        "count": 1,
+        "lod": 1,
+        "model": "tbd-1-devastator",
+        "payloads": 1,
+        "triangles": 15713
+      },
+      {
+        "airframes": 6,
+        "contacts": 0,
+        "count": 6,
+        "lod": 1,
+        "model": "tbd-1-devastator",
+        "payloads": 6,
+        "triangles": 94278
+      },
+      {
+        "airframes": 2,
+        "contacts": 0,
+        "count": 2,
+        "lod": 1,
+        "model": "tbd-1-devastator",
+        "payloads": 2,
+        "triangles": 31426
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 1,
+        "model": "tbd-1-devastator",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 9,
+        "contacts": 0,
+        "count": 9,
+        "lod": 1,
+        "model": "tbd-1-devastator",
+        "payloads": 9,
+        "triangles": 141417
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 2,
+        "model": "tbd-1-devastator",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 1,
+        "contacts": 1,
+        "count": 1,
+        "lod": 2,
+        "model": "tbd-1-devastator",
+        "payloads": 1,
+        "triangles": 6935
+      },
+      {
+        "airframes": 6,
+        "contacts": 6,
+        "count": 6,
+        "lod": 2,
+        "model": "tbd-1-devastator",
+        "payloads": 5,
+        "triangles": 41610
+      },
+      {
+        "airframes": 2,
+        "contacts": 2,
+        "count": 2,
+        "lod": 2,
+        "model": "tbd-1-devastator",
+        "payloads": 2,
+        "triangles": 13870
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 2,
+        "model": "tbd-1-devastator",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 9,
+        "contacts": 9,
+        "count": 9,
+        "lod": 2,
+        "model": "tbd-1-devastator",
+        "payloads": 7,
+        "triangles": 62415
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 0,
+        "model": "tbd-1-devastator",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 1,
+        "contacts": 0,
+        "count": 1,
+        "lod": 0,
+        "model": "tbd-1-devastator",
+        "payloads": 1,
+        "triangles": 34857
+      },
+      {
+        "airframes": 6,
+        "contacts": 0,
+        "count": 6,
+        "lod": 0,
+        "model": "tbd-1-devastator",
+        "payloads": 6,
+        "triangles": 209142
+      },
+      {
+        "airframes": 2,
+        "contacts": 0,
+        "count": 2,
+        "lod": 0,
+        "model": "tbd-1-devastator",
+        "payloads": 2,
+        "triangles": 69714
+      },
+      {
+        "airframes": 0,
+        "contacts": 0,
+        "count": 0,
+        "lod": 0,
+        "model": "tbd-1-devastator",
+        "payloads": 0,
+        "triangles": 0
+      },
+      {
+        "airframes": 9,
+        "contacts": 0,
+        "count": 9,
+        "lod": 0,
+        "model": "tbd-1-devastator",
+        "payloads": 9,
+        "triangles": 313713
+      }
+    ]
+  }
+]

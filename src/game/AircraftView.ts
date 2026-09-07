@@ -18,8 +18,24 @@ import { batchShipModel } from './ShipBatching';
 // Three may bind the full matrix array as uniforms even when few instances draw.
 // Keep each allocation below WebGPU's 64 KiB uniform binding limit.
 const BATCH_CAPACITY = 768;
+type AircraftBatch = THREE.InstancedMesh<THREE.InstancedBufferGeometry>;
 type Joint = { object: THREE.Object3D; id: string; rotation: THREE.Euler };
-type Model = { root: THREE.Group; joints: Joint[]; meshes: { source: THREE.Mesh; batches: THREE.InstancedMesh[] }[]; count: number; wingspan: number; radius: number };
+type Model = { root: THREE.Group; joints: Joint[]; meshes: { source: THREE.Mesh; batches: AircraftBatch[] }[]; count: number; wingspan: number; radius: number };
+
+function aircraftBatch(source: THREE.Mesh, name: string): AircraftBatch {
+  // Three sizes the shader's matrix array from mesh.count on its first draw.
+  // Keep that capacity fixed; InstancedBufferGeometry supplies the live draw
+  // count so later launches fit without drawing hundreds of unused airframes.
+  // Each batch owns a geometry shell but shares the authored vertex buffers.
+  const geometry = new THREE.InstancedBufferGeometry();
+  const { index, attributes, morphAttributes, morphTargetsRelative, groups, drawRange, boundingBox, boundingSphere } = source.geometry;
+  Object.assign(geometry, { index, attributes, morphAttributes, morphTargetsRelative, groups, drawRange, boundingBox, boundingSphere });
+  geometry.instanceCount = 0;
+  const batch = new THREE.InstancedMesh(geometry, source.material, BATCH_CAPACITY);
+  batch.name = name;
+  batch.visible = false; batch.frustumCulled = false; batch.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  return batch;
+}
 /** Shared authored geometry/materials, instanced per rigid component at each LOD. */
 export class AircraftView {
   readonly root = new THREE.Group();
@@ -75,12 +91,9 @@ export class AircraftView {
         if (nodeId) model.joints.push({ object, id: nodeId, rotation: object.rotation.clone() });
         if (!(object as THREE.Mesh).isMesh) return;
         const source = object as THREE.Mesh;
-        const batches = Array.from({ length: 1 }, (_, i) => {
-          const batch = new THREE.InstancedMesh(source.geometry, source.material, BATCH_CAPACITY);
-          batch.name = `Aircraft model ${id}/${lod}`;
-          batch.count = 0; batch.visible = false; batch.frustumCulled = false; batch.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-          this.root.add(batch); return batch;
-        });
+        const batch = aircraftBatch(source, `Aircraft model ${id}/${lod}`);
+        this.root.add(batch);
+        const batches = [batch];
         model.meshes.push({ source, batches });
       });
       // Most authored nodes are fixed. Only mechanism owners need their local
@@ -142,9 +155,7 @@ export class AircraftView {
       const model = this.models.get(`${plane.modelId}/${lod}`);
       if (!model) continue;
       for (const { source, batches } of model.meshes) if (model.count >= batches.length * BATCH_CAPACITY) {
-        const batch = new THREE.InstancedMesh(source.geometry, source.material, BATCH_CAPACITY);
-        batch.name = batches[0].name;
-        batch.frustumCulled = false; batch.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+        const batch = aircraftBatch(source, batches[0].name);
         this.root.add(batch); batches.push(batch);
       }
       this.transform.compose(this.position, this.quaternion, this.unit);
@@ -175,8 +186,8 @@ export class AircraftView {
       model.count++;
     }
     for (const model of this.models.values()) for (const { batches } of model.meshes) batches.forEach((batch, i) => {
-      batch.count = Math.max(0, Math.min(BATCH_CAPACITY, model.count - i * BATCH_CAPACITY));
-      batch.visible = batch.count > 0;
+      batch.geometry.instanceCount = Math.max(0, Math.min(BATCH_CAPACITY, model.count - i * BATCH_CAPACITY));
+      batch.visible = batch.geometry.instanceCount > 0;
       if (batch.visible) batch.instanceMatrix.needsUpdate = true;
     });
     this.contacts.finish();
@@ -207,7 +218,7 @@ export class AircraftView {
   }
   diagnostics() { return { models: this.models.size, instances: [...this.models.values()].reduce((n, m) => n + m.count, 0), batches: [...this.models.values()].reduce((n, m) => n + Math.ceil(m.count / BATCH_CAPACITY) * m.meshes.length, 0), culled: this.culled, silhouettes: this.silhouettes, contacts: this.contacts.count, payloads: this.payloadCount + this.bombCount, bombs: this.bombCount, tracers: this.gunfire.diagnostics() }; }
   private clearModels() {
-    for (const model of this.models.values()) { for (const { batches } of model.meshes) for (const batch of batches) { batch.removeFromParent(); batch.dispose(); } disposeObjects(model.root); }
+    for (const model of this.models.values()) { for (const { batches } of model.meshes) for (const batch of batches) { batch.removeFromParent(); batch.dispose(); batch.geometry.dispose(); } disposeObjects(model.root); }
     this.models.clear();
   }
   async dispose() {
