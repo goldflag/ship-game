@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Distant water detail · runtime review</title>
+<style>
+  body{margin:0;background:#132d38;color:#edf1ec;font:14px sans-serif}
+  #scene{width:1280px;height:720px}canvas{display:block}
+  #status{position:fixed;left:16px;top:16px;background:#132d38;padding:8px}
+</style>
+<div id="scene"></div><output id="status">Preparing water detail review…</output>
+<script type="module">
+import * as THREE from 'three/webgpu';
+import { uniform, vec3, float, sqrt, dot, normalize, max, length } from 'three/tsl';
+import { Game } from '/src/game/Game.ts';
+
+// Real game renderer, model, water and post-processing, with a stationary target.
+// ?legacy=1 restores the old grazing clamp as a negative control.
+const params = new URLSearchParams(location.search);
+// Exercise Three.js's real WebGL fallback with ?webgl=1.
+if(params.has('webgl') && navigator.gpu) navigator.gpu.requestAdapter=async()=>null;
+const status = document.querySelector('#status');
+const game = new Game(document.querySelector('#scene'), {quality:params.get('quality')??'high',resolution:1}, {
+  progress:label=>status.textContent=label,ready:()=>{},telemetry:()=>{},pause:()=>{},hud:()=>{},
+  error:message=>{status.textContent=message;window.reviewError=message;},
+});
+game.scheduleFrame=()=>{};game.start(); await game.initialization;
+if(window.reviewError) throw new Error(window.reviewError);
+game.setInPort(false); game.setPaused(true);
+game.rig.update=()=>{}; game.rig.binoculars=true;
+if(params.has('legacy')) {
+  const fresnel=game.water.fresnel,build=fresnel.build.bind(fresnel);
+  // Reproduce the retired 0.05 floor using the production dielectric function.
+  // Preserve the original surface normal used for refraction/underwater views.
+  fresnel.build=p=>{
+    const result=build(p),normal=normalize(p.interpolatedNormal),cosine=dot(p.viewDir,normal);
+    const tangent=normal.sub(p.viewDir.mul(cosine)).div(sqrt(max(float(1).sub(cosine.mul(cosine)),1e-6)));
+    const guarded=cosine.lessThan(.05).select(normalize(p.viewDir.mul(.05).add(tangent.mul(Math.sqrt(1-.05*.05)))),normal);
+    const legacy=build({...p,interpolatedNormal:guarded});
+    return {...result,fresnel:legacy.fresnel,reflectionNormal:legacy.reflectionNormal};
+  };
+  game.water.waterMaterial.setupMaterial();game.water.waterMaterial.needsUpdate=true;
+}
+function prepare(range=5000,magnification=24) {
+  Object.assign(game.simulation.target.motion,{x:range,z:0,heading:0});
+  game.targetView.snap(); game.targetView.root.visible=true;
+  game.camera.fov=2*Math.atan(Math.tan(52*Math.PI/360)/magnification)*180/Math.PI;
+  game.camera.position.set(0,29,0); game.camera.lookAt(range,14,0);
+  game.camera.updateProjectionMatrix(); game.camera.updateMatrixWorld();
+  return {range,magnification};
+}
+async function still() {
+  // PassNode caches once per renderer animation frame. Explicitly advance that
+  // clock for background-tab captures so a camera change cannot return old pixels.
+  for(let i=0;i<2;i++) {
+    game.renderer._nodes.nodeFrame.update();
+    await game.frame(performance.now());
+  }
+  // WebGL may discard the default framebuffer after an async frame finishes.
+  // Present the prepared post-process textures and capture synchronously.
+  game.pipeline.render();
+  return game.renderer.domElement.toDataURL('image/png');
+}
+
+// Exercise the production Fresnel node with wave slopes entirely inside the
+// old 0.05 cosine clamp. A grazing surface must still respond to its normal.
+async function checkGrazingResponse() {
+  const cosine=uniform(.003),scene=new THREE.Scene();
+  const camera=new THREE.OrthographicCamera(-1,1,1,-1,.1,10);camera.position.z=1;
+  const material=new THREE.MeshBasicNodeMaterial();
+  const response=game.water.fresnel.build({viewDir:vec3(sqrt(float(1).sub(cosine.mul(cosine))),cosine,0),
+    interpolatedNormal:vec3(0,1,0),slopeVariance:float(0),worldX:float(0),worldZ:float(0)});
+  const viewDir=vec3(sqrt(float(1).sub(cosine.mul(cosine))),cosine,0);
+  material.colorNode=vec3(response.fresnel,length(response.reflectionNormal).mul(.5),dot(viewDir,response.reflectionNormal).mul(.5).add(.5));
+  material.toneMapped=false;
+  const geometry=new THREE.PlaneGeometry(2,2);scene.add(new THREE.Mesh(geometry,material));
+  const target=new THREE.RenderTarget(8,8),renderer=game.renderer,previous=renderer.getRenderTarget(),samples=[];
+  try {
+    renderer.setRenderTarget(target);
+    for(const value of [-.03,0,.0001,.00145,.003,.01,.03,.1,.5,1]) {
+      cosine.value=value;renderer._nodes.nodeFrame.update();renderer.render(scene,camera);
+      const pixel=await renderer.readRenderTargetPixelsAsync(target,4,4,1,1);
+      samples.push({cosine:value,pixel:Array.from(pixel)});
+    }
+  } finally {renderer.setRenderTarget(previous);target.dispose();geometry.dispose();material.dispose();}
+  // Fresnel must distinguish shallow slopes, leave steeper views unchanged,
+  // and keep reflection normals finite, normalized and facing the eye.
+  const grazing=samples[4].pixel[0]>samples[5].pixel[0]+2&&samples[5].pixel[0]>samples[6].pixel[0]+2;
+  const stable=samples.every(s=>Math.abs(s.pixel[1]-128)<=1&&s.pixel[2]>=127&&s.pixel[3]===255);
+  const steep=samples.slice(-3).every((s,i)=>Math.abs(s.pixel[0]-[136,14,5][i])<=1);
+  return {passed:grazing&&stable&&steep,grazing,stable,steep,backend:renderer.backend.constructor.name,
+    quality:params.get('quality')??'high',legacy:params.has('legacy'),samples};
+}
+game.water.deterministic=true;game.water.syncToTick(3600);await game.water.update(1/60);
+prepare(Number(params.get('range')??5000),Number(params.get('zoom')??24));await still();status.hidden=true;
+window.waterReview={game,prepare,still,checkGrazingResponse};
+window.waterDetailResult=await checkGrazingResponse();
+</script></html>

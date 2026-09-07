@@ -1,3 +1,4 @@
+import { assetUrl } from '../assetUrl';
 import * as THREE from 'three/webgpu';
 import { attribute, cameraViewMatrix, color, float, mix, positionLocal, texture, triplanarTexture, vec3, vec4 } from 'three/tsl';
 import { islandHeight, islandRadius, islandRim, type Island, type OceanMap } from '../maps/catalog';
@@ -9,7 +10,7 @@ function terrainMaterial(map: OceanMap): THREE.MeshStandardMaterial | THREE.Mesh
   if (typeof document === 'undefined') return new THREE.MeshStandardMaterial({ vertexColors: true });
   const loader = new THREE.TextureLoader();
   const load = (name: string, srgb = false) => {
-    const t=loader.load(`/harbor/${name}.jpg`); t.wrapS=t.wrapT=THREE.RepeatWrapping;
+    const t=loader.load(assetUrl(`harbor/${name}.jpg`)); t.wrapS=t.wrapT=THREE.RepeatWrapping;
     t.anisotropy=8; if(srgb)t.colorSpace=THREE.SRGBColorSpace; return t;
   };
   const rockMap=load('rock-color',true), grassMap=load('meadow-color',true), macroMap=load('ground-color',true), normal=load('rock-normal');
@@ -95,7 +96,7 @@ function addForest(root:THREE.Group,island:Island,quality:Quality):void {
     if(slope>.65||random()>smooth(.25,.48,terrainNoise(px/260,pz/260)))continue;
     points.push({x:px,y:Math.min(y,east,west,north,south)-1.5,z:pz,size:18+random()*12,width:16+random()*20,depth:.7+random()*.3,nx,nz});
   }
-  const map=new THREE.TextureLoader().load('/harbor/broadleaf-impostor.png');map.colorSpace=THREE.SRGBColorSpace;
+  const map=new THREE.TextureLoader().load(assetUrl('harbor/broadleaf-impostor.png'));map.colorSpace=THREE.SRGBColorSpace;
   // Match diffuse lighting to the supporting slope, independent of card orientation.
   // Rotating flat billboard normals toward the sun otherwise turns entire groves black.
   const material=new THREE.MeshStandardNodeMaterial({map,alphaTest:.3,alphaToCoverage:true,side:THREE.DoubleSide,roughness:1,color:new THREE.Color(.25,.36,.17)});

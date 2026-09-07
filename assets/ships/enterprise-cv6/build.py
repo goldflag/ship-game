@@ -9,6 +9,7 @@ import bpy, bmesh, json, math, os, sys, random
 from mathutils import Vector
 sys.path.insert(0,str(Path(__file__).resolve().parents[3]/'scripts/ships'))
 from blender_components import create_gun_mount
+from blender_supports import SupportSurface
 from blender_fidelity import authored_hull, authored_structure, Fittings
 OUT=Path(os.environ['SHIP_OUTPUT'])
 D=json.loads(Path(os.environ['SHIP_DEFINITION']).read_text())
@@ -171,6 +172,7 @@ for p,i in zip(planks.data.polygons,mat_indices):p.material_index=i
 # Arresting wires are transverse, unlike the longitudinal catapult guide tracks.
 for x in [-118,-113.7,-109.4,-90.4,-86.1,-81.8,-77.5,-73.2,-68.9,-64.6]:
  rod('Arresting wire',(x,-10.6,FLIGHT+.07),(x,10.6,FLIGHT+.07),.027,M['edge'],COL['Deck equipment'],vertices=6)
+ for y in [-9,-4.5,0,4.5,9]:rod('Arrestor wire spring',(x-.28,y,FLIGHT),(x,y,FLIGHT+.07),.025,M['edge'],COL['Deck equipment'],vertices=6)
 for x in [-57,-52,-47]:
  box('Crash-barrier sill',(x,0,FLIGHT+.038),(.11,22.0,.035),M['edge'],COL['Deck equipment'])
 for y in [-3.3,3.3]:
@@ -183,7 +185,7 @@ for x in range(-125,117,4):
   for y in ys:box('Tie-down plate',(x,y,FLIGHT+.025),(.055,.34,.018),M['edge'],COL['Deck equipment'])
 for x in range(-121,115,5):
  if all(abs(x-(-sum(p[1] for p in S[id]['footprint'])/len(S[id]['footprint'])))>8 for id in ['elevator-forward','elevator-middle','elevator-aft']):
-  box('Deck centerline',(x,0,FLIGHT+.045),(2.5,.12,.018),M['line'],COL['Deck equipment'])
+  box('Deck centerline',(x,0,FLIGHT+.010),(2.5,.12,.018),M['line'],COL['Deck equipment'])
 # C&R 189525: 4-inch camber over a 92-foot reference breadth. Preserve the
 # annotated centerline height; a parabolic reconstruction supplies the fall.
 # Cut transverse strips before bending, so caps, lift platforms and wires
@@ -232,7 +234,7 @@ for side,y in [('port',10.1),('starboard',-10.1)]:
   railing([(a,yy+(1 if yy>0 else -1)*.75),(b,yy+(1 if yy>0 else -1)*.75)],FLIGHT-.68,'AA gallery',col)
  for x in range(-82,72,6):
   # Flared brackets beneath the flight-deck cantilever.
-  yy=y*1.18;rod('Cantilever bracket',(x,y,MAIN+4.2),(x,yy,FLIGHT-.4),.09,M['naval'],col)
+  yy=y*1.18;rod('Cantilever bracket',(x,y,FLIGHT-.46),(x,yy,15.5569),.09,M['naval'],col)
 # Open ends: forecastle deck, capstans and vertical flight-deck supports.
 for x in [91,101,109]:
  for y in [-6.5,6.5]:
@@ -248,8 +250,10 @@ for m in D['mounts']:
   rad=2.25
   cyl(m['id']+' gun platform',(x,y,z-.14),rad,.28,M['naval'],COL['Armament'],40)
   # A webbed sponson, not an armored battleship barbette.
-  rod(m['id']+' diagonal support',(x,y*.72,z-3.2),(x,y,z-.22),.16,M['naval'],COL['Armament'])
-  rod(m['id']+' fore support',(x-2,y*.76,z-2.6),(x-1,y,z-.22),.11,M['naval'],COL['Armament'])
+  for dx,radius in [(0,.16),(-1,.11),(1,.11)]:
+   xx=x+dx;foot_z=interpolate(H['deckHeights'],xx+H['length']/2)-.4
+   foot_y=math.copysign(loft_width(xx,foot_z)-.04,y)
+   rod(m['id']+' hull gallery bracket',(xx,foot_y,foot_z),(xx,y,z-.22),radius,M['naval'],COL['Armament'])
   for a in [math.pi*i/16 for i in range(33)]:
    if math.sin(a)*y>0:continue
    # Low splinter screen at the inner arc; leave the outward firing side clear.
@@ -257,6 +261,10 @@ for m in D['mounts']:
    screen([p1,p2],z,.65,m['id']+' platform screen',COL['Armament'])
  elif m['partId']=='us-11in75-quad':
   cyl(m['id']+' platform',(x,y,z-.12),2,.24,M['naval'],COL['Armament'],40)
+  if z>FLIGHT+.3:
+   for dx in [-.9,.9]:
+    for dy in [-.7,.7]:rod(m['id']+' gallery stanchion',(x+dx,y+dy,FLIGHT-.10),(x+dx,y+dy,z-.22),.085,M['naval'],COL['Armament'])
+   rod(m['id']+' gallery diagonal',(x-.9,y-.7,FLIGHT-.10),(x+.9,y+.7,z-.22),.065,M['naval'],COL['Armament'])
   pts=[(x+2.0*math.cos(a*2*math.pi/32),y+2.0*math.sin(a*2*math.pi/32)) for a in range(32)]
   for a,b in zip(pts,pts[1:]+pts[:1]):
    o=mesh('Quad splinter tub',[(a[0],a[1],z),(b[0],b[1],z),(b[0],b[1],z+.8),(a[0],a[1],z+.8)],[(0,1,2,3)],M['naval'],COL['Armament']);o['assemblyId']=m['id']+'-platform'
@@ -320,6 +328,7 @@ rod('Radar support',(frame(80),IY,TOP_ROOF),(frame(80),IY,level(151)),.17,M['nav
 AX=frame(103.5)
 rod('After mast',(AX,IY,ROOF),(AX,IY,level(166+2.875/12)),.14,M['naval'],COL['Island'],r2=.045)
 for z,w in [(142,3.7),(158,3)]:rod('Aft signal yard',(AX,IY-w,level(z)),(AX,IY+w,level(z)),.06,M['naval'],COL['Island'])
+for x,z in [(frame(82),level(174)),(AX,level(165))]:rod('Aerial spreader',(x,IY-1.05,z),(x,IY+1.05,z),.04,M['naval'],COL['Island'],vertices=8)
 for y in [IY-1,IY+1]:rod('Mast aerial',(frame(82),y,level(174)),(AX,y,level(165)),.011,M['edge'],COL['Island'],vertices=4)
 # Mk 33 director stations and searchlights, interpreted from dated photos.
 for id,x,z in [('forward',frame(71.5),PILOT_ROOF),('aft',frame(110.7),ROOF)]:
@@ -347,8 +356,10 @@ for id,x in [('forward',frame(75.5)),('aft',frame(109.5))]:
  for i in range(10):
   a=start.lerp(end,i/10);b=start.lerp(end,(i+1)/10)
   rod('Crane lattice',a+Vector((0,-.27,0)),b+Vector((0,.27,0)),.035,M['naval'],COL['Island'])
+ rod('Crane head axle',end+Vector((0,-.30,0)),end+Vector((0,.30,0)),.07,M['naval'],COL['Island'])
  rod('Crane hoist',end,(end.x,end.y,-.5),.015,M['edge'],COL['Island'],vertices=4)
  for o in set(scene.objects)-before:o.parent=pivot;o['assemblyId']='crane-'+id
+deck_support=SupportSurface([*COL['Hull'].objects,*COL['Hangar and galleries'].objects,*COL['Flight deck'].objects])
 # Boat racks and Carley floats. No aircraft parked on deck, to expose geometry.
 def boat(name,x,y,z,length,width):
  Fittings(dict(mesh=mesh,cyl=cyl,rod=rod,box=box),M,COL['Deck equipment']).boat(name,x,y,z,length,width,length>10)
@@ -356,8 +367,14 @@ for side,sgn in [('port',1),('starboard',-1)]:
  for x,length in [(-79,10.7),(-45,8.5),(0,12.2),(14,9.1)]:
   y=sgn*11.55;boat(side+' boat',x,y,MAIN+.5,length,2.0)
   for xx in [x-length*.32,x+length*.32]:
-   rod('Boat davit',(xx,y*.89,MAIN),(xx,y*.89,MAIN+4.4),.09,M['naval'],COL['Deck equipment'])
+   rod('Boat davit',(xx,y*.89,deck_support.below(xx,y*.89,MAIN+.05)),(xx,y*.89,MAIN+4.4),.09,M['naval'],COL['Deck equipment'])
    rod('Davit head',(xx,y*.89,MAIN+4.4),(xx,y,MAIN+4.4),.09,M['naval'],COL['Deck equipment'])
+   # Fall, sheave and bridle use the same longitudinal station as the davit.
+   fitboat=Fittings(dict(mesh=mesh,cyl=cyl,rod=rod,box=box),M,COL['Deck equipment'])
+   fitboat.ring('Davit block',(xx,y,MAIN+4.25),.12,.035,'y',segments=12)
+   rod('Davit block hanger',(xx,y,MAIN+4.4),(xx,y,MAIN+4.25),.035,M['naval'],COL['Deck equipment'])
+   rod('Boat fall',(xx,y,MAIN+4.25),(xx,y,MAIN+1.65),.021,M['edge'],COL['Deck equipment'],vertices=6)
+   for offset in [-.76,.76]:rod('Boat lifting bridle',(xx,y,MAIN+1.65),(xx,y+offset,MAIN+1.16),.025,M['edge'],COL['Deck equipment'],vertices=6)
 for x in range(-86,82,9):
  for sign in [-1,1]:
   y=sign*12.4;z=FLIGHT-2.2
@@ -367,6 +384,11 @@ for x in range(-86,82,9):
     a=math.pi*(i/10-.5)+ (math.pi if xx<0 else 0);b=a+math.pi/10
     rod('Raft end',(x+xx+.36*math.cos(a),y,z+.36*math.sin(a)),(x+xx+.36*math.cos(b),y,z+.36*math.sin(b)),.095,M['raft'],COL['Deck equipment'])
   for zz in [-.36,.36]:rod('Raft side',(x-.53,y,z+zz),(x+.53,y,z+zz),.095,M['raft'],COL['Deck equipment'])
+  # Floats were fixed to exterior racks. Two cradles and lashings connect each
+  # preserved oval to the gallery wall; they are not suspended beside the ship.
+  for dx in [-.45,.45]:
+   rod('Raft rack arm',(x+dx,sign*10.10,FLIGHT-.12 if x>70 else z-.4),(x+dx,y,z-.4),.045,M['naval'],COL['Deck equipment'])
+   rod('Raft rack upright',(x+dx,y,z-.43),(x+dx,y,z+.4),.035,M['naval'],COL['Deck equipment'])
 # Scuttles are dark recess discs, with gunmetal rims oriented in the hull side.
 for x in range(-105,114,4):
  station=x+H['length']/2;w=interpolate(H['halfBreadths'],station)
@@ -374,7 +396,7 @@ for x in range(-105,114,4):
   # Estimate the local waterline flare from loft points at the nearest section.
   s=min(H['sections'],key=lambda p:abs(p['station']-station));breadth=interpolate([(p[1],p[0]) for p in s['points']],z)
   for sign in [-1,1]:
-   yy=sign*(breadth+.025)
+   yy=sign*(loft_width(x,z)-.01)
    rod('Hull scuttle',(x,yy,z),(x,yy+sign*.035,z),.125,M['dark'],COL['Hull'],vertices=12)
 # Forecastle anchoring machinery and independent anchor shapes.
 for sign in [-1,1]:
@@ -382,6 +404,7 @@ for sign in [-1,1]:
  cyl('Anchor capstan',(111,y,z+.42),.46,.84,M['edge'],COL['Deck equipment'],24)
  rod('Anchor cable',(111,y,z+.14),(120,sign*1.1,z+.14),.08,M['edge'],COL['Deck equipment'])
  x=115;yy=sign*5.1;zz=8.1
+ rod('Anchor hawse collar',(x,sign*(loft_width(x,zz)-.04),zz),(x,yy,zz),.18,M['naval'],COL['Deck equipment'])
  rod('Anchor shank',(x,yy,zz),(x-1.25,yy,zz-1.5),.11,M['edge'],COL['Deck equipment'])
  rod('Anchor stock',(x-1,yy-.7,zz-1.15),(x-1,yy+.7,zz-1.15),.09,M['edge'],COL['Deck equipment'])
 # Four shafts, four three-bladed screws, A brackets, bilge keels and one rudder.
@@ -392,11 +415,14 @@ for side,sign in [('port',1),('starboard',-1)]:
   y*=sign;x=frame(fr);z=level(6.5)
   exit_x=frame(fr-9)
   rod('Propeller shaft',(x,y,z),(exit_x,y*.94,z+.18),.21,M['edge'],COL['Underwater'],vertices=20)
-  for dy in [-1.0,1.0]:rod('Shaft bracket',(x+1.4,y+dy,z+2.2),(x+1,y,z),.14,M['naval'],COL['Underwater'])
+  hull_skin=SupportSurface([o for o in COL['Hull'].objects if o.get('nodeId')=='hull.surface'])
+  for dy in [-1.0,1.0]:
+   foot=hull_skin.along((x+1.4,y+dy,z+.3),(0,0,1),15)
+   rod('Shaft bracket',foot,(x+1,y,z),.14,M['naval'],COL['Underwater'])
   rotor=empty('propeller-'+side+'-'+kind+'.spin',(x,y,z),COL['Underwater'])
   hub=rod('Propeller hub',(-.55,0,0),(.60,0,0),.42,M['bronze'],COL['Underwater'],r2=.27,vertices=24);hub.parent=rotor;hub['assemblyId']=rotor.name
   for blade in range(3):
-   a=blade*2*math.pi/3;points=[(.18,.11),(.55,-.06),(.94,.05),(1,.28),(.76,.40),(.35,.32)]
+   a=blade*2*math.pi/3;points=[(.10,.06),(.55,-.06),(.94,.05),(1,.28),(.76,.40),(.20,.14)]
    radius_m=(12+7/12)*FT/2;normalizer=max(math.hypot(r,t) for r,t in points)
    points=[(r/normalizer*radius_m,t/normalizer*radius_m) for r,t in points]
    verts=[]
@@ -423,6 +449,7 @@ outline=[(x*FT,(1/3+(z-1/3)*397/area)*FT) for x,z in outline]
 n=len(outline);verts=[(x,side*.26,z) for side in [-1,1] for x,z in outline]
 faces=[tuple(reversed(range(n))),tuple(range(n,n*2))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
 o=mesh('Single balanced rudder with horn clearance',verts,faces,M['antifouling'],COL['Underwater']);o.parent=rudder;o['assemblyId']='rudder'
+stock=rod('Rudder stock',(0,0,3.0),(0,0,7.3),.24,M['edge'],COL['Underwater'],vertices=20);stock.parent=rudder;stock['assemblyId']='rudder'
 # March 1942 island photo 19-N-29696: pierced platform webs, external ladders,
 # uptake piping, rain hoods, gangways and crane winches. No later Bofors fit.
 fit=Fittings(dict(mesh=mesh,cyl=cyl,rod=rod,box=box),M,COL['Island'])
@@ -450,11 +477,14 @@ for sign in [-1,1]:
   y=sign*6.2;z=FLIGHT-.4
   fit.knee('Flight deck end cantilever',x,y,sign*10.8,z,3.0)
   rod('Deck end crossbeam',(x,-10.8,z),(x,10.8,z),.11,M['naval'],COL['Hangar and galleries'],vertices=8)
- for x in range(-84,74,8):fit.knee('Flight deck gallery web',x,sign*10.12,sign*13.5,FLIGHT-.36,1.65)
+ for a,b,outer in [(-69,-34,14.95),(31,67,14.95),(-121,-109,13.85)]:
+  for x in range(a+1,b,4):
+   fit.knee('AA gallery supporting web',x,sign*10.10,sign*outer,15.5569,1.65)
+   rod('AA gallery deck hanger',(x,sign*10.10,15.5569-1.65),(x,sign*10.10,FLIGHT-.05),.09,M['naval'],COL['Hangar and galleries'])
  for a,b in [(-69,-34),(31,67)]:
   for x in range(a+2,b,3):
    # Raised rolled shutters retain separate vertical slats and guide tracks.
-   box('Shutter roll rib',(x,sign*10.29,FLIGHT-2.64),(.035,.055,.47),M['naval'],COL['Hangar and galleries'])
+   box('Shutter roll rib',(x,sign*10.21,FLIGHT-2.646),(.035,.075,.47),M['naval'],COL['Hangar and galleries'])
   for x in [a,b]:
    box('Hangar shutter guide',(x,sign*10.28,MAIN+2.6),(.13,.10,5.0),M['edge'],COL['Hangar and galleries'])
  for x in [-82,-74,-29,-18,0,17,26,71]:fit.vent('Gallery louver',x,sign*10.24,FLIGHT-1.35,1.65,.80)
@@ -465,14 +495,10 @@ for sign in [-1,1]:
   y=sign*10.7
   fit.ring('Arresting cable return sheave',(x,y,FLIGHT-.28),.28,.065,'x',segments=18)
   box('Arrestor sheave cover',(x,y,FLIGHT-.18),(.7,.35,.30),M['naval'],COL['Deck equipment'])
- for x in [104,95,-109,-119]:fit.reel('Deck end mooring reel',x,sign*4.0,MAIN+.2,.42,1.2)
+ for x in [104,95,-109,-119]:fit.reel('Deck end mooring reel',x,sign*4.0,interpolate(H['deckHeights'],x+H['length']/2)+.01,.42,1.2)
  for x in [48,58,-51,-61]:
-  box('20 mm magazine locker',(x,sign*13.4,FLIGHT-.27),(.9,.42,.7),M['naval'],COL['Deck equipment'])
-  box('Magazine locker lid',(x,sign*13.4,FLIGHT+.10),(.96,.49,.07),M['roof'],COL['Deck equipment'])
- for x in [-79,-45,0,14]:
-  for dx in [-2.4,2.4]:
-   fit.ring('Davit block',(x+dx,sign*11.55,MAIN+4.2),.12,.035,'y',segments=12)
-   rod('Boat fall',(x+dx,sign*11.55,MAIN+4.2),(x+dx,sign*11.55,MAIN+1.65),.021,M['edge'],COL['Deck equipment'],vertices=6)
+  box('20 mm magazine locker',(x,sign*13.4,15.7869+.35),(.9,.42,.7),M['naval'],COL['Deck equipment'])
+  box('Magazine locker lid',(x,sign*13.4,15.7869+.72),(.96,.49,.07),M['roof'],COL['Deck equipment'])
 # Elevator roller tracks and lip seams follow the retained platform perimeter.
 for id in ['elevator-forward','elevator-middle','elevator-aft']:
  s=S[id];pts=[(-z,-x) for x,z in s['footprint']]

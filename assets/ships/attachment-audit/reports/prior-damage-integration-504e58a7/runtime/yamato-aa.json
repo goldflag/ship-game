@@ -1,0 +1,24 @@
+{
+  "camera": [
+    194,
+    32,
+    3
+  ],
+  "contentHash": "abf31d60194ce8b03a6d8e4b5910f6ebe84e2f49ff46ced64d89e3af44f5d22c",
+  "offsetBlender": [
+    12,
+    36,
+    13
+  ],
+  "pose": {
+    "elevationFraction": 1,
+    "recoilFraction": 1,
+    "trainFraction": 0
+  },
+  "shipId": "yamato",
+  "targetBlender": [
+    -15,
+    10,
+    19
+  ]
+}

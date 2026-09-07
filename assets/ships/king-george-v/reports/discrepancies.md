@@ -27,3 +27,7 @@ Configuration: early 1941 Home Fleet exterior, before December AA changes. Water
 | KGV-013 | Mechanical failures omitted | Early-war turret jamming and crew drill failures are not simulated. Catalog train, elevation and nominal reload govern the mounts. No claim of reproducing the Bismarck action's gun availability. |
 | KGV-014 | Validation recorded separately | Export, decoded measurements, tests and browser checks are tied to hashes in the validation record. These establish playable integration and selected dimensional checks, not blanket historical accuracy. |
 | KGV-015 | Independent authoring tested | GameModels3D pbsb107 stock hull is an isolated raster reference, not historical ground truth. Raw game geometry, transforms, UVs and textures never enter authoring. Thirty fixed cameras compare the original GLB. The complete production build is checked with the raw reference cache unavailable; see independence.json and the authoring read audit. |
+
+## Local damage and fire calibration — 2026-09-06
+
+Local regions, generator and director proxies, combustible loads and smoke outlets are independently authored gameplay estimates from the existing layout. They are not historically measured structural subdivisions, generator schedules or ventilation plans. Electrical supply is aggregated with manual gun fallback; directors share a targeting penalty. Breach overlap uses bounded aperture sampling. See `assets/ships/author-local-damage.ts`.

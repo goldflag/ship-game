@@ -1,0 +1,101 @@
+{
+  "backend": "WebGPUBackend",
+  "grazing": false,
+  "legacy": true,
+  "passed": false,
+  "quality": "medium",
+  "samples": [
+    {
+      "cosine": -0.03,
+      "pixel": [
+        186,
+        127,
+        134,
+        255
+      ]
+    },
+    {
+      "cosine": 0,
+      "pixel": [
+        186,
+        127,
+        134,
+        255
+      ]
+    },
+    {
+      "cosine": 0.0001,
+      "pixel": [
+        186,
+        128,
+        134,
+        255
+      ]
+    },
+    {
+      "cosine": 0.00145,
+      "pixel": [
+        186,
+        128,
+        134,
+        255
+      ]
+    },
+    {
+      "cosine": 0.003,
+      "pixel": [
+        186,
+        128,
+        134,
+        255
+      ]
+    },
+    {
+      "cosine": 0.01,
+      "pixel": [
+        186,
+        128,
+        134,
+        255
+      ]
+    },
+    {
+      "cosine": 0.03,
+      "pixel": [
+        186,
+        128,
+        134,
+        255
+      ]
+    },
+    {
+      "cosine": 0.1,
+      "pixel": [
+        136,
+        128,
+        140,
+        255
+      ]
+    },
+    {
+      "cosine": 0.5,
+      "pixel": [
+        14,
+        128,
+        191,
+        255
+      ]
+    },
+    {
+      "cosine": 1,
+      "pixel": [
+        5,
+        128,
+        255,
+        255
+      ]
+    }
+  ],
+  "stable": true,
+  "steep": true
+}

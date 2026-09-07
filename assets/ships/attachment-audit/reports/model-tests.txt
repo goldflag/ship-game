@@ -1,0 +1,56 @@
+bun test v1.3.3 (274e01c7)
+
+src/simulation/convoy.test.ts:
+(pass) merchant designs differ in hull, machinery, superstructure and cargo gear, not deck loads [1.48ms]
+(pass) Flower follows registered Cobalt 1941 GA landmarks and early-war equipment [0.42ms]
+(pass) liberty-cargo: hull-contained flood cells, machinery, positive reserve and restoring stability [19.61ms]
+(pass) liberty-cargo: main trains, fires from clear sockets, reloads and resets [86.27ms]
+(pass) liberty-cargo: secondary trains, fires from clear sockets, reloads and resets [61.30ms]
+(pass) liberty-cargo: machinery damage, positional flooding and loss of flotation use shared simulation [2.50ms]
+(pass) liberty-cargo: underway motion and steering remain finite [0.85ms]
+(pass) liberty-cargo: thin shell registers hits on all six sides and feeds local flood spaces [16.13ms]
+(pass) liberty-collier: hull-contained flood cells, machinery, positive reserve and restoring stability [8.39ms]
+(pass) liberty-collier: main trains, fires from clear sockets, reloads and resets [61.17ms]
+(pass) liberty-collier: secondary trains, fires from clear sockets, reloads and resets [49.98ms]
+(pass) liberty-collier: machinery damage, positional flooding and loss of flotation use shared simulation [1.30ms]
+(pass) liberty-collier: underway motion and steering remain finite [0.28ms]
+(pass) liberty-collier: thin shell registers hits on all six sides and feeds local flood spaces [9.58ms]
+(pass) victory-cargo: hull-contained flood cells, machinery, positive reserve and restoring stability [6.63ms]
+(pass) victory-cargo: main trains, fires from clear sockets, reloads and resets [62.94ms]
+(pass) victory-cargo: secondary trains, fires from clear sockets, reloads and resets [68.88ms]
+(pass) victory-cargo: machinery damage, positional flooding and loss of flotation use shared simulation [1.57ms]
+(pass) victory-cargo: underway motion and steering remain finite [0.28ms]
+(pass) victory-cargo: thin shell registers hits on all six sides and feeds local flood spaces [11.02ms]
+(pass) flower-corvette: hull-contained flood cells, machinery, positive reserve and restoring stability [4.83ms]
+(pass) flower-corvette: main trains, fires from clear sockets, reloads and resets [41.35ms]
+(pass) flower-corvette: secondary trains, fires from clear sockets, reloads and resets [34.91ms]
+(pass) flower-corvette: machinery damage, positional flooding and loss of flotation use shared simulation [1.13ms]
+(pass) flower-corvette: underway motion and steering remain finite [0.32ms]
+(pass) flower-corvette: thin shell registers hits on all six sides and feeds local flood spaces [9.02ms]
+(pass) convoy ships deploy on both teams with independent damage and bots that fire [1226.84ms]
+
+src/game/Game.test.ts:
+(pass) switching ships retains the port until loading completes, then frames the new hull with the same orbit [153.00ms]
+(pass) failed ship loads preserve the old ship and allow retry [171.96ms]
+(pass) a second request cannot replace an in-flight switch; disposed games never attach the result [18.84ms]
+(pass) battle loading binds each mixed fleet hull and selected target to its own exported joints [51.38ms]
+(pass) one failed fleet asset leaves the port intact and the same battle can be retried [41.66ms]
+(pass) failed aircraft loads leave the current port intact and allow another launch attempt [26.51ms]
+
+src/game/ShipBatching.test.ts:
+(pass) rigid batching preserves moving joints, sockets, materials and world geometry [9.05ms]
+(pass) bismarck: batched exported surfaces retain geometry and articulation [421.82ms]
+(pass) yamato: batched exported surfaces retain geometry and articulation [235.79ms]
+(pass) baltimore: batched exported surfaces retain geometry and articulation [210.44ms]
+(pass) enterprise-cv6: batched exported surfaces retain geometry and articulation [159.24ms]
+(pass) type-viic: batched exported surfaces retain geometry and articulation [46.79ms]
+(pass) liberty-cargo: batched exported surfaces retain geometry and articulation [90.72ms]
+(pass) liberty-collier: batched exported surfaces retain geometry and articulation [79.43ms]
+(pass) victory-cargo: batched exported surfaces retain geometry and articulation [99.27ms]
+(pass) flower-corvette: batched exported surfaces retain geometry and articulation [63.28ms]
+(pass) fletcher: batched exported surfaces retain geometry and articulation [275.94ms]
+
+ 44 pass
+ 0 fail
+ 12936 expect() calls
+Ran 44 tests across 3 files. [4.14s]

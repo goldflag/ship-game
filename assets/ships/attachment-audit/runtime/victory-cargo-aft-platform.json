@@ -1,0 +1,25 @@
+{
+  "shipId": "victory-cargo",
+  "contentHash": "a1d73fe24989aad62d2c31631e9685fe1dabd54532024e8d1f0a564aece30b8e",
+  "targetBlender": [
+    -10.5,
+    5.5,
+    10.4
+  ],
+  "offsetBlender": [
+    -10,
+    15,
+    3
+  ],
+  "pose": {
+    "trainFraction": 1,
+    "elevationFraction": 1,
+    "recoilFraction": 1
+  },
+  "camera": [
+    219.5,
+    13.4,
+    20.5
+  ],
+  "browser": "Isolated headless Chrome / Metal; fallback after Orca tab closures"
+}

@@ -1,3 +1,4 @@
+import { assetUrl } from '../assetUrl';
 import { oceanMap, DEFAULT_MAP } from '../maps/catalog';
 import { TIME_OF_DAY_PRESETS, WEATHER_PRESETS } from '../maps/conditions';
 import { shipPreset } from '../ships/presets';
@@ -9,7 +10,7 @@ export interface BattleLoadingState { label: string; progress: number; leaving: 
 interface Props { setup: BattleSetup; state: BattleLoadingState; onLeft(): void; }
 
 /** In-game capture of each ocean, sized to fill the viewport without tiling. */
-export const backdropUrl = (mapId: string) => `/maps/${mapId}-backdrop.webp`;
+export const backdropUrl = (mapId: string) => assetUrl(`maps/${mapId}-backdrop.webp`);
 
 /** Fleet action extension: the chart of the chosen waters fills the viewport while both fleets come aboard. */
 export function BattleLoadingScreen({ setup, state, onLeft }: Props) {
@@ -21,7 +22,7 @@ export function BattleLoadingScreen({ setup, state, onLeft }: Props) {
   const percent = Math.round(Math.min(state.progress, 1) * 100);
   const roster = (ids: string[], team: 'Friendly' | 'Enemy') => <ol className="battle-loading-roster" aria-label={`${team} fleet`}>
     {ids.map((id, index) => <li key={`${team}-${index}`} className={team === 'Friendly' && index === 0 ? 'battle-loading-player' : undefined}>
-      <img src={`/models/${id}-thumbnail.png`} width="120" height="36" alt=""/>
+      <img src={assetUrl(`models/${id}-thumbnail.png`)} width="120" height="36" alt=""/>
       <span>{shipPreset(id).name}</span>
       {team === 'Friendly' && index === 0 && <small>You</small>}
     </li>)}

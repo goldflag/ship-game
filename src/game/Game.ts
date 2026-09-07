@@ -1,3 +1,4 @@
+import { assetUrl } from '../assetUrl';
 import { BattlefieldCamera } from './BattlefieldCamera';
 import { airWingTelemetry } from '../simulation/airTelemetry';
 import { projectShipLabel } from './ShipLabels';
@@ -206,7 +207,7 @@ export class Game {
     this.assertActive();
     this.rig.update(this.simulation.ship, 0, 0, true);
     this.callbacks.progress(`Launching ${this.definition.name}`, 0.2);
-    const gltf = await new GLTFLoader().loadAsync(this.definition.modelUrl);
+    const gltf = await new GLTFLoader().loadAsync(assetUrl(this.definition.modelUrl));
     new ShipMaterialPalette().apply(gltf.scene);
     batchShipModel(gltf.scene);
     await prepareShipDetail(gltf.scene);
@@ -399,7 +400,7 @@ export class Game {
       const hullShare = 0.6 / definitions.length;
       progress?.(`Loading ${definitions[0].name}`, 0.08);
       const loads = await Promise.allSettled(definitions.map(async def => {
-        const model = (await new GLTFLoader().loadAsync(def.modelUrl)).scene;
+        const model = (await new GLTFLoader().loadAsync(assetUrl(def.modelUrl))).scene;
         models.set(def.id, model);
         const hash = 'contentHash' in def ? def.contentHash : undefined;
         if (!hash || model.userData.definitionHash !== hash) throw new Error('The ship model and definition have different versions. Rebuild the ship assets and reload.');

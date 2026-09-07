@@ -1,5 +1,10 @@
 # Fleet AA integration review
 
+The [current master integration review](merge-3fe185cb/README.md) records rebuilt
+Yamato/Baltimore models, attachment checks and updated validation. The captures
+and validation counts below describe the original PR models before that merge;
+they remain evidence for their recorded hashes.
+
 Every current runtime preset has working registered AA. Yamato gains twelve twin
 127 mm mounts, Baltimore gains twelve quad 40 mm Bofors mounts alongside its six
 twin 5-inch DP mounts, and King George V's eight twin 5.25-inch mounts are admitted

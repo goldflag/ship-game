@@ -1,0 +1,121 @@
+{
+  "ship": "type-viic",
+  "source": "assets/ships/type-viic/generated/source.blend",
+  "toleranceM": 0.025,
+  "method": "object AABB candidate graph; overlaps do not prove attachment",
+  "meshCount": 809,
+  "hullConnectedMeshCount": 803,
+  "islands": [
+    {
+      "objects": [
+        {
+          "name": "flak-gun.ammunition-feed",
+          "assembly": "flak-gun",
+          "node": null,
+          "low": [
+            -0.9379072189331055,
+            -0.09000002592802048,
+            4.853175163269043
+          ],
+          "high": [
+            -0.554823637008667,
+            0.09000001102685928,
+            5.0397796630859375
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.13125403086974982,
+      "closestObject": "flak-gun.ammunition-feed",
+      "closestHullConnectedObject": "flak-gun.trunnion-cover.001"
+    },
+    {
+      "objects": [
+        {
+          "name": "flak-gun.breech",
+          "assembly": "flak-gun",
+          "node": null,
+          "low": [
+            -0.9754412770271301,
+            -0.025500034913420677,
+            4.705341339111328
+          ],
+          "high": [
+            -0.4246349036693573,
+            0.025500012561678886,
+            4.765932083129883
+          ]
+        },
+        {
+          "name": "flak-gun.barrel-root",
+          "assembly": "flak-gun",
+          "node": null,
+          "low": [
+            -1.5126110315322876,
+            -0.016999978572130203,
+            4.7230024337768555
+          ],
+          "high": [
+            -0.9497033357620239,
+            0.017000047490000725,
+            4.766812324523926
+          ]
+        },
+        {
+          "name": "flak-gun.barrel-tube",
+          "assembly": "flak-gun",
+          "node": null,
+          "low": [
+            -2.4300029277801514,
+            -0.013089919462800026,
+            4.736726760864258
+          ],
+          "high": [
+            -1.5120856761932373,
+            0.013090119697153568,
+            4.77891731262207
+          ]
+        },
+        {
+          "name": "flak-gun.bore",
+          "assembly": "flak-gun",
+          "node": null,
+          "low": [
+            -2.433948516845703,
+            -0.00999986007809639,
+            4.755830764770508
+          ],
+          "high": [
+            -2.429600238800049,
+            0.010000139474868774,
+            4.775897979736328
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.05685119174872135,
+      "closestObject": "flak-gun.breech",
+      "closestHullConnectedObject": "bridge.wind-deflector-lip.006"
+    },
+    {
+      "objects": [
+        {
+          "name": "deck-gun.loading-tray",
+          "assembly": "deck-gun",
+          "node": null,
+          "low": [
+            6.397870063781738,
+            -0.23999999463558197,
+            2.0464024543762207
+          ],
+          "high": [
+            7.349122047424316,
+            0.23999999463558197,
+            2.142970085144043
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.03177309036254883,
+      "closestObject": "deck-gun.loading-tray",
+      "closestHullConnectedObject": "deck-gun.breech"
+    }
+  ]
+}

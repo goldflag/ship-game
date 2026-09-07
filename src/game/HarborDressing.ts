@@ -1,3 +1,4 @@
+import { assetUrl } from '../assetUrl';
 import * as THREE from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { HarborGeometry, harborSign, random, v, type HarborMaterials } from './HarborGeometry';
@@ -6,7 +7,7 @@ import { instances } from './HarborVegetation';
 /** Loading bays and workshops are composed as work areas, not random prop scatter. */
 export async function dressHarbor(root:THREE.Group,g:HarborGeometry,m:HarborMaterials):Promise<void> {
   const loader=new GLTFLoader(),rng=random(4490);
-  const [crate,barrel]=await Promise.all([loader.loadAsync('/harbor/cargo-crate.glb'),loader.loadAsync('/harbor/cargo-barrel.glb')]);
+  const [crate,barrel]=await Promise.all([loader.loadAsync(assetUrl('harbor/cargo-crate.glb')),loader.loadAsync(assetUrl('harbor/cargo-barrel.glb'))]);
   const crates:{x:number;y:number;z:number;scale:number;angle:number}[]=[],drums:typeof crates=[];
   for(const [index,z] of [-541,-319,-39,240,551].entries()) {
     // Large labeled loading bays, stacked freight and timber dunnage.

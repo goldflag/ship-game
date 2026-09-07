@@ -2,15 +2,41 @@
 
 A playable singleplayer foundation using **Bun, TypeScript, React, Three.js WebGPU, Water Pro 3.5.1, and Sky Pro 2.2.0**. Includes an original Bismarck model, a reproducible Blender asset pipeline, articulated main and secondary guns, and custom singleplayer fleet battles.
 
+For agent work, start with [repository instructions](AGENTS.md) and the [task-based documentation map](docs/README.md). Ship authoring follows the [ship pipeline](docs/ship-pipeline.md) and its required [model review checks](docs/ship-model-review.md).
+
 ```sh
 bun install
 bun run git:setup # Once per clone: safer catalog merges and remembered resolutions
 bun run dev
 ```
 
+### Cloning without the asset archive
+
+The repository holds about 2 GB of ship references, validation reports and renders that only the Blender asset pipeline needs. For code work, clone sparsely and skip the archive; the game runs from `public/` alone:
+
+```sh
+git clone --filter=blob:none --sparse git@github.com:goldflag/ship-game.git
+cd ship-game
+git sparse-checkout set --no-cone '/*' '!/assets'
+```
+
+Reference scans, reports and review captures are stored in Git LFS (see `.gitattributes`). Pipeline checks accept LFS pointers, so `GIT_LFS_SKIP_SMUDGE=1 git clone …` gives a full checkout without downloading them; run `git lfs pull` later if you need the originals. Rendered comparison output under `assets/ships/<id>/generated/comparison/` is not version controlled; `bun run ship:compare <id>` rebuilds it with local Blender.
+
+### Deploying under a sub-path
+
+Set `BASE_PATH` to the mount point when building. Every asset URL resolves through `src/assetUrl.ts` against Vite's base, so the same build works at the site root or under a prefix:
+
+```sh
+BASE_PATH=/naval/ bun run build   # serve dist/ at https://example.com/naval/
+```
+
+`bun run build` runs every `ship:check` and `aircraft:check` first; they need neither Blender nor the LFS archive. `SHIP_REVIEW_PAGES=0` leaves the port reference-review pages out of a build; they exist for local authoring review and carry third-party comparison renders.
+
+`bun run deploy:naval` builds for https://game.tomato.gg/naval/ and rsyncs `dist/` to the tanks-na host, where the tank game's Caddy serves it from `/root/tank-game/naval` (see the `@naval` block in Tomato-gg/tank-game's Caddyfile). Override the destination with `NAVAL_DEPLOY_TARGET=user@host:/path/`.
+
 Open http://localhost:5173. Current Chrome or Edge with hardware acceleration is recommended. WebGPU is selected by Three.js when available; its WebGL2 backend is the compatibility fallback. Initial startup compiles the ocean and cloud shaders, which can take a moment.
 
-**Custom battle → Battle waters** selects North Atlantic, Pacific Islands, Arctic Passage, or Volcanic Coast in the Indian Ocean. Each map has distinct water color, waves, sun, cloud cover and haze. **Battle conditions** lets you choose Dawn, Morning, Noon, Dusk, or Night and Clear, Partly cloudy, Overcast, Fog, or Storm clouds; **Map default** preserves the map’s original lighting or weather. Time stays fixed throughout the battle. Weather also sets wave strength: Clear and Fog bring gentle seas, Partly cloudy brings moderate seas, Overcast brings rolling seas, and Storm clouds brings heavy seas. Choices are retained for the current page session. Weather changes visual waves, clouds, light and haze; bot targeting and ballistics are unchanged. Storm clouds do not add rain or lightning. Coastal maps have original procedural islands shown on the navigation chart. Land blocks ships and low projectiles; bots turn away from shores. Large fleets widen the clear deployment lane automatically. Returning to port restores the harbor's sheltered water and daylight. See the [map guide with in-game screenshots](assets/maps/review/index.html).
+**Custom battle** opens a wide command desk with conditions and spawn distance on the left, fleet selection in the center, and the deployment chart on the right. The separate **Battle waters** tab keeps map selection off the initial setup page; switching pages preserves fleet choices and custom deployment. **Custom battle → Battle waters** selects North Atlantic, Pacific Islands, Arctic Passage, or Volcanic Coast in the Indian Ocean. Each map has distinct water color, waves, sun, cloud cover and haze. **Battle conditions** lets you choose Dawn, Morning, Noon, Dusk, or Night and Clear, Partly cloudy, Overcast, Fog, or Storm clouds; **Map default** preserves the map’s original lighting or weather. Time stays fixed throughout the battle. Weather also sets wave strength: Clear and Fog bring gentle seas, Partly cloudy brings moderate seas, Overcast brings rolling seas, and Storm clouds brings heavy seas. Choices are retained for the current page session. Weather changes visual waves, clouds, light and haze; bot targeting and ballistics are unchanged. Storm clouds do not add rain or lightning. Coastal maps have original procedural islands shown on the navigation chart. Land blocks ships and low projectiles; bots turn away from shores. Large fleets widen the clear deployment lane automatically. Returning to port restores the harbor's sheltered water and daylight. See the [map guide with in-game screenshots](assets/maps/review/index.html).
 
 You start in port with the Bismarck moored. Drag to inspect the ship, then choose **Custom battle** to configure both fleets. Choose your own ship, add up to 29 friendly bots, and select one to 30 enemy bots, for up to 30 ships per side. All registered presets can appear on either team, including duplicates. **Spawn distance** sets the separation between formations from 1–20 km in 0.5 km steps (5 km by default). **Deployment chart** lets you select any ship (F1 is yours), then click the sea or drag its marker to choose its spawn. Arrow keys move a focused marker 50 m, or 250 m with Shift; the ship selector also reaches crowded markers. Choose a heading, or use **Line abreast**, **Column**, or **Wedge** to arrange both fleets with 650 m spacing. The chart shows the selected map’s coastlines and rejects positions near land or within 350 m of another ship. Changing formation or spawn distance resets custom positions; removing ships preserves the remaining placements. **Start battle** loads the chosen models at the plotted positions and headings, which also survive battle resets. **Return to port** in the pause menu ends the battle and resets every ship. The selected [Fleet harbor garage](docs/garage-mockups/README.md) uses compact panels and a transparent top bar. The fleet carousel shows all registered presets; the [preset registry](src/ships/presets.ts) is the authoritative roster. Select a card to switch ships in place for inspection and sailing; the harbor stays loaded, your orbit direction is preserved, and camera distance adjusts to keep the same relative zoom for the new hull. Currency, refits, and commanders are illustrative, with temporary state only.
 
@@ -70,7 +96,9 @@ Friendly and enemy bots have an overhead name, hull-HP percentage and vessel sta
 
 Ships have a shared gameplay hull-durability scale: **Yamato 1,750 HP; Bismarck 1,450; HMS King George V 1,380; Enterprise 1,180; Baltimore 1,020; Type VIIC 450**. It is `300 + 1,450 × sqrt(displacement tonnes / 70,000)`, rounded to the nearest 10. These are balance values, not historical shell-hit tolerances. Bismarck's 38 cm AP does 45.5 hull damage on a substantial penetration, 10.5 on a thin through-shot, and up to 59.5 when it damages equipment. Armor rejection causes no hull damage. Entry, exit, inner plates and delayed bursts share one shell's damage ceiling per ship. HE pays armor protection and does less hull damage; armed torpedoes apply their listed damage and open local breaches.
 
-An eight-hit Bismarck broadside removes about **25% hull HP**; four fully landed broadsides sink it in the controlled waterline fixture. Normal dispersion at 5 km took **7–8 volleys (about 2½ minutes)** across three recorded seeds. Hull exhaustion causes sinking with a `hull-failure` cause; flooding and capsize can still sink ships independently. Equipment retains its own health and can fail earlier. Repairs restore equipment, without regenerating hull HP. Gunnery shows Hull and Equipment separately. See the [gameplay balance measurements](assets/reviews/damage-realism/gameplay-balance.md).
+Damage now depends on **local structural condition**. Repeated hits on one section remove progressively less hull HP, while intact regions, equipment behind wreckage and new flooding openings remain vulnerable. Port/starboard, underwater hull, upper hull, upperworks and gunhouses have separate budgets. Equipment repairs do not restore structural capacity. Gunnery shows damaged sections, electrical supply, fire-control condition and the reason for reduced damage. The earlier four-broadside sinking measurement predates saturation; see the [local damage calibration and validation](assets/reviews/local-damage/README.md).
+
+Generators supply fixed pumps and gun mechanisms. Losing supply slows training and loading, with a 25% manual fallback; portable pumps remain available. Damage to fire-control equipment widens shot dispersion. Bots shift aim away from exhausted empty sections while retaining opportunities to reach intact machinery. Hull exhaustion still causes sinking with a `hull-failure` cause; flooding and capsize remain independent loss paths.
 
 The Damage counter records actual hostile hull HP removed, capped at remaining HP. The last hostile projectile to damage the hull or open a breach earns one frag on permanent combat loss or later sinking. Permanent weapon or ammunition loss can defeat an afloat ship. Friendly damage and hits after loss do not add score or steal attribution. Returning to port resets the counters.
 
@@ -153,7 +181,7 @@ bun run ship:new my-ship
 
 Set `BLENDER_BIN` for a custom Blender executable. Builds retain independent mounts, elevation/recoil joints, muzzle sockets and assembly IDs. The export is already in runtime coordinates: meters, bow -Z, up +Y, waterline Y=0.
 
-Read the [ship pipeline and Blender MCP workflow](docs/ship-pipeline.md), [source asset index](assets/README.md), and [Bismarck discrepancy register](assets/ships/bismarck/reports/discrepancies.md). The [original systems plan](docs/ship-systems-plan.md) describes the longer roadmap. The GameModels3D WoWS EU 15.7.0.0 reference pack is retained under the ship’s references. Passing export checks validates authored targets, not historical accuracy.
+Read the [ship pipeline and Blender MCP workflow](docs/ship-pipeline.md), [source asset index](assets/README.md), and [Bismarck discrepancy register](assets/ships/bismarck/reports/discrepancies.md). Detailed [runtime contracts](docs/ship-runtime-contract.md) and [build/reference behavior](docs/ship-build-reference.md) are separate references. The [original systems plan](docs/ship-systems-plan.md) preserves the historical proposal and roadmap. The GameModels3D WoWS EU 15.7.0.0 reference pack is retained under the ship’s references. Passing export checks validates authored targets, not historical accuracy.
 
 ## Aircraft model collection
 
@@ -170,7 +198,7 @@ bun run build
 bun run preview
 ```
 
-`bun run test` runs every test file in a separate Bun process, with at most six workers (bounded by available CPU parallelism). Output stays grouped by file, and any failed file fails the command. Tests, assertions and simulation durations are unchanged. `bun test` still uses Bun's single-process runner. Passing options to `bun run test`, such as `--coverage`, `--watch` or `--test-name-pattern`, delegates to the native single-process runner so those options retain their usual behavior.
+`bun run test` discovers every test file under `src/` and `scripts/` and runs each in a separate Bun process, with at most eight workers (bounded by available CPU parallelism). Measured expensive files start first to avoid leaving one slow file at the end. Output stays grouped by file, and any failed file fails the command. Assertions and simulation durations are preserved. The review-page test serves retained comparison pages in an isolated directory; `bun run build` checks asset hashes and freshness. See [runtime measurements](docs/test-performance.md). `bun test` still uses Bun's single-process runner. Passing options to `bun run test`, such as `--coverage`, `--watch` or `--test-name-pattern`, delegates to the native single-process runner so those options retain their usual behavior.
 
 See the [test runtime measurements](docs/test-performance.md) for the before/after comparison.
 
@@ -184,7 +212,7 @@ Three.js renderer reference: https://threejs.org/manual/en/webgpurenderer
 
 Click the compact **AP / HE** cycle control beside the weapon slots, or press **E**, to switch shells for the selected gun battery. Hold Ctrl to click the controls. Hover or focus the cycle control to inspect both finite stocks and the reload cost; **G** opens the full shell descriptions and direct selection in Gunnery. Each battery remembers its selection. AP penetrates armor before a delayed burst; HE bursts on contact against light protection and exposed equipment. Changing type takes a full reload, including switching back during loading; it never creates or spends rounds. Weapon and mount counters show rounds available for their current load. Cycling is unavailable when the other type is empty or unsupported, but the control remains focusable for stock inspection; guns without HE keep AP. Returning to port restores both stocks and AP selection. The shortcut is rebindable in Settings → Keybindings. HE fill, fragment budget and stock split remain provisional game calibration.
 
-In Gunnery, **Own damage control** lets you prioritize fires, flooding or repairs and focus crews on a space or gun mount. Crews take time to set up, shore small accessible holes, close intact open boundaries and use portable pumps. Repairs consume finite supplies, stop at 60% condition and cannot revive destroyed equipment. Target damage shows active fires, list, trim, draft change and loss cause.
+In Gunnery, **Own damage control** lets you prioritize fires, flooding or repairs and focus crews on a space or gun mount. Local fire profiles distinguish machinery, ammunition, cargo and empty spaces. Fire consumes finite fuel and cannot restart indefinitely in a burned-out area. The readout shows whether a fire is growing, contained or being fought, names threatened equipment and offers **Focus crews**. Internal fires produce smoke at their outlets; gunhouse fires show flames and smoke. Crews take time to set up, shore small accessible holes, close intact open boundaries and use portable pumps. Repairs consume finite supplies, stop at 60% condition and cannot revive destroyed equipment. Target damage shows active fires, list, trim, draft change and loss cause.
 
 Uneven flooding can list a ship while it still has hull HP; bow or stern flooding changes its trim. **Own damage control** now shows your list direction, trim, floodwater and draft change, and target damage names the low side/end too. Draining a survivable load can restore balance. When hull failure, flooding or capsize causes loss, pumps stop and the ship keeps responding to its water load as its descent gathers speed. A wreck can roll over or settle by an end; balanced flooding can still sink it level. See the [flooding and sinking review](assets/reviews/flooding-motion/README.md).
 

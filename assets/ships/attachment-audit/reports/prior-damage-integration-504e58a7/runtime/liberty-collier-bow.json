@@ -1,0 +1,25 @@
+{
+  "shipId": "liberty-collier",
+  "contentHash": "a15d8189a6a5150f44a22ea5fcd987a44141e57adef94766b2da79f996ba54ce",
+  "targetBlender": [
+    53,
+    0,
+    8
+  ],
+  "offsetBlender": [
+    15,
+    25,
+    12
+  ],
+  "pose": {
+    "trainFraction": 1,
+    "elevationFraction": 1,
+    "recoilFraction": 1
+  },
+  "camera": [
+    215,
+    20,
+    -68
+  ],
+  "browser": "Isolated headless Chrome / Metal; fallback after Orca tab closures"
+}

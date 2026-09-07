@@ -1,0 +1,118 @@
+{
+  "articulation": [
+    {
+      "shipId": "king-george-v",
+      "contentHash": "4c5915250aad3512d7eef9f4951217d277b5fe6ced5e0e07d08f632195abbc9c",
+      "trainFraction": -1,
+      "maxMuzzleErrorM": 0.0017358771111841268,
+      "maxTorpedoMuzzleErrorM": 0
+    },
+    {
+      "shipId": "king-george-v",
+      "contentHash": "4c5915250aad3512d7eef9f4951217d277b5fe6ced5e0e07d08f632195abbc9c",
+      "trainFraction": 1,
+      "maxMuzzleErrorM": 0.0017375359526608737,
+      "maxTorpedoMuzzleErrorM": 0
+    }
+  ],
+  "review": {
+    "losses": [
+      45.5,
+      43.328239519054705,
+      26.182841648638487,
+      13.978467227611873,
+      7.462808989778978,
+      3.9842364052558423,
+      2.127099829930785,
+      1.1356137603993375,
+      0.6062802481865219,
+      0.32368024425136355,
+      0.1728060592968177,
+      0.09225751234453128,
+      0.0492543410723556,
+      0.026295854427871745,
+      0.014038802368077086,
+      0.007495020649457729
+    ],
+    "controls": {
+      "focusWorks": true,
+      "text": "Gunnery 2/3 can fireFire Q35.6 cm main13.3 cm secondaryAP \u00b7 1000 roundsHE \u00b7 0 roundsAP penetrates armor before its delayed burst. HE bursts on contact against light protection. E switches type for this battery and takes a full reload. Guns without HE keep AP.A turretAP \u00b7 On aim \u00b7 Loaded400B turretAP \u00b7 On aim \u00b7 Loaded200Y turretAP \u00b7 out of arc400Own damage control \u00b7 2 fires \u00b7 2/4 teamsBoiler 1.1 spaceThreatens Boiler 1.1 \u00b7 100% fuel leftGrowing \u00b7 Focus crewsA turretThreatens A 14-inch magazine \u00b7 99% fuel leftGrowing \u00b7 Focus crewsListUprightTrimLevelFlooding0 m\u00b3Draft change0.00 mElectrical supply99%Fire control100%Uneven flooding can make the ship list or capsize with hull HP remaining. Contain flooding and focus crews on flooded spaces to help restore balance.Priority BalancedFight firesContain floodingRepair equipmentFocus AutomaticA 14-inch magazine spaceB 14-inch magazine spaceY 14-inch magazine spaceP1 5.25-inch magazine spaceP2 5.25-inch magazine spaceP3 5.25-inch magazine spaceP4 5.25-inch magazine spaceS1 5.25-inch magazine spaceS2 5.25-inch magazine spaceS3 5.25-inch magazine spaceS4 5.25-inch magazine spaceBoiler 1.1 spaceBoiler 1.2 spaceTurbine set 1 spaceBoiler 2.1 spaceBoiler 2.2 spaceTurbine set 2 spaceBoiler 3.1 spaceBoiler 3.2 spaceTurbine set 3 spaceBoiler 4.1 spaceBoiler 4.2 spaceTurbine set 4 spaceSteering gear spacePort outer space 2.1 \u00b7 estimatedStarboard outer space 2.1 \u00b7 estimatedPort outer space 2.2 \u00b7 estimatedStarboard outer space 2.2 \u00b7 estimatedPort outer space 2.3 \u00b7 estimatedStarboard outer space 2.3 \u00b7 estimatedPort outer space 2.4 \u00b7 estimatedStarboard outer space 2.4 \u00b7 estimatedPort outer space 2.5 \u00b7 estimatedStarboard outer space 2.5 \u00b7 estimatedPort outer space 2.6 \u00b7 estimatedStarboard outer space 2.6 \u00b7 estimatedPort outer space 3.4 \u00b7 estimatedStarboard outer space 3.4 \u00b7 estimatedPort outer space 3.5 \u00b7 estimatedStarboard outer space 3.5 \u00b7 estimatedPort outer space 3.6 \u00b7 estimatedStarboard outer space 3.6 \u00b7 estimatedPort outer space 4.1 \u00b7 estimatedStarboard outer space 4.1 \u00b7 estimatedPort outer space 4.2 \u00b7 estimatedStarboard outer space 4.2 \u00b7 estimatedPort outer space 4.3 \u00b7 estimatedStarboard outer space 4.3 \u00b7 estimatedPort outer space 4.4 \u00b7 estimatedStarboard outer space 4.4 \u00b7 estimatedPort outer space 4.5 \u00b7 estimatedStarboard outer space 4.5 \u00b7 estimatedPort outer space 4.6 \u00b7 estimatedStarboard outer space 4.6 \u00b7 estimatedPort outer space 5.1 \u00b7 estimatedStarboard outer space 5.1 \u00b7 estimatedPort outer space 5.2 \u00b7 estimatedStarboard outer space 5.2 \u00b7 estimatedPort outer space 5.3 \u00b7 estimatedStarboard outer space 5.3 \u00b7 estimatedPort outer space 5.4 \u00b7 estimatedStarboard outer space 5.4 \u00b7 estimatedPort outer space 5.5 \u00b7 estimatedStarboard outer space 5.5 \u00b7 estimatedPort outer space 5.6 \u00b7 estimatedStarboard outer space 5.6 \u00b7 estimatedPort outer space 6.1 \u00b7 estimatedStarboard outer space 6.1 \u00b7 estimatedPort outer space 6.2 \u00b7 estimatedStarboard outer space 6.2 \u00b7 estimatedPort outer space 6.3 \u00b7 estimatedStarboard outer space 6.3 ",
+      "viewport": [
+        1280,
+        800
+      ],
+      "overflow": false
+    },
+    "effects": {
+      "shells": 0,
+      "torpedoes": 0,
+      "depthCharges": 0,
+      "smoke": 192,
+      "aircraftSmoke": 0,
+      "spray": 0,
+      "flashes": 6,
+      "foam": 0,
+      "particleCapacity": 3040
+    },
+    "maxMuzzleErrorM": 0.002160426930906297,
+    "combat": {
+      "playerSupport": {
+        "power": 0.9933333333333323,
+        "fireControl": 0.995666666666666
+      },
+      "targetSupport": {
+        "power": 0.9933333333333323,
+        "fireControl": 0.995666666666666
+      },
+      "playerFires": [
+        {
+          "id": "boiler-1-1-room",
+          "name": "Boiler 1.1 space",
+          "intensity": 1,
+          "fuelFraction": 0.99583333333333,
+          "status": "Growing",
+          "threat": "Boiler 1.1"
+        },
+        {
+          "id": "main-a",
+          "name": "A turret",
+          "intensity": 1,
+          "fuelFraction": 0.9888888888888895,
+          "status": "Growing",
+          "threat": "A 14-inch magazine"
+        }
+      ],
+      "targetFireDetails": [
+        {
+          "id": "anton",
+          "name": "Anton",
+          "intensity": 1,
+          "fuelFraction": 0.9888888888888895,
+          "status": "Growing",
+          "threat": "Anton propellant magazines"
+        },
+        {
+          "id": "boiler-aft-port",
+          "name": "Aft port boiler room \u00b7 two Wagner boilers",
+          "intensity": 1,
+          "fuelFraction": 0.99583333333333,
+          "status": "Growing",
+          "threat": "Aft port boiler room \u00b7 two Wagner boilers"
+        }
+      ],
+      "targetRegions": [
+        {
+          "id": "upper-hull-port-4",
+          "name": "Upper hull \u00b7 port \u00b7 amidships forward",
+          "condition": 5.920370160575741e-05
+        }
+      ],
+      "targetIntegrity": 0.9000059203701607
+    }
+  },
+  "errors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "fixture": "Merged tree (master 1e469d3e integrated). Player HMS King George V in a custom battle against Bismarck; development fixture scripts/tests/local-damage-browser.ts via headed Chromium/Playwright at 1280x800. Controlled contacts and simulation-owned fires, not a ballistic duel."
+}

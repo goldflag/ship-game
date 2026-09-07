@@ -71,6 +71,6 @@ export function stepSubmarine(actor: Combatant, def: ShipDefinition, command: He
   if (nextDepth > equipment.maxDepthM && def.compartments.length) {
     const index = def.compartments.reduce((nearest, room, i) => Math.abs(room.center[2]) < Math.abs(def.compartments[nearest].center[2]) ? i : nearest, 0);
     const room = def.compartments[index];
-    addBreach(actor.damage.compartments[index], [0, -def.hull.draft, room.center[2]], (nextDepth - equipment.maxDepthM) * .0001 * dt, -1, .05);
+    addBreach(actor.damage.compartments[index], [0, -def.hull.draft, room.center[2]], (nextDepth - equipment.maxDepthM) * .0001 * dt, -1, .05, [0, -1, 0], true);
   }
 }

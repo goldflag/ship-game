@@ -20,6 +20,8 @@ The current direction is a relatively restrained sea viewed from a camera hundre
 
 Base water colors remain the Black Flag colors: `waterColor #224659`, `transmissionColor #226755`, `absorptionColor #945b57`. The 1,024 m largest FFT tile, spectrum settings, foam textures, and Fresnel parameters are inherited. High water quality is the default, including the third ripple cascade and screen-space reflections.
 
+The vendored Fresnel shader's grazing-angle guard is reduced from 0.05 to 0.0001. The old guard gave shallow wave slopes identical reflectance, turning distant water into a flat color that was conspicuous at 24×. The smaller positive guard preserves wave shading at naval sight angles; texture filtering already follows the camera projection. It adds no wave samples, mesh detail or render passes. Pixel filtering and weather haze still soften the far horizon. See the [water detail review](../assets/reviews/water-detail/README.md) and [vendor patch record](../vendor/threejs-water-pro/PATCHES.md).
+
 ### Submerged camera visibility
 
 Black Flag's custom absorption coefficients remove over 99% of green/blue scene light along a 50 m underwater column, making the VIIC disappear at ordinary chase distances. `Game.frame` now scales those coefficients from their original values to 5% using a smooth transition as the camera moves from sea level to 2 m below it. This gives the underwater view 20 times the absorption distance while retaining the blue water color, refraction and distant haze. It is a gameplay visibility adjustment, not measured Atlantic water clarity.

@@ -1,0 +1,14 @@
+{
+  "ship": "enterprise-cv6",
+  "sourceSha256": "62d49723cc188a55c3cfa0183ef2f7df1986758e836b59d42fd2f2e7e36b1666",
+  "contentHash": "7e61635147580da0ec956fa03b295ca2ae8035b117c019e675d93c1c4ad234b4",
+  "method": "triangle intersection, closed-solid containment, vertex/surface proximity",
+  "toleranceM": 0.025,
+  "limits": "Separate objects are graph nodes; a mesh containing disconnected islands needs additional review. Contacts do not establish historical accuracy.",
+  "meshCount": 8186,
+  "hullConnectedMeshCount": 8186,
+  "candidates": 11250,
+  "contacts": 8185,
+  "elapsedSeconds": 7.950468625000212,
+  "islands": []
+}

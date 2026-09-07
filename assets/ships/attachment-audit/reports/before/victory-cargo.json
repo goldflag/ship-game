@@ -1,0 +1,549 @@
+{
+  "ship": "victory-cargo",
+  "source": "assets/ships/victory-cargo/generated/source.blend",
+  "toleranceM": 0.025,
+  "method": "object AABB candidate graph; overlaps do not prove attachment",
+  "meshCount": 2676,
+  "hullConnectedMeshCount": 2648,
+  "islands": [
+    {
+      "objects": [
+        {
+          "name": "fore-3in.seat",
+          "assembly": "fore-3in",
+          "node": null,
+          "low": [
+            63.040931701660156,
+            -0.9350000023841858,
+            9.672165870666504
+          ],
+          "high": [
+            63.44093322753906,
+            -0.5849999785423279,
+            9.762166023254395
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.14299997687339783,
+      "closestObject": "fore-3in.seat",
+      "closestHullConnectedObject": "fore-3in.pedestal"
+    },
+    {
+      "objects": [
+        {
+          "name": "fore-3in.seat.001",
+          "assembly": "fore-3in",
+          "node": null,
+          "low": [
+            63.040931701660156,
+            0.5849999785423279,
+            9.672165870666504
+          ],
+          "high": [
+            63.44093322753906,
+            0.9350000023841858,
+            9.762166023254395
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.14299997687339783,
+      "closestObject": "fore-3in.seat.001",
+      "closestHullConnectedObject": "fore-3in.pedestal"
+    },
+    {
+      "objects": [
+        {
+          "name": "fore-3in.cradle",
+          "assembly": "fore-3in",
+          "node": null,
+          "low": [
+            63.640933990478516,
+            -0.7980000376701355,
+            9.509166717529297
+          ],
+          "high": [
+            64.14093017578125,
+            -0.5699999928474426,
+            10.419166564941406
+          ]
+        },
+        {
+          "name": "fore-3in.trunnion-cover",
+          "assembly": "fore-3in",
+          "node": null,
+          "low": [
+            63.730934143066406,
+            -0.9199999570846558,
+            10.359166145324707
+          ],
+          "high": [
+            64.05093383789062,
+            -0.6000000238418579,
+            10.479166984558105
+          ]
+        },
+        {
+          "name": "fore-3in.sight-support",
+          "assembly": "fore-3in",
+          "node": null,
+          "low": [
+            63.54697036743164,
+            -0.8407764434814453,
+            10.022042274475098
+          ],
+          "high": [
+            63.81489944458008,
+            -0.79322350025177,
+            10.776289939880371
+          ]
+        },
+        {
+          "name": "fore-3in.sight",
+          "assembly": "fore-3in",
+          "node": null,
+          "low": [
+            63.69093322753906,
+            -0.8693081140518188,
+            10.714165687561035
+          ],
+          "high": [
+            63.96092987060547,
+            -0.7646918296813965,
+            10.824166297912598
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.12799999117851257,
+      "closestObject": "fore-3in.cradle",
+      "closestHullConnectedObject": "fore-3in.pedestal"
+    },
+    {
+      "objects": [
+        {
+          "name": "fore-3in.cradle.001",
+          "assembly": "fore-3in",
+          "node": null,
+          "low": [
+            63.640933990478516,
+            0.5699999928474426,
+            9.509166717529297
+          ],
+          "high": [
+            64.14093017578125,
+            0.7980000376701355,
+            10.419166564941406
+          ]
+        },
+        {
+          "name": "fore-3in.trunnion-cover.001",
+          "assembly": "fore-3in",
+          "node": null,
+          "low": [
+            63.730934143066406,
+            0.6000000238418579,
+            10.359166145324707
+          ],
+          "high": [
+            64.05093383789062,
+            0.9199999570846558,
+            10.479166984558105
+          ]
+        },
+        {
+          "name": "fore-3in.sight-support.001",
+          "assembly": "fore-3in",
+          "node": null,
+          "low": [
+            63.54697036743164,
+            0.79322350025177,
+            10.022042274475098
+          ],
+          "high": [
+            63.81489944458008,
+            0.8407764434814453,
+            10.776289939880371
+          ]
+        },
+        {
+          "name": "fore-3in.sight.001",
+          "assembly": "fore-3in",
+          "node": null,
+          "low": [
+            63.69093322753906,
+            0.7646918296813965,
+            10.714165687561035
+          ],
+          "high": [
+            63.96092987060547,
+            0.8693081140518188,
+            10.824166297912598
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.12799999117851257,
+      "closestObject": "fore-3in.cradle.001",
+      "closestHullConnectedObject": "fore-3in.pedestal"
+    },
+    {
+      "objects": [
+        {
+          "name": "aft-5in.breech",
+          "assembly": "aft-5in",
+          "node": null,
+          "low": [
+            -65.30496978759766,
+            -0.2850000560283661,
+            9.01790714263916
+          ],
+          "high": [
+            -64.19518280029297,
+            0.2850000262260437,
+            9.60701847076416
+          ]
+        },
+        {
+          "name": "aft-5in.barrel-root",
+          "assembly": "aft-5in",
+          "node": null,
+          "low": [
+            -66.8604736328125,
+            -0.18999993801116943,
+            9.131217956542969
+          ],
+          "high": [
+            -65.24668884277344,
+            0.19000013172626495,
+            9.539213180541992
+          ]
+        },
+        {
+          "name": "aft-5in.barrel-tube",
+          "assembly": "aft-5in",
+          "node": null,
+          "low": [
+            -69.4819107055664,
+            -0.14629977941513062,
+            9.202964782714844
+          ],
+          "high": [
+            -66.85460662841797,
+            0.1463003307580948,
+            9.541290283203125
+          ]
+        },
+        {
+          "name": "aft-5in.bore",
+          "assembly": "aft-5in",
+          "node": null,
+          "low": [
+            -69.48445892333984,
+            -0.06349960714578629,
+            9.331521987915039
+          ],
+          "high": [
+            -69.4782485961914,
+            0.06350039690732956,
+            9.458572387695312
+          ]
+        },
+        {
+          "name": "aft-5in.recoil-cylinder",
+          "assembly": "aft-5in",
+          "node": null,
+          "low": [
+            -66.35681915283203,
+            -0.14000000059604645,
+            8.909906387329102
+          ],
+          "high": [
+            -64.6021957397461,
+            0.14000007510185242,
+            9.220405578613281
+          ]
+        },
+        {
+          "name": "aft-5in.loading-tray",
+          "assembly": "aft-5in",
+          "node": null,
+          "low": [
+            -64.54912567138672,
+            -0.24000011384487152,
+            9.06234073638916
+          ],
+          "high": [
+            -63.597877502441406,
+            0.2399999499320984,
+            9.158907890319824
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.09901714324951172,
+      "closestObject": "aft-5in.recoil-cylinder",
+      "closestHullConnectedObject": "aft-5in.pedestal"
+    },
+    {
+      "objects": [
+        {
+          "name": "bow-aa-starboard.seat",
+          "assembly": "bow-aa-starboard",
+          "node": null,
+          "low": [
+            55.753639221191406,
+            -4.349999904632568,
+            8.861108779907227
+          ],
+          "high": [
+            56.1036376953125,
+            -3.950000047683716,
+            8.951108932495117
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.04887802078079442,
+      "closestObject": "bow-aa-starboard.seat",
+      "closestHullConnectedObject": "bow-aa-starboard.pedestal"
+    },
+    {
+      "objects": [
+        {
+          "name": "bow-aa-starboard.seat.001",
+          "assembly": "bow-aa-starboard",
+          "node": null,
+          "low": [
+            56.56964111328125,
+            -4.349999904632568,
+            8.861108779907227
+          ],
+          "high": [
+            56.919639587402344,
+            -3.950000047683716,
+            8.951108932495117
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.04887802078079442,
+      "closestObject": "bow-aa-starboard.seat.001",
+      "closestHullConnectedObject": "bow-aa-starboard.pedestal"
+    },
+    {
+      "objects": [
+        {
+          "name": "bow-aa-port.seat",
+          "assembly": "bow-aa-port",
+          "node": null,
+          "low": [
+            56.56964111328125,
+            3.950000047683716,
+            8.861108779907227
+          ],
+          "high": [
+            56.919639587402344,
+            4.349999904632568,
+            8.951108932495117
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.04887802078079442,
+      "closestObject": "bow-aa-port.seat",
+      "closestHullConnectedObject": "bow-aa-port.pedestal"
+    },
+    {
+      "objects": [
+        {
+          "name": "bow-aa-port.seat.001",
+          "assembly": "bow-aa-port",
+          "node": null,
+          "low": [
+            55.753639221191406,
+            3.950000047683716,
+            8.861108779907227
+          ],
+          "high": [
+            56.1036376953125,
+            4.349999904632568,
+            8.951108932495117
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.04887802078079442,
+      "closestObject": "bow-aa-port.seat.001",
+      "closestHullConnectedObject": "bow-aa-port.pedestal"
+    },
+    {
+      "objects": [
+        {
+          "name": "bridge-aa-starboard-1.seat",
+          "assembly": "bridge-aa-starboard-1",
+          "node": null,
+          "low": [
+            4.7669997215271,
+            -5.650000095367432,
+            13.823495864868164
+          ],
+          "high": [
+            5.117000102996826,
+            -5.250000476837158,
+            13.913496017456055
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.04887704518312603,
+      "closestObject": "bridge-aa-starboard-1.seat",
+      "closestHullConnectedObject": "bridge-aa-starboard-1.pedestal"
+    },
+    {
+      "objects": [
+        {
+          "name": "bridge-aa-starboard-1.seat.001",
+          "assembly": "bridge-aa-starboard-1",
+          "node": null,
+          "low": [
+            5.5829997062683105,
+            -5.650000095367432,
+            13.823495864868164
+          ],
+          "high": [
+            5.933000087738037,
+            -5.250000476837158,
+            13.913496017456055
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.04887704518312603,
+      "closestObject": "bridge-aa-starboard-1.seat.001",
+      "closestHullConnectedObject": "bridge-aa-starboard-1.pedestal"
+    },
+    {
+      "objects": [
+        {
+          "name": "bridge-aa-starboard-2.seat",
+          "assembly": "bridge-aa-starboard-2",
+          "node": null,
+          "low": [
+            -10.982999801635742,
+            -5.650000095367432,
+            11.24349594116211
+          ],
+          "high": [
+            -10.632999420166016,
+            -5.250000476837158,
+            11.33349609375
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.04887704518312603,
+      "closestObject": "bridge-aa-starboard-2.seat",
+      "closestHullConnectedObject": "bridge-aa-starboard-2.pedestal"
+    },
+    {
+      "objects": [
+        {
+          "name": "bridge-aa-starboard-2.seat.001",
+          "assembly": "bridge-aa-starboard-2",
+          "node": null,
+          "low": [
+            -10.166999816894531,
+            -5.650000095367432,
+            11.24349594116211
+          ],
+          "high": [
+            -9.816999435424805,
+            -5.250000476837158,
+            11.33349609375
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.04887704518312603,
+      "closestObject": "bridge-aa-starboard-2.seat.001",
+      "closestHullConnectedObject": "bridge-aa-starboard-2.pedestal"
+    },
+    {
+      "objects": [
+        {
+          "name": "bridge-aa-port-1.seat",
+          "assembly": "bridge-aa-port-1",
+          "node": null,
+          "low": [
+            5.5829997062683105,
+            5.250000476837158,
+            13.823495864868164
+          ],
+          "high": [
+            5.933000087738037,
+            5.650000095367432,
+            13.913496017456055
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.04887704518312603,
+      "closestObject": "bridge-aa-port-1.seat",
+      "closestHullConnectedObject": "bridge-aa-port-1.pedestal"
+    },
+    {
+      "objects": [
+        {
+          "name": "bridge-aa-port-1.seat.001",
+          "assembly": "bridge-aa-port-1",
+          "node": null,
+          "low": [
+            4.7669997215271,
+            5.250000476837158,
+            13.823495864868164
+          ],
+          "high": [
+            5.117000102996826,
+            5.650000095367432,
+            13.913496017456055
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.04887704518312603,
+      "closestObject": "bridge-aa-port-1.seat.001",
+      "closestHullConnectedObject": "bridge-aa-port-1.pedestal"
+    },
+    {
+      "objects": [
+        {
+          "name": "bridge-aa-port-2.seat",
+          "assembly": "bridge-aa-port-2",
+          "node": null,
+          "low": [
+            -10.166999816894531,
+            5.250000476837158,
+            11.24349594116211
+          ],
+          "high": [
+            -9.816999435424805,
+            5.650000095367432,
+            11.33349609375
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.04887704518312603,
+      "closestObject": "bridge-aa-port-2.seat",
+      "closestHullConnectedObject": "bridge-aa-port-2.pedestal"
+    },
+    {
+      "objects": [
+        {
+          "name": "bridge-aa-port-2.seat.001",
+          "assembly": "bridge-aa-port-2",
+          "node": null,
+          "low": [
+            -10.982999801635742,
+            5.250000476837158,
+            11.24349594116211
+          ],
+          "high": [
+            -10.632999420166016,
+            5.650000095367432,
+            11.33349609375
+          ]
+        }
+      ],
+      "minimumBoxGap": 0.04887704518312603,
+      "closestObject": "bridge-aa-port-2.seat.001",
+      "closestHullConnectedObject": "bridge-aa-port-2.pedestal"
+    }
+  ]
+}

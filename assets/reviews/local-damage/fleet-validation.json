@@ -1,0 +1,137 @@
+{
+  "date": "2026-09-06",
+  "method": "ship:build, ship:review, fixed-view visual inspection and loaded in-game articulation at both train limits with maximum elevation and recoil",
+  "authoringTool": "local Blender (no Blender MCP available)",
+  "ships": [
+    {
+      "shipId": "bismarck",
+      "contentHash": "85df3663a0d6b3246a53ba931b4b1c92deaada7229778e6a837af1fe6fad3ff3",
+      "fixedReviewViews": [
+        "profile",
+        "plan",
+        "bow",
+        "stern",
+        "quarter"
+      ],
+      "maxMuzzleErrorM": 0.002165962012911933,
+      "maxTorpedoMuzzleErrorM": 0
+    },
+    {
+      "shipId": "yamato",
+      "contentHash": "a3d0c030bb1c4b1606425dad1b3c00b8fba015ab7f612c6f5f35d1150155b759",
+      "fixedReviewViews": [
+        "profile",
+        "plan",
+        "bow",
+        "stern",
+        "quarter"
+      ],
+      "maxMuzzleErrorM": 0.00274611857590037,
+      "maxTorpedoMuzzleErrorM": 0
+    },
+    {
+      "shipId": "baltimore",
+      "contentHash": "a69bf8e180acf9f46cecd2e8f7969ed9f5c1ed0fe12e4bdc2947d9af578172ee",
+      "fixedReviewViews": [
+        "profile",
+        "plan",
+        "bow",
+        "stern",
+        "quarter"
+      ],
+      "maxMuzzleErrorM": 0.0013164041414398498,
+      "maxTorpedoMuzzleErrorM": 0
+    },
+    {
+      "shipId": "enterprise-cv6",
+      "contentHash": "25e2d2fa0abe287d8985f5ae2e6d0b692c1ffd5ab577ea5b3b812d4f8ab11349",
+      "fixedReviewViews": [
+        "profile",
+        "plan",
+        "bow",
+        "stern",
+        "quarter"
+      ],
+      "maxMuzzleErrorM": 3.225235557352997e-05,
+      "maxTorpedoMuzzleErrorM": 0
+    },
+    {
+      "shipId": "type-viic",
+      "contentHash": "8e44accca801c50ffa60ee41d15b3331268e8e68faa09a504c195e6071046a0a",
+      "fixedReviewViews": [
+        "profile",
+        "plan",
+        "bow",
+        "stern",
+        "quarter"
+      ],
+      "maxMuzzleErrorM": 1.5391881668410631e-06,
+      "maxTorpedoMuzzleErrorM": 2.6020255303479814e-06
+    },
+    {
+      "shipId": "liberty-cargo",
+      "contentHash": "646a5d9ff837df67f31c77c32c39b251ec2b716aadf8d1a05e8a671d2793d373",
+      "fixedReviewViews": [
+        "profile",
+        "plan",
+        "bow",
+        "stern",
+        "quarter"
+      ],
+      "maxMuzzleErrorM": 1.6198247348670527e-05,
+      "maxTorpedoMuzzleErrorM": 0
+    },
+    {
+      "shipId": "liberty-collier",
+      "contentHash": "2d3d8cd5f09c37e279e55e778226c233f1a19eca034918dc3a4d3f56fc086371",
+      "fixedReviewViews": [
+        "profile",
+        "plan",
+        "bow",
+        "stern",
+        "quarter"
+      ],
+      "maxMuzzleErrorM": 9.544199834400999e-06,
+      "maxTorpedoMuzzleErrorM": 0
+    },
+    {
+      "shipId": "victory-cargo",
+      "contentHash": "8ca1159f172ad500242a3576df35bed56164b37f49ad2b0ad90026259c08597c",
+      "fixedReviewViews": [
+        "profile",
+        "plan",
+        "bow",
+        "stern",
+        "quarter"
+      ],
+      "maxMuzzleErrorM": 1.6211927957938624e-05,
+      "maxTorpedoMuzzleErrorM": 0
+    },
+    {
+      "shipId": "flower-corvette",
+      "contentHash": "369a429bb9194d2fd0a3607bbd176ed4abde678afd784ec3823c0cf6008fa92d",
+      "fixedReviewViews": [
+        "profile",
+        "plan",
+        "bow",
+        "stern",
+        "quarter"
+      ],
+      "maxMuzzleErrorM": 2.5511848343630287e-06,
+      "maxTorpedoMuzzleErrorM": 0
+    },
+    {
+      "shipId": "fletcher",
+      "contentHash": "b33a7820f949481d406c1e5533f2957bf0e78dfdb835c5db2a24fc22237422b9",
+      "fixedReviewViews": [
+        "profile",
+        "plan",
+        "bow",
+        "stern",
+        "quarter"
+      ],
+      "maxMuzzleErrorM": 0.0006805875414346342,
+      "maxTorpedoMuzzleErrorM": 5.299701836277422e-07
+    }
+  ]
+}

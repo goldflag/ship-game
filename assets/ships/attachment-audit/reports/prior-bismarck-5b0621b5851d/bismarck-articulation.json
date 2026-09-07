@@ -1,0 +1,83 @@
+{
+  "kind": "articulation",
+  "shipId": "bismarck",
+  "contentHash": "5b0621b5851dcbadda696317fd05bc71b167140c7ba5827e231f4ad59043c84e",
+  "backend": "webgpu",
+  "time": "2026-09-07T04:59:01.173Z",
+  "mounts": 10,
+  "poses": [
+    {
+      "trainFraction": -1,
+      "elevationFraction": 0,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 0.0021606264682258102
+    },
+    {
+      "trainFraction": -1,
+      "elevationFraction": 0,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.0021606264682259655
+    },
+    {
+      "trainFraction": -1,
+      "elevationFraction": 1,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 0.002160644052370134
+    },
+    {
+      "trainFraction": -1,
+      "elevationFraction": 1,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.002160644052370134
+    },
+    {
+      "trainFraction": 0,
+      "elevationFraction": 0,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 0.002160560532326433
+    },
+    {
+      "trainFraction": 0,
+      "elevationFraction": 0,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.002160560532326433
+    },
+    {
+      "trainFraction": 0,
+      "elevationFraction": 1,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 0.0021606971466146875
+    },
+    {
+      "trainFraction": 0,
+      "elevationFraction": 1,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.002160697146613799
+    },
+    {
+      "trainFraction": 1,
+      "elevationFraction": 0,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 0.002166615737759897
+    },
+    {
+      "trainFraction": 1,
+      "elevationFraction": 0,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.0021666157377656877
+    },
+    {
+      "trainFraction": 1,
+      "elevationFraction": 1,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 0.0021659620129128193
+    },
+    {
+      "trainFraction": 1,
+      "elevationFraction": 1,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.002165962012911933
+    }
+  ],
+  "browser": "Isolated headless Chrome / Metal; fallback after Orca tab closures"
+}

@@ -1,8 +1,10 @@
+import { assetUrl } from '../assetUrl';
 import * as THREE from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { CombatSimulation } from '../simulation/combat';
 import { aircraftDeckSpot, onFlightDeck } from '../simulation/aircraft';
 import { aircraftAttitude, aircraftControls } from '../simulation/aircraftFlight';
+import { aircraftGroundPose } from '../simulation/aircraftGroundPose';
 import { disposeObjects } from './disposeObjects';
 import { AircraftContacts } from './AircraftContacts';
 import { AircraftGunfire } from './AircraftGunfire';
@@ -54,7 +56,7 @@ export class AircraftView {
   private async loadModels() {
     const palette = new ShipMaterialPalette();
     const results = await Promise.allSettled(['f4f-4-wildcat', 'sbd-3-dauntless', 'tbd-1-devastator'].flatMap(id => [0, 1, 2].map(async lod => {
-      const url = lod ? `/models/aircraft/LOD${lod}/${id}-lod${lod}.glb` : `/models/aircraft/${id}.glb`;
+      const url = assetUrl(lod ? `models/aircraft/LOD${lod}/${id}-lod${lod}.glb` : `models/aircraft/${id}.glb`);
       const root = (await new GLTFLoader().loadAsync(url)).scene;
       // The shared authoring-node boundaries preserve propellers, controls,
       // landing gear and sockets while rigid paint surfaces share a draw.
@@ -98,7 +100,8 @@ export class AircraftView {
         if (carrierRoot) {
           this.position.applyMatrix4(carrierRoot.matrixWorld);
           this.quaternion.copy(carrierRoot.quaternion);
-          if (plane.phase === 'taxi' || plane.phase === 'parking') this.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -(plane.heading - actor.motion.heading)));
+          if (plane.phase === 'taxi' || plane.phase === 'parking') this.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -(plane.deckHeading ?? plane.heading - actor.motion.heading)));
+          this.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), aircraftGroundPose(plane.modelId).pitch));
         } else {
           this.position.fromArray(plane.position);
           this.quaternion.setFromEuler(new THREE.Euler(plane.pitch, -plane.heading, plane.bank, 'YXZ'));

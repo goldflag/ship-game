@@ -159,28 +159,39 @@ class Fittings:
         self.mesh(name+' hull shell',verts,faces,self.m['naval'],self.col,True)
         for sign in [-1,1]:
             for a,b in zip(rows,rows[1:]):self.rod(name+' gunwale',(x+a[0]*length,y+sign*a[1]*beam/2,z+.75+a[2]),(x+b[0]*length,y+sign*b[1]*beam/2,z+.75+b[2]),.055,self.m['edge'],self.col,vertices=8)
-        for fx in [-.28,-.05,.18]:self.box(name+' thwart',(x+fx*length,y,z+.63),(.22,beam*.8,.09),self.m.get('canvas',self.m['roof']),self.col)
+        for fx in [-.28,-.05,.18]:self.box(name+' thwart',(x+fx*length,y,z+.63),(.22,beam*.91,.09),self.m.get('canvas',self.m['roof']),self.col)
         for fx in [-.27,.26]:
             self.box(name+' cradle',(x+fx*length,y,z-.05),(.3,beam*1.1,.22),self.m['roof'],self.col)
+            for sign in [-1,1]:
+                self.box(name+' cradle chock',(x+fx*length,y+sign*beam*.23,z+.16),(.3,beam*.22,.40),self.m['roof'],self.col)
         if cabin:
             self.box(name+' cabin',(x+.08*length,y,z+1.05),(length*.32,beam*.64,.82),self.m['naval'],self.col)
             self.box(name+' cabin roof',(x+.08*length,y,z+1.50),(length*.35,beam*.7,.12),self.m['roof'],self.col)
             for sign in [-1,1]:
                 for fx in [-.025,.10]:self.box(name+' glazing',(x+fx*length,y+sign*beam*.326,z+1.2),(.52,.025,.32),self.m.get('glass',self.m['dark']),self.col)
-        for sign in [-1,1]:self.rod(name+' boat oar',(x-length*.29,y+sign*beam*.24,z+.77),(x+length*.24,y+sign*beam*.24,z+.77),.035,self.m.get('canvas',self.m['edge']),self.col,vertices=6)
+        for sign in [-1,1]:self.rod(name+' boat oar',(x-length*.29,y+sign*beam*.24,z+.70),(x+length*.24,y+sign*beam*.24,z+.70),.035,self.m.get('canvas',self.m['edge']),self.col,vertices=6)
 
     def gun_details(self,mount):
         spec=mount['weapon'];yaw=bpy.data.objects.get(mount['id']+'.yaw')
         if not yaw or not spec.get('gunhouseMesh'):return
         before=set(bpy.context.scene.objects);L,W,H=spec['gunhouseSize'];scale=min(1.5,W/8)
+        def roof_at(x,y):
+            hits=[intersect_ray_tri(*[Vector(spec['gunhouseMesh']['vertices'][i]) for i in f['indices']],Vector((0,0,-1)),Vector((x,y,H+10))) for f in spec['gunhouseMesh']['faces']]
+            return max((p.z for p in hits if p is not None),default=H)
         # Explicitly local details follow the existing turret yaw.
         for sign in [-1,1]:
             self.ladder(mount['name']+' service ladder',(-L*.30,sign*W*.48,.7),(-L*.30,sign*W*.48,H-.1),.5*scale)
             self.vent(mount['name']+' rear ventilation',-L*.36,sign*W*.48,H*.55,.6*scale,.46*scale)
             for x in [-L*.27,0]:
-                self.rod(mount['name']+' roof handhold',(x,sign*W*.28,H+.09),(x+.65*scale,sign*W*.28,H+.09),.025,self.m['edge'],self.col,vertices=6)
+                y=sign*W*.28;end=x+.65*scale
+                a,b=roof_at(x,y),roof_at(end,y)
+                self.rod(mount['name']+' roof handhold',(x,y,a+.09),(end,y,b+.09),.025,self.m['edge'],self.col,vertices=6)
+                for xx,zz in [(x,a),(end,b)]:
+                    self.rod(mount['name']+' handhold foot',(xx,y,zz-.01),(xx,y,zz+.09),.025,self.m['edge'],self.col,vertices=6)
         for x in [-L*.3,-L*.06]:
-            self.box(mount['name']+' roof service seam',(x,0,H+.014),(.027,W*.59,.018),self.m['edge'],self.col)
+            for i in range(12):
+                a=-W*.295+W*.59*i/12;b=-W*.295+W*.59*(i+1)/12
+                self.rod(mount['name']+' roof service seam',(x,a,roof_at(x,a)+.008),(x,b,roof_at(x,b)+.008),.014,self.m['edge'],self.col,vertices=6)
         for ob in set(bpy.context.scene.objects)-before:
             ob.parent=yaw;ob['assemblyId']=mount['id']
         count=spec.get('barrelCount',2);ids=['left','center','right'] if count==3 else ['left','right']

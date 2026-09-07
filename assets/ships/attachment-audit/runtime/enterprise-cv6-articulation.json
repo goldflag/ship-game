@@ -1,0 +1,83 @@
+{
+  "kind": "articulation",
+  "shipId": "enterprise-cv6",
+  "contentHash": "7e61635147580da0ec956fa03b295ca2ae8035b117c019e675d93c1c4ad234b4",
+  "backend": "webgpu",
+  "time": "2026-09-07T07:30:23.141Z",
+  "mounts": 42,
+  "poses": [
+    {
+      "trainFraction": -1,
+      "elevationFraction": 0,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 0.00003248075260614092
+    },
+    {
+      "trainFraction": -1,
+      "elevationFraction": 0,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.00003248075260614092
+    },
+    {
+      "trainFraction": -1,
+      "elevationFraction": 1,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 0.00003273904868116042
+    },
+    {
+      "trainFraction": -1,
+      "elevationFraction": 1,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.00003273904867634886
+    },
+    {
+      "trainFraction": 0,
+      "elevationFraction": 0,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 0.00003021119333964585
+    },
+    {
+      "trainFraction": 0,
+      "elevationFraction": 0,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.00003021119333964585
+    },
+    {
+      "trainFraction": 0,
+      "elevationFraction": 1,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 0.00003021119333964585
+    },
+    {
+      "trainFraction": 0,
+      "elevationFraction": 1,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.00003021119333964585
+    },
+    {
+      "trainFraction": 1,
+      "elevationFraction": 0,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 0.00003021119333964585
+    },
+    {
+      "trainFraction": 1,
+      "elevationFraction": 0,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.00003021119333964585
+    },
+    {
+      "trainFraction": 1,
+      "elevationFraction": 1,
+      "recoilFraction": 0,
+      "maxMuzzleErrorM": 0.00003021119333964585
+    },
+    {
+      "trainFraction": 1,
+      "elevationFraction": 1,
+      "recoilFraction": 1,
+      "maxMuzzleErrorM": 0.00003021119333964585
+    }
+  ],
+  "browser": "Isolated headless Chrome / Metal; fallback after Orca tab closures"
+}

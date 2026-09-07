@@ -25,7 +25,9 @@ test('surviving underwater hits produce a visible live list with normal damage c
     updateDamageControl(actor, def, 1 / 60, () => {});
     updateFlooding(actor, def, 1 / 60);
   }
-  expect(actor.damage.integrity).toBe(490);
+  // Shock shares its damage across local regions; overlapping blasts taper.
+  expect(actor.damage.integrity).toBeGreaterThanOrEqual(490);
+  expect(actor.damage.integrity).toBeLessThan(actor.damage.maxIntegrity * .5);
   expect(actor.damage.sunk).toBe(false);
   const telemetry = sim.telemetry('main', [0, 0, -5000]);
   expect(telemetry.playerList).toBeGreaterThan(3);

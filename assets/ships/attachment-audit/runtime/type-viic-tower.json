@@ -1,0 +1,25 @@
+{
+  "shipId": "type-viic",
+  "contentHash": "566d406e834d39861d23ec7c2c4ac9f49dae5a0270f2f007aec59c9e5893fb3a",
+  "targetBlender": [
+    2,
+    0,
+    3.7
+  ],
+  "offsetBlender": [
+    7,
+    12,
+    4
+  ],
+  "pose": {
+    "trainFraction": 1,
+    "elevationFraction": 1,
+    "recoilFraction": 1
+  },
+  "camera": [
+    228,
+    7.7,
+    -9
+  ],
+  "browser": "Isolated headless Chrome / Metal; fallback after Orca tab closures"
+}

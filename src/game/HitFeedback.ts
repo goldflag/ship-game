@@ -33,7 +33,13 @@ export class HitFeedback {
       const position = worldToLocal(event.position, actor.motion);
       const projectile = event.shell?.id ?? event.torpedo?.id ?? event.depthCharge?.id ?? impact?.shellId ?? event.sequence;
       const part = impact?.targetName ?? event.message.split(' · ')[1] ?? 'Hull';
-      const result = impact ? `${outcomes[impact.outcome]}${impact.breachAreaM2 ? ' · Flooding' : ''}` : event.kind === 'torpedo-dud' ? 'Unarmed impact' : 'Flooding breach';
+      const local = impact?.localDamage;
+      // Equipment loss stays the headline; structural context explains reduced hull damage.
+      const explanation = impact?.outcome === 'destroyed' ? `${outcomes.destroyed}${impact.throughWreckage ? ' · Through wreckage' : ''}`
+        : impact?.throughWreckage && (impact.damage ?? 0) > 0 ? 'Through wreckage · Equipment damaged'
+        : local && local.condition < .05 ? 'Destroyed section · Minimal damage'
+        : local && local.multiplier < 1 ? 'Damaged section · Reduced damage' : impact ? outcomes[impact.outcome] : '';
+      const result = impact ? `${impact.outcome === 'stopped' || impact.outcome === 'ricochet' ? outcomes[impact.outcome] : explanation}${impact.breachAreaM2 ? ' · New opening' : ''}` : event.kind === 'torpedo-dud' ? 'Unarmed impact' : 'Flooding breach';
       const priority = impact ? (impact.kind === 'module' || impact.kind === 'mount' ? 3 : impact.kind === 'burst' ? 2 : 1) + (impact.outcome === 'destroyed' ? 3 : 0) : 4;
       const damage = Math.max(0, impact?.hullDamage ?? event.hullDamage ?? 0);
       const existing = this.cues.find(c => c.shipId === actor.motion.id && (c.projectileIds.includes(projectile) || (hitTime - c.time <= .35 && c.part === part && Math.hypot(...c.position.map((v, i) => v - position[i])) < 35)));
@@ -41,7 +47,7 @@ export class HitFeedback {
         existing.damage += damage; existing.time = hitTime;
         if (!existing.projectileIds.includes(projectile)) existing.projectileIds.push(projectile);
         if (priority >= existing.priority) { existing.part = part; existing.result = result; existing.priority = priority; }
-        if (impact?.breachAreaM2 && !existing.result.includes('Flooding')) existing.result += ' · Flooding';
+        if (impact?.breachAreaM2 && !existing.result.includes('New opening')) existing.result += ' · New opening';
       } else this.cues.push({ id: event.sequence, shipId: actor.motion.id, projectileIds: [projectile], position, part, result, priority, damage, time: hitTime, opacity: 1 });
     }
     this.cues = this.cues.slice(-12);

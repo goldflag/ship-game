@@ -1,0 +1,25 @@
+{
+  "shipId": "bismarck",
+  "contentHash": "2166ac8e80f66f7e0acf9cd09d1046d7c8b2d06c5ba8f7f481fbe6d0f279b23f",
+  "targetBlender": [
+    20,
+    0,
+    23
+  ],
+  "offsetBlender": [
+    12,
+    -33,
+    12
+  ],
+  "pose": {
+    "trainFraction": 1,
+    "elevationFraction": 1,
+    "recoilFraction": 1
+  },
+  "camera": [
+    273,
+    35,
+    -32
+  ],
+  "browser": "Isolated headless Chrome / Metal; fallback after Orca tab closures"
+}
