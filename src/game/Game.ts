@@ -45,6 +45,7 @@ import { ShellFollow } from './ShellFollow';
 import { sightAim, torpedoCourseAim } from './aiming';
 import { createHarborBackdrop, type HarborBackdrop } from './HarborBackdrop';
 import { ShipWake } from './ShipWake';
+import { ShipFunnelSmoke } from './ShipFunnelSmoke';
 import type { GameCallbacks, GameSettings } from './types';
 
 export const BUOYS = [
@@ -83,6 +84,7 @@ export class Game {
   private hitDirections: HitDirectionIndicators;
   private loadedModel?: THREE.Group;
   private effects = new CombatEffects();
+  private funnelSmoke = new ShipFunnelSmoke();
   private aircraftView = new AircraftView();
   controlPriority: ControlPriority = 'balanced';
   controlFocus = '';
@@ -215,7 +217,7 @@ export class Game {
     this.targetView.root.visible = !this.inPort;
     if (this.definition.airWing) await this.aircraftView.load();
     this.assertActive();
-    this.scene.add(this.playerView.root, this.targetView.root, this.effects.root, this.aircraftView.root, this.torpedoPreview.root);
+    this.scene.add(this.playerView.root, this.targetView.root, this.effects.root, this.funnelSmoke.root, this.aircraftView.root, this.torpedoPreview.root);
     this.scene.add(this.ambientLight);
 
     this.callbacks.progress('Building the Atlantic', 0.37);
@@ -511,6 +513,9 @@ export class Game {
       this.fleetViews.forEach(view => view.updateRenderMatrices());
       this.aircraftView.update(this.simulation, this.camera, !this.inspecting && (!this.inPort || this.playerView?.inspection.mode === 'exterior'), this.inPort, new Map(this.fleetViews.map(view => [view.actor.motion.id, view.root])));
       this.effects.update(this.simulation, dt, this.camera, this.rig.binoculars && !this.shellFollow.view);
+      this.funnelSmoke.root.visible = !this.inspecting && (!this.inPort || this.playerView!.inspection.mode === 'exterior');
+      this.funnelSmoke.update(this.inPort ? [this.playerView!] : this.fleetViews, dt, this.camera,
+        this.rig.binoculars && !this.shellFollow.view ? this.simulation.player.motion.id : undefined);
       this.audio?.update(this.simulation, this.input.order, this.battery,
         this.camera.position.toArray(), new THREE.Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0).toArray());
       this.playerView!.root.visible = !this.rig.binoculars;
@@ -778,6 +783,7 @@ export class Game {
         projectionMatrix: this.camera.projectionMatrix.toArray(), matrixWorldInverse: this.camera.matrixWorldInverse.toArray() },
       tick: this.simulation.tick, battleSeed: this.simulation.seed, paused: this.paused, fps: this.fps, inspecting: this.inspecting, inPort: this.inPort,
       effects: this.effects.diagnostics(),
+      funnelSmoke: this.funnelSmoke.diagnostics(),
       audio: this.audio?.diagnostics(),
       portInspection: this.playerView?.inspection.mode, selectedVolume: this.playerView?.inspection.selectedId, hoveredVolume: this.playerView?.inspection.hoveredId,
       maxMuzzleErrorM: Math.max(0, ...this.fleetViews.flatMap(view => view.muzzleErrors())),
@@ -834,6 +840,7 @@ export class Game {
     this.surfaceWaterAbsorption.copy(this.water.color.absorptionColor);
     this.water.foam.waves.opacity = this.inPort ? .45 : map.water.foam;
     this.effects.setWind(this.water.waves.windSpeed.value);
+    this.funnelSmoke.setWind(this.water.waves.windSpeed.value, this.water.waves.windDirection.value);
   }
   private updatePortLighting(): void {
     if(!this.sky)return;
@@ -904,6 +911,7 @@ export class Game {
     await this.aircraftView.dispose();
     if (this.landscape) disposeBattleLandscape(this.landscape);
     this.effects.dispose();
+    this.funnelSmoke.dispose();
     await this.visualWaveSampler?.drain();
     this.water?.dispose();
     this.sky?.dispose();
