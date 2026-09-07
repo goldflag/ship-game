@@ -40,18 +40,24 @@ describe('keyboard gameplay controls', () => {
     key('keydown', 'Space'); expect(input.order).toBe(1);
   });
 
-  test('custom steering and firing hold until release and clear on a remap or pause', () => {
+  test('custom steering latches one notch per tap while firing clears on release or pause', () => {
     const bindings = defaultKeybindings(); bindings.port = ['KeyJ', null]; bindings.fire = [null, 'KeyL'];
     input.setBindings(bindings);
     key('keydown', 'KeyA'); key('keydown', 'KeyQ');
     expect(input.sample().rudder).toBe(0); expect(input.firing).toBe(false);
     key('keydown', 'KeyJ'); key('keydown', 'KeyL');
-    expect(input.sample().rudder).toBe(-1); expect(input.firing).toBe(true);
+    expect(input.sample().rudder).toBe(-.5); expect(input.firing).toBe(true);
+    key('keydown', 'KeyJ', { repeat: true }); expect(input.sample().rudder).toBe(-.5);
     key('keyup', 'KeyJ'); key('keyup', 'KeyL');
-    expect(input.sample().rudder).toBe(0); expect(input.firing).toBe(false);
+    expect(input.sample().rudder).toBe(-.5); expect(input.firing).toBe(false);
     key('keydown', 'KeyL'); input.setBindings(defaultKeybindings()); expect(input.firing).toBe(false);
     key('keydown', 'KeyQ'); input.setEnabled(false); expect(input.firing).toBe(false);
     input.setEnabled(true); expect(input.firing).toBe(false);
+    expect(input.sample().rudder).toBe(-.5);
+    key('keydown', 'KeyD'); key('keyup', 'KeyD'); expect(input.sample().rudder).toBe(0);
+    for (let i = 0; i < 5; i++) { key('keydown', 'KeyD'); key('keyup', 'KeyD'); }
+    expect(input.sample().rudder).toBe(1);
+    input.setRudder(0); expect(input.sample().rudder).toBe(0);
   });
 
   test('view shortcuts honor custom bindings and keep Esc available', () => {
