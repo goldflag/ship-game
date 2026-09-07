@@ -8,6 +8,17 @@ const definition = compileShip(blueprint, catalog);
 const helm = { throttle: 0, rudder: 0 };
 const aim: [number, number, number] = [1800, 0, 0];
 
+test('Baltimore forward main turrets fire over the open bow Bofors mount', () => {
+  const sim = new CombatSimulation(definition);
+  const forward: [number, number, number] = [0, 0, -5000];
+  for (let i = 0; i < 180; i++) sim.step(helm, { aim: forward, fire: false, battery: 'main' });
+  const mounts = sim.player.mounts.filter(m => ['main-1', 'main-2'].includes(m.id));
+  expect(mounts.map(m => m.status)).toEqual(['ready', 'ready']);
+  sim.step(helm, { aim: forward, fire: true, battery: 'main' });
+  expect(sim.events.filter(e => e.kind === 'shot')).toHaveLength(6);
+  expect(mounts.map(m => m.ammo)).toEqual([447, 447]);
+});
+
 test('Baltimore trains three triple turrets, fires nine distinct shells, and holds during reload', () => {
   const sim = new CombatSimulation(definition);
   const mounts = sim.player.mounts.filter(m => m.id.startsWith('main-'));

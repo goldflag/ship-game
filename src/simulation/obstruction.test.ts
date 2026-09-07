@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { segmentBox } from './geometry';
-import { BarrelObstructionTree, segmentIntersectsBox } from './obstruction';
+import { BarrelObstructionTree, gunMountObstructions, segmentIntersectsBox } from './obstruction';
 import { shipPreset, shipPresets } from '../ships/presets';
 import { muzzleLocal, createMountState } from './weapons';
 import { add, normalize, scale, sub } from './geometry';
@@ -23,10 +23,7 @@ test('obstruction tree matches every hull and gunhouse during intermediate trave
     const definition = shipPreset(id);
     const entries = [
       ...definition.obstructions.map(box => ({ box, mountId: undefined as string | undefined })),
-      ...definition.mounts.map(m => ({ mountId: m.id, box: {
-        center: add(m.position, [0, m.weapon.gunhouseSize[2] / 2, 0]),
-        size: [m.weapon.gunhouseSize[1], m.weapon.gunhouseSize[2], m.weapon.gunhouseSize[0]] as Vec3,
-      } })),
+      ...definition.mounts.flatMap(gunMountObstructions),
     ];
     const tree = new BarrelObstructionTree(entries);
     for (const mount of definition.mounts) for (const fraction of [-1, -.73, -.21, 0, .31, .69, 1]) {
@@ -41,4 +38,17 @@ test('obstruction tree matches every hull and gunhouse during intermediate trave
       }
     }
   }
+});
+
+test('open bow AA mount blocks its mechanism and side sights but leaves the upper center open', () => {
+  const mount = shipPreset('baltimore').mounts.find(m => m.id === 'bofors-01')!;
+  const tree = new BarrelObstructionTree(gunMountObstructions(mount));
+  const crosses = (x: number, height: number, firingMount = 'main-1') => tree.intersects(
+    add(mount.position, [x, height, 5]), add(mount.position, [x, height, -5]), firingMount);
+  expect(crosses(0, .5)).toBe(true);
+  expect(crosses(0, 1.4)).toBe(true);
+  expect(crosses(0, 1.7)).toBe(false);
+  expect(crosses(1.16, 1.7)).toBe(true);
+  expect(crosses(-1.16, 1.7)).toBe(true);
+  expect(crosses(0, .5, mount.id)).toBe(false);
 });
