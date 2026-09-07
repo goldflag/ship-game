@@ -1,0 +1,32 @@
+[
+  {
+    "key": 1,
+    "mounts": 4,
+    "name": "38 cm twin mount"
+  },
+  {
+    "key": 2,
+    "mounts": 6,
+    "name": "15 cm twin mount"
+  },
+  {
+    "key": 3,
+    "mounts": 8,
+    "name": "10.5 cm twin AA"
+  },
+  {
+    "key": 4,
+    "mounts": 8,
+    "name": "3.7 cm twin AA"
+  },
+  {
+    "key": 5,
+    "mounts": 12,
+    "name": "2 cm single AA"
+  },
+  {
+    "key": 3,
+    "mounts": 8,
+    "name": "10.5 cm twin AA"
+  }
+]

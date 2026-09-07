@@ -1,3 +1,4 @@
+import { selectedWeapon } from '../ships/weaponGroups';
 import type { Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { Combatant } from '../simulation/damage';
 import { add, scale } from '../simulation/geometry';
@@ -14,11 +15,11 @@ export interface GunAimPoint {
 /** Preview the current barrels at sight range, or sea level if the round falls short.
  * Uses the same muzzle, velocity and gravity as firing; never advances combat.
  */
-export function gunAimPoints(actor: Combatant, definition: ShipDefinition, battery: Battery, aim: Vec3): GunAimPoint[] {
+export function gunAimPoints(actor: Combatant, definition: ShipDefinition, battery: Battery, aim: Vec3, weaponGroupId?: string): GunAimPoint[] {
   let number = 0;
   const workRate = .25 + .75 * supportPerformance(actor, definition).power;
   return definition.mounts.flatMap((mount, i) => {
-    if (mount.battery !== battery) return [];
+    if (!selectedWeapon(mount.battery, mount.weapon, battery, weaponGroupId)) return [];
     const state = actor.mounts[i], origin = muzzleCenterWorld(mount, state, actor.motion);
     const velocity = add(scale(shotDirection(mount, state, actor.motion), mount.weapon.muzzleSpeed), motionVelocity(actor.motion));
     const range = Math.hypot(aim[0] - origin[0], aim[2] - origin[2]);

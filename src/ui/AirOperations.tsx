@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type PointerEvent, type RefObject } from 'react';
+import { useEffect, useRef, useState, type PointerEvent, type RefObject, type ReactNode } from 'react';
 import type { Game } from '../game/Game';
 import type { Telemetry } from '../game/types';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
@@ -64,7 +64,7 @@ export function SquadronLabels({ data, game, onOrder, onTarget }: { data: Teleme
 }
 
 /** Instruments over the actual 3D scene. M changes the camera, never opens a dialog. */
-export function AirOperations({ data, game, bindings }: { data: Telemetry; game: Game | null; bindings: Keybindings }) {
+export function AirOperations({ data, game, bindings, armament }: { data: Telemetry; game: Game | null; bindings: Keybindings; armament?: ReactNode }) {
   const wing = data.combat!.airWing!;
   const mapOpen = !!data.airOperationsOpen;
   const [pendingSelection, setPendingSelection] = useState<string>();
@@ -258,6 +258,7 @@ export function AirOperations({ data, game, bindings }: { data: Telemetry; game:
     </section>}
     <SquadronLabels data={data} game={game} onOrder={commandFlight} onTarget={(id, team) => { if (!armed.current) return false; commandFlight(id, team); return true; }}/>
     <section className={`air-squadron-command ${mapOpen ? 'air-command-map' : ''}`} aria-label="Squadron commands">
+      {!mapOpen && armament}
       {!mapOpen && <button className="air-open-map" onClick={e => { game?.setAirOperationsOpen(true); e.currentTarget.blur(); }}>Command map <kbd>{bindingLabel(bindings, 'airOperations')}</kbd></button>}
       {mapOpen && <>
         <nav className="air-selected-orders" aria-label="Squadron actions">
