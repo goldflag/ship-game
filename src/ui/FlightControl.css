@@ -9,10 +9,10 @@
 .fleet-wing-counts dt { color:var(--fleet-muted); }
 .fleet-wing-counts dd { margin:0; }
 .fleet-flight .fleet-flight-warning { display:block; margin:6px 0 0; font-size:11px; line-height:1.4; color:#ffb5a6; }
-@media (max-width:600px) { .fleet-flight { margin-top:12px; } .fleet-flight .fleet-flight-open { min-height:40px; font-size:19px; } }
+@container hud (max-width:600px) { .fleet-flight { margin-top:12px; } .fleet-flight .fleet-flight-open { min-height:40px; font-size:19px; } }
 
 .fleet-aircraft-status { pointer-events:auto; }
 .fleet-aircraft-status button { padding:7px 12px; border:1px solid var(--fleet-line); border-radius:2px; background:transparent; color:#edf5f2; cursor:pointer; }
 .fleet-aircraft-status button:focus-visible { outline:2px solid var(--fleet-gold); outline-offset:2px; }
 
-@media (max-width:600px) { .fleet-aircraft-status { display:grid; width:min(240px, 90vw); white-space:normal; } .fleet-aircraft-status span { display:none; } }
+@container hud (max-width:600px) { .fleet-aircraft-status { display:grid; width:min(240px, 90cqw); white-space:normal; } .fleet-aircraft-status span { display:none; } }

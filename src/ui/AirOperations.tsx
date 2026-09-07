@@ -78,14 +78,16 @@ export function AirOperations({ data, game, bindings }: { data: Telemetry; game:
     start.moved ||= Math.hypot(event.clientX - start.x, event.clientY - start.y) > 4;
     const dx = event.clientX - start.lastX, dy = event.clientY - start.lastY;
     start.lastX = event.clientX; start.lastY = event.clientY;
-    if (start.moved) setView(v => ({ ...v, x: v.x - dx * 2 * v.radius / size.width, z: v.z - dy * 2 * v.radius / size.width }));
+    // Pointer deltas are screen pixels, including the HUD transform.
+    const width = event.currentTarget.getBoundingClientRect().width;
+    if (start.moved) setView(v => ({ ...v, x: v.x - dx * 2 * v.radius / width, z: v.z - dy * 2 * v.radius / width }));
   };
   const pointerUp = (event: PointerEvent<SVGSVGElement>) => {
     const start = drag.current; drag.current = null;
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
     if (!start || start.moved || mode !== 'patrol') return;
     const rect = event.currentTarget.getBoundingClientRect();
-    const [x, z] = chartWorld(view, size.width, size.height, event.clientX - rect.left, event.clientY - rect.top);
+    const [x, z] = chartWorld(view, rect.width, rect.height, event.clientX - rect.left, event.clientY - rect.top);
     issue({ kind: 'patrol', point: [x, 420, z] });
   };
   const instruction = mode === 'attack' ? 'Select an enemy ship to assign the strike.' : mode === 'patrol' ? 'Select a patrol position on the chart.' : mode === 'escort' ? 'Select a friendly flight to escort.' : 'Select a flight to inspect or command. Drag to pan · Scroll to zoom';

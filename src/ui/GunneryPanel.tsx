@@ -100,7 +100,7 @@ export function GunneryPanel({ data, game, expanded, onExpand, bindings }: { bin
       <p className="gunnery-help">Mouse aims the center sight. Hold left mouse or {bindingLabel(bindings, 'fire')} to fire. Shift opens binoculars; scroll adjusts magnification. Selecting a module tracks it until you move the mouse to aim again.</p>
       <p className="gunnery-help">Penetrating hits reduce hull HP. Aim at turrets or machinery to disable them. Hull failure or flooding can sink a ship.</p>
     </div><div className="target-actions">
-      <button aria-pressed={!!data.inspecting} onClick={() => { game?.inspectTarget(); if (window.innerWidth <= 760) onExpand(false); }}>{data.inspecting ? 'Return to ship' : 'Inspect target'}</button>
+      <button aria-pressed={!!data.inspecting} onClick={event => { game?.inspectTarget(); if ((event.currentTarget.closest('.hud-viewport')?.clientWidth ?? window.innerWidth) <= 760) onExpand(false); }}>{data.inspecting ? 'Return to ship' : 'Inspect target'}</button>
     </div></>}
     {!expanded && data.inspecting && <div className="target-actions"><button onClick={() => game?.inspectTarget()}>Return to ship</button><button onClick={() => onExpand(true)}>Module condition</button></div>}
   </section>;

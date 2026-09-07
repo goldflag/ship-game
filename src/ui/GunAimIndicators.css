@@ -14,7 +14,7 @@
 .gun-aim-arrow { display:none; position:absolute; inset:0; }
 .gun-aim-offscreen .gun-aim-arrow { display:block; }
 .gun-aim-arrow:after { content:''; position:absolute; width:7px; height:7px; border-top:2px solid currentColor; border-right:2px solid currentColor; left:20px; top:-4px; transform:rotate(45deg); filter:drop-shadow(0 1px 2px #07131b); }
-@media (max-width:600px) {
+@container hud (max-width:600px) {
   .gun-aim-label { font-size:10px; }
   .gun-aim-circle { width:24px; height:24px; left:-12px; top:-12px; }
 }
