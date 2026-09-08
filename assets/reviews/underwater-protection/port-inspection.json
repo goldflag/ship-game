@@ -1,0 +1,91 @@
+{
+  "origin": "http://localhost:5184/?ship=bismarck",
+  "refs": {
+    "e1": {
+      "name": "Bismarck ocean scene. Drag to orbit; scroll to zoom.",
+      "role": "Canvas"
+    },
+    "e10": {
+      "name": "Commander",
+      "role": "button"
+    },
+    "e11": {
+      "name": "Fleet",
+      "role": "button"
+    },
+    "e12": {
+      "name": "CUSTOM BATTLE",
+      "role": "button"
+    },
+    "e13": {
+      "name": "Statistics",
+      "role": "button"
+    },
+    "e14": {
+      "name": "Armor",
+      "role": "button"
+    },
+    "e15": {
+      "name": "Internals",
+      "role": "button"
+    },
+    "e16": {
+      "name": "Flooding",
+      "role": "button"
+    },
+    "e17": {
+      "name": "Armor model",
+      "role": "heading"
+    },
+    "e18": {
+      "name": "Find armor",
+      "role": "searchbox"
+    },
+    "e19": {
+      "name": "Port underwater defense \u00b7 50% damage / 50% breach reduction Underwater defense \u00b7 estimated 50%",
+      "role": "button"
+    },
+    "e2": {
+      "name": "Port sections",
+      "role": "navigation"
+    },
+    "e20": {
+      "name": "Starboard underwater defense \u00b7 50% damage / 50% breach reduction Underwater defense \u00b7 estimated 50%",
+      "role": "button"
+    },
+    "e21": {
+      "name": "Clear selection",
+      "role": "button"
+    },
+    "e3": {
+      "name": "Port settings",
+      "role": "button"
+    },
+    "e4": {
+      "name": "BISMARCK",
+      "role": "heading"
+    },
+    "e5": {
+      "name": "Create schematic",
+      "role": "button"
+    },
+    "e6": {
+      "name": "Reference review",
+      "role": "link"
+    },
+    "e7": {
+      "name": "Ship armor model",
+      "role": "region"
+    },
+    "e8": {
+      "name": "Port",
+      "role": "button"
+    },
+    "e9": {
+      "name": "Equipment",
+      "role": "button"
+    }
+  },
+  "snapshot": "- main\n  - Canvas \"Bismarck ocean scene. Drag to orbit; scroll to zoom.\" [ref=e1] focusable [tabindex]\n  - generic\n    - generic\n      - sectionheader\n        - strong\n          - StaticText \"FLEET COMMAND\"\n        - navigation \"Port sections\" [ref=e2]\n          - button \"Port\" [ref=e8]\n          - button \"Equipment\" [ref=e9]\n          - button \"Commander\" [ref=e10]\n          - button \"Fleet\" [ref=e11]\n        - button \"CUSTOM BATTLE\" [ref=e12]\n          - strong\n            - StaticText \"CUSTOM BATTLE\"\n        - generic \"Illustrative currency balances\"\n          - StaticText \"2,450,000\"\n          - StaticText \"12,400\"\n          - StaticText \"CAPTAIN 08\"\n        - button \"Port settings\" [ref=e3]\n      - generic\n        - heading \"BISMARCK\" [level=1, ref=e4]\n        - StaticText \"VIII\"\n        - StaticText \"Battleship\"\n        - StaticText \"Germany\"\n        - StaticText \" \u00b7 \"\n        - StaticText \"1941\"\n        - StaticText \"READY FOR BATTLE\"\n        - button \"Create schematic\" [ref=e5]\n        - link \"Reference review\" [ref=e6]\n      - complementary\n        - group \"Ship model view\"\n          - button \"Statistics\" [ref=e13]\n          - button \"Armor\" [ref=e14]\n          - button \"Internals\" [ref=e15]\n          - button \"Flooding\" [ref=e16]\n        - region \"Ship armor model\" [ref=e7]\n          - heading \"Armor model\" [level=2, ref=e17]\n          - StaticText \"564\"\n          - StaticText \" \"\n          - StaticText \"surfaces\"\n          - paragraph\n            - StaticText \"Hover a plate for details. Select a row to isolate it.\"\n          - StaticText \"Green \u00b7 thinner\"\n          - StaticText \"Red \u00b7 thicker\"\n          - StaticText \"0\"\n          - StaticText \" mm\"\n          - StaticText \"200\"\n          - StaticText \" mm\"\n          - StaticText \"400\"\n          - StaticText \"+\"\n          - StaticText \" mm\"\n          - StaticText \"Underwater defense zones are blue; percentages show torpedo damage reduction.\"\n          - StaticText \"Teak backing is gray.\"\n          - LabelText\n            - StaticText \"Find armor\"\n            - searchbox \"Find armor\" [ref=e18]: underwater defense\n              - StaticText \"underwater defense\"\n          - generic \"Armor volumes\"\n            - button \"Port underwater defense \u00b7 50% damage / 50% breach reduction Underwater defense \u00b7 estimated 50%\" [ref=e19]\n              - StaticText \"Port underwater defense \u00b7 50% damage / 50% breach reduction\"\n              - StaticText \"Underwater defense \u00b7 estimated\"\n              - strong\n                - StaticText \"50%\"\n            - button \"Starboard underwater defense \u00b7 50% damage / 50% breach reduction Underwater defense \u00b7 estimated 50%\" [ref=e20]\n              - StaticText \"Starboard underwater defense \u00b7 50% damage / 50% breach reduction\"\n              - StaticText \"Underwater defense \u00b7 estimated\"\n              - strong\n                - StaticText \"50%\"\n          - paragraph\n            - StaticText \"Hull and deckhouse plating also registers hits. Opaque surfaces hide inner layers; isolate a row to inspect them.\"\n          - status\n            - strong\n              - StaticText \"Starboard underwater defense \u00b7 50% damage / 50% breach reduction\"\n            - StaticText \"6.0 \u00d7 7.0 \u00d7 150.0\"\n            - StaticText \" m\"\n            - StaticText \"Provisional gameplay underwater defense zones: central side coverage and 50% reductions are estimated, not measured historical protection ratings. Ends and keel remain unprotected; no progressive defense failure is modeled.\"\n            - button \"Clear selection\" [ref=e21]\n    - generic \"14 frames per second\"\n      - StaticText \"14 FPS\"",
+  "browserPageId": "0b11bcf9-e5bb-4f9b-b8c3-e56939320a94"
+}

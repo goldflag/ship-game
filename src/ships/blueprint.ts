@@ -177,6 +177,8 @@ export interface ShipBlueprint {
   schemaVersion: 1; id: string; name: string; configuration: string;
   coordinates: 'meters-y-up-bow-negative-z'; modelUrl: string;
   damageControl?: DamageControlProfile;
+  /** Ship-local underwater defense coverage; reductions are gameplay calibration. */
+  underwaterProtection?: { version: 1; basis: string; zones: (Volume & { name: string; damageReduction: number; breachReduction: number })[] };
   localDamage?: { version: 1; regions: DamageRegion[]; basis: string };
   stability?: { version: 1; dryCenterOfGravity: Vec3; buoyancyScale: number; shellThicknessMm: number; basis: string };
   hull: Hull; handling: Handling; mounts: Mount[]; armor: Armor[];
@@ -497,6 +499,23 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     }
   });
   if (modules.some(m => m.servesMountIds !== undefined) && modules.some(m => m.kind === 'fire-control' && m.servesMountIds === undefined)) fail('modules', 'explicit coverage requires every director to declare served mounts');
+  if (b.underwaterProtection !== undefined) {
+    const protection = record(b.underwaterProtection, 'underwaterProtection');
+    literal(protection.version, [1], 'underwaterProtection.version');
+    text(protection.basis, 'underwaterProtection.basis');
+    const zones = volumes(protection.zones, 'underwaterProtection.zones');
+    if (!zones.length) fail('underwaterProtection.zones', 'at least one zone required');
+    zones.forEach(z => {
+      text(z.name, `${z.id}.name`);
+      numeric(z.damageReduction, `${z.id}.damageReduction`, 0, .9);
+      numeric(z.breachReduction, `${z.id}.breachReduction`, 0, .9);
+      const center = z.center as number[], size = z.size as number[];
+      if (center[1] + size[1] / 2 > 0 || center[1] - size[1] / 2 < -(h.draft as number)
+        || Math.abs(center[0]) + size[0] / 2 > (h.beam as number) / 2 + 1e-6
+        || Math.abs(center[2]) + size[2] / 2 > (h.length as number) / 2)
+        fail(String(z.id), 'underwater protection outside submerged hull envelope');
+    });
+  }
   if (b.localDamage !== undefined) {
     const local = record(b.localDamage, 'localDamage');
     literal(local.version, [1], 'localDamage.version'); text(local.basis, 'localDamage.basis');

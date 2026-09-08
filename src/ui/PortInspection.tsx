@@ -23,8 +23,8 @@ export function PortInspection({ definition, mode, selectedId, onSelect }: { def
   }
   const selected = entries.find(entry => entry.id === selectedId);
   const row = (entry: typeof entries[number], label = entry.name) => <button key={entry.id} aria-pressed={selectedId === entry.id} onClick={() => onSelect(selectedId === entry.id ? undefined : entry.id)}>
-    <i aria-hidden="true" style={{ background: inspectionColor(entry) }}/><span>{label}<small>{entry.surface ? 'Structural steel · estimated' : entry.kind === 'armor' ? entry.plate ? `${entry.plate.material} plate · ${entry.provenance?.basis ?? 'approximate'}` : entry.mountIndex === undefined ? 'Hull armor' : 'Gunhouse armor' : INSPECTION_KIND_LABELS[entry.kind]}</small></span>
-    <strong>{entry.thicknessMm !== undefined ? `${entry.thicknessMm} mm` : entry.capacityM3 !== undefined ? `${Math.round(entry.capacityM3).toLocaleString()} m³` : `${entry.hp} HP`}</strong>
+    <i aria-hidden="true" style={{ background: inspectionColor(entry) }}/><span>{label}<small>{entry.underwaterProtection ? 'Underwater defense · estimated' : entry.surface ? 'Structural steel · estimated' : entry.kind === 'armor' ? entry.plate ? `${entry.plate.material} plate · ${entry.provenance?.basis ?? 'approximate'}` : entry.mountIndex === undefined ? 'Hull armor' : 'Gunhouse armor' : INSPECTION_KIND_LABELS[entry.kind]}</small></span>
+    <strong>{entry.underwaterProtection ? `${Math.round(entry.underwaterProtection.damageReduction * 100)}%` : entry.thicknessMm !== undefined ? `${entry.thicknessMm} mm` : entry.capacityM3 !== undefined ? `${Math.round(entry.capacityM3).toLocaleString()} m³` : `${entry.hp} HP`}</strong>
   </button>;
   return <section className="port-inspector" aria-label={mode === 'armor' ? 'Ship armor model' : mode === 'internals' ? 'Ship equipment' : 'Flooding compartments'}>
     <div className="port-inspection-scroll">
@@ -34,6 +34,7 @@ export function PortInspection({ definition, mode, selectedId, onSelect }: { def
       <div className="port-armor-legend-labels"><span>Green · thinner</span><span>Red · thicker</span></div>
       <div className="port-armor-legend-ramp" aria-hidden="true" style={{ background: armorGradient }}/>
       <div className="port-armor-legend-labels">{ARMOR_COLOR_STOPS.map(stop => <span key={stop.thicknessMm}>{stop.thicknessMm}{stop.thicknessMm === armorScaleMax ? '+' : ''} mm</span>)}</div>
+      {entries.some(entry => entry.underwaterProtection) && <small>Select an underwater defense row to show its blue coverage zone. Percentages show torpedo damage reduction.</small>}
       {entries.some(entry => entry.plate?.material === 'teak') && <small>Teak backing is gray.</small>}
     </div>}
     <label className="port-volume-search">Find {mode === 'armor' ? 'armor' : mode === 'internals' ? 'equipment' : 'a compartment'}<Input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Belt, boiler, Anton…" /></label>

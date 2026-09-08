@@ -165,16 +165,18 @@ test('torpedo openings retain their position and magazine damage does not invent
   const before = sim.target.damage.integrity;
   damageTorpedoHit(projectile(), sim.target, point);
   const room = sim.target.damage.compartments.find(c => c.id === 'forward-torpedo-room')!;
-  expect(room.breaches).toEqual([expect.objectContaining({ position: point, areaM2: 1.6, shellId: 1 })]);
-  expect(sim.target.damage.modules.find(m => m.id === 'forward-torpedoes')).toMatchObject({ hp: 0, detonated: false });
+  expect(room.breaches).toEqual([expect.objectContaining({ position: point, areaM2: 1.6 * 7 / 11, shellId: 1 })]);
+  const magazine = sim.target.damage.modules.find(m => m.id === 'forward-torpedoes')!;
+  expect(magazine.detonated).toBe(false);
+  expect(magazine.hp).toBeLessThan(definition.modules.find(m => m.id === magazine.id)!.hp);
   const hullLoss = before - sim.target.damage.integrity;
-  expect(hullLoss).toBeGreaterThan(projectile().weapon.damage * .9 * HULL_HP_SCALE);
-  expect(hullLoss).toBeLessThanOrEqual(projectile().weapon.damage * HULL_HP_SCALE);
+  expect(hullLoss).toBeGreaterThan(projectile().weapon.damage * .625 * .9 * HULL_HP_SCALE);
+  expect(hullLoss).toBeLessThanOrEqual(projectile().weapon.damage * .625 * HULL_HP_SCALE);
   updateCapability(sim.target, definition);
   expect(sim.target.damage.integrity).toBe(before - hullLoss);
   for (let i = 0; i < 10; i++) damageTorpedoHit(projectile(), sim.target, point);
-  expect(room.breachAreaM2).toBe(1.6); // The same aperture is not ten fresh holes.
-  expect(room.breaches.reduce((n, b) => n + b.areaM2, 0)).toBe(1.6);
+  expect(room.breachAreaM2).toBeCloseTo(1.6 * 7 / 11); // The same aperture is not ten fresh holes.
+  expect(room.breaches.reduce((n, b) => n + b.areaM2, 0)).toBeCloseTo(1.6 * 7 / 11);
 });
 
 test('loaded tubes preserve fighting strength after gun loss and recover after magazine flooding', () => {
