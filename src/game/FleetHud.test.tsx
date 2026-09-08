@@ -163,6 +163,8 @@ test('weapon slots show separate types, custom shortcuts, and one selected group
     expect(html).toContain(`${selected.name}</span>`);
     if (id === 'enterprise-cv6') {
       expect(html).not.toContain('aria-label="Squadron commands"');
+      expect(html).toContain('aria-label="Open air operations · M"');
+      expect(html).toContain('AIR WING</span>');
     }
   }
 });

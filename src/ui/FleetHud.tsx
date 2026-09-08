@@ -119,6 +119,10 @@ function ActiveArmament({ data, game, bindings }: FleetHudProps) {
           {group.reload > 0 && Number.isFinite(group.reload) && group.ready === 0 && <span className="fleet-slot-cooldown">{Math.ceil(group.reload)}<small>s</small></span>}
           <kbd>{shortcut(index)}</kbd>
         </button>)}
+        {combat.airWing && <button className="fleet-weapon-slot" disabled={combat.playerSunk} aria-label={`Open air operations · ${bindingLabel(bindings, 'airOperations')}`} title="Command carrier squadrons" onClick={event => { game?.setAirOperationsOpen(true); event.currentTarget.blur(); }}>
+          <span className="fleet-slot-label">AIR WING</span><Icon name="aircraft" size={32}/>
+          <kbd>{bindingLabel(bindings, 'airOperations')}</kbd>
+        </button>}
       </div>
     </div>
   </section>;

@@ -66,13 +66,13 @@ test('map overlays and water orders use the displayed camera throughout ascent a
   battlefieldCamera.beginTransition(); battlefieldCamera.enter([{ x: 0, z: 0 }], 1280, 800);
   for (let i = 0; i < 7; i++) {
     battlefieldCamera.update(); battlefieldCamera.applyTransition(.2);
-    const [x, y] = game.projectAirMap(100, -200);
+    const [x, y] = game.projectAirMap(100, -200)!;
     const water = game.airMapWater(x, y)!;
     expect(water[0]).toBeCloseTo(100, 5); expect(water[1]).toBeCloseTo(-200, 5);
   }
-  const before = game.projectAirMap(100, -200);
+  const before = game.projectAirMap(100, -200)!;
   game.panAirMap(90, 0); battlefieldCamera.update();
-  const after = game.projectAirMap(100, -200);
+  const after = game.projectAirMap(100, -200)!;
   expect(after[0]).not.toBe(before[0]);
 });
 
@@ -106,7 +106,7 @@ test('the operations roster exposes the full inventory and retains a flight targ
   sim.launchAircraft('vb-6'); sim.selectTarget(sim.actors[2].motion.id);
   const html = renderToStaticMarkup(<AirOperations data={{ ship: sim.ship, order: 1, camera: 'Chase', trail: [], fps: 60, backend: 'test', airOperationsOpen: true, selectedFlightId: sim.player.airWing!.flights[0].id, combat: sim.telemetry('main', [0, 0, -5000]) }} game={null} bindings={defaultKeybindings()}/>);
   expect(html).not.toContain('48/48 aircraft'); expect(html).toContain('Strike Bismarck');
-  expect(html).toContain('Fit battlefield'); expect(html).toContain('Return squadron');
+  expect(html).not.toContain('Fit battlefield'); expect(html).not.toContain('Battlefield tilt'); expect(html).not.toContain('Reset angle'); expect(html).toContain('Return squadron');
   expect(html).not.toContain('Right-click water to loiter'); expect(html).toContain('map hotkey 8');
   expect(html).not.toContain('air-battlefield-grid'); expect(html).not.toContain('Ready in hangar');
   expect(html).toContain('aria-keyshortcuts="a"'); expect(html).toContain('aria-keyshortcuts="r"');

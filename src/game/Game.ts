@@ -712,10 +712,10 @@ export class Game {
   orderFlight(id: string, order: AirOrder): boolean { return !this.inPort && !this.paused && this.simulation.orderFlight(id, order); }
   commandSquadron(id: string, order: AirOrder): boolean { return !this.inPort && !this.paused && this.simulation.commandSquadron(id, order); }
   panAirMap(dx: number, dy: number, x?: number, y?: number): void { this.battlefieldCamera.pan(dx, dy, this.host.clientWidth, this.host.clientHeight, x, y); }
-  projectAirMap(x: number, z: number, altitude = 0): [number, number] {
-    const p = new THREE.Vector3(x, altitude, z).project(this.camera);
-    // Map SVG and HTML tags live inside the scaled HUD, unlike pointer input.
-    return [(p.x + 1) * this.host.clientWidth / (2 * this.hudScale), (1 - p.y) * this.host.clientHeight / (2 * this.hudScale)];
+  projectAirMap(x: number, z: number, altitude = 0): [number, number] | null {
+    // Use the same depth and viewport clipping as ship-view nametags.
+    const point = projectShipLabel(new THREE.Vector3(x, altitude, z), this.camera, this.host.clientWidth / this.hudScale, this.host.clientHeight / this.hudScale);
+    return point ? [point.x, point.y] : null;
   }
   projectAirMapPath(points: Vec3[], closed = false): string {
     return projectAirMapPath(points, this.camera, this.host.clientWidth / this.hudScale, this.host.clientHeight / this.hudScale, closed);
