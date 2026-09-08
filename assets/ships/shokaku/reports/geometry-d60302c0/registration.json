@@ -1,0 +1,17 @@
+{
+  "contentHash": "d60302c02b3320b4f95d94ea81e315549ae3d33be2961b1b68b1d6a28f457126",
+  "source": "s02",
+  "isotropic": true,
+  "pixelsPerMetre": 18.124271844660193,
+  "sternPixelX": 38,
+  "bowPixelX": 4705,
+  "profileWaterlineY": 625,
+  "planCenterlineY": 1375,
+  "referenceDraftM": 8.87,
+  "notes": [
+    "Modern secondary plan; original drawing date/source unresolved.",
+    "Profile outlines show minimum/maximum longitudinal footprint bounds, not hidden sidewall detail.",
+    "Dated S10 photographs corroborate configuration qualitatively.",
+    "No local warp or anisotropic scaling."
+  ]
+}

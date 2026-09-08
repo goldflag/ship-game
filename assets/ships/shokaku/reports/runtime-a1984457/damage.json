@@ -1,0 +1,587 @@
+{
+  "contentHash": "a1984457dfde3f0302b5205a5d5b2aa23683ba8342682a60bcd6cd5f4e294420",
+  "fixture": "One armed Type 91 review torpedo seeded 30 m off the centerline at 3.7 m depth through the boiler region, plus three above-water swept 203 mm AP projectiles. Torpedo depth is a fixture override. No HP, breach or flooding state assigned directly.",
+  "before": 44800,
+  "after": 27709,
+  "waterM3": 88.29163336981176,
+  "modules": [
+    {
+      "id": "boiler-starboard-3-module",
+      "hp": 70.80250378067682,
+      "detonated": false,
+      "ignition": 0
+    }
+  ],
+  "compartments": [
+    {
+      "id": "reserve-cell-1-1-0",
+      "waterM3": 88.29163336981176,
+      "breachAreaM2": 0.55,
+      "breaches": [
+        {
+          "position": [
+            12.71502790380033,
+            -3.7865122555973176,
+            -15.000533511105147
+          ],
+          "areaM2": 0.55,
+          "radiusM": 0.41841419359420023,
+          "shellId": 900010,
+          "footprintAreaM2": 0.55,
+          "initialAreaM2": 0.55,
+          "normal": [
+            1,
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "kind": "penetration",
+      "position": [
+        9.499994234721218,
+        7.0953674983365485,
+        -12
+      ],
+      "message": "Penetrated Lower hangar casing plating",
+      "shipId": "player",
+      "impact": {
+        "shellId": 900002,
+        "shipId": "player",
+        "targetId": "lower-hangar",
+        "targetName": "Lower hangar casing plating",
+        "kind": "armor",
+        "position": [
+          9.5,
+          7.0932626023902685,
+          -12.00000479580035
+        ],
+        "impactSpeedMps": 850.000050948545,
+        "penetrationBeforeMm": 1000.0000839152516,
+        "penetrationAfterMm": 992.0000834397766,
+        "outcome": "penetrated",
+        "localDamage": {
+          "regionId": "upper-hull-starboard-4",
+          "regionName": "Upper hull · starboard · amidships forward",
+          "condition": 1,
+          "multiplier": 1
+        },
+        "thicknessMm": 8,
+        "material": "steel",
+        "obliquityDeg": 0.019754062778892263,
+        "resistanceMm": 8.000000475474913,
+        "hullDamage": 446,
+        "exitSpeedMps": 845.1373377791722
+      },
+      "shell": {
+        "id": 900002,
+        "caliberM": 0.2032,
+        "velocity": [
+          -850,
+          -0.29430006653809987,
+          0
+        ],
+        "ammunition": "ap",
+        "type": "AP"
+      },
+      "surfaceImpact": {
+        "position": [
+          9.5,
+          7.0932626023902685,
+          -12.00000479580035
+        ],
+        "normal": [
+          1,
+          0,
+          0
+        ],
+        "direction": [
+          -0.9999999405656395,
+          -0.00034477342916572405,
+          7.671608642466621e-11
+        ],
+        "outcome": "penetration"
+      },
+      "normal": [
+        0.9999999999989314,
+        0.0000014619225661272435,
+        3.2392122120536907e-13
+      ],
+      "tick": 1
+    },
+    {
+      "kind": "penetration",
+      "position": [
+        9.499994673298312,
+        6.79536749846309,
+        -12.999999999999998
+      ],
+      "message": "Penetrated Lower hangar casing plating",
+      "shipId": "player",
+      "impact": {
+        "shellId": 900001,
+        "shipId": "player",
+        "targetId": "lower-hangar",
+        "targetName": "Lower hangar casing plating",
+        "kind": "armor",
+        "position": [
+          9.5,
+          6.793262380944419,
+          -13.000004729328701
+        ],
+        "impactSpeedMps": 850.0000509485433,
+        "penetrationBeforeMm": 1000.0000839152488,
+        "penetrationAfterMm": 992.0000834397739,
+        "outcome": "penetrated",
+        "localDamage": {
+          "regionId": "upper-hull-starboard-4",
+          "regionName": "Upper hull · starboard · amidships forward",
+          "condition": 0.900390625,
+          "multiplier": 1
+        },
+        "thicknessMm": 8,
+        "material": "steel",
+        "obliquityDeg": 0.019754062446790194,
+        "resistanceMm": 8.000000475474897,
+        "hullDamage": 446,
+        "exitSpeedMps": 845.1373377791705
+      },
+      "shell": {
+        "id": 900001,
+        "caliberM": 0.2032,
+        "velocity": [
+          -850,
+          -0.29430006147640425,
+          0
+        ],
+        "ammunition": "ap",
+        "type": "AP"
+      },
+      "surfaceImpact": {
+        "position": [
+          9.5,
+          6.793262380944419,
+          -13.000004729328701
+        ],
+        "normal": [
+          1,
+          0,
+          0
+        ],
+        "direction": [
+          -0.9999999405656415,
+          -0.00034477342321078905,
+          7.671608510521889e-11
+        ],
+        "outcome": "penetration"
+      },
+      "normal": [
+        0.9999999999989314,
+        0.0000014619225661272435,
+        3.2392122120536907e-13
+      ],
+      "tick": 1
+    },
+    {
+      "kind": "penetration",
+      "position": [
+        9.499995111875405,
+        6.495367498589634,
+        -14.000000000000002
+      ],
+      "message": "Penetrated Lower hangar casing plating",
+      "shipId": "player",
+      "impact": {
+        "shellId": 900000,
+        "shipId": "player",
+        "targetId": "lower-hangar",
+        "targetName": "Lower hangar casing plating",
+        "kind": "armor",
+        "position": [
+          9.5,
+          6.49326215949857,
+          -14.000004662857055
+        ],
+        "impactSpeedMps": 850.0000509485415,
+        "penetrationBeforeMm": 1000.0000839152456,
+        "penetrationAfterMm": 992.0000834397707,
+        "outcome": "penetrated",
+        "localDamage": {
+          "regionId": "upper-hull-starboard-4",
+          "regionName": "Upper hull · starboard · amidships forward",
+          "condition": 0.80078125,
+          "multiplier": 1
+        },
+        "thicknessMm": 8,
+        "material": "steel",
+        "obliquityDeg": 0.01975406207778789,
+        "resistanceMm": 8.000000475474879,
+        "hullDamage": 446,
+        "exitSpeedMps": 845.1373377791687
+      },
+      "shell": {
+        "id": 900000,
+        "caliberM": 0.2032,
+        "velocity": [
+          -850,
+          -0.2943000564147086,
+          0
+        ],
+        "ammunition": "ap",
+        "type": "AP"
+      },
+      "surfaceImpact": {
+        "position": [
+          9.5,
+          6.49326215949857,
+          -14.000004662857055
+        ],
+        "normal": [
+          1,
+          0,
+          0
+        ],
+        "direction": [
+          -0.9999999405656437,
+          -0.0003447734172558541,
+          7.671608378577158e-11
+        ],
+        "outcome": "penetration"
+      },
+      "normal": [
+        0.9999999999989314,
+        0.0000014619225661272435,
+        3.2392122120536907e-13
+      ],
+      "tick": 1
+    },
+    {
+      "kind": "penetration",
+      "position": [
+        -9.500046588004786,
+        7.086137250231802,
+        -12
+      ],
+      "message": "Penetrated Lower hangar casing plating",
+      "shipId": "player",
+      "impact": {
+        "shellId": 900002,
+        "shipId": "player",
+        "targetId": "lower-hangar",
+        "targetName": "Lower hangar casing plating",
+        "kind": "armor",
+        "position": [
+          -9.5,
+          7.080016633794643,
+          -12.000020116511653
+        ],
+        "impactSpeedMps": 845.1374429157975,
+        "penetrationBeforeMm": 992.0002562090468,
+        "penetrationAfterMm": 984.0002547764989,
+        "outcome": "penetrated",
+        "localDamage": {
+          "regionId": "upper-hull-port-4",
+          "regionName": "Upper hull · port · amidships forward",
+          "condition": 1,
+          "multiplier": 1
+        },
+        "thicknessMm": 8,
+        "material": "steel",
+        "obliquityDeg": 0.034288397041560205,
+        "resistanceMm": 8.000001432547913,
+        "hullDamage": 0,
+        "exitSpeedMps": 840.2635119408798
+      },
+      "shell": {
+        "id": 900002,
+        "caliberM": 0.2032,
+        "velocity": [
+          -845.1372871220956,
+          -0.5131609470593823,
+          0
+        ],
+        "ammunition": "ap",
+        "type": "AP"
+      },
+      "surfaceImpact": {
+        "position": [
+          -9.5,
+          7.080016633794643,
+          -12.000020116511653
+        ],
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "direction": [
+          -0.9999998209315428,
+          -0.0005984453879638775,
+          8.040548244689697e-10
+        ],
+        "outcome": "penetration"
+      },
+      "normal": [
+        -0.9999999999617457,
+        -0.000008746912771916997,
+        -1.1582817211868032e-11
+      ],
+      "tick": 3
+    },
+    {
+      "kind": "penetration",
+      "position": [
+        -9.500043963919387,
+        6.786137251976581,
+        -13
+      ],
+      "message": "Penetrated Lower hangar casing plating",
+      "shipId": "player",
+      "impact": {
+        "shellId": 900001,
+        "shipId": "player",
+        "targetId": "lower-hangar",
+        "targetName": "Lower hangar casing plating",
+        "kind": "armor",
+        "position": [
+          -9.5,
+          6.780015311310452,
+          -13.00001971924545
+        ],
+        "impactSpeedMps": 845.137442915779,
+        "penetrationBeforeMm": 992.0002562090165,
+        "penetrationAfterMm": 984.0002547764688,
+        "outcome": "penetrated",
+        "localDamage": {
+          "regionId": "upper-hull-port-4",
+          "regionName": "Upper hull · port · amidships forward",
+          "condition": 1,
+          "multiplier": 1
+        },
+        "thicknessMm": 8,
+        "material": "steel",
+        "obliquityDeg": 0.03428839500071729,
+        "resistanceMm": 8.000001432547743,
+        "hullDamage": 0,
+        "exitSpeedMps": 840.2635119408615
+      },
+      "shell": {
+        "id": 900001,
+        "caliberM": 0.2032,
+        "velocity": [
+          -845.1372871220956,
+          -0.5131609166581779,
+          0
+        ],
+        "ammunition": "ap",
+        "type": "AP"
+      },
+      "surfaceImpact": {
+        "position": [
+          -9.5,
+          6.780015311310452,
+          -13.00001971924545
+        ],
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "direction": [
+          -0.9999998209315641,
+          -0.0005984453519919848,
+          8.040547768343508e-10
+        ],
+        "outcome": "penetration"
+      },
+      "normal": [
+        -0.9999999999617457,
+        -0.000008746912771916997,
+        -1.1582817211868032e-11
+      ],
+      "tick": 3
+    },
+    {
+      "kind": "penetration",
+      "position": [
+        -9.500041339833986,
+        6.486137253721362,
+        -14.000000000000002
+      ],
+      "message": "Penetrated Lower hangar casing plating",
+      "shipId": "player",
+      "impact": {
+        "shellId": 900000,
+        "shipId": "player",
+        "targetId": "lower-hangar",
+        "targetName": "Lower hangar casing plating",
+        "kind": "armor",
+        "position": [
+          -9.5,
+          6.480013988826262,
+          -14.000019321979252
+        ],
+        "impactSpeedMps": 845.1374429157606,
+        "penetrationBeforeMm": 992.0002562089863,
+        "penetrationAfterMm": 984.0002547764387,
+        "outcome": "penetrated",
+        "localDamage": {
+          "regionId": "upper-hull-port-4",
+          "regionName": "Upper hull · port · amidships forward",
+          "condition": 1,
+          "multiplier": 1
+        },
+        "thicknessMm": 8,
+        "material": "steel",
+        "obliquityDeg": 0.03428839293861546,
+        "resistanceMm": 8.00000143254757,
+        "hullDamage": 0,
+        "exitSpeedMps": 840.2635119408432
+      },
+      "shell": {
+        "id": 900000,
+        "caliberM": 0.2032,
+        "velocity": [
+          -845.1372871220956,
+          -0.5131608862569735,
+          0
+        ],
+        "ammunition": "ap",
+        "type": "AP"
+      },
+      "surfaceImpact": {
+        "position": [
+          -9.5,
+          6.480013988826262,
+          -14.000019321979252
+        ],
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "direction": [
+          -0.9999998209315857,
+          -0.0005984453160200922,
+          8.040547291997322e-10
+        ],
+        "outcome": "penetration"
+      },
+      "normal": [
+        -0.9999999999617457,
+        -0.000008746912771916997,
+        -1.1582817211868032e-11
+      ],
+      "tick": 3
+    },
+    {
+      "kind": "torpedo-hit",
+      "position": [
+        12.72232582522458,
+        -3.6999999999999997,
+        -15
+      ],
+      "shipId": "player",
+      "message": "Torpedo hit · Starboard deep reserve space 2 · estimated · flooding breach",
+      "hullDamage": 15753,
+      "torpedo": {
+        "id": 900010,
+        "velocity": [
+          -21.606666666666666,
+          0,
+          0
+        ],
+        "diameterM": 0.45
+      },
+      "tick": 47
+    },
+    {
+      "kind": "splash",
+      "position": [
+        -903.6790122703079,
+        0.3885439396500243,
+        -14.000000000000002
+      ],
+      "shipId": "",
+      "message": "Shell entering water",
+      "shell": {
+        "id": 900000,
+        "caliberM": 0.2032,
+        "velocity": [
+          -840.2633570456444,
+          -10.94966147263928,
+          0
+        ],
+        "ammunition": "ap",
+        "type": "AP"
+      },
+      "tick": 66
+    },
+    {
+      "kind": "splash",
+      "position": [
+        -911.8455600259496,
+        0.5816604883528915,
+        -13
+      ],
+      "shipId": "",
+      "message": "Shell entering water",
+      "shell": {
+        "id": 900001,
+        "caliberM": 0.2032,
+        "velocity": [
+          -840.2633570456445,
+          -11.0450051913276,
+          0
+        ],
+        "ammunition": "ap",
+        "type": "AP"
+      },
+      "tick": 67
+    },
+    {
+      "kind": "splash",
+      "position": [
+        -981.2835017809202,
+        -0.06457673350960748,
+        -12
+      ],
+      "shipId": "",
+      "message": "Shell entering water",
+      "shell": {
+        "id": 900002,
+        "caliberM": 0.2032,
+        "velocity": [
+          -840.2633570456445,
+          -11.855686988361725,
+          0
+        ],
+        "ammunition": "ap",
+        "type": "AP"
+      },
+      "tick": 72
+    }
+  ],
+  "shellIds": [
+    900000,
+    900001,
+    900002
+  ],
+  "muzzleErrorM": 0.00216055669849143,
+  "effects": {
+    "shells": 0,
+    "torpedoes": 0,
+    "depthCharges": 0,
+    "smoke": 54,
+    "aircraftSmoke": 0,
+    "flakSmoke": 0,
+    "spray": 168,
+    "flashes": 90,
+    "foam": 0,
+    "particleCapacity": 3680
+  },
+  "result": "pass"
+}

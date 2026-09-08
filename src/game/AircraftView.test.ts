@@ -10,6 +10,29 @@ import { aircraftContactAppearance } from './AircraftContacts';
 
 const drawCount = (mesh: InstancedMesh) => (mesh.geometry as InstancedBufferGeometry).instanceCount;
 
+test('fleet aircraft loading adds requested models once and retains prior models after a failed addition', async () => {
+  let fail = false;
+  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => {
+    if (fail && String(url).includes('b5n2-kate-lod1')) throw new Error('missing aircraft LOD');
+    const scene = new Group(); scene.add(new Mesh(new BoxGeometry(), new MeshBasicMaterial()));
+    return { scene } as Awaited<ReturnType<GLTFLoader['loadAsync']>>;
+  });
+  const view = new AircraftView();
+  try {
+    await Promise.all([view.load(['a6m2-zero']), view.load(['a6m2-zero', 'd3a1-val'])]);
+    expect(loader).toHaveBeenCalledTimes(6);
+    expect(view.diagnostics().models).toBe(6);
+    fail = true;
+    await expect(view.load(['b5n2-kate'])).rejects.toThrow('missing aircraft LOD');
+    expect(view.diagnostics().models).toBe(6);
+    fail = false;
+    await view.load(['b5n2-kate']);
+    expect(view.diagnostics().models).toBe(9);
+    await view.load(['f4f-4-wildcat']);
+    expect(view.diagnostics().models).toBe(12);
+  } finally { await view.dispose(); loader.mockRestore(); }
+});
+
 test('distant contacts stay faint and never enlarge or darken a resolved airframe', () => {
   for (const span of [.25, .5, 1, 2, 3, 6, 10, 12, 22, 70]) {
     const appearance = aircraftContactAppearance(span);

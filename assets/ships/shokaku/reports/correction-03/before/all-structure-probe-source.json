@@ -1,0 +1,65 @@
+{
+  "contentHash": "2d43863548c9dfcee9b1822b75dee70d501d16271e334d13ce5c1accfd00c0b8",
+  "mode": "source",
+  "scope": "Black-box regression for coplanar upward structure surfaces in source or GLB.\n\nTriangle intersection area is measured in the horizontal plane. Shared edges\nhave zero area; opposite-facing bearing/ceiling contacts are not duplicate top\nskins. No recipe-specific pair exclusions or material/depth-bias assumptions.\n",
+  "horizontalTriangles": 178,
+  "coplanarToleranceM": 0.001,
+  "minimumOverlapAreaM2": 1e-05,
+  "overlaps": [
+    {
+      "surfaces": [
+        "flight-deck.surface",
+        "upper-hangar.surface"
+      ],
+      "heightM": 14.40999984741211,
+      "overlapAreaM2": 4168.0,
+      "trianglePairs": 35
+    },
+    {
+      "surfaces": [
+        "bridge-walkway.surface",
+        "flight-deck.surface"
+      ],
+      "heightM": 14.75,
+      "overlapAreaM2": 6.243114565412554,
+      "trianglePairs": 4
+    },
+    {
+      "surfaces": [
+        "bridge-walkway.surface",
+        "island-base.surface"
+      ],
+      "heightM": 14.75,
+      "overlapAreaM2": 64.8073876362887,
+      "trianglePairs": 12
+    },
+    {
+      "surfaces": [
+        "bridge-chartroom.surface",
+        "navigation-wings.surface"
+      ],
+      "heightM": 17.059999465942383,
+      "overlapAreaM2": 49.702955077458626,
+      "trianglePairs": 11
+    },
+    {
+      "surfaces": [
+        "compass-platform.surface",
+        "navigation-bridge.surface"
+      ],
+      "heightM": 19.459999084472656,
+      "overlapAreaM2": 44.88092022364668,
+      "trianglePairs": 13
+    },
+    {
+      "surfaces": [
+        "air-control.surface",
+        "bridge-roof.surface"
+      ],
+      "heightM": 21.639999389648438,
+      "overlapAreaM2": 31.861329743186843,
+      "trianglePairs": 18
+    }
+  ],
+  "result": "fail"
+}

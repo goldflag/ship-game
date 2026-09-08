@@ -1,0 +1,1139 @@
+{
+  "contentHash": "7a9e1325912f25fa87dbb506f818e6bf59b303ed67f6b0bce610d99fcd8fb91d",
+  "method": "Conservative horizontal cylinders enclose every mesh vertex at ANY independent train, elevation and 0..maximum recoil. Positive cylinder gaps prove separation continuously, without relying on endpoint poses.",
+  "result": "pass",
+  "bounds": [
+    {
+      "mount": "aa127-port-1",
+      "position": [
+        -14.8,
+        10.5,
+        -75.7
+      ],
+      "radiusM": 5.628461135189675
+    },
+    {
+      "mount": "aa127-port-2",
+      "position": [
+        -14.8,
+        10.5,
+        -56
+      ],
+      "radiusM": 5.628461607921295
+    },
+    {
+      "mount": "aa127-port-3",
+      "position": [
+        -16.05,
+        10.5,
+        57.2
+      ],
+      "radiusM": 5.628460696060293
+    },
+    {
+      "mount": "aa127-port-4",
+      "position": [
+        -16.05,
+        10.5,
+        71
+      ],
+      "radiusM": 5.628459777372922
+    },
+    {
+      "mount": "aa127-starboard-1",
+      "position": [
+        14.8,
+        10.5,
+        -75.7
+      ],
+      "radiusM": 5.6284609156816385
+    },
+    {
+      "mount": "aa127-starboard-2",
+      "position": [
+        14.8,
+        10.5,
+        -56
+      ],
+      "radiusM": 5.6284616167016255
+    },
+    {
+      "mount": "aa127-starboard-3",
+      "position": [
+        16.05,
+        10.5,
+        41.2
+      ],
+      "radiusM": 5.628459759377526
+    },
+    {
+      "mount": "aa127-starboard-4",
+      "position": [
+        16.05,
+        10.5,
+        55.7
+      ],
+      "radiusM": 5.628459963389261
+    },
+    {
+      "mount": "aa25-port-1",
+      "position": [
+        -16.15,
+        14.25,
+        42
+      ],
+      "radiusM": 1.7251659739138732
+    },
+    {
+      "mount": "aa25-port-2",
+      "position": [
+        -16.15,
+        14.25,
+        34.7
+      ],
+      "radiusM": 1.7251667076943862
+    },
+    {
+      "mount": "aa25-port-3",
+      "position": [
+        -16.15,
+        14.25,
+        18.6
+      ],
+      "radiusM": 1.7251673128701919
+    },
+    {
+      "mount": "aa25-port-4",
+      "position": [
+        -16.15,
+        14.25,
+        11.5
+      ],
+      "radiusM": 1.7251664313573472
+    },
+    {
+      "mount": "aa25-port-5",
+      "position": [
+        -16.15,
+        14.25,
+        3.9
+      ],
+      "radiusM": 1.7251660680283083
+    },
+    {
+      "mount": "aa25-port-6",
+      "position": [
+        -16.15,
+        14.25,
+        -3.2
+      ],
+      "radiusM": 1.7251656576420593
+    },
+    {
+      "mount": "aa25-starboard-1",
+      "position": [
+        16.15,
+        14.25,
+        98.2
+      ],
+      "radiusM": 1.7251684717812548
+    },
+    {
+      "mount": "aa25-starboard-2",
+      "position": [
+        16.15,
+        14.25,
+        91.3
+      ],
+      "radiusM": 1.7251660893263663
+    },
+    {
+      "mount": "aa25-starboard-3",
+      "position": [
+        16.15,
+        14.25,
+        75.3
+      ],
+      "radiusM": 1.7324961506361185
+    },
+    {
+      "mount": "aa25-starboard-4",
+      "position": [
+        16.15,
+        14.25,
+        68.8
+      ],
+      "radiusM": 1.7324963884360658
+    },
+    {
+      "mount": "aa25-starboard-5",
+      "position": [
+        17.9,
+        14.25,
+        -15.2
+      ],
+      "radiusM": 1.725167042592142
+    },
+    {
+      "mount": "aa25-starboard-6",
+      "position": [
+        17.9,
+        14.25,
+        -22.4
+      ],
+      "radiusM": 1.725168627349664
+    }
+  ],
+  "pairs": [
+    {
+      "a": "aa127-port-3",
+      "b": "aa127-port-4",
+      "guaranteedGapM": 2.543079526566781
+    },
+    {
+      "a": "aa25-starboard-3",
+      "b": "aa25-starboard-4",
+      "guaranteedGapM": 3.035007460927816
+    },
+    {
+      "a": "aa127-starboard-3",
+      "b": "aa127-starboard-4",
+      "guaranteedGapM": 3.2430802772332132
+    },
+    {
+      "a": "aa25-starboard-1",
+      "b": "aa25-starboard-2",
+      "guaranteedGapM": 3.449665438892384
+    },
+    {
+      "a": "aa25-port-3",
+      "b": "aa25-port-4",
+      "guaranteedGapM": 3.6496662557724626
+    },
+    {
+      "a": "aa25-port-5",
+      "b": "aa25-port-6",
+      "guaranteedGapM": 3.649668274329632
+    },
+    {
+      "a": "aa25-starboard-5",
+      "b": "aa25-starboard-6",
+      "guaranteedGapM": 3.7496643300581933
+    },
+    {
+      "a": "aa25-port-1",
+      "b": "aa25-port-2",
+      "guaranteedGapM": 3.849667318391738
+    },
+    {
+      "a": "aa25-port-4",
+      "b": "aa25-port-5",
+      "guaranteedGapM": 4.149667500614345
+    },
+    {
+      "a": "aa127-starboard-4",
+      "b": "aa25-starboard-4",
+      "guaranteedGapM": 5.739425322003869
+    },
+    {
+      "a": "aa127-port-3",
+      "b": "aa25-port-1",
+      "guaranteedGapM": 7.846702273834916
+    },
+    {
+      "a": "aa127-port-1",
+      "b": "aa127-port-2",
+      "guaranteedGapM": 8.443077256889033
+    },
+    {
+      "a": "aa127-starboard-1",
+      "b": "aa127-starboard-2",
+      "guaranteedGapM": 8.443077467616739
+    },
+    {
+      "a": "aa25-port-3",
+      "b": "aa25-port-5",
+      "guaranteedGapM": 11.2496666191015
+    },
+    {
+      "a": "aa25-port-4",
+      "b": "aa25-port-6",
+      "guaranteedGapM": 11.249667911000593
+    },
+    {
+      "a": "aa127-starboard-4",
+      "b": "aa25-starboard-3",
+      "guaranteedGapM": 12.239298986355324
+    },
+    {
+      "a": "aa25-starboard-2",
+      "b": "aa25-starboard-3",
+      "guaranteedGapM": 12.542337760037515
+    },
+    {
+      "a": "aa25-port-2",
+      "b": "aa25-port-3",
+      "guaranteedGapM": 12.649665979435422
+    },
+    {
+      "a": "aa127-port-3",
+      "b": "aa25-port-2",
+      "guaranteedGapM": 15.14659481737016
+    },
+    {
+      "a": "aa127-port-2",
+      "b": "aa127-starboard-2",
+      "guaranteedGapM": 18.34307677537708
+    },
+    {
+      "a": "aa127-port-1",
+      "b": "aa127-starboard-1",
+      "guaranteedGapM": 18.343077949128688
+    },
+    {
+      "a": "aa25-port-3",
+      "b": "aa25-port-6",
+      "guaranteedGapM": 18.34966702948775
+    },
+    {
+      "a": "aa25-starboard-2",
+      "b": "aa25-starboard-4",
+      "guaranteedGapM": 19.04233752223757
+    },
+    {
+      "a": "aa25-starboard-1",
+      "b": "aa25-starboard-3",
+      "guaranteedGapM": 19.44233537758263
+    },
+    {
+      "a": "aa25-port-2",
+      "b": "aa25-port-4",
+      "guaranteedGapM": 19.74966686094827
+    },
+    {
+      "a": "aa25-port-1",
+      "b": "aa25-port-3",
+      "guaranteedGapM": 19.949666713215933
+    },
+    {
+      "a": "aa127-starboard-3",
+      "b": "aa25-starboard-4",
+      "guaranteedGapM": 20.239225011012156
+    },
+    {
+      "a": "aa127-port-3",
+      "b": "aa127-starboard-4",
+      "guaranteedGapM": 20.87810695840072
+    },
+    {
+      "a": "aa127-port-4",
+      "b": "aa25-port-1",
+      "guaranteedGapM": 21.646546661993785
+    },
+    {
+      "a": "aa127-port-1",
+      "b": "aa127-starboard-2",
+      "guaranteedGapM": 24.299370643230755
+    },
+    {
+      "a": "aa127-port-2",
+      "b": "aa127-starboard-1",
+      "guaranteedGapM": 24.29937087151912
+    },
+    {
+      "a": "aa127-port-4",
+      "b": "aa127-starboard-4",
+      "guaranteedGapM": 24.30288903262691
+    },
+    {
+      "a": "aa127-port-3",
+      "b": "aa127-starboard-3",
+      "guaranteedGapM": 24.60963778479482
+    },
+    {
+      "a": "aa127-starboard-3",
+      "b": "aa25-port-1",
+      "guaranteedGapM": 24.856310621814927
+    },
+    {
+      "a": "aa127-port-4",
+      "b": "aa25-starboard-4",
+      "guaranteedGapM": 24.914111611036972
+    },
+    {
+      "a": "aa127-port-4",
+      "b": "aa25-starboard-3",
+      "guaranteedGapM": 25.12488714247322
+    },
+    {
+      "a": "aa127-starboard-3",
+      "b": "aa25-port-2",
+      "guaranteedGapM": 25.495878856448563
+    },
+    {
+      "a": "aa25-starboard-1",
+      "b": "aa25-starboard-4",
+      "guaranteedGapM": 25.942335139782685
+    },
+    {
+      "a": "aa127-starboard-2",
+      "b": "aa25-starboard-6",
+      "guaranteedGapM": 26.389072670801283
+    },
+    {
+      "a": "aa127-starboard-3",
+      "b": "aa25-starboard-3",
+      "guaranteedGapM": 26.73919071723709
+    },
+    {
+      "a": "aa127-port-3",
+      "b": "aa25-starboard-4",
+      "guaranteedGapM": 26.864764237339944
+    },
+    {
+      "a": "aa25-port-1",
+      "b": "aa25-port-4",
+      "guaranteedGapM": 27.049667594728778
+    },
+    {
+      "a": "aa25-port-2",
+      "b": "aa25-port-5",
+      "guaranteedGapM": 27.34966722427731
+    },
+    {
+      "a": "aa127-starboard-4",
+      "b": "aa25-port-1",
+      "guaranteedGapM": 27.639659132835682
+    },
+    {
+      "a": "aa127-starboard-4",
+      "b": "aa25-starboard-2",
+      "guaranteedGapM": 28.24651439644552
+    },
+    {
+      "a": "aa127-port-4",
+      "b": "aa25-port-2",
+      "guaranteedGapM": 28.946511255718196
+    },
+    {
+      "a": "aa127-port-3",
+      "b": "aa25-starboard-3",
+      "guaranteedGapM": 29.57750549271344
+    },
+    {
+      "a": "aa127-port-4",
+      "b": "aa25-starboard-2",
+      "guaranteedGapM": 30.711187281403774
+    },
+    {
+      "a": "aa127-starboard-4",
+      "b": "aa25-port-2",
+      "guaranteedGapM": 31.0890579386051
+    },
+    {
+      "a": "aa127-port-3",
+      "b": "aa25-port-3",
+      "guaranteedGapM": 31.246501524530927
+    },
+    {
+      "a": "aa127-starboard-3",
+      "b": "aa25-port-3",
+      "guaranteedGapM": 31.985920459466477
+    },
+    {
+      "a": "aa127-port-4",
+      "b": "aa127-starboard-3",
+      "guaranteedGapM": 32.543194618351926
+    },
+    {
+      "a": "aa25-port-6",
+      "b": "aa25-starboard-5",
+      "guaranteedGapM": 32.65233340630147
+    },
+    {
+      "a": "aa127-starboard-2",
+      "b": "aa25-starboard-5",
+      "guaranteedGapM": 33.563971465835756
+    },
+    {
+      "a": "aa25-port-2",
+      "b": "aa25-port-6",
+      "guaranteedGapM": 34.44966763466356
+    },
+    {
+      "a": "aa25-port-1",
+      "b": "aa25-port-5",
+      "guaranteedGapM": 34.64966795805782
+    },
+    {
+      "a": "aa127-port-4",
+      "b": "aa25-starboard-1",
+      "guaranteedGapM": 34.79705383310874
+    },
+    {
+      "a": "aa127-starboard-4",
+      "b": "aa25-starboard-1",
+      "guaranteedGapM": 35.14648921172548
+    },
+    {
+      "a": "aa25-port-5",
+      "b": "aa25-starboard-5",
+      "guaranteedGapM": 35.59083106259549
+    },
+    {
+      "a": "aa25-port-6",
+      "b": "aa25-starboard-6",
+      "guaranteedGapM": 35.63984990490433
+    },
+    {
+      "a": "aa127-starboard-3",
+      "b": "aa25-port-4",
+      "guaranteedGapM": 36.45196705944267
+    },
+    {
+      "a": "aa127-port-3",
+      "b": "aa25-port-4",
+      "guaranteedGapM": 38.34648228164177
+    },
+    {
+      "a": "aa25-port-1",
+      "b": "aa25-starboard-4",
+      "guaranteedGapM": 38.51292257519887
+    },
+    {
+      "a": "aa127-port-2",
+      "b": "aa25-starboard-6",
+      "guaranteedGapM": 39.53186858899239
+    },
+    {
+      "a": "aa127-port-3",
+      "b": "aa25-starboard-2",
+      "guaranteedGapM": 39.546799651907065
+    },
+    {
+      "a": "aa25-port-5",
+      "b": "aa25-starboard-6",
+      "guaranteedGapM": 39.573989819947066
+    },
+    {
+      "a": "aa25-port-4",
+      "b": "aa25-starboard-5",
+      "guaranteedGapM": 39.819661903910216
+    },
+    {
+      "a": "aa25-port-1",
+      "b": "aa25-port-6",
+      "guaranteedGapM": 41.74966836844407
+    },
+    {
+      "a": "aa127-starboard-4",
+      "b": "aa25-port-3",
+      "guaranteedGapM": 41.77121369040425
+    },
+    {
+      "a": "aa127-starboard-3",
+      "b": "aa25-port-5",
+      "guaranteedGapM": 41.922433268264555
+    },
+    {
+      "a": "aa127-starboard-3",
+      "b": "aa25-starboard-2",
+      "guaranteedGapM": 42.7464739515959
+    },
+    {
+      "a": "aa25-port-1",
+      "b": "aa25-starboard-3",
+      "guaranteedGapM": 42.93393194161678
+    },
+    {
+      "a": "aa25-port-2",
+      "b": "aa25-starboard-4",
+      "guaranteedGapM": 43.511475707982186
+    },
+    {
+      "a": "aa25-port-3",
+      "b": "aa25-starboard-5",
+      "guaranteedGapM": 44.527186422502005
+    },
+    {
+      "a": "aa25-port-4",
+      "b": "aa25-starboard-6",
+      "guaranteedGapM": 44.597687793435405
+    },
+    {
+      "a": "aa127-port-3",
+      "b": "aa25-starboard-1",
+      "guaranteedGapM": 44.779277906289664
+    },
+    {
+      "a": "aa127-port-2",
+      "b": "aa25-starboard-5",
+      "guaranteedGapM": 44.93336782088469
+    },
+    {
+      "a": "aa127-port-4",
+      "b": "aa25-port-3",
+      "guaranteedGapM": 45.04646832951733
+    },
+    {
+      "a": "aa127-port-2",
+      "b": "aa25-port-6",
+      "guaranteedGapM": 45.463628437473695
+    },
+    {
+      "a": "aa127-port-3",
+      "b": "aa25-port-5",
+      "guaranteedGapM": 45.94646704445925
+    },
+    {
+      "a": "aa127-starboard-1",
+      "b": "aa25-starboard-6",
+      "guaranteedGapM": 46.036444440809554
+    },
+    {
+      "a": "aa127-starboard-4",
+      "b": "aa25-port-4",
+      "guaranteedGapM": 47.33165498882132
+    },
+    {
+      "a": "aa127-starboard-3",
+      "b": "aa25-port-6",
+      "guaranteedGapM": 47.49343466827578
+    },
+    {
+      "a": "aa25-port-2",
+      "b": "aa25-starboard-3",
+      "guaranteedGapM": 48.42345123919057
+    },
+    {
+      "a": "aa127-starboard-3",
+      "b": "aa25-starboard-5",
+      "guaranteedGapM": 49.07670635316951
+    },
+    {
+      "a": "aa127-starboard-3",
+      "b": "aa25-starboard-1",
+      "guaranteedGapM": 49.64645948807197
+    },
+    {
+      "a": "aa25-port-3",
+      "b": "aa25-starboard-6",
+      "guaranteedGapM": 49.845090692841254
+    },
+    {
+      "a": "aa127-port-4",
+      "b": "aa25-port-4",
+      "guaranteedGapM": 52.146457824823834
+    },
+    {
+      "a": "aa127-port-2",
+      "b": "aa25-port-5",
+      "guaranteedGapM": 52.56158324748786
+    },
+    {
+      "a": "aa127-port-3",
+      "b": "aa25-port-6",
+      "guaranteedGapM": 53.046456427697876
+    },
+    {
+      "a": "aa127-starboard-1",
+      "b": "aa25-starboard-5",
+      "guaranteedGapM": 53.22574146729882
+    },
+    {
+      "a": "aa127-starboard-4",
+      "b": "aa25-port-5",
+      "guaranteedGapM": 53.63883251879994
+    },
+    {
+      "a": "aa127-starboard-2",
+      "b": "aa25-port-6",
+      "guaranteedGapM": 53.848844080986396
+    },
+    {
+      "a": "aa127-port-1",
+      "b": "aa25-starboard-6",
+      "guaranteedGapM": 55.1778023336473
+    },
+    {
+      "a": "aa25-port-1",
+      "b": "aa25-starboard-2",
+      "guaranteedGapM": 55.488449736182794
+    },
+    {
+      "a": "aa25-port-3",
+      "b": "aa25-starboard-4",
+      "guaranteedGapM": 56.23597080020487
+    },
+    {
+      "a": "aa127-starboard-3",
+      "b": "aa25-starboard-6",
+      "guaranteedGapM": 56.27327237073545
+    },
+    {
+      "a": "aa25-port-2",
+      "b": "aa25-starboard-5",
+      "guaranteedGapM": 56.96003373742207
+    },
+    {
+      "a": "aa127-port-4",
+      "b": "aa25-port-5",
+      "guaranteedGapM": 59.74644867020567
+    },
+    {
+      "a": "aa127-starboard-4",
+      "b": "aa25-port-6",
+      "guaranteedGapM": 59.77349259508161
+    },
+    {
+      "a": "aa127-starboard-2",
+      "b": "aa25-port-5",
+      "guaranteedGapM": 60.069754757861894
+    },
+    {
+      "a": "aa127-port-2",
+      "b": "aa25-port-4",
+      "guaranteedGapM": 60.1598706109913
+    },
+    {
+      "a": "aa25-port-1",
+      "b": "aa25-starboard-1",
+      "guaranteedGapM": 61.37041840399029
+    },
+    {
+      "a": "aa127-port-1",
+      "b": "aa25-starboard-5",
+      "guaranteedGapM": 61.41802295842402
+    },
+    {
+      "a": "aa25-port-2",
+      "b": "aa25-starboard-2",
+      "guaranteedGapM": 61.717527379603126
+    },
+    {
+      "a": "aa25-port-3",
+      "b": "aa25-starboard-3",
+      "guaranteedGapM": 61.797068165702
+    },
+    {
+      "a": "aa25-port-4",
+      "b": "aa25-starboard-4",
+      "guaranteedGapM": 62.31908079069553
+    },
+    {
+      "a": "aa25-port-2",
+      "b": "aa25-starboard-6",
+      "guaranteedGapM": 63.03133507116642
+    },
+    {
+      "a": "aa25-port-1",
+      "b": "aa25-starboard-5",
+      "guaranteedGapM": 63.117245428259416
+    },
+    {
+      "a": "aa127-starboard-4",
+      "b": "aa25-starboard-5",
+      "guaranteedGapM": 63.570504994346955
+    },
+    {
+      "a": "aa127-port-1",
+      "b": "aa25-port-6",
+      "guaranteedGapM": 65.15894108336472
+    },
+    {
+      "a": "aa127-port-4",
+      "b": "aa25-port-6",
+      "guaranteedGapM": 66.84644195039915
+    },
+    {
+      "a": "aa127-starboard-2",
+      "b": "aa25-port-4",
+      "guaranteedGapM": 66.90371165651163
+    },
+    {
+      "a": "aa127-port-2",
+      "b": "aa25-port-3",
+      "guaranteedGapM": 67.25858522675944
+    },
+    {
+      "a": "aa25-port-2",
+      "b": "aa25-starboard-1",
+      "guaranteedGapM": 67.79248902057977
+    },
+    {
+      "a": "aa25-port-4",
+      "b": "aa25-starboard-3",
+      "guaranteedGapM": 68.0526863194068
+    },
+    {
+      "a": "aa25-port-5",
+      "b": "aa25-starboard-4",
+      "guaranteedGapM": 69.03578552333583
+    },
+    {
+      "a": "aa25-port-1",
+      "b": "aa25-starboard-6",
+      "guaranteedGapM": 69.39719452636028
+    },
+    {
+      "a": "aa127-starboard-4",
+      "b": "aa25-starboard-6",
+      "guaranteedGapM": 70.76827934807169
+    },
+    {
+      "a": "aa127-starboard-1",
+      "b": "aa25-port-6",
+      "guaranteedGapM": 71.47626940529598
+    },
+    {
+      "a": "aa127-port-1",
+      "b": "aa25-port-5",
+      "guaranteedGapM": 72.257819838021
+    },
+    {
+      "a": "aa127-port-3",
+      "b": "aa25-starboard-5",
+      "guaranteedGapM": 72.61113012379595
+    },
+    {
+      "a": "aa127-starboard-2",
+      "b": "aa25-port-3",
+      "guaranteedGapM": 73.4118494631177
+    },
+    {
+      "a": "aa25-port-5",
+      "b": "aa25-starboard-3",
+      "guaranteedGapM": 74.90846566832509
+    },
+    {
+      "a": "aa25-port-6",
+      "b": "aa25-starboard-4",
+      "guaranteedGapM": 75.45551809513782
+    },
+    {
+      "a": "aa25-port-3",
+      "b": "aa25-starboard-2",
+      "guaranteedGapM": 76.1020392839779
+    },
+    {
+      "a": "aa127-starboard-1",
+      "b": "aa25-port-5",
+      "guaranteedGapM": 78.05165681067832
+    },
+    {
+      "a": "aa127-port-3",
+      "b": "aa25-starboard-6",
+      "guaranteedGapM": 79.1840069974418
+    },
+    {
+      "a": "aa127-port-1",
+      "b": "aa25-port-4",
+      "guaranteedGapM": 79.85682192203203
+    },
+    {
+      "a": "aa25-starboard-4",
+      "b": "aa25-starboard-5",
+      "guaranteedGapM": 80.56056375807641
+    },
+    {
+      "a": "aa25-port-6",
+      "b": "aa25-starboard-3",
+      "guaranteedGapM": 81.42779042000413
+    },
+    {
+      "a": "aa25-port-3",
+      "b": "aa25-starboard-1",
+      "guaranteedGapM": 82.453389396507
+    },
+    {
+      "a": "aa25-port-4",
+      "b": "aa25-starboard-2",
+      "guaranteedGapM": 82.63874924930614
+    },
+    {
+      "a": "aa127-port-2",
+      "b": "aa25-port-2",
+      "guaranteedGapM": 83.35641798577257
+    },
+    {
+      "a": "aa127-starboard-1",
+      "b": "aa25-port-4",
+      "guaranteedGapM": 85.1760570790953
+    },
+    {
+      "a": "aa127-port-4",
+      "b": "aa25-starboard-5",
+      "guaranteedGapM": 85.29108430808584
+    },
+    {
+      "a": "aa127-starboard-2",
+      "b": "aa127-starboard-3",
+      "guaranteedGapM": 85.95111584307264
+    },
+    {
+      "a": "aa127-port-1",
+      "b": "aa25-port-3",
+      "guaranteedGapM": 86.956034365461
+    },
+    {
+      "a": "aa25-starboard-3",
+      "b": "aa25-starboard-5",
+      "guaranteedGapM": 87.05925511489798
+    },
+    {
+      "a": "aa25-starboard-4",
+      "b": "aa25-starboard-6",
+      "guaranteedGapM": 87.75912346089765
+    },
+    {
+      "a": "aa127-starboard-2",
+      "b": "aa25-port-2",
+      "guaranteedGapM": 88.48160788859613
+    },
+    {
+      "a": "aa25-port-4",
+      "b": "aa25-starboard-1",
+      "guaranteedGapM": 89.07090590133828
+    },
+    {
+      "a": "aa25-port-5",
+      "b": "aa25-starboard-2",
+      "guaranteedGapM": 89.72718659046345
+    },
+    {
+      "a": "aa127-port-2",
+      "b": "aa25-port-1",
+      "guaranteedGapM": 90.65567044646417
+    },
+    {
+      "a": "aa127-port-2",
+      "b": "aa127-starboard-3",
+      "guaranteedGapM": 90.72132386176953
+    },
+    {
+      "a": "aa127-starboard-1",
+      "b": "aa25-port-3",
+      "guaranteedGapM": 91.89551534457932
+    },
+    {
+      "a": "aa127-port-4",
+      "b": "aa25-starboard-6",
+      "guaranteedGapM": 92.02525516719123
+    },
+    {
+      "a": "aa25-starboard-3",
+      "b": "aa25-starboard-6",
+      "guaranteedGapM": 94.2580069435963
+    },
+    {
+      "a": "aa127-starboard-2",
+      "b": "aa25-port-1",
+      "guaranteedGapM": 95.41748946082069
+    },
+    {
+      "a": "aa25-port-5",
+      "b": "aa25-starboard-1",
+      "guaranteedGapM": 96.22804827211209
+    },
+    {
+      "a": "aa25-port-6",
+      "b": "aa25-starboard-2",
+      "guaranteedGapM": 96.41728062060547
+    },
+    {
+      "a": "aa127-starboard-2",
+      "b": "aa127-starboard-4",
+      "guaranteedGapM": 100.45007238179137
+    },
+    {
+      "a": "aa127-port-2",
+      "b": "aa127-port-3",
+      "guaranteedGapM": 101.94997898741497
+    },
+    {
+      "a": "aa25-port-6",
+      "b": "aa25-starboard-1",
+      "guaranteedGapM": 102.96982373552255
+    },
+    {
+      "a": "aa127-port-1",
+      "b": "aa25-port-2",
+      "guaranteedGapM": 103.0546259246672
+    },
+    {
+      "a": "aa25-starboard-2",
+      "b": "aa25-starboard-5",
+      "guaranteedGapM": 103.06404383194491
+    },
+    {
+      "a": "aa127-port-2",
+      "b": "aa127-starboard-4",
+      "guaranteedGapM": 104.62496873084149
+    },
+    {
+      "a": "aa127-starboard-1",
+      "b": "aa127-starboard-3",
+      "guaranteedGapM": 105.64976219636611
+    },
+    {
+      "a": "aa127-port-3",
+      "b": "aa127-starboard-2",
+      "guaranteedGapM": 106.07151626885393
+    },
+    {
+      "a": "aa127-starboard-1",
+      "b": "aa25-port-2",
+      "guaranteedGapM": 107.30265218719519
+    },
+    {
+      "a": "aa127-port-1",
+      "b": "aa127-starboard-3",
+      "guaranteedGapM": 109.64523996287984
+    },
+    {
+      "a": "aa25-starboard-1",
+      "b": "aa25-starboard-5",
+      "guaranteedGapM": 109.96316676820317
+    },
+    {
+      "a": "aa25-starboard-2",
+      "b": "aa25-starboard-6",
+      "guaranteedGapM": 110.26313194404977
+    },
+    {
+      "a": "aa127-port-1",
+      "b": "aa25-port-1",
+      "guaranteedGapM": 110.35411477731614
+    },
+    {
+      "a": "aa127-starboard-1",
+      "b": "aa25-port-1",
+      "guaranteedGapM": 114.3476159142477
+    },
+    {
+      "a": "aa127-port-2",
+      "b": "aa127-port-4",
+      "guaranteedGapM": 115.7492300405324
+    },
+    {
+      "a": "aa25-starboard-1",
+      "b": "aa25-starboard-6",
+      "guaranteedGapM": 117.16235916457093
+    },
+    {
+      "a": "aa127-starboard-2",
+      "b": "aa25-starboard-4",
+      "guaranteedGapM": 117.44634346396707
+    },
+    {
+      "a": "aa127-port-4",
+      "b": "aa127-starboard-2",
+      "guaranteedGapM": 119.4363167630696
+    },
+    {
+      "a": "aa127-starboard-1",
+      "b": "aa127-starboard-4",
+      "guaranteedGapM": 120.14902457241924
+    },
+    {
+      "a": "aa127-port-2",
+      "b": "aa25-starboard-4",
+      "guaranteedGapM": 121.21953235890611
+    },
+    {
+      "a": "aa127-port-1",
+      "b": "aa127-port-3",
+      "guaranteedGapM": 121.64895651880647
+    },
+    {
+      "a": "aa127-port-1",
+      "b": "aa127-starboard-4",
+      "guaranteedGapM": 123.71597432861417
+    },
+    {
+      "a": "aa127-starboard-2",
+      "b": "aa25-starboard-3",
+      "guaranteedGapM": 123.94598226250226
+    },
+    {
+      "a": "aa127-port-3",
+      "b": "aa127-starboard-1",
+      "guaranteedGapM": 125.17669777878805
+    },
+    {
+      "a": "aa127-port-2",
+      "b": "aa25-starboard-3",
+      "guaranteedGapM": 127.53749479001708
+    },
+    {
+      "a": "aa127-port-1",
+      "b": "aa127-port-4",
+      "guaranteedGapM": 135.4484044849839
+    },
+    {
+      "a": "aa127-starboard-1",
+      "b": "aa25-starboard-4",
+      "guaranteedGapM": 137.1453487866547
+    },
+    {
+      "a": "aa127-port-4",
+      "b": "aa127-starboard-1",
+      "guaranteedGapM": 138.651759842797
+    },
+    {
+      "a": "aa127-starboard-2",
+      "b": "aa25-starboard-2",
+      "guaranteedGapM": 139.952558518448
+    },
+    {
+      "a": "aa127-port-1",
+      "b": "aa25-starboard-4",
+      "guaranteedGapM": 140.41641726696932
+    },
+    {
+      "a": "aa127-port-2",
+      "b": "aa25-starboard-2",
+      "guaranteedGapM": 143.16279167286626
+    },
+    {
+      "a": "aa127-starboard-1",
+      "b": "aa25-starboard-3",
+      "guaranteedGapM": 143.64507758130816
+    },
+    {
+      "a": "aa127-port-1",
+      "b": "aa25-starboard-3",
+      "guaranteedGapM": 146.7782736062479
+    },
+    {
+      "a": "aa127-starboard-2",
+      "b": "aa25-starboard-1",
+      "guaranteedGapM": 146.85227933135744
+    },
+    {
+      "a": "aa127-port-2",
+      "b": "aa25-starboard-1",
+      "guaranteedGapM": 149.92174148240824
+    },
+    {
+      "a": "aa127-starboard-1",
+      "b": "aa25-starboard-2",
+      "guaranteedGapM": 159.6518294926765
+    },
+    {
+      "a": "aa127-port-1",
+      "b": "aa25-starboard-2",
+      "guaranteedGapM": 162.49013186012033
+    },
+    {
+      "a": "aa127-starboard-1",
+      "b": "aa25-starboard-1",
+      "guaranteedGapM": 166.55161061409657
+    },
+    {
+      "a": "aa127-port-1",
+      "b": "aa25-starboard-1",
+      "guaranteedGapM": 169.27907546205077
+    }
+  ]
+}

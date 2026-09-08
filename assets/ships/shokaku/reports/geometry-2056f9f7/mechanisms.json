@@ -1,0 +1,102 @@
+{
+  "contentHash": "2056f9f7d09255bb8885865caf86a7ceebf0f2ece10e35217af252381663bf8b",
+  "scope": "Moving gun mechanisms against their yaw assembly. Fixed, intended trunnion-bearing intersections excluded. Surface intersections need inspection, including contained volumes.",
+  "result": "fail",
+  "variants": [
+    {
+      "partId": "type89-127-a1-twin",
+      "mount": "aa127-port-1",
+      "samples": 57,
+      "interfacesExcluded": "Only trunnion shaft/caps against the elevating bearing, cradle and inner barrel collar.",
+      "clashes": []
+    },
+    {
+      "partId": "type89-127-a1-mod2-twin",
+      "mount": "aa127-starboard-3",
+      "samples": 57,
+      "interfacesExcluded": "Only trunnion shaft/caps against the elevating bearing, cradle and inner barrel collar.",
+      "clashes": [
+        {
+          "meshes": [
+            "aa127-starboard-3.loader-platform",
+            "aa127-starboard-3.front-apron"
+          ],
+          "firstPose": [
+            75,
+            0
+          ],
+          "trianglePairs": 105
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.loader-platform.001",
+            "aa127-starboard-3.front-apron"
+          ],
+          "firstPose": [
+            75,
+            0
+          ],
+          "trianglePairs": 117
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.loader-platform-bracket.001",
+            "aa127-starboard-3.front-apron"
+          ],
+          "firstPose": [
+            80,
+            0
+          ],
+          "trianglePairs": 159
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.loader-platform-bracket",
+            "aa127-starboard-3.front-apron"
+          ],
+          "firstPose": [
+            80,
+            0
+          ],
+          "trianglePairs": 159
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.loader-platform-bracket.003",
+            "aa127-starboard-3.front-apron"
+          ],
+          "firstPose": [
+            80,
+            0
+          ],
+          "trianglePairs": 153
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.loader-platform-bracket.002",
+            "aa127-starboard-3.front-apron"
+          ],
+          "firstPose": [
+            80,
+            0
+          ],
+          "trianglePairs": 159
+        }
+      ]
+    },
+    {
+      "partId": "type96-25-triple",
+      "mount": "aa25-port-1",
+      "samples": 57,
+      "interfacesExcluded": "Only trunnion shaft/caps against the elevating bearing, cradle and inner barrel collar.",
+      "clashes": []
+    },
+    {
+      "partId": "type96-25-triple-shielded",
+      "mount": "aa25-starboard-3",
+      "samples": 57,
+      "interfacesExcluded": "Only trunnion shaft/caps against the elevating bearing, cradle and inner barrel collar.",
+      "clashes": []
+    }
+  ]
+}

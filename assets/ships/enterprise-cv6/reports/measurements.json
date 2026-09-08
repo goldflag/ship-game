@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "contentHash": "be93ad44f18bec4351c0a851936b856aa0f4a0df16844ad83c651cb26d77b5c3",
-  "modelSha256": "63b0c5b5b6befc36f44c5ade876622bbfa099b1b1d3c88d9641ff61323e30870",
+  "contentHash": "8e9e2e6e069844970119d2a8d0343bd31fd760907a8896304cb4eb49bab3d57f",
+  "modelSha256": "5c2594067c33b4b0983585d170d5cd45a5d4a7d68f0fb58f95d612cdfb0b4d0c",
   "specRevision": "fleet-fidelity-01",
   "dimensions": [
     {

@@ -1,0 +1,1985 @@
+{
+  "contentHash": "16bd50f50408f1a02ed6a0635aaa585a7ae182000b30de6bb7b4ffe5146ef890",
+  "payloads": [
+    {
+      "kind": "torpedo",
+      "tick": 53035,
+      "weapon": {
+        "id": "type91-mod2-game",
+        "name": "Type 91 Mod 2 aerial torpedo",
+        "kind": "torpedo",
+        "diameterM": 0.45,
+        "lengthM": 5.486,
+        "speed": 21.606666666666666,
+        "rangeM": 2000,
+        "armingDistanceM": 180,
+        "runningDepthM": 2,
+        "reloadSeconds": 35,
+        "launchIntervalSeconds": 3,
+        "damage": 480,
+        "breachAreaM2": 0.55
+      },
+      "velocity": [
+        21.267862061802393,
+        0,
+        3.811310504877688
+      ]
+    },
+    {
+      "kind": "torpedo",
+      "tick": 53049,
+      "weapon": {
+        "id": "type91-mod2-game",
+        "name": "Type 91 Mod 2 aerial torpedo",
+        "kind": "torpedo",
+        "diameterM": 0.45,
+        "lengthM": 5.486,
+        "speed": 21.606666666666666,
+        "rangeM": 2000,
+        "armingDistanceM": 180,
+        "runningDepthM": 2,
+        "reloadSeconds": 35,
+        "launchIntervalSeconds": 3,
+        "damage": 480,
+        "breachAreaM2": 0.55
+      },
+      "velocity": [
+        21.108941593607643,
+        0,
+        4.6109249876901615
+      ]
+    },
+    {
+      "kind": "torpedo",
+      "tick": 53061,
+      "weapon": {
+        "id": "type91-mod2-game",
+        "name": "Type 91 Mod 2 aerial torpedo",
+        "kind": "torpedo",
+        "diameterM": 0.45,
+        "lengthM": 5.486,
+        "speed": 21.606666666666666,
+        "rangeM": 2000,
+        "armingDistanceM": 180,
+        "runningDepthM": 2,
+        "reloadSeconds": 35,
+        "launchIntervalSeconds": 3,
+        "damage": 480,
+        "breachAreaM2": 0.55
+      },
+      "velocity": [
+        20.677075355387107,
+        0,
+        6.269497523094444
+      ]
+    },
+    {
+      "kind": "torpedo",
+      "tick": 53086,
+      "weapon": {
+        "id": "type91-mod2-game",
+        "name": "Type 91 Mod 2 aerial torpedo",
+        "kind": "torpedo",
+        "diameterM": 0.45,
+        "lengthM": 5.486,
+        "speed": 21.606666666666666,
+        "rangeM": 2000,
+        "armingDistanceM": 180,
+        "runningDepthM": 2,
+        "reloadSeconds": 35,
+        "launchIntervalSeconds": 3,
+        "damage": 480,
+        "breachAreaM2": 0.55
+      },
+      "velocity": [
+        20.523697538660418,
+        0,
+        6.754693463513247
+      ]
+    },
+    {
+      "kind": "torpedo",
+      "tick": 53091,
+      "weapon": {
+        "id": "type91-mod2-game",
+        "name": "Type 91 Mod 2 aerial torpedo",
+        "kind": "torpedo",
+        "diameterM": 0.45,
+        "lengthM": 5.486,
+        "speed": 21.606666666666666,
+        "rangeM": 2000,
+        "armingDistanceM": 180,
+        "runningDepthM": 2,
+        "reloadSeconds": 35,
+        "launchIntervalSeconds": 3,
+        "damage": 480,
+        "breachAreaM2": 0.55
+      },
+      "velocity": [
+        20.204067903248827,
+        0,
+        7.657916466334364
+      ]
+    },
+    {
+      "kind": "torpedo",
+      "tick": 53182,
+      "weapon": {
+        "id": "type91-mod2-game",
+        "name": "Type 91 Mod 2 aerial torpedo",
+        "kind": "torpedo",
+        "diameterM": 0.45,
+        "lengthM": 5.486,
+        "speed": 21.606666666666666,
+        "rangeM": 2000,
+        "armingDistanceM": 180,
+        "runningDepthM": 2,
+        "reloadSeconds": 35,
+        "launchIntervalSeconds": 3,
+        "damage": 480,
+        "breachAreaM2": 0.55
+      },
+      "velocity": [
+        19.379661403924107,
+        0,
+        9.553887602107265
+      ]
+    },
+    {
+      "kind": "bomb",
+      "tick": 53833,
+      "label": "Type 99 No. 25 250 kg bomb",
+      "he": {
+        "explosiveKg": 60,
+        "fragmentPenetrationMm": 50,
+        "damage": 330,
+        "stockFraction": 1,
+        "basis": "Type 99 No. 25 nominal 250 kg bomb and 60 kg filling. Shared contact fuze and damage are game approximations; see Shokaku sources s07."
+      }
+    },
+    {
+      "kind": "bomb",
+      "tick": 53893,
+      "label": "Type 99 No. 25 250 kg bomb",
+      "he": {
+        "explosiveKg": 60,
+        "fragmentPenetrationMm": 50,
+        "damage": 330,
+        "stockFraction": 1,
+        "basis": "Type 99 No. 25 nominal 250 kg bomb and 60 kg filling. Shared contact fuze and damage are game approximations; see Shokaku sources s07."
+      }
+    },
+    {
+      "kind": "bomb",
+      "tick": 53893,
+      "label": "Type 99 No. 25 250 kg bomb",
+      "he": {
+        "explosiveKg": 60,
+        "fragmentPenetrationMm": 50,
+        "damage": 330,
+        "stockFraction": 1,
+        "basis": "Type 99 No. 25 nominal 250 kg bomb and 60 kg filling. Shared contact fuze and damage are game approximations; see Shokaku sources s07."
+      }
+    },
+    {
+      "kind": "bomb",
+      "tick": 53894,
+      "label": "Type 99 No. 25 250 kg bomb",
+      "he": {
+        "explosiveKg": 60,
+        "fragmentPenetrationMm": 50,
+        "damage": 330,
+        "stockFraction": 1,
+        "basis": "Type 99 No. 25 nominal 250 kg bomb and 60 kg filling. Shared contact fuze and damage are game approximations; see Shokaku sources s07."
+      }
+    },
+    {
+      "kind": "bomb",
+      "tick": 53909,
+      "label": "Type 99 No. 25 250 kg bomb",
+      "he": {
+        "explosiveKg": 60,
+        "fragmentPenetrationMm": 50,
+        "damage": 330,
+        "stockFraction": 1,
+        "basis": "Type 99 No. 25 nominal 250 kg bomb and 60 kg filling. Shared contact fuze and damage are game approximations; see Shokaku sources s07."
+      }
+    },
+    {
+      "kind": "bomb",
+      "tick": 53909,
+      "label": "Type 99 No. 25 250 kg bomb",
+      "he": {
+        "explosiveKg": 60,
+        "fragmentPenetrationMm": 50,
+        "damage": 330,
+        "stockFraction": 1,
+        "basis": "Type 99 No. 25 nominal 250 kg bomb and 60 kg filling. Shared contact fuze and damage are game approximations; see Shokaku sources s07."
+      }
+    }
+  ],
+  "events": [
+    {
+      "kind": "aircraft-launch",
+      "position": [
+        82.98194252792184,
+        16.33547520627871,
+        42.22902082136661
+      ],
+      "shipId": "player",
+      "message": "d3a1-val launched",
+      "aircraft": {
+        "id": "player/shokaku-dive/1"
+      },
+      "tick": 46306
+    },
+    {
+      "kind": "aircraft-launch",
+      "position": [
+        83.08135929426903,
+        16.300638070156115,
+        42.256747264365785
+      ],
+      "shipId": "player",
+      "message": "d3a1-val launched",
+      "aircraft": {
+        "id": "player/shokaku-dive/2"
+      },
+      "tick": 46354
+    },
+    {
+      "kind": "aircraft-launch",
+      "position": [
+        83.243258356967,
+        16.19697090014002,
+        42.287976654082776
+      ],
+      "shipId": "player",
+      "message": "d3a1-val launched",
+      "aircraft": {
+        "id": "player/shokaku-dive/3"
+      },
+      "tick": 46402
+    },
+    {
+      "kind": "aircraft-launch",
+      "position": [
+        83.4347025594948,
+        16.090125979907494,
+        42.339895099993264
+      ],
+      "shipId": "player",
+      "message": "d3a1-val launched",
+      "aircraft": {
+        "id": "player/shokaku-dive/4"
+      },
+      "tick": 46450
+    },
+    {
+      "kind": "aircraft-launch",
+      "position": [
+        83.61155461871694,
+        16.05648581167902,
+        42.42187246430254
+      ],
+      "shipId": "player",
+      "message": "d3a1-val launched",
+      "aircraft": {
+        "id": "player/shokaku-dive/5"
+      },
+      "tick": 46498
+    },
+    {
+      "kind": "aircraft-launch",
+      "position": [
+        83.73696933312259,
+        16.127208795117994,
+        42.52726418580183
+      ],
+      "shipId": "player",
+      "message": "d3a1-val launched",
+      "aircraft": {
+        "id": "player/shokaku-dive/6"
+      },
+      "tick": 46546
+    },
+    {
+      "kind": "aircraft-launch",
+      "position": [
+        83.7949865922679,
+        16.341673923269973,
+        42.63471704541449
+      ],
+      "shipId": "player",
+      "message": "b5n2-kate launched",
+      "aircraft": {
+        "id": "player/shokaku-torpedo/1"
+      },
+      "tick": 46594
+    },
+    {
+      "kind": "aircraft-launch",
+      "position": [
+        83.79556211850462,
+        16.450722289168322,
+        42.71792813521708
+      ],
+      "shipId": "player",
+      "message": "b5n2-kate launched",
+      "aircraft": {
+        "id": "player/shokaku-torpedo/2"
+      },
+      "tick": 46642
+    },
+    {
+      "kind": "aircraft-launch",
+      "position": [
+        83.77587800243025,
+        16.461054931645087,
+        42.7631376413526
+      ],
+      "shipId": "player",
+      "message": "b5n2-kate launched",
+      "aircraft": {
+        "id": "player/shokaku-torpedo/3"
+      },
+      "tick": 46690
+    },
+    {
+      "kind": "aircraft-launch",
+      "position": [
+        83.78428429696775,
+        16.366607283413693,
+        42.77826025579831
+      ],
+      "shipId": "player",
+      "message": "b5n2-kate launched",
+      "aircraft": {
+        "id": "player/shokaku-torpedo/4"
+      },
+      "tick": 46738
+    },
+    {
+      "kind": "aircraft-launch",
+      "position": [
+        83.85861304166929,
+        16.23257627921852,
+        42.78915250408963
+      ],
+      "shipId": "player",
+      "message": "b5n2-kate launched",
+      "aircraft": {
+        "id": "player/shokaku-torpedo/5"
+      },
+      "tick": 46786
+    },
+    {
+      "kind": "aircraft-launch",
+      "position": [
+        84.0090994568233,
+        16.14887734017769,
+        42.823635235405966
+      ],
+      "shipId": "player",
+      "message": "b5n2-kate launched",
+      "aircraft": {
+        "id": "player/shokaku-torpedo/6"
+      },
+      "tick": 46834
+    },
+    {
+      "kind": "aircraft-release",
+      "position": [
+        -924.4987384130725,
+        26.68914942380135,
+        -5253.242583962009
+      ],
+      "shipId": "player",
+      "message": "Torpedo away",
+      "aircraft": {
+        "id": "player/shokaku-torpedo/3"
+      },
+      "tick": 52913
+    },
+    {
+      "kind": "aircraft-release",
+      "position": [
+        -946.6430223352895,
+        26.92633845653936,
+        -5193.419677527769
+      ],
+      "shipId": "player",
+      "message": "Torpedo away",
+      "aircraft": {
+        "id": "player/shokaku-torpedo/5"
+      },
+      "tick": 52927
+    },
+    {
+      "kind": "aircraft-release",
+      "position": [
+        -926.4604533927967,
+        26.555179097047745,
+        -5279.385787220824
+      ],
+      "shipId": "player",
+      "message": "Torpedo away",
+      "aircraft": {
+        "id": "player/shokaku-torpedo/2"
+      },
+      "tick": 52939
+    },
+    {
+      "kind": "aircraft-release",
+      "position": [
+        -929.6315283824196,
+        26.714237701897822,
+        -5366.951843794959
+      ],
+      "shipId": "player",
+      "message": "Torpedo away",
+      "aircraft": {
+        "id": "player/shokaku-torpedo/4"
+      },
+      "tick": 52964
+    },
+    {
+      "kind": "aircraft-release",
+      "position": [
+        -877.4297293497916,
+        26.32828745002143,
+        -5092.115904790581
+      ],
+      "shipId": "player",
+      "message": "Torpedo away",
+      "aircraft": {
+        "id": "player/shokaku-torpedo/1"
+      },
+      "tick": 52970
+    },
+    {
+      "kind": "torpedo-launch",
+      "position": [
+        -783.1585619853967,
+        -2,
+        -5227.913695820184
+      ],
+      "shipId": "player",
+      "message": "Air torpedo entered water",
+      "torpedo": {
+        "id": 1,
+        "velocity": [
+          21.267862061802393,
+          0,
+          3.811310504877688
+        ],
+        "diameterM": 0.45
+      },
+      "tick": 53035
+    },
+    {
+      "kind": "torpedo-launch",
+      "position": [
+        -806.3299828673383,
+        -2,
+        -5162.770443083139
+      ],
+      "shipId": "player",
+      "message": "Air torpedo entered water",
+      "torpedo": {
+        "id": 2,
+        "velocity": [
+          21.108941593607643,
+          0,
+          4.6109249876901615
+        ],
+        "diameterM": 0.45
+      },
+      "tick": 53049
+    },
+    {
+      "kind": "aircraft-release",
+      "position": [
+        -865.5722076523734,
+        26.67063541542143,
+        -5408.053704244535
+      ],
+      "shipId": "player",
+      "message": "Torpedo away",
+      "aircraft": {
+        "id": "player/shokaku-torpedo/6"
+      },
+      "tick": 53060
+    },
+    {
+      "kind": "torpedo-launch",
+      "position": [
+        -789.0724080030903,
+        -2,
+        -5237.728347981009
+      ],
+      "shipId": "player",
+      "message": "Air torpedo entered water",
+      "torpedo": {
+        "id": 3,
+        "velocity": [
+          20.677075355387107,
+          0,
+          6.269497523094444
+        ],
+        "diameterM": 0.45
+      },
+      "tick": 53061
+    },
+    {
+      "kind": "torpedo-launch",
+      "position": [
+        -793.2500254994309,
+        -2,
+        -5322.06640127987
+      ],
+      "shipId": "player",
+      "message": "Air torpedo entered water",
+      "torpedo": {
+        "id": 4,
+        "velocity": [
+          20.523697538660418,
+          0,
+          6.754693463513247
+        ],
+        "diameterM": 0.45
+      },
+      "tick": 53086
+    },
+    {
+      "kind": "torpedo-launch",
+      "position": [
+        -744.2993274245102,
+        -2,
+        -5041.655695393357
+      ],
+      "shipId": "player",
+      "message": "Air torpedo entered water",
+      "torpedo": {
+        "id": 5,
+        "velocity": [
+          20.204067903248827,
+          0,
+          7.657916466334364
+        ],
+        "diameterM": 0.45
+      },
+      "tick": 53091
+    },
+    {
+      "kind": "torpedo-launch",
+      "position": [
+        -736.8140953324332,
+        -2,
+        -5344.577851528381
+      ],
+      "shipId": "player",
+      "message": "Air torpedo entered water",
+      "torpedo": {
+        "id": 6,
+        "velocity": [
+          19.379661403924107,
+          0,
+          9.553887602107265
+        ],
+        "diameterM": 0.45
+      },
+      "tick": 53182
+    },
+    {
+      "kind": "bomb-release",
+      "position": [
+        67.36298194972541,
+        152.97368199653158,
+        -4620.511205799594
+      ],
+      "shipId": "player",
+      "message": "Bomb away",
+      "shell": {
+        "id": 7,
+        "caliberM": 0.3,
+        "velocity": [
+          7.5481295372710235,
+          -43.59963560480844,
+          -92.8575172766487
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "aircraft": {
+        "id": "player/shokaku-dive/1"
+      },
+      "tick": 53833
+    },
+    {
+      "kind": "bomb-release",
+      "position": [
+        78.76176158424617,
+        152.85776631154627,
+        -4677.479695391851
+      ],
+      "shipId": "player",
+      "message": "Bomb away",
+      "shell": {
+        "id": 8,
+        "caliberM": 0.3,
+        "velocity": [
+          5.754631714753211,
+          -43.761779447215964,
+          -92.88227575706846
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "aircraft": {
+        "id": "player/shokaku-dive/3"
+      },
+      "tick": 53893
+    },
+    {
+      "kind": "bomb-release",
+      "position": [
+        27.8458991562171,
+        153.21861700287238,
+        -4653.4756388078795
+      ],
+      "shipId": "player",
+      "message": "Bomb away",
+      "shell": {
+        "id": 9,
+        "caliberM": 0.3,
+        "velocity": [
+          9.008566670891852,
+          -43.87497280578434,
+          -92.60159702980768
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "aircraft": {
+        "id": "player/shokaku-dive/4"
+      },
+      "tick": 53893
+    },
+    {
+      "kind": "bomb-release",
+      "position": [
+        54.419842917452215,
+        153.8000295766861,
+        -4620.748962057386
+      ],
+      "shipId": "player",
+      "message": "Bomb away",
+      "shell": {
+        "id": 10,
+        "caliberM": 0.3,
+        "velocity": [
+          13.35176620300613,
+          -44.022986973044716,
+          -92.08432338038361
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "aircraft": {
+        "id": "player/shokaku-dive/6"
+      },
+      "tick": 53894
+    },
+    {
+      "kind": "bomb-release",
+      "position": [
+        69.05016862859222,
+        153.25040536310573,
+        -4698.670455205359
+      ],
+      "shipId": "player",
+      "message": "Bomb away",
+      "shell": {
+        "id": 11,
+        "caliberM": 0.3,
+        "velocity": [
+          9.572925724604142,
+          -43.82685057674914,
+          -92.59086336343822
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "aircraft": {
+        "id": "player/shokaku-dive/2"
+      },
+      "tick": 53909
+    },
+    {
+      "kind": "bomb-release",
+      "position": [
+        76.69258114874991,
+        153.74796440728608,
+        -4671.36738070023
+      ],
+      "shipId": "player",
+      "message": "Bomb away",
+      "shell": {
+        "id": 12,
+        "caliberM": 0.3,
+        "velocity": [
+          3.319106629999384,
+          -43.92711573421548,
+          -93.00807175793909
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "aircraft": {
+        "id": "player/shokaku-dive/5"
+      },
+      "tick": 53909
+    },
+    {
+      "kind": "contact",
+      "position": [
+        86.87989857962552,
+        6.446448956993192,
+        -4860.609420092214
+      ],
+      "message": "HE contact · Hull shell · bow to stern plating",
+      "shipId": "enemy-1",
+      "impact": {
+        "shellId": 7,
+        "shipId": "enemy-1",
+        "targetId": "hull",
+        "targetName": "Hull shell · bow to stern plating",
+        "kind": "armor",
+        "position": [
+          10.452757780283688,
+          6.28470017114835,
+          -71.28281806486552
+        ],
+        "impactSpeedMps": 115.91230347757889,
+        "penetrationBeforeMm": 0,
+        "penetrationAfterMm": 0,
+        "outcome": "detonation",
+        "localDamage": {
+          "regionId": "upper-hull-starboard-2",
+          "regionName": "Upper hull · starboard · forward",
+          "condition": 1,
+          "multiplier": 1
+        },
+        "fuze": "armed",
+        "fuzeRemainingSeconds": 0,
+        "fragmentBudgetMm": 50,
+        "thicknessMm": 20,
+        "material": "steel",
+        "resistanceMm": 20,
+        "hullDamage": 3672,
+        "breachAssignments": [
+          {
+            "compartmentId": "reserve-cell-0-1-2",
+            "areaM2": 0.09,
+            "position": [
+              10.452757780283688,
+              6.28470017114835,
+              -71.28281806486552
+            ]
+          }
+        ],
+        "compartmentId": "reserve-cell-0-1-2",
+        "breachAreaM2": 0.09,
+        "exitSpeedMps": 115.91230347757889
+      },
+      "shell": {
+        "id": 7,
+        "caliberM": 0.3,
+        "velocity": [
+          7.5481295372710235,
+          -68.96498621172788,
+          -92.8575172766487
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "surfaceImpact": {
+        "position": [
+          10.452757780283688,
+          6.28470017114835,
+          -71.28281806486552
+        ],
+        "normal": [
+          0,
+          0.9997569653269971,
+          0.022045640842425433
+        ],
+        "direction": [
+          -0.06856607786725726,
+          -0.5921548038812142,
+          0.8029018502944812
+        ],
+        "outcome": "penetration"
+      },
+      "normal": [
+        0.005817341967829358,
+        0.9996685987408571,
+        -0.025076906187168943
+      ],
+      "tick": 53988
+    },
+    {
+      "shell": {
+        "id": 7,
+        "caliberM": 0.3,
+        "velocity": [
+          7.5481295372710235,
+          -68.96498621172788,
+          -92.8575172766487
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "position": [
+        86.87989857962552,
+        6.446448956993192,
+        -4860.609420092214
+      ],
+      "kind": "burst",
+      "shipId": "enemy-1",
+      "message": "HE shell burst",
+      "detonation": true,
+      "blastRadiusM": 11.74460292350659,
+      "impact": {
+        "shellId": 7,
+        "shipId": "enemy-1",
+        "targetId": "he-burst",
+        "targetName": "HE shell burst",
+        "kind": "burst",
+        "position": [
+          10.452757780283685,
+          6.28470017114835,
+          -71.28281806486558
+        ],
+        "penetrationBeforeMm": 0,
+        "penetrationAfterMm": 0,
+        "outcome": "detonation",
+        "hullDamage": 0,
+        "terminal": true,
+        "fuze": "armed",
+        "fuzeRemainingSeconds": 0
+      },
+      "tick": 53988
+    },
+    {
+      "kind": "contact",
+      "position": [
+        92.8351264904571,
+        15.498999231067703,
+        -4904.629967527879
+      ],
+      "message": "HE contact · Navigation bridge wings plating",
+      "shipId": "enemy-1",
+      "impact": {
+        "shellId": 8,
+        "shipId": "enemy-1",
+        "targetId": "bridge-wings",
+        "targetName": "Navigation bridge wings plating",
+        "kind": "armor",
+        "position": [
+          4.6383793638487,
+          15.51,
+          -27.167505647575563
+        ],
+        "impactSpeedMps": 115.11159833403892,
+        "penetrationBeforeMm": 0,
+        "penetrationAfterMm": 0,
+        "outcome": "detonation",
+        "localDamage": {
+          "regionId": "upperworks-starboard-4",
+          "regionName": "Upperworks · starboard · amidships forward",
+          "condition": 1,
+          "multiplier": 1
+        },
+        "fuze": "armed",
+        "fuzeRemainingSeconds": 0,
+        "fragmentBudgetMm": 50,
+        "thicknessMm": 8,
+        "material": "steel",
+        "resistanceMm": 8,
+        "hullDamage": 1266,
+        "exitSpeedMps": 115.11159833403892
+      },
+      "shell": {
+        "id": 8,
+        "caliberM": 0.3,
+        "velocity": [
+          5.754631714753211,
+          -67.75283857546161,
+          -92.88227575706846
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "surfaceImpact": {
+        "position": [
+          4.6383793638487,
+          15.51,
+          -27.167505647575563
+        ],
+        "normal": [
+          0,
+          1,
+          0
+        ],
+        "direction": [
+          -0.05316353864702406,
+          -0.5887934753458685,
+          0.806533248879834
+        ],
+        "outcome": "penetration"
+      },
+      "normal": [
+        0.005385597870327796,
+        0.9999853151152847,
+        0.0006040607287967733
+      ],
+      "tick": 54039
+    },
+    {
+      "shell": {
+        "id": 8,
+        "caliberM": 0.3,
+        "velocity": [
+          5.754631714753211,
+          -67.75283857546161,
+          -92.88227575706846
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "position": [
+        92.8351264904571,
+        15.498999231067703,
+        -4904.629967527879
+      ],
+      "kind": "burst",
+      "shipId": "enemy-1",
+      "message": "HE burst · Starboard 20 mm AA 3",
+      "impact": {
+        "shellId": 8,
+        "shipId": "enemy-1",
+        "targetId": "starboard-aa-20-3",
+        "targetName": "Starboard 20 mm AA 3",
+        "kind": "mount",
+        "position": [
+          6.3,
+          16.5,
+          -25.4
+        ],
+        "penetrationBeforeMm": 50,
+        "penetrationAfterMm": 27.34471492315321,
+        "outcome": "damaged",
+        "damage": 49.07430060630511,
+        "hullDamage": 0,
+        "localDamage": {
+          "regionId": "mount-starboard-aa-20-3",
+          "regionName": "Starboard 20 mm AA 3",
+          "condition": 1,
+          "multiplier": 1
+        },
+        "fuze": "armed",
+        "fuzeRemainingSeconds": 0
+      },
+      "tick": 54039
+    },
+    {
+      "shell": {
+        "id": 8,
+        "caliberM": 0.3,
+        "velocity": [
+          5.754631714753211,
+          -67.75283857546161,
+          -92.88227575706846
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "position": [
+        92.8351264904571,
+        15.498999231067703,
+        -4904.629967527879
+      ],
+      "kind": "burst",
+      "shipId": "enemy-1",
+      "message": "HE shell burst",
+      "detonation": true,
+      "blastRadiusM": 11.74460292350659,
+      "impact": {
+        "shellId": 8,
+        "shipId": "enemy-1",
+        "targetId": "he-burst",
+        "targetName": "HE shell burst",
+        "kind": "burst",
+        "position": [
+          4.638379363848703,
+          15.510000000000002,
+          -27.16750564757583
+        ],
+        "penetrationBeforeMm": 0,
+        "penetrationAfterMm": 0,
+        "outcome": "detonation",
+        "hullDamage": 0,
+        "terminal": true,
+        "fuze": "armed",
+        "fuzeRemainingSeconds": 0
+      },
+      "tick": 54039
+    },
+    {
+      "kind": "contact",
+      "position": [
+        88.92522849852561,
+        6.270620354780855,
+        -4858.725349293534
+      ],
+      "message": "HE contact · Hull shell · bow to stern plating",
+      "shipId": "enemy-1",
+      "impact": {
+        "shellId": 10,
+        "shipId": "enemy-1",
+        "targetId": "hull",
+        "targetName": "Hull shell · bow to stern plating",
+        "kind": "armor",
+        "position": [
+          8.514585834230061,
+          6.323685506101512,
+          -73.05999537760334
+        ],
+        "impactSpeedMps": 116.06343592828705,
+        "penetrationBeforeMm": 0,
+        "penetrationAfterMm": 0,
+        "outcome": "detonation",
+        "localDamage": {
+          "regionId": "upper-hull-starboard-2",
+          "regionName": "Upper hull · starboard · forward",
+          "condition": 0.2763048126952599,
+          "multiplier": 0.5526096253905198
+        },
+        "fuze": "armed",
+        "fuzeRemainingSeconds": 0,
+        "fragmentBudgetMm": 50,
+        "thicknessMm": 20,
+        "material": "steel",
+        "resistanceMm": 20,
+        "hullDamage": 1117,
+        "breachAssignments": [
+          {
+            "compartmentId": "reserve-cell-0-1-2",
+            "areaM2": 0.09,
+            "position": [
+              8.514585834230061,
+              6.323685506101512,
+              -73.05999537760334
+            ]
+          }
+        ],
+        "compartmentId": "reserve-cell-0-1-2",
+        "breachAreaM2": 0.09,
+        "exitSpeedMps": 116.06343592828705
+      },
+      "shell": {
+        "id": 10,
+        "caliberM": 0.3,
+        "velocity": [
+          13.35176620300613,
+          -69.37527575669009,
+          -92.08432338038361
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "surfaceImpact": {
+        "position": [
+          8.514585834230061,
+          6.323685506101512,
+          -73.05999537760334
+        ],
+        "normal": [
+          0,
+          0.9997711948415395,
+          0.021390604599232282
+        ],
+        "direction": [
+          -0.1180077257976024,
+          -0.5982377942520205,
+          0.7925816791855304
+        ],
+        "outcome": "penetration"
+      },
+      "normal": [
+        0.004959686697852663,
+        0.9997870982293997,
+        -0.02002897206289379
+      ],
+      "tick": 54049
+    },
+    {
+      "shell": {
+        "id": 10,
+        "caliberM": 0.3,
+        "velocity": [
+          13.35176620300613,
+          -69.37527575669009,
+          -92.08432338038361
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "position": [
+        88.92522849852561,
+        6.270620354780855,
+        -4858.725349293534
+      ],
+      "kind": "burst",
+      "shipId": "enemy-1",
+      "message": "HE shell burst",
+      "detonation": true,
+      "blastRadiusM": 11.74460292350659,
+      "impact": {
+        "shellId": 10,
+        "shipId": "enemy-1",
+        "targetId": "he-burst",
+        "targetName": "HE shell burst",
+        "kind": "burst",
+        "position": [
+          8.514585834230063,
+          6.323685506101512,
+          -73.05999537760317
+        ],
+        "penetrationBeforeMm": 0,
+        "penetrationAfterMm": 0,
+        "outcome": "detonation",
+        "hullDamage": 0,
+        "terminal": true,
+        "fuze": "armed",
+        "fuzeRemainingSeconds": 0
+      },
+      "tick": 54049
+    },
+    {
+      "kind": "contact",
+      "position": [
+        91.72994101191581,
+        20.886185029792397,
+        -4918.03282845154
+      ],
+      "message": "HE contact · Admiral bridge and signal wings plating",
+      "shipId": "enemy-1",
+      "impact": {
+        "shellId": 11,
+        "shipId": "enemy-1",
+        "targetId": "signal-platform",
+        "targetName": "Admiral bridge and signal wings plating",
+        "kind": "armor",
+        "position": [
+          5.783655301963814,
+          20.869999999999997,
+          -13.726976447146871
+        ],
+        "impactSpeedMps": 114.72952680651358,
+        "penetrationBeforeMm": 0,
+        "penetrationAfterMm": 0,
+        "outcome": "detonation",
+        "localDamage": {
+          "regionId": "upperworks-starboard-4",
+          "regionName": "Upperworks · starboard · amidships forward",
+          "condition": 0.002321455373865089,
+          "multiplier": 0.004642910747730178
+        },
+        "fuze": "armed",
+        "fuzeRemainingSeconds": 0,
+        "fragmentBudgetMm": 50,
+        "thicknessMm": 8,
+        "material": "steel",
+        "resistanceMm": 8,
+        "hullDamage": 3,
+        "exitSpeedMps": 114.72952680651358
+      },
+      "shell": {
+        "id": 11,
+        "caliberM": 0.3,
+        "velocity": [
+          9.572925724604142,
+          -67.0682893469846,
+          -92.59086336343822
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "surfaceImpact": {
+        "position": [
+          5.783655301963814,
+          20.869999999999997,
+          -13.726976447146871
+        ],
+        "normal": [
+          0,
+          1,
+          0
+        ],
+        "direction": [
+          -0.08628715372405427,
+          -0.5853834231650336,
+          0.8061518312239878
+        ],
+        "outcome": "penetration"
+      },
+      "normal": [
+        0.004863576443242962,
+        0.9999870312091212,
+        0.0015109724512863084
+      ],
+      "tick": 54051
+    },
+    {
+      "shell": {
+        "id": 11,
+        "caliberM": 0.3,
+        "velocity": [
+          9.572925724604142,
+          -67.0682893469846,
+          -92.59086336343822
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "position": [
+        91.72994101191581,
+        20.886185029792397,
+        -4918.03282845154
+      ],
+      "kind": "burst",
+      "shipId": "enemy-1",
+      "message": "HE burst · forward starboard aa director",
+      "impact": {
+        "shellId": 11,
+        "shipId": "enemy-1",
+        "targetId": "equipment-forward-starboard-aa-director",
+        "targetName": "forward starboard aa director",
+        "kind": "module",
+        "position": [
+          5.783655301963815,
+          19.45,
+          -13.726976447147287
+        ],
+        "penetrationBeforeMm": 50,
+        "penetrationAfterMm": 24,
+        "outcome": "damaged",
+        "damage": 48.73693813296714,
+        "hullDamage": 0,
+        "localDamage": {
+          "regionId": "upperworks-starboard-4",
+          "regionName": "Upperworks · starboard · amidships forward",
+          "condition": 0,
+          "multiplier": 0
+        },
+        "throughWreckage": true,
+        "fuze": "armed",
+        "fuzeRemainingSeconds": 0
+      },
+      "tick": 54051
+    },
+    {
+      "shell": {
+        "id": 11,
+        "caliberM": 0.3,
+        "velocity": [
+          9.572925724604142,
+          -67.0682893469846,
+          -92.59086336343822
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "position": [
+        91.72994101191581,
+        20.886185029792397,
+        -4918.03282845154
+      ],
+      "kind": "burst",
+      "shipId": "enemy-1",
+      "message": "HE burst · Starboard 20 mm AA 4",
+      "impact": {
+        "shellId": 11,
+        "shipId": "enemy-1",
+        "targetId": "starboard-aa-20-4",
+        "targetName": "Starboard 20 mm AA 4",
+        "kind": "mount",
+        "position": [
+          5.2,
+          21.82,
+          -11.3
+        ],
+        "penetrationBeforeMm": 50,
+        "penetrationAfterMm": 26.40826535617457,
+        "outcome": "damaged",
+        "damage": 47.130398001912184,
+        "hullDamage": 397,
+        "localDamage": {
+          "regionId": "mount-starboard-aa-20-4",
+          "regionName": "Starboard 20 mm AA 4",
+          "condition": 1,
+          "multiplier": 1
+        },
+        "throughWreckage": true,
+        "fuze": "armed",
+        "fuzeRemainingSeconds": 0
+      },
+      "tick": 54051
+    },
+    {
+      "shell": {
+        "id": 11,
+        "caliberM": 0.3,
+        "velocity": [
+          9.572925724604142,
+          -67.0682893469846,
+          -92.59086336343822
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "position": [
+        91.72994101191581,
+        20.886185029792397,
+        -4918.03282845154
+      ],
+      "kind": "burst",
+      "shipId": "enemy-1",
+      "message": "HE burst · Starboard 37 mm AA 2",
+      "impact": {
+        "shellId": 11,
+        "shipId": "enemy-1",
+        "targetId": "starboard-aa-37-2",
+        "targetName": "Starboard 37 mm AA 2",
+        "kind": "mount",
+        "position": [
+          8.1,
+          13.55,
+          -16.5
+        ],
+        "penetrationBeforeMm": 50,
+        "penetrationAfterMm": 21.04179441732467,
+        "outcome": "damaged",
+        "damage": 14.822176798246788,
+        "hullDamage": 0,
+        "localDamage": {
+          "regionId": "mount-starboard-aa-37-2",
+          "regionName": "Starboard 37 mm AA 2",
+          "condition": 1,
+          "multiplier": 1
+        },
+        "throughWreckage": true,
+        "fuze": "armed",
+        "fuzeRemainingSeconds": 0
+      },
+      "tick": 54051
+    },
+    {
+      "shell": {
+        "id": 11,
+        "caliberM": 0.3,
+        "velocity": [
+          9.572925724604142,
+          -67.0682893469846,
+          -92.59086336343822
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "position": [
+        91.72994101191581,
+        20.886185029792397,
+        -4918.03282845154
+      ],
+      "kind": "burst",
+      "shipId": "enemy-1",
+      "message": "HE burst · funnel starboard aa director",
+      "impact": {
+        "shellId": 11,
+        "shipId": "enemy-1",
+        "targetId": "equipment-funnel-starboard-aa-director",
+        "targetName": "funnel starboard aa director",
+        "kind": "module",
+        "position": [
+          5.783655301963815,
+          20.869999999999994,
+          -2.45
+        ],
+        "penetrationBeforeMm": 50,
+        "penetrationAfterMm": 16.761388641933873,
+        "outcome": "damaged",
+        "damage": 1.541639147862904,
+        "hullDamage": 0,
+        "localDamage": {
+          "regionId": "upperworks-starboard-4",
+          "regionName": "Upperworks · starboard · amidships forward",
+          "condition": 0,
+          "multiplier": 0
+        },
+        "throughWreckage": true,
+        "fuze": "armed",
+        "fuzeRemainingSeconds": 0
+      },
+      "tick": 54051
+    },
+    {
+      "shell": {
+        "id": 11,
+        "caliberM": 0.3,
+        "velocity": [
+          9.572925724604142,
+          -67.0682893469846,
+          -92.59086336343822
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "position": [
+        91.72994101191581,
+        20.886185029792397,
+        -4918.03282845154
+      ],
+      "kind": "burst",
+      "shipId": "enemy-1",
+      "message": "HE shell burst",
+      "detonation": true,
+      "blastRadiusM": 11.74460292350659,
+      "impact": {
+        "shellId": 11,
+        "shipId": "enemy-1",
+        "targetId": "he-burst",
+        "targetName": "HE shell burst",
+        "kind": "burst",
+        "position": [
+          5.783655301963815,
+          20.869999999999994,
+          -13.726976447147287
+        ],
+        "penetrationBeforeMm": 0,
+        "penetrationAfterMm": 0,
+        "outcome": "detonation",
+        "hullDamage": 0,
+        "terminal": true,
+        "fuze": "armed",
+        "fuzeRemainingSeconds": 0
+      },
+      "tick": 54051
+    },
+    {
+      "kind": "contact",
+      "position": [
+        85.21875461055188,
+        7.539958642593093,
+        -4910.287982403174
+      ],
+      "message": "HE contact · Starboard 105 mm AA 1",
+      "shipId": "enemy-1",
+      "impact": {
+        "shellId": 12,
+        "shipId": "enemy-1",
+        "targetId": "starboard-aa-105-1",
+        "targetName": "Starboard 105 mm AA 1",
+        "kind": "mount",
+        "position": [
+          12.246996959976366,
+          7.502484689468608,
+          -21.47
+        ],
+        "impactSpeedMps": 115.93139112525574,
+        "penetrationBeforeMm": 0,
+        "penetrationAfterMm": 0,
+        "outcome": "detonation",
+        "localDamage": {
+          "regionId": "mount-starboard-aa-105-1",
+          "regionName": "Starboard 105 mm AA 1",
+          "condition": 1,
+          "multiplier": 1
+        },
+        "fuze": "armed",
+        "fuzeRemainingSeconds": 0,
+        "fragmentBudgetMm": 50,
+        "exitSpeedMps": 115.93139112525574
+      },
+      "shell": {
+        "id": 12,
+        "caliberM": 0.3,
+        "velocity": [
+          3.319106629999384,
+          -69.12719846258614,
+          -93.00807175793909
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "surfaceImpact": {
+        "position": [
+          -1.4699999999999989,
+          1.7124846894686083,
+          -0.0969969599763659
+        ],
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "direction": [
+          0.8008484577097645,
+          -0.5980568251636235,
+          0.031141317555604023
+        ],
+        "mountId": "starboard-aa-105-1",
+        "outcome": "penetration"
+      },
+      "normal": [
+        1.836961340627019e-16,
+        -0.00237725768785237,
+        0.9999971743189505
+      ],
+      "tick": 54063
+    },
+    {
+      "shell": {
+        "id": 12,
+        "caliberM": 0.3,
+        "velocity": [
+          3.319106629999384,
+          -69.12719846258614,
+          -93.00807175793909
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "position": [
+        85.21875461055188,
+        7.539958642593093,
+        -4910.287982403174
+      ],
+      "kind": "burst",
+      "shipId": "enemy-1",
+      "message": "HE burst · Starboard 105 mm AA 1",
+      "impact": {
+        "shellId": 12,
+        "shipId": "enemy-1",
+        "targetId": "starboard-aa-105-1",
+        "targetName": "Starboard 105 mm AA 1",
+        "kind": "mount",
+        "position": [
+          12.15,
+          7.01,
+          -20
+        ],
+        "penetrationBeforeMm": 50,
+        "penetrationAfterMm": 45,
+        "outcome": "damaged",
+        "damage": 90.20162784339335,
+        "hullDamage": 405,
+        "localDamage": {
+          "regionId": "mount-starboard-aa-105-1",
+          "regionName": "Starboard 105 mm AA 1",
+          "condition": 1,
+          "multiplier": 1
+        },
+        "fuze": "armed",
+        "fuzeRemainingSeconds": 0
+      },
+      "tick": 54063
+    },
+    {
+      "shell": {
+        "id": 12,
+        "caliberM": 0.3,
+        "velocity": [
+          3.319106629999384,
+          -69.12719846258614,
+          -93.00807175793909
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "position": [
+        85.21875461055188,
+        7.539958642593093,
+        -4910.287982403174
+      ],
+      "kind": "burst",
+      "shipId": "enemy-1",
+      "message": "HE burst · Starboard Secondary 1",
+      "impact": {
+        "shellId": 12,
+        "shipId": "enemy-1",
+        "targetId": "starboard-secondary-1",
+        "targetName": "Starboard Secondary 1",
+        "kind": "mount",
+        "position": [
+          9.65,
+          7.45,
+          -27.2
+        ],
+        "penetrationBeforeMm": 50,
+        "penetrationAfterMm": 0.5711087867705515,
+        "outcome": "damaged",
+        "damage": 0.612568538767392,
+        "hullDamage": 0,
+        "localDamage": {
+          "regionId": "mount-starboard-secondary-1",
+          "regionName": "Starboard Secondary 1",
+          "condition": 1,
+          "multiplier": 1
+        },
+        "fuze": "armed",
+        "fuzeRemainingSeconds": 0
+      },
+      "tick": 54063
+    },
+    {
+      "shell": {
+        "id": 12,
+        "caliberM": 0.3,
+        "velocity": [
+          3.319106629999384,
+          -69.12719846258614,
+          -93.00807175793909
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "position": [
+        85.21875461055188,
+        7.539958642593093,
+        -4910.287982403174
+      ],
+      "kind": "burst",
+      "shipId": "enemy-1",
+      "message": "HE burst · Starboard 37 mm AA 2",
+      "impact": {
+        "shellId": 12,
+        "shipId": "enemy-1",
+        "targetId": "starboard-aa-37-2",
+        "targetName": "Starboard 37 mm AA 2",
+        "kind": "mount",
+        "position": [
+          8.1,
+          13.55,
+          -16.5
+        ],
+        "penetrationBeforeMm": 50,
+        "penetrationAfterMm": 35.89364498504659,
+        "outcome": "damaged",
+        "damage": 20.376089059771257,
+        "hullDamage": 0,
+        "localDamage": {
+          "regionId": "mount-starboard-aa-37-2",
+          "regionName": "Starboard 37 mm AA 2",
+          "condition": 1,
+          "multiplier": 1
+        },
+        "fuze": "armed",
+        "fuzeRemainingSeconds": 0
+      },
+      "tick": 54063
+    },
+    {
+      "shell": {
+        "id": 12,
+        "caliberM": 0.3,
+        "velocity": [
+          3.319106629999384,
+          -69.12719846258614,
+          -93.00807175793909
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "position": [
+        85.21875461055188,
+        7.539958642593093,
+        -4910.287982403174
+      ],
+      "kind": "burst",
+      "shipId": "enemy-1",
+      "message": "HE burst · forward starboard aa director",
+      "impact": {
+        "shellId": 12,
+        "shipId": "enemy-1",
+        "targetId": "equipment-forward-starboard-aa-director",
+        "targetName": "forward starboard aa director",
+        "kind": "module",
+        "position": [
+          8.3,
+          16.55,
+          -18.05
+        ],
+        "penetrationBeforeMm": 50,
+        "penetrationAfterMm": 39.226779248007766,
+        "outcome": "damaged",
+        "damage": 10.014094321883686,
+        "hullDamage": 0,
+        "localDamage": {
+          "regionId": "upperworks-starboard-4",
+          "regionName": "Upperworks · starboard · amidships forward",
+          "condition": 0,
+          "multiplier": 0
+        },
+        "fuze": "armed",
+        "fuzeRemainingSeconds": 0
+      },
+      "tick": 54063
+    },
+    {
+      "shell": {
+        "id": 12,
+        "caliberM": 0.3,
+        "velocity": [
+          3.319106629999384,
+          -69.12719846258614,
+          -93.00807175793909
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "position": [
+        85.21875461055188,
+        7.539958642593093,
+        -4910.287982403174
+      ],
+      "kind": "burst",
+      "shipId": "enemy-1",
+      "message": "HE burst · Starboard 20 mm AA 2",
+      "impact": {
+        "shellId": 12,
+        "shipId": "enemy-1",
+        "targetId": "starboard-aa-20-2",
+        "targetName": "Starboard 20 mm AA 2",
+        "kind": "mount",
+        "position": [
+          7.2,
+          13.56,
+          -29.1
+        ],
+        "penetrationBeforeMm": 50,
+        "penetrationAfterMm": 41.37203215568085,
+        "outcome": "damaged",
+        "damage": 6.287725180687411,
+        "hullDamage": 0,
+        "localDamage": {
+          "regionId": "mount-starboard-aa-20-2",
+          "regionName": "Starboard 20 mm AA 2",
+          "condition": 1,
+          "multiplier": 1
+        },
+        "fuze": "armed",
+        "fuzeRemainingSeconds": 0
+      },
+      "tick": 54063
+    },
+    {
+      "shell": {
+        "id": 12,
+        "caliberM": 0.3,
+        "velocity": [
+          3.319106629999384,
+          -69.12719846258614,
+          -93.00807175793909
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "position": [
+        85.21875461055188,
+        7.539958642593093,
+        -4910.287982403174
+      ],
+      "kind": "burst",
+      "shipId": "enemy-1",
+      "message": "HE burst · Starboard 20 mm AA 3",
+      "impact": {
+        "shellId": 12,
+        "shipId": "enemy-1",
+        "targetId": "starboard-aa-20-3",
+        "targetName": "Starboard 20 mm AA 3",
+        "kind": "mount",
+        "position": [
+          6.3,
+          16.5,
+          -25.4
+        ],
+        "penetrationBeforeMm": 50,
+        "penetrationAfterMm": 10.11243957805883,
+        "outcome": "damaged",
+        "damage": 0.5283200265041552,
+        "hullDamage": 0,
+        "localDamage": {
+          "regionId": "mount-starboard-aa-20-3",
+          "regionName": "Starboard 20 mm AA 3",
+          "condition": 1,
+          "multiplier": 1
+        },
+        "fuze": "armed",
+        "fuzeRemainingSeconds": 0
+      },
+      "tick": 54063
+    },
+    {
+      "shell": {
+        "id": 12,
+        "caliberM": 0.3,
+        "velocity": [
+          3.319106629999384,
+          -69.12719846258614,
+          -93.00807175793909
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "position": [
+        85.21875461055188,
+        7.539958642593093,
+        -4910.287982403174
+      ],
+      "kind": "burst",
+      "shipId": "enemy-1",
+      "message": "HE shell burst",
+      "detonation": true,
+      "blastRadiusM": 11.74460292350659,
+      "impact": {
+        "shellId": 12,
+        "shipId": "enemy-1",
+        "targetId": "he-burst",
+        "targetName": "HE shell burst",
+        "kind": "burst",
+        "position": [
+          12.246996959976368,
+          7.502484689468608,
+          -21.469999999999935
+        ],
+        "penetrationBeforeMm": 0,
+        "penetrationAfterMm": 0,
+        "outcome": "detonation",
+        "hullDamage": 0,
+        "terminal": true,
+        "fuze": "armed",
+        "fuzeRemainingSeconds": 0
+      },
+      "tick": 54063
+    }
+  ],
+  "state": {
+    "label": "Japanese-strike-released",
+    "tick": 55382,
+    "hash": "16bd50f50408f1a02ed6a0635aaa585a7ae182000b30de6bb7b4ffe5146ef890",
+    "aircraft": {
+      "models": 18,
+      "instances": 12,
+      "batches": 26,
+      "culled": 0,
+      "silhouettes": 12,
+      "contacts": 12,
+      "payloads": 0,
+      "bombs": 0,
+      "tracers": 0
+    },
+    "fleet": [
+      {
+        "id": "player",
+        "definitionId": "shokaku",
+        "team": "friendly",
+        "controller": "player",
+        "motion": {
+          "id": "player",
+          "tick": 55382,
+          "x": 99.86333756125833,
+          "y": -0.033617913277190124,
+          "z": 69.92506175125972,
+          "roll": 0.005659997587742559,
+          "pitch": 0.0016395211867624763,
+          "heading": 0,
+          "speed": 0,
+          "swaySpeed": 0,
+          "rudder": 0,
+          "yawRate": 0,
+          "distance": 0,
+          "verticalSpeed": 0.05798537722196767,
+          "waveHeave": -0.039742099344960244,
+          "driftX": 0.11058552597900556,
+          "driftZ": 0.07743281890738289
+        },
+        "ammo": 58800,
+        "integrity": 44800
+      },
+      {
+        "id": "friendly-1",
+        "definitionId": "enterprise-cv6",
+        "team": "friendly",
+        "controller": "bot",
+        "aiLevel": "static",
+        "motion": {
+          "id": "friendly-1",
+          "tick": 55382,
+          "x": 749.8633375613033,
+          "y": -0.04157062007651905,
+          "z": 69.92506175125972,
+          "roll": 0.004426859344472275,
+          "pitch": -0.0037252456202242355,
+          "heading": 0,
+          "speed": 0,
+          "swaySpeed": 0,
+          "rudder": 0,
+          "yawRate": 0,
+          "distance": 0,
+          "verticalSpeed": -0.20415873434081536,
+          "waveHeave": -0.03937949231099613,
+          "driftX": 0.11058552597900556,
+          "driftZ": 0.07743281890738289
+        },
+        "ammo": 69680,
+        "integrity": 41300
+      },
+      {
+        "id": "enemy-1",
+        "definitionId": "bismarck",
+        "team": "enemy",
+        "controller": "bot",
+        "aiLevel": "static",
+        "motion": {
+          "id": "enemy-1",
+          "tick": 55382,
+          "x": 99.86333756125833,
+          "y": 0.05629325110661174,
+          "z": -4930.074938240607,
+          "roll": 0.003131487990115504,
+          "pitch": -0.0032412559118312903,
+          "heading": 3.141592653589793,
+          "speed": 0,
+          "swaySpeed": 0,
+          "rudder": 0,
+          "yawRate": 0,
+          "distance": 0,
+          "verticalSpeed": 0.12487194531747015,
+          "waveHeave": 0.04784148996738972,
+          "driftX": 0.11058552597900556,
+          "driftZ": 0.07743281890738289
+        },
+        "ammo": 41560,
+        "integrity": 43890
+      }
+    ],
+    "phases": {
+      "ready": 60,
+      "returning": 12
+    }
+  },
+  "ui": "Friendly 2/2\n0 damaged · 0 lost\nEnemy 1/1\n1 damaged · 0 lost\n55 FPS\nDamage\n6,860\nFrags\n0\nType 99 No. 25 250 kg bomb\nBismarck #1\n+1,922\nType 99 No. 25 250 kg bomb\nBismarck #1\n+4,938\nIJN SHŌKAKU\n44,800 / 44,800 HP\nIJN Shōkaku · You\n100%\nUSS Enterprise (CV-6)\n100%\nBismarck\n86%\nAir operations\nReturn to ship M\nFit battlefield\nCenter carrier\n−\n16.2 km across\n+\nTilt\nReset angle\nShift-drag to orbit\nDive 1 · 6\nReturning\nTorpedo 1 · 6\nReturning\nLoiterL\nStrikeA\nReturnR\nAircraftV\nRecall allX\nFighter 1\n1\n6/6\nReady\nFighter 2\n2\n6/6\nReady\nFighter 3\n3\n6/6\nReady\nDive 1\n4\n6/6\nReturning\nDive 2\n5\n6/6\nReady\nDive 3\n6\n6/6\nReady\nDive 4\n7\n6/6\nReady\nDive 5\n8\n3/3\nReady\nTorpedo 1\n9\n6/6\nReturning\nTorpedo 2\n0\n6/6\nReady\nTorpedo 3\n6/6\nReady\nTorpedo 4\n6/6\nReady\nTorpedo 5\n3/3\nReady\nAir wing 72/72\nHide\n\nFlights 2/4 · Deck 0/12 · Hangar 60 · Recovering 12\n\nFIGHTERS\n18 ready · 0 airborne · 18 armed\n1\nFighter 1\nReady\n6 armed\n6/6\n2\nFighter 2\nReady\n6 armed\n6/6\n3\nFighter 3\nReady\n6 armed\n6/6\nDIVE BOMBERS\n21 ready · 6 airborne · 21 armed\n4\nDive 1\nReturning\nStrike Bismarck · 14:58\n6/6\n5\nDive 2\nReady\n6 armed\n6/6\n6\nDive 3\nReady\n6 armed\n6/6\n7\nDive 4\nReady\n6 armed\n6/6\n8\nDive 5\nReady\n3 armed\n3/3\nTORPEDO BOMBERS\n21 ready · 6 airborne · 21 armed\n9\nTorpedo 1\nReturning\nStrike Bismarck · 15:03\n6/6\n0\nTorpedo 2\nReady\n6 armed\n6/6\nTorpedo 3\nReady\n6 armed\n6/6\nTorpedo 4\nReady\n6 armed\n6/6\nTorpedo 5\nReady\n3 armed\n3/3\nBar · condition\nUnderline · payload or ammunition"
+}

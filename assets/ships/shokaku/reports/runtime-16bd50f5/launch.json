@@ -1,0 +1,327 @@
+{
+  "rows": [
+    {
+      "label": "mixed-fleet-loaded",
+      "tick": 3136,
+      "hash": "16bd50f50408f1a02ed6a0635aaa585a7ae182000b30de6bb7b4ffe5146ef890",
+      "aircraft": {
+        "models": 18,
+        "instances": 12,
+        "batches": 34,
+        "culled": 6,
+        "silhouettes": 12,
+        "contacts": 12,
+        "payloads": 12,
+        "bombs": 6,
+        "tracers": 11
+      },
+      "fleet": [
+        {
+          "id": "player",
+          "definitionId": "shokaku",
+          "team": "friendly",
+          "controller": "player",
+          "motion": {
+            "id": "player",
+            "tick": 3136,
+            "x": 3.731176095184443,
+            "y": 0.0006856050744804623,
+            "z": 2.6125976282360157,
+            "roll": -0.006797620606954353,
+            "pitch": 0.0032389204122359725,
+            "heading": 0,
+            "speed": 0,
+            "swaySpeed": 0,
+            "rudder": 0,
+            "yawRate": 0,
+            "distance": 0,
+            "verticalSpeed": -0.05262298599555717,
+            "waveHeave": -0.0020254952631443305,
+            "driftX": 0.10248073083985887,
+            "driftZ": 0.0717577802553093
+          },
+          "ammo": 58800,
+          "integrity": 32749
+        },
+        {
+          "id": "friendly-1",
+          "definitionId": "enterprise-cv6",
+          "team": "friendly",
+          "controller": "idle",
+          "aiLevel": "normal",
+          "targetId": "enemy-1",
+          "motion": {
+            "id": "friendly-1",
+            "tick": 3136,
+            "x": 706.3316665521822,
+            "y": 0.16440538825534062,
+            "z": -286.3538626848619,
+            "roll": -0.0026004518477683843,
+            "pitch": 0.0010927326420470311,
+            "heading": 0.3969381194575421,
+            "speed": 0,
+            "swaySpeed": -0.20600373198720667,
+            "rudder": 1,
+            "yawRate": 0.014208567130888866,
+            "distance": 295.50482730190606,
+            "verticalSpeed": -0.060960925493532825,
+            "waveHeave": 0.14523471584739298,
+            "driftX": 0.10248073083985887,
+            "driftZ": 0.0717577802553093
+          },
+          "ammo": 69625,
+          "integrity": 41300
+        },
+        {
+          "id": "enemy-1",
+          "definitionId": "bismarck",
+          "team": "enemy",
+          "controller": "idle",
+          "aiLevel": "normal",
+          "targetId": "player",
+          "motion": {
+            "id": "enemy-1",
+            "tick": 3136,
+            "x": -38.86787849806711,
+            "y": -0.20156373507585235,
+            "z": -4713.634976417817,
+            "roll": -0.012214429831903637,
+            "pitch": 0.0009843838695880363,
+            "heading": 3.4760364197034512,
+            "speed": 0,
+            "swaySpeed": -0.08649407819171281,
+            "rudder": 1,
+            "yawRate": 0.008413091021431422,
+            "distance": 288.26181413021357,
+            "verticalSpeed": 0.028603405829146222,
+            "waveHeave": -0.21139815283159522,
+            "driftX": 0.10248073083985887,
+            "driftZ": 0.0717577802553093
+          },
+          "ammo": 41500,
+          "integrity": 47565
+        }
+      ],
+      "phases": {
+        "ready": 72
+      }
+    },
+    {
+      "label": "deck-launch",
+      "tick": 3503,
+      "hash": "16bd50f50408f1a02ed6a0635aaa585a7ae182000b30de6bb7b4ffe5146ef890",
+      "aircraft": {
+        "models": 18,
+        "instances": 20,
+        "batches": 60,
+        "culled": 6,
+        "silhouettes": 12,
+        "contacts": 12,
+        "payloads": 14,
+        "bombs": 8,
+        "tracers": 5
+      },
+      "fleet": [
+        {
+          "id": "player",
+          "definitionId": "shokaku",
+          "team": "friendly",
+          "controller": "player",
+          "motion": {
+            "id": "player",
+            "tick": 3503,
+            "x": 4.364897936393449,
+            "y": -0.0882600561780802,
+            "z": 3.056334438578692,
+            "roll": -0.010291553971607807,
+            "pitch": 0.000045928447084822666,
+            "heading": 0,
+            "speed": 0,
+            "swaySpeed": 0,
+            "rudder": 0,
+            "yawRate": 0,
+            "distance": 0,
+            "verticalSpeed": -0.05448571849843348,
+            "waveHeave": -0.08380300336040615,
+            "driftX": 0.10461626849176131,
+            "driftZ": 0.073253099817302
+          },
+          "ammo": 58800,
+          "integrity": 31769
+        },
+        {
+          "id": "friendly-1",
+          "definitionId": "enterprise-cv6",
+          "team": "friendly",
+          "controller": "idle",
+          "aiLevel": "normal",
+          "targetId": "enemy-1",
+          "motion": {
+            "id": "friendly-1",
+            "tick": 3503,
+            "x": 706.3754426748129,
+            "y": 0.22872543736214654,
+            "z": -286.16857797822877,
+            "roll": -0.01218888516285114,
+            "pitch": 0.002419384094259836,
+            "heading": 0.42274149760695323,
+            "speed": 0,
+            "swaySpeed": -0.04464434369798302,
+            "rudder": 0,
+            "yawRate": 0.0005681026561947695,
+            "distance": 296.1489211272859,
+            "verticalSpeed": -0.021461187570520623,
+            "waveHeave": 0.2069112611944818,
+            "driftX": 0.10461626849176131,
+            "driftZ": 0.073253099817302
+          },
+          "ammo": 69625,
+          "integrity": 41300
+        },
+        {
+          "id": "enemy-1",
+          "definitionId": "bismarck",
+          "team": "enemy",
+          "controller": "idle",
+          "aiLevel": "normal",
+          "targetId": "player",
+          "motion": {
+            "id": "enemy-1",
+            "tick": 3503,
+            "x": -37.97967380397066,
+            "y": -0.1031035376607148,
+            "z": -4713.09974865349,
+            "roll": 0.007992942997457994,
+            "pitch": 0.0030060886487552484,
+            "heading": 3.4945845148992873,
+            "speed": 0,
+            "swaySpeed": -0.018744666989192492,
+            "rudder": 0,
+            "yawRate": 0.0006578211695069829,
+            "distance": 288.53224758866475,
+            "verticalSpeed": 0.03064994301093249,
+            "waveHeave": -0.10485594726146907,
+            "driftX": 0.10461626849176131,
+            "driftZ": 0.073253099817302
+          },
+          "ammo": 41486,
+          "integrity": 47320
+        }
+      ],
+      "phases": {
+        "outbound": 1,
+        "takeoff": 7,
+        "ready": 54,
+        "queued": 10
+      }
+    },
+    {
+      "label": "three-roles-airborne",
+      "tick": 5550,
+      "hash": "16bd50f50408f1a02ed6a0635aaa585a7ae182000b30de6bb7b4ffe5146ef890",
+      "aircraft": {
+        "models": 18,
+        "instances": 18,
+        "batches": 42,
+        "culled": 18,
+        "silhouettes": 18,
+        "contacts": 18,
+        "payloads": 18,
+        "bombs": 6,
+        "tracers": 0
+      },
+      "fleet": [
+        {
+          "id": "player",
+          "definitionId": "shokaku",
+          "team": "friendly",
+          "controller": "player",
+          "motion": {
+            "id": "player",
+            "tick": 5550,
+            "x": 8.040045865244243,
+            "y": -0.07133554554572784,
+            "z": 5.629700722395807,
+            "roll": 0.004139803268391233,
+            "pitch": -0.0042591922656830825,
+            "heading": 0,
+            "speed": 0,
+            "swaySpeed": 0,
+            "rudder": 0,
+            "yawRate": 0,
+            "distance": 0,
+            "verticalSpeed": 0.018166268357093784,
+            "waveHeave": -0.06810684449139931,
+            "driftX": 0.10950138363036098,
+            "driftZ": 0.07667369426237214
+          },
+          "ammo": 58800,
+          "integrity": 31769
+        },
+        {
+          "id": "friendly-1",
+          "definitionId": "enterprise-cv6",
+          "team": "friendly",
+          "controller": "idle",
+          "aiLevel": "normal",
+          "targetId": "enemy-1",
+          "motion": {
+            "id": "friendly-1",
+            "tick": 5550,
+            "x": 709.8881583980447,
+            "y": -0.1655268301115414,
+            "z": -283.6684268546884,
+            "roll": 0.010408351277757487,
+            "pitch": 0.0036555450167542187,
+            "heading": 0.42381616536913924,
+            "speed": 0,
+            "swaySpeed": -0.000008822596643515768,
+            "rudder": 0,
+            "yawRate": 9.040119037797998e-12,
+            "distance": 296.3270915073225,
+            "verticalSpeed": 0.11679178499103937,
+            "waveHeave": -0.15669566871804075,
+            "driftX": 0.10950138363036098,
+            "driftZ": 0.07667369426237214
+          },
+          "ammo": 69625,
+          "integrity": 41300
+        },
+        {
+          "id": "enemy-1",
+          "definitionId": "bismarck",
+          "team": "enemy",
+          "controller": "idle",
+          "aiLevel": "normal",
+          "targetId": "player",
+          "motion": {
+            "id": "enemy-1",
+            "tick": 5550,
+            "x": -34.234356065287784,
+            "y": 0.1166730273645575,
+            "z": -4710.5004516704075,
+            "roll": 0.007056370587435283,
+            "pitch": -0.002427510853919153,
+            "heading": 3.496157809152903,
+            "speed": 0,
+            "swaySpeed": -0.0000037043132984871668,
+            "rudder": 0,
+            "yawRate": 4.4105337316497853e-10,
+            "distance": 288.607055373135,
+            "verticalSpeed": 0.07546707561998683,
+            "waveHeave": 0.13228530616224574,
+            "driftX": 0.10950138363036098,
+            "driftZ": 0.07667369426237214
+          },
+          "ammo": 41418,
+          "integrity": 47075
+        }
+      ],
+      "phases": {
+        "outbound": 18,
+        "ready": 54
+      }
+    }
+  ],
+  "launched": 18
+}

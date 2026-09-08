@@ -1,0 +1,31 @@
+{
+  "contentHash": "a1984457dfde3f0302b5205a5d5b2aa23683ba8342682a60bcd6cd5f4e294420",
+  "fixture": "Normal pause menu Return to port button",
+  "before": {
+    "integrity": 27709,
+    "waterM3": 161.7116638239289,
+    "ammo": 58800
+  },
+  "inPort": true,
+  "paused": false,
+  "integrity": 44800,
+  "maxIntegrity": 44800,
+  "waterM3": 0,
+  "ammo": 58800,
+  "modulesRestored": true,
+  "aircraft": {
+    "ready": 72
+  },
+  "effects": {
+    "shells": 0,
+    "torpedoes": 0,
+    "depthCharges": 0,
+    "smoke": 0,
+    "aircraftSmoke": 0,
+    "flakSmoke": 0,
+    "spray": 0,
+    "flashes": 0,
+    "foam": 0,
+    "particleCapacity": 3680
+  }
+}

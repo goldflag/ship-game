@@ -1,0 +1,6144 @@
+{
+  "contentHash": "5910b4aa1a8127292576b697b9af7bca9ff008d42b3657d7cd7e75c8a14a826d",
+  "scope": "All moving mount meshes vs all fixed exterior meshes. Triangle surface intersections; intended roller/base contact excluded. This does not establish internal or neighboring clearance.",
+  "result": "fail",
+  "mounts": [
+    {
+      "mount": "aa127-port-1",
+      "samples": 495,
+      "clashes": [
+        {
+          "meshes": [
+            "aa127-port-1.barrel-2.001",
+            "Director platform"
+          ],
+          "firstPose": [
+            70,
+            0,
+            0
+          ],
+          "samples": 3,
+          "maxTrianglePairs": 40
+        },
+        {
+          "meshes": [
+            "aa127-port-1.muzzle-bore.001",
+            "Director platform"
+          ],
+          "firstPose": [
+            70,
+            0,
+            0
+          ],
+          "samples": 3,
+          "maxTrianglePairs": 27
+        },
+        {
+          "meshes": [
+            "aa127-port-1.barrel-2.001",
+            "Type 94 director enclosure"
+          ],
+          "firstPose": [
+            70,
+            10,
+            0
+          ],
+          "samples": 1,
+          "maxTrianglePairs": 33
+        },
+        {
+          "meshes": [
+            "aa127-port-1.muzzle-bore.001",
+            "Type 94 director enclosure"
+          ],
+          "firstPose": [
+            70,
+            10,
+            0
+          ],
+          "samples": 1,
+          "maxTrianglePairs": 20
+        }
+      ]
+    },
+    {
+      "mount": "aa127-port-2",
+      "samples": 495,
+      "clashes": [
+        {
+          "meshes": [
+            "aa127-port-2.bearing-cheek.001",
+            "Continuous deck edge girder.011"
+          ],
+          "firstPose": [
+            -70,
+            -7,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 14
+        },
+        {
+          "meshes": [
+            "aa127-port-2.control-handwheel.026",
+            "Flight deck transverse web flange.171"
+          ],
+          "firstPose": [
+            -70,
+            -7,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 16
+        },
+        {
+          "meshes": [
+            "aa127-port-2.control-handwheel.026",
+            "Flight deck transverse web pierced web.057"
+          ],
+          "firstPose": [
+            -70,
+            -7,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 5
+        },
+        {
+          "meshes": [
+            "aa127-port-2.control-handwheel.027",
+            "Flight deck transverse web flange.171"
+          ],
+          "firstPose": [
+            -70,
+            -7,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 16
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform-bracket.001",
+            "Continuous deck edge girder.011"
+          ],
+          "firstPose": [
+            -70,
+            -7,
+            0
+          ],
+          "samples": 27,
+          "maxTrianglePairs": 28
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform",
+            "Continuous deck edge girder.011"
+          ],
+          "firstPose": [
+            -70,
+            -7,
+            0
+          ],
+          "samples": 30,
+          "maxTrianglePairs": 29
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            -70,
+            -7,
+            0
+          ],
+          "samples": 30,
+          "maxTrianglePairs": 10
+        },
+        {
+          "meshes": [
+            "aa127-port-2.rammer-track",
+            "Continuous deck edge girder.011"
+          ],
+          "firstPose": [
+            -70,
+            10,
+            0
+          ],
+          "samples": 24,
+          "maxTrianglePairs": 50
+        },
+        {
+          "meshes": [
+            "aa127-port-2.rammer-head",
+            "Continuous deck edge girder.011"
+          ],
+          "firstPose": [
+            -70,
+            10,
+            0
+          ],
+          "samples": 36,
+          "maxTrianglePairs": 19
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform-bracket.001",
+            "Flight deck transverse web flange.171"
+          ],
+          "firstPose": [
+            -70,
+            10,
+            0
+          ],
+          "samples": 12,
+          "maxTrianglePairs": 50
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform-bracket.001",
+            "Flight deck transverse web flange.172"
+          ],
+          "firstPose": [
+            -70,
+            10,
+            0
+          ],
+          "samples": 15,
+          "maxTrianglePairs": 38
+        },
+        {
+          "meshes": [
+            "aa127-port-2.tray-rim.001",
+            "Continuous deck edge girder.011"
+          ],
+          "firstPose": [
+            -70,
+            10,
+            0
+          ],
+          "samples": 24,
+          "maxTrianglePairs": 42
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loading-tray",
+            "Flight deck transverse web flange.171"
+          ],
+          "firstPose": [
+            -70,
+            20,
+            0
+          ],
+          "samples": 15,
+          "maxTrianglePairs": 26
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loading-tray",
+            "Flight deck transverse web flange.172"
+          ],
+          "firstPose": [
+            -70,
+            20,
+            0
+          ],
+          "samples": 18,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa127-port-2.rammer-track",
+            "Flight deck transverse web flange.171"
+          ],
+          "firstPose": [
+            -70,
+            30,
+            0
+          ],
+          "samples": 12,
+          "maxTrianglePairs": 46
+        },
+        {
+          "meshes": [
+            "aa127-port-2.rammer-track",
+            "Flight deck transverse web flange.172"
+          ],
+          "firstPose": [
+            -70,
+            30,
+            0
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 46
+        },
+        {
+          "meshes": [
+            "aa127-port-2.rammer-track",
+            "Flight deck transverse web pierced web.057"
+          ],
+          "firstPose": [
+            -70,
+            30,
+            0
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 19
+        },
+        {
+          "meshes": [
+            "aa127-port-2.sliding-breech-block",
+            "Flight deck transverse web flange.171"
+          ],
+          "firstPose": [
+            -70,
+            30,
+            0.5
+          ],
+          "samples": 5,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa127-port-2.sliding-breech-block",
+            "Flight deck transverse web flange.172"
+          ],
+          "firstPose": [
+            -70,
+            30,
+            0.5
+          ],
+          "samples": 5,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa127-port-2.breech-ring",
+            "Flight deck transverse web flange.171"
+          ],
+          "firstPose": [
+            -70,
+            30,
+            0.5
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 16
+        },
+        {
+          "meshes": [
+            "aa127-port-2.breech-ring",
+            "Flight deck transverse web flange.172"
+          ],
+          "firstPose": [
+            -70,
+            30,
+            0.5
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 16
+        },
+        {
+          "meshes": [
+            "aa127-port-2.sliding-breech-block",
+            "Flight deck transverse web pierced web.057"
+          ],
+          "firstPose": [
+            -70,
+            30,
+            0.5
+          ],
+          "samples": 3,
+          "maxTrianglePairs": 4
+        },
+        {
+          "meshes": [
+            "aa127-port-2.breech-ring",
+            "Flight deck transverse web pierced web.057"
+          ],
+          "firstPose": [
+            -70,
+            30,
+            0.5
+          ],
+          "samples": 7,
+          "maxTrianglePairs": 3
+        },
+        {
+          "meshes": [
+            "aa127-port-2.breech-operating-lever",
+            "Flight deck transverse web flange.172"
+          ],
+          "firstPose": [
+            -70,
+            30,
+            1
+          ],
+          "samples": 2,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa127-port-2.breech-operating-lever",
+            "Flight deck transverse web flange.171"
+          ],
+          "firstPose": [
+            -70,
+            30,
+            1
+          ],
+          "samples": 1,
+          "maxTrianglePairs": 12
+        },
+        {
+          "meshes": [
+            "aa127-port-2.rammer-track",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            -60,
+            10,
+            0
+          ],
+          "samples": 18,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform-bracket.001",
+            "Flight deck transverse web pierced web.057"
+          ],
+          "firstPose": [
+            -60,
+            10,
+            0
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 15
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loading-tray",
+            "Continuous deck edge girder.011"
+          ],
+          "firstPose": [
+            -60,
+            10,
+            0
+          ],
+          "samples": 24,
+          "maxTrianglePairs": 25
+        },
+        {
+          "meshes": [
+            "aa127-port-2.tray-rim.001",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            -60,
+            10,
+            0
+          ],
+          "samples": 18,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa127-port-2.rammer-head",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            -60,
+            10,
+            0
+          ],
+          "samples": 27,
+          "maxTrianglePairs": 9
+        },
+        {
+          "meshes": [
+            "aa127-port-2.tray-rim.001",
+            "Flight deck transverse web flange.172"
+          ],
+          "firstPose": [
+            -60,
+            20,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 38
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loading-tray",
+            "Flight deck transverse web pierced web.057"
+          ],
+          "firstPose": [
+            -60,
+            20,
+            0
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 5
+        },
+        {
+          "meshes": [
+            "aa127-port-2.breech-operating-lever",
+            "Flight deck transverse web pierced web.057"
+          ],
+          "firstPose": [
+            -60,
+            20,
+            1
+          ],
+          "samples": 1,
+          "maxTrianglePairs": 3
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform-bracket.001",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            -50,
+            -7,
+            0
+          ],
+          "samples": 12,
+          "maxTrianglePairs": 21
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform",
+            "Flight deck transverse web flange.172"
+          ],
+          "firstPose": [
+            -50,
+            -7,
+            0
+          ],
+          "samples": 12,
+          "maxTrianglePairs": 26
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform",
+            "Flight deck transverse web pierced web.057"
+          ],
+          "firstPose": [
+            -50,
+            -7,
+            0
+          ],
+          "samples": 21,
+          "maxTrianglePairs": 8
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform",
+            "Flight deck transverse web flange.171"
+          ],
+          "firstPose": [
+            -50,
+            0,
+            0
+          ],
+          "samples": 21,
+          "maxTrianglePairs": 30
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loading-tray",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            -50,
+            10,
+            0
+          ],
+          "samples": 15,
+          "maxTrianglePairs": 6
+        },
+        {
+          "meshes": [
+            "aa127-port-2.tray-rim.001",
+            "Flight deck transverse web pierced web.057"
+          ],
+          "firstPose": [
+            -50,
+            20,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa127-port-2.tray-rim.001",
+            "Flight deck transverse web flange.171"
+          ],
+          "firstPose": [
+            -50,
+            20,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 40
+        },
+        {
+          "meshes": [
+            "aa127-port-2.rammer-head",
+            "Flight deck transverse web flange.171"
+          ],
+          "firstPose": [
+            -50,
+            20,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 28
+        },
+        {
+          "meshes": [
+            "aa127-port-2.tray-rim",
+            "Continuous deck edge girder.011"
+          ],
+          "firstPose": [
+            -40,
+            10,
+            0
+          ],
+          "samples": 15,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa127-port-2.rammer-head",
+            "Flight deck transverse web flange.172"
+          ],
+          "firstPose": [
+            -40,
+            20,
+            0
+          ],
+          "samples": 3,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa127-port-2.rammer-head",
+            "Flight deck transverse web pierced web.057"
+          ],
+          "firstPose": [
+            -40,
+            20,
+            0
+          ],
+          "samples": 3,
+          "maxTrianglePairs": 10
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform-bracket",
+            "Flight deck transverse web flange.171"
+          ],
+          "firstPose": [
+            -30,
+            0,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 28
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform-bracket",
+            "Flight deck transverse web flange.172"
+          ],
+          "firstPose": [
+            -30,
+            0,
+            0
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 18
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform-bracket",
+            "Flight deck transverse web pierced web.057"
+          ],
+          "firstPose": [
+            -30,
+            0,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 5
+        },
+        {
+          "meshes": [
+            "aa127-port-2.tray-rim",
+            "Flight deck transverse web flange.171"
+          ],
+          "firstPose": [
+            -30,
+            20,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 13
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform.001",
+            "Continuous deck edge girder.011"
+          ],
+          "firstPose": [
+            -20,
+            -7,
+            0
+          ],
+          "samples": 30,
+          "maxTrianglePairs": 32
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform-bracket",
+            "Continuous deck edge girder.011"
+          ],
+          "firstPose": [
+            -20,
+            -7,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 12
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform.001",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            -10,
+            -7,
+            0
+          ],
+          "samples": 27,
+          "maxTrianglePairs": 10
+        },
+        {
+          "meshes": [
+            "aa127-port-2.tray-rim.002",
+            "Continuous deck edge girder.011"
+          ],
+          "firstPose": [
+            0,
+            10,
+            0
+          ],
+          "samples": 24,
+          "maxTrianglePairs": 44
+        },
+        {
+          "meshes": [
+            "aa127-port-2.rammer-track.001",
+            "Continuous deck edge girder.011"
+          ],
+          "firstPose": [
+            0,
+            10,
+            0
+          ],
+          "samples": 15,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loading-tray.001",
+            "Continuous deck edge girder.011"
+          ],
+          "firstPose": [
+            0,
+            10,
+            0
+          ],
+          "samples": 24,
+          "maxTrianglePairs": 28
+        },
+        {
+          "meshes": [
+            "aa127-port-2.rammer-head",
+            "Continuous deck edge girder.012"
+          ],
+          "firstPose": [
+            0,
+            10,
+            0
+          ],
+          "samples": 3,
+          "maxTrianglePairs": 9
+        },
+        {
+          "meshes": [
+            "aa127-port-2.tray-rim.003",
+            "Continuous deck edge girder.011"
+          ],
+          "firstPose": [
+            0,
+            10,
+            0
+          ],
+          "samples": 15,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform-bracket.002",
+            "Continuous deck edge girder.011"
+          ],
+          "firstPose": [
+            10,
+            -7,
+            0
+          ],
+          "samples": 27,
+          "maxTrianglePairs": 29
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform",
+            "Continuous deck edge girder.012"
+          ],
+          "firstPose": [
+            10,
+            -7,
+            0
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 16
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loading-tray.001",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            10,
+            10,
+            0
+          ],
+          "samples": 18,
+          "maxTrianglePairs": 8
+        },
+        {
+          "meshes": [
+            "aa127-port-2.rammer-head.001",
+            "Continuous deck edge girder.011"
+          ],
+          "firstPose": [
+            10,
+            10,
+            0
+          ],
+          "samples": 12,
+          "maxTrianglePairs": 16
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform-bracket.002",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            20,
+            -7,
+            0
+          ],
+          "samples": 15,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform.001",
+            "Flight deck transverse web flange.171"
+          ],
+          "firstPose": [
+            20,
+            -7,
+            0
+          ],
+          "samples": 21,
+          "maxTrianglePairs": 28
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform.001",
+            "Flight deck transverse web flange.172"
+          ],
+          "firstPose": [
+            20,
+            -7,
+            0
+          ],
+          "samples": 12,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform-bracket.003",
+            "Continuous deck edge girder.011"
+          ],
+          "firstPose": [
+            20,
+            -7,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 12
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform-bracket.003",
+            "Flight deck transverse web flange.172"
+          ],
+          "firstPose": [
+            20,
+            -7,
+            0
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 18
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform.001",
+            "Flight deck transverse web pierced web.057"
+          ],
+          "firstPose": [
+            20,
+            0,
+            0
+          ],
+          "samples": 21,
+          "maxTrianglePairs": 6
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform-bracket.003",
+            "Flight deck transverse web flange.171"
+          ],
+          "firstPose": [
+            20,
+            0,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 28
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform-bracket.003",
+            "Flight deck transverse web pierced web.057"
+          ],
+          "firstPose": [
+            20,
+            0,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 5
+        },
+        {
+          "meshes": [
+            "aa127-port-2.tray-rim.002",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            20,
+            10,
+            0
+          ],
+          "samples": 15,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loading-tray.001",
+            "Flight deck transverse web flange.172"
+          ],
+          "firstPose": [
+            20,
+            10,
+            0
+          ],
+          "samples": 18,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa127-port-2.tray-rim.003",
+            "Flight deck transverse web flange.171"
+          ],
+          "firstPose": [
+            20,
+            20,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 11
+        },
+        {
+          "meshes": [
+            "aa127-port-2.rammer-head.001",
+            "Flight deck transverse web flange.171"
+          ],
+          "firstPose": [
+            20,
+            20,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 30
+        },
+        {
+          "meshes": [
+            "aa127-port-2.rammer-head.001",
+            "Flight deck transverse web flange.172"
+          ],
+          "firstPose": [
+            20,
+            20,
+            0
+          ],
+          "samples": 3,
+          "maxTrianglePairs": 26
+        },
+        {
+          "meshes": [
+            "aa127-port-2.rammer-head.001",
+            "Flight deck transverse web pierced web.057"
+          ],
+          "firstPose": [
+            20,
+            20,
+            0
+          ],
+          "samples": 3,
+          "maxTrianglePairs": 9
+        },
+        {
+          "meshes": [
+            "aa127-port-2.rammer-track.001",
+            "Flight deck transverse web flange.171"
+          ],
+          "firstPose": [
+            20,
+            20,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 40
+        },
+        {
+          "meshes": [
+            "aa127-port-2.rammer-track.001",
+            "Flight deck transverse web pierced web.057"
+          ],
+          "firstPose": [
+            20,
+            20,
+            0
+          ],
+          "samples": 3,
+          "maxTrianglePairs": 9
+        },
+        {
+          "meshes": [
+            "aa127-port-2.rammer-track.001",
+            "Flight deck transverse web flange.172"
+          ],
+          "firstPose": [
+            20,
+            20,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 18
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loading-tray.001",
+            "Flight deck transverse web flange.171"
+          ],
+          "firstPose": [
+            30,
+            20,
+            0
+          ],
+          "samples": 15,
+          "maxTrianglePairs": 26
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform-bracket.002",
+            "Flight deck transverse web flange.172"
+          ],
+          "firstPose": [
+            40,
+            -7,
+            0
+          ],
+          "samples": 15,
+          "maxTrianglePairs": 38
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform-bracket.002",
+            "Flight deck transverse web flange.171"
+          ],
+          "firstPose": [
+            40,
+            0,
+            0
+          ],
+          "samples": 12,
+          "maxTrianglePairs": 50
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform-bracket.002",
+            "Flight deck transverse web pierced web.057"
+          ],
+          "firstPose": [
+            40,
+            0,
+            0
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 16
+        },
+        {
+          "meshes": [
+            "aa127-port-2.tray-rim.002",
+            "Flight deck transverse web flange.171"
+          ],
+          "firstPose": [
+            40,
+            20,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 40
+        },
+        {
+          "meshes": [
+            "aa127-port-2.tray-rim.002",
+            "Flight deck transverse web pierced web.057"
+          ],
+          "firstPose": [
+            40,
+            20,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loading-tray.001",
+            "Flight deck transverse web pierced web.057"
+          ],
+          "firstPose": [
+            40,
+            20,
+            0
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 5
+        },
+        {
+          "meshes": [
+            "aa127-port-2.tray-rim.002",
+            "Flight deck transverse web flange.172"
+          ],
+          "firstPose": [
+            50,
+            20,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 36
+        },
+        {
+          "meshes": [
+            "aa127-port-2.breech-ring.001",
+            "Flight deck transverse web flange.171"
+          ],
+          "firstPose": [
+            50,
+            20,
+            1
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 14
+        },
+        {
+          "meshes": [
+            "aa127-port-2.breech-ring.001",
+            "Flight deck transverse web flange.172"
+          ],
+          "firstPose": [
+            50,
+            20,
+            1
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 16
+        },
+        {
+          "meshes": [
+            "aa127-port-2.breech-ring.001",
+            "Flight deck transverse web pierced web.057"
+          ],
+          "firstPose": [
+            50,
+            20,
+            1
+          ],
+          "samples": 7,
+          "maxTrianglePairs": 4
+        },
+        {
+          "meshes": [
+            "aa127-port-2.sliding-breech-block.001",
+            "Flight deck transverse web flange.171"
+          ],
+          "firstPose": [
+            50,
+            30,
+            1
+          ],
+          "samples": 5,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa127-port-2.sliding-breech-block.001",
+            "Flight deck transverse web flange.172"
+          ],
+          "firstPose": [
+            50,
+            30,
+            1
+          ],
+          "samples": 5,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa127-port-2.loader-platform.001",
+            "Continuous deck edge girder.012"
+          ],
+          "firstPose": [
+            60,
+            -7,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 23
+        },
+        {
+          "meshes": [
+            "aa127-port-2.sliding-breech-block.001",
+            "Flight deck transverse web pierced web.057"
+          ],
+          "firstPose": [
+            60,
+            30,
+            1
+          ],
+          "samples": 3,
+          "maxTrianglePairs": 4
+        },
+        {
+          "meshes": [
+            "aa127-port-2.control-handwheel.006",
+            "Flight deck transverse web flange.171"
+          ],
+          "firstPose": [
+            70,
+            -7,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 16
+        },
+        {
+          "meshes": [
+            "aa127-port-2.control-handwheel.006",
+            "Flight deck transverse web pierced web.057"
+          ],
+          "firstPose": [
+            70,
+            -7,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 5
+        },
+        {
+          "meshes": [
+            "aa127-port-2.control-handwheel.007",
+            "Flight deck transverse web flange.171"
+          ],
+          "firstPose": [
+            70,
+            -7,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 16
+        }
+      ]
+    },
+    {
+      "mount": "aa127-port-3",
+      "samples": 495,
+      "clashes": [
+        {
+          "meshes": [
+            "aa127-port-3.loader-platform",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            -60,
+            -7,
+            0
+          ],
+          "samples": 18,
+          "maxTrianglePairs": 11
+        },
+        {
+          "meshes": [
+            "aa127-port-3.loader-platform",
+            "Continuous deck edge girder.014"
+          ],
+          "firstPose": [
+            -60,
+            -7,
+            0
+          ],
+          "samples": 24,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa127-port-3.loading-tray",
+            "Continuous deck edge girder.014"
+          ],
+          "firstPose": [
+            -50,
+            10,
+            0
+          ],
+          "samples": 12,
+          "maxTrianglePairs": 8
+        },
+        {
+          "meshes": [
+            "aa127-port-3.tray-rim.001",
+            "Continuous deck edge girder.014"
+          ],
+          "firstPose": [
+            -50,
+            10,
+            0
+          ],
+          "samples": 12,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa127-port-3.rammer-head",
+            "Continuous deck edge girder.014"
+          ],
+          "firstPose": [
+            -50,
+            10,
+            0
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 14
+        },
+        {
+          "meshes": [
+            "aa127-port-3.rammer-track",
+            "Continuous deck edge girder.014"
+          ],
+          "firstPose": [
+            -50,
+            10,
+            0
+          ],
+          "samples": 12,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa127-port-3.loader-platform.001",
+            "Continuous deck edge girder.014"
+          ],
+          "firstPose": [
+            -10,
+            -7,
+            0
+          ],
+          "samples": 24,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa127-port-3.loader-platform.001",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            10,
+            -7,
+            0
+          ],
+          "samples": 15,
+          "maxTrianglePairs": 10
+        },
+        {
+          "meshes": [
+            "aa127-port-3.tray-rim.002",
+            "Continuous deck edge girder.014"
+          ],
+          "firstPose": [
+            20,
+            10,
+            0
+          ],
+          "samples": 12,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa127-port-3.loading-tray.001",
+            "Continuous deck edge girder.014"
+          ],
+          "firstPose": [
+            20,
+            10,
+            0
+          ],
+          "samples": 12,
+          "maxTrianglePairs": 10
+        }
+      ]
+    },
+    {
+      "mount": "aa127-port-4",
+      "samples": 495,
+      "clashes": [
+        {
+          "meshes": [
+            "aa127-port-4.loader-platform",
+            "Continuous deck edge girder.014"
+          ],
+          "firstPose": [
+            -60,
+            -7,
+            0
+          ],
+          "samples": 21,
+          "maxTrianglePairs": 12
+        },
+        {
+          "meshes": [
+            "aa127-port-4.loader-platform",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            -50,
+            -7,
+            0
+          ],
+          "samples": 12,
+          "maxTrianglePairs": 8
+        },
+        {
+          "meshes": [
+            "aa127-port-4.loader-platform.001",
+            "Continuous deck edge girder.014"
+          ],
+          "firstPose": [
+            0,
+            -7,
+            0
+          ],
+          "samples": 21,
+          "maxTrianglePairs": 14
+        },
+        {
+          "meshes": [
+            "aa127-port-4.loader-platform.001",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            10,
+            -7,
+            0
+          ],
+          "samples": 15,
+          "maxTrianglePairs": 10
+        }
+      ]
+    },
+    {
+      "mount": "aa127-starboard-1",
+      "samples": 495,
+      "clashes": [
+        {
+          "meshes": [
+            "aa127-starboard-1.barrel-2",
+            "Director platform.002"
+          ],
+          "firstPose": [
+            -70,
+            0,
+            0
+          ],
+          "samples": 3,
+          "maxTrianglePairs": 39
+        },
+        {
+          "meshes": [
+            "aa127-starboard-1.muzzle-bore",
+            "Director platform.002"
+          ],
+          "firstPose": [
+            -70,
+            0,
+            0
+          ],
+          "samples": 3,
+          "maxTrianglePairs": 29
+        },
+        {
+          "meshes": [
+            "aa127-starboard-1.barrel-2",
+            "Type 94 director enclosure.002"
+          ],
+          "firstPose": [
+            -70,
+            10,
+            0
+          ],
+          "samples": 1,
+          "maxTrianglePairs": 34
+        },
+        {
+          "meshes": [
+            "aa127-starboard-1.muzzle-bore",
+            "Type 94 director enclosure.002"
+          ],
+          "firstPose": [
+            -70,
+            10,
+            0
+          ],
+          "samples": 1,
+          "maxTrianglePairs": 22
+        }
+      ]
+    },
+    {
+      "mount": "aa127-starboard-2",
+      "samples": 495,
+      "clashes": [
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform",
+            "Continuous deck edge girder.007"
+          ],
+          "firstPose": [
+            -70,
+            -7,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 31
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            -70,
+            -7,
+            0
+          ],
+          "samples": 30,
+          "maxTrianglePairs": 12
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform-bracket.001",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            -70,
+            -7,
+            0
+          ],
+          "samples": 21,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.control-handwheel.027",
+            "Flight deck transverse web flange.075"
+          ],
+          "firstPose": [
+            -70,
+            -7,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 16
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.control-handwheel.026",
+            "Flight deck transverse web flange.075"
+          ],
+          "firstPose": [
+            -70,
+            -7,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 16
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.control-handwheel.026",
+            "Flight deck transverse web pierced web.025"
+          ],
+          "firstPose": [
+            -70,
+            -7,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 5
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform-bracket.001",
+            "Continuous deck edge girder.007"
+          ],
+          "firstPose": [
+            -70,
+            -7,
+            0
+          ],
+          "samples": 36,
+          "maxTrianglePairs": 48
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.bearing-cheek.001",
+            "Continuous deck edge girder.007"
+          ],
+          "firstPose": [
+            -70,
+            -7,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 14
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.rammer-head",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            -70,
+            10,
+            0
+          ],
+          "samples": 36,
+          "maxTrianglePairs": 8
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.rammer-head",
+            "Continuous deck edge girder.007"
+          ],
+          "firstPose": [
+            -70,
+            10,
+            0
+          ],
+          "samples": 36,
+          "maxTrianglePairs": 17
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.rammer-track",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            -70,
+            10,
+            0
+          ],
+          "samples": 21,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.tray-rim.001",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            -70,
+            10,
+            0
+          ],
+          "samples": 21,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loading-tray",
+            "Continuous deck edge girder.007"
+          ],
+          "firstPose": [
+            -70,
+            10,
+            0
+          ],
+          "samples": 27,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loading-tray",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            -70,
+            10,
+            0
+          ],
+          "samples": 21,
+          "maxTrianglePairs": 10
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.rammer-track",
+            "Continuous deck edge girder.007"
+          ],
+          "firstPose": [
+            -70,
+            10,
+            0
+          ],
+          "samples": 36,
+          "maxTrianglePairs": 48
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.tray-rim.001",
+            "Continuous deck edge girder.007"
+          ],
+          "firstPose": [
+            -70,
+            10,
+            0
+          ],
+          "samples": 24,
+          "maxTrianglePairs": 42
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform-bracket.001",
+            "Flight deck transverse web flange.076"
+          ],
+          "firstPose": [
+            -70,
+            10,
+            0
+          ],
+          "samples": 15,
+          "maxTrianglePairs": 38
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform-bracket.001",
+            "Flight deck transverse web flange.075"
+          ],
+          "firstPose": [
+            -70,
+            10,
+            0
+          ],
+          "samples": 12,
+          "maxTrianglePairs": 50
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.breech-operating-lever",
+            "Continuous deck edge girder.007"
+          ],
+          "firstPose": [
+            -70,
+            10,
+            1
+          ],
+          "samples": 3,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loading-tray",
+            "Flight deck transverse web flange.076"
+          ],
+          "firstPose": [
+            -70,
+            20,
+            0
+          ],
+          "samples": 18,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loading-tray",
+            "Flight deck transverse web flange.075"
+          ],
+          "firstPose": [
+            -70,
+            20,
+            0
+          ],
+          "samples": 15,
+          "maxTrianglePairs": 26
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.rammer-track",
+            "Flight deck transverse web flange.075"
+          ],
+          "firstPose": [
+            -70,
+            30,
+            0
+          ],
+          "samples": 12,
+          "maxTrianglePairs": 46
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.rammer-track",
+            "Flight deck transverse web flange.076"
+          ],
+          "firstPose": [
+            -70,
+            30,
+            0
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 46
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.rammer-track",
+            "Flight deck transverse web pierced web.025"
+          ],
+          "firstPose": [
+            -70,
+            30,
+            0
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 19
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.sliding-breech-block",
+            "Flight deck transverse web flange.075"
+          ],
+          "firstPose": [
+            -70,
+            30,
+            0.5
+          ],
+          "samples": 5,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.sliding-breech-block",
+            "Flight deck transverse web flange.076"
+          ],
+          "firstPose": [
+            -70,
+            30,
+            0.5
+          ],
+          "samples": 5,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.sliding-breech-block",
+            "Flight deck transverse web pierced web.025"
+          ],
+          "firstPose": [
+            -70,
+            30,
+            0.5
+          ],
+          "samples": 3,
+          "maxTrianglePairs": 4
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.breech-ring",
+            "Flight deck transverse web flange.075"
+          ],
+          "firstPose": [
+            -70,
+            30,
+            0.5
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 16
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.breech-ring",
+            "Flight deck transverse web flange.076"
+          ],
+          "firstPose": [
+            -70,
+            30,
+            0.5
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 16
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.breech-ring",
+            "Flight deck transverse web pierced web.025"
+          ],
+          "firstPose": [
+            -70,
+            30,
+            0.5
+          ],
+          "samples": 7,
+          "maxTrianglePairs": 3
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.breech-operating-lever",
+            "Flight deck transverse web flange.075"
+          ],
+          "firstPose": [
+            -70,
+            30,
+            1
+          ],
+          "samples": 1,
+          "maxTrianglePairs": 12
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.breech-operating-lever",
+            "Flight deck transverse web flange.076"
+          ],
+          "firstPose": [
+            -70,
+            30,
+            1
+          ],
+          "samples": 2,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform-bracket.001",
+            "Flight deck transverse web pierced web.025"
+          ],
+          "firstPose": [
+            -60,
+            10,
+            0
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 15
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.tray-rim.001",
+            "Flight deck transverse web flange.076"
+          ],
+          "firstPose": [
+            -60,
+            20,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 38
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loading-tray",
+            "Flight deck transverse web pierced web.025"
+          ],
+          "firstPose": [
+            -60,
+            20,
+            0
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 5
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.breech-operating-lever",
+            "Flight deck transverse web pierced web.025"
+          ],
+          "firstPose": [
+            -60,
+            20,
+            1
+          ],
+          "samples": 1,
+          "maxTrianglePairs": 3
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform",
+            "Flight deck transverse web flange.076"
+          ],
+          "firstPose": [
+            -50,
+            -7,
+            0
+          ],
+          "samples": 12,
+          "maxTrianglePairs": 26
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform",
+            "Flight deck transverse web pierced web.025"
+          ],
+          "firstPose": [
+            -50,
+            -7,
+            0
+          ],
+          "samples": 21,
+          "maxTrianglePairs": 8
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform",
+            "Flight deck transverse web flange.075"
+          ],
+          "firstPose": [
+            -50,
+            0,
+            0
+          ],
+          "samples": 21,
+          "maxTrianglePairs": 30
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.tray-rim",
+            "Continuous deck edge girder.007"
+          ],
+          "firstPose": [
+            -50,
+            10,
+            0
+          ],
+          "samples": 18,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.tray-rim.001",
+            "Flight deck transverse web flange.075"
+          ],
+          "firstPose": [
+            -50,
+            20,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 40
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.tray-rim.001",
+            "Flight deck transverse web pierced web.025"
+          ],
+          "firstPose": [
+            -50,
+            20,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.rammer-head",
+            "Flight deck transverse web flange.075"
+          ],
+          "firstPose": [
+            -50,
+            20,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 28
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform-bracket",
+            "Continuous deck edge girder.007"
+          ],
+          "firstPose": [
+            -40,
+            -7,
+            0
+          ],
+          "samples": 12,
+          "maxTrianglePairs": 29
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.rammer-head",
+            "Flight deck transverse web flange.076"
+          ],
+          "firstPose": [
+            -40,
+            20,
+            0
+          ],
+          "samples": 3,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.rammer-head",
+            "Flight deck transverse web pierced web.025"
+          ],
+          "firstPose": [
+            -40,
+            20,
+            0
+          ],
+          "samples": 3,
+          "maxTrianglePairs": 10
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform.001",
+            "Continuous deck edge girder.007"
+          ],
+          "firstPose": [
+            -30,
+            -7,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 28
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform-bracket",
+            "Flight deck transverse web flange.075"
+          ],
+          "firstPose": [
+            -30,
+            0,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 28
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform-bracket",
+            "Flight deck transverse web flange.076"
+          ],
+          "firstPose": [
+            -30,
+            0,
+            0
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 18
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform-bracket",
+            "Flight deck transverse web pierced web.025"
+          ],
+          "firstPose": [
+            -30,
+            0,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 5
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.tray-rim",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            -30,
+            10,
+            0
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.tray-rim",
+            "Flight deck transverse web flange.075"
+          ],
+          "firstPose": [
+            -30,
+            20,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 13
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform.001",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            -20,
+            -7,
+            0
+          ],
+          "samples": 30,
+          "maxTrianglePairs": 12
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.rammer-track.001",
+            "Continuous deck edge girder.007"
+          ],
+          "firstPose": [
+            -10,
+            10,
+            0
+          ],
+          "samples": 18,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.tray-rim.003",
+            "Continuous deck edge girder.007"
+          ],
+          "firstPose": [
+            -10,
+            10,
+            0
+          ],
+          "samples": 18,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loading-tray.001",
+            "Continuous deck edge girder.007"
+          ],
+          "firstPose": [
+            -10,
+            10,
+            0
+          ],
+          "samples": 27,
+          "maxTrianglePairs": 26
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.tray-rim.002",
+            "Continuous deck edge girder.007"
+          ],
+          "firstPose": [
+            -10,
+            10,
+            0
+          ],
+          "samples": 27,
+          "maxTrianglePairs": 42
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform-bracket.003",
+            "Continuous deck edge girder.007"
+          ],
+          "firstPose": [
+            0,
+            -7,
+            0
+          ],
+          "samples": 12,
+          "maxTrianglePairs": 29
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform-bracket.002",
+            "Continuous deck edge girder.007"
+          ],
+          "firstPose": [
+            0,
+            -7,
+            0
+          ],
+          "samples": 36,
+          "maxTrianglePairs": 46
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.tray-rim.003",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            0,
+            10,
+            0
+          ],
+          "samples": 12,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loading-tray.001",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            0,
+            10,
+            0
+          ],
+          "samples": 21,
+          "maxTrianglePairs": 10
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.rammer-head.001",
+            "Continuous deck edge girder.007"
+          ],
+          "firstPose": [
+            0,
+            10,
+            0
+          ],
+          "samples": 15,
+          "maxTrianglePairs": 18
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.tray-rim.002",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            0,
+            10,
+            0
+          ],
+          "samples": 21,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform-bracket.002",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            10,
+            -7,
+            0
+          ],
+          "samples": 21,
+          "maxTrianglePairs": 23
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.rammer-track.001",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            10,
+            10,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 15
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform-bracket.003",
+            "Flight deck transverse web flange.076"
+          ],
+          "firstPose": [
+            20,
+            -7,
+            0
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 18
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform.001",
+            "Flight deck transverse web flange.076"
+          ],
+          "firstPose": [
+            20,
+            -7,
+            0
+          ],
+          "samples": 12,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform.001",
+            "Flight deck transverse web flange.075"
+          ],
+          "firstPose": [
+            20,
+            -7,
+            0
+          ],
+          "samples": 21,
+          "maxTrianglePairs": 28
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform.001",
+            "Flight deck transverse web pierced web.025"
+          ],
+          "firstPose": [
+            20,
+            0,
+            0
+          ],
+          "samples": 21,
+          "maxTrianglePairs": 6
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform-bracket.003",
+            "Flight deck transverse web flange.075"
+          ],
+          "firstPose": [
+            20,
+            0,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 28
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform-bracket.003",
+            "Flight deck transverse web pierced web.025"
+          ],
+          "firstPose": [
+            20,
+            0,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 5
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loading-tray.001",
+            "Flight deck transverse web flange.076"
+          ],
+          "firstPose": [
+            20,
+            10,
+            0
+          ],
+          "samples": 18,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.tray-rim.003",
+            "Flight deck transverse web flange.075"
+          ],
+          "firstPose": [
+            20,
+            20,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 11
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.rammer-track.001",
+            "Flight deck transverse web pierced web.025"
+          ],
+          "firstPose": [
+            20,
+            20,
+            0
+          ],
+          "samples": 3,
+          "maxTrianglePairs": 9
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.rammer-track.001",
+            "Flight deck transverse web flange.075"
+          ],
+          "firstPose": [
+            20,
+            20,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 40
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.rammer-track.001",
+            "Flight deck transverse web flange.076"
+          ],
+          "firstPose": [
+            20,
+            20,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 18
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.rammer-head.001",
+            "Flight deck transverse web flange.075"
+          ],
+          "firstPose": [
+            20,
+            20,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 30
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.rammer-head.001",
+            "Flight deck transverse web flange.076"
+          ],
+          "firstPose": [
+            20,
+            20,
+            0
+          ],
+          "samples": 3,
+          "maxTrianglePairs": 26
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.rammer-head.001",
+            "Flight deck transverse web pierced web.025"
+          ],
+          "firstPose": [
+            20,
+            20,
+            0
+          ],
+          "samples": 3,
+          "maxTrianglePairs": 9
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loading-tray.001",
+            "Flight deck transverse web flange.075"
+          ],
+          "firstPose": [
+            30,
+            20,
+            0
+          ],
+          "samples": 15,
+          "maxTrianglePairs": 26
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform-bracket.002",
+            "Flight deck transverse web flange.076"
+          ],
+          "firstPose": [
+            40,
+            -7,
+            0
+          ],
+          "samples": 15,
+          "maxTrianglePairs": 38
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform-bracket.002",
+            "Flight deck transverse web pierced web.025"
+          ],
+          "firstPose": [
+            40,
+            0,
+            0
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 16
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loader-platform-bracket.002",
+            "Flight deck transverse web flange.075"
+          ],
+          "firstPose": [
+            40,
+            0,
+            0
+          ],
+          "samples": 12,
+          "maxTrianglePairs": 50
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.tray-rim.002",
+            "Flight deck transverse web flange.075"
+          ],
+          "firstPose": [
+            40,
+            20,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 40
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.tray-rim.002",
+            "Flight deck transverse web pierced web.025"
+          ],
+          "firstPose": [
+            40,
+            20,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.loading-tray.001",
+            "Flight deck transverse web pierced web.025"
+          ],
+          "firstPose": [
+            40,
+            20,
+            0
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 5
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.tray-rim.002",
+            "Flight deck transverse web flange.076"
+          ],
+          "firstPose": [
+            50,
+            20,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 36
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.breech-ring.001",
+            "Flight deck transverse web flange.075"
+          ],
+          "firstPose": [
+            50,
+            20,
+            1
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 14
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.breech-ring.001",
+            "Flight deck transverse web flange.076"
+          ],
+          "firstPose": [
+            50,
+            20,
+            1
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 16
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.breech-ring.001",
+            "Flight deck transverse web pierced web.025"
+          ],
+          "firstPose": [
+            50,
+            20,
+            1
+          ],
+          "samples": 7,
+          "maxTrianglePairs": 4
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.sliding-breech-block.001",
+            "Flight deck transverse web flange.075"
+          ],
+          "firstPose": [
+            50,
+            30,
+            1
+          ],
+          "samples": 5,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.sliding-breech-block.001",
+            "Flight deck transverse web flange.076"
+          ],
+          "firstPose": [
+            50,
+            30,
+            1
+          ],
+          "samples": 5,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.bearing-cheek",
+            "Continuous deck edge girder.007"
+          ],
+          "firstPose": [
+            60,
+            -7,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 18
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.sliding-breech-block.001",
+            "Flight deck transverse web pierced web.025"
+          ],
+          "firstPose": [
+            60,
+            30,
+            1
+          ],
+          "samples": 3,
+          "maxTrianglePairs": 4
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.control-handwheel.006",
+            "Flight deck transverse web pierced web.025"
+          ],
+          "firstPose": [
+            70,
+            -7,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 5
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.control-handwheel.006",
+            "Flight deck transverse web flange.075"
+          ],
+          "firstPose": [
+            70,
+            -7,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 16
+        },
+        {
+          "meshes": [
+            "aa127-starboard-2.control-handwheel.007",
+            "Flight deck transverse web flange.075"
+          ],
+          "firstPose": [
+            70,
+            -7,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 16
+        }
+      ]
+    },
+    {
+      "mount": "aa127-starboard-3",
+      "samples": 495,
+      "clashes": [
+        {
+          "meshes": [
+            "aa127-starboard-3.curved-gas-hood",
+            "Longitudinal weathered wood planking"
+          ],
+          "firstPose": [
+            -70,
+            -7,
+            0
+          ],
+          "samples": 495,
+          "maxTrianglePairs": 46
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.curved-gas-hood",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            -70,
+            -7,
+            0
+          ],
+          "samples": 495,
+          "maxTrianglePairs": 48
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.curved-gas-hood",
+            "Continuous deck edge girder.001"
+          ],
+          "firstPose": [
+            -70,
+            -7,
+            0
+          ],
+          "samples": 495,
+          "maxTrianglePairs": 68
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.loader-platform",
+            "Continuous deck edge girder.001"
+          ],
+          "firstPose": [
+            -30,
+            -7,
+            0
+          ],
+          "samples": 3,
+          "maxTrianglePairs": 6
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.curved-gas-hood",
+            "Flight deck transverse web flange.027"
+          ],
+          "firstPose": [
+            -20,
+            -7,
+            0
+          ],
+          "samples": 198,
+          "maxTrianglePairs": 30
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.curved-gas-hood",
+            "Flight deck transverse web pierced web.009"
+          ],
+          "firstPose": [
+            -20,
+            -7,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 10
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.curved-gas-hood",
+            "Continuous deck edge girder.002"
+          ],
+          "firstPose": [
+            -20,
+            -7,
+            0
+          ],
+          "samples": 330,
+          "maxTrianglePairs": 40
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.curved-gas-hood",
+            "Flight deck transverse web flange.028"
+          ],
+          "firstPose": [
+            -20,
+            -7,
+            0
+          ],
+          "samples": 198,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.loader-platform.001",
+            "Continuous deck edge girder.001"
+          ],
+          "firstPose": [
+            30,
+            -7,
+            0
+          ],
+          "samples": 3,
+          "maxTrianglePairs": 6
+        }
+      ]
+    },
+    {
+      "mount": "aa127-starboard-4",
+      "samples": 495,
+      "clashes": [
+        {
+          "meshes": [
+            "aa127-starboard-4.curved-gas-hood",
+            "Wood flight deck on steel girders"
+          ],
+          "firstPose": [
+            -70,
+            -7,
+            0
+          ],
+          "samples": 495,
+          "maxTrianglePairs": 32
+        },
+        {
+          "meshes": [
+            "aa127-starboard-4.curved-gas-hood",
+            "Continuous deck edge girder.001"
+          ],
+          "firstPose": [
+            -70,
+            -7,
+            0
+          ],
+          "samples": 495,
+          "maxTrianglePairs": 78
+        },
+        {
+          "meshes": [
+            "aa127-starboard-4.curved-gas-hood",
+            "Longitudinal weathered wood planking"
+          ],
+          "firstPose": [
+            -70,
+            -7,
+            0
+          ],
+          "samples": 495,
+          "maxTrianglePairs": 43
+        },
+        {
+          "meshes": [
+            "aa127-starboard-4.loader-platform",
+            "Continuous deck edge girder.001"
+          ],
+          "firstPose": [
+            -30,
+            -7,
+            0
+          ],
+          "samples": 3,
+          "maxTrianglePairs": 4
+        },
+        {
+          "meshes": [
+            "aa127-starboard-4.loader-platform.001",
+            "Continuous deck edge girder.001"
+          ],
+          "firstPose": [
+            30,
+            -7,
+            0
+          ],
+          "samples": 3,
+          "maxTrianglePairs": 4
+        }
+      ]
+    },
+    {
+      "mount": "aa25-port-1",
+      "samples": 627,
+      "clashes": [
+        {
+          "meshes": [
+            "aa25-port-1.seat-back.001",
+            "Continuous deck edge girder.013"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 11
+        },
+        {
+          "meshes": [
+            "aa25-port-1.operator-seat.001",
+            "Continuous deck edge girder.013"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 10
+        },
+        {
+          "meshes": [
+            "aa25-port-1.operator-seat",
+            "Continuous deck edge girder.013"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 12
+        },
+        {
+          "meshes": [
+            "aa25-port-1.seat-back",
+            "Continuous deck edge girder.013"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 11
+        }
+      ]
+    },
+    {
+      "mount": "aa25-port-2",
+      "samples": 627,
+      "clashes": [
+        {
+          "meshes": [
+            "aa25-port-2.seat-back.001",
+            "Continuous deck edge girder.013"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 11
+        },
+        {
+          "meshes": [
+            "aa25-port-2.operator-seat.001",
+            "Continuous deck edge girder.013"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 10
+        },
+        {
+          "meshes": [
+            "aa25-port-2.operator-seat",
+            "Continuous deck edge girder.013"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 12
+        },
+        {
+          "meshes": [
+            "aa25-port-2.seat-back",
+            "Continuous deck edge girder.013"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 11
+        }
+      ]
+    },
+    {
+      "mount": "aa25-port-3",
+      "samples": 627,
+      "clashes": [
+        {
+          "meshes": [
+            "aa25-port-3.seat-back.001",
+            "Continuous deck edge girder.013"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 13
+        },
+        {
+          "meshes": [
+            "aa25-port-3.operator-seat.001",
+            "Continuous deck edge girder.013"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 10
+        },
+        {
+          "meshes": [
+            "aa25-port-3.operator-seat",
+            "Continuous deck edge girder.013"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 12
+        },
+        {
+          "meshes": [
+            "aa25-port-3.seat-back",
+            "Continuous deck edge girder.013"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 13
+        }
+      ]
+    },
+    {
+      "mount": "aa25-port-4",
+      "samples": 627,
+      "clashes": [
+        {
+          "meshes": [
+            "aa25-port-4.seat-back.001",
+            "Continuous deck edge girder.013"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 13
+        },
+        {
+          "meshes": [
+            "aa25-port-4.operator-seat.001",
+            "Continuous deck edge girder.013"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 10
+        },
+        {
+          "meshes": [
+            "aa25-port-4.operator-seat",
+            "Continuous deck edge girder.013"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 12
+        },
+        {
+          "meshes": [
+            "aa25-port-4.seat-back",
+            "Continuous deck edge girder.013"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 13
+        }
+      ]
+    },
+    {
+      "mount": "aa25-port-5",
+      "samples": 627,
+      "clashes": [
+        {
+          "meshes": [
+            "aa25-port-5.seat-back.001",
+            "Continuous deck edge girder.013"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 13
+        },
+        {
+          "meshes": [
+            "aa25-port-5.operator-seat.001",
+            "Continuous deck edge girder.013"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 8
+        },
+        {
+          "meshes": [
+            "aa25-port-5.operator-seat",
+            "Continuous deck edge girder.013"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 10
+        },
+        {
+          "meshes": [
+            "aa25-port-5.seat-back",
+            "Continuous deck edge girder.013"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 13
+        }
+      ]
+    },
+    {
+      "mount": "aa25-port-6",
+      "samples": 627,
+      "clashes": [
+        {
+          "meshes": [
+            "aa25-port-6.seat-back.001",
+            "Continuous deck edge girder.013"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 13
+        },
+        {
+          "meshes": [
+            "aa25-port-6.operator-seat.001",
+            "Continuous deck edge girder.013"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 8
+        },
+        {
+          "meshes": [
+            "aa25-port-6.operator-seat",
+            "Continuous deck edge girder.013"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 10
+        },
+        {
+          "meshes": [
+            "aa25-port-6.seat-back",
+            "Continuous deck edge girder.013"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 13
+        }
+      ]
+    },
+    {
+      "mount": "aa25-starboard-1",
+      "samples": 627,
+      "clashes": []
+    },
+    {
+      "mount": "aa25-starboard-2",
+      "samples": 627,
+      "clashes": []
+    },
+    {
+      "mount": "aa25-starboard-3",
+      "samples": 627,
+      "clashes": [
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.014"
+          ],
+          "firstPose": [
+            -90,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 36
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.025"
+          ],
+          "firstPose": [
+            -90,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 38
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame.001",
+            "aa25-starboard-3 splinter tub.014"
+          ],
+          "firstPose": [
+            -90,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 17
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame.001",
+            "aa25-starboard-3 splinter tub.015"
+          ],
+          "firstPose": [
+            -90,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 13
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame",
+            "aa25-starboard-3 splinter tub.025"
+          ],
+          "firstPose": [
+            -90,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 15
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame",
+            "aa25-starboard-3 splinter tub.024"
+          ],
+          "firstPose": [
+            -90,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 14
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.024"
+          ],
+          "firstPose": [
+            -80,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 36
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.023"
+          ],
+          "firstPose": [
+            -80,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 25
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.013"
+          ],
+          "firstPose": [
+            -80,
+            -10,
+            0
+          ],
+          "samples": 99,
+          "maxTrianglePairs": 25
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame.001",
+            "aa25-starboard-3 splinter tub.013"
+          ],
+          "firstPose": [
+            -80,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 17
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame",
+            "aa25-starboard-3 splinter tub.023"
+          ],
+          "firstPose": [
+            -80,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 18
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.022"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.012"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 99,
+          "maxTrianglePairs": 26
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame.001",
+            "aa25-starboard-3 splinter tub.012"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 19
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame",
+            "aa25-starboard-3 splinter tub.022"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.011"
+          ],
+          "firstPose": [
+            -60,
+            -10,
+            0
+          ],
+          "samples": 99,
+          "maxTrianglePairs": 26
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.021"
+          ],
+          "firstPose": [
+            -60,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame.001",
+            "aa25-starboard-3 splinter tub.011"
+          ],
+          "firstPose": [
+            -60,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 19
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame",
+            "aa25-starboard-3 splinter tub.021"
+          ],
+          "firstPose": [
+            -60,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.010"
+          ],
+          "firstPose": [
+            -60,
+            -10,
+            0
+          ],
+          "samples": 132,
+          "maxTrianglePairs": 30
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.020"
+          ],
+          "firstPose": [
+            -50,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 30
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame.001",
+            "aa25-starboard-3 splinter tub.010"
+          ],
+          "firstPose": [
+            -50,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 21
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame",
+            "aa25-starboard-3 splinter tub.020"
+          ],
+          "firstPose": [
+            -50,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.009"
+          ],
+          "firstPose": [
+            -50,
+            -10,
+            0
+          ],
+          "samples": 132,
+          "maxTrianglePairs": 34
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.019"
+          ],
+          "firstPose": [
+            -40,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 34
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame",
+            "aa25-starboard-3 splinter tub.019"
+          ],
+          "firstPose": [
+            -40,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.008"
+          ],
+          "firstPose": [
+            -40,
+            -10,
+            0
+          ],
+          "samples": 99,
+          "maxTrianglePairs": 35
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame.001",
+            "aa25-starboard-3 splinter tub.009"
+          ],
+          "firstPose": [
+            -40,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 21
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame",
+            "aa25-starboard-3 splinter tub.018"
+          ],
+          "firstPose": [
+            -30,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.018"
+          ],
+          "firstPose": [
+            -30,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 35
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.007"
+          ],
+          "firstPose": [
+            -30,
+            -10,
+            0
+          ],
+          "samples": 99,
+          "maxTrianglePairs": 34
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame.001",
+            "aa25-starboard-3 splinter tub.008"
+          ],
+          "firstPose": [
+            -30,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 19
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.006"
+          ],
+          "firstPose": [
+            -20,
+            -10,
+            0
+          ],
+          "samples": 99,
+          "maxTrianglePairs": 38
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.017"
+          ],
+          "firstPose": [
+            -20,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 34
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame.001",
+            "aa25-starboard-3 splinter tub.007"
+          ],
+          "firstPose": [
+            -20,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 19
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame",
+            "aa25-starboard-3 splinter tub.017"
+          ],
+          "firstPose": [
+            -20,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.005"
+          ],
+          "firstPose": [
+            -10,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 38
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.016"
+          ],
+          "firstPose": [
+            -10,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 38
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame.001",
+            "aa25-starboard-3 splinter tub.006"
+          ],
+          "firstPose": [
+            -10,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 17
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame.001",
+            "aa25-starboard-3 splinter tub.005"
+          ],
+          "firstPose": [
+            -10,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 13
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame",
+            "aa25-starboard-3 splinter tub.016"
+          ],
+          "firstPose": [
+            -10,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.004"
+          ],
+          "firstPose": [
+            0,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.015"
+          ],
+          "firstPose": [
+            0,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 38
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame.001",
+            "aa25-starboard-3 splinter tub.004"
+          ],
+          "firstPose": [
+            0,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 17
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame",
+            "aa25-starboard-3 splinter tub.015"
+          ],
+          "firstPose": [
+            0,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 15
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame",
+            "aa25-starboard-3 splinter tub.014"
+          ],
+          "firstPose": [
+            0,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 14
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.003"
+          ],
+          "firstPose": [
+            10,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame.001",
+            "aa25-starboard-3 splinter tub.003"
+          ],
+          "firstPose": [
+            10,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 17
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame",
+            "aa25-starboard-3 splinter tub.013"
+          ],
+          "firstPose": [
+            10,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 18
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.002"
+          ],
+          "firstPose": [
+            20,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 26
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame.001",
+            "aa25-starboard-3 splinter tub.002"
+          ],
+          "firstPose": [
+            20,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 19
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame",
+            "aa25-starboard-3 splinter tub.012"
+          ],
+          "firstPose": [
+            20,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame.001",
+            "aa25-starboard-3 splinter tub.001"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 19
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.001"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 26
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame",
+            "aa25-starboard-3 splinter tub.011"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame.001",
+            "aa25-starboard-3 splinter tub"
+          ],
+          "firstPose": [
+            40,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 21
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.039"
+          ],
+          "firstPose": [
+            40,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 19
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame",
+            "aa25-starboard-3 splinter tub.010"
+          ],
+          "firstPose": [
+            40,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame",
+            "aa25-starboard-3 splinter tub.009"
+          ],
+          "firstPose": [
+            50,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.038"
+          ],
+          "firstPose": [
+            50,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 14
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame.001",
+            "aa25-starboard-3 splinter tub.039"
+          ],
+          "firstPose": [
+            50,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 21
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame",
+            "aa25-starboard-3 splinter tub.008"
+          ],
+          "firstPose": [
+            60,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.037"
+          ],
+          "firstPose": [
+            60,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 15
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame.001",
+            "aa25-starboard-3 splinter tub.038"
+          ],
+          "firstPose": [
+            60,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 19
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.036"
+          ],
+          "firstPose": [
+            70,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame",
+            "aa25-starboard-3 splinter tub.007"
+          ],
+          "firstPose": [
+            70,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame.001",
+            "aa25-starboard-3 splinter tub.037"
+          ],
+          "firstPose": [
+            70,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 19
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.035"
+          ],
+          "firstPose": [
+            80,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame",
+            "aa25-starboard-3 splinter tub.006"
+          ],
+          "firstPose": [
+            80,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame.001",
+            "aa25-starboard-3 splinter tub.036"
+          ],
+          "firstPose": [
+            80,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 17
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame.001",
+            "aa25-starboard-3 splinter tub.035"
+          ],
+          "firstPose": [
+            80,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 13
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.curved-gas-hood",
+            "aa25-starboard-3 splinter tub.034"
+          ],
+          "firstPose": [
+            90,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame",
+            "aa25-starboard-3 splinter tub.005"
+          ],
+          "firstPose": [
+            90,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 15
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame",
+            "aa25-starboard-3 splinter tub.004"
+          ],
+          "firstPose": [
+            90,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 14
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.hood-frame.001",
+            "aa25-starboard-3 splinter tub.034"
+          ],
+          "firstPose": [
+            90,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 17
+        }
+      ]
+    },
+    {
+      "mount": "aa25-starboard-4",
+      "samples": 627,
+      "clashes": [
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.014"
+          ],
+          "firstPose": [
+            -90,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 36
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.025"
+          ],
+          "firstPose": [
+            -90,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 38
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame.001",
+            "aa25-starboard-4 splinter tub.014"
+          ],
+          "firstPose": [
+            -90,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 17
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame.001",
+            "aa25-starboard-4 splinter tub.015"
+          ],
+          "firstPose": [
+            -90,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 13
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame",
+            "aa25-starboard-4 splinter tub.025"
+          ],
+          "firstPose": [
+            -90,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 15
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame",
+            "aa25-starboard-4 splinter tub.024"
+          ],
+          "firstPose": [
+            -90,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 14
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.023"
+          ],
+          "firstPose": [
+            -80,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 25
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.024"
+          ],
+          "firstPose": [
+            -80,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 36
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.013"
+          ],
+          "firstPose": [
+            -80,
+            -10,
+            0
+          ],
+          "samples": 99,
+          "maxTrianglePairs": 25
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame.001",
+            "aa25-starboard-4 splinter tub.013"
+          ],
+          "firstPose": [
+            -80,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 17
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame",
+            "aa25-starboard-4 splinter tub.023"
+          ],
+          "firstPose": [
+            -80,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 18
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.022"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.012"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 99,
+          "maxTrianglePairs": 26
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame.001",
+            "aa25-starboard-4 splinter tub.012"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 19
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame",
+            "aa25-starboard-4 splinter tub.022"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.021"
+          ],
+          "firstPose": [
+            -60,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.011"
+          ],
+          "firstPose": [
+            -60,
+            -10,
+            0
+          ],
+          "samples": 99,
+          "maxTrianglePairs": 26
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame.001",
+            "aa25-starboard-4 splinter tub.011"
+          ],
+          "firstPose": [
+            -60,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 19
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame",
+            "aa25-starboard-4 splinter tub.021"
+          ],
+          "firstPose": [
+            -60,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.010"
+          ],
+          "firstPose": [
+            -60,
+            -10,
+            0
+          ],
+          "samples": 132,
+          "maxTrianglePairs": 30
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.020"
+          ],
+          "firstPose": [
+            -50,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 30
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame.001",
+            "aa25-starboard-4 splinter tub.010"
+          ],
+          "firstPose": [
+            -50,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 21
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame",
+            "aa25-starboard-4 splinter tub.020"
+          ],
+          "firstPose": [
+            -50,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.009"
+          ],
+          "firstPose": [
+            -50,
+            -10,
+            0
+          ],
+          "samples": 132,
+          "maxTrianglePairs": 34
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.019"
+          ],
+          "firstPose": [
+            -40,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 34
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame",
+            "aa25-starboard-4 splinter tub.019"
+          ],
+          "firstPose": [
+            -40,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.008"
+          ],
+          "firstPose": [
+            -40,
+            -10,
+            0
+          ],
+          "samples": 99,
+          "maxTrianglePairs": 35
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame.001",
+            "aa25-starboard-4 splinter tub.009"
+          ],
+          "firstPose": [
+            -40,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 21
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame",
+            "aa25-starboard-4 splinter tub.018"
+          ],
+          "firstPose": [
+            -30,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.018"
+          ],
+          "firstPose": [
+            -30,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 35
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.007"
+          ],
+          "firstPose": [
+            -30,
+            -10,
+            0
+          ],
+          "samples": 99,
+          "maxTrianglePairs": 34
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame.001",
+            "aa25-starboard-4 splinter tub.008"
+          ],
+          "firstPose": [
+            -30,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 19
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.006"
+          ],
+          "firstPose": [
+            -20,
+            -10,
+            0
+          ],
+          "samples": 99,
+          "maxTrianglePairs": 38
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.017"
+          ],
+          "firstPose": [
+            -20,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 34
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame.001",
+            "aa25-starboard-4 splinter tub.007"
+          ],
+          "firstPose": [
+            -20,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 19
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame",
+            "aa25-starboard-4 splinter tub.017"
+          ],
+          "firstPose": [
+            -20,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.005"
+          ],
+          "firstPose": [
+            -10,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 38
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.016"
+          ],
+          "firstPose": [
+            -10,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 38
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame.001",
+            "aa25-starboard-4 splinter tub.006"
+          ],
+          "firstPose": [
+            -10,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 17
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame.001",
+            "aa25-starboard-4 splinter tub.005"
+          ],
+          "firstPose": [
+            -10,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 13
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame",
+            "aa25-starboard-4 splinter tub.016"
+          ],
+          "firstPose": [
+            -10,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.004"
+          ],
+          "firstPose": [
+            0,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.015"
+          ],
+          "firstPose": [
+            0,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 38
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame.001",
+            "aa25-starboard-4 splinter tub.004"
+          ],
+          "firstPose": [
+            0,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 17
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame",
+            "aa25-starboard-4 splinter tub.015"
+          ],
+          "firstPose": [
+            0,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 15
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame",
+            "aa25-starboard-4 splinter tub.014"
+          ],
+          "firstPose": [
+            0,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 14
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.003"
+          ],
+          "firstPose": [
+            10,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame.001",
+            "aa25-starboard-4 splinter tub.003"
+          ],
+          "firstPose": [
+            10,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 17
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame",
+            "aa25-starboard-4 splinter tub.013"
+          ],
+          "firstPose": [
+            10,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 18
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.002"
+          ],
+          "firstPose": [
+            20,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 26
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame.001",
+            "aa25-starboard-4 splinter tub.002"
+          ],
+          "firstPose": [
+            20,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 19
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame",
+            "aa25-starboard-4 splinter tub.012"
+          ],
+          "firstPose": [
+            20,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame.001",
+            "aa25-starboard-4 splinter tub.001"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 19
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.001"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 26
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame",
+            "aa25-starboard-4 splinter tub.011"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame.001",
+            "aa25-starboard-4 splinter tub"
+          ],
+          "firstPose": [
+            40,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 21
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.039"
+          ],
+          "firstPose": [
+            40,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 19
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame",
+            "aa25-starboard-4 splinter tub.010"
+          ],
+          "firstPose": [
+            40,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame",
+            "aa25-starboard-4 splinter tub.009"
+          ],
+          "firstPose": [
+            50,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.038"
+          ],
+          "firstPose": [
+            50,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 14
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame.001",
+            "aa25-starboard-4 splinter tub.039"
+          ],
+          "firstPose": [
+            50,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 21
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame",
+            "aa25-starboard-4 splinter tub.008"
+          ],
+          "firstPose": [
+            60,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.037"
+          ],
+          "firstPose": [
+            60,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 15
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame.001",
+            "aa25-starboard-4 splinter tub.038"
+          ],
+          "firstPose": [
+            60,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 19
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.036"
+          ],
+          "firstPose": [
+            70,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame",
+            "aa25-starboard-4 splinter tub.007"
+          ],
+          "firstPose": [
+            70,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame.001",
+            "aa25-starboard-4 splinter tub.037"
+          ],
+          "firstPose": [
+            70,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 19
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.035"
+          ],
+          "firstPose": [
+            80,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame",
+            "aa25-starboard-4 splinter tub.006"
+          ],
+          "firstPose": [
+            80,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame.001",
+            "aa25-starboard-4 splinter tub.036"
+          ],
+          "firstPose": [
+            80,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 17
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame.001",
+            "aa25-starboard-4 splinter tub.035"
+          ],
+          "firstPose": [
+            80,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 13
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.curved-gas-hood",
+            "aa25-starboard-4 splinter tub.034"
+          ],
+          "firstPose": [
+            90,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame",
+            "aa25-starboard-4 splinter tub.004"
+          ],
+          "firstPose": [
+            90,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 14
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame",
+            "aa25-starboard-4 splinter tub.005"
+          ],
+          "firstPose": [
+            90,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 15
+        },
+        {
+          "meshes": [
+            "aa25-starboard-4.hood-frame.001",
+            "aa25-starboard-4 splinter tub.034"
+          ],
+          "firstPose": [
+            90,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 17
+        }
+      ]
+    },
+    {
+      "mount": "aa25-starboard-5",
+      "samples": 627,
+      "clashes": [
+        {
+          "meshes": [
+            "aa25-starboard-5.seat-outrigger.001",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            -90,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.operator-seat.001",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            -90,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 8
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.roller-path",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            -90,
+            -10,
+            0
+          ],
+          "samples": 627,
+          "maxTrianglePairs": 26
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.seat-outrigger",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            -90,
+            -10,
+            0
+          ],
+          "samples": 363,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.operator-seat",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            -90,
+            -10,
+            0
+          ],
+          "samples": 132,
+          "maxTrianglePairs": 8
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.seat-back",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            -90,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 8
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.footrest",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            -80,
+            -10,
+            0
+          ],
+          "samples": 297,
+          "maxTrianglePairs": 10
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.operator-seat.001",
+            "Continuous deck edge girder.003"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 10
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.seat-back.001",
+            "Continuous deck edge girder.003"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 13
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.control-handwheel-spoke.002",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 12
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.control-handwheel.006",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 12
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.control-handwheel.013",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 12
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.breech-operating-lever.002",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            1
+          ],
+          "samples": 2,
+          "maxTrianglePairs": 10
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.control-shaft",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            -60,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 22
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.control-handwheel.003",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            -60,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 12
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.control-handwheel-spoke",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            -60,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 12
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.control-handwheel.016",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            -60,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 14
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.magazine-cap.002",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            -60,
+            40,
+            1
+          ],
+          "samples": 13,
+          "maxTrianglePairs": 8
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.15-round-magazine.002",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            -50,
+            40,
+            1
+          ],
+          "samples": 2,
+          "maxTrianglePairs": 5
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.cross-saddle",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            -40,
+            -10,
+            0
+          ],
+          "samples": 330,
+          "maxTrianglePairs": 10
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.trunnion-cap",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            -30,
+            -10,
+            0
+          ],
+          "samples": 264,
+          "maxTrianglePairs": 50
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.bearing-cheek",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            -30,
+            -10,
+            0
+          ],
+          "samples": 297,
+          "maxTrianglePairs": 12
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.fixed-trunnion-shaft",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            -20,
+            -10,
+            0
+          ],
+          "samples": 231,
+          "maxTrianglePairs": 50
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.barrel-1.002",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            20,
+            -10,
+            0
+          ],
+          "samples": 86,
+          "maxTrianglePairs": 84
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.barrel-2.002",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            20,
+            -10,
+            0
+          ],
+          "samples": 26,
+          "maxTrianglePairs": 41
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.control-handwheel.008",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            20,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 8
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.control-handwheel.007",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            20,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 12
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.control-handwheel.011",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            20,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 8
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.control-handwheel.012",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            20,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 10
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.barrel-2.001",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 19,
+          "maxTrianglePairs": 80
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.conical-flash-hider.001",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 13,
+          "maxTrianglePairs": 27
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.seat-back",
+            "Continuous deck edge girder.003"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 13
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.operator-seat",
+            "Continuous deck edge girder.003"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 12
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.control-handwheel.001",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 8
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.control-handwheel",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 10
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.control-handwheel.019",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 10
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.control-handwheel.018",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 33,
+          "maxTrianglePairs": 8
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.gas-cylinder.002",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            40,
+            -10,
+            0
+          ],
+          "samples": 63,
+          "maxTrianglePairs": 26
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.barrel-cooling-ring.035",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            40,
+            -10,
+            0
+          ],
+          "samples": 21,
+          "maxTrianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.conical-flash-hider.002",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            40,
+            0,
+            0
+          ],
+          "samples": 13,
+          "maxTrianglePairs": 25
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.muzzle-bore.002",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            40,
+            0,
+            0.5
+          ],
+          "samples": 7,
+          "maxTrianglePairs": 28
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.barrel-cooling-ring.034",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            50,
+            -10,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 21
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.barrel-1.001",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            50,
+            -10,
+            0
+          ],
+          "samples": 46,
+          "maxTrianglePairs": 69
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.barrel-2",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            50,
+            -10,
+            0
+          ],
+          "samples": 16,
+          "maxTrianglePairs": 61
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.conical-flash-hider",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            50,
+            -10,
+            0.5
+          ],
+          "samples": 8,
+          "maxTrianglePairs": 36
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.barrel-1",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            70,
+            -10,
+            0
+          ],
+          "samples": 21,
+          "maxTrianglePairs": 57
+        },
+        {
+          "meshes": [
+            "aa25-starboard-5.muzzle-bore",
+            "Forward downturned exhaust funnel"
+          ],
+          "firstPose": [
+            70,
+            0,
+            1
+          ],
+          "samples": 1,
+          "maxTrianglePairs": 14
+        }
+      ]
+    },
+    {
+      "mount": "aa25-starboard-6",
+      "samples": 627,
+      "clashes": [
+        {
+          "meshes": [
+            "aa25-starboard-6.conical-flash-hider",
+            "Island foundation gallery"
+          ],
+          "firstPose": [
+            -90,
+            -10,
+            0
+          ],
+          "samples": 12,
+          "maxTrianglePairs": 21
+        },
+        {
+          "meshes": [
+            "aa25-starboard-6.barrel-2",
+            "Island foundation gallery"
+          ],
+          "firstPose": [
+            -90,
+            -10,
+            0
+          ],
+          "samples": 9,
+          "maxTrianglePairs": 46
+        },
+        {
+          "meshes": [
+            "aa25-starboard-6.conical-flash-hider.001",
+            "Island foundation gallery"
+          ],
+          "firstPose": [
+            -90,
+            -10,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 40
+        },
+        {
+          "meshes": [
+            "aa25-starboard-6.barrel-2.001",
+            "Island foundation gallery"
+          ],
+          "firstPose": [
+            -90,
+            -10,
+            0
+          ],
+          "samples": 6,
+          "maxTrianglePairs": 46
+        },
+        {
+          "meshes": [
+            "aa25-starboard-6.muzzle-bore.001",
+            "Island foundation gallery"
+          ],
+          "firstPose": [
+            -80,
+            -10,
+            0.5
+          ],
+          "samples": 2,
+          "maxTrianglePairs": 36
+        },
+        {
+          "meshes": [
+            "aa25-starboard-6.operator-seat.001",
+            "Continuous deck edge girder.003"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 10
+        },
+        {
+          "meshes": [
+            "aa25-starboard-6.seat-back.001",
+            "Continuous deck edge girder.003"
+          ],
+          "firstPose": [
+            -70,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 11
+        },
+        {
+          "meshes": [
+            "aa25-starboard-6.seat-back.001",
+            "Island foundation gallery"
+          ],
+          "firstPose": [
+            10,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 20
+        },
+        {
+          "meshes": [
+            "aa25-starboard-6.operator-seat.001",
+            "Island foundation gallery"
+          ],
+          "firstPose": [
+            10,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 12
+        },
+        {
+          "meshes": [
+            "aa25-starboard-6.seat-post.001",
+            "Island foundation gallery"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 66,
+          "maxTrianglePairs": 18
+        },
+        {
+          "meshes": [
+            "aa25-starboard-6.seat-back",
+            "Continuous deck edge girder.003"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 11
+        },
+        {
+          "meshes": [
+            "aa25-starboard-6.operator-seat",
+            "Continuous deck edge girder.003"
+          ],
+          "firstPose": [
+            30,
+            -10,
+            0
+          ],
+          "samples": 165,
+          "maxTrianglePairs": 12
+        }
+      ]
+    }
+  ]
+}

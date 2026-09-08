@@ -1,0 +1,59 @@
+{
+  "contentHash": "a1984457dfde3f0302b5205a5d5b2aa23683ba8342682a60bcd6cd5f4e294420",
+  "backend": "webgpu",
+  "scope": "Actual loaded game GLB, all geometry present; matched before/after cameras. CameraRig temporarily overridden and restored.",
+  "views": [
+    {
+      "name": "island-forward",
+      "camera": [
+        30,
+        23,
+        -52
+      ],
+      "target": [
+        13.35,
+        19.4,
+        -38
+      ]
+    },
+    {
+      "name": "island-aft",
+      "camera": [
+        28,
+        22,
+        -27
+      ],
+      "target": [
+        13.35,
+        19.4,
+        -39
+      ]
+    },
+    {
+      "name": "stern-quarter",
+      "camera": [
+        36,
+        18,
+        151
+      ],
+      "target": [
+        0,
+        8.5,
+        108
+      ]
+    },
+    {
+      "name": "stern-center",
+      "camera": [
+        0,
+        13,
+        155
+      ],
+      "target": [
+        0,
+        8,
+        112
+      ]
+    }
+  ]
+}

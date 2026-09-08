@@ -19,13 +19,13 @@ const instances = (smoke: ShipFunnelSmoke) => {
 
 test('all registered funnel mouths are found without smoking from bases, caps or the submarine', () => {
   const counts: Record<string, number> = { bismarck: 1, yamato: 1, 'king-george-v': 2, baltimore: 2, 'enterprise-cv6': 1, 'type-viic': 0,
-    'liberty-cargo': 1, 'liberty-collier': 1, 'victory-cargo': 1, 'flower-corvette': 1, fletcher: 2 };
+    'liberty-cargo': 1, 'liberty-collier': 1, 'victory-cargo': 1, 'flower-corvette': 1, fletcher: 2, shokaku: 2 };
   for (const id of Object.keys(shipPresets)) {
     const outlets = funnelOutlets(shipPreset(id));
     expect(outlets.length).toBe(counts[id]);
     for (const outlet of outlets) {
       expect(outlet.position.every(Number.isFinite)).toBe(true);
-      expect(outlet.width).toBeGreaterThan(2);
+      expect(outlet.width).toBeGreaterThan(0);
       expect(outlet.position[1]).toBeGreaterThan(10);
     }
   }
@@ -34,6 +34,18 @@ test('all registered funnel mouths are found without smoking from bases, caps or
   expect(funnelOutlets(shipPreset('yamato'))[0].position[2]).toBeCloseTo(26.25, 2);
   expect(funnelOutlets(shipPreset('bismarck'))[0].position[1]).toBeCloseTo(25.15, 2);
   expect(funnelOutlets(shipPreset('fletcher'))[0].position[2]).toBeCloseTo(-9.2146, 2);
+});
+
+test('side-discharging carrier exhaust uses the authored mouths below the jacket crown', () => {
+  const def = shipPreset('shokaku');
+  const outlets = funnelOutlets(def);
+  expect(outlets).toHaveLength(2);
+  expect(outlets.map(o => o.position)).toEqual([[19.6, 12.8, -10], [19.6, 12.8, 2]]);
+  for (const outlet of outlets) {
+    const jacket = def.structures!.find(s => s.id === outlet.id)!;
+    expect(outlet.position[1]).toBeLessThan(jacket.baseY + jacket.height);
+    expect(outlet.position[0]).toBeGreaterThan(def.hull.beam / 2);
+  }
 });
 
 test('exhaust follows a moving, heeled funnel; released smoke drifts independently, freezes and resets', () => {

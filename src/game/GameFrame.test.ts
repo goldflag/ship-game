@@ -65,7 +65,7 @@ async function frameHarness() {
     water: { underwaterDistortion: { intensity: .02 }, color: { absorptionColor: new Color(.296, .105, .095) },
       waves: { windSpeed: { value: 8 }, windDirection: { value: .5 } }, async update() {} },
     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
-    pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, frameWaiters: [],
+    pipeline: { render() {} }, scheduleFrame() {}, updateSeaState() {}, updatePortLighting() {}, updateEffectsLighting() {}, frameWaiters: [],
     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
   }) as { frame(time: number, warmingUp?: boolean): Promise<void>; setInPort(inPort: boolean): void; toggleBinoculars(): void; toggleShellFollow(): void; shellFollow: ShellFollow;
     manualAim: boolean; currentAim: number[]; paused: boolean; inspecting: boolean };

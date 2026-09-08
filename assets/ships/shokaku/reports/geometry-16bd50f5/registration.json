@@ -1,0 +1,25 @@
+{
+  "contentHash": "16bd50f50408f1a02ed6a0635aaa585a7ae182000b30de6bb7b4ffe5146ef890",
+  "source": "s02",
+  "configuration": "December 1941 asserted by host; original drawing date unknown",
+  "sourcePixels": [
+    4751,
+    2766
+  ],
+  "anchors": {
+    "sternX": 38,
+    "bowX": 4705,
+    "lengthM": 257.5,
+    "profileWaterlineY": 625,
+    "planCenterlineY": 1375
+  },
+  "pixelsPerMetre": 18.124271844660193,
+  "isotropic": true,
+  "referenceDraftM": 8.87,
+  "notes": [
+    "No local warp or anisotropic scaling. Blueprint and fixed model render both registered.",
+    "S02 is not an as-built drawing; local offsets and upperworks measurements remain estimates.",
+    "The source profile load/draft differs slightly from the published reference draft.",
+    "S09 Enclosure G supplies gun-family mechanism evidence; truncated barrel must not be used as a scale anchor."
+  ]
+}

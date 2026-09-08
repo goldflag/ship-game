@@ -1,0 +1,37 @@
+{
+  "contentHash": "2d43863548c9dfcee9b1822b75dee70d501d16271e334d13ce5c1accfd00c0b8",
+  "fixture": "Normal visible port tabs and volume buttons; selected updated bridge structural surface, aviation-service equipment and a boiler flood compartment.",
+  "backend": "webgpu",
+  "rows": [
+    {
+      "tab": "Armor",
+      "mode": "armor",
+      "name": "Glazed conning and air-control bridge",
+      "id": "structure:air-control",
+      "observedMode": "armor",
+      "observedSelection": "structure:air-control"
+    },
+    {
+      "tab": "Internals",
+      "mode": "internals",
+      "name": "Air group service and power",
+      "id": "module:aviation-service",
+      "observedMode": "internals",
+      "observedSelection": "module:aviation-service"
+    },
+    {
+      "tab": "Flooding",
+      "mode": "compartments",
+      "name": "Boiler Port 1",
+      "id": "compartment:boiler-port-1",
+      "observedMode": "compartments",
+      "observedSelection": "compartment:boiler-port-1"
+    }
+  ],
+  "result": "pass",
+  "screenshots": [
+    "armor.png",
+    "internals.png",
+    "compartments.png"
+  ]
+}

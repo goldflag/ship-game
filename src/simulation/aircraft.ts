@@ -13,6 +13,7 @@ import { aircraftDeckAttitude, aircraftGroundPose } from './aircraftGroundPose';
 import { fighterBurst, strikeAimError } from './aircraftAccuracy';
 import { AIR_GUNNERY, gunnerySeed, initialFireDiscipline, stepFireDiscipline } from './airGunnery';
 import { flyFormation, formationLeader } from './aircraftFormation';
+import { aircraftBomb, aircraftTorpedo, DEFAULT_AIR_TORPEDO } from './aircraftWeapons';
 
 export type FlightPhase = 'ready' | 'queued' | 'taxi' | 'takeoff' | 'outbound' | 'attack' | 'returning' | 'landing' | 'rollout' | 'parking' | 'rearming' | 'lost';
 export type AirOrder = { kind: 'attack'; targetId: string } | { kind: 'patrol'; point: Vec3 } | { kind: 'defend'; targetId?: string } | { kind: 'intercept'; flightId: string } | { kind: 'escort'; flightId: string } | { kind: 'return' };
@@ -30,8 +31,8 @@ export interface Aircraft {
   wreck?: { age: number; rollRate: number; impacted: boolean };
 }
 export interface AirWingState { planes: Aircraft[]; launchCooldown: number; flights: AirFlight[]; flightSequence: number; transferCooldown: number; }
-export interface AirRelease { id: number; ownerId: string; position: Vec3; velocity: Vec3; }
-export const hasFoldingWings = (modelId: string) => ['f4f-4-wildcat', 'tbd-1-devastator'].includes(modelId);
+export interface AirRelease { id: number; ownerId: string; position: Vec3; velocity: Vec3; weapon?: TorpedoPart; }
+export const hasFoldingWings = (modelId: string) => aircraftGroundPose(modelId).foldingWings;
 const WING_FOLD_SECONDS = 4; // Gameplay timing; manual crew/hydraulic operation is abstracted.
 export const AIRCRAFT_ENDURANCE_SECONDS = 1050;
 /** Gun bursts a fighter carries when ready; service restores the full load. */
@@ -192,11 +193,7 @@ function spotAircraft(actor: FleetActor, p: Aircraft): boolean {
   p.previousPosition = [...p.position];
   return true;
 }
-export const AIR_TORPEDO: TorpedoPart = {
-  id: 'mark-13-game', name: 'Air-dropped torpedo', kind: 'torpedo', diameterM: .57, lengthM: 4.1,
-  speed: 23, rangeM: 4500, armingDistanceM: 180, runningDepthM: 2, reloadSeconds: 35,
-  launchIntervalSeconds: 3, damage: 480, breachAreaM2: .55,
-};
+export const AIR_TORPEDO = DEFAULT_AIR_TORPEDO;
 export interface AirContext {
   seed?: number;
   actors: FleetActor[]; planes: Aircraft[]; shells: Shell[]; torpedoes: Torpedo[]; releases: AirRelease[];
@@ -528,21 +525,23 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
         const error = Math.hypot(landing[0] - impactAim[0], landing[2] - impactAim[2]);
         if (error < 22 && p.pitch < -.25 && p.position[1] > targetPoint[1] + 90) {
           const id = ctx.nextId();
-          ctx.shells.push({ id, ownerId: p.ownerId, weaponLabel: '500 lb HE bomb', bomb: { heading: p.heading, pitch: p.pitch, bank: p.bank }, position: add(p.position, [0, -1, 0]), velocity: [...p.velocity], age: 0, penetrationMm: 0, damage: 380, caliberM: .35, visited: [], ammunition: 'he', type: 'HE', he: { explosiveKg: 120, fragmentPenetrationMm: 75, damage: 380, stockFraction: 1, basis: 'Provisional 500 lb gameplay bomb; contact fuze' } });
+          const bomb = aircraftBomb(p.modelId);
+          ctx.shells.push({ id, ownerId: p.ownerId, weaponLabel: bomb.label, bomb: { heading: p.heading, pitch: p.pitch, bank: p.bank }, position: add(p.position, [0, -1, 0]), velocity: [...p.velocity], age: 0, penetrationMm: 0, damage: bomb.he.damage, caliberM: bomb.caliberM, visited: [], ammunition: 'he', type: 'HE', he: { ...bomb.he } });
           p.payload = false; p.phase = 'returning';
-          ctx.emit({ kind: 'bomb-release', position: [...p.position], shipId: p.ownerId, message: 'Bomb away', shell: { id, caliberM: .35, velocity: [...p.velocity], ammunition: 'he', type: 'HE' }, aircraft: { id: p.id } });
+          ctx.emit({ kind: 'bomb-release', position: [...p.position], shipId: p.ownerId, message: 'Bomb away', shell: { id, caliberM: bomb.caliberM, velocity: [...p.velocity], ammunition: 'he', type: 'HE' }, aircraft: { id: p.id } });
         } else if (p.position[1] < targetPoint[1] + 100 || dot(sub(targetPoint, p.position), forward) < -100) p.pilot.attackStage = 'egress';
       } else {
         // Include the airborne travel before solving the slower underwater run.
         const fall = (-3 + Math.sqrt(9 + 19.62 * Math.max(0, p.position[1]))) / 9.81;
         const waterEntry = add(p.position, scale([p.velocity[0], 0, p.velocity[2]], fall));
         const futureTarget = add(targetPoint, scale(motionVelocity(target.motion), fall));
-        const aim = torpedoIntercept(waterEntry, futureTarget, motionVelocity(target.motion), AIR_TORPEDO.speed) ?? futureTarget;
+        const torpedo = aircraftTorpedo(p.modelId);
+        const aim = torpedoIntercept(waterEntry, futureTarget, motionVelocity(target.motion), torpedo.speed) ?? futureTarget;
         fly(p, [aim[0], 26, aim[2]], 70, dt, { bankLimit: distance > 1600 ? .72 : .35, altitudeLookahead: 450 });
         const aligned = dot(normalize([p.velocity[0], 0, p.velocity[2]]), normalize([aim[0] - p.position[0], 0, aim[2] - p.position[2]])) > .999;
         if (distance < 1050 && distance > 650 && p.position[1] < 38 && p.position[1] > 15 && Math.abs(p.bank) < .12 && Math.abs(p.pitch) < .08 && aligned
-          && clearTorpedoLane(actor, waterEntry, aim, AIR_TORPEDO.speed, ctx.actors)) {
-          ctx.releases.push({ id: ctx.nextId(), ownerId: p.ownerId, position: [...p.position], velocity: [p.velocity[0], -3, p.velocity[2]] });
+          && clearTorpedoLane(actor, waterEntry, aim, torpedo.speed, ctx.actors)) {
+          ctx.releases.push({ id: ctx.nextId(), ownerId: p.ownerId, position: [...p.position], velocity: [p.velocity[0], -3, p.velocity[2]], weapon: torpedo });
           p.payload = false; p.phase = 'returning';
           ctx.emit({ kind: 'aircraft-release', position: [...p.position], shipId: p.ownerId, message: 'Torpedo away', aircraft: { id: p.id } });
         }
@@ -554,10 +553,11 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
     const release = ctx.releases[i]; release.velocity[1] -= 9.81 * dt;
     release.position = add(release.position, scale(release.velocity, dt));
     if (release.position[1] <= 0) {
-      const velocity = scale(normalize([release.velocity[0], 0, release.velocity[2]]), AIR_TORPEDO.speed);
-      const position: Vec3 = [release.position[0], -AIR_TORPEDO.runningDepthM, release.position[2]];
-      ctx.torpedoes.push({ id: release.id, ownerId: release.ownerId, tubeId: 'aircraft.payload', position, velocity, distance: 0, age: 0, weapon: AIR_TORPEDO });
-      ctx.emit({ kind: 'torpedo-launch', position, shipId: release.ownerId, message: 'Air torpedo entered water', torpedo: { id: release.id, velocity, diameterM: AIR_TORPEDO.diameterM } });
+      const weapon = release.weapon ?? AIR_TORPEDO;
+      const velocity = scale(normalize([release.velocity[0], 0, release.velocity[2]]), weapon.speed);
+      const position: Vec3 = [release.position[0], -weapon.runningDepthM, release.position[2]];
+      ctx.torpedoes.push({ id: release.id, ownerId: release.ownerId, tubeId: 'aircraft.payload', position, velocity, distance: 0, age: 0, weapon });
+      ctx.emit({ kind: 'torpedo-launch', position, shipId: release.ownerId, message: 'Air torpedo entered water', torpedo: { id: release.id, velocity, diameterM: weapon.diameterM } });
       ctx.releases.splice(i, 1);
     }
   }

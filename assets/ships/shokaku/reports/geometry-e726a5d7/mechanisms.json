@@ -1,0 +1,457 @@
+{
+  "contentHash": "e726a5d79c15da26924c2beb0e527097b0fb6b015983fe00ad4f9821b7fef47f",
+  "scope": "Moving gun mechanisms against their yaw assembly. Fixed, intended trunnion-bearing intersections excluded. Surface intersections need inspection, including contained volumes.",
+  "result": "fail",
+  "variants": [
+    {
+      "partId": "type89-127-a1-twin",
+      "mount": "aa127-port-1",
+      "samples": 57,
+      "interfacesExcluded": "Only trunnion shaft/caps against the elevating bearing, cradle and inner barrel collar.",
+      "clashes": [
+        {
+          "meshes": [
+            "aa127-port-1.loader-platform",
+            "aa127-port-1.training-motor"
+          ],
+          "firstPose": [
+            30,
+            0
+          ],
+          "trianglePairs": 288
+        },
+        {
+          "meshes": [
+            "aa127-port-1.loader-platform",
+            "aa127-port-1.seat-outrigger.001"
+          ],
+          "firstPose": [
+            40,
+            0
+          ],
+          "trianglePairs": 267
+        },
+        {
+          "meshes": [
+            "aa127-port-1.loader-platform",
+            "aa127-port-1.rotating-pedestal"
+          ],
+          "firstPose": [
+            40,
+            0
+          ],
+          "trianglePairs": 381
+        },
+        {
+          "meshes": [
+            "aa127-port-1.loader-platform",
+            "aa127-port-1.power-gearbox"
+          ],
+          "firstPose": [
+            40,
+            0
+          ],
+          "trianglePairs": 120
+        },
+        {
+          "meshes": [
+            "aa127-port-1.loader-platform.001",
+            "aa127-port-1.seat-outrigger"
+          ],
+          "firstPose": [
+            40,
+            0
+          ],
+          "trianglePairs": 252
+        },
+        {
+          "meshes": [
+            "aa127-port-1.loader-platform.001",
+            "aa127-port-1.rotating-pedestal"
+          ],
+          "firstPose": [
+            40,
+            0
+          ],
+          "trianglePairs": 306
+        },
+        {
+          "meshes": [
+            "aa127-port-1.loader-platform",
+            "aa127-port-1.cross-saddle"
+          ],
+          "firstPose": [
+            50,
+            0
+          ],
+          "trianglePairs": 126
+        },
+        {
+          "meshes": [
+            "aa127-port-1.loader-platform.001",
+            "aa127-port-1.cross-saddle"
+          ],
+          "firstPose": [
+            50,
+            0
+          ],
+          "trianglePairs": 132
+        },
+        {
+          "meshes": [
+            "aa127-port-1.loading-tray",
+            "aa127-port-1.training-motor"
+          ],
+          "firstPose": [
+            55,
+            0
+          ],
+          "trianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa127-port-1.loading-tray",
+            "aa127-port-1.power-gearbox"
+          ],
+          "firstPose": [
+            65,
+            0
+          ],
+          "trianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa127-port-1.loader-platform",
+            "aa127-port-1.roller-path"
+          ],
+          "firstPose": [
+            70,
+            0
+          ],
+          "trianglePairs": 27
+        },
+        {
+          "meshes": [
+            "aa127-port-1.loader-platform.001",
+            "aa127-port-1.roller-path"
+          ],
+          "firstPose": [
+            70,
+            0
+          ],
+          "trianglePairs": 27
+        },
+        {
+          "meshes": [
+            "aa127-port-1.loading-tray",
+            "aa127-port-1.rotating-pedestal"
+          ],
+          "firstPose": [
+            80,
+            0
+          ],
+          "trianglePairs": 33
+        },
+        {
+          "meshes": [
+            "aa127-port-1.loading-tray.001",
+            "aa127-port-1.rotating-pedestal"
+          ],
+          "firstPose": [
+            80,
+            0
+          ],
+          "trianglePairs": 30
+        }
+      ]
+    },
+    {
+      "partId": "type89-127-a1-mod2-twin",
+      "mount": "aa127-starboard-3",
+      "samples": 57,
+      "interfacesExcluded": "Only trunnion shaft/caps against the elevating bearing, cradle and inner barrel collar.",
+      "clashes": [
+        {
+          "meshes": [
+            "aa127-starboard-3.recuperator",
+            "aa127-starboard-3.front-apron"
+          ],
+          "firstPose": [
+            -7,
+            0
+          ],
+          "trianglePairs": 126
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.recuperator.001",
+            "aa127-starboard-3.front-apron"
+          ],
+          "firstPose": [
+            -7,
+            0
+          ],
+          "trianglePairs": 126
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.recuperator-piston",
+            "aa127-starboard-3.front-apron"
+          ],
+          "firstPose": [
+            -7,
+            0.5
+          ],
+          "trianglePairs": 66
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.recuperator-piston.001",
+            "aa127-starboard-3.front-apron"
+          ],
+          "firstPose": [
+            -7,
+            0.5
+          ],
+          "trianglePairs": 66
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.loader-platform",
+            "aa127-starboard-3.training-motor"
+          ],
+          "firstPose": [
+            30,
+            0
+          ],
+          "trianglePairs": 288
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.loader-platform",
+            "aa127-starboard-3.seat-outrigger.001"
+          ],
+          "firstPose": [
+            40,
+            0
+          ],
+          "trianglePairs": 267
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.loader-platform",
+            "aa127-starboard-3.rotating-pedestal"
+          ],
+          "firstPose": [
+            40,
+            0
+          ],
+          "trianglePairs": 381
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.loader-platform",
+            "aa127-starboard-3.power-gearbox"
+          ],
+          "firstPose": [
+            40,
+            0
+          ],
+          "trianglePairs": 120
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.loader-platform.001",
+            "aa127-starboard-3.seat-outrigger"
+          ],
+          "firstPose": [
+            40,
+            0
+          ],
+          "trianglePairs": 252
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.loader-platform.001",
+            "aa127-starboard-3.rotating-pedestal"
+          ],
+          "firstPose": [
+            40,
+            0
+          ],
+          "trianglePairs": 306
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.loader-platform",
+            "aa127-starboard-3.cross-saddle"
+          ],
+          "firstPose": [
+            50,
+            0
+          ],
+          "trianglePairs": 126
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.loader-platform.001",
+            "aa127-starboard-3.cross-saddle"
+          ],
+          "firstPose": [
+            50,
+            0
+          ],
+          "trianglePairs": 132
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.loading-tray",
+            "aa127-starboard-3.training-motor"
+          ],
+          "firstPose": [
+            55,
+            0
+          ],
+          "trianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.loading-tray",
+            "aa127-starboard-3.power-gearbox"
+          ],
+          "firstPose": [
+            65,
+            0
+          ],
+          "trianglePairs": 24
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.loader-platform",
+            "aa127-starboard-3.roller-path"
+          ],
+          "firstPose": [
+            70,
+            0
+          ],
+          "trianglePairs": 27
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.loader-platform.001",
+            "aa127-starboard-3.roller-path"
+          ],
+          "firstPose": [
+            70,
+            0
+          ],
+          "trianglePairs": 27
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.loading-tray",
+            "aa127-starboard-3.rotating-pedestal"
+          ],
+          "firstPose": [
+            80,
+            0
+          ],
+          "trianglePairs": 33
+        },
+        {
+          "meshes": [
+            "aa127-starboard-3.loading-tray.001",
+            "aa127-starboard-3.rotating-pedestal"
+          ],
+          "firstPose": [
+            80,
+            0
+          ],
+          "trianglePairs": 30
+        }
+      ]
+    },
+    {
+      "partId": "type96-25-triple",
+      "mount": "aa25-port-1",
+      "samples": 57,
+      "interfacesExcluded": "Only trunnion shaft/caps against the elevating bearing, cradle and inner barrel collar.",
+      "clashes": [
+        {
+          "meshes": [
+            "aa25-port-1.breech-operating-lever.002",
+            "aa25-port-1.seat-outrigger"
+          ],
+          "firstPose": [
+            60,
+            1
+          ],
+          "trianglePairs": 56
+        },
+        {
+          "meshes": [
+            "aa25-port-1.breech-operating-lever.001",
+            "aa25-port-1.rotating-pedestal"
+          ],
+          "firstPose": [
+            75,
+            1
+          ],
+          "trianglePairs": 59
+        },
+        {
+          "meshes": [
+            "aa25-port-1.breech-operating-lever.002",
+            "aa25-port-1.rotating-pedestal"
+          ],
+          "firstPose": [
+            75,
+            1
+          ],
+          "trianglePairs": 57
+        }
+      ]
+    },
+    {
+      "partId": "type96-25-triple-shielded",
+      "mount": "aa25-starboard-3",
+      "samples": 57,
+      "interfacesExcluded": "Only trunnion shaft/caps against the elevating bearing, cradle and inner barrel collar.",
+      "clashes": [
+        {
+          "meshes": [
+            "aa25-starboard-3.breech-operating-lever.002",
+            "aa25-starboard-3.seat-outrigger"
+          ],
+          "firstPose": [
+            60,
+            1
+          ],
+          "trianglePairs": 56
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.breech-operating-lever.001",
+            "aa25-starboard-3.rotating-pedestal"
+          ],
+          "firstPose": [
+            75,
+            1
+          ],
+          "trianglePairs": 59
+        },
+        {
+          "meshes": [
+            "aa25-starboard-3.breech-operating-lever.002",
+            "aa25-starboard-3.rotating-pedestal"
+          ],
+          "firstPose": [
+            75,
+            1
+          ],
+          "trianglePairs": 57
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "id": "eee79276-1169-4aa6-8942-df6005474ac5",
+  "ok": true,
+  "result": {
+    "result": "{\"backend\":\"webgpu\",\"contentHash\":\"5910b4aa1a8127292576b697b9af7bca9ff008d42b3657d7cd7e75c8a14a826d\",\"kind\":\"articulation\",\"mounts\":20,\"poses\":[{\"elevationFraction\":0,\"maxMuzzleErrorM\":0.00003612756180547406,\"recoilFraction\":0,\"trainFraction\":-1},{\"elevationFraction\":0,\"maxMuzzleErrorM\":0.00003612756180547406,\"recoilFraction\":1,\"trainFraction\":-1},{\"elevationFraction\":1,\"maxMuzzleErrorM\":0.0000359906830916928,\"recoilFraction\":0,\"trainFraction\":-1},{\"elevationFraction\":1,\"maxMuzzleErrorM\":0.0000359906830916928,\"recoilFraction\":1,\"trainFraction\":-1},{\"elevationFraction\":0,\"maxMuzzleErrorM\":0.00003100159072552486,\"recoilFraction\":0,\"trainFraction\":0},{\"elevationFraction\":0,\"maxMuzzleErrorM\":0.00003100159072552486,\"recoilFraction\":1,\"trainFraction\":0},{\"elevationFraction\":1,\"maxMuzzleErrorM\":0.00003099803768503522,\"recoilFraction\":0,\"trainFraction\":0},{\"elevationFraction\":1,\"maxMuzzleErrorM\":0.00003099803768503522,\"recoilFraction\":1,\"trainFraction\":0},{\"elevationFraction\":0,\"maxMuzzleErrorM\":0.00003099803768503522,\"recoilFraction\":0,\"trainFraction\":1},{\"elevationFraction\":0,\"maxMuzzleErrorM\":0.00003099803768503522,\"recoilFraction\":1,\"trainFraction\":1},{\"elevationFraction\":1,\"maxMuzzleErrorM\":0.00003099803768503522,\"recoilFraction\":0,\"trainFraction\":1},{\"elevationFraction\":1,\"maxMuzzleErrorM\":0.00003099803768503522,\"recoilFraction\":1,\"trainFraction\":1}],\"shipId\":\"shokaku\",\"time\":\"2026-09-07T23:20:44.930Z\"}",
+    "origin": "http://localhost:52323/?ship=shokaku&review=2"
+  },
+  "_meta": {
+    "runtimeId": "ddeb9046-2fba-425a-ab05-8e6acf1a4049"
+  }
+}

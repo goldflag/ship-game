@@ -1,0 +1,341 @@
+{
+  "contentHash": "b04a6f27641f67fb5177bea72d65023751e642a1284735d69f9e090c837ba898",
+  "recordedAtUtc": "2026-09-08T04:45:38.669180+00:00",
+  "tooling": {
+    "build": "local Blender 5.2.0 LTS",
+    "blenderMcp": "No exposed Blender MCP tools in this session",
+    "runtime": "Isolated headless Chrome 152, WebGPU, actual development Game"
+  },
+  "commands": [
+    {
+      "command": "bun run ship:build shokaku",
+      "result": "pass",
+      "contentHash": "b04a6f27641f67fb5177bea72d65023751e642a1284735d69f9e090c837ba898",
+      "log": "geometry-b04a6f27/ship-build.log"
+    },
+    {
+      "command": "bun run ship:review shokaku",
+      "result": "pass",
+      "evidence": "geometry-b04a6f27/fixed/cameras.json",
+      "log": "geometry-b04a6f27/fixed-review.log"
+    },
+    {
+      "command": "Blender review_decks.py against retained correction-03/before/source.blend with --out",
+      "result": "expected failure",
+      "exitCode": 1,
+      "overlapPairs": 5,
+      "evidence": "correction-03/before/decks-source.json"
+    },
+    {
+      "command": "Blender review_decks.py against final source.blend",
+      "result": "pass",
+      "exitCode": 0,
+      "overlapPairs": 0,
+      "evidence": "geometry-b04a6f27/decks-source.json"
+    },
+    {
+      "command": "Blender review_decks.py --glb public/models/shokaku.glb",
+      "result": "pass",
+      "exitCode": 0,
+      "overlapPairs": 0,
+      "evidence": "geometry-b04a6f27/decks-glb.json"
+    },
+    {
+      "command": "Blender review_windows.py, review_attachments.py, review_geometry.py, review_mechanisms.py, review_rudders.py, review_closeups.py; python3 review_reference_overlay.py",
+      "result": "pass",
+      "evidence": "geometry-b04a6f27/",
+      "reproduction": "../authoring/README.md"
+    },
+    {
+      "command": "runtime_review.js gridSweep(), independentPoses(), neighborBounds(); runtime/decks.js, fidelity.js, inspection.js, rudders.js",
+      "result": "pass",
+      "evidence": "runtime-b04a6f27/articulation.json",
+      "cameraEvidence": "geometry-b04a6f27/decks-cameras.json"
+    },
+    {
+      "command": "bun run test",
+      "result": "pass",
+      "tests": 892,
+      "testFiles": 124,
+      "failed": 0,
+      "durationMs": 45646,
+      "workers": 8,
+      "log": "tests.log"
+    },
+    {
+      "command": "bun run build",
+      "result": "pass",
+      "includes": [
+        "ship:check all",
+        "aircraft:check all",
+        "tsc --noEmit",
+        "vite build"
+      ],
+      "log": "build.log",
+      "warnings": [
+        "Existing shared preload chunk exceeds the configured 7000 kB warning threshold."
+      ]
+    },
+    {
+      "command": "bun run ship:check all",
+      "result": "pass",
+      "log": "geometry-b04a6f27/ship-check.log"
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    }
+  ],
+  "export": {
+    "contentHash": "b04a6f27641f67fb5177bea72d65023751e642a1284735d69f9e090c837ba898",
+    "hullBounds": [
+      [
+        -13.00000286102295,
+        -8.869999885559082,
+        -128.75
+      ],
+      [
+        13.000001907348633,
+        10.449999809265137,
+        128.75
+      ]
+    ],
+    "mounts": [
+      {
+        "id": "aa127-port-1",
+        "measuredPivot": [
+          -14.799994468688965,
+          10.5,
+          -75.69999694824219
+        ],
+        "barrels": 2,
+        "articulationChecks": 6
+      },
+      {
+        "id": "aa127-port-2",
+        "measuredPivot": [
+          -14.799996376037598,
+          10.5,
+          -56
+        ],
+        "barrels": 2,
+        "articulationChecks": 6
+      },
+      {
+        "id": "aa127-port-3",
+        "measuredPivot": [
+          -16.050003051757812,
+          10.5,
+          57.20000076293945
+        ],
+        "barrels": 2,
+        "articulationChecks": 6
+      },
+      {
+        "id": "aa127-port-4",
+        "measuredPivot": [
+          -16.050004959106445,
+          10.5,
+          71
+        ],
+        "barrels": 2,
+        "articulationChecks": 6
+      },
+      {
+        "id": "aa127-starboard-1",
+        "measuredPivot": [
+          14.800005912780762,
+          10.5,
+          -75.69999694824219
+        ],
+        "barrels": 2,
+        "articulationChecks": 6
+      },
+      {
+        "id": "aa127-starboard-2",
+        "measuredPivot": [
+          14.800004005432129,
+          10.5,
+          -56
+        ],
+        "barrels": 2,
+        "articulationChecks": 6
+      },
+      {
+        "id": "aa127-starboard-3",
+        "measuredPivot": [
+          16.04999542236328,
+          10.5,
+          41.20000076293945
+        ],
+        "barrels": 2,
+        "articulationChecks": 6
+      },
+      {
+        "id": "aa127-starboard-4",
+        "measuredPivot": [
+          16.04999542236328,
+          10.5,
+          55.70000076293945
+        ],
+        "barrels": 2,
+        "articulationChecks": 6
+      },
+      {
+        "id": "aa25-port-1",
+        "measuredPivot": [
+          -16.15000343322754,
+          14.25,
+          42
+        ],
+        "barrels": 3,
+        "articulationChecks": 9
+      },
+      {
+        "id": "aa25-port-2",
+        "measuredPivot": [
+          -16.150001525878906,
+          14.25,
+          34.70000076293945
+        ],
+        "barrels": 3,
+        "articulationChecks": 9
+      },
+      {
+        "id": "aa25-port-3",
+        "measuredPivot": [
+          -16.150001525878906,
+          14.25,
+          18.599998474121094
+        ],
+        "barrels": 3,
+        "articulationChecks": 9
+      },
+      {
+        "id": "aa25-port-4",
+        "measuredPivot": [
+          -16.149999618530273,
+          14.25,
+          11.499999046325684
+        ],
+        "barrels": 3,
+        "articulationChecks": 9
+      },
+      {
+        "id": "aa25-port-5",
+        "measuredPivot": [
+          -16.149999618530273,
+          14.25,
+          3.899998903274536
+        ],
+        "barrels": 3,
+        "articulationChecks": 9
+      },
+      {
+        "id": "aa25-port-6",
+        "measuredPivot": [
+          -16.149999618530273,
+          14.25,
+          -3.2000012397766113
+        ],
+        "barrels": 3,
+        "articulationChecks": 9
+      },
+      {
+        "id": "aa25-starboard-1",
+        "measuredPivot": [
+          16.149991989135742,
+          14.25,
+          98.19999694824219
+        ],
+        "barrels": 3,
+        "articulationChecks": 9
+      },
+      {
+        "id": "aa25-starboard-2",
+        "measuredPivot": [
+          16.149991989135742,
+          14.25,
+          91.30000305175781
+        ],
+        "barrels": 3,
+        "articulationChecks": 9
+      },
+      {
+        "id": "aa25-starboard-3",
+        "measuredPivot": [
+          16.149993896484375,
+          14.25,
+          75.30000305175781
+        ],
+        "barrels": 3,
+        "articulationChecks": 9
+      },
+      {
+        "id": "aa25-starboard-4",
+        "measuredPivot": [
+          16.149993896484375,
+          14.25,
+          68.80000305175781
+        ],
+        "barrels": 3,
+        "articulationChecks": 9
+      },
+      {
+        "id": "aa25-starboard-5",
+        "measuredPivot": [
+          17.900001525878906,
+          14.25,
+          -15.19999885559082
+        ],
+        "barrels": 3,
+        "articulationChecks": 9
+      },
+      {
+        "id": "aa25-starboard-6",
+        "measuredPivot": [
+          17.900001525878906,
+          14.25,
+          -22.39999771118164
+        ],
+        "barrels": 3,
+        "articulationChecks": 9
+      }
+    ],
+    "torpedoTubes": [],
+    "depthChargeLaunchers": [],
+    "meshes": 183,
+    "primitives": 397,
+    "triangles": 339244,
+    "bytes": 11920892,
+    "result": "passed",
+    "historicalAccuracy": "not certified; see reference register and discrepancy report"
+  },
+  "review": "acceptance.md",
+  "correction": "correction-03/README.md",
+  "authoringDelta": "geometry-b04a6f27/authoring-delta.json",
+  "historicalAccuracy": "Unresolved original plan provenance, hidden offsets and detail dimensions; no historical certification.",
+  "logSha256": {
+    "tests.log": "bc8576abd68282b2a9c0fdedcaa535e6b7f5b2f2e1dc2c32d8faf97a6e052588",
+    "build.log": "f524e85ad53ff133a64deedae68d5ae5e21ca5325db13c744b8d7d78e341825f"
+  },
+  "runtimeSourceSha256": {
+    "src/game/AircraftView.ts": "0f88c5b3e55d0151b502b5eec5b4e6de23740eac69570d823bfee311d178e10b",
+    "src/game/Game.ts": "304835d1cb861ee9db8228d48f2f0236d2ef95577aa17ce07fbcd8a6c275e2d6",
+    "src/game/ShipFunnelSmoke.ts": "708f400a6c679305003d7b80d201083f10a88cb577ff49b1e34e5cf15d6fe881",
+    "src/game/shipModel.ts": "809189c31c37c40a3378bb35d3dbd6a22dddcb568c832f9f4e5c40f1234e096c",
+    "src/ships/blueprint.ts": "0d35cca646c4c3f640df48da29e93238a5b19747dcafb19dd1cb802ee28c43b0",
+    "src/ships/presets.ts": "0506adbfb218baed92b53e15bfb34af8572583ac6d65e73c45b24c2690dbff0c",
+    "src/simulation/aircraft.ts": "ee5d05b589857997936743d3c3da2665b2e576cea0a1945d891e1aa9b2838616",
+    "src/simulation/aircraftGroundPose.ts": "c6d17cd07ca6a7382908a2815e5739dcd73cad57559308b14c01c776a498f5af",
+    "src/simulation/aircraftWeapons.ts": "67052e75badbc29725e952a262715e3d60de0198676112f006b7aafe29aaa288"
+  },
+  "deckRegressionSha256": "cc2dff2b9c1f885dcebd36047c916812c529818c2b5c368c80ed4e2797a3ea89",
+  "runtimeRudders": {
+    "record": "runtime-b04a6f27/rudders.json",
+    "manualRenderedPoses": 225,
+    "productionAnimation": false
+  },
+  "scope": "Five island structures and gallery fittings. Hull, weapons, aircraft, damage and stability inputs unchanged. Prior gameplay fixtures retain their original model hashes; source and exported geometry/inspection reviews repeated.",
+  "remainingVisualLimitation": "Existing cast-shadow edge aliasing under normal game lighting, isolated in correction-03/shadow-diagnostic.json. No production renderer changes."
+}

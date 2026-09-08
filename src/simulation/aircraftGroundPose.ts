@@ -2,11 +2,14 @@ import catalog from '../../assets/aircraft/catalog.json';
 import wildcat from '../../assets/aircraft/shapes/f4f-4-wildcat.json';
 import dauntless from '../../assets/aircraft/shapes/sbd-3-dauntless.json';
 import devastator from '../../assets/aircraft/shapes/tbd-1-devastator.json';
+import zero from '../../assets/aircraft/shapes/a6m2-zero.json';
+import val from '../../assets/aircraft/shapes/d3a1-val.json';
+import kate from '../../assets/aircraft/shapes/b5n2-kate.json';
 import { rotate, type Pose } from './geometry';
 
 // Use the original gear dimensions, including the wheel-center offsets in
 // assets/aircraft/build.py. Three round tyres define the resting deck plane.
-const poses = new Map([wildcat, dauntless, devastator].map(shape => {
+const poses = new Map([wildcat, dauntless, devastator, zero, val, kate].map(shape => {
   const length = catalog.aircraft.find(model => model.id === shape.id)!.length;
   const gear = shape.gear;
   const mainZ = length * (gear.mainU - .5) - .06;
@@ -14,7 +17,9 @@ const poses = new Map([wildcat, dauntless, devastator].map(shape => {
   const dy = gear.tailWheelZM - gear.wheelZM, dz = tailZ - mainZ;
   const pitch = Math.atan2(dy, dz) - Math.asin((.135 - gear.wheelRadiusM) / Math.hypot(dy, dz));
   const clearance = gear.wheelRadiusM - gear.wheelZM * Math.cos(pitch) + mainZ * Math.sin(pitch);
-  return [shape.id, { pitch, clearance }];
+  // The published rig is generated only by extras.wingFold. Legacy notes such
+  // as wingFoldFraction do not create a hinge in the asset pipeline.
+  return [shape.id, { pitch, clearance, foldingWings: 'wingFold' in shape.extras }];
 }));
 
 export function aircraftGroundPose(modelId: string) {

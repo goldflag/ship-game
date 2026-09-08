@@ -108,6 +108,8 @@ export interface Hull {
 export interface AuthoredStructure {
   id: string; name: string; footprint: [number, number][];
   baseY: number; height: number; material: string;
+  /** Explicit mouth for side-discharging uptakes; otherwise the upper rim is used. */
+  exhaust?: { position: Vec3; width: number; length: number };
   /** Optional original surface for tapered towers and funnel jackets, in runtime coordinates. */
   surface?: AuthoredSurface;
 }
@@ -166,6 +168,15 @@ export interface DamageControlProfile {
   patchM2PerSecond: number; maxPatchM2: number; flashProtection: number; basis: string;
 }
 export type AircraftRole = 'fighter' | 'dive-bomber' | 'torpedo-bomber';
+/** Aircraft with published LODs, authored ground poses and CPU role support. */
+export const GAMEPLAY_AIRCRAFT: Readonly<Record<string, AircraftRole>> = {
+  'f4f-4-wildcat': 'fighter',
+  'sbd-3-dauntless': 'dive-bomber',
+  'tbd-1-devastator': 'torpedo-bomber',
+  'a6m2-zero': 'fighter',
+  'd3a1-val': 'dive-bomber',
+  'b5n2-kate': 'torpedo-bomber',
+};
 export interface AirWingDefinition {
   version: 1; launchPosition: Vec3; recoveryPosition: Vec3; serviceModuleId: string;
   launchIntervalSeconds: number; rearmSeconds: number;
@@ -328,6 +339,12 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
       text(s.name, `${s.id}.name`); text(s.material, `${s.id}.material`);
       numeric(s.baseY, `${s.id}.baseY`, -(h.draft as number), 200);
       numeric(s.height, `${s.id}.height`, .001, 100);
+      if (s.exhaust !== undefined) {
+        const exhaust = record(s.exhaust, `${s.id}.exhaust`);
+        vector(exhaust.position, `${s.id}.exhaust.position`);
+        numeric(exhaust.width, `${s.id}.exhaust.width`, .01, 100);
+        numeric(exhaust.length, `${s.id}.exhaust.length`, .01, 100);
+      }
       const points = list(s.footprint, `${s.id}.footprint`, 256);
       if (points.length < 3) fail(String(s.id), 'footprint needs at least three points');
       points.forEach(p => { const pair = list(p, 'footprint point', 2); if (pair.length !== 2) fail(String(s.id), 'expected [x, z]'); pair.forEach(n => numeric(n, 'footprint coordinate', -1000, 1000)); });
@@ -689,10 +706,9 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     const squadrons = list(wing.squadrons, 'airWing.squadrons', 3).map(s => record(s, 'squadron'));
     if (!squadrons.length) fail('airWing.squadrons', 'requires aircraft');
     unique(squadrons, 'airWing.squadrons');
-    const models: Record<string, string> = { 'f4f-4-wildcat': 'fighter', 'sbd-3-dauntless': 'dive-bomber', 'tbd-1-devastator': 'torpedo-bomber' };
     for (const squadron of squadrons) {
       id(squadron.id, 'squadron.id'); text(squadron.name, 'squadron.name');
-      if (models[String(squadron.modelId)] !== squadron.role || !squadron.role) fail('squadron.modelId', 'unknown aircraft or incompatible role');
+      if (!Object.hasOwn(GAMEPLAY_AIRCRAFT, String(squadron.modelId)) || GAMEPLAY_AIRCRAFT[String(squadron.modelId)] !== squadron.role) fail('squadron.modelId', 'unknown aircraft or incompatible role');
       numeric(squadron.count, 'squadron.count', 1, 36);
       if (!Number.isInteger(squadron.count)) fail('squadron.count', 'expected an integer');
     }

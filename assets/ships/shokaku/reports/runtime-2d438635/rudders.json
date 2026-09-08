@@ -1,0 +1,56 @@
+{
+  "contentHash": "2d43863548c9dfcee9b1822b75dee70d501d16271e334d13ce5c1accfd00c0b8",
+  "backend": "webgpu",
+  "fixture": "Manual review of retained GLB joints; 225 independently paired rendered poses. Normal surface-carrier steering does not animate these joints. Source triangle review supplies separate collision evidence.",
+  "frames": 225,
+  "anglesDeg": [
+    -35,
+    -30,
+    -25,
+    -20,
+    -15,
+    -10,
+    -5,
+    0,
+    5,
+    10,
+    15,
+    20,
+    25,
+    30,
+    35
+  ],
+  "cameraLocal": [
+    12,
+    -8,
+    126
+  ],
+  "targetLocal": [
+    0,
+    -6.8,
+    108
+  ],
+  "screenshots": [
+    {
+      "name": "rudders--35-35",
+      "anglesDeg": [
+        -35,
+        35
+      ]
+    },
+    {
+      "name": "rudders-0-0",
+      "anglesDeg": [
+        0,
+        0
+      ]
+    },
+    {
+      "name": "rudders-35--35",
+      "anglesDeg": [
+        35,
+        -35
+      ]
+    }
+  ]
+}

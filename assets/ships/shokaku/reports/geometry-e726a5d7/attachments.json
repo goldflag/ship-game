@@ -1,0 +1,100 @@
+{
+  "contentHash": "e726a5d79c15da26924c2beb0e527097b0fb6b015983fe00ad4f9821b7fef47f",
+  "method": "Neutral-pose physical contact graph, independent of scene parenting.\n\nTriangle intersections or <=20 mm surface proximity count as contact. The\nproximity allowance covers export precision and thin painted/bolted details.\nEvery disconnected island requires visual inspection; this is not a sole pass.\n",
+  "objects": 12103,
+  "candidatePairsTested": 15434,
+  "contactEdges": 12091,
+  "components": 12,
+  "largestComponentObjects": 12037,
+  "disconnected": [
+    [
+      "Island access frame.005",
+      "Island access leaf.005",
+      "Island access dog.020",
+      "Island access dog.022",
+      "Island access wheel.065",
+      "Island access wheel.066",
+      "Island access wheel.064",
+      "Island access wheel.067",
+      "Island access wheel.063",
+      "Island access wheel.068",
+      "Island access wheel.062",
+      "Island access wheel.069",
+      "Island access wheel.061",
+      "Island access wheel.070",
+      "Island access wheel.060",
+      "Island access wheel.071",
+      "Island access dog.021",
+      "Island access dog.023"
+    ],
+    [
+      "Island access frame.006",
+      "Island access leaf.006",
+      "Island access dog.024",
+      "Island access dog.026",
+      "Island access wheel.077",
+      "Island access wheel.078",
+      "Island access wheel.076",
+      "Island access wheel.079",
+      "Island access wheel.075",
+      "Island access wheel.080",
+      "Island access wheel.074",
+      "Island access wheel.081",
+      "Island access wheel.073",
+      "Island access wheel.082",
+      "Island access wheel.072",
+      "Island access wheel.083",
+      "Island access dog.025",
+      "Island access dog.027"
+    ],
+    [
+      "Island access frame.007",
+      "Island access leaf.007",
+      "Island access dog.028",
+      "Island access dog.030",
+      "Island access wheel.089",
+      "Island access wheel.090",
+      "Island access wheel.088",
+      "Island access wheel.091",
+      "Island access wheel.087",
+      "Island access wheel.092",
+      "Island access wheel.086",
+      "Island access wheel.093",
+      "Island access wheel.085",
+      "Island access wheel.094",
+      "Island access wheel.084",
+      "Island access wheel.095",
+      "Island access dog.029",
+      "Island access dog.031"
+    ],
+    [
+      "Bollard bed.001",
+      "Mooring bollard.002",
+      "Mooring bollard.003"
+    ],
+    [
+      "Bollard bed.005",
+      "Mooring bollard.010",
+      "Mooring bollard.011"
+    ],
+    [
+      "after-funnel exhaust darkness"
+    ],
+    [
+      "after-funnel hull brace"
+    ],
+    [
+      "after-funnel hull brace.001"
+    ],
+    [
+      "forward-funnel exhaust darkness"
+    ],
+    [
+      "forward-funnel hull brace"
+    ],
+    [
+      "forward-funnel hull brace.001"
+    ]
+  ],
+  "result": "review disconnected components"
+}

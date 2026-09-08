@@ -1,0 +1,58 @@
+{
+  "contentHash": "b04a6f27641f67fb5177bea72d65023751e642a1284735d69f9e090c837ba898",
+  "backend": "webgpu",
+  "images": [
+    {
+      "name": "island-forward",
+      "camera": [
+        30,
+        23,
+        -52
+      ],
+      "target": [
+        13.35,
+        19.4,
+        -38
+      ]
+    },
+    {
+      "name": "island-aft",
+      "camera": [
+        28,
+        22,
+        -27
+      ],
+      "target": [
+        13.35,
+        19.4,
+        -39
+      ]
+    },
+    {
+      "name": "stern-quarter",
+      "camera": [
+        36,
+        18,
+        151
+      ],
+      "target": [
+        0,
+        8.5,
+        108
+      ]
+    },
+    {
+      "name": "stern-center",
+      "camera": [
+        0,
+        13,
+        155
+      ],
+      "target": [
+        0,
+        8,
+        112
+      ]
+    }
+  ]
+}

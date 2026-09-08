@@ -1,0 +1,107 @@
+{
+  "contentHash": "16bd50f50408f1a02ed6a0635aaa585a7ae182000b30de6bb7b4ffe5146ef890",
+  "scope": "All moving mount meshes vs all fixed exterior meshes. Triangle surface intersections; intended roller/base contact excluded. This does not establish internal or neighboring clearance.",
+  "result": "sampled static sweep clear",
+  "mounts": [
+    {
+      "mount": "aa127-port-1",
+      "samples": 495,
+      "clashes": []
+    },
+    {
+      "mount": "aa127-port-2",
+      "samples": 495,
+      "clashes": []
+    },
+    {
+      "mount": "aa127-port-3",
+      "samples": 495,
+      "clashes": []
+    },
+    {
+      "mount": "aa127-port-4",
+      "samples": 495,
+      "clashes": []
+    },
+    {
+      "mount": "aa127-starboard-1",
+      "samples": 495,
+      "clashes": []
+    },
+    {
+      "mount": "aa127-starboard-2",
+      "samples": 495,
+      "clashes": []
+    },
+    {
+      "mount": "aa127-starboard-3",
+      "samples": 495,
+      "clashes": []
+    },
+    {
+      "mount": "aa127-starboard-4",
+      "samples": 495,
+      "clashes": []
+    },
+    {
+      "mount": "aa25-port-1",
+      "samples": 627,
+      "clashes": []
+    },
+    {
+      "mount": "aa25-port-2",
+      "samples": 627,
+      "clashes": []
+    },
+    {
+      "mount": "aa25-port-3",
+      "samples": 627,
+      "clashes": []
+    },
+    {
+      "mount": "aa25-port-4",
+      "samples": 627,
+      "clashes": []
+    },
+    {
+      "mount": "aa25-port-5",
+      "samples": 627,
+      "clashes": []
+    },
+    {
+      "mount": "aa25-port-6",
+      "samples": 627,
+      "clashes": []
+    },
+    {
+      "mount": "aa25-starboard-1",
+      "samples": 627,
+      "clashes": []
+    },
+    {
+      "mount": "aa25-starboard-2",
+      "samples": 627,
+      "clashes": []
+    },
+    {
+      "mount": "aa25-starboard-3",
+      "samples": 627,
+      "clashes": []
+    },
+    {
+      "mount": "aa25-starboard-4",
+      "samples": 627,
+      "clashes": []
+    },
+    {
+      "mount": "aa25-starboard-5",
+      "samples": 627,
+      "clashes": []
+    },
+    {
+      "mount": "aa25-starboard-6",
+      "samples": 627,
+      "clashes": []
+    }
+  ]
+}
