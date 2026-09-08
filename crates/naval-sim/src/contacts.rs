@@ -4,6 +4,7 @@ use crate::{
     geometry::*,
     hull_contact::HullContacts,
     machinery::{equipment_box, equipment_pose},
+    mount_frames::mount_frame,
     protection::{PlateHit, plate_hit, same_plate_seam},
     shell::Shell,
     structure::{
@@ -254,13 +255,7 @@ pub fn ship_contacts(
         {
             continue;
         }
-        let pose = Pose {
-            x: m.position[0],
-            y: m.position[1],
-            z: m.position[2],
-            heading: radians(m.bearing_deg) + trains[i],
-            ..Pose::default()
-        };
+        let pose = mount_frame(def, i, &|j| trains[j]);
         let w = &m.weapon;
         box_contacts(
             shell,

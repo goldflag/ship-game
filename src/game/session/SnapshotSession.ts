@@ -16,6 +16,7 @@ import { squadronFlights, type AirOrder, type AirWingState, type AirRelease } fr
 import { physicalLoss, type BattleOutcome } from '../../simulation/battleRules';
 import { presentationAim, presentationTelemetry } from '../../simulation/presentation';
 import { createSeaState } from '../../simulation/sea';
+import { updateMountCarriers } from '../../simulation/mountFrames';
 import type { HelmCommand } from '../../simulation/ship';
 
 /** Wire state is decoded once at the authority boundary. Optional Rust values
@@ -100,6 +101,11 @@ export abstract class SnapshotSession implements BattleSession {
         const { motion, damage, ...rest } = state;
         replaceObject(actor.motion, motion); replaceObject(actor.damage, damage); Object.assign(actor, rest);
       } else this.actors.push(actor);
+      if (actor.definition.mounts.some(m => m.parentMountId)) {
+        // Derived frames belong to presentation state, never the retained delta baseline.
+        actor.mounts = state.mounts.map(m => ({ ...m }));
+        updateMountCarriers(actor.definition, actor.mounts);
+      }
       // AI diagnostics are public; tracking, targeting caches and RNG remain private.
       actor.bot = aiLevel ? { aiLevel } as FleetActor['bot'] : undefined;
       actor.torpedoLaunchers = Object.entries(launcherTrains).map(([id, train]) => ({ id, train }));

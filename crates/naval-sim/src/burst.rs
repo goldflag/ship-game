@@ -119,16 +119,13 @@ pub fn burst_shell(shell: &mut Shell, actors: &mut [Vessel]) -> Vec<DamageEvent>
             }
         }
         for (i, m) in def.mounts.iter().enumerate() {
+            let pose = crate::mount_frames::mount_frame(def, i, &|j| actor.mounts[j].train);
             target(
                 TargetKind::Mount,
                 i,
                 m.id.clone(),
                 m.name.clone(),
-                [
-                    m.position[0],
-                    m.position[1] + m.weapon.gunhouse_size[2] / 2.0,
-                    m.position[2],
-                ],
+                [pose.x, pose.y + m.weapon.gunhouse_size[2] / 2.0, pose.z],
             );
         }
         for (i, c) in def.connections.iter().enumerate() {

@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "files": [
+    "assets/ships/iowa/fittings.py",
+    "assets/ships/iowa/main_battery.py",
+    "assets/ships/iowa/superstructure.py"
+  ]
+}

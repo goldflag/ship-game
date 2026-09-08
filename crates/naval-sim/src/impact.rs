@@ -236,14 +236,9 @@ fn mount_id(def: &ShipDefinition, hit: &ShipContact) -> Option<String> {
 }
 fn mount_pose(actor: &Combatant, def: &ShipDefinition, id: &str) -> Option<Pose> {
     let i = def.mounts.iter().position(|m| m.id == id)?;
-    let m = &def.mounts[i];
-    Some(Pose {
-        x: m.position[0],
-        y: m.position[1],
-        z: m.position[2],
-        heading: radians(m.bearing_deg) + actor.mounts[i].train,
-        ..Pose::default()
-    })
+    Some(crate::mount_frames::mount_frame(def, i, &|j| {
+        actor.mounts[j].train
+    }))
 }
 struct Resolution<'a> {
     hit: &'a ShipContact,
