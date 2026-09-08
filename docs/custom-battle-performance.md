@@ -277,3 +277,40 @@ work and corrected first-pass particle updates, not an additional FPS gain.
 The final empty-page warmup safeguard was added after this FPS sample and passed
 the GPU reset/repopulation check. These measurements still contradict sustained
 60 FPS; the broader scheduling slowdown described above remains unresolved.
+
+### Anti-aircraft simulation work
+
+A V8 profile of the actual WASM runtime identified aircraft distance checks and
+repeated weapon-group JSON construction as substantial simulation costs. Compiled
+ships now retain their immutable weapon-group IDs. AA scans iterate aircraft
+without allocating a temporary list and clone only the selected target. A squared
+distance prefilter rejects clearly farther aircraft; a conservative rounding margin
+keeps boundary cases on the original hypot calculation and strict comparison.
+Friendly-fire lane and hit-distance checks use the same prefilter.
+
+A seeded old/new WASM replay of the thirty-ship, four-carrier battle matched all
+1,200 presentation snapshots exactly through 7,200 ticks. Alternating execution
+order, the last 600 six-tick batches averaged 87.57 ms before and 59.16 ms after,
+about 32% less simulation stepping time. This standalone V8 measurement excludes
+rendering and is not an FPS result.
+
+All 27 native simulation tests pass, including existing battle/carrier references,
+cached group identities against the authored reference, and presentation/authority
+equivalence. The distance prefilter additionally checks 200,000 seeded vectors,
+strict one-ULP selection boundaries and extreme magnitudes. The full production
+build passes with ship and aircraft checks.
+
+Production measurements remain sensitive to the previously observed machine-speed
+variation. The first candidate sample averaged 50.71 FPS, advanced 106.55 seconds
+of simulation in 120 seconds, and had 13 frames over 100 ms (maximum 493.1 ms).
+Ten of those stalls occurred between 24 and 29 seconds. The following unchanged
+control recovered to 62.23 FPS with 118.85 seconds of simulation, no frames over
+100 ms and a 62.5 ms maximum. A repeat candidate then averaged 60.33 FPS with
+119.80 seconds of simulation, no frames over 100 ms and a 62.5 ms maximum. All
+used normal scheduling, High quality and a 1920 x 1080 framebuffer.
+
+The repeated candidate's final five ten-second windows were 47.6-50.4 FPS; the
+control's corresponding windows were 49.4-53.1 FPS. This does not establish an FPS
+gain from the AA changes or sustained 60 FPS. It establishes reduced isolated
+simulation cost with unchanged replay outcomes; late-combat rendering still needs
+work. The first sample's long stalls did not repeat, but their cause is unresolved.

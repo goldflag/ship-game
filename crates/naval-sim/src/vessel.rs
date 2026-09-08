@@ -23,6 +23,7 @@ pub struct CompiledShip {
     pub shell_size: Vec3,
     pub shell_radius: f64,
     pub obstructions: Obstructions,
+    pub weapon_group_ids: Vec<String>,
 }
 impl CompiledShip {
     pub fn new(definition: Arc<ShipDefinition>) -> Result<Self, String> {
@@ -66,6 +67,7 @@ impl CompiledShip {
             contacts: ContactGeometry::new(d)?,
             hydro: HullHydrostatics::new(&d.hull),
             obstructions: Obstructions::new(d),
+            weapon_group_ids: d.mounts.iter().map(crate::gunnery::group_id).collect(),
             definition,
             shell_center,
             shell_size,

@@ -976,6 +976,10 @@ fn complete_battles_match_reference() {
     .unwrap();
     for g in fixture["groups"].as_array().unwrap() {
         assert_eq!(
+            json!(compiled[g["id"].as_str().unwrap()].weapon_group_ids),
+            g["groups"]
+        );
+        assert_eq!(
             json!(
                 catalog.definitions[g["id"].as_str().unwrap()]
                     .mounts

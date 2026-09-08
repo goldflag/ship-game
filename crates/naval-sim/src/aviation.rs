@@ -75,7 +75,10 @@ impl Aviation {
             .map(|w| &mut w.state)
     }
     pub fn planes(&self) -> Vec<&Aircraft> {
-        self.wings.iter().flat_map(|w| &w.state.planes).collect()
+        self.iter_planes().collect()
+    }
+    pub fn iter_planes(&self) -> impl Iterator<Item = &Aircraft> {
+        self.wings.iter().flat_map(|w| &w.state.planes)
     }
     pub fn plane_mut(&mut self, id: &str) -> Option<&mut Aircraft> {
         self.wings

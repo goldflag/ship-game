@@ -105,10 +105,10 @@ pub fn operate(
             continue;
         }
         let allowed = anti_aircraft::surface_allowed(def, m);
-        let group = group_id(m);
+        let group = &compiled.weapon_group_ids[i];
         let selected = allowed
             && player.is_some_and(|p| {
-                p.battery == m.battery && p.weapon_group_id.as_ref().is_none_or(|id| *id == group)
+                p.battery == m.battery && p.weapon_group_id.as_ref().is_none_or(|id| id == group)
             });
         let manual = selected && player.unwrap().weapon_group_id.is_some();
         let mut state = actor.mounts[i].clone();
@@ -148,7 +148,7 @@ pub fn operate(
         if let Some(p) = player {
             if let Some(kind) = p
                 .ammunition
-                .get(&group)
+                .get(group)
                 .or_else(|| p.ammunition.get(&m.battery))
             {
                 state.queue_ammunition(m, *kind)
