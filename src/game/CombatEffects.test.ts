@@ -23,6 +23,25 @@ test('offscreen exhaust keeps drifting and returns at its current pose without l
   pool.dispose(); texture.dispose();
 });
 
+test('volume culling preserves gas inside the near plane and restores drifting offscreen clouds', () => {
+  const texture = effectTexture('smoke');
+  const pool = new EffectParticlePool(4, texture, false, new MeshBasicNodeMaterial(), false, true);
+  const camera = new PerspectiveCamera(60, 1, 10, 1000); camera.updateMatrixWorld();
+  try {
+    const inside = pool.emit(new Vector3()); inside.size = 1; inside.life = 10;
+    const outside = pool.emit(new Vector3(100, 0, -20)); outside.size = 4; outside.life = 10; outside.velocity.x = 2;
+    pool.publish(camera); expect(pool.count).toBe(1);
+    const sphere = pool.mesh.geometry.getAttribute('effectSphere');
+    expect(sphere.getX(0)).toBe(0); expect(sphere.getW(0)).toBe(.5);
+    pool.advance(1, new Vector3());
+    camera.position.x = 102; camera.updateMatrixWorld(); pool.publish(camera);
+    expect(pool.count).toBe(1); expect(sphere.getX(0)).toBe(102);
+    expect(outside.age).toBe(1);
+    camera.position.x = 0; camera.updateMatrixWorld(); pool.publish(camera);
+    expect(pool.count).toBe(1); expect(sphere.getX(0)).toBe(0);
+  } finally { pool.dispose(); texture.dispose(); }
+});
+
 test('heavy AA bursts at the recorded endpoint after flight, survives history eviction, and stays visible in optics', () => {
   const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new PerspectiveCamera();
   try {

@@ -245,7 +245,16 @@ export class EffectParticlePool {
         // quad and stretch; particles outside still age and drift in advance().
         const size = Math.max(.01, p.size + Math.max(0, p.growth) * p.age + Math.max(0, p.diffusion) * p.age);
         this.bounds.set(p.position, size * .5 * Math.hypot(1, p.stretch));
-        if (!this.frustum.intersectsSphere(this.bounds)) continue;
+        if (this.sphere) {
+          // Volume rays start at the camera, including gas inside the near
+          // plane. Only the four side planes can reject their bounding sphere;
+          // the fragment shader owns depth clipping against the captured scene.
+          const planes = this.frustum.planes;
+          if (planes[0].distanceToPoint(p.position) < -this.bounds.radius
+            || planes[1].distanceToPoint(p.position) < -this.bounds.radius
+            || planes[2].distanceToPoint(p.position) < -this.bounds.radius
+            || planes[3].distanceToPoint(p.position) < -this.bounds.radius) continue;
+        } else if (!this.frustum.intersectsSphere(this.bounds)) continue;
       }
       if (this.cullFineWater && (camera as THREE.PerspectiveCamera).isPerspectiveCamera) {
         this.direction.copy(p.position).applyMatrix4(camera.matrixWorldInverse);

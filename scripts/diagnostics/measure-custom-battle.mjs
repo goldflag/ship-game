@@ -54,6 +54,24 @@ try {
     userAgent: navigator.userAgent, hardwareConcurrency: navigator.hardwareConcurrency,
     adapters: window.gpuAdapters,
   })) };
+  if (process.env.PARTICLE_CULL_PROFILE_AFTER) {
+    data.particleCulling = await page.evaluate(() => {
+      const g = review.game, pools = [g.effects.smoke, g.effects.aircraftSmoke, g.effects.flakSmoke, g.effects.fire, g.effects.foam];
+      const original = pools.map(p => p.cullOffscreen), rows = [];
+      try {
+        for (const enabled of [false, true, false, true]) {
+          pools.forEach(p => { p.cullOffscreen = enabled; });
+          for (let frame = 0; frame < 30; frame++) pools.forEach(p => p.publish(g.camera));
+          const start = performance.now();
+          for (let frame = 0; frame < 300; frame++) pools.forEach(p => p.publish(g.camera));
+          rows.push({ enabled, msPerPublication: (performance.now() - start) / 300,
+            pools: pools.map(p => ({ name: p.mesh.name, count: p.count })) });
+        }
+      } finally { pools.forEach((p, i) => { p.cullOffscreen = original[i]; p.publish(g.camera); }); }
+      return rows;
+    });
+    console.log('Particle culling', JSON.stringify(data.particleCulling));
+  }
   if (process.env.LAYOUT_PROFILE_AFTER) {
     await cdp.send('Performance.enable');
     data.overlayLayout = [];

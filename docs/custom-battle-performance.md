@@ -369,3 +369,34 @@ final forty seconds fell to 25.5-28.0 FPS despite earlier unchanged runs remaini
 near 50 FPS there. That instability prevents attributing the full paired FPS
 difference to these changes. The isolated transfer/layout savings are established;
 sustained 60 FPS is still not established.
+
+## Offscreen combat particles
+
+Combat gas, falling-aircraft smoke, flashes and foam now use conservative
+per-particle visibility checks before sorting and writing instance buffers.
+Particles continue aging and drifting outside the viewport. Volume checks use
+only the four side planes: the shader can render gas between the camera and
+its near plane, so ordinary near-plane rejection would remove visible smoke.
+Water droplet/mist thresholds and effect quality settings are unchanged.
+
+The development diagnostic `scripts/diagnostics/particle-culling-gpu.html`
+compares unculled and culled rendering for billboards, velocity-aligned sprites,
+water sprites, additive effects and volumes. All 70 comparisons were pixel-exact,
+covering viewport edges, rear views, zoom, camera-inside and near-plane gas,
+orthographic cameras, and normal/reversed depth. The production ship, aircraft,
+distant and zoom captures were inspected; muzzle error remained below 2.75 mm.
+
+`PARTICLE_CULL_PROFILE_AFTER=1` alternates the old and new publication settings
+on the same frozen battle after its FPS sample. At tick 7185, the affected pools
+fell from 737 to 433 published instances. Their combined publication time fell
+from 0.154-0.157 to 0.115-0.117 ms per frame, about 25%; the absolute CPU saving
+is only about 0.04 ms. This does not establish a substantial FPS increase.
+
+The 120-second High/1080p candidate averaged 58.07 FPS, with late windows at
+47.1-49.7 FPS, no frames over 100 ms and a 55.6 ms maximum. It advanced 119.75
+seconds of simulation. The following unchanged control averaged 58.92 FPS,
+advanced 119.70 seconds of simulation and also had no frames over 100 ms. This
+pair does not demonstrate an FPS gain from culling; its isolated preparation and
+instance-count savings are established. The build and 62 effect, frame-loop and battle tests
+passed; the display-rate determinism test required a retry with a longer timeout
+after exceeding its default five-second limit. Sustained 60 FPS remains unproven.
