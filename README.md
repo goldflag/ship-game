@@ -174,7 +174,7 @@ bun run ship:review my-ship
 bun run ship:check my-ship
 ```
 
-Before authoring historical geometry, inspect the corresponding GameModels3D or War Thunder model as the primary visual reference. Corroborate details with historical plans and photographs; report unavailable primary models explicitly. Independently author all geometry and textures. Keep concise configuration, inspected model links and limitations in the ship README. Research downloads, logs and diagnostic results belong in ignored `.build/`; do not create ship `reports/` or `references/` folders.
+Start “create X ship” with the [collaborative brief and reference approval](docs/ship-pipeline.md#start-a-new-ship-collaboratively): resolve the vessel, year/refit, paint and reference policy, then show clear source previews for user approval before modeling. GameModels3D-only is a supported experimental choice; agents must not add historical photos or plans unless approved. Match the accepted primary model/configuration and independently author all geometry and textures. Keep the short approved brief, source links and limitations in the ship README. Research downloads, logs and diagnostic results belong in ignored `.build/`; do not create ship `reports/` or `references/` folders.
 
 Use [Blender MCP for interactive authoring and visual correction](docs/ship-build-reference.md#blender-mcp-authoring-loop), then preserve accepted changes in original recipes/components and rebuild through `ship:build`. Reinspect the rebuilt scene and exported model before accepting the result.
 

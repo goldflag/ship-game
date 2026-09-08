@@ -7,7 +7,9 @@ bun run ship:overlay
 
 Open **http://127.0.0.1:5180/**. This is a separate local app; it is not part of the game deployment.
 
-1. Select our ship. The list comes from the game's preset roster.
+Before modeling a new ship, show source previews and get approval of the [brief and reference set](../../docs/ship-pipeline.md#start-a-new-ship-collaboratively). This app tints both models for geometry inspection; use the original source viewer to approve paint and markings.
+
+1. Select our ship. The list comes from the game's preset roster; build and register a new ship before trying to inspect it here.
 2. Paste a GameModels3D **World of Warships vehicle page URL or vehicle ID**, then choose **Load from GameModels3D**. Bismarck (`pgsb708`), King George V (`pbsb107`) and Fletcher (`pasd021`) have starter suggestions from earlier authoring work; check the dated fit yourself. Other ships accept any suitable WoWS vehicle page.
 3. Choose the reference hull/equipment configuration. Default equipment selects one A/AB configuration per equipment category. Inspect variants; stock game equipment is not necessarily the historical fit we target.
 4. Choose **Overlay** or **Side by side**. Both panels share an orthographic camera, zoom, scale and alignment, so size differences remain visible. Port and starboard comparisons use two rows, with our ship above the reference. Other views use two columns on desktop; narrow screens stack all views. Use **Front**, **Rear**, **Port side**, **Starboard side**, **Top**, **Bottom** or **3D**; drag either panel to orbit both. **Fit both** frames the combined bounds. Toggle models individually, adjust opacity, wireframe or X-ray, and zoom into details.

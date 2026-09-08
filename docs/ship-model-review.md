@@ -15,17 +15,17 @@ These are authoring and visual acceptance checks. Existing export validation ver
 
 ## 2. Turret, bridge and bow proportions first
 
-Target **100% historically accurate shapes and proportions** for the selected dated configuration. Resolve these recognition features before decorative work.
+Target **faithful shapes and proportions against the user-approved reference and configuration**. Resolve these recognition features before decorative work. Follow the [approved reference policy](ship-pipeline.md#apply-the-approved-reference-policy): GameModels3D-only work is judged against that model, not an independent historical reconstruction. Source approval establishes the target; it does not certify the authored result. Keep user-accepted approximations explicit.
 
-| Feature | Check against historical evidence |
+| Feature | Check against the approved reference |
 | --- | --- |
 | Turrets | Width, length, height, roof/face slopes, barrel spacing and mounting height |
 | Bridge | Tier widths and heights, setbacks and silhouette |
 | Bow in side profile | Stem rake/curvature, overhang, sheer and waterline entry |
 
-- Compare orthographic side, front and top views with dated plans and documented dimensions at a common scale. Use photographs to resolve or corroborate details; unmatched perspective views are qualitative evidence.
+- Compare orthographic side, front and top views with the approved primary model at a common scale. Verify alignment, equipment variant and the waterline/loading assumption. Use dated plans or photographs only when included in the approved reference set; unmatched perspective views are qualitative evidence.
 - Use measurements and matched overlays at the stated waterline/loading condition while reviewing; temporary files belong in `.build/`.
-- Correct known mismatches before declaring completion. Summarize missing or conflicting evidence and provisional reconstruction in the ship README. The 100% target does not justify an unsupported accuracy claim.
+- Correct unaccepted mismatches before declaring completion; agreed approximations must be described as such. Summarize missing or conflicting evidence and provisional reconstruction in the ship README. Do not turn model fidelity into an unsupported historical-accuracy claim.
 
 ## 3. Especially intricate exposed guns
 
@@ -49,4 +49,4 @@ For the development port articulation hook and exact-hash diagnostics, see [runt
 
 Inspect the exact published model/hash, affected assembly IDs and reference configuration. Summarize checks performed, tested poses, failures and unresolved issues in the task response. No tracked review report or reference archive is required. Keep the current five fixed views in `generated/review/`; all additional captures and diagnostic output belong in ignored `.build/`.
 
-Floating parts, known priority-proportion mismatches, placeholder exposed guns and turret clashes **block visual acceptance**. Fix durable inputs, rebuild and repeat affected reviews before reporting completion. Retest every affected ship after shared-component changes. Keep only lasting limitations and source links in the ship README.
+Floating parts, unaccepted priority-proportion mismatches, placeholder exposed guns and turret clashes **block visual acceptance**. Fix durable inputs, rebuild and repeat affected reviews before reporting completion. Retest every affected ship after shared-component changes. Keep only lasting limitations and source links in the ship README.
