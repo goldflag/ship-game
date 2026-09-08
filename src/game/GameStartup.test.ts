@@ -19,6 +19,7 @@ function startup() {
   const gpu = new Promise<void>(resolve => { finishGpu = resolve; });
   const game = Object.assign(Object.create(Game.prototype), {
     scene, disposed: false, finalFrame: { renderTarget: target },
+    playerView: { impactMarks: { createWarmupMesh: () => new Mesh() } },
     callbacks: { progress(_label: string, fraction: number) { progress.push(fraction); } },
     async frame(_time: number, warmingUp: boolean) {
       expect(warmingUp).toBe(true); frames.push(scenery.frustumCulled);

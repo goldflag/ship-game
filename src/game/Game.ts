@@ -1125,7 +1125,11 @@ export class Game {
       if (![pose.trainFraction, pose.elevationFraction, pose.recoilFraction].every(Number.isFinite)) throw new Error('Review fractions must be finite.');
       this.articulationOriginal ??= structuredClone(this.simulation.player.mounts);
       this.articulationLaunchers ??= structuredClone(this.simulation.player.torpedoLaunchers);
-      this.simulation.player.torpedoLaunchers?.forEach(l => { l.train = THREE.MathUtils.clamp(pose.trainFraction, -1, 1) * 140 * Math.PI / 180; });
+      this.simulation.player.torpedoLaunchers?.forEach(l => {
+        const limits = this.definition.torpedoLaunchers?.find(d => d.id === l.id)?.traverseLimitsDeg ?? [-140, 140];
+        const fraction = THREE.MathUtils.clamp(pose.trainFraction, -1, 1);
+        l.train = (fraction < 0 ? -fraction * limits[0] : fraction * limits[1]) * Math.PI / 180;
+      });
       this.simulation.player.mounts.forEach((state, i) => {
         const w = this.definition.mounts[i].weapon;
         state.train = THREE.MathUtils.clamp(pose.trainFraction, -1, 1) * w.traverseDeg * Math.PI / 180;

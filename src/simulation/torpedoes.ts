@@ -28,7 +28,7 @@ export function tubeLocalPosition(actor: Pick<FleetActor, 'definition' | 'torped
   return add(launcher.position, rotate(sub(tube.position, launcher.position), { heading: train, roll: 0, pitch: 0 }));
 }
 
-/** Train each shared five-tube assembly once per tick. The CPU owns its yaw. */
+/** Train each shared torpedo assembly once per tick. The CPU owns its yaw. */
 export function trainTorpedoLaunchers(actor: FleetActor, aimFor: (tube: TubeDefinition) => Vec3 | null, dt: number): void {
   for (const launcher of actor.definition.torpedoLaunchers ?? []) {
     const state = actor.torpedoLaunchers!.find(s => s.id === launcher.id)!;
@@ -40,7 +40,13 @@ export function trainTorpedoLaunchers(actor: FleetActor, aimFor: (tube: TubeDefi
     if (!aim?.every(Number.isFinite)) continue;
     const local = worldToLocal(aim, actor.motion);
     const desired = Math.atan2(local[0] - launcher.position[0], launcher.position[2] - local[2]);
-    state.train = wrapAngle(state.train + clamp(wrapAngle(desired - state.train), -radians(launcher.traverseRateDeg) * dt, radians(launcher.traverseRateDeg) * dt));
+    const rate = radians(launcher.traverseRateDeg) * dt;
+    if (launcher.traverseLimitsDeg) {
+      const [lo, hi] = launcher.traverseLimitsDeg.map(radians);
+      state.train = clamp(state.train, lo, hi);
+      const target = clamp(desired, lo, hi);
+      state.train += clamp(target - state.train, -rate, rate);
+    } else state.train = wrapAngle(state.train + clamp(wrapAngle(desired - state.train), -rate, rate));
   }
 }
 
