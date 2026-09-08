@@ -132,6 +132,8 @@ test('spawn distance accepts its limits and rejects invalid values at setup and 
   }
 });
 
+// This 90-second simulated battle checks behavior, not host throughput. Shared
+// Linux runners measured 17.5–24.6 seconds; leave finite scheduling headroom.
 test('every bot maneuvers, fires both applicable batteries, reloads and damages opposing equipment', () => {
   const sim = fleet();
   const initial = sim.actors.map(actor => actor.mounts.map(mount => mount.ammo));
@@ -178,7 +180,7 @@ test('every bot maneuvers, fires both applicable batteries, reloads and damages 
   carrier.definition.mounts.forEach((mount, i) => { if (mount.weapon.caliberM < .1) expect(carrier.mounts[i].ammo).toBe(initial[3][i]); });
 // This is 90 simulated seconds of fleet behavior, not a wall-clock benchmark.
 // Leave headroom for concurrent renderer tests and shared development hosts.
-}, 20000);
+}, 60000);
 
 test('bots ignore allies, change targets after sinking and hold fire through friendly hulls', () => {
   const sim = fleet(), bot = sim.actors[1];

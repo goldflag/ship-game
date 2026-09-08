@@ -7,3 +7,5 @@ The adjacent logs retain the full TypeScript run, production build, native serve
 These checks do not replace the separately retained prior build’s sustained-combat benchmarks or qualify a public deployment host.
 
 Final integration with master `8495e905` retired ship-reference archives and two test files. The resulting 133-file suite, overlay typecheck/five tests, and production build passed; see the `master-integration-*` logs. Simulation content and build identity remained unchanged. GitHub Actions now downloads LFS assets because the production asset checks require actual GLB/PNG/Blender files.
+
+After the Linux collision corrections, simulation build `27c105994d6a3bb8857f30a12203e18027970addfcf1e4ffc91873e6c3bc7851` passed the full local checks and [complete Linux validation](https://github.com/goldflag/ship-game/actions/runs/34202887964) on commit `6402f452`. The duplicate run exposed a 20-second bot-test deadline sensitive to shared-runner speed; only that test’s wall-clock allowance was increased to 60 seconds afterward. See current PR checks for the rerun.
