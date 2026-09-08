@@ -71,6 +71,8 @@ for (const id of Object.keys(shipPresets)) test(`${id}: every registered AA moun
         fired.add(event.message.replace(' · AA fire', '')); shots++;
         expect(event.aircraft?.target).toBeDefined();
         expect(event.aircraft?.tracerSpeed).toBeGreaterThan(0);
+        const firedMount = mounts.find(mount => event.message === `${mount.name} · AA fire`)!;
+        expect(event.aircraft?.caliberM).toBe(firedMount.weapon.caliberM);
         expect(event.position[1]).toBeGreaterThan(0);
       }
     }

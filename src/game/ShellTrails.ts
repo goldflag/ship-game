@@ -111,7 +111,7 @@ export class ShellTrails {
         this.across.normalize(); this.normal.crossVectors(this.across, this.direction).normalize();
         this.basis.makeBasis(this.across, this.direction, this.normal);
         this.dummy.quaternion.setFromRotationMatrix(this.basis);
-        const caliber = THREE.MathUtils.clamp((trail.shell.caliberM / .38) ** .3, .45, 1.2);
+        const caliber = Math.sqrt(trail.shell.caliberM / .38);
         // Size each endpoint by projected depth. A physical minimum or one
         // midpoint width makes near ribbons fat and forced the old 65 m hide.
         const width = (depth: number) => Math.min(10, 2 * depth / camera.projectionMatrix.elements[5] * .0032) * caliber;

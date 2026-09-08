@@ -116,7 +116,7 @@ export function updateAntiAircraft(actor: FleetActor, m: MountDefinition, state:
   for (const { position, direction, endpoint } of shots) {
     if (length(sub(endpoint, aim)) < (heavy ? 14 : 6)) target.hp -= AIR_GUNNERY.aaDamage(m.weapon.caliberM);
     ctx.emit({ kind: 'aircraft-fire', shipId: actor.motion.id, position, message: `${m.name} · AA fire`,
-      aircraft: { id: target.id, target: endpoint, tracerSpeed: m.weapon.muzzleSpeed, direction, velocity: [...velocity], panic: discipline.panic, dragPerSecond: m.weapon.ballistics?.dragPerSecond ?? 0,
+      aircraft: { id: target.id, target: endpoint, caliberM: m.weapon.caliberM, tracerSpeed: m.weapon.muzzleSpeed, direction, velocity: [...velocity], panic: discipline.panic, dragPerSecond: m.weapon.ballistics?.dragPerSecond ?? 0,
         ...(heavy ? { airburst: { flightTime: burstTime, caliberM: m.weapon.caliberM } } : {}) } });
   }
   return true;

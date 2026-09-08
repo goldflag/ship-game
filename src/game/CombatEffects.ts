@@ -52,7 +52,7 @@ export class CombatEffects {
   // Water's depth-based postprocessing otherwise classifies these low-flying
   // lights as sea pixels and erases them. Reject the transparent quad margins.
   private readonly shellGlows = new ExpandableInstances(new THREE.PlaneGeometry(1, 1),
-    new THREE.MeshBasicMaterial({ map: this.maps.flash, color: new THREE.Color('#ffe8bc').multiplyScalar(2.5), opacity: .65,
+    new THREE.MeshBasicMaterial({ map: this.maps.flash, color: new THREE.Color('#ffe8bc').multiplyScalar(1.45), opacity: .22,
       transparent: true, blending: THREE.AdditiveBlending, alphaTest: .02, depthWrite: true, side: THREE.DoubleSide }), 256);
   private readonly streaks = new ExpandableInstances(new THREE.PlaneGeometry(1, 1),
     new THREE.MeshBasicMaterial({ map: this.maps.tracer, color: new THREE.Color('#fff1d0').multiplyScalar(3.2), transparent: true, opacity: .9,
@@ -169,11 +169,48 @@ export class CombatEffects {
         puff.size = (7 + random() * 3) * scale;
         puff.growth = 18 * scale; puff.growthDecay = 3; puff.diffusion = 1.1 * scale;
         puff.life = 5.5 + random(); puff.age = age; puff.opacity = .95; puff.fadeIn = .035;
-        puff.density = 5.5; puff.cooling = .1; puff.dissipationTime = 2.8;
+        // Unequal hot lobes ignite together, then expose the charcoal cloud.
+        puff.heat = i === 0 ? 1.15 : .85 + random() * .2;
+        puff.density = 5.5; puff.cooling = .38 + random() * .14; puff.dissipationTime = 2.8;
         puff.velocity.set((random() - .5) * .8, .4 + random() * .5, (random() - .5) * .8);
         puff.wind = 1; puff.seed = random() * 100;
-        puff.color.set('#69645a').multiplyScalar(.85 + random() * .3);
+        puff.color.set('#45484d').multiplyScalar(.85 + random() * .3);
         puff.position.addScaledVector(puff.velocity, age).addScaledVector(this.wind, age);
+      }
+      // Brief radial gas fingers break up the round cloud silhouette. Their
+      // world axes stay fixed as they open and cool; this is cosmetic debris.
+      for (let i = 0; i < 5; i++) {
+        const yaw = random() * Math.PI * 2, y = random() * 1.8 - .9;
+        this.direction.set(Math.cos(yaw) * Math.sqrt(1 - y * y), y, Math.sin(yaw) * Math.sqrt(1 - y * y));
+        const life = .85 + random() * .45;
+        const speed = (8 + random() * 5) * scale, seed = random() * 100;
+        if (age >= life) continue;
+        const puff = this.flakSmoke.emit(this.position);
+        puff.position.addScaledVector(this.direction, 2 * scale);
+        puff.velocity.copy(this.direction).multiplyScalar(speed);
+        puff.size = 4 * scale; puff.growth = 38 * scale; puff.growthDecay = 6;
+        puff.volumeAspect = 3.2; puff.volumeYaw = yaw; puff.volumeAxisY = y;
+        puff.life = life; puff.age = age; puff.opacity = .9;
+        puff.heat = .5; puff.cooling = .18; puff.density = 4.5; puff.dissipationTime = .55;
+        puff.wind = 1; puff.seed = seed; puff.color.set('#3e4249');
+        puff.position.addScaledVector(puff.velocity, age).addScaledVector(this.wind, age);
+      }
+      // Narrow, separated fragments leave the fireball and burn out quickly.
+      // Reuse the bounded ignition batch; no per-burst objects or lights.
+      for (let i = 0; i < 14; i++) {
+        const life = .22 + random() * .16;
+        const yaw = random() * Math.PI * 2, y = 1 - 2 * (i + .5) / 14;
+        const speed = (65 + random() * 55) * scale, size = (.18 + random() * .14) * scale, stretch = 16 + random() * 12;
+        if (age >= life) continue;
+        const fragment = this.fire.emit(this.position);
+        fragment.velocity.set(Math.cos(yaw) * Math.sqrt(1 - y * y), y, Math.sin(yaw) * Math.sqrt(1 - y * y))
+          .multiplyScalar(speed);
+        fragment.size = size; fragment.stretch = stretch;
+        fragment.align = 'velocity'; fragment.life = life; fragment.age = age;
+        fragment.gravity = 9.81; fragment.opacity = .9; fragment.color.set('#ffd391').multiplyScalar(2.5);
+        fragment.position.addScaledVector(fragment.velocity, age);
+        fragment.position.y -= .5 * fragment.gravity * age * age;
+        fragment.velocity.y -= fragment.gravity * age;
       }
     }
   }
@@ -274,7 +311,10 @@ export class CombatEffects {
       // In shell-follow range the luminous head recedes to reveal the metal round.
       const tracking = THREE.MathUtils.smoothstep(this.cameraPosition.distanceTo(this.position), 65, 150);
       const luminous = !shell.lodged && shell.waterDragPerSecond === undefined;
-      const glowSize = luminous ? Math.max(shell.caliberM * .6, Math.min(32, viewHeight * .006)) * (.2 + .8 * tracking) : 0;
+      // Caliber also scales the screen-space visibility floor. A shared floor
+      // made 20 mm rounds look as large as main-battery shells at equal range.
+      const caliberScale = Math.sqrt(shell.caliberM / .38);
+      const glowSize = luminous ? Math.max(shell.caliberM * .45, Math.min(16, viewHeight * .003) * caliberScale) * (.2 + .8 * tracking) : 0;
       this.dummy.quaternion.copy(this.cameraRotation);
       this.dummy.scale.set(glowSize, glowSize, 1);
       this.dummy.updateMatrix(); this.shellGlows.setMatrixAt(i, this.dummy.matrix);
@@ -297,7 +337,7 @@ export class CombatEffects {
       this.normal.crossVectors(this.across, this.direction).normalize();
       this.tracerBasis.makeBasis(this.across, this.direction, this.normal);
       this.dummy.quaternion.setFromRotationMatrix(this.tracerBasis);
-      this.dummy.scale.set(Math.max(shell.caliberM * .55, Math.min(18, viewHeight * .0045)) * (.2 + .8 * tracking), length, 1);
+      this.dummy.scale.set(Math.max(shell.caliberM * .55, Math.min(18, viewHeight * .0045) * caliberScale) * (.2 + .8 * tracking), length, 1);
       this.dummy.updateMatrix(); this.streaks.setMatrixAt(i, this.dummy.matrix);
     }
     for (const mesh of [this.projectiles, this.streaks, this.shellGlows]) {

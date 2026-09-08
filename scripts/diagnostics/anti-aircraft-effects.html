@@ -14,6 +14,7 @@
   <button onclick="aaEffectsReview.sample('light',2)">Light AA · 2 seconds</button>
   <button onclick="aaEffectsReview.sample('heavy',1.25)">Heavy AA · in flight</button>
   <button onclick="aaEffectsReview.sample('heavy',2.1)">Heavy AA · burst</button>
+  <button onclick="aaEffectsReview.sample('heavy',2.3)">Heavy AA · fragments</button>
   <button onclick="aaEffectsReview.sample('heavy',4)">Heavy AA · drifting smoke</button>
   <button onclick="aaEffectsReview.sample('heavy',9)">Expired smoke</button>
 </nav>
@@ -28,6 +29,9 @@ const game = new Game(document.querySelector('#scene'), {quality:'medium',resolu
   progress: message => window.reviewProgress = message, ready, telemetry:()=>{},pause:()=>{},hud:()=>{},error:message=>window.reviewError=message,
 });
 game.start(); await loaded; game.setInPort(false); game.setPaused(true); game.rig.update=()=>{};
+// Explicit frames keep frozen captures reproducible even in a background tab.
+game.scheduleFrame=()=>{};
+cancelAnimationFrame(game.raf);await game.frameTask;cancelAnimationFrame(game.raf);
 const sim=game.simulation;
 async function sample(kind,seconds) {
   sim.reset(); game.effects.reset(); game.shipWake.reset();
@@ -36,7 +40,7 @@ async function sample(kind,seconds) {
   game.camera.position.set(210,155,180);game.camera.lookAt(-70,220,-1200);
   // Inspect flight from behind the shells; the burst close-up lies beyond them
   // before detonation and would put the in-flight sample outside the camera.
-  if(kind==='heavy' && seconds>=2) {game.camera.position.set(200,265,-1200);game.camera.lookAt(0,350,-1800);}
+  if(kind==='heavy' && seconds>=2) {game.camera.position.set(200,600,-1200);game.camera.lookAt(0,330,-1650);}
   game.camera.updateProjectionMatrix();game.camera.updateMatrixWorld(true);
   const actor=sim.player;
   let sequence=0;
@@ -51,7 +55,7 @@ async function sample(kind,seconds) {
     const flightTime=kind==='heavy'?2:Math.hypot(...sub(aim,position))/speed;
     const target=ballisticStep(position,scale(direction,speed),flightTime).position;
     sim.events.push({sequence:++sequence,tick:0,kind:'aircraft-fire',shipId:actor.motion.id,position,message:'AA review',
-      aircraft:{id:'review-target',target,direction,velocity:[0,0,0],tracerSpeed:speed,...(heavy?{airburst:{flightTime,caliberM:mount.weapon.caliberM}}:{})}});
+      aircraft:{id:'review-target',target,direction,velocity:[0,0,0],caliberM:mount.weapon.caliberM,tracerSpeed:speed,...(heavy?{airburst:{flightTime,caliberM:mount.weapon.caliberM}}:{})}});
   }
   for(let i=0;i<=Math.round(seconds*60);i++) {
     sim.tick=i+1;
@@ -60,8 +64,8 @@ async function sample(kind,seconds) {
     // Exercise the original failure: history disappears before these shots finish.
     if(i===15) sim.events.length=0;
   }
-  for(let i=0;i<3;i++){await new Promise(requestAnimationFrame);await game.frameTask;}
-  game.pipeline.render();
+  game.renderer._nodes.nodeFrame.update();
+  await game.frame(performance.now());
   const tracers=game.aircraftView.gunfire.diagnostics();
   const tips=game.aircraftView.gunfire.root.getObjectByName('Aircraft tracer tips');
   let visibleTracers=0;

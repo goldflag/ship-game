@@ -95,10 +95,13 @@ export class AircraftGunfire {
         this.normal.copy(this.dummy.position).applyMatrix4(camera.matrixWorldInverse);
         const depth = camera.projectionMatrix.elements[11] === -1 ? Math.max(.1, -this.normal.z) : 1;
         const viewHeight = 2 * depth / camera.projectionMatrix.elements[5];
-        const width = Math.max(.12, Math.min(2.4, viewHeight * .0012));
-        this.dummy.quaternion.copy(camera.quaternion); this.dummy.scale.setScalar(width * 2.2);
-        this.write(this.tips, count, opacity * .65);
-        const length = this.velocity.length() * Math.min(.022, flight);
+        const caliber = data.caliberM ?? data.airburst?.caliberM ?? .02;
+        const caliberScale = aa ? Math.sqrt(caliber / .105) : 1;
+        const width = Math.max(.12, Math.min(2.4, viewHeight * .0012)) * caliberScale * (aa ? .95 : 1);
+        this.dummy.quaternion.copy(camera.quaternion); this.dummy.scale.setScalar(width * (aa ? 1.5 : 2.2));
+        this.write(this.tips, count, opacity * (aa ? .35 : .65));
+        const exposure = aa ? .022 * THREE.MathUtils.clamp(caliberScale, .55, 1.2) : .022;
+        const length = this.velocity.length() * Math.min(exposure, flight);
         this.velocity.normalize(); this.dummy.position.addScaledVector(this.velocity, -length / 2);
         this.normal.subVectors(camera.position, this.dummy.position).normalize();
         this.across.crossVectors(this.velocity, this.normal);
@@ -106,8 +109,8 @@ export class AircraftGunfire {
         this.across.normalize(); this.normal.crossVectors(this.across, this.velocity).normalize();
         this.basis.makeBasis(this.across, this.velocity, this.normal);
         this.dummy.quaternion.setFromRotationMatrix(this.basis);
-        this.dummy.scale.set(width * 2.6, length, 1); this.write(this.ribbons, count, opacity * .65);
-        this.dummy.scale.x = width * .65; this.write(this.cores, count++, opacity);
+        this.dummy.scale.set(width * (aa ? 2.3 : 2.6), length, 1); this.write(this.ribbons, count, opacity * (aa ? .55 : .65));
+        this.dummy.scale.x = width * (aa ? .85 : .65); this.write(this.cores, count++, opacity);
       }
     }
     this.count = count;

@@ -1,0 +1,11 @@
+{
+  "baseline": "1a272279bbad006000cbc8387f250b04c543e4ce",
+  "files": {
+    "src/game/CombatEffects.ts": "56a0abc7a2605805069ff8f5b87362d65af8ea99a47165aab1f37364448420f1",
+    "src/game/AircraftGunfire.ts": "e44b27eea8d98a3ab0904269425c6cc7e7c10d59b71bd23339db11ba1bf18d72",
+    "src/game/ShellTrails.ts": "46754e2585d98f35d48119ebe6c95b02a9bd9d369a9a3d9863da748ea989b3cf",
+    "src/simulation/antiAircraft.ts": "6bfeb1d9a906c96ed6312f790fdadfbe7cb664bb89ef7cabe2ffe20b2e87fe13",
+    "src/simulation/combat.ts": "ae79b41efb92607eabcf8862b9b7f3cd27e6ad29137373582da235c0cee51920",
+    "scripts/diagnostics/anti-aircraft-effects.html": "89dc507e5786ea8ed65841fea9073a18c9dc9a1a8b4bcb66aa657156f6ee62e5"
+  }
+}
